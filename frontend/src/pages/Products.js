@@ -1,5 +1,6 @@
-import { Check, Eye, Pencil, Search, Tag, Trash2 } from "lucide-react"
+import { Check, Pencil, Search, Tag, X } from "lucide-react"
 import { useState } from "react"
+import PageLayout from "../components/layout/PageLayout"
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState("")
@@ -365,222 +366,271 @@ const Products = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-          Prodotti
-        </h1>
-
-        {/* Search bar */}
-        <div className="flex items-center space-x-4">
-          <div className="relative w-64">
-            <input
-              type="text"
-              placeholder="Cerca prodotti..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            />
-            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-          </div>
-          {!isAdding && (
-            <button
-              onClick={() => setIsAdding(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
-            >
-              <span className="mr-2">Aggiungi Prodotto</span>
-              <span className="text-lg">+</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Products grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map((product) => (
-          <div
-            key={product.id}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden"
-          >
-            {/* Product Image */}
-            <div className="aspect-w-16 aspect-h-9 relative">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-48 object-cover"
-                onError={(e) => {
-                  e.target.onerror = null
-                  e.target.src = `https://placehold.co/800x600/EFEFEF/999999?text=${encodeURIComponent(
-                    product.name
-                  )}`
-                }}
-                loading="lazy"
+    <PageLayout title="Products">
+      <div>
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-64 pl-10 pr-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              Add Product
+            </button>
+          </div>
+        </div>
 
-            <div className="p-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    {product.name}
-                  </h3>
-                  {/* Category tag */}
-                  <div className="flex items-center mt-1">
-                    <Tag className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-1" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {product.category}
-                    </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProducts.map((product) => (
+            <div
+              key={product.id}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden"
+            >
+              {/* Product Image */}
+              <div className="aspect-w-16 aspect-h-9 relative">
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-48 object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null
+                    e.target.src = `https://placehold.co/800x600/EFEFEF/999999?text=${encodeURIComponent(
+                      product.name
+                    )}`
+                  }}
+                  loading="lazy"
+                />
+              </div>
+
+              <div className="p-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                      {product.name}
+                    </h3>
+                    {/* Category tag */}
+                    <div className="flex items-center mt-1">
+                      <Tag className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-1" />
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {product.category}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xl font-semibold text-gray-900 dark:text-white">
+                    €{product.price.toFixed(2)}
+                  </p>
+                </div>
+
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                  {product.description}
+                </p>
+
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Stock: {product.stock} units
+                  </p>
+                </div>
+
+                <div className="mt-6 flex justify-between items-center">
+                  {/* Active status */}
+                  <span
+                    className={`px-3 py-1 text-sm font-medium rounded-full ${
+                      product.isActive
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    Active
+                  </span>
+
+                  {/* Action buttons */}
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => handleEdit(product.id)}
+                      className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                    >
+                      <Pencil className="h-5 w-5" />
+                    </button>
                   </div>
                 </div>
-                <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                  €{product.price.toFixed(2)}
-                </p>
               </div>
+            </div>
+          ))}
+        </div>
 
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                {product.description}
-              </p>
+        {/* Edit Modal */}
+        {editingId !== null && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Edit Product
+                  </h2>
+                  <button
+                    onClick={handleCancel}
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
 
-              <div className="mt-4">
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Disponibilità: {product.stock} unità
-                </p>
-              </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Product Name
+                    </label>
+                    <input
+                      type="text"
+                      value={newProduct.name}
+                      onChange={(e) =>
+                        setNewProduct({ ...newProduct, name: e.target.value })
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white sm:text-sm"
+                      placeholder="Enter product name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Description
+                    </label>
+                    <textarea
+                      value={newProduct.description}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          description: e.target.value,
+                        })
+                      }
+                      rows={3}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white sm:text-sm"
+                      placeholder="Enter product description"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Price (€)
+                    </label>
+                    <input
+                      type="number"
+                      value={newProduct.price}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          price: e.target.value,
+                        })
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white sm:text-sm"
+                      placeholder="Enter price"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Category
+                    </label>
+                    <select
+                      value={newProduct.category}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          category: e.target.value,
+                        })
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white sm:text-sm"
+                    >
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.name}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Stock
+                    </label>
+                    <input
+                      type="number"
+                      value={newProduct.stock}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          stock: parseInt(e.target.value),
+                        })
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white sm:text-sm"
+                      placeholder="Enter stock quantity"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Image URL
+                    </label>
+                    <input
+                      type="text"
+                      value={newProduct.image}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          image: e.target.value,
+                        })
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white sm:text-sm"
+                      placeholder="Enter image URL"
+                    />
+                  </div>
+                  <div className="flex items-center mt-4">
+                    <input
+                      type="checkbox"
+                      id="isActive"
+                      checked={newProduct.isActive}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          isActive: e.target.checked,
+                        })
+                      }
+                      className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor="isActive"
+                      className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+                    >
+                      Active
+                    </label>
+                  </div>
+                </div>
 
-              <div className="mt-6 flex justify-between items-center">
-                {/* Active status */}
-                <span
-                  className={`px-3 py-1 text-sm font-medium rounded-full ${
-                    product.isActive
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  Attivo
-                </span>
-
-                {/* Action buttons */}
-                <div className="flex space-x-3">
-                  <button className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
-                    <Eye className="h-5 w-5" />
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    onClick={handleCancel}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-700"
+                  >
+                    Cancel
                   </button>
                   <button
-                    onClick={() => handleEdit(product.id)}
-                    className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                    onClick={() => handleUpdate(editingId)}
+                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
                   >
-                    <Pencil className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                  >
-                    <Trash2 className="h-5 w-5" />
+                    <Check className="w-4 h-4 mr-2" />
+                    Update
                   </button>
                 </div>
               </div>
             </div>
           </div>
-        ))}
+        )}
       </div>
-
-      {/* Add/Edit Form */}
-      {(isAdding || editingId !== null) && (
-        <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Product Name
-              </label>
-              <input
-                type="text"
-                value={newProduct.name}
-                onChange={(e) =>
-                  setNewProduct({ ...newProduct, name: e.target.value })
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white sm:text-sm"
-                placeholder="Enter product name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Description
-              </label>
-              <input
-                type="text"
-                value={newProduct.description}
-                onChange={(e) =>
-                  setNewProduct({
-                    ...newProduct,
-                    description: e.target.value,
-                  })
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white sm:text-sm"
-                placeholder="Enter product description"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Price (€)
-              </label>
-              <input
-                type="number"
-                value={newProduct.price}
-                onChange={(e) =>
-                  setNewProduct({
-                    ...newProduct,
-                    price: e.target.value,
-                  })
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white sm:text-sm"
-                placeholder="Enter price"
-                min="0"
-                step="0.01"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Categories
-              </label>
-              <div className="space-y-2">
-                {categories.map((category) => (
-                  <label
-                    key={category.id}
-                    className="flex items-center space-x-2"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={newProduct.categories.includes(category.id)}
-                      onChange={() => handleCategoryToggle(category.id)}
-                      className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      {category.name}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={handleCancel}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() =>
-                  editingId !== null ? handleUpdate(editingId) : handleAdd()
-                }
-                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-              >
-                <Check className="w-4 h-4 mr-2" />
-                {editingId !== null ? "Update" : "Add"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </PageLayout>
   )
 }
 

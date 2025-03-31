@@ -1,40 +1,43 @@
-import {
-  ArrowDown,
-  ArrowUp,
-  Package,
-  Printer,
-  ShoppingCart,
-  Users,
-} from "lucide-react"
-import { Link } from "react-router-dom"
+import { Package, Printer, ShoppingCart, Users } from "lucide-react"
+import { Link, useNavigate } from "react-router-dom"
+import PageLayout from "../components/layout/PageLayout"
+
+const stats = [
+  {
+    name: "Orders",
+    value: "156",
+    icon: ShoppingCart,
+  },
+  {
+    name: "Orders in Pending",
+    value: "12",
+    icon: Package,
+  },
+  {
+    name: "New Users",
+    value: "23",
+    icon: Users,
+  },
+]
 
 const Dashboard = () => {
+  const navigate = useNavigate()
   const currentMonth = new Date().toLocaleString("default", { month: "long" })
   const currentYear = new Date().getFullYear()
 
-  const stats = [
-    {
-      name: "Orders",
-      value: "156",
-      change: "+12%",
-      changeType: "positive",
-      icon: ShoppingCart,
-    },
-    {
-      name: "Products",
-      value: "89",
-      change: "-2%",
-      changeType: "negative",
-      icon: Package,
-    },
-    {
-      name: "New Users",
-      value: "23",
-      change: "+8%",
-      changeType: "positive",
-      icon: Users,
-    },
-  ]
+  const productOfTheMonth = {
+    name: "Parmigiano Reggiano DOP 24 mesi",
+    sales: 149.99,
+    image:
+      "https://images.unsplash.com/photo-1612480797665-c96d261eae09?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+  }
+
+  const clientOfTheMonth = {
+    name: "Mark Ross",
+    orders: 12,
+    totalSpent: "€789.50",
+    avatar: null,
+  }
 
   const recentOrders = [
     {
@@ -288,199 +291,253 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Month indicator */}
-      <div className="text-lg font-medium text-gray-900 dark:text-white">
-        Overview for {currentMonth} {currentYear}
-      </div>
+    <PageLayout title="Dashboard">
+      <div className="space-y-6">
+        {/* Month indicator */}
+        <div className="text-lg font-medium text-gray-900 dark:text-white">
+          Overview for {currentMonth} {currentYear}
+        </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat) => (
-          <div
-            key={stat.name}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  {stat.name}
-                </p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {stat.value}
-                </p>
-              </div>
-              <div
-                className={`p-3 rounded-full ${
-                  stat.name === "Orders"
-                    ? "bg-blue-100 text-blue-600"
-                    : stat.name === "Products"
-                    ? "bg-green-100 text-green-600"
-                    : "bg-purple-100 text-purple-600"
-                }`}
-              >
-                <stat.icon className="h-6 w-6" />
-              </div>
-            </div>
-            <div className="mt-4">
-              <div className="flex items-center">
-                {stat.changeType === "positive" ? (
-                  <ArrowUp className="h-4 w-4 text-green-500" />
-                ) : (
-                  <ArrowDown className="h-4 w-4 text-red-500" />
-                )}
-                <span
-                  className={`ml-2 text-sm font-medium ${
-                    stat.changeType === "positive"
-                      ? "text-green-500"
-                      : "text-red-500"
+        {/* Stats */}
+        <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
+          {stats.map((stat, index) => (
+            <div
+              key={index}
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {stat.name}
+                  </p>
+                  <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                    {stat.value}
+                  </p>
+                </div>
+                <div
+                  className={`p-3 rounded-full ${
+                    stat.name === "Orders"
+                      ? "bg-blue-100 text-blue-600"
+                      : stat.name === "Orders in Pending"
+                      ? "bg-green-100 text-green-600"
+                      : "bg-purple-100 text-purple-600"
                   }`}
                 >
-                  {stat.change}
-                </span>
+                  <stat.icon className="h-6 w-6" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Product and Client of the Month */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Product of the Month */}
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-lg font-medium text-gray-900 dark:text-white">
+                Product of the Month
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
+                <img
+                  src={productOfTheMonth.image}
+                  alt={productOfTheMonth.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white">
+                  {productOfTheMonth.name}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {productOfTheMonth.sales} sales
+                </p>
               </div>
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Recent Orders */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-        <div className="p-6">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-            Recent Orders
-          </h3>
-          <div className="mt-6">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead>
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Order ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {recentOrders.map((order) => (
-                  <tr key={order.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400">
-                      <Link to={`/orders/${order.id}`}>{order.id}</Link>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {order.customer}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {order.product}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          order.status === "Delivered"
-                            ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100"
-                            : order.status === "Processing"
-                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100"
-                            : order.status === "Shipped"
-                            ? "bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100"
-                            : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
-                        }`}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {order.amount}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handlePrintInvoice(order)}
-                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                        title="Print Invoice"
-                      >
-                        <Printer className="h-4 w-4 mr-1.5" />
-                        Invoice
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Client of the Month */}
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-lg font-medium text-gray-900 dark:text-white">
+                Client of the Month
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden flex items-center justify-center">
+                {clientOfTheMonth.avatar ? (
+                  <img
+                    src={clientOfTheMonth.avatar}
+                    alt={clientOfTheMonth.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl font-medium text-gray-600 dark:text-gray-300">
+                    {clientOfTheMonth.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </span>
+                )}
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white">
+                  {clientOfTheMonth.name}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {clientOfTheMonth.orders} orders
+                </p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  Total spent: {clientOfTheMonth.totalSpent}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Recent Chats */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              Recent Chats
-            </h3>
-            <Link
-              to="/chat-history"
-              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-            >
-              View all
-            </Link>
-          </div>
-          <div className="space-y-4">
-            {recentChats.map((chat) => (
+        {/* Recent Orders */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <span className="text-lg font-medium text-gray-900 dark:text-white">
+                Recent Orders
+              </span>
               <Link
-                key={chat.id}
-                to="/chat-history"
-                className="block hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg p-4 transition-colors"
+                to="/orders"
+                className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-shrink-0">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                        <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                          {chat.customer
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
+                View all
+              </Link>
+            </div>
+            <div className="mt-6">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Order ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {recentOrders.map((order) => (
+                    <tr
+                      key={order.id}
+                      onClick={() => navigate(`/orders/${order.id}`)}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400">
+                        {order.id}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {order.customer}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            order.status === "Delivered"
+                              ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100"
+                              : order.status === "Processing"
+                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100"
+                              : order.status === "Shipped"
+                              ? "bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100"
+                              : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
+                          }`}
+                        >
+                          {order.status}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {order.amount}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handlePrintInvoice(order)
+                          }}
+                          className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                        >
+                          <Printer className="h-4 w-4 mr-1.5" />
+                          Invoice
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Chats */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <span className="text-lg font-medium text-gray-900 dark:text-white">
+                Recent Chats
+              </span>
+              <Link
+                to="/chat-history"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                View all
+              </Link>
+            </div>
+            <div className="space-y-4">
+              {recentChats.map((chat) => (
+                <Link
+                  key={chat.id}
+                  to={`/chat-history/${chat.id}`}
+                  className="block hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg p-4 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                            {chat.customer
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {chat.customer}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {chat.message}
+                        </p>
                       </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {chat.customer}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {chat.message}
-                      </p>
+                    <div className="flex flex-col items-end">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {chat.timestamp}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end space-y-1">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {chat.timestamp}
-                    </span>
-                    {chat.status === "new" && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
-                        New
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   )
 }
 
