@@ -1,4 +1,11 @@
-import { ArrowDown, ArrowUp, Package, ShoppingCart, Users } from "lucide-react"
+import {
+  ArrowDown,
+  ArrowUp,
+  Package,
+  Printer,
+  ShoppingCart,
+  Users,
+} from "lucide-react"
 import { Link } from "react-router-dom"
 
 const Dashboard = () => {
@@ -33,16 +40,46 @@ const Dashboard = () => {
     {
       id: "ORD-2023001",
       customer: "Mark Ross",
-      product: "iPhone 13 Pro",
+      product: "Parmigiano Reggiano DOP 24 mesi",
       status: "Delivered",
-      amount: "€999.00",
+      amount: "€29.90",
+      items: [
+        {
+          id: 1,
+          name: "Parmigiano Reggiano DOP 24 mesi",
+          quantity: 1,
+          weight: "1kg",
+          price: 29.9,
+        },
+      ],
+      date: "2024-03-31",
+      shipping: {
+        method: "Standard",
+        cost: 0,
+        trackingNumber: "TR123456789IT",
+      },
     },
     {
       id: "ORD-2023002",
       customer: "Sarah Johnson",
-      product: "MacBook Air",
+      product: "Aceto Balsamico di Modena DOP",
       status: "Processing",
-      amount: "€1,299.00",
+      amount: "€24.90",
+      items: [
+        {
+          id: 1,
+          name: "Aceto Balsamico di Modena DOP",
+          quantity: 1,
+          weight: "250ml",
+          price: 24.9,
+        },
+      ],
+      date: "2024-03-31",
+      shipping: {
+        method: "Express",
+        cost: 9.9,
+        trackingNumber: "TR987654321IT",
+      },
     },
     {
       id: "ORD-2023003",
@@ -104,6 +141,151 @@ const Dashboard = () => {
       status: "read",
     },
   ]
+
+  const handlePrintInvoice = (order) => {
+    // Create a new window for the invoice
+    const printWindow = window.open("", "_blank")
+
+    // Generate the invoice HTML
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Invoice ${order.id}</title>
+          <meta charset="utf-8">
+          <style>
+            body {
+              font-family: system-ui, -apple-system, sans-serif;
+              line-height: 1.5;
+              padding: 2rem;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 2rem;
+              padding-bottom: 1rem;
+              border-bottom: 1px solid #e5e7eb;
+            }
+            .invoice-details {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 2rem;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 2rem;
+            }
+            th, td {
+              padding: 0.75rem;
+              text-align: left;
+              border-bottom: 1px solid #e5e7eb;
+            }
+            th {
+              background-color: #f9fafb;
+              font-weight: 600;
+            }
+            .totals {
+              margin-left: auto;
+              width: 300px;
+            }
+            .total-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 0.5rem 0;
+            }
+            .grand-total {
+              font-weight: bold;
+              border-top: 2px solid #e5e7eb;
+              padding-top: 1rem;
+            }
+            @media print {
+              body {
+                padding: 0;
+              }
+              button {
+                display: none;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Invoice</h1>
+            <p>Order ${order.id}</p>
+          </div>
+          
+          <div class="invoice-details">
+            <div>
+              <h3>Bill To:</h3>
+              <p>${order.customer}</p>
+            </div>
+            <div>
+              <p><strong>Date:</strong> ${order.date}</p>
+              <p><strong>Order ID:</strong> ${order.id}</p>
+              <p><strong>Status:</strong> ${order.status}</p>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Weight</th>
+                <th>Price</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.items
+                .map(
+                  (item) => `
+                <tr>
+                  <td>${item.name}</td>
+                  <td>${item.quantity}</td>
+                  <td>${item.weight}</td>
+                  <td>€${item.price.toFixed(2)}</td>
+                  <td>€${(item.quantity * item.price).toFixed(2)}</td>
+                </tr>
+              `
+                )
+                .join("")}
+            </tbody>
+          </table>
+
+          <div class="totals">
+            <div class="total-row">
+              <span>Subtotal:</span>
+              <span>${order.amount}</span>
+            </div>
+            <div class="total-row">
+              <span>Shipping (${order.shipping.method}):</span>
+              <span>${
+                order.shipping.cost === 0
+                  ? "Free"
+                  : `€${order.shipping.cost.toFixed(2)}`
+              }</span>
+            </div>
+            <div class="total-row grand-total">
+              <span>Total:</span>
+              <span>€${(
+                parseFloat(order.amount.replace("€", "")) + order.shipping.cost
+              ).toFixed(2)}</span>
+            </div>
+          </div>
+
+          <script>
+            window.onload = () => {
+              window.print()
+            }
+          </script>
+        </body>
+      </html>
+    `)
+    printWindow.document.close()
+  }
 
   return (
     <div className="space-y-6">
@@ -187,6 +369,9 @@ const Dashboard = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Amount
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -219,6 +404,16 @@ const Dashboard = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {order.amount}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => handlePrintInvoice(order)}
+                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                        title="Print Invoice"
+                      >
+                        <Printer className="h-4 w-4 mr-1.5" />
+                        Invoice
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -235,7 +430,7 @@ const Dashboard = () => {
               Recent Chats
             </h3>
             <Link
-              to="/history"
+              to="/chat-history"
               className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
               View all
@@ -245,7 +440,7 @@ const Dashboard = () => {
             {recentChats.map((chat) => (
               <Link
                 key={chat.id}
-                to={`/chat-history/${chat.id}`}
+                to="/chat-history"
                 className="block hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg p-4 transition-colors"
               >
                 <div className="flex items-center justify-between">

@@ -9,6 +9,7 @@ import FAQ from "./pages/FAQ"
 import History from "./pages/History"
 import LanguageSettings from "./pages/LanguageSettings"
 import LoginPage from "./pages/LoginPage"
+import OrderDetail from "./pages/OrderDetail"
 import Orders from "./pages/Orders"
 import Products from "./pages/Products"
 import Prompts from "./pages/Prompts"
@@ -28,11 +29,13 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/products" element={<Products />} />
           <Route path="/orders" element={<Orders />} />
+          <Route path="/orders/:orderId" element={<OrderDetail />} />
           <Route path="/prompts" element={<Prompts />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/history" element={<History />} />
           <Route path="/faq" element={<FAQ />} />
-          <Route path="/chat-history/:customerId" element={<ChatHistory />} />
+          <Route path="/chat-history" element={<ChatHistory />} />
+          <Route path="/chat-history/:chatId" element={<ChatHistory />} />
           <Route path="/channel" element={<ChannelSettings />} />
           <Route path="/users" element={<UserManagement />} />
           <Route path="/languages" element={<LanguageSettings />} />
