@@ -1,4 +1,4 @@
-import { Edit, Eye, Search, Tag } from "lucide-react"
+import { Check, Eye, Pencil, Search, Tag, Trash2 } from "lucide-react"
 import { useState } from "react"
 
 const Products = () => {
@@ -230,6 +230,48 @@ const Products = () => {
     },
   ])
 
+  const [categories] = useState([
+    {
+      id: 1,
+      name: "Formaggi",
+      description: "Formaggi italiani DOP e IGP",
+    },
+    {
+      id: 2,
+      name: "Oli e Condimenti",
+      description: "Oli extra vergine e condimenti tipici",
+    },
+    {
+      id: 3,
+      name: "Pasta",
+      description: "Pasta fresca e secca di alta qualità",
+    },
+    {
+      id: 4,
+      name: "Salumi",
+      description: "Salumi e affettati tradizionali",
+    },
+    {
+      id: 5,
+      name: "Conserve",
+      description: "Conserve e specialità in barattolo",
+    },
+    {
+      id: 6,
+      name: "Primi Piatti",
+      description: "Primi piatti pronti della tradizione",
+    },
+  ])
+
+  const [editingId, setEditingId] = useState(null)
+  const [isAdding, setIsAdding] = useState(false)
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    description: "",
+    price: "",
+    categories: [],
+  })
+
   // Filter products based on search term
   const filteredProducts = products.filter(
     (product) =>
@@ -247,6 +289,79 @@ const Products = () => {
           product.id === productId ? !product.isActive : product.isActive,
       }))
     )
+  }
+
+  const handleAdd = () => {
+    if (
+      newProduct.name.trim() &&
+      newProduct.description.trim() &&
+      newProduct.price
+    ) {
+      setProducts([
+        ...products,
+        {
+          id: Math.max(...products.map((p) => p.id)) + 1,
+          ...newProduct,
+          price: parseFloat(newProduct.price),
+        },
+      ])
+      setNewProduct({ name: "", description: "", price: "", categories: [] })
+      setIsAdding(false)
+    }
+  }
+
+  const handleEdit = (id) => {
+    const product = products.find((p) => p.id === id)
+    if (product) {
+      setEditingId(id)
+      setNewProduct({ ...product, price: product.price.toString() })
+    }
+  }
+
+  const handleUpdate = (id) => {
+    if (
+      newProduct.name.trim() &&
+      newProduct.description.trim() &&
+      newProduct.price
+    ) {
+      setProducts(
+        products.map((product) =>
+          product.id === id
+            ? { ...product, ...newProduct, price: parseFloat(newProduct.price) }
+            : product
+        )
+      )
+      setEditingId(null)
+      setNewProduct({ name: "", description: "", price: "", categories: [] })
+    }
+  }
+
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      setProducts(products.filter((product) => product.id !== id))
+    }
+  }
+
+  const handleCancel = () => {
+    setEditingId(null)
+    setIsAdding(false)
+    setNewProduct({ name: "", description: "", price: "", categories: [] })
+  }
+
+  const handleCategoryToggle = (categoryId) => {
+    setNewProduct((prev) => ({
+      ...prev,
+      categories: prev.categories.includes(categoryId)
+        ? prev.categories.filter((id) => id !== categoryId)
+        : [...prev.categories, categoryId],
+    }))
+  }
+
+  const getCategoryNames = (categoryIds) => {
+    return categoryIds
+      .map((id) => categories.find((cat) => cat.id === id)?.name)
+      .filter(Boolean)
+      .join(", ")
   }
 
   return (
@@ -268,10 +383,15 @@ const Products = () => {
             />
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           </div>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
-            <span className="mr-2">Aggiungi Prodotto</span>
-            <span className="text-lg">+</span>
-          </button>
+          {!isAdding && (
+            <button
+              onClick={() => setIsAdding(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+            >
+              <span className="mr-2">Aggiungi Prodotto</span>
+              <span className="text-lg">+</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -289,8 +409,7 @@ const Products = () => {
                 alt={product.name}
                 className="w-full h-48 object-cover"
                 onError={(e) => {
-                  console.error(`Failed to load image for ${product.name}:`, e)
-                  e.target.onerror = null // prevent infinite loop
+                  e.target.onerror = null
                   e.target.src = `https://placehold.co/800x600/EFEFEF/999999?text=${encodeURIComponent(
                     product.name
                   )}`
@@ -329,25 +448,33 @@ const Products = () => {
               </div>
 
               <div className="mt-6 flex justify-between items-center">
-                {/* Active toggle */}
-                <button
-                  onClick={() => handleToggleActive(product.id)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                {/* Active status */}
+                <span
+                  className={`px-3 py-1 text-sm font-medium rounded-full ${
                     product.isActive
-                      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                      : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  {product.isActive ? "Attivo" : "Non Attivo"}
-                </button>
+                  Attivo
+                </span>
 
                 {/* Action buttons */}
                 <div className="flex space-x-3">
                   <button className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
                     <Eye className="h-5 w-5" />
                   </button>
-                  <button className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
-                    <Edit className="h-5 w-5" />
+                  <button
+                    onClick={() => handleEdit(product.id)}
+                    className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  >
+                    <Pencil className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(product.id)}
+                    className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  >
+                    <Trash2 className="h-5 w-5" />
                   </button>
                 </div>
               </div>
@@ -355,6 +482,104 @@ const Products = () => {
           </div>
         ))}
       </div>
+
+      {/* Add/Edit Form */}
+      {(isAdding || editingId !== null) && (
+        <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Product Name
+              </label>
+              <input
+                type="text"
+                value={newProduct.name}
+                onChange={(e) =>
+                  setNewProduct({ ...newProduct, name: e.target.value })
+                }
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white sm:text-sm"
+                placeholder="Enter product name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Description
+              </label>
+              <input
+                type="text"
+                value={newProduct.description}
+                onChange={(e) =>
+                  setNewProduct({
+                    ...newProduct,
+                    description: e.target.value,
+                  })
+                }
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white sm:text-sm"
+                placeholder="Enter product description"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Price (€)
+              </label>
+              <input
+                type="number"
+                value={newProduct.price}
+                onChange={(e) =>
+                  setNewProduct({
+                    ...newProduct,
+                    price: e.target.value,
+                  })
+                }
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white sm:text-sm"
+                placeholder="Enter price"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Categories
+              </label>
+              <div className="space-y-2">
+                {categories.map((category) => (
+                  <label
+                    key={category.id}
+                    className="flex items-center space-x-2"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={newProduct.categories.includes(category.id)}
+                      onChange={() => handleCategoryToggle(category.id)}
+                      className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      {category.name}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={handleCancel}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() =>
+                  editingId !== null ? handleUpdate(editingId) : handleAdd()
+                }
+                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              >
+                <Check className="w-4 h-4 mr-2" />
+                {editingId !== null ? "Update" : "Add"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

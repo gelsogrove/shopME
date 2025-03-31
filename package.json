@@ -1,0 +1,25 @@
+{
+  "name": "shopme",
+  "version": "1.0.0",
+  "description": "ShopME - E-commerce management platform",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run start:mcp\" \"npm run start:frontend\"",
+    "start:mcp": "npx --yes @agentdeskai/browser-tools-server@1.2.0",
+    "start:frontend": "cd frontend && npm start",
+    "install:all": "npm install && cd frontend && npm install",
+    "clean": "rm -rf node_modules frontend/node_modules",
+    "dev": "npm run start"
+  },
+  "keywords": [
+    "ecommerce",
+    "shop",
+    "management",
+    "react"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

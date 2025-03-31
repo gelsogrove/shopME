@@ -1,9 +1,8 @@
-import React from "react"
 import Card from "../components/Card"
 
 const UserManagement = () => {
   return (
-    <Card title="User Management">
+    <Card title="Users">
       <p>Manage users here.</p>
     </Card>
   )

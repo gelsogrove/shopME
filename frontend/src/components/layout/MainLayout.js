@@ -1,7 +1,7 @@
 import {
   ChevronDown,
   ChevronRight,
-  HelpCircle,
+  History,
   Menu,
   MessageSquare,
   Package,
@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react"
 import { useState } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { Link, Outlet, useLocation } from "react-router-dom"
 import { cn } from "../../lib/utils"
 
 const Breadcrumb = ({ items }) => {
@@ -32,17 +32,18 @@ const Breadcrumb = ({ items }) => {
   )
 }
 
-const MainLayout = ({ children }) => {
+const MainLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const location = useLocation()
 
   const navigation = [
+    { name: "Dashboard", href: "/dashboard", icon: Package },
     { name: "Products", href: "/products", icon: Package },
-    { name: "Prompts", href: "/prompts", icon: MessageSquare },
     { name: "Categories", href: "/categories", icon: Tag },
     { name: "Orders", href: "/orders", icon: ShoppingCart },
-    { name: "FAQ", href: "/faq", icon: HelpCircle },
+    { name: "Prompts", href: "/prompts", icon: MessageSquare },
+    { name: "History", href: "/history", icon: History },
   ]
 
   const settingsMenu = [
@@ -54,18 +55,25 @@ const MainLayout = ({ children }) => {
   // Generate breadcrumb items based on current path
   const getBreadcrumbItems = () => {
     const path = location.pathname
-    const items = [{ label: "Workspace", path: "/workspace" }]
+    const items = [{ label: "+39 333 444 5555", path: "/workspace" }]
 
-    if (path === "/dashboard") {
-      items.push({ label: "Dashboard", path: "/dashboard" })
-    } else {
-      const currentRoute = navigation.find((item) => item.href === path)
-      if (currentRoute) {
-        items.push({ label: currentRoute.name, path: currentRoute.href })
-      }
+    const currentRoute = navigation.find((item) => item.href === path)
+    if (currentRoute) {
+      items.push({ label: currentRoute.name, path: currentRoute.href })
     }
 
     return items
+  }
+
+  // If we are on the workspace page, show only cards without menu
+  if (location.pathname === "/workspace") {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <main className="container mx-auto px-4 py-8">
+          <Outlet />
+        </main>
+      </div>
+    )
   }
 
   return (
@@ -73,7 +81,10 @@ const MainLayout = ({ children }) => {
       {/* Top header with settings */}
       <div className="bg-white dark:bg-gray-800 shadow-sm z-50 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-end items-center h-16">
+          <div className="flex justify-between items-center h-16">
+            <div className="text-lg font-semibold text-gray-900 dark:text-white">
+              +39 333 444 5555
+            </div>
             <div className="relative">
               <div className="flex items-center space-x-4">
                 <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white font-medium">
@@ -119,6 +130,7 @@ const MainLayout = ({ children }) => {
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+          aria-label="Toggle menu"
         >
           {isSidebarOpen ? (
             <X className="h-6 w-6" />
@@ -173,7 +185,7 @@ const MainLayout = ({ children }) => {
         <main className="py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Breadcrumb items={getBreadcrumbItems()} />
-            {children}
+            <Outlet />
           </div>
         </main>
       </div>
