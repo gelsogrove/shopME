@@ -11,6 +11,7 @@ import Login from "./pages/Login"
 import OrderDetail from "./pages/OrderDetail"
 import Orders from "./pages/Orders"
 import Products from "./pages/Products"
+import PromptEdit from "./pages/PromptEdit"
 import Prompts from "./pages/Prompts"
 import Users from "./pages/Users"
 import Workspace from "./pages/Workspace"
@@ -30,7 +31,7 @@ export default function App() {
           <Route path="/products" element={<Products />} />
           <Route path="/products/:productId" element={<Products />} />
           <Route path="/orders" element={<Orders />} />
-          <Route path="/orders/:orderId" element={<OrderDetail />} />
+          <Route path="/orders/:id" element={<OrderDetail />} />
           <Route path="/chat-history" element={<ChatHistory />} />
           <Route path="/chat-history/:chatId" element={<ChatDetail />} />
           <Route path="/users" element={<Users />} />
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/categories" element={<Categories />} />
           <Route path="/channel-settings" element={<ChannelSettings />} />
           <Route path="/prompts" element={<Prompts />} />
+          <Route path="/prompts/:id/edit" element={<PromptEdit />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,9 +1,11 @@
-import { Send } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
+import PageLayout from "../components/layout/PageLayout"
 
 export default function ChatDetail() {
   const { chatId } = useParams()
+  const navigate = useNavigate()
   const [chat, setChat] = useState(null)
   const [newMessage, setNewMessage] = useState("")
 
@@ -74,73 +76,60 @@ export default function ChatDetail() {
   if (!chat) return null
 
   return (
-    <div className="h-[calc(100vh-9rem)] flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow">
-      {/* Chat header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {chat.customer}
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {chat.phone} • Order #{chat.orderId}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {chat.messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${
-              message.sender === "agent" ? "justify-end" : "justify-start"
-            }`}
-          >
-            <div
-              className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                message.sender === "agent"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-              }`}
-            >
-              <p className="text-sm">{message.text}</p>
-              <p
-                className={`text-xs mt-1 ${
-                  message.sender === "agent"
-                    ? "text-blue-100"
-                    : "text-gray-500 dark:text-gray-400"
-                }`}
-              >
-                {message.timestamp}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Message input */}
-      <form
-        onSubmit={handleSendMessage}
-        className="p-4 border-t border-gray-200 dark:border-gray-700"
-      >
-        <div className="flex items-center space-x-2">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-          />
+    <PageLayout title="Chat History">
+      <div className="p-4">
+        {/* Back button */}
+        <div className="mb-6">
           <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            onClick={() => navigate("/chat-history")}
+            className="flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           >
-            <Send className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Back to Chat History
           </button>
         </div>
-      </form>
-    </div>
+
+        {/* Chat container */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+          {/* Chat header */}
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+              Chat with {chat.customer}
+            </h2>
+          </div>
+
+          {/* Messages */}
+          <div className="p-6 space-y-4">
+            {chat.messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${
+                  message.sender === "agent" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`max-w-lg rounded-lg px-4 py-2 ${
+                    message.sender === "agent"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                  }`}
+                >
+                  <p className="text-sm">{message.text}</p>
+                  <p
+                    className={`text-xs mt-1 ${
+                      message.sender === "agent"
+                        ? "text-blue-100"
+                        : "text-gray-500 dark:text-gray-400"
+                    }`}
+                  >
+                    {new Date(message.timestamp).toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </PageLayout>
   )
 }
