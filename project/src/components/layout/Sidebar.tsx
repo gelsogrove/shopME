@@ -1,15 +1,6 @@
-import { Button } from "@/components/ui/button"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import {
   Blocks,
-  ChevronLeft,
-  ChevronRight,
   Globe2,
   LayoutDashboard,
   MessagesSquare,
@@ -18,14 +9,13 @@ import {
   Users,
   Wrench,
 } from "lucide-react"
-import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 
-interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function Sidebar({ className, ...props }: SidebarProps) {
+export function Sidebar({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   const { pathname } = useLocation()
-  const [isCollapsed, setIsCollapsed] = useState(false)
 
   const mainRoutes = [
     {
@@ -76,107 +66,75 @@ export function Sidebar({ className, ...props }: SidebarProps) {
   return (
     <div
       className={cn(
-        "relative flex h-full flex-col border-r bg-white transition-all duration-300",
-        isCollapsed ? "w-[70px]" : "w-[240px]",
+        "relative flex h-full flex-col border-r bg-white",
+        "w-[240px]",
         className
       )}
       {...props}
     >
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute -right-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-full border bg-white shadow-md"
-        onClick={() => setIsCollapsed(!isCollapsed)}
-      >
-        {isCollapsed ? (
-          <ChevronRight className="h-4 w-4" />
-        ) : (
-          <ChevronLeft className="h-4 w-4" />
-        )}
-      </Button>
-
-      <TooltipProvider>
-        <div className="flex flex-col flex-1 py-6">
-          {/* Main Navigation */}
-          <nav className="space-y-1 px-3">
-            {mainRoutes.map((route) => {
-              const Icon = route.icon
-              const isActive = pathname === route.href
-
-              return (
-                <Tooltip key={route.href}>
-                  <TooltipTrigger asChild>
-                    <Link
-                      to={route.href}
-                      className={cn(
-                        "flex h-11 w-full items-center rounded-md px-4 transition-colors",
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-accent hover:text-accent-foreground"
-                      )}
-                    >
-                      <Icon className="h-5 w-5 shrink-0" />
-                      {!isCollapsed && (
-                        <span className="ml-3 text-base font-medium">
-                          {route.label}
-                        </span>
-                      )}
-                    </Link>
-                  </TooltipTrigger>
-                  {isCollapsed && (
-                    <TooltipContent side="right">
-                      <p>{route.label}</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              )
-            })}
-          </nav>
-
-          {/* Settings Navigation */}
-          <nav className="mt-auto space-y-1 px-3">
-            {!isCollapsed && (
-              <div className="mb-2 px-4 py-2">
-                <h2 className="text-xs font-semibold uppercase text-muted-foreground">
-                  Settings
-                </h2>
-              </div>
-            )}
-            {settingsRoutes.map((route) => {
-              const Icon = route.icon
-              const isActive = pathname === route.href
-
-              return (
-                <Tooltip key={route.href}>
-                  <TooltipTrigger asChild>
-                    <Link
-                      to={route.href}
-                      className={cn(
-                        "flex h-11 w-full items-center rounded-md px-4 transition-colors",
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-accent hover:text-accent-foreground"
-                      )}
-                    >
-                      <Icon className="h-5 w-5 shrink-0" />
-                      {!isCollapsed && (
-                        <span className="ml-3 text-base font-medium">
-                          {route.label}
-                        </span>
-                      )}
-                    </Link>
-                  </TooltipTrigger>
-                  {isCollapsed && (
-                    <TooltipContent side="right">
-                      <p>{route.label}</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              )
-            })}
-          </nav>
+      <div className="flex flex-col flex-1 py-6">
+        {/* Project Name */}
+        <div className="px-6 mb-6">
+          <h1 className="text-2xl font-bold text-[#25D366]">ShopMe</h1>
         </div>
-      </TooltipProvider>
+
+        {/* Main Navigation */}
+        <nav className="space-y-1 px-3">
+          {mainRoutes.map((route) => {
+            const Icon = route.icon
+            const isActive = pathname === route.href
+
+            return (
+              <Link
+                key={route.href}
+                to={route.href}
+                className={cn(
+                  "flex h-11 w-full items-center rounded-md px-4 transition-colors",
+                  isActive
+                    ? "bg-[#25D366] text-white"
+                    : "hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className="ml-3 text-base font-medium">
+                  {route.label}
+                </span>
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* Settings Navigation */}
+        <nav className="mt-auto space-y-1 px-3">
+          <div className="mb-2 px-4 py-2">
+            <h2 className="text-xs font-semibold uppercase text-muted-foreground">
+              Settings
+            </h2>
+          </div>
+          {settingsRoutes.map((route) => {
+            const Icon = route.icon
+            const isActive = pathname === route.href
+
+            return (
+              <Link
+                key={route.href}
+                to={route.href}
+                className={cn(
+                  "flex h-11 w-full items-center rounded-md px-4 transition-colors",
+                  isActive
+                    ? "bg-[#25D366] text-white"
+                    : "hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className="ml-3 text-base font-medium">
+                  {route.label}
+                </span>
+              </Link>
+            )
+          })}
+        </nav>
+      </div>
     </div>
   )
 }
