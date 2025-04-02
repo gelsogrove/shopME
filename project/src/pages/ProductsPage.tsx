@@ -154,6 +154,7 @@ export function ProductsPage() {
         onSearch={setSearchValue}
         searchPlaceholder="Search products..."
         onAdd={() => setShowAddDialog(true)}
+        itemCount={products.length}
       />
 
       <div className="mt-6">
@@ -170,6 +171,7 @@ export function ProductsPage() {
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         title="Add New Product"
+        submitButtonClassName="bg-[#25D366] hover:bg-[#1ea855] text-white"
         fields={[
           {
             name: "name",
@@ -201,6 +203,7 @@ export function ProductsPage() {
         open={showEditDialog}
         onOpenChange={setShowEditDialog}
         title="Edit Product"
+        submitButtonClassName="bg-[#25D366] hover:bg-[#1ea855] text-white"
         fields={[
           {
             name: "name",
@@ -236,7 +239,7 @@ export function ProductsPage() {
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         title="Delete Product"
-        description={`Are you sure you want to delete ${selectedProduct?.name}? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${selectedProduct?.name}"?`}
         onConfirm={handleDeleteConfirm}
       />
     </div>

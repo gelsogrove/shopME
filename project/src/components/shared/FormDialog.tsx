@@ -28,6 +28,7 @@ interface FormDialogProps {
   fields: Field[]
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   isWide?: boolean
+  submitButtonClassName?: string
 }
 
 export function FormDialog({
@@ -37,6 +38,7 @@ export function FormDialog({
   fields,
   onSubmit,
   isWide,
+  submitButtonClassName,
 }: FormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -113,7 +115,9 @@ export function FormDialog({
             >
               Cancel
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit" className={submitButtonClassName}>
+              Save
+            </Button>
           </div>
         </form>
       </DialogContent>
