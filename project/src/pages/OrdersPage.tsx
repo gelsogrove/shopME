@@ -1,5 +1,6 @@
 import { DataTable } from "@/components/shared/DataTable"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -190,7 +191,7 @@ function OrderDetailsDialog({
                   </div>
                   <div className="flex justify-between">
                     <dt className="font-medium">Total:</dt>
-                    <dd>${order.total.toFixed(2)}</dd>
+                    <dd className="font-medium">€{order.total.toFixed(2)}</dd>
                   </div>
                 </dl>
               </CardContent>
@@ -236,14 +237,14 @@ function OrderDetailsDialog({
                   </thead>
                   <tbody>
                     {order.items.map((item) => (
-                      <tr key={item.id} className="border-t">
+                      <tr key={item.id}>
                         <td className="py-2">{item.name}</td>
-                        <td className="py-2 text-right">{item.quantity}</td>
                         <td className="py-2 text-right">
-                          ${item.price.toFixed(2)}
+                          €{item.price.toFixed(2)}
                         </td>
+                        <td className="py-2 text-center">{item.quantity}</td>
                         <td className="py-2 text-right">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          €{(item.price * item.quantity).toFixed(2)}
                         </td>
                       </tr>
                     ))}
@@ -297,34 +298,28 @@ export default function OrdersPage() {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => (
-        <Button
-          variant={row.original.status === "completed" ? "default" : "outline"}
-          className="w-24"
-        >
+        <StatusBadge status={row.original.status}>
           {row.original.status.charAt(0).toUpperCase() +
             row.original.status.slice(1)}
-        </Button>
+        </StatusBadge>
       ),
     },
     {
       accessorKey: "payment.status",
       header: "Payment",
       cell: ({ row }) => (
-        <Button
-          variant={
-            row.original.payment.status === "paid" ? "default" : "outline"
-          }
-          className="w-24"
-        >
+        <StatusBadge status={row.original.payment.status}>
           {row.original.payment.status.charAt(0).toUpperCase() +
             row.original.payment.status.slice(1)}
-        </Button>
+        </StatusBadge>
       ),
     },
     {
       accessorKey: "total",
       header: "Total",
-      cell: ({ row }) => <span>${row.original.total.toFixed(2)}</span>,
+      cell: ({ row }) => (
+        <span className="font-medium">€{row.original.total.toFixed(2)}</span>
+      ),
     },
     {
       id: "actions",
@@ -348,6 +343,7 @@ export default function OrdersPage() {
         searchValue={searchValue}
         onSearch={setSearchValue}
         searchPlaceholder="Search orders..."
+        itemCount={orders.length}
       />
 
       <div className="mt-6">

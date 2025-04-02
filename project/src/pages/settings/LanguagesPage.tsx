@@ -2,6 +2,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { FormDialog } from "@/components/shared/FormDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
@@ -66,9 +67,12 @@ export function LanguagesPage() {
         <Button
           variant={row.original.status === "active" ? "default" : "outline"}
           onClick={() => handleToggleStatus(row.original)}
-          className="w-24"
+          className="w-24 cursor-pointer"
         >
-          {row.original.status === "active" ? "Active" : "Inactive"}
+          <StatusBadge status={row.original.status}>
+            {row.original.status.charAt(0).toUpperCase() +
+              row.original.status.slice(1)}
+          </StatusBadge>
         </Button>
       ),
     },
@@ -151,7 +155,7 @@ export function LanguagesPage() {
         onSearch={setSearchValue}
         searchPlaceholder="Search languages..."
         onAdd={() => setShowAddDialog(true)}
-        addButtonText="Add Language"
+        itemCount={filteredLanguages.length}
       />
 
       <div className="mt-6">

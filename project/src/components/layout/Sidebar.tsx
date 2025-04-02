@@ -67,19 +67,19 @@ export function Sidebar({
     <div
       className={cn(
         "relative flex h-full flex-col border-r bg-white",
-        "w-[360px]",
+        "w-[300px]",
         className
       )}
       {...props}
     >
-      <div className="flex flex-col flex-1 py-10">
+      <div className="flex flex-col flex-1 py-8">
         {/* Project Name */}
-        <div className="px-10 mb-12">
-          <h1 className="text-5xl font-bold text-[#25D366]">ShopMe</h1>
+        <div className="px-8 mb-10">
+          <h1 className="text-4xl font-bold text-[#25D366]">ShopMe</h1>
         </div>
 
         {/* Main Navigation */}
-        <nav className="space-y-4 px-6">
+        <nav className="space-y-3 px-4">
           {mainRoutes.map((route) => {
             const Icon = route.icon
             const isActive = pathname === route.href
@@ -89,13 +89,13 @@ export function Sidebar({
                 key={route.href}
                 to={route.href}
                 className={cn(
-                  "flex h-16 w-full items-center rounded-md px-8 transition-colors",
+                  "flex h-16 w-full items-center rounded-md px-6 transition-colors",
                   isActive
                     ? "bg-[#25D366] text-white"
                     : "hover:bg-accent hover:text-accent-foreground"
                 )}
               >
-                <Icon className="h-8 w-8 shrink-0" />
+                <Icon className="h-7 w-7 shrink-0" />
                 <span className="ml-4 text-xl font-medium">{route.label}</span>
               </Link>
             )
@@ -103,9 +103,9 @@ export function Sidebar({
         </nav>
 
         {/* Settings Navigation */}
-        <nav className="mt-auto space-y-4 px-6">
-          <div className="mb-4 px-8 py-4">
-            <h2 className="text-lg font-semibold uppercase text-muted-foreground">
+        <nav className="mt-auto space-y-3 px-4">
+          <div className="mb-3 px-6 py-3">
+            <h2 className="text-base font-semibold uppercase text-muted-foreground">
               Settings
             </h2>
           </div>
@@ -118,13 +118,13 @@ export function Sidebar({
                 key={route.href}
                 to={route.href}
                 className={cn(
-                  "flex h-16 w-full items-center rounded-md px-8 transition-colors",
+                  "flex h-16 w-full items-center rounded-md px-6 transition-colors",
                   isActive
                     ? "bg-[#25D366] text-white"
                     : "hover:bg-accent hover:text-accent-foreground"
                 )}
               >
-                <Icon className="h-8 w-8 shrink-0" />
+                <Icon className="h-7 w-7 shrink-0" />
                 <span className="ml-4 text-xl font-medium">{route.label}</span>
               </Link>
             )
