@@ -8,7 +8,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { formatDate } from "@/lib/utils"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Eye } from "lucide-react"
+import { Eye, Pencil } from "lucide-react"
 import { useState } from "react"
 
 interface Order {
@@ -323,15 +323,28 @@ export default function OrdersPage() {
     },
     {
       id: "actions",
+      header: "",
       cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setSelectedOrder(row.original)}
-        >
-          <Eye className="h-4 w-4" />
-          <span className="sr-only">View order details</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSelectedOrder(row.original)}
+            className="hover:bg-green-50"
+          >
+            <Eye className="h-5 w-5 text-green-600" />
+            <span className="sr-only">View order details</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => console.log("Edit order", row.original.id)}
+            className="hover:bg-green-50"
+          >
+            <Pencil className="h-5 w-5" />
+            <span className="sr-only">Edit order</span>
+          </Button>
+        </div>
       ),
     },
   ]
