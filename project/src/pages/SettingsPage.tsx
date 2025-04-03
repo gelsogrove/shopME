@@ -9,16 +9,14 @@ interface Settings {
   whatsappApiKey: string
   whatsappPhoneNumber: string
   notificationEmail: string
-  autoReplyDelay: number
-  maxConcurrentChats: number
+  webhookUrl: string
 }
 
 const defaultSettings: Settings = {
   whatsappApiKey: "",
   whatsappPhoneNumber: "",
   notificationEmail: "",
-  autoReplyDelay: 30,
-  maxConcurrentChats: 10,
+  webhookUrl: "",
 }
 
 export function SettingsPage() {
@@ -45,10 +43,7 @@ export function SettingsPage() {
     const { name, value } = e.target
     setSettings((prev) => ({
       ...prev,
-      [name]:
-        name === "autoReplyDelay" || name === "maxConcurrentChats"
-          ? parseInt(value) || 0
-          : value,
+      [name]: value,
     }))
   }
 
@@ -120,40 +115,24 @@ export function SettingsPage() {
 
                 <div>
                   <label
-                    htmlFor="autoReplyDelay"
+                    htmlFor="webhookUrl"
                     className="block text-sm font-medium mb-1"
                   >
-                    Auto-Reply Delay (seconds)
+                    Webhook URL
                   </label>
                   <Input
-                    id="autoReplyDelay"
-                    name="autoReplyDelay"
-                    type="number"
-                    min="0"
-                    value={settings.autoReplyDelay}
+                    id="webhookUrl"
+                    name="webhookUrl"
+                    type="url"
+                    value={settings.webhookUrl}
                     onChange={handleChange}
+                    placeholder="https://your-webhook-endpoint.com/webhook"
                     className="w-full"
-                    required
                   />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="maxConcurrentChats"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Max Concurrent Chats
-                  </label>
-                  <Input
-                    id="maxConcurrentChats"
-                    name="maxConcurrentChats"
-                    type="number"
-                    min="1"
-                    value={settings.maxConcurrentChats}
-                    onChange={handleChange}
-                    className="w-full"
-                    required
-                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Receive real-time notifications for new messages and order
+                    updates
+                  </p>
                 </div>
               </div>
 

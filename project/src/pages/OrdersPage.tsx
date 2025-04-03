@@ -690,16 +690,25 @@ export default function OrdersPage() {
     }
   }
 
-  const filteredOrders = orders.filter(
-    (order) =>
-      order.customer.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      order.customer.email.toLowerCase().includes(searchValue.toLowerCase()) ||
-      order.status.toLowerCase().includes(searchValue.toLowerCase()) ||
-      order.payment.method.toLowerCase().includes(searchValue.toLowerCase()) ||
-      order.payment.status.toLowerCase().includes(searchValue.toLowerCase()) ||
-      order.total.toString().includes(searchValue) ||
-      formatDate(order.date).includes(searchValue)
-  )
+  // Filtrare e ordinare gli ordini per ID in ordine decrescente
+  const filteredOrders = orders
+    .filter(
+      (order) =>
+        order.customer.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+        order.customer.email
+          .toLowerCase()
+          .includes(searchValue.toLowerCase()) ||
+        order.status.toLowerCase().includes(searchValue.toLowerCase()) ||
+        order.payment.method
+          .toLowerCase()
+          .includes(searchValue.toLowerCase()) ||
+        order.payment.status
+          .toLowerCase()
+          .includes(searchValue.toLowerCase()) ||
+        order.total.toString().includes(searchValue) ||
+        formatDate(order.date).includes(searchValue)
+    )
+    .sort((a, b) => b.id - a.id) // Ordinare per ID in ordine decrescente
 
   const columns: ColumnDef<Order>[] = [
     {
