@@ -6,45 +6,45 @@ import { Link } from "react-router-dom"
 export default function DashboardPage() {
   // Sample data for the dashboard
   const newClients = [
-    { id: 1, name: "Marco Rossi", date: "2 hours ago" },
-    { id: 2, name: "Giulia Verdi", date: "6 hours ago" },
-    { id: 3, name: "Luca Bianchi", date: "1 day ago" },
-    { id: 4, name: "Sofia Romano", date: "2 days ago" },
+    { id: 1, name: "Mark Ross", date: "2 hours ago" },
+    { id: 2, name: "Julia Green", date: "6 hours ago" },
+    { id: 3, name: "Luke White", date: "1 day ago" },
+    { id: 4, name: "Sophie Roman", date: "2 days ago" },
   ]
 
   const latestOrders = [
-    { id: 1, customer: "Marco Rossi", amount: "€299.99" },
-    { id: 2, customer: "Giuseppe Verdi", amount: "€199.99" },
-    { id: 3, customer: "Sofia Bianchi", amount: "€399.99" },
-    { id: 4, customer: "Alessandro Neri", amount: "€149.50" },
+    { id: 1, customer: "Mark Ross", amount: "€299.99" },
+    { id: 2, customer: "Joseph Green", amount: "€199.99" },
+    { id: 3, customer: "Sophie White", amount: "€399.99" },
+    { id: 4, customer: "Alexander Black", amount: "€149.50" },
   ]
 
   const latestMessages = [
     {
       id: 1,
-      name: "Marco Rossi",
+      name: "Mark Ross",
       initials: "MR",
       message: "I need help with my order #12345...",
       time: "2h ago",
     },
     {
       id: 2,
-      name: "Giuseppe Verdi",
-      initials: "GV",
+      name: "Joseph Green",
+      initials: "JG",
       message: "When will Parmigiano Reggiano be available?",
       time: "4h ago",
     },
     {
       id: 3,
-      name: "Sofia Bianchi",
-      initials: "SB",
+      name: "Sophie White",
+      initials: "SW",
       message: "Can I modify my shipping address?",
       time: "1d ago",
     },
     {
       id: 4,
-      name: "Elena Ferrari",
-      initials: "EF",
+      name: "Helen Ferrari",
+      initials: "HF",
       message: "I'd like to return a damaged product.",
       time: "2d ago",
     },

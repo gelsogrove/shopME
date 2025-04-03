@@ -19,75 +19,78 @@ interface Product {
 const initialProducts: Product[] = [
   {
     id: "1",
-    name: "Parmigiano Reggiano DOP 24 mesi",
+    name: "Parmigiano Reggiano DOP 24 months",
     description:
-      "Formaggio DOP italiano stagionato 24 mesi, prodotto nelle province di Parma, Reggio Emilia, Modena e Bologna. Sapore intenso e cristalli di tirosina.",
-    price: "25.99",
-    categories: ["Formaggi", "DOP"],
+      "Authentic Parmigiano Reggiano DOP aged 24 months. Intense flavor with a granular texture.",
+    price: "29.99",
+    categories: ["Cheese"],
     status: "active",
     image:
-      "https://placehold.co/600x400/e2e8f0/64748b?text=Parmigiano+Reggiano",
+      "https://www.parmigianoreggiano.com/wp-content/uploads/2020/10/forma-parmigiano-reggiano.jpg",
   },
   {
     id: "2",
-    name: "Pasta di Gragnano IGP - Spaghetti",
+    name: "Gragnano IGP Pasta - Spaghetti",
     description:
-      "Pasta artigianale di semola di grano duro trafilata al bronzo, essiccata lentamente. Il metodo tradizionale garantisce una pasta porosa perfetta per trattenere il sugo.",
-    price: "4.50",
-    categories: ["Pasta", "IGP"],
+      "Traditional spaghetti from Gragnano, made with selected durum wheat semolina. Bronze drawn for the perfect texture.",
+    price: "4.99",
+    categories: ["Pasta"],
     status: "active",
-    image: "https://placehold.co/600x400/e2e8f0/64748b?text=Pasta+di+Gragnano",
+    image:
+      "https://www.gustiditalia.com/wp-content/uploads/2019/11/pasta-di-gragnano-igp-spaghetti.jpg",
   },
   {
     id: "3",
-    name: "Olio Extra Vergine d'Oliva Toscano IGP",
+    name: "Tuscan IGP Extra Virgin Olive Oil",
     description:
-      "Olio extravergine d'oliva prodotto in Toscana con olive raccolte a mano. Sapore fruttato con note piccanti e amare tipiche dell'olio toscano di qualità.",
-    price: "15.90",
-    categories: ["Olio", "IGP"],
+      "Premium extra virgin olive oil from Tuscany with balanced flavor and fruity notes.",
+    price: "19.99",
+    categories: ["Oil"],
     status: "active",
-    image: "https://placehold.co/600x400/e2e8f0/64748b?text=Olio+Toscano",
+    image:
+      "https://www.oliocarli.it/wp-content/uploads/2019/11/olio-toscano.jpg",
   },
   {
     id: "4",
-    name: "Prosciutto di Parma DOP 24 mesi",
+    name: "Parma Ham DOP 24 months",
     description:
-      "Prosciutto crudo italiano stagionato 24 mesi nella zona di Parma. Sapore dolce e delicato, con una leggera nota di noci.",
-    price: "29.90",
-    categories: ["Salumi", "DOP"],
+      "Fine Parma ham aged for 24 months. Sweet flavor and delicate aroma.",
+    price: "24.99",
+    categories: ["Cured Meats"],
     status: "active",
     image:
-      "https://placehold.co/600x400/e2e8f0/64748b?text=Prosciutto+di+Parma",
+      "https://www.prosciuttodiparma.com/wp-content/uploads/2020/05/prosciutto-di-parma-intero.jpg",
   },
   {
     id: "5",
-    name: "Aceto Balsamico di Modena IGP",
+    name: "Modena IGP Balsamic Vinegar",
     description:
-      "Aceto balsamico prodotto a Modena secondo metodi tradizionali. Invecchiato in botti di legno per un sapore dolce e acidulo perfettamente bilanciato.",
-    price: "12.50",
-    categories: ["Condimenti", "IGP"],
-    status: "active",
-    image: "https://placehold.co/600x400/e2e8f0/64748b?text=Aceto+Balsamico",
+      "Traditional balsamic vinegar of Modena IGP with a perfect balance of sweet and sour.",
+    price: "14.99",
+    categories: ["Condiments"],
+    status: "inactive",
+    image:
+      "https://www.acetum.it/wp-content/uploads/2020/03/aceto-balsamico-di-modena-igp.jpg",
   },
   {
     id: "6",
-    name: "Mozzarella di Bufala Campana DOP",
+    name: "Buffalo Mozzarella Campana DOP",
     description:
-      "Mozzarella fresca prodotta con latte di bufala in Campania. Consistenza morbida ed elastica, sapore dolce e delicato.",
-    price: "8.90",
-    categories: ["Formaggi", "DOP"],
+      "Fresh buffalo mozzarella DOP from Campania. Soft texture and delicate milk flavor.",
+    price: "9.99",
+    categories: ["Cheese"],
     status: "active",
     image:
-      "https://placehold.co/600x400/e2e8f0/64748b?text=Mozzarella+di+Bufala",
+      "https://www.mozzarelladibufala.org/wp-content/uploads/2019/07/mozzarella-di-bufala-campana-dop.jpg",
   },
 ]
 
 const availableCategories = [
   "Pasta",
-  "Formaggi",
-  "Olio",
-  "Condimenti",
-  "Salumi",
+  "Cheese",
+  "Oil",
+  "Condiments",
+  "Cured Meats",
   "DOP",
   "IGP",
 ]
