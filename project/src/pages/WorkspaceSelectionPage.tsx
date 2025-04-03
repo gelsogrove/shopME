@@ -91,18 +91,18 @@ export function WorkspaceSelectionPage() {
     e.preventDefault()
 
     if (!selectedType) {
-      setErrorMessage("Seleziona un tipo di attività")
+      setErrorMessage("Select a business type")
       return
     }
 
     if (!newPhoneNumber.trim()) {
-      setErrorMessage("Inserisci un numero di telefono")
+      setErrorMessage("Enter a phone number")
       return
     }
 
     // Verifica se il numero è già esistente
     if (workspaces.some((w) => w.phoneNumber === newPhoneNumber)) {
-      setErrorMessage("Questo numero è già registrato")
+      setErrorMessage("This number is already registered")
       return
     }
 
@@ -143,10 +143,10 @@ export function WorkspaceSelectionPage() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-2">
-          I tuoi numeri WhatsApp
+          Your WhatsApp numbers
         </h1>
         <p className="text-center text-gray-600 mb-8">
-          Seleziona un numero per gestire le sue conversazioni
+          Select a number to manage its conversations
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -163,22 +163,22 @@ export function WorkspaceSelectionPage() {
               <CardContent className="p-6">
                 <div className="text-lg font-semibold">{workspace.name}</div>
                 <div className="text-sm text-gray-500 mt-1">
-                  Ultimo accesso: {workspace.lastAccess}
+                  Last access: {workspace.lastAccess}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Tipo: {workspace.type}
+                  Type: {workspace.type}
                 </div>
                 {workspace.notifications > 0 && (
                   <div className="mt-4">
                     <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                      Attivo
+                      Active
                     </span>
                   </div>
                 )}
                 {justCreatedId === workspace.id && (
                   <div className="mt-4">
                     <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                      Nuovo
+                      New
                     </span>
                   </div>
                 )}
@@ -193,9 +193,7 @@ export function WorkspaceSelectionPage() {
           >
             <CardContent className="p-6 flex flex-col items-center justify-center">
               <PlusCircle className="h-12 w-12 text-gray-400 mb-2" />
-              <div className="text-gray-500 font-medium">
-                Aggiungi nuovo numero
-              </div>
+              <div className="text-gray-500 font-medium">Add new number</div>
             </CardContent>
           </Card>
         </div>
@@ -207,11 +205,9 @@ export function WorkspaceSelectionPage() {
         className="p-0 rounded-lg shadow-xl max-w-md w-full bg-white"
       >
         <div className="p-6">
-          <h3 className="text-xl font-semibold mb-4">
-            Seleziona tipo di attività
-          </h3>
+          <h3 className="text-xl font-semibold mb-4">Select business type</h3>
           <p className="text-gray-600 mb-6">
-            Scegli la tipologia di attività per configurare il tuo workspace
+            Choose the type of business to configure your workspace
           </p>
 
           <form onSubmit={handleCreateWorkspace} className="space-y-6">
@@ -226,20 +222,16 @@ export function WorkspaceSelectionPage() {
                 onClick={() => handleSelectType("Shop")}
               >
                 <div className="font-medium">Shop</div>
-                <div className="text-xs text-gray-500 mt-1">Disponibile</div>
+                <div className="text-xs text-gray-500 mt-1">Available</div>
               </button>
 
               <button
                 type="button"
-                className={`p-4 border rounded-lg ${
-                  selectedType === "Hotel"
-                    ? "bg-green-50 border-green-500"
-                    : "hover:bg-gray-50"
-                }`}
-                onClick={() => handleSelectType("Hotel")}
+                className="p-4 border rounded-lg opacity-60 cursor-not-allowed"
+                disabled
               >
                 <div className="font-medium">Hotel</div>
-                <div className="text-xs text-gray-500 mt-1">Disponibile</div>
+                <div className="text-xs text-gray-500 mt-1">Not available</div>
               </button>
 
               <button
@@ -248,9 +240,7 @@ export function WorkspaceSelectionPage() {
                 disabled
               >
                 <div className="font-medium">Gym</div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Non disponibile
-                </div>
+                <div className="text-xs text-gray-500 mt-1">Not available</div>
               </button>
 
               <button
@@ -259,18 +249,16 @@ export function WorkspaceSelectionPage() {
                 disabled
               >
                 <div className="font-medium">Restaurant</div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Non disponibile
-                </div>
+                <div className="text-xs text-gray-500 mt-1">Not available</div>
               </button>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="phoneNumberPopup">Numero di telefono</Label>
+                <Label htmlFor="phoneNumberPopup">Phone number</Label>
                 <Input
                   id="phoneNumberPopup"
-                  placeholder="Inserisci numero di telefono"
+                  placeholder="Enter phone number"
                   value={newPhoneNumber}
                   onChange={(e) => setNewPhoneNumber(e.target.value)}
                   required
@@ -293,14 +281,14 @@ export function WorkspaceSelectionPage() {
                   setErrorMessage("")
                 }}
               >
-                Annulla
+                Cancel
               </Button>
               <Button
                 type="submit"
                 className="bg-green-600 hover:bg-green-700 text-white"
                 disabled={!selectedType}
               >
-                Crea Canale
+                Create Channel
               </Button>
             </div>
           </form>
