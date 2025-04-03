@@ -18,16 +18,34 @@ interface Service {
 const initialServices: Service[] = [
   {
     id: "1",
-    name: "Service 1",
-    description: "Description for service 1",
-    price: "99.99",
+    name: "Shipping Service",
+    description:
+      "Express courier shipping service with delivery within 24/48 business hours.",
+    price: "9.99",
     status: "active",
   },
   {
     id: "2",
-    name: "Service 2",
-    description: "Description for service 2",
-    price: "149.99",
+    name: "Christmas Gift Wrapping",
+    description:
+      "Special packaging for Christmas gifts with wrapping paper, ribbons and personalized card.",
+    price: "12.50",
+    status: "active",
+  },
+  {
+    id: "3",
+    name: "Shipping Insurance",
+    description:
+      "Full insurance coverage for transported goods up to €1000 in value.",
+    price: "7.99",
+    status: "inactive",
+  },
+  {
+    id: "4",
+    name: "Gift Wrapping",
+    description:
+      "Standard gift wrapping service with elegant paper, ribbon and gift tag.",
+    price: "5.99",
     status: "active",
   },
 ]

@@ -1,6 +1,6 @@
 import { Save } from "lucide-react"
 import { useState } from "react"
-import { Outlet, useLocation, useNavigate } from "react-router-dom"
+import { Outlet, useLocation } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
 import { Input } from "../components/ui/input"
@@ -25,7 +25,6 @@ export function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(defaultSettings)
   const [isSaving, setIsSaving] = useState(false)
   const location = useLocation()
-  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -59,27 +58,6 @@ export function SettingsPage() {
         <div className="space-y-8">
           <Card className="p-6">
             <h1 className="text-2xl font-bold mb-6">Settings</h1>
-
-            <div className="mb-8 flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                onClick={() => navigate("/settings/categories")}
-              >
-                Categories
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/settings/languages")}
-              >
-                Languages
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/settings/channel-types")}
-              >
-                Channel Types
-              </Button>
-            </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">

@@ -39,6 +39,11 @@ const mainLinks = [
     icon: Box,
   },
   {
+    href: "/products/categories",
+    label: "Categories",
+    icon: Package,
+  },
+  {
     href: "/services",
     label: "Services",
     icon: Wrench,
@@ -51,11 +56,6 @@ const mainLinks = [
 ]
 
 const settingsLinks = [
-  {
-    href: "/settings/categories",
-    label: "Categories",
-    icon: Package,
-  },
   {
     href: "/settings/languages",
     label: "Languages",

@@ -69,7 +69,7 @@ const initialOrders: Order[] = [
       name: "John Doe",
       email: "john@example.com",
     },
-    date: "2024-03-15",
+    date: "2024-03-15T14:30:15",
     status: "completed",
     payment: {
       method: "credit_card",
@@ -110,7 +110,7 @@ const initialOrders: Order[] = [
       name: "Jane Smith",
       email: "jane@example.com",
     },
-    date: "2024-03-14",
+    date: "2024-03-14T09:45:22",
     status: "processing",
     payment: {
       method: "paypal",

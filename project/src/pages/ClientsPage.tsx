@@ -19,8 +19,52 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Eye, Pencil, X } from "lucide-react"
+import { Pencil, X } from "lucide-react"
 import { useState } from "react"
+
+// Importing services from ServicesPage
+interface Service {
+  id: string
+  name: string
+  description: string
+  price: string
+  status: "active" | "inactive"
+}
+
+const availableServices: Service[] = [
+  {
+    id: "1",
+    name: "Shipping Service",
+    description:
+      "Express courier shipping service with delivery within 24/48 business hours.",
+    price: "9.99",
+    status: "active",
+  },
+  {
+    id: "2",
+    name: "Christmas Gift Wrapping",
+    description:
+      "Special packaging for Christmas gifts with wrapping paper, ribbons and personalized card.",
+    price: "12.50",
+    status: "active",
+  },
+  {
+    id: "3",
+    name: "Shipping Insurance",
+    description:
+      "Full insurance coverage for transported goods up to €1000 in value.",
+    price: "7.99",
+    status: "active",
+  },
+  {
+    id: "4",
+    name: "Gift Wrapping",
+    description:
+      "Standard gift wrapping service with elegant paper, ribbon and gift tag.",
+    price: "5.99",
+    status: "active",
+  },
+]
 
 interface Client {
   id: number
@@ -30,10 +74,11 @@ interface Client {
   discount: number
   phone: string
   language: string
+  notes?: string
+  serviceIds: string[] // IDs of subscribed services
   shippingAddress: {
     street: string
     city: string
-    state: string
     zip: string
     country: string
   }
@@ -50,10 +95,11 @@ const clients: Client[] = [
     discount: 10,
     phone: "+1234567890",
     language: "English",
+    notes: "Regular customer",
+    serviceIds: ["1", "4"], // Shipping Service and Gift Wrapping
     shippingAddress: {
       street: "123 Main St",
       city: "New York",
-      state: "NY",
       zip: "10001",
       country: "USA",
     },
@@ -66,10 +112,11 @@ const clients: Client[] = [
     discount: 15,
     phone: "+0987654321",
     language: "Spanish",
+    notes: "Prefers email contact",
+    serviceIds: ["1", "2"], // Shipping Service and Christmas Gift Wrapping
     shippingAddress: {
       street: "456 Oak Ave",
       city: "Los Angeles",
-      state: "CA",
       zip: "90001",
       country: "USA",
     },
@@ -89,7 +136,7 @@ function ClientDetailsSheet({
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-[85%] sm:max-w-[85%] !p-0 [&>button]:hidden">
+      <SheetContent className="w-[45%] sm:max-w-[45%] !p-0 [&>button]:hidden">
         <div className="flex items-start p-6">
           <SheetClose asChild>
             <Button
@@ -146,17 +193,57 @@ function ClientDetailsSheet({
 
             <Card className="border rounded-lg">
               <CardHeader>
+                <CardTitle>Services</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="list-disc pl-5 space-y-1">
+                  {client.serviceIds && client.serviceIds.length > 0 ? (
+                    client.serviceIds.map((serviceId) => {
+                      const service = availableServices.find(
+                        (s) => s.id === serviceId
+                      )
+                      return service ? (
+                        <li key={serviceId}>
+                          {service.name} - €{service.price}
+                        </li>
+                      ) : null
+                    })
+                  ) : (
+                    <li className="text-gray-500">No services selected</li>
+                  )}
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border rounded-lg">
+              <CardHeader>
                 <CardTitle>Shipping Address</CardTitle>
               </CardHeader>
               <CardContent>
                 <address className="not-italic">
                   {client.shippingAddress.street}
                   <br />
-                  {client.shippingAddress.city}, {client.shippingAddress.state}{" "}
-                  {client.shippingAddress.zip}
+                  {client.shippingAddress.city}, {client.shippingAddress.zip}
                   <br />
                   {client.shippingAddress.country}
                 </address>
+              </CardContent>
+            </Card>
+
+            <Card className="border rounded-lg">
+              <CardHeader>
+                <CardTitle>Additional Information</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Client Notes</Label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    defaultValue={client.notes || ""}
+                  />
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -189,10 +276,13 @@ function ClientEditSheet({
       phone: formData.get("phone") as string,
       language: formData.get("language") as string,
       discount: Number(formData.get("discount")),
+      notes: formData.get("notes") as string,
+      serviceIds: availableServices
+        .filter((service) => formData.get(`service-${service.id}`) === "on")
+        .map((service) => service.id),
       shippingAddress: {
         street: formData.get("street") as string,
         city: formData.get("city") as string,
-        state: formData.get("state") as string,
         zip: formData.get("zip") as string,
         country: formData.get("country") as string,
       },
@@ -204,7 +294,7 @@ function ClientEditSheet({
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-[85%] sm:max-w-[85%] !p-0 [&>button]:hidden">
+      <SheetContent className="w-[45%] sm:max-w-[45%] !p-0 [&>button]:hidden">
         <div className="flex items-start p-6">
           <SheetClose asChild>
             <Button
@@ -326,17 +416,6 @@ function ClientEditSheet({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
-                      name="state"
-                      defaultValue={client.shippingAddress.state}
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
                     <Label htmlFor="zip">ZIP Code</Label>
                     <Input
                       id="zip"
@@ -345,22 +424,73 @@ function ClientEditSheet({
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="country">Country</Label>
-                    <Input
-                      id="country"
-                      name="country"
-                      defaultValue={client.shippingAddress.country}
-                      required
-                    />
-                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="country">Country</Label>
+                  <Input
+                    id="country"
+                    name="country"
+                    defaultValue={client.shippingAddress.country}
+                    required
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border rounded-lg">
+              <CardHeader>
+                <CardTitle>Services</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4">
+                  {availableServices
+                    .filter((service) => service.status === "active")
+                    .map((service) => (
+                      <div
+                        key={service.id}
+                        className="flex items-center space-x-2"
+                      >
+                        <input
+                          type="checkbox"
+                          id={`service-${service.id}`}
+                          name={`service-${service.id}`}
+                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          defaultChecked={client.serviceIds.includes(
+                            service.id
+                          )}
+                        />
+                        <label
+                          htmlFor={`service-${service.id}`}
+                          className="text-sm font-medium"
+                        >
+                          {service.name} - €{service.price}
+                        </label>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border rounded-lg">
+              <CardHeader>
+                <CardTitle>Additional Information</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Client Notes</Label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    defaultValue={client.notes || ""}
+                  />
                 </div>
               </CardContent>
             </Card>
 
             <div className="flex justify-end">
               <Button type="submit" size="lg" className="w-full md:w-auto">
-                Save Changes
+                Save
               </Button>
             </div>
           </form>
@@ -392,6 +522,10 @@ export default function ClientsPage(): JSX.Element {
 
   const columns: ColumnDef<Client>[] = [
     {
+      header: "Phone",
+      accessorKey: "phone",
+    },
+    {
       header: "Name",
       accessorKey: "name",
     },
@@ -408,21 +542,9 @@ export default function ClientsPage(): JSX.Element {
       accessorKey: "language",
     },
     {
-      header: "Phone",
-      accessorKey: "phone",
-    },
-    {
       id: "actions",
       cell: ({ row }) => (
-        <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setViewingClient(row.original)}
-            title="View Client"
-          >
-            <Eye className="h-4 w-4 text-blue-500" />
-          </Button>
+        <div className="flex justify-end w-full">
           <Button
             variant="ghost"
             size="icon"
