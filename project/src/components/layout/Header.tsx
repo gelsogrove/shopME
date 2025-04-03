@@ -8,23 +8,55 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogOut, Phone, Settings, User } from "lucide-react"
-import { Link } from "react-router-dom"
+import { ArrowLeftRight, LogOut, Phone, Settings, User } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 export function Header() {
-  const phoneNumber = "+1 234 567 890"
+  const navigate = useNavigate()
+  const [phoneNumber, setPhoneNumber] = useState<string>("")
+  const [workspaceType, setWorkspaceType] = useState<string>("")
+
+  useEffect(() => {
+    // Recupera le informazioni del workspace dai sessionStorage
+    const currentPhone =
+      sessionStorage.getItem("currentWorkspaceName") || "+39 XXX XXX XXXX"
+    const currentType = sessionStorage.getItem("currentWorkspaceType") || "Shop"
+
+    setPhoneNumber(currentPhone)
+    setWorkspaceType(currentType)
+  }, [])
+
+  // Gestisce il ritorno alla selezione dei workspace
+  const handleBackToWorkspaces = () => {
+    navigate("/workspace-selection")
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-24 items-center">
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <Link
-            to="/workspace"
-            className="flex items-center space-x-2 text-lg text-muted-foreground hover:text-foreground"
-          >
-            <Phone className="h-6 w-6" />
-            <span>{phoneNumber}</span>
-          </Link>
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mr-2 flex items-center text-muted-foreground hover:text-foreground"
+              onClick={handleBackToWorkspaces}
+            >
+              <ArrowLeftRight className="h-4 w-4 mr-1" />
+              <span className="text-sm">Cambia</span>
+            </Button>
+
+            <div className="flex flex-col">
+              <div className="flex items-center space-x-2 text-lg">
+                <Phone className="h-5 w-5 text-green-600" />
+                <span className="font-medium">{phoneNumber}</span>
+              </div>
+              <span className="text-xs text-muted-foreground ml-7">
+                Tipo: {workspaceType}
+              </span>
+            </div>
+          </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -54,12 +86,18 @@ export function Header() {
                 <User className="mr-3 h-5 w-5" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="p-4 text-lg">
+              <DropdownMenuItem
+                className="p-4 text-lg"
+                onClick={() => navigate("/settings")}
+              >
                 <Settings className="mr-3 h-5 w-5" />
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="p-4 text-lg">
+              <DropdownMenuItem
+                className="p-4 text-lg"
+                onClick={() => navigate("/login")}
+              >
                 <LogOut className="mr-3 h-5 w-5" />
                 <span>Log out</span>
               </DropdownMenuItem>
