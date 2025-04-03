@@ -20,7 +20,7 @@ const mainLinks = [
   },
   {
     href: "/chat",
-    label: "Chat",
+    label: "Chat History",
     icon: MessageSquare,
   },
   {
