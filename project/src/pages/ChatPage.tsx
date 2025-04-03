@@ -1,6 +1,4 @@
-import { MoreVertical, Phone, Video } from "lucide-react"
 import { useState } from "react"
-import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
 import { Input } from "../components/ui/input"
 
@@ -111,23 +109,12 @@ export function ChatPage() {
           {selectedChat ? (
             <>
               {/* Chat Header */}
-              <div className="flex justify-between items-center pb-4 border-b">
+              <div className="flex justify-between items-center pb-2 border-b h-[60px]">
                 <div>
                   <h2 className="font-bold">{selectedChat.customerName}</h2>
                   <p className="text-sm text-gray-500">
                     {selectedChat.customerPhone}
                   </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="icon" title="Voice Call">
-                    <Phone className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" title="Video Call">
-                    <Video className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" title="More Options">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
 
@@ -156,13 +143,6 @@ export function ChatPage() {
                     </div>
                   </div>
                 ))}
-              </div>
-
-              {/* Message Input - Disabled */}
-              <div className="mt-4 p-3 bg-gray-100 rounded-lg text-center">
-                <p className="text-gray-500">
-                  Messaging functionality is currently disabled
-                </p>
               </div>
             </>
           ) : (

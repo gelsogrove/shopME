@@ -53,7 +53,7 @@ export function Header() {
                 <span className="font-medium">{phoneNumber}</span>
               </div>
               <span className="text-xs text-muted-foreground ml-7">
-                Tipo: {workspaceType}
+                Type: {workspaceType}
               </span>
             </div>
           </div>

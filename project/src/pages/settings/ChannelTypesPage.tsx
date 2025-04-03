@@ -65,7 +65,7 @@ export function ChannelTypesPage() {
       <CardContent className="px-0">
         <div className="space-y-6">
           <div className="grid grid-cols-4 gap-4 font-medium text-sm text-gray-500 py-2 border-b">
-            <div>Tipo</div>
+            <div>Type</div>
             <div>Stato</div>
             <div>Default</div>
             <div></div>
