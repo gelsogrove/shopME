@@ -23,19 +23,38 @@ export function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<Layout />}>
           <Route index element={<DashboardPage />} />
-          <Route path="analytics" element={<AnalyticsPage />} />
-          <Route path="chat" element={<ChatPage />} />
-          <Route path="clients" element={<ClientsPage />} />
-          <Route path="customers" element={<CustomersPage />} />
-          <Route path="orders" element={<OrdersPage />} />
-          <Route path="products" element={<ProductsPage />} />
-          <Route path="prompts" element={<PromptsPage />} />
-          <Route path="services" element={<ServicesPage />} />
-          <Route path="settings" element={<SettingsPage />}>
-            <Route path="categories" element={<CategoriesPage />} />
-            <Route path="languages" element={<LanguagesPage />} />
-          </Route>
-          <Route path="workspace" element={<WorkspacePage />} />
+        </Route>
+        <Route path="/analytics" element={<Layout />}>
+          <Route index element={<AnalyticsPage />} />
+        </Route>
+        <Route path="/chat" element={<Layout />}>
+          <Route index element={<ChatPage />} />
+        </Route>
+        <Route path="/clients" element={<Layout />}>
+          <Route index element={<ClientsPage />} />
+        </Route>
+        <Route path="/customers" element={<Layout />}>
+          <Route index element={<CustomersPage />} />
+        </Route>
+        <Route path="/orders" element={<Layout />}>
+          <Route index element={<OrdersPage />} />
+        </Route>
+        <Route path="/products" element={<Layout />}>
+          <Route index element={<ProductsPage />} />
+        </Route>
+        <Route path="/prompts" element={<Layout />}>
+          <Route index element={<PromptsPage />} />
+        </Route>
+        <Route path="/services" element={<Layout />}>
+          <Route index element={<ServicesPage />} />
+        </Route>
+        <Route path="/settings" element={<Layout />}>
+          <Route index element={<SettingsPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
+          <Route path="languages" element={<LanguagesPage />} />
+        </Route>
+        <Route path="/workspace" element={<Layout />}>
+          <Route index element={<WorkspacePage />} />
         </Route>
       </Routes>
     </BrowserRouter>
