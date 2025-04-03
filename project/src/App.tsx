@@ -6,10 +6,10 @@ import { CustomersPage } from "@/pages/CustomersPage"
 import DashboardPage from "@/pages/DashboardPage"
 import { LoginPage } from "@/pages/LoginPage"
 import OrdersPage from "@/pages/OrdersPage"
+import CategoriesPage from "@/pages/products/CategoriesPage"
 import { ProductsPage } from "@/pages/ProductsPage"
 import { PromptsPage } from "@/pages/PromptsPage"
 import ServicesPage from "@/pages/ServicesPage"
-import { CategoriesPage } from "@/pages/settings/CategoriesPage"
 import { ChannelTypesPage } from "@/pages/settings/ChannelTypesPage"
 import { LanguagesPage } from "@/pages/settings/LanguagesPage"
 import { SettingsPage } from "@/pages/SettingsPage"
@@ -47,6 +47,7 @@ export function App() {
         </Route>
         <Route path="/products" element={<Layout />}>
           <Route index element={<ProductsPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
         </Route>
         <Route path="/prompts" element={<Layout />}>
           <Route index element={<PromptsPage />} />
@@ -56,7 +57,6 @@ export function App() {
         </Route>
         <Route path="/settings" element={<Layout />}>
           <Route index element={<SettingsPage />} />
-          <Route path="categories" element={<CategoriesPage />} />
           <Route path="languages" element={<LanguagesPage />} />
           <Route path="channel-types" element={<ChannelTypesPage />} />
         </Route>
