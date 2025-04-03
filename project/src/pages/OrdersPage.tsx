@@ -794,30 +794,34 @@ export default function OrdersPage() {
               size="icon"
               onClick={() => handleDownloadInvoice(order)}
               title="Download Invoice"
+              className="h-8 w-8 p-0"
             >
-              <FileText className="h-4 w-4" />
+              <FileText className="h-5 w-5" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => handleDownloadShippingNote(order)}
               title="Download Shipping Note"
+              className="h-8 w-8 p-0"
             >
-              <TruckIcon className="h-4 w-4" />
+              <TruckIcon className="h-5 w-5" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => handleViewDetails(order)}
+              className="h-8 w-8 p-0"
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-5 w-5" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => handleDeleteOrder(order)}
+              className="h-8 w-8 p-0"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-5 w-5" />
             </Button>
           </div>
         )
