@@ -13,13 +13,15 @@ import { CategoriesPage } from "@/pages/settings/CategoriesPage"
 import { LanguagesPage } from "@/pages/settings/LanguagesPage"
 import { SettingsPage } from "@/pages/SettingsPage"
 import { WorkspacePage } from "@/pages/WorkspacePage"
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 
 export function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={<Layout />}>
           <Route index element={<DashboardPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="chat" element={<ChatPage />} />
@@ -35,7 +37,6 @@ export function App() {
           </Route>
           <Route path="workspace" element={<WorkspacePage />} />
         </Route>
-        <Route path="/login" element={<LoginPage />} />
       </Routes>
     </BrowserRouter>
   )

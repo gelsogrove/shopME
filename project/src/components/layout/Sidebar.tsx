@@ -19,32 +19,32 @@ const mainLinks = [
     icon: LayoutGrid,
   },
   {
-    href: "/chat",
+    href: "/dashboard/chat",
     label: "Chat",
     icon: MessageSquare,
   },
   {
-    href: "/clients",
+    href: "/dashboard/clients",
     label: "Clients",
     icon: Users,
   },
   {
-    href: "/orders",
+    href: "/dashboard/orders",
     label: "Orders",
     icon: ShoppingCart,
   },
   {
-    href: "/products",
+    href: "/dashboard/products",
     label: "Products",
     icon: Box,
   },
   {
-    href: "/services",
+    href: "/dashboard/services",
     label: "Services",
     icon: Wrench,
   },
   {
-    href: "/prompts",
+    href: "/dashboard/prompts",
     label: "Prompts",
     icon: MessageSquare,
   },
@@ -52,17 +52,17 @@ const mainLinks = [
 
 const settingsLinks = [
   {
-    href: "/settings/categories",
+    href: "/dashboard/settings/categories",
     label: "Categories",
     icon: Package,
   },
   {
-    href: "/settings/languages",
+    href: "/dashboard/settings/languages",
     label: "Languages",
     icon: Globe,
   },
   {
-    href: "/settings",
+    href: "/dashboard/settings",
     label: "Settings",
     icon: Cog,
   },
@@ -105,7 +105,7 @@ export function Sidebar() {
               <NavLink
                 key={href}
                 to={href}
-                end={href === "/settings"}
+                end={href === "/dashboard/settings"}
                 className={({ isActive }) =>
                   cn(
                     "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors",
