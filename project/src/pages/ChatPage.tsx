@@ -1,4 +1,4 @@
-import { MoreVertical, Phone, Send, Video } from "lucide-react"
+import { MoreVertical, Phone, Video } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
@@ -50,7 +50,6 @@ const mockChats: Chat[] = [
 export function ChatPage() {
   const [chats] = useState<Chat[]>(mockChats)
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
-  const [newMessage, setNewMessage] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
 
   const filteredChats = chats.filter(
@@ -58,22 +57,6 @@ export function ChatPage() {
       chat.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       chat.customerPhone.includes(searchTerm)
   )
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newMessage.trim() || !selectedChat) return
-
-    const message: Message = {
-      id: Date.now().toString(),
-      content: newMessage,
-      sender: "user",
-      timestamp: new Date().toISOString(),
-    }
-
-    // Update chat with new message
-    console.log("Sending message:", message)
-    setNewMessage("")
-  }
 
   return (
     <div className="container mx-auto p-6">
@@ -175,23 +158,16 @@ export function ChatPage() {
                 ))}
               </div>
 
-              {/* Message Input */}
-              <form onSubmit={handleSendMessage} className="mt-4 flex gap-2">
-                <Input
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type a message..."
-                  className="flex-1"
-                />
-                <Button type="submit" disabled={!newMessage.trim()}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Send
-                </Button>
-              </form>
+              {/* Message Input - Disabled */}
+              <div className="mt-4 p-3 bg-gray-100 rounded-lg text-center">
+                <p className="text-gray-500">
+                  Messaging functionality is currently disabled
+                </p>
+              </div>
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center text-gray-500">
-              Select a chat to start messaging
+              Select a chat to view message history
             </div>
           )}
         </Card>
