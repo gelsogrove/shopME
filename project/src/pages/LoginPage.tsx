@@ -15,7 +15,7 @@ export function LoginPage() {
     setError("")
 
     if (email === "admin@admin.it" && password === "pwd") {
-      navigate("/dashboard")
+      navigate("/workspace-selection")
     } else {
       setError("Invalid email or password")
     }

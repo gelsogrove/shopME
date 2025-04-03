@@ -462,32 +462,17 @@ function OrderEditSheet({
                   <CardTitle>Customer Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="customerName">Name</Label>
-                    <Input
-                      id="customerName"
-                      name="customerName"
-                      defaultValue={order.userDetails.name}
-                      readOnly
-                    />
+                  <div className="space-y-1">
+                    <dt className="font-medium">Name:</dt>
+                    <dd>{order.userDetails.name}</dd>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="customerEmail">Email</Label>
-                    <Input
-                      id="customerEmail"
-                      name="customerEmail"
-                      defaultValue={order.userDetails.email}
-                      readOnly
-                    />
+                  <div className="space-y-1">
+                    <dt className="font-medium">Email:</dt>
+                    <dd>{order.userDetails.email}</dd>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="customerPhone">Phone</Label>
-                    <Input
-                      id="customerPhone"
-                      name="customerPhone"
-                      defaultValue={order.userDetails.phone}
-                      readOnly
-                    />
+                  <div className="space-y-1">
+                    <dt className="font-medium">Phone:</dt>
+                    <dd>{order.userDetails.phone}</dd>
                   </div>
                 </CardContent>
               </Card>

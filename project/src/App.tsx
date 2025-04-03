@@ -10,9 +10,11 @@ import { ProductsPage } from "@/pages/ProductsPage"
 import { PromptsPage } from "@/pages/PromptsPage"
 import ServicesPage from "@/pages/ServicesPage"
 import { CategoriesPage } from "@/pages/settings/CategoriesPage"
+import { ChannelTypesPage } from "@/pages/settings/ChannelTypesPage"
 import { LanguagesPage } from "@/pages/settings/LanguagesPage"
 import { SettingsPage } from "@/pages/SettingsPage"
 import { WorkspacePage } from "@/pages/WorkspacePage"
+import { WorkspaceSelectionPage } from "@/pages/WorkspaceSelectionPage"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 
 export function App() {
@@ -21,6 +23,10 @@ export function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/workspace-selection"
+          element={<WorkspaceSelectionPage />}
+        />
         <Route path="/dashboard" element={<Layout />}>
           <Route index element={<DashboardPage />} />
         </Route>
@@ -52,6 +58,7 @@ export function App() {
           <Route index element={<SettingsPage />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="languages" element={<LanguagesPage />} />
+          <Route path="channel-types" element={<ChannelTypesPage />} />
         </Route>
         <Route path="/workspace" element={<Layout />}>
           <Route index element={<WorkspacePage />} />
