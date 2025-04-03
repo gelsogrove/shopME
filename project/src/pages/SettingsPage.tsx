@@ -10,6 +10,7 @@ interface Settings {
   whatsappPhoneNumber: string
   notificationEmail: string
   webhookUrl: string
+  alias: string
 }
 
 const defaultSettings: Settings = {
@@ -17,6 +18,7 @@ const defaultSettings: Settings = {
   whatsappPhoneNumber: "",
   notificationEmail: "",
   webhookUrl: "",
+  alias: "",
 }
 
 export function SettingsPage() {
@@ -56,6 +58,24 @@ export function SettingsPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="alias"
+                    className="block text-sm font-medium mb-1"
+                  >
+                    Alias
+                  </label>
+                  <Input
+                    id="alias"
+                    name="alias"
+                    type="text"
+                    value={settings.alias}
+                    onChange={handleChange}
+                    placeholder="Your alias or display name"
+                    className="w-full"
+                  />
+                </div>
+
                 <div>
                   <label
                     htmlFor="whatsappApiKey"

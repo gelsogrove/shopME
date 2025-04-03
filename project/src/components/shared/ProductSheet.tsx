@@ -76,11 +76,11 @@ export function ProductSheet({
           <form onSubmit={onSubmit} className="mt-6 grid gap-6 pb-8">
             <Card className="border rounded-lg">
               <CardHeader>
-                <CardTitle>Informazioni Prodotto</CardTitle>
+                <CardTitle>Product Information</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome</Label>
+                  <Label htmlFor="name">Name</Label>
                   <Input
                     id="name"
                     name="name"
@@ -89,7 +89,7 @@ export function ProductSheet({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description">Descrizione</Label>
+                  <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
                     name="description"
@@ -98,7 +98,7 @@ export function ProductSheet({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price">Prezzo (€)</Label>
+                  <Label htmlFor="price">Price (€)</Label>
                   <Input
                     id="price"
                     name="price"
@@ -108,23 +108,23 @@ export function ProductSheet({
                 </div>
                 {showImageField && (
                   <div className="space-y-2">
-                    <Label htmlFor="image">URL Immagine</Label>
+                    <Label htmlFor="image">Image URL</Label>
                     <Input
                       id="image"
                       name="image"
                       defaultValue={product?.image}
                       onChange={handleImageChange}
-                      placeholder="Inserisci l'URL dell'immagine"
+                      placeholder="Enter image URL"
                     />
                     {imagePreview && (
                       <div className="mt-2 border rounded-md overflow-hidden">
                         <img
                           src={imagePreview}
-                          alt="Anteprima"
+                          alt="Preview"
                           className="w-full h-48 object-contain bg-gray-50"
                           onError={(e) => {
                             ;(e.target as HTMLImageElement).src =
-                              "https://placehold.co/600x400/e2e8f0/64748b?text=Immagine+non+valida"
+                              "https://placehold.co/600x400/e2e8f0/64748b?text=Invalid+Image"
                           }}
                         />
                       </div>
@@ -132,7 +132,7 @@ export function ProductSheet({
                   </div>
                 )}
                 <div className="space-y-2">
-                  <Label htmlFor="categories">Categorie</Label>
+                  <Label htmlFor="categories">Categories</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {availableCategories.map((category) => (
                       <div
@@ -167,7 +167,7 @@ export function ProductSheet({
                 type="submit"
                 className="bg-[#25D366] hover:bg-[#1ea855] text-white"
               >
-                {isNew ? "Aggiungi Prodotto" : "Salva Modifiche"}
+                {isNew ? "Add Product" : "Save Changes"}
               </Button>
             </div>
           </form>

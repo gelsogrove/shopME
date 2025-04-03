@@ -25,7 +25,7 @@ import {
 import { formatDate } from "@/lib/utils"
 import "@/styles/sheet.css"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Eye, Pencil, PlusCircle, Trash2, X } from "lucide-react"
+import { Pencil, PlusCircle, Trash2, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 interface Order {
@@ -644,9 +644,9 @@ export default function OrdersPage() {
   }
 
   const handleAddOrder = () => {
-    // Creare un nuovo ordine vuoto con un ID temporaneo
+    // Create a new empty order with a temporary ID
     const newOrder: Order = {
-      id: Date.now(), // ID temporaneo
+      id: Date.now(), // Temporary ID
       customer: {
         name: "",
         email: "",
@@ -690,7 +690,7 @@ export default function OrdersPage() {
     }
   }
 
-  // Filtrare e ordinare gli ordini per ID in ordine decrescente
+  // Filter and sort orders by ID in descending order
   const filteredOrders = orders
     .filter(
       (order) =>
@@ -708,7 +708,7 @@ export default function OrdersPage() {
         order.total.toString().includes(searchValue) ||
         formatDate(order.date).includes(searchValue)
     )
-    .sort((a, b) => b.id - a.id) // Ordinare per ID in ordine decrescente
+    .sort((a, b) => b.id - a.id)
 
   const columns: ColumnDef<Order>[] = [
     {
@@ -760,18 +760,10 @@ export default function OrdersPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setViewingOrder(row.original)}
-            className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
             onClick={() => setEditingOrder(row.original)}
             className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
           >
-            <Pencil className="h-4 w-4" />
+            <Pencil className="h-5 w-5" />
           </Button>
           <Button
             variant="ghost"
@@ -779,7 +771,7 @@ export default function OrdersPage() {
             onClick={() => handleDeleteOrder(row.original)}
             className="h-8 w-8 p-0 text-red-600 hover:bg-red-100"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-5 w-5" />
           </Button>
         </div>
       ),
@@ -789,13 +781,13 @@ export default function OrdersPage() {
   return (
     <div className="container mx-auto py-6">
       <PageHeader
-        title="Ordini"
+        title="Orders"
         searchValue={searchValue}
         onSearch={setSearchValue}
-        searchPlaceholder="Cerca ordini..."
+        searchPlaceholder="Search orders..."
         itemCount={orders.length}
         onAdd={handleAddOrder}
-        addButtonText="Nuovo Ordine"
+        addButtonText="New Order"
         addButtonIcon={<PlusCircle className="mr-2 h-4 w-4" />}
       />
 
@@ -823,8 +815,8 @@ export default function OrdersPage() {
       <ConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        title="Elimina Ordine"
-        description={`Sei sicuro di voler eliminare l'ordine #${deletingOrder?.id}?`}
+        title="Delete Order"
+        description={`Are you sure you want to delete order #${deletingOrder?.id}?`}
         onConfirm={handleConfirmDelete}
       />
     </div>
