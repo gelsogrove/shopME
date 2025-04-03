@@ -14,6 +14,7 @@ interface Product {
   categories: string[]
   status: "active" | "inactive"
   image: string
+  quantity: number
 }
 
 const initialProducts: Product[] = [
@@ -27,6 +28,7 @@ const initialProducts: Product[] = [
     status: "active",
     image:
       "https://www.parmigianoreggiano.com/wp-content/uploads/2020/10/forma-parmigiano-reggiano.jpg",
+    quantity: 25,
   },
   {
     id: "2",
@@ -38,6 +40,7 @@ const initialProducts: Product[] = [
     status: "active",
     image:
       "https://www.gustiditalia.com/wp-content/uploads/2019/11/pasta-di-gragnano-igp-spaghetti.jpg",
+    quantity: 120,
   },
   {
     id: "3",
@@ -49,6 +52,7 @@ const initialProducts: Product[] = [
     status: "active",
     image:
       "https://www.oliocarli.it/wp-content/uploads/2019/11/olio-toscano.jpg",
+    quantity: 48,
   },
   {
     id: "4",
@@ -60,6 +64,7 @@ const initialProducts: Product[] = [
     status: "active",
     image:
       "https://www.prosciuttodiparma.com/wp-content/uploads/2020/05/prosciutto-di-parma-intero.jpg",
+    quantity: 15,
   },
   {
     id: "5",
@@ -71,6 +76,7 @@ const initialProducts: Product[] = [
     status: "inactive",
     image:
       "https://www.acetum.it/wp-content/uploads/2020/03/aceto-balsamico-di-modena-igp.jpg",
+    quantity: 30,
   },
   {
     id: "6",
@@ -82,6 +88,7 @@ const initialProducts: Product[] = [
     status: "active",
     image:
       "https://www.mozzarelladibufala.org/wp-content/uploads/2019/07/mozzarella-di-bufala-campana-dop.jpg",
+    quantity: 40,
   },
 ]
 
@@ -137,6 +144,13 @@ export function ProductsPage() {
       ),
     },
     {
+      header: "Quantity",
+      accessorKey: "quantity" as keyof Product,
+      cell: ({ row }: { row: { original: Product } }) => (
+        <span className="font-medium">{row.original.quantity}</span>
+      ),
+    },
+    {
       header: "Categories",
       accessorKey: "categories" as keyof Product,
       cell: ({ row }: { row: { original: Product } }) => (
@@ -174,6 +188,7 @@ export function ProductsPage() {
       image:
         (formData.get("image") as string) ||
         "https://placehold.co/600x400/e2e8f0/64748b?text=Product+Image",
+      quantity: parseInt(formData.get("quantity") as string) || 0,
     }
 
     setProducts([...products, newProduct])
@@ -199,6 +214,9 @@ export function ProductsPage() {
       price: (formData.get("price") as string).replace("€", "").trim(),
       categories: formData.getAll("categories") as string[],
       image: (formData.get("image") as string) || selectedProduct.image,
+      quantity:
+        parseInt(formData.get("quantity") as string) ||
+        selectedProduct.quantity,
     }
 
     setProducts(
