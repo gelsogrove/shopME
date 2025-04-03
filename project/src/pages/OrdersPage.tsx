@@ -25,7 +25,14 @@ import {
 import { formatDate } from "@/lib/utils"
 import "@/styles/sheet.css"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Pencil, PlusCircle, Trash2, X } from "lucide-react"
+import {
+  FileText,
+  Pencil,
+  PlusCircle,
+  Trash2,
+  TruckIcon,
+  X,
+} from "lucide-react"
 import { useEffect, useState } from "react"
 
 interface Order {
@@ -632,11 +639,11 @@ function OrderEditSheet({
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>(initialOrders)
-  const [searchValue, setSearchValue] = useState("")
-  const [viewingOrder, setViewingOrder] = useState<Order | null>(null)
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
+  const [viewingOrder, setViewingOrder] = useState<Order | null>(null)
   const [deletingOrder, setDeletingOrder] = useState<Order | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [searchValue, setSearchValue] = useState("")
 
   const handleSaveOrder = (updatedOrder: Order) => {
     setOrders(orders.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)))
@@ -712,71 +719,127 @@ export default function OrdersPage() {
 
   const columns: ColumnDef<Order>[] = [
     {
-      accessorKey: "id",
       header: "Order ID",
-      cell: ({ row }) => <span>#{row.original.id}</span>,
+      accessorKey: "id",
     },
     {
-      accessorKey: "customer.name",
       header: "Customer",
+      accessorKey: "customer",
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium">{row.original.customer.name}</div>
+          <div className="text-sm text-gray-500">
+            {row.original.customer.email}
+          </div>
+        </div>
+      ),
     },
     {
-      accessorKey: "date",
       header: "Date",
-      cell: ({ row }) => formatDate(row.original.date),
+      accessorKey: "date",
+      cell: ({ row }) => formatDate(row.getValue("date")),
     },
     {
-      accessorKey: "status",
       header: "Status",
+      accessorKey: "status",
       cell: ({ row }) => (
-        <StatusBadge status={row.original.status}>
-          {row.original.status.charAt(0).toUpperCase() +
-            row.original.status.slice(1)}
+        <StatusBadge status={row.getValue("status")}>
+          {row.getValue<string>("status").charAt(0).toUpperCase() +
+            row.getValue<string>("status").slice(1)}
         </StatusBadge>
       ),
     },
     {
-      accessorKey: "payment.status",
       header: "Payment",
+      accessorKey: "payment",
       cell: ({ row }) => (
-        <StatusBadge status={row.original.payment.status}>
-          {row.original.payment.status.charAt(0).toUpperCase() +
-            row.original.payment.status.slice(1)}
-        </StatusBadge>
+        <div>
+          <div className="font-medium">
+            {row.original.payment.method === "credit_card"
+              ? "Credit Card"
+              : row.original.payment.method.charAt(0).toUpperCase() +
+                row.original.payment.method.slice(1)}
+          </div>
+          <div
+            className={`text-sm ${
+              row.original.payment.status === "paid"
+                ? "text-green-500"
+                : row.original.payment.status === "pending"
+                ? "text-yellow-500"
+                : "text-red-500"
+            }`}
+          >
+            {row.original.payment.status.charAt(0).toUpperCase() +
+              row.original.payment.status.slice(1)}
+          </div>
+        </div>
       ),
     },
     {
-      accessorKey: "total",
       header: "Total",
+      accessorKey: "total",
       cell: ({ row }) => (
-        <span className="font-medium">€{row.original.total.toFixed(2)}</span>
+        <span>€{row.getValue<number>("total").toFixed(2)}</span>
       ),
     },
     {
       id: "actions",
-      header: "",
-      cell: ({ row }) => (
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setEditingOrder(row.original)}
-            className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
-          >
-            <Pencil className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => handleDeleteOrder(row.original)}
-            className="h-8 w-8 p-0 text-red-600 hover:bg-red-100"
-          >
-            <Trash2 className="h-5 w-5" />
-          </Button>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const order = row.original
+
+        return (
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleDownloadInvoice(order)}
+              title="Download Invoice"
+            >
+              <FileText className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleDownloadShippingNote(order)}
+              title="Download Shipping Note"
+            >
+              <TruckIcon className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleViewDetails(order)}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleDeleteOrder(order)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )
+      },
     },
   ]
+
+  const handleViewDetails = (order: Order) => {
+    setViewingOrder(order)
+  }
+
+  const handleDownloadInvoice = (order: Order) => {
+    // Simulate download invoice functionality
+    console.log(`Downloading invoice for order #${order.id}`)
+    alert(`Invoice for order #${order.id} is being downloaded`)
+  }
+
+  const handleDownloadShippingNote = (order: Order) => {
+    // Simulate download shipping note functionality
+    console.log(`Downloading shipping note for order #${order.id}`)
+    alert(`Shipping note for order #${order.id} is being downloaded`)
+  }
 
   return (
     <div className="container mx-auto py-6">
