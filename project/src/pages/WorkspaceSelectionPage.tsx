@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ChevronLeft, PlusCircle } from "lucide-react"
-import { useState } from "react"
+import { PlusCircle } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 // Definizione dei tipi di attività supportati
@@ -22,7 +22,6 @@ export function WorkspaceSelectionPage() {
   const navigate = useNavigate()
   const [selectedType, setSelectedType] = useState<BusinessType | null>(null)
   const [newPhoneNumber, setNewPhoneNumber] = useState("")
-  const [showPhoneForm, setShowPhoneForm] = useState(false)
   const [justCreatedId, setJustCreatedId] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState("")
 
@@ -45,6 +44,21 @@ export function WorkspaceSelectionPage() {
       type: "Shop",
     },
   ])
+
+  // Effetto per selezionare automaticamente il nuovo canale dopo la creazione
+  useEffect(() => {
+    if (justCreatedId) {
+      const newWorkspace = workspaces.find((w) => w.id === justCreatedId)
+      if (newWorkspace) {
+        // Seleziona automaticamente il workspace dopo un breve delay
+        const timer = setTimeout(() => {
+          handleSelectWorkspace(newWorkspace)
+        }, 1500)
+
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [justCreatedId, workspaces])
 
   // Gestisce la selezione di un workspace
   const handleSelectWorkspace = (workspace: WorkspaceData) => {
@@ -70,19 +84,6 @@ export function WorkspaceSelectionPage() {
   // Gestisce la selezione di un tipo di attività
   const handleSelectType = (type: BusinessType) => {
     setSelectedType(type)
-
-    if (type === "Shop") {
-      // Possiamo procedere perché Shop è sempre disponibile
-      const dialog = document.getElementById(
-        "type-selection-dialog"
-      ) as HTMLDialogElement
-      if (dialog) {
-        dialog.close()
-      }
-
-      // Mostra il form per inserire il numero di telefono
-      setShowPhoneForm(true)
-    }
   }
 
   // Gestisce la creazione di un nuovo workspace
@@ -104,6 +105,45 @@ export function WorkspaceSelectionPage() {
       setErrorMessage("Questo numero è già registrato")
       return
     }
+
+    // Formato valido per numeri di telefono italiani
+    const phoneRegex = /^\+39 \d{3} \d{3} \d{4}$/
+    if (!phoneRegex.test(newPhoneNumber)) {
+      setErrorMessage("Formato non valido. Usa +39 XXX XXX XXXX")
+      return
+    }
+
+    // Crea un nuovo workspace
+    const newId = (workspaces.length + 1).toString()
+    const now = new Date()
+    const formattedDate =
+      now.toLocaleDateString() + ", " + now.toLocaleTimeString()
+
+    const newWorkspace: WorkspaceData = {
+      id: newId,
+      name: newPhoneNumber,
+      phoneNumber: newPhoneNumber,
+      lastAccess: formattedDate,
+      notifications: 0,
+      type: selectedType,
+    }
+
+    // Aggiunge il nuovo workspace alla lista
+    setWorkspaces([...workspaces, newWorkspace])
+
+    // Memorizza l'ID del workspace appena creato per poterlo evidenziare
+    setJustCreatedId(newId)
+
+    // Reset form
+    setNewPhoneNumber("")
+    setSelectedType(null)
+    setErrorMessage("")
+
+    // Chiude il dialog se aperto
+    const dialog = document.getElementById(
+      "type-selection-dialog"
+    ) as HTMLDialogElement
+    if (dialog) dialog.close()
   }
 
   return (
@@ -115,49 +155,6 @@ export function WorkspaceSelectionPage() {
         <p className="text-center text-gray-600 mb-8">
           Seleziona un numero per gestire le sue conversazioni
         </p>
-
-        {/* Form per inserire il numero di telefono */}
-        {showPhoneForm && (
-          <Card className="mb-8 border">
-            <CardContent className="p-6">
-              <div className="flex items-center mb-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mr-2 p-0 h-8 w-8"
-                  onClick={() => setShowPhoneForm(false)}
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-                <h2 className="text-xl font-semibold">
-                  Aggiungi nuovo numero {selectedType}
-                </h2>
-              </div>
-
-              <form onSubmit={handleCreateWorkspace} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Numero di telefono</Label>
-                  <Input
-                    id="phoneNumber"
-                    placeholder="+39 XXX XXX XXXX"
-                    value={newPhoneNumber}
-                    onChange={(e) => setNewPhoneNumber(e.target.value)}
-                    required
-                  />
-                  {errorMessage && (
-                    <p className="text-sm text-red-500">{errorMessage}</p>
-                  )}
-                  <p className="text-xs text-gray-500">
-                    Inserisci il numero di telefono nel formato +39 XXX XXX XXXX
-                  </p>
-                </div>
-                <div className="flex justify-end">
-                  <Button type="submit">Crea Canale</Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Lista dei canali esistenti */}
@@ -197,19 +194,17 @@ export function WorkspaceSelectionPage() {
           ))}
 
           {/* Card per aggiungere un nuovo canale */}
-          {!showPhoneForm && (
-            <Card
-              className="hover:shadow-md transition-shadow cursor-pointer border border-dashed flex flex-col items-center justify-center h-full"
-              onClick={handleNewWorkspace}
-            >
-              <CardContent className="p-6 flex flex-col items-center justify-center">
-                <PlusCircle className="h-12 w-12 text-gray-400 mb-2" />
-                <div className="text-gray-500 font-medium">
-                  Aggiungi nuovo numero
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <Card
+            className="hover:shadow-md transition-shadow cursor-pointer border border-dashed flex flex-col items-center justify-center h-full"
+            onClick={handleNewWorkspace}
+          >
+            <CardContent className="p-6 flex flex-col items-center justify-center">
+              <PlusCircle className="h-12 w-12 text-gray-400 mb-2" />
+              <div className="text-gray-500 font-medium">
+                Aggiungi nuovo numero
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -226,77 +221,99 @@ export function WorkspaceSelectionPage() {
             Scegli la tipologia di attività per configurare il tuo workspace
           </p>
 
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <button
-              className={`p-4 border rounded-lg ${
-                selectedType === "Shop"
-                  ? "bg-green-50 border-green-500"
-                  : "hover:bg-gray-50"
-              }`}
-              onClick={() => handleSelectType("Shop")}
-            >
-              <div className="font-medium">Shop</div>
-              <div className="text-xs text-gray-500 mt-1">Disponibile</div>
-            </button>
+          <form onSubmit={handleCreateWorkspace} className="space-y-6">
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <button
+                type="button"
+                className={`p-4 border rounded-lg ${
+                  selectedType === "Shop"
+                    ? "bg-green-50 border-green-500"
+                    : "hover:bg-gray-50"
+                }`}
+                onClick={() => handleSelectType("Shop")}
+              >
+                <div className="font-medium">Shop</div>
+                <div className="text-xs text-gray-500 mt-1">Disponibile</div>
+              </button>
 
-            <button
-              className={`p-4 border rounded-lg ${
-                selectedType === "Hotel"
-                  ? "bg-green-50 border-green-500"
-                  : "hover:bg-gray-50"
-              }`}
-              onClick={() => handleSelectType("Hotel")}
-            >
-              <div className="font-medium">Hotel</div>
-              <div className="text-xs text-gray-500 mt-1">Disponibile</div>
-            </button>
+              <button
+                type="button"
+                className={`p-4 border rounded-lg ${
+                  selectedType === "Hotel"
+                    ? "bg-green-50 border-green-500"
+                    : "hover:bg-gray-50"
+                }`}
+                onClick={() => handleSelectType("Hotel")}
+              >
+                <div className="font-medium">Hotel</div>
+                <div className="text-xs text-gray-500 mt-1">Disponibile</div>
+              </button>
 
-            <button
-              className="p-4 border rounded-lg opacity-60 cursor-not-allowed"
-              disabled
-            >
-              <div className="font-medium">Gym</div>
-              <div className="text-xs text-gray-500 mt-1">Non disponibile</div>
-            </button>
+              <button
+                type="button"
+                className="p-4 border rounded-lg opacity-60 cursor-not-allowed"
+                disabled
+              >
+                <div className="font-medium">Gym</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Non disponibile
+                </div>
+              </button>
 
-            <button
-              className="p-4 border rounded-lg opacity-60 cursor-not-allowed"
-              disabled
-            >
-              <div className="font-medium">Restaurant</div>
-              <div className="text-xs text-gray-500 mt-1">Non disponibile</div>
-            </button>
-          </div>
+              <button
+                type="button"
+                className="p-4 border rounded-lg opacity-60 cursor-not-allowed"
+                disabled
+              >
+                <div className="font-medium">Restaurant</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Non disponibile
+                </div>
+              </button>
+            </div>
 
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                const dialog = document.getElementById(
-                  "type-selection-dialog"
-                ) as HTMLDialogElement
-                if (dialog) dialog.close()
-              }}
-            >
-              Annulla
-            </Button>
-            <Button
-              onClick={() => {
-                if (selectedType) {
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumberPopup">Numero di telefono</Label>
+                <Input
+                  id="phoneNumberPopup"
+                  placeholder="+39 XXX XXX XXXX"
+                  value={newPhoneNumber}
+                  onChange={(e) => setNewPhoneNumber(e.target.value)}
+                  required
+                />
+                {errorMessage && (
+                  <p className="text-sm text-red-500">{errorMessage}</p>
+                )}
+                <p className="text-xs text-gray-500">
+                  Inserisci il numero di telefono nel formato +39 XXX XXX XXXX
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
                   const dialog = document.getElementById(
                     "type-selection-dialog"
                   ) as HTMLDialogElement
                   if (dialog) dialog.close()
-
-                  // Mostra il form per inserire il numero di telefono
-                  setShowPhoneForm(true)
-                }
-              }}
-              disabled={!selectedType}
-            >
-              Continua
-            </Button>
-          </div>
+                  setErrorMessage("")
+                }}
+              >
+                Annulla
+              </Button>
+              <Button
+                type="submit"
+                className="bg-green-600 hover:bg-green-700 text-white"
+                disabled={!selectedType}
+              >
+                Crea Canale
+              </Button>
+            </div>
+          </form>
         </div>
       </dialog>
     </div>
