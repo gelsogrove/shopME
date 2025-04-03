@@ -14,37 +14,37 @@ const initialCategories: Category[] = [
   {
     id: "1",
     name: "Pasta",
-    description: "Pasta fresca e secca di vari formati",
+    description: "Fresh and dried pasta in various formats",
   },
   {
     id: "2",
-    name: "Conserve",
-    description: "Conserve, salse e condimenti",
+    name: "Preserves",
+    description: "Preserves, sauces and condiments",
   },
   {
     id: "3",
-    name: "Farine",
-    description: "Farine e semole di vari cereali",
+    name: "Flour",
+    description: "Flours and semolina from various grains",
   },
   {
     id: "4",
-    name: "Vini",
-    description: "Vini rossi, bianchi e spumanti",
+    name: "Wines",
+    description: "Red, white and sparkling wines",
   },
   {
     id: "5",
-    name: "Olio",
-    description: "Olio d'oliva e altri condimenti",
+    name: "Oil",
+    description: "Olive oil and other condiments",
   },
   {
     id: "6",
-    name: "Formaggi",
-    description: "Formaggi freschi e stagionati",
+    name: "Cheese",
+    description: "Fresh and aged cheeses",
   },
   {
     id: "7",
-    name: "Salumi",
-    description: "Prosciutti, salami e affettati",
+    name: "Cured Meats",
+    description: "Ham, salami and cold cuts",
   },
 ]
 

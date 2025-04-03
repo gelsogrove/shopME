@@ -17029,7 +17029,61 @@ Per risolvere questo problema, dobbiamo modificare i NavLink per Products in mod
 
 ---
 
-Cancelled
+```diff
+                key={href}
+                to={href}
++               end={href === "/products"}
+                className={({ isActive }) =>
+                  cn(
+```
+
+---
+
+```bash
+git add . && git commit -m "Fixed sidebar highlight: Products now highlighted only when exact path matches" && git push
+```
+
+```
+gelso@SC-RWL3XL7154 shop % git add . && git commit -m "Fixed sidebar highlight: Products now highlighted only when exact path matches" && git push
+[restore-previous-version 7697449] Fixed sidebar highlight: Products now highlighted only when exact path matches
+ 2 files changed, 344 insertions(+), 125 deletions(-)
+Enumerating objects: 19, done.
+Counting objects: 100% (19/19), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (10/10), done.
+Writing objects: 100% (10/10), 2.92 KiB | 748.00 KiB/s, done.
+Total 10 (delta 7), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (7/7), completed with 7 local objects.
+To https://github.com/gelsogrove/shopME.git
+   3160635..7697449  restore-previous-version -> restore-previous-version
+gelso@SC-RWL3XL7154 shop %
+```
+
+---
+
+Ho risolto il problema dell'illuminazione simultanea delle voci "Products" e "Categories" nella barra laterale.
+
+Il problema era causato dal comportamento predefinito di React Router, che considera attivo un link quando il percorso corrente inizia con il percorso del link. Quindi, quando navigavi a "/products/categories", anche il link "/products" veniva considerato attivo.
+
+Ho risolto aggiungendo la proprietà `end={href === "/products"}` al componente NavLink. Questa proprietà fa sì che il link "Products" sia considerato attivo solo quando il percorso corrisponde esattamente a "/products", non quando si naviga in sottopercorsi come "/products/categories".
+
+Ora quando clicchi su "Categories" si illuminerà solo la voce "Categories" nella barra laterale, e quando clicchi su "Products" si illuminerà solo la voce "Products".
+
+---
+
+_**User**_
+
+Categories possiamo scriverli in inglese...
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+Read file: /Users/gelso/workspace/AI/shop/project/src/pages/products/CategoriesPage.tsx
 
 ---
 
