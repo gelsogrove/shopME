@@ -1,9 +1,11 @@
-import { Save } from "lucide-react"
+import { Lock, Save } from "lucide-react"
 import { useState } from "react"
 import { Outlet, useLocation } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
 import { Input } from "../components/ui/input"
+import { Switch } from "../components/ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 
 interface Settings {
   whatsappApiKey: string
@@ -11,6 +13,13 @@ interface Settings {
   notificationEmail: string
   webhookUrl: string
   alias: string
+}
+
+interface SecuritySettings {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
+  twoFactorEnabled: boolean
 }
 
 const defaultSettings: Settings = {
@@ -21,9 +30,20 @@ const defaultSettings: Settings = {
   alias: "",
 }
 
+const defaultSecuritySettings: SecuritySettings = {
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+  twoFactorEnabled: false,
+}
+
 export function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(defaultSettings)
+  const [securitySettings, setSecuritySettings] = useState<SecuritySettings>(
+    defaultSecuritySettings
+  )
   const [isSaving, setIsSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState("general")
   const location = useLocation()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,6 +61,35 @@ export function SettingsPage() {
     }
   }
 
+  const handleSecuritySubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSaving(true)
+
+    try {
+      // Validate passwords
+      if (securitySettings.newPassword !== securitySettings.confirmPassword) {
+        alert("New passwords don't match")
+        return
+      }
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      console.log("Security settings saved:", securitySettings)
+
+      // Reset password fields
+      setSecuritySettings({
+        ...securitySettings,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      })
+    } catch (error) {
+      console.error("Error saving security settings:", error)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setSettings((prev) => ({
@@ -49,121 +98,245 @@ export function SettingsPage() {
     }))
   }
 
+  const handleSecurityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setSecuritySettings((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleTwoFactorToggle = (checked: boolean) => {
+    setSecuritySettings((prev) => ({
+      ...prev,
+      twoFactorEnabled: checked,
+    }))
+  }
+
   return (
     <div className="container mx-auto p-6">
       {location.pathname === "/settings" ? (
         <div className="space-y-8">
-          <Card className="p-6">
-            <h1 className="text-2xl font-bold mb-6">Settings</h1>
+          <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="alias"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Alias
-                  </label>
-                  <Input
-                    id="alias"
-                    name="alias"
-                    type="text"
-                    value={settings.alias}
-                    onChange={handleChange}
-                    placeholder="Your alias or display name"
-                    className="w-full"
-                  />
-                </div>
+          <Tabs
+            defaultValue="general"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          >
+            <TabsList className="mb-4">
+              <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
+            </TabsList>
 
-                <div>
-                  <label
-                    htmlFor="whatsappApiKey"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    WhatsApp API Key
-                  </label>
-                  <Input
-                    id="whatsappApiKey"
-                    name="whatsappApiKey"
-                    type="password"
-                    value={settings.whatsappApiKey}
-                    onChange={handleChange}
-                    placeholder="Enter your WhatsApp API key"
-                    className="w-full"
-                    required
-                  />
-                </div>
+            <TabsContent value="general">
+              <Card className="p-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="alias"
+                        className="block text-sm font-medium mb-1"
+                      >
+                        Alias
+                      </label>
+                      <Input
+                        id="alias"
+                        name="alias"
+                        type="text"
+                        value={settings.alias}
+                        onChange={handleChange}
+                        placeholder="Your alias or display name"
+                        className="w-full"
+                      />
+                    </div>
 
-                <div>
-                  <label
-                    htmlFor="whatsappPhoneNumber"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    WhatsApp Phone Number
-                  </label>
-                  <Input
-                    id="whatsappPhoneNumber"
-                    name="whatsappPhoneNumber"
-                    type="tel"
-                    value={settings.whatsappPhoneNumber}
-                    onChange={handleChange}
-                    placeholder="+1234567890"
-                    className="w-full"
-                    required
-                  />
-                </div>
+                    <div>
+                      <label
+                        htmlFor="whatsappApiKey"
+                        className="block text-sm font-medium mb-1"
+                      >
+                        WhatsApp API Key
+                      </label>
+                      <Input
+                        id="whatsappApiKey"
+                        name="whatsappApiKey"
+                        type="password"
+                        value={settings.whatsappApiKey}
+                        onChange={handleChange}
+                        placeholder="Enter your WhatsApp API key"
+                        className="w-full"
+                        required
+                      />
+                    </div>
 
-                <div>
-                  <label
-                    htmlFor="notificationEmail"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Notification Email
-                  </label>
-                  <Input
-                    id="notificationEmail"
-                    name="notificationEmail"
-                    type="email"
-                    value={settings.notificationEmail}
-                    onChange={handleChange}
-                    placeholder="notifications@example.com"
-                    className="w-full"
-                    required
-                  />
-                </div>
+                    <div>
+                      <label
+                        htmlFor="whatsappPhoneNumber"
+                        className="block text-sm font-medium mb-1"
+                      >
+                        WhatsApp Phone Number
+                      </label>
+                      <Input
+                        id="whatsappPhoneNumber"
+                        name="whatsappPhoneNumber"
+                        type="tel"
+                        value={settings.whatsappPhoneNumber}
+                        onChange={handleChange}
+                        placeholder="+1234567890"
+                        className="w-full"
+                        required
+                      />
+                    </div>
 
-                <div>
-                  <label
-                    htmlFor="webhookUrl"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Webhook URL
-                  </label>
-                  <Input
-                    id="webhookUrl"
-                    name="webhookUrl"
-                    type="url"
-                    value={settings.webhookUrl}
-                    onChange={handleChange}
-                    placeholder="https://your-webhook-endpoint.com/webhook"
-                    className="w-full"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Receive real-time notifications for new messages and order
-                    updates
-                  </p>
-                </div>
-              </div>
+                    <div>
+                      <label
+                        htmlFor="notificationEmail"
+                        className="block text-sm font-medium mb-1"
+                      >
+                        Notification Email
+                      </label>
+                      <Input
+                        id="notificationEmail"
+                        name="notificationEmail"
+                        type="email"
+                        value={settings.notificationEmail}
+                        onChange={handleChange}
+                        placeholder="notifications@example.com"
+                        className="w-full"
+                        required
+                      />
+                    </div>
 
-              <div className="flex justify-end">
-                <Button type="submit" disabled={isSaving}>
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? "Saving..." : "Save Settings"}
-                </Button>
-              </div>
-            </form>
-          </Card>
+                    <div>
+                      <label
+                        htmlFor="webhookUrl"
+                        className="block text-sm font-medium mb-1"
+                      >
+                        Webhook URL
+                      </label>
+                      <Input
+                        id="webhookUrl"
+                        name="webhookUrl"
+                        type="url"
+                        value={settings.webhookUrl}
+                        onChange={handleChange}
+                        placeholder="https://your-webhook-endpoint.com/webhook"
+                        className="w-full"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Receive real-time notifications for new messages and
+                        order updates
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button type="submit" disabled={isSaving}>
+                      <Save className="w-4 h-4 mr-2" />
+                      {isSaving ? "Saving..." : "Save Settings"}
+                    </Button>
+                  </div>
+                </form>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="security">
+              <Card className="p-6">
+                <form onSubmit={handleSecuritySubmit} className="space-y-6">
+                  <div className="space-y-4">
+                    <h2 className="text-xl font-semibold mb-3 flex items-center">
+                      <Lock className="w-5 h-5 mr-2" />
+                      Security Settings
+                    </h2>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Change Password</h3>
+                      <div>
+                        <label
+                          htmlFor="currentPassword"
+                          className="block text-sm font-medium mb-1"
+                        >
+                          Current Password
+                        </label>
+                        <Input
+                          id="currentPassword"
+                          name="currentPassword"
+                          type="password"
+                          value={securitySettings.currentPassword}
+                          onChange={handleSecurityChange}
+                          placeholder="Enter your current password"
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="newPassword"
+                          className="block text-sm font-medium mb-1"
+                        >
+                          New Password
+                        </label>
+                        <Input
+                          id="newPassword"
+                          name="newPassword"
+                          type="password"
+                          value={securitySettings.newPassword}
+                          onChange={handleSecurityChange}
+                          placeholder="Enter your new password"
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="confirmPassword"
+                          className="block text-sm font-medium mb-1"
+                        >
+                          Confirm Password
+                        </label>
+                        <Input
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          type="password"
+                          value={securitySettings.confirmPassword}
+                          onChange={handleSecurityChange}
+                          placeholder="Confirm your new password"
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <h3 className="text-lg font-medium mb-3">
+                        Two-Factor Authentication
+                      </h3>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Enable 2FA</p>
+                          <p className="text-sm text-gray-500">
+                            Add an extra layer of security to your account
+                          </p>
+                        </div>
+                        <Switch
+                          id="twoFactorEnabled"
+                          checked={securitySettings.twoFactorEnabled}
+                          onCheckedChange={handleTwoFactorToggle}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button type="submit" disabled={isSaving}>
+                      <Save className="w-4 h-4 mr-2" />
+                      {isSaving ? "Saving..." : "Save Security Settings"}
+                    </Button>
+                  </div>
+                </form>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       ) : (
         <Outlet />
