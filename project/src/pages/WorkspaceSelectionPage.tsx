@@ -96,20 +96,13 @@ export function WorkspaceSelectionPage() {
     }
 
     if (!newPhoneNumber.trim()) {
-      setErrorMessage("Inserisci un numero di telefono valido")
+      setErrorMessage("Inserisci un numero di telefono")
       return
     }
 
     // Verifica se il numero è già esistente
     if (workspaces.some((w) => w.phoneNumber === newPhoneNumber)) {
       setErrorMessage("Questo numero è già registrato")
-      return
-    }
-
-    // Formato valido per numeri di telefono italiani
-    const phoneRegex = /^\+39 \d{3} \d{3} \d{4}$/
-    if (!phoneRegex.test(newPhoneNumber)) {
-      setErrorMessage("Formato non valido. Usa +39 XXX XXX XXXX")
       return
     }
 
@@ -277,7 +270,7 @@ export function WorkspaceSelectionPage() {
                 <Label htmlFor="phoneNumberPopup">Numero di telefono</Label>
                 <Input
                   id="phoneNumberPopup"
-                  placeholder="+39 XXX XXX XXXX"
+                  placeholder="Inserisci numero di telefono"
                   value={newPhoneNumber}
                   onChange={(e) => setNewPhoneNumber(e.target.value)}
                   required
@@ -285,9 +278,6 @@ export function WorkspaceSelectionPage() {
                 {errorMessage && (
                   <p className="text-sm text-red-500">{errorMessage}</p>
                 )}
-                <p className="text-xs text-gray-500">
-                  Inserisci il numero di telefono nel formato +39 XXX XXX XXXX
-                </p>
               </div>
             </div>
 
