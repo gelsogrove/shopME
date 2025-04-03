@@ -81,6 +81,7 @@ export function Sidebar() {
             <NavLink
               key={href}
               to={href}
+              end={href === "/products"}
               className={({ isActive }) =>
                 cn(
                   "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors",
