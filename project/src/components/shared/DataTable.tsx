@@ -64,9 +64,9 @@ export function DataTable<TData>({
                   variant="ghost"
                   size="icon"
                   onClick={() => onEdit(item)}
-                  className="hover:bg-gray-100"
+                  className="hover:bg-green-50"
                 >
-                  <Pencil className="h-6 w-6 text-gray-600" />
+                  <Pencil className="h-5 w-5 text-green-600" />
                 </Button>
               )}
               {onDelete && (
@@ -117,7 +117,7 @@ export function DataTable<TData>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className="py-2">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -134,9 +134,9 @@ export function DataTable<TData>({
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <React.Fragment key={row.id}>
-                  <TableRow>
+                  <TableRow className="h-[50px]">
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} className="py-2">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
@@ -167,7 +167,11 @@ export function DataTable<TData>({
         </Table>
       </div>
 
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500">
+          Page {table.getState().pagination.pageIndex + 1} of{" "}
+          {table.getPageCount()}
+        </p>
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"

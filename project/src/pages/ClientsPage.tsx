@@ -1,4 +1,5 @@
 import { DataTable } from "@/components/shared/DataTable"
+import { PageHeader } from "@/components/shared/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -372,6 +373,22 @@ function ClientEditSheet({
 export default function ClientsPage(): JSX.Element {
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [viewingClient, setViewingClient] = useState<Client | null>(null)
+  const [searchValue, setSearchValue] = useState("")
+
+  const filteredClients = clients.filter((client) =>
+    Object.values(client).some((value) =>
+      typeof value === "object"
+        ? Object.values(value).some((v) =>
+            String(v).toLowerCase().includes(searchValue.toLowerCase())
+          )
+        : String(value).toLowerCase().includes(searchValue.toLowerCase())
+    )
+  )
+
+  const handleAddClient = () => {
+    // In a real app, you would show a form to add a new client
+    console.log("Add client functionality would be implemented here")
+  }
 
   const columns: ColumnDef<Client>[] = [
     {
@@ -411,8 +428,9 @@ export default function ClientsPage(): JSX.Element {
             size="icon"
             onClick={() => setEditingClient(row.original)}
             title="Edit Client"
+            className="hover:bg-green-50"
           >
-            <Pencil className="h-4 w-4" />
+            <Pencil className="h-5 w-5 text-green-600" />
           </Button>
         </div>
       ),
@@ -420,9 +438,23 @@ export default function ClientsPage(): JSX.Element {
   ]
 
   return (
-    <div className="container mx-auto py-10">
-      <h2 className="text-2xl font-semibold mb-6">Clients</h2>
-      <DataTable columns={columns} data={clients} />
+    <div className="container mx-auto py-6">
+      <PageHeader
+        title="Clients"
+        searchValue={searchValue}
+        onSearch={setSearchValue}
+        searchPlaceholder="Search clients..."
+        onAdd={handleAddClient}
+        itemCount={clients.length}
+      />
+
+      <div className="mt-6">
+        <DataTable
+          columns={columns}
+          data={filteredClients}
+          globalFilter={searchValue}
+        />
+      </div>
 
       <ClientDetailsSheet
         client={viewingClient}

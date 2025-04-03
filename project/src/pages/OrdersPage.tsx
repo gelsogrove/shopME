@@ -1,3 +1,4 @@
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { StatusBadge } from "@/components/shared/StatusBadge"
@@ -24,7 +25,7 @@ import {
 import { formatDate } from "@/lib/utils"
 import "@/styles/sheet.css"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Eye, Pencil, X } from "lucide-react"
+import { Eye, Pencil, Trash2, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 interface Order {
@@ -61,7 +62,7 @@ interface Order {
   }
 }
 
-const orders: Order[] = [
+const initialOrders: Order[] = [
   {
     id: 1,
     customer: {
@@ -645,13 +646,31 @@ function OrderEditSheet({
 }
 
 export default function OrdersPage() {
+  const [orders, setOrders] = useState<Order[]>(initialOrders)
+  const [searchValue, setSearchValue] = useState("")
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
-  const [searchValue, setSearchValue] = useState("")
+  const [deletingOrder, setDeletingOrder] = useState<Order | null>(null)
 
   const handleSaveOrder = (updatedOrder: Order) => {
     // In a real app, this would make an API call to update the order
     console.log("Saving order:", updatedOrder)
+  }
+
+  const handleAddOrder = () => {
+    // In a real app, you would show a form to add a new order
+    console.log("Add order functionality would be implemented here")
+  }
+
+  const handleDeleteOrder = (order: Order) => {
+    setDeletingOrder(order)
+  }
+
+  const handleConfirmDelete = () => {
+    if (deletingOrder) {
+      setOrders(orders.filter((o) => o.id !== deletingOrder.id))
+      setDeletingOrder(null)
+    }
   }
 
   const columns: ColumnDef<Order>[] = [
@@ -719,6 +738,15 @@ export default function OrdersPage() {
             <Pencil className="h-5 w-5 text-green-600" />
             <span className="sr-only">Edit order</span>
           </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleDeleteOrder(row.original)}
+            className="hover:bg-red-50"
+          >
+            <Trash2 className="h-5 w-5 text-red-600" />
+            <span className="sr-only">Delete order</span>
+          </Button>
         </div>
       ),
     },
@@ -731,6 +759,7 @@ export default function OrdersPage() {
         searchValue={searchValue}
         onSearch={setSearchValue}
         searchPlaceholder="Search orders..."
+        onAdd={handleAddOrder}
         itemCount={orders.length}
       />
 
@@ -749,6 +778,14 @@ export default function OrdersPage() {
         open={!!editingOrder}
         onClose={() => setEditingOrder(null)}
         onSave={handleSaveOrder}
+      />
+
+      <ConfirmDialog
+        open={!!deletingOrder}
+        onOpenChange={() => setDeletingOrder(null)}
+        title="Delete Order"
+        description={`Are you sure you want to delete Order #${deletingOrder?.id}? This action cannot be undone.`}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   )
