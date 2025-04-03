@@ -19,30 +19,77 @@ interface Product {
 const initialProducts: Product[] = [
   {
     id: "1",
-    name: "Product 1",
-    description: "Description for product 1",
-    price: "99.99",
-    categories: ["Electronics", "Gadgets"],
+    name: "Parmigiano Reggiano DOP 24 mesi",
+    description:
+      "Formaggio DOP italiano stagionato 24 mesi, prodotto nelle province di Parma, Reggio Emilia, Modena e Bologna. Sapore intenso e cristalli di tirosina.",
+    price: "25.99",
+    categories: ["Formaggi", "DOP"],
     status: "active",
-    image: "https://placehold.co/600x400/e2e8f0/64748b?text=Product+Image",
+    image:
+      "https://placehold.co/600x400/e2e8f0/64748b?text=Parmigiano+Reggiano",
   },
   {
     id: "2",
-    name: "Product 2",
-    description: "Description for product 2",
-    price: "149.99",
-    categories: ["Accessories"],
+    name: "Pasta di Gragnano IGP - Spaghetti",
+    description:
+      "Pasta artigianale di semola di grano duro trafilata al bronzo, essiccata lentamente. Il metodo tradizionale garantisce una pasta porosa perfetta per trattenere il sugo.",
+    price: "4.50",
+    categories: ["Pasta", "IGP"],
     status: "active",
-    image: "https://placehold.co/600x400/e2e8f0/64748b?text=Product+Image",
+    image: "https://placehold.co/600x400/e2e8f0/64748b?text=Pasta+di+Gragnano",
+  },
+  {
+    id: "3",
+    name: "Olio Extra Vergine d'Oliva Toscano IGP",
+    description:
+      "Olio extravergine d'oliva prodotto in Toscana con olive raccolte a mano. Sapore fruttato con note piccanti e amare tipiche dell'olio toscano di qualità.",
+    price: "15.90",
+    categories: ["Olio", "IGP"],
+    status: "active",
+    image: "https://placehold.co/600x400/e2e8f0/64748b?text=Olio+Toscano",
+  },
+  {
+    id: "4",
+    name: "Prosciutto di Parma DOP 24 mesi",
+    description:
+      "Prosciutto crudo italiano stagionato 24 mesi nella zona di Parma. Sapore dolce e delicato, con una leggera nota di noci.",
+    price: "29.90",
+    categories: ["Salumi", "DOP"],
+    status: "active",
+    image:
+      "https://placehold.co/600x400/e2e8f0/64748b?text=Prosciutto+di+Parma",
+  },
+  {
+    id: "5",
+    name: "Aceto Balsamico di Modena IGP",
+    description:
+      "Aceto balsamico prodotto a Modena secondo metodi tradizionali. Invecchiato in botti di legno per un sapore dolce e acidulo perfettamente bilanciato.",
+    price: "12.50",
+    categories: ["Condimenti", "IGP"],
+    status: "active",
+    image: "https://placehold.co/600x400/e2e8f0/64748b?text=Aceto+Balsamico",
+  },
+  {
+    id: "6",
+    name: "Mozzarella di Bufala Campana DOP",
+    description:
+      "Mozzarella fresca prodotta con latte di bufala in Campania. Consistenza morbida ed elastica, sapore dolce e delicato.",
+    price: "8.90",
+    categories: ["Formaggi", "DOP"],
+    status: "active",
+    image:
+      "https://placehold.co/600x400/e2e8f0/64748b?text=Mozzarella+di+Bufala",
   },
 ]
 
 const availableCategories = [
-  "Electronics",
-  "Gadgets",
-  "Accessories",
-  "Software",
-  "Services",
+  "Pasta",
+  "Formaggi",
+  "Olio",
+  "Condimenti",
+  "Salumi",
+  "DOP",
+  "IGP",
 ]
 
 export function ProductsPage() {

@@ -10,16 +10,15 @@ import {
 } from "@/components/ui/tooltip"
 import { Save } from "lucide-react"
 import { useState } from "react"
-import { z } from "zod"
 
-interface ChannelType {
+interface Channel {
   id: string
   name: string
+  description: string
   enabled: boolean
-  isDefault: boolean
 }
 
-const channelTypes = [
+const channelTypes: Channel[] = [
   {
     id: "whatsapp",
     name: "WhatsApp",
@@ -45,15 +44,6 @@ const channelTypes = [
     enabled: false,
   },
 ]
-
-const channelSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string(),
-  enabled: z.boolean(),
-})
-
-type Channel = z.infer<typeof channelSchema>
 
 export function ChannelTypesPage() {
   const [channels, setChannels] = useState<Channel[]>(channelTypes)
