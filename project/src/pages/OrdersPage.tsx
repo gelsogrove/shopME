@@ -794,7 +794,7 @@ export default function OrdersPage() {
               size="icon"
               onClick={() => handleDownloadInvoice(order)}
               title="Download Invoice"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
             >
               <FileText className="h-5 w-5" />
             </Button>
@@ -803,7 +803,7 @@ export default function OrdersPage() {
               size="icon"
               onClick={() => handleDownloadShippingNote(order)}
               title="Download Shipping Note"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
             >
               <TruckIcon className="h-5 w-5" />
             </Button>
@@ -811,7 +811,7 @@ export default function OrdersPage() {
               variant="ghost"
               size="icon"
               onClick={() => handleViewDetails(order)}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
             >
               <Pencil className="h-5 w-5" />
             </Button>
@@ -819,7 +819,7 @@ export default function OrdersPage() {
               variant="ghost"
               size="icon"
               onClick={() => handleDeleteOrder(order)}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 text-red-600 hover:bg-red-100"
             >
               <Trash2 className="h-5 w-5" />
             </Button>
