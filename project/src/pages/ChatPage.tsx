@@ -22,27 +22,122 @@ interface Chat {
 const mockChats: Chat[] = [
   {
     id: "1",
-    customerName: "John Doe",
+    customerName: "Giovanni Rossi",
     customerPhone: "+39123456789",
-    lastMessage: "I'd like to know more about your products",
+    lastMessage: "Vorrei sapere quando arriva il mio ordine",
     unreadCount: 2,
     lastActive: "2024-04-01T10:30:00",
     messages: [
       {
         id: "1",
-        content: "Hello! I'm interested in your products",
+        content: "Buongiorno, ho fatto un ordine ieri, numero #12345.",
         sender: "customer",
         timestamp: "2024-04-01T10:25:00",
       },
       {
         id: "2",
-        content: "I'd like to know more about your products",
+        content: "Vorrei sapere quando arriverà la spedizione.",
+        sender: "customer",
+        timestamp: "2024-04-01T10:26:00",
+      },
+      {
+        id: "3",
+        content:
+          "Buongiorno Sig. Rossi, grazie per averci contattato. Controllo subito il suo ordine.",
+        sender: "user",
+        timestamp: "2024-04-01T10:28:00",
+      },
+      {
+        id: "4",
+        content:
+          "Ho verificato l'ordine #12345. La spedizione è stata elaborata e partirà oggi pomeriggio.",
+        sender: "user",
+        timestamp: "2024-04-01T10:29:00",
+      },
+      {
+        id: "5",
+        content: "Riceverà il suo pacco entro 24-48 ore lavorative.",
+        sender: "user",
+        timestamp: "2024-04-01T10:29:30",
+      },
+      {
+        id: "6",
+        content: "Perfetto, grazie mille per l'informazione!",
         sender: "customer",
         timestamp: "2024-04-01T10:30:00",
       },
+      {
+        id: "7",
+        content: "Vorrei sapere se è possibile tracciare la spedizione?",
+        sender: "customer",
+        timestamp: "2024-04-01T10:30:30",
+      },
     ],
   },
-  // Add more mock chats as needed
+  {
+    id: "2",
+    customerName: "Maria Bianchi",
+    customerPhone: "+39987654321",
+    lastMessage: "Grazie per le informazioni, ora è tutto chiaro",
+    unreadCount: 0,
+    lastActive: "2024-04-01T09:15:00",
+    messages: [
+      {
+        id: "1",
+        content:
+          "Salve, vorrei informazioni sul Parmigiano Reggiano DOP 24 mesi.",
+        sender: "customer",
+        timestamp: "2024-04-01T09:00:00",
+      },
+      {
+        id: "2",
+        content: "Buongiorno Sig.ra Bianchi, cosa vorrebbe sapere esattamente?",
+        sender: "user",
+        timestamp: "2024-04-01T09:05:00",
+      },
+      {
+        id: "3",
+        content:
+          "Vorrei sapere la disponibilità e se fate consegne nella mia zona (Milano centro).",
+        sender: "customer",
+        timestamp: "2024-04-01T09:07:00",
+      },
+      {
+        id: "4",
+        content:
+          "Il Parmigiano Reggiano DOP 24 mesi è disponibile in varie pezzature: 250g, 500g e 1kg.",
+        sender: "user",
+        timestamp: "2024-04-01T09:09:00",
+      },
+      {
+        id: "5",
+        content:
+          "Per quanto riguarda le consegne, copriamo tutta l'area di Milano con consegne gratuite per ordini superiori a 50€.",
+        sender: "user",
+        timestamp: "2024-04-01T09:10:00",
+      },
+      {
+        id: "6",
+        content: "Perfetto! Vorrei ordinare 500g. Come posso procedere?",
+        sender: "customer",
+        timestamp: "2024-04-01T09:12:00",
+      },
+      {
+        id: "7",
+        content:
+          "Può effettuare l'ordine direttamente sul nostro sito nella sezione 'Formaggi' o posso registrare io l'ordine per lei ora.",
+        sender: "user",
+        timestamp: "2024-04-01T09:14:00",
+      },
+      {
+        id: "8",
+        content:
+          "Grazie per le informazioni, ora è tutto chiaro. Procederò con l'ordine sul sito!",
+        sender: "customer",
+        timestamp: "2024-04-01T09:15:00",
+      },
+    ],
+  },
 ]
 
 export function ChatPage() {

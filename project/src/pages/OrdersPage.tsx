@@ -25,7 +25,7 @@ import {
 import { formatDate } from "@/lib/utils"
 import "@/styles/sheet.css"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Eye, Pencil, Trash2, X } from "lucide-react"
+import { Eye, Pencil, PlusCircle, Trash2, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 interface Order {
@@ -633,30 +633,73 @@ function OrderEditSheet({
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>(initialOrders)
   const [searchValue, setSearchValue] = useState("")
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [viewingOrder, setViewingOrder] = useState<Order | null>(null)
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
   const [deletingOrder, setDeletingOrder] = useState<Order | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const handleSaveOrder = (updatedOrder: Order) => {
-    // In a real app, this would make an API call to update the order
-    console.log("Saving order:", updatedOrder)
+    setOrders(orders.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)))
+    setEditingOrder(null)
   }
 
   const handleAddOrder = () => {
-    // In a real app, you would show a form to add a new order
-    console.log("Add order functionality would be implemented here")
+    // Creare un nuovo ordine vuoto con un ID temporaneo
+    const newOrder: Order = {
+      id: Date.now(), // ID temporaneo
+      customer: {
+        name: "",
+        email: "",
+      },
+      date: new Date().toISOString(),
+      status: "pending",
+      payment: {
+        method: "credit_card",
+        status: "pending",
+        amount: 0,
+      },
+      total: 0,
+      items: [],
+      userDetails: {
+        name: "",
+        email: "",
+        phone: "",
+      },
+      shippingAddress: {
+        street: "",
+        city: "",
+        state: "",
+        zip: "",
+        country: "",
+      },
+    }
+
+    setEditingOrder(newOrder)
   }
 
   const handleDeleteOrder = (order: Order) => {
     setDeletingOrder(order)
+    setShowDeleteDialog(true)
   }
 
   const handleConfirmDelete = () => {
     if (deletingOrder) {
       setOrders(orders.filter((o) => o.id !== deletingOrder.id))
+      setShowDeleteDialog(false)
       setDeletingOrder(null)
     }
   }
+
+  const filteredOrders = orders.filter(
+    (order) =>
+      order.customer.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+      order.customer.email.toLowerCase().includes(searchValue.toLowerCase()) ||
+      order.status.toLowerCase().includes(searchValue.toLowerCase()) ||
+      order.payment.method.toLowerCase().includes(searchValue.toLowerCase()) ||
+      order.payment.status.toLowerCase().includes(searchValue.toLowerCase()) ||
+      order.total.toString().includes(searchValue) ||
+      formatDate(order.date).includes(searchValue)
+  )
 
   const columns: ColumnDef<Order>[] = [
     {
@@ -704,33 +747,30 @@ export default function OrdersPage() {
       id: "actions",
       header: "",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
+        <div className="flex justify-end gap-2">
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setSelectedOrder(row.original)}
-            className="hover:bg-green-50"
+            onClick={() => setViewingOrder(row.original)}
+            className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
           >
-            <Eye className="h-5 w-5 text-green-600" />
-            <span className="sr-only">View order details</span>
+            <Eye className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setEditingOrder(row.original)}
-            className="hover:bg-green-50"
+            className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
           >
-            <Pencil className="h-5 w-5 text-green-600" />
-            <span className="sr-only">Edit order</span>
+            <Pencil className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => handleDeleteOrder(row.original)}
-            className="hover:bg-red-50"
+            className="h-8 w-8 p-0 text-red-600 hover:bg-red-100"
           >
-            <Trash2 className="h-5 w-5 text-red-600" />
-            <span className="sr-only">Delete order</span>
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       ),
@@ -740,22 +780,28 @@ export default function OrdersPage() {
   return (
     <div className="container mx-auto py-6">
       <PageHeader
-        title="Orders"
+        title="Ordini"
         searchValue={searchValue}
         onSearch={setSearchValue}
-        searchPlaceholder="Search orders..."
-        onAdd={handleAddOrder}
+        searchPlaceholder="Cerca ordini..."
         itemCount={orders.length}
+        onAdd={handleAddOrder}
+        addButtonText="Nuovo Ordine"
+        addButtonIcon={<PlusCircle className="mr-2 h-4 w-4" />}
       />
 
       <div className="mt-6">
-        <DataTable data={orders} columns={columns} globalFilter={searchValue} />
+        <DataTable
+          columns={columns}
+          data={filteredOrders}
+          globalFilter={searchValue}
+        />
       </div>
 
       <OrderDetailsSheet
-        order={selectedOrder}
-        open={!!selectedOrder}
-        onClose={() => setSelectedOrder(null)}
+        order={viewingOrder}
+        open={!!viewingOrder}
+        onClose={() => setViewingOrder(null)}
       />
 
       <OrderEditSheet
@@ -766,10 +812,10 @@ export default function OrdersPage() {
       />
 
       <ConfirmDialog
-        open={!!deletingOrder}
-        onOpenChange={() => setDeletingOrder(null)}
-        title="Delete Order"
-        description={`Are you sure you want to delete Order #${deletingOrder?.id}? This action cannot be undone.`}
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Elimina Ordine"
+        description={`Sei sicuro di voler eliminare l'ordine #${deletingOrder?.id}?`}
         onConfirm={handleConfirmDelete}
       />
     </div>

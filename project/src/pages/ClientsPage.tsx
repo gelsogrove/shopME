@@ -542,6 +542,13 @@ export default function ClientsPage(): JSX.Element {
       accessorKey: "language",
     },
     {
+      header: "Discount",
+      accessorKey: "discount",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.discount}%</span>
+      ),
+    },
+    {
       id: "actions",
       cell: ({ row }) => (
         <div className="flex justify-end w-full">

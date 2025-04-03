@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { X } from "lucide-react"
+import { useState } from "react"
 
 interface Product {
   id: string
@@ -30,6 +31,7 @@ interface ProductSheetProps {
   title: string
   availableCategories: string[]
   isNew?: boolean
+  showImageField?: boolean
 }
 
 export function ProductSheet({
@@ -40,8 +42,16 @@ export function ProductSheet({
   title,
   availableCategories,
   isNew = false,
+  showImageField = false,
 }: ProductSheetProps) {
+  const [imagePreview, setImagePreview] = useState<string>(product?.image || "")
+
   if (!isNew && !product) return null
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value
+    setImagePreview(url)
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -66,11 +76,11 @@ export function ProductSheet({
           <form onSubmit={onSubmit} className="mt-6 grid gap-6 pb-8">
             <Card className="border rounded-lg">
               <CardHeader>
-                <CardTitle>Product Info</CardTitle>
+                <CardTitle>Informazioni Prodotto</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
+                  <Label htmlFor="name">Nome</Label>
                   <Input
                     id="name"
                     name="name"
@@ -79,7 +89,7 @@ export function ProductSheet({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Descrizione</Label>
                   <Textarea
                     id="description"
                     name="description"
@@ -88,7 +98,7 @@ export function ProductSheet({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price (€)</Label>
+                  <Label htmlFor="price">Prezzo (€)</Label>
                   <Input
                     id="price"
                     name="price"
@@ -96,8 +106,33 @@ export function ProductSheet({
                     required
                   />
                 </div>
+                {showImageField && (
+                  <div className="space-y-2">
+                    <Label htmlFor="image">URL Immagine</Label>
+                    <Input
+                      id="image"
+                      name="image"
+                      defaultValue={product?.image}
+                      onChange={handleImageChange}
+                      placeholder="Inserisci l'URL dell'immagine"
+                    />
+                    {imagePreview && (
+                      <div className="mt-2 border rounded-md overflow-hidden">
+                        <img
+                          src={imagePreview}
+                          alt="Anteprima"
+                          className="w-full h-48 object-contain bg-gray-50"
+                          onError={(e) => {
+                            ;(e.target as HTMLImageElement).src =
+                              "https://placehold.co/600x400/e2e8f0/64748b?text=Immagine+non+valida"
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="space-y-2">
-                  <Label htmlFor="categories">Categories</Label>
+                  <Label htmlFor="categories">Categorie</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {availableCategories.map((category) => (
                       <div
@@ -132,7 +167,7 @@ export function ProductSheet({
                 type="submit"
                 className="bg-[#25D366] hover:bg-[#1ea855] text-white"
               >
-                {isNew ? "Add Product" : "Save Changes"}
+                {isNew ? "Aggiungi Prodotto" : "Salva Modifiche"}
               </Button>
             </div>
           </form>
