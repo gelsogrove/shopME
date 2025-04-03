@@ -1,8 +1,6 @@
 import { cn } from "@/lib/utils"
 import {
-  BarChart,
   Box,
-  CircleDollarSign,
   Cog,
   Globe,
   LayoutGrid,
@@ -10,19 +8,15 @@ import {
   Package,
   ShoppingCart,
   Users,
+  Wrench,
 } from "lucide-react"
 import { NavLink } from "react-router-dom"
 
 const mainLinks = [
   {
-    href: "/",
+    href: "/dashboard",
     label: "Dashboard",
     icon: LayoutGrid,
-  },
-  {
-    href: "/analytics",
-    label: "Analytics",
-    icon: BarChart,
   },
   {
     href: "/chat",
@@ -47,7 +41,7 @@ const mainLinks = [
   {
     href: "/services",
     label: "Services",
-    icon: CircleDollarSign,
+    icon: Wrench,
   },
   {
     href: "/prompts",
@@ -76,34 +70,34 @@ const settingsLinks = [
 
 export function Sidebar() {
   return (
-    <aside className="fixed inset-y-0 left-0 w-64 bg-white border-r">
+    <aside className="fixed inset-y-0 left-0 w-72 bg-white border-r">
       <div className="flex flex-col h-full">
-        <div className="flex items-center h-16 px-6">
-          <span className="text-xl font-bold">ShopME</span>
+        <div className="flex items-center h-24 px-8 border-b">
+          <span className="text-2xl font-bold text-green-600">ShopME</span>
         </div>
 
-        <nav className="flex-1 px-3 space-y-1">
+        <nav className="flex-1 px-4 space-y-2 py-6">
           {mainLinks.map(({ href, label, icon: Icon }) => (
             <NavLink
               key={href}
               to={href}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors",
                   isActive
-                    ? "bg-gray-100 text-gray-900"
+                    ? "bg-green-50 text-green-600"
                     : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                 )
               }
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-6 w-6" />
               {label}
             </NavLink>
           ))}
 
-          <div className="mt-6">
-            <div className="px-3 mb-2">
-              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          <div className="mt-8">
+            <div className="px-4 mb-2">
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
                 Settings
               </h2>
             </div>
@@ -111,16 +105,17 @@ export function Sidebar() {
               <NavLink
                 key={href}
                 to={href}
+                end={href === "/settings"}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors",
                     isActive
-                      ? "bg-gray-100 text-gray-900"
+                      ? "bg-green-50 text-green-600"
                       : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                   )
                 }
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-6 w-6" />
                 {label}
               </NavLink>
             ))}

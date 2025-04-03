@@ -13,13 +13,38 @@ interface Category {
 const initialCategories: Category[] = [
   {
     id: "1",
-    name: "Electronics",
-    description: "Electronic devices and accessories",
+    name: "Pasta",
+    description: "Pasta fresca e secca di vari formati",
   },
   {
     id: "2",
-    name: "Consulting",
-    description: "Professional consulting services",
+    name: "Conserve",
+    description: "Conserve, salse e condimenti",
+  },
+  {
+    id: "3",
+    name: "Farine",
+    description: "Farine e semole di vari cereali",
+  },
+  {
+    id: "4",
+    name: "Vini",
+    description: "Vini rossi, bianchi e spumanti",
+  },
+  {
+    id: "5",
+    name: "Olio",
+    description: "Olio d'oliva e altri condimenti",
+  },
+  {
+    id: "6",
+    name: "Formaggi",
+    description: "Formaggi freschi e stagionati",
+  },
+  {
+    id: "7",
+    name: "Salumi",
+    description: "Prosciutti, salami e affettati",
   },
 ]
 
@@ -106,7 +131,6 @@ export function CategoriesPage() {
         onSearch={setSearchValue}
         searchPlaceholder="Search categories..."
         onAdd={() => setShowAddDialog(true)}
-        addButtonText="Add Category"
         itemCount={filteredCategories.length}
       />
 

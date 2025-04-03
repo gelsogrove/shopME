@@ -18,12 +18,18 @@ interface Language {
 const initialLanguages: Language[] = [
   {
     id: "1",
-    name: "English",
-    code: "en",
+    name: "Spanish",
+    code: "es",
     status: "active",
   },
   {
     id: "2",
+    name: "English",
+    code: "en",
+    status: "inactive",
+  },
+  {
+    id: "3",
     name: "Italian",
     code: "it",
     status: "inactive",

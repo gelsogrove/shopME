@@ -8,9 +8,9 @@ export function Layout() {
     <TooltipProvider>
       <div className="relative flex min-h-screen">
         <Sidebar />
-        <div className="flex w-full flex-col transition-all duration-300">
+        <div className="flex w-full flex-col pl-72">
           <Header />
-          <main className="flex-1 space-y-4 p-8 pt-6">
+          <main className="flex-1 p-8">
             <Outlet />
           </main>
         </div>
