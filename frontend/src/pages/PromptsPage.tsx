@@ -75,17 +75,6 @@ export function PromptsPage() {
 
   console.log("PromptsPage: Filtered prompts", filteredPrompts)
 
-  const handleToggleStatus = (prompt: Prompt) => {
-    if (prompt.status === "inactive") {
-      setPrompts(
-        prompts.map((p) => ({
-          ...p,
-          status: p.id === prompt.id ? "active" : "inactive",
-        }))
-      )
-    }
-  }
-
   const columns = [
     { header: "Name", accessorKey: "name" as keyof Prompt },
     {
@@ -113,16 +102,10 @@ export function PromptsPage() {
       header: "Status",
       accessorKey: "status" as keyof Prompt,
       cell: ({ row }: { row: { original: Prompt } }) => (
-        <Button
-          variant={row.original.status === "active" ? "default" : "outline"}
-          onClick={() => handleToggleStatus(row.original)}
-          className="w-24 cursor-pointer"
-        >
-          <StatusBadge status={row.original.status}>
-            {row.original.status.charAt(0).toUpperCase() +
-              row.original.status.slice(1)}
-          </StatusBadge>
-        </Button>
+        <StatusBadge status={row.original.status}>
+          {row.original.status.charAt(0).toUpperCase() +
+            row.original.status.slice(1)}
+        </StatusBadge>
       ),
     },
   ]
@@ -376,7 +359,7 @@ export function PromptsPage() {
           columns={columns}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          actionButtons={(prompt: Prompt) => (
+          renderActions={(prompt: Prompt) => (
             <Button
               variant="ghost"
               size="icon"
