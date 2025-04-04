@@ -561,7 +561,7 @@ export default function ClientsPage(): JSX.Element {
       ),
     },
     {
-      id: "actions",
+      id: "client_actions",
       cell: ({ row }) => (
         <div className="flex justify-end gap-2">
           <Button

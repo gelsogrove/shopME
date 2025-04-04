@@ -783,7 +783,7 @@ export default function OrdersPage() {
       ),
     },
     {
-      id: "actions",
+      id: "order_actions",
       cell: ({ row }) => {
         const order = row.original
 
