@@ -21,7 +21,7 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table"
 import { ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react"
-import React, { useState } from "react"
+import React, { ReactNode, useState } from "react"
 
 interface DataTableProps<TData> {
   data: TData[]
@@ -31,6 +31,7 @@ interface DataTableProps<TData> {
   onEdit?: (item: TData) => void
   onDelete?: (item: TData) => void
   renderActions?: (item: TData) => React.ReactElement
+  actionButtons?: (record: TData) => ReactNode
 }
 
 export function DataTable<TData>({
@@ -41,6 +42,7 @@ export function DataTable<TData>({
   onEdit,
   onDelete,
   renderActions,
+  actionButtons,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -127,6 +129,11 @@ export function DataTable<TData>({
                     </TableHead>
                   )
                 })}
+                {(onEdit || onDelete || actionButtons) && (
+                  <TableHeader className="px-4 py-2 text-right">
+                    Actions
+                  </TableHeader>
+                )}
               </TableRow>
             ))}
           </TableHeader>
@@ -151,12 +158,42 @@ export function DataTable<TData>({
                       </TableCell>
                     </TableRow>
                   )}
+                  {(onEdit || onDelete || actionButtons) && (
+                    <TableCell className="px-4 py-2 text-right">
+                      <div className="flex justify-end space-x-1">
+                        {actionButtons && actionButtons(row.original)}
+                        {onEdit && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEdit(row.original)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
+                          </Button>
+                        )}
+                        {onDelete && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onDelete(row.original)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Delete</span>
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
                 </React.Fragment>
               ))
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={allColumns.length}
+                  colSpan={
+                    allColumns.length +
+                    (onEdit || onDelete || actionButtons ? 1 : 0)
+                  }
                   className="h-24 text-center"
                 >
                   No results.

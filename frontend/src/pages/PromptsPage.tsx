@@ -14,7 +14,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { Switch } from "@/components/ui/switch"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, FileText } from "lucide-react"
 import { useEffect, useState } from "react"
 
 interface Prompt {
@@ -57,6 +57,7 @@ export function PromptsPage() {
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null)
+  const [showPromptPopup, setShowPromptPopup] = useState(false)
 
   useEffect(() => {
     console.log("PromptsPage: Dependencies loaded", {
@@ -141,22 +142,6 @@ export function PromptsPage() {
         />
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="content" className="text-sm font-medium leading-none">
-          Content
-        </label>
-        <textarea
-          id="content"
-          name="content"
-          defaultValue={
-            isEdit
-              ? selectedPrompt?.content
-              : "# System Prompt\n\nYou are a helpful AI assistant..."
-          }
-          className="flex min-h-[500px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        />
-      </div>
-
       <div className="space-y-4">
         <div>
           <div className="flex justify-between mb-2">
@@ -170,25 +155,23 @@ export function PromptsPage() {
               </span>
             </label>
           </div>
-          <div className="w-1/5">
-            <input
-              type="range"
-              id="temperature"
-              name="temperature"
-              min="0"
-              max="1"
-              step="0.1"
-              defaultValue={
-                isEdit ? selectedPrompt?.temperature.toString() : "0.7"
-              }
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
-              onChange={(e) => {
-                const value = parseFloat(e.target.value)
-                document.getElementById("temperature-value")!.textContent =
-                  value.toFixed(1)
-              }}
-            />
-          </div>
+          <input
+            type="range"
+            id="temperature"
+            name="temperature"
+            min="0"
+            max="1"
+            step="0.1"
+            defaultValue={
+              isEdit ? selectedPrompt?.temperature.toString() : "0.7"
+            }
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+            onChange={(e) => {
+              const value = parseFloat(e.target.value)
+              document.getElementById("temperature-value")!.textContent =
+                value.toFixed(1)
+            }}
+          />
           <p className="text-xs text-muted-foreground mt-1">
             Controls randomness: Lower values make output more focused and
             deterministic
@@ -204,22 +187,20 @@ export function PromptsPage() {
               </span>
             </label>
           </div>
-          <div className="w-1/5">
-            <input
-              type="range"
-              id="top_k"
-              name="top_k"
-              min="1"
-              max="100"
-              step="1"
-              defaultValue={isEdit ? selectedPrompt?.top_k.toString() : "40"}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
-              onChange={(e) => {
-                document.getElementById("top-k-value")!.textContent =
-                  e.target.value
-              }}
-            />
-          </div>
+          <input
+            type="range"
+            id="top_k"
+            name="top_k"
+            min="1"
+            max="100"
+            step="1"
+            defaultValue={isEdit ? selectedPrompt?.top_k.toString() : "40"}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+            onChange={(e) => {
+              document.getElementById("top-k-value")!.textContent =
+                e.target.value
+            }}
+          />
           <p className="text-xs text-muted-foreground mt-1">
             Controls diversity by limiting the top K tokens considered for
             sampling
@@ -235,23 +216,21 @@ export function PromptsPage() {
               </span>
             </label>
           </div>
-          <div className="w-1/5">
-            <input
-              type="range"
-              id="top_p"
-              name="top_p"
-              min="0.1"
-              max="1"
-              step="0.05"
-              defaultValue={isEdit ? selectedPrompt?.top_p.toString() : "0.95"}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
-              onChange={(e) => {
-                const value = parseFloat(e.target.value)
-                document.getElementById("top-p-value")!.textContent =
-                  value.toFixed(2)
-              }}
-            />
-          </div>
+          <input
+            type="range"
+            id="top_p"
+            name="top_p"
+            min="0.1"
+            max="1"
+            step="0.05"
+            defaultValue={isEdit ? selectedPrompt?.top_p.toString() : "0.95"}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+            onChange={(e) => {
+              const value = parseFloat(e.target.value)
+              document.getElementById("top-p-value")!.textContent =
+                value.toFixed(2)
+            }}
+          />
           <p className="text-xs text-muted-foreground mt-1">
             Controls diversity by considering tokens with top P probability mass
           </p>
@@ -367,6 +346,12 @@ export function PromptsPage() {
     setSelectedPrompt(null)
   }
 
+  const handleAddPrompt = (prompt: Prompt, content: string) => {
+    const updatedPrompt = { ...prompt, content }
+    setPrompts(prompts.map((p) => (p.id === prompt.id ? updatedPrompt : p)))
+    setShowPromptPopup(false)
+  }
+
   return (
     <div className="container mx-auto py-6">
       <Alert className="mb-6 bg-pink-50 border border-pink-200 text-pink-800">
@@ -391,12 +376,25 @@ export function PromptsPage() {
           columns={columns}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          actionButtons={(prompt: Prompt) => (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setSelectedPrompt(prompt)
+                setShowPromptPopup(true)
+              }}
+              title="Edit Prompt Content"
+            >
+              <FileText className="h-4 w-4" />
+            </Button>
+          )}
         />
       </div>
 
       {/* Add Prompt Sheet */}
       <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>
-        <SheetContent className="w-full md:w-[800px] lg:w-[1000px] overflow-y-auto">
+        <SheetContent className="sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>Add New Prompt</SheetTitle>
           </SheetHeader>
@@ -416,7 +414,7 @@ export function PromptsPage() {
 
       {/* Edit Prompt Sheet */}
       <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
-        <SheetContent className="w-full md:w-[800px] lg:w-[1000px] overflow-y-auto">
+        <SheetContent className="sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>Edit Prompt</SheetTitle>
           </SheetHeader>
@@ -431,6 +429,51 @@ export function PromptsPage() {
               <Button type="submit">Save</Button>
             </SheetFooter>
           </form>
+        </SheetContent>
+      </Sheet>
+
+      {/* Prompt Content Popup */}
+      <Sheet open={showPromptPopup} onOpenChange={setShowPromptPopup}>
+        <SheetContent side="bottom" className="h-[100vh] w-full">
+          <SheetHeader>
+            <SheetTitle>Edit Prompt Content</SheetTitle>
+          </SheetHeader>
+          {selectedPrompt && (
+            <div className="space-y-4">
+              <div className="space-y-2 pt-4">
+                <label
+                  htmlFor="prompt-content"
+                  className="text-sm font-medium leading-none"
+                >
+                  Content for {selectedPrompt.name}
+                </label>
+                <textarea
+                  id="prompt-content"
+                  defaultValue={selectedPrompt.content}
+                  className="flex min-h-[600px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+              <SheetFooter>
+                <SheetClose asChild>
+                  <Button variant="outline" type="button">
+                    Cancel
+                  </Button>
+                </SheetClose>
+                <Button
+                  onClick={() => {
+                    const content = (
+                      document.getElementById(
+                        "prompt-content"
+                      ) as HTMLTextAreaElement
+                    ).value
+                    handleAddPrompt(selectedPrompt, content)
+                  }}
+                >
+                  Save
+                </Button>
+              </SheetFooter>
+            </div>
+          )}
         </SheetContent>
       </Sheet>
 
