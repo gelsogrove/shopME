@@ -336,7 +336,7 @@ export function PromptsPage() {
 
       {/* Add Prompt Sheet */}
       <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>
-        <SheetContent className="sm:max-w-xl overflow-y-auto">
+        <SheetContent className="w-full md:w-[800px] lg:w-[1000px] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Add New Prompt</SheetTitle>
           </SheetHeader>
@@ -356,7 +356,7 @@ export function PromptsPage() {
 
       {/* Edit Prompt Sheet */}
       <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
-        <SheetContent className="sm:max-w-xl overflow-y-auto">
+        <SheetContent className="w-full md:w-[800px] lg:w-[1000px] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Edit Prompt</SheetTitle>
           </SheetHeader>
