@@ -44,7 +44,7 @@ export function Header() {
               onClick={handleBackToWorkspaces}
             >
               <ArrowLeftRight className="h-4 w-4 mr-1" />
-              <span className="text-sm">Cambia</span>
+              <span className="text-sm">Change</span>
             </Button>
 
             <div className="flex flex-col">
