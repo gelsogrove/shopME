@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useSearchParams } from "react-router-dom"
 import { Card } from "../components/ui/card"
 import { Input } from "../components/ui/input"
 
@@ -144,6 +145,24 @@ export function ChatPage() {
   const [chats] = useState<Chat[]>(mockChats)
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    // Check if there is a client parameter in the URL
+    const clientName = searchParams.get("client")
+
+    if (clientName) {
+      // Find the chat for this client by name
+      const chat = chats.find(
+        (c) => c.customerName.toLowerCase() === clientName.toLowerCase()
+      )
+
+      if (chat) {
+        setSelectedChat(chat)
+        setSearchTerm(clientName)
+      }
+    }
+  }, [chats, searchParams])
 
   const filteredChats = chats.filter(
     (chat) =>
