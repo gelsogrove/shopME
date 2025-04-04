@@ -93,7 +93,7 @@ export function DataTable<TData>({
                 })}
                 {(onEdit || onDelete || actionButtons) && (
                   <TableHeader className="px-4 py-2 text-right">
-                    Actions
+                    {/* Rimuovere "Actions" qui */}
                   </TableHeader>
                 )}
               </TableRow>
