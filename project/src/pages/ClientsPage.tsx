@@ -19,8 +19,9 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Pencil, X } from "lucide-react"
+import { MessageSquare, Pencil, ShoppingBag, X } from "lucide-react"
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 // Importing services from ServicesPage
 interface Service {
@@ -504,6 +505,7 @@ export default function ClientsPage(): JSX.Element {
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [viewingClient, setViewingClient] = useState<Client | null>(null)
   const [searchValue, setSearchValue] = useState("")
+  const navigate = useNavigate()
 
   const filteredClients = clients.filter((client) =>
     Object.values(client).some((value) =>
@@ -518,6 +520,16 @@ export default function ClientsPage(): JSX.Element {
   const handleAddClient = () => {
     // In a real app, you would show a form to add a new client
     console.log("Add client functionality would be implemented here")
+  }
+
+  const handleViewChatHistory = (client: Client) => {
+    // Navigate to chat history page with client filter
+    navigate(`/chats?client=${encodeURIComponent(client.name)}`)
+  }
+
+  const handleViewOrders = (client: Client) => {
+    // Navigate to orders page with client filter
+    navigate(`/orders?search=${encodeURIComponent(client.name)}`)
   }
 
   const columns: ColumnDef<Client>[] = [
@@ -551,15 +563,33 @@ export default function ClientsPage(): JSX.Element {
     {
       id: "actions",
       cell: ({ row }) => (
-        <div className="flex justify-end w-full">
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleViewChatHistory(row.original)}
+            title="Chat History"
+            className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
+          >
+            <MessageSquare className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleViewOrders(row.original)}
+            title="View Orders"
+            className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
+          >
+            <ShoppingBag className="h-5 w-5" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setEditingClient(row.original)}
             title="Edit Client"
-            className="hover:bg-green-50"
+            className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
           >
-            <Pencil className="h-5 w-5 text-green-600" />
+            <Pencil className="h-5 w-5" />
           </Button>
         </div>
       ),
