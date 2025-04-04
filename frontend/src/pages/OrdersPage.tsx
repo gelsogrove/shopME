@@ -794,7 +794,7 @@ export default function OrdersPage() {
               size="icon"
               onClick={() => handleDownloadInvoice(order)}
               title="Download Invoice"
-              className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
+              className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
             >
               <FileText className="h-5 w-5" />
             </Button>
@@ -803,14 +803,14 @@ export default function OrdersPage() {
               size="icon"
               onClick={() => handleDownloadShippingNote(order)}
               title="Download Shipping Note"
-              className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
+              className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
             >
               <TruckIcon className="h-5 w-5" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleViewDetails(order)}
+              onClick={() => setEditingOrder(order)}
               className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
             >
               <Pencil className="h-5 w-5" />
@@ -828,10 +828,6 @@ export default function OrdersPage() {
       },
     },
   ]
-
-  const handleViewDetails = (order: Order) => {
-    setViewingOrder(order)
-  }
 
   const handleDownloadInvoice = (order: Order) => {
     // Simulate download invoice functionality

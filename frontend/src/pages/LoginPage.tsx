@@ -90,10 +90,10 @@ export function LoginPage() {
               </Button>
 
               <Button
-                type="button"
                 variant="outline"
-                className="w-full border-green-600 text-green-600 hover:bg-green-50 py-2 rounded-lg transition-colors"
+                type="button"
                 onClick={() => navigate("/signup")}
+                className="w-full border-input hover:bg-accent py-2 rounded-lg transition-colors"
               >
                 Sign Up
               </Button>
@@ -124,7 +124,7 @@ export function LoginPage() {
             </div>
           </div>
           <div className="absolute top-1/3 right-1/4 transform translate-x-1/2 mt-8">
-            <div className="bg-green-600 rounded-2xl p-4 shadow-xl max-w-[280px] animate-float backdrop-blur-sm border border-green-500">
+            <div className="bg-green-600 rounded-2xl p-4 shadow-xl max-w-[280px] animate-float backdrop-blur-sm border border-input">
               <p className="text-white font-medium">
                 I'm interested in automating my customer service and increasing
                 sales through WhatsApp.

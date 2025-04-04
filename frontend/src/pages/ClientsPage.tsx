@@ -523,8 +523,8 @@ export default function ClientsPage(): JSX.Element {
   }
 
   const handleViewChatHistory = (client: Client) => {
-    // Navigate to chat history page with client filter
-    navigate(`/chats?client=${encodeURIComponent(client.name)}`)
+    // Navigate to chat page with client filter
+    navigate(`/chat?client=${encodeURIComponent(client.name)}`)
   }
 
   const handleViewOrders = (client: Client) => {

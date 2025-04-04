@@ -148,7 +148,7 @@ export function PromptsPage() {
             defaultValue={
               isEdit ? selectedPrompt?.temperature.toString() : "0.7"
             }
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600 border border-green-500"
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary border border-input"
             onChange={(e) => {
               const value = parseFloat(e.target.value)
               document.getElementById("temperature-value")!.textContent =
@@ -178,7 +178,7 @@ export function PromptsPage() {
             max="100"
             step="1"
             defaultValue={isEdit ? selectedPrompt?.top_k.toString() : "40"}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600 border border-green-500"
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary border border-input"
             onChange={(e) => {
               document.getElementById("top-k-value")!.textContent =
                 e.target.value
@@ -207,7 +207,7 @@ export function PromptsPage() {
             max="1"
             step="0.05"
             defaultValue={isEdit ? selectedPrompt?.top_p.toString() : "0.95"}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600 border border-green-500"
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary border border-input"
             onChange={(e) => {
               const value = parseFloat(e.target.value)
               document.getElementById("top-p-value")!.textContent =
@@ -389,7 +389,7 @@ export function PromptsPage() {
                 <Button
                   variant="outline"
                   type="button"
-                  className="border-green-500 text-green-600 hover:bg-green-50"
+                  className="border-input hover:bg-accent"
                 >
                   Cancel
                 </Button>
@@ -415,7 +415,7 @@ export function PromptsPage() {
                 <Button
                   variant="outline"
                   type="button"
-                  className="border-green-500 text-green-600 hover:bg-green-50"
+                  className="border-input hover:bg-accent"
                 >
                   Cancel
                 </Button>
@@ -454,7 +454,7 @@ export function PromptsPage() {
                   <Button
                     variant="outline"
                     type="button"
-                    className="border-green-500 text-green-600 hover:bg-green-50"
+                    className="border-input hover:bg-accent"
                   >
                     Cancel
                   </Button>

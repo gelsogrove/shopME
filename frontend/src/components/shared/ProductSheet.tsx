@@ -8,7 +8,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { useEffect, useState } from "react"
 
 interface Product {
   id: string
@@ -16,8 +15,6 @@ interface Product {
   description: string
   price: string
   categories: string[]
-  status: "active" | "inactive"
-  image: string
   quantity: number
 }
 
@@ -28,8 +25,6 @@ interface ProductSheetProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   title: string
   availableCategories: string[]
-  isNew?: boolean
-  showImageField?: boolean
 }
 
 export function ProductSheet({
@@ -39,31 +34,7 @@ export function ProductSheet({
   onSubmit,
   title,
   availableCategories,
-  isNew = false,
-  showImageField = false,
 }: ProductSheetProps) {
-  const [imageUrl, setImageUrl] = useState<string>(product?.image || "")
-  const [previewAvailable, setPreviewAvailable] = useState<boolean>(
-    !!product?.image
-  )
-
-  useEffect(() => {
-    if (product?.image) {
-      setImageUrl(product.image)
-      setPreviewAvailable(true)
-    } else {
-      setImageUrl("")
-      setPreviewAvailable(false)
-    }
-  }, [product])
-
-  const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setImageUrl(e.target.value)
-    setPreviewAvailable(!!e.target.value)
-  }
-
-  if (!isNew && !product) return null
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="overflow-y-auto w-full sm:max-w-md">
@@ -115,35 +86,6 @@ export function ProductSheet({
                 required
               />
             </div>
-            {showImageField && (
-              <div className="space-y-3">
-                <Label htmlFor="image">Image URL</Label>
-                <Input
-                  id="image"
-                  name="image"
-                  placeholder="https://example.com/image.jpg"
-                  defaultValue={product?.image || ""}
-                  onChange={handleImageUrlChange}
-                />
-                {previewAvailable && (
-                  <div className="mt-2">
-                    <p className="text-sm mb-1">Preview:</p>
-                    <div className="w-full h-48 overflow-hidden rounded-md border border-gray-200">
-                      <img
-                        src={imageUrl}
-                        alt="Product preview"
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          setPreviewAvailable(false)
-                          ;(e.target as HTMLImageElement).src =
-                            "https://placehold.co/600x400/e2e8f0/64748b?text=Preview+Not+Available"
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
             <div className="space-y-3">
               <Label>Categories</Label>
               <div className="grid grid-cols-2 gap-2">
@@ -165,25 +107,9 @@ export function ProductSheet({
                 ))}
               </div>
             </div>
-            {!isNew && (
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="status"
-                    name="status"
-                    value="active"
-                    defaultChecked={product?.status === "active"}
-                  />
-                  <Label htmlFor="status" className="text-sm font-normal">
-                    Active
-                  </Label>
-                </div>
-              </div>
-            )}
           </div>
           <Button type="submit" className="w-full">
-            {isNew ? "Add Product" : "Save Changes"}
+            {product ? "Save Changes" : "Add Product"}
           </Button>
         </form>
       </SheetContent>

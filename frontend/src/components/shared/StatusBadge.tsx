@@ -20,8 +20,9 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, className, children }: StatusBadgeProps) {
   const getStatusStyles = (status: StatusType) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case "active":
+        return "bg-background text-foreground border-input"
       case "completed":
       case "paid":
         return "bg-green-50 text-green-700 border-green-200"

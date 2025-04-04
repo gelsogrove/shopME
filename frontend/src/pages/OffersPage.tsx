@@ -280,8 +280,14 @@ export function OffersPage() {
           type="text"
           id="name"
           name="name"
-          defaultValue={isEdit ? selectedOffer?.name : ""}
-          className="flex h-10 w-full rounded-md border border-green-500 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          placeholder="Offer name"
+          value={isEdit ? selectedOffer?.name : ""}
+          onChange={(e) => {
+            if (selectedOffer) {
+              setSelectedOffer({ ...selectedOffer, name: e.target.value })
+            }
+          }}
           required
         />
       </div>
@@ -296,8 +302,18 @@ export function OffersPage() {
         <textarea
           id="description"
           name="description"
-          defaultValue={isEdit ? selectedOffer?.description : ""}
-          className="flex h-24 w-full rounded-md border border-green-500 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          placeholder="Offer description"
+          value={isEdit ? selectedOffer?.description : ""}
+          onChange={(e) => {
+            if (selectedOffer) {
+              setSelectedOffer({
+                ...selectedOffer,
+                description: e.target.value,
+              })
+            }
+          }}
+          required
         />
       </div>
 
@@ -313,10 +329,19 @@ export function OffersPage() {
             type="number"
             id="discountPercent"
             name="discountPercent"
-            min="1"
+            className="flex h-10 w-20 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="0"
+            value={isEdit ? selectedOffer?.discountPercent : "10"}
+            onChange={(e) => {
+              if (selectedOffer) {
+                setSelectedOffer({
+                  ...selectedOffer,
+                  discountPercent: Number(e.target.value),
+                })
+              }
+            }}
+            min="0"
             max="100"
-            defaultValue={isEdit ? selectedOffer?.discountPercent : "10"}
-            className="flex h-10 w-20 rounded-md border border-green-500 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             required
           />
           <span className="ml-2 text-sm font-medium">%</span>
@@ -335,7 +360,7 @@ export function OffersPage() {
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-start text-left font-normal border-green-500 text-green-600 hover:bg-green-50"
+                className="w-full justify-start text-left font-normal border border-input hover:bg-accent"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {startDate ? (
@@ -364,7 +389,7 @@ export function OffersPage() {
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-start text-left font-normal border-green-500 text-green-600 hover:bg-green-50"
+                className="w-full justify-start text-left font-normal border border-input hover:bg-accent"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
@@ -392,8 +417,16 @@ export function OffersPage() {
         <select
           id="appliedTo"
           name="appliedTo"
-          defaultValue={isEdit ? selectedOffer?.appliedTo : "all"}
-          className="flex h-10 w-full rounded-md border border-green-500 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          value={isEdit ? selectedOffer?.appliedTo : "all"}
+          onChange={(e) => {
+            if (selectedOffer) {
+              setSelectedOffer({
+                ...selectedOffer,
+                appliedTo: e.target.value as Offer["appliedTo"],
+              })
+            }
+          }}
         >
           <option value="all">All Products</option>
           <option value="category">Specific Categories</option>
@@ -406,8 +439,16 @@ export function OffersPage() {
           type="checkbox"
           id="status"
           name="status"
-          defaultChecked={isEdit ? selectedOffer?.status === "active" : true}
-          className="h-4 w-4 rounded border-green-500 text-green-600 focus:ring-green-500"
+          className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+          checked={isEdit ? selectedOffer?.status === "active" : true}
+          onChange={(e) => {
+            if (selectedOffer) {
+              setSelectedOffer({
+                ...selectedOffer,
+                status: e.target.checked ? "active" : "inactive",
+              })
+            }
+          }}
         />
         <Label htmlFor="status" className="text-sm font-medium leading-none">
           Active
@@ -418,7 +459,7 @@ export function OffersPage() {
 
   return (
     <div className="container mx-auto py-6">
-      <Alert className="mb-6 bg-green-50 border border-green-200 text-green-800">
+      <Alert className="mb-6 bg-background border border-input text-foreground">
         <Percent className="h-5 w-5 text-green-500" />
         <AlertDescription className="ml-2 text-sm font-medium">
           Create time-limited offers with automatic countdowns. Active offers
@@ -470,7 +511,7 @@ export function OffersPage() {
                 <Button
                   variant="outline"
                   type="button"
-                  className="border-green-500 text-green-600 hover:bg-green-50"
+                  className="border-input text-foreground hover:bg-accent"
                 >
                   Cancel
                 </Button>
@@ -496,7 +537,7 @@ export function OffersPage() {
                 <Button
                   variant="outline"
                   type="button"
-                  className="border-green-500 text-green-600 hover:bg-green-50"
+                  className="border-input text-foreground hover:bg-accent"
                 >
                   Cancel
                 </Button>
