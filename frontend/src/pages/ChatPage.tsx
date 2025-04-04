@@ -1,7 +1,10 @@
+import { Send } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
+import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
 import { Input } from "../components/ui/input"
+import { Textarea } from "../components/ui/textarea"
 
 interface Message {
   id: string
@@ -145,6 +148,7 @@ export function ChatPage() {
   const [chats] = useState<Chat[]>(mockChats)
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const [messageInput, setMessageInput] = useState("")
   const [searchParams] = useSearchParams()
 
   useEffect(() => {
@@ -152,9 +156,12 @@ export function ChatPage() {
     const clientName = searchParams.get("client")
 
     if (clientName) {
-      // Find the chat for this client by name
+      // Find the chat for this client by name, using normalized comparison
+      const normalizedClientName = decodeURIComponent(clientName)
+        .toLowerCase()
+        .trim()
       const chat = chats.find(
-        (c) => c.customerName.toLowerCase() === clientName.toLowerCase()
+        (c) => c.customerName.toLowerCase().trim() === normalizedClientName
       )
 
       if (chat) {
@@ -169,6 +176,14 @@ export function ChatPage() {
       chat.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       chat.customerPhone.includes(searchTerm)
   )
+
+  const handleSendMessage = () => {
+    if (!messageInput.trim() || !selectedChat) return
+
+    // In a real app, this would send the message to a backend
+    console.log("Sending message:", messageInput)
+    setMessageInput("")
+  }
 
   return (
     <div className="container mx-auto p-6">
@@ -257,6 +272,29 @@ export function ChatPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Message Input */}
+              <div className="mt-4 flex gap-2">
+                <Textarea
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  placeholder="Type your message..."
+                  className="min-h-[80px] resize-none"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSendMessage()
+                    }
+                  }}
+                />
+                <Button
+                  onClick={handleSendMessage}
+                  className="self-end"
+                  size="icon"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
               </div>
             </>
           ) : (
