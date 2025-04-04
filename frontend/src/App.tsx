@@ -5,6 +5,7 @@ import ClientsPage from "@/pages/ClientsPage"
 import { CustomersPage } from "@/pages/CustomersPage"
 import DashboardPage from "@/pages/DashboardPage"
 import { LoginPage } from "@/pages/LoginPage"
+import NotificationsPage from "@/pages/NotificationsPage"
 import OrdersPage from "@/pages/OrdersPage"
 import CategoriesPage from "@/pages/products/CategoriesPage"
 import { ProductsPage } from "@/pages/ProductsPage"
@@ -54,6 +55,9 @@ export function App() {
         </Route>
         <Route path="/services" element={<Layout />}>
           <Route index element={<ServicesPage />} />
+        </Route>
+        <Route path="/notifications" element={<Layout />}>
+          <Route index element={<NotificationsPage />} />
         </Route>
         <Route path="/settings" element={<Layout />}>
           <Route index element={<SettingsPage />} />

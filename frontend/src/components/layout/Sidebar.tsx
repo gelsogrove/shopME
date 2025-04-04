@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils"
 import {
+  Bell,
   Box,
   Cog,
   Globe,
@@ -47,6 +48,11 @@ const mainLinks = [
     href: "/services",
     label: "Services",
     icon: Wrench,
+  },
+  {
+    href: "/notifications",
+    label: "Push Notifications",
+    icon: Bell,
   },
   {
     href: "/prompts",
