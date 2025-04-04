@@ -80,7 +80,6 @@ export function ProductSheet({
                 placeholder="Product name"
                 defaultValue={product?.name || ""}
                 required
-                className="border-green-500 focus-visible:ring-green-500"
               />
             </div>
             <div className="space-y-2">
@@ -88,7 +87,7 @@ export function ProductSheet({
               <textarea
                 id="description"
                 name="description"
-                className="w-full min-h-[100px] rounded-md border border-green-500 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Product description"
                 defaultValue={product?.description || ""}
                 required
@@ -102,7 +101,6 @@ export function ProductSheet({
                 placeholder="0.00"
                 defaultValue={product?.price || ""}
                 required
-                className="border-green-500 focus-visible:ring-green-500"
               />
             </div>
             <div className="space-y-2">
@@ -115,7 +113,6 @@ export function ProductSheet({
                 placeholder="0"
                 defaultValue={product?.quantity || "0"}
                 required
-                className="border-green-500 focus-visible:ring-green-500"
               />
             </div>
             {showImageField && (
@@ -127,12 +124,11 @@ export function ProductSheet({
                   placeholder="https://example.com/image.jpg"
                   defaultValue={product?.image || ""}
                   onChange={handleImageUrlChange}
-                  className="border-green-500 focus-visible:ring-green-500"
                 />
                 {previewAvailable && (
                   <div className="mt-2">
                     <p className="text-sm mb-1">Preview:</p>
-                    <div className="w-full h-48 overflow-hidden rounded-md border border-green-200">
+                    <div className="w-full h-48 overflow-hidden rounded-md border border-gray-200">
                       <img
                         src={imageUrl}
                         alt="Product preview"
@@ -158,7 +154,6 @@ export function ProductSheet({
                       name="categories"
                       value={category}
                       defaultChecked={product?.categories.includes(category)}
-                      className="border-green-500 text-green-600 focus:ring-green-500"
                     />
                     <Label
                       htmlFor={`category-${category}`}
@@ -179,7 +174,6 @@ export function ProductSheet({
                     name="status"
                     value="active"
                     defaultChecked={product?.status === "active"}
-                    className="border-green-500 text-green-600 focus:ring-green-500"
                   />
                   <Label htmlFor="status" className="text-sm font-normal">
                     Active
@@ -188,10 +182,7 @@ export function ProductSheet({
               </div>
             )}
           </div>
-          <Button
-            type="submit"
-            className="w-full bg-green-600 hover:bg-green-700"
-          >
+          <Button type="submit" className="w-full">
             {isNew ? "Add Product" : "Save Changes"}
           </Button>
         </form>
