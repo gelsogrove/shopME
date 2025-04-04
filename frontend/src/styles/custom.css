@@ -2,41 +2,41 @@
 input,
 textarea,
 select {
-  border-color: #22c55e !important; /* green-500 */
+  border-color: #d1d5db !important; /* gray-300 */
 }
 
 input:focus,
 textarea:focus,
 select:focus {
-  --tw-ring-color: #22c55e !important; /* green-500 */
-  border-color: #22c55e !important;
+  --tw-ring-color: #d1d5db !important; /* gray-300 */
+  border-color: #d1d5db !important;
 }
 
 input[type="checkbox"] {
-  border-color: #22c55e !important;
-  color: #16a34a !important; /* green-600 */
+  border-color: #d1d5db !important;
+  color: #6b7280 !important; /* gray-500 */
 }
 
 input[type="checkbox"]:focus {
-  --tw-ring-color: #22c55e !important;
+  --tw-ring-color: #d1d5db !important;
 }
 
 button[type="submit"] {
-  background-color: #16a34a !important; /* green-600 */
+  background-color: #4b5563 !important; /* gray-600 */
   color: white !important;
 }
 
 button[type="submit"]:hover {
-  background-color: #15803d !important; /* green-700 */
+  background-color: #374151 !important; /* gray-700 */
 }
 
 .btn-outline,
 button[data-variant="outline"] {
-  border-color: #22c55e !important;
-  color: #16a34a !important;
+  border-color: #d1d5db !important; /* gray-300 */
+  color: #4b5563 !important; /* gray-600 */
 }
 
 .btn-outline:hover,
 button[data-variant="outline"]:hover {
-  background-color: #f0fdf4 !important; /* green-50 */
+  background-color: #f9fafb !important; /* gray-50 */
 }
