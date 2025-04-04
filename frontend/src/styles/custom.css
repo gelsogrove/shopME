@@ -1,0 +1,42 @@
+/* Custom overrides for form elements */
+input,
+textarea,
+select {
+  border-color: #22c55e !important; /* green-500 */
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  --tw-ring-color: #22c55e !important; /* green-500 */
+  border-color: #22c55e !important;
+}
+
+input[type="checkbox"] {
+  border-color: #22c55e !important;
+  color: #16a34a !important; /* green-600 */
+}
+
+input[type="checkbox"]:focus {
+  --tw-ring-color: #22c55e !important;
+}
+
+button[type="submit"] {
+  background-color: #16a34a !important; /* green-600 */
+  color: white !important;
+}
+
+button[type="submit"]:hover {
+  background-color: #15803d !important; /* green-700 */
+}
+
+.btn-outline,
+button[data-variant="outline"] {
+  border-color: #22c55e !important;
+  color: #16a34a !important;
+}
+
+.btn-outline:hover,
+button[data-variant="outline"]:hover {
+  background-color: #f0fdf4 !important; /* green-50 */
+}
