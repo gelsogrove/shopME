@@ -170,23 +170,25 @@ export function PromptsPage() {
               </span>
             </label>
           </div>
-          <input
-            type="range"
-            id="temperature"
-            name="temperature"
-            min="0"
-            max="1"
-            step="0.1"
-            defaultValue={
-              isEdit ? selectedPrompt?.temperature.toString() : "0.7"
-            }
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            onChange={(e) => {
-              const value = parseFloat(e.target.value)
-              document.getElementById("temperature-value")!.textContent =
-                value.toFixed(1)
-            }}
-          />
+          <div className="w-1/5">
+            <input
+              type="range"
+              id="temperature"
+              name="temperature"
+              min="0"
+              max="1"
+              step="0.1"
+              defaultValue={
+                isEdit ? selectedPrompt?.temperature.toString() : "0.7"
+              }
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              onChange={(e) => {
+                const value = parseFloat(e.target.value)
+                document.getElementById("temperature-value")!.textContent =
+                  value.toFixed(1)
+              }}
+            />
+          </div>
           <p className="text-xs text-muted-foreground mt-1">
             Controls randomness: Lower values make output more focused and
             deterministic
@@ -202,20 +204,22 @@ export function PromptsPage() {
               </span>
             </label>
           </div>
-          <input
-            type="range"
-            id="top_k"
-            name="top_k"
-            min="1"
-            max="100"
-            step="1"
-            defaultValue={isEdit ? selectedPrompt?.top_k.toString() : "40"}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            onChange={(e) => {
-              document.getElementById("top-k-value")!.textContent =
-                e.target.value
-            }}
-          />
+          <div className="w-1/5">
+            <input
+              type="range"
+              id="top_k"
+              name="top_k"
+              min="1"
+              max="100"
+              step="1"
+              defaultValue={isEdit ? selectedPrompt?.top_k.toString() : "40"}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              onChange={(e) => {
+                document.getElementById("top-k-value")!.textContent =
+                  e.target.value
+              }}
+            />
+          </div>
           <p className="text-xs text-muted-foreground mt-1">
             Controls diversity by limiting the top K tokens considered for
             sampling
@@ -231,21 +235,23 @@ export function PromptsPage() {
               </span>
             </label>
           </div>
-          <input
-            type="range"
-            id="top_p"
-            name="top_p"
-            min="0.1"
-            max="1"
-            step="0.05"
-            defaultValue={isEdit ? selectedPrompt?.top_p.toString() : "0.95"}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            onChange={(e) => {
-              const value = parseFloat(e.target.value)
-              document.getElementById("top-p-value")!.textContent =
-                value.toFixed(2)
-            }}
-          />
+          <div className="w-1/5">
+            <input
+              type="range"
+              id="top_p"
+              name="top_p"
+              min="0.1"
+              max="1"
+              step="0.05"
+              defaultValue={isEdit ? selectedPrompt?.top_p.toString() : "0.95"}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              onChange={(e) => {
+                const value = parseFloat(e.target.value)
+                document.getElementById("top-p-value")!.textContent =
+                  value.toFixed(2)
+              }}
+            />
+          </div>
           <p className="text-xs text-muted-foreground mt-1">
             Controls diversity by considering tokens with top P probability mass
           </p>
