@@ -10,6 +10,7 @@ type StatusType =
   | "cancelled"
   | "paid"
   | "failed"
+  | "expired"
 
 interface StatusBadgeProps {
   status: StatusType
@@ -29,6 +30,7 @@ export function StatusBadge({ status, className, children }: StatusBadgeProps) {
         return "bg-yellow-50 text-yellow-700 border-yellow-200"
       case "cancelled":
       case "failed":
+      case "expired":
         return "bg-red-50 text-red-700 border-red-200"
       default:
         return "bg-gray-100 text-gray-600 border-gray-200"
@@ -48,6 +50,7 @@ export function StatusBadge({ status, className, children }: StatusBadgeProps) {
         return <Clock className="h-5 w-5 text-yellow-500" strokeWidth={2.5} />
       case "cancelled":
       case "failed":
+      case "expired":
         return (
           <AlertCircle className="h-5 w-5 text-red-500" strokeWidth={2.5} />
         )
