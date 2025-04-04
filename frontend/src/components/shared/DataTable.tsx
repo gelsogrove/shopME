@@ -49,45 +49,7 @@ export function DataTable<TData>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
 
-  const allColumns = React.useMemo(
-    () => [
-      ...columns,
-      {
-        id: "data_table_actions",
-        header: "",
-        cell: ({ row }) => {
-          const item = row.original
-
-          return (
-            <div className="flex justify-end gap-2">
-              {renderActions && renderActions(item)}
-              {onEdit && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onEdit(item)}
-                  className="hover:bg-green-50"
-                >
-                  <Pencil className="h-5 w-5 text-green-600" />
-                </Button>
-              )}
-              {onDelete && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDelete(item)}
-                  className="hover:bg-red-50"
-                >
-                  <Trash2 className="h-6 w-6 text-red-600" />
-                </Button>
-              )}
-            </div>
-          )
-        },
-      },
-    ],
-    [columns, onEdit, onDelete, renderActions]
-  )
+  const allColumns = React.useMemo(() => [...columns], [columns])
 
   const table = useReactTable({
     data,
