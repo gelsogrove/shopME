@@ -150,6 +150,33 @@ export function DataTable<TData>({
                         )}
                       </TableCell>
                     ))}
+                    {(onEdit || onDelete || actionButtons) && (
+                      <TableCell className="px-4 py-2 text-right">
+                        <div className="flex justify-end gap-2">
+                          {renderActions && renderActions(row.original)}
+                          {onEdit && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onEdit(row.original)}
+                              className="hover:bg-green-50"
+                            >
+                              <Pencil className="h-5 w-5 text-green-600" />
+                            </Button>
+                          )}
+                          {onDelete && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onDelete(row.original)}
+                              className="hover:bg-red-50"
+                            >
+                              <Trash2 className="h-6 w-6 text-red-600" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                   {row.getIsExpanded() && renderSubComponent && (
                     <TableRow>
@@ -157,33 +184,6 @@ export function DataTable<TData>({
                         {renderSubComponent({ row })}
                       </TableCell>
                     </TableRow>
-                  )}
-                  {(onEdit || onDelete || actionButtons) && (
-                    <TableCell className="px-4 py-2 text-right">
-                      <div className="flex justify-end space-x-1">
-                        {actionButtons && actionButtons(row.original)}
-                        {onEdit && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onEdit(row.original)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                            <span className="sr-only">Edit</span>
-                          </Button>
-                        )}
-                        {onDelete && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onDelete(row.original)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Delete</span>
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
                   )}
                 </React.Fragment>
               ))
