@@ -73,6 +73,24 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  input,
+  textarea,
+  select {
+    @apply border-green-500 focus-visible:ring-green-500;
+  }
+
+  input[type="checkbox"] {
+    @apply border-green-500 text-green-600 focus:ring-green-500;
+  }
+
+  button[type="submit"] {
+    @apply bg-green-600 hover:bg-green-700;
+  }
+
+  button[variant="outline"] {
+    @apply border-green-500 text-green-600 hover:bg-green-50;
+  }
 }
 
 /* Dialog styles */
