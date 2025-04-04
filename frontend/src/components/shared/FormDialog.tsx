@@ -19,6 +19,7 @@ interface Field {
   max?: number
   step?: number
   isWide?: boolean
+  description?: string
 }
 
 interface FormDialogProps {
@@ -60,6 +61,11 @@ export function FormDialog({
               >
                 {field.label}
               </label>
+              {field.description && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {field.description}
+                </p>
+              )}
               {field.type === "markdown" || field.type === "textarea" ? (
                 <textarea
                   id={field.name}

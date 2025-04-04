@@ -13,6 +13,8 @@ interface Prompt {
   name: string
   content: string
   temperature: number
+  top_k: number
+  top_p: number
   status: "active" | "inactive"
 }
 
@@ -22,6 +24,8 @@ const initialPrompts: Prompt[] = [
     name: "Default Prompt",
     content: "# Default System Prompt\n\nYou are a helpful AI assistant...",
     temperature: 0.7,
+    top_k: 40,
+    top_p: 0.95,
     status: "active",
   },
   {
@@ -29,6 +33,8 @@ const initialPrompts: Prompt[] = [
     name: "Custom Prompt",
     content: "# Custom System Prompt\n\nYou are a specialized AI...",
     temperature: 0.5,
+    top_k: 50,
+    top_p: 0.9,
     status: "inactive",
   },
 ]
@@ -82,6 +88,20 @@ export function PromptsPage() {
       ),
     },
     {
+      header: "Top-K",
+      accessorKey: "top_k" as keyof Prompt,
+      cell: ({ row }: { row: { original: Prompt } }) => (
+        <span>{row.original.top_k}</span>
+      ),
+    },
+    {
+      header: "Top-P",
+      accessorKey: "top_p" as keyof Prompt,
+      cell: ({ row }: { row: { original: Prompt } }) => (
+        <span>{row.original.top_p.toFixed(2)}</span>
+      ),
+    },
+    {
       header: "Status",
       accessorKey: "status" as keyof Prompt,
       cell: ({ row }: { row: { original: Prompt } }) => (
@@ -115,6 +135,8 @@ export function PromptsPage() {
       name: formData.get("name") as string,
       content: formData.get("content") as string,
       temperature: parseFloat(formData.get("temperature") as string),
+      top_k: parseInt(formData.get("top_k") as string),
+      top_p: parseFloat(formData.get("top_p") as string),
       status: formData.get("status") as "active" | "inactive",
     }
 
@@ -147,6 +169,8 @@ export function PromptsPage() {
       name: formData.get("name") as string,
       content: formData.get("content") as string,
       temperature: parseFloat(formData.get("temperature") as string),
+      top_k: parseInt(formData.get("top_k") as string),
+      top_p: parseFloat(formData.get("top_p") as string),
       status: formData.get("status") as "active" | "inactive",
     }
 
@@ -230,6 +254,28 @@ export function PromptsPage() {
             defaultValue: "0.7",
           },
           {
+            name: "top_k",
+            label: "Top-K",
+            type: "number",
+            min: 1,
+            max: 100,
+            step: 1,
+            defaultValue: "40",
+            description:
+              "Controls diversity by limiting the top K tokens considered for sampling",
+          },
+          {
+            name: "top_p",
+            label: "Top-P",
+            type: "number",
+            min: 0.1,
+            max: 1,
+            step: 0.05,
+            defaultValue: "0.95",
+            description:
+              "Controls diversity by considering tokens with top P probability mass",
+          },
+          {
             name: "status",
             label: "Status",
             type: "select",
@@ -251,14 +297,13 @@ export function PromptsPage() {
             label: "Name",
             type: "text",
             defaultValue: selectedPrompt?.name,
-            className: "w-full",
           },
           {
             name: "content",
             label: "Content",
             type: "markdown",
             isWide: true,
-            className: "min-h-[500px] w-full",
+            className: "min-h-[500px]",
             defaultValue: selectedPrompt?.content,
           },
           {
@@ -269,6 +314,28 @@ export function PromptsPage() {
             max: 1,
             step: 0.1,
             defaultValue: selectedPrompt?.temperature.toString(),
+          },
+          {
+            name: "top_k",
+            label: "Top-K",
+            type: "number",
+            min: 1,
+            max: 100,
+            step: 1,
+            defaultValue: selectedPrompt?.top_k.toString(),
+            description:
+              "Controls diversity by limiting the top K tokens considered for sampling",
+          },
+          {
+            name: "top_p",
+            label: "Top-P",
+            type: "number",
+            min: 0.1,
+            max: 1,
+            step: 0.05,
+            defaultValue: selectedPrompt?.top_p.toString(),
+            description:
+              "Controls diversity by considering tokens with top P probability mass",
           },
           {
             name: "status",
