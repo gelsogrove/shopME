@@ -1,4 +1,4 @@
-import { Lock, Save } from "lucide-react"
+import { Save } from "lucide-react"
 import { useState } from "react"
 import { Outlet, useLocation } from "react-router-dom"
 import { Button } from "../components/ui/button"
@@ -153,30 +153,6 @@ export function SettingsPage() {
                     Receive real-time notifications for new messages and order
                     updates
                   </p>
-                </div>
-
-                <div className="pt-4 mt-4 border-t">
-                  <h2 className="text-xl font-semibold mb-4 flex items-center">
-                    <Lock className="w-5 h-5 mr-2" />
-                    Security
-                  </h2>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Access Settings</p>
-                      <p className="text-sm text-gray-500">
-                        Configure account security settings
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      type="button"
-                      onClick={() =>
-                        (window.location.href = "/settings/security")
-                      }
-                    >
-                      Manage
-                    </Button>
-                  </div>
                 </div>
               </div>
 
