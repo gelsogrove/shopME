@@ -90,6 +90,66 @@ const initialProducts: Product[] = [
       "https://www.mozzarelladibufala.org/wp-content/uploads/2019/07/mozzarella-di-bufala-campana-dop.jpg",
     quantity: 40,
   },
+  {
+    id: "7",
+    name: "San Marzano DOP Tomatoes",
+    description:
+      "Authentic San Marzano tomatoes grown in the volcanic soil of Mount Vesuvius. Sweet flavor with low acidity.",
+    price: "6.99",
+    categories: ["Vegetables", "DOP"],
+    status: "active",
+    image:
+      "https://images.unsplash.com/photo-1591111366333-83c9616f8c3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1074&q=80",
+    quantity: 85,
+  },
+  {
+    id: "8",
+    name: "Barolo DOCG Wine",
+    description:
+      "Premium Barolo DOCG wine from Piedmont, made from Nebbiolo grapes. Full-bodied with notes of roses, tar and herbs.",
+    price: "49.99",
+    categories: ["Wine", "DOCG"],
+    status: "active",
+    image:
+      "https://images.unsplash.com/photo-1586370434639-0fe43b4daa6c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1074&q=80",
+    quantity: 24,
+  },
+  {
+    id: "9",
+    name: "Sicilian Pistachios from Bronte DOP",
+    description:
+      "Vibrant green pistachios from Bronte, Sicily. Intensely flavored with sweet and slightly resinous notes.",
+    price: "18.99",
+    categories: ["Nuts", "DOP"],
+    status: "active",
+    image:
+      "https://images.unsplash.com/photo-1616684000067-36952fde56ec?ixlib=rb-1.2.1&auto=format&fit=crop&w=1074&q=80",
+    quantity: 35,
+  },
+  {
+    id: "10",
+    name: "Limoncello di Sorrento IGP",
+    description:
+      "Traditional lemon liqueur made with Sorrento lemons. Bright, sweet and intensely citrusy.",
+    price: "22.99",
+    categories: ["Spirits", "IGP"],
+    status: "active",
+    image:
+      "https://images.unsplash.com/photo-1623857584158-23c769acb3c6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1074&q=80",
+    quantity: 42,
+  },
+  {
+    id: "11",
+    name: "Truffle Extra Virgin Olive Oil",
+    description:
+      "Premium extra virgin olive oil infused with Italian black truffles. Rich, earthy aroma for gourmet dishes.",
+    price: "27.99",
+    categories: ["Oil", "Condiments"],
+    status: "active",
+    image:
+      "https://images.unsplash.com/photo-1604932292784-e154d965a87c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1074&q=80",
+    quantity: 28,
+  },
 ]
 
 const availableCategories = [
@@ -100,6 +160,11 @@ const availableCategories = [
   "Cured Meats",
   "DOP",
   "IGP",
+  "Vegetables",
+  "Wine",
+  "DOCG",
+  "Nuts",
+  "Spirits",
 ]
 
 export function ProductsPage() {
