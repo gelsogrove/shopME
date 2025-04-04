@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 import {
   Sheet,
   SheetClose,
@@ -12,6 +13,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import { Switch } from "@/components/ui/switch"
 import { AlertCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -124,83 +126,6 @@ export function PromptsPage() {
     },
   ]
 
-  const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
-    console.log("PromptsPage: Adding new prompt")
-    e.preventDefault()
-    const form = e.target as HTMLFormElement
-    const formData = new FormData(form)
-
-    // If we're adding a new active prompt, set all others to inactive
-    if (formData.get("status") === "active") {
-      setPrompts(prompts.map((p) => ({ ...p, status: "inactive" })))
-    }
-
-    const newPrompt: Prompt = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: formData.get("name") as string,
-      content: formData.get("content") as string,
-      temperature: parseFloat(formData.get("temperature") as string),
-      top_k: parseInt(formData.get("top_k") as string),
-      top_p: parseFloat(formData.get("top_p") as string),
-      status: formData.get("status") as "active" | "inactive",
-    }
-
-    console.log("PromptsPage: New prompt data", newPrompt)
-    setPrompts([...prompts, newPrompt])
-    setShowAddSheet(false)
-  }
-
-  const handleEdit = (prompt: Prompt) => {
-    console.log("PromptsPage: Editing prompt", prompt)
-    setSelectedPrompt(prompt)
-    setShowEditSheet(true)
-  }
-
-  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    console.log("PromptsPage: Submitting edit")
-    e.preventDefault()
-    if (!selectedPrompt) return
-
-    const form = e.target as HTMLFormElement
-    const formData = new FormData(form)
-
-    // If we're setting this prompt to active, set all others to inactive
-    if (formData.get("status") === "active") {
-      setPrompts(prompts.map((p) => ({ ...p, status: "inactive" })))
-    }
-
-    const updatedPrompt: Prompt = {
-      ...selectedPrompt,
-      name: formData.get("name") as string,
-      content: formData.get("content") as string,
-      temperature: parseFloat(formData.get("temperature") as string),
-      top_k: parseInt(formData.get("top_k") as string),
-      top_p: parseFloat(formData.get("top_p") as string),
-      status: formData.get("status") as "active" | "inactive",
-    }
-
-    console.log("PromptsPage: Updated prompt data", updatedPrompt)
-    setPrompts(
-      prompts.map((p) => (p.id === selectedPrompt.id ? updatedPrompt : p))
-    )
-    setShowEditSheet(false)
-    setSelectedPrompt(null)
-  }
-
-  const handleDelete = (prompt: Prompt) => {
-    console.log("PromptsPage: Deleting prompt", prompt)
-    setSelectedPrompt(prompt)
-    setShowDeleteDialog(true)
-  }
-
-  const handleDeleteConfirm = () => {
-    console.log("PromptsPage: Confirming delete", selectedPrompt)
-    if (!selectedPrompt) return
-    setPrompts(prompts.filter((p) => p.id !== selectedPrompt.id))
-    setShowDeleteDialog(false)
-    setSelectedPrompt(null)
-  }
-
   const renderFormFields = (isEdit = false) => (
     <div className="space-y-6 pb-6">
       <div className="space-y-2">
@@ -232,80 +157,209 @@ export function PromptsPage() {
         />
       </div>
 
-      <div className="space-y-2">
-        <label
-          htmlFor="temperature"
-          className="text-sm font-medium leading-none"
-        >
-          Temperature
-        </label>
-        <input
-          type="number"
-          id="temperature"
-          name="temperature"
-          min={0}
-          max={1}
-          step={0.1}
-          defaultValue={isEdit ? selectedPrompt?.temperature.toString() : "0.7"}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        />
+      <div className="space-y-4">
+        <div>
+          <div className="flex justify-between mb-2">
+            <label
+              htmlFor="temperature"
+              className="text-sm font-medium leading-none"
+            >
+              Temperature:{" "}
+              <span id="temperature-value">
+                {isEdit ? selectedPrompt?.temperature.toFixed(1) : "0.7"}
+              </span>
+            </label>
+          </div>
+          <input
+            type="range"
+            id="temperature"
+            name="temperature"
+            min="0"
+            max="1"
+            step="0.1"
+            defaultValue={
+              isEdit ? selectedPrompt?.temperature.toString() : "0.7"
+            }
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            onChange={(e) => {
+              const value = parseFloat(e.target.value)
+              document.getElementById("temperature-value")!.textContent =
+                value.toFixed(1)
+            }}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Controls randomness: Lower values make output more focused and
+            deterministic
+          </p>
+        </div>
+
+        <div>
+          <div className="flex justify-between mb-2">
+            <label htmlFor="top_k" className="text-sm font-medium leading-none">
+              Top-K:{" "}
+              <span id="top-k-value">
+                {isEdit ? selectedPrompt?.top_k : "40"}
+              </span>
+            </label>
+          </div>
+          <input
+            type="range"
+            id="top_k"
+            name="top_k"
+            min="1"
+            max="100"
+            step="1"
+            defaultValue={isEdit ? selectedPrompt?.top_k.toString() : "40"}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            onChange={(e) => {
+              document.getElementById("top-k-value")!.textContent =
+                e.target.value
+            }}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Controls diversity by limiting the top K tokens considered for
+            sampling
+          </p>
+        </div>
+
+        <div>
+          <div className="flex justify-between mb-2">
+            <label htmlFor="top_p" className="text-sm font-medium leading-none">
+              Top-P:{" "}
+              <span id="top-p-value">
+                {isEdit ? selectedPrompt?.top_p.toFixed(2) : "0.95"}
+              </span>
+            </label>
+          </div>
+          <input
+            type="range"
+            id="top_p"
+            name="top_p"
+            min="0.1"
+            max="1"
+            step="0.05"
+            defaultValue={isEdit ? selectedPrompt?.top_p.toString() : "0.95"}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            onChange={(e) => {
+              const value = parseFloat(e.target.value)
+              document.getElementById("top-p-value")!.textContent =
+                value.toFixed(2)
+            }}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Controls diversity by considering tokens with top P probability mass
+          </p>
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="top_k" className="text-sm font-medium leading-none">
-          Top-K
-        </label>
-        <p className="text-xs text-muted-foreground mt-1">
-          Controls diversity by limiting the top K tokens considered for
-          sampling
-        </p>
-        <input
-          type="number"
-          id="top_k"
-          name="top_k"
-          min={1}
-          max={100}
-          step={1}
-          defaultValue={isEdit ? selectedPrompt?.top_k.toString() : "40"}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="top_p" className="text-sm font-medium leading-none">
-          Top-P
-        </label>
-        <p className="text-xs text-muted-foreground mt-1">
-          Controls diversity by considering tokens with top P probability mass
-        </p>
-        <input
-          type="number"
-          id="top_p"
-          name="top_p"
-          min={0.1}
-          max={1}
-          step={0.05}
-          defaultValue={isEdit ? selectedPrompt?.top_p.toString() : "0.95"}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="status" className="text-sm font-medium leading-none">
-          Status
-        </label>
-        <select
+      <div className="flex items-center space-x-2">
+        <Switch
           id="status"
           name="status"
-          defaultValue={isEdit ? selectedPrompt?.status : "active"}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+          defaultChecked={isEdit ? selectedPrompt?.status === "active" : true}
+          value="active"
+        />
+        <Label htmlFor="status" className="text-sm font-medium leading-none">
+          Active
+        </Label>
+        <input
+          type="hidden"
+          name="status"
+          value="inactive"
+          disabled={isEdit ? selectedPrompt?.status === "active" : true}
+        />
       </div>
     </div>
   )
+
+  const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
+    console.log("PromptsPage: Adding new prompt")
+    e.preventDefault()
+    const form = e.target as HTMLFormElement
+    const formData = new FormData(form)
+
+    // Handle the switch value correctly
+    const statusActive = form.querySelector<HTMLInputElement>(
+      'input[type="checkbox"][name="status"]'
+    )?.checked
+    const status = statusActive ? "active" : "inactive"
+
+    // If we're adding a new active prompt, set all others to inactive
+    if (status === "active") {
+      setPrompts(prompts.map((p) => ({ ...p, status: "inactive" })))
+    }
+
+    const newPrompt: Prompt = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: formData.get("name") as string,
+      content: formData.get("content") as string,
+      temperature: parseFloat(formData.get("temperature") as string),
+      top_k: parseInt(formData.get("top_k") as string),
+      top_p: parseFloat(formData.get("top_p") as string),
+      status: status as "active" | "inactive",
+    }
+
+    console.log("PromptsPage: New prompt data", newPrompt)
+    setPrompts([...prompts, newPrompt])
+    setShowAddSheet(false)
+  }
+
+  const handleEdit = (prompt: Prompt) => {
+    console.log("PromptsPage: Editing prompt", prompt)
+    setSelectedPrompt(prompt)
+    setShowEditSheet(true)
+  }
+
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    console.log("PromptsPage: Submitting edit")
+    e.preventDefault()
+    if (!selectedPrompt) return
+
+    const form = e.target as HTMLFormElement
+    const formData = new FormData(form)
+
+    // Handle the switch value correctly
+    const statusActive = form.querySelector<HTMLInputElement>(
+      'input[type="checkbox"][name="status"]'
+    )?.checked
+    const status = statusActive ? "active" : "inactive"
+
+    // If we're setting this prompt to active, set all others to inactive
+    if (status === "active") {
+      setPrompts(prompts.map((p) => ({ ...p, status: "inactive" })))
+    }
+
+    const updatedPrompt: Prompt = {
+      ...selectedPrompt,
+      name: formData.get("name") as string,
+      content: formData.get("content") as string,
+      temperature: parseFloat(formData.get("temperature") as string),
+      top_k: parseInt(formData.get("top_k") as string),
+      top_p: parseFloat(formData.get("top_p") as string),
+      status: status as "active" | "inactive",
+    }
+
+    console.log("PromptsPage: Updated prompt data", updatedPrompt)
+    setPrompts(
+      prompts.map((p) => (p.id === selectedPrompt.id ? updatedPrompt : p))
+    )
+    setShowEditSheet(false)
+    setSelectedPrompt(null)
+  }
+
+  const handleDelete = (prompt: Prompt) => {
+    console.log("PromptsPage: Deleting prompt", prompt)
+    setSelectedPrompt(prompt)
+    setShowDeleteDialog(true)
+  }
+
+  const handleDeleteConfirm = () => {
+    console.log("PromptsPage: Confirming delete", selectedPrompt)
+    if (!selectedPrompt) return
+    setPrompts(prompts.filter((p) => p.id !== selectedPrompt.id))
+    setShowDeleteDialog(false)
+    setSelectedPrompt(null)
+  }
 
   return (
     <div className="container mx-auto py-6">
