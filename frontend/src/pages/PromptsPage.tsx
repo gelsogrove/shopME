@@ -1,10 +1,17 @@
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
-import { FormDialog } from "@/components/shared/FormDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { AlertCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -44,16 +51,14 @@ export function PromptsPage() {
 
   const [prompts, setPrompts] = useState<Prompt[]>(initialPrompts)
   const [searchQuery, setSearchQuery] = useState("")
-  const [showAddDialog, setShowAddDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showAddSheet, setShowAddSheet] = useState(false)
+  const [showEditSheet, setShowEditSheet] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null)
 
   useEffect(() => {
     console.log("PromptsPage: Dependencies loaded", {
       DataTable: !!DataTable,
-      FormDialog: !!FormDialog,
-      ConfirmDialog: !!ConfirmDialog,
       StatusBadge: !!StatusBadge,
       PageHeader: !!PageHeader,
     })
@@ -142,13 +147,13 @@ export function PromptsPage() {
 
     console.log("PromptsPage: New prompt data", newPrompt)
     setPrompts([...prompts, newPrompt])
-    setShowAddDialog(false)
+    setShowAddSheet(false)
   }
 
   const handleEdit = (prompt: Prompt) => {
     console.log("PromptsPage: Editing prompt", prompt)
     setSelectedPrompt(prompt)
-    setShowEditDialog(true)
+    setShowEditSheet(true)
   }
 
   const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -178,7 +183,7 @@ export function PromptsPage() {
     setPrompts(
       prompts.map((p) => (p.id === selectedPrompt.id ? updatedPrompt : p))
     )
-    setShowEditDialog(false)
+    setShowEditSheet(false)
     setSelectedPrompt(null)
   }
 
@@ -196,6 +201,112 @@ export function PromptsPage() {
     setSelectedPrompt(null)
   }
 
+  const renderFormFields = (isEdit = false) => (
+    <div className="space-y-6 pb-6">
+      <div className="space-y-2">
+        <label htmlFor="name" className="text-sm font-medium leading-none">
+          Name
+        </label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          defaultValue={isEdit ? selectedPrompt?.name : ""}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="content" className="text-sm font-medium leading-none">
+          Content
+        </label>
+        <textarea
+          id="content"
+          name="content"
+          defaultValue={
+            isEdit
+              ? selectedPrompt?.content
+              : "# System Prompt\n\nYou are a helpful AI assistant..."
+          }
+          className="flex min-h-[500px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label
+          htmlFor="temperature"
+          className="text-sm font-medium leading-none"
+        >
+          Temperature
+        </label>
+        <input
+          type="number"
+          id="temperature"
+          name="temperature"
+          min={0}
+          max={1}
+          step={0.1}
+          defaultValue={isEdit ? selectedPrompt?.temperature.toString() : "0.7"}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="top_k" className="text-sm font-medium leading-none">
+          Top-K
+        </label>
+        <p className="text-xs text-muted-foreground mt-1">
+          Controls diversity by limiting the top K tokens considered for
+          sampling
+        </p>
+        <input
+          type="number"
+          id="top_k"
+          name="top_k"
+          min={1}
+          max={100}
+          step={1}
+          defaultValue={isEdit ? selectedPrompt?.top_k.toString() : "40"}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="top_p" className="text-sm font-medium leading-none">
+          Top-P
+        </label>
+        <p className="text-xs text-muted-foreground mt-1">
+          Controls diversity by considering tokens with top P probability mass
+        </p>
+        <input
+          type="number"
+          id="top_p"
+          name="top_p"
+          min={0.1}
+          max={1}
+          step={0.05}
+          defaultValue={isEdit ? selectedPrompt?.top_p.toString() : "0.95"}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="status" className="text-sm font-medium leading-none">
+          Status
+        </label>
+        <select
+          id="status"
+          name="status"
+          defaultValue={isEdit ? selectedPrompt?.status : "active"}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+    </div>
+  )
+
   return (
     <div className="container mx-auto py-6">
       <Alert className="mb-6 bg-pink-50 border border-pink-200 text-pink-800">
@@ -211,7 +322,7 @@ export function PromptsPage() {
         searchPlaceholder="Search prompts..."
         searchValue={searchQuery}
         onSearch={setSearchQuery}
-        onAdd={() => setShowAddDialog(true)}
+        onAdd={() => setShowAddSheet(true)}
       />
 
       <div className="mt-6">
@@ -223,130 +334,45 @@ export function PromptsPage() {
         />
       </div>
 
-      <FormDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-        title="Add New Prompt"
-        isWide={true}
-        fields={[
-          {
-            name: "name",
-            label: "Name",
-            type: "text",
-            className: "w-full",
-          },
-          {
-            name: "content",
-            label: "Content",
-            type: "markdown",
-            isWide: true,
-            className: "min-h-[500px] w-full",
-            defaultValue:
-              "# System Prompt\n\nYou are a helpful AI assistant...",
-          },
-          {
-            name: "temperature",
-            label: "Temperature",
-            type: "number",
-            min: 0,
-            max: 1,
-            step: 0.1,
-            defaultValue: "0.7",
-          },
-          {
-            name: "top_k",
-            label: "Top-K",
-            type: "number",
-            min: 1,
-            max: 100,
-            step: 1,
-            defaultValue: "40",
-            description:
-              "Controls diversity by limiting the top K tokens considered for sampling",
-          },
-          {
-            name: "top_p",
-            label: "Top-P",
-            type: "number",
-            min: 0.1,
-            max: 1,
-            step: 0.05,
-            defaultValue: "0.95",
-            description:
-              "Controls diversity by considering tokens with top P probability mass",
-          },
-          {
-            name: "status",
-            label: "Status",
-            type: "select",
-            options: ["active", "inactive"],
-            defaultValue: "active",
-          },
-        ]}
-        onSubmit={handleAdd}
-      />
+      {/* Add Prompt Sheet */}
+      <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>
+        <SheetContent className="sm:max-w-xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Add New Prompt</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleAdd}>
+            {renderFormFields()}
+            <SheetFooter className="mt-6">
+              <SheetClose asChild>
+                <Button variant="outline" type="button">
+                  Cancel
+                </Button>
+              </SheetClose>
+              <Button type="submit">Save</Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
 
-      <FormDialog
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
-        title="Edit Prompt"
-        isWide={true}
-        fields={[
-          {
-            name: "name",
-            label: "Name",
-            type: "text",
-            defaultValue: selectedPrompt?.name,
-          },
-          {
-            name: "content",
-            label: "Content",
-            type: "markdown",
-            isWide: true,
-            className: "min-h-[500px]",
-            defaultValue: selectedPrompt?.content,
-          },
-          {
-            name: "temperature",
-            label: "Temperature",
-            type: "number",
-            min: 0,
-            max: 1,
-            step: 0.1,
-            defaultValue: selectedPrompt?.temperature.toString(),
-          },
-          {
-            name: "top_k",
-            label: "Top-K",
-            type: "number",
-            min: 1,
-            max: 100,
-            step: 1,
-            defaultValue: selectedPrompt?.top_k.toString(),
-            description:
-              "Controls diversity by limiting the top K tokens considered for sampling",
-          },
-          {
-            name: "top_p",
-            label: "Top-P",
-            type: "number",
-            min: 0.1,
-            max: 1,
-            step: 0.05,
-            defaultValue: selectedPrompt?.top_p.toString(),
-            description:
-              "Controls diversity by considering tokens with top P probability mass",
-          },
-          {
-            name: "status",
-            label: "Status",
-            type: "select",
-            options: ["active", "inactive"],
-            defaultValue: selectedPrompt?.status,
-          },
-        ]}
-        onSubmit={handleEditSubmit}
-      />
+      {/* Edit Prompt Sheet */}
+      <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
+        <SheetContent className="sm:max-w-xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Edit Prompt</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleEditSubmit}>
+            {renderFormFields(true)}
+            <SheetFooter className="mt-6">
+              <SheetClose asChild>
+                <Button variant="outline" type="button">
+                  Cancel
+                </Button>
+              </SheetClose>
+              <Button type="submit">Save</Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
 
       <ConfirmDialog
         open={showDeleteDialog}
