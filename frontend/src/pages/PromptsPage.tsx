@@ -148,7 +148,7 @@ export function PromptsPage() {
             defaultValue={
               isEdit ? selectedPrompt?.temperature.toString() : "0.7"
             }
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600 border border-green-500"
             onChange={(e) => {
               const value = parseFloat(e.target.value)
               document.getElementById("temperature-value")!.textContent =
@@ -178,7 +178,7 @@ export function PromptsPage() {
             max="100"
             step="1"
             defaultValue={isEdit ? selectedPrompt?.top_k.toString() : "40"}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600 border border-green-500"
             onChange={(e) => {
               document.getElementById("top-k-value")!.textContent =
                 e.target.value
@@ -207,7 +207,7 @@ export function PromptsPage() {
             max="1"
             step="0.05"
             defaultValue={isEdit ? selectedPrompt?.top_p.toString() : "0.95"}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600 border border-green-500"
             onChange={(e) => {
               const value = parseFloat(e.target.value)
               document.getElementById("top-p-value")!.textContent =
@@ -386,11 +386,17 @@ export function PromptsPage() {
             {renderFormFields()}
             <SheetFooter className="mt-6">
               <SheetClose asChild>
-                <Button variant="outline" type="button">
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="border-green-500 text-green-600 hover:bg-green-50"
+                >
                   Cancel
                 </Button>
               </SheetClose>
-              <Button type="submit">Save</Button>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                Save
+              </Button>
             </SheetFooter>
           </form>
         </SheetContent>
@@ -406,11 +412,17 @@ export function PromptsPage() {
             {renderFormFields(true)}
             <SheetFooter className="mt-6">
               <SheetClose asChild>
-                <Button variant="outline" type="button">
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="border-green-500 text-green-600 hover:bg-green-50"
+                >
                   Cancel
                 </Button>
               </SheetClose>
-              <Button type="submit">Save</Button>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                Save
+              </Button>
             </SheetFooter>
           </form>
         </SheetContent>
@@ -439,7 +451,11 @@ export function PromptsPage() {
               </div>
               <SheetFooter>
                 <SheetClose asChild>
-                  <Button variant="outline" type="button">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="border-green-500 text-green-600 hover:bg-green-50"
+                  >
                     Cancel
                   </Button>
                 </SheetClose>
@@ -452,6 +468,7 @@ export function PromptsPage() {
                     ).value
                     handleAddPrompt(selectedPrompt, content)
                   }}
+                  className="bg-green-600 hover:bg-green-700"
                 >
                   Save
                 </Button>
