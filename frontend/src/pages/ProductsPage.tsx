@@ -56,7 +56,7 @@ const initialProducts: Product[] = [
   },
   {
     id: "4",
-    name: "Parma Ham DOP 24 months",
+    name: "Prosciutto di Parma DOP 24 months",
     description:
       "Fine Parma ham aged for 24 months. Sweet flavor and delicate aroma.",
     price: "24.99",
@@ -68,19 +68,19 @@ const initialProducts: Product[] = [
   },
   {
     id: "5",
-    name: "Modena IGP Balsamic Vinegar",
+    name: "Aceto Balsamico di Modena IGP",
     description:
       "Traditional balsamic vinegar of Modena IGP with a perfect balance of sweet and sour.",
     price: "14.99",
     categories: ["Condiments"],
-    status: "inactive",
+    status: "active",
     image:
       "https://www.acetum.it/wp-content/uploads/2020/03/aceto-balsamico-di-modena-igp.jpg",
     quantity: 30,
   },
   {
     id: "6",
-    name: "Buffalo Mozzarella Campana DOP",
+    name: "Mozzarella di Bufala Campana DOP",
     description:
       "Fresh buffalo mozzarella DOP from Campania. Soft texture and delicate milk flavor.",
     price: "9.99",
@@ -116,7 +116,7 @@ const initialProducts: Product[] = [
   },
   {
     id: "9",
-    name: "Sicilian Pistachios from Bronte DOP",
+    name: "Pistacchi di Bronte DOP",
     description:
       "Vibrant green pistachios from Bronte, Sicily. Intensely flavored with sweet and slightly resinous notes.",
     price: "18.99",
@@ -150,6 +150,66 @@ const initialProducts: Product[] = [
       "https://images.unsplash.com/photo-1604932292784-e154d965a87c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1074&q=80",
     quantity: 28,
   },
+  {
+    id: "12",
+    name: "Panettone Tradizionale Milano",
+    description:
+      "Traditional Milanese Christmas cake with candied fruits and raisins. Soft and aromatic dough made with natural yeast.",
+    price: "19.99",
+    categories: ["Bakery", "Seasonal"],
+    status: "active",
+    image:
+      "https://images.unsplash.com/photo-1607919966373-50958a2d7190?ixlib=rb-1.2.1&auto=format&fit=crop&w=1074&q=80",
+    quantity: 50,
+  },
+  {
+    id: "13",
+    name: "Pecorino Romano DOP",
+    description:
+      "Hard, salty sheep's milk cheese from Lazio region. Aged for at least 5 months with a sharp, piquant flavor.",
+    price: "16.99",
+    categories: ["Cheese", "DOP"],
+    status: "active",
+    image:
+      "https://images.unsplash.com/photo-1599674256640-9de576c7b3bf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1074&q=80",
+    quantity: 32,
+  },
+  {
+    id: "14",
+    name: "Chianti Classico DOCG",
+    description:
+      "Tuscan red wine made primarily from Sangiovese grapes. Ruby red color with notes of cherries, plums and violets.",
+    price: "24.99",
+    categories: ["Wine", "DOCG"],
+    status: "active",
+    image:
+      "https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1074&q=80",
+    quantity: 36,
+  },
+  {
+    id: "15",
+    name: "Pistacchi Siciliani",
+    description:
+      "Premium Sicilian pistachios with their vibrant green color and intense flavor. Perfect for snacking or cooking.",
+    price: "12.99",
+    categories: ["Nuts"],
+    status: "active",
+    image:
+      "https://images.unsplash.com/photo-1525053380689-a3d9a8d05350?ixlib=rb-1.2.1&auto=format&fit=crop&w=1074&q=80",
+    quantity: 45,
+  },
+  {
+    id: "16",
+    name: "Melanzane Sott'olio",
+    description:
+      "Eggplants preserved in extra virgin olive oil with herbs and spices. Traditional Southern Italian antipasto.",
+    price: "8.99",
+    categories: ["Preserved Vegetables", "Antipasti"],
+    status: "active",
+    image:
+      "https://images.unsplash.com/photo-1600335895229-6e75511892c8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1074&q=80",
+    quantity: 38,
+  },
 ]
 
 const availableCategories = [
@@ -165,6 +225,10 @@ const availableCategories = [
   "DOCG",
   "Nuts",
   "Spirits",
+  "Bakery",
+  "Seasonal",
+  "Preserved Vegetables",
+  "Antipasti",
 ]
 
 export function ProductsPage() {
