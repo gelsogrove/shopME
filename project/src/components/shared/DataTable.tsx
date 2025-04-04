@@ -51,7 +51,7 @@ export function DataTable<TData>({
     () => [
       ...columns,
       {
-        id: `custom_actions_${Math.random().toString(36).substr(2, 9)}`,
+        id: "data_table_actions",
         header: "",
         cell: ({ row }) => {
           const item = row.original
