@@ -1137,6 +1137,107 @@ This workflow manages AI-assisted responses:
    - Receives and de-tokenizes the AI response
    - Formats the response for WhatsApp delivery
 
+#### Data Tokenization Implementation
+
+To protect user privacy and ensure GDPR compliance, the system implements a tokenization service for all data processed by external AI models. This process replaces sensitive information with non-identifying tokens before sending data to OpenRouter, then reverses the process when receiving the response.
+
+##### Tokenization Process
+
+1. **Sensitive Data Identification**: The system identifies PII such as names, phone numbers, addresses, and other sensitive information in incoming messages
+2. **Token Generation**: Each piece of sensitive data is replaced with a unique token
+3. **Mapping Storage**: A mapping between tokens and original values is created and stored temporarily in the session
+4. **Processing**: The tokenized data is processed by the AI model
+5. **De-tokenization**: AI responses are scanned for tokens, which are replaced with the original values before sending back to the user
+
+##### Technical Implementation
+
+The tokenization service is implemented as follows:
+
+```typescript
+// Types definition
+export type SensitiveItem = {
+  type: string // e.g. 'NAME', 'PHONE', 'ADDRESS'
+  value: string
+}
+
+export type TokenMapping = Record<string, string>
+
+/**
+ * Tokenizes sensitive information in text
+ * @param text Original text containing sensitive information
+ * @param sensitiveData Array of sensitive items to tokenize
+ * @returns Object containing tokenized text and mapping for detokenization
+ */
+export function tokenize(
+  text: string,
+  sensitiveData: SensitiveItem[]
+): { tokenizedText: string; mapping: TokenMapping } {
+  const mapping: TokenMapping = {}
+  let tokenizedText = text
+
+  sensitiveData.forEach((item, index) => {
+    const token = `TOKEN_${item.type}_${index + 1}`
+    mapping[token] = item.value
+
+    // Replace all occurrences (case-sensitive)
+    const escaped = item.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    const regex = new RegExp(escaped, "g")
+    tokenizedText = tokenizedText.replace(regex, token)
+  })
+
+  return { tokenizedText, mapping }
+}
+
+/**
+ * Detokenizes text by replacing tokens with original values
+ * @param text Tokenized text
+ * @param mapping Token to original value mapping
+ * @returns Detokenized text with original values
+ */
+export function detokenize(text: string, mapping: TokenMapping): string {
+  let result = text
+  for (const [token, value] of Object.entries(mapping)) {
+    const regex = new RegExp(token, "g")
+    result = result.replace(regex, value)
+  }
+  return result
+}
+```
+
+##### Example Usage
+
+```typescript
+import { tokenize, detokenize } from "./tokenizer"
+
+// Original message with sensitive information
+const message =
+  "Ciao, sono Andrea Gelsomino. Il mio numero è +34 612345678 e vivo a Barcellona."
+
+// Identified sensitive data
+const sensitiveData = [
+  { type: "NAME", value: "Andrea Gelsomino" },
+  { type: "PHONE", value: "+34 612345678" },
+  { type: "CITY", value: "Barcellona" },
+]
+
+// Tokenize the message
+const { tokenizedText, mapping } = tokenize(message, sensitiveData)
+
+// Result: "Ciao, sono TOKEN_NAME_1. Il mio numero è TOKEN_PHONE_2 e vivo a TOKEN_CITY_3."
+console.log("Tokenized:", tokenizedText)
+
+// Send tokenized text to AI service
+
+// Simulated AI response containing tokens
+const aiReply = `Grazie TOKEN_NAME_1, ho registrato il numero TOKEN_PHONE_2 per l'utente a TOKEN_CITY_3.`
+
+// Detokenize the AI response
+const finalResponse = detokenize(aiReply, mapping)
+
+// Result: "Grazie Andrea Gelsomino, ho registrato il numero +34 612345678 per l'utente a Barcellona."
+console.log("Final AI Reply:", finalResponse)
+```
+
 ### Implementation Strategy
 
 #### 1. Development Approach
