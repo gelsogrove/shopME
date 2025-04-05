@@ -2,7 +2,40 @@
 
 ## 1. Project Vision
 
-The ShopMe project aims to develop a WhatsApp-based e-commerce platform that leverages the WhatsApp Business API and AI technology to automate client support and order management. The goal is to provide immediate and continuous 24/7 assistance, enhancing client experience and streamlining business operations.
+The ShopMe project aims to develop a WhatsApp-based e-commerce platform that leverages the WhatsApp Business API and AI technology to automate client support and order management. Designed as a Software as a Service (SaaS) solution, the platform enables businesses to create their own white-labeled e-commerce presence with minimal setup. The goal is to provide immediate and continuous 24/7 assistance, enhancing client experience and streamlining business operations.
+
+### 1.1 Initial Use Case: Italian Products E-commerce
+
+As our first implementation, the platform will be specialized in selling high-quality Italian products. Users will be able to:
+
+**Product Discovery and Information**:
+
+- Browse a curated selection of Italian DOP, IGP, and DOCG products
+- Access detailed product information, including origin, certifications, and usage suggestions
+- Receive personalized product recommendations
+- Learn about producers' stories and traditional production methods
+
+**Order Management**:
+
+- Place orders directly through WhatsApp
+- Receive immediate order confirmations
+- Track shipment status
+- Download invoices and fiscal documents
+- Manage returns and complaints
+
+**Customer Support**:
+
+- Request product information and recommendations
+- Get advice on product pairings and usage
+- Receive post-sale assistance
+- Access FAQ and product guides
+
+**Educational Content**:
+
+- Read detailed product sheets
+- Access recipes and usage tips
+- Learn about Italian certifications (DOP, IGP, DOCG)
+- Discover regional specialties and traditions
 
 The platform is designed for any business that offers products or services to clients, from retail stores and service providers to hospitality businesses like hotels, restaurants, gyms, and fitness centers. This versatility allows businesses to not only sell products but also manage appointments, reservations, and memberships through conversational interfaces.
 
@@ -34,20 +67,114 @@ The platform is designed for any business that offers products or services to cl
 
 ### Non-Goals (MVP)
 
-- Implement an integrated payment system (external bank link will be used).
-- Save detailed conversation history.
-- Track detailed user usage data while maintaining the cost model (5 cents per question, 20 cents per push).
+- **Integrated Payment System and Workable Payment Plan:**
+
+  - This combines the original "Implement an integrated payment system" and "Usage and a workable plan for payments."
+  - It's crucial to state that _both_ the _implementation_ and a _detailed plan_ are out of scope for the MVP.
+  - **Rationale:** Even a high-level plan has design implications. If you defer _all_ payment considerations, you risk architectural issues later. However, in the MVP, the _actual integration_ and _full payment flow_ are not required.
+
+- **Usage Statistics and Analytics:**
+
+  - This is clearer than just "Usage" and separates it from other concerns.
+  - **Rationale:** Gathering and displaying detailed analytics can be complex. The MVP should focus on core functionality.
+
+- **Push Campaigns and Marketing Automation:**
+
+  - This is more specific than just "Push campaigns."
+  - **Rationale:** Marketing automation features are often added later to enhance user engagement.
+
+- **Advanced Authentication and Security:**
+
+  - This groups related security features.
+  - Includes:
+    - JSON Web Tokens (JWT) for authentication (if you're using a simpler auth for MVP)
+    - 2FA authentication (Two-Factor Authentication)
+    - "Forgot Password" functionality
+    - "Create User" (if you're handling user creation in a very basic way for MVP)
+  - **Rationale:** While basic security is essential, more complex auth can be deferred.
+
+- **Scalability and Monitoring Infrastructure:**
+
+  - This is more specific than just "scale and monitor the system."
+  - **Rationale:** While you need to _design_ for scalability, the _full infrastructure_ and monitoring setup can be iterative.
+    - For MVP, you might handle scaling manually or with basic tools.
+    - Detailed performance monitoring and automated scaling can come later.
+
+- **Comprehensive GDPR Compliance Implementation:**
+
+  - This is carefully worded. You **must** _consider_ GDPR from the start, but the _full and polished implementation_ can be phased.
+  - **Rationale:**
+    - You can't ignore privacy. Design must be privacy-preserving.
+    - However, features like detailed consent management, data portability exports, and full audit logs can be developed iteratively.
+    - The _core_ principles (data minimization, security) _must_ be in place.
 
 ## 4. Technical Architecture
 
 - **Frontend**: React (latest version) with shadcn/ui library and Tailwind CSS to accelerate development.
 - **Backend**: Node.js with Domain Driven Design (DDD) pattern.
 - **Database**: PostgreSQL.
+- **SaaS Architecture**: Multi-tenant design with complete data isolation between workspaces.
 - **Workflow Automation**: n8n.
-- **AI Service**: OpenRouter (RAG).
+- **AI Service**: OpenRouter (RAG) with data pseudonymization.
 - **WhatsApp Integration**: Official Meta API.
 - **Security**: HTTPS, JWT tokens, encrypted sensitive data in the database.
 - **Environments**: Development, test, and production; each workspace can activate debug mode with a test number.
+
+### OpenRouter Integration and Data Flow
+
+The system uses OpenRouter's Retrieval Augmented Generation (RAG) capabilities to power the AI-assisted interactions within the platform. Here's how the data flows:
+
+1. **Data Collection**: When a WhatsApp message is received from a client, it arrives through the Meta API.
+
+2. **Pre-processing**: The backend identifies any personal or sensitive information in the incoming message.
+
+3. **Pseudonymization**: Before sending data to OpenRouter, all personal identifiers are replaced with tokens (see Security section on Pseudonymization for details).
+
+4. **AI Processing**: The tokenized data is sent to OpenRouter, which generates contextually appropriate responses based on the prompt templates and product information.
+
+5. **Post-processing**: The backend replaces any tokens in the AI response with the actual personal data before sending the response back to the client.
+
+6. **Response Delivery**: The final processed response is sent to the client via the WhatsApp API.
+
+This architecture ensures that no personally identifiable information (PII) is exposed to external AI services while maintaining the conversational quality and personalization of responses.
+
+### Hosting and Infrastructure
+
+The application will be hosted on Heroku's cloud platform, providing the following services:
+
+1. **Application Hosting**:
+
+   - Node.js runtime environment for the backend
+   - Automatic scaling and load balancing
+   - SSL/TLS encryption
+   - Continuous deployment integration
+
+2. **Database**:
+
+   - Heroku Postgres for primary database
+   - Automated backups and point-in-time recovery
+   - Database metrics and monitoring
+   - Connection pooling
+
+3. **Storage Solutions**:
+
+   - Bucketeer add-on for S3-compatible file storage
+   - Used for storing invoices, product images, and documents
+   - Automatic backup and versioning
+   - CDN integration for faster file delivery
+
+4. **Add-ons and Services**:
+
+   - Heroku Scheduler for cron jobs
+   - Papertrail for log management
+   - Redis for caching and session management
+   - New Relic for application monitoring
+
+5. **Deployment Strategy**:
+   - Git-based deployment workflow
+   - Review apps for pull requests
+   - Staging and production environments
+   - Zero-downtime deployments
 
 ## 5. Acceptance Criteria
 
@@ -164,144 +291,493 @@ The platform is designed for any business that offers products or services to cl
   - [Users receive message]
   - [Option to unsubscribe]
 
-## 8. Exposed APIs (for n8n)
+## 8. Backend Architecture and Implementation
+
+### Overview
+
+The backend system of this PDR application will be developed using Node.js with the Express.js framework, adopting the Domain-Driven Design (DDD) architectural pattern. This choice will allow for the organization of the software in a modular and maintainable way, dividing the logic into route, use case, service, and repository layers.
+
+### Security Implementation
+
+System security is a priority. Therefore, security measures recommended by OWASP will be implemented, including:
+
+- Input validation to prevent injection attacks
+- Secure session management to protect user authentication
+- Protection against SQL injection and Cross-Site Scripting (XSS) to ensure data integrity
+- JWT token validation and refresh mechanisms
+- Rate limiting and request throttling
+- Security headers implementation
+- CORS policy configuration
+
+### Technical Stack and Organization
+
+#### Core Technologies
+
+- Node.js with Express.js
+- PostgreSQL with Prisma ORM
+- Redis for caching
+- Docker for containerization
+- n8n for workflow automation
+
+#### Architecture Layers
+
+1. **Routes Layer**
+
+   - API endpoint definitions
+   - Request validation
+   - Response formatting
+   - Error handling middleware
+
+2. **Use Cases Layer**
+
+   - Business logic implementation
+   - Transaction management
+   - Event handling
+   - Service orchestration
+
+3. **Services Layer**
+
+   - Domain logic
+   - External service integration
+   - Data transformation
+   - Business rules enforcement
+
+4. **Repository Layer**
+   - Data access patterns
+   - Query optimization
+   - Cache management
+   - Data persistence
+
+### Development Guidelines
+
+#### Project Structure
+
+```
+src/
+├── config/         # Configuration files
+├── routes/         # API routes
+├── useCases/      # Business logic
+├── services/      # Domain services
+├── repositories/  # Data access
+├── models/        # Data models
+├── middleware/    # Custom middleware
+├── utils/         # Utility functions
+└── tests/         # Test files
+```
+
+#### Code Organization
+
+- Clear separation of concerns
+- Dependency injection pattern
+- Repository pattern for data access
+- Factory pattern for object creation
+- Strategy pattern for flexible algorithms
+
+### Error Handling and Logging
+
+- Centralized error handling
+- Structured logging with Winston
+- Request ID tracking
+- Performance monitoring
+- Error reporting and alerting
+
+### Documentation
+
+- Swagger/OpenAPI documentation
+- API endpoint documentation
+- Database schema documentation
+- Development setup guide
+- Deployment instructions
+
+### Development Workflow
+
+- Git workflow guidelines
+- Code review process
+- Testing requirements
+- CI/CD pipeline configuration
+- Environment management
+
+### Monitoring and Maintenance
+
+- Health check endpoints
+- Performance metrics
+- Resource monitoring
+- Backup strategies
+- Scaling guidelines
+
+This architecture will ensure a robust, secure, and scalable backend system, in line with the digitization and resilience objectives of the PDR.
+
+## 9. API Endpoints
+
+### Authentication
+
+- `POST /api/auth/login`
+
+  - **Description**: Authenticates a user and returns a JWT token
+  - **Body**: `email`, `password`
+  - **Returns**: JWT token, user information
+
+- `POST /api/auth/logout`
+
+  - **Description**: Logs out the current user
+  - **Headers**: `Authorization` with JWT token
+  - **Returns**: Success message
+
+- `POST /api/auth/refresh`
+
+  - **Description**: Refreshes the JWT token
+  - **Headers**: `Authorization` with current JWT token
+  - **Returns**: New JWT token
+
+- `GET /api/auth/me`
+  - **Description**: Gets the current authenticated user's information
+  - **Headers**: `Authorization` with JWT token
+  - **Returns**: User profile information
+
+### Chat Management
+
+- `GET /api/chats`
+
+  - **Description**: Retrieves all chats for the workspace
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: List of chats with basic information
+
+- `GET /api/chat/:id`
+
+  - **Description**: Retrieves details of a specific chat
+  - **Parameters**: `id` (required): Chat identifier
+  - **Returns**: Chat details including messages
+
+- `GET /api/chat/:id/messages`
+
+  - **Description**: Retrieves messages for a specific chat
+  - **Parameters**: `id` (required): Chat identifier, `page`, `limit`
+  - **Returns**: Paginated list of messages
+
+- `POST /api/chat/message`
+
+  - **Description**: Sends a new message in a chat
+  - **Body**: `chat_id`, `content`, `sender_type`
+  - **Returns**: Created message details
+
+- `PUT /api/chat/message/:id/read`
+  - **Description**: Marks messages as read
+  - **Parameters**: `id` (required): Message identifier
+  - **Returns**: Updated message status
 
 ### Prompt Management
 
 - `GET /api/prompt/:phone`
 
-  - **Description**: Retrieves the active prompt for a specific phone number.
-  - **Parameters**: `phone` (required): WhatsApp phone number.
-  - **Returns**: Active prompt text, language configurations, context settings.
+  - **Description**: Retrieves the active prompt for a specific phone number
+  - **Parameters**: `phone` (required): WhatsApp phone number
+  - **Returns**: Active prompt text, language configurations, context settings
 
 - `GET /api/prompts`
 
-  - **Description**: Retrieves all prompts in the workspace.
-  - **Parameters**: `workspace_id` (required): Workspace identifier.
-  - **Returns**: List of prompts with active/inactive status.
+  - **Description**: Retrieves all prompts in the workspace
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: List of prompts with active/inactive status
 
 - `POST /api/prompt`
 
-  - **Description**: Creates a new prompt.
-  - **Body**: `prompt_text`, `reference_phone`, `workspace_id`.
+  - **Description**: Creates a new prompt
+  - **Body**: `prompt_text`, `reference_phone`, `workspace_id`
+  - **Returns**: Created prompt details
 
 - `PUT /api/prompt/:id`
 
-  - **Description**: Updates an existing prompt.
-  - **Parameters**: `id` (required): Prompt ID.
-  - **Body**: `prompt_text`, `active`.
+  - **Description**: Updates an existing prompt
+  - **Parameters**: `id` (required): Prompt ID
+  - **Body**: `prompt_text`, `active`
+  - **Returns**: Updated prompt details
 
 - `DELETE /api/prompt/:id`
-  - **Description**: Deletes a prompt.
-  - **Parameters**: `id` (required): Prompt ID.
+  - **Description**: Deletes a prompt
+  - **Parameters**: `id` (required): Prompt ID
+  - **Returns**: Success message
 
-### User Management
+### Notification Management
 
-- `GET /api/users/:phone`
-  - **Description**: User identification and profile retrieval via WhatsApp number.
-  - **Parameters**: `phone` (required): User's WhatsApp phone number.
+- `GET /api/notifications`
 
-### Product and Service Management
+  - **Description**: Retrieves all notifications for the workspace
+  - **Parameters**: `workspace_id` (required), `page`, `limit`
+  - **Returns**: Paginated list of notifications
+
+- `POST /api/notifications`
+
+  - **Description**: Creates a new push notification
+  - **Body**: `title`, `message`, `target_users`, `schedule_time`
+  - **Returns**: Created notification details
+
+- `PUT /api/notifications/:id`
+
+  - **Description**: Updates a notification's status or content
+  - **Parameters**: `id` (required): Notification ID
+  - **Body**: `status`, `title`, `message`
+  - **Returns**: Updated notification details
+
+- `DELETE /api/notifications/:id`
+  - **Description**: Deletes a notification
+  - **Parameters**: `id` (required): Notification ID
+  - **Returns**: Success message
+
+### Product and Category Management
 
 - `GET /api/products`
 
-  - **Description**: Retrieves complete product list.
-  - **Parameters**: `workspace_id` (required): Workspace identifier.
+  - **Description**: Retrieves complete product list
+  - **Parameters**: `workspace_id` (required), `category_id`, `page`, `limit`
+  - **Returns**: Paginated list of products
+
+- `POST /api/products`
+
+  - **Description**: Creates a new product
+  - **Body**: `name`, `description`, `price`, `category_id`, `images`, `stock`
+  - **Returns**: Created product details
+
+- `PUT /api/products/:id`
+
+  - **Description**: Updates a product
+  - **Parameters**: `id` (required): Product ID
+  - **Body**: Product details to update
+  - **Returns**: Updated product details
+
+- `DELETE /api/products/:id`
+
+  - **Description**: Deletes a product
+  - **Parameters**: `id` (required): Product ID
+  - **Returns**: Success message
 
 - `GET /api/categories`
 
-  - **Description**: Retrieves product categories.
-  - **Parameters**: `workspace_id` (required): Workspace identifier.
+  - **Description**: Retrieves product categories
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: List of categories with products count
+
+- `POST /api/categories`
+
+  - **Description**: Creates a new category
+  - **Body**: `name`, `description`, `parent_id`
+  - **Returns**: Created category details
+
+- `PUT /api/categories/:id`
+
+  - **Description**: Updates a category
+  - **Parameters**: `id` (required): Category ID
+  - **Body**: Category details to update
+  - **Returns**: Updated category details
+
+- `DELETE /api/categories/:id`
+  - **Description**: Deletes a category
+  - **Parameters**: `id` (required): Category ID
+  - **Returns**: Success message
+
+### Service Management
 
 - `GET /api/services`
-  - **Description**: Retrieves list of available services.
-  - **Parameters**: `workspace_id` (required): Workspace identifier.
+
+  - **Description**: Retrieves list of available services
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: List of services
+
+- `POST /api/services`
+
+  - **Description**: Creates a new service
+  - **Body**: `name`, `description`, `price`, `duration`
+  - **Returns**: Created service details
+
+- `PUT /api/services/:id`
+
+  - **Description**: Updates a service
+  - **Parameters**: `id` (required): Service ID
+  - **Body**: Service details to update
+  - **Returns**: Updated service details
+
+- `DELETE /api/services/:id`
+  - **Description**: Deletes a service
+  - **Parameters**: `id` (required): Service ID
+  - **Returns**: Success message
 
 ### Order Management
 
+- `GET /api/orders`
+
+  - **Description**: Retrieves all orders
+  - **Parameters**: `workspace_id` (required), `status`, `page`, `limit`
+  - **Returns**: Paginated list of orders
+
+- `GET /api/orders/:id`
+
+  - **Description**: Retrieves details of a specific order
+  - **Parameters**: `id` (required): Order ID
+  - **Returns**: Complete order details with items
+
 - `POST /api/orders`
-  - **Description**: Saves orders placed via chatbot.
-  - **Body**: Order details including products, quantities, client information.
+
+  - **Description**: Creates a new order
+  - **Body**: Order details including products, quantities, client information
+  - **Returns**: Created order details
+
+- `PUT /api/orders/:id`
+
+  - **Description**: Updates an order's status or details
+  - **Parameters**: `id` (required): Order ID
+  - **Body**: Order details to update
+  - **Returns**: Updated order details
+
+- `DELETE /api/orders/:id`
+  - **Description**: Cancels/deletes an order
+  - **Parameters**: `id` (required): Order ID
+  - **Returns**: Success message
 
 ### Client Management
 
 - `GET /api/clients`
 
-  - **Description**: Retrieves list of clients.
-  - **Parameters**: `workspace_id` (required): Workspace identifier.
+  - **Description**: Retrieves list of clients
+  - **Parameters**: `workspace_id` (required), `page`, `limit`
+  - **Returns**: Paginated list of clients
 
 - `GET /api/clients/:id`
 
-  - **Description**: Retrieves client details.
-  - **Parameters**: `id` (required): Client identifier.
+  - **Description**: Retrieves client details
+  - **Parameters**: `id` (required): Client identifier
+  - **Returns**: Complete client profile with order history
 
 - `POST /api/clients`
 
-  - **Description**: Creates a new client.
-  - **Body**: Client details including name, phone, email.
+  - **Description**: Creates a new client
+  - **Body**: Client details including name, phone, email
+  - **Returns**: Created client details
 
 - `PUT /api/clients/:id`
-  - **Description**: Updates client information.
-  - **Parameters**: `id` (required): Client identifier.
-  - **Body**: Updated client details.
+  - **Description**: Updates client information
+  - **Parameters**: `id` (required): Client identifier
+  - **Body**: Updated client details
+  - **Returns**: Updated client profile
 
 ### Cart Management
 
 - `GET /api/cart/:user_id`
 
-  - **Description**: Retrieves user's cart.
-  - **Parameters**: `user_id` (required): User identifier.
+  - **Description**: Retrieves user's cart
+  - **Parameters**: `user_id` (required): User identifier
+  - **Returns**: Cart contents with product details
 
 - `POST /api/cart`
 
-  - **Description**: Adds a product to the cart.
-  - **Body**: `user_id`, `product_id`, `quantity`.
+  - **Description**: Adds a product to the cart
+  - **Body**: `user_id`, `product_id`, `quantity`
+  - **Returns**: Updated cart contents
 
 - `PUT /api/cart`
 
-  - **Description**: Modifies a product in the cart.
-  - **Body**: `cart_id`, `product_id`, `quantity`.
+  - **Description**: Modifies a product in the cart
+  - **Body**: `cart_id`, `product_id`, `quantity`
+  - **Returns**: Updated cart contents
 
 - `DELETE /api/cart`
-  - **Description**: Removes a product from the cart.
-  - **Body**: `cart_id`, `product_id`.
+  - **Description**: Removes a product from the cart
+  - **Body**: `cart_id`, `product_id`
+  - **Returns**: Updated cart contents
 
-**Cross-cutting Requirements**:
+### Workspace Management
 
-- All APIs are protected by JWT tokens.
-- Communication exclusively via HTTPS.
-- Request logging and tracking.
-- Standardized error handling.
+- `GET /api/workspaces`
+
+  - **Description**: Retrieves all workspaces for the user
+  - **Headers**: `Authorization` with JWT token
+  - **Returns**: List of workspaces user has access to
+
+- `POST /api/workspaces`
+
+  - **Description**: Creates a new workspace
+  - **Body**: `name`, `description`, `settings`
+  - **Returns**: Created workspace details
+
+- `PUT /api/workspaces/:id`
+
+  - **Description**: Updates workspace settings
+  - **Parameters**: `id` (required): Workspace ID
+  - **Body**: Workspace details to update
+  - **Returns**: Updated workspace details
+
+- `DELETE /api/workspaces/:id`
+  - **Description**: Deletes a workspace
+  - **Parameters**: `id` (required): Workspace ID
+  - **Returns**: Success message
+
+### Settings Management
+
+- `GET /api/settings`
+
+  - **Description**: Retrieves workspace settings
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: All workspace settings
+
+- `PUT /api/settings`
+  - **Description**: Updates workspace settings
+  - **Body**: `workspace_id`, settings to update
+  - **Returns**: Updated settings
+
+### User Management
+
+- `GET /api/users/:phone`
+
+  - **Description**: User identification and profile retrieval
+  - **Parameters**: `phone` (required): User's phone number
+  - **Returns**: User profile information
+
+- `GET /api/users`
+
+  - **Description**: Retrieves all users in the workspace
+  - **Parameters**: `workspace_id` (required), `role`, `page`, `limit`
+  - **Returns**: Paginated list of users
+
+- `POST /api/users`
+
+  - **Description**: Creates a new user
+  - **Body**: `email`, `password`, `name`, `role`, `workspace_id`
+  - **Returns**: Created user details
+
+- `PUT /api/users/:id`
+
+  - **Description**: Updates user information
+  - **Parameters**: `id` (required): User ID
+  - **Body**: User details to update
+  - **Returns**: Updated user details
+
+- `DELETE /api/users/:id`
+  - **Description**: Deletes a user
+  - **Parameters**: `id` (required): User ID
+  - **Returns**: Success message
 
 ### Analytics API
 
 - `GET /api/analytics/overview`
 
-  - **Description**: Retrieves general statistics.
-  - **Returns**: Total active users, total messages, revenue, growth percentages.
+  - **Description**: Retrieves general statistics
+  - **Returns**: Total active users, total messages, revenue, growth percentages
 
 - `GET /api/analytics/recent-activity`
-  - **Description**: Retrieves recent activities.
-  - **Returns**: New registrations, added products, received orders, activity timestamps.
+  - **Description**: Retrieves recent activities
+  - **Returns**: New registrations, added products, received orders, activity timestamps
 
 ### Dashboard API
 
 - `GET /api/dashboard/stats`
-  - **Description**: Retrieves statistics for the dashboard.
-  - **Parameters**: `period` (optional): daily/weekly/monthly.
-  - **Returns**: Active Users count, Total Messages count, Revenue, Growth percentages.
+  - **Description**: Retrieves statistics for the dashboard
+  - **Parameters**: `period` (optional): daily/weekly/monthly
+  - **Returns**: Active Users count, Total Messages count, Revenue, Growth percentages
 
-### User Management API
+**Cross-cutting Requirements**:
 
-- `GET /api/users`
-
-  - **Description**: List of users with filters.
-  - **Parameters**: `status` (optional), `search` (optional).
-  - **Returns**: User list with cart and order details.
-
-- `POST /api/users`
-  - **Description**: Creates new user.
-  - **Body**: User data (name, phone, email, etc.).
+- All APIs are protected by JWT tokens
+- Communication exclusively via HTTPS
+- Request logging and tracking
+- Standardized error handling
 
 ## 9. Data Model
 
@@ -724,7 +1200,7 @@ The database uses PostgreSQL with the following key elements:
   - Row actions (Edit, Delete, etc.) in the rightmost column
   - Empty state shows helpful message when no data exists
 - **Implementation**:
-  - Uses shadcn/ui Table with DataTable wrapper
+  - Uses shadcn/ui Table withDataTable wrapper
   - Supports sorting, filtering, and pagination
   - Delete actions trigger confirmation dialog
 
@@ -844,9 +1320,81 @@ The database uses PostgreSQL with the following key elements:
 ### Security
 
 - **Data Protection**:
+
   - All sensitive data is encrypted at rest and in transit
   - API keys and credentials are stored securely using environment variables
   - Passwords are hashed using bcrypt with appropriate salt rounds
+
+- **Pseudonymization of Data with Tokenization**:
+
+  To prevent the direct transmission of sensitive personal data to external services (like OpenRouter) and protect user privacy, we will implement a pseudonymization technique based on tokenization. This technique will replace identifying personal data with unique "tokens," preserving application functionality without revealing direct information.
+
+  1. **Tokenization Process**
+
+     The tokenization process will involve the following steps:
+
+     - **Identification**: The backend will identify fields containing personal data (e.g., name, surname, address) within the data to be processed.
+
+     - **Replacement**: The identified personal data will be replaced with unique and artificial tokens. These tokens will have no intrinsic meaning and cannot be easily traced back to the original data.
+
+     - **Mapping**: A mapping table (or secure storage mechanism) will be created and stored exclusively within the backend. This table will associate each token with its corresponding original personal data. Access to this table will be strictly controlled and limited to authorized personnel.
+
+     - **Token Sending**: The data, now containing the tokens instead of the actual personal data, will be sent to the OpenRouter service for processing.
+
+     - **Reconstruction (if necessary)**: Only when strictly necessary and with appropriate authorization, the backend will use the mapping table to reconstruct the original data from the tokens. This will occur within the secure environment of the backend and _not_ within the external service.
+
+  2. **Example**
+
+     Suppose we need to send customer data to the OpenRouter service to process a support request:
+
+     - **Original Data**:
+
+       ```json
+       {
+         "name": "John Doe",
+         "message": "I have a problem with the product..."
+       }
+       ```
+
+     - **Tokenization**:
+
+       The backend will apply tokenization:
+
+       ```json
+       {
+         "name": "PERSON_1234",
+         "message": "I have a problem with the product..."
+       }
+       ```
+
+       In this case, "John Doe" has been replaced by the token "PERSON_1234".
+       The internal mapping table will record the association:
+       `PERSON_1234` -> `John Doe`.
+
+     - **Sending**:
+
+       The tokenized data (with "PERSON_1234") will be sent to OpenRouter.
+       OpenRouter will receive "PERSON_1234" and cannot trace it back to the
+       customer's real name.
+
+     - **Reconstruction**:
+
+       If, within the backend, it becomes _necessary_ to reconstruct the
+       original name (for internal management), the mapping table will be
+       used to replace "PERSON_1234" with "John Doe".
+
+  3. **Advantages**
+
+     - **Privacy protection**: Prevents direct exposure of personal data to external services.
+     - **GDPR compliance**: Supports the principles of data minimization and purpose limitation.
+     - **Control**: Control over data re-identification remains entirely within the backend.
+
+  4. **Considerations**
+
+     - The security of the mapping table is crucial; it must be protected from unauthorized access.
+     - Data reconstruction procedures must be strictly controlled and limited.
+     - Implementation complexity and performance may be affected by the need to tokenize and reconstruct data.
+
 - **Authentication & Authorization**:
 
   - JWT-based authentication with refresh token mechanism
@@ -1980,12 +2528,271 @@ The push notification system will include:
 - A/B testing functionality to optimize messaging
 - Compliance tools for opt-in/opt-out management
 
-### Implementation Timeline
+## UI Pages and Components
 
-1. **Phase 1 (Current):** Product-based business support with basic order management
-2. **Phase 2 (Q3 2024):** Service booking functionality for appointment-based businesses
-3. **Phase 3 (Q4 2024):** Restaurant-specific features including table reservations
-4. **Phase 4 (Q1 2025):** Hotel and accommodation reservation management
-5. **Phase 5 (Q2 2025):** Fitness industry tools for class bookings and memberships
+### 1. Authentication Pages
 
-Each phase will include industry-specific enhancements to the core platform while maintaining the central value proposition of WhatsApp-based client engagement and AI-powered automation.
+#### Login Page
+
+- Clean, centered design with logo
+- Email and password input fields
+- "Remember me" checkbox
+- Forgot password link
+- Login button with loading state
+- Error message display area
+
+#### Reset Password Page
+
+- Email input for password reset
+- Confirmation message display
+- Back to login link
+
+### 2. Dashboard Pages
+
+#### Main Dashboard (/dashboard)
+
+- Welcome message with user name
+- Quick stats cards (total orders, active clients, revenue)
+- Recent orders table
+- Latest chat messages
+- Notifications panel
+- Quick action buttons
+
+#### Products Page (/products)
+
+- Product list in grid/table view
+- Filters: category, price range, status
+- Search bar with instant results
+- Add product button
+- Product cards with:
+  - Product image
+  - Name and price
+  - Stock status
+  - Quick action menu
+- Product detail modal/sheet with:
+  - Full product information
+  - Edit capabilities
+  - Delete confirmation
+
+#### Categories Page (/categories)
+
+- Category tree view
+- Add/Edit/Delete category controls
+- Category details panel
+- Products count per category
+- Drag-and-drop reordering
+
+#### Orders Page (/orders)
+
+- Order list with status indicators
+- Filters: date range, status, client
+- Order details expansion panel
+- Status update controls
+- Invoice download button
+- Shipping information
+- Payment status
+
+#### Clients Page (/clients)
+
+- Client list with search
+- Client profile cards
+- Order history per client
+- Chat history access
+- Contact information
+- Notes and preferences
+
+#### Chat History (/chat)
+
+- Chat list with search
+- Conversation thread view
+- Message timestamp and status
+- File/media attachments
+- Quick reply templates
+- Filter by date/client
+
+#### Settings Pages (/settings/\*)
+
+##### General Settings
+
+- Workspace information
+- Business hours
+- Currency settings
+- Language preferences
+
+##### WhatsApp Settings
+
+- Phone number management
+- API configuration
+- Webhook setup
+- Test mode toggle
+
+##### User Management
+
+- User list with roles
+- Add/Edit user forms
+- Permission management
+- Activity logs
+
+##### Prompt Management
+
+- Prompt templates list
+- Prompt editor
+- Test prompt interface
+- Language variants
+
+### 3. Shared Components
+
+#### Navigation
+
+- **Top Bar**:
+  - Workspace selector
+  - Search bar
+  - Notifications
+  - User menu
+- **Sidebar**:
+  - Collapsible menu
+  - Section headers
+  - Active state indicators
+  - Quick actions
+
+#### Data Display
+
+- **Data Table**:
+  - Column sorting
+  - Row selection
+  - Bulk actions
+  - Pagination
+  - Export options
+- **Cards**:
+  - Standard layout
+  - Interactive states
+  - Loading skeletons
+  - Error states
+
+#### Forms
+
+- **Input Fields**:
+  - Text input
+  - Select
+  - Multi-select
+  - Date picker
+  - File upload
+- **Validation**:
+  - Error messages
+  - Success states
+  - Loading states
+
+#### Modals and Sheets
+
+- **Action Sheet**:
+  - Title bar
+  - Content area
+  - Action buttons
+  - Close button
+- **Confirmation Dialog**:
+  - Warning icon
+  - Message
+  - Confirm/Cancel buttons
+
+#### Notifications
+
+- **Toast Messages**:
+  - Success
+  - Error
+  - Warning
+  - Info
+- **Alert Banners**:
+  - Persistent messages
+  - Dismissible alerts
+
+### 4. Responsive Design
+
+- **Breakpoints**:
+
+  - Mobile: < 640px
+  - Tablet: 640px - 1024px
+  - Desktop: > 1024px
+
+- **Mobile Adaptations**:
+
+  - Collapsible sidebar
+  - Simplified tables
+  - Stack layouts
+  - Touch-friendly controls
+
+- **Tablet Adaptations**:
+
+  - Hybrid layouts
+  - Responsive grids
+  - Optimized forms
+
+- **Desktop Optimizations**:
+  - Multi-column layouts
+  - Advanced features
+  - Keyboard shortcuts
+
+### 5. Theme and Styling
+
+- **Color Scheme**:
+
+  - Primary: #10B981 (Emerald)
+  - Secondary: #3B82F6 (Blue)
+  - Accent: #8B5CF6 (Purple)
+  - Background: #FFFFFF
+  - Text: #111827 (Gray-900)
+
+- **Typography**:
+
+  - Font Family: Inter
+  - Base Size: 16px
+  - Scale: 1.25 ratio
+  - Weights: 400, 500, 600, 700
+
+- **Spacing**:
+
+  - Base Unit: 4px
+  - Scale: 4, 8, 12, 16, 24, 32, 48, 64
+
+- **Shadows**:
+  - sm: 0 1px 2px rgba(0,0,0,0.05)
+  - md: 0 4px 6px rgba(0,0,0,0.1)
+  - lg: 0 10px 15px rgba(0,0,0,0.1)
+
+### 6. Accessibility
+
+- ARIA labels on all interactive elements
+- Keyboard navigation support
+- Color contrast compliance
+- Screen reader optimization
+- Focus management
+- Skip links
+- Form error announcements
+- METTI TOOLTIPS for form fields
+- Form validation messages
+- Error handling
+- Loading states
+- Accessibility audit
+- WCAG 2.1 compliance
+- ARIA roles and properties
+- Screen reader support
+- Keyboard navigation
+- Focus management
+- Skip links
+- Form error announcements
+- SKELETON and loading
+
+### 7. Performance Considerations
+
+- Lazy loading of images
+- Code splitting by route
+- Virtualized lists for large datasets
+- Optimized bundle size
+- Caching strategies
+- Progressive loading
+- Optimistic updates
+
+```
+
+
+
+```
