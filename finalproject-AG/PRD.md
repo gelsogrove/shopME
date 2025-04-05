@@ -124,6 +124,28 @@ The platform is designed for any business that offers products or services to cl
 
 The system uses OpenRouter's Retrieval Augmented Generation (RAG) capabilities to power the AI-assisted interactions within the platform. Here's how the data flows:
 
+```mermaid
+sequenceDiagram
+    participant Customer as Customer
+    participant WhatsApp as WhatsApp
+    participant n8n as n8n Workflow
+    participant API as ShopMe API
+    participant AI as OpenRouter AI
+    participant DB as Database
+
+    Customer->>WhatsApp: Sends message
+    WhatsApp->>n8n: Forwards message via webhook
+    n8n->>API: Processes & routes message
+    API->>DB: Checks client context & history
+    API->>API: Tokenizes personal data
+    API->>AI: Sends tokenized data for processing
+    AI->>API: Returns AI response
+    API->>API: De-tokenizes response
+    API->>n8n: Sends formatted response
+    n8n->>WhatsApp: Forwards response
+    WhatsApp->>Customer: Delivers response
+```
+
 1. **Data Collection**: When a WhatsApp message is received from a client, it arrives through the Meta API.
 
 2. **Pre-processing**: The backend identifies any personal or sensitive information in the incoming message.
