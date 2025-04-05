@@ -30,13 +30,6 @@ As our first implementation, the platform will be specialized in selling high-qu
 - Receive post-sale assistance
 - Access FAQ and product guides
 
-**Educational Content**:
-
-- Read detailed product sheets
-- Access recipes and usage tips
-- Learn about Italian certifications (DOP, IGP, DOCG)
-- Discover regional specialties and traditions
-
 The platform is designed for any business that offers products or services to clients, from retail stores and service providers to hospitality businesses like hotels, restaurants, gyms, and fitness centers. This versatility allows businesses to not only sell products but also manage appointments, reservations, and memberships through conversational interfaces.
 
 ## 2. User Journey
@@ -46,7 +39,7 @@ The platform is designed for any business that offers products or services to cl
 - Access a web dashboard to:
   - Create and manage multiple workspaces.
   - Configure WhatsApp channels (phone numbers, API tokens, webhooks).
-  - Customize AI prompts, add products (with photos, text, pricing), and organize them into service categories.
+  - Customize AI prompts, add products (with photos, text, pricing,offerts), and organize them into service categories.
   - Manage products, services, and clients through intuitive interfaces.
 
 ### End User Experience
@@ -110,6 +103,7 @@ The platform is designed for any business that offers products or services to cl
     - The _core_ principles (data minimization, security) _must_ be in place.
 
   - development environments and monitoring infrastructure can be phased.
+  - Product offerts
 
 ## 4. Technical Architecture
 
@@ -188,14 +182,7 @@ The application will be hosted on Heroku's cloud platform, providing the followi
    - Automatic backup and versioning
    - CDN integration for faster file delivery
 
-4. **Add-ons and Services**:
-
-   - Heroku Scheduler for cron jobs
-   - Papertrail for log management
-   - Redis for caching and session management
-   - New Relic for application monitoring
-
-5. **Deployment Strategy**:
+4. **Deployment Strategy**:
    - Git-based deployment workflow
    - Review apps for pull requests
    - Staging and production environments
@@ -345,6 +332,18 @@ This multi-environment approach combined with a robust CI/CD pipeline ensures re
 - API communication protected via JWT tokens.
 - Intuitive dashboard with 2FA authentication.
 - Seamless integration between n8n and exposed APIs.
+- Anti-abuse protection system that automatically blocks users sending more than 8 messages per minute.
+
+### Anti-Abuse System
+
+To prevent system abuse and ensure fair resource allocation, the platform implements an automated rate-limiting mechanism:
+
+- If a user sends more than 8 messages within a 60-second window, their profile status is automatically changed to "blocked"
+- The system responds with a message: "Your number has been blocked due to improper use. Please contact the administrator to unblock it."
+- Administrators can view blocked users in the dashboard and manually unblock legitimate users
+- The system maintains logs of blocking events for security analysis
+
+This mechanism protects against spam attacks, prevents AI resource waste, and ensures a smooth experience for all legitimate users. Rate limits are configurable by workspace administrators to accommodate different business needs and usage patterns.
 
 ## 6. Key Features
 
