@@ -941,7 +941,239 @@ This architecture will ensure a robust, secure, and scalable backend system, in 
 - Request logging and tracking
 - Standardized error handling
 
-## 9. Data Model
+## 9. n8n Integration and Workflow Automation
+
+### Overview
+
+n8n is a workflow automation platform that serves as a crucial middleware component in the ShopMe architecture. It provides low-code/no-code capabilities to create complex workflows that connect WhatsApp messages with the ShopMe API and other services. This integration layer allows for flexible processing of message data, implementing business logic, and handling the communication flow between customers and the system.
+
+### Core Functionality
+
+- **Message Routing**: Acts as the central hub for incoming and outgoing WhatsApp messages
+- **Webhook Management**: Receives webhooks from WhatsApp Business API and forwards processed data
+- **Data Transformation**: Formats data between different systems in the architecture
+- **Conditional Logic**: Implements business rules for message processing
+- **API Integration**: Connects with the ShopMe API and third-party services
+- **Error Handling**: Manages exceptions and provides retry mechanisms
+
+### Key Workflows
+
+#### 1. Incoming Message Processing
+
+```mermaid
+flowchart TD
+    A[WhatsApp Webhook] --> B[n8n Webhook Trigger]
+    B --> C{Message Type?}
+    C -->|Text| D[Text Processing]
+    C -->|Media| E[Media Processing]
+    C -->|Location| F[Location Processing]
+    C -->|Order| G[Order Processing]
+    D --> H[Context Analysis]
+    E --> H
+    F --> H
+    G --> H
+    H --> I[API Request to ShopMe]
+    I --> J{Response Type?}
+    J -->|AI Needed| K[Send to OpenRouter]
+    J -->|Direct Response| L[Format Response]
+    K --> L
+    L --> M[Send to WhatsApp API]
+```
+
+This workflow handles all incoming messages from WhatsApp:
+
+1. **Initial Processing**:
+
+   - Receives webhook data from WhatsApp
+   - Extracts relevant information (sender, message content, timestamp)
+   - Identifies message type (text, media, location, order)
+
+2. **Context Building**:
+
+   - Retrieves conversation history
+   - Identifies the client and their associated workspace
+   - Determines the appropriate handling for the message
+
+3. **API Integration**:
+
+   - Sends the processed message to the ShopMe API
+   - Receives response data with instructions on how to respond
+
+4. **Response Handling**:
+   - Formats the response according to WhatsApp message standards
+   - Sends the response back to the customer via WhatsApp API
+
+#### 2. Product Catalog Workflow
+
+```mermaid
+flowchart TD
+    A[Product Request] --> B[n8n Processing]
+    B --> C[Fetch Products from API]
+    C --> D[Format Product Display]
+    D --> E{Product Count?}
+    E -->|Single| F[Send Product Card]
+    E -->|Multiple| G[Send Product List]
+    F --> H[Add Interactive Buttons]
+    G --> H
+    H --> I[Send to WhatsApp API]
+```
+
+This workflow manages product catalog browsing via WhatsApp:
+
+1. **Request Identification**:
+
+   - Recognizes product catalog requests or product searches
+   - Prepares query parameters for the API
+
+2. **Product Retrieval**:
+
+   - Fetches product data from the ShopMe API
+   - Processes and filters results based on customer request
+
+3. **Display Formatting**:
+
+   - Creates visually appealing product cards with images
+   - Generates interactive elements for browsing and selection
+
+4. **Interactive Options**:
+   - Adds buttons for Add to Cart, View Details, etc.
+   - Creates navigation options for catalog browsing
+
+#### 3. Order Management Workflow
+
+```mermaid
+flowchart TD
+    A[Order Action] --> B[n8n Processing]
+    B --> C{Action Type?}
+    C -->|Create| D[Create Order Flow]
+    C -->|Update| E[Update Order Flow]
+    C -->|Cancel| F[Cancel Order Flow]
+    C -->|Status| G[Check Status Flow]
+    D --> H[Send to ShopMe API]
+    E --> H
+    F --> H
+    G --> H
+    H --> I[Process Response]
+    I --> J[Format Confirmation]
+    J --> K[Send to WhatsApp API]
+```
+
+This workflow handles order-related operations:
+
+1. **Order Action Detection**:
+
+   - Identifies order-related requests (create, modify, cancel, status check)
+   - Validates the customer's permissions for the requested action
+
+2. **Order Processing**:
+
+   - Sends the order data to the ShopMe API
+   - Processes the response to confirm successful operations
+
+3. **Confirmation Generation**:
+   - Creates confirmation messages with order details
+   - Provides next steps or alternative options
+
+#### 4. AI Response Workflow
+
+```mermaid
+flowchart TD
+    A[Complex Query] --> B[n8n Processing]
+    B --> C[Prepare Context Data]
+    C --> D[Tokenize PII]
+    D --> E[Send to ShopMe API]
+    E --> F[API sends to OpenRouter]
+    F --> G[Receive AI Response]
+    G --> H[De-tokenize PII]
+    H --> I[Format Response]
+    I --> J[Send to WhatsApp API]
+```
+
+This workflow manages AI-assisted responses:
+
+1. **Query Preparation**:
+
+   - Identifies complex queries requiring AI assistance
+   - Collects relevant context information
+
+2. **Security Processing**:
+
+   - Tokenizes personally identifiable information (PII)
+   - Ensures sensitive data is protected
+
+3. **AI Integration**:
+
+   - Routes the processed query to the ShopMe API
+   - API forwards to OpenRouter for AI processing
+
+4. **Response Handling**:
+   - Receives and de-tokenizes the AI response
+   - Formats the response for WhatsApp delivery
+
+### Implementation Strategy
+
+#### 1. Development Approach
+
+- **Template Workflows**: Pre-built workflow templates for common scenarios
+- **Modular Design**: Reusable components for different parts of message processing
+- **Environment Configuration**: Separate development, staging, and production environments
+- **Version Control**: Workflows stored in Git repositories for tracking changes
+
+#### 2. Deployment Process
+
+- **Initial Setup**: Configuration of n8n instance with connection to WhatsApp API
+- **Workflow Deployment**: Automated deployment of workflows via CI/CD pipeline
+- **Testing Strategy**: Comprehensive testing with mock WhatsApp messages
+
+#### 3. Monitoring and Maintenance
+
+- **Performance Monitoring**: Tracking of workflow execution times and success rates
+- **Error Alerts**: Notification system for failed workflows
+- **Audit Logging**: Detailed logs of all message processing for debugging
+- **Capacity Planning**: Regular assessment of workflow capacity needs
+
+### Integration Points
+
+#### 1. WhatsApp Business API
+
+- **Webhook Configuration**: Setup to receive all incoming WhatsApp messages
+- **Message Types**: Processing of text, media, location, and interactive messages
+- **Templates**: Management of pre-approved message templates
+- **Authentication**: Secure token management for API access
+
+#### 2. ShopMe API
+
+- **Authentication**: JWT-based authentication for secure API access
+- **Endpoints**: Integration with various API endpoints (products, orders, clients)
+- **Error Handling**: Graceful handling of API errors and retries
+- **Rate Limiting**: Respect for API rate limits and throttling
+
+#### 3. Third-Party Services
+
+- **Payment Gateways**: Integration with payment processing for orders
+- **Media Storage**: Handling of images and other media files
+- **Notification Services**: Integration with email or SMS providers for alerts
+
+### Security Considerations
+
+- **Credential Management**: Secure storage of API keys and tokens
+- **Data Encryption**: Encryption of sensitive data in transit
+- **Access Control**: Limited access to workflow configuration
+- **Audit Trails**: Comprehensive logging of all workflow executions
+- **Data Retention**: Policies for retaining message and order data
+
+### Business Continuity
+
+- **Failover Mechanisms**: Redundant n8n instances for high availability
+- **Backup Procedures**: Regular backups of workflow configurations
+- **Disaster Recovery**: Procedures for quickly restoring workflow functionality
+- **Scaling Strategy**: Horizontal scaling to handle increased message volume
+
+## 10. API Endpoints
+
+// ... existing code ...
+
+## 11. Data Model
 
 ```mermaid
 erDiagram
@@ -1196,7 +1428,7 @@ erDiagram
     }
 ```
 
-## 10. Database Schema
+## 12. Database Schema
 
 The database uses PostgreSQL with the following key elements:
 
@@ -1230,7 +1462,7 @@ The database uses PostgreSQL with the following key elements:
 - Unique constraints on business identifiers
 - Indexes on frequently queried fields
 
-## 11. UI Design Rules and Shared Components
+## 13. UI Design Rules and Shared Components
 
 ### General UI Rules
 
@@ -1477,7 +1709,7 @@ The database uses PostgreSQL with the following key elements:
   - Analytics tables with exportable data and custom visualizations
   - Activity logs with advanced timestamp filtering and user filtering
 
-## 12. Implementation Considerations
+## 14. Implementation Considerations
 
 ### Security
 
@@ -1661,7 +1893,7 @@ The database uses PostgreSQL with the following key elements:
   - Date, time, and number formatting
   - Translation management workflow
 
-## 13. Complete Database Schema
+## 15. Complete Database Schema
 
 The following is the complete PostgreSQL database schema for the ShopMe platform, including all tables, relationships, indexes, and utility functions:
 
@@ -2182,11 +2414,11 @@ ORDER BY total_revenue DESC;
    - ENUM types for controlled value sets
    - Unique constraints to prevent duplicates
 
-## 14. Additional Data Model Documentation
+## 16. Additional Data Model Documentation
 
 ### Overview
 
-This section provides additional documentation and insights about the data model presented in Section 9. While the Entity Relationship Diagram in Section 9 illustrates the structure of the database, this section focuses on implementation details, optimization strategies, and common patterns used throughout the data model.
+This section provides additional documentation and insights about the data model presented in Section 11. While the Entity Relationship Diagram in Section 11 illustrates the structure of the database, this section focuses on implementation details, optimization strategies, and common patterns used throughout the data model.
 
 ### Key Features of the Data Model
 
@@ -2273,7 +2505,7 @@ The database schema will evolve using numbered migrations with the following pri
 4. **Rollback Support**: Each migration has a corresponding down migration
 5. **Testing**: Migrations are tested in a staging environment before production deployment
 
-## 15. Future Roadmap and Industry Expansions
+## 17. Future Roadmap and Industry Expansions
 
 The ShopMe platform is initially focused on product-based businesses but is designed to expand into various industries with specific enhancements for each sector:
 
