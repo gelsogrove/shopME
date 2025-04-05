@@ -2203,9 +2203,9 @@ The ShopMe platform is initially focused on product-based businesses but is desi
    - Membership freeze/hold requests handling
    - Fitness challenge participation and tracking
 
-### Push Notification Strategy
+### Push Notification Strategy (Out of Scope for MVP)
 
-The push notification system is a critical component across all industry implementations, allowing businesses to:
+The push notification system is a critical component across all industry implementations that will be developed in future phases. This feature is explicitly excluded from the MVP scope as outlined in Section 3 (Non-Goals). When implemented in future versions, the system will allow businesses to:
 
 1. **Drive Engagement:**
 
@@ -2231,7 +2231,7 @@ The push notification system is a critical component across all industry impleme
    - Flash sale announcements and limited-time promotions
    - Seasonal campaigns aligned with business peaks
 
-The push notification system will include:
+The future push notification system will include:
 
 - Campaign creation tools with templates
 - Scheduling capabilities for optimal timing
@@ -2239,6 +2239,8 @@ The push notification system will include:
 - Performance analytics to measure engagement
 - A/B testing functionality to optimize messaging
 - Compliance tools for opt-in/opt-out management
+
+Note: While the infrastructure design may consider future push notification capabilities, the actual implementation of this feature is deferred to post-MVP releases.
 
 ## UI Pages and Components
 
