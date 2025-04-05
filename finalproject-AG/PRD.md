@@ -449,7 +449,45 @@ This mechanism protects against spam attacks, prevents AI resource waste, and en
   - [n8n Workflow]
   - [User identification: not registered]
   - [Sending welcome message and request for basic data]
+  - [GDPR consent collection]
   - [User registration and profile creation]
+
+### GDPR Consent Flow
+
+To ensure GDPR compliance, the platform implements a structured consent collection process during registration:
+
+1. **Initial Contact**: When a new user sends their first message, after collecting basic information, the system sends a privacy policy summary with the full text link.
+
+2. **Consent Request**: The user receives the following message:
+
+   ```
+   Before we continue, we need your consent to process your data according to our Privacy Policy
+   (full text: {privacy_policy_url}).
+
+   This includes storing your contact information and message history to provide you with shopping
+   assistance and order processing. You can withdraw consent at any time.
+
+   Please reply with "I ACCEPT" to continue.
+   ```
+
+3. **Consent Recording**: When the user replies with acceptance:
+
+   - The system records the current privacy policy version in `last_privacy_version_accepted`
+   - The timestamp is recorded in `privacy_accepted_at`
+   - This data is stored in the user profile for audit and compliance purposes
+
+4. **Privacy Updates**: When the privacy policy is updated:
+
+   - Users are notified of changes with a summary of updates
+   - They must provide fresh consent before continuing to use the service
+   - The `last_privacy_version_accepted` field is updated
+
+5. **Consent Management**: Users can:
+   - Request to view their stored data
+   - Request data deletion (triggering GDPR right to be forgotten workflow)
+   - Withdraw consent (which flags the account for limited processing)
+
+All consent interactions are logged with timestamps and specific version information to maintain a complete audit trail for compliance purposes.
 
 ### Push Offers Use Case:
 
@@ -1463,6 +1501,8 @@ erDiagram
         boolean discount_active
         string status
         json metadata
+        string last_privacy_version_accepted
+        timestamp privacy_accepted_at
         timestamp created_at
         timestamp updated_at
     }
@@ -3054,3 +3094,81 @@ Regarding cross-cutting functionalities, **Routing** is centrally managed in App
 - WCAG 2.1 compliance
 - ARIA roles and properties
 - Screen reader support
+
+## 18. Appendices
+
+### Appendix A: GDPR Privacy Policy Template
+
+Below is the template content for the GDPR Privacy Policy that will be presented to users during the registration process:
+
+```
+PRIVACY POLICY
+
+Last Updated: [DATE]
+Version: [VERSION NUMBER]
+
+1. INTRODUCTION
+
+Welcome to ShopMe! This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our WhatsApp-based e-commerce services.
+
+2. INFORMATION WE COLLECT
+
+We collect the following types of information:
+- Contact information (name, phone number, email address)
+- Message content and history
+- Order and payment information
+- Shopping preferences and history
+- Device and technical information
+
+3. HOW WE USE YOUR INFORMATION
+
+We use your information to:
+- Process orders and payments
+- Provide customer support
+- Personalize shopping experiences
+- Improve our services
+- Send order updates and promotional messages (with your consent)
+- Comply with legal obligations
+
+4. DATA STORAGE AND SECURITY
+
+Your information is stored securely using industry-standard encryption and security measures. Personal data is pseudonymized when processed by AI services to protect your privacy.
+
+5. SHARING YOUR INFORMATION
+
+We may share your information with:
+- Payment processors (to complete transactions)
+- Delivery services (to fulfill orders)
+- Service providers (who assist in operating our platform)
+- Legal authorities (when required by law)
+
+We never sell your personal data to third parties.
+
+6. YOUR RIGHTS UNDER GDPR
+
+You have the right to:
+- Access your personal data
+- Correct inaccurate data
+- Delete your data ("right to be forgotten")
+- Restrict or object to processing
+- Data portability
+- Withdraw consent at any time
+
+To exercise these rights, send a message with "DATA REQUEST" to our customer service.
+
+7. DATA RETENTION
+
+We retain your data for as long as necessary to provide services and comply with legal obligations. Order information is kept for [X] years for tax and accounting purposes.
+
+8. UPDATES TO THIS POLICY
+
+We may update this policy periodically. When we make significant changes, we will notify you and request fresh consent where required by law.
+
+9. CONTACT US
+
+If you have questions about this Privacy Policy, please contact our Data Protection Officer at [EMAIL].
+
+By replying "I ACCEPT", you confirm that you have read and understood this Privacy Policy and consent to the collection and use of your information as described.
+```
+
+This template will be customized for each workspace with specific business information, retention periods, and contact details. The system tracks the version and timestamp of acceptance for compliance purposes.
