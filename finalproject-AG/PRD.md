@@ -372,7 +372,12 @@ This multi-environment approach combined with a robust CI/CD pipeline ensures re
 
 5. **AI Integration:**
 
-   - Assistance Chatbot: Virtual support to answer questions and guide users during the purchase process.
+   - RAG Implementation: Retrieval Augmented Generation for better business context with customer data.
+   - Customizable Prompts: Configure AI responses to reflect business voice and policies.
+   - Context Awareness: AI understands conversation history and user preferences.
+   - Data Pseudonymization: Privacy protection when processing data with external models.
+   - Automatic Translations: Support for multiple languages in the same conversation.
+   - Prompt Testing: Ability to test alternative prompts in isolated sessions without affecting the active production prompt. This allows administrators to safely experiment with different AI behaviors before deploying them to customers.
 
 6. **Order Management and Tracking:**
 
@@ -634,6 +639,7 @@ This architecture will ensure a robust, secure, and scalable backend system, in 
   - **Description**: Retrieves the active prompt for a specific phone number
   - **Parameters**: `phone` (required): WhatsApp phone number
   - **Returns**: Active prompt text, language configurations, context settings
+  - **Note**: Only one prompt can be active per phone number at any time
 
 - `GET /api/prompts`
 
@@ -644,19 +650,40 @@ This architecture will ensure a robust, secure, and scalable backend system, in 
 - `POST /api/prompt`
 
   - **Description**: Creates a new prompt
-  - **Body**: `prompt_text`, `reference_phone`, `workspace_id`
+  - **Body**: `prompt_text`, `reference_phone`, `workspace_id`, `active` (boolean)
   - **Returns**: Created prompt details
+  - **Note**: If `active` is set to true, any previously active prompt for the same phone number will be automatically deactivated
 
 - `PUT /api/prompt/:id`
 
   - **Description**: Updates an existing prompt
   - **Parameters**: `id` (required): Prompt ID
-  - **Body**: `prompt_text`, `active`
+  - **Body**: `prompt_text`, `active` (boolean)
   - **Returns**: Updated prompt details
+  - **Note**: If `active` is set to true, any previously active prompt for the same phone number will be automatically deactivated
 
 - `DELETE /api/prompt/:id`
+
   - **Description**: Deletes a prompt
   - **Parameters**: `id` (required): Prompt ID
+  - **Returns**: Success message
+
+- `POST /api/prompt/test-session`
+
+  - **Description**: Creates a temporary test session with an alternative prompt
+  - **Body**: `prompt_text`, `reference_phone`, `workspace_id`, `session_duration` (minutes)
+  - **Returns**: Session ID and expiration time
+  - **Note**: This allows testing alternative prompts without modifying the active production prompt
+
+- `GET /api/prompt/test-session/:id`
+
+  - **Description**: Retrieves a test session prompt
+  - **Parameters**: `id` (required): Session ID
+  - **Returns**: Test prompt details and remaining session time
+
+- `DELETE /api/prompt/test-session/:id`
+  - **Description**: Ends a test session early
+  - **Parameters**: `id` (required): Session ID
   - **Returns**: Success message
 
 ### Notification Management
