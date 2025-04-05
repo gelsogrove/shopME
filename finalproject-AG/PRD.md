@@ -104,9 +104,12 @@ The platform is designed for any business that offers products or services to cl
 
   - This is carefully worded. You **must** _consider_ GDPR from the start, but the _full and polished implementation_ can be phased.
   - **Rationale:**
+
     - You can't ignore privacy. Design must be privacy-preserving.
     - However, features like detailed consent management, data portability exports, and full audit logs can be developed iteratively.
     - The _core_ principles (data minimization, security) _must_ be in place.
+
+  - development environments and monitoring infrastructure can be phased.
 
 ## 4. Technical Architecture
 
@@ -198,9 +201,9 @@ The application will be hosted on Heroku's cloud platform, providing the followi
    - Staging and production environments
    - Zero-downtime deployments
 
-### Environment Setup and CI/CD Pipeline
+### Environment Setup and CI/CD Pipeline (Out of Scope for MVP)
 
-The application will utilize three distinct environments with a comprehensive CI/CD pipeline to ensure quality, reliability, and efficient deployment:
+The following environment structure and CI/CD pipeline represents the target infrastructure state that will be implemented in future phases after the MVP release. This section is explicitly excluded from the MVP scope as outlined in Section 3 (Non-Goals). When implemented in future versions, the application will utilize three distinct environments with a comprehensive CI/CD pipeline to ensure quality, reliability, and efficient deployment:
 
 #### 1. Environment Structure
 
@@ -2626,24 +2629,3 @@ Note: While the infrastructure design may consider future push notification capa
 - WCAG 2.1 compliance
 - ARIA roles and properties
 - Screen reader support
-- Keyboard navigation
-- Focus management
-- Skip links
-- Form error announcements
-- SKELETON and loading
-
-### 7. Performance Considerations
-
-- Lazy loading of images
-- Code splitting by route
-- Virtualized lists for large datasets
-- Optimized bundle size
-- Caching strategies
-- Progressive loading
-- Optimistic updates
-
-```
-
-
-
-```
