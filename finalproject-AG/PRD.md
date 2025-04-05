@@ -198,6 +198,143 @@ The application will be hosted on Heroku's cloud platform, providing the followi
    - Staging and production environments
    - Zero-downtime deployments
 
+### Environment Setup and CI/CD Pipeline
+
+The application will utilize three distinct environments with a comprehensive CI/CD pipeline to ensure quality, reliability, and efficient deployment:
+
+#### 1. Environment Structure
+
+- **Development (dev)**
+
+  - Purpose: Active development and feature implementation
+  - URL structure: `https://dev.shopme.app` or `https://dev-[feature-branch].shopme.app`
+  - Database: Separate dev database with anonymized production data
+  - Deployed on: Heroku development dynos
+  - WhatsApp integration: Testing phone number with Meta API sandbox
+  - Features:
+    - Debug tools and extended logging
+    - Feature flags for in-development capabilities
+    - Automatic database schema reset option
+    - Performance monitoring with non-optimized assets
+
+- **Staging (staging)**
+
+  - Purpose: Pre-production testing, QA, and UAT
+  - URL structure: `https://staging.shopme.app`
+  - Database: Clone of production database with anonymized sensitive data
+  - Deployed on: Heroku standard dynos
+  - WhatsApp integration: Testing phone number with full API capabilities
+  - Features:
+    - Production-like environment
+    - A/B testing capabilities
+    - Performance testing tools
+    - Automated test suite execution
+    - Security scanning
+
+- **Production (prod)**
+  - Purpose: Live environment for end users
+  - URL structure: `https://shopme.app` and client subdomains
+  - Database: Production database with regular backups
+  - Deployed on: Heroku performance dynos with auto-scaling
+  - WhatsApp integration: Client production phone numbers
+  - Features:
+    - High availability configuration
+    - Optimized performance
+    - Comprehensive monitoring
+    - Automated rollback capabilities
+    - Regular security audits
+
+#### 2. CI/CD Pipeline
+
+- **Continuous Integration**
+
+  - Platform: GitHub Actions
+  - Triggered on: Pull request creation and updates
+  - Steps:
+    - Static code analysis (ESLint, TypeScript checking)
+    - Unit test execution
+    - Integration test execution
+    - Build process verification
+    - Bundle size analysis
+    - Dependency vulnerability scanning
+    - Code coverage reporting
+  - Pass criteria: All tests pass, no critical vulnerabilities, code coverage above 80%
+
+- **Continuous Deployment**
+
+  - **Development Deployment**
+
+    - Trigger: Merge to development branch
+    - Target: Development environment
+    - Process: Automated deployment with post-deployment tests
+    - Notification: Slack alerts for team
+
+  - **Staging Deployment**
+
+    - Trigger: Manual promotion from development
+    - Target: Staging environment
+    - Process:
+      - Database migration verification
+      - Automated deployment
+      - Smoke test execution
+      - End-to-end test suite execution
+      - Performance benchmark comparison
+    - Notification: Slack alerts for team and QA
+
+  - **Production Deployment**
+    - Trigger: Manual promotion from staging
+    - Approval: Required from technical lead and product owner
+    - Schedule: During defined maintenance windows (non-peak hours)
+    - Target: Production environment
+    - Process:
+      - Database backup
+      - Blue/green deployment
+      - Canary testing (initial 10% traffic)
+      - Gradual rollout with health monitoring
+      - Automated rollback if health checks fail
+    - Notification: Slack alerts for all stakeholders
+
+#### 3. Quality Assurance Process
+
+- **Automated Testing**
+
+  - Unit tests: Jest for frontend and backend logic
+  - Integration tests: API endpoint testing with Supertest
+  - End-to-end tests: Cypress for critical user journeys
+  - Performance tests: k6 for load testing
+  - Accessibility tests: pa11y for WCAG compliance
+
+- **Manual Testing**
+
+  - UAT sessions with stakeholders in staging
+  - Exploratory testing by QA team
+  - Cross-browser compatibility testing
+  - Mobile responsiveness testing
+
+- **Monitoring and Observability**
+  - Error tracking: Sentry for frontend and backend errors
+  - Performance monitoring: New Relic for application performance
+  - Log management: Papertrail for centralized logging
+  - Synthetic monitoring: Uptime checks every 5 minutes
+  - Real user monitoring: Performance metrics from actual users
+
+#### 4. Disaster Recovery
+
+- **Backup Strategy**
+
+  - Database: Hourly incremental backups, daily full backups
+  - Storage: Redundant storage with versioning
+  - Configuration: Infrastructure as Code with version control
+
+- **Recovery Process**
+  - Defined runbooks for common failure scenarios
+  - Regular recovery drills (quarterly)
+  - Maximum tolerable downtime: 1 hour
+  - Recovery time objective (RTO): 30 minutes
+  - Recovery point objective (RPO): 1 hour
+
+This multi-environment approach combined with a robust CI/CD pipeline ensures reliable, consistent deployments while maintaining high quality standards across the application lifecycle.
+
 ## 5. Acceptance Criteria
 
 - Fully operational CRUD functionality for workspaces, products, prompts, services, languages, and users.
