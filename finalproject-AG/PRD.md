@@ -2044,404 +2044,94 @@ ORDER BY total_revenue DESC;
 
 ## 14. Additional Data Model Documentation
 
-# ShopMe Data Model
+### Overview
 
-## Overview
+This section provides additional documentation and insights about the data model presented in Section 9. While the Entity Relationship Diagram in Section 9 illustrates the structure of the database, this section focuses on implementation details, optimization strategies, and common patterns used throughout the data model.
 
-This document describes the data model for the ShopMe application, a WhatsApp-based e-commerce platform that allows businesses to manage their products, services, orders, and client communications through WhatsApp.
+### Key Features of the Data Model
 
-## Entity Relationship Diagram
+- **Multi-tenant Architecture**: All primary entities include a `workspace_id` to enable complete data isolation in our SaaS environment
+- **Soft Deletion**: Most entities implement a `deleted_at` field for non-destructive data removal
+- **Audit Trail**: `created_at`, `updated_at`, `created_by`, and `updated_by` fields track all changes
+- **Polymorphic Relationships**: Used for attachments, notifications, and tags to maintain flexibility
+- **JSON Fields**: Utilized for schema-flexible data like metadata, settings, and attributes
+- **Composite Indexes**: Implemented on frequently queried field combinations for performance
+- **Constraint-based Integrity**: Foreign keys, unique constraints, and check constraints maintain data validity
+
+### Common Fields Across Entities
+
+| Field          | Type      | Purpose                                                 |
+| -------------- | --------- | ------------------------------------------------------- |
+| `id`           | UUID      | Primary key using UUID v4 for distribution and security |
+| `workspace_id` | UUID      | Foreign key for multi-tenant data segregation           |
+| `created_at`   | TIMESTAMP | Creation timestamp with timezone                        |
+| `updated_at`   | TIMESTAMP | Last update timestamp with timezone                     |
+| `deleted_at`   | TIMESTAMP | Soft deletion timestamp (null if active)                |
+| `created_by`   | UUID      | Reference to the user who created the record            |
+| `updated_by`   | UUID      | Reference to the user who last updated the record       |
+| `status`       | ENUM      | Entity-specific status values                           |
+| `metadata`     | JSONB     | Flexible storage for additional attributes              |
+
+### Security Considerations
+
+- **Personal Data**: Marked with specific data classification for GDPR compliance
+- **Encryption**: Sensitive data fields use column-level encryption
+- **Access Control**: Row-level security policies restrict access based on workspace membership
+- **Anonymization**: Historical data older than retention periods is anonymized
+- **Versioning**: Critical entities maintain history records for audit and recovery
+
+### Data Flow Diagrams
+
+The following diagram illustrates the data flow for a typical order process:
 
 ```mermaid
-erDiagram
-    %% Core User Management
-    users ||--o{ user_workspaces : has
-    user_workspaces }o--|| workspaces : belongs_to
-    workspaces ||--|| whatsapp_settings : configures
-
-    %% Product Management
-    workspaces ||--o{ categories : has
-    workspaces ||--o{ services : has
-    services ||--o{ products : contains
-    products }o--|| categories : belongs_to
-
-    %% Client Management
-    workspaces ||--o{ clients : manages
-    clients ||--o{ carts : has
-    clients ||--o{ orders : places
-
-    %% Order Management
-    carts ||--o{ cart_items : contains
-    cart_items }o--|| products : references
-    carts ||--o{ orders : generates
-    orders }o--|| payment_details : has
-
-    %% Communication
-    workspaces ||--o{ chat_sessions : manages
-    chat_sessions ||--o{ messages : contains
-    clients ||--o{ chat_sessions : participates
-    workspaces ||--o{ prompts : configures
-
-    %% Settings & Configuration
-    workspaces ||--o{ languages : supports
-    workspaces ||--o{ channels : configures
-    workspaces ||--o{ activity_logs : tracks
-
-    %% Entity Definitions
-    users {
-        uuid id PK
-        string email UK
-        string password_hash
-        string first_name
-        string last_name
-        string status
-        timestamp last_login
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    user_workspaces {
-        uuid id PK
-        uuid user_id FK
-        uuid workspace_id FK
-        string role
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    workspaces {
-        uuid id PK
-        string name
-        string status
-        json settings
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    whatsapp_settings {
-        uuid id PK
-        uuid workspace_id FK
-        string phone_number UK
-        string api_key
-        string webhook_url
-        json settings
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    categories {
-        uuid id PK
-        uuid workspace_id FK
-        string name
-        string slug UK
-        string description
-        string status
-        int sort_order
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    services {
-        uuid id PK
-        uuid workspace_id FK
-        string name
-        string description
-        string status
-        decimal base_price
-        json settings
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    products {
-        uuid id PK
-        uuid service_id FK
-        uuid category_id FK
-        string name
-        string slug UK
-        string description
-        string sku UK
-        decimal price
-        int stock
-        string status
-        json attributes
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    clients {
-        uuid id PK
-        uuid workspace_id FK
-        string phone UK
-        string email
-        string first_name
-        string last_name
-        string language
-        decimal discount_percentage
-        boolean discount_active
-        string status
-        json metadata
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    carts {
-        uuid id PK
-        uuid client_id FK
-        string status
-        json metadata
-        timestamp expires_at
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    cart_items {
-        uuid id PK
-        uuid cart_id FK
-        uuid product_id FK
-        int quantity
-        decimal unit_price
-        json metadata
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    orders {
-        uuid id PK
-        uuid workspace_id FK
-        uuid client_id FK
-        uuid cart_id FK
-        string order_number UK
-        string status
-        decimal subtotal
-        decimal tax
-        decimal discount
-        decimal total
-        json metadata
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    payment_details {
-        uuid id PK
-        uuid order_id FK
-        string provider
-        string status
-        decimal amount
-        string currency
-        json provider_response
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    chat_sessions {
-        uuid id PK
-        uuid workspace_id FK
-        uuid client_id FK
-        string status
-        json context
-        timestamp started_at
-        timestamp ended_at
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    messages {
-        uuid id PK
-        uuid chat_session_id FK
-        string direction
-        string content
-        string type
-        string status
-        boolean ai_generated
-        uuid prompt_id FK
-        json metadata
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    prompts {
-        uuid id PK
-        uuid workspace_id FK
-        string title
-        text content
-        string reference_phone
-        boolean active
-        json settings
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    languages {
-        uuid id PK
-        uuid workspace_id FK
-        string name
-        string code UK
-        boolean active
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    channels {
-        uuid id PK
-        uuid workspace_id FK
-        string type
-        string status
-        json settings
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    activity_logs {
-        uuid id PK
-        uuid workspace_id FK
-        uuid user_id FK
-        string action
-        string entity_type
-        uuid entity_id
-        json metadata
-        string ip_address
-        timestamp created_at
-    }
+flowchart TD
+    A[Client sends order via WhatsApp] --> B{Cart exists?}
+    B -->|No| C[Create new cart]
+    B -->|Yes| D[Update existing cart]
+    C --> E[Add products to cart]
+    D --> E
+    E --> F[Convert cart to order]
+    F --> G[Create payment record]
+    G --> H{Payment successful?}
+    H -->|Yes| I[Update order status to confirmed]
+    H -->|No| J[Update order status to payment failed]
+    I --> K[Send confirmation to client]
+    J --> L[Send payment retry options]
 ```
 
-## Key Features
+### Database Optimization Strategies
 
-1. **Multi-Workspace Support**
+1. **Indexing**:
 
-   - Each user can belong to multiple workspaces
-   - Workspaces are isolated environments with their own settings, products, and clients
-   - Role-based access control within each workspace
+   - Primary indices on all `id` fields
+   - Composite indices on `(workspace_id, status)` pairs
+   - Full-text search indices on searchable content
 
-2. **WhatsApp Integration**
+2. **Partitioning**:
 
-   - Each workspace has one WhatsApp channel configuration
-   - Support for multiple messaging channels (WhatsApp, Telegram, etc.)
-   - Automated responses and AI-powered chat management
+   - Time-based partitioning for `messages` and `activity_logs`
+   - Workspace-based partitioning for large multi-tenant tables
 
-3. **Product Management**
+3. **Materialized Views**:
 
-   - Hierarchical organization: Services > Products
-   - Category-based classification
-   - Inventory tracking
-   - Flexible pricing and attributes
+   - For analytical queries and reporting
+   - Refreshed on a schedule or triggered by data changes
 
-4. **Client Management**
+4. **Query Optimization**:
+   - Prepared statements for common queries
+   - View-based abstractions for complex joins
+   - Query result caching via Redis
 
-   - Client profiles with communication preferences
-   - Order history tracking
-   - Discount management
-   - Language preferences
+### Migration and Versioning Strategy
 
-5. **Order Processing**
+The database schema will evolve using numbered migrations with the following principles:
 
-   - Cart-based ordering system
-   - Multiple payment methods support
-   - Order status tracking
-   - Invoice generation
-
-6. **Communication**
-
-   - Chat session management
-   - AI-powered responses using prompts
-   - Message history tracking
-   - Multi-language support
-
-7. **Audit & Security**
-   - Comprehensive activity logging
-   - Soft delete support for all entities
-   - Created/Updated timestamps for all records
-   - Role-based access control
-
-## Common Fields
-
-All tables include these standard fields:
-
-- `id`: UUID primary key
-- `created_at`: Timestamp of record creation
-- `updated_at`: Timestamp of last update
-- `deleted_at`: Soft delete timestamp (nullable)
-- `created_by`: UUID of the user who created the record (nullable)
-- `updated_by`: UUID of the user who last updated the record (nullable)
-
-## Indexes and Constraints
-
-- Foreign key constraints on all relationships
-- Unique constraints on business identifiers
-- Indexes on frequently queried fields
-- Composite indexes for common query patterns
-
-## Security Considerations
-
-- All sensitive data is encrypted at rest
-- API keys and credentials are stored securely
-- Role-based access control at the workspace level
-- Audit logging for all significant actions
-
-## Data Flow Diagrams
-
-### Registration Flow
-
-```
-New WhatsApp User → Sends Message → n8n Workflow → User Not Found → Request Info → Create User → Send Welcome
-```
-
-### Order Flow
-
-```
-Client → Send Product Request → AI Processing → Add to Cart → Checkout Prompt → Generate Order → Payment Link → Order Confirmation
-```
-
-### Admin Dashboard Flow
-
-```
-Admin → Login → View Metrics → Manage Products/Services/Orders → Update Settings → View Logs → Logout
-```
-
-## Database Optimization Strategies
-
-1. **Query Optimization**
-
-   - Strategic indexing on frequently queried fields
-   - Denormalization where appropriate for read-heavy operations
-   - Prepared statements for all database interactions
-   - Query caching for repetitive operations
-
-2. **Data Partitioning**
-
-   - Workspace-based logical partitioning
-   - Time-based partitioning for logs and messages
-   - Archiving strategy for historical data
-
-3. **Transaction Management**
-
-   - ACID compliance for critical operations
-   - Optimistic locking for concurrent updates
-   - Batch processing for bulk operations
-
-4. **Data Validation**
-   - Server-side validation with clear error messages
-   - Database constraints as the last line of defense
-   - Input sanitization to prevent injection attacks
-
-## Migration and Versioning Strategy
-
-1. **Schema Migrations**
-
-   - Version-controlled migration scripts
-   - Forward and rollback capabilities
-   - Blue-green deployment strategy for zero-downtime updates
-
-2. **Data Migrations**
-
-   - Incremental data transformation
-   - Validation routines to ensure data integrity
-   - Audit trails for migration processes
-
-3. **API Versioning**
-   - Semantic versioning for endpoints
-   - Backward compatibility for at least one version
-   - Deprecation notices before removing features
+1. **Backward Compatibility**: New migrations should not break existing functionality
+2. **Transactions**: Each migration runs in a transaction for atomicity
+3. **Idempotence**: Migrations can be re-run safely with no side effects
+4. **Rollback Support**: Each migration has a corresponding down migration
+5. **Testing**: Migrations are tested in a staging environment before production deployment
 
 ## 15. Future Roadmap and Industry Expansions
 
