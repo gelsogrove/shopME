@@ -1073,6 +1073,38 @@ This architecture will ensure a robust, secure, and scalable backend system, in 
   - **Body**: `workspace_id`, settings to update
   - **Returns**: Updated settings
 
+### AI Configuration Settings
+
+- `GET /api/settings/ai`
+
+  - **Description**: Retrieves AI generation settings for the workspace
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: Current AI configuration parameters including temperature, top_p, and top_k values
+
+- `PUT /api/settings/ai`
+
+  - **Description**: Updates AI generation parameters
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Body**:
+    ```
+    {
+      "temperature": float, // Value between 0.0-1.0 controlling randomness
+      "top_p": float,       // Nucleus sampling parameter (0.0-1.0)
+      "top_k": integer,     // Limits token selection to top K options
+      "max_tokens": integer // Maximum tokens to generate in responses
+    }
+    ```
+  - **Returns**: Updated AI settings
+
+The AI configuration settings control how the AI model generates responses:
+
+- **Temperature**: Controls randomness. Lower values (e.g., 0.2) make responses more focused and deterministic, while higher values (e.g., 0.8) make output more creative and diverse.
+- **Top_p (Nucleus Sampling)**: Controls diversity by dynamically selecting from tokens whose cumulative probability exceeds the top_p value. Lower values (e.g., 0.5) make responses more focused, while higher values allow for more variety.
+- **Top_k**: Limits the model to consider only the top k most likely tokens at each step, reducing the chance of generating low-probability or irrelevant tokens.
+- **Max Tokens**: Defines the maximum length of generated responses to control verbosity and resource usage.
+
+These parameters allow workspace administrators to fine-tune the AI behavior to match their specific business needs, brand voice, and customer communication style.
+
 ### User Management
 
 - `GET /api/users/:phone`
@@ -1708,7 +1740,7 @@ erDiagram
         text content
         string reference_phone
         boolean active
-        json settings
+        json settings  # Contains AI parameters: temperature, top_p, top_k, max_tokens
         timestamp created_at
         timestamp updated_at
     }
