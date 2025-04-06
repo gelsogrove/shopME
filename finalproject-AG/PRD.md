@@ -602,7 +602,30 @@ The seed data ensures that from day one, the platform delivers a rich, coherent 
 
 ### Overview
 
-The backend system of this PDR application will be developed using Node.js with the Express.js framework, adopting the Domain-Driven Design (DDD) architectural pattern. This choice will allow for the organization of the software in a modular and maintainable way, dividing the logic into route, use case, service, and repository layers.
+The backend system of this PDR application will be developed using Node.js with the Express.js framework, adopting the Domain-Driven Design (DDD) architectural pattern and implemented as a monorepo using Turborepo. This architecture allows for efficient code organization, shared dependencies, and optimized builds across multiple packages.
+
+The monorepo structure, powered by Turborepo, provides several key benefits:
+
+- Centralized code management with shared configurations
+- Optimized build pipeline with intelligent caching
+- Consistent development experience across packages
+- Efficient dependency management
+- Standardized tooling and processes
+
+### Monorepo Structure
+
+```
+.
+├── apps/
+│   ├── web/          # Next.js frontend application
+│   └── backend/      # Node.js backend application
+├── packages/
+│   ├── eslint-config/    # Shared ESLint configuration
+│   ├── typescript-config/ # Shared TypeScript configuration
+│   └── ui/              # Shared UI components
+├── package.json     # Root package.json
+└── turbo.json      # Turborepo configuration
+```
 
 ### Security Implementation
 

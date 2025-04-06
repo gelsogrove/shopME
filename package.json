@@ -1,0 +1,40 @@
+{
+  "name": "shop",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "description": "Italian Products E-commerce Platform",
+  "scripts": {
+    "prestart": "docker compose up -d",
+    "start": "turbo run start",
+    "dev": "turbo run dev",
+    "dev:mcp": "concurrently \"npm run prestart\" \"cd backend && npm run dev\" \"cd frontend && npm run start:mcp\"",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "stop": "docker compose down",
+    "stop:all": "docker compose down -v",
+    "db:reset": "cd backend && npx prisma migrate reset --force",
+    "db:seed": "cd backend && npx prisma db seed",
+    "db:studio": "cd backend && npx prisma studio",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "keywords": [
+    "ecommerce",
+    "whatsapp",
+    "italian-products"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "turbo": "latest",
+    "concurrently": "^8.2.2",
+    "prettier": "^3.1.0",
+    "@types/node": "^22.14.0",
+    "typescript": "^5.8.3"
+  }
+}
