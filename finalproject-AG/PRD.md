@@ -1361,6 +1361,32 @@ console.log("Final AI Reply:", finalResponse)
 - **Media Storage**: Handling of images and other media files
 - **Notification Services**: Integration with email or SMS providers for alerts
 
+### Deployment Strategy
+
+The n8n workflow automation component will be deployed using a two-phase approach:
+
+#### 1. Development Environment
+
+- **Local Development**: The free version of n8n will be used during development and testing
+- **Self-Hosted Setup**: Developers will run n8n locally to create and test workflows
+- **Docker-Based**: Local instances will use Docker for consistent environment configuration
+- **Workflow Export/Import**: Workflows will be exported as JSON for version control and sharing
+- **Mock Webhook Endpoints**: Development uses tools like ngrok to test webhook functionality
+
+#### 2. Production Environment
+
+- **Heroku Deployment**: Production environment will be hosted on Heroku
+- **Heroku Add-ons**:
+  - PostgreSQL for workflow storage
+  - Redis for caching and queue management
+- **Autoscaling Configuration**: Configured to handle varying loads
+- **Persistent Storage**: Ensuring workflow data isn't lost between deployments
+- **TLS Encryption**: Secure communication for all webhook endpoints
+- **Backup Strategy**: Regular automated backups of workflow configurations
+- **Monitoring Integration**: Connected to application monitoring services
+
+This deployment strategy allows for cost-effective development while ensuring scalable, reliable performance in production.
+
 ### Security Considerations
 
 - **Credential Management**: Secure storage of API keys and tokens
