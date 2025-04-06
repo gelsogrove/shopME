@@ -117,6 +117,32 @@ The platform is designed for any business that offers products or services to cl
 - **Security**: HTTPS, JWT tokens, encrypted sensitive data in the database.
 - **Environments**: Development, test, and production; each workspace can activate debug mode with a test number.
 
+### Frontend Implementation
+
+The frontend will be built using Next.js, a React framework, coupled with Tailwind CSS for styling. This architecture provides several advantages:
+
+- **Server-side rendering**: Improved performance and SEO capabilities
+- **API Routes**: Built-in API functionality eliminates the need for a separate API gateway
+- **File-based routing**: Simplified navigation structure managed by Next.js internally
+- **Image optimization**: Automatic image processing and optimization
+- **Component isolation**: Clear separation of concerns with modular components
+- **Styling**: Utility-first approach with Tailwind CSS for rapid development
+
+#### Core API Requirements
+
+Since Next.js handles many aspects internally (routing, rendering, code-splitting, etc.), the external API requirements are streamlined to focus only on the core business functionality:
+
+1. **Clients API**: Managing WhatsApp user profiles and interactions
+2. **Products API**: Product catalog management
+3. **Services API**: Service offerings configuration
+4. **Orders API**: Order processing and management
+5. **Carts API**: Shopping cart functionality
+6. **Settings API**: Workspace configuration
+7. **Languages API**: Localization settings
+8. **Prompts API**: AI prompt management
+
+All other frontend functionality, including authentication flows, page transitions, and UI state management, will be handled internally by Next.js features and React hooks, reducing the need for additional external APIs.
+
 ### OpenRouter Integration and Data Flow
 
 The system uses OpenRouter's Retrieval Augmented Generation (RAG) capabilities to power the AI-assisted interactions within the platform. Here's how the data flows:
