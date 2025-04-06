@@ -1,13 +1,13 @@
-# ShopMe - Full Project Roadmap with 60 Detailed Tasks
+# ShopMe – Realistic Project Task List (60 Unique Tasks)
 
-## 🗺️ Roadmap Summary by Epic
+## 📌 Summary by Epic
 
-- **System Setup & Architecture**: 10 tasks
-- **Authentication & 2FA**: 10 tasks
-- **Product Management**: 10 tasks
-- **Orders & Cart**: 10 tasks
-- **Clients, GDPR & Tokenization**: 10 tasks
-- **AI, WhatsApp & Messaging**: 10 tasks
+- System Setup & Architecture: 10 tasks
+- Authentication & 2FA: 10 tasks
+- Product Management: 10 tasks
+- Orders & Cart: 10 tasks
+- Clients, GDPR & Tokenization: 10 tasks
+- AI, WhatsApp & Messaging: 10 tasks
 
 **Total Tasks: 60**
 
@@ -15,487 +15,484 @@
 
 =============== TASK-0001 ============================
 **Epic**: System Setup & Architecture
-**Title**: System Setup & Architecture - Subtask 1
+**Title**: Setup Docker environment
 **Description**:
-This task is part of the **System Setup & Architecture** epic. It focuses on sub-component number 1 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Create a docker-compose file with PostgreSQL, Redis, and adminer. Use .env for configuration and set up volumes for persistence.
 
-Subtask
-
-- Frontend design has already been developer don't touch
-- Create Docker setup with PostgreSQL
-- install Prisma
-- Create a seed with e fake data related to an import export of italian products
-
-- [DONE ]
+- [ ] Not started
 
 =============== TASK-0002 ============================
 **Epic**: System Setup & Architecture
-**Title**: System Setup & Architecture - Subtask 2
+**Title**: Configure Prisma ORM
 **Description**:
-This task is part of the **System Setup & Architecture** epic. It focuses on sub-component number 2 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Install Prisma, define initial schema with products, users, workspaces, and run the first migration.
 
 - [ ] Not started
 
 =============== TASK-0003 ============================
 **Epic**: System Setup & Architecture
-**Title**: System Setup & Architecture - Subtask 3
+**Title**: Create initial seed script
 **Description**:
-This task is part of the **System Setup & Architecture** epic. It focuses on sub-component number 3 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Insert default admin user, demo workspace, 5 categories and 10 demo products using Prisma or raw SQL.
 
 - [ ] Not started
 
 =============== TASK-0004 ============================
 **Epic**: System Setup & Architecture
-**Title**: System Setup & Architecture - Subtask 4
+**Title**: Define project structure using DDD
 **Description**:
-This task is part of the **System Setup & Architecture** epic. It focuses on sub-component number 4 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Organize backend into modules: routes, controllers, useCases, services, repositories, entities.
 
-- [ ] Not started
+- [x] Completed
+  - Domain Layer: entities, value-objects, events
+  - Application Layer: use-cases, interfaces, dtos
+  - Infrastructure Layer: repositories, persistence, services
+  - Interface Layer: http (controllers, routes, middlewares, validations)
 
 =============== TASK-0005 ============================
 **Epic**: System Setup & Architecture
-**Title**: System Setup & Architecture - Subtask 5
+**Title**: Setup environment configs
 **Description**:
-This task is part of the **System Setup & Architecture** epic. It focuses on sub-component number 5 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Use dotenv and separate config files for development, test, and production environments.
 
 - [ ] Not started
 
 =============== TASK-0006 ============================
 **Epic**: System Setup & Architecture
-**Title**: System Setup & Architecture - Subtask 6
+**Title**: Implement error handling middleware
 **Description**:
-This task is part of the **System Setup & Architecture** epic. It focuses on sub-component number 6 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Create centralized error handlers for 404, validation errors, and unexpected server crashes.
 
 - [ ] Not started
 
 =============== TASK-0007 ============================
 **Epic**: System Setup & Architecture
-**Title**: System Setup & Architecture - Subtask 7
+**Title**: Integrate logger
 **Description**:
-This task is part of the **System Setup & Architecture** epic. It focuses on sub-component number 7 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Add a logger (e.g., Winston or Pino) to log API calls, DB errors, and custom business logic flows.
 
 - [ ] Not started
 
 =============== TASK-0008 ============================
 **Epic**: System Setup & Architecture
-**Title**: System Setup & Architecture - Subtask 8
+**Title**: Enable CORS and security headers
 **Description**:
-This task is part of the **System Setup & Architecture** epic. It focuses on sub-component number 8 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Use Helmet and configure CORS to allow only frontend and n8n origins.
 
 - [ ] Not started
 
 =============== TASK-0009 ============================
 **Epic**: System Setup & Architecture
-**Title**: System Setup & Architecture - Subtask 9
+**Title**: Add healthcheck route
 **Description**:
-This task is part of the **System Setup & Architecture** epic. It focuses on sub-component number 9 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Expose a `/health` route that checks DB connection and app version.
 
 - [ ] Not started
 
 =============== TASK-0010 ============================
 **Epic**: System Setup & Architecture
-**Title**: System Setup & Architecture - Subtask 10
+**Title**: Setup GitHub Actions for CI
 **Description**:
-This task is part of the **System Setup & Architecture** epic. It focuses on sub-component number 10 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Add linting, type-checking and unit testing to CI pipeline with every pull request.
 
 - [ ] Not started
 
 =============== TASK-0011 ============================
 **Epic**: Authentication & 2FA
-**Title**: Authentication & 2FA - Subtask 1
+**Title**: Implement login with JWT
 **Description**:
-This task is part of the **Authentication & 2FA** epic. It focuses on sub-component number 1 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Create `POST /auth/login` endpoint to verify user credentials and return a JWT in an HTTP-only cookie.
 
 - [ ] Not started
 
 =============== TASK-0012 ============================
 **Epic**: Authentication & 2FA
-**Title**: Authentication & 2FA - Subtask 2
+**Title**: Create `GET /me` endpoint
 **Description**:
-This task is part of the **Authentication & 2FA** epic. It focuses on sub-component number 2 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Return the currently authenticated user with their role, email, and workspace ID.
 
 - [ ] Not started
 
 =============== TASK-0013 ============================
 **Epic**: Authentication & 2FA
-**Title**: Authentication & 2FA - Subtask 3
+**Title**: Add 2FA via email OTP
 **Description**:
-This task is part of the **Authentication & 2FA** epic. It focuses on sub-component number 3 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Send a 6-digit OTP via email after login step 1 and verify before issuing final token.
 
 - [ ] Not started
 
 =============== TASK-0014 ============================
 **Epic**: Authentication & 2FA
-**Title**: Authentication & 2FA - Subtask 4
+**Title**: Allow user registration
 **Description**:
-This task is part of the **Authentication & 2FA** epic. It focuses on sub-component number 4 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Add `POST /auth/register` with invite code logic and workspace assignment.
 
 - [ ] Not started
 
 =============== TASK-0015 ============================
 **Epic**: Authentication & 2FA
-**Title**: Authentication & 2FA - Subtask 5
+**Title**: Handle forgot password flow
 **Description**:
-This task is part of the **Authentication & 2FA** epic. It focuses on sub-component number 5 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Create `POST /auth/forgot` to send email with token. Add reset password confirmation route.
 
 - [ ] Not started
 
 =============== TASK-0016 ============================
 **Epic**: Authentication & 2FA
-**Title**: Authentication & 2FA - Subtask 6
+**Title**: Protect routes with middleware
 **Description**:
-This task is part of the **Authentication & 2FA** epic. It focuses on sub-component number 6 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Create `authGuard` middleware to check and decode JWT, attach user context.
 
 - [ ] Not started
 
 =============== TASK-0017 ============================
 **Epic**: Authentication & 2FA
-**Title**: Authentication & 2FA - Subtask 7
+**Title**: Create role-based access control
 **Description**:
-This task is part of the **Authentication & 2FA** epic. It focuses on sub-component number 7 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Limit admin-only actions by checking `req.user.role`. Define `isAdmin`, `isOwner`, etc.
 
 - [ ] Not started
 
 =============== TASK-0018 ============================
 **Epic**: Authentication & 2FA
-**Title**: Authentication & 2FA - Subtask 8
+**Title**: Refresh token mechanism
 **Description**:
-This task is part of the **Authentication & 2FA** epic. It focuses on sub-component number 8 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Issue refresh tokens via a secure cookie and add `/auth/refresh` endpoint.
 
 - [ ] Not started
 
 =============== TASK-0019 ============================
 **Epic**: Authentication & 2FA
-**Title**: Authentication & 2FA - Subtask 9
+**Title**: User logout
 **Description**:
-This task is part of the **Authentication & 2FA** epic. It focuses on sub-component number 9 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Implement logout by clearing cookies and invalidating refresh tokens.
 
 - [ ] Not started
 
 =============== TASK-0020 ============================
 **Epic**: Authentication & 2FA
-**Title**: Authentication & 2FA - Subtask 10
+**Title**: Session audit log
 **Description**:
-This task is part of the **Authentication & 2FA** epic. It focuses on sub-component number 10 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Log all login attempts, 2FA failures, token refreshes and store them in an audit table.
 
 - [ ] Not started
 
 =============== TASK-0021 ============================
 **Epic**: Product Management
-**Title**: Product Management - Subtask 1
+**Title**: Create GET /products endpoint
 **Description**:
-This task is part of the **Product Management** epic. It focuses on sub-component number 1 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+List all products with filters (name, category, stock status) and pagination.
 
 - [ ] Not started
 
 =============== TASK-0022 ============================
 **Epic**: Product Management
-**Title**: Product Management - Subtask 2
+**Title**: Create POST /products endpoint
 **Description**:
-This task is part of the **Product Management** epic. It focuses on sub-component number 2 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Add a new product with fields: name, categoryId, price, image URL, and stock.
 
 - [ ] Not started
 
 =============== TASK-0023 ============================
 **Epic**: Product Management
-**Title**: Product Management - Subtask 3
+**Title**: Create PUT /products/:id
 **Description**:
-This task is part of the **Product Management** epic. It focuses on sub-component number 3 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Edit product details and handle image replacement if a new image is uploaded.
 
 - [ ] Not started
 
 =============== TASK-0024 ============================
 **Epic**: Product Management
-**Title**: Product Management - Subtask 4
+**Title**: Create DELETE /products/:id
 **Description**:
-This task is part of the **Product Management** epic. It focuses on sub-component number 4 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Soft-delete a product and mark as unavailable instead of deleting.
 
 - [ ] Not started
 
 =============== TASK-0025 ============================
 **Epic**: Product Management
-**Title**: Product Management - Subtask 5
+**Title**: List categories
 **Description**:
-This task is part of the **Product Management** epic. It focuses on sub-component number 5 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Implement `GET /categories` to return all product categories.
 
 - [ ] Not started
 
 =============== TASK-0026 ============================
 **Epic**: Product Management
-**Title**: Product Management - Subtask 6
+**Title**: Add category CRUD
 **Description**:
-This task is part of the **Product Management** epic. It focuses on sub-component number 6 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Allow admins to create, edit, and delete categories via dedicated endpoints.
 
 - [ ] Not started
 
 =============== TASK-0027 ============================
 **Epic**: Product Management
-**Title**: Product Management - Subtask 7
+**Title**: Upload product image to S3
 **Description**:
-This task is part of the **Product Management** epic. It focuses on sub-component number 7 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Integrate with S3 or local storage to upload and retrieve product images.
 
 - [ ] Not started
 
 =============== TASK-0028 ============================
 **Epic**: Product Management
-**Title**: Product Management - Subtask 8
+**Title**: Display product list in dashboard
 **Description**:
-This task is part of the **Product Management** epic. It focuses on sub-component number 8 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Show table view with name, image, price, stock and filters.
 
 - [ ] Not started
 
 =============== TASK-0029 ============================
 **Epic**: Product Management
-**Title**: Product Management - Subtask 9
+**Title**: Create product form modal
 **Description**:
-This task is part of the **Product Management** epic. It focuses on sub-component number 9 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Use shadcn/ui modal to create or edit products with validation.
 
 - [ ] Not started
 
 =============== TASK-0030 ============================
 **Epic**: Product Management
-**Title**: Product Management - Subtask 10
+**Title**: Add unit tests for product service
 **Description**:
-This task is part of the **Product Management** epic. It focuses on sub-component number 10 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Cover edge cases for price < 0, missing fields, image format.
 
 - [ ] Not started
 
 =============== TASK-0031 ============================
 **Epic**: Orders & Cart
-**Title**: Orders & Cart - Subtask 1
+**Title**: Create POST /orders
 **Description**:
-This task is part of the **Orders & Cart** epic. It focuses on sub-component number 1 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Submit order from current cart items. Save order lines and total amount.
 
 - [ ] Not started
 
 =============== TASK-0032 ============================
 **Epic**: Orders & Cart
-**Title**: Orders & Cart - Subtask 2
+**Title**: List orders
 **Description**:
-This task is part of the **Orders & Cart** epic. It focuses on sub-component number 2 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Implement paginated `GET /orders` with filters by status, client, and date.
 
 - [ ] Not started
 
 =============== TASK-0033 ============================
 **Epic**: Orders & Cart
-**Title**: Orders & Cart - Subtask 3
+**Title**: View order details
 **Description**:
-This task is part of the **Orders & Cart** epic. It focuses on sub-component number 3 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Add endpoint `GET /orders/:id` to return full breakdown of items and statuses.
 
 - [ ] Not started
 
 =============== TASK-0034 ============================
 **Epic**: Orders & Cart
-**Title**: Orders & Cart - Subtask 4
+**Title**: Manage order status
 **Description**:
-This task is part of the **Orders & Cart** epic. It focuses on sub-component number 4 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Allow update of order status (pending, confirmed, shipped, delivered, cancelled).
 
 - [ ] Not started
 
 =============== TASK-0035 ============================
 **Epic**: Orders & Cart
-**Title**: Orders & Cart - Subtask 5
+**Title**: Cart: Add product
 **Description**:
-This task is part of the **Orders & Cart** epic. It focuses on sub-component number 5 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+POST `/cart/add` to add item to the user's current cart.
 
 - [ ] Not started
 
 =============== TASK-0036 ============================
 **Epic**: Orders & Cart
-**Title**: Orders & Cart - Subtask 6
+**Title**: Cart: Remove product
 **Description**:
-This task is part of the **Orders & Cart** epic. It focuses on sub-component number 6 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+POST `/cart/remove` to delete product from cart.
 
 - [ ] Not started
 
 =============== TASK-0037 ============================
 **Epic**: Orders & Cart
-**Title**: Orders & Cart - Subtask 7
+**Title**: Cart: Update quantity
 **Description**:
-This task is part of the **Orders & Cart** epic. It focuses on sub-component number 7 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+POST `/cart/update` to change quantity of a product already in the cart.
 
 - [ ] Not started
 
 =============== TASK-0038 ============================
 **Epic**: Orders & Cart
-**Title**: Orders & Cart - Subtask 8
+**Title**: Get current cart
 **Description**:
-This task is part of the **Orders & Cart** epic. It focuses on sub-component number 8 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+GET `/cart` returns items, totals, and estimated shipping.
 
 - [ ] Not started
 
 =============== TASK-0039 ============================
 **Epic**: Orders & Cart
-**Title**: Orders & Cart - Subtask 9
+**Title**: Display order history in dashboard
 **Description**:
-This task is part of the **Orders & Cart** epic. It focuses on sub-component number 9 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Show list of orders per client with filters and links.
 
 - [ ] Not started
 
 =============== TASK-0040 ============================
 **Epic**: Orders & Cart
-**Title**: Orders & Cart - Subtask 10
+**Title**: Send order confirmation via WhatsApp
 **Description**:
-This task is part of the **Orders & Cart** epic. It focuses on sub-component number 10 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Trigger message through n8n flow after order success.
 
 - [ ] Not started
 
 =============== TASK-0041 ============================
 **Epic**: Clients, GDPR & Tokenization
-**Title**: Clients, GDPR & Tokenization - Subtask 1
+**Title**: Detect first-time user consent
 **Description**:
-This task is part of the **Clients, GDPR & Tokenization** epic. It focuses on sub-component number 1 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+On first WhatsApp message, reply with privacy terms and wait for 'I ACCEPT'.
 
 - [ ] Not started
 
 =============== TASK-0042 ============================
 **Epic**: Clients, GDPR & Tokenization
-**Title**: Clients, GDPR & Tokenization - Subtask 2
+**Title**: Store GDPR acceptance in DB
 **Description**:
-This task is part of the **Clients, GDPR & Tokenization** epic. It focuses on sub-component number 2 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Add `privacyAcceptedAt`, `privacyVersion` to `clients` table.
 
 - [ ] Not started
 
 =============== TASK-0043 ============================
 **Epic**: Clients, GDPR & Tokenization
-**Title**: Clients, GDPR & Tokenization - Subtask 3
+**Title**: Re-ask for consent if version outdated
 **Description**:
-This task is part of the **Clients, GDPR & Tokenization** epic. It focuses on sub-component number 3 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Compare accepted version with current, resend if different.
 
 - [ ] Not started
 
 =============== TASK-0044 ============================
 **Epic**: Clients, GDPR & Tokenization
-**Title**: Clients, GDPR & Tokenization - Subtask 4
+**Title**: Tokenize PII before AI prompt
 **Description**:
-This task is part of the **Clients, GDPR & Tokenization** epic. It focuses on sub-component number 4 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Replace names, phones, addresses with tokens before OpenRouter calls.
 
 - [ ] Not started
 
 =============== TASK-0045 ============================
 **Epic**: Clients, GDPR & Tokenization
-**Title**: Clients, GDPR & Tokenization - Subtask 5
+**Title**: De-tokenize AI response
 **Description**:
-This task is part of the **Clients, GDPR & Tokenization** epic. It focuses on sub-component number 5 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Replace tokens with real data before sending back to user.
 
 - [ ] Not started
 
 =============== TASK-0046 ============================
 **Epic**: Clients, GDPR & Tokenization
-**Title**: Clients, GDPR & Tokenization - Subtask 6
+**Title**: List clients in dashboard
 **Description**:
-This task is part of the **Clients, GDPR & Tokenization** epic. It focuses on sub-component number 6 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Create UI table with filters and GDPR status indicator.
 
 - [ ] Not started
 
 =============== TASK-0047 ============================
 **Epic**: Clients, GDPR & Tokenization
-**Title**: Clients, GDPR & Tokenization - Subtask 7
+**Title**: Client detail page
 **Description**:
-This task is part of the **Clients, GDPR & Tokenization** epic. It focuses on sub-component number 7 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Show purchase history, messages, total spent and notes.
 
 - [ ] Not started
 
 =============== TASK-0048 ============================
 **Epic**: Clients, GDPR & Tokenization
-**Title**: Clients, GDPR & Tokenization - Subtask 8
+**Title**: Add export client data
 **Description**:
-This task is part of the **Clients, GDPR & Tokenization** epic. It focuses on sub-component number 8 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Create GDPR-compliant `Download My Data` button.
 
 - [ ] Not started
 
 =============== TASK-0049 ============================
 **Epic**: Clients, GDPR & Tokenization
-**Title**: Clients, GDPR & Tokenization - Subtask 9
+**Title**: Delete client data
 **Description**:
-This task is part of the **Clients, GDPR & Tokenization** epic. It focuses on sub-component number 9 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Support deletion of a client and anonymize logs.
 
 - [ ] Not started
 
 =============== TASK-0050 ============================
 **Epic**: Clients, GDPR & Tokenization
-**Title**: Clients, GDPR & Tokenization - Subtask 10
+**Title**: Track consent history
 **Description**:
-This task is part of the **Clients, GDPR & Tokenization** epic. It focuses on sub-component number 10 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Log every policy update with timestamp and message sent.
 
 - [ ] Not started
 
 =============== TASK-0051 ============================
 **Epic**: AI, WhatsApp & Messaging
-**Title**: AI, WhatsApp & Messaging - Subtask 1
+**Title**: Connect WhatsApp webhook to n8n
 **Description**:
-This task is part of the **AI, WhatsApp & Messaging** epic. It focuses on sub-component number 1 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Configure webhook to forward all messages to n8n for processing.
 
 - [ ] Not started
 
 =============== TASK-0052 ============================
 **Epic**: AI, WhatsApp & Messaging
-**Title**: AI, WhatsApp & Messaging - Subtask 2
+**Title**: Classify message type
 **Description**:
-This task is part of the **AI, WhatsApp & Messaging** epic. It focuses on sub-component number 2 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Use keywords and NLP to detect if message is an order, question, or other.
 
 - [ ] Not started
 
 =============== TASK-0053 ============================
 **Epic**: AI, WhatsApp & Messaging
-**Title**: AI, WhatsApp & Messaging - Subtask 3
+**Title**: Respond with OpenRouter AI
 **Description**:
-This task is part of the **AI, WhatsApp & Messaging** epic. It focuses on sub-component number 3 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Send cleaned message to OpenRouter, receive and format reply.
 
 - [ ] Not started
 
 =============== TASK-0054 ============================
 **Epic**: AI, WhatsApp & Messaging
-**Title**: AI, WhatsApp & Messaging - Subtask 4
+**Title**: Fallback if AI fails
 **Description**:
-This task is part of the **AI, WhatsApp & Messaging** epic. It focuses on sub-component number 4 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Detect AI timeouts or errors and send friendly fallback message.
 
 - [ ] Not started
 
 =============== TASK-0055 ============================
 **Epic**: AI, WhatsApp & Messaging
-**Title**: AI, WhatsApp & Messaging - Subtask 5
+**Title**: Enable test mode per user
 **Description**:
-This task is part of the **AI, WhatsApp & Messaging** epic. It focuses on sub-component number 5 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Mark certain numbers as sandbox/test to avoid real order creation.
 
 - [ ] Not started
 
 =============== TASK-0056 ============================
 **Epic**: AI, WhatsApp & Messaging
-**Title**: AI, WhatsApp & Messaging - Subtask 6
+**Title**: Save chat history in DB
 **Description**:
-This task is part of the **AI, WhatsApp & Messaging** epic. It focuses on sub-component number 6 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Log all message exchanges with userId, timestamps, and intents.
 
 - [ ] Not started
 
 =============== TASK-0057 ============================
 **Epic**: AI, WhatsApp & Messaging
-**Title**: AI, WhatsApp & Messaging - Subtask 7
+**Title**: Paginate chat in dashboard
 **Description**:
-This task is part of the **AI, WhatsApp & Messaging** epic. It focuses on sub-component number 7 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Implement `GET /chat/messages` with filters and search.
 
 - [ ] Not started
 
 =============== TASK-0058 ============================
 **Epic**: AI, WhatsApp & Messaging
-**Title**: AI, WhatsApp & Messaging - Subtask 8
+**Title**: Push campaign system
 **Description**:
-This task is part of the **AI, WhatsApp & Messaging** epic. It focuses on sub-component number 8 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Create UI + backend to send promo messages to targeted segments.
 
 - [ ] Not started
 
 =============== TASK-0059 ============================
 **Epic**: AI, WhatsApp & Messaging
-**Title**: AI, WhatsApp & Messaging - Subtask 9
+**Title**: Track delivery & open rates
 **Description**:
-This task is part of the **AI, WhatsApp & Messaging** epic. It focuses on sub-component number 9 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Use WhatsApp message statuses to track opened/read.
 
 - [ ] Not started
 
 =============== TASK-0060 ============================
 **Epic**: AI, WhatsApp & Messaging
-**Title**: AI, WhatsApp & Messaging - Subtask 10
+**Title**: Monitor token usage by user
 **Description**:
-This task is part of the **AI, WhatsApp & Messaging** epic. It focuses on sub-component number 10 and involves a detailed set of actions including planning, implementation, error handling, and testing. Be sure to follow the architectural guidelines, integrate with the appropriate APIs, and consider security and performance in each step. Document all decisions and outcomes clearly so the team can follow the logic of the implementation. Edge cases and user interaction should be explicitly handled in both frontend and backend layers. Testing must include unit coverage, integration validation, and manual walkthrough if applicable.
+Log and chart token count and average cost per interaction.
 
 - [ ] Not started
