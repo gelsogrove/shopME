@@ -651,6 +651,48 @@ src/
 - Backup strategies
 - Scaling guidelines
 
+### Docker Architecture
+
+The ShopMe platform utilizes a simplified containerized architecture with Docker to ensure consistency across development, testing, and production environments. The system is built with a minimalist approach, focusing only on essential containers:
+
+#### Container Architecture
+
+- **PostgreSQL Container**:
+
+  - Image: PostgreSQL 14
+  - Purpose: Primary database storing all application data
+  - Ports: 5432
+  - Volumes: Database data, periodic backups
+  - Configuration: Optimized for performance with appropriate memory allocation and connection pooling
+
+- **n8n Workflow Container**:
+  - Image: n8n (official image)
+  - Purpose: Executes all workflow automation, handling communication between WhatsApp API and ShopMe backend
+  - Ports: 5678
+  - Volumes: Workflow data, credentials (encrypted)
+  - Configuration: Customized for WhatsApp business message processing
+
+#### Deployment Strategy
+
+This streamlined two-container approach is consistent across both local development and production environments:
+
+**Local Development:**
+
+- Docker Compose orchestrates both containers
+- Uses the free version of n8n
+- Local volume mounts for easy development and debugging
+- Environment variables managed through .env files (not committed to version control)
+
+**Production (Heroku):**
+
+- Both containers deployed using Heroku container registry
+- PostgreSQL configured with Heroku PostgreSQL add-on for managed database service
+- n8n container deployed with persistent storage for workflow data
+- Environment variables managed through Heroku config vars
+- Automated backups configured for both containers
+
+This minimalist container strategy reduces operational complexity while providing all necessary functionality for the application. The frontend and API are deployed using Heroku's standard buildpacks rather than containers, further simplifying the architecture.
+
 This architecture will ensure a robust, secure, and scalable backend system, in line with the digitization and resilience objectives of the PDR.
 
 ## 9. API Endpoints
@@ -3167,86 +3209,3 @@ We use your information to:
 - Comply with legal obligations
 
 4. DATA STORAGE AND SECURITY
-
-Your information is stored securely using industry-standard encryption and security measures. Personal data is pseudonymized when processed by AI services to protect your privacy.
-
-5. SHARING YOUR INFORMATION
-
-We may share your information with:
-- Payment processors (to complete transactions)
-- Delivery services (to fulfill orders)
-- Service providers (who assist in operating our platform)
-- Legal authorities (when required by law)
-
-We never sell your personal data to third parties.
-
-6. YOUR RIGHTS UNDER GDPR
-
-You have the right to:
-- Access your personal data
-- Correct inaccurate data
-- Delete your data ("right to be forgotten")
-- Restrict or object to processing
-- Data portability
-- Withdraw consent at any time
-
-To exercise these rights, send a message with "DATA REQUEST" to our customer service.
-
-7. DATA RETENTION
-
-We retain your data for as long as necessary to provide services and comply with legal obligations. Order information is kept for [X] years for tax and accounting purposes.
-
-8. UPDATES TO THIS POLICY
-
-We may update this policy periodically. When we make significant changes, we will notify you and request fresh consent where required by law.
-
-9. CONTACT US
-
-If you have questions about this Privacy Policy, please contact our Data Protection Officer at [EMAIL].
-
-By replying "I ACCEPT", you confirm that you have read and understood this Privacy Policy and consent to the collection and use of your information as described.
-```
-
-This template will be customized for each workspace with specific business information, retention periods, and contact details. The system tracks the version and timestamp of acceptance for compliance purposes.
-
-### Appendix B: Docker Architecture
-
-The ShopMe platform utilizes a simplified containerized architecture with Docker to ensure consistency across development, testing, and production environments. The system is built with a minimalist approach, focusing only on essential containers:
-
-#### Container Architecture
-
-- **PostgreSQL Container**:
-
-  - Image: PostgreSQL 14
-  - Purpose: Primary database storing all application data
-  - Ports: 5432
-  - Volumes: Database data, periodic backups
-  - Configuration: Optimized for performance with appropriate memory allocation and connection pooling
-
-- **n8n Workflow Container**:
-  - Image: n8n (official image)
-  - Purpose: Executes all workflow automation, handling communication between WhatsApp API and ShopMe backend
-  - Ports: 5678
-  - Volumes: Workflow data, credentials (encrypted)
-  - Configuration: Customized for WhatsApp business message processing
-
-#### Deployment Strategy
-
-This streamlined two-container approach is consistent across both local development and production environments:
-
-**Local Development:**
-
-- Docker Compose orchestrates both containers
-- Uses the free version of n8n
-- Local volume mounts for easy development and debugging
-- Environment variables managed through .env files (not committed to version control)
-
-**Production (Heroku):**
-
-- Both containers deployed using Heroku container registry
-- PostgreSQL configured with Heroku PostgreSQL add-on for managed database service
-- n8n container deployed with persistent storage for workflow data
-- Environment variables managed through Heroku config vars
-- Automated backups configured for both containers
-
-This minimalist container strategy reduces operational complexity while providing all necessary functionality for the application. The frontend and API are deployed using Heroku's standard buildpacks rather than containers, further simplifying the architecture.
