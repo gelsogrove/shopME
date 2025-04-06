@@ -511,6 +511,26 @@ To ensure GDPR compliance, the platform implements a structured consent collecti
    - The timestamp is recorded in `privacy_accepted_at`
    - This data is stored in the user profile for audit and compliance purposes
 
+#### Consent Verification for Returning Users
+
+For existing users who have previously interacted with the system, the consent flow works differently:
+
+1. **Consent Verification**: At the beginning of each interaction session:
+   - The system checks if the user has an existing record with a valid `last_privacy_version_accepted` field
+   - The system compares the accepted version with the current privacy policy version
+2. **Outcome Scenarios**:
+
+   - **Valid Consent Exists**: If the user has already accepted the current version, no consent prompt is shown and the interaction proceeds normally without interruption
+   - **Outdated Consent**: If the user had accepted an older version of the policy, they receive a notification about the update with a summary of changes and must provide fresh consent
+   - **No Consent Record**: If the user has no consent record (rare edge case for existing users), they go through the full consent flow
+
+3. **Minimal Disruption Principle**: The system is designed to minimize disruption to returning users:
+   - Consent verification happens silently in the background for users with valid consent
+   - Users are only prompted when legally necessary (policy changes or missing consent)
+   - The consent UI for returning users emphasizes what has changed since their last acceptance
+
+This approach ensures GDPR compliance while maintaining a smooth user experience for returning customers.
+
 #### Consent Data Storage
 
 The user's privacy consent information is stored in the `clients` table in the database with the following specific fields:
