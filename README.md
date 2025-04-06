@@ -2,111 +2,230 @@
 
 ## Overview
 
-ShopMe is a SaaS (Software as a Service) platform that enables businesses to create their own WhatsApp-based e-commerce presence with minimal setup. The platform leverages the WhatsApp Business API and AI technology to automate client support and order management, providing 24/7 assistance to enhance client experience and streamline business operations.
+ShopMe è una piattaforma e-commerce basata su WhatsApp che permette di vendere prodotti italiani DOP, IGP e DOCG attraverso un'interfaccia conversazionale.
 
-### Key Features
+## Architecture
 
-- **AI-Powered Messaging**: Automated client support with contextual understanding
-- **Product Catalog Management**: Easy management of products and categories
-- **WhatsApp Cart Management**: Seamless shopping experience through WhatsApp
-- **Order Processing**: Complete order lifecycle management
-- **Client Management**: Detailed client profiles and communication history
-- **Analytics Dashboard**: Insights into sales, clients, and messaging
+The project is structured as a monorepo using Turborepo, which provides several benefits:
 
-## Message Processing Flow
+- **Unified Development Experience**: All code lives in a single repository, making it easier to manage dependencies, share code, and maintain consistency.
+- **Optimized Build System**: Turborepo provides intelligent build caching and parallel execution of tasks.
+- **Workspace Management**: Using npm workspaces for efficient package management across packages.
+- **Standardized Tooling**: Shared configurations for TypeScript, ESLint, and other tools.
 
-When a customer interacts with the ShopMe platform via WhatsApp, a sophisticated message processing flow is activated. Here's a detailed explanation of what happens:
-
-```mermaid
-sequenceDiagram
-    participant Customer as Customer
-    participant WhatsApp as WhatsApp
-    participant n8n as n8n Workflow
-    participant API as ShopMe API
-    participant AI as OpenRouter AI
-    participant DB as Database
-
-    Customer->>WhatsApp: Sends message
-    WhatsApp->>n8n: Forwards message via webhook
-    n8n->>API: Processes & routes message
-    API->>DB: Checks client context & history
-    API->>API: Tokenizes personal data
-    API->>AI: Sends tokenized data for processing
-    AI->>API: Returns AI response
-    API->>API: De-tokenizes response
-    API->>n8n: Sends formatted response
-    n8n->>WhatsApp: Forwards response
-    WhatsApp->>Customer: Delivers response
+```
+shop/
+├── backend/           # Node.js API with Prisma
+│   ├── src/          # Backend source code
+│   ├── prisma/       # Database schema and migrations
+│   └── package.json  # Backend-specific dependencies
+├── frontend/         # Next.js web application
+│   ├── src/         # Frontend source code
+│   ├── public/      # Static assets
+│   └── package.json # Frontend-specific dependencies
+├── package.json     # Root package.json with workspaces
+├── turbo.json      # Turborepo configuration
+└── docker-compose.yml
 ```
 
-### Step-by-Step Process
+### Build System
 
-1. **Initial Customer Interaction**
+Turborepo manages our build pipeline with:
 
-   - Customer sends a message via WhatsApp to the business phone number
-   - This message can be a product inquiry, order placement, question, etc.
+- Parallel task execution
+- Remote caching
+- Incremental builds
+- Dependency graph optimization
 
-2. **WhatsApp Business API Processing**
+### Workspace Dependencies
 
-   - The WhatsApp Business API receives the message
-   - It forwards the message to the configured webhook endpoint
+```json
+{
+  "workspaces": ["backend", "frontend"]
+}
+```
 
-3. **n8n Workflow Orchestration**
+## Requisiti
 
-   - n8n receives the webhook from WhatsApp
-   - Initial processing occurs:
-     - Message parsing
-     - Sender identification
-     - Message categorization
-   - The processed data is routed to the appropriate ShopMe API endpoint
+- Node.js (v18 o superiore)
+- Docker e Docker Compose
+- PostgreSQL (fornito via Docker)
 
-4. **ShopMe API Processing**
+## Quick Start
 
-   - The API identifies the client based on WhatsApp number
-   - Retrieves client context and conversation history
-   - Determines the appropriate response type:
-     - Direct response (for simple queries)
-     - Product showcase
-     - Order confirmation
-     - AI-assisted response for complex queries
+```bash
+# 1. Posizionati nella root del progetto
+cd shop
 
-5. **Data Protection and AI Integration**
+# 2. Installa tutte le dipendenze (questo comando installerà tutto per backend e frontend)
+npm install
 
-   - For messages requiring AI processing:
-     - Personal data is tokenized (replaced with non-identifying tokens)
-     - The tokenized message is sent to OpenRouter
-     - OpenRouter processes the query with context
-     - The response is returned to the API
-     - The API de-tokenizes the response, replacing tokens with actual data
+# 3. Setup del database
+npm run prestart          # Avvia il database
+npm run db:reset         # Reset del database
+npm run db:seed         # Popolamento dati
 
-6. **Response Delivery**
-   - The formatted response is sent back to n8n
-   - n8n forwards the response to the WhatsApp Business API
-   - The customer receives the response on their WhatsApp
+# 4. Avvia l'applicazione in una delle seguenti modalità:
 
-### Technical Components
+# Modalità Development Standard
+npm run dev
 
-- **WhatsApp Business API**: Interface with customer WhatsApp accounts
-- **n8n**: Workflow automation platform handling message routing
-- **ShopMe API**: Core backend services built with Node.js and Express
-- **OpenRouter**: AI service using Retrieval Augmented Generation (RAG)
-- **PostgreSQL Database**: Stores product, order, and customer information
-- **Redis**: Caching and session management
+# Modalità Development con MCP (per sviluppo)
+npm run dev:mcp
+```
 
-### Security Features
+## Modalità di Avvio
 
-- **Data Pseudonymization**: Tokenization of personal data before AI processing
-- **End-to-End Encryption**: Secure transmission of messages
-- **GDPR Compliance**: Data minimization and purpose limitation
+### 1. Modalità Development Standard
 
-## Getting Started
+```bash
+npm run dev
+```
 
-[Coming soon]
+- Frontend: http://localhost:3000
+- Backend: http://localhost:3001
 
-## Technical Architecture
+### 2. Modalità Development con MCP
 
-[Coming soon]
+```bash
+npm run dev:mcp
+```
 
-## Deployment
+- Frontend con MCP attivo
+- Backend: http://localhost:3001
 
-[Coming soon]
+### 3. Comandi Database
+
+```bash
+npm run db:reset     # Reset completo del database
+npm run db:seed      # Popolamento dati di esempio
+npm run db:studio    # Apri Prisma Studio (http://localhost:5555)
+```
+
+### 4. Gestione Docker
+
+```bash
+npm run prestart     # Avvia i container
+npm run stop        # Ferma i container
+npm run stop:all    # Ferma e rimuove i container e volumi
+```
+
+## Struttura del Progetto
+
+```
+shop/
+├── backend/         # Server Node.js con Prisma
+├── frontend/        # Applicazione Next.js
+├── package.json     # Package.json principale con i workspaces
+└── docker-compose.yml
+```
+
+## Gestione Dipendenze
+
+Il progetto usa una struttura monorepo con npm workspaces, quindi:
+
+✅ CORRETTO:
+
+```bash
+# Nella root del progetto (cartella shop)
+npm install    # Questo installa tutte le dipendenze per backend e frontend
+```
+
+❌ NON NECESSARIO:
+
+```bash
+# NON serve eseguire npm install nelle sottocartelle
+cd backend && npm install    # Non necessario
+cd frontend && npm install   # Non necessario
+```
+
+## Comandi Disponibili
+
+Tutti i comandi vanno eseguiti dalla root del progetto:
+
+### Sviluppo
+
+```bash
+npm run dev          # Avvia in modalità standard
+npm run dev:mcp      # Avvia con MCP per sviluppo
+npm run build        # Build di frontend e backend
+npm run lint         # Lint di frontend e backend
+npm run test         # Test di frontend e backend
+```
+
+### Database
+
+```bash
+# Avvia il database
+npm run prestart
+
+# Reset e seed (dalla cartella backend)
+cd backend
+npx prisma migrate reset --force
+npx prisma db seed
+
+# Visualizza il database
+cd backend
+npx prisma studio
+```
+
+### Docker
+
+```bash
+npm run prestart     # Avvia i container Docker
+npm run stop        # Ferma i container
+npm run stop:all    # Ferma i container e rimuove i volumi
+```
+
+## Troubleshooting
+
+Se incontri problemi:
+
+1. **Il database non si connette**
+
+```bash
+npm run stop:all
+npm run prestart
+npm run db:reset
+```
+
+2. **Errori di dipendenze**
+
+```bash
+# Dalla root del progetto (shop)
+rm -rf node_modules
+rm -rf backend/node_modules
+rm -rf frontend/node_modules
+npm install
+```
+
+3. **Errori di Prisma**
+
+```bash
+cd backend
+npx prisma generate
+```
+
+4. **Errori con MCP**
+
+```bash
+# Ferma tutti i processi
+npm run stop:all
+
+# Riavvia in modalità MCP
+npm run dev:mcp
+```
+
+## Note Importanti
+
+- Il database gira sulla porta 5434 per evitare conflitti con eventuali istanze PostgreSQL locali
+- Prisma Studio è accessibile su http://localhost:5555
+- Il frontend è accessibile su http://localhost:3000
+- Il backend è accessibile su http://localhost:3001
+
+## Porte Utilizzate
+
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
+- Database: http://localhost:5434
+- Prisma Studio: http://localhost:5555

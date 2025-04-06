@@ -1,6 +1,7 @@
 {
   "name": "shop",
   "version": "1.0.0",
+  "packageManager": "npm@10.2.4",
   "private": true,
   "workspaces": [
     "backend",
@@ -31,10 +32,14 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "turbo": "latest",
+    "@types/node": "^22.14.0",
     "concurrently": "^8.2.2",
     "prettier": "^3.1.0",
-    "@types/node": "^22.14.0",
+    "turbo": "latest",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@types/react-router-dom": "^5.3.3",
+    "react-router-dom": "^7.5.0"
   }
 }
