@@ -3208,3 +3208,83 @@ By replying "I ACCEPT", you confirm that you have read and understood this Priva
 ```
 
 This template will be customized for each workspace with specific business information, retention periods, and contact details. The system tracks the version and timestamp of acceptance for compliance purposes.
+
+### Appendix B: Docker Architecture
+
+The ShopMe platform utilizes a containerized architecture with Docker to ensure consistency across development, testing, and production environments. The system is composed of the following containers:
+
+#### 1. Core Application Containers
+
+- **Frontend Container**:
+
+  - Image: Node.js with Nginx
+  - Purpose: Serves the React frontend application
+  - Ports: 80, 443
+  - Volumes: Static assets
+
+- **Backend API Container**:
+
+  - Image: Node.js
+  - Purpose: Runs the Express.js API service
+  - Ports: 3000
+  - Volumes: Logs, uploads
+
+- **n8n Workflow Container**:
+  - Image: n8n (official image)
+  - Purpose: Executes workflow automation
+  - Ports: 5678
+  - Volumes: Workflow data, credentials (encrypted)
+
+#### 2. Database Containers
+
+- **PostgreSQL Container**:
+
+  - Image: PostgreSQL 14
+  - Purpose: Primary database
+  - Ports: 5432
+  - Volumes: Database data, backups
+
+- **Redis Container**:
+  - Image: Redis 6
+  - Purpose: Caching, session management, and queue processing
+  - Ports: 6379
+  - Volumes: Redis data
+
+#### 3. Support Service Containers
+
+- **Nginx Proxy Container**:
+
+  - Image: Nginx
+  - Purpose: Reverse proxy, SSL termination
+  - Ports: 80, 443
+  - Volumes: SSL certificates, configuration
+
+- **Backup Container**:
+
+  - Image: Custom alpine-based
+  - Purpose: Scheduled database backups
+  - Volumes: Backup storage
+
+- **Logger Container**:
+  - Image: Fluentd
+  - Purpose: Centralized logging
+  - Volumes: Log aggregation
+
+#### 4. Development-Only Containers
+
+- **Mailhog Container**:
+
+  - Image: Mailhog
+  - Purpose: Email testing during development
+  - Ports: 1025 (SMTP), 8025 (Web UI)
+
+- **Mock WhatsApp API Container**:
+  - Image: Custom Node.js
+  - Purpose: Simulates WhatsApp Business API for testing
+  - Ports: 3100
+
+#### Container Orchestration
+
+The containers are orchestrated using Docker Compose for local development and testing environments. In staging and production environments on Heroku, we leverage Heroku's container registry and platform services for deployment and management.
+
+Each environment (development, staging, production) has its own Docker Compose configuration with appropriate volume mappings, network settings, and environment-specific variables.
