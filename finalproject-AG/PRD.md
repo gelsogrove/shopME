@@ -3323,3 +3323,60 @@ By replying "I ACCEPT", you confirm that you have read and understood this Priva
 ```
 
 This template will be customized for each workspace with specific business information, retention periods, and contact details. The system tracks the version and timestamp of acceptance for compliance purposes.
+
+## Multi-Tenant Architecture Implementation
+
+The ShopMe platform follows a strict multi-tenant architecture where each client business operates within its own isolated workspace. This architectural approach ensures data isolation, security, and scalability.
+
+### Workspace-Based Data Isolation
+
+1. **Database Implementation**:
+
+   - Every major entity in the database includes a `workspace_id` foreign key reference
+   - Database constraints enforce that entities can only be associated with a single workspace
+   - Queries are always scoped to a specific workspace_id to prevent data leakage between tenants
+   - Database triggers enforce workspace data isolation on insert/update operations
+
+2. **API Request Filtering**:
+
+   - All API endpoints (except authentication) require a workspace context
+   - Workspace identification is handled through:
+     - Explicit `workspace_id` parameter for GET requests
+     - `workspace_id` field in request bodies for POST/PUT requests
+     - JWT token payload containing workspace context for authenticated requests
+   - API middleware automatically applies workspace filtering to all database queries
+   - Attempts to access data across workspaces are blocked with 403 Forbidden responses
+
+3. **User-Workspace Relationship**:
+   - Users can be associated with multiple workspaces through the `user_workspaces` junction table
+   - Each user-workspace association has a specific role (admin, manager, agent, etc.)
+   - Session management includes the active workspace context
+   - Workspace switching requires explicit user action and re-establishing session context
+
+### Security Measures for Tenant Isolation
+
+1. **Query Layer Security**:
+
+   - ORM/Repository layer implements workspace filtering as non-bypassable middleware
+   - Raw SQL queries are prohibited; all database access goes through workspace-aware repositories
+   - Workspace validation occurs at controller, service, and repository levels (defense in depth)
+
+2. **Resource Allocation**:
+
+   - Each workspace has configurable resource limits (API rate limits, storage quotas, etc.)
+   - Resource monitoring tracks usage per workspace
+   - Tenant isolation prevents resource consumption by one tenant from affecting others
+
+3. **Data Export/Import**:
+   - Data export functions include workspace validation
+   - Bulk operations maintain workspace context for all affected records
+   - ETL processes enforce workspace boundaries
+
+The multi-tenant architecture ensures that:
+
+- Each client's data remains completely isolated from other clients
+- API requests are always scoped to the requesting client's workspace
+- Database operations maintain tenant boundaries at all times
+- Users with access to multiple workspaces can only operate within one workspace context at a time
+
+This approach enables the system to securely serve multiple businesses while maintaining strict data separation and optimizing resource utilization.
