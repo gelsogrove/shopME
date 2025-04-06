@@ -456,9 +456,19 @@ This mechanism protects against spam attacks, prevents AI resource waste, and en
 
 To ensure GDPR compliance, the platform implements a structured consent collection process during registration:
 
-1. **Initial Contact**: When a new user sends their first message, after collecting basic information, the system sends a privacy policy summary with the full text link.
+1. **Initial Contact**: When a new user sends their first message, the system sends a welcome message that introduces the service and immediately addresses data privacy:
 
-2. **Consent Request**: The user receives the following message:
+   ```
+   Hello [User Name]! 👋 I'm your ShopMe AI assistant and I'll be helping you explore our Italian products and services.
+
+   Before we begin, I want to reassure you about how we handle your personal data. We prioritize your privacy - your information will never be shared with third parties and is only used to provide you with the best shopping experience.
+
+   You can review our complete Privacy Policy here: [GDPR_POLICY_URL]
+
+   If you're ready to continue, we can get started with your shopping experience today!
+   ```
+
+2. **Consent Request**: After the welcome message, the user receives the formal consent request:
 
    ```
    Before we continue, we need your consent to process your data according to our Privacy Policy
