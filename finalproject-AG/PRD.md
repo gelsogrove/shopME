@@ -481,10 +481,25 @@ To ensure GDPR compliance, the platform implements a structured consent collecti
    ```
 
 3. **Consent Recording**: When the user replies with acceptance:
-
    - The system records the current privacy policy version in `last_privacy_version_accepted`
    - The timestamp is recorded in `privacy_accepted_at`
    - This data is stored in the user profile for audit and compliance purposes
+
+#### Consent Data Storage
+
+The user's privacy consent information is stored in the `clients` table in the database with the following specific fields:
+
+- **`last_privacy_version_accepted`**: A string field that stores the version identifier of the privacy policy that was accepted (e.g., "1.2.0")
+- **`privacy_accepted_at`**: A timestamp field that records the exact date and time when the user provided consent
+
+This implementation allows the system to:
+
+- Track which specific version of the policy each user has accepted
+- Maintain a complete audit trail for GDPR compliance
+- Identify users who need to renew consent when the privacy policy is updated
+- Provide timestamped proof of consent in case of regulatory inquiries
+
+Every time a user interacts with the system, these fields are checked to ensure the user has accepted the current version of the privacy policy. If not, the consent flow is triggered again.
 
 4. **Privacy Updates**: When the privacy policy is updated:
 
