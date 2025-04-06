@@ -3209,3 +3209,44 @@ We use your information to:
 - Comply with legal obligations
 
 4. DATA STORAGE AND SECURITY
+
+Your information is stored securely using industry-standard encryption and security measures. Personal data is pseudonymized when processed by AI services to protect your privacy.
+
+5. SHARING YOUR INFORMATION
+
+We may share your information with:
+- Payment processors (to complete transactions)
+- Delivery services (to fulfill orders)
+- Service providers (who assist in operating our platform)
+- Legal authorities (when required by law)
+
+We never sell your personal data to third parties.
+
+6. YOUR RIGHTS UNDER GDPR
+
+You have the right to:
+- Access your personal data
+- Correct inaccurate data
+- Delete your data ("right to be forgotten")
+- Restrict or object to processing
+- Data portability
+- Withdraw consent at any time
+
+To exercise these rights, send a message with "DATA REQUEST" to our customer service.
+
+7. DATA RETENTION
+
+We retain your data for as long as necessary to provide services and comply with legal obligations. Order information is kept for [X] years for tax and accounting purposes.
+
+8. UPDATES TO THIS POLICY
+
+We may update this policy periodically. When we make significant changes, we will notify you and request fresh consent where required by law.
+
+9. CONTACT US
+
+If you have questions about this Privacy Policy, please contact our Data Protection Officer at [EMAIL].
+
+By replying "I ACCEPT", you confirm that you have read and understood this Privacy Policy and consent to the collection and use of your information as described.
+```
+
+This template will be customized for each workspace with specific business information, retention periods, and contact details. The system tracks the version and timestamp of acceptance for compliance purposes.
