@@ -229,3 +229,83 @@ npm run dev:mcp
 - Backend API: http://localhost:3001
 - Database: http://localhost:5434
 - Prisma Studio: http://localhost:5555
+
+## Task Completati
+
+### TASK-001: Setup Docker environment ✅
+
+- Configurato docker-compose con PostgreSQL, Redis e Adminer
+- Impostati volumi per la persistenza dei dati
+- Configurate variabili d'ambiente
+
+### TASK-002: Configure Prisma ORM ✅
+
+- Schema Prisma completo con tutti i modelli
+- Relazioni e enumerazioni configurate
+- Migrazione iniziale creata e applicata
+- Client Prisma generato
+
+### TASK-003: Create initial seed script ✅
+
+- Script di seed creato con:
+  - Admin user (admin@shop.me)
+  - Workspace demo
+  - 5 categorie (Elettronica, Abbigliamento, Casa, Sport, Libri)
+  - 10 prodotti demo (2 per categoria)
+
+## Credenziali Demo
+
+### Admin User
+
+- Email: admin@shop.me
+- Password: admin123
+
+### Database
+
+- Host: localhost
+- Porta: 5434
+- Database: shop_db
+- Username: postgres
+- Password: postgres
+
+### Redis
+
+- Host: localhost
+- Porta: 6380
+- Password: redis_secure_password
+
+## Configurazione Ambiente
+
+1. Copia il file di esempio delle variabili d'ambiente:
+
+```bash
+cp .env.example .env
+```
+
+2. Configura le variabili d'ambiente nel file `.env`:
+
+### Credenziali Demo
+
+```env
+# Database
+DATABASE_URL="postgresql://postgres:postgres@localhost:5434/shop_db"
+DB_USER=postgres
+DB_PASSWORD=postgres
+
+# Redis
+REDIS_URL="redis://:redis_secure_password@localhost:6380"
+REDIS_PASSWORD=redis_secure_password
+
+# Admin User
+# Email: admin@shop.me
+# Password: admin123
+```
+
+### Porte dei Servizi
+
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
+- Database: localhost:5434
+- Redis: localhost:6380
+- Adminer: http://localhost:8080
+- Prisma Studio: http://localhost:5555

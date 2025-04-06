@@ -1,193 +1,236 @@
 import { PrismaClient } from "@prisma/client"
+import * as bcrypt from "bcrypt"
 
 const prisma = new PrismaClient()
 
 async function main() {
-  // Clean the database in reverse order of dependencies
-  await prisma.orderItems.deleteMany()
-  await prisma.cartItems.deleteMany()
-  await prisma.orders.deleteMany()
-  await prisma.carts.deleteMany()
-  await prisma.products.deleteMany()
-  await prisma.customers.deleteMany()
-  await prisma.prompts.deleteMany()
-  await prisma.settings.deleteMany()
-  await prisma.categories.deleteMany()
-  await prisma.languages.deleteMany()
-  await prisma.workspaces.deleteMany()
+  // Crea l'utente admin
+  const hashedPassword = await bcrypt.hash("admin123", 10)
+  const admin = await prisma.user.create({
+    data: {
+      email: "admin@shop.me",
+      passwordHash: hashedPassword,
+      firstName: "Admin",
+      lastName: "User",
+      status: "ACTIVE",
+    },
+  })
 
-  try {
-    // Create workspace
-    const workspace = await prisma.workspaces.create({
-      data: {
-        name: "Italian Delights",
-        description: "Authentic Italian DOP, IGP, and DOCG products",
-        whatsappPhoneNumber: "+1234567890",
-        whatsappApiToken: "dummy_token",
-        whatsappWebhookUrl: "https://api.italiandelights.com/webhook",
+  // Crea il workspace demo
+  const workspace = await prisma.workspace.create({
+    data: {
+      name: "Demo Shop",
+      slug: "demo-shop",
+      isActive: true,
+      settings: {
+        create: {
+          language: "it",
+          currency: "EUR",
+          timezone: "Europe/Rome",
+        },
       },
-    })
+      users: {
+        create: {
+          userId: admin.id,
+          role: "ADMIN",
+        },
+      },
+    },
+  })
 
-    // Create languages
-    await prisma.languages.createMany({
-      data: [
-        {
-          workspaceId: workspace.id,
-          code: "it",
-          name: "Italiano",
-          isDefault: true,
-        },
-        {
-          workspaceId: workspace.id,
-          code: "en",
-          name: "English",
-          isDefault: false,
-        },
-      ],
-    })
-
-    // Create categories
-    const categories = await prisma.categories.createMany({
-      data: [
-        {
-          workspaceId: workspace.id,
-          name: "Formaggi DOP",
-          description: "Formaggi italiani certificati DOP",
-          slug: "formaggi-dop",
-          imageUrl: "https://example.com/images/formaggi.jpg",
-        },
-        {
-          workspaceId: workspace.id,
-          name: "Aceti e Condimenti",
-          description: "Aceti balsamici e condimenti tradizionali",
-          slug: "aceti-condimenti",
-          imageUrl: "https://example.com/images/aceti.jpg",
-        },
-        {
-          workspaceId: workspace.id,
-          name: "Vini DOCG",
-          description: "Vini italiani certificati DOCG",
-          slug: "vini-docg",
-          imageUrl: "https://example.com/images/vini.jpg",
-        },
-      ],
-    })
-
-    // Create AI prompts
-    const prompts = await prisma.prompts.createMany({
-      data: [
-        {
-          workspaceId: workspace.id,
-          name: "Benvenuto",
-          content:
-            "Ciao! Sono il tuo assistente virtuale di Italian Delights. Come posso aiutarti oggi?",
-          category: "welcome",
-          topP: 0.9,
-          topK: 50,
-          temperature: 0.7,
-        },
-        {
-          workspaceId: workspace.id,
-          name: "Informazioni Prodotto",
-          content:
-            "Ti racconto tutto su questo prodotto italiano certificato...",
-          category: "product_info",
-          topP: 0.8,
-          topK: 40,
-          temperature: 0.6,
-        },
-        {
-          workspaceId: workspace.id,
-          name: "Stato Ordine",
-          content: "Il tuo ordine è in fase di {status}. Ecco i dettagli:",
-          category: "order_status",
-          topP: 0.95,
-          topK: 30,
-          temperature: 0.5,
-        },
-      ],
-    })
-
-    // Get category IDs
-    const [formaggiCategory, acetiCategory, viniCategory] = await Promise.all([
-      prisma.categories.findFirst({ where: { slug: "formaggi-dop" } }),
-      prisma.categories.findFirst({ where: { slug: "aceti-condimenti" } }),
-      prisma.categories.findFirst({ where: { slug: "vini-docg" } }),
-    ])
-
-    // Create products
-    const products = await prisma.products.createMany({
-      data: [
-        {
-          workspaceId: workspace.id,
-          categoryId: formaggiCategory?.id,
-          name: "Parmigiano Reggiano DOP 24 Mesi",
-          description: "Il Re dei Formaggi stagionato 24 mesi",
-          price: 25.9,
-          imageUrl: "https://example.com/images/parmigiano.jpg",
-          certification: "DOP",
-          region: "Emilia-Romagna",
-          producer: "Consorzio Parmigiano Reggiano",
-          origin: "Parma",
-          stock: 100,
-        },
-        {
-          workspaceId: workspace.id,
-          categoryId: acetiCategory?.id,
-          name: "Aceto Balsamico di Modena IGP",
-          description: "Aceto balsamico invecchiato tradizionale",
-          price: 15.5,
-          imageUrl: "https://example.com/images/balsamico.jpg",
-          certification: "IGP",
-          region: "Emilia-Romagna",
-          producer: "Acetaia Tradizionale",
-          origin: "Modena",
-          stock: 150,
-        },
-        {
-          workspaceId: workspace.id,
-          categoryId: viniCategory?.id,
-          name: "Brunello di Montalcino DOCG",
-          description: "Vino rosso pregiato della Toscana",
-          price: 45.0,
-          imageUrl: "https://example.com/images/brunello.jpg",
-          certification: "DOCG",
-          region: "Toscana",
-          producer: "Cantina Storica",
-          origin: "Montalcino",
-          stock: 75,
-        },
-      ],
-    })
-
-    // Create a demo customer
-    const customer = await prisma.customers.create({
+  // Crea le categorie
+  const categories = await Promise.all([
+    prisma.categories.create({
       data: {
+        name: "Elettronica",
+        slug: "elettronica",
+        description: "Prodotti elettronici e accessori",
         workspaceId: workspace.id,
-        whatsappNumber: "+1987654321",
-        name: "Mario Rossi",
-        email: "mario.rossi@example.com",
+        isActive: true,
       },
-    })
-
-    // Create a cart for the customer
-    const cart = await prisma.carts.create({
+    }),
+    prisma.categories.create({
       data: {
+        name: "Abbigliamento",
+        slug: "abbigliamento",
+        description: "Vestiti e accessori moda",
         workspaceId: workspace.id,
-        customerId: customer.id,
+        isActive: true,
       },
-    })
+    }),
+    prisma.categories.create({
+      data: {
+        name: "Casa",
+        slug: "casa",
+        description: "Articoli per la casa e arredamento",
+        workspaceId: workspace.id,
+        isActive: true,
+      },
+    }),
+    prisma.categories.create({
+      data: {
+        name: "Sport",
+        slug: "sport",
+        description: "Attrezzatura e abbigliamento sportivo",
+        workspaceId: workspace.id,
+        isActive: true,
+      },
+    }),
+    prisma.categories.create({
+      data: {
+        name: "Libri",
+        slug: "libri",
+        description: "Libri, ebook e audiolibri",
+        workspaceId: workspace.id,
+        isActive: true,
+      },
+    }),
+  ])
 
-    console.log("Seed data created successfully!")
-    console.log({
-      workspace: workspace.id,
-      customer: customer.id,
-      cart: cart.id,
-    })
-  } catch (error) {
-    console.error("Error seeding data:", error)
-    throw error
-  }
+  // Crea i prodotti demo
+  const products = await Promise.all([
+    // Elettronica
+    prisma.products.create({
+      data: {
+        name: "Smartphone XYZ",
+        slug: "smartphone-xyz",
+        description: "Smartphone di ultima generazione",
+        price: 599.99,
+        stock: 50,
+        categoryId: categories[0].id,
+        workspaceId: workspace.id,
+        status: "ACTIVE",
+        isActive: true,
+      },
+    }),
+    prisma.products.create({
+      data: {
+        name: "Laptop Pro",
+        slug: "laptop-pro",
+        description: "Laptop professionale per lavoro e gaming",
+        price: 1299.99,
+        stock: 20,
+        categoryId: categories[0].id,
+        workspaceId: workspace.id,
+        status: "ACTIVE",
+        isActive: true,
+      },
+    }),
+    // Abbigliamento
+    prisma.products.create({
+      data: {
+        name: "T-Shirt Premium",
+        slug: "t-shirt-premium",
+        description: "T-Shirt in cotone 100%",
+        price: 29.99,
+        stock: 100,
+        categoryId: categories[1].id,
+        workspaceId: workspace.id,
+        status: "ACTIVE",
+        isActive: true,
+      },
+    }),
+    prisma.products.create({
+      data: {
+        name: "Jeans Classic",
+        slug: "jeans-classic",
+        description: "Jeans classico blu",
+        price: 79.99,
+        stock: 75,
+        categoryId: categories[1].id,
+        workspaceId: workspace.id,
+        status: "ACTIVE",
+        isActive: true,
+      },
+    }),
+    // Casa
+    prisma.products.create({
+      data: {
+        name: "Lampada Design",
+        slug: "lampada-design",
+        description: "Lampada moderna da tavolo",
+        price: 89.99,
+        stock: 30,
+        categoryId: categories[2].id,
+        workspaceId: workspace.id,
+        status: "ACTIVE",
+        isActive: true,
+      },
+    }),
+    prisma.products.create({
+      data: {
+        name: "Set Cucina",
+        slug: "set-cucina",
+        description: "Set completo di pentole e padelle",
+        price: 199.99,
+        stock: 25,
+        categoryId: categories[2].id,
+        workspaceId: workspace.id,
+        status: "ACTIVE",
+        isActive: true,
+      },
+    }),
+    // Sport
+    prisma.products.create({
+      data: {
+        name: "Tapis Roulant",
+        slug: "tapis-roulant",
+        description: "Tapis roulant professionale",
+        price: 799.99,
+        stock: 10,
+        categoryId: categories[3].id,
+        workspaceId: workspace.id,
+        status: "ACTIVE",
+        isActive: true,
+      },
+    }),
+    prisma.products.create({
+      data: {
+        name: "Set Pesi",
+        slug: "set-pesi",
+        description: "Set completo di pesi per allenamento",
+        price: 149.99,
+        stock: 40,
+        categoryId: categories[3].id,
+        workspaceId: workspace.id,
+        status: "ACTIVE",
+        isActive: true,
+      },
+    }),
+    // Libri
+    prisma.products.create({
+      data: {
+        name: "Best Seller 2024",
+        slug: "best-seller-2024",
+        description: "Il libro più venduto del 2024",
+        price: 19.99,
+        stock: 150,
+        categoryId: categories[4].id,
+        workspaceId: workspace.id,
+        status: "ACTIVE",
+        isActive: true,
+      },
+    }),
+    prisma.products.create({
+      data: {
+        name: "Corso di Programmazione",
+        slug: "corso-programmazione",
+        description: "Guida completa alla programmazione moderna",
+        price: 49.99,
+        stock: 60,
+        categoryId: categories[4].id,
+        workspaceId: workspace.id,
+        status: "ACTIVE",
+        isActive: true,
+      },
+    }),
+  ])
+
+  console.log(`Seed completato con successo!`)
+  console.log(`- Admin user creato: ${admin.email}`)
+  console.log(`- Workspace demo creato: ${workspace.name}`)
+  console.log(`- Categorie create: ${categories.length}`)
+  console.log(`- Prodotti creati: ${products.length}`)
 }
 
 main()

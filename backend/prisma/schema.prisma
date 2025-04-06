@@ -73,6 +73,7 @@ enum ChannelType {
 model Workspace {
   id                  String    @id @default(uuid())
   name                String    @db.VarChar(100)
+  slug                String    @unique
   description         String?
   whatsappPhoneNumber String?
   whatsappApiToken    String?
@@ -101,6 +102,7 @@ model Workspace {
 model Categories {
   id          String    @id @default(uuid())
   name        String
+  slug        String    @unique
   description String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -133,10 +135,12 @@ model Languages {
 model Products {
   id          String    @id @default(uuid())
   name        String
+  slug        String    @unique
   description String?
   price       Float
   stock       Int       @default(0)
   sku         String?
+  status      ProductStatus @default(ACTIVE)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   isActive    Boolean   @default(true)
@@ -241,6 +245,7 @@ model Settings {
   theme       String    @default("light")
   language    String    @default("en")
   currency    String    @default("USD")
+  timezone    String    @default("UTC")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
