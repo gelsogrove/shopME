@@ -13,7 +13,10 @@ export default {
     expiresIn: "1d",
   },
   cors: {
-    origin: ["http://localhost:3000"], // Frontend URL
+    origin: [
+      "http://localhost:3000", // Frontend
+      "http://localhost:5678", // n8n
+    ],
     credentials: true,
   },
   logging: {

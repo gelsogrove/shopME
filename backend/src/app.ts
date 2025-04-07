@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client"
-import cors from "cors"
 import express, { RequestHandler } from "express"
 import path from "path"
 import swaggerUi from "swagger-ui-express"
@@ -14,19 +13,22 @@ import { WorkspaceController } from "./interfaces/http/controllers/workspace.con
 import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware"
 import { loggingMiddleware } from "./interfaces/http/middlewares/logging.middleware"
 import { requestIdMiddleware } from "./interfaces/http/middlewares/request-id.middleware"
+import { setupSecurity } from "./interfaces/http/middlewares/security.middleware"
 import { workspaceRouter } from "./interfaces/http/routes/workspace.routes"
 import logger from "./utils/logger"
 
 const app = express()
 
-// Basic middleware
-app.use(cors())
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+// Setup security middleware (CORS and Helmet)
+setupSecurity(app)
 
 // Request tracking and logging middleware
 app.use(requestIdMiddleware as RequestHandler)
 app.use(loggingMiddleware as RequestHandler)
+
+// Body parsing middleware
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
 // Swagger documentation
 const swaggerDocument = YAML.load(path.join(__dirname, "../swagger.yaml"))

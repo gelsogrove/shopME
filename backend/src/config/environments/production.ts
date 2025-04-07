@@ -13,7 +13,10 @@ export default {
     expiresIn: "7d",
   },
   cors: {
-    origin: [process.env.FRONTEND_URL || "http://localhost:3000"], // Production frontend URL with fallback
+    origin: [
+      process.env.FRONTEND_URL || "http://localhost:3000", // Frontend
+      process.env.N8N_URL || "http://localhost:5678", // n8n
+    ],
     credentials: true,
   },
   logging: {
