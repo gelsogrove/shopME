@@ -9,7 +9,6 @@ import { GetWorkspaceUseCase } from "./application/use-cases/workspace/get-works
 import { ListWorkspacesUseCase } from "./application/use-cases/workspace/list-workspaces.use-case"
 import { UpdateWorkspaceUseCase } from "./application/use-cases/workspace/update-workspace.use-case"
 import { WorkspaceRepository } from "./infrastructure/repositories/workspace.repository"
-import { RedisClient } from "./infrastructure/services/redis.client"
 import { HealthController } from "./interfaces/http/controllers/health.controller"
 import { WorkspaceController } from "./interfaces/http/controllers/workspace.controller"
 import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware"
@@ -35,7 +34,6 @@ app.use(express.urlencoded({ extended: true }))
 
 // Initialize services
 const prisma = new PrismaClient()
-const redis = new RedisClient()
 
 // Initialize repositories
 const workspaceRepository = new WorkspaceRepository(prisma)
@@ -48,7 +46,7 @@ const updateWorkspaceUseCase = new UpdateWorkspaceUseCase(workspaceRepository)
 const deleteWorkspaceUseCase = new DeleteWorkspaceUseCase(workspaceRepository)
 
 // Initialize controllers
-const healthController = new HealthController(prisma, redis)
+const healthController = new HealthController(prisma)
 const workspaceController = new WorkspaceController({
   createWorkspaceUseCase,
   getWorkspaceUseCase,
