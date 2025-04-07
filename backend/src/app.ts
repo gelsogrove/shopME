@@ -9,11 +9,14 @@ import { GetWorkspaceUseCase } from "./application/use-cases/workspace/get-works
 import { ListWorkspacesUseCase } from "./application/use-cases/workspace/list-workspaces.use-case"
 import { UpdateWorkspaceUseCase } from "./application/use-cases/workspace/update-workspace.use-case"
 import { WorkspaceRepository } from "./infrastructure/repositories/workspace.repository"
+import { RedisClient } from "./infrastructure/services/redis.client"
+import { HealthController } from "./interfaces/http/controllers/health.controller"
 import { WorkspaceController } from "./interfaces/http/controllers/workspace.controller"
 import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware"
 import { loggingMiddleware } from "./interfaces/http/middlewares/logging.middleware"
 import { requestIdMiddleware } from "./interfaces/http/middlewares/request-id.middleware"
 import { setupSecurity } from "./interfaces/http/middlewares/security.middleware"
+import { healthRouter } from "./interfaces/http/routes/health.routes"
 import { workspaceRouter } from "./interfaces/http/routes/workspace.routes"
 import logger from "./utils/logger"
 
@@ -30,12 +33,11 @@ app.use(loggingMiddleware as RequestHandler)
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-// Swagger documentation
-const swaggerDocument = YAML.load(path.join(__dirname, "../swagger.yaml"))
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+// Initialize services
+const prisma = new PrismaClient()
+const redis = new RedisClient()
 
 // Initialize repositories
-const prisma = new PrismaClient()
 const workspaceRepository = new WorkspaceRepository(prisma)
 
 // Initialize use cases
@@ -46,6 +48,7 @@ const updateWorkspaceUseCase = new UpdateWorkspaceUseCase(workspaceRepository)
 const deleteWorkspaceUseCase = new DeleteWorkspaceUseCase(workspaceRepository)
 
 // Initialize controllers
+const healthController = new HealthController(prisma, redis)
 const workspaceController = new WorkspaceController({
   createWorkspaceUseCase,
   getWorkspaceUseCase,
@@ -55,7 +58,16 @@ const workspaceController = new WorkspaceController({
 })
 
 // Routes
+app.use("/health", healthRouter(healthController))
 app.use("/api/workspaces", workspaceRouter(workspaceController))
+
+// Swagger documentation
+const swaggerDocument = YAML.load(path.join(__dirname, "../swagger.yaml"))
+app.use("/api-docs", swaggerUi.serve as unknown as express.RequestHandler[])
+app.use(
+  "/api-docs",
+  swaggerUi.setup(swaggerDocument) as unknown as express.RequestHandler
+)
 
 // Error handling middleware
 app.use(errorMiddleware)
