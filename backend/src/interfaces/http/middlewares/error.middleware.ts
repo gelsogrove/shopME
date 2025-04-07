@@ -3,28 +3,27 @@ import logger from "../../../utils/logger"
 
 export class AppError extends Error {
   constructor(
-    public readonly statusCode: number,
-    message: string,
-    public readonly code?: string
+    public statusCode: number,
+    message: string
   ) {
     super(message)
     this.name = "AppError"
+    Error.captureStackTrace(this, this.constructor)
   }
 }
 
 export const errorMiddleware = (
-  error: Error,
-  _req: Request,
+  err: Error,
+  req: Request,
   res: Response,
-  _next: NextFunction
+  next: NextFunction
 ): void => {
-  logger.error("Error:", error)
+  logger.error("Error:", err)
 
-  if (error instanceof AppError) {
-    res.status(error.statusCode).json({
+  if (err instanceof AppError) {
+    res.status(err.statusCode).json({
       status: "error",
-      message: error.message,
-      code: error.code,
+      message: err.message,
     })
     return
   }

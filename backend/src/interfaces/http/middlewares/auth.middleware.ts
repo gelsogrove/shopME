@@ -1,14 +1,16 @@
+import { UserRole } from "@prisma/client"
 import { NextFunction, Request, Response } from "express"
 import jwt from "jsonwebtoken"
-import config from "../../../config"
+import { config } from "../../../config"
 import { AppError } from "./error.middleware"
 
 declare global {
   namespace Express {
     interface Request {
-      user?: {
+      user: {
         id: string
-        workspaceId: string
+        email: string
+        role: UserRole
       }
     }
   }
@@ -16,7 +18,8 @@ declare global {
 
 interface JwtPayload {
   id: string
-  workspaceId: string
+  email: string
+  role: UserRole
 }
 
 export const authMiddleware = (
@@ -25,18 +28,19 @@ export const authMiddleware = (
   next: NextFunction
 ): void => {
   const authHeader = req.headers.authorization
-  if (!authHeader) {
-    throw new AppError(401, "No authorization header")
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw new AppError(401, "No token provided")
   }
 
-  const [type, token] = authHeader.split(" ")
-  if (type !== "Bearer") {
-    throw new AppError(401, "Invalid authorization type")
-  }
+  const token = authHeader.split(" ")[1]
 
   try {
     const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload
-    req.user = decoded
+    req.user = {
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role,
+    }
     next()
   } catch (error) {
     throw new AppError(401, "Invalid token")
