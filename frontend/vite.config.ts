@@ -4,7 +4,11 @@ import { defineConfig } from "vite"
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      include: "**/*.{jsx,tsx}",
+    }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -16,8 +20,9 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:3001",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
+        secure: false,
       },
     },
   },
+  assetsInclude: ["**/*.svg"],
 })

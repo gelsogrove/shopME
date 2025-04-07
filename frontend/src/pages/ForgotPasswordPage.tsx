@@ -6,37 +6,31 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
 
-export function LoginPage() {
+export function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const navigate = useNavigate()
+  const [success, setSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setSuccess(false)
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || "Login failed")
+        throw new Error(data.message || "Failed to send reset email")
       }
 
-      // Store the token and user info
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("user", JSON.stringify(data.user))
-
-      // Redirect to workspace selection page after successful login
-      navigate("/workspace-selection")
+      setSuccess(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     }
@@ -46,14 +40,21 @@ export function LoginPage() {
     <div className="container flex h-screen items-center justify-center">
       <Card className="w-[400px]">
         <CardHeader className="text-center">
-          <CardTitle>Welcome Back</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+          <CardTitle>Reset Password</CardTitle>
+          <CardDescription>
+            Enter your email to reset your password
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="rounded-md bg-red-50 p-2 text-sm text-red-500">
                 {error}
+              </div>
+            )}
+            {success && (
+              <div className="rounded-md bg-green-50 p-2 text-sm text-green-500">
+                Password reset instructions have been sent to your email
               </div>
             )}
             <div className="space-y-2">
@@ -66,31 +67,15 @@ export function LoginPage() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none"
-                required
-              />
-            </div>
             <button
               type="submit"
               className="w-full rounded-md bg-green-500 py-2 text-white hover:bg-green-600"
             >
-              Sign In
+              Reset Password
             </button>
-            <div className="flex justify-between text-sm">
-              <a
-                href="/auth/forgot-password"
-                className="text-blue-500 hover:underline"
-              >
-                Forgot Password?
-              </a>
-              <a href="/auth/signup" className="text-blue-500 hover:underline">
-                Create Account
+            <div className="text-center text-sm">
+              <a href="/auth/login" className="text-blue-500 hover:underline">
+                Back to Login
               </a>
             </div>
           </form>

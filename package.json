@@ -10,6 +10,7 @@
   "description": "Italian Products E-commerce Platform",
   "scripts": {
     "prestart": "docker compose up -d",
+    "start:mcp": "npx @agentdeskai/browser-tools-server@latest",
     "start": "turbo run start",
     "cleanup": "kill-port --kill-timeout 5000 3000 3001 5000 5001 27017 6379",
     "dev": "npm run cleanup && turbo run dev",

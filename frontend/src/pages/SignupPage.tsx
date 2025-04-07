@@ -8,9 +8,10 @@ import {
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 
-export function LoginPage() {
+export function SignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
   const navigate = useNavigate()
 
@@ -18,8 +19,13 @@ export function LoginPage() {
     e.preventDefault()
     setError("")
 
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      return
+    }
+
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -28,15 +34,11 @@ export function LoginPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || "Login failed")
+        throw new Error(data.message || "Registration failed")
       }
 
-      // Store the token and user info
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("user", JSON.stringify(data.user))
-
-      // Redirect to workspace selection page after successful login
-      navigate("/workspace-selection")
+      // Se la registrazione ha successo, reindirizza alla pagina di verifica OTP
+      navigate(`/auth/verify-otp?userId=${data.userId}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     }
@@ -46,8 +48,8 @@ export function LoginPage() {
     <div className="container flex h-screen items-center justify-center">
       <Card className="w-[400px]">
         <CardHeader className="text-center">
-          <CardTitle>Welcome Back</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+          <CardTitle>Create Account</CardTitle>
+          <CardDescription>Sign up for a new account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -76,21 +78,25 @@ export function LoginPage() {
                 required
               />
             </div>
+            <div className="space-y-2">
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none"
+                required
+              />
+            </div>
             <button
               type="submit"
               className="w-full rounded-md bg-green-500 py-2 text-white hover:bg-green-600"
             >
-              Sign In
+              Sign Up
             </button>
-            <div className="flex justify-between text-sm">
-              <a
-                href="/auth/forgot-password"
-                className="text-blue-500 hover:underline"
-              >
-                Forgot Password?
-              </a>
-              <a href="/auth/signup" className="text-blue-500 hover:underline">
-                Create Account
+            <div className="text-center text-sm">
+              <a href="/auth/login" className="text-blue-500 hover:underline">
+                Already have an account? Sign in
               </a>
             </div>
           </form>

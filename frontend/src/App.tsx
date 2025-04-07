@@ -1,29 +1,39 @@
-import { Layout } from "@/components/layout/Layout"
-import { AnalyticsPage } from "@/pages/AnalyticsPage"
-import { ChatPage } from "@/pages/ChatPage"
-import ClientsPage from "@/pages/ClientsPage"
-import { CustomersPage } from "@/pages/CustomersPage"
-import DashboardPage from "@/pages/DashboardPage"
-import { LoginPage } from "@/pages/LoginPage"
-import NotificationsPage from "@/pages/NotificationsPage"
-import OrdersPage from "@/pages/OrdersPage"
-import CategoriesPage from "@/pages/products/CategoriesPage"
-import { ProductsPage } from "@/pages/ProductsPage"
-import { PromptsPage } from "@/pages/PromptsPage"
-import ServicesPage from "@/pages/ServicesPage"
-import { ChannelTypesPage } from "@/pages/settings/ChannelTypesPage"
-import { LanguagesPage } from "@/pages/settings/LanguagesPage"
-import { SettingsPage } from "@/pages/SettingsPage"
-import { WorkspacePage } from "@/pages/WorkspacePage"
-import { WorkspaceSelectionPage } from "@/pages/WorkspaceSelectionPage"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
+import { Layout } from "./components/layout/Layout"
+import { AnalyticsPage } from "./pages/AnalyticsPage"
+import SignupPage from "./pages/auth/SignupPage"
+import { ChatPage } from "./pages/ChatPage"
+import ClientsPage from "./pages/ClientsPage"
+import { CustomersPage } from "./pages/CustomersPage"
+import DashboardPage from "./pages/DashboardPage"
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage"
+import { LoginPage } from "./pages/LoginPage"
+import NotificationsPage from "./pages/NotificationsPage"
+import OrdersPage from "./pages/OrdersPage"
+import CategoriesPage from "./pages/products/CategoriesPage"
+import { ProductsPage } from "./pages/ProductsPage"
+import { PromptsPage } from "./pages/PromptsPage"
+import ServicesPage from "./pages/ServicesPage"
+import { ChannelTypesPage } from "./pages/settings/ChannelTypesPage"
+import { LanguagesPage } from "./pages/settings/LanguagesPage"
+import { SettingsPage } from "./pages/SettingsPage"
+import { VerifyOtpPage } from "./pages/VerifyOtpPage"
+import { WorkspacePage } from "./pages/WorkspacePage"
+import { WorkspaceSelectionPage } from "./pages/WorkspaceSelectionPage"
 
 export function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<LoginPage />} />
+        {/* Auth Routes */}
+        <Route path="/auth">
+          <Route path="login" element={<LoginPage />} />
+          <Route path="signup" element={<SignupPage />} />
+          <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="verify-otp" element={<VerifyOtpPage />} />
+        </Route>
+
+        {/* Protected Routes */}
         <Route
           path="/workspace-selection"
           element={<WorkspaceSelectionPage />}
@@ -67,6 +77,9 @@ export function App() {
         <Route path="/workspace" element={<Layout />}>
           <Route index element={<WorkspacePage />} />
         </Route>
+
+        {/* Redirect root to login */}
+        <Route path="/" element={<Navigate to="/auth/login" replace />} />
       </Routes>
     </BrowserRouter>
   )
