@@ -1,27 +1,36 @@
 import { NextFunction, Request, Response } from "express"
-import logger from "../../utils/logger"
+import logger from "../../../utils/logger"
 
 export class AppError extends Error {
   constructor(
-    public statusCode: number,
-    public message: string,
-    public isOperational = true
+    public readonly statusCode: number,
+    message: string,
+    public readonly code?: string
   ) {
     super(message)
-    Object.setPrototypeOf(this, AppError.prototype)
+    this.name = "AppError"
   }
 }
 
 export const errorMiddleware = (
-  err: Error,
-  req: Request,
+  error: Error,
+  _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void => {
-  logger.error(err.message, { stack: err.stack })
+  logger.error("Error:", error)
+
+  if (error instanceof AppError) {
+    res.status(error.statusCode).json({
+      status: "error",
+      message: error.message,
+      code: error.code,
+    })
+    return
+  }
 
   res.status(500).json({
     status: "error",
-    message: "Internal Server Error",
+    message: "Internal server error",
   })
 }

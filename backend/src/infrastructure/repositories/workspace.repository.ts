@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, Workspace as PrismaWorkspace } from "@prisma/client"
 import { UpdateWorkspaceDTO } from "../../application/dtos/workspace.dto"
 import { IWorkspaceRepository } from "../../application/interfaces/workspace.repository"
 import { Workspace } from "../../domain/entities/workspace.entity"
@@ -7,7 +7,7 @@ export class WorkspaceRepository implements IWorkspaceRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(workspace: Workspace): Promise<Workspace> {
-    return this.prisma.workspace.create({
+    const created = await this.prisma.workspace.create({
       data: {
         id: workspace.id,
         name: workspace.name,
@@ -19,6 +19,7 @@ export class WorkspaceRepository implements IWorkspaceRepository {
         isActive: workspace.isActive,
       },
     })
+    return this.mapToEntity(created)
   }
 
   async findById(id: string): Promise<Workspace | null> {
@@ -54,7 +55,7 @@ export class WorkspaceRepository implements IWorkspaceRepository {
     })
   }
 
-  private mapToEntity(data: any): Workspace {
+  private mapToEntity(data: PrismaWorkspace): Workspace {
     return new Workspace(
       data.id,
       data.name,

@@ -6,8 +6,8 @@ import { Card } from "../components/ui/card"
 import { Input } from "../components/ui/input"
 
 export function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState("admin@shop.me")
+  const [password, setPassword] = useState("admin123")
   const [error, setError] = useState("")
   const [isResetMode, setIsResetMode] = useState(false)
   const navigate = useNavigate()
@@ -23,11 +23,29 @@ export function LoginPage() {
       return
     }
 
-    if (email === "admin@admin.it" && password === "pwd") {
-      navigate("/workspace-selection")
-    } else {
-      setError("Invalid email or password")
-    }
+    // Make API call to /api/auth/login
+    fetch("http://localhost:3001/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Invalid credentials")
+        }
+        return response.json()
+      })
+      .then((data) => {
+        // Store the token
+        localStorage.setItem("token", data.token)
+        // Redirect to workspace selection
+        navigate("/workspace-selection")
+      })
+      .catch((error) => {
+        setError("Invalid email or password")
+      })
   }
 
   return (

@@ -1,17 +1,21 @@
 import { PrismaClient } from "@prisma/client"
-import express from "express"
+import app from "./app"
 
+const PORT = process.env.PORT || 3001
 const prisma = new PrismaClient()
-const app = express()
-const port = process.env.PORT || 3001
 
-app.use(express.json())
+async function startServer() {
+  try {
+    await prisma.$connect()
+    console.log("Connected to database")
 
-// Test route
-app.get("/", (req, res) => {
-  res.json({ message: "Backend is running!" })
-})
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`)
+    })
+  } catch (error) {
+    console.error("Failed to start server:", error)
+    process.exit(1)
+  }
+}
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`)
-})
+startServer()

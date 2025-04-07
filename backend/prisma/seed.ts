@@ -226,6 +226,19 @@ async function main() {
     }),
   ])
 
+  // Create test user
+  const testPassword = await bcrypt.hash("password123", 10)
+  const testUser = await prisma.user.create({
+    data: {
+      email: "test@example.com",
+      passwordHash: testPassword,
+      firstName: "Test",
+      lastName: "User",
+      status: "ACTIVE",
+    },
+  })
+  console.log("Created test user:", testUser)
+
   console.log(`Seed completato con successo!`)
   console.log(`- Admin user creato: ${admin.email}`)
   console.log(`- Workspace demo creato: ${workspace.name}`)

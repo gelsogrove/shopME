@@ -1,5 +1,6 @@
 export interface CreateWorkspaceDTO {
   name: string
+  slug: string
   description?: string
   whatsappPhoneNumber?: string
   whatsappApiToken?: string
@@ -9,6 +10,7 @@ export interface CreateWorkspaceDTO {
 
 export interface UpdateWorkspaceDTO {
   name?: string
+  slug?: string
   description?: string
   whatsappPhoneNumber?: string
   whatsappApiToken?: string

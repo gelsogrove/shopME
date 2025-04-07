@@ -4,10 +4,6 @@ export default {
   database: {
     url: process.env.DATABASE_URL,
   },
-  redis: {
-    url: process.env.REDIS_URL,
-    password: process.env.REDIS_PASSWORD,
-  },
   jwt: {
     secret: process.env.JWT_SECRET || "development-secret",
     expiresIn: "1d",

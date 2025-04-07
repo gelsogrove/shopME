@@ -11,8 +11,9 @@
   "scripts": {
     "prestart": "docker compose up -d",
     "start": "turbo run start",
-    "dev": "turbo run dev",
-    "dev:mcp": "concurrently \"npm run prestart\" \"cd backend && npm run dev\" \"cd frontend && npm run start:mcp\"",
+    "cleanup": "kill-port --kill-timeout 5000 3000 3001 5000 5001 27017 6379",
+    "dev": "npm run cleanup && turbo run dev",
+    "dev:mcp": "npm run cleanup && concurrently \"npm run prestart\" \"cd backend && npm run dev\" \"cd frontend && npm run start:mcp\"",
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
@@ -34,12 +35,15 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "concurrently": "^8.2.2",
+    "kill-port": "^2.0.1",
     "prettier": "^3.1.0",
     "turbo": "latest",
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@types/ioredis": "^4.28.10",
     "@types/react-router-dom": "^5.3.3",
+    "ioredis": "^5.6.0",
     "react-router-dom": "^7.5.0"
   }
 }

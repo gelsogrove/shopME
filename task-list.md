@@ -15,4 +15,8 @@
   - [x] Update app.ts to include health check route
   - [x] Remove Redis as it's not needed for this application
 
-- [ ] TASK-010: Set up error handling and logging
+- [x] TASK-010: Set up error handling and logging
+
+  - [x] Create error handling middleware
+  - [x] Configure logging with winston
+  - [x] Integrate error handling and logging into app.ts

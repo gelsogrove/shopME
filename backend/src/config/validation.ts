@@ -3,8 +3,6 @@ import { Config } from "./index"
 export function validateConfig(config: Config): void {
   const requiredFields = {
     "database.url": config.database.url,
-    "redis.url": config.redis.url,
-    "redis.password": config.redis.password,
     "jwt.secret": config.jwt.secret,
   }
 

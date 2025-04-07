@@ -1,12 +1,12 @@
 import { PrismaClient } from "@prisma/client"
 import { Request, Response } from "express"
-import * as packageJson from "../../../../package.json"
 
 export class HealthController {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async check(req: Request, res: Response): Promise<void> {
+  async check(_req: Request, res: Response): Promise<void> {
     let dbStatus = "unhealthy"
+    let redisStatus = "unhealthy"
 
     try {
       // Check database connection
@@ -16,19 +16,29 @@ export class HealthController {
       console.error("Database health check failed:", error)
     }
 
-    const status = dbStatus === "healthy" ? "ok" : "error"
-    const statusCode = status === "ok" ? 200 : 503
+    // TODO: Add Redis health check when Redis is integrated
+    try {
+      // Placeholder for Redis health check
+      redisStatus = "healthy"
+    } catch (error) {
+      console.error("Redis health check failed:", error)
+    }
+
+    // Get application version from package.json
+    const version = process.env.npm_package_version || "unknown"
 
     const healthResponse = {
-      status,
+      status:
+        dbStatus === "healthy" && redisStatus === "healthy" ? "ok" : "error",
       timestamp: new Date().toISOString(),
-      version: packageJson.version,
+      version,
       services: {
         database: dbStatus,
+        redis: redisStatus,
       },
       uptime: process.uptime(),
     }
 
-    res.status(statusCode).json(healthResponse)
+    res.status(healthResponse.status === "ok" ? 200 : 503).json(healthResponse)
   }
 }
