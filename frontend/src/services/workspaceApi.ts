@@ -43,4 +43,12 @@ export const workspaceApi = {
   async delete(id: string): Promise<void> {
     await api.delete(`/workspaces/${id}`)
   },
+
+  async toggleStatus(id: string): Promise<Workspace> {
+    const workspace = await this.getById(id)
+    const response = await api.put(`/workspaces/${id}`, {
+      isActive: !workspace.isActive,
+    })
+    return response.data
+  },
 }

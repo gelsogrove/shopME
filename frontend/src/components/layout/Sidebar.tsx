@@ -15,11 +15,6 @@ import { NavLink } from "react-router-dom"
 
 const mainLinks = [
   {
-    href: "/dashboard",
-    label: "Dashboard",
-    icon: LayoutGrid,
-  },
-  {
     href: "/chat",
     label: "Chat History",
     icon: MessageSquare,
@@ -58,6 +53,11 @@ const mainLinks = [
     href: "/prompts",
     label: "Prompts",
     icon: MessageSquare,
+  },
+  {
+    href: "/analytics",
+    label: "Analytics",
+    icon: LayoutGrid,
   },
 ]
 

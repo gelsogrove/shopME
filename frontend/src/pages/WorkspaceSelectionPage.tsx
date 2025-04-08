@@ -46,8 +46,8 @@ export function WorkspaceSelectionPage() {
       workspace.whatsappPhoneNumber || workspace.name
     )
 
-    // Reindirizza al dashboard dopo la selezione
-    navigate("/dashboard")
+    // Reindirizza alla chat history dopo la selezione
+    navigate("/chat")
   }
 
   // Gestisce la creazione di un nuovo workspace
@@ -91,14 +91,28 @@ export function WorkspaceSelectionPage() {
     }
   }
 
+  const handleToggleStatus = async (id: string) => {
+    try {
+      setIsLoading(true)
+      const updatedWorkspace = await workspaceApi.toggleStatus(id)
+      setWorkspaces(
+        workspaces.map((workspace) =>
+          workspace.id === id ? updatedWorkspace : workspace
+        )
+      )
+    } catch (error) {
+      setErrorMessage("Failed to toggle workspace status")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-2">
-          Your WhatsApp numbers
-        </h1>
+        <h1 className="text-3xl font-bold text-center mb-2">Your Channels</h1>
         <p className="text-center text-gray-600 mb-8">
-          Select a number to manage its conversations
+          Select a channel to manage its conversations or create a new one
         </p>
 
         {errorMessage && (
@@ -107,30 +121,70 @@ export function WorkspaceSelectionPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Lista dei workspace esistenti */}
           {workspaces.map((workspace) => (
             <Card
               key={workspace.id}
-              className={`hover:shadow-md transition-shadow cursor-pointer border ${
+              className={`transition-all cursor-pointer border ${
                 justCreatedId === workspace.id ? "ring-2 ring-green-500" : ""
-              }`}
+              } ${!workspace.isActive ? "opacity-50" : ""}`}
               onClick={() => handleSelectWorkspace(workspace)}
             >
               <CardContent className="p-6">
-                <div className="text-lg font-semibold">
-                  {workspace.whatsappPhoneNumber || workspace.name}
-                </div>
-                <div className="text-sm text-gray-500 mt-1">
-                  Last access: {new Date(workspace.updatedAt).toLocaleString()}
-                </div>
-                {justCreatedId === workspace.id && (
-                  <div className="mt-4">
-                    <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                      New
-                    </span>
+                <div className="space-y-2 min-w-0 w-full">
+                  <div className="text-lg font-semibold truncate flex items-center justify-between">
+                    <span>{workspace.name}</span>
+                    <div
+                      className="relative inline-block w-12 h-6 rounded-full bg-gray-200"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleToggleStatus(workspace.id)
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={workspace.isActive}
+                        onChange={() => {}}
+                      />
+                      <span
+                        className={`absolute inset-0 rounded-full transition peer-checked:bg-green-500`}
+                      />
+                      <span
+                        className={`absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition transform peer-checked:translate-x-6`}
+                      />
+                    </div>
                   </div>
-                )}
+                  <div className="text-sm text-gray-500">Type: Shop</div>
+                  {workspace.whatsappPhoneNumber && (
+                    <div className="text-xl text-green-600 flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                      </svg>
+                      <span className="truncate">
+                        {workspace.whatsappPhoneNumber}
+                      </span>
+                    </div>
+                  )}
+                  {justCreatedId === workspace.id && (
+                    <div className="mt-2">
+                      <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                        New
+                      </span>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -147,23 +201,23 @@ export function WorkspaceSelectionPage() {
           >
             <CardContent className="p-6 flex flex-col items-center justify-center">
               <PlusCircle className="h-12 w-12 text-gray-400 mb-2" />
-              <div className="text-gray-500 font-medium">Add new number</div>
+              <div className="text-gray-500 font-medium">Add new channel</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Dialog per la selezione del tipo di attività */}
         <dialog id="type-selection-dialog" className="p-6 rounded-lg shadow-xl">
-          <h2 className="text-xl font-bold mb-4">Select Business Type</h2>
+          <h2 className="text-xl font-bold mb-4">Select Channel Type</h2>
           <form onSubmit={handleCreateWorkspace} className="space-y-4">
             <div>
-              <Label htmlFor="phone">WhatsApp Phone Number</Label>
+              <Label htmlFor="name">Channel Name</Label>
               <Input
-                id="phone"
-                type="tel"
+                id="name"
+                type="text"
                 value={newPhoneNumber}
                 onChange={(e) => setNewPhoneNumber(e.target.value)}
-                placeholder="+1234567890"
+                placeholder="My Channel"
                 required
               />
             </div>

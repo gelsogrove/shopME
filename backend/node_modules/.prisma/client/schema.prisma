@@ -83,6 +83,7 @@ model Workspace {
   whatsappPhoneNumber String?
   whatsappApiToken    String?
   whatsappWebhookUrl  String?
+  alias               String?
   isActive            Boolean         @default(true)
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
