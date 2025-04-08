@@ -11,6 +11,7 @@ export default {
   cors: {
     origin: [
       "http://localhost:3000", // Frontend
+      "http://localhost:5173", // Vite dev server
       "http://localhost:5678", // n8n
     ],
     credentials: true,

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Workspace, workspaceApi } from "@/services/workspaceApi"
 import { PlusCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -9,85 +10,48 @@ import { useNavigate } from "react-router-dom"
 // Definizione dei tipi di attività supportati
 type BusinessType = "Shop" | "Hotel" | "Gym" | "Restaurant"
 
-interface WorkspaceData {
-  id: string
-  name: string
-  phoneNumber: string
-  lastAccess: string
-  notifications: number
-  type: BusinessType
-}
-
 export function WorkspaceSelectionPage() {
   const navigate = useNavigate()
   const [selectedType, setSelectedType] = useState<BusinessType | null>(null)
   const [newPhoneNumber, setNewPhoneNumber] = useState("")
   const [justCreatedId, setJustCreatedId] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState("")
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Dati di esempio per i canali WhatsApp
-  const [workspaces, setWorkspaces] = useState<WorkspaceData[]>([
-    {
-      id: "1",
-      name: "+39 345 123 4567",
-      phoneNumber: "+39 345 123 4567",
-      lastAccess: "20/03/2024, 10:30:00",
-      notifications: 5,
-      type: "Shop",
-    },
-    {
-      id: "2",
-      name: "+39 333 987 6543",
-      phoneNumber: "+39 333 987 6543",
-      lastAccess: "19/03/2024, 15:45:00",
-      notifications: 2,
-      type: "Shop",
-    },
-  ])
-
-  // Effetto per selezionare automaticamente il nuovo canale dopo la creazione
+  // Carica i workspace all'avvio
   useEffect(() => {
-    if (justCreatedId) {
-      const newWorkspace = workspaces.find((w) => w.id === justCreatedId)
-      if (newWorkspace) {
-        // Seleziona automaticamente il workspace dopo un breve delay
-        const timer = setTimeout(() => {
-          handleSelectWorkspace(newWorkspace)
-        }, 1500)
+    loadWorkspaces()
+  }, [])
 
-        return () => clearTimeout(timer)
-      }
+  const loadWorkspaces = async () => {
+    try {
+      setIsLoading(true)
+      const data = await workspaceApi.getAll()
+      setWorkspaces(data)
+    } catch (error) {
+      setErrorMessage("Failed to load workspaces")
+    } finally {
+      setIsLoading(false)
     }
-  }, [justCreatedId, workspaces])
+  }
 
   // Gestisce la selezione di un workspace
-  const handleSelectWorkspace = (workspace: WorkspaceData) => {
-    // Salvare l'ID del workspace selezionato in sessionStorage per renderlo disponibile in tutta l'app
+  const handleSelectWorkspace = (workspace: Workspace) => {
+    // Salvare l'ID del workspace selezionato in sessionStorage
     sessionStorage.setItem("currentWorkspaceId", workspace.id)
-    sessionStorage.setItem("currentWorkspaceType", workspace.type)
-    sessionStorage.setItem("currentWorkspaceName", workspace.phoneNumber)
+    sessionStorage.setItem("currentWorkspaceType", selectedType || "Shop")
+    sessionStorage.setItem(
+      "currentWorkspaceName",
+      workspace.whatsappPhoneNumber || workspace.name
+    )
 
     // Reindirizza al dashboard dopo la selezione
     navigate("/dashboard")
   }
 
-  // Gestisce l'apertura della selezione del tipo di attività
-  const handleNewWorkspace = () => {
-    const dialog = document.getElementById(
-      "type-selection-dialog"
-    ) as HTMLDialogElement
-    if (dialog) {
-      dialog.showModal()
-    }
-  }
-
-  // Gestisce la selezione di un tipo di attività
-  const handleSelectType = (type: BusinessType) => {
-    setSelectedType(type)
-  }
-
   // Gestisce la creazione di un nuovo workspace
-  const handleCreateWorkspace = (e: React.FormEvent) => {
+  const handleCreateWorkspace = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!selectedType) {
@@ -100,43 +64,31 @@ export function WorkspaceSelectionPage() {
       return
     }
 
-    // Verifica se il numero è già esistente
-    if (workspaces.some((w) => w.phoneNumber === newPhoneNumber)) {
-      setErrorMessage("This number is already registered")
-      return
+    try {
+      setIsLoading(true)
+      const newWorkspace = await workspaceApi.create({
+        name: newPhoneNumber,
+        whatsappPhoneNumber: newPhoneNumber,
+      })
+
+      setWorkspaces([...workspaces, newWorkspace])
+      setJustCreatedId(newWorkspace.id)
+
+      // Reset form
+      setNewPhoneNumber("")
+      setSelectedType(null)
+      setErrorMessage("")
+
+      // Chiude il dialog se aperto
+      const dialog = document.getElementById(
+        "type-selection-dialog"
+      ) as HTMLDialogElement
+      if (dialog) dialog.close()
+    } catch (error) {
+      setErrorMessage("Failed to create workspace")
+    } finally {
+      setIsLoading(false)
     }
-
-    // Crea un nuovo workspace
-    const newId = (workspaces.length + 1).toString()
-    const now = new Date()
-    const formattedDate =
-      now.toLocaleDateString() + ", " + now.toLocaleTimeString()
-
-    const newWorkspace: WorkspaceData = {
-      id: newId,
-      name: newPhoneNumber,
-      phoneNumber: newPhoneNumber,
-      lastAccess: formattedDate,
-      notifications: 0,
-      type: selectedType,
-    }
-
-    // Aggiunge il nuovo workspace alla lista
-    setWorkspaces([...workspaces, newWorkspace])
-
-    // Memorizza l'ID del workspace appena creato per poterlo evidenziare
-    setJustCreatedId(newId)
-
-    // Reset form
-    setNewPhoneNumber("")
-    setSelectedType(null)
-    setErrorMessage("")
-
-    // Chiude il dialog se aperto
-    const dialog = document.getElementById(
-      "type-selection-dialog"
-    ) as HTMLDialogElement
-    if (dialog) dialog.close()
   }
 
   return (
@@ -149,32 +101,29 @@ export function WorkspaceSelectionPage() {
           Select a number to manage its conversations
         </p>
 
+        {errorMessage && (
+          <div className="mb-4 p-4 text-red-700 bg-red-100 rounded-md">
+            {errorMessage}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Lista dei canali esistenti */}
+          {/* Lista dei workspace esistenti */}
           {workspaces.map((workspace) => (
             <Card
               key={workspace.id}
-              className={`hover:shadow-md transition-shadow cursor-pointer border 
-                ${
-                  justCreatedId === workspace.id ? "ring-2 ring-green-500" : ""
-                }`}
+              className={`hover:shadow-md transition-shadow cursor-pointer border ${
+                justCreatedId === workspace.id ? "ring-2 ring-green-500" : ""
+              }`}
               onClick={() => handleSelectWorkspace(workspace)}
             >
               <CardContent className="p-6">
-                <div className="text-lg font-semibold">{workspace.name}</div>
+                <div className="text-lg font-semibold">
+                  {workspace.whatsappPhoneNumber || workspace.name}
+                </div>
                 <div className="text-sm text-gray-500 mt-1">
-                  Last access: {workspace.lastAccess}
+                  Last access: {new Date(workspace.updatedAt).toLocaleString()}
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Type: {workspace.type}
-                </div>
-                {workspace.notifications > 0 && (
-                  <div className="mt-4">
-                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                      Active
-                    </span>
-                  </div>
-                )}
                 {justCreatedId === workspace.id && (
                   <div className="mt-4">
                     <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
@@ -186,10 +135,15 @@ export function WorkspaceSelectionPage() {
             </Card>
           ))}
 
-          {/* Card per aggiungere un nuovo canale */}
+          {/* Card per aggiungere un nuovo workspace */}
           <Card
             className="hover:shadow-md transition-shadow cursor-pointer border border-dashed flex flex-col items-center justify-center h-full"
-            onClick={handleNewWorkspace}
+            onClick={() => {
+              const dialog = document.getElementById(
+                "type-selection-dialog"
+              ) as HTMLDialogElement
+              if (dialog) dialog.showModal()
+            }}
           >
             <CardContent className="p-6 flex flex-col items-center justify-center">
               <PlusCircle className="h-12 w-12 text-gray-400 mb-2" />
@@ -197,79 +151,38 @@ export function WorkspaceSelectionPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
 
-      {/* Dialog per la selezione del tipo di attività */}
-      <dialog
-        id="type-selection-dialog"
-        className="p-0 rounded-lg shadow-xl max-w-md w-full bg-white"
-      >
-        <div className="p-6">
-          <h3 className="text-xl font-semibold mb-4">Select business type</h3>
-          <p className="text-gray-600 mb-6">
-            Choose the type of business to configure your workspace
-          </p>
-
-          <form onSubmit={handleCreateWorkspace} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <button
-                type="button"
-                className={`p-4 border rounded-lg ${
-                  selectedType === "Shop"
-                    ? "bg-green-50 border-green-500"
-                    : "hover:bg-gray-50"
-                }`}
-                onClick={() => handleSelectType("Shop")}
-              >
-                <div className="font-medium">Shop</div>
-                <div className="text-xs text-gray-500 mt-1">Available</div>
-              </button>
-
-              <button
-                type="button"
-                className="p-4 border rounded-lg opacity-60 cursor-not-allowed"
-                disabled
-              >
-                <div className="font-medium">Hotel</div>
-                <div className="text-xs text-gray-500 mt-1">Not available</div>
-              </button>
-
-              <button
-                type="button"
-                className="p-4 border rounded-lg opacity-60 cursor-not-allowed"
-                disabled
-              >
-                <div className="font-medium">Gym</div>
-                <div className="text-xs text-gray-500 mt-1">Not available</div>
-              </button>
-
-              <button
-                type="button"
-                className="p-4 border rounded-lg opacity-60 cursor-not-allowed"
-                disabled
-              >
-                <div className="font-medium">Restaurant</div>
-                <div className="text-xs text-gray-500 mt-1">Not available</div>
-              </button>
+        {/* Dialog per la selezione del tipo di attività */}
+        <dialog id="type-selection-dialog" className="p-6 rounded-lg shadow-xl">
+          <h2 className="text-xl font-bold mb-4">Select Business Type</h2>
+          <form onSubmit={handleCreateWorkspace} className="space-y-4">
+            <div>
+              <Label htmlFor="phone">WhatsApp Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={newPhoneNumber}
+                onChange={(e) => setNewPhoneNumber(e.target.value)}
+                placeholder="+1234567890"
+                required
+              />
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="phoneNumberPopup">Phone number</Label>
-                <Input
-                  id="phoneNumberPopup"
-                  placeholder="Enter phone number"
-                  value={newPhoneNumber}
-                  onChange={(e) => setNewPhoneNumber(e.target.value)}
-                  required
-                />
-                {errorMessage && (
-                  <p className="text-sm text-red-500">{errorMessage}</p>
-                )}
-              </div>
+            <div className="grid grid-cols-2 gap-4">
+              {["Shop", "Hotel", "Gym", "Restaurant"].map((type) => (
+                <Button
+                  key={type}
+                  type="button"
+                  variant={selectedType === type ? "default" : "outline"}
+                  onClick={() => setSelectedType(type as BusinessType)}
+                  className="w-full"
+                >
+                  {type}
+                </Button>
+              ))}
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 mt-6">
               <Button
                 type="button"
                 variant="outline"
@@ -278,22 +191,17 @@ export function WorkspaceSelectionPage() {
                     "type-selection-dialog"
                   ) as HTMLDialogElement
                   if (dialog) dialog.close()
-                  setErrorMessage("")
                 }}
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                className="bg-green-600 hover:bg-green-700 text-white"
-                disabled={!selectedType}
-              >
-                Create Channel
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Creating..." : "Create"}
               </Button>
             </div>
           </form>
-        </div>
-      </dialog>
+        </dialog>
+      </div>
     </div>
   )
 }
