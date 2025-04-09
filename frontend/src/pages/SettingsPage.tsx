@@ -32,7 +32,7 @@ import {
     getLanguages,
     updateWorkspace,
 } from "@/services/workspaceApi"
-import { Info, Trash2, Video } from "lucide-react"
+import { Info, Loader2, Trash2, Video } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
@@ -47,6 +47,7 @@ const CURRENCY_OPTIONS = [
 export default function SettingsPage() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
+  const [isPageLoading, setIsPageLoading] = useState(true)
   const [languages, setLanguages] = useState<Language[]>([])
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showVideoDialog, setShowVideoDialog] = useState(false)
@@ -72,7 +73,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      setIsLoading(true)
+      setIsPageLoading(true)
       try {
         const [workspaceData, languagesData] = await Promise.all([
           getCurrentWorkspace(),
@@ -89,8 +90,9 @@ export default function SettingsPage() {
         setLanguages(languagesData)
       } catch (error) {
         console.error("Failed to load data:", error)
+        toast.error("Failed to load settings data")
       } finally {
-        setIsLoading(false)
+        setIsPageLoading(false)
       }
     }
     loadData()
@@ -146,6 +148,7 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setIsLoading(true);
     const updateData = {
+      id: workspace.id,
       name: workspace.name,
       description: workspace.description,
       whatsappPhoneNumber: workspace.whatsappPhoneNumber,
@@ -153,6 +156,7 @@ export default function SettingsPage() {
       currency: workspace.currency,
       language: workspace.language,
       messageLimit: workspace.messageLimit,
+      wipMessage: workspace.wipMessage,
       blocklist: workspace.blocklist,
     };
 
@@ -175,22 +179,47 @@ export default function SettingsPage() {
       navigate("/workspace-selection")
     } catch (error) {
       console.error("Failed to delete workspace:", error)
+      toast.error("Failed to delete workspace")
     } finally {
       setIsLoading(false)
       setShowDeleteDialog(false)
     }
   }
 
+  if (isPageLoading) {
+    return (
+      <div className="container mx-auto py-8 flex flex-col items-center justify-center min-h-[50vh]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <h2 className="text-xl font-medium">Loading settings...</h2>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8">
-      <Card>
+      <Card className="mb-6">
         <CardContent className="p-6 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Channel Settings</h2>
-            <Switch
-              checked={workspace.isActive}
-              onCheckedChange={(checked) => handleFieldChange("isActive", checked)}
-            />
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-bold">Channel Settings</h2>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-primary" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[300px] p-4">
+                    <p className="text-sm">Configure your channel settings including name, phone number, and API keys.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Active</span>
+              <Switch
+                checked={workspace.isActive}
+                onCheckedChange={(checked) => handleFieldChange("isActive", checked)}
+              />
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -356,6 +385,7 @@ export default function SettingsPage() {
               <Button
                 variant="destructive"
                 onClick={() => setShowDeleteDialog(true)}
+                disabled={isLoading}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete Channel
@@ -365,7 +395,14 @@ export default function SettingsPage() {
                 onClick={handleSave}
                 disabled={isLoading}
               >
-                Save Changes
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
               </Button>
             </div>
           </div>
@@ -393,7 +430,14 @@ export default function SettingsPage() {
               onClick={handleDelete}
               disabled={isLoading}
             >
-              {isLoading ? "Deleting..." : "Delete Workspace"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Workspace"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

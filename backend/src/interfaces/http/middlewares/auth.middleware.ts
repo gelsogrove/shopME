@@ -1,25 +1,22 @@
-import { UserRole } from "@prisma/client"
 import { NextFunction, Request, Response } from "express"
 import jwt from "jsonwebtoken"
 import { config } from "../../../config"
-import { AppError } from "./error.middleware"
+import { AppError } from "../middlewares/error.middleware"
+
+interface JwtPayload {
+  userId: string
+  email: string
+  role: string
+  iat?: number
+  exp?: number
+}
 
 declare global {
   namespace Express {
     interface Request {
-      user: {
-        id: string
-        email: string
-        role: UserRole
-      }
+      user?: JwtPayload
     }
   }
-}
-
-interface JwtPayload {
-  id: string
-  email: string
-  role: UserRole
 }
 
 export const authMiddleware = (
@@ -37,7 +34,7 @@ export const authMiddleware = (
   try {
     const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload
     req.user = {
-      id: decoded.id,
+      userId: decoded.userId,
       email: decoded.email,
       role: decoded.role,
     }

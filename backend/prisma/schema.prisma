@@ -183,6 +183,7 @@ model User {
   passwordHash    String
   firstName       String?
   lastName        String?
+  phoneNumber     String?
   status          UserStatus      @default(ACTIVE)
   lastLogin       DateTime?
   createdAt       DateTime        @default(now())

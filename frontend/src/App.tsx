@@ -11,8 +11,10 @@ import { ForgotPasswordPage } from "./pages/ForgotPasswordPage"
 import { LoginPage } from "./pages/LoginPage"
 import NotificationsPage from "./pages/NotificationsPage"
 import OrdersPage from "./pages/OrdersPage"
+import PlansPage from "./pages/PlansPage"
 import CategoriesPage from "./pages/products/CategoriesPage"
 import { ProductsPage } from "./pages/ProductsPage"
+import ProfilePage from "./pages/ProfilePage"
 import { PromptsPage } from "./pages/PromptsPage"
 import ServicesPage from "./pages/ServicesPage"
 import { ChannelTypesPage } from "./pages/settings/ChannelTypesPage"
@@ -68,6 +70,12 @@ export function App() {
         </Route>
         <Route path="/notifications" element={<Layout />}>
           <Route index element={<NotificationsPage />} />
+        </Route>
+        <Route path="/profile" element={<Layout />}>
+          <Route index element={<ProfilePage />} />
+        </Route>
+        <Route path="/plans" element={<Layout />}>
+          <Route index element={<PlansPage />} />
         </Route>
         <Route path="/settings" element={<Layout />}>
           <Route index element={<SettingsPage />} />

@@ -8,7 +8,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ArrowLeftRight, LogOut, Phone, Settings, User } from "lucide-react"
+import { getUserProfile } from "@/services/userApi"
+import { ArrowLeftRight, CreditCard, LogOut, Phone, Settings, User } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
@@ -16,6 +17,9 @@ export function Header() {
   const navigate = useNavigate()
   const [phoneNumber, setPhoneNumber] = useState<string>("")
   const [workspaceType, setWorkspaceType] = useState<string>("")
+  const [userName, setUserName] = useState<string>("")
+  const [userEmail, setUserEmail] = useState<string>("")
+  const [userInitials, setUserInitials] = useState<string>("") 
 
   useEffect(() => {
     // Recupera le informazioni del workspace dai sessionStorage
@@ -25,7 +29,35 @@ export function Header() {
 
     setPhoneNumber(currentPhone)
     setWorkspaceType(currentType)
+    
+    // Carica i dati dell'utente
+    loadUserProfile()
   }, [])
+  
+  const loadUserProfile = async () => {
+    try {
+      const userData = await getUserProfile()
+      const firstName = userData.firstName || ""
+      const lastName = userData.lastName || ""
+      const fullName = `${firstName} ${lastName}`.trim()
+      
+      setUserName(fullName || "User")
+      setUserEmail(userData.email || "")
+      
+      // Crea le iniziali per l'avatar
+      const initials = firstName && lastName 
+        ? `${firstName[0]}${lastName[0]}`.toUpperCase()
+        : firstName 
+          ? firstName[0].toUpperCase() 
+          : "U"
+          
+      setUserInitials(initials)
+    } catch (error) {
+      console.error("Failed to load user profile:", error)
+      setUserName("User")
+      setUserInitials("U")
+    }
+  }
 
   // Gestisce il ritorno alla selezione dei workspace
   const handleBackToWorkspaces = () => {
@@ -65,9 +97,9 @@ export function Header() {
                 className="relative h-16 w-16 rounded-full"
               >
                 <Avatar className="h-16 w-16">
-                  <AvatarImage src="/avatars/01.png" alt="@username" />
+                  <AvatarImage src="/avatars/01.png" alt={userName} />
                   <AvatarFallback className="text-2xl font-black">
-                    JD
+                    {userInitials}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -75,16 +107,26 @@ export function Header() {
             <DropdownMenuContent className="w-72" align="end" forceMount>
               <DropdownMenuLabel className="font-normal p-4">
                 <div className="flex flex-col space-y-2">
-                  <p className="text-xl font-medium leading-none">John Doe</p>
+                  <p className="text-xl font-medium leading-none">{userName}</p>
                   <p className="text-lg leading-none text-muted-foreground">
-                    john@example.com
+                    {userEmail}
                   </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="p-4 text-lg cursor-pointer">
+              <DropdownMenuItem 
+                className="p-4 text-lg cursor-pointer"
+                onClick={() => navigate("/profile")}
+              >
                 <User className="mr-3 h-5 w-5" />
                 <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="p-4 text-lg cursor-pointer"
+                onClick={() => navigate("/plans")}
+              >
+                <CreditCard className="mr-3 h-5 w-5" />
+                <span>Plans</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="p-4 text-lg cursor-pointer"
