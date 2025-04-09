@@ -6,12 +6,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
 } from "@/components/ui/sheet"
 import { Switch } from "@/components/ui/switch"
 import { AlertCircle, FileText } from "lucide-react"
@@ -336,120 +336,56 @@ export function PromptsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <Alert className="mb-6 bg-pink-50 border border-pink-200 text-pink-800">
-        <AlertCircle className="h-5 w-5 text-pink-500" />
-        <AlertDescription className="ml-2 text-sm font-medium">
-          Only one prompt can be active at a time. Setting a prompt as active
-          will deactivate all other prompts.
+    <div className="container py-6">
+      <PageHeader
+        title="Prompts"
+        description="Manage your system prompts"
+        action={
+          <Button onClick={() => setShowAddSheet(true)}>Add Prompt</Button>
+        }
+      />
+
+      <Alert className="my-6">
+        <AlertCircle className="h-6 w-6" />
+        <AlertDescription className="ml-2 text-lg font-medium">
+          Only one prompt can be active at a time. Setting a prompt as active will deactivate all other prompts. 
+          This is useful for testing different prompts without losing the original ones.
         </AlertDescription>
       </Alert>
 
-      <PageHeader
-        title="Prompts"
-        searchPlaceholder="Search prompts..."
-        searchValue={searchQuery}
-        onSearch={setSearchQuery}
-        onAdd={() => setShowAddSheet(true)}
-      />
-
-      <div className="mt-6">
-        <DataTable
-          data={filteredPrompts}
-          columns={columns}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          renderActions={(prompt: Prompt) => (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setSelectedPrompt(prompt)
-                setShowPromptPopup(true)
-              }}
-              title="Edit Prompt Content"
-              className="hover:bg-blue-50"
-            >
-              <FileText className="h-5 w-5 text-blue-600" />
-            </Button>
-          )}
-        />
-      </div>
-
-      {/* Add Prompt Sheet */}
-      <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>
-        <SheetContent className="sm:max-w-lg">
-          <SheetHeader>
-            <SheetTitle>Add New Prompt</SheetTitle>
-          </SheetHeader>
-          <form onSubmit={handleAdd}>
-            {renderFormFields()}
-            <SheetFooter className="mt-6">
-              <SheetClose asChild>
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="border-input hover:bg-accent"
-                >
-                  Cancel
-                </Button>
-              </SheetClose>
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                Save
+      <div className="space-y-4">
+        <div className="mt-6">
+          <DataTable
+            data={filteredPrompts}
+            columns={columns}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            renderActions={(prompt: Prompt) => (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setSelectedPrompt(prompt)
+                  setShowPromptPopup(true)
+                }}
+                title="Edit Prompt Content"
+                className="hover:bg-blue-50"
+              >
+                <FileText className="h-5 w-5 text-blue-600" />
               </Button>
-            </SheetFooter>
-          </form>
-        </SheetContent>
-      </Sheet>
+            )}
+          />
+        </div>
 
-      {/* Edit Prompt Sheet */}
-      <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
-        <SheetContent className="sm:max-w-lg">
-          <SheetHeader>
-            <SheetTitle>Edit Prompt</SheetTitle>
-          </SheetHeader>
-          <form onSubmit={handleEditSubmit}>
-            {renderFormFields(true)}
-            <SheetFooter className="mt-6">
-              <SheetClose asChild>
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="border-input hover:bg-accent"
-                >
-                  Cancel
-                </Button>
-              </SheetClose>
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                Save
-              </Button>
-            </SheetFooter>
-          </form>
-        </SheetContent>
-      </Sheet>
-
-      {/* Prompt Content Popup */}
-      <Sheet open={showPromptPopup} onOpenChange={setShowPromptPopup}>
-        <SheetContent side="bottom" className="h-[100vh] w-full">
-          <SheetHeader>
-            <SheetTitle>Edit Prompt Content</SheetTitle>
-          </SheetHeader>
-          {selectedPrompt && (
-            <div className="space-y-4">
-              <div className="space-y-2 pt-4">
-                <label
-                  htmlFor="prompt-content"
-                  className="text-sm font-medium leading-none"
-                >
-                  Content for {selectedPrompt.name}
-                </label>
-                <textarea
-                  id="prompt-content"
-                  defaultValue={selectedPrompt.content}
-                  className="flex min-h-[700px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-              <SheetFooter>
+        {/* Add Prompt Sheet */}
+        <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>
+          <SheetContent className="sm:max-w-lg">
+            <SheetHeader>
+              <SheetTitle>Add New Prompt</SheetTitle>
+            </SheetHeader>
+            <form onSubmit={handleAdd}>
+              {renderFormFields()}
+              <SheetFooter className="mt-6">
                 <SheetClose asChild>
                   <Button
                     variant="outline"
@@ -459,32 +395,98 @@ export function PromptsPage() {
                     Cancel
                   </Button>
                 </SheetClose>
-                <Button
-                  onClick={() => {
-                    const content = (
-                      document.getElementById(
-                        "prompt-content"
-                      ) as HTMLTextAreaElement
-                    ).value
-                    handleAddPrompt(selectedPrompt, content)
-                  }}
-                  className="bg-green-600 hover:bg-green-700"
-                >
+                <Button type="submit" className="bg-green-600 hover:bg-green-700">
                   Save
                 </Button>
               </SheetFooter>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
+            </form>
+          </SheetContent>
+        </Sheet>
 
-      <ConfirmDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        title="Delete Prompt"
-        description={`Are you sure you want to delete ${selectedPrompt?.name}? This action cannot be undone.`}
-        onConfirm={handleDeleteConfirm}
-      />
+        {/* Edit Prompt Sheet */}
+        <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
+          <SheetContent className="sm:max-w-lg">
+            <SheetHeader>
+              <SheetTitle>Edit Prompt</SheetTitle>
+            </SheetHeader>
+            <form onSubmit={handleEditSubmit}>
+              {renderFormFields(true)}
+              <SheetFooter className="mt-6">
+                <SheetClose asChild>
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="border-input hover:bg-accent"
+                  >
+                    Cancel
+                  </Button>
+                </SheetClose>
+                <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                  Save
+                </Button>
+              </SheetFooter>
+            </form>
+          </SheetContent>
+        </Sheet>
+
+        {/* Prompt Content Popup */}
+        <Sheet open={showPromptPopup} onOpenChange={setShowPromptPopup}>
+          <SheetContent side="bottom" className="h-[100vh] w-full">
+            <SheetHeader>
+              <SheetTitle>Edit Prompt Content</SheetTitle>
+            </SheetHeader>
+            {selectedPrompt && (
+              <div className="space-y-4">
+                <div className="space-y-2 pt-4">
+                  <label
+                    htmlFor="prompt-content"
+                    className="text-sm font-medium leading-none"
+                  >
+                    Content for {selectedPrompt.name}
+                  </label>
+                  <textarea
+                    id="prompt-content"
+                    defaultValue={selectedPrompt.content}
+                    className="flex min-h-[700px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+                <SheetFooter>
+                  <SheetClose asChild>
+                    <Button
+                      variant="outline"
+                      type="button"
+                      className="border-input hover:bg-accent"
+                    >
+                      Cancel
+                    </Button>
+                  </SheetClose>
+                  <Button
+                    onClick={() => {
+                      const content = (
+                        document.getElementById(
+                          "prompt-content"
+                        ) as HTMLTextAreaElement
+                      ).value
+                      handleAddPrompt(selectedPrompt, content)
+                    }}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Save
+                  </Button>
+                </SheetFooter>
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
+
+        <ConfirmDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          title="Delete Prompt"
+          description={`Are you sure you want to delete ${selectedPrompt?.name}? This action cannot be undone.`}
+          onConfirm={handleDeleteConfirm}
+        />
+      </div>
     </div>
   )
 }

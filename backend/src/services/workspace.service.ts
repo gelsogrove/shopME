@@ -4,25 +4,34 @@ const prisma = new PrismaClient()
 
 interface CreateWorkspaceData {
   name: string
+  slug: string
   description?: string
   whatsappPhoneNumber?: string
   whatsappApiKey?: string
   isDelete?: boolean
   isActive?: boolean
+  currency?: string
+  language?: string
+  messageLimit?: number
   challengeStatus?: boolean
   wipMessage?: string
+  blocklist?: string
 }
 
 interface UpdateWorkspaceData {
   name?: string
+  slug?: string
   description?: string
   whatsappPhoneNumber?: string
   whatsappApiKey?: string
   isActive?: boolean
   isDelete?: boolean
   currency?: string
+  language?: string
+  messageLimit?: number
   challengeStatus?: boolean
   wipMessage?: string
+  blocklist?: string
 }
 
 export const workspaceService = {
@@ -34,6 +43,8 @@ export const workspaceService = {
       select: {
         id: true,
         name: true,
+        slug: true,
+        description: true,
         whatsappPhoneNumber: true,
         whatsappApiKey: true,
         createdAt: true,
@@ -42,8 +53,10 @@ export const workspaceService = {
         isDelete: true,
         currency: true,
         language: true,
+        messageLimit: true,
         challengeStatus: true,
-        wipMessage: true
+        wipMessage: true,
+        blocklist: true
       },
     })
   },
@@ -54,6 +67,8 @@ export const workspaceService = {
       select: {
         id: true,
         name: true,
+        slug: true,
+        description: true,
         whatsappPhoneNumber: true,
         whatsappApiKey: true,
         createdAt: true,
@@ -62,8 +77,10 @@ export const workspaceService = {
         isDelete: true,
         currency: true,
         language: true,
+        messageLimit: true,
         challengeStatus: true,
-        wipMessage: true
+        wipMessage: true,
+        blocklist: true
       },
     })
   },
@@ -78,6 +95,8 @@ export const workspaceService = {
       select: {
         id: true,
         name: true,
+        slug: true,
+        description: true,
         whatsappPhoneNumber: true,
         whatsappApiKey: true,
         createdAt: true,
@@ -86,8 +105,10 @@ export const workspaceService = {
         isDelete: true,
         currency: true,
         language: true,
+        messageLimit: true,
         challengeStatus: true,
-        wipMessage: true
+        wipMessage: true,
+        blocklist: true
       },
     })
   },
@@ -104,6 +125,8 @@ export const workspaceService = {
       select: {
         id: true,
         name: true,
+        slug: true,
+        description: true,
         whatsappPhoneNumber: true,
         whatsappApiKey: true,
         createdAt: true,
@@ -112,8 +135,10 @@ export const workspaceService = {
         isDelete: true,
         currency: true,
         language: true,
+        messageLimit: true,
         challengeStatus: true,
-        wipMessage: true
+        wipMessage: true,
+        blocklist: true
       },
     })
   },

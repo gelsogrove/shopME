@@ -11,6 +11,7 @@ model Workspace {
   id                  String            @id @default(cuid())
   name                String
   slug                String            @unique
+  description         String?
   whatsappPhoneNumber String?
   whatsappApiKey      String?
   notificationEmail   String?
@@ -18,8 +19,10 @@ model Workspace {
   isActive            Boolean           @default(true)
   language            String            @default("en")
   currency            String            @default("EUR")
+  messageLimit        Int               @default(50)
   challengeStatus     Boolean           @default(false)
-  wipMessage          String            @default("Lavori in corso si prega di contattarci piu tardi")
+  wipMessage          String?           @default("Work in progress. Please contact us later.")
+  blocklist           String?           @default("")
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
   isDelete            Boolean           @default(false)

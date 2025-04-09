@@ -166,7 +166,6 @@ The frontend communicates with the backend through a RESTful API architecture:
    - Workspace configuration
    - User preferences
    - System settings
-   - Phone Number Blocklist: Ability to block specific phone numbers from interacting with the system, preventing potential abuse by adding phone numbers to a blocklist. Messages from these numbers will be automatically ignored.
 
 The frontend uses a proxy configuration to route all `/api/*` requests to the backend server, handling CORS and other cross-origin concerns automatically.
 

@@ -9,6 +9,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
     Select,
     SelectContent,
@@ -17,6 +18,13 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 import type { Language, Workspace } from "@/services/workspaceApi"
 import {
     deleteWorkspace,
@@ -24,8 +32,9 @@ import {
     getLanguages,
     updateWorkspace,
 } from "@/services/workspaceApi"
-import { Trash2 } from "lucide-react"
+import { Info, Trash2, Video } from "lucide-react"
 import { useEffect, useState } from "react"
+import { toast } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
 
 // Aggiungiamo le opzioni per le valute
@@ -40,6 +49,7 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [languages, setLanguages] = useState<Language[]>([])
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showVideoDialog, setShowVideoDialog] = useState(false)
   const [errors, setErrors] = useState({
     language: "",
   })
@@ -55,7 +65,7 @@ export default function SettingsPage() {
     language: "en",
     currency: "EUR",
     challengeStatus: false,
-    wipMessage: "Lavori in corso si prega di contattarci piu tardi"
+    wipMessage: "Work in progress. Please contact us later."
   })
 
   const [selectedLanguage, setSelectedLanguage] = useState("en")
@@ -134,38 +144,29 @@ export default function SettingsPage() {
   }
 
   const handleSave = async () => {
-    if (!validateFields()) {
-      return;
-    }
-
     setIsLoading(true);
-    try {
-      const updateData = {
-        id: workspace.id,
-        name: workspace.name,
-        isActive: workspace.isActive,
-        isDelete: false,
-        whatsappApiKey: workspace.whatsappApiKey,
-        whatsappPhoneNumber: workspace.whatsappPhoneNumber,
-        currency: workspace.currency,
-        challengeStatus: workspace.challengeStatus,
-        wipMessage: workspace.wipMessage
-      };
+    const updateData = {
+      name: workspace.name,
+      description: workspace.description,
+      whatsappPhoneNumber: workspace.whatsappPhoneNumber,
+      whatsappApiKey: workspace.whatsappApiKey,
+      currency: workspace.currency,
+      language: workspace.language,
+      messageLimit: workspace.messageLimit,
+      blocklist: workspace.blocklist,
+    };
 
-      console.log('Sending update data:', updateData);
-      const updatedWorkspace = await updateWorkspace(workspace.id, updateData);
-      console.log('Received updated workspace:', updatedWorkspace);
-      
-      setWorkspace(prev => ({
-        ...prev,
-        ...updatedWorkspace,
-      }));
+    try {
+      const response = await updateWorkspace(workspace.id, updateData);
+      console.log('Updated workspace:', response);
+      toast.success('Settings saved successfully');
     } catch (error) {
-      console.error("Failed to save changes:", error);
+      console.error('Error updating workspace:', error);
+      toast.error('Failed to save settings');
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
     setIsLoading(true)
@@ -218,9 +219,28 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                WhatsApp API Key
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  WhatsApp API Key
+                </label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-primary" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[300px] p-4">
+                      <p className="text-sm">Your WhatsApp Business API key required for sending and receiving messages. You can find this in your WhatsApp Business account settings.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowVideoDialog(true)}
+                >
+                  <Video className="h-5 w-5 text-muted-foreground hover:text-primary" />
+                </Button>
+              </div>
               <Input
                 value={workspace.whatsappApiKey || ""}
                 onChange={(e) =>
@@ -232,9 +252,21 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Currency
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Currency
+                </label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-primary" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[300px] p-4">
+                      <p className="text-sm">Select the currency for all transactions in this workspace. This will be used for all pricing and payment calculations.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Select
                 value={workspace.currency}
                 onValueChange={(value) => handleFieldChange("currency", value)}
@@ -252,18 +284,72 @@ export default function SettingsPage() {
               </Select>
             </div>
 
-            <div className="border-t pt-6">
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <label className="block text-sm font-medium text-gray-700">
                   WIP Message
                 </label>
-                <Input
-                  value={workspace.wipMessage}
-                  onChange={(e) => handleFieldChange("wipMessage", e.target.value)}
-                  disabled={workspace.isActive}
-                  className={workspace.isActive ? "bg-gray-100" : ""}
-                />
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-primary" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[300px] p-4">
+                      <p className="text-sm">This message will be shown to users when the workspace is under maintenance or temporarily unavailable. Only editable when the workspace is inactive.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
+              <Input
+                value={workspace.wipMessage}
+                onChange={(e) => handleFieldChange("wipMessage", e.target.value)}
+                disabled={workspace.isActive}
+                className={workspace.isActive ? "bg-gray-100" : ""}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label>Message Limit</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-primary" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[300px] p-4">
+                      <p className="text-sm">To protect the service from excessive use, each user has a limit of 50 messages per day. Once this limit is reached, no further messages can be sent until the next day.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Input
+                type="number"
+                value={workspace.messageLimit}
+                onChange={(e) => setWorkspace({ ...workspace, messageLimit: parseInt(e.target.value) })}
+                placeholder="Enter message limit"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label>Phone Number Blocklist</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-primary" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[300px] p-4">
+                      <p className="text-sm">Add phone numbers to block from using the service. Messages from these numbers will be ignored. Separate multiple numbers with semicolons (;).</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Textarea 
+                value={workspace.blocklist || ""}
+                onChange={(e) => handleFieldChange("blocklist", e.target.value)}
+                placeholder="Enter phone numbers to block (separated by semicolons, e.g. +123456789;+987654321)"
+                className="h-24"
+              />
             </div>
 
             <div className="flex justify-end space-x-4 mt-6">
@@ -275,6 +361,7 @@ export default function SettingsPage() {
                 Delete Channel
               </Button>
               <Button
+                variant="default"
                 onClick={handleSave}
                 disabled={isLoading}
               >
@@ -309,6 +396,25 @@ export default function SettingsPage() {
               {isLoading ? "Deleting..." : "Delete Workspace"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showVideoDialog} onOpenChange={setShowVideoDialog}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>WhatsApp API Key Tutorial</DialogTitle>
+          </DialogHeader>
+          <div className="aspect-video w-full">
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/T_4R2xuRaIY"
+              title="WhatsApp API Key Tutorial"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

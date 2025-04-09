@@ -9,16 +9,20 @@ export interface Language {
 export interface Workspace {
   id: string
   name: string
-  whatsappPhoneNumber: string
-  whatsappApiKey: string
+  slug: string
+  description?: string
+  whatsappPhoneNumber?: string
+  whatsappApiKey?: string
   createdAt: string
   updatedAt: string
   isActive: boolean
   isDelete: boolean
-  language: string
   currency: string
+  language: string
+  messageLimit: number
   challengeStatus: boolean
-  wipMessage: string
+  wipMessage?: string
+  blocklist?: string
 }
 
 export interface CreateWorkspaceData {
@@ -29,22 +33,25 @@ export interface CreateWorkspaceData {
   language: string
   currency?: string
   whatsappPhoneNumber?: string
+  blocklist?: string
 }
 
 export interface UpdateWorkspaceData extends Partial<CreateWorkspaceData> {
   id: string
   challengeStatus?: boolean
   wipMessage?: string
+  blocklist?: string
 }
 
-const transformWorkspaceResponse = (data: any): Workspace => {
+export const transformWorkspaceResponse = (workspace: any): Workspace => {
   return {
-    ...data,
-    language: data.language || 'en',
-    currency: data.currency || 'EUR',
-    challengeStatus: data.challengeStatus || false,
-    wipMessage: data.wipMessage || "Lavori in corso si prega di contattarci piu tardi"
-  }
+    ...workspace,
+    currency: workspace.currency || 'EUR',
+    language: workspace.language || 'en',
+    messageLimit: workspace.messageLimit || 50,
+    challengeStatus: workspace.challengeStatus || false,
+    blocklist: workspace.blocklist || '',
+  };
 }
 
 const transformWorkspaceRequest = (workspace: CreateWorkspaceData | UpdateWorkspaceData) => {
