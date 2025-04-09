@@ -49,7 +49,41 @@ export function DataTable<TData>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
 
-  const allColumns = React.useMemo(() => [...columns], [columns])
+  const allColumns = React.useMemo(() => {
+    const cols = [...columns]
+    if (onEdit || onDelete || actionButtons) {
+      cols.push({
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <div className="flex justify-end gap-2">
+            {renderActions && renderActions(row.original)}
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onEdit(row.original)}
+                className="hover:bg-green-50"
+              >
+                <Pencil className="h-5 w-5 text-green-600" />
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onDelete(row.original)}
+                className="hover:bg-red-50"
+              >
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </Button>
+            )}
+          </div>
+        ),
+      })
+    }
+    return cols
+  }, [columns, onEdit, onDelete, actionButtons, renderActions])
 
   const table = useReactTable({
     data,
@@ -79,23 +113,16 @@ export function DataTable<TData>({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} className="py-2">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-                {(onEdit || onDelete || actionButtons) && (
-                  <TableHeader className="px-4 py-2 text-right">
-                    {/* Rimuovere "Actions" qui */}
-                  </TableHeader>
-                )}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} className="py-2">
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -112,33 +139,6 @@ export function DataTable<TData>({
                         )}
                       </TableCell>
                     ))}
-                    {(onEdit || onDelete || actionButtons) && (
-                      <TableCell className="px-4 py-2 text-right">
-                        <div className="flex justify-end gap-2">
-                          {renderActions && renderActions(row.original)}
-                          {onEdit && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => onEdit(row.original)}
-                              className="hover:bg-green-50"
-                            >
-                              <Pencil className="h-5 w-5 text-green-600" />
-                            </Button>
-                          )}
-                          {onDelete && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => onDelete(row.original)}
-                              className="hover:bg-red-50"
-                            >
-                              <Trash2 className="h-6 w-6 text-red-600" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    )}
                   </TableRow>
                   {row.getIsExpanded() && renderSubComponent && (
                     <TableRow>
@@ -152,10 +152,7 @@ export function DataTable<TData>({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={
-                    allColumns.length +
-                    (onEdit || onDelete || actionButtons ? 1 : 0)
-                  }
+                  colSpan={allColumns.length}
                   className="h-24 text-center"
                 >
                   No results.

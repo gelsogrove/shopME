@@ -2,10 +2,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Workspace, workspaceApi } from "@/services/workspaceApi"
 import { PlusCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import type { Workspace } from "../services/workspaceApi"
+import { createWorkspace, getWorkspaces } from "../services/workspaceApi"
 
 // Definizione dei tipi di attività supportati
 type BusinessType = "Shop" | "Hotel" | "Gym" | "Restaurant"
@@ -14,6 +15,7 @@ export function WorkspaceSelectionPage() {
   const navigate = useNavigate()
   const [selectedType, setSelectedType] = useState<BusinessType | null>(null)
   const [newPhoneNumber, setNewPhoneNumber] = useState("")
+  const [alias, setAlias] = useState("")
   const [justCreatedId, setJustCreatedId] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState("")
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
@@ -27,8 +29,9 @@ export function WorkspaceSelectionPage() {
   const loadWorkspaces = async () => {
     try {
       setIsLoading(true)
-      const data = await workspaceApi.getAll()
-      setWorkspaces(data)
+      const workspaces = await getWorkspaces()
+      // Filter out invisible workspaces
+      setWorkspaces(workspaces.filter((w: Workspace) => w.visible))
     } catch (error) {
       setErrorMessage("Failed to load workspaces")
     } finally {
@@ -64,11 +67,17 @@ export function WorkspaceSelectionPage() {
       return
     }
 
+    if (!alias.trim()) {
+      setErrorMessage("Enter an alias")
+      return
+    }
+
     try {
       setIsLoading(true)
-      const newWorkspace = await workspaceApi.create({
+      const newWorkspace = await createWorkspace({
         name: newPhoneNumber,
         whatsappPhoneNumber: newPhoneNumber,
+        alias: alias,
       })
 
       setWorkspaces([...workspaces, newWorkspace])
@@ -76,6 +85,7 @@ export function WorkspaceSelectionPage() {
 
       // Reset form
       setNewPhoneNumber("")
+      setAlias("")
       setSelectedType(null)
       setErrorMessage("")
 
@@ -94,12 +104,15 @@ export function WorkspaceSelectionPage() {
   const handleToggleStatus = async (id: string) => {
     try {
       setIsLoading(true)
-      const updatedWorkspace = await workspaceApi.toggleStatus(id)
-      setWorkspaces(
-        workspaces.map((workspace) =>
+      const updatedWorkspace = await getWorkspaces().then((workspaces: Workspace[]) =>
+        workspaces.find((workspace: Workspace) => workspace.id === id)
+      )
+      if (updatedWorkspace) {
+        const updatedWorkspaces = workspaces.map((workspace: Workspace) =>
           workspace.id === id ? updatedWorkspace : workspace
         )
-      )
+        setWorkspaces(updatedWorkspaces)
+      }
     } catch (error) {
       setErrorMessage("Failed to toggle workspace status")
     } finally {
@@ -207,53 +220,102 @@ export function WorkspaceSelectionPage() {
         </div>
 
         {/* Dialog per la selezione del tipo di attività */}
-        <dialog id="type-selection-dialog" className="p-6 rounded-lg shadow-xl">
-          <h2 className="text-xl font-bold mb-4">Select Channel Type</h2>
-          <form onSubmit={handleCreateWorkspace} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Channel Name</Label>
-              <Input
-                id="name"
-                type="text"
-                value={newPhoneNumber}
-                onChange={(e) => setNewPhoneNumber(e.target.value)}
-                placeholder="My Channel"
-                required
-              />
-            </div>
+        <dialog
+          id="type-selection-dialog"
+          className="backdrop:bg-black/50 p-0 rounded-lg shadow-lg border max-w-md w-full"
+        >
+          <div className="p-8">
+            <h2 className="text-2xl font-bold mb-6">Select Channel Type</h2>
 
-            <div className="grid grid-cols-2 gap-4">
-              {["Shop", "Hotel", "Gym", "Restaurant"].map((type) => (
+            <div className="space-y-6">
+              <div>
+                <Label htmlFor="channel-name">Channel Name</Label>
+                <Input
+                  id="channel-name"
+                  type="text"
+                  placeholder="My Channel"
+                  value={newPhoneNumber}
+                  onChange={(e) => setNewPhoneNumber(e.target.value)}
+                  className="mt-2"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="channel-alias">Alias</Label>
+                <Input
+                  id="channel-alias"
+                  type="text"
+                  placeholder="My Channel Alias"
+                  value={alias}
+                  onChange={(e) => setAlias(e.target.value)}
+                  className="mt-2"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <Button
-                  key={type}
                   type="button"
-                  variant={selectedType === type ? "default" : "outline"}
-                  onClick={() => setSelectedType(type as BusinessType)}
-                  className="w-full"
+                  variant={selectedType === "Shop" ? "default" : "outline"}
+                  className={`h-24 text-lg ${
+                    selectedType === "Shop"
+                      ? "bg-green-600 hover:bg-green-700"
+                      : ""
+                  }`}
+                  onClick={() => setSelectedType("Shop")}
                 >
-                  {type}
+                  Shop
                 </Button>
-              ))}
-            </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-24 text-lg opacity-50 cursor-not-allowed"
+                  disabled
+                >
+                  Hotel
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-24 text-lg opacity-50 cursor-not-allowed"
+                  disabled
+                >
+                  Gym
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-24 text-lg opacity-50 cursor-not-allowed"
+                  disabled
+                >
+                  Restaurant
+                </Button>
+              </div>
 
-            <div className="flex justify-end gap-2 mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  const dialog = document.getElementById(
-                    "type-selection-dialog"
-                  ) as HTMLDialogElement
-                  if (dialog) dialog.close()
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create"}
-              </Button>
+              <div className="flex justify-end gap-4 mt-8">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    const dialog = document.getElementById(
+                      "type-selection-dialog"
+                    ) as HTMLDialogElement
+                    if (dialog) dialog.close()
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateWorkspace}
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={
+                    !selectedType || !newPhoneNumber.trim() || isLoading
+                  }
+                >
+                  Create
+                </Button>
+              </div>
             </div>
-          </form>
+          </div>
         </dialog>
       </div>
     </div>

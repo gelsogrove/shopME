@@ -1,19 +1,21 @@
-import { createLogger, format, transports } from "winston"
+import winston from 'winston';
 
-const logger = createLogger({
-  level: process.env.LOG_LEVEL || "info",
-  format: format.combine(
-    format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-    format.errors({ stack: true }),
-    format.splat(),
-    format.json()
+const logger = winston.createLogger({
+  level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.colorize(),
+    winston.format.printf(({ timestamp, level, message, ...meta }) => {
+      return `${timestamp} [${level}]: ${message} ${
+        Object.keys(meta).length ? JSON.stringify(meta, null, 2) : ''
+      }`;
+    })
   ),
-  defaultMeta: { service: "user-service" },
   transports: [
-    new transports.Console({
-      format: format.combine(format.colorize(), format.simple()),
+    new winston.transports.Console({
+      stderrLevels: ['error'],
     }),
   ],
-})
+});
 
-export default logger
+export default logger;

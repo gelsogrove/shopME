@@ -1,13 +1,13 @@
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card"
-import { api } from "@/services/api"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { api } from "../services/api"
 
 export function LoginPage() {
   const [email, setEmail] = useState("")
@@ -22,7 +22,7 @@ export function LoginPage() {
     setIsLoading(true)
 
     try {
-      const response = await api.post("/auth/login", { email, password })
+      const response = await api.post("/api/auth/login", { email, password })
       const data = response.data
 
       // Store the token and user info

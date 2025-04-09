@@ -1,7 +1,6 @@
 {
   "name": "shop",
   "version": "1.0.0",
-  "packageManager": "npm@10.2.4",
   "private": true,
   "workspaces": [
     "backend",
@@ -9,22 +8,11 @@
   ],
   "description": "Italian Products E-commerce Platform",
   "scripts": {
-    "prestart": "docker compose up -d",
     "start:mcp": "npx @agentdeskai/browser-tools-server@latest",
-    "start": "turbo run start",
-    "cleanup": "kill-port --kill-timeout 5000 3000 3001 5000 5001 27017 6379",
-    "dev": "npm run cleanup && turbo run dev",
-    "dev:mcp": "npm run cleanup && concurrently \"npm run prestart\" \"cd backend && npm run dev\" \"cd frontend && npm run start:mcp\"",
-    "build": "turbo run build",
-    "test": "turbo run test",
-    "lint": "turbo run lint",
-    "stop": "docker compose down",
-    "stop:all": "docker compose down -v",
     "db:reset": "cd backend && npx prisma migrate reset --force",
     "db:seed": "cd backend && npx prisma db seed",
     "db:studio": "cd backend && npx prisma studio",
-    "clean": "turbo run clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "db:generate": "cd backend && npx prisma generate"
   },
   "keywords": [
     "ecommerce",
@@ -32,19 +20,5 @@
     "italian-products"
   ],
   "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^22.14.0",
-    "concurrently": "^8.2.2",
-    "kill-port": "^2.0.1",
-    "prettier": "^3.1.0",
-    "turbo": "latest",
-    "typescript": "^5.8.3"
-  },
-  "dependencies": {
-    "@types/ioredis": "^4.28.10",
-    "@types/react-router-dom": "^5.3.3",
-    "ioredis": "^5.6.0",
-    "react-router-dom": "^7.5.0"
-  }
+  "license": "ISC"
 }

@@ -1,54 +1,122 @@
 import { api } from "./api"
 
+export interface Language {
+  id: string
+  code: string
+  name: string
+}
+
 export interface Workspace {
   id: string
   name: string
-  whatsappPhoneNumber: string | null
+  whatsappPhoneNumber: string
+  whatsappApiKey: string
   createdAt: string
   updatedAt: string
   isActive: boolean
+  isDelete: boolean
+  language: string
 }
 
-export const workspaceApi = {
-  async getAll(): Promise<Workspace[]> {
-    const response = await api.get("/workspaces")
-    return response.data
-  },
+export interface CreateWorkspaceData {
+  name: string
+  description?: string
+  isDelete?: boolean
+  isActive?: boolean
+  language: string
+}
 
-  async getById(id: string): Promise<Workspace> {
-    const response = await api.get(`/workspaces/${id}`)
-    return response.data
-  },
+export interface UpdateWorkspaceData extends Partial<CreateWorkspaceData> {
+  id: string
+}
 
-  async create(data: {
-    name: string
-    whatsappPhoneNumber?: string
-  }): Promise<Workspace> {
-    const response = await api.post("/workspaces", data)
-    return response.data
-  },
+const transformWorkspaceResponse = (data: any): Workspace => {
+  return {
+    ...data
+  }
+}
 
-  async update(
-    id: string,
-    data: {
-      name?: string
-      whatsappPhoneNumber?: string
-      isActive?: boolean
-    }
-  ): Promise<Workspace> {
-    const response = await api.put(`/workspaces/${id}`, data)
-    return response.data
-  },
+const transformWorkspaceRequest = (workspace: CreateWorkspaceData | UpdateWorkspaceData) => {
+  const { isDelete, ...rest } = workspace
+  return {
+    ...rest,
+    isDelete
+  }
+}
 
-  async delete(id: string): Promise<void> {
-    await api.delete(`/workspaces/${id}`)
-  },
+export const getCurrentWorkspace = async (): Promise<Workspace> => {
+  const workspaceId = sessionStorage.getItem("currentWorkspaceId")
+  if (!workspaceId) {
+    throw new Error("No workspace selected")
+  }
+  try {
+    const response = await api.get(`/api/workspaces/${workspaceId}`)
+    console.log('API Response - getCurrentWorkspace:', response.data)
+    return transformWorkspaceResponse(response.data)
+  } catch (error) {
+    console.error('Error getting workspace:', error)
+    throw error
+  }
+}
 
-  async toggleStatus(id: string): Promise<Workspace> {
-    const workspace = await this.getById(id)
-    const response = await api.put(`/workspaces/${id}`, {
-      isActive: !workspace.isActive,
+export const getWorkspaces = async (): Promise<Workspace[]> => {
+  try {
+    const response = await api.get("/api/workspaces")
+    console.log('API Response - getWorkspaces:', response.data)
+    return response.data.map(transformWorkspaceResponse)
+  } catch (error) {
+    console.error('Error getting workspaces:', error)
+    throw error
+  }
+}
+
+export const getLanguages = async (): Promise<Language[]> => {
+  const workspaceId = sessionStorage.getItem("currentWorkspaceId")
+  if (!workspaceId) {
+    throw new Error("No workspace selected")
+  }
+  try {
+    const response = await api.get("/api/languages", {
+      headers: {
+        "x-workspace-id": workspaceId
+      }
     })
+    console.log('API Response - getLanguages:', response.data)
     return response.data
-  },
+  } catch (error) {
+    console.error('Error getting languages:', error)
+    throw error
+  }
+}
+
+export const createWorkspace = async (
+  data: CreateWorkspaceData
+): Promise<Workspace> => {
+  const response = await api.post("/api/workspaces", data)
+  return response.data
+}
+
+export const updateWorkspace = async (
+  id: string,
+  data: UpdateWorkspaceData
+): Promise<Workspace> => {
+  try {
+    console.log('API Request - updateWorkspace:', { id, data })
+    const transformedData = transformWorkspaceRequest(data)
+    const response = await api.put(`/api/workspaces/${id}`, transformedData)
+    console.log('API Response - updateWorkspace:', response.data)
+    return transformWorkspaceResponse(response.data)
+  } catch (error) {
+    console.error('Error updating workspace:', error)
+    throw error
+  }
+}
+
+export const deleteWorkspace = async (id: string): Promise<void> => {
+  try {
+    await api.delete(`/api/workspaces/${id}`)
+  } catch (error) {
+    console.error('Error deleting workspace:', error)
+    throw error
+  }
 }

@@ -69,7 +69,7 @@ const performanceMetrics = [
   },
 ]
 
-export default function AnalyticsPage() {
+export function AnalyticsPage() {
   return (
     <div className="container mx-auto py-6">
       <Card>

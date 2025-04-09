@@ -1,17 +1,17 @@
-import { Request, Response } from "express"
+import { NextFunction, Request, Response } from "express"
 import { workspaceService } from "../services/workspace.service"
 
 export const workspaceController = {
-  async getAll(req: Request, res: Response) {
+  async getAll(req: Request, res: Response, next: NextFunction) {
     try {
       const workspaces = await workspaceService.getAll()
       res.json(workspaces)
     } catch (error) {
-      res.status(500).json({ message: "Error fetching workspaces" })
+      next(error)
     }
   },
 
-  async getById(req: Request, res: Response) {
+  async getById(req: Request, res: Response, next: NextFunction) {
     try {
       const workspace = await workspaceService.getById(req.params.id)
       if (!workspace) {
@@ -19,20 +19,20 @@ export const workspaceController = {
       }
       res.json(workspace)
     } catch (error) {
-      res.status(500).json({ message: "Error fetching workspace" })
+      next(error)
     }
   },
 
-  async create(req: Request, res: Response) {
+  async create(req: Request, res: Response, next: NextFunction) {
     try {
       const workspace = await workspaceService.create(req.body)
       res.status(201).json(workspace)
     } catch (error) {
-      res.status(500).json({ message: "Error creating workspace" })
+      next(error)
     }
   },
 
-  async update(req: Request, res: Response) {
+  async update(req: Request, res: Response, next: NextFunction) {
     try {
       const workspace = await workspaceService.update(req.params.id, req.body)
       if (!workspace) {
@@ -40,16 +40,16 @@ export const workspaceController = {
       }
       res.json(workspace)
     } catch (error) {
-      res.status(500).json({ message: "Error updating workspace" })
+      next(error)
     }
   },
 
-  async delete(req: Request, res: Response) {
+  async delete(req: Request, res: Response, next: NextFunction) {
     try {
       await workspaceService.delete(req.params.id)
       res.status(204).send()
     } catch (error) {
-      res.status(500).json({ message: "Error deleting workspace" })
+      next(error)
     }
   },
 }

@@ -209,10 +209,10 @@ function OrderDetailsSheet({
                             order.status === "completed"
                               ? "success"
                               : order.status === "processing"
-                              ? "warning"
-                              : order.status === "cancelled"
-                              ? "destructive"
-                              : "default"
+                                ? "warning"
+                                : order.status === "cancelled"
+                                  ? "destructive"
+                                  : "default"
                           }
                         >
                           {order.status}
@@ -227,8 +227,8 @@ function OrderDetailsSheet({
                             order.payment.status === "paid"
                               ? "success"
                               : order.payment.status === "pending"
-                              ? "warning"
-                              : "destructive"
+                                ? "warning"
+                                : "destructive"
                           }
                         >
                           {order.payment.status}
@@ -765,8 +765,8 @@ export default function OrdersPage() {
               row.original.payment.status === "paid"
                 ? "text-green-500"
                 : row.original.payment.status === "pending"
-                ? "text-yellow-500"
-                : "text-red-500"
+                  ? "text-yellow-500"
+                  : "text-red-500"
             }`}
           >
             {row.original.payment.status.charAt(0).toUpperCase() +

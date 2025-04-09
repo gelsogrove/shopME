@@ -1,173 +1,304 @@
-import { Save } from "lucide-react"
-import { useState } from "react"
-import { Outlet, useLocation } from "react-router-dom"
-import { Button } from "../components/ui/button"
-import { Card } from "../components/ui/card"
-import { Input } from "../components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import type { Language, Workspace } from "@/services/workspaceApi"
+import {
+  deleteWorkspace,
+  getCurrentWorkspace,
+  getLanguages,
+  updateWorkspace,
+} from "@/services/workspaceApi"
+import { Trash2 } from "lucide-react"
+import { ChangeEvent, useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 
-interface Settings {
-  whatsappApiKey: string
-  whatsappPhoneNumber: string
-  notificationEmail: string
-  webhookUrl: string
-  alias: string
-}
+export default function SettingsPage() {
+  const navigate = useNavigate()
+  const [isLoading, setIsLoading] = useState(false)
+  const [languages, setLanguages] = useState<Language[]>([])
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [errors, setErrors] = useState({
+    language: "",
+  })
+  const [workspace, setWorkspace] = useState<Workspace>({
+    id: "",
+    name: "",
+    whatsappPhoneNumber: "",
+    whatsappApiKey: "",
+    createdAt: "",
+    updatedAt: "",
+    isActive: true,
+    isDelete: true,
+    language: "en"
+  })
 
-const defaultSettings: Settings = {
-  whatsappApiKey: "",
-  whatsappPhoneNumber: "",
-  notificationEmail: "",
-  webhookUrl: "",
-  alias: "",
-}
+  const [selectedLanguage, setSelectedLanguage] = useState("en")
 
-export function SettingsPage() {
-  const [settings, setSettings] = useState<Settings>(defaultSettings)
-  const [isSaving, setIsSaving] = useState(false)
-  const location = useLocation()
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true)
+      try {
+        const [workspaceData, languagesData] = await Promise.all([
+          getCurrentWorkspace(),
+          getLanguages(),
+        ])
+        console.log('Workspace data received:', workspaceData)
+        console.log('Languages data received:', languagesData)
+        
+        // Assicurati che language sia 'en' se non è definito
+        setWorkspace({
+          ...workspaceData,
+          language: workspaceData.language || 'en'
+        })
+        setLanguages(languagesData)
+      } catch (error) {
+        console.error("Failed to load data:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadData()
+  }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSaving(true)
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
 
+  const validateUrl = (url: string) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log("Settings saved:", settings)
-    } catch (error) {
-      console.error("Error saving settings:", error)
-    } finally {
-      setIsSaving(false)
+      new URL(url)
+      return true
+    } catch {
+      return false
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setSettings((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+  const handleFieldChange = (field: keyof Workspace, value: string | boolean) => {
+    console.log(`Updating field ${field} with value:`, value);
+    setWorkspace((prev: Workspace) => {
+      const updated = {
+        ...prev,
+        [field]: value,
+      };
+      console.log('Updated workspace state:', updated);
+      return updated;
+    });
+
+    // Clear error when user starts typing
+    if (field in errors) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: "",
+      }));
+    }
+  }
+
+  const validateFields = () => {
+    const newErrors = {
+      language: "",
+    }
+
+    if (!workspace.language) {
+      newErrors.language = "Please select a language"
+    }
+
+    setErrors(newErrors)
+    return !Object.values(newErrors).some(error => error !== "")
+  }
+
+  const handleSave = async () => {
+    if (!validateFields()) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const updateData = {
+        name: workspace.name,
+        isActive: workspace.isActive,
+        isDelete: false,
+        whatsappApiKey: workspace.whatsappApiKey,
+        whatsappPhoneNumber: workspace.whatsappPhoneNumber
+      };
+
+      console.log('Sending update data:', updateData);
+      const updatedWorkspace = await updateWorkspace(workspace.id, updateData);
+      console.log('Received updated workspace:', updatedWorkspace);
+      
+      setWorkspace(prev => ({
+        ...prev,
+        ...updatedWorkspace,
+      }));
+    } catch (error) {
+      console.error("Failed to save changes:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleDelete = async () => {
+    setIsLoading(true)
+    try {
+      await deleteWorkspace(workspace.id)
+      navigate("/workspace-selection")
+    } catch (error) {
+      console.error("Failed to delete workspace:", error)
+    } finally {
+      setIsLoading(false)
+      setShowDeleteDialog(false)
+    }
   }
 
   return (
-    <div className="container mx-auto p-6">
-      {location.pathname === "/settings" ? (
-        <div className="space-y-8">
-          <Card className="p-6">
-            <h1 className="text-2xl font-bold mb-6">Settings</h1>
+    <div className="container mx-auto py-8">
+      <Card>
+        <CardContent className="p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Channel Settings</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Channel Status</span>
+              <Switch
+                checked={workspace.isActive}
+                onCheckedChange={(checked: boolean) =>
+                  handleFieldChange("isActive", checked)
+                }
+              />
+            </div>
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="alias"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Alias
-                  </label>
-                  <Input
-                    id="alias"
-                    name="alias"
-                    type="text"
-                    value={settings.alias}
-                    onChange={handleChange}
-                    placeholder="Your alias or display name"
-                    className="w-full"
-                  />
-                </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Channel Name
+              </label>
+              <Input
+                value={workspace.name}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => handleFieldChange("name", e.target.value)}
+                placeholder="Enter channel name"
+                disabled={isLoading}
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="whatsappApiKey"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    WhatsApp API Key
-                  </label>
-                  <Input
-                    id="whatsappApiKey"
-                    name="whatsappApiKey"
-                    type="password"
-                    value={settings.whatsappApiKey}
-                    onChange={handleChange}
-                    placeholder="Enter your WhatsApp API key"
-                    className="w-full"
-                    required
-                  />
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                WhatsApp Phone Number
+              </label>
+              <Input
+                value={workspace.whatsappPhoneNumber}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  handleFieldChange("whatsappPhoneNumber", e.target.value)
+                }
+                placeholder="+1234567890"
+                type="tel"
+                disabled={isLoading}
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="whatsappPhoneNumber"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    WhatsApp Phone Number
-                  </label>
-                  <Input
-                    id="whatsappPhoneNumber"
-                    name="whatsappPhoneNumber"
-                    type="tel"
-                    value={settings.whatsappPhoneNumber}
-                    onChange={handleChange}
-                    placeholder="+1234567890"
-                    className="w-full"
-                    required
-                  />
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                WhatsApp API Key
+              </label>
+              <Input
+                value={workspace.whatsappApiKey}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => handleFieldChange("whatsappApiKey", e.target.value)}
+                placeholder="Enter WhatsApp API key"
+                type="text"
+                disabled={isLoading}
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="notificationEmail"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Notification Email
-                  </label>
-                  <Input
-                    id="notificationEmail"
-                    name="notificationEmail"
-                    type="email"
-                    value={settings.notificationEmail}
-                    onChange={handleChange}
-                    placeholder="notifications@example.com"
-                    className="w-full"
-                    required
-                  />
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Language
+              </label>
+              <Select
+                value={workspace.language}
+                onValueChange={(value: string) =>
+                  handleFieldChange("language", value)
+                }
+                disabled={isLoading}
+              >
+                <SelectTrigger className={errors.language ? "border-red-500" : ""}>
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  {languages.map((lang) => (
+                    <SelectItem key={lang.id} value={lang.code}>
+                      {lang.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.language && (
+                <p className="mt-1 text-sm text-red-500">{errors.language}</p>
+              )}
+            </div>
+          </div>
 
-                <div>
-                  <label
-                    htmlFor="webhookUrl"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Webhook URL
-                  </label>
-                  <Input
-                    id="webhookUrl"
-                    name="webhookUrl"
-                    type="url"
-                    value={settings.webhookUrl}
-                    onChange={handleChange}
-                    placeholder="https://your-webhook-endpoint.com/webhook"
-                    className="w-full"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Receive real-time notifications for new messages and order
-                    updates
-                  </p>
-                </div>
-              </div>
+          <div className="flex justify-end gap-4 pt-6">
+            <Button
+              onClick={handleSave}
+              disabled={isLoading}
+              className="bg-green-500 hover:bg-green-600 text-white"
+            >
+              Save Changes
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => setShowDeleteDialog(true)}
+              disabled={isLoading}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Channel
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-              <div className="flex justify-end">
-                <Button type="submit" disabled={isSaving}>
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? "Saving..." : "Save Settings"}
-                </Button>
-              </div>
-            </form>
-          </Card>
-        </div>
-      ) : (
-        <Outlet />
-      )}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Channel</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this channel? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isLoading}
+            >
+              {isLoading ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
