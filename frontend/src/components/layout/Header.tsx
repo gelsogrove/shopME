@@ -102,6 +102,9 @@ export function Header() {
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
+                <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-50 px-3 py-1 rounded text-blue-600 font-semibold text-xs whitespace-nowrap border border-blue-300">
+                  FREE
+                </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-72" align="end" forceMount>

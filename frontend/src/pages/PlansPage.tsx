@@ -1,12 +1,12 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card"
 import { Check, CreditCard } from "lucide-react"
 import { useState } from "react"
@@ -40,10 +40,10 @@ export default function PlansPage() {
       period: "forever",
       features: [
         { text: "1 WhatsApp channel", included: true },
-        { text: "100 messages/month", included: true },
+        { text: "150 messages/month", included: true },
         { text: "Basic analytics", included: true },
         { text: "Standard support", included: true },
-        { text: "Product catalog (up to 50 items)", included: true },
+        { text: "Product catalog (5 items)", included: true },
         { text: "Order management", included: true },
         { text: "Email notifications", included: false },
         { text: "Advanced analytics", included: false },
