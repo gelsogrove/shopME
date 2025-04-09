@@ -125,9 +125,12 @@ export const updateWorkspace = async (
 
 export const deleteWorkspace = async (id: string): Promise<void> => {
   try {
-    await api.delete(`/api/workspaces/${id}`)
+    await updateWorkspace(id, {
+      id,
+      isDelete: true
+    })
   } catch (error) {
-    console.error('Error deleting workspace:', error)
+    console.error('Error marking workspace as deleted:', error)
     throw error
   }
 }
