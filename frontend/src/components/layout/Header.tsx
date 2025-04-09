@@ -1,12 +1,12 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ArrowLeftRight, LogOut, Phone, Settings, User } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -82,12 +82,12 @@ export function Header() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="p-4 text-lg">
+              <DropdownMenuItem className="p-4 text-lg cursor-pointer">
                 <User className="mr-3 h-5 w-5" />
                 <span>Profile</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="p-4 text-lg"
+                className="p-4 text-lg cursor-pointer"
                 onClick={() => navigate("/settings")}
               >
                 <Settings className="mr-3 h-5 w-5" />
@@ -95,7 +95,7 @@ export function Header() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="p-4 text-lg"
+                className="p-4 text-lg cursor-pointer"
                 onClick={() => navigate("/login")}
               >
                 <LogOut className="mr-3 h-5 w-5" />

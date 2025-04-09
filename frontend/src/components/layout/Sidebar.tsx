@@ -1,15 +1,13 @@
 import { cn } from "@/lib/utils"
 import {
-  Bell,
-  Box,
-  Cog,
-  Globe,
-  LayoutGrid,
-  MessageSquare,
-  Package,
-  ShoppingCart,
-  Users,
-  Wrench,
+    Bell,
+    Box,
+    LayoutGrid,
+    MessageSquare,
+    Package,
+    ShoppingCart,
+    Users,
+    Wrench
 } from "lucide-react"
 import { NavLink } from "react-router-dom"
 
@@ -45,32 +43,19 @@ const mainLinks = [
     icon: Wrench,
   },
   {
-    href: "/notifications",
-    label: "Push Notifications",
-    icon: Bell,
-  },
-  {
     href: "/prompts",
     label: "Prompts",
     icon: MessageSquare,
   },
   {
+    href: "/notifications",
+    label: "Push Notifications",
+    icon: Bell,
+  },
+  {
     href: "/analytics",
     label: "Analytics",
     icon: LayoutGrid,
-  },
-]
-
-const settingsLinks = [
-  {
-    href: "/settings/languages",
-    label: "Languages",
-    icon: Globe,
-  },
-  {
-    href: "/settings",
-    label: "Settings",
-    icon: Cog,
   },
 ]
 
@@ -101,32 +86,6 @@ export function Sidebar() {
               {label}
             </NavLink>
           ))}
-
-          <div className="mt-8">
-            <div className="px-4 mb-2">
-              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-                Settings
-              </h2>
-            </div>
-            {settingsLinks.map(({ href, label, icon: Icon }) => (
-              <NavLink
-                key={href}
-                to={href}
-                end={href === "/settings"}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors",
-                    isActive
-                      ? "bg-green-50 text-green-600"
-                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                  )
-                }
-              >
-                <Icon className="h-6 w-6" />
-                {label}
-              </NavLink>
-            ))}
-          </div>
         </nav>
       </div>
     </aside>

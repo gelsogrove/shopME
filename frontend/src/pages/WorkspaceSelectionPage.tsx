@@ -6,7 +6,7 @@ import { PlusCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { Workspace } from "../services/workspaceApi"
-import { createWorkspace, getWorkspaces } from "../services/workspaceApi"
+import { createWorkspace, getWorkspaces, updateWorkspace } from "../services/workspaceApi"
 
 // Definizione dei tipi di attività supportati
 type BusinessType = "Shop" | "Hotel" | "Gym" | "Restaurant"
@@ -30,8 +30,8 @@ export function WorkspaceSelectionPage() {
     try {
       setIsLoading(true)
       const workspaces = await getWorkspaces()
-      // Filter out invisible workspaces
-      setWorkspaces(workspaces.filter((w: Workspace) => w.visible))
+      // Filter out deleted workspaces
+      setWorkspaces(workspaces.filter((w: Workspace) => !w.isDelete))
     } catch (error) {
       setErrorMessage("Failed to load workspaces")
     } finally {
@@ -77,7 +77,7 @@ export function WorkspaceSelectionPage() {
       const newWorkspace = await createWorkspace({
         name: newPhoneNumber,
         whatsappPhoneNumber: newPhoneNumber,
-        alias: alias,
+        language: "en"
       })
 
       setWorkspaces([...workspaces, newWorkspace])
@@ -104,12 +104,14 @@ export function WorkspaceSelectionPage() {
   const handleToggleStatus = async (id: string) => {
     try {
       setIsLoading(true)
-      const updatedWorkspace = await getWorkspaces().then((workspaces: Workspace[]) =>
-        workspaces.find((workspace: Workspace) => workspace.id === id)
-      )
-      if (updatedWorkspace) {
-        const updatedWorkspaces = workspaces.map((workspace: Workspace) =>
-          workspace.id === id ? updatedWorkspace : workspace
+      const workspace = workspaces.find((w) => w.id === id)
+      if (workspace) {
+        const updatedWorkspace = await updateWorkspace(id, {
+          id,
+          isActive: !workspace.isActive
+        })
+        const updatedWorkspaces = workspaces.map((w) =>
+          w.id === id ? updatedWorkspace : w
         )
         setWorkspaces(updatedWorkspaces)
       }
@@ -139,39 +141,24 @@ export function WorkspaceSelectionPage() {
           {workspaces.map((workspace) => (
             <Card
               key={workspace.id}
-              className={`transition-all cursor-pointer border ${
+              className={`transition-all cursor-pointer ${
                 justCreatedId === workspace.id ? "ring-2 ring-green-500" : ""
-              } ${!workspace.isActive ? "opacity-50" : ""}`}
+              } ${workspace.isActive ? "bg-white border-gray-200" : "bg-gray-100 border-gray-300 opacity-75"}`}
               onClick={() => handleSelectWorkspace(workspace)}
             >
               <CardContent className="p-6">
                 <div className="space-y-2 min-w-0 w-full">
                   <div className="text-lg font-semibold truncate flex items-center justify-between">
-                    <span>{workspace.name}</span>
-                    <div
-                      className="relative inline-block w-12 h-6 rounded-full bg-gray-200"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleToggleStatus(workspace.id)
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        checked={workspace.isActive}
-                        onChange={() => {}}
-                      />
-                      <span
-                        className={`absolute inset-0 rounded-full transition peer-checked:bg-green-500`}
-                      />
-                      <span
-                        className={`absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition transform peer-checked:translate-x-6`}
-                      />
-                    </div>
+                    <span className={workspace.isActive ? "" : "text-gray-500"}>{workspace.name}</span>
+                    {!workspace.isActive && (
+                      <span className="text-sm font-normal text-red-500 bg-red-50 px-2 py-1 rounded">
+                        Disabled
+                      </span>
+                    )}
                   </div>
-                  <div className="text-sm text-gray-500">Type: Shop</div>
+                  <div className={`text-sm ${workspace.isActive ? "text-gray-500" : "text-gray-400"}`}>Type: Shop</div>
                   {workspace.whatsappPhoneNumber && (
-                    <div className="text-xl text-green-600 flex items-center gap-2">
+                    <div className={`text-xl flex items-center gap-2 ${workspace.isActive ? "text-green-600" : "text-gray-400"}`}>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="20"

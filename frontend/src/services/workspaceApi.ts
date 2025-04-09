@@ -28,6 +28,7 @@ export interface CreateWorkspaceData {
   isActive?: boolean
   language: string
   currency?: string
+  whatsappPhoneNumber?: string
 }
 
 export interface UpdateWorkspaceData extends Partial<CreateWorkspaceData> {

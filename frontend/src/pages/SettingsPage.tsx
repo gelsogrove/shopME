@@ -1,28 +1,28 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import type { Language, Workspace } from "@/services/workspaceApi"
 import {
-  deleteWorkspace,
-  getCurrentWorkspace,
-  getLanguages,
-  updateWorkspace,
+    deleteWorkspace,
+    getCurrentWorkspace,
+    getLanguages,
+    updateWorkspace,
 } from "@/services/workspaceApi"
 import { Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -141,6 +141,7 @@ export default function SettingsPage() {
     setIsLoading(true);
     try {
       const updateData = {
+        id: workspace.id,
         name: workspace.name,
         isActive: workspace.isActive,
         isDelete: false,
@@ -185,10 +186,10 @@ export default function SettingsPage() {
         <CardContent className="p-6 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Channel Settings</h2>
-            <div className="flex items-center gap-2">
-             
-              
-            </div>
+            <Switch
+              checked={workspace.isActive}
+              onCheckedChange={(checked) => handleFieldChange("isActive", checked)}
+            />
           </div>
 
           <div className="space-y-4">
@@ -252,54 +253,34 @@ export default function SettingsPage() {
             </div>
 
             <div className="border-t pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Challenge Status</h3>
-                  <p className="text-sm text-gray-500">
-                    Abilita o disabilita il challenge status
-                  </p>
-                </div>
-                <Switch
-                  checked={workspace.challengeStatus}
-                  onCheckedChange={(checked) => 
-                    handleFieldChange("challengeStatus", checked)
-                  }
-                />
-              </div>
-
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Messaggio WIP
+                  WIP Message
                 </label>
-                <textarea
+                <Input
                   value={workspace.wipMessage}
                   onChange={(e) => handleFieldChange("wipMessage", e.target.value)}
-                  disabled={!workspace.challengeStatus}
-                  className={`mt-1 block w-full rounded-md border border-gray-300 shadow-sm 
-                    focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2
-                    ${!workspace.challengeStatus ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
-                  rows={4}
-                  placeholder="Inserisci il messaggio per i lavori in corso..."
+                  disabled={workspace.isActive}
+                  className={workspace.isActive ? "bg-gray-100" : ""}
                 />
               </div>
             </div>
-          </div>
 
-          <div className="flex justify-end space-x-4 mt-6">
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteDialog(true)}
-              className="text-red-600 hover:text-red-700"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete Channel
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={isLoading}
-            >
-              {isLoading ? "Saving..." : "Save Changes"}
-            </Button>
+            <div className="flex justify-end space-x-4 mt-6">
+              <Button
+                variant="destructive"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Channel
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={isLoading}
+              >
+                Save Changes
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -28,9 +28,8 @@ interface UpdateWorkspaceData {
 export const workspaceService = {
   async getAll() {
     return prisma.workspace.findMany({
-      where: { 
-        isActive: true,
-        isDelete: false 
+      where: {
+        isDelete: false
       },
       select: {
         id: true,
