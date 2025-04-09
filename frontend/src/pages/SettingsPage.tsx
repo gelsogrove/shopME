@@ -19,12 +19,6 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
 import type { Language, Workspace } from "@/services/workspaceApi"
 import {
     deleteWorkspace,
@@ -32,7 +26,7 @@ import {
     getLanguages,
     updateWorkspace,
 } from "@/services/workspaceApi"
-import { Info, Loader2, Trash2, Video } from "lucide-react"
+import { Loader2, Settings, Trash2, Video } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
@@ -201,17 +195,8 @@ export default function SettingsPage() {
         <CardContent className="p-6 space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
+              <Settings className="h-5 w-5 text-muted-foreground" />
               <h2 className="text-2xl font-bold">Channel Settings</h2>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-primary" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-[300px] p-4">
-                    <p className="text-sm">Configure your channel settings including name, phone number, and API keys.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Active</span>
@@ -252,16 +237,6 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium text-gray-700">
                   WhatsApp API Key
                 </label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-primary" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[300px] p-4">
-                      <p className="text-sm">Your WhatsApp Business API key required for sending and receiving messages. You can find this in your WhatsApp Business account settings.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
                 <Button
                   variant="outline"
                   size="icon"
@@ -285,16 +260,6 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium text-gray-700">
                   Currency
                 </label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-primary" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[300px] p-4">
-                      <p className="text-sm">Select the currency for all transactions in this workspace. This will be used for all pricing and payment calculations.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
               </div>
               <Select
                 value={workspace.currency}
@@ -318,16 +283,6 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium text-gray-700">
                   WIP Message
                 </label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-primary" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[300px] p-4">
-                      <p className="text-sm">This message will be shown to users when the workspace is under maintenance or temporarily unavailable. Only editable when the workspace is inactive.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
               </div>
               <Input
                 value={workspace.wipMessage}
@@ -340,16 +295,6 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label>Message Limit</Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-primary" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[300px] p-4">
-                      <p className="text-sm">To protect the service from excessive use, each user has a limit of 50 messages per day. Once this limit is reached, no further messages can be sent until the next day.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
               </div>
               <Input
                 type="number"
@@ -362,16 +307,6 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label>Phone Number Blocklist</Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-primary" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[300px] p-4">
-                      <p className="text-sm">Add phone numbers to block from using the service. Messages from these numbers will be ignored. Separate multiple numbers with semicolons (;).</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
               </div>
               <Textarea 
                 value={workspace.blocklist || ""}

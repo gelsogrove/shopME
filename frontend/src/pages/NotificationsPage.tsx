@@ -1,3 +1,4 @@
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent } from "@/components/ui/card"
 import { BarChart, Bell, Calendar, MessageSquare, Users } from "lucide-react"
 
@@ -49,11 +50,17 @@ export default function NotificationsPage() {
             </div>
           </div>
           
-          <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-blue-800 font-medium">
+          <Alert className="mt-8 bg-blue-50 border border-blue-200">
+            <AlertDescription className="text-blue-800 font-medium">
               🚧 This feature will be available in the next update. Stay tuned for all the news!
-            </p>
-          </div>
+            </AlertDescription>
+          </Alert>
+          
+          <Alert className="mt-4 bg-blue-50 border border-blue-200">
+            <AlertDescription className="text-blue-800 font-medium">
+              Only one prompt can be active at a time. Setting a prompt as active will deactivate all other prompts. This is useful for testing different prompts without losing the original ones.
+            </AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
     </div>

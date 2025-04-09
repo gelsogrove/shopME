@@ -14,346 +14,325 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet"
 import { Switch } from "@/components/ui/switch"
-import { AlertCircle, FileText } from "lucide-react"
+import {
+    Prompt,
+    activatePrompt,
+    createPrompt,
+    deletePrompt,
+    getWorkspacePrompts,
+    updatePrompt
+} from "@/services/promptsApi"
+import { getCurrentWorkspace } from "@/services/workspaceApi"
+import { FileText, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
-
-interface Prompt {
-  id: string
-  name: string
-  content: string
-  temperature: number
-  top_k: number
-  top_p: number
-  status: "active" | "inactive"
-}
-
-const initialPrompts: Prompt[] = [
-  {
-    id: "1",
-    name: "Default Prompt",
-    content: "# Default System Prompt\n\nYou are a helpful AI assistant...",
-    temperature: 0.7,
-    top_k: 40,
-    top_p: 0.95,
-    status: "active",
-  },
-  {
-    id: "2",
-    name: "Custom Prompt",
-    content: "# Custom System Prompt\n\nYou are a specialized AI...",
-    temperature: 0.5,
-    top_k: 50,
-    top_p: 0.9,
-    status: "inactive",
-  },
-]
+import { toast } from "react-hot-toast"
 
 export function PromptsPage() {
-  console.log("PromptsPage: Component mounting")
-
-  const [prompts, setPrompts] = useState<Prompt[]>(initialPrompts)
+  const [prompts, setPrompts] = useState<Prompt[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [showAddSheet, setShowAddSheet] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null)
   const [showPromptPopup, setShowPromptPopup] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [workspaceId, setWorkspaceId] = useState("")
 
+  // Carica il workspace corrente e i prompts all'avvio
   useEffect(() => {
-    console.log("PromptsPage: Dependencies loaded", {
-      DataTable: !!DataTable,
-      StatusBadge: !!StatusBadge,
-      PageHeader: !!PageHeader,
-    })
+    const loadData = async () => {
+      try {
+        setIsLoading(true)
+        const workspace = await getCurrentWorkspace()
+        setWorkspaceId(workspace.id)
+        
+        const promptsData = await getWorkspacePrompts(workspace.id)
+        setPrompts(promptsData)
+      } catch (error) {
+        console.error("Error loading prompts:", error)
+        toast.error("Failed to load prompts")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    loadData()
   }, [])
 
   const filteredPrompts = prompts.filter((prompt) =>
     Object.values(prompt).some((value) =>
-      value.toString().toLowerCase().includes(searchQuery.toLowerCase())
+      value?.toString().toLowerCase().includes(searchQuery.toLowerCase())
     )
   )
 
-  console.log("PromptsPage: Filtered prompts", filteredPrompts)
-
   const columns = [
-    { header: "Name", accessorKey: "name" as keyof Prompt },
-    {
-      header: "Temperature",
-      accessorKey: "temperature" as keyof Prompt,
-      cell: ({ row }: { row: { original: Prompt } }) => (
-        <span>{row.original.temperature.toFixed(1)}</span>
-      ),
-    },
-    {
-      header: "Top-K",
-      accessorKey: "top_k" as keyof Prompt,
-      cell: ({ row }: { row: { original: Prompt } }) => (
-        <span>{row.original.top_k}</span>
-      ),
-    },
-    {
-      header: "Top-P",
-      accessorKey: "top_p" as keyof Prompt,
-      cell: ({ row }: { row: { original: Prompt } }) => (
-        <span>{row.original.top_p.toFixed(2)}</span>
-      ),
+    { 
+      header: "Name", 
+      accessorKey: "name" as keyof Prompt,
+      size: 180,
+      className: "min-w-[150px]",
     },
     {
       header: "Status",
-      accessorKey: "status" as keyof Prompt,
+      accessorKey: "isActive" as keyof Prompt,
       cell: ({ row }: { row: { original: Prompt } }) => (
-        <StatusBadge status={row.original.status}>
-          {row.original.status.charAt(0).toUpperCase() +
-            row.original.status.slice(1)}
+        <StatusBadge status={row.original.isActive ? "active" : "inactive"}>
+          {row.original.isActive ? "Active" : "Inactive"}
         </StatusBadge>
       ),
+      size: 120,
     },
+    {
+      header: "Content Preview",
+      accessorKey: "content" as keyof Prompt,
+      cell: ({ row }: { row: { original: Prompt } }) => {
+        const content = row.original.content || "";
+        const preview = content.length > 150 ? content.substring(0, 150) + "..." : content;
+        return <span className="text-sm text-gray-600">{preview}</span>;
+      },
+      size: 450,
+    }
   ]
 
-  const renderFormFields = (isEdit = false) => (
-    <div className="space-y-6 pb-6">
-      <div className="space-y-2">
-        <label htmlFor="name" className="text-sm font-medium leading-none">
-          Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          defaultValue={isEdit ? selectedPrompt?.name : ""}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        />
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <div className="flex justify-between mb-2">
-            <label
-              htmlFor="temperature"
-              className="text-sm font-medium leading-none"
-            >
-              Temperature:{" "}
-              <span id="temperature-value">
-                {isEdit ? selectedPrompt?.temperature.toFixed(1) : "0.7"}
-              </span>
-            </label>
-          </div>
+  const renderFormFields = (isEdit = false) => {
+    const isActiveDefault = isEdit && selectedPrompt ? selectedPrompt.isActive : false;
+    
+    return (
+      <div className="space-y-6 pb-6">
+        <div className="space-y-2">
+          <label htmlFor="name" className="text-sm font-medium leading-none">
+            Name
+          </label>
           <input
-            type="range"
-            id="temperature"
-            name="temperature"
-            min="0"
-            max="1"
-            step="0.1"
-            defaultValue={
-              isEdit ? selectedPrompt?.temperature.toString() : "0.7"
-            }
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary border border-input"
-            onChange={(e) => {
-              const value = parseFloat(e.target.value)
-              document.getElementById("temperature-value")!.textContent =
-                value.toFixed(1)
-            }}
+            type="text"
+            id="name"
+            name="name"
+            defaultValue={isEdit && selectedPrompt ? selectedPrompt.name : ""}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            required
           />
-          <p className="text-xs text-muted-foreground mt-1">
-            Controls randomness: Lower values make output more focused and
-            deterministic
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="content" className="text-sm font-medium leading-none">
+            Content
+          </label>
+          <textarea
+            id="content"
+            name="content"
+            rows={24}
+            defaultValue={isEdit && selectedPrompt ? selectedPrompt.content : ""}
+            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[400px]"
+            required
+          />
+          <p className="text-xs text-muted-foreground">
+            Enter the prompt content that will be used for generating AI responses.
           </p>
         </div>
 
-        <div>
-          <div className="flex justify-between mb-2">
-            <label htmlFor="top_k" className="text-sm font-medium leading-none">
-              Top-K:{" "}
-              <span id="top-k-value">
-                {isEdit ? selectedPrompt?.top_k : "40"}
-              </span>
-            </label>
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="isActive"
+              name="isActive"
+              defaultChecked={isActiveDefault}
+            />
+            <Label htmlFor="isActive" className="text-sm font-medium leading-none">
+              Active
+            </Label>
           </div>
-          <input
-            type="range"
-            id="top_k"
-            name="top_k"
-            min="1"
-            max="100"
-            step="1"
-            defaultValue={isEdit ? selectedPrompt?.top_k.toString() : "40"}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary border border-input"
-            onChange={(e) => {
-              document.getElementById("top-k-value")!.textContent =
-                e.target.value
-            }}
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Controls diversity by limiting the top K tokens considered for
-            sampling
+          
+          <p className={`text-xs ${isActiveDefault ? 'text-green-600' : 'text-muted-foreground'}`}>
+            {isActiveDefault 
+              ? "This prompt is currently active and will be used for AI responses." 
+              : "This prompt is currently inactive. Activate it to use for AI responses."}
           </p>
-        </div>
-
-        <div>
-          <div className="flex justify-between mb-2">
-            <label htmlFor="top_p" className="text-sm font-medium leading-none">
-              Top-P:{" "}
-              <span id="top-p-value">
-                {isEdit ? selectedPrompt?.top_p.toFixed(2) : "0.95"}
-              </span>
-            </label>
-          </div>
-          <input
-            type="range"
-            id="top_p"
-            name="top_p"
-            min="0.1"
-            max="1"
-            step="0.05"
-            defaultValue={isEdit ? selectedPrompt?.top_p.toString() : "0.95"}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary border border-input"
-            onChange={(e) => {
-              const value = parseFloat(e.target.value)
-              document.getElementById("top-p-value")!.textContent =
-                value.toFixed(2)
-            }}
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Controls diversity by considering tokens with top P probability mass
-          </p>
+          
+          {isEdit && selectedPrompt && (
+            <p className="text-xs text-gray-500 mt-1">
+              Last updated: {new Date(selectedPrompt.updatedAt).toLocaleString()}
+            </p>
+          )}
         </div>
       </div>
+    );
+  };
 
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="status"
-          name="status"
-          defaultChecked={isEdit ? selectedPrompt?.status === "active" : true}
-          value="active"
-        />
-        <Label htmlFor="status" className="text-sm font-medium leading-none">
-          Active
-        </Label>
-        <input
-          type="hidden"
-          name="status"
-          value="inactive"
-          disabled={isEdit ? selectedPrompt?.status === "active" : true}
-        />
-      </div>
-    </div>
-  )
-
-  const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
-    console.log("PromptsPage: Adding new prompt")
+  const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
 
-    // Handle the switch value correctly
-    const statusActive = form.querySelector<HTMLInputElement>(
-      'input[type="checkbox"][name="status"]'
-    )?.checked
-    const status = statusActive ? "active" : "inactive"
+    try {
+      const switchElement = form.querySelector('input[name="isActive"]') as HTMLInputElement
+      const isActive = switchElement ? switchElement.checked : false
+      
+      console.log("Creating prompt with isActive:", isActive)
+      
+      const newPromptData = {
+        name: formData.get("name") as string,
+        content: formData.get("content") as string,
+        isActive
+      }
 
-    // If we're adding a new active prompt, set all others to inactive
-    if (status === "active") {
-      setPrompts(prompts.map((p) => ({ ...p, status: "inactive" })))
+      await createPrompt(workspaceId, newPromptData)
+      
+      // Ricarica i prompt dopo l'aggiunta
+      const updatedPrompts = await getWorkspacePrompts(workspaceId)
+      setPrompts(updatedPrompts)
+      
+      toast.success("Prompt created successfully")
+      setShowAddSheet(false)
+    } catch (error) {
+      console.error("Error adding prompt:", error)
+      toast.error("Failed to create prompt")
     }
-
-    const newPrompt: Prompt = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: formData.get("name") as string,
-      content: formData.get("content") as string,
-      temperature: parseFloat(formData.get("temperature") as string),
-      top_k: parseInt(formData.get("top_k") as string),
-      top_p: parseFloat(formData.get("top_p") as string),
-      status: status as "active" | "inactive",
-    }
-
-    console.log("PromptsPage: New prompt data", newPrompt)
-    setPrompts([...prompts, newPrompt])
-    setShowAddSheet(false)
   }
 
   const handleEdit = (prompt: Prompt) => {
-    console.log("PromptsPage: Editing prompt", prompt)
     setSelectedPrompt(prompt)
     setShowEditSheet(true)
   }
 
-  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    console.log("PromptsPage: Submitting edit")
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!selectedPrompt) return
 
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
 
-    // Handle the switch value correctly
-    const statusActive = form.querySelector<HTMLInputElement>(
-      'input[type="checkbox"][name="status"]'
-    )?.checked
-    const status = statusActive ? "active" : "inactive"
+    try {
+      const switchElement = form.querySelector('input[name="isActive"]') as HTMLInputElement
+      const isActive = switchElement ? switchElement.checked : false
+      
+      console.log("Updating prompt with isActive:", isActive)
+      
+      const updatedPromptData = {
+        name: formData.get("name") as string,
+        content: formData.get("content") as string,
+        isActive
+      }
 
-    // If we're setting this prompt to active, set all others to inactive
-    if (status === "active") {
-      setPrompts(prompts.map((p) => ({ ...p, status: "inactive" })))
+      await updatePrompt(selectedPrompt.id, updatedPromptData)
+      
+      // Ricarica i prompt dopo l'aggiornamento
+      const updatedPrompts = await getWorkspacePrompts(workspaceId)
+      setPrompts(updatedPrompts)
+      
+      toast.success("Prompt updated successfully")
+      setShowEditSheet(false)
+      setSelectedPrompt(null)
+    } catch (error) {
+      console.error("Error updating prompt:", error)
+      toast.error("Failed to update prompt")
     }
-
-    const updatedPrompt: Prompt = {
-      ...selectedPrompt,
-      name: formData.get("name") as string,
-      content: formData.get("content") as string,
-      temperature: parseFloat(formData.get("temperature") as string),
-      top_k: parseInt(formData.get("top_k") as string),
-      top_p: parseFloat(formData.get("top_p") as string),
-      status: status as "active" | "inactive",
-    }
-
-    console.log("PromptsPage: Updated prompt data", updatedPrompt)
-    setPrompts(
-      prompts.map((p) => (p.id === selectedPrompt.id ? updatedPrompt : p))
-    )
-    setShowEditSheet(false)
-    setSelectedPrompt(null)
   }
 
   const handleDelete = (prompt: Prompt) => {
-    console.log("PromptsPage: Deleting prompt", prompt)
     setSelectedPrompt(prompt)
     setShowDeleteDialog(true)
   }
 
-  const handleDeleteConfirm = () => {
-    console.log("PromptsPage: Confirming delete", selectedPrompt)
+  const handleDeleteConfirm = async () => {
     if (!selectedPrompt) return
-    setPrompts(prompts.filter((p) => p.id !== selectedPrompt.id))
-    setShowDeleteDialog(false)
-    setSelectedPrompt(null)
+    
+    try {
+      await deletePrompt(selectedPrompt.id)
+      
+      // Ricarica i prompt dopo l'eliminazione
+      const updatedPrompts = await getWorkspacePrompts(workspaceId)
+      setPrompts(updatedPrompts)
+      
+      toast.success("Prompt deleted successfully")
+    } catch (error) {
+      console.error("Error deleting prompt:", error)
+      toast.error("Failed to delete prompt")
+    } finally {
+      setShowDeleteDialog(false)
+      setSelectedPrompt(null)
+    }
   }
 
-  const handleAddPrompt = (prompt: Prompt, content: string) => {
-    const updatedPrompt = { ...prompt, content }
-    setPrompts(prompts.map((p) => (p.id === prompt.id ? updatedPrompt : p)))
-    setShowPromptPopup(false)
+  const handleAddPrompt = async (prompt: Prompt, content: string) => {
+    try {
+      await updatePrompt(prompt.id, { content })
+      
+      // Ricarica i prompt dopo l'aggiornamento
+      const updatedPrompts = await getWorkspacePrompts(workspaceId)
+      setPrompts(updatedPrompts)
+      
+      toast.success("Prompt content updated successfully")
+      setShowPromptPopup(false)
+    } catch (error) {
+      console.error("Error updating prompt content:", error)
+      toast.error("Failed to update prompt content")
+    }
+  }
+
+  const handleActivate = async (prompt: Prompt) => {
+    try {
+      console.log("Activating prompt:", prompt.id)
+      await activatePrompt(prompt.id)
+      
+      // Ricarica i prompt dopo l'attivazione
+      const updatedPrompts = await getWorkspacePrompts(workspaceId)
+      setPrompts(updatedPrompts)
+      
+      toast.success(`Prompt "${prompt.name}" activated successfully`)
+    } catch (error) {
+      console.error("Error activating prompt:", error)
+      toast.error("Failed to activate prompt")
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="container flex items-center justify-center py-16">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-lg font-medium">Loading prompts...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="container py-6">
       <PageHeader
         title="Prompts"
-        description="Manage your system prompts"
-        action={
-          <Button onClick={() => setShowAddSheet(true)}>Add Prompt</Button>
-        }
+        searchValue={searchQuery}
+        onSearch={setSearchQuery}
+        searchPlaceholder="Search prompts..."
+        onAdd={() => setShowAddSheet(true)}
+        addButtonText="Add Prompt"
       />
 
+      <p className="mt-2 text-muted-foreground">
+        Manage your system prompts
+      </p>
+
       <Alert className="my-6">
-        <AlertCircle className="h-6 w-6" />
+        <FileText className="h-6 w-6" />
         <AlertDescription className="ml-2 text-lg font-medium">
           Only one prompt can be active at a time. Setting a prompt as active will deactivate all other prompts. 
           This is useful for testing different prompts without losing the original ones.
         </AlertDescription>
       </Alert>
 
-      <div className="space-y-4">
+      {prompts.length === 0 ? (
+        <div className="mt-6 rounded-lg border border-dashed p-8 text-center">
+          <h3 className="text-lg font-medium">No prompts found</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Get started by creating your first prompt.
+          </p>
+          <Button
+            onClick={() => setShowAddSheet(true)}
+            className="mt-4"
+          >
+            Add Prompt
+          </Button>
+        </div>
+      ) : (
         <div className="mt-6">
           <DataTable
             data={filteredPrompts}
@@ -361,132 +340,122 @@ export function PromptsPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             renderActions={(prompt: Prompt) => (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  setSelectedPrompt(prompt)
-                  setShowPromptPopup(true)
-                }}
-                title="Edit Prompt Content"
-                className="hover:bg-blue-50"
-              >
-                <FileText className="h-5 w-5 text-blue-600" />
-              </Button>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setSelectedPrompt(prompt)
+                    setShowPromptPopup(true)
+                  }}
+                  title="Edit Content"
+                  className="hover:bg-blue-50"
+                >
+                  <FileText className="h-5 w-5 text-blue-600" />
+                </Button>
+              </div>
             )}
           />
         </div>
+      )}
 
-        {/* Add Prompt Sheet */}
-        <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>
-          <SheetContent className="sm:max-w-lg">
-            <SheetHeader>
-              <SheetTitle>Add New Prompt</SheetTitle>
-            </SheetHeader>
-            <form onSubmit={handleAdd}>
-              {renderFormFields()}
-              <SheetFooter className="mt-6">
-                <SheetClose asChild>
-                  <Button
-                    variant="outline"
-                    type="button"
-                    className="border-input hover:bg-accent"
-                  >
-                    Cancel
-                  </Button>
-                </SheetClose>
-                <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                  Save
+      {/* Add Prompt Sheet */}
+      <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>
+        <SheetContent className="sm:max-w-lg">
+          <SheetHeader>
+            <SheetTitle>Add New Prompt</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleAdd}>
+            {renderFormFields()}
+            <SheetFooter className="mt-6">
+              <SheetClose asChild>
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="border-input hover:bg-accent"
+                >
+                  Cancel
                 </Button>
-              </SheetFooter>
-            </form>
-          </SheetContent>
-        </Sheet>
+              </SheetClose>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                Save
+              </Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
 
-        {/* Edit Prompt Sheet */}
-        <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
-          <SheetContent className="sm:max-w-lg">
-            <SheetHeader>
-              <SheetTitle>Edit Prompt</SheetTitle>
-            </SheetHeader>
-            <form onSubmit={handleEditSubmit}>
-              {renderFormFields(true)}
-              <SheetFooter className="mt-6">
-                <SheetClose asChild>
-                  <Button
-                    variant="outline"
-                    type="button"
-                    className="border-input hover:bg-accent"
-                  >
-                    Cancel
-                  </Button>
-                </SheetClose>
-                <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                  Save
+      {/* Edit Prompt Sheet */}
+      <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
+        <SheetContent className="sm:max-w-lg">
+          <SheetHeader>
+            <SheetTitle>Edit Prompt</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleEditSubmit}>
+            {renderFormFields(true)}
+            <SheetFooter className="mt-6">
+              <SheetClose asChild>
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="border-input hover:bg-accent"
+                >
+                  Cancel
                 </Button>
-              </SheetFooter>
-            </form>
-          </SheetContent>
-        </Sheet>
+              </SheetClose>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                Save
+              </Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
 
-        {/* Prompt Content Popup */}
-        <Sheet open={showPromptPopup} onOpenChange={setShowPromptPopup}>
-          <SheetContent side="bottom" className="h-[100vh] w-full">
-            <SheetHeader>
-              <SheetTitle>Edit Prompt Content</SheetTitle>
-            </SheetHeader>
-            {selectedPrompt && (
-              <div className="space-y-4">
-                <div className="space-y-2 pt-4">
-                  <label
-                    htmlFor="prompt-content"
-                    className="text-sm font-medium leading-none"
-                  >
-                    Content for {selectedPrompt.name}
-                  </label>
-                  <textarea
-                    id="prompt-content"
-                    defaultValue={selectedPrompt.content}
-                    className="flex min-h-[700px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                </div>
-                <SheetFooter>
-                  <SheetClose asChild>
-                    <Button
-                      variant="outline"
-                      type="button"
-                      className="border-input hover:bg-accent"
-                    >
-                      Cancel
-                    </Button>
-                  </SheetClose>
-                  <Button
-                    onClick={() => {
-                      const content = (
-                        document.getElementById(
-                          "prompt-content"
-                        ) as HTMLTextAreaElement
-                      ).value
-                      handleAddPrompt(selectedPrompt, content)
-                    }}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Save
-                  </Button>
-                </SheetFooter>
-              </div>
-            )}
-          </SheetContent>
-        </Sheet>
+      {/* Prompt Content Popup */}
+      <Sheet open={showPromptPopup} onOpenChange={setShowPromptPopup}>
+        <SheetContent side="bottom" className="h-[100vh] w-full p-0">
+          <div className="h-[100vh] flex flex-col">
+            <textarea
+              id="prompt-content"
+              defaultValue={selectedPrompt?.content}
+              className="flex-1 w-full border-0 resize-none p-6 text-sm focus:outline-none"
+            />
+            <div className="p-4 border-t flex justify-end gap-2">
+              <SheetClose asChild>
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="border-input hover:bg-accent"
+                >
+                  Cancel
+                </Button>
+              </SheetClose>
+              <Button
+                onClick={() => {
+                  if (!selectedPrompt) return;
+                  const content = (
+                    document.getElementById(
+                      "prompt-content"
+                    ) as HTMLTextAreaElement
+                  ).value
+                  handleAddPrompt(selectedPrompt, content)
+                }}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
 
-        <ConfirmDialog
-          open={showDeleteDialog}
-          onOpenChange={setShowDeleteDialog}
-          title="Delete Prompt"
-          description={`Are you sure you want to delete ${selectedPrompt?.name}? This action cannot be undone.`}
-          onConfirm={handleDeleteConfirm}
-        />
-      </div>
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete Prompt"
+        description={`Are you sure you want to delete ${selectedPrompt?.name}? This action cannot be undone.`}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   )
 }

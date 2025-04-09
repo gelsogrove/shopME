@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { UserProfile, changePassword, getUserProfile, updateUserProfile } from "@/services/userApi"
-import { Loader2 } from "lucide-react"
+import { Loader2, User } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 
@@ -109,7 +109,10 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">Profile</h1>
+      <div className="flex items-center gap-2 mb-6">
+        <User className="h-6 w-6 text-muted-foreground" />
+        <h1 className="text-3xl font-bold">Profile</h1>
+      </div>
       
       {isPageLoading ? (
         <div className="flex justify-center items-center h-64">

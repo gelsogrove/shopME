@@ -1,24 +1,24 @@
 import { Button } from "@/components/ui/button"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table"
 import {
-  type ColumnDef,
-  type ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  Row,
-  type SortingState,
-  useReactTable,
-  type VisibilityState,
+    type ColumnDef,
+    type ColumnFiltersState,
+    flexRender,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    Row,
+    type SortingState,
+    useReactTable,
+    type VisibilityState,
 } from "@tanstack/react-table"
 import { ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react"
 import React, { ReactNode, useState } from "react"
@@ -54,7 +54,7 @@ export function DataTable<TData>({
     if (onEdit || onDelete || actionButtons) {
       cols.push({
         id: "actions",
-        header: "Actions",
+        header: "",
         cell: ({ row }) => (
           <div className="flex justify-end gap-2">
             {renderActions && renderActions(row.original)}
@@ -114,7 +114,13 @@ export function DataTable<TData>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="py-2">
+                  <TableHead 
+                    key={header.id} 
+                    className="py-2"
+                    style={{
+                      width: header.column.columnDef.size ? `${header.column.columnDef.size}px` : 'auto',
+                    }}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -132,7 +138,13 @@ export function DataTable<TData>({
                 <React.Fragment key={row.id}>
                   <TableRow className="h-[50px]">
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="py-2">
+                      <TableCell 
+                        key={cell.id} 
+                        className="py-2"
+                        style={{
+                          width: cell.column.columnDef.size ? `${cell.column.columnDef.size}px` : 'auto',
+                        }}
+                      >
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()

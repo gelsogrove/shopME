@@ -8,7 +8,7 @@ import {
     CardHeader,
     CardTitle
 } from "@/components/ui/card"
-import { Check } from "lucide-react"
+import { Check, CreditCard } from "lucide-react"
 import { useState } from "react"
 
 interface PlanFeature {
@@ -100,7 +100,10 @@ export default function PlansPage() {
   return (
     <div className="container mx-auto py-10">
       <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold mb-3">Choose Your Plan</h1>
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <CreditCard className="h-6 w-6 text-muted-foreground" />
+          <h1 className="text-3xl font-bold">Choose Your Plan</h1>
+        </div>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Select the plan that best fits your business needs. All plans come with a 14-day free trial.
         </p>
