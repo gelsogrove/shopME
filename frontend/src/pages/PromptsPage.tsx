@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { MarkdownEditor } from "@/components/ui/markdown"
 import {
     Sheet,
     SheetClose,
@@ -37,6 +38,7 @@ export function PromptsPage() {
   const [showPromptPopup, setShowPromptPopup] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [workspaceId, setWorkspaceId] = useState("")
+  const [promptContent, setPromptContent] = useState("")
 
   // Carica il workspace corrente e i prompts all'avvio
   useEffect(() => {
@@ -117,16 +119,19 @@ export function PromptsPage() {
           <label htmlFor="content" className="text-sm font-medium leading-none">
             Content
           </label>
-          <textarea
-            id="content"
-            name="content"
-            rows={24}
-            defaultValue={isEdit && selectedPrompt ? selectedPrompt.content : ""}
-            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[400px]"
-            required
+          <MarkdownEditor
+            value={isEdit && selectedPrompt ? selectedPrompt.content : promptContent}
+            onChange={(value) => {
+              if (isEdit && selectedPrompt) {
+                selectedPrompt.content = value;
+              } else {
+                setPromptContent(value);
+              }
+            }}
+            minHeight="500px"
           />
           <p className="text-xs text-muted-foreground">
-            Enter the prompt content that will be used for generating AI responses.
+            Enter the prompt content that will be used for generating AI responses. You can use Markdown formatting.
           </p>
         </div>
 
@@ -171,7 +176,7 @@ export function PromptsPage() {
       
       const newPromptData = {
         name: formData.get("name") as string,
-        content: formData.get("content") as string,
+        content: promptContent,
         isActive
       }
 
@@ -183,6 +188,7 @@ export function PromptsPage() {
       
       toast.success("Prompt created successfully")
       setShowAddSheet(false)
+      setPromptContent("")
     } catch (error) {
       console.error("Error adding prompt:", error)
       toast.error("Failed to create prompt")
@@ -209,7 +215,7 @@ export function PromptsPage() {
       
       const updatedPromptData = {
         name: formData.get("name") as string,
-        content: formData.get("content") as string,
+        content: selectedPrompt.content,
         isActive
       }
 
@@ -255,7 +261,7 @@ export function PromptsPage() {
 
   const handleAddPrompt = async (prompt: Prompt, content: string) => {
     try {
-      await updatePrompt(prompt.id, { content })
+      await updatePrompt(prompt.id, { content: prompt.content })
       
       // Ricarica i prompt dopo l'aggiornamento
       const updatedPrompts = await getWorkspacePrompts(workspaceId)
@@ -415,10 +421,14 @@ export function PromptsPage() {
       <Sheet open={showPromptPopup} onOpenChange={setShowPromptPopup}>
         <SheetContent side="bottom" className="h-[100vh] w-full p-0">
           <div className="h-[100vh] flex flex-col">
-            <textarea
-              id="prompt-content"
-              defaultValue={selectedPrompt?.content}
-              className="flex-1 w-full border-0 resize-none p-6 text-sm focus:outline-none"
+            <MarkdownEditor
+              value={selectedPrompt?.content || ""}
+              onChange={(value) => {
+                if (selectedPrompt) {
+                  selectedPrompt.content = value;
+                }
+              }}
+              minHeight="calc(100vh - 80px)"
             />
             <div className="p-4 border-t flex justify-end gap-2">
               <SheetClose asChild>
@@ -433,12 +443,7 @@ export function PromptsPage() {
               <Button
                 onClick={() => {
                   if (!selectedPrompt) return;
-                  const content = (
-                    document.getElementById(
-                      "prompt-content"
-                    ) as HTMLTextAreaElement
-                  ).value
-                  handleAddPrompt(selectedPrompt, content)
+                  handleAddPrompt(selectedPrompt, selectedPrompt.content)
                 }}
                 className="bg-green-600 hover:bg-green-700"
               >
