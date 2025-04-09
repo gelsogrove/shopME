@@ -17,6 +17,9 @@ model Workspace {
   webhookUrl          String?
   isActive            Boolean           @default(true)
   language            String            @default("en")
+  currency            String            @default("EUR")
+  challengeStatus     Boolean           @default(false)
+  wipMessage          String            @default("Lavori in corso si prega di contattarci piu tardi")
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
   isDelete            Boolean           @default(false)
@@ -28,7 +31,6 @@ model Workspace {
   orders              Orders[]
   products            Products[]
   prompts             Prompts[]
-  settings            Settings?
   users               UserWorkspace[]
   whatsappSettings    WhatsappSettings?
 }
@@ -156,20 +158,6 @@ model CartItems {
   product   Products @relation(fields: [productId], references: [id])
 
   @@map("cart_items")
-}
-
-model Settings {
-  id          String    @id @default(uuid())
-  theme       String    @default("light")
-  language    String    @default("en")
-  currency    String    @default("USD")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  workspaceId String    @unique
-  timezone    String    @default("UTC")
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-
-  @@map("settings")
 }
 
 model Prompts {

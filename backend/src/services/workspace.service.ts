@@ -9,6 +9,8 @@ interface CreateWorkspaceData {
   whatsappApiKey?: string
   isDelete?: boolean
   isActive?: boolean
+  challengeStatus?: boolean
+  wipMessage?: string
 }
 
 interface UpdateWorkspaceData {
@@ -18,6 +20,9 @@ interface UpdateWorkspaceData {
   whatsappApiKey?: string
   isActive?: boolean
   isDelete?: boolean
+  currency?: string
+  challengeStatus?: boolean
+  wipMessage?: string
 }
 
 export const workspaceService = {
@@ -36,6 +41,10 @@ export const workspaceService = {
         updatedAt: true,
         isActive: true,
         isDelete: true,
+        currency: true,
+        language: true,
+        challengeStatus: true,
+        wipMessage: true
       },
     })
   },
@@ -52,6 +61,10 @@ export const workspaceService = {
         updatedAt: true,
         isActive: true,
         isDelete: true,
+        currency: true,
+        language: true,
+        challengeStatus: true,
+        wipMessage: true
       },
     })
   },
@@ -72,6 +85,10 @@ export const workspaceService = {
         updatedAt: true,
         isActive: true,
         isDelete: true,
+        currency: true,
+        language: true,
+        challengeStatus: true,
+        wipMessage: true
       },
     })
   },
@@ -94,6 +111,10 @@ export const workspaceService = {
         updatedAt: true,
         isActive: true,
         isDelete: true,
+        currency: true,
+        language: true,
+        challengeStatus: true,
+        wipMessage: true
       },
     })
   },
