@@ -16,6 +16,9 @@ export interface Workspace {
   isActive: boolean
   isDelete: boolean
   language: string
+  currency: string
+  challengeStatus: boolean
+  wipMessage: string
 }
 
 export interface CreateWorkspaceData {
@@ -24,15 +27,22 @@ export interface CreateWorkspaceData {
   isDelete?: boolean
   isActive?: boolean
   language: string
+  currency?: string
 }
 
 export interface UpdateWorkspaceData extends Partial<CreateWorkspaceData> {
   id: string
+  challengeStatus?: boolean
+  wipMessage?: string
 }
 
 const transformWorkspaceResponse = (data: any): Workspace => {
   return {
-    ...data
+    ...data,
+    language: data.language || 'en',
+    currency: data.currency || 'EUR',
+    challengeStatus: data.challengeStatus || false,
+    wipMessage: data.wipMessage || "Lavori in corso si prega di contattarci piu tardi"
   }
 }
 

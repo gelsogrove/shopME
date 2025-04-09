@@ -25,8 +25,15 @@ import {
   updateWorkspace,
 } from "@/services/workspaceApi"
 import { Trash2 } from "lucide-react"
-import { ChangeEvent, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+
+// Aggiungiamo le opzioni per le valute
+const CURRENCY_OPTIONS = [
+  { value: 'EUR', label: 'Euro (EUR)' },
+  { value: 'USD', label: 'US Dollar (USD)' },
+  { value: 'GBP', label: 'British Pound (GBP)' }
+];
 
 export default function SettingsPage() {
   const navigate = useNavigate()
@@ -44,8 +51,11 @@ export default function SettingsPage() {
     createdAt: "",
     updatedAt: "",
     isActive: true,
-    isDelete: true,
-    language: "en"
+    isDelete: false,
+    language: "en",
+    currency: "EUR",
+    challengeStatus: false,
+    wipMessage: "Lavori in corso si prega di contattarci piu tardi"
   })
 
   const [selectedLanguage, setSelectedLanguage] = useState("en")
@@ -135,7 +145,10 @@ export default function SettingsPage() {
         isActive: workspace.isActive,
         isDelete: false,
         whatsappApiKey: workspace.whatsappApiKey,
-        whatsappPhoneNumber: workspace.whatsappPhoneNumber
+        whatsappPhoneNumber: workspace.whatsappPhoneNumber,
+        currency: workspace.currency,
+        challengeStatus: workspace.challengeStatus,
+        wipMessage: workspace.wipMessage
       };
 
       console.log('Sending update data:', updateData);
@@ -173,13 +186,8 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Channel Settings</h2>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Channel Status</span>
-              <Switch
-                checked={workspace.isActive}
-                onCheckedChange={(checked: boolean) =>
-                  handleFieldChange("isActive", checked)
-                }
-              />
+             
+              
             </div>
           </div>
 
@@ -190,9 +198,8 @@ export default function SettingsPage() {
               </label>
               <Input
                 value={workspace.name}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => handleFieldChange("name", e.target.value)}
-                placeholder="Enter channel name"
-                disabled={isLoading}
+                onChange={(e) => handleFieldChange("name", e.target.value)}
+                className="mt-1"
               />
             </div>
 
@@ -201,13 +208,11 @@ export default function SettingsPage() {
                 WhatsApp Phone Number
               </label>
               <Input
-                value={workspace.whatsappPhoneNumber}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                value={workspace.whatsappPhoneNumber || ""}
+                onChange={(e) =>
                   handleFieldChange("whatsappPhoneNumber", e.target.value)
                 }
-                placeholder="+1234567890"
-                type="tel"
-                disabled={isLoading}
+                className="mt-1"
               />
             </div>
 
@@ -216,58 +221,84 @@ export default function SettingsPage() {
                 WhatsApp API Key
               </label>
               <Input
-                value={workspace.whatsappApiKey}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => handleFieldChange("whatsappApiKey", e.target.value)}
-                placeholder="Enter WhatsApp API key"
-                type="text"
-                disabled={isLoading}
+                value={workspace.whatsappApiKey || ""}
+                onChange={(e) =>
+                  handleFieldChange("whatsappApiKey", e.target.value)
+                }
+                className="mt-1"
+                type="password"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Language
+                Currency
               </label>
               <Select
-                value={workspace.language}
-                onValueChange={(value: string) =>
-                  handleFieldChange("language", value)
-                }
-                disabled={isLoading}
+                value={workspace.currency}
+                onValueChange={(value) => handleFieldChange("currency", value)}
               >
-                <SelectTrigger className={errors.language ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Select language" />
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
-                  {languages.map((lang) => (
-                    <SelectItem key={lang.id} value={lang.code}>
-                      {lang.name}
+                  {CURRENCY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {errors.language && (
-                <p className="mt-1 text-sm text-red-500">{errors.language}</p>
-              )}
+            </div>
+
+            <div className="border-t pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Challenge Status</h3>
+                  <p className="text-sm text-gray-500">
+                    Abilita o disabilita il challenge status
+                  </p>
+                </div>
+                <Switch
+                  checked={workspace.challengeStatus}
+                  onCheckedChange={(checked) => 
+                    handleFieldChange("challengeStatus", checked)
+                  }
+                />
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Messaggio WIP
+                </label>
+                <textarea
+                  value={workspace.wipMessage}
+                  onChange={(e) => handleFieldChange("wipMessage", e.target.value)}
+                  disabled={!workspace.challengeStatus}
+                  className={`mt-1 block w-full rounded-md border border-gray-300 shadow-sm 
+                    focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2
+                    ${!workspace.challengeStatus ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                  rows={4}
+                  placeholder="Inserisci il messaggio per i lavori in corso..."
+                />
+              </div>
             </div>
           </div>
 
-          <div className="flex justify-end gap-4 pt-6">
+          <div className="flex justify-end space-x-4 mt-6">
             <Button
-              onClick={handleSave}
-              disabled={isLoading}
-              className="bg-green-500 hover:bg-green-600 text-white"
-            >
-              Save Changes
-            </Button>
-            <Button
-              variant="destructive"
+              variant="outline"
               onClick={() => setShowDeleteDialog(true)}
-              disabled={isLoading}
-              className="bg-red-500 hover:bg-red-600"
+              className="text-red-600 hover:text-red-700"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Delete Channel
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={isLoading}
+            >
+              {isLoading ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </CardContent>
@@ -276,16 +307,16 @@ export default function SettingsPage() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Channel</DialogTitle>
+            <DialogTitle>Are you sure?</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this channel? This action cannot be undone.
+              This action cannot be undone. This will permanently delete your
+              workspace and remove your data from our servers.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
-              disabled={isLoading}
             >
               Cancel
             </Button>
@@ -294,7 +325,7 @@ export default function SettingsPage() {
               onClick={handleDelete}
               disabled={isLoading}
             >
-              {isLoading ? "Deleting..." : "Delete"}
+              {isLoading ? "Deleting..." : "Delete Workspace"}
             </Button>
           </DialogFooter>
         </DialogContent>
