@@ -50,9 +50,16 @@ export class AuthController {
     // Generate JWT token
     const jwtToken = this.generateToken(user)
 
-    // Return success response with token and user info
+    // Set the token as an HTTP-only cookie
+    res.cookie("auth_token", jwtToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Use secure in production
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    });
+
+    // Return success response with user info (without token in body)
     res.status(200).json({
-      token: jwtToken,
       user: {
         id: user.id,
         email: user.email,
@@ -105,9 +112,16 @@ export class AuthController {
     // Generate JWT token
     const jwtToken = this.generateToken(user)
 
-    // Return success response with token
+    // Set the token as an HTTP-only cookie
+    res.cookie("auth_token", jwtToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Use secure in production
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    });
+
+    // Return success response with user info (without token in body)
     res.status(200).json({
-      token: jwtToken,
       user: {
         id: user.id,
         email: user.email,
@@ -197,7 +211,8 @@ export class AuthController {
   }
 
   async me(req: Request, res: Response): Promise<void> {
-    const userId = req.user?.id
+    // @ts-nocheck - Supporto per entrambi i formati (id e userId)
+    const userId = req.user?.id || req.user?.userId
 
     if (!userId) {
       throw new AppError(401, "Unauthorized")
@@ -217,5 +232,14 @@ export class AuthController {
         role: user.role,
       },
     })
+  }
+
+  async logout(req: Request, res: Response): Promise<void> {
+    // Clear the auth_token cookie
+    res.clearCookie("auth_token");
+    
+    res.status(200).json({
+      message: "Logged out successfully",
+    });
   }
 }

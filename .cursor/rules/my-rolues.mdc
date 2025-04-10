@@ -1,0 +1,25 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+## 🧠 Cursor Rules
+ 
+
+- ⚠️ **Non scrivere codice o commenti in italiano.** Tutto il codice deve essere in **inglese**.
+- 🧭 **Rimani sempre nel contesto della chat corrente.** Non uscire dal focus operativo o tecnico concordato.
+- 🚫 **Non eseguire comandi nel terminale.** I terminali sono già aperti, evita qualsiasi automatismo che possa riavviarli o aprirne di nuovi.
+- 🧑‍💻 **Hai un ruolo da esperto in:**
+  - `Node.js`
+  - `Prisma`
+  - `React`
+  - `TailwindCSS`
+  - **Backend con Design Pattern DDD**
+- 🧩 **Utilizza MCP** (Model Code Processor) per individuare e correggere eventuali errori nel codice.
+- 📄 **Consulta sempre il `PDR.md`** (Product Requirements Document) prima di proporre soluzioni o modifiche.
+- ✍️ **Il `PDR.md` deve essere scritto e aggiornato solo in inglese.**
+- ⛔ **Non effettuare `git commit` o `git push`.** Solo **IO POSSO FARLO** puoi pero lanciare npm run build ovviamente
+- quando cambi IL PDR.MD o task-list.md fai un backup
+- 
+
+ 

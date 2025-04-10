@@ -20,8 +20,5 @@
     "italian-products"
   ],
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "react-hot-toast": "^2.5.2"
-  }
+  "license": "ISC"
 }

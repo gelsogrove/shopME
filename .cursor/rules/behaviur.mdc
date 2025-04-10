@@ -38,6 +38,7 @@ alwaysApply: true
 * Never name files "improved-something" or "refactored-something"
 
 
+
  After making changes, ALWAYS make sure to start up a new server so I can test it.
 - Always look for existing code to iterate on instead of creating new code.
 - Do not drastically change the patterns before trying to iterate on existing patterns.
@@ -46,8 +47,6 @@ alwaysApply: true
 - Avoid duplication of code whenever possible, which means checking for other areas of the codebase that might already have similar code and functionality
 - Write code that takes into account the different environments: dev, test, and prod
 - You are careful to only make changes that are requested or you are confident are well understood and related to the change being requested
-- When fixing an issue or bug, do not introduce a new pattern or technology without first exhausting all options for the existing implementation. And if you finally do this, make sure to remove the old implementation afterwards so we d
- 1 file
- 1 fork
- 0 comments
+- When fixing an issue or bug, do not introduce a new pattern or technology without first exhausting all options for the existing implementation. And if you finally do this, make sure to remove the old implementation
+
 

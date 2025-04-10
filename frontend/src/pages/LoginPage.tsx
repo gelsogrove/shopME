@@ -1,9 +1,9 @@
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -25,12 +25,11 @@ export function LoginPage() {
       const response = await api.post("/api/auth/login", { email, password })
       const data = response.data
 
-      // Store the token and user info
-      localStorage.setItem("token", data.token)
+      // Store only the user info, token is in HTTP-only cookie
       localStorage.setItem("user", JSON.stringify(data.user))
 
-      // Redirect to workspace selection page after successful login
-      navigate("/workspace-selection")
+      // Redirect to dashboard instead of workspace selection
+      navigate("/dashboard")
     } catch (err: any) {
       setError(err.response?.data?.message || "Login failed")
     } finally {

@@ -6,25 +6,39 @@ export const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Enable sending cookies with requests
 })
 
-// Add a request interceptor to add the auth token
+console.log("API configured with withCredentials:", api.defaults.withCredentials)
+
+// Add a request interceptor (non serve più aggiungere il token)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token")
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
+  console.log("Request config:", config.url, config.withCredentials)
   return config
 })
 
 // Add a response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log("Response cookies:", document.cookie)
+    return response
+  },
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token")
-      window.location.href = "/login"
+      // Reindirizza all'endpoint di login in caso di errore 401
+      window.location.href = "/auth/login"
     }
     return Promise.reject(error)
   }
 )
+
+// Check if the user is authenticated
+export const checkAuth = async () => {
+  try {
+    const response = await api.get('/api/auth/me')
+    return response.data
+  } catch (error) {
+    console.error("Auth check failed:", error)
+    return null
+  }
+}

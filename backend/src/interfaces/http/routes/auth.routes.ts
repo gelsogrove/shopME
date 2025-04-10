@@ -6,9 +6,10 @@ import { PasswordResetService } from "../../../application/services/password-res
 import { UserService } from "../../../application/services/user.service"
 import { AuthController } from "../controllers/auth.controller"
 import { asyncHandler } from "../middlewares/async.middleware"
+import { authMiddleware } from "../middlewares/auth.middleware"
 import {
-  validateForgotPassword,
-  validateResetPassword,
+    validateForgotPassword,
+    validateResetPassword,
 } from "../middlewares/validation.middleware"
 
 const router = Router()
@@ -45,6 +46,8 @@ const authController = new AuthController(
 
 // Routes
 router.post("/login", asyncHandler(authController.login.bind(authController)))
+router.post("/logout", asyncHandler(authController.logout.bind(authController)))
+router.get("/me", authMiddleware, asyncHandler(authController.me.bind(authController)))
 
 router.post(
   "/register",

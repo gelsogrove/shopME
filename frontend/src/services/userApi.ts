@@ -21,7 +21,7 @@ export interface ChangePasswordData {
 // Get current user profile
 export const getUserProfile = async (): Promise<UserProfile> => {
   try {
-    const response = await api.get("/api/users/me")
+    const response = await api.get("/api/auth/me")
     return response.data.user
   } catch (error) {
     console.error("Error getting user profile:", error)

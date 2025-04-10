@@ -430,7 +430,6 @@ This mechanism protects against spam attacks, prevents AI resource waste, and en
    - Data Pseudonymization: Privacy protection when processing data with external models.
    - Automatic Translations: Support for multiple languages in the same conversation.
    - Prompt Testing: Ability to test alternative prompts in isolated sessions without affecting the active production prompt. This allows administrators to safely experiment with different AI behaviors before deploying them to customers.
-   - Prompt Duplication: Ability to duplicate existing prompts to create variations or backups, maintaining the original structure while allowing modifications to the copy. This feature enables users to iterate on existing successful prompts without starting from scratch.
 
 6. **Order Management and Tracking:**
 
@@ -3451,39 +3450,3 @@ The multi-tenant architecture ensures that:
 - Users with access to multiple workspaces can only operate within one workspace context at a time
 
 This approach enables the system to securely serve multiple businesses while maintaining strict data separation and optimizing resource utilization.
-
-### Security
-
-#### Authentication and Authorization
-
-The system implements a secure authentication mechanism using JSON Web Tokens (JWT) stored in HTTP-only cookies:
-
-1. **JWT-based Authentication**:
-   - Tokens are stored in HTTP-only cookies to prevent JavaScript access
-   - Tokens are secure, with appropriate expiration times
-   - CSRF protection is implemented
-   - Fallback to Authorization headers for backward compatibility
-
-2. **Login Process**:
-   - User submits credentials (email/password)
-   - System validates credentials against the database
-   - Upon successful authentication, a JWT token is generated and stored in an HTTP-only cookie
-   - User information is returned to the frontend (without the token)
-
-3. **Authentication Middleware**:
-   - Checks for token in cookies first, then falls back to Authorization header
-   - Verifies token validity and signature
-   - Attaches user context to the request for downstream use
-   - Handles authentication errors appropriately
-
-4. **Logout Process**:
-   - Clears the HTTP-only cookie on the server
-   - Removes user data from local storage on the client
-   - Redirects to login page
-
-5. **Access Control**:
-   - Role-based authorization (Admin, Owner, Standard User)
-   - Workspace-specific permissions
-   - Resource-level access controls
-
-The token payload contains the user's ID, email, and role, allowing for proper authorization checks across the application.

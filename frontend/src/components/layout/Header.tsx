@@ -8,6 +8,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { api } from "@/services/api"
 import { getUserProfile } from "@/services/userApi"
 import { ArrowLeftRight, CreditCard, LogOut, Phone, Settings, User } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -62,6 +63,29 @@ export function Header() {
   // Gestisce il ritorno alla selezione dei workspace
   const handleBackToWorkspaces = () => {
     navigate("/workspace-selection")
+  }
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      // Call the logout endpoint
+      await api.post("/api/auth/logout")
+      
+      // Clear user data from localStorage
+      localStorage.removeItem("user")
+      
+      // Clear any other session data
+      sessionStorage.removeItem("currentWorkspaceName")
+      sessionStorage.removeItem("currentWorkspaceType")
+      
+      // Redirect to login page
+      navigate("/auth/login")
+    } catch (error) {
+      console.error("Logout failed:", error)
+      // Even if the API call fails, still clear local storage and redirect
+      localStorage.removeItem("user")
+      navigate("/auth/login")
+    }
   }
 
   return (
@@ -141,7 +165,7 @@ export function Header() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="p-4 text-lg cursor-pointer"
-                onClick={() => navigate("/login")}
+                onClick={handleLogout}
               >
                 <LogOut className="mr-3 h-5 w-5" />
                 <span>Log out</span>

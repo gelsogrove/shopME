@@ -15,14 +15,18 @@ app.use(loggingMiddleware)
 // Other middleware
 app.use(
   cors({
-    origin: true, // Allow all origins in development
+    origin: process.env.NODE_ENV === "production" 
+      ? [process.env.FRONTEND_URL || "http://localhost:3000"] 
+      : true, // Allow all origins in development
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-workspace-id"],
   })
 )
 
-app.use(helmet())
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}))
 app.use(express.json({ limit: '10mb' }))
 app.use(cookieParser())
 

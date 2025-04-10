@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils"
 import {
     Bell,
-    Box,
+    BookText,
     LayoutGrid,
     MessageSquare,
-    Package,
+    Package2,
     ShoppingCart,
+    Tag,
     Users,
     Wrench
 } from "lucide-react"
@@ -30,12 +31,12 @@ const mainLinks = [
   {
     href: "/products",
     label: "Products",
-    icon: Box,
+    icon: Package2,
   },
   {
     href: "/products/categories",
     label: "Categories",
-    icon: Package,
+    icon: Tag,
   },
   {
     href: "/services",
@@ -45,7 +46,7 @@ const mainLinks = [
   {
     href: "/prompts",
     label: "Prompts",
-    icon: MessageSquare,
+    icon: BookText,
   },
   {
     href: "/notifications",
