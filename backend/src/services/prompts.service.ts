@@ -7,12 +7,18 @@ interface CreatePromptData {
   content: string
   workspaceId: string
   isActive?: boolean
+  temperature?: number
+  top_p?: number
+  top_k?: number
 }
 
 interface UpdatePromptData {
   name?: string
   content?: string
   isActive?: boolean
+  temperature?: number
+  top_p?: number
+  top_k?: number
 }
 
 export const promptsService = {

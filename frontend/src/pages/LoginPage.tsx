@@ -1,13 +1,15 @@
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { api } from "../services/api"
+import type { Workspace } from "../services/workspaceApi"
+import { createWorkspace } from "../services/workspaceApi"
 
 export function LoginPage() {
   const [email, setEmail] = useState("")
@@ -28,8 +30,49 @@ export function LoginPage() {
       // Store only the user info, token is in HTTP-only cookie
       localStorage.setItem("user", JSON.stringify(data.user))
 
-      // Redirect to dashboard instead of workspace selection
-      navigate("/dashboard")
+      try {
+        // Try to fetch user's workspaces
+        const workspacesResponse = await api.get("/api/workspaces")
+        const workspaces = workspacesResponse.data
+        
+        if (workspaces && workspaces.length > 0) {
+          // Set the first workspace as the default one
+          const defaultWorkspace = workspaces.find((w: Workspace) => !w.isDelete) || workspaces[0]
+          sessionStorage.setItem("currentWorkspaceId", defaultWorkspace.id)
+          sessionStorage.setItem("currentWorkspaceName", defaultWorkspace.name)
+          
+          // Redirect to dashboard
+          navigate("/dashboard")
+        } else {
+          // No workspaces found, create a default one
+          console.log("No workspaces found, creating a default one...")
+          try {
+            const newWorkspace = await createWorkspace({
+              name: "My Shop",
+              description: "Default shop",
+              language: "en",
+              currency: "EUR",
+              isActive: true
+            })
+            
+            console.log("Default workspace created:", newWorkspace)
+            
+            // Set the new workspace as current
+            sessionStorage.setItem("currentWorkspaceId", newWorkspace.id)
+            sessionStorage.setItem("currentWorkspaceName", newWorkspace.name)
+            
+            // Redirect to dashboard
+            navigate("/dashboard")
+          } catch (createError) {
+            console.error("Could not create default workspace:", createError)
+            navigate("/workspace-selection")
+          }
+        }
+      } catch (workspaceError) {
+        console.error("Could not fetch workspaces:", workspaceError)
+        // In case of error, redirect to workspace selection
+        navigate("/workspace-selection")
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || "Login failed")
     } finally {

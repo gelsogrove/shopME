@@ -1,4 +1,6 @@
+import { api } from "@/services/api"
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { useToast } from "./use-toast"
 
 interface Workspace {
@@ -23,23 +25,28 @@ export function useWorkspace() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   const fetchWorkspace = async () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch("/api/workspace")
-      if (!response.ok) {
-        throw new Error("Failed to fetch workspace")
+      
+      // First check if user is authenticated
+      try {
+        await api.get("/api/auth/me")
+      } catch (err) {
+        navigate("/auth/login")
+        return
       }
-      const data = await response.json()
-      setWorkspace(data)
+      
+      const response = await api.get("/api/workspace")
+      setWorkspace(response.data)
     } catch (err) {
       setError(err as Error)
       toast({
         title: "Error",
-        description:
-          err instanceof Error ? err.message : "Failed to fetch workspace",
+        description: err instanceof Error ? err.message : "Failed to fetch workspace",
         variant: "destructive",
       })
     } finally {
@@ -52,28 +59,17 @@ export function useWorkspace() {
 
     try {
       setLoading(true)
-      const response = await fetch(`/api/workspace/${workspace.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updates),
-      })
-      if (!response.ok) {
-        throw new Error("Failed to update workspace")
-      }
-      const updatedWorkspace = await response.json()
-      setWorkspace(updatedWorkspace)
+      const response = await api.put(`/api/workspace/${workspace.id}`, updates)
+      setWorkspace(response.data)
       toast({
         title: "Success",
         description: "Workspace updated successfully",
       })
-      return updatedWorkspace
+      return response.data
     } catch (err) {
       toast({
         title: "Error",
-        description:
-          err instanceof Error ? err.message : "Failed to update workspace",
+        description: err instanceof Error ? err.message : "Failed to update workspace",
         variant: "destructive",
       })
       throw err

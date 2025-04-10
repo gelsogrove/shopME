@@ -4,9 +4,8 @@ import { config } from "../config"
 
 // Define our payload type to match what's generated in auth.controller.ts
 interface JwtPayload {
-  id: string
+  userId: string
   email: string
-  role: string
 }
 
 // Declare custom properties for the Request object
