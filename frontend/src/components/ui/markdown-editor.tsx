@@ -1,0 +1,72 @@
+import { Edit2, LayoutTemplate } from 'lucide-react'
+import { type ChangeEvent } from 'react'
+import ReactMarkdown from 'react-markdown'
+
+interface MarkdownEditorProps {
+  value: string
+  onChange: (value: string) => void
+  minHeight?: string
+}
+
+export default function MarkdownEditor({ value, onChange, minHeight = "400px" }: MarkdownEditorProps) {
+  const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(e.target.value)
+  }
+
+  // Calculate editor height
+  const getEditorHeight = () => {
+    if (typeof minHeight === 'string' && minHeight.endsWith('px')) {
+      const heightValue = parseInt(minHeight.slice(0, -2)) - 20;
+      return `${heightValue}px`;
+    }
+    return 'calc(' + minHeight + ' - 20px)';
+  };
+
+  const editorHeight = getEditorHeight();
+
+  return (
+    <div className="border rounded-md shadow-sm overflow-hidden bg-white h-full flex flex-col w-full" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+      <div className="flex flex-col md:flex-row flex-grow overflow-hidden">
+        {/* Editor Panel */}
+        <div className="w-full md:w-1/2 border-r border-gray-300 flex flex-col overflow-hidden">
+          <div className="flex items-center px-3 py-1.5 bg-gray-100 border-b border-gray-300 text-xs text-gray-600">
+            <Edit2 className="h-3.5 w-3.5 mr-1.5" />
+            <span>Editor</span>
+          </div>
+          <textarea
+            value={value}
+            onChange={handleChange}
+            className="w-full p-3 font-mono text-xs focus:outline-none border-0 resize-none bg-gray-50 text-gray-800 flex-grow"
+            style={{ 
+              minHeight: editorHeight,
+              boxShadow: "inset 0 0 0 1px rgba(0, 0, 0, 0.05)"
+            }}
+            placeholder="Enter Markdown text here..."
+          />
+        </div>
+
+        {/* Preview Panel */}
+        <div className="w-full md:w-1/2 flex flex-col overflow-hidden">
+          <div className="flex items-center px-3 py-1.5 bg-gray-100 border-b border-gray-300 text-xs text-gray-600">
+            <LayoutTemplate className="h-3.5 w-3.5 mr-1.5" />
+            <span>Preview</span>
+          </div>
+          <div 
+            className="prose prose-xs max-w-none p-3 overflow-y-auto bg-white flex-grow"
+            style={{ 
+              minHeight: editorHeight,
+              overflowX: 'auto',
+              fontSize: '0.75rem'
+            }}
+          >
+            {value ? (
+              <ReactMarkdown>{value}</ReactMarkdown>
+            ) : (
+              <div className="text-gray-400 italic">Preview will appear here when you write Markdown content...</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+} 

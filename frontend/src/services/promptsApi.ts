@@ -8,18 +8,27 @@ export interface Prompt {
   createdAt: string
   updatedAt: string
   workspaceId: string
+  temperature?: number
+  top_p?: number
+  top_k?: number
 }
 
 export interface CreatePromptData {
   name: string
   content: string
   isActive?: boolean
+  temperature?: number
+  top_p?: number
+  top_k?: number
 }
 
 export interface UpdatePromptData {
   name?: string
   content?: string
   isActive?: boolean
+  temperature?: number
+  top_p?: number
+  top_k?: number
 }
 
 /**

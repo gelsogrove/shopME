@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import MarkdownEditor from "@/components/ui/markdown-editor"
 import {
   Sheet,
   SheetClose,
@@ -13,7 +14,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import SimpleEditor from "@/components/ui/simple-editor"
 import { Switch } from "@/components/ui/switch"
 import {
   Tooltip,
@@ -31,7 +31,7 @@ import {
   updatePrompt
 } from "@/services/promptsApi"
 import { getCurrentWorkspace } from "@/services/workspaceApi"
-import { BookText, Copy, Loader2, PencilLine } from "lucide-react"
+import { BookText, Copy, Loader2, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 
@@ -42,10 +42,12 @@ export function PromptsPage() {
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null)
-  const [showPromptPopup, setShowPromptPopup] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [workspaceId, setWorkspaceId] = useState("")
   const [promptContent, setPromptContent] = useState("")
+  const [tempValue, setTempValue] = useState(0.7);
+  const [topPValue, setTopPValue] = useState(0.9);
+  const [topKValue, setTopKValue] = useState(40);
 
   // Carica il workspace corrente e i prompts all'avvio
   useEffect(() => {
@@ -67,6 +69,15 @@ export function PromptsPage() {
     
     loadData()
   }, [])
+
+  // Imposta i valori degli slider quando selectedPrompt cambia
+  useEffect(() => {
+    if (selectedPrompt) {
+      setTempValue(selectedPrompt.temperature || 0.7);
+      setTopPValue(selectedPrompt.top_p || 0.9);
+      setTopKValue(selectedPrompt.top_k || 40);
+    }
+  }, [selectedPrompt]);
 
   const filteredPrompts = prompts.filter((prompt) =>
     Object.values(prompt).some((value) =>
@@ -108,25 +119,108 @@ export function PromptsPage() {
     
     return (
       <div className="space-y-6 pb-6">
-        <div className="space-y-2">
-          <label htmlFor="name" className="text-sm font-medium leading-none">
-            Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            defaultValue={isEdit && selectedPrompt ? selectedPrompt.name : ""}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            required
-          />
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+          <div className="space-y-2 md:col-span-2">
+            <label htmlFor="name" className="text-sm font-medium leading-none">
+              Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              defaultValue={isEdit && selectedPrompt ? selectedPrompt.name : ""}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label htmlFor="temperature" className="text-sm font-medium leading-none">
+                Temperature: <span className="font-bold">{tempValue}</span>
+              </label>
+            </div>
+            <input
+              type="range"
+              id="temperature"
+              name="temperature"
+              min="0"
+              max="2"
+              step="0.1"
+              value={tempValue}
+              onChange={(e) => setTempValue(parseFloat(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-xs text-muted-foreground">
+              Controls randomness (0-2)
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label htmlFor="top_p" className="text-sm font-medium leading-none">
+                Top P: <span className="font-bold">{topPValue}</span>
+              </label>
+            </div>
+            <input
+              type="range"
+              id="top_p"
+              name="top_p"
+              min="0"
+              max="1"
+              step="0.05"
+              value={topPValue}
+              onChange={(e) => setTopPValue(parseFloat(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-xs text-muted-foreground">
+              Nucleus sampling (0-1)
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label htmlFor="top_k" className="text-sm font-medium leading-none">
+                Top K: <span className="font-bold">{topKValue}</span>
+              </label>
+            </div>
+            <input
+              type="range"
+              id="top_k"
+              name="top_k"
+              min="0"
+              max="100"
+              step="1"
+              value={topKValue}
+              onChange={(e) => setTopKValue(parseInt(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            />
+            <p className="text-xs text-muted-foreground">
+              Limits word selection (0-100)
+            </p>
+          </div>
+          
+          <div className="space-y-2 flex flex-col justify-center">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="isActive"
+                name="isActive"
+                defaultChecked={isActiveDefault}
+              />
+              <Label htmlFor="isActive" className="text-sm font-medium leading-none">
+                Active
+              </Label>
+            </div>
+            <p className={`text-xs ${isActiveDefault ? 'text-green-600' : 'text-muted-foreground'}`}>
+              {isActiveDefault 
+                ? "This prompt is active" 
+                : "This prompt is inactive"}
+            </p>
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <label htmlFor="content" className="text-sm font-medium leading-none">
-            Content
-          </label>
-          <SimpleEditor
+        <div className="col-span-1">
+          <MarkdownEditor
             value={isEdit && selectedPrompt ? selectedPrompt.content : promptContent}
             onChange={(value) => {
               if (isEdit && selectedPrompt) {
@@ -137,34 +231,6 @@ export function PromptsPage() {
             }}
             minHeight="400px"
           />
-          <p className="text-xs text-muted-foreground">
-            Enter the prompt content that will be used for generating AI responses. You can use Markdown formatting.
-          </p>
-        </div>
-
-        <div className="flex flex-col space-y-2">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="isActive"
-              name="isActive"
-              defaultChecked={isActiveDefault}
-            />
-            <Label htmlFor="isActive" className="text-sm font-medium leading-none">
-              Active
-            </Label>
-          </div>
-          
-          <p className={`text-xs ${isActiveDefault ? 'text-green-600' : 'text-muted-foreground'}`}>
-            {isActiveDefault 
-              ? "This prompt is currently active and will be used for AI responses." 
-              : "This prompt is currently inactive. Activate it to use for AI responses."}
-          </p>
-          
-          {isEdit && selectedPrompt && (
-            <p className="text-xs text-gray-500 mt-1">
-              Last updated: {new Date(selectedPrompt.updatedAt).toLocaleString()}
-            </p>
-          )}
         </div>
       </div>
     );
@@ -184,7 +250,10 @@ export function PromptsPage() {
       const newPromptData = {
         name: formData.get("name") as string,
         content: promptContent,
-        isActive
+        isActive,
+        temperature: tempValue,
+        top_p: topPValue,
+        top_k: topKValue
       }
 
       await createPrompt(workspaceId, newPromptData)
@@ -223,7 +292,10 @@ export function PromptsPage() {
       const updatedPromptData = {
         name: formData.get("name") as string,
         content: selectedPrompt.content,
-        isActive
+        isActive,
+        temperature: tempValue,
+        top_p: topPValue,
+        top_k: topKValue
       }
 
       await updatePrompt(selectedPrompt.id, updatedPromptData)
@@ -275,7 +347,6 @@ export function PromptsPage() {
       setPrompts(updatedPrompts)
       
       toast.success("Prompt content updated successfully")
-      setShowPromptPopup(false)
     } catch (error) {
       console.error("Error updating prompt content:", error)
       toast.error("Failed to update prompt content")
@@ -350,28 +421,9 @@ export function PromptsPage() {
               columns={columns}
               data={filteredPrompts}
               onEdit={handleEdit}
-              onDelete={handleDelete}
+              onDelete={undefined}
               renderActions={(prompt: Prompt) => (
                 <div className="flex items-center gap-2">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setSelectedPrompt(prompt)
-                            setShowPromptPopup(true)
-                          }}
-                        >
-                          <PencilLine className="h-5 w-5 text-blue-500" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Edit Prompt</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -385,6 +437,23 @@ export function PromptsPage() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>Duplicate Prompt</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(prompt)}
+                          className="hover:bg-red-50"
+                        >
+                          <Trash2 className="h-5 w-5 text-red-600" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Delete Prompt</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -423,13 +492,15 @@ export function PromptsPage() {
 
       {/* Edit Prompt Sheet */}
       <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
-        <SheetContent className="sm:max-w-lg">
-          <SheetHeader>
+        <SheetContent className="sm:max-w-[80%] flex flex-col p-0">
+          <SheetHeader className="px-6 pt-6 pb-2">
             <SheetTitle>Edit Prompt</SheetTitle>
           </SheetHeader>
-          <form onSubmit={handleEditSubmit}>
-            {renderFormFields(true)}
-            <SheetFooter className="mt-6">
+          <form onSubmit={handleEditSubmit} className="flex flex-col h-full">
+            <div className="overflow-y-auto px-6 flex-grow">
+              {renderFormFields(true)}
+            </div>
+            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
               <SheetClose asChild>
                 <Button
                   variant="outline"
@@ -444,46 +515,6 @@ export function PromptsPage() {
               </Button>
             </SheetFooter>
           </form>
-        </SheetContent>
-      </Sheet>
-
-      {/* Prompt Content Popup */}
-      <Sheet open={showPromptPopup} onOpenChange={setShowPromptPopup}>
-        <SheetContent side="bottom" className="h-[100vh] w-full p-0">
-          <div className="h-[100vh] flex flex-col">
-            <SimpleEditor
-              value={selectedPrompt?.content || ""}
-              onChange={(value: string) => {
-                if (selectedPrompt) {
-                  setSelectedPrompt({
-                    ...selectedPrompt,
-                    content: value
-                  });
-                }
-              }}
-              minHeight="calc(100vh - 80px)"
-            />
-            <div className="p-4 border-t flex justify-end gap-2">
-              <SheetClose asChild>
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="border-input hover:bg-accent"
-                >
-                  Cancel
-                </Button>
-              </SheetClose>
-              <Button
-                onClick={() => {
-                  if (!selectedPrompt) return;
-                  handleAddPrompt(selectedPrompt, selectedPrompt.content)
-                }}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                Save
-              </Button>
-            </div>
-          </div>
         </SheetContent>
       </Sheet>
 
