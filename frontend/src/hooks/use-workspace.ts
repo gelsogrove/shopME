@@ -13,6 +13,8 @@ interface Workspace {
   isActive: boolean
   createdAt: string
   updatedAt: string
+  currency?: string
+  language?: string
   stats?: {
     products: number
     orders: number

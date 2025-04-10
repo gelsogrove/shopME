@@ -1,10 +1,11 @@
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
-import { FormDialog } from "@/components/shared/FormDialog"
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { ServiceSheet } from "@/components/shared/ServiceSheet"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Button } from "@/components/ui/button"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { servicesApi } from "@/services/servicesApi"
 import { Wrench } from "lucide-react"
@@ -26,17 +27,49 @@ export default function ServicesPage() {
   const [services, setServices] = useState<DisplayService[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
-  const [showAddDialog, setShowAddDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showAddSheet, setShowAddSheet] = useState(false)
+  const [showEditSheet, setShowEditSheet] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedService, setSelectedService] = useState<DisplayService | null>(null)
+  // Create state for currency symbol to force rerenders
+  const [currentCurrencySymbol, setCurrentCurrencySymbol] = useState("€")
 
-  // Load services when the workspace is available
+  // Get the currency symbol for the current workspace
+  const getCurrencySymbol = () => {
+    if (!workspace || !workspace.currency) return "€"; // Default to Euro
+    
+    // Convert currency code to symbol
+    switch (workspace.currency) {
+      case "USD":
+        return "$";
+      case "GBP":
+        return "£";
+      case "EUR":
+      default:
+        return "€";
+    }
+  };
+
+  // Update currency symbol whenever workspace changes
+  useEffect(() => {
+    setCurrentCurrencySymbol(getCurrencySymbol());
+  }, [workspace]);
+
+  // Handle opening add dialog
+  const handleOpenAddSheet = () => {
+    // Force update of currency symbol before opening sheet
+    const symbol = getCurrencySymbol();
+    console.log("Opening sheet with currency symbol:", symbol);
+    setCurrentCurrencySymbol(symbol);
+    setShowAddSheet(true);
+  };
+
+  // Load services when the workspace is available or when currency changes
   useEffect(() => {
     if (workspace?.id) {
       loadServices()
     }
-  }, [workspace?.id])
+  }, [workspace?.id, workspace?.currency])
 
   const loadServices = async () => {
     if (!workspace?.id) return
@@ -55,6 +88,7 @@ export default function ServicesPage() {
       }))
       
       setServices(formattedServices)
+      console.log("Loaded services with currency:", workspace.currency, "Symbol:", getCurrencySymbol())
     } catch (error) {
       console.error("Failed to load services", error)
       toast.error("Failed to load services")
@@ -100,7 +134,7 @@ export default function ServicesPage() {
       header: "Price",
       accessorKey: "price" as keyof DisplayService,
       cell: ({ row }: { row: { original: DisplayService } }) => (
-        <span className="font-medium">€{row.original.price}</span>
+        <span className="font-medium">{currentCurrencySymbol}{row.original.price}</span>
       ),
     },
     {
@@ -121,6 +155,10 @@ export default function ServicesPage() {
     },
   ]
 
+  // Force log of current currency symbol for debugging
+  console.log("Current currency symbol in component:", currentCurrencySymbol);
+  console.log("Workspace currency:", workspace?.currency);
+
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!workspace?.id) return
@@ -128,12 +166,37 @@ export default function ServicesPage() {
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
     
+    // Get form data
+    const name = formData.get("name") as string;
+    const description = formData.get("description") as string;
+    const priceStr = formData.get("price") as string;
+    
+    // Validate
+    if (!name || !description || !priceStr) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    
+    // Convert price to number
+    const priceClean = priceStr.replace(currentCurrencySymbol, "").trim();
+    let price: number;
+    try {
+      price = parseFloat(priceClean);
+      if (isNaN(price) || price <= 0) {
+        toast.error("Price must be a positive number");
+        return;
+      }
+    } catch (err) {
+      toast.error("Invalid price format");
+      return;
+    }
+    
     try {
       const result = await servicesApi.create(workspace.id, {
-        name: formData.get("name") as string,
-        description: formData.get("description") as string,
-        price: parseFloat((formData.get("price") as string).replace("€", "").trim()),
-        currency: "€"
+        name,
+        description,
+        price,
+        currency: workspace.currency || "EUR"
       })
       
       // Add to the local state
@@ -146,18 +209,41 @@ export default function ServicesPage() {
       }
       
       setServices([...services, newService])
-      setShowAddDialog(false)
+      setShowAddSheet(false)
       toast.success("Service added successfully")
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to add service", error)
-      toast.error("Failed to add service")
+      
+      // More specific error message if available
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to add service");
+      }
     }
   }
 
-  const handleEdit = (service: DisplayService) => {
-    setSelectedService(service)
-    setShowEditDialog(true)
-  }
+  const handleOpenEditSheet = (service: DisplayService) => {
+    // Force update of currency symbol before opening sheet
+    const symbol = getCurrencySymbol();
+    console.log("Opening edit sheet with currency symbol:", symbol);
+    console.log("Service to edit:", service);
+    
+    // Assicuriamoci che il servizio abbia tutti i campi necessari
+    const enhancedService = {
+      ...service,
+      isActive: service.status === "active"
+    };
+    
+    setCurrentCurrencySymbol(symbol);
+    setSelectedService(enhancedService);
+    setShowEditSheet(true);
+    
+    // Log after state update to confirm
+    setTimeout(() => {
+      console.log("Edit sheet should be open now, showEditSheet:", showEditSheet, "selectedService:", selectedService);
+    }, 100);
+  };
 
   const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -166,12 +252,53 @@ export default function ServicesPage() {
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
     
+    // Get form data and validate
+    const name = formData.get("name") as string;
+    const description = formData.get("description") as string;
+    const priceStr = formData.get("price") as string;
+    const isActive = !!formData.get("isActive");
+    
+    console.log("Form data:", { name, description, priceStr, isActive, "raw": formData.get("isActive") });
+    
+    // Validate
+    if (!name || !description || !priceStr) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    
+    // Convert price to number
+    const priceClean = priceStr.replace(currentCurrencySymbol, "").trim();
+    let price: number;
     try {
+      price = parseFloat(priceClean);
+      if (isNaN(price) || price <= 0) {
+        toast.error("Price must be a positive number");
+        return;
+      }
+    } catch (err) {
+      toast.error("Invalid price format");
+      return;
+    }
+    
+    try {
+      console.log("Updating service with data:", { 
+        id: selectedService.id, 
+        name, 
+        description, 
+        price, 
+        isActive,
+        currency: workspace?.currency || "EUR" 
+      });
+      
       const result = await servicesApi.update(selectedService.id, {
-        name: formData.get("name") as string,
-        description: formData.get("description") as string,
-        price: parseFloat((formData.get("price") as string).replace("€", "").trim()),
+        name,
+        description,
+        price,
+        isActive,
+        currency: workspace?.currency || "EUR"
       })
+      
+      console.log("Update result:", result);
       
       // Update the local state
       const updatedService: DisplayService = {
@@ -186,7 +313,7 @@ export default function ServicesPage() {
         services.map((s) => (s.id === selectedService.id ? updatedService : s))
       )
       
-      setShowEditDialog(false)
+      setShowEditSheet(false)
       setSelectedService(null)
       toast.success("Service updated successfully")
     } catch (error) {
@@ -224,6 +351,9 @@ export default function ServicesPage() {
       </div>
     )
   }
+  
+  // Debug info per il form di modifica
+  console.log("Rendering with edit state:", { showEditSheet, selectedService });
 
   return (
     <div className="container pl-0 pr-4 pt-4 pb-4">
@@ -231,78 +361,51 @@ export default function ServicesPage() {
         <div className="col-span-11 col-start-1">
           <PageHeader
             title="Services"
-            titleIcon={<Wrench className="mr-2 h-6 w-6 text-green-500" />}
+            titleIcon={<Wrench className="mr-2 h-5 w-5 text-green-500" />}
             searchValue={searchQuery}
             onSearch={setSearchQuery}
             searchPlaceholder="Search services..."
             itemCount={services.length}
-            onAdd={() => setShowAddDialog(true)}
+            onAdd={handleOpenAddSheet}
             addButtonText="Add Service"
           />
 
           <div className="mt-6 w-full">
-            <DataTable
-              columns={columns}
-              data={filteredServices}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              globalFilter={searchQuery}
-            />
+            <TooltipProvider>
+              <DataTable
+                columns={columns}
+                data={filteredServices}
+                onEdit={(service) => {
+                  console.log("Edit button clicked for service:", service);
+                  handleOpenEditSheet(service);
+                }}
+                onDelete={(service) => {
+                  console.log("Delete button clicked for service:", service);
+                  handleDelete(service);
+                }}
+                globalFilter={searchQuery}
+              />
+            </TooltipProvider>
           </div>
         </div>
       </div>
 
-      <FormDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-        title="Add New Service"
-        fields={[
-          {
-            name: "name",
-            label: "Name",
-            type: "text",
-          },
-          {
-            name: "description",
-            label: "Description",
-            type: "textarea",
-            className: "min-h-[200px]",
-          },
-          {
-            name: "price",
-            label: "Price (€)",
-            type: "text",
-          },
-        ]}
+      <ServiceSheet
+        open={showAddSheet}
+        onOpenChange={setShowAddSheet}
         onSubmit={handleAdd}
+        service={null}
+        title="Add New Service"
+        currencySymbol={currentCurrencySymbol}
       />
 
-      <FormDialog
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
-        title="Edit Service"
-        fields={[
-          {
-            name: "name",
-            label: "Name",
-            type: "text",
-            defaultValue: selectedService?.name,
-          },
-          {
-            name: "description",
-            label: "Description",
-            type: "textarea",
-            className: "min-h-[200px]",
-            defaultValue: selectedService?.description,
-          },
-          {
-            name: "price",
-            label: "Price (€)",
-            type: "text",
-            defaultValue: selectedService?.price,
-          },
-        ]}
+      <ServiceSheet
+        open={showEditSheet}
+        onOpenChange={setShowEditSheet}
         onSubmit={handleEditSubmit}
+        service={selectedService}
+        title="Edit Service"
+        currencySymbol={currentCurrencySymbol}
       />
 
       <ConfirmDialog

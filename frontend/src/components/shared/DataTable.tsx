@@ -72,7 +72,12 @@ export function DataTable<TData>({
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => onEdit(row.original)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        console.log("Edit button clicked directly in DataTable", row.original);
+                        onEdit(row.original);
+                      }}
                       className={commonStyles.buttonGhost}
                     >
                       <Pencil className={`${commonStyles.actionIcon} ${commonStyles.primary}`} />
@@ -91,7 +96,12 @@ export function DataTable<TData>({
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => onDelete(row.original)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        console.log("Delete button clicked directly in DataTable", row.original);
+                        onDelete(row.original);
+                      }}
                       className="hover:bg-red-50"
                     >
                       <Trash2 className={commonStyles.actionIcon + " text-red-600"} />

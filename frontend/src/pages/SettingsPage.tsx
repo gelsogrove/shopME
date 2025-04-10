@@ -157,7 +157,19 @@ export default function SettingsPage() {
     try {
       const response = await updateWorkspace(workspace.id, updateData);
       console.log('Updated workspace:', response);
+      
+      // Update the cached workspace in sessionStorage with the latest data
+      // This ensures the currency and other settings are immediately available
+      // to other components using the useWorkspace hook
+      sessionStorage.setItem("currentWorkspace", JSON.stringify(response));
+      
       toast.success('Settings saved successfully');
+      
+      // Force reload to update all components with the new settings
+      // Especially important for currency changes
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       console.error('Error updating workspace:', error);
       toast.error('Failed to save settings');

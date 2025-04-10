@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient } from "@prisma/client";
+import cuid from 'cuid';
 
 const prisma = new PrismaClient()
 
@@ -38,8 +39,8 @@ export const servicesService = {
     const { name, description, price, workspaceId, currency = "€", isActive = true } = data
     
     return prisma.$queryRaw`
-      INSERT INTO services (name, description, price, "workspaceId", currency, "isActive", "createdAt", "updatedAt")
-      VALUES (${name}, ${description}, ${price}, ${workspaceId}, ${currency}, ${isActive}, NOW(), NOW())
+      INSERT INTO services (id, name, description, price, "workspaceId", currency, "isActive", "createdAt", "updatedAt")
+      VALUES (${cuid()}, ${name}, ${description}, ${price}, ${workspaceId}, ${currency}, ${isActive}, NOW(), NOW())
       RETURNING *
     `
   },
