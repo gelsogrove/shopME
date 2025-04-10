@@ -18,6 +18,12 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { type ColumnDef } from "@tanstack/react-table"
 import { MessageSquare, Pencil, ShoppingBag, Users, X } from "lucide-react"
 import { useState } from "react"
@@ -564,33 +570,59 @@ export default function ClientsPage(): JSX.Element {
       id: "client_actions",
       cell: ({ row }) => (
         <div className="flex justify-end gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => handleViewChatHistory(row.original)}
-            title="Chat History"
-            className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
-          >
-            <MessageSquare className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => handleViewOrders(row.original)}
-            title="View Orders"
-            className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
-          >
-            <ShoppingBag className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setEditingClient(row.original)}
-            title="Edit Client"
-            className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
-          >
-            <Pencil className="h-5 w-5" />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleViewChatHistory(row.original)}
+                  className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
+                >
+                  <MessageSquare className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View Chat History</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleViewOrders(row.original)}
+                  className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
+                >
+                  <ShoppingBag className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View Orders</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setEditingClient(row.original)}
+                  className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
+                >
+                  <Pencil className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Edit Client</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       ),
     },

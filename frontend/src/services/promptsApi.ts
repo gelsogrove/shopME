@@ -97,4 +97,17 @@ export const activatePrompt = async (promptId: string): Promise<Prompt> => {
     console.error('Error activating prompt:', error)
     throw error
   }
+}
+
+/**
+ * Duplicate a prompt
+ */
+export const duplicatePrompt = async (promptId: string): Promise<Prompt> => {
+  try {
+    const response = await api.post(`/api/prompts/${promptId}/duplicate`)
+    return response.data
+  } catch (error) {
+    console.error('Error duplicating prompt:', error)
+    throw error
+  }
 } 

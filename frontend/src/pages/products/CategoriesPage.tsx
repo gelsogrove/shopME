@@ -2,6 +2,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { FormDialog } from "@/components/shared/FormDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { commonStyles } from "@/styles/common"
 import { Package } from "lucide-react"
 import { useState } from "react"
 
@@ -128,7 +129,7 @@ export default function CategoriesPage() {
     <div className="container mx-auto py-6">
       <PageHeader
         title="Categories"
-        titleIcon={<Package className="h-6 w-6 text-gray-500" />}
+        titleIcon={<Package className={commonStyles.headerIcon} />}
         searchValue={searchValue}
         onSearch={setSearchValue}
         searchPlaceholder="Search categories..."

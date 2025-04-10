@@ -1,15 +1,17 @@
-import { MessageSquare, Pencil, Plus, Search, Trash2 } from "lucide-react"
+import { commonStyles } from "@/styles/common"
+import { MessageSquare, Pencil, Plus, Search, Trash2, Users } from "lucide-react"
 import { useState } from "react"
+import { PageHeader } from "../components/shared/PageHeader"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
 import { Input } from "../components/ui/input"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "../components/ui/table"
 
 interface Customer {
@@ -56,18 +58,18 @@ const mockCustomers: Customer[] = [
   },
 ]
 
-export function CustomersPage() {
+export default function CustomersPage() {
   const [customers] = useState<Customer[]>(mockCustomers)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchValue, setSearchValue] = useState("")
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "inactive"
   >("all")
 
   const filteredCustomers = customers.filter((customer) => {
     const matchesSearch =
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.phone.includes(searchTerm) ||
-      customer.email.toLowerCase().includes(searchTerm.toLowerCase())
+      customer.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+      customer.phone.includes(searchValue) ||
+      customer.email.toLowerCase().includes(searchValue.toLowerCase())
     const matchesStatus =
       statusFilter === "all" || customer.status === statusFilter
     return matchesSearch && matchesStatus
@@ -89,7 +91,18 @@ export function CustomersPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto py-6">
+      <PageHeader
+        title="Customers"
+        titleIcon={<Users className={commonStyles.icon} />}
+        searchValue={searchValue}
+        onSearch={setSearchValue}
+        searchPlaceholder="Search customers..."
+        onAdd={() => console.log("Add customer")}
+        addButtonText="Add Customer"
+        itemCount={filteredCustomers.length}
+      />
+
       <Card className="p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <h1 className="text-2xl font-bold">Customers</h1>
@@ -100,8 +113,8 @@ export function CustomersPage() {
                 <Input
                   type="search"
                   placeholder="Search customers..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
                   className="pl-10"
                 />
               </div>

@@ -3,7 +3,8 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { ProductSheet } from "@/components/shared/ProductSheet"
 import { Button } from "@/components/ui/button"
-import { Box, Pencil, PlusCircle, Trash2 } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Box, Pencil, Trash2 } from "lucide-react"
 import { useState } from "react"
 
 interface Product {
@@ -204,15 +205,13 @@ export function ProductsPage() {
   return (
     <div className="container mx-auto py-6">
       <PageHeader
-        title="Products"
-        titleIcon={<Box className="h-6 w-6 text-gray-500" />}
+        title={<span>Products <span className="text-green-500">({filteredProducts.length})</span></span>}
+        titleIcon={<Box className="h-5 w-5 text-green-500" />}
         searchValue={searchValue}
         onSearch={setSearchValue}
         searchPlaceholder="Search products..."
-        itemCount={products.length}
         onAdd={() => setShowAddSheet(true)}
-        addButtonText="New Product"
-        addButtonIcon={<PlusCircle className="mr-2 h-4 w-4" />}
+        addButtonText="Add Product"
       />
 
       <div className="mt-6 overflow-hidden rounded-lg border">
@@ -258,22 +257,39 @@ export function ProductsPage() {
                 <td className="px-6 py-4 text-sm text-gray-900 flex items-center justify-between">
                   <span>{product.quantity}</span>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(product)}
-                      className="h-8 w-8 text-gray-500 hover:text-gray-700"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(product)}
-                      className="h-8 w-8 text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleEdit(product)}
+                          >
+                            <Pencil className="h-5 w-5 text-green-500" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Edit product</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => handleDelete(product)}
+                          >
+                            <Trash2 className="h-5 w-5 text-red-500" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Delete product</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </td>
               </tr>

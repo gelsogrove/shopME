@@ -22,6 +22,12 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { formatDate } from "@/lib/utils"
 import "@/styles/sheet.css"
 import { type ColumnDef } from "@tanstack/react-table"
@@ -790,40 +796,77 @@ export default function OrdersPage() {
 
         return (
           <div className="flex items-center justify-end gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleDownloadInvoice(order)}
-              title="Download Invoice"
-              className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
-            >
-              <FileText className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleDownloadShippingNote(order)}
-              title="Download Shipping Note"
-              className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
-            >
-              <TruckIcon className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setEditingOrder(order)}
-              className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
-            >
-              <Pencil className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleDeleteOrder(order)}
-              className="h-8 w-8 p-0 text-red-600 hover:bg-red-100"
-            >
-              <Trash2 className="h-5 w-5" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDownloadInvoice(order)}
+                    className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
+                  >
+                    <FileText className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Download Invoice</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDownloadShippingNote(order)}
+                    className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
+                  >
+                    <TruckIcon className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Download Shipping Note</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setEditingOrder(order)}
+                    className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
+                  >
+                    <Pencil className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit Order</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteOrder(order)}
+                    className="h-8 w-8 p-0 text-red-600 hover:bg-red-100"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete Order</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         )
       },

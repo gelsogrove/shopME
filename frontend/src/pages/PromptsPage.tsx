@@ -6,25 +6,32 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import SimpleEditor from "@/components/ui/simple-editor"
 import { Switch } from "@/components/ui/switch"
 import {
-    Prompt,
-    activatePrompt,
-    createPrompt,
-    deletePrompt,
-    getWorkspacePrompts,
-    updatePrompt
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { duplicatePrompt } from "@/services/duplicatePromptApi"
+import {
+  Prompt,
+  activatePrompt,
+  createPrompt,
+  deletePrompt,
+  getWorkspacePrompts,
+  updatePrompt
 } from "@/services/promptsApi"
 import { getCurrentWorkspace } from "@/services/workspaceApi"
-import { FileText, Loader2, MessageSquare } from "lucide-react"
+import { BookText, Copy, Loader2, PencilLine } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 
@@ -291,6 +298,21 @@ export function PromptsPage() {
     }
   }
 
+  const handleDuplicate = async (prompt: Prompt) => {
+    try {
+      await duplicatePrompt(prompt.id)
+      
+      // Ricarica i prompt dopo la duplicazione
+      const updatedPrompts = await getWorkspacePrompts(workspaceId)
+      setPrompts(updatedPrompts)
+      
+      toast.success(`Prompt "${prompt.name}" duplicated successfully`)
+    } catch (error) {
+      console.error("Error duplicating prompt:", error)
+      toast.error("Failed to duplicate prompt")
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="container flex items-center justify-center py-16">
@@ -306,7 +328,7 @@ export function PromptsPage() {
     <div className="container py-6">
       <PageHeader
         title="Prompts"
-        titleIcon={<MessageSquare className="h-6 w-6 text-gray-500" />}
+        titleIcon={<BookText className="h-6 w-6 text-green-600" />}
         searchValue={searchQuery}
         onSearch={setSearchQuery}
         searchPlaceholder="Search prompts..."
@@ -319,7 +341,7 @@ export function PromptsPage() {
       </p>
 
       <Alert className="my-6">
-        <FileText className="h-6 w-6" />
+        <BookText className="h-6 w-6" />
         <AlertDescription className="ml-2 text-lg font-medium">
           Only one prompt can be active at a time. Setting a prompt as active will deactivate all other prompts. 
           This is useful for testing different prompts without losing the original ones.
@@ -347,19 +369,42 @@ export function PromptsPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             renderActions={(prompt: Prompt) => (
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setSelectedPrompt(prompt)
-                    setShowPromptPopup(true)
-                  }}
-                  title="Edit Content"
-                  className="hover:bg-blue-50"
-                >
-                  <FileText className="h-5 w-5 text-blue-600" />
-                </Button>
+              <div className="flex items-center gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedPrompt(prompt)
+                          setShowPromptPopup(true)
+                        }}
+                      >
+                        <PencilLine className="h-5 w-5 text-blue-500" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Edit Prompt</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDuplicate(prompt)}
+                      >
+                        <Copy className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Duplicate Prompt</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             )}
           />

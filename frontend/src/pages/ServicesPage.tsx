@@ -166,7 +166,7 @@ export default function ServicesPage() {
     <div className="container mx-auto py-6">
       <PageHeader
         title="Services"
-        titleIcon={<Wrench className="h-6 w-6 text-gray-500" />}
+        titleIcon={<Wrench className="h-6 w-6 text-green-600" />}
         searchPlaceholder="Search services..."
         searchValue={searchQuery}
         onSearch={setSearchQuery}

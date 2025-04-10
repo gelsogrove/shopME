@@ -7,18 +7,24 @@ import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Label } from "@/components/ui/label"
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
 } from "@/components/ui/popover"
 import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
 } from "@/components/ui/sheet"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { format } from "date-fns"
 import { Calendar as CalendarIcon, Percent, Tag } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -482,18 +488,26 @@ export function OffersPage() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           renderActions={(offer: Offer) => (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                // Implementa l'invio di notifiche ai clienti
-                alert(`Notification about "${offer.name}" sent to customers!`)
-              }}
-              title="Send Notifications to Customers"
-              className="hover:bg-yellow-50"
-            >
-              <Tag className="h-5 w-5 text-yellow-600" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      // Implementa l'invio di notifiche ai clienti
+                      alert(`Notification about "${offer.name}" sent to customers!`)
+                    }}
+                    className="hover:bg-yellow-50"
+                  >
+                    <Tag className="h-5 w-5 text-yellow-600" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Send Notifications to Customers</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         />
       </div>

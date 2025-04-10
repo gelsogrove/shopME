@@ -8,6 +8,13 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { commonStyles } from "@/styles/common"
+import {
     type ColumnDef,
     type ColumnFiltersState,
     flexRender,
@@ -59,24 +66,42 @@ export function DataTable<TData>({
           <div className="flex justify-end gap-2">
             {renderActions && renderActions(row.original)}
             {onEdit && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onEdit(row.original)}
-                className="hover:bg-green-50"
-              >
-                <Pencil className="h-5 w-5 text-green-600" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onEdit(row.original)}
+                      className={commonStyles.buttonGhost}
+                    >
+                      <Pencil className={`${commonStyles.actionIcon} ${commonStyles.primary}`} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Edit</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             {onDelete && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onDelete(row.original)}
-                className="hover:bg-red-50"
-              >
-                <Trash2 className="h-6 w-6 text-red-600" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDelete(row.original)}
+                      className="hover:bg-red-50"
+                    >
+                      <Trash2 className={commonStyles.actionIcon + " text-red-600"} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
         ),

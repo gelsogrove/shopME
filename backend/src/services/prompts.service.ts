@@ -25,7 +25,7 @@ export const promptsService = {
         workspaceId,
       },
       orderBy: {
-        id: 'desc',
+        createdAt: 'asc',
       },
     })
   },
@@ -171,6 +171,32 @@ export const promptsService = {
           isActive: true,
         },
       })
+    })
+  },
+
+  /**
+   * Duplicate a prompt
+   */
+  async duplicate(id: string) {
+    console.log(`Duplicating prompt ${id}`)
+    
+    const prompt = await prisma.prompts.findUnique({
+      where: { id }
+    })
+
+    if (!prompt) {
+      console.log(`Prompt ${id} not found`)
+      return null
+    }
+
+    // Create a copy with "(Copy)" appended to the name
+    return prisma.prompts.create({
+      data: {
+        name: `${prompt.name} (Copy)`,
+        content: prompt.content,
+        workspaceId: prompt.workspaceId,
+        isActive: false // The copy starts as inactive
+      }
     })
   }
 } 

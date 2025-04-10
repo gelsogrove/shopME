@@ -124,5 +124,26 @@ export const promptsController = {
     } catch (error) {
       next(error)
     }
+  },
+
+  /**
+   * Duplicate a prompt
+   */
+  async duplicate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params
+      console.log(`Duplicate request received for prompt ${id}`)
+      
+      const duplicatedPrompt = await promptsService.duplicate(id)
+      
+      if (!duplicatedPrompt) {
+        return res.status(404).json({ message: "Prompt not found" })
+      }
+      
+      res.json(duplicatedPrompt)
+    } catch (error) {
+      console.error(`Error duplicating prompt ${req.params.id}:`, error)
+      next(error)
+    }
   }
 } 
