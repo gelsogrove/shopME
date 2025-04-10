@@ -49,40 +49,20 @@ export const promptsService = {
 
   /**
    * Create a new prompt
-   * If isActive is true, deactivate all other prompts for the workspace
    */
   async create(data: CreatePromptData) {
-    const { isActive = false, workspaceId } = data
-    console.log(`Creating prompt with isActive=${isActive} for workspace ${workspaceId}`)
+    const { workspaceId } = data
+    console.log(`Creating prompt for workspace ${workspaceId}`)
 
-    // Start a transaction
-    return prisma.$transaction(async (tx) => {
-      // If this prompt should be active, deactivate all others
-      if (isActive) {
-        console.log(`Deactivating all other prompts for workspace ${workspaceId}`)
-        const deactivated = await tx.prompts.updateMany({
-          where: {
-            workspaceId,
-            isActive: true,
-          },
-          data: {
-            isActive: false,
-          },
-        })
-        console.log(`Deactivated ${deactivated.count} prompts`)
-      }
-
-      // Create the new prompt
-      console.log(`Creating new prompt with data:`, data)
-      return tx.prompts.create({
-        data
-      })
+    // Create the new prompt
+    console.log(`Creating new prompt with data:`, data)
+    return prisma.prompts.create({
+      data
     })
   },
 
   /**
    * Update a prompt
-   * If isActive is set to true, deactivate all other prompts for the workspace
    */
   async update(id: string, data: UpdatePromptData) {
     console.log(`Updating prompt ${id} with data:`, data)
@@ -96,32 +76,7 @@ export const promptsService = {
       return null
     }
 
-    // If we're trying to activate this prompt
-    if (data.isActive === true) {
-      console.log(`Activating prompt ${id} and deactivating others`)
-      // Start a transaction
-      return prisma.$transaction(async (tx) => {
-        // Deactivate all prompts for this workspace
-        const deactivated = await tx.prompts.updateMany({
-          where: {
-            workspaceId: prompt.workspaceId,
-            isActive: true,
-          },
-          data: {
-            isActive: false,
-          },
-        })
-        console.log(`Deactivated ${deactivated.count} prompts`)
-
-        // Update and activate this prompt
-        return tx.prompts.update({
-          where: { id },
-          data,
-        })
-      })
-    }
-
-    // Regular update (not changing activation status or explicitly setting to inactive)
+    // Regular update without changing activation of other prompts
     console.log(`Regular update for prompt ${id}`)
     return prisma.prompts.update({
       where: { id },
@@ -140,7 +95,7 @@ export const promptsService = {
   },
 
   /**
-   * Activate a prompt (and deactivate all others)
+   * Activate a prompt (without deactivating others)
    */
   async activate(id: string) {
     console.log(`Activating prompt ${id}`)
@@ -154,29 +109,13 @@ export const promptsService = {
       return null
     }
 
-    // Start a transaction
-    return prisma.$transaction(async (tx) => {
-      // Deactivate all prompts for this workspace
-      console.log(`Deactivating all prompts for workspace ${prompt.workspaceId}`)
-      const deactivated = await tx.prompts.updateMany({
-        where: {
-          workspaceId: prompt.workspaceId,
-          isActive: true,
-        },
-        data: {
-          isActive: false,
-        },
-      })
-      console.log(`Deactivated ${deactivated.count} prompts`)
-
-      // Activate this prompt
-      console.log(`Setting prompt ${id} as active`)
-      return tx.prompts.update({
-        where: { id },
-        data: {
-          isActive: true,
-        },
-      })
+    // Simply activate this prompt
+    console.log(`Setting prompt ${id} as active`)
+    return prisma.prompts.update({
+      where: { id },
+      data: {
+        isActive: true,
+      },
     })
   },
 

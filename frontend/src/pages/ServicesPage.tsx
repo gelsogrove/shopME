@@ -2,10 +2,12 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
 import { PageHeader } from "@/components/shared/PageHeader"
-import { ServiceSheet } from "@/components/shared/ServiceSheet"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Button } from "@/components/ui/button"
-import { TooltipProvider } from "@/components/ui/tooltip"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Switch } from "@/components/ui/switch"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { servicesApi } from "@/services/servicesApi"
 import { Wrench } from "lucide-react"
@@ -76,7 +78,11 @@ export default function ServicesPage() {
     
     try {
       setLoading(true)
+      console.log("Fetching services for workspace:", workspace.id)
+      console.log("API URL:", `api/workspaces/${workspace.id}/services`)
+      
       const data = await servicesApi.getAllForWorkspace(workspace.id)
+      console.log("Services API response:", data)
       
       // Map API service to display format
       const formattedServices: DisplayService[] = data.map(service => ({
@@ -170,6 +176,9 @@ export default function ServicesPage() {
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
     const priceStr = formData.get("price") as string;
+    const isActive = formData.get("isActive") === "true";
+    
+    console.log("Form data:", { name, description, priceStr, isActive, "raw": formData.get("isActive") });
     
     // Validate
     if (!name || !description || !priceStr) {
@@ -196,21 +205,16 @@ export default function ServicesPage() {
         name,
         description,
         price,
+        isActive,
         currency: workspace.currency || "EUR"
       })
       
-      // Add to the local state
-      const newService: DisplayService = {
-        id: result.id,
-        name: result.name,
-        description: result.description,
-        price: result.price.toString(),
-        status: result.isActive ? "active" : "inactive"
-      }
-      
-      setServices([...services, newService])
+      // Chiudiamo prima la sheet
       setShowAddSheet(false)
       toast.success("Service added successfully")
+      
+      // Poi forziamo il ricaricamento dei servizi
+      await loadServices()
     } catch (error: any) {
       console.error("Failed to add service", error)
       
@@ -256,7 +260,7 @@ export default function ServicesPage() {
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
     const priceStr = formData.get("price") as string;
-    const isActive = !!formData.get("isActive");
+    const isActive = formData.get("isActive") === "true";
     
     console.log("Form data:", { name, description, priceStr, isActive, "raw": formData.get("isActive") });
     
@@ -290,35 +294,32 @@ export default function ServicesPage() {
         currency: workspace?.currency || "EUR" 
       });
       
-      const result = await servicesApi.update(selectedService.id, {
+      // First update the UI state to close the sheet
+      setShowEditSheet(false);
+      setSelectedService(null);
+      
+      // Then make the API call
+      await servicesApi.update(selectedService.id, {
         name,
         description,
         price,
         isActive,
         currency: workspace?.currency || "EUR"
-      })
+      });
       
-      console.log("Update result:", result);
+      // Show success message
+      toast.success("Service updated successfully");
       
-      // Update the local state
-      const updatedService: DisplayService = {
-        id: result.id,
-        name: result.name,
-        description: result.description,
-        price: result.price.toString(),
-        status: result.isActive ? "active" : "inactive"
+      // Force a complete reload of services
+      if (workspace?.id) {
+        await loadServices();
       }
-      
-      setServices(
-        services.map((s) => (s.id === selectedService.id ? updatedService : s))
-      )
-      
-      setShowEditSheet(false)
-      setSelectedService(null)
-      toast.success("Service updated successfully")
     } catch (error) {
-      console.error("Failed to update service", error)
-      toast.error("Failed to update service")
+      console.error("Failed to update service", error);
+      toast.error("Failed to update service");
+      
+      // Re-enable editing on error
+      setShowEditSheet(true);
     }
   }
 
@@ -365,48 +366,179 @@ export default function ServicesPage() {
             searchValue={searchQuery}
             onSearch={setSearchQuery}
             searchPlaceholder="Search services..."
-            itemCount={services.length}
+            itemCount={filteredServices.length}
             onAdd={handleOpenAddSheet}
             addButtonText="Add Service"
           />
 
           <div className="mt-6 w-full">
-            <TooltipProvider>
-              <DataTable
-                columns={columns}
-                data={filteredServices}
-                onEdit={(service) => {
-                  console.log("Edit button clicked for service:", service);
-                  handleOpenEditSheet(service);
-                }}
-                onDelete={(service) => {
-                  console.log("Delete button clicked for service:", service);
-                  handleDelete(service);
-                }}
-                globalFilter={searchQuery}
-              />
-            </TooltipProvider>
+            <DataTable
+              columns={columns}
+              data={filteredServices}
+              onEdit={(service) => {
+                console.log("Edit button clicked for service:", service);
+                handleOpenEditSheet(service);
+              }}
+              onDelete={(service) => {
+                console.log("Delete button clicked for service:", service);
+                handleDelete(service);
+              }}
+              globalFilter={searchQuery}
+            />
           </div>
         </div>
       </div>
 
-      <ServiceSheet
-        open={showAddSheet}
-        onOpenChange={setShowAddSheet}
-        onSubmit={handleAdd}
-        service={null}
-        title="Add New Service"
-        currencySymbol={currentCurrencySymbol}
-      />
+      {/* Add Service Sheet */}
+      <Sheet open={showAddSheet} onOpenChange={(open) => {
+        setShowAddSheet(open);
+        if (!open && workspace?.id) {
+          // Se la sheet viene chiusa, ricarica i servizi
+          loadServices();
+        }
+      }}>
+        <SheetContent className="sm:max-w-lg flex flex-col p-0">
+          <SheetHeader className="px-6 pt-6 pb-2">
+            <SheetTitle>Add New Service</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleAdd} className="flex flex-col h-full">
+            <div className="overflow-y-auto px-6 flex-grow">
+              <div className="space-y-6 py-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="Service name"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    className="w-full min-h-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="Service description"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price ({currentCurrencySymbol})</Label>
+                  <Input
+                    id="price"
+                    name="price"
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="isActive" className="text-sm font-medium">
+                    Active
+                  </Label>
+                  <Switch 
+                    id="isActive" 
+                    name="isActive"
+                    defaultChecked={true}
+                    value="true"
+                  />
+                </div>
+              </div>
+            </div>
+            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
+              <SheetClose asChild>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  className="border-input hover:bg-accent"
+                >
+                  Cancel
+                </Button>
+              </SheetClose>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                Add Service
+              </Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
 
-      <ServiceSheet
-        open={showEditSheet}
-        onOpenChange={setShowEditSheet}
-        onSubmit={handleEditSubmit}
-        service={selectedService}
-        title="Edit Service"
-        currencySymbol={currentCurrencySymbol}
-      />
+      {/* Edit Service Sheet */}
+      <Sheet open={showEditSheet} onOpenChange={(open) => {
+        setShowEditSheet(open);
+        if (!open && workspace?.id) {
+          // Se la sheet viene chiusa, ricarica i servizi
+          loadServices();
+        }
+      }}>
+        <SheetContent className="sm:max-w-lg flex flex-col p-0">
+          <SheetHeader className="px-6 pt-6 pb-2">
+            <SheetTitle>Edit Service</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleEditSubmit} className="flex flex-col h-full">
+            <div className="overflow-y-auto px-6 flex-grow">
+              <div className="space-y-6 py-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="Service name"
+                    defaultValue={selectedService?.name || ""}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    className="w-full min-h-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="Service description"
+                    defaultValue={selectedService?.description || ""}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price ({currentCurrencySymbol})</Label>
+                  <Input
+                    id="price"
+                    name="price"
+                    placeholder="0.00"
+                    defaultValue={selectedService?.price || ""}
+                    required
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="isActive" className="text-sm font-medium">
+                    Active
+                  </Label>
+                  <Switch 
+                    id="isActive" 
+                    name="isActive"
+                    defaultChecked={selectedService?.status === "active"}
+                    value="true"
+                  />
+                </div>
+              </div>
+            </div>
+            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
+              <SheetClose asChild>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  className="border-input hover:bg-accent"
+                >
+                  Cancel
+                </Button>
+              </SheetClose>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                Save Changes
+              </Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
 
       <ConfirmDialog
         open={showDeleteDialog}

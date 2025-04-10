@@ -406,7 +406,7 @@ export function OffersPage() {
                 mode="single"
                 selected={endDate}
                 onSelect={setEndDate}
-                disabled={(date) =>
+                disabled={(date: Date) =>
                   date < new Date() || (startDate ? date < startDate : false)
                 }
                 initialFocus
@@ -478,6 +478,7 @@ export function OffersPage() {
         searchPlaceholder="Search offers..."
         searchValue={searchQuery}
         onSearch={setSearchQuery}
+        itemCount={filteredOffers.length}
         onAdd={() => setShowAddSheet(true)}
       />
 
@@ -514,13 +515,15 @@ export function OffersPage() {
 
       {/* Add Offer Sheet */}
       <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>
-        <SheetContent className="sm:max-w-lg">
-          <SheetHeader>
+        <SheetContent className="sm:max-w-[80%] flex flex-col p-0">
+          <SheetHeader className="px-6 pt-6 pb-2">
             <SheetTitle>Add New Offer</SheetTitle>
           </SheetHeader>
-          <form onSubmit={handleAdd}>
-            {renderFormFields()}
-            <SheetFooter className="mt-6">
+          <form onSubmit={handleAdd} className="flex flex-col h-full">
+            <div className="overflow-y-auto px-6 flex-grow">
+              {renderFormFields()}
+            </div>
+            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
               <SheetClose asChild>
                 <Button
                   variant="outline"
@@ -540,13 +543,15 @@ export function OffersPage() {
 
       {/* Edit Offer Sheet */}
       <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
-        <SheetContent className="sm:max-w-lg">
-          <SheetHeader>
+        <SheetContent className="sm:max-w-[80%] flex flex-col p-0">
+          <SheetHeader className="px-6 pt-6 pb-2">
             <SheetTitle>Edit Offer</SheetTitle>
           </SheetHeader>
-          <form onSubmit={handleEditSubmit}>
-            {renderFormFields(true)}
-            <SheetFooter className="mt-6">
+          <form onSubmit={handleEditSubmit} className="flex flex-col h-full">
+            <div className="overflow-y-auto px-6 flex-grow">
+              {renderFormFields(true)}
+            </div>
+            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
               <SheetClose asChild>
                 <Button
                   variant="outline"

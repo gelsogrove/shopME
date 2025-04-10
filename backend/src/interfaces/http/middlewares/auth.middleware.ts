@@ -7,7 +7,7 @@ import { AppError } from "../middlewares/error.middleware"
 interface JwtPayload {
   id?: string     // Per token nuovi
   userId?: string // Per token legacy
-  email: string
+  email?: string
   role: string
   iat?: number
   exp?: number
@@ -32,38 +32,53 @@ export const authMiddleware = (
   console.log("Cookies:", req.cookies);
   console.log("Auth header:", req.headers.authorization);
   
-  // Check for token in cookies
-  const token = req.cookies.auth_token;
-  
-  // Fallback to Authorization header for backward compatibility
-  if (!token) {
-    console.log("No token in cookies, checking headers");
-    const authHeader = req.headers.authorization
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.log("No token in headers either");
-      throw new AppError(401, "No token provided")
+  try {
+    // Check for token in cookies
+    let token = req.cookies.auth_token;
+    
+    // Fallback to Authorization header for backward compatibility
+    if (!token) {
+      console.log("No token in cookies, checking headers");
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        console.log("No token in headers either");
+        throw new AppError(401, "Authentication required");
+      }
+      token = authHeader.split(" ")[1];
     }
-    const headerToken = authHeader.split(" ")[1]
+    
+    if (!token) {
+      console.log("No token found in cookies or headers");
+      throw new AppError(401, "Authentication required");
+    }
+    
     try {
-      console.log("Using token from Authorization header");
-      const decoded = jwt.verify(headerToken, config.jwt.secret) as JwtPayload
+      console.log("Using token:", token.substring(0, 20) + "...");
+      const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload;
       console.log("Token decoded successfully:", decoded);
+      
+      // Make sure we have a userId
+      if (!decoded.userId && !decoded.id) {
+        console.log("Token doesn't have userId or id field");
+        throw new AppError(401, "Invalid token format");
+      }
+      
+      // Normalize userId field
+      if (!decoded.userId && decoded.id) {
+        decoded.userId = decoded.id;
+      }
+      
       req.user = decoded;
       return next();
     } catch (error) {
       console.log("Token verification failed:", error);
-      throw new AppError(401, "Invalid token")
+      throw new AppError(401, "Invalid token");
     }
-  }
-
-  try {
-    console.log("Using token from cookies");
-    const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload
-    console.log("Token decoded successfully:", decoded);
-    req.user = decoded;
-    next()
   } catch (error) {
-    console.log("Token verification failed:", error);
-    throw new AppError(401, "Invalid token")
+    console.error("Auth middleware error:", error);
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(401, "Authentication failed");
   }
 }

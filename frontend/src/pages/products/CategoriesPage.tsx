@@ -1,7 +1,10 @@
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
-import { FormDialog } from "@/components/shared/FormDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Tag } from "lucide-react"
 import { useState } from "react"
 
@@ -134,7 +137,7 @@ export default function CategoriesPage() {
             searchValue={searchValue}
             onSearch={setSearchValue}
             searchPlaceholder="Search categories..."
-            itemCount={categories.length}
+            itemCount={filteredCategories.length}
             onAdd={() => setShowAddDialog(true)}
             addButtonText="Add Category"
           />
@@ -151,45 +154,103 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      <FormDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-        title="Add New Category"
-        fields={[
-          {
-            name: "name",
-            label: "Name",
-            type: "text",
-          },
-          {
-            name: "description",
-            label: "Description",
-            type: "text",
-          },
-        ]}
-        onSubmit={handleAdd}
-      />
+      {/* Add Category Sheet */}
+      <Sheet open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <SheetContent className="sm:max-w-lg flex flex-col p-0">
+          <SheetHeader className="px-6 pt-6 pb-2">
+            <SheetTitle>Add New Category</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleAdd} className="flex flex-col h-full">
+            <div className="overflow-y-auto px-6 flex-grow">
+              <div className="space-y-6 py-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="Category name"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="Category description"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
+              <SheetClose asChild>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  className="border-input hover:bg-accent"
+                >
+                  Cancel
+                </Button>
+              </SheetClose>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                Add Category
+              </Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
 
-      <FormDialog
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
-        title="Edit Category"
-        fields={[
-          {
-            name: "name",
-            label: "Name",
-            type: "text",
-            defaultValue: selectedCategory?.name,
-          },
-          {
-            name: "description",
-            label: "Description",
-            type: "text",
-            defaultValue: selectedCategory?.description,
-          },
-        ]}
-        onSubmit={handleEditSubmit}
-      />
+      {/* Edit Category Sheet */}
+      <Sheet open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <SheetContent className="sm:max-w-lg flex flex-col p-0">
+          <SheetHeader className="px-6 pt-6 pb-2">
+            <SheetTitle>Edit Category</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleEditSubmit} className="flex flex-col h-full">
+            <div className="overflow-y-auto px-6 flex-grow">
+              <div className="space-y-6 py-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="Category name"
+                    defaultValue={selectedCategory?.name || ""}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="Category description"
+                    defaultValue={selectedCategory?.description || ""}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
+              <SheetClose asChild>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  className="border-input hover:bg-accent"
+                >
+                  Cancel
+                </Button>
+              </SheetClose>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                Save Changes
+              </Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
 
       <ConfirmDialog
         open={showDeleteDialog}

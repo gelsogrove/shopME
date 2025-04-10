@@ -7,6 +7,8 @@ let adminEmail = "admin@shopme.com"; // Define a variable to store admin email
 let adminId;
 
 async function main() {
+  console.log("Starting full seed process...");
+  
   // Check if the admin user already exists
   const existingAdmin = await prisma.user.findUnique({
     where: { email: "admin@shopme.com" },
@@ -24,37 +26,41 @@ async function main() {
       },
     });
     adminId = admin.id; // Store admin ID
-    console.log(`Admin user creato: ${admin.email}`);
+    console.log(`Admin user created: ${admin.email}`);
   } else {
     adminId = existingAdmin.id; // Use existing admin ID
-    console.log("Admin user già esistente.");
+    console.log("Admin user already exists.");
   }
 
-  // Check if the workspace already exists
-  const existingWorkspace = await prisma.workspace.findUnique({
-    where: { slug: "altra-italia" },
-  });
-
+  // Find the workspace with the specific ID instead of first active workspace
+  console.log("Finding workspace with ID cm9912ez10000i16wgr13pvaf...");
   let workspace;
-  if (!existingWorkspace) {
-    // Crea il workspace L'Altra Italia
+  
+  const targetWorkspaceId = "cm9912ez10000i16wgr13pvaf";
+  
+  workspace = await prisma.workspace.findUnique({
+    where: { id: targetWorkspaceId }
+  });
+  
+  if (workspace) {
+    console.log(`Using workspace: ${workspace.name} (ID: ${workspace.id})`);
+  } else {
+    // If workspace with specific ID doesn't exist, create it
     workspace = await prisma.workspace.create({
       data: {
-        name: "L'Altra Italia",
-        slug: "altra-italia",
+        id: targetWorkspaceId,
+        name: "L'Altra Italia(ESP)",
+        slug: "altra-italia-esp",
         whatsappPhoneNumber: "+34654728753",
         isActive: true,
         language: "it",
         currency: "EUR"
       },
     });
-    console.log(`Workspace creato: ${workspace.name}`);
-  } else {
-    workspace = existingWorkspace;
-    console.log("Workspace già esistente.");
+    console.log(`Created new workspace: ${workspace.name} (ID: ${workspace.id})`);
   }
 
-  // Crea le lingue disponibili solo se non esistono già
+  // Create available languages if they don't exist yet
   const languageCodes = ["it", "en", "es", "fr", "de"]
   const existingLanguages = await prisma.languages.findMany({
     where: {
@@ -81,9 +87,9 @@ async function main() {
       )
     )
     languages.push(...newLanguages)
-    console.log(`Nuove lingue create: ${languagesToCreate.join(", ")}`)
+    console.log(`New languages created: ${languagesToCreate.join(", ")}`)
   } else {
-    console.log("Tutte le lingue esistono già")
+    console.log("All languages already exist")
   }
 
   // Helper function to get language names
@@ -92,11 +98,13 @@ async function main() {
       it: "Italiano",
       en: "English",
       es: "Español",
+      fr: "Français",
+      de: "Deutsch"
     }
     return names[code] || code
   }
 
-  // Connetti le lingue al workspace
+  // Connect languages to workspace
   await prisma.workspace.update({
     where: { id: workspace.id },
     data: {
@@ -111,23 +119,26 @@ async function main() {
   
   // Create food categories as requested
   const foodCategories = [
-    { name: "Beverages", slug: "beverages", description: "Italian beverages including coffee, soft drinks, and non-alcoholic options" },
-    { name: "Pasta", slug: "pasta", description: "Fresh and dried pasta varieties from different regions of Italy" },
-    { name: "Cheese", slug: "cheese", description: "Authentic Italian cheeses, from fresh to aged varieties" },
-    { name: "Vegetables", slug: "vegetables", description: "Fresh and preserved vegetables of the highest quality" },
-    { name: "Condiments", slug: "condiments", description: "Oils, vinegars, and specialty Italian condiments" },
-    { name: "Preserves", slug: "preserves", description: "Jams, marmalades, and preserved fruits made with traditional recipes" },
-    { name: "Snacks", slug: "snacks", description: "Italian savory and sweet snacks perfect for any occasion" },
-    { name: "Gourmet", slug: "gourmet", description: "Premium specialty products for the discerning palate" },
-    { name: "Fresh Products", slug: "fresh-products", description: "Freshly made Italian foods delivered to your table" },
-    { name: "Desserts", slug: "desserts", description: "Traditional Italian sweets and desserts" }
+    { name: "Beverages", slug: `beverages-${workspace.id.substring(0, 8)}`, description: "Italian beverages including coffee, soft drinks, and non-alcoholic options" },
+    { name: "Pasta", slug: `pasta-${workspace.id.substring(0, 8)}`, description: "Fresh and dried pasta varieties from different regions of Italy" },
+    { name: "Cheese", slug: `cheese-${workspace.id.substring(0, 8)}`, description: "Authentic Italian cheeses, from fresh to aged varieties" },
+    { name: "Vegetables", slug: `vegetables-${workspace.id.substring(0, 8)}`, description: "Fresh and preserved vegetables of the highest quality" },
+    { name: "Condiments", slug: `condiments-${workspace.id.substring(0, 8)}`, description: "Oils, vinegars, and specialty Italian condiments" },
+    { name: "Preserves", slug: `preserves-${workspace.id.substring(0, 8)}`, description: "Jams, marmalades, and preserved fruits made with traditional recipes" },
+    { name: "Snacks", slug: `snacks-${workspace.id.substring(0, 8)}`, description: "Italian savory and sweet snacks perfect for any occasion" },
+    { name: "Gourmet", slug: `gourmet-${workspace.id.substring(0, 8)}`, description: "Premium specialty products for the discerning palate" },
+    { name: "Fresh Products", slug: `fresh-products-${workspace.id.substring(0, 8)}`, description: "Freshly made Italian foods delivered to your table" },
+    { name: "Desserts", slug: `desserts-${workspace.id.substring(0, 8)}`, description: "Traditional Italian sweets and desserts" }
   ];
 
   const categories = [];
   console.log("Creating food categories...");
   for (const category of foodCategories) {
-    const existingCategory = await prisma.categories.findUnique({
-      where: { slug: category.slug }
+    const existingCategory = await prisma.categories.findFirst({
+      where: { 
+        slug: category.slug,
+        workspaceId: workspace.id
+      }
     });
 
     if (!existingCategory) {
@@ -177,9 +188,6 @@ async function main() {
     }
   ];
 
-  // Check for existing prompts
-  console.log("Creating default prompts...");
-  
   // Create Italian products
   const italianProducts = [
     {
@@ -187,100 +195,100 @@ async function main() {
       description: "Authentic Parmigiano Reggiano DOP aged for 24 months. Rich, nutty flavor with a crystalline texture.",
       price: 29.99,
       stock: 25,
-      slug: "parmigiano-reggiano-dop",
+      slug: `parmigiano-reggiano-dop-${workspace.id.substring(0, 8)}`,
       isActive: true,
       workspaceId: workspace.id,
-      categoryId: categories.find(c => c.slug === "cheese")?.id
+      categoryId: categories.find(c => c.slug === `cheese-${workspace.id.substring(0, 8)}`)?.id
     },
     {
       name: "Gragnano IGP Pasta - Spaghetti",
       description: "Traditional bronze-extruded Gragnano IGP pasta from Naples. Perfect rough texture to hold sauce.",
       price: 4.99,
       stock: 120,
-      slug: "gragnano-igp-spaghetti",
+      slug: `gragnano-igp-spaghetti-${workspace.id.substring(0, 8)}`,
       isActive: true,
       workspaceId: workspace.id,
-      categoryId: categories.find(c => c.slug === "pasta")?.id
+      categoryId: categories.find(c => c.slug === `pasta-${workspace.id.substring(0, 8)}`)?.id
     },
     {
       name: "Tuscan IGP Extra Virgin Olive Oil",
       description: "Premium cold-pressed extra virgin olive oil from Tuscany IGP. Fruity with a peppery finish.",
       price: 19.99,
       stock: 48,
-      slug: "tuscan-igp-olive-oil",
+      slug: `tuscan-igp-olive-oil-${workspace.id.substring(0, 8)}`,
       isActive: true,
       workspaceId: workspace.id,
-      categoryId: categories.find(c => c.slug === "condiments")?.id
+      categoryId: categories.find(c => c.slug === `condiments-${workspace.id.substring(0, 8)}`)?.id
     },
     {
       name: "Prosciutto di Parma DOP 24 months",
       description: "Aged for 24 months, this Prosciutto di Parma DOP is sweet, delicate and melts in your mouth.",
       price: 24.99,
       stock: 15,
-      slug: "prosciutto-di-parma-dop",
+      slug: `prosciutto-di-parma-dop-${workspace.id.substring(0, 8)}`,
       isActive: true,
       workspaceId: workspace.id,
-      categoryId: categories.find(c => c.slug === "fresh-products")?.id
+      categoryId: categories.find(c => c.slug === `fresh-products-${workspace.id.substring(0, 8)}`)?.id
     },
     {
       name: "Aceto Balsamico di Modena IGP",
       description: "Traditional balsamic vinegar from Modena with IGP certification. Perfect balance of sweet and sour.",
       price: 14.99,
       stock: 30,
-      slug: "aceto-balsamico-modena-igp",
+      slug: `aceto-balsamico-modena-igp-${workspace.id.substring(0, 8)}`,
       isActive: true,
       workspaceId: workspace.id,
-      categoryId: categories.find(c => c.slug === "condiments")?.id
+      categoryId: categories.find(c => c.slug === `condiments-${workspace.id.substring(0, 8)}`)?.id
     },
     {
       name: "Mozzarella di Bufala Campana DOP",
       description: "Fresh buffalo milk mozzarella from Campania region with DOP certification. Soft, milky flavor.",
       price: 9.99,
       stock: 40,
-      slug: "mozzarella-di-bufala-dop",
+      slug: `mozzarella-di-bufala-dop-${workspace.id.substring(0, 8)}`,
       isActive: true,
       workspaceId: workspace.id,
-      categoryId: categories.find(c => c.slug === "cheese")?.id
+      categoryId: categories.find(c => c.slug === `cheese-${workspace.id.substring(0, 8)}`)?.id
     },
     {
       name: "San Marzano DOP Tomatoes",
       description: "Authentic San Marzano tomatoes with DOP certification. Sweet, low-acid tomatoes ideal for sauce.",
       price: 6.99,
       stock: 85,
-      slug: "san-marzano-dop-tomatoes",
+      slug: `san-marzano-dop-tomatoes-${workspace.id.substring(0, 8)}`,
       isActive: true,
       workspaceId: workspace.id,
-      categoryId: categories.find(c => c.slug === "vegetables")?.id
+      categoryId: categories.find(c => c.slug === `vegetables-${workspace.id.substring(0, 8)}`)?.id
     },
     {
       name: "Barolo DOCG Wine",
       description: "Premium Barolo DOCG red wine from Piedmont. Full-bodied with notes of cherries, plums, and spices.",
       price: 49.99,
       stock: 24,
-      slug: "barolo-docg-wine",
+      slug: `barolo-docg-wine-${workspace.id.substring(0, 8)}`,
       isActive: true,
       workspaceId: workspace.id,
-      categoryId: categories.find(c => c.slug === "beverages")?.id
+      categoryId: categories.find(c => c.slug === `beverages-${workspace.id.substring(0, 8)}`)?.id
     },
     {
       name: "Pistacchi di Bronte DOP",
       description: "Vibrant green pistachios from Bronte, Sicily with DOP certification. Intense flavor and aroma.",
       price: 18.99,
       stock: 35,
-      slug: "pistacchi-di-bronte-dop",
+      slug: `pistacchi-di-bronte-dop-${workspace.id.substring(0, 8)}`,
       isActive: true,
       workspaceId: workspace.id,
-      categoryId: categories.find(c => c.slug === "snacks")?.id
+      categoryId: categories.find(c => c.slug === `snacks-${workspace.id.substring(0, 8)}`)?.id
     },
     {
       name: "Limoncello di Sorrento IGP",
       description: "Traditional lemon liqueur made with Sorrento IGP lemons. Sweet, tangy and refreshing.",
       price: 22.99,
       stock: 42,
-      slug: "limoncello-di-sorrento-igp",
+      slug: `limoncello-di-sorrento-igp-${workspace.id.substring(0, 8)}`,
       isActive: true,
       workspaceId: workspace.id,
-      categoryId: categories.find(c => c.slug === "beverages")?.id
+      categoryId: categories.find(c => c.slug === `beverages-${workspace.id.substring(0, 8)}`)?.id
     }
   ];
 
@@ -291,30 +299,30 @@ async function main() {
       description: "Make authentic Sicilian cannoli at home with this kit including shells and filling.",
       price: 24.99,
       stock: 30,
-      slug: "cannoli-siciliani-kit",
+      slug: `cannoli-siciliani-kit-${workspace.id.substring(0, 8)}`,
       isActive: true,
       workspaceId: workspace.id,
-      categoryId: categories.find(c => c.slug === "desserts")?.id
+      categoryId: categories.find(c => c.slug === `desserts-${workspace.id.substring(0, 8)}`)?.id
     },
     {
       name: "White Truffle Risotto",
       description: "Premium risotto with white truffle. A true gourmet experience from Northern Italy.",
       price: 19.99,
       stock: 15,
-      slug: "white-truffle-risotto",
+      slug: `white-truffle-risotto-${workspace.id.substring(0, 8)}`,
       isActive: true,
       workspaceId: workspace.id,
-      categoryId: categories.find(c => c.slug === "gourmet")?.id
+      categoryId: categories.find(c => c.slug === `gourmet-${workspace.id.substring(0, 8)}`)?.id
     },
     {
       name: "Artisanal Breadsticks",
       description: "Handmade Italian breadsticks perfect for appetizers or with wine.",
       price: 5.99,
       stock: 50,
-      slug: "artisanal-breadsticks",
+      slug: `artisanal-breadsticks-${workspace.id.substring(0, 8)}`,
       isActive: true,
       workspaceId: workspace.id,
-      categoryId: categories.find(c => c.slug === "snacks")?.id
+      categoryId: categories.find(c => c.slug === `snacks-${workspace.id.substring(0, 8)}`)?.id
     }
   ];
 
@@ -324,8 +332,11 @@ async function main() {
   // Check for existing products and create new ones
   console.log("Creating Italian products...");
   for (const product of allProducts) {
-    const existingProduct = await prisma.products.findUnique({
-      where: { slug: product.slug }
+    const existingProduct = await prisma.products.findFirst({
+      where: { 
+        slug: product.slug,
+        workspaceId: workspace.id
+      }
     });
 
     if (!existingProduct) {
@@ -338,6 +349,63 @@ async function main() {
     }
   }
 
+  // Create services
+  console.log("Creating services...");
+  
+  // Define services
+  const services = [
+    {
+      name: "Insurance",
+      description: "Product insurance service for your valuable items. Covers damage during shipping and handling.",
+      price: 30.0,
+      currency: "EUR",
+      isActive: true,
+      workspaceId: workspace.id
+    },
+    {
+      name: "Shipping",
+      description: "Premium shipping service with tracking and guaranteed delivery within 3-5 business days.",
+      price: 30.0,
+      currency: "EUR",
+      isActive: true,
+      workspaceId: workspace.id
+    },
+    {
+      name: "Gift Package",
+      description: "Luxury gift wrapping service with personalized message and premium packaging materials.",
+      price: 30.0,
+      currency: "EUR",
+      isActive: true,
+      workspaceId: workspace.id
+    }
+  ];
+  
+  // Create or update services
+  for (const service of services) {
+    const existingService = await prisma.services.findFirst({
+      where: {
+        name: service.name,
+        workspaceId: workspace.id
+      }
+    });
+
+    if (existingService) {
+      // Update existing service
+      await prisma.services.update({
+        where: { id: existingService.id },
+        data: service
+      });
+      console.log(`Service updated: ${service.name}`);
+    } else {
+      // Create new service
+      await prisma.services.create({
+        data: service
+      });
+      console.log(`Service created: ${service.name}`);
+    }
+  }
+
+  // Create prompts
   for (const prompt of defaultPrompts) {
     const existingPrompt = await prisma.prompts.findFirst({
       where: {
@@ -356,10 +424,12 @@ async function main() {
     }
   }
 
-  console.log(`Seed completato con successo!`);
-  console.log(`- Admin user creato: ${adminEmail}`);
-  console.log(`- Workspace creato: ${workspace.name}`);
-  console.log(`- Categorie create/esistenti: ${categories.length}`);
+  console.log(`Seed completed successfully!`);
+  console.log(`- Admin user: ${adminEmail}`);
+  console.log(`- Workspace: ${workspace.name} (ID: ${workspace.id})`);
+  console.log(`- Categories created/existing: ${categories.length}`);
+  console.log(`- Products created/existing: ${allProducts.length}`);
+  console.log(`- Services created/existing: ${services.length}`);
 }
 
 main()
@@ -369,4 +439,4 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect()
-  })
+  }) 

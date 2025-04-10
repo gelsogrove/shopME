@@ -71,11 +71,14 @@ export function useWorkspace() {
       
       // If no cached workspace, fetch from API
       const response = await api.get("/api/workspaces")
+      console.log("Workspaces API response:", response.data)
+      
       // Get the active workspace or the first one
       const workspaces = response.data
       const activeWorkspace = workspaces.find((w: Workspace) => w.isActive) || workspaces[0]
       
       if (activeWorkspace) {
+        console.log("Setting active workspace:", activeWorkspace)
         setWorkspace(activeWorkspace)
         // Cache the workspace in sessionStorage
         sessionStorage.setItem("currentWorkspace", JSON.stringify(activeWorkspace))

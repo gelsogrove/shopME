@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import cuid from 'cuid';
 
 const prisma = new PrismaClient()
 
@@ -24,7 +23,15 @@ export const servicesService = {
   async getAllForWorkspace(workspaceId: string) {
     try {
       console.log("Getting services for workspace:", workspaceId);
-      return await prisma.$queryRaw`SELECT * FROM services WHERE "workspaceId" = ${workspaceId} ORDER BY "createdAt" DESC`;
+      // @ts-ignore - Prisma types issue
+      return await prisma.services.findMany({
+        where: {
+          workspaceId
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
     } catch (error) {
       console.error("Error getting services for workspace:", error);
       return [];
@@ -32,46 +39,62 @@ export const servicesService = {
   },
 
   async getById(id: string) {
-    return prisma.$queryRaw`SELECT * FROM services WHERE id = ${id} LIMIT 1`
+    // @ts-ignore - Prisma types issue
+    return prisma.services.findUnique({
+      where: { id }
+    });
   },
 
   async create(data: CreateServiceData) {
     const { name, description, price, workspaceId, currency = "€", isActive = true } = data
     
-    return prisma.$queryRaw`
-      INSERT INTO services (id, name, description, price, "workspaceId", currency, "isActive", "createdAt", "updatedAt")
-      VALUES (${cuid()}, ${name}, ${description}, ${price}, ${workspaceId}, ${currency}, ${isActive}, NOW(), NOW())
-      RETURNING *
-    `
+    // @ts-ignore - Prisma types issue
+    return prisma.services.create({
+      data: {
+        name,
+        description, 
+        price,
+        currency,
+        isActive,
+        workspace: {
+          connect: {
+            id: workspaceId
+          }
+        }
+      }
+    });
   },
 
   async update(id: string, data: UpdateServiceData) {
     // First check if service exists
-    const existingService = await prisma.$queryRaw`SELECT * FROM services WHERE id = ${id} LIMIT 1`
+    // @ts-ignore - Prisma types issue
+    const existingService = await prisma.services.findUnique({
+      where: { id }
+    });
     
-    if (!existingService || (existingService as any[]).length === 0) {
-      throw new Error("Service not found")
+    if (!existingService) {
+      throw new Error("Service not found");
     }
     
-    const service = (existingService as any[])[0]
+    const { name, description, price, currency, isActive } = data;
     
-    const { name, description, price, currency, isActive } = data
-    
-    return prisma.$queryRaw`
-      UPDATE services 
-      SET 
-        name = ${name !== undefined ? name : service.name},
-        description = ${description !== undefined ? description : service.description},
-        price = ${price !== undefined ? price : service.price},
-        currency = ${currency !== undefined ? currency : service.currency},
-        "isActive" = ${isActive !== undefined ? isActive : service.isActive},
-        "updatedAt" = NOW()
-      WHERE id = ${id}
-      RETURNING *
-    `
+    // @ts-ignore - Prisma types issue
+    return prisma.services.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description }),
+        ...(price !== undefined && { price }),
+        ...(currency !== undefined && { currency }),
+        ...(isActive !== undefined && { isActive }),
+      }
+    });
   },
 
   async delete(id: string) {
-    return prisma.$queryRaw`DELETE FROM services WHERE id = ${id}`
+    // @ts-ignore - Prisma types issue
+    return prisma.services.delete({
+      where: { id }
+    });
   },
 } 

@@ -11,21 +11,21 @@ model Workspace {
   id                  String            @id @default(cuid())
   name                String
   slug                String            @unique
-  description         String?
   whatsappPhoneNumber String?
   whatsappApiKey      String?
   notificationEmail   String?
   webhookUrl          String?
   isActive            Boolean           @default(true)
   language            String            @default("en")
-  currency            String            @default("EUR")
-  messageLimit        Int               @default(50)
-  challengeStatus     Boolean           @default(false)
-  wipMessage          String?           @default("Work in progress. Please contact us later.")
-  blocklist           String?           @default("")
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
   isDelete            Boolean           @default(false)
+  currency            String            @default("EUR")
+  challengeStatus     Boolean           @default(false)
+  wipMessage          String?           @default("Work in progress. Please contact us later.")
+  description         String?
+  messageLimit        Int               @default(50)
+  blocklist           String?           @default("")
   carts               Carts[]
   categories          Categories[]
   chatSessions        ChatSession[]
@@ -34,9 +34,9 @@ model Workspace {
   orders              Orders[]
   products            Products[]
   prompts             Prompts[]
+  services            Services[]
   users               UserWorkspace[]
   whatsappSettings    WhatsappSettings?
-  services            Services[]
 }
 
 model Categories {
@@ -47,10 +47,11 @@ model Categories {
   updatedAt   DateTime   @updatedAt
   isActive    Boolean    @default(true)
   workspaceId String
-  slug        String     @unique
+  slug        String
   workspace   Workspace  @relation(fields: [workspaceId], references: [id])
   products    Products[]
 
+  @@unique([slug, workspaceId])
   @@map("categories")
 }
 
@@ -171,10 +172,10 @@ model Prompts {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   isActive    Boolean   @default(true)
-  temperature Float?    @default(0.7)
-  top_p       Float?    @default(0.9)
-  top_k       Int?      @default(40)
   workspaceId String
+  temperature Float?    @default(0.7)
+  top_k       Int?      @default(40)
+  top_p       Float?    @default(0.9)
   messages    Message[]
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
@@ -187,7 +188,6 @@ model User {
   passwordHash    String
   firstName       String?
   lastName        String?
-  phoneNumber     String?
   status          UserStatus      @default(ACTIVE)
   lastLogin       DateTime?
   createdAt       DateTime        @default(now())
@@ -195,6 +195,7 @@ model User {
   role            UserRole        @default(MEMBER)
   twoFactorSecret String?
   gdprAccepted    DateTime?
+  phoneNumber     String?
   otpTokens       OtpToken[]
   passwordResets  PasswordReset[]
   workspaces      UserWorkspace[]
@@ -315,14 +316,14 @@ model Language {
 model Services {
   id          String    @id @default(cuid())
   name        String
-  description String    @db.Text
+  description String
   price       Float
   currency    String    @default("€")
   isActive    Boolean   @default(true)
   workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   @@map("services")
 }

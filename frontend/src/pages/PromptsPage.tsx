@@ -2,33 +2,32 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { StatusBadge } from "@/components/shared/StatusBadge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import MarkdownEditor from "@/components/ui/markdown-editor"
 import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
 } from "@/components/ui/sheet"
 import { Switch } from "@/components/ui/switch"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { duplicatePrompt } from "@/services/duplicatePromptApi"
 import {
-  Prompt,
-  activatePrompt,
-  createPrompt,
-  deletePrompt,
-  getWorkspacePrompts,
-  updatePrompt
+    Prompt,
+    activatePrompt,
+    createPrompt,
+    deletePrompt,
+    getWorkspacePrompts,
+    updatePrompt
 } from "@/services/promptsApi"
 import { getCurrentWorkspace } from "@/services/workspaceApi"
 import { BookText, Copy, Loader2, Trash2 } from "lucide-react"
@@ -405,16 +404,10 @@ export function PromptsPage() {
             searchValue={searchQuery}
             onSearch={setSearchQuery}
             searchPlaceholder="Search prompts..."
-            itemCount={prompts.length}
+            itemCount={filteredPrompts.length}
             onAdd={() => setShowAddSheet(true)}
             addButtonText="Add Prompt"
           />
-
-          <Alert className="mt-4 mb-6 bg-blue-50 border border-blue-200">
-            <AlertDescription className="text-blue-800 font-medium">
-              Only one prompt can be active at a time. Setting a prompt as active will deactivate all other prompts. This is useful for testing different prompts without losing the original ones.
-            </AlertDescription>
-          </Alert>
 
           <div className="mt-6 w-full">
             <DataTable
@@ -466,13 +459,15 @@ export function PromptsPage() {
 
       {/* Add Prompt Sheet */}
       <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>
-        <SheetContent className="sm:max-w-lg">
-          <SheetHeader>
+        <SheetContent className="sm:max-w-[80%] flex flex-col p-0">
+          <SheetHeader className="px-6 pt-6 pb-2">
             <SheetTitle>Add New Prompt</SheetTitle>
           </SheetHeader>
-          <form onSubmit={handleAdd}>
-            {renderFormFields()}
-            <SheetFooter className="mt-6">
+          <form onSubmit={handleAdd} className="flex flex-col h-full">
+            <div className="overflow-y-auto px-6 flex-grow">
+              {renderFormFields()}
+            </div>
+            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
               <SheetClose asChild>
                 <Button
                   variant="outline"
