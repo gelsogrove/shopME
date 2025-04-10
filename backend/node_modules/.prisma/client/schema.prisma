@@ -36,6 +36,7 @@ model Workspace {
   prompts             Prompts[]
   users               UserWorkspace[]
   whatsappSettings    WhatsappSettings?
+  services            Services[]
 }
 
 model Categories {
@@ -170,6 +171,9 @@ model Prompts {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   isActive    Boolean   @default(true)
+  temperature Float?    @default(0.7)
+  top_p       Float?    @default(0.9)
+  top_k       Int?      @default(40)
   workspaceId String
   messages    Message[]
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
@@ -306,6 +310,21 @@ model Language {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Services {
+  id          String    @id @default(cuid())
+  name        String
+  description String    @db.Text
+  price       Float
+  currency    String    @default("€")
+  isActive    Boolean   @default(true)
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("services")
 }
 
 enum UserStatus {

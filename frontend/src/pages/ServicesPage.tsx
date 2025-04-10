@@ -1,13 +1,18 @@
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { FormDialog } from "@/components/shared/FormDialog"
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Button } from "@/components/ui/button"
+import { useWorkspace } from "@/hooks/use-workspace"
+import { servicesApi } from "@/services/servicesApi"
 import { Wrench } from "lucide-react"
-import { ReactNode, useState } from "react"
+import { ReactNode, useEffect, useState } from "react"
+import toast from "react-hot-toast"
 
-interface Service {
+// Map API service to display format
+interface DisplayService {
   id: string
   name: string
   description: string
@@ -16,48 +21,47 @@ interface Service {
   [key: string]: string | ReactNode
 }
 
-const initialServices: Service[] = [
-  {
-    id: "1",
-    name: "Shipping Service",
-    description:
-      "Express courier shipping service with delivery within 24/48 business hours.",
-    price: "9.99",
-    status: "active",
-  },
-  {
-    id: "2",
-    name: "Christmas Gift Wrapping",
-    description:
-      "Special packaging for Christmas gifts with wrapping paper, ribbons and personalized card.",
-    price: "12.50",
-    status: "active",
-  },
-  {
-    id: "3",
-    name: "Shipping Insurance",
-    description:
-      "Full insurance coverage for transported goods up to €1000 in value.",
-    price: "7.99",
-    status: "inactive",
-  },
-  {
-    id: "4",
-    name: "Gift Wrapping",
-    description:
-      "Standard gift wrapping service with elegant paper, ribbon and gift tag.",
-    price: "5.99",
-    status: "active",
-  },
-]
-
 export default function ServicesPage() {
-  const [services, setServices] = useState<Service[]>(initialServices)
+  const { workspace } = useWorkspace()
+  const [services, setServices] = useState<DisplayService[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [selectedService, setSelectedService] = useState<Service | null>(null)
+  const [selectedService, setSelectedService] = useState<DisplayService | null>(null)
+
+  // Load services when the workspace is available
+  useEffect(() => {
+    if (workspace?.id) {
+      loadServices()
+    }
+  }, [workspace?.id])
+
+  const loadServices = async () => {
+    if (!workspace?.id) return
+    
+    try {
+      setLoading(true)
+      const data = await servicesApi.getAllForWorkspace(workspace.id)
+      
+      // Map API service to display format
+      const formattedServices: DisplayService[] = data.map(service => ({
+        id: service.id,
+        name: service.name,
+        description: service.description,
+        price: service.price.toString(),
+        status: service.isActive ? "active" : "inactive"
+      }))
+      
+      setServices(formattedServices)
+    } catch (error) {
+      console.error("Failed to load services", error)
+      toast.error("Failed to load services")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredServices = services.filter((service) =>
     Object.values(service).some((value) =>
@@ -65,34 +69,44 @@ export default function ServicesPage() {
     )
   )
 
-  const handleToggleStatus = (service: Service) => {
-    setServices(
-      services.map((s) => ({
-        ...s,
-        status:
-          s.id === service.id
-            ? service.status === "active"
-              ? "inactive"
-              : "active"
-            : s.status,
-      }))
-    )
+  const handleToggleStatus = async (service: DisplayService) => {
+    if (!workspace?.id) return
+    
+    try {
+      const newStatus = service.status === "active" ? "inactive" : "active"
+      
+      await servicesApi.update(service.id, {
+        isActive: newStatus === "active"
+      })
+      
+      setServices(
+        services.map((s) => ({
+          ...s,
+          status: s.id === service.id ? newStatus : s.status,
+        }))
+      )
+      
+      toast.success(`Service ${newStatus === "active" ? "activated" : "deactivated"}`)
+    } catch (error) {
+      console.error("Failed to update service status", error)
+      toast.error("Failed to update service status")
+    }
   }
 
   const columns = [
-    { header: "Name", accessorKey: "name" as keyof Service },
-    { header: "Description", accessorKey: "description" as keyof Service },
+    { header: "Name", accessorKey: "name" as keyof DisplayService },
+    { header: "Description", accessorKey: "description" as keyof DisplayService },
     {
       header: "Price",
-      accessorKey: "price" as keyof Service,
-      cell: ({ row }: { row: { original: Service } }) => (
+      accessorKey: "price" as keyof DisplayService,
+      cell: ({ row }: { row: { original: DisplayService } }) => (
         <span className="font-medium">€{row.original.price}</span>
       ),
     },
     {
       header: "Status",
-      accessorKey: "status" as keyof Service,
-      cell: ({ row }: { row: { original: Service } }) => (
+      accessorKey: "status" as keyof DisplayService,
+      cell: ({ row }: { row: { original: DisplayService } }) => (
         <Button
           variant={row.original.status === "active" ? "default" : "outline"}
           onClick={() => handleToggleStatus(row.original)}
@@ -107,59 +121,108 @@ export default function ServicesPage() {
     },
   ]
 
-  const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!workspace?.id) return
+    
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
-
-    const newService: Service = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      price: (formData.get("price") as string).replace("€", "").trim(),
-      status: "active",
+    
+    try {
+      const result = await servicesApi.create(workspace.id, {
+        name: formData.get("name") as string,
+        description: formData.get("description") as string,
+        price: parseFloat((formData.get("price") as string).replace("€", "").trim()),
+        currency: "€"
+      })
+      
+      // Add to the local state
+      const newService: DisplayService = {
+        id: result.id,
+        name: result.name,
+        description: result.description,
+        price: result.price.toString(),
+        status: result.isActive ? "active" : "inactive"
+      }
+      
+      setServices([...services, newService])
+      setShowAddDialog(false)
+      toast.success("Service added successfully")
+    } catch (error) {
+      console.error("Failed to add service", error)
+      toast.error("Failed to add service")
     }
-
-    setServices([...services, newService])
-    setShowAddDialog(false)
   }
 
-  const handleEdit = (service: Service) => {
+  const handleEdit = (service: DisplayService) => {
     setSelectedService(service)
     setShowEditDialog(true)
   }
 
-  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!selectedService) return
-
+    
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
-
-    const updatedService: Service = {
-      ...selectedService,
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      price: (formData.get("price") as string).replace("€", "").trim(),
+    
+    try {
+      const result = await servicesApi.update(selectedService.id, {
+        name: formData.get("name") as string,
+        description: formData.get("description") as string,
+        price: parseFloat((formData.get("price") as string).replace("€", "").trim()),
+      })
+      
+      // Update the local state
+      const updatedService: DisplayService = {
+        id: result.id,
+        name: result.name,
+        description: result.description,
+        price: result.price.toString(),
+        status: result.isActive ? "active" : "inactive"
+      }
+      
+      setServices(
+        services.map((s) => (s.id === selectedService.id ? updatedService : s))
+      )
+      
+      setShowEditDialog(false)
+      setSelectedService(null)
+      toast.success("Service updated successfully")
+    } catch (error) {
+      console.error("Failed to update service", error)
+      toast.error("Failed to update service")
     }
-
-    setServices(
-      services.map((s) => (s.id === selectedService.id ? updatedService : s))
-    )
-    setShowEditDialog(false)
-    setSelectedService(null)
   }
 
-  const handleDelete = (service: Service) => {
+  const handleDelete = (service: DisplayService) => {
     setSelectedService(service)
     setShowDeleteDialog(true)
   }
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!selectedService) return
-    setServices(services.filter((s) => s.id !== selectedService.id))
-    setShowDeleteDialog(false)
-    setSelectedService(null)
+    
+    try {
+      await servicesApi.delete(selectedService.id)
+      
+      // Update local state
+      setServices(services.filter((s) => s.id !== selectedService.id))
+      setShowDeleteDialog(false)
+      setSelectedService(null)
+      toast.success("Service deleted successfully")
+    } catch (error) {
+      console.error("Failed to delete service", error)
+      toast.error("Failed to delete service")
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-[calc(100vh-120px)] items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
   }
 
   return (

@@ -41,8 +41,8 @@ export function LoginPage() {
           sessionStorage.setItem("currentWorkspaceId", defaultWorkspace.id)
           sessionStorage.setItem("currentWorkspaceName", defaultWorkspace.name)
           
-          // Redirect to dashboard
-          navigate("/dashboard")
+          // Redirect to workspace selection
+          navigate("/workspace-selection")
         } else {
           // No workspaces found, create a default one
           console.log("No workspaces found, creating a default one...")
@@ -61,8 +61,8 @@ export function LoginPage() {
             sessionStorage.setItem("currentWorkspaceId", newWorkspace.id)
             sessionStorage.setItem("currentWorkspaceName", newWorkspace.name)
             
-            // Redirect to dashboard
-            navigate("/dashboard")
+            // Redirect to workspace selection
+            navigate("/workspace-selection")
           } catch (createError) {
             console.error("Could not create default workspace:", createError)
             navigate("/workspace-selection")

@@ -20,6 +20,6 @@ alwaysApply: true
 - ✍️ **Il `PDR.md` deve essere scritto e aggiornato solo in inglese.**
 - ⛔ **Non effettuare `git commit` o `git push`.** Solo **IO POSSO FARLO** puoi pero lanciare npm run build ovviamente
 - quando cambi IL PDR.MD o task-list.md fai un backup
-- 
+- non devi usare o lanciare porte FE e' 3000 e BE e' 30001
 
  
