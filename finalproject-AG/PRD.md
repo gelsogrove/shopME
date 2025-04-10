@@ -430,6 +430,7 @@ This mechanism protects against spam attacks, prevents AI resource waste, and en
    - Data Pseudonymization: Privacy protection when processing data with external models.
    - Automatic Translations: Support for multiple languages in the same conversation.
    - Prompt Testing: Ability to test alternative prompts in isolated sessions without affecting the active production prompt. This allows administrators to safely experiment with different AI behaviors before deploying them to customers.
+   - Prompt Duplication: Ability to duplicate existing prompts to create variations or backups, maintaining the original structure while allowing modifications to the copy. This feature enables users to iterate on existing successful prompts without starting from scratch.
 
 6. **Order Management and Tracking:**
 

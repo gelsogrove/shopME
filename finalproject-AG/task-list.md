@@ -1,5 +1,26 @@
 # ShopMe – Realistic Project Task List (60 Unique Tasks)
 
+## 📊 Stato Attuale del Progetto
+**Ultimo aggiornamento:** $(date +%Y-%m-%d)
+
+- **Completati:** 16/61 task (26%)
+- **In corso:** 0/61 task (0%)
+- **Da iniziare:** 45/61 task (74%)
+
+### 🚩 Prossimo Task Prioritario
+**TASK-0011**: Implement login with JWT
+- Questo task è fondamentale per implementare l'autenticazione degli utenti
+- È il prerequisito per tutte le funzionalità protette del sistema
+- Permetterà di iniziare a lavorare sulle altre funzionalità di autenticazione
+
+### 🏆 Progressi per Epic
+- System Setup & Architecture: 10/10 completati ✅
+- Authentication & 2FA: 0/10 completati ⏳
+- Product Management: 5/10 completati 🔄
+- Orders & Cart: 1/10 completati 🔄
+- Clients, GDPR & Tokenization: 4/10 completati 🔄
+- AI, WhatsApp & Messaging: 1/11 completati 🔄
+
 ## 📌 Summary by Epic
 
 - System Setup & Architecture: 10 tasks
@@ -19,7 +40,12 @@
 **Description**:
 Create a docker-compose file with PostgreSQL, Redis, and adminer. Use .env for configuration and set up volumes for persistence.
 
-- [ ] Not started
+- [x] Completed
+  - Created docker-compose.yml with PostgreSQL configuration
+  - Added environment variable support via .env file
+  - Configured data persistence through volumes
+  - Included necessary services for development
+  - Documented Docker usage in README.md
 
 =============== TASK-0002 ============================
 **Epic**: System Setup & Architecture
@@ -27,7 +53,12 @@ Create a docker-compose file with PostgreSQL, Redis, and adminer. Use .env for c
 **Description**:
 Install Prisma, define initial schema with products, users, workspaces, and run the first migration.
 
-- [ ] Not started
+- [x] Completed
+  - Created Prisma schema with multiple models
+  - Defined relationships between models
+  - Set up enums for status values
+  - Configured PostgreSQL connection
+  - Added proper typing for all models
 
 =============== TASK-0003 ============================
 **Epic**: System Setup & Architecture
@@ -35,7 +66,12 @@ Install Prisma, define initial schema with products, users, workspaces, and run 
 **Description**:
 Insert default admin user, demo workspace, 5 categories and 10 demo products using Prisma or raw SQL.
 
-- [done ] Not started
+- [x] Completed
+  - Created seed.ts script with admin user creation
+  - Added workspace initialization
+  - Implemented categories creation
+  - Added language support configuration
+  - Included error handling and logging
 
 =============== TASK-0004 ============================
 **Epic**: System Setup & Architecture
@@ -131,6 +167,11 @@ Add linting, type-checking and unit testing to CI pipeline with every pull reque
 Create `POST /auth/login` endpoint to verify user credentials and return a JWT in an HTTP-only cookie.
 
 - [ ] Not started
+  - PRIORITÀ ALTA: Questo è il prossimo task da implementare
+  - Necessario per abilitare l'autenticazione dell'utente
+  - Prerequisito per tutte le funzionalità protette
+  - Richiede implementazione sia backend che frontend
+  - Da integrare con l'interfaccia di login esistente
 
 =============== TASK-0012 ============================
 **Epic**: Authentication & 2FA
@@ -242,7 +283,12 @@ Soft-delete a product and mark as unavailable instead of deleting.
 **Description**:
 Implement `GET /categories` to return all product categories.
 
-- [ ] Not started
+- [x] Completed
+  - Created categories listing endpoint
+  - Implemented filtering by workspace
+  - Added sorting and pagination
+  - Integrated with frontend
+  - Implemented categories page in UI
 
 =============== TASK-0026 ============================
 **Epic**: Product Management
@@ -250,7 +296,12 @@ Implement `GET /categories` to return all product categories.
 **Description**:
 Allow admins to create, edit, and delete categories via dedicated endpoints.
 
-- [ ] Not started
+- [x] Completed
+  - Implemented category creation
+  - Added update functionality
+  - Created delete functionality
+  - Implemented form validation
+  - Added success/error notifications
 
 =============== TASK-0027 ============================
 **Epic**: Product Management
@@ -266,7 +317,12 @@ Integrate with S3 or local storage to upload and retrieve product images.
 **Description**:
 Show table view with name, image, price, stock and filters.
 
-- [ ] Not started
+- [x] Completed
+  - Created product listing page with filter and search
+  - Implemented data table with sorting and pagination
+  - Added product details display with categories
+  - Implemented product actions (edit, delete)
+  - Added visual indicators for product status
 
 =============== TASK-0029 ============================
 **Epic**: Product Management
@@ -274,7 +330,12 @@ Show table view with name, image, price, stock and filters.
 **Description**:
 Use shadcn/ui modal to create or edit products with validation.
 
-- [ ] Not started
+- [x] Completed
+  - Implemented product creation modal
+  - Added form validation for required fields
+  - Integrated category selection
+  - Created responsive form layout
+  - Added success/error notifications
 
 =============== TASK-0030 ============================
 **Epic**: Product Management
@@ -354,7 +415,12 @@ GET `/cart` returns items, totals, and estimated shipping.
 **Description**:
 Show list of orders per client with filters and links.
 
-- [ ] Not started
+- [x] Completed
+  - Created orders listing page with filters
+  - Implemented data table with sorting and pagination
+  - Added detailed order information display
+  - Implemented status indicators
+  - Added invoice and shipping note download options
 
 =============== TASK-0040 ============================
 **Epic**: Orders & Cart
@@ -378,7 +444,12 @@ On first WhatsApp message, reply with privacy terms and wait for 'I ACCEPT'.
 **Description**:
 Add `privacyAcceptedAt`, `privacyVersion` to `clients` table.
 
-- [ ] Not started
+- [x] Completed
+  - Added GDPR fields to database schema
+  - Implemented consent tracking in the model
+  - Created API endpoints for consent management
+  - Added frontend support for consent status
+  - Implemented version tracking for policy updates
 
 =============== TASK-0043 ============================
 **Epic**: Clients, GDPR & Tokenization
@@ -386,7 +457,12 @@ Add `privacyAcceptedAt`, `privacyVersion` to `clients` table.
 **Description**:
 Compare accepted version with current, resend if different.
 
-- [ ] Not started
+- [x] Completed
+  - Implemented version comparison logic
+  - Added consent renewal flow
+  - Created notification system for outdated consent
+  - Added timestamp tracking for consents
+  - Implemented consent history
 
 =============== TASK-0044 ============================
 **Epic**: Clients, GDPR & Tokenization
@@ -410,7 +486,12 @@ Replace tokens with real data before sending back to user.
 **Description**:
 Create UI table with filters and GDPR status indicator.
 
-- [ ] Not started
+- [x] Completed
+  - Created clients listing page with filter functionality
+  - Implemented searchable data table
+  - Added client information display
+  - Implemented client actions (edit, view details)
+  - Added visual indicators for important information
 
 =============== TASK-0047 ============================
 **Epic**: Clients, GDPR & Tokenization
@@ -418,7 +499,12 @@ Create UI table with filters and GDPR status indicator.
 **Description**:
 Show purchase history, messages, total spent and notes.
 
-- [ ] Not started
+- [x] Completed
+  - Implemented client details view
+  - Added purchase history section
+  - Created messaging history display
+  - Implemented contact information section
+  - Added edit functionality for client details
 
 =============== TASK-0048 ============================
 **Epic**: Clients, GDPR & Tokenization
@@ -520,6 +606,36 @@ Use WhatsApp message statuses to track opened/read.
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Monitor token usage by user
 **Description**:
-Log and chart token count and average cost per interaction.
+Track usage metrics for AI processing, segregated by client, to enable future billing and prevent abuse.
 
 - [ ] Not started
+  - Need to:
+  - Implement token counting based on AI model used
+  - Create per-user aggregation system
+  - Develop daily/weekly/monthly reporting
+  - Add threshold alerts for overuse
+
+=============== TASK-0061 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Implement Prompt Duplication
+**Description**:
+Create functionality to duplicate existing AI prompts to enable users to:
+- Create variations of successful prompts without starting from scratch
+- Make backup copies of important prompts before editing
+- Iterate on prompt designs while preserving the original
+
+Technical Requirements:
+- Copy all properties of the original prompt
+- Add "(Copy)" suffix to duplicated prompt name
+- Set duplicated prompt to inactive by default
+- Implement proper error handling
+- Add UI elements for duplication (button with tooltip)
+- Preserve all content formatting in the duplicate
+
+- [x] Completed
+  - Added backend service for duplicating prompts
+  - Implemented frontend UI with Copy icon and tooltip
+  - Created proper error handling and success notifications
+  - Ensured new prompts are inactive by default
+  - Added automatic naming with "(Copy)" suffix
+  - Preserved all original prompt formatting and content
