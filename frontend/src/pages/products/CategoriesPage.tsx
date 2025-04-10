@@ -2,6 +2,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { FormDialog } from "@/components/shared/FormDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { Package } from "lucide-react"
 import { useState } from "react"
 
 interface Category {
@@ -127,10 +128,12 @@ export default function CategoriesPage() {
     <div className="container mx-auto py-6">
       <PageHeader
         title="Categories"
+        titleIcon={<Package className="h-6 w-6 text-gray-500" />}
         searchValue={searchValue}
         onSearch={setSearchValue}
         searchPlaceholder="Search categories..."
         onAdd={() => setShowAddDialog(true)}
+        addButtonText="Add Category"
         itemCount={filteredCategories.length}
       />
 

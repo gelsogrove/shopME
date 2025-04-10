@@ -4,6 +4,7 @@ import { FormDialog } from "@/components/shared/FormDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Button } from "@/components/ui/button"
+import { Wrench } from "lucide-react"
 import { ReactNode, useState } from "react"
 
 interface Service {
@@ -165,6 +166,7 @@ export default function ServicesPage() {
     <div className="container mx-auto py-6">
       <PageHeader
         title="Services"
+        titleIcon={<Wrench className="h-6 w-6 text-gray-500" />}
         searchPlaceholder="Search services..."
         searchValue={searchQuery}
         onSearch={setSearchQuery}

@@ -5,7 +5,6 @@ import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { MarkdownEditor } from "@/components/ui/markdown"
 import {
     Sheet,
     SheetClose,
@@ -14,6 +13,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet"
+import SimpleEditor from "@/components/ui/simple-editor"
 import { Switch } from "@/components/ui/switch"
 import {
     Prompt,
@@ -24,7 +24,7 @@ import {
     updatePrompt
 } from "@/services/promptsApi"
 import { getCurrentWorkspace } from "@/services/workspaceApi"
-import { FileText, Loader2 } from "lucide-react"
+import { FileText, Loader2, MessageSquare } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 
@@ -119,16 +119,16 @@ export function PromptsPage() {
           <label htmlFor="content" className="text-sm font-medium leading-none">
             Content
           </label>
-          <MarkdownEditor
+          <SimpleEditor
             value={isEdit && selectedPrompt ? selectedPrompt.content : promptContent}
             onChange={(value) => {
               if (isEdit && selectedPrompt) {
-                selectedPrompt.content = value;
+                setSelectedPrompt({ ...selectedPrompt, content: value })
               } else {
-                setPromptContent(value);
+                setPromptContent(value)
               }
             }}
-            minHeight="500px"
+            minHeight="400px"
           />
           <p className="text-xs text-muted-foreground">
             Enter the prompt content that will be used for generating AI responses. You can use Markdown formatting.
@@ -306,6 +306,7 @@ export function PromptsPage() {
     <div className="container py-6">
       <PageHeader
         title="Prompts"
+        titleIcon={<MessageSquare className="h-6 w-6 text-gray-500" />}
         searchValue={searchQuery}
         onSearch={setSearchQuery}
         searchPlaceholder="Search prompts..."
@@ -421,11 +422,14 @@ export function PromptsPage() {
       <Sheet open={showPromptPopup} onOpenChange={setShowPromptPopup}>
         <SheetContent side="bottom" className="h-[100vh] w-full p-0">
           <div className="h-[100vh] flex flex-col">
-            <MarkdownEditor
+            <SimpleEditor
               value={selectedPrompt?.content || ""}
-              onChange={(value) => {
+              onChange={(value: string) => {
                 if (selectedPrompt) {
-                  selectedPrompt.content = value;
+                  setSelectedPrompt({
+                    ...selectedPrompt,
+                    content: value
+                  });
                 }
               }}
               minHeight="calc(100vh - 80px)"

@@ -5,6 +5,7 @@ import { ReactNode } from "react"
 
 interface PageHeaderProps {
   title: string
+  titleIcon?: ReactNode
   searchValue?: string
   onSearch?: (value: string) => void
   searchPlaceholder?: string
@@ -16,6 +17,7 @@ interface PageHeaderProps {
 
 export function PageHeader({
   title,
+  titleIcon,
   searchValue,
   onSearch,
   searchPlaceholder,
@@ -27,7 +29,10 @@ export function PageHeader({
   return (
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-2xl font-bold">{title}</h1>
+        <div className="flex items-center gap-2">
+          {titleIcon}
+          <h1 className="text-2xl font-bold">{title}</h1>
+        </div>
         {itemCount !== undefined && (
           <p className="text-sm text-gray-500 mt-1">{itemCount} items</p>
         )}
@@ -46,7 +51,6 @@ export function PageHeader({
           <Button
             onClick={onAdd}
             size="sm"
-            className="bg-green-600 hover:bg-green-700 text-white"
           >
             {addButtonIcon || <Plus className="h-4 w-4 mr-1.5" />}
             {addButtonText}

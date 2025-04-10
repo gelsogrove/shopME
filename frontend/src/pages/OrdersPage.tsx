@@ -9,29 +9,30 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select"
 import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
 } from "@/components/ui/sheet"
 import { formatDate } from "@/lib/utils"
 import "@/styles/sheet.css"
 import { type ColumnDef } from "@tanstack/react-table"
 import {
-  FileText,
-  Pencil,
-  PlusCircle,
-  Trash2,
-  TruckIcon,
-  X,
+    FileText,
+    Pencil,
+    PlusCircle,
+    ShoppingCart,
+    Trash2,
+    TruckIcon,
+    X,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -845,6 +846,7 @@ export default function OrdersPage() {
     <div className="container mx-auto py-6">
       <PageHeader
         title="Orders"
+        titleIcon={<ShoppingCart className="h-6 w-6 text-gray-500" />}
         searchValue={searchValue}
         onSearch={setSearchValue}
         searchPlaceholder="Search orders..."

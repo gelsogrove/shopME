@@ -3,7 +3,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { ProductSheet } from "@/components/shared/ProductSheet"
 import { Button } from "@/components/ui/button"
-import { Pencil, PlusCircle, Trash2 } from "lucide-react"
+import { Box, Pencil, PlusCircle, Trash2 } from "lucide-react"
 import { useState } from "react"
 
 interface Product {
@@ -205,6 +205,7 @@ export function ProductsPage() {
     <div className="container mx-auto py-6">
       <PageHeader
         title="Products"
+        titleIcon={<Box className="h-6 w-6 text-gray-500" />}
         searchValue={searchValue}
         onSearch={setSearchValue}
         searchPlaceholder="Search products..."

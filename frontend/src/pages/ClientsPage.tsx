@@ -5,21 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select"
 import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
 } from "@/components/ui/sheet"
 import { type ColumnDef } from "@tanstack/react-table"
-import { MessageSquare, Pencil, ShoppingBag, X } from "lucide-react"
+import { MessageSquare, Pencil, ShoppingBag, Users, X } from "lucide-react"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 
@@ -600,6 +600,7 @@ export default function ClientsPage(): JSX.Element {
     <div className="container mx-auto py-6">
       <PageHeader
         title="Clients"
+        titleIcon={<Users className="h-6 w-6 text-gray-500" />}
         searchValue={searchValue}
         onSearch={setSearchValue}
         searchPlaceholder="Search clients..."
