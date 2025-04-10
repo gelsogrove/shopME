@@ -1,70 +1,66 @@
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { useWorkspace } from "@/hooks/use-workspace"
+import { categoriesApi } from "@/services/categoriesApi"
 import { Tag } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import toast from "react-hot-toast"
 
 interface Category {
   id: string
   name: string
   description: string
+  isActive?: boolean
+  slug?: string
+  workspaceId?: string
 }
 
-const initialCategories: Category[] = [
-  {
-    id: "1",
-    name: "Pasta",
-    description: "Fresh and dried pasta in various formats",
-  },
-  {
-    id: "2",
-    name: "Preserves",
-    description: "Preserves, sauces and condiments",
-  },
-  {
-    id: "3",
-    name: "Flour",
-    description: "Flours and semolina from various grains",
-  },
-  {
-    id: "4",
-    name: "Wines",
-    description: "Red, white and sparkling wines",
-  },
-  {
-    id: "5",
-    name: "Oil",
-    description: "Olive oil and other condiments",
-  },
-  {
-    id: "6",
-    name: "Cheese",
-    description: "Fresh and aged cheeses",
-  },
-  {
-    id: "7",
-    name: "Cured Meats",
-    description: "Ham, salami and cold cuts",
-  },
-]
-
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>(initialCategories)
+  const { workspace } = useWorkspace()
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchValue, setSearchValue] = useState("")
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
-  )
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
+
+  // Load categories when workspace is ready
+  useEffect(() => {
+    if (workspace?.id) {
+      loadCategories()
+    }
+  }, [workspace?.id])
+
+  // Function to load categories from API
+  const loadCategories = async () => {
+    if (!workspace?.id) return
+    
+    try {
+      setLoading(true)
+      console.log("Fetching categories for workspace:", workspace.id)
+      
+      const data = await categoriesApi.getAllForWorkspace(workspace.id)
+      console.log("Categories API response:", data)
+      
+      setCategories(data)
+    } catch (error) {
+      console.error("Failed to load categories", error)
+      toast.error("Failed to load categories")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredCategories = categories.filter((category) =>
     Object.values(category).some((value) =>
-      value.toString().toLowerCase().includes(searchValue.toLowerCase())
+      value?.toString().toLowerCase().includes(searchValue.toLowerCase())
     )
   )
 
@@ -73,19 +69,37 @@ export default function CategoriesPage() {
     { header: "Description", accessorKey: "description" as keyof Category },
   ]
 
-  const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!workspace?.id) return
+    
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
 
-    const newCategory: Category = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
+    const name = formData.get("name") as string
+    const description = formData.get("description") as string
+    
+    if (!name || !description) {
+      toast.error("Please fill in all fields")
+      return
     }
 
-    setCategories([...categories, newCategory])
-    setShowAddDialog(false)
+    try {
+      const newCategory = await categoriesApi.create(workspace.id, {
+        name,
+        description,
+        isActive: true
+      })
+
+      toast.success("Category added successfully")
+      setShowAddDialog(false)
+      
+      // Reload categories to ensure we have the latest data
+      await loadCategories()
+    } catch (error) {
+      console.error("Failed to add category", error)
+      toast.error("Failed to add category")
+    }
   }
 
   const handleEdit = (category: Category) => {
@@ -93,26 +107,37 @@ export default function CategoriesPage() {
     setShowEditDialog(true)
   }
 
-  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!selectedCategory) return
 
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
 
-    const updatedCategory: Category = {
-      ...selectedCategory,
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
+    const name = formData.get("name") as string
+    const description = formData.get("description") as string
+    
+    if (!name || !description) {
+      toast.error("Please fill in all fields")
+      return
     }
 
-    setCategories(
-      categories.map((c) =>
-        c.id === selectedCategory.id ? updatedCategory : c
-      )
-    )
-    setShowEditDialog(false)
-    setSelectedCategory(null)
+    try {
+      await categoriesApi.update(selectedCategory.id, {
+        name,
+        description
+      })
+
+      toast.success("Category updated successfully")
+      setShowEditDialog(false)
+      setSelectedCategory(null)
+      
+      // Reload categories to ensure we have the latest data
+      await loadCategories()
+    } catch (error) {
+      console.error("Failed to update category", error)
+      toast.error("Failed to update category")
+    }
   }
 
   const handleDelete = (category: Category) => {
@@ -120,11 +145,33 @@ export default function CategoriesPage() {
     setShowDeleteDialog(true)
   }
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!selectedCategory) return
-    setCategories(categories.filter((c) => c.id !== selectedCategory.id))
-    setShowDeleteDialog(false)
-    setSelectedCategory(null)
+    
+    try {
+      await categoriesApi.delete(selectedCategory.id)
+      
+      toast.success("Category deleted successfully")
+      setShowDeleteDialog(false)
+      setSelectedCategory(null)
+      
+      // Reload categories to ensure we have the latest data
+      await loadCategories()
+    } catch (error) {
+      console.error("Failed to delete category", error)
+      toast.error("Failed to delete category")
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="container flex items-center justify-center py-16">
+        <div className="flex flex-col items-center gap-2">
+          <LoadingSpinner />
+          <p className="text-lg font-medium">Loading categories...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -132,7 +179,7 @@ export default function CategoriesPage() {
       <div className="grid grid-cols-12 gap-0">
         <div className="col-span-11 col-start-1">
           <PageHeader
-            title="Categories"
+            title={`Categories (${filteredCategories.length})`}
             titleIcon={<Tag className="mr-2 h-6 w-6 text-green-500" />}
             searchValue={searchValue}
             onSearch={setSearchValue}
@@ -185,15 +232,14 @@ export default function CategoriesPage() {
               </div>
             </div>
             <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
-              <SheetClose asChild>
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  className="border-input hover:bg-accent"
-                >
-                  Cancel
-                </Button>
-              </SheetClose>
+              <Button 
+                type="button" 
+                variant="outline"
+                className="border-input hover:bg-accent"
+                onClick={() => setShowAddDialog(false)}
+              >
+                Cancel
+              </Button>
               <Button type="submit" className="bg-green-600 hover:bg-green-700">
                 Add Category
               </Button>
@@ -235,15 +281,14 @@ export default function CategoriesPage() {
               </div>
             </div>
             <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
-              <SheetClose asChild>
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  className="border-input hover:bg-accent"
-                >
-                  Cancel
-                </Button>
-              </SheetClose>
+              <Button 
+                type="button" 
+                variant="outline"
+                className="border-input hover:bg-accent"
+                onClick={() => setShowEditDialog(false)}
+              >
+                Cancel
+              </Button>
               <Button type="submit" className="bg-green-600 hover:bg-green-700">
                 Save Changes
               </Button>
@@ -252,11 +297,12 @@ export default function CategoriesPage() {
         </SheetContent>
       </Sheet>
 
+      {/* Delete Confirmation */}
       <ConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         title="Delete Category"
-        description={`Are you sure you want to delete ${selectedCategory?.name}? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${selectedCategory?.name}"? This action cannot be undone.`}
         onConfirm={handleDeleteConfirm}
       />
     </div>

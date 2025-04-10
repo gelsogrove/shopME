@@ -445,7 +445,7 @@ export default function ServicesPage() {
                 </div>
               </div>
             </div>
-            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
+            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md flex justify-end space-x-2">
               <SheetClose asChild>
                 <Button 
                   type="button" 
@@ -522,7 +522,7 @@ export default function ServicesPage() {
                 </div>
               </div>
             </div>
-            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
+            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md flex justify-end space-x-2">
               <SheetClose asChild>
                 <Button 
                   type="button" 

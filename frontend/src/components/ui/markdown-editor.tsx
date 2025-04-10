@@ -1,16 +1,34 @@
 import { Edit2, LayoutTemplate } from 'lucide-react'
-import { type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import ReactMarkdown from 'react-markdown'
 
 interface MarkdownEditorProps {
   value: string
   onChange: (value: string) => void
   minHeight?: string
+  name?: string
 }
 
-export default function MarkdownEditor({ value, onChange, minHeight = "400px" }: MarkdownEditorProps) {
+export default function MarkdownEditor({ value, onChange, minHeight = "400px", name }: MarkdownEditorProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [localValue, setLocalValue] = useState(value);
+  
+  // Update local value when prop value changes
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+  
+  // When the component mounts or value changes, update the textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.value = localValue;
+    }
+  }, [localValue]);
+
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(e.target.value)
+    const newValue = e.target.value;
+    setLocalValue(newValue);
+    onChange(newValue);
   }
 
   // Calculate editor height
@@ -34,7 +52,8 @@ export default function MarkdownEditor({ value, onChange, minHeight = "400px" }:
             <span>Editor</span>
           </div>
           <textarea
-            value={value}
+            ref={textareaRef}
+            value={localValue}
             onChange={handleChange}
             className="w-full p-3 font-mono text-xs focus:outline-none border-0 resize-none bg-gray-50 text-gray-800 flex-grow"
             style={{ 
@@ -59,14 +78,17 @@ export default function MarkdownEditor({ value, onChange, minHeight = "400px" }:
               fontSize: '0.75rem'
             }}
           >
-            {value ? (
-              <ReactMarkdown>{value}</ReactMarkdown>
+            {localValue ? (
+              <ReactMarkdown>{localValue}</ReactMarkdown>
             ) : (
               <div className="text-gray-400 italic">Preview will appear here when you write Markdown content...</div>
             )}
           </div>
         </div>
       </div>
+      
+      {/* Hidden input field for form submission */}
+      {name && <input type="hidden" name={name} value={localValue} />}
     </div>
   )
 } 

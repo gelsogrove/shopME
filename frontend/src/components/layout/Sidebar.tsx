@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils"
 import {
     Bell,
-    BookText,
+    Bot,
     LayoutGrid,
     MessageSquare,
     Package2,
@@ -44,9 +44,9 @@ const mainLinks = [
     icon: Wrench,
   },
   {
-    href: "/prompts",
-    label: "Prompts",
-    icon: BookText,
+    href: "/agents",
+    label: "Agents",
+    icon: Bot,
   },
   {
     href: "/notifications",

@@ -117,4 +117,26 @@ Use keywords and NLP to detect message type (order, question, etc.) with privacy
   - Create consent keyword detection
   - Setup message type routing
 
+=============== TASK-0096 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Refactor Prompts to Agents with Router Capability
+**Description**:
+Refactor the application to replace the Prompts system with a more powerful Agents system, with the following changes:
+
+1. Rename "Prompts" to "Agents" throughout the application (menu, UI, backend)
+2. Update the database schema to replace isActive with isRouter
+3. Add department field to specify agent specialization (ORDERS, PRODUCTS, etc.)
+4. Implement logic to ensure only one agent can be a router at a time
+5. Add UI indicators to identify router agents
+6. Eliminate all references to "prompts" in the codebase
+
+- [x] Completed
+  - [x] Renamed "Prompts" to "Agents" in UI and updated icons
+  - [x] Replaced isActive with isRouter in the schema and APIs
+  - [x] Added department field for agent specialization
+  - [x] Implemented router agent logic in backend and frontend
+  - [x] Added visual indicators for router agents in the UI
+  - [x] Updated seed data with router and specialized agents
+  - [x] Removed all references to "prompts" in the codebase
+
 // ... rest of the tasks remain unchanged ...

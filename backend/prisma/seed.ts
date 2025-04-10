@@ -126,8 +126,11 @@ async function main() {
   const categories = [];
   console.log("Creating food categories...");
   for (const category of foodCategories) {
-    const existingCategory = await prisma.categories.findUnique({
-      where: { slug: category.slug }
+    const existingCategory = await prisma.categories.findFirst({
+      where: { 
+        slug: category.slug,
+        workspaceId: workspace.id
+      }
     });
 
     if (!existingCategory) {
@@ -151,7 +154,8 @@ async function main() {
     {
       name: 'Default Customer Support',
       content: 'You are a helpful customer service assistant for our online shop "L\'Altra Italia". Respond to customer queries in a polite and helpful manner. Be concise and direct in your answers. If you don\'t know the answer, say so and offer to connect them with a human agent.',
-      isActive: true,
+      isRouter: true,
+      department: null,
       temperature: 0.7,
       top_p: 0.9,
       top_k: 40,
@@ -160,7 +164,8 @@ async function main() {
     {
       name: 'Product Specialist',
       content: 'You are a product specialist for the Italian food shop "L\'Altra Italia". You can answer detailed questions about our products, including ingredients, origin, traditional uses, and comparisons between different products. Your tone should be informative and authoritative. Always emphasize the quality and authenticity of our Italian offerings.',
-      isActive: false,
+      isRouter: false,
+      department: 'PRODUCTS',
       temperature: 0.5,
       top_p: 0.8,
       top_k: 30,
@@ -169,10 +174,81 @@ async function main() {
     {
       name: 'Marketing Copy Writer',
       content: 'You are a marketing copywriter for the Italian food shop "L\'Altra Italia". Create compelling and engaging marketing copy for our authentic Italian products. Your tone should be persuasive, exciting, and highlight the key benefits of our products. Use vivid language that appeals to emotions and desires, emphasizing Italian tradition, quality, and authenticity.',
-      isActive: false,
+      isRouter: false,
+      department: 'MARKETING',
       temperature: 0.9,
       top_p: 0.95,
       top_k: 50,
+      workspaceId: workspace.id
+    },
+    {
+      name: 'Router Agent',
+      content: 'You are a router agent for our online shop "L\'Altra Italia". Your role is to analyze customer requests and route them to the most appropriate specialized agent. You should identify the main intent of the customer and direct them to: ORDERS for order-related queries, PRODUCTS for product information, TRANSPORT for shipping and delivery, INVOICES for billing and payment issues, GENERIC for general information, or FOOD CONSULTANT for specialized food advice.',
+      isRouter: true,
+      department: null,
+      temperature: 0.7,
+      top_p: 0.9,
+      top_k: 40,
+      workspaceId: workspace.id
+    },
+    {
+      name: 'Orders Agent',
+      content: 'You are a specialized agent for handling ORDER-related queries for "L\'Altra Italia". You can help customers check order status, modify or cancel orders, and resolve issues with their purchases. You have detailed knowledge of the ordering process and can assist with any questions about orders.',
+      isRouter: false,
+      department: 'ORDERS',
+      temperature: 0.7,
+      top_p: 0.9,
+      top_k: 40,
+      workspaceId: workspace.id
+    },
+    {
+      name: 'Products Agent',
+      content: 'You are a specialized agent for PRODUCTS information at "L\'Altra Italia". You have detailed knowledge about all our Italian products, including ingredients, origin, traditional uses, and comparisons between different products. You can help customers find the perfect Italian products for their needs.',
+      isRouter: false,
+      department: 'PRODUCTS',
+      temperature: 0.7,
+      top_p: 0.9,
+      top_k: 40,
+      workspaceId: workspace.id
+    },
+    {
+      name: 'Transport Agent',
+      content: 'You are a specialized agent for TRANSPORT and shipping at "L\'Altra Italia". You can answer questions about delivery times, shipping costs, tracking packages, international shipping options, and handling shipping issues or delays.',
+      isRouter: false,
+      department: 'TRANSPORT',
+      temperature: 0.7,
+      top_p: 0.9,
+      top_k: 40,
+      workspaceId: workspace.id
+    },
+    {
+      name: 'Invoices Agent',
+      content: 'You are a specialized agent for INVOICES and billing at "L\'Altra Italia". You can help customers with invoice requests, payment issues, refunds, and any financial questions related to their purchases.',
+      isRouter: false,
+      department: 'INVOICES',
+      temperature: 0.7,
+      top_p: 0.9,
+      top_k: 40,
+      workspaceId: workspace.id
+    },
+    {
+      name: 'Generic Support Agent',
+      content: 'You are a GENERIC customer service agent for "L\'Altra Italia". You can answer general questions about the shop, provide information about opening hours, contact details, company policies, and handle any requests that don\'t fit into the specialized categories.',
+      isRouter: false,
+      department: 'GENERIC',
+      temperature: 0.7,
+      top_p: 0.9,
+      top_k: 40,
+      workspaceId: workspace.id
+    },
+    {
+      name: 'Food Consultant Agent',
+      content: 'You are a specialized FOOD CONSULTANT for "L\'Altra Italia". You have expert knowledge on Italian cuisine, cooking methods, food pairing, and can provide personalized recommendations based on customers\' tastes, dietary needs, or special occasions. You can help customers discover authentic Italian flavors and cooking traditions.',
+      isRouter: false,
+      department: 'FOOD CONSULTANT',
+      temperature: 0.7,
+      top_p: 0.9,
+      top_k: 40,
       workspaceId: workspace.id
     }
   ];

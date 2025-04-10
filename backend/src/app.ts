@@ -17,7 +17,7 @@ app.use(
   cors({
     origin: process.env.NODE_ENV === "production" 
       ? [process.env.FRONTEND_URL || "http://localhost:3000"] 
-      : true, // Allow all origins in development
+      : ["http://localhost:3000", "http://localhost:3001", "http://localhost:5173"], // Allow specific origins in development
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-workspace-id"],

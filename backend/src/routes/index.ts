@@ -4,6 +4,7 @@ import { ServicesController } from "../interfaces/http/controllers/services.cont
 import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
+import agentsRoutes from "./agents.routes"
 import languagesRoutes from "./languages"
 import promptsRoutes from "./prompts.routes"
 import userRoutes from "./user.routes"
@@ -16,6 +17,7 @@ router.use("/workspaces", workspaceRoutes)
 router.use("/languages", languagesRoutes)
 router.use("/users", userRoutes)
 router.use(promptsRoutes)
+router.use(agentsRoutes)
 router.use(servicesRouter(new ServicesController()))
 router.use(categoriesRouter(new CategoriesController()))
 
