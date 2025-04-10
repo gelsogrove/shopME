@@ -12,6 +12,12 @@ export default function NotificationsPage() {
             <h1 className="text-3xl font-bold">Marketing Campaigns</h1>
           </div>
           
+          <Alert className="mb-8 bg-blue-50 border border-blue-200">
+            <AlertDescription className="text-blue-800 font-medium">
+              🚧 This feature will be available in the next update. Stay tuned for all the news!
+            </AlertDescription>
+          </Alert>
+          
           <p className="text-lg text-gray-700 mb-8">
             This section will allow you to manage and monitor your marketing campaigns to increase sales, improve customer loyalty, and promote your products.
           </p>
@@ -49,18 +55,6 @@ export default function NotificationsPage() {
               <p className="text-gray-600">Monitor the effectiveness of your campaigns with detailed metrics on opens, clicks, conversions, and ROI to continuously optimize your strategies.</p>
             </div>
           </div>
-          
-          <Alert className="mt-8 bg-blue-50 border border-blue-200">
-            <AlertDescription className="text-blue-800 font-medium">
-              🚧 This feature will be available in the next update. Stay tuned for all the news!
-            </AlertDescription>
-          </Alert>
-          
-          <Alert className="mt-4 bg-blue-50 border border-blue-200">
-            <AlertDescription className="text-blue-800 font-medium">
-              Only one prompt can be active at a time. Setting a prompt as active will deactivate all other prompts. This is useful for testing different prompts without losing the original ones.
-            </AlertDescription>
-          </Alert>
         </CardContent>
       </Card>
     </div>

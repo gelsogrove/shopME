@@ -32,13 +32,12 @@ import { formatDate } from "@/lib/utils"
 import "@/styles/sheet.css"
 import { type ColumnDef } from "@tanstack/react-table"
 import {
-    FileText,
+    Download,
     Pencil,
-    PlusCircle,
     ShoppingCart,
     Trash2,
     TruckIcon,
-    X,
+    X
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -651,6 +650,11 @@ export default function OrdersPage() {
   const [deletingOrder, setDeletingOrder] = useState<Order | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [searchValue, setSearchValue] = useState("")
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null)
 
   const handleSaveOrder = (updatedOrder: Order) => {
     setOrders(orders.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)))
@@ -702,6 +706,11 @@ export default function OrdersPage() {
       setShowDeleteDialog(false)
       setDeletingOrder(null)
     }
+  }
+
+  const handleEdit = (order: Order) => {
+    setSelectedOrder(order)
+    setIsEditOpen(true)
   }
 
   // Filter and sort orders by ID in descending order
@@ -790,10 +799,9 @@ export default function OrdersPage() {
       ),
     },
     {
-      id: "order_actions",
+      id: "actions",
       cell: ({ row }) => {
         const order = row.original
-
         return (
           <div className="flex items-center justify-end gap-2">
             <TooltipProvider>
@@ -802,14 +810,30 @@ export default function OrdersPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDownloadInvoice(order)}
-                    className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
+                    onClick={() => handleEdit(order)}
                   >
-                    <FileText className="h-5 w-5" />
+                    <Pencil className="h-5 w-5 text-green-500" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Download Invoice</p>
+                  <p>Edit order</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDownloadInvoice(order)}
+                  >
+                    <Download className="h-5 w-5 text-purple-500" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Download invoice</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -821,31 +845,12 @@ export default function OrdersPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDownloadShippingNote(order)}
-                    className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
                   >
-                    <TruckIcon className="h-5 w-5" />
+                    <TruckIcon className="h-5 w-5 text-amber-500" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Download Shipping Note</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setEditingOrder(order)}
-                    className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
-                  >
-                    <Pencil className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Edit Order</p>
+                  <p>Download shipping note</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -857,13 +862,12 @@ export default function OrdersPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDeleteOrder(order)}
-                    className="h-8 w-8 p-0 text-red-600 hover:bg-red-100"
                   >
-                    <Trash2 className="h-5 w-5" />
+                    <Trash2 className="h-5 w-5 text-red-500" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Delete Order</p>
+                  <p>Delete order</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -886,45 +890,48 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <PageHeader
-        title="Orders"
-        titleIcon={<ShoppingCart className="h-6 w-6 text-gray-500" />}
-        searchValue={searchValue}
-        onSearch={setSearchValue}
-        searchPlaceholder="Search orders..."
-        itemCount={orders.length}
-        onAdd={handleAddOrder}
-        addButtonText="New Order"
-        addButtonIcon={<PlusCircle className="mr-2 h-4 w-4" />}
-      />
+    <div className="container pl-0 pr-4 pt-4 pb-4">
+      <div className="grid grid-cols-12 gap-0">
+        <div className="col-span-11 col-start-1">
+          <PageHeader
+            title="Orders"
+            titleIcon={<ShoppingCart className="mr-2 h-6 w-6 text-green-500" />}
+            searchValue={searchValue}
+            onSearch={setSearchValue}
+            searchPlaceholder="Search orders..."
+            itemCount={orders.length}
+            onAdd={handleAddOrder}
+            addButtonText="Add Order"
+          />
 
-      <div className="mt-6">
-        <DataTable
-          columns={columns}
-          data={filteredOrders}
-          globalFilter={searchValue}
-        />
+          <div className="mt-6 w-full">
+            <DataTable
+              columns={columns}
+              data={filteredOrders}
+              globalFilter={searchValue}
+            />
+          </div>
+        </div>
       </div>
 
       <OrderDetailsSheet
-        order={viewingOrder}
-        open={!!viewingOrder}
-        onClose={() => setViewingOrder(null)}
+        order={selectedOrder}
+        open={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
       />
 
       <OrderEditSheet
-        order={editingOrder}
-        open={!!editingOrder}
-        onClose={() => setEditingOrder(null)}
+        order={selectedOrder}
+        open={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
         onSave={handleSaveOrder}
       />
 
       <ConfirmDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
         title="Delete Order"
-        description={`Are you sure you want to delete order #${deletingOrder?.id}?`}
+        description={`Are you sure you want to delete order #${orderToDelete?.id}?`}
         onConfirm={handleConfirmDelete}
       />
     </div>

@@ -325,91 +325,75 @@ export function PromptsPage() {
   }
 
   return (
-    <div className="container py-6">
-      <PageHeader
-        title="Prompts"
-        titleIcon={<BookText className="h-6 w-6 text-green-600" />}
-        searchValue={searchQuery}
-        onSearch={setSearchQuery}
-        searchPlaceholder="Search prompts..."
-        onAdd={() => setShowAddSheet(true)}
-        addButtonText="Add Prompt"
-      />
-
-      <p className="mt-2 text-muted-foreground">
-        Manage your system prompts
-      </p>
-
-      <Alert className="my-6">
-        <BookText className="h-6 w-6" />
-        <AlertDescription className="ml-2 text-lg font-medium">
-          Only one prompt can be active at a time. Setting a prompt as active will deactivate all other prompts. 
-          This is useful for testing different prompts without losing the original ones.
-        </AlertDescription>
-      </Alert>
-
-      {prompts.length === 0 ? (
-        <div className="mt-6 rounded-lg border border-dashed p-8 text-center">
-          <h3 className="text-lg font-medium">No prompts found</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Get started by creating your first prompt.
-          </p>
-          <Button
-            onClick={() => setShowAddSheet(true)}
-            className="mt-4"
-          >
-            Add Prompt
-          </Button>
-        </div>
-      ) : (
-        <div className="mt-6">
-          <DataTable
-            data={filteredPrompts}
-            columns={columns}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            renderActions={(prompt: Prompt) => (
-              <div className="flex items-center gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedPrompt(prompt)
-                          setShowPromptPopup(true)
-                        }}
-                      >
-                        <PencilLine className="h-5 w-5 text-blue-500" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Edit Prompt</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDuplicate(prompt)}
-                      >
-                        <Copy className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Duplicate Prompt</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            )}
+    <div className="container pl-0 pr-4 pt-4 pb-4">
+      <div className="grid grid-cols-12 gap-0">
+        <div className="col-span-11 col-start-1">
+          <PageHeader
+            title="Prompts"
+            titleIcon={<BookText className="mr-2 h-6 w-6 text-green-500" />}
+            searchValue={searchQuery}
+            onSearch={setSearchQuery}
+            searchPlaceholder="Search prompts..."
+            itemCount={prompts.length}
+            onAdd={() => setShowAddSheet(true)}
+            addButtonText="Add Prompt"
           />
+
+          <Alert className="mt-4 mb-6 bg-blue-50 border border-blue-200">
+            <AlertDescription className="text-blue-800 font-medium">
+              Only one prompt can be active at a time. Setting a prompt as active will deactivate all other prompts. This is useful for testing different prompts without losing the original ones.
+            </AlertDescription>
+          </Alert>
+
+          <div className="mt-6 w-full">
+            <DataTable
+              columns={columns}
+              data={filteredPrompts}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              renderActions={(prompt: Prompt) => (
+                <div className="flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedPrompt(prompt)
+                            setShowPromptPopup(true)
+                          }}
+                        >
+                          <PencilLine className="h-5 w-5 text-blue-500" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Edit Prompt</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDuplicate(prompt)}
+                        >
+                          <Copy className="h-5 w-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Duplicate Prompt</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
+            />
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Add Prompt Sheet */}
       <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>

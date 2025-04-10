@@ -2,8 +2,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { FormDialog } from "@/components/shared/FormDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
-import { commonStyles } from "@/styles/common"
-import { Package } from "lucide-react"
+import { Tag } from "lucide-react"
 import { useState } from "react"
 
 interface Category {
@@ -126,26 +125,30 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <PageHeader
-        title="Categories"
-        titleIcon={<Package className={commonStyles.headerIcon} />}
-        searchValue={searchValue}
-        onSearch={setSearchValue}
-        searchPlaceholder="Search categories..."
-        onAdd={() => setShowAddDialog(true)}
-        addButtonText="Add Category"
-        itemCount={filteredCategories.length}
-      />
+    <div className="container pl-0 pr-4 pt-4 pb-4">
+      <div className="grid grid-cols-12 gap-0">
+        <div className="col-span-11 col-start-1">
+          <PageHeader
+            title="Categories"
+            titleIcon={<Tag className="mr-2 h-6 w-6 text-green-500" />}
+            searchValue={searchValue}
+            onSearch={setSearchValue}
+            searchPlaceholder="Search categories..."
+            itemCount={categories.length}
+            onAdd={() => setShowAddDialog(true)}
+            addButtonText="Add Category"
+          />
 
-      <div className="mt-6">
-        <DataTable
-          data={filteredCategories}
-          columns={columns}
-          globalFilter={searchValue}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+          <div className="mt-6 w-full">
+            <DataTable
+              columns={columns}
+              data={filteredCategories}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              globalFilter={searchValue}
+            />
+          </div>
+        </div>
       </div>
 
       <FormDialog

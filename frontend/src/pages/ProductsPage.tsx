@@ -1,10 +1,12 @@
 import { CategoryBadge } from "@/components/shared/CategoryBadge"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { DataTable } from "@/components/shared/DataTable"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { ProductSheet } from "@/components/shared/ProductSheet"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Box, Pencil, Trash2 } from "lucide-react"
+import { type ColumnDef } from "@tanstack/react-table"
+import { Package2, Pencil, Trash2 } from "lucide-react"
 import { useState } from "react"
 
 interface Product {
@@ -202,100 +204,99 @@ export function ProductsPage() {
     setSelectedProduct(null)
   }
 
-  return (
-    <div className="container mx-auto py-6">
-      <PageHeader
-        title={<span>Products <span className="text-green-500">({filteredProducts.length})</span></span>}
-        titleIcon={<Box className="h-5 w-5 text-green-500" />}
-        searchValue={searchValue}
-        onSearch={setSearchValue}
-        searchPlaceholder="Search products..."
-        onAdd={() => setShowAddSheet(true)}
-        addButtonText="Add Product"
-      />
+  const columns: ColumnDef<Product>[] = [
+    {
+      header: "Name",
+      accessorKey: "name",
+    },
+    {
+      header: "Categories",
+      accessorKey: "categories",
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-1">
+          {row.original.categories.map((category) => (
+            <CategoryBadge key={category} category={category} />
+          ))}
+        </div>
+      ),
+    },
+    {
+      header: "Price",
+      accessorKey: "price",
+      cell: ({ row }) => <span>€{row.original.price}</span>,
+    },
+    {
+      header: "Quantity",
+      accessorKey: "quantity",
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const product = row.original
+        return (
+          <div className="flex items-center justify-end gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleEdit(product)}
+                  >
+                    <Pencil className="h-5 w-5 text-green-500" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit product</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-      <div className="mt-6 overflow-hidden rounded-lg border">
-        <table className="w-full border-collapse text-left">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-sm font-semibold text-gray-900">
-                Name
-              </th>
-              <th className="px-6 py-3 text-sm font-semibold text-gray-900">
-                Description
-              </th>
-              <th className="px-6 py-3 text-sm font-semibold text-gray-900">
-                Price
-              </th>
-              <th className="px-6 py-3 text-sm font-semibold text-gray-900">
-                Categories
-              </th>
-              <th className="px-6 py-3 text-sm font-semibold text-gray-900">
-                Quantity
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {filteredProducts.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  {product.name}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                  {product.description}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  €{product.price}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-wrap gap-1">
-                    {product.categories.map((category) => (
-                      <CategoryBadge key={category} category={category} />
-                    ))}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-900 flex items-center justify-between">
-                  <span>{product.quantity}</span>
-                  <div className="flex items-center gap-2">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleEdit(product)}
-                          >
-                            <Pencil className="h-5 w-5 text-green-500" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Edit product</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleDelete(product)}
-                          >
-                            <Trash2 className="h-5 w-5 text-red-500" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Delete product</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(product)}
+                  >
+                    <Trash2 className="h-5 w-5 text-red-500" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete product</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )
+      },
+    },
+  ]
+
+  return (
+    <div className="container pl-0 pr-4 pt-4 pb-4">
+      <div className="grid grid-cols-12 gap-0">
+        <div className="col-span-11 col-start-1">
+          <PageHeader
+            title="Products"
+            titleIcon={<Package2 className="mr-2 h-6 w-6 text-green-500" />}
+            searchValue={searchValue}
+            onSearch={setSearchValue}
+            searchPlaceholder="Search products..."
+            itemCount={products.length}
+            onAdd={() => setShowAddSheet(true)}
+            addButtonText="Add Product"
+          />
+
+          <div className="mt-6 w-full">
+            <DataTable
+              columns={columns}
+              data={filteredProducts}
+              globalFilter={searchValue}
+            />
+          </div>
+        </div>
       </div>
 
       <ProductSheet
@@ -307,25 +308,22 @@ export function ProductsPage() {
         product={null}
       />
 
-      {selectedProduct && (
-        <>
-          <ProductSheet
-            open={showEditSheet}
-            onOpenChange={setShowEditSheet}
-            onSubmit={handleEditSubmit}
-            product={selectedProduct}
-            availableCategories={availableCategories}
-            title="Edit Product"
-          />
-          <ConfirmDialog
-            open={showDeleteDialog}
-            onOpenChange={setShowDeleteDialog}
-            title="Delete Product"
-            description={`Are you sure you want to delete "${selectedProduct.name}"?`}
-            onConfirm={handleDeleteConfirm}
-          />
-        </>
-      )}
+      <ProductSheet
+        open={showEditSheet}
+        onOpenChange={setShowEditSheet}
+        onSubmit={handleEditSubmit}
+        product={selectedProduct}
+        availableCategories={availableCategories}
+        title="Edit Product"
+      />
+
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete Product"
+        description={`Are you sure you want to delete ${selectedProduct?.name}?`}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   )
 }

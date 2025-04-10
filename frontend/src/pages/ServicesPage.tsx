@@ -163,24 +163,30 @@ export default function ServicesPage() {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <PageHeader
-        title="Services"
-        titleIcon={<Wrench className="h-6 w-6 text-green-600" />}
-        searchPlaceholder="Search services..."
-        searchValue={searchQuery}
-        onSearch={setSearchQuery}
-        onAdd={() => setShowAddDialog(true)}
-        itemCount={filteredServices.length}
-      />
+    <div className="container pl-0 pr-4 pt-4 pb-4">
+      <div className="grid grid-cols-12 gap-0">
+        <div className="col-span-11 col-start-1">
+          <PageHeader
+            title="Services"
+            titleIcon={<Wrench className="mr-2 h-6 w-6 text-green-500" />}
+            searchValue={searchQuery}
+            onSearch={setSearchQuery}
+            searchPlaceholder="Search services..."
+            itemCount={services.length}
+            onAdd={() => setShowAddDialog(true)}
+            addButtonText="Add Service"
+          />
 
-      <div className="mt-6">
-        <DataTable
-          data={filteredServices}
-          columns={columns}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+          <div className="mt-6 w-full">
+            <DataTable
+              columns={columns}
+              data={filteredServices}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              globalFilter={searchQuery}
+            />
+          </div>
+        </div>
       </div>
 
       <FormDialog

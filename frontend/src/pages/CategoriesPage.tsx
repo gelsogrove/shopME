@@ -1,18 +1,32 @@
-import { Folders } from "lucide-react"
-import { Card } from "../components/ui/card"
+import { FolderTree } from "lucide-react"
+import { DataTable } from "../components/ui/data-table"
+import { PageHeader } from "../components/ui/page-header"
 
 export function CategoriesPage() {
   return (
-    <div className="container mx-auto p-6">
-      <Card className="p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Folders className="h-6 w-6 text-green-600" />
-          <h1 className="text-2xl font-bold">Categories</h1>
+    <div className="container pl-0 pr-4 pt-4 pb-4">
+      <div className="grid grid-cols-12 gap-0">
+        <div className="col-span-11 col-start-1">
+          <PageHeader
+            title="Categories"
+            titleIcon={<FolderTree className="mr-2 h-6 w-6 text-green-500" />}
+            searchValue={searchValue}
+            onSearch={setSearchValue}
+            searchPlaceholder="Search categories..."
+            itemCount={categories.length}
+            onAdd={() => setShowAddCategoryDialog(true)}
+            addButtonText="Add Category"
+          />
+
+          <div className="mt-6 w-full">
+            <DataTable
+              columns={columns}
+              data={filteredCategories}
+              globalFilter={searchValue}
+            />
+          </div>
         </div>
-        <p className="text-gray-500">
-          Categories management page coming soon...
-        </p>
-      </Card>
+      </div>
     </div>
   )
 }

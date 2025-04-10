@@ -511,6 +511,7 @@ export default function ClientsPage(): JSX.Element {
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [viewingClient, setViewingClient] = useState<Client | null>(null)
   const [searchValue, setSearchValue] = useState("")
+  const [showAddSheet, setShowAddSheet] = useState(false)
   const navigate = useNavigate()
 
   const filteredClients = clients.filter((client) =>
@@ -629,23 +630,27 @@ export default function ClientsPage(): JSX.Element {
   ]
 
   return (
-    <div className="container mx-auto py-6">
-      <PageHeader
-        title="Clients"
-        titleIcon={<Users className="h-6 w-6 text-gray-500" />}
-        searchValue={searchValue}
-        onSearch={setSearchValue}
-        searchPlaceholder="Search clients..."
-        onAdd={handleAddClient}
-        itemCount={clients.length}
-      />
+    <div className="container pl-0 pr-4 pt-4 pb-4">
+      <div className="grid grid-cols-12 gap-0">
+        <div className="col-span-11 col-start-1">
+          <PageHeader
+            title="Clients"
+            titleIcon={<Users className="mr-2 h-6 w-6 text-green-500" />}
+            searchValue={searchValue}
+            onSearch={setSearchValue}
+            searchPlaceholder="Search clients..."
+            itemCount={clients.length}
+            onAdd={() => setShowAddSheet(true)}
+            addButtonText="Add Client"
+          />
 
-      <div className="mt-6">
-        <DataTable
-          columns={columns}
-          data={filteredClients}
-          globalFilter={searchValue}
-        />
+          <div className="mt-6 w-full">
+            <DataTable
+              columns={columns}
+              data={filteredClients}
+            />
+          </div>
+        </div>
       </div>
 
       <ClientDetailsSheet
