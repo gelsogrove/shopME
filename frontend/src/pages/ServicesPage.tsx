@@ -2,6 +2,10 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { FormDialog } from "@/components/shared/FormDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { Service, servicesApi } from "@/services/servicesApi"
 import { useEffect, useState } from "react"
@@ -13,7 +17,7 @@ export function ServicesPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchValue, setSearchValue] = useState("")
   const [showAddDialog, setShowAddDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showEditSheet, setShowEditSheet] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedService, setSelectedService] = useState<Service | null>(null)
 
@@ -45,8 +49,13 @@ export function ServicesPage() {
   const columns = [
     { header: "Name", accessorKey: "name" as keyof Service },
     { header: "Description", accessorKey: "description" as keyof Service },
-    { header: "Price", accessorKey: "price" as keyof Service },
-    { header: "Currency", accessorKey: "currency" as keyof Service },
+    { 
+      header: "Price", 
+      accessorKey: "price" as keyof Service,
+      cell: ({ row }: { row: { original: Service } }) => (
+        <span>{row.original.price}€</span>
+      )
+    }
   ]
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -66,7 +75,7 @@ export function ServicesPage() {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
       price,
-      currency: formData.get("currency") as string || "€",
+      currency: "€"
     }
 
     try {
@@ -82,7 +91,7 @@ export function ServicesPage() {
 
   const handleEdit = (service: Service) => {
     setSelectedService(service)
-    setShowEditDialog(true)
+    setShowEditSheet(true)
   }
 
   const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -102,7 +111,7 @@ export function ServicesPage() {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
       price,
-      currency: formData.get("currency") as string,
+      currency: "€"
     }
 
     try {
@@ -112,7 +121,7 @@ export function ServicesPage() {
           s.id === selectedService.id ? updatedService : s
         )
       )
-      setShowEditDialog(false)
+      setShowEditSheet(false)
       setSelectedService(null)
       toast.success('Service updated successfully')
     } catch (error) {
@@ -189,49 +198,72 @@ export function ServicesPage() {
             name: "price",
             label: "Price",
             type: "text",
-          },
-          {
-            name: "currency",
-            label: "Currency",
-            type: "text",
-            defaultValue: "€",
-          },
+          }
         ]}
         onSubmit={handleAdd}
       />
 
-      <FormDialog
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
-        title="Edit Service"
-        fields={[
-          {
-            name: "name",
-            label: "Name",
-            type: "text",
-            defaultValue: selectedService?.name,
-          },
-          {
-            name: "description",
-            label: "Description",
-            type: "text",
-            defaultValue: selectedService?.description,
-          },
-          {
-            name: "price",
-            label: "Price",
-            type: "text",
-            defaultValue: selectedService?.price.toString(),
-          },
-          {
-            name: "currency",
-            label: "Currency",
-            type: "text",
-            defaultValue: selectedService?.currency,
-          },
-        ]}
-        onSubmit={handleEditSubmit}
-      />
+      {/* Edit Service Sheet */}
+      <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
+        <SheetContent side="right" className="sm:max-w-lg flex flex-col p-0">
+          <SheetHeader className="px-6 pt-6 pb-2">
+            <SheetTitle>Edit Service</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleEditSubmit} className="flex flex-col h-full">
+            <div className="overflow-y-auto px-6 flex-grow">
+              <div className="space-y-6 py-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="Service name"
+                    defaultValue={selectedService?.name}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="Service description"
+                    defaultValue={selectedService?.description}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price (€)</Label>
+                  <Input
+                    id="price"
+                    name="price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="Service price"
+                    defaultValue={selectedService?.price}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
+              <Button 
+                type="button" 
+                variant="outline"
+                className="border-input hover:bg-accent"
+                onClick={() => setShowEditSheet(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                Save Changes
+              </Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
 
       <ConfirmDialog
         open={showDeleteDialog}
