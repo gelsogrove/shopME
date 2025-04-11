@@ -7,9 +7,7 @@ import {
 } from "@/components/ui/card"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { api } from "../services/api"
-import type { Workspace } from "../services/workspaceApi"
-import { createWorkspace } from "../services/workspaceApi"
+import { auth } from "../services/api"
 
 export function LoginPage() {
   const [email, setEmail] = useState("")
@@ -24,57 +22,16 @@ export function LoginPage() {
     setIsLoading(true)
 
     try {
-      const response = await api.post("/api/auth/login", { email, password })
-      const data = response.data
+      const response = await auth.login({ email, password })
+      
+      // Store user info in localStorage
+      localStorage.setItem("user", JSON.stringify(response.data.user))
 
-      // Store only the user info, token is in HTTP-only cookie
-      localStorage.setItem("user", JSON.stringify(data.user))
-
-      try {
-        // Try to fetch user's workspaces
-        const workspacesResponse = await api.get("/api/workspaces")
-        const workspaces = workspacesResponse.data
-        
-        if (workspaces && workspaces.length > 0) {
-          // Set the first workspace as the default one
-          const defaultWorkspace = workspaces.find((w: Workspace) => !w.isDelete) || workspaces[0]
-          sessionStorage.setItem("currentWorkspaceId", defaultWorkspace.id)
-          sessionStorage.setItem("currentWorkspaceName", defaultWorkspace.name)
-          
-          // Redirect to workspace selection
-          navigate("/workspace-selection")
-        } else {
-          // No workspaces found, create a default one
-          console.log("No workspaces found, creating a default one...")
-          try {
-            const newWorkspace = await createWorkspace({
-              name: "My Shop",
-              description: "Default shop",
-              language: "en",
-              currency: "EUR",
-              isActive: true
-            })
-            
-            console.log("Default workspace created:", newWorkspace)
-            
-            // Set the new workspace as current
-            sessionStorage.setItem("currentWorkspaceId", newWorkspace.id)
-            sessionStorage.setItem("currentWorkspaceName", newWorkspace.name)
-            
-            // Redirect to workspace selection
-            navigate("/workspace-selection")
-          } catch (createError) {
-            console.error("Could not create default workspace:", createError)
-            navigate("/workspace-selection")
-          }
-        }
-      } catch (workspaceError) {
-        console.error("Could not fetch workspaces:", workspaceError)
-        // In case of error, redirect to workspace selection
-        navigate("/workspace-selection")
-      }
+      // Navigate to workspace selection or dashboard
+      navigate("/workspace-selection")
     } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed")
+      console.error('Login error:', err.response?.data)
+      setError(err.response?.data?.error || err.response?.data?.message || "Login failed. Please check your credentials.")
     } finally {
       setIsLoading(false)
     }
@@ -99,10 +56,11 @@ export function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@shop.me"
+                placeholder="admin@shopme.com"
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none"
                 required
                 disabled={isLoading}
+                autoComplete="username"
               />
             </div>
             <div className="space-y-2">
@@ -114,6 +72,7 @@ export function LoginPage() {
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none"
                 required
                 disabled={isLoading}
+                autoComplete="current-password"
               />
             </div>
             <button
@@ -123,17 +82,6 @@ export function LoginPage() {
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </button>
-            <div className="flex justify-between text-sm">
-              <a
-                href="/auth/forgot-password"
-                className="text-blue-500 hover:underline"
-              >
-                Forgot Password?
-              </a>
-              <a href="/auth/signup" className="text-blue-500 hover:underline">
-                Create Account
-              </a>
-            </div>
           </form>
         </CardContent>
       </Card>

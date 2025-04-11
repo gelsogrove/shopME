@@ -76,6 +76,7 @@ model Products {
   price       Float
   stock       Int           @default(0)
   sku         String?
+  image       String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   isActive    Boolean       @default(true)
@@ -171,8 +172,7 @@ model Prompts {
   content     String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  isRouter    Boolean   @default(false)
-  department  String?
+  isActive    Boolean   @default(true)
   workspaceId String
   temperature Float?    @default(0.7)
   top_k       Int?      @default(40)

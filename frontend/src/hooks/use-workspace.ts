@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useToast } from "./use-toast"
 
-interface Workspace {
+export interface Workspace {
   id: string
   name: string
   description?: string
@@ -41,6 +41,13 @@ export function useWorkspace() {
   const [servicesLoading, setServicesLoading] = useState(false)
   const { toast } = useToast()
   const navigate = useNavigate()
+
+  // Add function to set current workspace
+  const setCurrentWorkspace = (newWorkspace: Workspace) => {
+    console.log("Setting current workspace:", newWorkspace)
+    setWorkspace(newWorkspace)
+    sessionStorage.setItem("currentWorkspace", JSON.stringify(newWorkspace))
+  }
 
   const fetchWorkspace = async () => {
     try {
@@ -160,5 +167,6 @@ export function useWorkspace() {
     fetchWorkspace,
     updateWorkspace,
     getWorkspaceServices,
+    setCurrentWorkspace,
   }
 }

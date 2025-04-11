@@ -11,18 +11,18 @@ router.use(authMiddleware)
 router.get("/workspaces/:workspaceId/agents", agentsController.getAllForWorkspace)
 
 // Get a specific agent
-router.get("/agents/:id", agentsController.getById)
+router.get("/workspaces/:workspaceId/agents/:id", agentsController.getById)
 
 // Create a new agent
 router.post("/workspaces/:workspaceId/agents", agentsController.create)
 
 // Update an agent
-router.put("/agents/:id", agentsController.update)
+router.put("/workspaces/:workspaceId/agents/:id", agentsController.update)
 
 // Delete an agent
-router.delete("/agents/:id", agentsController.delete)
+router.delete("/workspaces/:workspaceId/agents/:id", agentsController.delete)
 
 // Duplicate an agent
-router.post("/agents/:id/duplicate", agentsController.duplicate)
+router.post("/workspaces/:workspaceId/agents/:id/duplicate", agentsController.duplicate)
 
 export default router 

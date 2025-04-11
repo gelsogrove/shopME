@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client"
+import { Prisma, PrismaClient } from "@prisma/client"
 import { slugify } from "../utils/slug"
 
 const prisma = new PrismaClient()
@@ -18,22 +18,38 @@ type UpdateCategoryParams = {
 
 class CategoriesService {
   async getAllForWorkspace(workspaceId: string) {
-    return prisma.categories.findMany({
+    console.log("=== Categories Query ===");
+    console.log("WorkspaceId:", workspaceId);
+    
+    // Log the query we're about to execute
+    const query = {
       where: {
         workspaceId,
+        isActive: true,
       },
       orderBy: {
-        name: 'asc',
+        name: 'asc' as Prisma.SortOrder,
       },
-    })
+    };
+    console.log("Prisma Query:", JSON.stringify(query, null, 2));
+    
+    // Execute query
+    const categories = await prisma.categories.findMany(query);
+    
+    // Log results
+    console.log("Raw Database Response:", categories);
+    console.log("======================");
+    
+    return categories;
   }
 
-  async getById(id: string) {
-    return prisma.categories.findUnique({
+  async getById(id: string, workspaceId: string) {
+    return prisma.categories.findFirst({
       where: {
         id,
-      },
-    })
+        workspaceId
+      }
+    });
   }
 
   async create(params: CreateCategoryParams) {
@@ -60,20 +76,16 @@ class CategoriesService {
         description,
         slug,
         isActive,
-        workspace: {
-          connect: {
-            id: workspaceId,
-          },
-        },
+        workspaceId
       },
     })
   }
 
-  async update(id: string, params: UpdateCategoryParams) {
+  async update(id: string, workspaceId: string, params: UpdateCategoryParams) {
     const { name, description, isActive } = params
 
     // Get the existing category
-    const existingCategory = await this.getById(id)
+    const existingCategory = await this.getById(id, workspaceId)
     if (!existingCategory) {
       throw new Error('Category not found')
     }
@@ -100,7 +112,7 @@ class CategoriesService {
       const categoryWithSlug = await prisma.categories.findFirst({
         where: {
           slug,
-          workspaceId: existingCategory.workspaceId,
+          workspaceId,
           NOT: {
             id
           }
@@ -114,17 +126,18 @@ class CategoriesService {
       updateData.slug = slug
     }
 
-    return prisma.categories.update({
+    return prisma.categories.updateMany({
       where: {
         id,
+        workspaceId
       },
       data: updateData,
-    })
+    }).then(() => this.getById(id, workspaceId))
   }
 
-  async delete(id: string) {
+  async delete(id: string, workspaceId: string) {
     // Check if the category exists
-    const category = await this.getById(id)
+    const category = await this.getById(id, workspaceId)
     if (!category) {
       throw new Error('Category not found')
     }
@@ -133,6 +146,7 @@ class CategoriesService {
     const products = await prisma.products.findMany({
       where: {
         categoryId: id,
+        workspaceId
       },
     })
 
@@ -140,9 +154,10 @@ class CategoriesService {
       throw new Error('Cannot delete category that is used by products')
     }
 
-    return prisma.categories.delete({
+    return prisma.categories.deleteMany({
       where: {
         id,
+        workspaceId
       },
     })
   }

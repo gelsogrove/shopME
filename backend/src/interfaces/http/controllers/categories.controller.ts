@@ -6,23 +6,31 @@ export class CategoriesController {
   async getCategoriesForWorkspace(req: Request, res: Response) {
     try {
       const { workspaceId } = req.params
-      console.log("Getting categories for workspace:", workspaceId);
+      console.log("=== Categories Request ===")
+      console.log("WorkspaceId:", workspaceId)
+      console.log("Headers:", req.headers)
+      console.log("User:", req.user)
+      console.log("======================")
 
       const categories = await categoriesService.getAllForWorkspace(workspaceId)
-      console.log("Categories found:", categories);
+      console.log("=== Categories Response ===")
+      console.log("Categories found:", categories)
+      console.log("======================")
 
       return res.status(200).json(categories)
     } catch (error) {
+      console.error("=== Categories Error ===")
       console.error("Error getting categories:", error)
+      console.error("======================")
       throw new AppError(500, "Failed to get categories")
     }
   }
 
   async getCategoryById(req: Request, res: Response) {
     try {
-      const { id } = req.params
+      const { id, workspaceId } = req.params
 
-      const category = await categoriesService.getById(id)
+      const category = await categoriesService.getById(id, workspaceId)
 
       if (!category) {
         return res.status(404).json({ message: "Category not found" })
@@ -59,14 +67,18 @@ export class CategoriesController {
 
   async updateCategory(req: Request, res: Response) {
     try {
-      const { id } = req.params
+      const { id, workspaceId } = req.params
       const { name, description, isActive } = req.body
       
-      const result = await categoriesService.update(id, {
+      const result = await categoriesService.update(id, workspaceId, {
         name,
         description,
         isActive
       })
+
+      if (!result) {
+        return res.status(404).json({ message: "Category not found" })
+      }
 
       return res.status(200).json(result)
     } catch (error) {
@@ -83,16 +95,16 @@ export class CategoriesController {
 
   async deleteCategory(req: Request, res: Response) {
     try {
-      const { id } = req.params
+      const { id, workspaceId } = req.params
 
-      const category = await categoriesService.getById(id)
+      const category = await categoriesService.getById(id, workspaceId)
 
       if (!category) {
         return res.status(404).json({ message: "Category not found" })
       }
 
       try {
-        await categoriesService.delete(id)
+        await categoriesService.delete(id, workspaceId)
         return res.status(204).send()
       } catch (error) {
         if (error.message === 'Cannot delete category that is used by products') {

@@ -1,8 +1,8 @@
 import { CategoryBadge } from "@/components/shared/CategoryBadge"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
+import { FormDialog } from "@/components/shared/FormDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
-import { ProductSheet } from "@/components/shared/ProductSheet"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { type ColumnDef } from "@tanstack/react-table"
@@ -16,6 +16,10 @@ interface Product {
   price: string
   categories: string[]
   quantity: number
+  stock: number
+  sku: string
+  categoryId: string
+  image: string
 }
 
 const initialProducts: Product[] = [
@@ -27,6 +31,10 @@ const initialProducts: Product[] = [
     price: "29.99",
     categories: ["Cheese", "DOP"],
     quantity: 25,
+    stock: 25,
+    sku: "PRD123",
+    categoryId: "Cheese",
+    image: "https://example.com/parmigiano.jpg",
   },
   {
     id: "2",
@@ -36,6 +44,10 @@ const initialProducts: Product[] = [
     price: "4.99",
     categories: ["Pasta", "IGP"],
     quantity: 120,
+    stock: 120,
+    sku: "GRP123",
+    categoryId: "Pasta",
+    image: "https://example.com/spaghetti.jpg",
   },
   {
     id: "3",
@@ -45,6 +57,10 @@ const initialProducts: Product[] = [
     price: "19.99",
     categories: ["Oil", "IGP"],
     quantity: 48,
+    stock: 48,
+    sku: "TO123",
+    categoryId: "Oil",
+    image: "https://example.com/olive-oil.jpg",
   },
   {
     id: "4",
@@ -54,6 +70,10 @@ const initialProducts: Product[] = [
     price: "24.99",
     categories: ["Cured Meats", "DOP"],
     quantity: 15,
+    stock: 15,
+    sku: "PRD456",
+    categoryId: "Cured Meats",
+    image: "https://example.com/prosciutto.jpg",
   },
   {
     id: "5",
@@ -63,6 +83,10 @@ const initialProducts: Product[] = [
     price: "14.99",
     categories: ["Condiments", "IGP"],
     quantity: 30,
+    stock: 30,
+    sku: "ABM123",
+    categoryId: "Condiments",
+    image: "https://example.com/balsamic-vinegar.jpg",
   },
   {
     id: "6",
@@ -72,6 +96,10 @@ const initialProducts: Product[] = [
     price: "9.99",
     categories: ["Cheese", "DOP"],
     quantity: 40,
+    stock: 40,
+    sku: "MBD123",
+    categoryId: "Cheese",
+    image: "https://example.com/mozzarella.jpg",
   },
   {
     id: "7",
@@ -81,6 +109,10 @@ const initialProducts: Product[] = [
     price: "6.99",
     categories: ["Vegetables", "DOP"],
     quantity: 85,
+    stock: 85,
+    sku: "STM123",
+    categoryId: "Vegetables",
+    image: "https://example.com/tomatoes.jpg",
   },
   {
     id: "8",
@@ -90,6 +122,10 @@ const initialProducts: Product[] = [
     price: "49.99",
     categories: ["Wine", "DOCG"],
     quantity: 24,
+    stock: 24,
+    sku: "BW123",
+    categoryId: "Wine",
+    image: "https://example.com/barolo.jpg",
   },
   {
     id: "9",
@@ -99,6 +135,10 @@ const initialProducts: Product[] = [
     price: "18.99",
     categories: ["Nuts", "DOP"],
     quantity: 35,
+    stock: 35,
+    sku: "PB123",
+    categoryId: "Nuts",
+    image: "https://example.com/pistachios.jpg",
   },
   {
     id: "10",
@@ -108,22 +148,26 @@ const initialProducts: Product[] = [
     price: "22.99",
     categories: ["Spirits", "IGP"],
     quantity: 42,
+    stock: 42,
+    sku: "LS123",
+    categoryId: "Spirits",
+    image: "https://example.com/limoncello.jpg",
   },
 ]
 
 const availableCategories = [
-  "Pasta",
-  "Cheese",
-  "Oil",
-  "Condiments",
-  "Cured Meats",
-  "DOP",
-  "IGP",
-  "DOCG",
-  "Vegetables",
-  "Wine",
-  "Nuts",
-  "Spirits",
+  { value: "Pasta", label: "Pasta" },
+  { value: "Cheese", label: "Cheese" },
+  { value: "Oil", label: "Oil" },
+  { value: "Condiments", label: "Condiments" },
+  { value: "Cured Meats", label: "Cured Meats" },
+  { value: "DOP", label: "DOP" },
+  { value: "IGP", label: "IGP" },
+  { value: "DOCG", label: "DOCG" },
+  { value: "Vegetables", label: "Vegetables" },
+  { value: "Wine", label: "Wine" },
+  { value: "Nuts", label: "Nuts" },
+  { value: "Spirits", label: "Spirits" },
 ]
 
 export function ProductsPage() {
@@ -133,6 +177,8 @@ export function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [searchValue, setSearchValue] = useState("")
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
 
   // Filter products based on search value
   const filteredProducts = products.filter(
@@ -156,6 +202,10 @@ export function ProductsPage() {
       price: (formData.get("price") as string).replace("€", "").trim(),
       categories: formData.getAll("categories") as string[],
       quantity: parseInt(formData.get("quantity") as string) || 0,
+      stock: parseInt(formData.get("stock") as string) || 0,
+      sku: formData.get("sku") as string,
+      categoryId: formData.get("categoryId") as string,
+      image: formData.get("image") as string,
     }
 
     setProducts([...products, newProduct])
@@ -183,6 +233,10 @@ export function ProductsPage() {
       quantity:
         parseInt(formData.get("quantity") as string) ||
         selectedProduct.quantity,
+      stock: parseInt(formData.get("stock") as string) || selectedProduct.stock,
+      sku: formData.get("sku") as string,
+      categoryId: formData.get("categoryId") as string,
+      image: formData.get("image") as string,
     }
 
     setProducts(
@@ -299,29 +353,144 @@ export function ProductsPage() {
         </div>
       </div>
 
-      <ProductSheet
-        open={showAddSheet}
-        onOpenChange={setShowAddSheet}
+      <FormDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        title="Add New Product"
+        description="Create a new product by filling out the form below. All prices are in euros."
+        fields={[
+          {
+            name: "name",
+            label: "Name",
+            type: "text",
+            required: true,
+            description: "The name of the product as it will appear to customers",
+            pattern: ".{3,}",
+          },
+          {
+            name: "description",
+            label: "Description",
+            type: "text",
+            description: "A detailed description of the product",
+          },
+          {
+            name: "price",
+            label: "Price",
+            type: "number",
+            required: true,
+            description: "Product price in euros",
+            min: "0",
+            step: "0.01",
+          },
+          {
+            name: "stock",
+            label: "Stock",
+            type: "number",
+            required: true,
+            description: "Current available quantity",
+            min: "0",
+            step: "1",
+          },
+          {
+            name: "sku",
+            label: "SKU",
+            type: "text",
+            description: "Stock Keeping Unit - unique identifier for the product",
+            pattern: "[A-Za-z0-9-]{3,}",
+          },
+          {
+            name: "categoryId",
+            label: "Category",
+            type: "select",
+            options: availableCategories,
+            description: "Product category for organization and filtering",
+          },
+          {
+            name: "image",
+            label: "Image URL",
+            type: "text",
+            description: "URL to the product image (must be a valid image URL)",
+            pattern: "https?://.+",
+          },
+        ]}
         onSubmit={handleAdd}
-        availableCategories={availableCategories}
-        title="Add Product"
-        product={null}
       />
 
-      <ProductSheet
-        open={showEditSheet}
-        onOpenChange={setShowEditSheet}
-        onSubmit={handleEditSubmit}
-        product={selectedProduct}
-        availableCategories={availableCategories}
+      <FormDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
         title="Edit Product"
+        description="Update the product information. All prices are in euros."
+        fields={[
+          {
+            name: "name",
+            label: "Name",
+            type: "text",
+            required: true,
+            defaultValue: selectedProduct?.name,
+            description: "The name of the product as it will appear to customers",
+            pattern: ".{3,}",
+          },
+          {
+            name: "description",
+            label: "Description",
+            type: "text",
+            defaultValue: selectedProduct?.description,
+            description: "A detailed description of the product",
+          },
+          {
+            name: "price",
+            label: "Price",
+            type: "number",
+            required: true,
+            defaultValue: selectedProduct?.price.toString(),
+            description: "Product price in euros",
+            min: "0",
+            step: "0.01",
+          },
+          {
+            name: "stock",
+            label: "Stock",
+            type: "number",
+            required: true,
+            defaultValue: selectedProduct?.stock.toString(),
+            description: "Current available quantity",
+            min: "0",
+            step: "1",
+          },
+          {
+            name: "sku",
+            label: "SKU",
+            type: "text",
+            defaultValue: selectedProduct?.sku || '',
+            description: "Stock Keeping Unit - unique identifier for the product",
+            pattern: "[A-Za-z0-9-]{3,}",
+          },
+          {
+            name: "categoryId",
+            label: "Category",
+            type: "select",
+            options: availableCategories,
+            defaultValue: selectedProduct?.categoryId || '',
+            description: "Product category for organization and filtering",
+          },
+          {
+            name: "image",
+            label: "Image URL",
+            type: "text",
+            defaultValue: selectedProduct?.image || '',
+            description: "URL to the product image (must be a valid image URL)",
+            pattern: "https?://.+",
+          },
+        ]}
+        onSubmit={handleEditSubmit}
       />
 
       <ConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         title="Delete Product"
-        description={`Are you sure you want to delete ${selectedProduct?.name}?`}
+        description={`Are you sure you want to delete ${selectedProduct?.name}? This action cannot be undone and will permanently remove the product from your inventory.`}
         onConfirm={handleDeleteConfirm}
       />
     </div>

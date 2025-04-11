@@ -2,10 +2,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import type { Workspace } from "@/hooks/use-workspace"
+import { useWorkspace } from "@/hooks/use-workspace"
 import { PlusCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import type { Workspace } from "../services/workspaceApi"
 import { createWorkspace, getWorkspaces, updateWorkspace } from "../services/workspaceApi"
 
 // Definizione dei tipi di attività supportati
@@ -13,6 +14,7 @@ type BusinessType = "Shop" | "Hotel" | "Gym" | "Restaurant"
 
 export function WorkspaceSelectionPage() {
   const navigate = useNavigate()
+  const { setCurrentWorkspace } = useWorkspace()
   const [selectedType, setSelectedType] = useState<BusinessType | null>(null)
   const [newPhoneNumber, setNewPhoneNumber] = useState("")
   const [alias, setAlias] = useState("")
@@ -41,14 +43,12 @@ export function WorkspaceSelectionPage() {
 
   // Gestisce la selezione di un workspace
   const handleSelectWorkspace = (workspace: Workspace) => {
-    // Salvare l'ID del workspace selezionato in sessionStorage
-    sessionStorage.setItem("currentWorkspaceId", workspace.id)
+    // Usa la nuova funzione per salvare il workspace
+    setCurrentWorkspace(workspace)
+    
+    // Salva il tipo di workspace
     sessionStorage.setItem("currentWorkspaceType", selectedType || "Shop")
-    sessionStorage.setItem(
-      "currentWorkspaceName",
-      workspace.whatsappPhoneNumber || workspace.name
-    )
-
+    
     // Reindirizza alla chat history dopo la selezione
     navigate("/chat")
   }

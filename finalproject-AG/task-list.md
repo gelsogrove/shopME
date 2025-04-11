@@ -3,19 +3,20 @@
 ## 📊 Stato Attuale del Progetto
 **Ultimo aggiornamento:** $(date +%Y-%m-%d)
 
-- **Completati:** 17/61 task (28%)
+- **Completati:** 20/61 task (33%)
 - **In corso:** 0/61 task (0%)
-- **Da iniziare:** 44/61 task (72%)
+- **Out of scope:** 4/61 task (7%)
+- **Da iniziare:** 37/61 task (60%)
 
 ### 🚩 Prossimo Task Prioritario
-**TASK-0012**: Create `GET /me` endpoint
-- Questo task è necessario per completare il flusso di autenticazione
-- Permette di ottenere le informazioni dell'utente corrente
-- Consentirà di mostrare i dati dell'utente nell'interfaccia
+**TASK-0017**: Create role-based access control
+- Implementare un controllo degli accessi basato su ruoli
+- Limitare le azioni amministrative controllando `req.user.role`
+- Definire middleware come `isAdmin`, `isOwner`, ecc.
 
 ### 🏆 Progressi per Epic
 - System Setup & Architecture: 10/10 completati ✅
-- Authentication & 2FA: 1/10 completati ⏳
+- Authentication & 2FA: 4/10 completati, 4/10 fuori scope ⏳
 - Product Management: 5/10 completati 🔄
 - Orders & Cart: 1/10 completati 🔄
 - Clients, GDPR & Tokenization: 4/10 completati 🔄
@@ -181,7 +182,11 @@ Create `POST /auth/login` endpoint to verify user credentials and return a JWT i
 **Description**:
 Return the currently authenticated user with their role, email, and workspace ID.
 
-- [ ] Not started
+- [x] Completed
+  - Implementato endpoint `GET /me` nel controller di autenticazione
+  - Protetto con middleware di autenticazione
+  - Restituisce informazioni dell'utente corrente (id, email, ruolo)
+  - Supporta diversi formati di token per retrocompatibilità
 
 =============== TASK-0013 ============================
 **Epic**: Authentication & 2FA
@@ -189,7 +194,7 @@ Return the currently authenticated user with their role, email, and workspace ID
 **Description**:
 Send a 6-digit OTP via email after login step 1 and verify before issuing final token.
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
 =============== TASK-0014 ============================
 **Epic**: Authentication & 2FA
@@ -197,7 +202,7 @@ Send a 6-digit OTP via email after login step 1 and verify before issuing final 
 **Description**:
 Add `POST /auth/register` with invite code logic and workspace assignment.
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
 =============== TASK-0015 ============================
 **Epic**: Authentication & 2FA
@@ -205,7 +210,7 @@ Add `POST /auth/register` with invite code logic and workspace assignment.
 **Description**:
 Create `POST /auth/forgot` to send email with token. Add reset password confirmation route.
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
 =============== TASK-0016 ============================
 **Epic**: Authentication & 2FA
@@ -213,7 +218,12 @@ Create `POST /auth/forgot` to send email with token. Add reset password confirma
 **Description**:
 Create `authGuard` middleware to check and decode JWT, attach user context.
 
-- [ ] Not started
+- [x] Completed
+  - Creato middleware di autenticazione per proteggere le route
+  - Implementato controllo e decodifica dei token JWT
+  - Collegato il contesto utente alla richiesta
+  - Applicato il middleware alle route che richiedono autenticazione
+  - Supporto per token nei cookie e nell'header Authorization
 
 =============== TASK-0017 ============================
 **Epic**: Authentication & 2FA
@@ -229,7 +239,7 @@ Limit admin-only actions by checking `req.user.role`. Define `isAdmin`, `isOwner
 **Description**:
 Issue refresh tokens via a secure cookie and add `/auth/refresh` endpoint.
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
 =============== TASK-0019 ============================
 **Epic**: Authentication & 2FA
@@ -237,7 +247,10 @@ Issue refresh tokens via a secure cookie and add `/auth/refresh` endpoint.
 **Description**:
 Implement logout by clearing cookies and invalidating refresh tokens.
 
-- [ ] Not started
+- [x] Completed
+  - Implementato endpoint di logout 
+  - Aggiunta funzionalità per cancellare i cookie di autenticazione
+  - Restituisce messaggio di conferma del logout
 
 =============== TASK-0020 ============================
 **Epic**: Authentication & 2FA

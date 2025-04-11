@@ -17,17 +17,21 @@ app.use(
   cors({
     origin: process.env.NODE_ENV === "production" 
       ? [process.env.FRONTEND_URL || "http://localhost:3000"] 
-      : ["http://localhost:3000", "http://localhost:3001", "http://localhost:5173"], // Allow specific origins in development
+      : ["http://localhost:3000", "http://localhost:3001", "http://localhost:5173"],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "x-workspace-id"],
+    exposedHeaders: ["set-cookie"],
   })
 )
+
+// Enable pre-flight requests for all routes
+app.options('*', cors())
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }))
-app.use(express.json({ limit: '10mb' }))
+app.use(express.json())
 app.use(cookieParser())
 
 // Routes

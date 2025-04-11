@@ -33,11 +33,12 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid credentials" })
     }
 
-    // Generate JWT token
+    // Generate JWT token with consistent field names
     const token = jwt.sign(
       { 
-        userId: user.id,
+        id: user.id, // This will be used as userId in the middleware
         email: user.email,
+        role: user.role,
         workspaces: user.workspaces.map(w => ({
           id: w.workspace.id,
           role: w.role
@@ -47,7 +48,15 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: "24h" }
     )
 
-    // Return user data and token
+    // Set the token as an HTTP-only cookie
+    res.cookie("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
+    // Return user data (without token in body)
     res.json({
       user: {
         id: user.id,
@@ -59,8 +68,7 @@ export const login = async (req: Request, res: Response) => {
           name: w.workspace.name,
           role: w.role
         }))
-      },
-      token
+      }
     })
   } catch (error) {
     console.error("Login error:", error)

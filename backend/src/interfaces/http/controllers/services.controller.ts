@@ -20,15 +20,15 @@ export class ServicesController {
 
   async getServiceById(req: Request, res: Response) {
     try {
-      const { id } = req.params
+      const { id, workspaceId } = req.params
 
-      const service = await servicesService.getById(id)
+      const service = await servicesService.getById(id, workspaceId)
 
-      if (!service || (service as any[]).length === 0) {
+      if (!service) {
         return res.status(404).json({ message: "Service not found" })
       }
 
-      return res.status(200).json((service as any[])[0])
+      return res.status(200).json(service)
     } catch (error) {
       console.error("Error getting service:", error)
       throw new AppError(500, "Failed to get service")
@@ -49,7 +49,7 @@ export class ServicesController {
         isActive
       })
 
-      return res.status(201).json((result as any[])[0])
+      return res.status(201).json(result)
     } catch (error) {
       console.error("Error creating service:", error)
       throw new AppError(500, "Failed to create service")
@@ -58,12 +58,12 @@ export class ServicesController {
 
   async updateService(req: Request, res: Response) {
     try {
-      const { id } = req.params
+      const { id, workspaceId } = req.params
       const { name, description, price, currency, isActive } = req.body
 
       const priceValue = price !== undefined ? parseFloat(price) : undefined
       
-      const result = await servicesService.update(id, {
+      const result = await servicesService.update(id, workspaceId, {
         name,
         description,
         price: priceValue,
@@ -71,7 +71,11 @@ export class ServicesController {
         isActive
       })
 
-      return res.status(200).json((result as any[])[0])
+      if (!result) {
+        return res.status(404).json({ message: "Service not found" })
+      }
+
+      return res.status(200).json(result)
     } catch (error) {
       console.error("Error updating service:", error)
       if (error.message === "Service not found") {
@@ -83,15 +87,15 @@ export class ServicesController {
 
   async deleteService(req: Request, res: Response) {
     try {
-      const { id } = req.params
+      const { id, workspaceId } = req.params
 
-      const service = await servicesService.getById(id)
+      const service = await servicesService.getById(id, workspaceId)
 
-      if (!service || (service as any[]).length === 0) {
+      if (!service) {
         return res.status(404).json({ message: "Service not found" })
       }
 
-      await servicesService.delete(id)
+      await servicesService.delete(id, workspaceId)
 
       return res.status(204).send()
     } catch (error) {

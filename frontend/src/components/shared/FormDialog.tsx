@@ -1,31 +1,35 @@
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
-interface Field {
+export interface Field {
   name: string
   label: string
-  type: "text" | "textarea" | "select" | "number" | "markdown"
-  options?: string[]
-  defaultValue?: string | string[]
-  multiple?: boolean
-  className?: string
-  min?: number
-  max?: number
-  step?: number
-  isWide?: boolean
+  type: "text" | "number" | "select"
+  defaultValue?: string
+  required?: boolean
+  options?: Array<{ value: string; label: string }>
   description?: string
+  min?: string
+  max?: string
+  step?: string
+  pattern?: string
 }
 
 interface FormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string
+  description?: string
   fields: Field[]
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   isWide?: boolean
@@ -36,6 +40,7 @@ export function FormDialog({
   open,
   onOpenChange,
   title,
+  description,
   fields,
   onSubmit,
   isWide,
@@ -48,67 +53,54 @@ export function FormDialog({
       >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           {fields.map((field) => (
-            <div
-              key={field.name}
-              className={cn("space-y-2", field.isWide && "col-span-2")}
-            >
-              <label
-                htmlFor={field.name}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {field.label}
-              </label>
+            <div key={field.name} className="space-y-2">
+              <Label htmlFor={field.name}>{field.label}</Label>
               {field.description && (
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-sm text-muted-foreground">{field.description}</p>
+              )}
+              {field.type === "select" && field.options ? (
+                <Select 
+                  name={field.name} 
+                  defaultValue={field.defaultValue}
+                  required={field.required}
+                >
+                  <SelectTrigger aria-label={field.label}>
+                    <SelectValue placeholder={`Select ${field.label.toLowerCase()}...`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {field.options.map((option) => (
+                      <SelectItem 
+                        key={option.value} 
+                        value={option.value}
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  type={field.type}
+                  defaultValue={field.defaultValue}
+                  required={field.required}
+                  min={field.type === "number" ? field.min : undefined}
+                  max={field.type === "number" ? field.max : undefined}
+                  step={field.type === "number" ? field.step : undefined}
+                  pattern={field.pattern}
+                  aria-label={field.label}
+                  aria-describedby={field.description ? `${field.name}-description` : undefined}
+                />
+              )}
+              {field.description && (
+                <p id={`${field.name}-description`} className="text-sm text-muted-foreground">
                   {field.description}
                 </p>
-              )}
-              {field.type === "markdown" || field.type === "textarea" ? (
-                <textarea
-                  id={field.name}
-                  name={field.name}
-                  defaultValue={field.defaultValue as string}
-                  className={cn(
-                    "flex min-h-[300px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-                    field.className
-                  )}
-                />
-              ) : field.type === "select" ? (
-                <select
-                  id={field.name}
-                  name={field.name}
-                  defaultValue={field.defaultValue}
-                  multiple={field.multiple}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {field.options?.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              ) : field.type === "number" ? (
-                <input
-                  type="number"
-                  id={field.name}
-                  name={field.name}
-                  defaultValue={field.defaultValue}
-                  min={field.min}
-                  max={field.max}
-                  step={field.step}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              ) : (
-                <input
-                  type="text"
-                  id={field.name}
-                  name={field.name}
-                  defaultValue={field.defaultValue as string}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
               )}
             </div>
           ))}
@@ -121,7 +113,7 @@ export function FormDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" className={submitButtonClassName}>
+            <Button type="submit" className={submitButtonClassName} aria-label="Save changes">
               Save
             </Button>
           </div>

@@ -58,10 +58,11 @@ export const agentsService = {
   /**
    * Get an agent by ID
    */
-  async getById(id: string) {
-    const result = await prisma.prompts.findUnique({
+  async getById(id: string, workspaceId: string) {
+    const result = await prisma.prompts.findFirst({
       where: {
         id,
+        workspaceId
       },
     });
 
@@ -114,11 +115,14 @@ export const agentsService = {
    * Update an agent
    * If isRouter is set to true, set all other agents' isRouter to false
    */
-  async update(id: string, data: UpdateAgentData) {
+  async update(id: string, workspaceId: string, data: UpdateAgentData) {
     console.log(`Updating agent ${id} with data:`, data);
     
-    const agent = await prisma.prompts.findUnique({
-      where: { id }
+    const agent = await prisma.prompts.findFirst({
+      where: { 
+        id,
+        workspaceId
+      }
     });
 
     if (!agent) {
@@ -134,7 +138,7 @@ export const agentsService = {
         // Set isRouter to false for all other agents
         await tx.prompts.updateMany({
           where: {
-            workspaceId: agent.workspaceId,
+            workspaceId,
             isRouter: true,
             id: { not: id }, // Exclude this agent
           },
@@ -166,8 +170,21 @@ export const agentsService = {
   /**
    * Delete an agent
    */
-  async delete(id: string) {
+  async delete(id: string, workspaceId: string) {
     console.log(`Deleting agent ${id}`);
+    
+    // First check if agent exists in this workspace
+    const agent = await prisma.prompts.findFirst({
+      where: { 
+        id,
+        workspaceId
+      }
+    });
+
+    if (!agent) {
+      throw new Error("Agent not found");
+    }
+
     return prisma.prompts.delete({
       where: { id },
     });
@@ -176,11 +193,14 @@ export const agentsService = {
   /**
    * Duplicate an agent
    */
-  async duplicate(id: string) {
+  async duplicate(id: string, workspaceId: string) {
     console.log(`Duplicating agent ${id}`);
     
-    const agent = await prisma.prompts.findUnique({
-      where: { id }
+    const agent = await prisma.prompts.findFirst({
+      where: { 
+        id,
+        workspaceId
+      }
     });
 
     if (!agent) {

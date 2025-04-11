@@ -20,8 +20,8 @@ export const agentsController = {
    */
   async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params
-      const agent = await agentsService.getById(id)
+      const { id, workspaceId } = req.params
+      const agent = await agentsService.getById(id, workspaceId)
       
       if (!agent) {
         return res.status(404).json({ message: "Agent not found" })
@@ -56,7 +56,7 @@ export const agentsController = {
    */
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params
+      const { id, workspaceId } = req.params
       
       // Esplicito log dei dati ricevuti nel body
       console.log(`Agent update request received for id ${id}:`, req.body)
@@ -74,7 +74,7 @@ export const agentsController = {
         console.log(`isRouter not included in update data`)
       }
       
-      const updatedAgent = await agentsService.update(id, data)
+      const updatedAgent = await agentsService.update(id, workspaceId, data)
       
       if (!updatedAgent) {
         return res.status(404).json({ message: "Agent not found" })
@@ -91,10 +91,10 @@ export const agentsController = {
    */
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params
+      const { id, workspaceId } = req.params
       
       try {
-        await agentsService.delete(id)
+        await agentsService.delete(id, workspaceId)
         res.status(204).send()
       } catch (error: any) {
         // Check if error is because the agent wasn't found
@@ -113,10 +113,10 @@ export const agentsController = {
    */
   async duplicate(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params
+      const { id, workspaceId } = req.params
       console.log(`Duplicate request received for agent ${id}`)
       
-      const duplicatedAgent = await agentsService.duplicate(id)
+      const duplicatedAgent = await agentsService.duplicate(id, workspaceId)
       
       if (!duplicatedAgent) {
         return res.status(404).json({ message: "Agent not found" })

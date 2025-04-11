@@ -44,9 +44,9 @@ export const getAllForWorkspace = async (workspaceId: string): Promise<Service[]
 /**
  * Get a specific service by ID
  */
-export const getById = async (id: string): Promise<Service> => {
+export const getById = async (id: string, workspaceId: string): Promise<Service> => {
   try {
-    const response = await api.get(`/api/services/${id}`)
+    const response = await api.get(`/api/workspaces/${workspaceId}/services/${id}`)
     return response.data
   } catch (error) {
     console.error('Error getting service:', error)
@@ -70,9 +70,9 @@ export const create = async (workspaceId: string, data: CreateServiceData): Prom
 /**
  * Update an existing service
  */
-export const update = async (id: string, data: UpdateServiceData): Promise<Service> => {
+export const update = async (id: string, workspaceId: string, data: UpdateServiceData): Promise<Service> => {
   try {
-    const response = await api.put(`/api/services/${id}`, data)
+    const response = await api.put(`/api/workspaces/${workspaceId}/services/${id}`, data)
     return response.data
   } catch (error) {
     console.error('Error updating service:', error)
@@ -83,9 +83,9 @@ export const update = async (id: string, data: UpdateServiceData): Promise<Servi
 /**
  * Delete a service
  */
-export const delete_ = async (id: string): Promise<void> => {
+export const delete_ = async (id: string, workspaceId: string): Promise<void> => {
   try {
-    await api.delete(`/api/services/${id}`)
+    await api.delete(`/api/workspaces/${workspaceId}/services/${id}`)
   } catch (error) {
     console.error('Error deleting service:', error)
     throw error

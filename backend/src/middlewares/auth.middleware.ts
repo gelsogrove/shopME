@@ -1,54 +1,93 @@
-import { NextFunction, Request, Response } from "express"
-import * as jwt from "jsonwebtoken"
-import { config } from "../config"
+import { UserRole } from '@prisma/client';
+import { Request as ExpressRequest, NextFunction, Response } from 'express';
+import { verify } from 'jsonwebtoken';
+import { prisma } from '../lib/prisma';
 
 // Define our payload type to match what's generated in auth.controller.ts
 interface JwtPayload {
-  userId: string
-  email: string
+  id?: string;
+  userId?: string;
+  email: string;
+  role: UserRole;
+  workspaces?: Array<{
+    id: string;
+    role: UserRole;
+  }>;
 }
 
-// Declare custom properties for the Request object
-declare global {
-  namespace Express {
-    interface Request {
-      user?: JwtPayload;
-      workspaceId?: string;
-    }
-  }
+// Extend the Express Request type
+interface Request extends ExpressRequest {
+  user?: JwtPayload;
+  workspaceId?: string;
 }
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void | Response> => {
   try {
-    // First check for token in cookies
-    const cookieToken = req.cookies.auth_token
+    // First try to get token from cookie
+    let token = req.cookies?.auth_token;
     
-    // Fallback to Authorization header if no cookie
-    const headerToken = req.headers.authorization?.split(" ")[1]
-    
-    const token = cookieToken || headerToken
+    // Fallback to Authorization header
+    if (!token) {
+      const authHeader = req.headers?.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+      }
+    }
     
     if (!token) {
-      return res.status(401).json({ error: "Authentication required" })
+      return res.status(401).json({ message: 'Authentication token is required' });
     }
+
+    const decoded = verify(token, process.env.JWT_SECRET || 'your-secret-key') as JwtPayload;
     
-    // Verify the token using the secret from config
-    const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload
+    // Use either id or userId from the token
+    const userId = decoded.id || decoded.userId;
     
-    // Store the decoded information in the request object
-    req.user = decoded
-    
+    if (!userId) {
+      console.error('No user ID found in token:', decoded);
+      return res.status(401).json({ message: 'Invalid token format' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        workspaces: {
+          include: {
+            workspace: true
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    // Add user to request object
+    req.user = {
+      id: user.id, // Include both id and userId for consistency
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      workspaces: user.workspaces.map(w => ({
+        id: w.workspace.id,
+        role: w.role
+      }))
+    };
+
     // Get workspaceId from query params or headers
-    const workspaceId = req.query.workspaceId as string || req.headers["x-workspace-id"] as string
+    const workspaceId = (req.query?.workspaceId as string) || (req.headers?.["x-workspace-id"] as string);
     
-    // Store the workspaceId
-    req.workspaceId = workspaceId
+    // Store the workspaceId if present
+    if (workspaceId) {
+      req.workspaceId = workspaceId;
+    }
     
     // TODO: Implement workspace access verification if needed
     
-    next()
+    next();
   } catch (error) {
-    console.error("Authentication error:", error)
-    return res.status(401).json({ error: "Invalid token" })
+    console.error('Auth middleware error:', error);
+    return res.status(401).json({ message: 'Invalid or expired token' });
   }
-} 
+}; 

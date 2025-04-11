@@ -1,7 +1,6 @@
 import SettingsPage from "@/pages/SettingsPage"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { Layout } from "./components/layout/Layout"
-import { AgentsPage } from "./pages/AgentsPage"
 import { AnalyticsPage } from "./pages/AnalyticsPage"
 import SignupPage from "./pages/auth/SignupPage"
 import { ChatPage } from "./pages/ChatPage"
@@ -16,7 +15,7 @@ import PlansPage from "./pages/PlansPage"
 import CategoriesPage from "./pages/products/CategoriesPage"
 import { ProductsPage } from "./pages/ProductsPage"
 import ProfilePage from "./pages/ProfilePage"
-import ServicesPage from "./pages/ServicesPage"
+import { ServicesPage } from "./pages/ServicesPage"
 import { ChannelTypesPage } from "./pages/settings/ChannelTypesPage"
 import { LanguagesPage } from "./pages/settings/LanguagesPage"
 import { VerifyOtpPage } from "./pages/VerifyOtpPage"
@@ -61,9 +60,6 @@ export function App() {
         <Route path="/products" element={<Layout />}>
           <Route index element={<ProductsPage />} />
           <Route path="categories" element={<CategoriesPage />} />
-        </Route>
-        <Route path="/agents" element={<Layout />}>
-          <Route index element={<AgentsPage />} />
         </Route>
         <Route path="/services" element={<Layout />}>
           <Route index element={<ServicesPage />} />

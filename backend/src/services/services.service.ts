@@ -38,10 +38,13 @@ export const servicesService = {
     }
   },
 
-  async getById(id: string) {
+  async getById(id: string, workspaceId: string) {
     // @ts-ignore - Prisma types issue
-    return prisma.services.findUnique({
-      where: { id }
+    return prisma.services.findFirst({
+      where: { 
+        id,
+        workspaceId 
+      }
     });
   },
 
@@ -56,20 +59,19 @@ export const servicesService = {
         price,
         currency,
         isActive,
-        workspace: {
-          connect: {
-            id: workspaceId
-          }
-        }
+        workspaceId
       }
     });
   },
 
-  async update(id: string, data: UpdateServiceData) {
+  async update(id: string, workspaceId: string, data: UpdateServiceData) {
     // First check if service exists
     // @ts-ignore - Prisma types issue
-    const existingService = await prisma.services.findUnique({
-      where: { id }
+    const existingService = await prisma.services.findFirst({
+      where: { 
+        id,
+        workspaceId 
+      }
     });
     
     if (!existingService) {
@@ -91,10 +93,26 @@ export const servicesService = {
     });
   },
 
-  async delete(id: string) {
+  async delete(id: string, workspaceId: string) {
+    // First check if service exists
     // @ts-ignore - Prisma types issue
-    return prisma.services.delete({
-      where: { id }
+    const existingService = await prisma.services.findFirst({
+      where: { 
+        id,
+        workspaceId 
+      }
+    });
+    
+    if (!existingService) {
+      throw new Error("Service not found");
+    }
+
+    // @ts-ignore - Prisma types issue
+    return prisma.services.deleteMany({
+      where: { 
+        id,
+        workspaceId
+      }
     });
   },
 } 

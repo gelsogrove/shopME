@@ -109,7 +109,7 @@ export default function CategoriesPage() {
 
   const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!selectedCategory) return
+    if (!selectedCategory || !workspace?.id) return
 
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
@@ -123,7 +123,7 @@ export default function CategoriesPage() {
     }
 
     try {
-      await categoriesApi.update(selectedCategory.id, {
+      await categoriesApi.update(selectedCategory.id, workspace.id, {
         name,
         description
       })
@@ -146,10 +146,10 @@ export default function CategoriesPage() {
   }
 
   const handleDeleteConfirm = async () => {
-    if (!selectedCategory) return
+    if (!selectedCategory || !workspace?.id) return
     
     try {
-      await categoriesApi.delete(selectedCategory.id)
+      await categoriesApi.delete(selectedCategory.id, workspace.id)
       
       toast.success("Category deleted successfully")
       setShowDeleteDialog(false)

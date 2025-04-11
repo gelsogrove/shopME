@@ -362,8 +362,8 @@ export function AgentsPage() {
     e.preventDefault();
     console.log("Edit form submitted");
     
-    if (!selectedAgent) {
-      console.error("No agent selected for edit");
+    if (!selectedAgent || !workspaceId) {
+      console.error("No agent selected for edit or no workspace ID");
       return;
     }
     
@@ -398,7 +398,7 @@ export function AgentsPage() {
         return;
       }
       
-      const updatedAgent = await updateAgent(selectedAgent.id, {
+      const updatedAgent = await updateAgent(workspaceId, selectedAgent.id, {
         name,
         content,
         isRouter,
@@ -429,11 +429,14 @@ export function AgentsPage() {
   }
 
   const handleDeleteConfirm = async () => {
-    if (!selectedAgent) return;
+    if (!selectedAgent || !workspaceId) {
+      console.error("No agent selected for delete or no workspace ID");
+      return;
+    }
     
     try {
       console.log("Confirming deletion of agent:", selectedAgent.id);
-      await deleteAgent(selectedAgent.id);
+      await deleteAgent(workspaceId, selectedAgent.id);
       
       // Update local state
       setAgents(agents.filter(agent => agent.id !== selectedAgent.id));
@@ -448,9 +451,14 @@ export function AgentsPage() {
   }
 
   const handleDuplicate = async (agent: Agent) => {
+    if (!workspaceId) {
+      console.error("No workspace ID available");
+      return;
+    }
+
     try {
       console.log("Duplicating agent:", agent.id);
-      const duplicated = await duplicateAgent(agent.id);
+      const duplicated = await duplicateAgent(workspaceId, agent.id);
       setAgents([...agents, duplicated]);
       toast.success(`Agent "${agent.name}" duplicated successfully`);
     } catch (error) {
