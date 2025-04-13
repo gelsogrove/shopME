@@ -130,8 +130,16 @@ export const agentsService = {
       return null;
     }
 
+    // Process the department field - ensure it's null for router agents
+    const processedData = {
+      ...data,
+      department: data.isRouter === true ? null : (data.department || agent.department)
+    };
+
+    console.log(`Processed update data:`, processedData);
+
     // If we're trying to set this agent as router
-    if (data.isRouter === true) {
+    if (processedData.isRouter === true) {
       console.log(`Setting agent ${id} as router and removing router status from others`);
       // Start a transaction
       return prisma.$transaction(async (tx) => {
@@ -150,7 +158,7 @@ export const agentsService = {
         // Update this agent
         const updated = await tx.prompts.update({
           where: { id },
-          data,
+          data: processedData,
         });
 
         return updated;
@@ -161,7 +169,7 @@ export const agentsService = {
     console.log(`Regular update for agent ${id}`);
     const updated = await prisma.prompts.update({
       where: { id },
-      data,
+      data: processedData,
     });
 
     return updated;

@@ -211,10 +211,74 @@ async function main() {
     }
   }
 
+  // Create agents for L'Altra Italia
+  const agents = [
+    // ... existing agents code ...
+  ];
+
+  // Create or update agents
+  for (const agent of agents) {
+    // ... existing code ...
+  }
+
+  // Create services for L'Altra Italia
+  const services = [
+    {
+      name: "Insurance",
+      description: "Product insurance service for your valuable items. Covers damage during shipping and handling.",
+      price: 30.0,
+      currency: "EUR",
+      isActive: true,
+      workspaceId: createdWorkspaces[0].id
+    },
+    {
+      name: "Shipping",
+      description: "Premium shipping service with tracking and guaranteed delivery within 3-5 business days.",
+      price: 30.0,
+      currency: "EUR",
+      isActive: true,
+      workspaceId: createdWorkspaces[0].id
+    },
+    {
+      name: "Gift Package",
+      description: "Luxury gift wrapping service with personalized message and premium packaging materials.",
+      price: 30.0,
+      currency: "EUR",
+      isActive: true,
+      workspaceId: createdWorkspaces[0].id
+    }
+  ];
+  
+  // Create or update services
+  for (const service of services) {
+    const existingService = await prisma.services.findFirst({
+      where: {
+        name: service.name,
+        workspaceId: service.workspaceId
+      }
+    });
+
+    if (!existingService) {
+      await prisma.services.create({
+        data: service
+      });
+      console.log(`Service created: ${service.name}`);
+    } else {
+      // Update existing service
+      await prisma.services.update({
+        where: { id: existingService.id },
+        data: service
+      });
+      console.log(`Service updated: ${service.name}`);
+    }
+  }
+
   console.log(`Seed completato con successo!`);
   console.log(`- Admin user creato: ${adminEmail}`);
   console.log(`- Workspace creato: ${createdWorkspaces[0].name}`);
   console.log(`- Categorie create/esistenti: ${foodCategories.length}`);
+  console.log(`- Agents creati/aggiornati: ${agents.length}`);
+  console.log(`- Services creati/aggiornati: ${services.length}`);
 }
 
 main()

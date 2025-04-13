@@ -4,25 +4,25 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { Button } from "@/components/ui/button"
 import MarkdownEditor from "@/components/ui/markdown-editor"
 import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import { Switch } from "@/components/ui/switch"
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import {
-    Agent,
-    createAgent,
-    deleteAgent,
-    duplicateAgent,
-    getWorkspaceAgents,
-    updateAgent
+  Agent,
+  createAgent,
+  deleteAgent,
+  duplicateAgent,
+  getAgents,
+  updateAgent
 } from "@/services/agentsApi"
 import { getCurrentWorkspace } from "@/services/workspaceApi"
 import { Bot, Copy, Loader2, PanelTop, Trash2 } from "lucide-react"
@@ -60,7 +60,7 @@ export function AgentsPage() {
         setWorkspaceId(workspace.id)
         
         if (workspace?.id) {
-          const agentsData = await getWorkspaceAgents(workspace.id)
+          const agentsData = await getAgents(workspace.id)
           setAgents(agentsData)
         }
       } catch (error) {
@@ -278,15 +278,37 @@ export function AgentsPage() {
             <MarkdownEditor
               value={isEdit && selectedAgent ? selectedAgent.content : ""}
               onChange={(value) => {
-                // Ensure content is correctly updated
-                const hiddenInput = document.querySelector('input[name="content"]') as HTMLInputElement;
-                if (hiddenInput) {
-                  hiddenInput.value = value;
+                console.log("Markdown editor content changed:", value.substring(0, 30) + "...");
+                // Verifica se l'input nascosto esiste
+                const hiddenInput = document.querySelector('input[name="content"]');
+                if (!hiddenInput) {
+                  // Se non esiste, crea un nuovo input nascosto
+                  const newInput = document.createElement('input');
+                  newInput.type = 'hidden';
+                  newInput.name = 'content';
+                  newInput.value = value;
+                  
+                  // Trova il form e aggiungi l'input
+                  const form = isEdit ? 
+                    document.getElementById('editAgentForm') : 
+                    document.getElementById('addAgentForm');
+                  
+                  if (form) {
+                    form.appendChild(newInput);
+                    console.log('Input nascosto per content creato e aggiunto al form.');
+                  } else {
+                    console.error('Form non trovato!');
+                  }
+                } else {
+                  // Altrimenti, aggiorna il valore dell'input esistente
+                  (hiddenInput as HTMLInputElement).value = value;
+                  console.log('Input nascosto per content aggiornato.');
                 }
               }}
               name="content"
               minHeight="300px"
             />
+            <input type="hidden" name="content" id="content-input" />
           </div>
         </div>
       </div>
@@ -294,31 +316,74 @@ export function AgentsPage() {
   }
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
+    console.log("handleAdd triggered");
     
     try {
-      const form = e.currentTarget
-      const formData = new FormData(form)
+      const form = e.currentTarget;
+      console.log("Form element:", form);
+      const formData = new FormData(form);
       
-      const name = formData.get("name") as string
-      const content = formData.get("content") as string
-      const isRouter = formData.get("isRouter") === "on"
-      const department = isRouter ? undefined : formData.get("department") as string
+      // Elenchiamo tutti i campi del form per debug
+      console.log("Form data entries:");
+      Array.from(formData.entries()).forEach(([key, value]) => {
+        console.log(`${key}: ${typeof value === 'string' ? value.substring(0, 30) + '...' : value}`);
+      });
+      
+      const name = formData.get("name") as string;
+      let content = formData.get("content") as string;
+      const isRouter = formData.get("isRouter") === "on";
+      const department = isRouter ? undefined : formData.get("department") as string;
+      
+      // Controllo e log esplicito del content 
+      console.log("Content from form:", content);
+      if (!content) {
+        const hiddenContentInput = document.querySelector('input[name="content"]') as HTMLInputElement;
+        if (hiddenContentInput) {
+          content = hiddenContentInput.value;
+          console.log("Content from hidden input:", content);
+        }
+      }
+      
+      console.log("Form submission data:", {
+        name,
+        content: content ? content.substring(0, 30) + "..." : "(empty)",
+        isRouter,
+        department,
+        workspaceId,
+        temperature: tempValue,
+        top_p: topPValue,
+        top_k: topKValue
+      });
       
       if (!name || !content) {
-        toast.error("Please fill in all required fields")
-        return
+        console.error("Missing required fields", { name, content });
+        toast.error("Please fill in all required fields");
+        return;
       }
       
       if (!isRouter && !department) {
-        toast.error("Please select a department for this specialized agent")
-        return
+        console.error("Missing department for non-router agent");
+        toast.error("Please select a department for this specialized agent");
+        return;
       }
       
       if (!workspaceId) {
-        toast.error("No workspace ID available")
-        return
+        console.error("No workspace ID available");
+        toast.error("No workspace ID available");
+        return;
       }
+      
+      console.log("Creating agent with data:", {
+        name,
+        content: content ? content.substring(0, 30) + "..." : "(empty)",
+        isRouter,
+        department,
+        workspaceId,
+        temperature: tempValue,
+        top_p: topPValue,
+        top_k: topKValue
+      });
       
       const newAgent = await createAgent(workspaceId, {
         name,
@@ -328,13 +393,15 @@ export function AgentsPage() {
         temperature: tempValue,
         top_p: topPValue,
         top_k: topKValue
-      })
+      });
       
-      setAgents([...agents, newAgent])
-      setShowAddSheet(false)
-      toast.success("Agent created successfully")
+      console.log("Agent created successfully:", newAgent);
+      setAgents([...agents, newAgent]);
+      setShowAddSheet(false);
+      toast.success("Agent created successfully");
     } catch (error) {
-      toast.error("Failed to create agent")
+      console.error("Failed to create agent:", error);
+      toast.error("Failed to create agent");
     }
   }
 
@@ -355,19 +422,48 @@ export function AgentsPage() {
     
     try {
       const name = formData.get("name") as string
-      const content = formData.get("content") as string
+      let content = formData.get("content") as string
       const isRouter = formData.get("isRouter") === "on"
       const department = isRouter ? undefined : formData.get("department") as string
       
+      // Controllo e log esplicito del content
+      console.log("Content from form:", content);
+      if (!content) {
+        const hiddenContentInput = document.querySelector('input[name="content"]') as HTMLInputElement;
+        if (hiddenContentInput) {
+          content = hiddenContentInput.value;
+          console.log("Content from hidden input:", content);
+        }
+      }
+      
+      console.log("Edit form submission data:", {
+        name,
+        content: content ? content.substring(0, 30) + "..." : "(empty)",
+        isRouter,
+        department,
+      });
+      
       if (!name || !content) {
+        console.error("Missing required fields", { name, content });
         toast.error("Please fill in all required fields")
         return
       }
       
       if (!isRouter && !department) {
+        console.error("Missing department for non-router agent");
         toast.error("Please select a department for this specialized agent")
         return
       }
+      
+      console.log("Updating agent with data:", {
+        name,
+        content: content ? content.substring(0, 30) + "..." : "(empty)",
+        isRouter,
+        department,
+        temperature: tempValue,
+        top_p: topPValue,
+        top_k: topKValue
+      });
       
       const updatedAgent = await updateAgent(workspaceId, selectedAgent.id, {
         name,
@@ -379,6 +475,8 @@ export function AgentsPage() {
         top_k: topKValue
       })
       
+      console.log("Agent updated successfully:", updatedAgent);
+      
       setAgents(agents.map(agent => 
         agent.id === updatedAgent.id ? updatedAgent : agent
       ))
@@ -387,6 +485,7 @@ export function AgentsPage() {
       setSelectedAgent(null)
       toast.success("Agent updated successfully")
     } catch (error) {
+      console.error("Failed to update agent:", error);
       toast.error("Failed to update agent")
     }
   }
@@ -528,11 +627,8 @@ export function AgentsPage() {
                 type="submit" 
                 className="bg-green-600 hover:bg-green-700"
                 onClick={(e) => {
-                  e.preventDefault();
-                  const form = document.getElementById("addAgentForm") as HTMLFormElement;
-                  if (form) {
-                    form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
-                  }
+                  console.log("Save button clicked for Add Agent form");
+                  // Non preveniamo l'evento di default per permettere il submit naturale del form
                 }}
               >
                 Save
@@ -564,14 +660,11 @@ export function AgentsPage() {
                 Cancel
               </Button>
               <Button 
-                type="submit"
+                type="submit" 
                 className="bg-green-600 hover:bg-green-700"
                 onClick={(e) => {
-                  e.preventDefault();
-                  const form = document.getElementById("editAgentForm") as HTMLFormElement;
-                  if (form) {
-                    form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
-                  }
+                  console.log("Save button clicked for Edit Agent form");
+                  // Non preveniamo l'evento di default per permettere il submit naturale del form
                 }}
               >
                 Save
