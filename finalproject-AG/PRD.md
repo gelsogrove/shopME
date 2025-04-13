@@ -105,6 +105,32 @@ The platform is designed for any business that offers products or services to cl
   - development environments and monitoring infrastructure can be phased.
   - Product offerts
 
+### Out of Scope Features
+
+These features have been determined to be completely out of scope for the current version of the product. Unlike Non-Goals (MVP) which will be implemented in future phases, these features are not planned for implementation in the immediate roadmap.
+
+1. **Order Management System:**
+   - Complete order processing and tracking
+   - Order status management
+   - Invoice generation and management
+   - Shipping integration and tracking
+   - Returns and refunds processing
+   - **Rationale:** After evaluation, we've determined that the full order management system requires significant integration with external systems (payment, shipping, etc.) and complex business logic that would extend beyond our current development capacity. Users can still browse products and interact with the chatbot, but actual order processing will need to be handled through external systems.
+
+2. **Marketing Campaign Management:**
+   - Campaign creation and scheduling
+   - A/B testing tools
+   - Campaign analytics
+   - Audience segmentation
+   - **Rationale:** Marketing campaign features require complex integration with analytics and user behavior tracking systems that are beyond our current scope.
+
+3. **Advanced Analytics Dashboard:**
+   - Real-time analytics
+   - Custom report generation
+   - Data visualization tools
+   - Export capabilities
+   - **Rationale:** Advanced analytics require significant data processing and storage capabilities that are not aligned with our current infrastructure plans.
+
 ## 4. Technical Architecture
 
 - **Frontend**: React (latest version) with shadcn/ui library and Tailwind CSS to accelerate development.
@@ -434,8 +460,15 @@ This mechanism protects against spam attacks, prevents AI resource waste, and en
 
 6. **Order Management and Tracking:**
 
-   - Order History: View past purchases and current order status.
-   - Shipment Tracking: Real-time updates on shipment status, sent via WhatsApp or email.
+   > ⚠️ Note: This feature has been moved to Out of Scope. See "Out of Scope Features" section for details.
+   
+   The following functionality was originally planned but is now out of scope:
+   - Order History: View past purchases and current order status
+   - Shipment Tracking: Real-time updates on shipment status
+   - Invoice Management: Generate and download invoices
+   - Returns Processing: Handle product returns and refunds
+
+   For the current version, users can browse products and interact with the chatbot, but actual order processing will need to be handled through external systems.
 
 7. **Client Management:**
 
