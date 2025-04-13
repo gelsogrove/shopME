@@ -56,12 +56,18 @@ const transformWorkspaceRequest = (workspace: CreateWorkspaceData | UpdateWorksp
 }
 
 export const getCurrentWorkspace = async (): Promise<Workspace> => {
-  const workspaceId = sessionStorage.getItem("currentWorkspaceId")
-  if (!workspaceId) {
+  const workspaceStr = sessionStorage.getItem("currentWorkspace")
+  if (!workspaceStr) {
     throw new Error("No workspace selected")
   }
   try {
-    const response = await api.get(`/workspaces/${workspaceId}`)
+    const workspace = JSON.parse(workspaceStr)
+    if (!workspace.id) {
+      throw new Error("Invalid workspace data")
+    }
+    
+    // Get fresh data from API
+    const response = await api.get(`/api/workspaces/${workspace.id}`)
     console.log('API Response - getCurrentWorkspace:', response.data)
     return transformWorkspaceResponse(response.data)
   } catch (error) {
@@ -78,7 +84,7 @@ export const getWorkspaces = async (): Promise<Workspace[]> => {
       throw new Error('User not authenticated')
     }
 
-    const response = await api.get("/workspaces")
+    const response = await api.get("/api/workspaces")
     console.log('API Response - getWorkspaces:', response.data)
     return response.data.map(transformWorkspaceResponse)
   } catch (error) {
@@ -91,14 +97,15 @@ export const getWorkspaces = async (): Promise<Workspace[]> => {
 }
 
 export const getLanguages = async (): Promise<Language[]> => {
-  const workspaceId = sessionStorage.getItem("currentWorkspaceId")
-  if (!workspaceId) {
+  const workspaceStr = sessionStorage.getItem("currentWorkspace")
+  if (!workspaceStr) {
     throw new Error("No workspace selected")
   }
   try {
-    const response = await api.get("/languages", {
+    const workspace = JSON.parse(workspaceStr)
+    const response = await api.get("/api/languages", {
       headers: {
-        "x-workspace-id": workspaceId
+        "x-workspace-id": workspace.id
       }
     })
     console.log('API Response - getLanguages:', response.data)
@@ -111,7 +118,7 @@ export const getLanguages = async (): Promise<Language[]> => {
 
 export const createWorkspace = async (data: CreateWorkspaceData): Promise<Workspace> => {
   try {
-    const response = await api.post("/workspaces", transformWorkspaceRequest(data))
+    const response = await api.post("/api/workspaces", transformWorkspaceRequest(data))
     console.log('API Response - createWorkspace:', response.data)
     return transformWorkspaceResponse(response.data)
   } catch (error) {
@@ -122,7 +129,7 @@ export const createWorkspace = async (data: CreateWorkspaceData): Promise<Worksp
 
 export const updateWorkspace = async (id: string, data: UpdateWorkspaceData): Promise<Workspace> => {
   try {
-    const response = await api.put(`/workspaces/${id}`, transformWorkspaceRequest(data))
+    const response = await api.put(`/api/workspaces/${id}`, transformWorkspaceRequest(data))
     console.log('API Response - updateWorkspace:', response.data)
     return transformWorkspaceResponse(response.data)
   } catch (error) {
@@ -133,7 +140,7 @@ export const updateWorkspace = async (id: string, data: UpdateWorkspaceData): Pr
 
 export const deleteWorkspace = async (id: string): Promise<void> => {
   try {
-    await api.delete(`/workspaces/${id}`)
+    await api.delete(`/api/workspaces/${id}`)
     console.log('Workspace deleted successfully:', id)
   } catch (error) {
     console.error('Error deleting workspace:', error)
