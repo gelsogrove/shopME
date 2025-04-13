@@ -41,15 +41,55 @@ export interface UpdateProductData {
 }
 
 /**
- * Get all products for a workspace
+ * Get all products for a workspace with optional filters and pagination
  */
-export const getAllForWorkspace = async (workspaceId: string): Promise<Product[]> => {
+export const getAllForWorkspace = async (
+  workspaceId: string, 
+  options?: {
+    search?: string;
+    categoryId?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }
+): Promise<{ 
+  products: Product[]; 
+  total: number; 
+  page: number; 
+  totalPages: number 
+}> => {
   try {
-    const response = await api.get(`/api/workspaces/${workspaceId}/products`)
-    return response.data
+    // Construct query parameters
+    const queryParams = new URLSearchParams();
+    queryParams.append('workspaceId', workspaceId);
+    
+    if (options?.search) {
+      queryParams.append('search', options.search);
+    }
+    
+    if (options?.categoryId) {
+      queryParams.append('categoryId', options.categoryId);
+    }
+    
+    if (options?.status) {
+      queryParams.append('status', options.status);
+    }
+    
+    if (options?.page) {
+      queryParams.append('page', options.page.toString());
+    }
+    
+    if (options?.limit) {
+      queryParams.append('limit', options.limit.toString());
+    }
+    
+    const response = await api.get(`/api/workspaces/${workspaceId}/products?${queryParams.toString()}`);
+    console.log('Products API response:', response.data);
+    
+    return response.data;
   } catch (error) {
-    console.error('Error getting products:', error)
-    throw error
+    console.error('Error getting products:', error);
+    throw error;
   }
 }
 

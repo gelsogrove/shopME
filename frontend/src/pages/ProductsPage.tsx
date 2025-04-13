@@ -1,159 +1,27 @@
 import { CategoryBadge } from "@/components/shared/CategoryBadge"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
-import { FormDialog } from "@/components/shared/FormDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { ProductSheet } from "@/components/shared/ProductSheet"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useWorkspace } from "@/hooks/use-workspace"
+import { productsApi, type Product } from "@/services/productsApi"
 import { type ColumnDef } from "@tanstack/react-table"
 import { Package2, Pencil, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { toast } from "react-hot-toast"
 
-interface Product {
+// Define a type that's compatible with both our Product and the ProductSheet component
+interface ProductDisplay {
   id: string
   name: string
   description: string
   price: string
-  categories: string[]
-  quantity: number
   stock: number
-  sku: string
-  categoryId: string
-  image: string
+  categoryId: string | null
+  image: string | null
 }
-
-const initialProducts: Product[] = [
-  {
-    id: "1",
-    name: "Parmigiano Reggiano DOP 24 months",
-    description:
-      "Authentic Parmigiano Reggiano DOP aged 24 months. Intense flavor with a granular texture.",
-    price: "29.99",
-    categories: ["Cheese", "DOP"],
-    quantity: 25,
-    stock: 25,
-    sku: "PRD123",
-    categoryId: "Cheese",
-    image: "https://example.com/parmigiano.jpg",
-  },
-  {
-    id: "2",
-    name: "Gragnano IGP Pasta - Spaghetti",
-    description:
-      "Traditional spaghetti from Gragnano, made with selected durum wheat semolina. Bronze drawn for the perfect texture.",
-    price: "4.99",
-    categories: ["Pasta", "IGP"],
-    quantity: 120,
-    stock: 120,
-    sku: "GRP123",
-    categoryId: "Pasta",
-    image: "https://example.com/spaghetti.jpg",
-  },
-  {
-    id: "3",
-    name: "Tuscan IGP Extra Virgin Olive Oil",
-    description:
-      "Premium extra virgin olive oil from Tuscany with balanced flavor and fruity notes.",
-    price: "19.99",
-    categories: ["Oil", "IGP"],
-    quantity: 48,
-    stock: 48,
-    sku: "TO123",
-    categoryId: "Oil",
-    image: "https://example.com/olive-oil.jpg",
-  },
-  {
-    id: "4",
-    name: "Prosciutto di Parma DOP 24 months",
-    description:
-      "Fine Parma ham aged for 24 months. Sweet flavor and delicate aroma.",
-    price: "24.99",
-    categories: ["Cured Meats", "DOP"],
-    quantity: 15,
-    stock: 15,
-    sku: "PRD456",
-    categoryId: "Cured Meats",
-    image: "https://example.com/prosciutto.jpg",
-  },
-  {
-    id: "5",
-    name: "Aceto Balsamico di Modena IGP",
-    description:
-      "Traditional balsamic vinegar of Modena IGP with a perfect balance of sweet and sour.",
-    price: "14.99",
-    categories: ["Condiments", "IGP"],
-    quantity: 30,
-    stock: 30,
-    sku: "ABM123",
-    categoryId: "Condiments",
-    image: "https://example.com/balsamic-vinegar.jpg",
-  },
-  {
-    id: "6",
-    name: "Mozzarella di Bufala Campana DOP",
-    description:
-      "Fresh buffalo mozzarella DOP from Campania. Soft texture and delicate milk flavor.",
-    price: "9.99",
-    categories: ["Cheese", "DOP"],
-    quantity: 40,
-    stock: 40,
-    sku: "MBD123",
-    categoryId: "Cheese",
-    image: "https://example.com/mozzarella.jpg",
-  },
-  {
-    id: "7",
-    name: "San Marzano DOP Tomatoes",
-    description:
-      "Authentic San Marzano tomatoes grown in the volcanic soil of Mount Vesuvius. Sweet flavor with low acidity.",
-    price: "6.99",
-    categories: ["Vegetables", "DOP"],
-    quantity: 85,
-    stock: 85,
-    sku: "STM123",
-    categoryId: "Vegetables",
-    image: "https://example.com/tomatoes.jpg",
-  },
-  {
-    id: "8",
-    name: "Barolo DOCG Wine",
-    description:
-      "Premium Barolo DOCG wine from Piedmont, made from Nebbiolo grapes. Full-bodied with notes of roses, tar and herbs.",
-    price: "49.99",
-    categories: ["Wine", "DOCG"],
-    quantity: 24,
-    stock: 24,
-    sku: "BW123",
-    categoryId: "Wine",
-    image: "https://example.com/barolo.jpg",
-  },
-  {
-    id: "9",
-    name: "Pistacchi di Bronte DOP",
-    description:
-      "Vibrant green pistachios from Bronte, Sicily. Intensely flavored with sweet and slightly resinous notes.",
-    price: "18.99",
-    categories: ["Nuts", "DOP"],
-    quantity: 35,
-    stock: 35,
-    sku: "PB123",
-    categoryId: "Nuts",
-    image: "https://example.com/pistachios.jpg",
-  },
-  {
-    id: "10",
-    name: "Limoncello di Sorrento IGP",
-    description:
-      "Traditional lemon liqueur made with Sorrento lemons. Bright, sweet and intensely citrusy.",
-    price: "22.99",
-    categories: ["Spirits", "IGP"],
-    quantity: 42,
-    stock: 42,
-    sku: "LS123",
-    categoryId: "Spirits",
-    image: "https://example.com/limoncello.jpg",
-  },
-]
 
 const availableCategories = [
   { value: "Pasta", label: "Pasta" },
@@ -171,91 +39,143 @@ const availableCategories = [
 ]
 
 export function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(initialProducts)
+  const { workspace, loading: isWorkspaceLoading } = useWorkspace()
+  const [products, setProducts] = useState<Product[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [showAddSheet, setShowAddSheet] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<ProductDisplay | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [searchValue, setSearchValue] = useState("")
-  const [showAddDialog, setShowAddDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      if (!workspace?.id) return
+      
+      setIsLoading(true)
+      try {
+        const response = await productsApi.getAllForWorkspace(workspace.id)
+        setProducts(response.products)
+      } catch (error) {
+        console.error("Failed to load products:", error)
+        toast.error("Failed to load products")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    loadProducts()
+  }, [workspace?.id])
 
   // Filter products based on search value
   const filteredProducts = products.filter(
     (product) =>
       product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
       product.description.toLowerCase().includes(searchValue.toLowerCase()) ||
-      product.categories.some((category) =>
-        category.toLowerCase().includes(searchValue.toLowerCase())
-      )
+      (product.categoryId || "").toLowerCase().includes(searchValue.toLowerCase())
   )
 
-  const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!workspace?.id) {
+      toast.error("No workspace selected")
+      return
+    }
+
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
 
-    const newProduct: Product = {
-      id: Math.random().toString(36).substr(2, 9),
+    const newProduct = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
-      price: (formData.get("price") as string).replace("€", "").trim(),
-      categories: formData.getAll("categories") as string[],
-      quantity: parseInt(formData.get("quantity") as string) || 0,
+      price: parseFloat((formData.get("price") as string).replace("€", "").trim()),
       stock: parseInt(formData.get("stock") as string) || 0,
-      sku: formData.get("sku") as string,
       categoryId: formData.get("categoryId") as string,
-      image: formData.get("image") as string,
+      image: formData.get("image") as string || undefined,
+      isActive: true
     }
 
-    setProducts([...products, newProduct])
-    setShowAddSheet(false)
+    try {
+      const createdProduct = await productsApi.create(workspace.id, newProduct)
+      setProducts([...products, createdProduct])
+      toast.success("Product added successfully")
+      setShowAddSheet(false)
+    } catch (error) {
+      console.error("Error adding product:", error)
+      toast.error("Failed to add product")
+    }
   }
 
   const handleEdit = (product: Product) => {
-    setSelectedProduct(product)
+    // Convert the API Product to our ProductDisplay type for the sheet
+    setSelectedProduct({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price.toString(),
+      stock: product.stock,
+      categoryId: product.categoryId,
+      image: product.image
+    })
     setShowEditSheet(true)
   }
 
-  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!selectedProduct) return
+    if (!selectedProduct || !workspace?.id) return
 
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
 
-    const updatedProduct: Product = {
-      ...selectedProduct,
+    const updatedProduct = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
-      price: (formData.get("price") as string).replace("€", "").trim(),
-      categories: formData.getAll("categories") as string[],
-      quantity:
-        parseInt(formData.get("quantity") as string) ||
-        selectedProduct.quantity,
-      stock: parseInt(formData.get("stock") as string) || selectedProduct.stock,
-      sku: formData.get("sku") as string,
-      categoryId: formData.get("categoryId") as string,
-      image: formData.get("image") as string,
+      price: parseFloat((formData.get("price") as string).replace("€", "").trim()),
+      stock: parseInt(formData.get("stock") as string) || 0,
+      categoryId: formData.get("categoryId") as string || undefined,
+      image: formData.get("image") as string || undefined
     }
 
-    setProducts(
-      products.map((p) => (p.id === selectedProduct.id ? updatedProduct : p))
-    )
-    setShowEditSheet(false)
-    setSelectedProduct(null)
+    try {
+      const response = await productsApi.update(selectedProduct.id, workspace.id, updatedProduct)
+      setProducts(products.map(p => p.id === selectedProduct.id ? response : p))
+      toast.success("Product updated successfully")
+      setShowEditSheet(false)
+      setSelectedProduct(null)
+    } catch (error) {
+      console.error("Error updating product:", error)
+      toast.error("Failed to update product")
+    }
   }
 
   const handleDelete = (product: Product) => {
-    setSelectedProduct(product)
+    // Convert the API Product to our ProductDisplay type
+    setSelectedProduct({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price.toString(),
+      stock: product.stock,
+      categoryId: product.categoryId,
+      image: product.image
+    })
     setShowDeleteDialog(true)
   }
 
-  const handleDeleteConfirm = () => {
-    if (!selectedProduct) return
-    setProducts(products.filter((p) => p.id !== selectedProduct.id))
-    setShowDeleteDialog(false)
-    setSelectedProduct(null)
+  const handleDeleteConfirm = async () => {
+    if (!selectedProduct || !workspace?.id) return
+    
+    try {
+      await productsApi.delete(selectedProduct.id, workspace.id)
+      setProducts(products.filter(p => p.id !== selectedProduct.id))
+      toast.success("Product deleted successfully")
+    } catch (error) {
+      console.error("Error deleting product:", error)
+      toast.error("Failed to delete product")
+    } finally {
+      setShowDeleteDialog(false)
+      setSelectedProduct(null)
+    }
   }
 
   const columns: ColumnDef<Product>[] = [
@@ -264,24 +184,37 @@ export function ProductsPage() {
       accessorKey: "name",
     },
     {
-      header: "Categories",
-      accessorKey: "categories",
+      header: "Category",
+      accessorKey: "categoryId",
       cell: ({ row }) => (
         <div className="flex flex-wrap gap-1">
-          {row.original.categories.map((category) => (
-            <CategoryBadge key={category} category={category} />
-          ))}
+          {row.original.categoryId && (
+            <CategoryBadge key={row.original.categoryId} category={row.original.categoryId} />
+          )}
         </div>
       ),
     },
     {
       header: "Price",
       accessorKey: "price",
-      cell: ({ row }) => <span>€{row.original.price}</span>,
+      cell: ({ row }) => <span>€{row.original.price.toFixed(2)}</span>,
     },
     {
-      header: "Quantity",
-      accessorKey: "quantity",
+      header: "Stock",
+      accessorKey: "stock",
+    },
+    {
+      header: "Status",
+      accessorKey: "status",
+      cell: ({ row }) => (
+        <span className={`px-2 py-1 rounded-full text-xs ${
+          row.original.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
+          row.original.status === 'INACTIVE' ? 'bg-gray-100 text-gray-800' :
+          'bg-red-100 text-red-800'
+        }`}>
+          {row.original.status}
+        </span>
+      )
     },
     {
       id: "actions",
@@ -328,6 +261,10 @@ export function ProductsPage() {
     },
   ]
 
+  if (isWorkspaceLoading || isLoading) {
+    return <div className="flex justify-center items-center h-96">Loading products...</div>
+  }
+
   return (
     <div className="container pl-0 pr-4 pt-4 pb-4">
       <div className="grid grid-cols-12 gap-0">
@@ -353,136 +290,21 @@ export function ProductsPage() {
         </div>
       </div>
 
-      <FormDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
+      <ProductSheet
+        product={null}
+        open={showAddSheet}
+        onOpenChange={setShowAddSheet}
         title="Add New Product"
-        description="Create a new product by filling out the form below. All prices are in euros."
-        fields={[
-          {
-            name: "name",
-            label: "Name",
-            type: "text",
-            required: true,
-            description: "The name of the product as it will appear to customers",
-            pattern: ".{3,}",
-          },
-          {
-            name: "description",
-            label: "Description",
-            type: "text",
-            description: "A detailed description of the product",
-          },
-          {
-            name: "price",
-            label: "Price",
-            type: "number",
-            required: true,
-            description: "Product price in euros",
-            min: "0",
-            step: "0.01",
-          },
-          {
-            name: "stock",
-            label: "Stock",
-            type: "number",
-            required: true,
-            description: "Current available quantity",
-            min: "0",
-            step: "1",
-          },
-          {
-            name: "sku",
-            label: "SKU",
-            type: "text",
-            description: "Stock Keeping Unit - unique identifier for the product",
-            pattern: "[A-Za-z0-9-]{3,}",
-          },
-          {
-            name: "categoryId",
-            label: "Category",
-            type: "select",
-            options: availableCategories,
-            description: "Product category for organization and filtering",
-          },
-          {
-            name: "image",
-            label: "Image URL",
-            type: "text",
-            description: "URL to the product image (must be a valid image URL)",
-            pattern: "https?://.+",
-          },
-        ]}
+        availableCategories={availableCategories}
         onSubmit={handleAdd}
       />
 
-      <FormDialog
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
+      <ProductSheet
+        product={selectedProduct}
+        open={showEditSheet}
+        onOpenChange={setShowEditSheet}
         title="Edit Product"
-        description="Update the product information. All prices are in euros."
-        fields={[
-          {
-            name: "name",
-            label: "Name",
-            type: "text",
-            required: true,
-            defaultValue: selectedProduct?.name,
-            description: "The name of the product as it will appear to customers",
-            pattern: ".{3,}",
-          },
-          {
-            name: "description",
-            label: "Description",
-            type: "text",
-            defaultValue: selectedProduct?.description,
-            description: "A detailed description of the product",
-          },
-          {
-            name: "price",
-            label: "Price",
-            type: "number",
-            required: true,
-            defaultValue: selectedProduct?.price.toString(),
-            description: "Product price in euros",
-            min: "0",
-            step: "0.01",
-          },
-          {
-            name: "stock",
-            label: "Stock",
-            type: "number",
-            required: true,
-            defaultValue: selectedProduct?.stock.toString(),
-            description: "Current available quantity",
-            min: "0",
-            step: "1",
-          },
-          {
-            name: "sku",
-            label: "SKU",
-            type: "text",
-            defaultValue: selectedProduct?.sku || '',
-            description: "Stock Keeping Unit - unique identifier for the product",
-            pattern: "[A-Za-z0-9-]{3,}",
-          },
-          {
-            name: "categoryId",
-            label: "Category",
-            type: "select",
-            options: availableCategories,
-            defaultValue: selectedProduct?.categoryId || '',
-            description: "Product category for organization and filtering",
-          },
-          {
-            name: "image",
-            label: "Image URL",
-            type: "text",
-            defaultValue: selectedProduct?.image || '',
-            description: "URL to the product image (must be a valid image URL)",
-            pattern: "https?://.+",
-          },
-        ]}
+        availableCategories={availableCategories}
         onSubmit={handleEditSubmit}
       />
 
