@@ -2,30 +2,16 @@ import axios from "axios"
 
 // Create an axios instance with custom config
 export const api = axios.create({
-  headers: {
-    "Content-Type": "application/json",
-    "Accept": "application/json"
-  },
-  withCredentials: true // Enable sending cookies with requests
+  baseURL: "",
+  withCredentials: true,
 })
-
-console.log("API configured with withCredentials:", api.defaults.withCredentials)
 
 // Add a request interceptor to handle authentication
 api.interceptors.request.use(
   (config) => {
-    // Log request configuration for debugging
-    console.log("Request config:", {
-      url: config.url,
-      method: config.method,
-      withCredentials: config.withCredentials,
-      headers: config.headers,
-      data: config.data
-    })
     return config
   },
   (error) => {
-    console.error("Request error:", error)
     return Promise.reject(error)
   }
 )
@@ -33,40 +19,23 @@ api.interceptors.request.use(
 // Add a response interceptor to handle errors
 api.interceptors.response.use(
   (response) => {
-    console.log("Response:", {
-      status: response.status,
-      data: response.data,
-      headers: response.headers
-    })
     return response
   },
   (error) => {
-    console.error("API Error:", {
-      status: error.response?.status,
-      data: error.response?.data,
-      headers: error.response?.headers
-    })
-
     if (error.response?.status === 401) {
-      // Clear any stored user data
-      localStorage.removeItem("user")
-      // Only redirect to login if we're not already there
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = "/auth/login"
-      }
+      window.location.href = "/login"
     }
     return Promise.reject(error)
   }
 )
 
 // Check if the user is authenticated
-export const checkAuth = async () => {
+export async function checkAuth(): Promise<boolean> {
   try {
-    const response = await api.get('/api/auth/me')
-    return response.data
+    await api.get("/api/auth/me")
+    return true
   } catch (error) {
-    console.error("Auth check failed:", error)
-    return null
+    return false
   }
 }
 

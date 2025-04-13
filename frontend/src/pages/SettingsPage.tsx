@@ -179,18 +179,31 @@ export default function SettingsPage() {
   };
 
   const handleDelete = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await deleteWorkspace(workspace.id)
-      navigate("/workspace-selection")
+      // Check if we have a workspace in state
+      if (!workspace || !workspace.id) {
+        throw new Error("No workspace found to delete");
+      }
+
+      console.log("Attempting to delete workspace with ID:", workspace.id);
+      await deleteWorkspace(workspace.id);
+      
+      // Clear workspace from session storage
+      sessionStorage.removeItem("currentWorkspace");
+      sessionStorage.removeItem("currentWorkspaceName");
+      sessionStorage.removeItem("currentWorkspaceType");
+      
+      toast.success("Workspace deleted successfully");
+      navigate("/workspace-selection");
     } catch (error) {
-      console.error("Failed to delete workspace:", error)
-      toast.error("Failed to delete workspace")
+      console.error("Failed to delete workspace:", error);
+      toast.error("Failed to delete workspace: " + (error instanceof Error ? error.message : "Unknown error"));
     } finally {
-      setIsLoading(false)
-      setShowDeleteDialog(false)
+      setIsLoading(false);
+      setShowDeleteDialog(false);
     }
-  }
+  };
 
   if (isPageLoading) {
     return (

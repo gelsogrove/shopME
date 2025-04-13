@@ -1,4 +1,5 @@
-import { api } from './api'
+import { Agent, CreateAgentData, UpdateAgentData } from "@/types/agent"
+import { api } from "./api"
 
 export interface Agent {
   id: string
@@ -37,99 +38,85 @@ export interface UpdateAgentData {
 /**
  * Get all agents for a workspace
  */
-export const getWorkspaceAgents = async (workspaceId: string): Promise<Agent[]> => {
+export const getAgents = async (workspaceId: string): Promise<Agent[]> => {
   try {
-    console.log(`API: Starting to fetch agents for workspace ${workspaceId}`);
-    console.log(`API: Making request to /api/workspaces/${workspaceId}/agents`);
-    
-    const response = await api.get(`/api/workspaces/${workspaceId}/agents`);
-    
-    console.log(`API: Response status:`, response.status);
-    console.log(`API: Response headers:`, response.headers);
-    console.log(`API: Received ${response.data?.length || 0} agents:`, response.data);
-    
-    return response.data;
+    const response = await api.get<Agent[]>(`/api/workspaces/${workspaceId}/agents`)
+    return response.data
   } catch (error) {
-    console.error('API: Error getting agents:', error);
-    console.error('API: Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      status: (error as any)?.response?.status,
-      data: (error as any)?.response?.data
-    });
-    throw error;
+    console.error("Error getting agents:", error)
+    throw error
   }
-};
+}
 
 /**
  * Get a specific agent by ID
  */
 export const getAgent = async (workspaceId: string, agentId: string): Promise<Agent> => {
   try {
-    console.log(`API: Fetching agent ${agentId} from workspace ${workspaceId}`);
-    const response = await api.get(`/api/workspaces/${workspaceId}/agents/${agentId}`);
-    console.log(`API: Received agent`, response.data);
-    return response.data;
+    const response = await api.get<Agent>(`/api/workspaces/${workspaceId}/agents/${agentId}`)
+    return response.data
   } catch (error) {
-    console.error('Error getting agent:', error);
-    throw error;
+    console.error("Error getting agent:", error)
+    throw error
   }
-};
+}
 
 /**
  * Create a new agent for a workspace
  */
 export const createAgent = async (workspaceId: string, data: CreateAgentData): Promise<Agent> => {
   try {
-    console.log(`API: Creating agent for workspace ${workspaceId}`, data);
-    const response = await api.post(`/api/workspaces/${workspaceId}/agents`, data);
-    console.log(`API: Created agent:`, response.data);
-    return response.data;
+    const response = await api.post<Agent>(`/api/workspaces/${workspaceId}/agents`, data)
+    return response.data
   } catch (error) {
-    console.error('Error creating agent:', error);
-    throw error;
+    console.error("Error creating agent:", error)
+    throw error
   }
-};
+}
 
 /**
  * Update an existing agent
  */
-export const updateAgent = async (workspaceId: string, agentId: string, data: UpdateAgentData): Promise<Agent> => {
+export const updateAgent = async (
+  workspaceId: string,
+  agentId: string,
+  data: UpdateAgentData
+): Promise<Agent> => {
   try {
-    console.log(`API: Updating agent ${agentId} in workspace ${workspaceId}`, data);
-    const response = await api.put(`/api/workspaces/${workspaceId}/agents/${agentId}`, data);
-    console.log(`API: Updated agent:`, response.data);
-    return response.data;
+    const response = await api.put<Agent>(
+      `/api/workspaces/${workspaceId}/agents/${agentId}`,
+      data
+    )
+    return response.data
   } catch (error) {
-    console.error('Error updating agent:', error);
-    throw error;
+    console.error("Error updating agent:", error)
+    throw error
   }
-};
+}
 
 /**
  * Delete an agent
  */
 export const deleteAgent = async (workspaceId: string, agentId: string): Promise<void> => {
   try {
-    console.log(`API: Deleting agent ${agentId} from workspace ${workspaceId}`);
-    await api.delete(`/api/workspaces/${workspaceId}/agents/${agentId}`);
-    console.log(`API: Deleted agent ${agentId}`);
+    await api.delete(`/api/workspaces/${workspaceId}/agents/${agentId}`)
   } catch (error) {
-    console.error('Error deleting agent:', error);
-    throw error;
+    console.error("Error deleting agent:", error)
+    throw error
   }
-};
+}
 
 /**
  * Duplicate an agent
  */
 export const duplicateAgent = async (workspaceId: string, agentId: string): Promise<Agent> => {
   try {
-    console.log(`API: Duplicating agent ${agentId} in workspace ${workspaceId}`);
-    const response = await api.post(`/api/workspaces/${workspaceId}/agents/${agentId}/duplicate`);
-    console.log(`API: Duplicated agent:`, response.data);
-    return response.data;
+    const response = await api.post<Agent>(
+      `/api/workspaces/${workspaceId}/agents/${agentId}/duplicate`
+    )
+    return response.data
   } catch (error) {
-    console.error('Error duplicating agent:', error);
-    throw error;
+    console.error("Error duplicating agent:", error)
+    throw error
   }
-}; 
+} 

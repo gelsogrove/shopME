@@ -33,7 +33,7 @@ export const getUserProfile = async (): Promise<UserProfile> => {
 export const updateUserProfile = async (data: UpdateProfileData): Promise<UserProfile> => {
   try {
     const response = await api.put("/api/users/profile", data)
-    return response.data.user
+    return response.data
   } catch (error) {
     console.error("Error updating user profile:", error)
     throw error

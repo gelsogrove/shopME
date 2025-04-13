@@ -46,7 +46,8 @@ export function WorkspaceSelectionPage() {
     // Usa la nuova funzione per salvare il workspace
     setCurrentWorkspace(workspace)
     
-    // Salva il tipo di workspace
+    // Salva il numero di telefono e il tipo di workspace
+    sessionStorage.setItem("currentWorkspaceName", workspace.whatsappPhoneNumber || workspace.name)
     sessionStorage.setItem("currentWorkspaceType", selectedType || "Shop")
     
     // Reindirizza alla chat history dopo la selezione

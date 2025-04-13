@@ -12,6 +12,7 @@ import { api } from "@/services/api"
 import { getUserProfile } from "@/services/userApi"
 import { ArrowLeftRight, CreditCard, LogOut, Phone, Settings, User } from "lucide-react"
 import { useEffect, useState } from "react"
+import { toast } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
 
 export function Header() {
@@ -68,23 +69,18 @@ export function Header() {
   // Handle logout
   const handleLogout = async () => {
     try {
-      // Call the logout endpoint
       await api.post("/api/auth/logout")
       
-      // Clear user data from localStorage
+      // Clear all localStorage and sessionStorage data
       localStorage.removeItem("user")
-      
-      // Clear any other session data
+      sessionStorage.removeItem("currentWorkspace")
       sessionStorage.removeItem("currentWorkspaceName")
       sessionStorage.removeItem("currentWorkspaceType")
       
-      // Redirect to login page
-      navigate("/auth/login")
+      navigate("/login")
     } catch (error) {
-      console.error("Logout failed:", error)
-      // Even if the API call fails, still clear local storage and redirect
-      localStorage.removeItem("user")
-      navigate("/auth/login")
+      console.error("Error logging out:", error)
+      toast.error("Failed to logout")
     }
   }
 
