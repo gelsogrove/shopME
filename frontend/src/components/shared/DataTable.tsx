@@ -75,8 +75,7 @@ export function DataTable<TData>({
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        console.log("Edit button clicked directly in DataTable", row.original);
-                        onEdit(row.original);
+                        handleEdit(row);
                       }}
                       className={commonStyles.buttonGhost}
                     >
@@ -99,8 +98,7 @@ export function DataTable<TData>({
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        console.log("Delete button clicked directly in DataTable", row.original);
-                        onDelete(row.original);
+                        handleDelete(row);
                       }}
                       className="hover:bg-red-50"
                     >
@@ -140,6 +138,18 @@ export function DataTable<TData>({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
   })
+
+  const handleEdit = (row: Row<TData>) => {
+    if (onEdit) {
+      onEdit(row.original)
+    }
+  }
+
+  const handleDelete = (row: Row<TData>) => {
+    if (onDelete) {
+      onDelete(row.original)
+    }
+  }
 
   return (
     <div className="space-y-4">

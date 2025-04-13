@@ -24,11 +24,6 @@ const mainLinks = [
     icon: Users,
   },
   {
-    href: "/orders",
-    label: "Orders",
-    icon: ShoppingCart,
-  },
-  {
     href: "/products",
     label: "Products",
     icon: Package2,
@@ -49,13 +44,18 @@ const mainLinks = [
     icon: Bot,
   },
   {
+    href: "/orders",
+    label: "Orders (WIP)",
+    icon: ShoppingCart,
+  },
+  {
     href: "/notifications",
-    label: "Push Notifications",
+    label: "Push Notifications (WIP)",
     icon: Bell,
   },
   {
     href: "/analytics",
-    label: "Analytics",
+    label: "Analytics (WIP)",
     icon: LayoutGrid,
   },
 ]

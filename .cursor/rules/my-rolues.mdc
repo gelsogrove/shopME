@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 ## 🧠 Cursor Rules
  
@@ -21,5 +21,10 @@ alwaysApply: true
 - ⛔ **Non effettuare `git commit` o `git push`.** Solo **IO POSSO FARLO** puoi pero lanciare npm run build ovviamente
 - quando cambi IL PDR.MD o task-list.md fai un backup
 - non devi usare o lanciare porte FE e' 3000 e BE e' 30001
+- rimani nel contesto di quello che ti chiedo senza uscire 
+- verifica che la risposta e' idonea alla domanda
+- se hai punti dubbi analizza la frase e dammi i dubbi che hai prima di ininziare
+- se quaclsao non e' specificato non eseguire chiedi 
+
 
  

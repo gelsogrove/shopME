@@ -1,6 +1,7 @@
 import { commonStyles } from "@/styles/common"
 import { MessageSquare, Pencil, Plus, Search, Trash2, Users } from "lucide-react"
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { PageHeader } from "../components/shared/PageHeader"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
@@ -64,6 +65,10 @@ export default function CustomersPage() {
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "inactive"
   >("all")
+  const [selectedCustomerId, setSelectedCustomerId] = useState("")
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const navigate = useNavigate()
 
   const filteredCustomers = customers.filter((customer) => {
     const matchesSearch =
@@ -76,18 +81,17 @@ export default function CustomersPage() {
   })
 
   const handleEdit = (customerId: string) => {
-    console.log(`Editing customer ${customerId}`)
-    // Implement edit logic
+    setSelectedCustomerId(customerId)
+    setShowEditDialog(true)
   }
 
   const handleDelete = (customerId: string) => {
-    console.log(`Deleting customer ${customerId}`)
-    // Implement delete logic
+    setSelectedCustomerId(customerId)
+    setShowDeleteDialog(true)
   }
 
   const handleChat = (customerId: string) => {
-    console.log(`Opening chat with customer ${customerId}`)
-    // Implement chat logic
+    navigate(`/chat/${customerId}`)
   }
 
   return (

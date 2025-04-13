@@ -55,32 +55,18 @@ export function AgentsPage() {
     const loadData = async () => {
       try {
         setIsLoading(true)
-        console.log("Starting to load workspace data...")
-        
-        // Check sessionStorage directly
         const storedWorkspaceId = sessionStorage.getItem("currentWorkspaceId")
-        console.log("WorkspaceId from sessionStorage:", storedWorkspaceId)
-        
         const workspace = await getCurrentWorkspace()
-        console.log("Workspace loaded:", workspace)
         setWorkspaceId(workspace.id)
-        console.log("Workspace ID set:", workspace.id)
         
-        console.log("Fetching agents for workspace:", workspace.id)
-        const agentsData = await getWorkspaceAgents(workspace.id)
-        console.log("Agents data received:", agentsData)
-        setAgents(agentsData)
-        console.log("Agents state updated with", agentsData.length, "agents")
-      } catch (error) {
-        console.error("Detailed error loading agents:", error)
-        if (error instanceof Error) {
-          toast.error(`Failed to load agents: ${error.message}`)
-        } else {
-          toast.error("Failed to load agents: Unknown error")
+        if (workspace?.id) {
+          const agentsData = await getWorkspaceAgents(workspace.id)
+          setAgents(agentsData)
         }
+      } catch (error) {
+        toast.error("Failed to load agents")
       } finally {
         setIsLoading(false)
-        console.log("Loading state set to false")
       }
     }
     
@@ -308,43 +294,30 @@ export function AgentsPage() {
   }
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("Add form submitted");
+    e.preventDefault()
     
     try {
-      const form = e.currentTarget;
-      const formData = new FormData(form);
+      const form = e.currentTarget
+      const formData = new FormData(form)
       
-      // Extract form values
-      const name = formData.get("name") as string;
-      const content = formData.get("content") as string;
-      const isRouter = formData.get("isRouter") === "on";
-      const department = isRouter ? undefined : formData.get("department") as string;
-      
-      console.log("Creating agent with values:", {
-        name,
-        content: content ? `${content.substring(0, 30)}...` : null,
-        isRouter,
-        department,
-        temperature: tempValue,
-        top_p: topPValue,
-        top_k: topKValue,
-        workspaceId
-      });
+      const name = formData.get("name") as string
+      const content = formData.get("content") as string
+      const isRouter = formData.get("isRouter") === "on"
+      const department = isRouter ? undefined : formData.get("department") as string
       
       if (!name || !content) {
-        toast.error("Please fill in all required fields");
-        return;
+        toast.error("Please fill in all required fields")
+        return
       }
       
       if (!isRouter && !department) {
-        toast.error("Please select a department for this specialized agent");
-        return;
+        toast.error("Please select a department for this specialized agent")
+        return
       }
       
       if (!workspaceId) {
-        toast.error("No workspace ID available");
-        return;
+        toast.error("No workspace ID available")
+        return
       }
       
       const newAgent = await createAgent(workspaceId, {
@@ -355,61 +328,45 @@ export function AgentsPage() {
         temperature: tempValue,
         top_p: topPValue,
         top_k: topKValue
-      });
+      })
       
-      setAgents([...agents, newAgent]);
-      setShowAddSheet(false);
-      toast.success("Agent created successfully");
+      setAgents([...agents, newAgent])
+      setShowAddSheet(false)
+      toast.success("Agent created successfully")
     } catch (error) {
-      console.error("Error creating agent:", error);
-      toast.error("Failed to create agent");
+      toast.error("Failed to create agent")
     }
   }
 
   const handleEdit = (agent: Agent) => {
-    console.log("Editing agent:", agent);
-    setSelectedAgent(agent);
-    setShowEditSheet(true);
+    setSelectedAgent(agent)
+    setShowEditSheet(true)
   }
 
   const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("Edit form submitted");
+    e.preventDefault()
     
     if (!selectedAgent || !workspaceId) {
-      console.error("No agent selected for edit or no workspace ID");
-      return;
+      return
     }
     
-    const form = e.currentTarget;
-    const formData = new FormData(form);
+    const form = e.currentTarget
+    const formData = new FormData(form)
     
     try {
-      // Extract form values
-      const name = formData.get("name") as string;
-      const content = formData.get("content") as string;
-      const isRouter = formData.get("isRouter") === "on";
-      const department = isRouter ? undefined : formData.get("department") as string;
-      
-      console.log("Updating agent with values:", {
-        id: selectedAgent.id,
-        name,
-        content: content ? `${content.substring(0, 30)}...` : null,
-        isRouter,
-        department,
-        temperature: tempValue,
-        top_p: topPValue,
-        top_k: topKValue
-      });
+      const name = formData.get("name") as string
+      const content = formData.get("content") as string
+      const isRouter = formData.get("isRouter") === "on"
+      const department = isRouter ? undefined : formData.get("department") as string
       
       if (!name || !content) {
-        toast.error("Please fill in all required fields");
-        return;
+        toast.error("Please fill in all required fields")
+        return
       }
       
       if (!isRouter && !department) {
-        toast.error("Please select a department for this specialized agent");
-        return;
+        toast.error("Please select a department for this specialized agent")
+        return
       }
       
       const updatedAgent = await updateAgent(workspaceId, selectedAgent.id, {
@@ -420,64 +377,53 @@ export function AgentsPage() {
         temperature: tempValue,
         top_p: topPValue,
         top_k: topKValue
-      });
+      })
       
-      // Update local state
       setAgents(agents.map(agent => 
         agent.id === updatedAgent.id ? updatedAgent : agent
-      ));
+      ))
       
-      setShowEditSheet(false);
-      setSelectedAgent(null);
-      toast.success("Agent updated successfully");
+      setShowEditSheet(false)
+      setSelectedAgent(null)
+      toast.success("Agent updated successfully")
     } catch (error) {
-      console.error("Error updating agent:", error);
-      toast.error("Failed to update agent");
+      toast.error("Failed to update agent")
     }
   }
 
   const handleDelete = (agent: Agent) => {
-    console.log("Deleting agent:", agent);
-    setSelectedAgent(agent);
-    setShowDeleteDialog(true);
+    setSelectedAgent(agent)
+    setShowDeleteDialog(true)
   }
 
   const handleDeleteConfirm = async () => {
     if (!selectedAgent || !workspaceId) {
-      console.error("No agent selected for delete or no workspace ID");
-      return;
+      return
     }
     
     try {
-      console.log("Confirming deletion of agent:", selectedAgent.id);
-      await deleteAgent(workspaceId, selectedAgent.id);
-      
-      // Update local state
-      setAgents(agents.filter(agent => agent.id !== selectedAgent.id));
-      toast.success("Agent deleted successfully");
+      await deleteAgent(workspaceId, selectedAgent.id)
+      setAgents(agents.filter(agent => agent.id !== selectedAgent.id))
+      toast.success("Agent deleted successfully")
     } catch (error) {
-      console.error("Error deleting agent:", error);
-      toast.error("Failed to delete agent");
+      toast.error("Failed to delete agent")
     } finally {
-      setShowDeleteDialog(false);
-      setSelectedAgent(null);
+      setShowDeleteDialog(false)
+      setSelectedAgent(null)
     }
   }
 
   const handleDuplicate = async (agent: Agent) => {
     if (!workspaceId) {
-      console.error("No workspace ID available");
-      return;
+      return
     }
 
     try {
-      console.log("Duplicating agent:", agent.id);
-      const duplicated = await duplicateAgent(workspaceId, agent.id);
-      setAgents([...agents, duplicated]);
-      toast.success(`Agent "${agent.name}" duplicated successfully`);
+      const duplicated = await duplicateAgent(workspaceId, agent.id)
+      setAgents([...agents, duplicated])
+      toast.success(`Agent "${agent.name}" duplicated successfully`)
     } catch (error) {
-      console.error("Error duplicating agent:", error);
-      toast.error("Failed to duplicate agent");
+      toast.error("Failed to duplicate agent")
     }
   }
 
@@ -504,7 +450,6 @@ export function AgentsPage() {
             searchPlaceholder="Search agents..."
             itemCount={filteredAgents.length}
             onAdd={() => {
-              console.log("Add button clicked");
               setShowAddSheet(true);
             }}
             addButtonText="Add Agent"
@@ -560,7 +505,6 @@ export function AgentsPage() {
 
       {/* Add Agent Sheet */}
       <Sheet open={showAddSheet} onOpenChange={(open) => {
-        console.log("Add sheet state changing to:", open);
         setShowAddSheet(open);
       }}>
         <SheetContent side="right" className="sm:max-w-[80%] flex flex-col p-0">
@@ -585,12 +529,9 @@ export function AgentsPage() {
                 className="bg-green-600 hover:bg-green-700"
                 onClick={(e) => {
                   e.preventDefault();
-                  console.log("Save button clicked, submitting form");
                   const form = document.getElementById("addAgentForm") as HTMLFormElement;
                   if (form) {
                     form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
-                  } else {
-                    console.error("Form not found");
                   }
                 }}
               >
@@ -603,7 +544,6 @@ export function AgentsPage() {
 
       {/* Edit Agent Sheet */}
       <Sheet open={showEditSheet} onOpenChange={(open) => {
-        console.log("Edit sheet state changing to:", open);
         setShowEditSheet(open);
       }}>
         <SheetContent side="right" className="sm:max-w-[80%] flex flex-col p-0">
@@ -628,12 +568,9 @@ export function AgentsPage() {
                 className="bg-green-600 hover:bg-green-700"
                 onClick={(e) => {
                   e.preventDefault();
-                  console.log("Save button clicked, submitting edit form");
                   const form = document.getElementById("editAgentForm") as HTMLFormElement;
                   if (form) {
                     form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
-                  } else {
-                    console.error("Edit form not found");
                   }
                 }}
               >

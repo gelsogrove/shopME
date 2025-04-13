@@ -5,6 +5,7 @@ import {
     Sheet,
     SheetClose,
     SheetContent,
+    SheetDescription,
     SheetFooter,
     SheetHeader,
     SheetTitle
@@ -39,8 +40,6 @@ export function ServiceSheet({
   title,
   currencySymbol,
 }: ServiceSheetProps) {
-  console.log("ServiceSheet rendering with open:", open, "service:", service?.name || "new", "full service:", service);
-  
   // If service is provided, ensure all required fields have default values
   const safeService = service ? {
     ...service,
@@ -66,7 +65,10 @@ export function ServiceSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-[80%] flex flex-col p-0">
         <SheetHeader className="px-6 pt-6 pb-2">
-          <SheetTitle>{title}</SheetTitle>
+          <SheetTitle>{service ? "Edit Service" : "Add Service"}</SheetTitle>
+          <SheetDescription>
+            {service ? "Edit an existing service" : "Add a new service to your workspace"}
+          </SheetDescription>
         </SheetHeader>
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
           <div className="overflow-y-auto px-6 flex-grow">

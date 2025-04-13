@@ -1,5 +1,6 @@
 import { Send } from "lucide-react"
 import { useEffect, useState } from "react"
+import { toast } from "react-hot-toast"
 import { useSearchParams } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
@@ -177,12 +178,52 @@ export function ChatPage() {
       chat.customerPhone.includes(searchTerm)
   )
 
-  const handleSendMessage = () => {
-    if (!messageInput.trim() || !selectedChat) return
-
-    // In a real app, this would send the message to a backend
-    console.log("Sending message:", messageInput)
-    setMessageInput("")
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!messageInput.trim()) return
+    
+    try {
+      // Add user message to chat
+      const userMessage = {
+        id: Date.now().toString(),
+        content: messageInput,
+        role: "user" as const,
+        createdAt: new Date(),
+      }
+      
+      setMessages((prev) => [...prev, userMessage])
+      setMessageInput("")
+      
+      // Get AI response
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: messageInput,
+        }),
+      })
+      
+      if (!response.ok) {
+        throw new Error("Failed to get response")
+      }
+      
+      const data = await response.json()
+      
+      // Add AI response to chat
+      const aiMessage = {
+        id: (Date.now() + 1).toString(),
+        content: data.message,
+        role: "assistant" as const,
+        createdAt: new Date(),
+      }
+      
+      setMessages((prev) => [...prev, aiMessage])
+    } catch (error) {
+      toast.error("Failed to send message")
+    }
   }
 
   return (
@@ -284,12 +325,12 @@ export function ChatPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault()
-                      handleSendMessage()
+                      handleSubmit(e)
                     }
                   }}
                 />
                 <Button
-                  onClick={handleSendMessage}
+                  onClick={(e) => handleSubmit(e)}
                   className="self-end"
                   size="icon"
                 >
