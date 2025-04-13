@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { Service, servicesApi } from "@/services/servicesApi"
+import { commonStyles } from "@/styles/common"
+import { Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
@@ -162,6 +164,7 @@ export function ServicesPage() {
     <div className="container mx-auto py-6">
       <PageHeader
         title="Services"
+        titleIcon={<Wrench className={commonStyles.headerIcon} />}
         searchValue={searchValue}
         onSearch={setSearchValue}
         searchPlaceholder="Search services..."
