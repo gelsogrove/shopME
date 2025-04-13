@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { api } from "@/services/api"
 import { getUserProfile } from "@/services/userApi"
-import { ArrowLeftRight, CreditCard, LogOut, Phone, Settings, User } from "lucide-react"
+import { ArrowLeftRight, BarChart2, Bell, CreditCard, LogOut, Phone, Settings, User } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
@@ -143,6 +143,27 @@ export function Header() {
               >
                 <User className="mr-3 h-5 w-5" />
                 <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="p-4 text-lg cursor-pointer opacity-50"
+                onClick={() => {}}
+              >
+                <CreditCard className="mr-3 h-5 w-5" />
+                <span>Orders (WIP)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="p-4 text-lg cursor-pointer opacity-50"
+                onClick={() => {}}
+              >
+                <Bell className="mr-3 h-5 w-5" />
+                <span>Push Notifications (WIP)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="p-4 text-lg cursor-pointer opacity-50"
+                onClick={() => {}}
+              >
+                <BarChart2 className="mr-3 h-5 w-5" />
+                <span>Analytics (WIP)</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="p-4 text-lg cursor-pointer"
