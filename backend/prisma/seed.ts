@@ -211,14 +211,236 @@ async function main() {
     }
   }
 
+  // Create products for L'Altra Italia
+  const products = [
+    // Pasta Category
+    {
+      name: "Gragnano IGP Pasta - Spaghetti",
+      description: "Traditional spaghetti from Gragnano, made with selected durum wheat semolina. Bronze drawn for the perfect texture.",
+      price: 4.99,
+      stock: 120,
+      image: "https://example.com/spaghetti.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "gragnano-igp-pasta-spaghetti",
+      workspaceId: createdWorkspaces[0].id,
+      categoryName: "Pasta"
+    },
+    {
+      name: "Homemade Tagliatelle",
+      description: "Freshly made egg tagliatelle, perfect for rich meat sauces and ragù.",
+      price: 6.99,
+      stock: 45,
+      image: "https://example.com/tagliatelle.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "homemade-tagliatelle",
+      workspaceId: createdWorkspaces[0].id,
+      categoryName: "Pasta"
+    },
+    // Cheese Category
+    {
+      name: "Parmigiano Reggiano DOP 24 months",
+      description: "Authentic Parmigiano Reggiano DOP aged 24 months. Intense flavor with a granular texture.",
+      price: 29.99,
+      stock: 25,
+      image: "https://example.com/parmigiano.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "parmigiano-reggiano-dop-24-months",
+      workspaceId: createdWorkspaces[0].id,
+      categoryName: "Cheese"
+    },
+    {
+      name: "Mozzarella di Bufala Campana DOP",
+      description: "Fresh buffalo mozzarella DOP from Campania. Soft texture and delicate milk flavor.",
+      price: 9.99,
+      stock: 40,
+      image: "https://example.com/mozzarella.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "mozzarella-di-bufala-campana-dop",
+      workspaceId: createdWorkspaces[0].id,
+      categoryName: "Cheese"
+    },
+    // Oil Category (Condiments)
+    {
+      name: "Tuscan IGP Extra Virgin Olive Oil",
+      description: "Premium extra virgin olive oil from Tuscany with balanced flavor and fruity notes.",
+      price: 19.99,
+      stock: 48,
+      image: "https://example.com/olive-oil.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "tuscan-igp-extra-virgin-olive-oil",
+      workspaceId: createdWorkspaces[0].id,
+      categoryName: "Condiments"
+    },
+    {
+      name: "Aceto Balsamico di Modena IGP",
+      description: "Traditional balsamic vinegar of Modena IGP with a perfect balance of sweet and sour.",
+      price: 14.99,
+      stock: 30,
+      image: "https://example.com/balsamic-vinegar.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "aceto-balsamico-di-modena-igp",
+      workspaceId: createdWorkspaces[0].id,
+      categoryName: "Condiments"
+    },
+    // Cured Meats (adding to Gourmet category)
+    {
+      name: "Prosciutto di Parma DOP 24 months",
+      description: "Fine Parma ham aged for 24 months. Sweet flavor and delicate aroma.",
+      price: 24.99,
+      stock: 15,
+      image: "https://example.com/prosciutto.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "prosciutto-di-parma-dop-24-months",
+      workspaceId: createdWorkspaces[0].id,
+      categoryName: "Gourmet"
+    },
+    // Vegetables
+    {
+      name: "San Marzano DOP Tomatoes",
+      description: "Authentic San Marzano tomatoes grown in the volcanic soil of Mount Vesuvius. Sweet flavor with low acidity.",
+      price: 6.99,
+      stock: 85,
+      image: "https://example.com/tomatoes.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "san-marzano-dop-tomatoes",
+      workspaceId: createdWorkspaces[0].id,
+      categoryName: "Vegetables"
+    },
+    // Wine (adding to Beverages)
+    {
+      name: "Barolo DOCG Wine",
+      description: "Premium Barolo DOCG wine from Piedmont, made from Nebbiolo grapes. Full-bodied with notes of roses, tar and herbs.",
+      price: 49.99,
+      stock: 24,
+      image: "https://example.com/barolo.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "barolo-docg-wine",
+      workspaceId: createdWorkspaces[0].id,
+      categoryName: "Beverages"
+    },
+    // Nuts (adding to Snacks)
+    {
+      name: "Pistacchi di Bronte DOP",
+      description: "Vibrant green pistachios from Bronte, Sicily. Intensely flavored with sweet and slightly resinous notes.",
+      price: 18.99,
+      stock: 35,
+      image: "https://example.com/pistachios.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "pistacchi-di-bronte-dop",
+      workspaceId: createdWorkspaces[0].id,
+      categoryName: "Snacks"
+    },
+    // Spirits (adding to Beverages)
+    {
+      name: "Limoncello di Sorrento IGP",
+      description: "Traditional lemon liqueur made with Sorrento lemons. Bright, sweet and intensely citrusy.",
+      price: 22.99,
+      stock: 42,
+      image: "https://example.com/limoncello.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "limoncello-di-sorrento-igp",
+      workspaceId: createdWorkspaces[0].id,
+      categoryName: "Beverages"
+    },
+    // Desserts
+    {
+      name: "Sicilian Cannoli Kit",
+      description: "Make authentic Sicilian cannoli at home with this kit including shells, ricotta cream, and toppings.",
+      price: 16.99,
+      stock: 28,
+      image: "https://example.com/cannoli-kit.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "sicilian-cannoli-kit",
+      workspaceId: createdWorkspaces[0].id,
+      categoryName: "Desserts"
+    }
+  ];
+
   // Create agents for L'Altra Italia
   const agents = [
-    // ... existing agents code ...
+    {
+      name: "Sales Agent",
+      description: "Sales agent for handling product inquiries and orders",
+      isActive: true,
+      isRouter: false,
+      department: "Sales",
+      workspaceId: createdWorkspaces[0].id,
+      promptName: "Default Customer Support"
+    },
+    {
+      name: "Router",
+      description: "Main router for directing conversations to appropriate departments",
+      isActive: true,
+      isRouter: true,
+      workspaceId: createdWorkspaces[0].id,
+      promptName: "Default Customer Support"
+    },
+    {
+      name: "Support Agent",
+      description: "Customer support agent for handling issues and questions",
+      isActive: true,
+      isRouter: false,
+      department: "Support",
+      workspaceId: createdWorkspaces[0].id,
+      promptName: "Default Customer Support"
+    }
   ];
 
   // Create or update agents
   for (const agent of agents) {
-    // ... existing code ...
+    // Fetch the related prompt by name
+    const prompt = await prisma.prompts.findFirst({
+      where: {
+        name: agent.promptName,
+        workspaceId: agent.workspaceId
+      }
+    });
+
+    if (!prompt) {
+      console.log(`Prompt ${agent.promptName} not found for workspace ${agent.workspaceId}`);
+      continue;
+    }
+
+    const { promptName, ...agentData } = agent;
+    
+    // Add promptId to the agent data
+    const agentWithPrompt = {
+      ...agentData,
+      promptId: prompt.id
+    };
+
+    const existingAgent = await prisma.prompts.findFirst({
+      where: {
+        name: agent.name,
+        workspaceId: agent.workspaceId
+      }
+    });
+
+    if (!existingAgent) {
+      await prisma.prompts.create({
+        data: agentWithPrompt
+      });
+      console.log(`Agent created: ${agent.name}`);
+    } else {
+      // Update existing agent
+      await prisma.prompts.update({
+        where: { id: existingAgent.id },
+        data: agentWithPrompt
+      });
+      console.log(`Agent updated: ${agent.name}`);
+    }
   }
 
   // Create services for L'Altra Italia
@@ -273,10 +495,56 @@ async function main() {
     }
   }
 
+  // Create or update products with their categories
+  for (const product of products) {
+    // Find the category by name for this workspace
+    const category = await prisma.categories.findFirst({
+      where: {
+        name: product.categoryName,
+        workspaceId: product.workspaceId
+      }
+    });
+
+    if (!category) {
+      console.log(`Category ${product.categoryName} not found for workspace ${product.workspaceId}`);
+      continue;
+    }
+
+    const { categoryName, ...productData } = product;
+    
+    // Add category ID to the product data and ensure status is a valid enum value
+    const productWithCategory = {
+      ...productData,
+      categoryId: category.id
+    };
+
+    const existingProduct = await prisma.products.findFirst({
+      where: {
+        slug: product.slug,
+        workspaceId: product.workspaceId
+      }
+    });
+
+    if (!existingProduct) {
+      await prisma.products.create({
+        data: productWithCategory
+      });
+      console.log(`Product created: ${product.name}`);
+    } else {
+      // Update existing product
+      await prisma.products.update({
+        where: { id: existingProduct.id },
+        data: productWithCategory
+      });
+      console.log(`Product updated: ${product.name}`);
+    }
+  }
+
   console.log(`Seed completato con successo!`);
   console.log(`- Admin user creato: ${adminEmail}`);
   console.log(`- Workspace creato: ${createdWorkspaces[0].name}`);
   console.log(`- Categorie create/esistenti: ${foodCategories.length}`);
+  console.log(`- Prodotti creati/aggiornati: ${products.length}`);
   console.log(`- Agents creati/aggiornati: ${agents.length}`);
   console.log(`- Services creati/aggiornati: ${services.length}`);
 }

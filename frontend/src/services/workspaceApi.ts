@@ -60,72 +60,40 @@ const transformWorkspaceRequest = (workspace: CreateWorkspaceData | UpdateWorksp
   }
 }
 
-export const getCurrentWorkspace = async (): Promise<Workspace> => {
-  console.log('Checking storages for currentWorkspace...');
-  
+export const getCurrentWorkspace = async (): Promise<Workspace | null> => {
   try {
-    // 1. First try from sessionStorage (preferred)
-    const workspaceStr = sessionStorage.getItem("currentWorkspace");
-    console.log('Workspace from sessionStorage:', workspaceStr);
+    // Try to get the workspace directly from sessionStorage
+    const workspaceString = sessionStorage.getItem('currentWorkspace');
+    console.log('Retrieved workspace from sessionStorage:', workspaceString);
     
-    if (workspaceStr) {
-      try {
-        const workspace = JSON.parse(workspaceStr);
-        if (workspace && workspace.id) {
-          console.log('Found valid workspace in sessionStorage with ID:', workspace.id);
-          const response = await api.get(`/api/workspaces/${workspace.id}`);
-          return transformWorkspaceResponse(response.data);
-        }
-      } catch (error) {
-        console.error('Error parsing workspace from sessionStorage:', error);
-      }
+    if (!workspaceString) {
+      console.log('No workspace found in sessionStorage');
+      return null;
     }
     
-    // 2. Try to extract workspace ID from user object in localStorage
-    console.log('Trying to get workspace from localStorage user object...');
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        if (user && user.workspaces && user.workspaces.length > 0) {
-          const workspaceId = user.workspaces[0].id;
-          console.log('Found workspace ID in localStorage user object:', workspaceId);
-          
-          const response = await api.get(`/api/workspaces/${workspaceId}`);
-          const workspaceData = transformWorkspaceResponse(response.data);
-          
-          // Cache for future use
-          sessionStorage.setItem("currentWorkspace", JSON.stringify(workspaceData));
-          
-          return workspaceData;
-        }
-      } catch (error) {
-        console.error('Error extracting workspace from localStorage user:', error);
-      }
+    const workspace = JSON.parse(workspaceString) as Workspace;
+    
+    if (!workspace.id) {
+      console.log('Workspace found in sessionStorage but has no ID');
+      return null;
     }
     
-    // 3. If still nothing, get all workspaces
-    console.log('Getting all workspaces as fallback...');
-    const response = await api.get("/api/workspaces");
-    const workspaces = response.data;
+    console.log('Workspace found in sessionStorage with ID:', workspace.id);
     
-    if (!workspaces || workspaces.length === 0) {
-      throw new Error("No workspaces available");
+    // Optionally fetch fresh data from API
+    try {
+      const response = await api.get(`/api/workspaces/${workspace.id}`);
+      console.log('Fresh workspace data retrieved from API:', response.data);
+      return response.data;
+    } catch (apiError) {
+      console.error('Error fetching fresh workspace data, using stored data:', apiError);
+      return workspace;
     }
-    
-    // Get the active workspace or the first one
-    const workspaceData = workspaces.find((w: any) => w.isActive) || workspaces[0];
-    const transformedWorkspace = transformWorkspaceResponse(workspaceData);
-    
-    // Cache for future use
-    sessionStorage.setItem("currentWorkspace", JSON.stringify(transformedWorkspace));
-    
-    return transformedWorkspace;
   } catch (error) {
-    console.error("Error getting current workspace:", error);
-    throw error;
+    console.error('Error in getCurrentWorkspace:', error);
+    return null;
   }
-}
+};
 
 export const getWorkspaces = async (): Promise<Workspace[]> => {
   try {
@@ -190,22 +158,18 @@ export const updateWorkspace = async (id: string, data: UpdateWorkspaceData): Pr
 }
 
 export const deleteWorkspace = async (id: string): Promise<void> => {
-  console.log('Attempting to delete workspace with ID:', id);
+  if (!id) {
+    console.error('Delete workspace failed: No workspace ID provided');
+    throw new Error('No workspace ID provided');
+  }
+
+  console.log('Deleting workspace with ID:', id);
   try {
-    console.log('Making DELETE request to /api/workspaces/${id}...');
-    const response = await api.delete(`/api/workspaces/${id}`)
-    console.log('Delete workspace response status:', response.status);
-    console.log('Delete workspace response data:', response.data);
-    return response.data
+    const response = await api.delete(`/api/workspaces/${id}`);
+    console.log('Delete workspace response:', response.status);
+    return;
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("Error deleting workspace:", error)
-      console.error("Error details:", {
-        message: error.message,
-        response: (error as any).response?.data,
-        status: (error as any).response?.status
-      });
-    }
-    throw error
+    console.error('Delete workspace failed:', error);
+    throw error;
   }
 }

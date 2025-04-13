@@ -2,7 +2,13 @@ import { Prisma, Products, ProductStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 
 export class ProductService {
-  async getAllProducts(workspaceId?: string): Promise<Products[]> {
+  async getAllProducts(workspaceId?: string, options?: {
+    search?: string;
+    categoryId?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{ products: Products[]; total: number; page: number; totalPages: number }> {
     const where: Prisma.ProductsWhereInput = {
       isActive: true
     };
@@ -11,12 +17,68 @@ export class ProductService {
       where.workspaceId = workspaceId;
     }
 
-    return prisma.products.findMany({
+    // Apply filters
+    if (options?.search) {
+      where.name = {
+        contains: options.search,
+        mode: 'insensitive'
+      };
+    }
+
+    if (options?.categoryId) {
+      where.categoryId = options.categoryId;
+    }
+
+    if (options?.status) {
+      // Handle status filter
+      switch (options.status) {
+        case 'IN_STOCK':
+          where.stock = {
+            gt: 0
+          };
+          break;
+        case 'OUT_OF_STOCK':
+          where.stock = {
+            lte: 0
+          };
+          break;
+        case 'ACTIVE':
+          where.status = 'ACTIVE';
+          break;
+        case 'INACTIVE':
+          where.status = 'INACTIVE';
+          break;
+      }
+    }
+
+    // Set up pagination
+    const page = options?.page || 1;
+    const limit = options?.limit || 10;
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination
+    const total = await prisma.products.count({ where });
+    const totalPages = Math.ceil(total / limit);
+
+    // Get paginated products
+    const products = await prisma.products.findMany({
       where,
       include: {
         category: true
-      }
+      },
+      orderBy: {
+        updatedAt: 'desc'
+      },
+      skip,
+      take: limit
     });
+
+    return {
+      products,
+      total,
+      page,
+      totalPages
+    };
   }
 
   async getProductById(id: string, workspaceId?: string): Promise<Products | null> {

@@ -3,26 +3,33 @@ import { ProductController } from '../controllers/product.controller';
 import { asyncMiddleware } from '../middlewares/async.middleware';
 import { authMiddleware } from '../middlewares/auth.middleware';
 
-const publicRouter = Router();
-const protectedRouter = Router();
+// Create controller instance
 const productController = new ProductController();
 
-// Public routes
-publicRouter.get('/', asyncMiddleware(productController.getAllProducts));
-publicRouter.get('/category/:categoryId', asyncMiddleware(productController.getProductsByCategory));
-publicRouter.get('/:id', asyncMiddleware(productController.getProductById));
+// Create a router builder function
+export const productsRouter = () => {
+  const publicRouter = Router();
+  const protectedRouter = Router();
 
-// Protected routes
-protectedRouter.use(authMiddleware);
-protectedRouter.post('/', asyncMiddleware(productController.createProduct));
-protectedRouter.put('/:id', asyncMiddleware(productController.updateProduct));
-protectedRouter.delete('/:id', asyncMiddleware(productController.deleteProduct));
-protectedRouter.patch('/:id/stock', asyncMiddleware(productController.updateProductStock));
-protectedRouter.patch('/:id/status', asyncMiddleware(productController.updateProductStatus));
+  // Public routes
+  publicRouter.get('/workspaces/:workspaceId/products', asyncMiddleware(productController.getAllProducts));
+  publicRouter.get('/workspaces/:workspaceId/products/category/:categoryId', asyncMiddleware(productController.getProductsByCategory));
+  publicRouter.get('/workspaces/:workspaceId/products/:id', asyncMiddleware(productController.getProductById));
 
-// Combine routers
-const router = Router();
-router.use('/', publicRouter);
-router.use('/', protectedRouter);
+  // Protected routes
+  protectedRouter.use(authMiddleware);
+  protectedRouter.post('/workspaces/:workspaceId/products', asyncMiddleware(productController.createProduct));
+  protectedRouter.put('/workspaces/:workspaceId/products/:id', asyncMiddleware(productController.updateProduct));
+  protectedRouter.delete('/workspaces/:workspaceId/products/:id', asyncMiddleware(productController.deleteProduct));
+  protectedRouter.patch('/workspaces/:workspaceId/products/:id/stock', asyncMiddleware(productController.updateProductStock));
+  protectedRouter.patch('/workspaces/:workspaceId/products/:id/status', asyncMiddleware(productController.updateProductStatus));
 
-export default router; 
+  // Combine routers
+  const router = Router();
+  router.use(publicRouter);
+  router.use(protectedRouter);
+
+  return router;
+};
+
+export default productsRouter(); 

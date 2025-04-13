@@ -4,20 +4,20 @@
 **Ultimo aggiornamento:** $(date +%Y-%m-%d)
 
 - **Completati:** 20/61 task (33%)
-- **In corso:** 0/61 task (0%)
-- **Out of scope:** 4/61 task (7%)
-- **Da iniziare:** 37/61 task (60%)
+- **In corso:** 1/61 task (1%)
+- **Out of scope:** 5/61 task (8%)
+- **Da iniziare:** 35/61 task (58%)
 
 ### 🚩 Prossimo Task Prioritario
-**TASK-0017**: Create role-based access control
-- Implementare un controllo degli accessi basato su ruoli
-- Limitare le azioni amministrative controllando `req.user.role`
-- Definire middleware come `isAdmin`, `isOwner`, ecc.
+**TASK-0021**: Create GET /products endpoint
+- Implementare endpoint per listare tutti i prodotti
+- Aggiungere filtri (nome, categoria, stato del magazzino) e paginazione
+- Integrare con il frontend per visualizzare i prodotti
 
 ### 🏆 Progressi per Epic
 - System Setup & Architecture: 10/10 completati ✅
-- Authentication & 2FA: 4/10 completati, 4/10 fuori scope ⏳
-- Product Management: 5/10 completati 🔄
+- Authentication & 2FA: 4/10 completati, 5/10 fuori scope ⏳
+- Product Management: 5/10 completati, 1/10 in corso 🔄
 - Orders & Cart: 1/10 completati 🔄
 - Clients, GDPR & Tokenization: 4/10 completati 🔄
 - AI, WhatsApp & Messaging: 1/11 completati 🔄
@@ -231,7 +231,7 @@ Create `authGuard` middleware to check and decode JWT, attach user context.
 **Description**:
 Limit admin-only actions by checking `req.user.role`. Define `isAdmin`, `isOwner`, etc.
 
-- [ ] Not started
+- [ ] Out of scope
 
 =============== TASK-0018 ============================
 **Epic**: Authentication & 2FA
@@ -266,7 +266,12 @@ Log all login attempts, 2FA failures, token refreshes and store them in an audit
 **Description**:
 List all products with filters (name, category, stock status) and pagination.
 
-- [ ] Not started
+- [ ] In corso
+  - Implementato endpoint GET /workspaces/:workspaceId/products
+  - Aggiunto supporto per filtri: nome, categoria, stato stock
+  - Implementata la paginazione con parametri page e limit
+  - Aggiornato il servizio per restituire metadati di paginazione (totale, pagina, pagine totali)
+  - Aggiornato il frontend per supportare il nuovo formato di risposta
 
 =============== TASK-0022 ============================
 **Epic**: Product Management

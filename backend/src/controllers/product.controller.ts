@@ -9,9 +9,49 @@ export class ProductController {
   }
 
   getAllProducts = async (req: Request, res: Response) => {
-    const { workspaceId } = req.query;
-    const products = await this.productService.getAllProducts(workspaceId as string);
-    return res.json(products);
+    try {
+      const { workspaceId } = req.params; // Prendi workspaceId dai parametri dell'URL
+      const { 
+        search, 
+        categoryId, 
+        status, 
+        page, 
+        limit 
+      } = req.query;
+      
+      // Log per debug
+      console.log('Get products request received:', {
+        workspaceId,
+        search,
+        categoryId,
+        status,
+        page,
+        limit
+      });
+      
+      // Converti i parametri numerici da stringhe a numeri
+      const pageNumber = page ? parseInt(page as string) : undefined;
+      const limitNumber = limit ? parseInt(limit as string) : undefined;
+      
+      const result = await this.productService.getAllProducts(
+        workspaceId,
+        {
+          search: search as string,
+          categoryId: categoryId as string,
+          status: status as string,
+          page: pageNumber,
+          limit: limitNumber
+        }
+      );
+      
+      return res.json(result);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      return res.status(500).json({ 
+        message: 'An error occurred while fetching products',
+        error: (error as Error).message 
+      });
+    }
   };
 
   getProductById = async (req: Request, res: Response) => {

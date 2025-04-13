@@ -69,16 +69,34 @@ export default function SettingsPage() {
     const loadData = async () => {
       setIsPageLoading(true)
       try {
-        const [workspaceData, languagesData] = await Promise.all([
-          getCurrentWorkspace(),
-          getLanguages(),
-        ])
+        // Get workspace data
+        const workspaceData = await getCurrentWorkspace()
         console.log('Workspace data received:', workspaceData)
-        console.log('Languages data received:', languagesData)
+        
+        if (!workspaceData || !workspaceData.id) {
+          console.error('No workspace data available')
+          toast.error('No workspace selected')
+          navigate('/auth/login')
+          return
+        }
+        
+        // Get languages
+        let languagesData: Language[] = []
+        try {
+          languagesData = await getLanguages()
+          console.log('Languages data received:', languagesData)
+        } catch (langError) {
+          console.error('Error loading languages:', langError)
+        }
         
         // Assicurati che language sia 'en' se non è definito
         setWorkspace({
           ...workspaceData,
+          id: workspaceData.id, // Ensure id is set
+          createdAt: workspaceData.createdAt || "",
+          updatedAt: workspaceData.updatedAt || "",
+          isActive: workspaceData.isActive || true,
+          isDelete: workspaceData.isDelete || false,
           language: workspaceData.language || 'en'
         })
         setLanguages(languagesData)
@@ -179,26 +197,30 @@ export default function SettingsPage() {
   };
 
   const handleDelete = async () => {
-    setIsLoading(true);
+    console.log('handleDelete called, workspace:', workspace);
+    
+    if (!workspace || !workspace.id) {
+      console.error('Cannot delete workspace: No workspace ID available');
+      toast.error('Cannot delete: No workspace selected');
+      return;
+    }
+    
     try {
-      // Check if we have a workspace in state
-      if (!workspace || !workspace.id) {
-        throw new Error("No workspace found to delete");
-      }
-
-      console.log("Attempting to delete workspace with ID:", workspace.id);
+      setIsLoading(true);
+      console.log('Attempting to delete workspace with ID:', workspace.id);
+      
       await deleteWorkspace(workspace.id);
       
-      // Clear workspace from session storage
-      sessionStorage.removeItem("currentWorkspace");
-      sessionStorage.removeItem("currentWorkspaceName");
-      sessionStorage.removeItem("currentWorkspaceType");
+      // Clear session storage
+      sessionStorage.removeItem('currentWorkspace');
       
-      toast.success("Workspace deleted successfully");
-      navigate("/workspace-selection");
+      toast.success('Workspace deleted successfully');
+      
+      // Navigate to login page
+      navigate('/auth/login');
     } catch (error) {
-      console.error("Failed to delete workspace:", error);
-      toast.error("Failed to delete workspace: " + (error instanceof Error ? error.message : "Unknown error"));
+      console.error('Error deleting workspace:', error);
+      toast.error('Failed to delete workspace. Please try again.');
     } finally {
       setIsLoading(false);
       setShowDeleteDialog(false);

@@ -7,7 +7,7 @@ import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import { authMiddleware } from "../middlewares/auth.middleware"
 import agentsRoutes from "./agents.routes"
 import languagesRoutes from "./languages"
-import productRoutes from './products.routes'
+import { productsRouter } from './products.routes'
 import promptsRoutes from "./prompts.routes"
 import userRoutes from "./user.routes"
 import workspaceRoutes from "./workspace.routes"
@@ -16,7 +16,6 @@ const router = Router()
 
 // Public routes
 router.use("/auth", authRouter)
-router.use("/products", productRoutes)
 
 // Protected routes
 router.use(authMiddleware)
@@ -25,6 +24,7 @@ router.use("/languages", languagesRoutes)
 router.use("/users", userRoutes)
 router.use(promptsRoutes)
 router.use(agentsRoutes)
+router.use(productsRouter())
 router.use(servicesRouter(new ServicesController()))
 router.use(categoriesRouter(new CategoriesController()))
 
