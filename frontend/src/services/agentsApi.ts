@@ -39,12 +39,23 @@ export interface UpdateAgentData {
  */
 export const getWorkspaceAgents = async (workspaceId: string): Promise<Agent[]> => {
   try {
-    console.log(`API: Fetching agents for workspace ${workspaceId}`);
+    console.log(`API: Starting to fetch agents for workspace ${workspaceId}`);
+    console.log(`API: Making request to /api/workspaces/${workspaceId}/agents`);
+    
     const response = await api.get(`/api/workspaces/${workspaceId}/agents`);
-    console.log(`API: Received ${response.data?.length || 0} agents`);
+    
+    console.log(`API: Response status:`, response.status);
+    console.log(`API: Response headers:`, response.headers);
+    console.log(`API: Received ${response.data?.length || 0} agents:`, response.data);
+    
     return response.data;
   } catch (error) {
-    console.error('Error getting agents:', error);
+    console.error('API: Error getting agents:', error);
+    console.error('API: Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      status: (error as any)?.response?.status,
+      data: (error as any)?.response?.data
+    });
     throw error;
   }
 };

@@ -55,18 +55,32 @@ export function AgentsPage() {
     const loadData = async () => {
       try {
         setIsLoading(true)
+        console.log("Starting to load workspace data...")
+        
+        // Check sessionStorage directly
+        const storedWorkspaceId = sessionStorage.getItem("currentWorkspaceId")
+        console.log("WorkspaceId from sessionStorage:", storedWorkspaceId)
+        
         const workspace = await getCurrentWorkspace()
+        console.log("Workspace loaded:", workspace)
         setWorkspaceId(workspace.id)
         console.log("Workspace ID set:", workspace.id)
         
+        console.log("Fetching agents for workspace:", workspace.id)
         const agentsData = await getWorkspaceAgents(workspace.id)
+        console.log("Agents data received:", agentsData)
         setAgents(agentsData)
-        console.log("Agents loaded:", agentsData.length)
+        console.log("Agents state updated with", agentsData.length, "agents")
       } catch (error) {
-        console.error("Error loading agents:", error)
-        toast.error("Failed to load agents")
+        console.error("Detailed error loading agents:", error)
+        if (error instanceof Error) {
+          toast.error(`Failed to load agents: ${error.message}`)
+        } else {
+          toast.error("Failed to load agents: Unknown error")
+        }
       } finally {
         setIsLoading(false)
+        console.log("Loading state set to false")
       }
     }
     
