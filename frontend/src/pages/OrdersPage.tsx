@@ -1,28 +1,26 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
-import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-} from "@/components/ui/sheet"
 import { formatDate } from "@/lib/utils"
 import "@/styles/sheet.css"
-import {
-    X
-} from "lucide-react"
+import { X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 interface Order {
@@ -150,15 +148,10 @@ function OrderDetailsSheet({
   if (!order) return null
 
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent
-        className={`w-[85%] sm:max-w-[85%] !p-0 [&>button]:hidden ${
-          open ? "slide-from-right" : "slide-to-right"
-        }`}
-        side="right"
-      >
+    <Drawer open={open} onOpenChange={onClose} direction="right">
+      <DrawerContent className="h-full inset-y-0 right-0 absolute max-w-[85%] flex flex-col p-0">
         <div className="flex items-start p-6">
-          <SheetClose asChild>
+          <DrawerClose asChild>
             <Button
               variant="outline"
               size="icon"
@@ -166,15 +159,15 @@ function OrderDetailsSheet({
             >
               <X className="h-14 w-14 text-white font-bold stroke-[3]" />
             </Button>
-          </SheetClose>
+          </DrawerClose>
         </div>
 
         <div className="h-[calc(100vh-100px)] px-6 overflow-y-auto scrollbar-custom">
-          <SheetHeader>
-            <SheetTitle className="text-2xl font-bold">
+          <DrawerHeader>
+            <DrawerTitle className="text-2xl font-bold">
               Order #{order.id}
-            </SheetTitle>
-          </SheetHeader>
+            </DrawerTitle>
+          </DrawerHeader>
           <div className="mt-6 grid gap-6 pb-8">
             <div className="flex items-center justify-between">
               <Button onClick={() => window.print()}>Download Invoice</Button>
@@ -199,10 +192,10 @@ function OrderDetailsSheet({
                             order.status === "completed"
                               ? "success"
                               : order.status === "processing"
-                                ? "warning"
-                                : order.status === "cancelled"
-                                  ? "destructive"
-                                  : "default"
+                              ? "warning"
+                              : order.status === "cancelled"
+                              ? "destructive"
+                              : "default"
                           }
                         >
                           {order.status}
@@ -217,8 +210,8 @@ function OrderDetailsSheet({
                             order.payment.status === "paid"
                               ? "success"
                               : order.payment.status === "pending"
-                                ? "warning"
-                                : "destructive"
+                              ? "warning"
+                              : "destructive"
                           }
                         >
                           {order.payment.status}
@@ -307,8 +300,8 @@ function OrderDetailsSheet({
             </Card>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   )
 }
 
@@ -387,15 +380,10 @@ function OrderEditSheet({
   }
 
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent
-        className={`w-[85%] sm:max-w-[85%] !p-0 [&>button]:hidden ${
-          open ? "slide-from-right" : "slide-to-right"
-        }`}
-        side="right"
-      >
+    <Drawer open={open} onOpenChange={onClose} direction="right">
+      <DrawerContent className="h-full inset-y-0 right-0 absolute max-w-[85%] flex flex-col p-0">
         <div className="flex items-start p-6">
-          <SheetClose asChild>
+          <DrawerClose asChild>
             <Button
               variant="outline"
               size="icon"
@@ -403,15 +391,15 @@ function OrderEditSheet({
             >
               <X className="h-14 w-14 text-white font-bold stroke-[3]" />
             </Button>
-          </SheetClose>
+          </DrawerClose>
         </div>
 
         <div className="h-[calc(100vh-100px)] px-6 overflow-y-auto scrollbar-custom">
-          <SheetHeader>
-            <SheetTitle className="text-2xl font-bold">
+          <DrawerHeader>
+            <DrawerTitle className="text-2xl font-bold">
               Edit Order #{order.id}
-            </SheetTitle>
-          </SheetHeader>
+            </DrawerTitle>
+          </DrawerHeader>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-8">
             <div className="grid gap-6 md:grid-cols-2">
@@ -622,8 +610,8 @@ function OrderEditSheet({
             </div>
           </form>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   )
 }
 

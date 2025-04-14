@@ -5,25 +5,25 @@ import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import { Label } from "@/components/ui/label"
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover"
 import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-} from "@/components/ui/sheet"
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { format } from "date-fns"
 import { Calendar as CalendarIcon, Percent, Tag } from "lucide-react"
@@ -514,17 +514,17 @@ export function OffersPage() {
       </div>
 
       {/* Add Offer Sheet */}
-      <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>
-        <SheetContent className="sm:max-w-[80%] flex flex-col p-0">
-          <SheetHeader className="px-6 pt-6 pb-2">
-            <SheetTitle>Add New Offer</SheetTitle>
-          </SheetHeader>
+      <Drawer open={showAddSheet} onOpenChange={setShowAddSheet} direction="right">
+        <DrawerContent className="h-full inset-y-0 right-0 absolute max-w-[80%] flex flex-col p-0">
+          <DrawerHeader className="px-6 pt-6 pb-2">
+            <DrawerTitle>Add New Offer</DrawerTitle>
+          </DrawerHeader>
           <form onSubmit={handleAdd} className="flex flex-col h-full">
             <div className="overflow-y-auto px-6 flex-grow">
               {renderFormFields()}
             </div>
-            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
-              <SheetClose asChild>
+            <DrawerFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
+              <DrawerClose asChild>
                 <Button
                   variant="outline"
                   type="button"
@@ -532,27 +532,27 @@ export function OffersPage() {
                 >
                   Cancel
                 </Button>
-              </SheetClose>
+              </DrawerClose>
               <Button type="submit" className="bg-green-600 hover:bg-green-700">
                 Save
               </Button>
-            </SheetFooter>
+            </DrawerFooter>
           </form>
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
 
       {/* Edit Offer Sheet */}
-      <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
-        <SheetContent className="sm:max-w-[80%] flex flex-col p-0">
-          <SheetHeader className="px-6 pt-6 pb-2">
-            <SheetTitle>Edit Offer</SheetTitle>
-          </SheetHeader>
+      <Drawer open={showEditSheet} onOpenChange={setShowEditSheet} direction="right">
+        <DrawerContent className="h-full inset-y-0 right-0 absolute max-w-[80%] flex flex-col p-0">
+          <DrawerHeader className="px-6 pt-6 pb-2">
+            <DrawerTitle>Edit Offer</DrawerTitle>
+          </DrawerHeader>
           <form onSubmit={handleEditSubmit} className="flex flex-col h-full">
             <div className="overflow-y-auto px-6 flex-grow">
               {renderFormFields(true)}
             </div>
-            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
-              <SheetClose asChild>
+            <DrawerFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
+              <DrawerClose asChild>
                 <Button
                   variant="outline"
                   type="button"
@@ -560,14 +560,14 @@ export function OffersPage() {
                 >
                   Cancel
                 </Button>
-              </SheetClose>
+              </DrawerClose>
               <Button type="submit" className="bg-green-600 hover:bg-green-700">
                 Save
               </Button>
-            </SheetFooter>
+            </DrawerFooter>
           </form>
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
 
       <ConfirmDialog
         open={showDeleteDialog}

@@ -319,7 +319,7 @@ model Language {
 model Services {
   id          String    @id @default(cuid())
   name        String
-  description String
+  description String    @db.Text
   price       Float
   currency    String    @default("€")
   isActive    Boolean   @default(true)

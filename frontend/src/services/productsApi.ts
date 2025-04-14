@@ -59,8 +59,22 @@ export const getAllForWorkspace = async (
   totalPages: number 
 }> => {
   try {
+    console.log('Chiamata getAllForWorkspace con workspaceId:', workspaceId);
+    if (!workspaceId) {
+      console.error('WorkspaceId mancante in getAllForWorkspace');
+      return {
+        products: [],
+        total: 0,
+        page: 1,
+        totalPages: 0
+      };
+    }
+    
     // Construct query parameters
     const queryParams = new URLSearchParams();
+    
+    // Questo dovrebbe essere superfluo perché il workspaceId è già nell'URL
+    // ma lo manteniamo per retrocompatibilità
     queryParams.append('workspaceId', workspaceId);
     
     if (options?.search) {
@@ -83,13 +97,55 @@ export const getAllForWorkspace = async (
       queryParams.append('limit', options.limit.toString());
     }
     
-    const response = await api.get(`/api/workspaces/${workspaceId}/products?${queryParams.toString()}`);
-    console.log('Products API response:', response.data);
+    const requestUrl = `/api/workspaces/${workspaceId}/products?${queryParams.toString()}`;
+    console.log('API request URL:', requestUrl);
+    
+    const response = await api.get(requestUrl);
+    console.log('Products API response status:', response.status);
+    console.log('Products API response data:', response.data);
+    
+    if (!response.data) {
+      console.error('Risposta API vuota');
+      return {
+        products: [],
+        total: 0,
+        page: 1,
+        totalPages: 0
+      };
+    }
+    
+    if (!response.data.products) {
+      console.error('Risposta API non contiene products array:', response.data);
+      // Per retrocompatibilità, verifichiamo se la risposta è direttamente un array
+      if (Array.isArray(response.data)) {
+        console.log('Risposta API è un array diretto, compatibilità retroattiva');
+        return {
+          products: response.data,
+          total: response.data.length,
+          page: 1,
+          totalPages: 1
+        };
+      }
+      
+      // Se non è un array, ritorniamo vuoto
+      return {
+        products: [],
+        total: 0,
+        page: 1,
+        totalPages: 0
+      };
+    }
     
     return response.data;
   } catch (error) {
     console.error('Error getting products:', error);
-    throw error;
+    // In caso di errore, ritorna un oggetto vuoto standard
+    return {
+      products: [],
+      total: 0, 
+      page: 1,
+      totalPages: 0
+    };
   }
 }
 

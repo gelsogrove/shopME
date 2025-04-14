@@ -2,13 +2,13 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { FormDialog } from "@/components/shared/FormDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
-import { useWorkspace } from "@/hooks/useWorkspace"
+import { useWorkspace } from "@/hooks/use-workspace"
 import { categoriesApi, Category } from "@/services/categoriesApi"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 export function CategoriesPage() {
-  const { workspaceId, isLoading: isLoadingWorkspace } = useWorkspace()
+  const { workspace, loading: isLoadingWorkspace } = useWorkspace()
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchValue, setSearchValue] = useState("")
@@ -19,9 +19,9 @@ export function CategoriesPage() {
 
   useEffect(() => {
     const loadCategories = async () => {
-      if (!workspaceId) return
+      if (!workspace?.id) return
       try {
-        const data = await categoriesApi.getAllForWorkspace(workspaceId)
+        const data = await categoriesApi.getAllForWorkspace(workspace.id)
         setCategories(data)
       } catch (error) {
         console.error('Error loading categories:', error)
@@ -34,7 +34,7 @@ export function CategoriesPage() {
     if (!isLoadingWorkspace) {
       loadCategories()
     }
-  }, [workspaceId, isLoadingWorkspace])
+  }, [workspace?.id, isLoadingWorkspace])
 
   const filteredCategories = categories.filter((category) =>
     Object.values(category).some((value) =>
@@ -49,7 +49,7 @@ export function CategoriesPage() {
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!workspaceId) return
+    if (!workspace?.id) return
 
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
@@ -60,7 +60,7 @@ export function CategoriesPage() {
     }
 
     try {
-      const newCategory = await categoriesApi.create(workspaceId, data)
+      const newCategory = await categoriesApi.create(workspace.id, data)
       setCategories([...categories, newCategory])
       setShowAddDialog(false)
       toast.success('Category created successfully')
@@ -77,7 +77,7 @@ export function CategoriesPage() {
 
   const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!selectedCategory || !workspaceId) return
+    if (!selectedCategory || !workspace?.id) return
 
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
@@ -88,7 +88,7 @@ export function CategoriesPage() {
     }
 
     try {
-      const updatedCategory = await categoriesApi.update(selectedCategory.id, workspaceId, data)
+      const updatedCategory = await categoriesApi.update(selectedCategory.id, workspace.id, data)
       setCategories(
         categories.map((c) =>
           c.id === selectedCategory.id ? updatedCategory : c
@@ -109,10 +109,10 @@ export function CategoriesPage() {
   }
 
   const handleDeleteConfirm = async () => {
-    if (!selectedCategory || !workspaceId) return
+    if (!selectedCategory || !workspace?.id) return
     
     try {
-      await categoriesApi.delete(selectedCategory.id, workspaceId)
+      await categoriesApi.delete(selectedCategory.id, workspace.id)
       setCategories(categories.filter((c) => c.id !== selectedCategory.id))
       setShowDeleteDialog(false)
       setSelectedCategory(null)
@@ -127,7 +127,7 @@ export function CategoriesPage() {
     return <div>Loading...</div>
   }
 
-  if (!workspaceId) {
+  if (!workspace?.id) {
     return <div>No workspace selected</div>
   }
 
@@ -139,7 +139,6 @@ export function CategoriesPage() {
         onSearch={setSearchValue}
         searchPlaceholder="Search categories..."
         onAdd={() => setShowAddDialog(true)}
-        itemCount={filteredCategories.length}
       />
 
       <div className="mt-6">

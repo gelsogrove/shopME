@@ -3,10 +3,10 @@
 ## 📊 Stato Attuale del Progetto
 **Ultimo aggiornamento:** $(date +%Y-%m-%d)
 
-- **Completati:** 20/61 task (33%)
-- **In corso:** 1/61 task (1%)
-- **Out of scope:** 5/61 task (8%)
-- **Da iniziare:** 35/61 task (58%)
+- **Completati:** 21/62 task (34%)
+- **In corso:** 1/62 task (1%)
+- **Out of scope:** 5/62 task (8%)
+- **Da iniziare:** 35/62 task (57%)
 
 ### 🚩 Prossimo Task Prioritario
 **TASK-0021**: Create GET /products endpoint
@@ -15,7 +15,7 @@
 - Integrare con il frontend per visualizzare i prodotti
 
 ### 🏆 Progressi per Epic
-- System Setup & Architecture: 10/10 completati ✅
+- System Setup & Architecture: 11/11 completati ✅
 - Authentication & 2FA: 4/10 completati, 5/10 fuori scope ⏳
 - Product Management: 5/10 completati, 1/10 in corso 🔄
 - Orders & Cart: 1/10 completati 🔄
@@ -24,14 +24,14 @@
 
 ## 📌 Summary by Epic
 
-- System Setup & Architecture: 10 tasks
+- System Setup & Architecture: 11 tasks
 - Authentication & 2FA: 10 tasks
 - Product Management: 10 tasks
 - Orders & Cart: 10 tasks
 - Clients, GDPR & Tokenization: 10 tasks
-- AI, WhatsApp & Messaging: 10 tasks
+- AI, WhatsApp & Messaging: 11 tasks
 
-**Total Tasks: 60**
+**Total Tasks: 62**
 
 ## ✅ Full Task List
 
@@ -659,3 +659,26 @@ Technical Requirements:
   - Ensured new prompts are inactive by default
   - Added automatic naming with "(Copy)" suffix
   - Preserved all original prompt formatting and content
+
+=============== TASK-0062 ============================
+**Epic**: System Setup & Architecture
+**Title**: Migrate Sheet components to Drawer
+**Description**:
+Update all Sheet components to use the Drawer component for better mobile experience and consistency
+across the application.
+
+Technical Requirements:
+- Update ServiceSheet component to use Drawer
+- Update CategorySheet component to use Drawer
+- Update inline Sheet components in relevant pages
+- Ensure consistent styling and behavior between desktop and mobile
+- Maintain all existing functionality during migration
+
+- [x] Completed
+  - Updated ServiceSheet component to use Drawer
+  - Confirmed CategorySheet was already updated to use Drawer
+  - Updated inline Sheet in ServicesPage to use Drawer
+  - Updated inline Sheet components in AgentsPage to use Drawer
+  - Updated inline Sheet components in OffersPage to use Drawer
+  - Maintained consistent styling and functionality
+  - Ensured proper side placement and animation behavior

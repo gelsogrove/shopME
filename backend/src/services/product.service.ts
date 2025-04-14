@@ -9,15 +9,18 @@ export class ProductService {
     page?: number;
     limit?: number;
   }): Promise<{ products: Products[]; total: number; page: number; totalPages: number }> {
-    const where: Prisma.ProductsWhereInput = {
-      isActive: true
-    };
+    console.log('ProductService.getAllProducts chiamato con:', { workspaceId, options });
+    
+    // Iniziamo con un filtro vuoto
+    const where: Prisma.ProductsWhereInput = {};
 
+    // Aggiungiamo solo il workspaceId come filtro obbligatorio
     if (workspaceId) {
       where.workspaceId = workspaceId;
+      console.log('Filtro per workspaceId:', workspaceId);
     }
 
-    // Apply filters
+    // Aggiungiamo la ricerca per nome, se presente
     if (options?.search) {
       where.name = {
         contains: options.search,
@@ -25,63 +28,146 @@ export class ProductService {
       };
     }
 
+    // Aggiungiamo il filtro per categoria, se presente
     if (options?.categoryId) {
       where.categoryId = options.categoryId;
     }
 
+    // Gestiamo lo status in maniera semplificata
     if (options?.status) {
-      // Handle status filter
       switch (options.status) {
         case 'IN_STOCK':
-          where.stock = {
-            gt: 0
-          };
+          where.stock = { gt: 0 };
           break;
         case 'OUT_OF_STOCK':
-          where.stock = {
-            lte: 0
-          };
+          where.stock = { lte: 0 };
           break;
         case 'ACTIVE':
           where.status = 'ACTIVE';
+          // Non impostiamo più where.isActive qui
           break;
         case 'INACTIVE':
           where.status = 'INACTIVE';
+          // Non impostiamo più where.isActive qui
           break;
       }
     }
 
-    // Set up pagination
     const page = options?.page || 1;
     const limit = options?.limit || 10;
     const skip = (page - 1) * limit;
 
-    // Get total count for pagination
-    const total = await prisma.products.count({ where });
-    const totalPages = Math.ceil(total / limit);
-
-    // Get paginated products
-    const products = await prisma.products.findMany({
-      where,
-      include: {
-        category: true
-      },
-      orderBy: {
-        updatedAt: 'desc'
-      },
-      skip,
-      take: limit
+    console.log('Query Prisma products con:', { 
+      where, 
+      skip, 
+      take: limit 
     });
 
-    return {
-      products,
-      total,
-      page,
-      totalPages
-    };
+    try {
+      const totalInDatabase = await prisma.products.count({});
+      console.log('Totale prodotti nel database (senza filtri):', totalInDatabase);
+      
+      // Se non ci sono prodotti nel database, non facciamo ulteriori query
+      if (totalInDatabase === 0) {
+        console.log('Nessun prodotto nel database');
+        return {
+          products: [],
+          total: 0,
+          page: 1,
+          totalPages: 0
+        };
+      }
+      
+      // Contiamo i prodotti che soddisfano il filtro workspaceId
+      const totalInWorkspace = workspaceId ? 
+        await prisma.products.count({ where: { workspaceId } }) : 
+        totalInDatabase;
+      
+      console.log('Totale prodotti nel workspace:', totalInWorkspace);
+      
+      // Se non ci sono prodotti nel workspace, non facciamo ulteriori query
+      if (totalInWorkspace === 0) {
+        console.log('Nessun prodotto nel workspace');
+        return {
+          products: [],
+          total: 0,
+          page: 1,
+          totalPages: 0
+        };
+      }
+      
+      // Ora contiamo con tutti i filtri
+      const total = await prisma.products.count({ where });
+      console.log('Total prodotti trovati con tutti i filtri:', total);
+      
+      const totalPages = Math.ceil(total / limit);
+
+      // Otteniamo i prodotti filtrati e paginati
+      const products = await prisma.products.findMany({
+        where,
+        include: {
+          category: true
+        },
+        orderBy: {
+          updatedAt: 'desc'
+        },
+        skip,
+        take: limit
+      });
+
+      console.log(`Ritorno ${products.length} prodotti di ${total} totali`);
+      
+      if (products.length > 0) {
+        console.log('Esempio prodotto:', {
+          id: products[0].id,
+          name: products[0].name,
+          workspaceId: products[0].workspaceId,
+          isActive: products[0].isActive,
+          status: products[0].status
+        });
+      } else {
+        console.log('Nessun prodotto trovato che corrisponde ai criteri di ricerca');
+        
+        if (workspaceId) {
+          const allWorkspaceProducts = await prisma.products.findMany({
+            where: { workspaceId },
+            take: 5
+          });
+          
+          console.log(`Prodotti nel workspace senza filtri: ${allWorkspaceProducts.length}`);
+          if (allWorkspaceProducts.length > 0) {
+            console.log('Esempi di prodotti nel workspace (primi 5):', 
+              allWorkspaceProducts.map(p => ({ 
+                id: p.id, 
+                name: p.name, 
+                isActive: p.isActive, 
+                status: p.status 
+              }))
+            );
+          }
+        }
+      }
+
+      return {
+        products,
+        total,
+        page,
+        totalPages
+      };
+    } catch (error) {
+      console.error('Errore nel recupero prodotti:', error);
+      return {
+        products: [],
+        total: 0,
+        page,
+        totalPages: 0
+      };
+    }
   }
 
   async getProductById(id: string, workspaceId?: string): Promise<Products | null> {
+    console.log('getProductById chiamato con:', { id, workspaceId });
+    
     const where: Prisma.ProductsWhereInput = {
       id
     };
@@ -90,12 +176,20 @@ export class ProductService {
       where.workspaceId = workspaceId;
     }
 
-    return prisma.products.findFirst({
-      where,
-      include: {
-        category: true
-      }
-    });
+    try {
+      const product = await prisma.products.findFirst({
+        where,
+        include: {
+          category: true
+        }
+      });
+      
+      console.log('Prodotto trovato:', product ? 'sì' : 'no');
+      return product;
+    } catch (error) {
+      console.error('Errore nel recupero prodotto:', error);
+      return null;
+    }
   }
 
   async getProductsByCategory(categoryId: string, workspaceId?: string): Promise<Products[]> {

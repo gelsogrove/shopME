@@ -1,13 +1,16 @@
 import { CategoryBadge } from "@/components/shared/CategoryBadge"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
-import { DataTable } from "@/components/shared/DataTable"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { ProductSheet } from "@/components/shared/ProductSheet"
 import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { productsApi, type Product } from "@/services/productsApi"
-import { type ColumnDef } from "@tanstack/react-table"
 import { Package2, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
@@ -44,26 +47,38 @@ export function ProductsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [showAddSheet, setShowAddSheet] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState<ProductDisplay | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<ProductDisplay | null>(
+    null
+  )
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [searchValue, setSearchValue] = useState("")
 
   useEffect(() => {
     const loadProducts = async () => {
       if (!workspace?.id) return
-      
+
       setIsLoading(true)
       try {
         const response = await productsApi.getAllForWorkspace(workspace.id)
-        setProducts(response.products)
+        console.log('Risposta API prodotti:', response)
+        
+        // Verifichiamo che response.products esista e sia un array
+        if (response && response.products && Array.isArray(response.products)) {
+          setProducts(response.products)
+        } else {
+          console.error('Formato risposta API non valido:', response)
+          setProducts([])
+          toast.error("Errore nel formato della risposta API")
+        }
       } catch (error) {
         console.error("Failed to load products:", error)
+        setProducts([])
         toast.error("Failed to load products")
       } finally {
         setIsLoading(false)
       }
     }
-    
+
     loadProducts()
   }, [workspace?.id])
 
@@ -72,7 +87,9 @@ export function ProductsPage() {
     (product) =>
       product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
       product.description.toLowerCase().includes(searchValue.toLowerCase()) ||
-      (product.categoryId || "").toLowerCase().includes(searchValue.toLowerCase())
+      (product.categoryId || "")
+        .toLowerCase()
+        .includes(searchValue.toLowerCase())
   )
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -88,11 +105,13 @@ export function ProductsPage() {
     const newProduct = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
-      price: parseFloat((formData.get("price") as string).replace("€", "").trim()),
+      price: parseFloat(
+        (formData.get("price") as string).replace("€", "").trim()
+      ),
       stock: parseInt(formData.get("stock") as string) || 0,
       categoryId: formData.get("categoryId") as string,
-      image: formData.get("image") as string || undefined,
-      isActive: true
+      image: (formData.get("image") as string) || undefined,
+      isActive: true,
     }
 
     try {
@@ -115,7 +134,7 @@ export function ProductsPage() {
       price: product.price.toString(),
       stock: product.stock,
       categoryId: product.categoryId,
-      image: product.image
+      image: product.image,
     })
     setShowEditSheet(true)
   }
@@ -130,15 +149,23 @@ export function ProductsPage() {
     const updatedProduct = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
-      price: parseFloat((formData.get("price") as string).replace("€", "").trim()),
+      price: parseFloat(
+        (formData.get("price") as string).replace("€", "").trim()
+      ),
       stock: parseInt(formData.get("stock") as string) || 0,
-      categoryId: formData.get("categoryId") as string || undefined,
-      image: formData.get("image") as string || undefined
+      categoryId: (formData.get("categoryId") as string) || undefined,
+      image: (formData.get("image") as string) || undefined,
     }
 
     try {
-      const response = await productsApi.update(selectedProduct.id, workspace.id, updatedProduct)
-      setProducts(products.map(p => p.id === selectedProduct.id ? response : p))
+      const response = await productsApi.update(
+        selectedProduct.id,
+        workspace.id,
+        updatedProduct
+      )
+      setProducts(
+        products.map((p) => (p.id === selectedProduct.id ? response : p))
+      )
       toast.success("Product updated successfully")
       setShowEditSheet(false)
       setSelectedProduct(null)
@@ -157,17 +184,17 @@ export function ProductsPage() {
       price: product.price.toString(),
       stock: product.stock,
       categoryId: product.categoryId,
-      image: product.image
+      image: product.image,
     })
     setShowDeleteDialog(true)
   }
 
   const handleDeleteConfirm = async () => {
     if (!selectedProduct || !workspace?.id) return
-    
+
     try {
       await productsApi.delete(selectedProduct.id, workspace.id)
-      setProducts(products.filter(p => p.id !== selectedProduct.id))
+      setProducts(products.filter((p) => p.id !== selectedProduct.id))
       toast.success("Product deleted successfully")
     } catch (error) {
       console.error("Error deleting product:", error)
@@ -178,91 +205,12 @@ export function ProductsPage() {
     }
   }
 
-  const columns: ColumnDef<Product>[] = [
-    {
-      header: "Name",
-      accessorKey: "name",
-    },
-    {
-      header: "Category",
-      accessorKey: "categoryId",
-      cell: ({ row }) => (
-        <div className="flex flex-wrap gap-1">
-          {row.original.categoryId && (
-            <CategoryBadge key={row.original.categoryId} category={row.original.categoryId} />
-          )}
-        </div>
-      ),
-    },
-    {
-      header: "Price",
-      accessorKey: "price",
-      cell: ({ row }) => <span>€{row.original.price.toFixed(2)}</span>,
-    },
-    {
-      header: "Stock",
-      accessorKey: "stock",
-    },
-    {
-      header: "Status",
-      accessorKey: "status",
-      cell: ({ row }) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          row.original.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
-          row.original.status === 'INACTIVE' ? 'bg-gray-100 text-gray-800' :
-          'bg-red-100 text-red-800'
-        }`}>
-          {row.original.status}
-        </span>
-      )
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const product = row.original
-        return (
-          <div className="flex items-center justify-end gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(product)}
-                  >
-                    <Pencil className="h-5 w-5 text-green-500" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Edit product</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(product)}
-                  >
-                    <Trash2 className="h-5 w-5 text-red-500" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Delete product</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        )
-      },
-    },
-  ]
-
   if (isWorkspaceLoading || isLoading) {
-    return <div className="flex justify-center items-center h-96">Loading products...</div>
+    return (
+      <div className="flex justify-center items-center h-96">
+        Loading products...
+      </div>
+    )
   }
 
   return (
@@ -275,17 +223,108 @@ export function ProductsPage() {
             searchValue={searchValue}
             onSearch={setSearchValue}
             searchPlaceholder="Search products..."
-            itemCount={products.length}
             onAdd={() => setShowAddSheet(true)}
             addButtonText="Add Product"
           />
 
           <div className="mt-6 w-full">
-            <DataTable
-              columns={columns}
-              data={filteredProducts}
-              globalFilter={searchValue}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="relative bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                >
+                  {/* Product Image */}
+                  {product.image && (
+                    <div className="mb-3 aspect-video relative overflow-hidden rounded-md bg-gray-100">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
+
+                  {/* Header con nome e prezzo */}
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium truncate flex-1">
+                      {product.name}
+                    </h3>
+                    <span className="text-green-600 font-semibold ml-2">
+                      €{product.price.toFixed(2)}
+                    </span>
+                  </div>
+
+                  {/* Category */}
+                  {product.categoryId && (
+                    <div className="mb-2">
+                      <CategoryBadge category={product.categoryId} />
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                    {product.description}
+                  </p>
+
+                  {/* Stock and Status */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-gray-500">
+                      Stock: {product.stock}
+                    </div>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        product.status === "ACTIVE"
+                          ? "bg-green-100 text-green-800"
+                          : product.status === "INACTIVE"
+                          ? "bg-gray-100 text-gray-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {product.status}
+                    </span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end gap-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(product)}
+                          >
+                            <Pencil className="h-4 w-4 text-green-500" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Edit product</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(product)}
+                            className="hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Delete product</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

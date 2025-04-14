@@ -1,16 +1,16 @@
 import { Button } from "@/components/ui/button"
+import {
+    Drawer,
+    DrawerClose,
+    DrawerContent,
+    DrawerDescription,
+    DrawerFooter,
+    DrawerHeader,
+    DrawerTitle,
+} from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-} from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 
 interface Product {
@@ -61,7 +61,7 @@ export function ProductSheet({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit(e);
-    // Manually trigger the sheet to close after submission
+    // Manually trigger the drawer to close after submission
     onOpenChange(false);
   };
   
@@ -70,14 +70,14 @@ export function ProductSheet({
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-[80%] flex flex-col p-0">
-        <SheetHeader className="px-6 pt-6 pb-2">
-          <SheetTitle>{product ? "Edit Product" : "Add Product"}</SheetTitle>
-          <SheetDescription>
+    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
+      <DrawerContent className="h-full inset-y-0 right-0 absolute max-w-[80%] flex flex-col p-0">
+        <DrawerHeader className="px-6 pt-6 pb-2">
+          <DrawerTitle>{product ? "Edit Product" : "Add Product"}</DrawerTitle>
+          <DrawerDescription>
             {product ? "Edit an existing product" : "Add a new product to your inventory"}
-          </SheetDescription>
-        </SheetHeader>
+          </DrawerDescription>
+        </DrawerHeader>
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
           <div className="overflow-y-auto px-6 flex-grow">
             <div className="space-y-6 py-6">
@@ -149,8 +149,8 @@ export function ProductSheet({
               </div>
             </div>
           </div>
-          <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
-            <SheetClose asChild>
+          <DrawerFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
+            <DrawerClose asChild>
               <Button 
                 type="button" 
                 variant="outline"
@@ -158,13 +158,13 @@ export function ProductSheet({
               >
                 Cancel
               </Button>
-            </SheetClose>
+            </DrawerClose>
             <Button type="submit" className="bg-green-600 hover:bg-green-700">
               {safeProduct ? "Save Changes" : "Add Product"}
             </Button>
-          </SheetFooter>
+          </DrawerFooter>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 }

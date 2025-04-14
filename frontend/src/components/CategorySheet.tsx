@@ -1,202 +1,100 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-
 import { Button } from "@/components/ui/button"
 import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form"
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle
-} from "@/components/ui/sheet"
-import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/components/ui/use-toast"
-import { WorkspaceContext } from "@/context/workspace-context"
-import { categoriesApi } from "@/services/categoriesApi"
-import { useContext, useEffect } from "react"
 
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
-  description: z.string().min(2, {
-    message: "Description must be at least 2 characters.",
-  }),
-  isActive: z.boolean().default(true),
-})
+interface Category {
+  id: string
+  name: string
+  description: string
+  isActive?: boolean
+}
 
 interface CategorySheetProps {
   category: Category | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSuccess: () => void
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
 }
 
-export function CategorySheet({ category, open, onOpenChange, onSuccess }: CategorySheetProps) {
-  const { workspace } = useContext(WorkspaceContext)
-  
-  const isEditing = !!category
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      isActive: true,
-    },
-  })
-
-  useEffect(() => {
-    if (category) {
-      form.reset({
-        name: category.name,
-        description: category.description,
-        isActive: category.isActive,
-      })
-    } else {
-      form.reset({
-        name: "",
-        description: "",
-        isActive: true,
-      })
-    }
-  }, [category, form])
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      if (!workspace) {
-        toast({
-          title: "Error",
-          description: "No workspace selected",
-          variant: "destructive",
-        })
-        return
-      }
-
-      if (isEditing && category) {
-        await categoriesApi.update(category.id, {
-          name: values.name,
-          description: values.description,
-          isActive: values.isActive,
-        })
-        toast({
-          title: "Category updated",
-          description: "Category has been updated successfully",
-        })
-      } else {
-        await categoriesApi.create(workspace.id, {
-          name: values.name,
-          description: values.description,
-          isActive: values.isActive,
-        })
-        toast({
-          title: "Category created",
-          description: "Category has been created successfully",
-        })
-      }
-      
-      onOpenChange(false)
-      onSuccess()
-    } catch (error: any) {
-      console.error("Error submitting category:", error)
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save category",
-        variant: "destructive",
-      })
-    }
+export function CategorySheet({
+  category,
+  open,
+  onOpenChange,
+  onSubmit,
+}: CategorySheetProps) {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    onSubmit(e)
+    onOpenChange(false)
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-[500px]">
-        <SheetHeader>
-          <SheetTitle>{isEditing ? "Edit Category" : "New Category"}</SheetTitle>
-          <SheetDescription>
-            {isEditing
-              ? "Update the category details."
+    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
+      <DrawerContent className="h-full inset-y-0 right-0 absolute max-w-[25%] flex flex-col p-0">
+        <DrawerHeader className="px-6 pt-6 pb-2">
+          <DrawerTitle>
+            {category ? "Edit Category" : "Add Category"}
+          </DrawerTitle>
+          <DrawerDescription>
+            {category
+              ? "Make changes to your category here."
               : "Add a new category to your workspace."}
-          </SheetDescription>
-        </SheetHeader>
-        <div className="py-4">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Category name" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      The name of the category.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="A description of the category..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Describe what this category is for.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="isActive"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Active</FormLabel>
-                      <FormDescription>
-                        Inactive categories won't be available for selection.
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <SheetFooter>
-                <Button type="submit">Save changes</Button>
-              </SheetFooter>
-            </form>
-          </Form>
-        </div>
-      </SheetContent>
-    </Sheet>
+          </DrawerDescription>
+        </DrawerHeader>
+
+        <form onSubmit={handleSubmit} className="flex flex-col h-full">
+          <div className="overflow-y-auto px-6 flex-grow">
+            <div className="space-y-6 py-6">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  defaultValue={category?.name}
+                  placeholder="Category name"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  defaultValue={category?.description}
+                  placeholder="Category description"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <DrawerFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
+            <DrawerClose asChild>
+              <Button
+                variant="outline"
+                type="button"
+                className="border-input hover:bg-accent"
+              >
+                Cancel
+              </Button>
+            </DrawerClose>
+            <Button type="submit" className="bg-green-600 hover:bg-green-700">
+              {category ? "Save changes" : "Create category"}
+            </Button>
+          </DrawerFooter>
+        </form>
+      </DrawerContent>
+    </Drawer>
   )
-} 
+}

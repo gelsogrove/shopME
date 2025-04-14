@@ -1,10 +1,11 @@
 import { Router } from "express"
 import { CategoriesController } from "../interfaces/http/controllers/categories.controller"
+import { CustomersController } from "../interfaces/http/controllers/customers.controller"
 import { ServicesController } from "../interfaces/http/controllers/services.controller"
 import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
+import { customersRouter } from "../interfaces/http/routes/customers.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
-import { authMiddleware } from "../middlewares/auth.middleware"
 import agentsRoutes from "./agents.routes"
 import languagesRoutes from "./languages"
 import { productsRouter } from './products.routes'
@@ -17,8 +18,7 @@ const router = Router()
 // Public routes
 router.use("/auth", authRouter)
 
-// Protected routes
-router.use(authMiddleware)
+// Protected routes - the auth middleware is applied in each router
 router.use("/workspaces", workspaceRoutes)
 router.use("/languages", languagesRoutes)
 router.use("/users", userRoutes)
@@ -27,5 +27,6 @@ router.use(agentsRoutes)
 router.use(productsRouter())
 router.use(servicesRouter(new ServicesController()))
 router.use(categoriesRouter(new CategoriesController()))
+router.use(customersRouter(new CustomersController()))
 
 export default router

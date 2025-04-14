@@ -1,15 +1,15 @@
 import { Button } from "@/components/ui/button"
+import {
+    Drawer,
+    DrawerClose,
+    DrawerContent,
+    DrawerDescription,
+    DrawerFooter,
+    DrawerHeader,
+    DrawerTitle
+} from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle
-} from "@/components/ui/sheet"
 import { Switch } from "@/components/ui/switch"
 import { ReactNode } from "react"
 
@@ -53,7 +53,7 @@ export function ServiceSheet({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit(e);
-    // Manually trigger the sheet to close after submission
+    // Manually trigger the drawer to close after submission
     onOpenChange(false);
   };
   
@@ -62,14 +62,14 @@ export function ServiceSheet({
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-[80%] flex flex-col p-0">
-        <SheetHeader className="px-6 pt-6 pb-2">
-          <SheetTitle>{service ? "Edit Service" : "Add Service"}</SheetTitle>
-          <SheetDescription>
+    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
+      <DrawerContent className="h-full inset-y-0 right-0 absolute max-w-[80%] flex flex-col p-0">
+        <DrawerHeader className="px-6 pt-6 pb-2">
+          <DrawerTitle>{service ? "Edit Service" : "Add Service"}</DrawerTitle>
+          <DrawerDescription>
             {service ? "Edit an existing service" : "Add a new service to your workspace"}
-          </SheetDescription>
-        </SheetHeader>
+          </DrawerDescription>
+        </DrawerHeader>
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
           <div className="overflow-y-auto px-6 flex-grow">
             <div className="space-y-6 py-6">
@@ -117,8 +117,8 @@ export function ServiceSheet({
               </div>
             </div>
           </div>
-          <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
-            <SheetClose asChild>
+          <DrawerFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
+            <DrawerClose asChild>
               <Button 
                 type="button" 
                 variant="outline"
@@ -126,13 +126,13 @@ export function ServiceSheet({
               >
                 Cancel
               </Button>
-            </SheetClose>
+            </DrawerClose>
             <Button type="submit" className="bg-green-600 hover:bg-green-700">
               {safeService ? "Save Changes" : "Add Service"}
             </Button>
-          </SheetFooter>
+          </DrawerFooter>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   )
 }

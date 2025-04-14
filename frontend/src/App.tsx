@@ -17,8 +17,10 @@ import CategoriesPage from "./pages/products/CategoriesPage"
 import { ProductsPage } from "./pages/ProductsPage"
 import ProfilePage from "./pages/ProfilePage"
 import { ServicesPage } from "./pages/ServicesPage"
+import { CategoriesPage as SettingsCategoriesPage } from "./pages/settings/CategoriesPage"
 import { ChannelTypesPage } from "./pages/settings/ChannelTypesPage"
 import { LanguagesPage } from "./pages/settings/LanguagesPage"
+import { ProductsPage as SettingsProductsPage } from "./pages/settings/ProductsPage"
 import { VerifyOtpPage } from "./pages/VerifyOtpPage"
 import { WorkspacePage } from "./pages/WorkspacePage"
 import { WorkspaceSelectionPage } from "./pages/WorkspaceSelectionPage"
@@ -81,6 +83,8 @@ export function App() {
           <Route index element={<SettingsPage />} />
           <Route path="languages" element={<LanguagesPage />} />
           <Route path="channel-types" element={<ChannelTypesPage />} />
+          <Route path="categories" element={<SettingsCategoriesPage />} />
+          <Route path="products" element={<SettingsProductsPage />} />
         </Route>
         <Route path="/workspace" element={<Layout />}>
           <Route index element={<WorkspacePage />} />

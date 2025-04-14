@@ -5,20 +5,25 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+} from "@/components/ui/sheet"
+import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { categoriesApi } from "@/services/categoriesApi"
 import { Tag } from "lucide-react"
 import { useEffect, useState } from "react"
-import toast from "react-hot-toast"
+import { toast } from "sonner"
 
 interface Category {
   id: string
   name: string
   description: string
   isActive?: boolean
-  slug?: string
-  workspaceId?: string
 }
 
 export default function CategoriesPage() {
@@ -26,32 +31,28 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [searchValue, setSearchValue] = useState("")
-  const [showAddDialog, setShowAddDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showAddSheet, setShowAddSheet] = useState(false)
+  const [showEditSheet, setShowEditSheet] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null
+  )
 
-  // Load categories when workspace is ready
   useEffect(() => {
     if (workspace?.id) {
       loadCategories()
     }
   }, [workspace?.id])
 
-  // Function to load categories from API
   const loadCategories = async () => {
     if (!workspace?.id) return
-    
+
     try {
       setLoading(true)
-      console.log("Fetching categories for workspace:", workspace.id)
-      
-      const data = await categoriesApi.getAllForWorkspace(workspace.id)
-      console.log("Categories API response:", data)
-      
-      setCategories(data)
+      const response = await categoriesApi.getAllForWorkspace(workspace.id)
+      setCategories(response || [])
     } catch (error) {
-      console.error("Failed to load categories", error)
+      console.error("Error loading categories:", error)
       toast.error("Failed to load categories")
     } finally {
       setLoading(false)
@@ -65,22 +66,22 @@ export default function CategoriesPage() {
   )
 
   const columns = [
-    { header: "Name", accessorKey: "name" as keyof Category },
-    { header: "Description", accessorKey: "description" as keyof Category },
+    { header: "Name", accessorKey: "name" as keyof Category, size: 200 },
+    { header: "Description", accessorKey: "description" as keyof Category, size: 400 },
   ]
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!workspace?.id) return
-    
+
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
 
     const name = formData.get("name") as string
     const description = formData.get("description") as string
-    
+
     if (!name || !description) {
-      toast.error("Please fill in all fields")
+      toast.error("Please fill in all required fields")
       return
     }
 
@@ -88,54 +89,54 @@ export default function CategoriesPage() {
       const newCategory = await categoriesApi.create(workspace.id, {
         name,
         description,
-        isActive: true
+        isActive: true,
       })
 
       toast.success("Category added successfully")
-      setShowAddDialog(false)
-      
-      // Reload categories to ensure we have the latest data
+      setShowAddSheet(false)
       await loadCategories()
     } catch (error) {
-      console.error("Failed to add category", error)
+      console.error("Error adding category:", error)
       toast.error("Failed to add category")
     }
   }
 
   const handleEdit = (category: Category) => {
     setSelectedCategory(category)
-    setShowEditDialog(true)
+    setShowEditSheet(true)
   }
 
   const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!selectedCategory || !workspace?.id) return
+    if (!selectedCategory?.id || !workspace?.id) return
 
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
 
     const name = formData.get("name") as string
     const description = formData.get("description") as string
-    
+
     if (!name || !description) {
-      toast.error("Please fill in all fields")
+      toast.error("Please fill in all required fields")
       return
     }
 
     try {
-      await categoriesApi.update(selectedCategory.id, workspace.id, {
-        name,
-        description
-      })
+      const response = await categoriesApi.update(
+        selectedCategory.id,
+        workspace.id,
+        {
+          name,
+          description,
+        }
+      )
 
       toast.success("Category updated successfully")
-      setShowEditDialog(false)
+      setShowEditSheet(false)
       setSelectedCategory(null)
-      
-      // Reload categories to ensure we have the latest data
       await loadCategories()
     } catch (error) {
-      console.error("Failed to update category", error)
+      console.error("Error updating category:", error)
       toast.error("Failed to update category")
     }
   }
@@ -146,19 +147,16 @@ export default function CategoriesPage() {
   }
 
   const handleDeleteConfirm = async () => {
-    if (!selectedCategory || !workspace?.id) return
-    
+    if (!selectedCategory?.id || !workspace?.id) return
+
     try {
       await categoriesApi.delete(selectedCategory.id, workspace.id)
-      
       toast.success("Category deleted successfully")
       setShowDeleteDialog(false)
       setSelectedCategory(null)
-      
-      // Reload categories to ensure we have the latest data
       await loadCategories()
     } catch (error) {
-      console.error("Failed to delete category", error)
+      console.error("Error deleting category:", error)
       toast.error("Failed to delete category")
     }
   }
@@ -174,18 +172,53 @@ export default function CategoriesPage() {
     )
   }
 
+  const renderForm = (category: Category | null = null) => (
+    <form
+      onSubmit={category ? handleEditSubmit : handleAdd}
+      className="space-y-6 pt-6"
+    >
+      <div className="space-y-2">
+        <Label htmlFor="name">Name</Label>
+        <Input
+          id="name"
+          name="name"
+          defaultValue={category?.name}
+          placeholder="Category name"
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          name="description"
+          defaultValue={category?.description}
+          placeholder="Category description"
+          required
+        />
+      </div>
+
+      <div className="pt-4 flex justify-end">
+        <Button type="submit" className="bg-green-600 hover:bg-green-700">
+          {category ? "Save Changes" : "Add Category"}
+        </Button>
+      </div>
+    </form>
+  )
+
   return (
     <div className="container pl-0 pr-4 pt-4 pb-4">
       <div className="grid grid-cols-12 gap-0">
         <div className="col-span-11 col-start-1">
           <PageHeader
-            title={`Categories (${filteredCategories.length})`}
+            title="Categories"
             titleIcon={<Tag className="mr-2 h-6 w-6 text-green-500" />}
             searchValue={searchValue}
             onSearch={setSearchValue}
             searchPlaceholder="Search categories..."
             itemCount={filteredCategories.length}
-            onAdd={() => setShowAddDialog(true)}
+            onAdd={() => setShowAddSheet(true)}
             addButtonText="Add Category"
           />
 
@@ -202,107 +235,36 @@ export default function CategoriesPage() {
       </div>
 
       {/* Add Category Sheet */}
-      <Sheet open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <SheetContent className="sm:max-w-lg flex flex-col p-0">
-          <SheetHeader className="px-6 pt-6 pb-2">
-            <SheetTitle>Add New Category</SheetTitle>
+      <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>
+        <SheetContent side="right" className="w-[25%]">
+          <SheetHeader>
+            <SheetTitle>Add Category</SheetTitle>
+            <SheetDescription>
+              Add a new category to your workspace
+            </SheetDescription>
           </SheetHeader>
-          <form onSubmit={handleAdd} className="flex flex-col h-full">
-            <div className="overflow-y-auto px-6 flex-grow">
-              <div className="space-y-6 py-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    placeholder="Category name"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    placeholder="Category description"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
-              <Button 
-                type="button" 
-                variant="outline"
-                className="border-input hover:bg-accent"
-                onClick={() => setShowAddDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                Add Category
-              </Button>
-            </SheetFooter>
-          </form>
+          {renderForm()}
         </SheetContent>
       </Sheet>
 
       {/* Edit Category Sheet */}
-      <Sheet open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <SheetContent className="sm:max-w-lg flex flex-col p-0">
-          <SheetHeader className="px-6 pt-6 pb-2">
+      <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
+        <SheetContent side="right" className="w-[25%]">
+          <SheetHeader>
             <SheetTitle>Edit Category</SheetTitle>
+            <SheetDescription>
+              Make changes to your category here
+            </SheetDescription>
           </SheetHeader>
-          <form onSubmit={handleEditSubmit} className="flex flex-col h-full">
-            <div className="overflow-y-auto px-6 flex-grow">
-              <div className="space-y-6 py-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    placeholder="Category name"
-                    defaultValue={selectedCategory?.name || ""}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    placeholder="Category description"
-                    defaultValue={selectedCategory?.description || ""}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-            <SheetFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
-              <Button 
-                type="button" 
-                variant="outline"
-                className="border-input hover:bg-accent"
-                onClick={() => setShowEditDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                Save Changes
-              </Button>
-            </SheetFooter>
-          </form>
+          {selectedCategory && renderForm(selectedCategory)}
         </SheetContent>
       </Sheet>
 
-      {/* Delete Confirmation */}
       <ConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         title="Delete Category"
-        description={`Are you sure you want to delete "${selectedCategory?.name}"? This action cannot be undone.`}
+        description={`Are you sure you want to delete ${selectedCategory?.name}? This action cannot be undone.`}
         onConfirm={handleDeleteConfirm}
       />
     </div>

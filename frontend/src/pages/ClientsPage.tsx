@@ -2,27 +2,27 @@ import { DataTable } from "@/components/shared/DataTable"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-} from "@/components/ui/sheet"
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { type ColumnDef } from "@tanstack/react-table"
 import { MessageSquare, Pencil, ShoppingBag, Users, X } from "lucide-react"
@@ -142,10 +142,10 @@ function ClientDetailsSheet({
   if (!client) return null
 
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-[45%] sm:max-w-[45%] !p-0 [&>button]:hidden">
+    <Drawer open={open} onOpenChange={onClose} direction="right">
+      <DrawerContent className="h-full inset-y-0 right-0 absolute max-w-[45%] flex flex-col p-0">
         <div className="flex items-start p-6">
-          <SheetClose asChild>
+          <DrawerClose asChild>
             <Button
               variant="outline"
               size="icon"
@@ -153,15 +153,15 @@ function ClientDetailsSheet({
             >
               <X className="h-14 w-14 text-white font-bold stroke-[3]" />
             </Button>
-          </SheetClose>
+          </DrawerClose>
         </div>
 
         <div className="h-[calc(100vh-100px)] px-6 overflow-y-auto scrollbar-custom">
-          <SheetHeader>
-            <SheetTitle className="text-2xl font-bold">
+          <DrawerHeader>
+            <DrawerTitle className="text-2xl font-bold">
               Client Details
-            </SheetTitle>
-          </SheetHeader>
+            </DrawerTitle>
+          </DrawerHeader>
 
           <div className="mt-6 grid gap-6 pb-8">
             <Card className="border rounded-lg">
@@ -255,8 +255,8 @@ function ClientDetailsSheet({
             </Card>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   )
 }
 
@@ -300,10 +300,10 @@ function ClientEditSheet({
   }
 
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-[45%] sm:max-w-[45%] !p-0 [&>button]:hidden">
+    <Drawer open={open} onOpenChange={onClose} direction="right">
+      <DrawerContent className="h-full inset-y-0 right-0 absolute max-w-[45%] flex flex-col p-0">
         <div className="flex items-start p-6">
-          <SheetClose asChild>
+          <DrawerClose asChild>
             <Button
               variant="outline"
               size="icon"
@@ -311,13 +311,15 @@ function ClientEditSheet({
             >
               <X className="h-14 w-14 text-white font-bold stroke-[3]" />
             </Button>
-          </SheetClose>
+          </DrawerClose>
         </div>
 
         <div className="h-[calc(100vh-100px)] px-6 overflow-y-auto scrollbar-custom">
-          <SheetHeader>
-            <SheetTitle className="text-2xl font-bold">Edit Client</SheetTitle>
-          </SheetHeader>
+          <DrawerHeader>
+            <DrawerTitle className="text-2xl font-bold">
+              Edit Client
+            </DrawerTitle>
+          </DrawerHeader>
 
           <form onSubmit={handleSubmit} className="mt-6 grid gap-6 pb-8">
             <Card className="border rounded-lg">
@@ -502,8 +504,8 @@ function ClientEditSheet({
             </div>
           </form>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   )
 }
 
@@ -645,10 +647,7 @@ export default function ClientsPage(): JSX.Element {
           />
 
           <div className="mt-6 w-full">
-            <DataTable
-              columns={columns}
-              data={filteredClients}
-            />
+            <DataTable columns={columns} data={filteredClients} />
           </div>
         </div>
       </div>

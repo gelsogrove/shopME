@@ -1,16 +1,23 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { api } from "@/services/api"
 import { getUserProfile } from "@/services/userApi"
-import { ArrowLeftRight, BarChart2, Bell, CreditCard, LogOut, Phone, Settings, User } from "lucide-react"
+import {
+  ArrowLeftRight,
+  CreditCard,
+  LogOut,
+  Phone,
+  Settings,
+  User,
+} from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
@@ -21,7 +28,7 @@ export function Header() {
   const [workspaceType, setWorkspaceType] = useState<string>("")
   const [userName, setUserName] = useState<string>("")
   const [userEmail, setUserEmail] = useState<string>("")
-  const [userInitials, setUserInitials] = useState<string>("") 
+  const [userInitials, setUserInitials] = useState<string>("")
 
   useEffect(() => {
     // Recupera le informazioni del workspace dai sessionStorage
@@ -31,28 +38,29 @@ export function Header() {
 
     setPhoneNumber(currentPhone)
     setWorkspaceType(currentType)
-    
+
     // Carica i dati dell'utente
     loadUserProfile()
   }, [])
-  
+
   const loadUserProfile = async () => {
     try {
       const userData = await getUserProfile()
       const firstName = userData.firstName || ""
       const lastName = userData.lastName || ""
       const fullName = `${firstName} ${lastName}`.trim()
-      
+
       setUserName(fullName || "User")
       setUserEmail(userData.email || "")
-      
+
       // Crea le iniziali per l'avatar
-      const initials = firstName && lastName 
-        ? `${firstName[0]}${lastName[0]}`.toUpperCase()
-        : firstName 
-          ? firstName[0].toUpperCase() 
+      const initials =
+        firstName && lastName
+          ? `${firstName[0]}${lastName[0]}`.toUpperCase()
+          : firstName
+          ? firstName[0].toUpperCase()
           : "U"
-          
+
       setUserInitials(initials)
     } catch (error) {
       console.error("Failed to load user profile:", error)
@@ -70,13 +78,13 @@ export function Header() {
   const handleLogout = async () => {
     try {
       await api.post("/api/auth/logout")
-      
+
       // Clear all localStorage and sessionStorage data
       localStorage.removeItem("user")
       sessionStorage.removeItem("currentWorkspace")
       sessionStorage.removeItem("currentWorkspaceName")
       sessionStorage.removeItem("currentWorkspaceType")
-      
+
       navigate("/login")
     } catch (error) {
       console.error("Error logging out:", error)
@@ -137,35 +145,15 @@ export function Header() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="p-4 text-lg cursor-pointer"
                 onClick={() => navigate("/profile")}
               >
                 <User className="mr-3 h-5 w-5" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="p-4 text-lg cursor-pointer opacity-50"
-                onClick={() => {}}
-              >
-                <CreditCard className="mr-3 h-5 w-5" />
-                <span>Orders (WIP)</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="p-4 text-lg cursor-pointer opacity-50"
-                onClick={() => {}}
-              >
-                <Bell className="mr-3 h-5 w-5" />
-                <span>Push Notifications (WIP)</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="p-4 text-lg cursor-pointer opacity-50"
-                onClick={() => {}}
-              >
-                <BarChart2 className="mr-3 h-5 w-5" />
-                <span>Analytics (WIP)</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
+
+              <DropdownMenuItem
                 className="p-4 text-lg cursor-pointer"
                 onClick={() => navigate("/plans")}
               >
