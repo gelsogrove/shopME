@@ -1,12 +1,12 @@
 # ShopMe – Realistic Project Task List (63 Unique Tasks)
 
 ## 📊 Stato Attuale del Progetto
-**Ultimo aggiornamento:** 2023-07-03
+**Ultimo aggiornamento:** 2023-07-04
 
 - **Completati:** 26/63 task (41.3%)
-- **In corso:** 0/63 task (0%)
-- **Out of scope:** 6/63 task (9.5%)
-- **Da iniziare:** 31/63 task (49.2%)
+- **In corso:** 1/63 task (1.6%)
+- **Out of scope:** 16/63 task (25.4%)
+- **Da iniziare:** 20/63 task (31.7%)
 
 
 ### 🚩 Prossimo Task Prioritario
@@ -20,8 +20,8 @@
 ### 🏆 Progressi per Epic
 - System Setup & Architecture: 12/12 completati ✅
 - Authentication & 2FA: 4/10 completati, 5/10 fuori scope ⏳
-- Product Management: 9/10 completati, 0/10 in corso 🔄
-- Orders & Cart: 1/10 completati 🔄
+- Product Management: 9/10 completati, 1/10 in corso 🔄
+- Orders & Cart: 1/10 completati, 9/10 fuori scope ⏳
 - Clients, GDPR & Tokenization: 4/10 completati 🔄
 - AI, WhatsApp & Messaging: 1/11 completati 🔄
 
@@ -366,7 +366,7 @@ Use shadcn/ui modal to create or edit products with validation.
 **Description**:
 Cover edge cases for price < 0, missing fields, image format.
 
-- [ ] Not started
+- [ ] In corso
 
 =============== TASK-0030 ============================
 **Epic**: Orders & Cart
@@ -374,7 +374,7 @@ Cover edge cases for price < 0, missing fields, image format.
 **Description**:
 Submit order from current cart items. Save order lines and total amount.
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
 =============== TASK-0031 ============================
 **Epic**: Orders & Cart
@@ -382,7 +382,7 @@ Submit order from current cart items. Save order lines and total amount.
 **Description**:
 Implement paginated `GET /orders` with filters by status, client, and date.
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
 =============== TASK-0032 ============================
 **Epic**: Orders & Cart
@@ -390,7 +390,7 @@ Implement paginated `GET /orders` with filters by status, client, and date.
 **Description**:
 Add endpoint `GET /orders/:id` to return full breakdown of items and statuses.
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
 =============== TASK-0033 ============================
 **Epic**: Orders & Cart
@@ -398,7 +398,7 @@ Add endpoint `GET /orders/:id` to return full breakdown of items and statuses.
 **Description**:
 Allow update of order status (pending, confirmed, shipped, delivered, cancelled).
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
 =============== TASK-0034 ============================
 **Epic**: Orders & Cart
@@ -406,7 +406,7 @@ Allow update of order status (pending, confirmed, shipped, delivered, cancelled)
 **Description**:
 POST `/cart/add` to add item to the user's current cart.
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
 =============== TASK-0035 ============================
 **Epic**: Orders & Cart
@@ -414,7 +414,7 @@ POST `/cart/add` to add item to the user's current cart.
 **Description**:
 POST `/cart/remove` to delete product from cart.
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
 =============== TASK-0036 ============================
 **Epic**: Orders & Cart
@@ -422,7 +422,7 @@ POST `/cart/remove` to delete product from cart.
 **Description**:
 POST `/cart/update` to change quantity of a product already in the cart.
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
 =============== TASK-0037 ============================
 **Epic**: Orders & Cart
@@ -430,7 +430,7 @@ POST `/cart/update` to change quantity of a product already in the cart.
 **Description**:
 GET `/cart` returns items, totals, and estimated shipping.
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
 =============== TASK-0038 ============================
 **Epic**: Orders & Cart
@@ -451,7 +451,7 @@ Show list of orders per client with filters and links.
 **Description**:
 Trigger message through n8n flow after order success.
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
 =============== TASK-0040 ============================
 **Epic**: Clients, GDPR & Tokenization

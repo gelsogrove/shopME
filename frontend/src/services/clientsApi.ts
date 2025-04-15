@@ -16,7 +16,6 @@ export interface Client {
   phone: string
   language: string
   notes?: string
-  serviceIds: string[]
   shippingAddress: ShippingAddress
   workspaceId: string
   createdAt: string
@@ -31,7 +30,6 @@ export interface CreateClientData {
   phone: string
   language: string
   notes?: string
-  serviceIds?: string[]
   shippingAddress?: ShippingAddress
 }
 

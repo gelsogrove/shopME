@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { api } from "@/services/api"
-import { servicesApi } from "@/services/servicesApi"
 import { type ColumnDef } from "@tanstack/react-table"
 import { MessageSquare, Users } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -34,19 +33,10 @@ export interface Client {
   phone: string
   language: string
   notes?: string
-  serviceIds: string[]
   shippingAddress: ShippingAddress
   workspaceId?: string
   createdAt?: string
   updatedAt?: string
-}
-
-export interface ClientService {
-  id: string
-  name: string
-  description: string
-  price: string
-  status: "active" | "inactive"
 }
 
 const availableLanguages = ["Spanish", "English", "Italian"]
@@ -91,7 +81,6 @@ export default function ClientsPage(): JSX.Element {
   const { workspace, loading: isLoadingWorkspace } = useWorkspace()
   const [searchValue, setSearchValue] = useState("")
   const [clients, setClients] = useState<Client[]>([])
-  const [availableServices, setAvailableServices] = useState<ClientService[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [clientSheetOpen, setClientSheetOpen] = useState(false)
@@ -108,12 +97,8 @@ export default function ClientsPage(): JSX.Element {
     try {
       setIsLoading(true)
       
-      // Carica i clienti e i servizi in parallelo
-      const [customersResponse, servicesData] = await Promise.all([
-        api.get(`/api/workspaces/${workspace.id}/customers`),
-        servicesApi.getAllForWorkspace(workspace.id)
-      ])
-      
+      // Carica i clienti 
+      const customersResponse = await api.get(`/api/workspaces/${workspace.id}/customers`)
       const customersData = customersResponse.data
       
       // Converti i dati dei clienti dal formato API al formato interno
@@ -126,7 +111,6 @@ export default function ClientsPage(): JSX.Element {
         phone: customer.phone || '',
         language: customer.language || 'English',
         notes: customer.notes || '',
-        serviceIds: customer.serviceIds || [],
         shippingAddress: parseAddress(customer.address),
         workspaceId: customer.workspaceId,
         createdAt: customer.createdAt,
@@ -134,22 +118,11 @@ export default function ClientsPage(): JSX.Element {
       }))
       
       setClients(formattedClients)
-      
-      // Converti i dati dei servizi
-      const formattedServices = servicesData.map(service => ({
-        id: service.id,
-        name: service.name,
-        description: service.description || "",
-        price: service.price?.toString() || "0",
-        status: service.isActive ? "active" as const : "inactive" as const
-      }))
-      
-      setAvailableServices(formattedServices)
       dataLoaded.current = true
       
     } catch (error) {
       console.error('Error loading data:', error)
-      toast.error('Failed to load clients or services')
+      toast.error('Failed to load clients')
     } finally {
       setIsLoading(false)
     }
@@ -179,14 +152,6 @@ export default function ClientsPage(): JSX.Element {
     try {
       const formData = new FormData(e.currentTarget)
       
-      // Extract service IDs from form data
-      const serviceIds: string[] = []
-      availableServices.forEach(service => {
-        if (formData.get(`service-${service.id}`) === "on") {
-          serviceIds.push(service.id)
-        }
-      })
-      
       // Prepare shipping address data as a string (JSON)
       const shippingAddress: ShippingAddress = {
         street: formData.get('street') as string,
@@ -204,7 +169,6 @@ export default function ClientsPage(): JSX.Element {
         language: formData.get('language') as string,
         discount: parseFloat(formData.get('discount') as string) || 0,
         notes: formData.get('notes') as string,
-        serviceIds,
         // Convert address to string for API
         address: stringifyAddress(shippingAddress)
       }
@@ -224,7 +188,6 @@ export default function ClientsPage(): JSX.Element {
           phone: newCustomer.phone || '',
           language: newCustomer.language || 'English',
           notes: newCustomer.notes || '',
-          serviceIds: newCustomer.serviceIds || [],
           shippingAddress: parseAddress(newCustomer.address),
           workspaceId: newCustomer.workspaceId,
           createdAt: newCustomer.createdAt,
@@ -250,14 +213,6 @@ export default function ClientsPage(): JSX.Element {
     try {
       const formData = new FormData(e.currentTarget)
       
-      // Extract service IDs from form data
-      const serviceIds: string[] = []
-      availableServices.forEach(service => {
-        if (formData.get(`service-${service.id}`) === "on") {
-          serviceIds.push(service.id)
-        }
-      })
-      
       // Prepare shipping address data as string
       const shippingAddress: ShippingAddress = {
         street: formData.get('street') as string,
@@ -275,7 +230,6 @@ export default function ClientsPage(): JSX.Element {
         language: formData.get('language') as string,
         discount: parseFloat(formData.get('discount') as string) || 0,
         notes: formData.get('notes') as string,
-        serviceIds,
         address: stringifyAddress(shippingAddress),
         isActive: true
       }
@@ -308,7 +262,6 @@ export default function ClientsPage(): JSX.Element {
                   phone: updatedCustomer.phone || client.phone,
                   language: updatedCustomer.language || client.language,
                   notes: updatedCustomer.notes || client.notes,
-                  serviceIds: updatedCustomer.serviceIds || client.serviceIds,
                   shippingAddress: parseAddress(updatedCustomer.address),
                   updatedAt: updatedCustomer.updatedAt
                 }
@@ -391,7 +344,6 @@ export default function ClientsPage(): JSX.Element {
       discount: 0,
       phone: "",
       language: "English",
-      serviceIds: [],
       shippingAddress: {
         street: "",
         city: "",
@@ -449,21 +401,70 @@ export default function ClientsPage(): JSX.Element {
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleViewChatHistory(row.original)
-                  }}
-                  className="h-8 w-8 p-0 flex items-center justify-center hover:bg-blue-100"
+                  className="h-8 w-8 p-0"
+                  onClick={() => handleViewChatHistory(row.original)}
                 >
-                  <MessageSquare className="h-5 w-5 text-blue-600" />
+                  <span className="sr-only">Chat history</span>
+                  <MessageSquare className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>View Chat History</p>
+                <p>View chat history</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+
+          <Button
+            variant="ghost"
+            className="h-8 w-8 p-0"
+            onClick={() => handleView(row.original)}
+          >
+            <span className="sr-only">View details</span>
+            <Users className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="h-8 w-8 p-0"
+            onClick={() => handleEdit(row.original)}
+          >
+            <span className="sr-only">Edit</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+            >
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+              <path d="m15 5 4 4" />
+            </svg>
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="h-8 w-8 p-0"
+            onClick={() => handleDelete(row.original)}
+          >
+            <span className="sr-only">Delete</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+            >
+              <path d="M3 6h18" />
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+            </svg>
+          </Button>
         </div>
       ),
     },
@@ -517,7 +518,6 @@ export default function ClientsPage(): JSX.Element {
         onSubmit={handleClientSubmit}
         mode={clientSheetMode}
         availableLanguages={availableLanguages}
-        availableServices={availableServices}
       />
     </div>
   )

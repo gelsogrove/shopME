@@ -3,15 +3,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
-import { Client, ClientService } from "@/pages/ClientsPage"
+import { Client } from "@/pages/ClientsPage"
 import { useEffect, useState } from "react"
 
 interface ClientSheetProps {
@@ -21,7 +21,6 @@ interface ClientSheetProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   mode: "view" | "edit"
   availableLanguages: string[]
-  availableServices: ClientService[]
 }
 
 export function ClientSheet({
@@ -30,8 +29,7 @@ export function ClientSheet({
   onOpenChange,
   onSubmit,
   mode,
-  availableLanguages,
-  availableServices
+  availableLanguages
 }: ClientSheetProps) {
   // Form state
   const [name, setName] = useState("");
@@ -45,7 +43,6 @@ export function ClientSheet({
   const [city, setCity] = useState("");
   const [zip, setZip] = useState("");
   const [country, setCountry] = useState("");
-  const [serviceIds, setServiceIds] = useState<string[]>([]);
   
   // Reset form when client changes
   useEffect(() => {
@@ -61,7 +58,6 @@ export function ClientSheet({
       setCity(client.shippingAddress?.city || "");
       setZip(client.shippingAddress?.zip || "");
       setCountry(client.shippingAddress?.country || "");
-      setServiceIds(client.serviceIds || []);
     } else {
       // Reset form for new client
       setName("");
@@ -75,7 +71,6 @@ export function ClientSheet({
       setCity("");
       setZip("");
       setCountry("");
-      setServiceIds([]);
     }
   }, [client, open, availableLanguages]);
 
@@ -136,26 +131,6 @@ export function ClientSheet({
                       <dd>{client?.phone}</dd>
                     </div>
                   </dl>
-                </div>
-
-                <div className="bg-white rounded-lg border p-4">
-                  <h3 className="text-lg font-medium mb-3">Services</h3>
-                  <ul className="list-disc pl-5 space-y-1">
-                    {client?.serviceIds && client.serviceIds.length > 0 ? (
-                      client.serviceIds.map((serviceId) => {
-                        const service = availableServices.find(
-                          (s) => s.id === serviceId
-                        )
-                        return service ? (
-                          <li key={serviceId}>
-                            {service.name} - €{service.price}
-                          </li>
-                        ) : null
-                      })
-                    ) : (
-                      <li className="text-gray-500">No services selected</li>
-                    )}
-                  </ul>
                 </div>
 
                 <div className="bg-white rounded-lg border p-4">
@@ -342,41 +317,6 @@ export function ClientSheet({
                       onChange={(e) => setCountry(e.target.value)}
                       required
                     />
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Services</h3>
-                  <div className="grid gap-3">
-                    {availableServices
-                      .filter((service) => service.status === "active")
-                      .map((service) => (
-                        <div
-                          key={service.id}
-                          className="flex items-center space-x-2"
-                        >
-                          <input
-                            type="checkbox"
-                            id={`service-${service.id}`}
-                            name={`service-${service.id}`}
-                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                            checked={serviceIds.includes(service.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setServiceIds([...serviceIds, service.id]);
-                              } else {
-                                setServiceIds(serviceIds.filter(id => id !== service.id));
-                              }
-                            }}
-                          />
-                          <label
-                            htmlFor={`service-${service.id}`}
-                            className="text-sm font-medium"
-                          >
-                            {service.name} - €{service.price}
-                          </label>
-                        </div>
-                      ))}
                   </div>
                 </div>
                 
