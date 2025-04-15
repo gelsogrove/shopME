@@ -92,8 +92,10 @@ export function ProductsPage() {
   // Filter products based on search value
   const filteredProducts = products.filter(
     (product) => 
-      product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchValue.toLowerCase())
+      product.isActive && (
+        product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchValue.toLowerCase())
+      )
   )
 
   // Create a properly formatted array of categories for the select dropdown
@@ -247,7 +249,19 @@ export function ProductsPage() {
 
     try {
       await productsApi.delete(selectedProduct.id, workspace.id)
-      setProducts(products.filter((p) => p.id !== selectedProduct.id))
+      
+      // Invece di rimuovere il prodotto dall'array, aggiorniamo il suo stato isActive
+      setProducts(products.map(p => {
+        if (p.id === selectedProduct.id) {
+          return {
+            ...p, 
+            isActive: false,
+            status: 'INACTIVE'
+          }
+        }
+        return p
+      }))
+      
       toast.success("Product deleted successfully")
     } catch (error) {
       console.error("Error deleting product:", error)
@@ -304,7 +318,7 @@ export function ProductsPage() {
           />
 
           {/* Number of items display */}
-          <div className="text-muted-foreground text-lg ml-1">
+          <div className="text-sm text-muted-foreground ml-1 mb-6">
             {filteredProducts.length} items
           </div>
 
