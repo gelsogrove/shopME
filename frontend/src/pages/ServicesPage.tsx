@@ -1,7 +1,7 @@
+import { PageLayout } from "@/components/layout/PageLayout"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
-import { DataTable } from "@/components/shared/DataTable"
+import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { FormSheet } from "@/components/shared/FormSheet"
-import { PageHeader } from "@/components/shared/PageHeader"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useWorkspace } from "@/hooks/use-workspace"
@@ -201,30 +201,20 @@ export function ServicesPage() {
   )
 
   return (
-    <div className="container pl-0 pr-4 pt-4 pb-4">
-      <div className="grid grid-cols-12 gap-0">
-        <div className="col-span-11 col-start-1">
-          <PageHeader
-            title="Services"
-            titleIcon={<Wrench className={commonStyles.headerIcon} />}
-            searchValue={searchValue}
-            onSearch={setSearchValue}
-            searchPlaceholder="Search services..."
-            onAdd={() => setShowAddSheet(true)}
-            itemCount={filteredServices.length}
-          />
-
-          <div className="mt-6 w-full">
-            <DataTable
-              data={filteredServices}
-              columns={columns}
-              globalFilter={searchValue}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          </div>
-        </div>
-      </div>
+    <PageLayout>
+      <CrudPageContent
+        title="Services"
+        titleIcon={<Wrench className={commonStyles.headerIcon} />}
+        searchValue={searchValue}
+        onSearch={setSearchValue}
+        searchPlaceholder="Search services..."
+        onAdd={() => setShowAddSheet(true)}
+        data={filteredServices}
+        columns={columns}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        isLoading={isLoading}
+      />
 
       {/* Add Service Sheet */}
       <FormSheet
@@ -261,6 +251,6 @@ export function ServicesPage() {
         description={`Are you sure you want to delete ${selectedService?.name}? This action cannot be undone.`}
         onConfirm={handleDeleteConfirm}
       />
-    </div>
+    </PageLayout>
   )
 }

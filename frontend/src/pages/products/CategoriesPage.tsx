@@ -14,16 +14,14 @@ import {
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
-import { categoriesApi } from "@/services/categoriesApi"
+import { categoriesApi, type Category as ApiCategory } from "@/services/categoriesApi"
 import { Tag } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-interface Category {
-  id: string
-  name: string
-  description: string
-  isActive?: boolean
+// Interfaccia locale che estende quella dell'API
+interface Category extends Omit<ApiCategory, 'description'> {
+  description: string;
 }
 
 export default function CategoriesPage() {
@@ -37,6 +35,7 @@ export default function CategoriesPage() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   )
+  const [hasAssociatedProducts, setHasAssociatedProducts] = useState(false)
 
   useEffect(() => {
     if (workspace?.id) {
@@ -50,7 +49,12 @@ export default function CategoriesPage() {
     try {
       setLoading(true)
       const response = await categoriesApi.getAllForWorkspace(workspace.id)
-      setCategories(response || [])
+      // Ci assicuriamo che tutti gli elementi abbiano description come stringa
+      const formattedCategories: Category[] = response.map(cat => ({
+        ...cat,
+        description: cat.description || ''
+      }))
+      setCategories(formattedCategories || [])
     } catch (error) {
       console.error("Error loading categories:", error)
       toast.error("Failed to load categories")
@@ -90,7 +94,7 @@ export default function CategoriesPage() {
         name,
         description,
         isActive: true,
-      })
+      } as any) // Usiamo 'as any' per bypassare la verifica di tipo temporaneamente
 
       toast.success("Category added successfully")
       setShowAddSheet(false)
@@ -141,13 +145,31 @@ export default function CategoriesPage() {
     }
   }
 
-  const handleDelete = (category: Category) => {
+  const handleDelete = async (category: Category) => {
     setSelectedCategory(category)
-    setShowDeleteDialog(true)
+    
+    if (!workspace?.id) return
+
+    try {
+      // Verifichiamo se la categoria ha prodotti associati
+      const hasProducts = await categoriesApi.hasProducts(category.id, workspace.id)
+      setHasAssociatedProducts(hasProducts)
+      setShowDeleteDialog(true)
+    } catch (error) {
+      console.error("Error checking if category has products:", error)
+      toast.error("Failed to check category products")
+    }
   }
 
   const handleDeleteConfirm = async () => {
     if (!selectedCategory?.id || !workspace?.id) return
+
+    // Se la categoria ha prodotti associati, non consentiamo l'eliminazione
+    if (hasAssociatedProducts) {
+      setShowDeleteDialog(false)
+      toast.error("Cannot delete this category as it has associated products. Please remove or reassign the products first.")
+      return
+    }
 
     try {
       await categoriesApi.delete(selectedCategory.id, workspace.id)
@@ -263,9 +285,14 @@ export default function CategoriesPage() {
       <ConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        title="Delete Category"
-        description={`Are you sure you want to delete ${selectedCategory?.name}? This action cannot be undone.`}
+        title={hasAssociatedProducts ? "Cannot Delete Category" : "Delete Category"}
+        description={hasAssociatedProducts 
+          ? `The category "${selectedCategory?.name}" has products associated with it.\nYou need to remove or reassign these products before deleting this category.`
+          : `Are you sure you want to delete ${selectedCategory?.name}? This action cannot be undone.`
+        }
         onConfirm={handleDeleteConfirm}
+        confirmLabel={hasAssociatedProducts ? "Understood" : "Delete"}
+        variant={hasAssociatedProducts ? "secondary" : "destructive"}
       />
     </div>
   )

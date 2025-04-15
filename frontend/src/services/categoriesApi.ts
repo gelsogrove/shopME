@@ -52,6 +52,20 @@ export const getById = async (id: string, workspaceId: string): Promise<Category
 }
 
 /**
+ * Check if a category has associated products
+ */
+export const hasProducts = async (id: string, workspaceId: string): Promise<boolean> => {
+  try {
+    const response = await api.get(`/api/workspaces/${workspaceId}/categories/${id}/products`);
+    return Array.isArray(response.data) && response.data.length > 0;
+  } catch (error) {
+    console.error('Error checking if category has products:', error);
+    // In case of error, we assume that the category has products to prevent deletion
+    return true;
+  }
+}
+
+/**
  * Create a new category
  */
 export const create = async (workspaceId: string, data: { name: string; description?: string }): Promise<Category> => {
@@ -104,6 +118,7 @@ export const delete_ = async (id: string, workspaceId: string): Promise<void> =>
 export const categoriesApi = {
   getAllForWorkspace,
   getById,
+  hasProducts,
   create,
   update,
   delete: delete_

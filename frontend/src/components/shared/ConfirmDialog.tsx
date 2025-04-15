@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog"
 
 interface ConfirmDialogProps {
@@ -14,6 +14,9 @@ interface ConfirmDialogProps {
   title: string
   description: string
   onConfirm: () => void
+  confirmLabel?: string
+  cancelLabel?: string
+  variant?: "destructive" | "default" | "outline" | "secondary" | "ghost" | "link"
 }
 
 export function ConfirmDialog({
@@ -22,20 +25,23 @@ export function ConfirmDialog({
   title,
   description,
   onConfirm,
+  confirmLabel = "Delete",
+  cancelLabel = "Cancel",
+  variant = "destructive"
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogDescription className="whitespace-pre-line">{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {cancelLabel}
           </Button>
-          <Button variant="destructive" onClick={onConfirm}>
-            Delete
+          <Button variant={variant} onClick={onConfirm}>
+            {confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

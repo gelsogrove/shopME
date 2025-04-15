@@ -1,12 +1,12 @@
 # ShopMe – Realistic Project Task List (60 Unique Tasks)
 
 ## 📊 Stato Attuale del Progetto
-**Ultimo aggiornamento:** $(date +%Y-%m-%d)
+**Ultimo aggiornamento:** 2023-07-03
 
-- **Completati:** 21/62 task (34%)
-- **In corso:** 1/62 task (1%)
-- **Out of scope:** 5/62 task (8%)
-- **Da iniziare:** 35/62 task (57%)
+- **Completati:** 22/63 task (35%)
+- **In corso:** 1/63 task (1.5%)
+- **Out of scope:** 5/63 task (8%)
+- **Da iniziare:** 35/63 task (55.5%)
 
 ### 🚩 Prossimo Task Prioritario
 **TASK-0021**: Create GET /products endpoint
@@ -15,7 +15,7 @@
 - Integrare con il frontend per visualizzare i prodotti
 
 ### 🏆 Progressi per Epic
-- System Setup & Architecture: 11/11 completati ✅
+- System Setup & Architecture: 12/12 completati ✅
 - Authentication & 2FA: 4/10 completati, 5/10 fuori scope ⏳
 - Product Management: 5/10 completati, 1/10 in corso 🔄
 - Orders & Cart: 1/10 completati 🔄
@@ -24,14 +24,14 @@
 
 ## 📌 Summary by Epic
 
-- System Setup & Architecture: 11 tasks
+- System Setup & Architecture: 12 tasks
 - Authentication & 2FA: 10 tasks
 - Product Management: 10 tasks
 - Orders & Cart: 10 tasks
 - Clients, GDPR & Tokenization: 10 tasks
 - AI, WhatsApp & Messaging: 11 tasks
 
-**Total Tasks: 62**
+**Total Tasks: 63**
 
 ## ✅ Full Task List
 
@@ -695,3 +695,24 @@ Modify the product card component to show category names instead of category IDs
   - Modified ProductsPage to display category names
   - Added fallback for backward compatibility with category IDs
   - Improved user experience by showing human-readable category labels
+
+=============== TASK-0064 ============================
+**Epic**: System Setup & Architecture
+**Title**: Standardize layout and CRUD components across app
+**Description**:
+Create shared components to ensure consistent layout and styling across all CRUD pages.
+
+Technical Requirements:
+- Create a PageLayout component for standardized page structure
+- Develop a CrudPageContent component for consistent table views
+- Update the PageHeader component to standardize header styling
+- Create documentation with best practices for CRUD components
+- Update existing pages to use the new components
+
+- [x] Completed
+  - Created PageLayout component for consistent page structure
+  - Developed CrudPageContent for standardized CRUD pages
+  - Updated PageHeader component for flexible content display
+  - Updated ServicesPage and ChatPage to use the new components
+  - Created a comprehensive guide for CRUD components best practices
+  - Ensured consistent spacing and alignment across all pages

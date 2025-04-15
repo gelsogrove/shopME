@@ -1,3 +1,4 @@
+import { PageLayout } from "@/components/layout/PageLayout"
 import { Send } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
@@ -240,128 +241,124 @@ export function ChatPage() {
   }
 
   return (
-    <div className="container pl-0 pr-4 pt-4 pb-4">
-      <div className="grid grid-cols-12 gap-0">
-        <div className="col-span-11 col-start-1">
-          <div className="grid grid-cols-12 gap-6 h-[calc(100vh-8rem)]">
-            {/* Chat List */}
-            <Card className="col-span-4 p-4 overflow-hidden flex flex-col">
-              <div className="mb-4">
-                <Input
-                  type="search"
-                  placeholder="Search chats..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
-              </div>
+    <PageLayout>
+      <div className="grid grid-cols-12 gap-6 h-[calc(100vh-8rem)]">
+        {/* Chat List */}
+        <Card className="col-span-4 p-4 overflow-hidden flex flex-col">
+          <div className="mb-4">
+            <Input
+              type="search"
+              placeholder="Search chats..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
+            />
+          </div>
 
-              <div className="overflow-y-auto flex-1">
-                {filteredChats.map((chat) => (
-                  <div
-                    key={chat.id}
-                    className={`p-4 cursor-pointer hover:bg-gray-50 rounded-lg mb-2 ${
-                      selectedChat?.id === chat.id ? "bg-gray-50" : ""
-                    }`}
-                    onClick={() => setSelectedChat(chat)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">{chat.customerName}</h3>
-                        <p className="text-sm text-gray-500">
-                          {chat.customerPhone}
-                        </p>
-                      </div>
-                      {chat.unreadCount > 0 && (
-                        <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                          {chat.unreadCount}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1 truncate">
-                      {chat.lastMessage}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {new Date(chat.lastActive).toLocaleTimeString()}
+          <div className="overflow-y-auto flex-1">
+            {filteredChats.map((chat) => (
+              <div
+                key={chat.id}
+                className={`p-4 cursor-pointer hover:bg-gray-50 rounded-lg mb-2 ${
+                  selectedChat?.id === chat.id ? "bg-gray-50" : ""
+                }`}
+                onClick={() => setSelectedChat(chat)}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-medium">{chat.customerName}</h3>
+                    <p className="text-sm text-gray-500">
+                      {chat.customerPhone}
                     </p>
                   </div>
-                ))}
+                  {chat.unreadCount > 0 && (
+                    <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                      {chat.unreadCount}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600 mt-1 truncate">
+                  {chat.lastMessage}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {new Date(chat.lastActive).toLocaleTimeString()}
+                </p>
               </div>
-            </Card>
+            ))}
+          </div>
+        </Card>
 
-            {/* Chat Window */}
-            <Card className="col-span-8 p-4 flex flex-col">
-              {selectedChat ? (
-                <>
-                  {/* Chat Header */}
-                  <div className="flex justify-between items-center pb-2 border-b h-[60px]">
-                    <div>
-                      <h2 className="font-bold">{selectedChat.customerName}</h2>
-                      <p className="text-sm text-gray-500">
-                        {selectedChat.customerPhone}
+        {/* Chat Window */}
+        <Card className="col-span-8 p-4 flex flex-col">
+          {selectedChat ? (
+            <>
+              {/* Chat Header */}
+              <div className="flex justify-between items-center pb-2 border-b h-[60px]">
+                <div>
+                  <h2 className="font-bold">{selectedChat.customerName}</h2>
+                  <p className="text-sm text-gray-500">
+                    {selectedChat.customerPhone}
+                  </p>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto py-4 space-y-4">
+                {selectedChat.messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex ${
+                      message.sender === "user"
+                        ? "justify-end"
+                        : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[70%] p-3 rounded-lg ${
+                        message.sender === "user"
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-100 text-gray-900"
+                      }`}
+                    >
+                      <p>{message.content}</p>
+                      <p className="text-xs mt-1 opacity-70">
+                        {new Date(message.timestamp).toLocaleTimeString()}
                       </p>
                     </div>
                   </div>
+                ))}
+              </div>
 
-                  {/* Messages */}
-                  <div className="flex-1 overflow-y-auto py-4 space-y-4">
-                    {selectedChat.messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${
-                          message.sender === "user"
-                            ? "justify-end"
-                            : "justify-start"
-                        }`}
-                      >
-                        <div
-                          className={`max-w-[70%] p-3 rounded-lg ${
-                            message.sender === "user"
-                              ? "bg-blue-500 text-white"
-                              : "bg-gray-100 text-gray-900"
-                          }`}
-                        >
-                          <p>{message.content}</p>
-                          <p className="text-xs mt-1 opacity-70">
-                            {new Date(message.timestamp).toLocaleTimeString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Message Input */}
-                  <div className="mt-4 flex gap-2">
-                    <Textarea
-                      value={messageInput}
-                      onChange={(e) => setMessageInput(e.target.value)}
-                      placeholder="Type your message..."
-                      className="min-h-[80px] resize-none"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault()
-                          handleSubmit(e)
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={(e) => handleSubmit(e)}
-                      className="self-end"
-                      size="icon"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="flex-1 flex items-center justify-center text-gray-500">
-                  Select a chat to view message history
-                </div>
-              )}
-            </Card>
-          </div>
-        </div>
+              {/* Message Input */}
+              <div className="mt-4 flex gap-2">
+                <Textarea
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  placeholder="Type your message..."
+                  className="min-h-[80px] resize-none"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSubmit(e)
+                    }
+                  }}
+                />
+                <Button
+                  onClick={(e) => handleSubmit(e)}
+                  className="self-end"
+                  size="icon"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-gray-500">
+              Select a chat to view message history
+            </div>
+          )}
+        </Card>
       </div>
-    </div>
+    </PageLayout>
   )
 }
