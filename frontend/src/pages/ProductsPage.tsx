@@ -13,7 +13,7 @@ import {
 import { useWorkspace } from "@/hooks/use-workspace"
 import { categoriesApi } from "@/services/categoriesApi"
 import { productsApi, type Product } from "@/services/productsApi"
-import { Package2, Pencil, Trash2 } from "lucide-react"
+import { Package2, Pencil, Tag, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 
@@ -40,6 +40,7 @@ export function ProductsPage() {
   )
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [searchValue, setSearchValue] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("all")
 
   // Fetch products when workspace changes
   useEffect(() => {
@@ -89,12 +90,15 @@ export function ProductsPage() {
     loadCategories()
   }, [workspace?.id])
 
-  // Filter products based on search value
+  // Filter products based on search value and selected category
   const filteredProducts = products.filter(
     (product) => 
       product.isActive && (
-        product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchValue.toLowerCase())
+        (selectedCategory === "all" || 
+         (selectedCategory === "none" && !product.categoryId) || 
+         product.categoryId === selectedCategory) &&
+        (product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+         product.description.toLowerCase().includes(searchValue.toLowerCase()))
       )
   )
 
@@ -114,29 +118,8 @@ export function ProductsPage() {
     }
 
     try {
-      let imageUrl: string | undefined = undefined;
-      
-      // Upload image if provided
-      const imageFile = formData.get("imageFile") as File | null;
-      if (imageFile) {
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', imageFile);
-        
-        const response = await fetch(`/api/workspaces/${workspace.id}/upload`, {
-          method: 'POST',
-          body: uploadFormData,
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to upload image');
-        }
-        
-        const uploadResult = await response.json();
-        imageUrl = uploadResult.url;
-      } else {
-        // Use existing image URL if available
-        imageUrl = formData.get("image") as string || undefined;
-      }
+      // Usa direttamente l'URL dell'immagine fornito dal form
+      const imageUrl = formData.get("image") as string || undefined;
 
       const newProduct = {
         name: formData.get("name") as string,
@@ -178,29 +161,8 @@ export function ProductsPage() {
     if (!selectedProduct || !workspace?.id) return
 
     try {
-      let imageUrl: string | undefined = undefined;
-      
-      // Upload image if provided
-      const imageFile = formData.get("imageFile") as File | null;
-      if (imageFile) {
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', imageFile);
-        
-        const response = await fetch(`/api/workspaces/${workspace.id}/upload`, {
-          method: 'POST',
-          body: uploadFormData,
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to upload image');
-        }
-        
-        const uploadResult = await response.json();
-        imageUrl = uploadResult.url;
-      } else {
-        // Use existing image URL if available
-        imageUrl = formData.get("image") as string || undefined;
-      }
+      // Usa direttamente l'URL dell'immagine fornito dal form
+      const imageUrl = formData.get("image") as string || undefined;
 
       const updatedProduct = {
         name: formData.get("name") as string,
@@ -318,8 +280,28 @@ export function ProductsPage() {
           />
 
           {/* Number of items display */}
-          <div className="text-sm text-muted-foreground ml-1 mb-6">
+          <div className="text-sm text-muted-foreground ml-1 mb-2">
             {filteredProducts.length} items
+          </div>
+
+          {/* Category filter */}
+          <div className="flex items-center mb-4 ml-1">
+            <Tag className="h-4 w-4 text-muted-foreground mr-2" />
+            <label className="mr-2 text-sm font-medium">Filter by category:</label>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="none">No Category</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="mt-6 w-full">

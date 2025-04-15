@@ -12,8 +12,7 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
-import { Image, X } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 
 interface Product {
   id: string
@@ -55,11 +54,9 @@ export function ProductSheet({
   const [stock, setStock] = useState("0");
   const [categoryId, setCategoryId] = useState("");
   
-  // Image handling
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  // Image URL state
+  const [imageUrl, setImageUrl] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [hasExistingImage, setHasExistingImage] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset form when product changes
   useEffect(() => {
@@ -71,11 +68,11 @@ export function ProductSheet({
       setCategoryId(product.categoryId || "");
       
       if (product.image) {
+        setImageUrl(product.image);
         setImagePreview(product.image);
-        setHasExistingImage(true);
       } else {
+        setImageUrl("");
         setImagePreview(null);
-        setHasExistingImage(false);
       }
     } else {
       // Reset form for new product
@@ -84,9 +81,8 @@ export function ProductSheet({
       setPrice("");
       setStock("0");
       setCategoryId("");
+      setImageUrl("");
       setImagePreview(null);
-      setImageFile(null);
-      setHasExistingImage(false);
     }
   }, [product, open]);
 
@@ -104,70 +100,24 @@ export function ProductSheet({
       formData.append("categoryId", categoryId);
     }
     
-    // Handle image
-    if (imageFile) {
-      formData.append("imageFile", imageFile);
-    } else if (hasExistingImage && imagePreview) {
-      formData.append("image", imagePreview);
+    // Handle image URL
+    if (imageUrl) {
+      formData.append("image", imageUrl);
     }
     
     onSubmit(formData);
     onOpenChange(false);
   };
 
-  // Handle image selection
-  const handleImageSelected = (file: File | null) => {
-    setImageFile(file);
+  // Preview the image when URL changes
+  const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value;
+    setImageUrl(url);
     
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      setHasExistingImage(false);
-    }
-  };
-
-  // Handle image removal
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
-    setHasExistingImage(false);
-    
-    // Reset file input if exists
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  // Handle file selection via button click
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleImageSelected(e.target.files[0]);
-    }
-  };
-
-  // Handle image selection by clicking on the upload area
-  const handleUploadClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  // Handle drag and drop
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (file.type.startsWith("image/")) {
-        handleImageSelected(file);
-      }
+    if (url) {
+      setImagePreview(url);
+    } else {
+      setImagePreview(null);
     }
   };
 
@@ -267,58 +217,34 @@ export function ProductSheet({
                 </Select>
               </div>
               
-              {/* Image Upload */}
+              {/* Image URL Input */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Product Image</Label>
+                <Label htmlFor="imageUrl" className="text-sm font-medium">
+                  Product Image URL
+                </Label>
+                <Input
+                  id="imageUrl"
+                  name="imageUrl"
+                  value={imageUrl}
+                  onChange={handleImageUrlChange}
+                  placeholder="https://example.com/image.jpg"
+                />
                 
-                {imagePreview ? (
-                  <div className="relative">
+                {imagePreview && (
+                  <div className="mt-2">
                     <Card className="overflow-hidden">
-                      <img 
-                        src={imagePreview}
-                        alt="Product preview" 
-                        className="w-full h-48 object-cover"
-                      />
-                      <Button
-                        type="button"
-                        size="icon"
-                        className="absolute top-2 right-2 bg-white/90 hover:bg-white text-red-600 rounded-full p-1"
-                        onClick={handleRemoveImage}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                      <div className="relative w-full h-48">
+                        <img 
+                          src={imagePreview}
+                          alt="Product preview" 
+                          className="w-full h-full object-cover"
+                          onError={() => setImagePreview(null)}
+                        />
+                      </div>
                     </Card>
-                  </div>
-                ) : (
-                  <div
-                    className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors hover:border-gray-400"
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                    onClick={handleUploadClick}
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="rounded-full bg-gray-100 p-3">
-                        <Image className="h-6 w-6 text-gray-500" />
-                      </div>
-                      <div className="flex flex-col items-center gap-1">
-                        <p className="text-sm font-medium">
-                          <span className="text-green-600">Click to upload</span> or drag and drop
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          PNG, JPG or GIF (max. 5MB)
-                        </p>
-                      </div>
-                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Image preview</p>
                   </div>
                 )}
-                
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
               </div>
             </div>
           </div>

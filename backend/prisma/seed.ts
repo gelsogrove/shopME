@@ -1,4 +1,4 @@
-import { PrismaClient, ProductStatus } from "@prisma/client"
+import { PrismaClient } from "@prisma/client"
 import * as bcrypt from "bcrypt"
 
 const prisma = new PrismaClient()
@@ -35,6 +35,8 @@ const agents = [
 
 // Inizializziamo createdWorkspaces qui, prima di main()
 let createdWorkspaces: any[] = [];
+// Definiamo un ID fisso per il nostro workspace unico
+const mainWorkspaceId = "cm9hjgq9v00014qk8fsdy4ujv";
 
 async function main() {
   // Check if the admin user already exists
@@ -58,69 +60,56 @@ async function main() {
     console.log("Admin user già esistente.")
   }
 
-  // Check if the custom workspace exists
-  const customWorkspaceId = "cm9hjgq9v00014qk8fsdy4ujv";
-  const existingCustomWorkspace = await prisma.workspace.findUnique({
-    where: { id: customWorkspaceId },
+  // Check if the main workspace exists
+  const existingMainWorkspace = await prisma.workspace.findUnique({
+    where: { id: mainWorkspaceId },
   });
 
-  if (existingCustomWorkspace) {
-    console.log(`Trovato workspace custom con ID: ${customWorkspaceId}`);
-    // Add to the createdWorkspaces array so it gets products in the main loop
-    createdWorkspaces.push(existingCustomWorkspace);
-  } else {
-    console.log(`Il workspace con ID ${customWorkspaceId} non esiste nel database`);
-    // Create the workspace if it doesn't exist
-    const customWorkspace = await prisma.workspace.create({
+  if (existingMainWorkspace) {
+    console.log(`Trovato workspace principale con ID: ${mainWorkspaceId}`);
+    // Aggiorniamo il workspace con i dati richiesti, ma manteniamo lo slug originale
+    const updatedWorkspace = await prisma.workspace.update({
+      where: { id: mainWorkspaceId },
       data: {
-        id: customWorkspaceId,
-        name: "Custom Workspace",
-        slug: "custom-workspace",
-        whatsappPhoneNumber: "+123456789",
+        name: "L'Altra Italia(ESP)",
+        whatsappPhoneNumber: "+34654728753",
         isActive: true,
-        language: "it",
+        language: "es",
         currency: "EUR",
       },
     });
-    console.log(`Workspace creato: ${customWorkspace.name} con ID ${customWorkspace.id}`);
-    createdWorkspaces.push(customWorkspace);
+    console.log(`Workspace aggiornato: ${updatedWorkspace.name} con ID ${updatedWorkspace.id}`);
+    createdWorkspaces.push(updatedWorkspace);
+  } else {
+    console.log(`Il workspace con ID ${mainWorkspaceId} non esiste nel database, lo creiamo`);
+    // Create the workspace if it doesn't exist
+    const mainWorkspace = await prisma.workspace.create({
+      data: {
+        id: mainWorkspaceId,
+        name: "L'Altra Italia(ESP)",
+        slug: "altra-italia-esp",
+        whatsappPhoneNumber: "+34654728753",
+        isActive: true,
+        language: "es",
+        currency: "EUR",
+      },
+    });
+    console.log(`Workspace creato: ${mainWorkspace.name} con ID ${mainWorkspace.id}`);
+    createdWorkspaces.push(mainWorkspace);
   }
 
-  // Check if the workspaces already exist
-  const workspaces = [
-    {
-      name: "L'Altra Italia",
-      slug: "altra-italia",
-      whatsappPhoneNumber: "+34654728753",
-      isActive: true,
-      language: "it",
-      currency: "EUR",
-    },
-    {
-      name: "L'Altra Italia(ESP)",
-      slug: "altra-italia-esp",
-      whatsappPhoneNumber: "+34654728753",
-      isActive: true,
-      language: "es",
-      currency: "EUR",
-    },
-  ]
-
-  for (const workspaceData of workspaces) {
-    const existingWorkspace = await prisma.workspace.findUnique({
-      where: { slug: workspaceData.slug },
-    })
-
-    if (!existingWorkspace) {
-      const workspace = await prisma.workspace.create({
-        data: workspaceData,
-      })
-      console.log(`Workspace creato: ${workspace.name}`)
-      createdWorkspaces.push(workspace)
-    } else {
-      console.log(`Workspace già esistente: ${existingWorkspace.name}`)
-      createdWorkspaces.push(existingWorkspace)
+  // Cleanup any other workspaces (optionally delete them)
+  const otherWorkspaces = await prisma.workspace.findMany({
+    where: {
+      id: {
+        not: mainWorkspaceId
+      }
     }
+  });
+  
+  if (otherWorkspaces.length > 0) {
+    console.log(`Trovati ${otherWorkspaces.length} altri workspace (non verranno utilizzati)`);
+    // Non li cancelliamo per sicurezza, ma non li includiamo nelle operazioni successive
   }
 
   // Create food categories for each workspace
@@ -180,36 +169,35 @@ async function main() {
     },
   ]
 
-  for (const workspace of createdWorkspaces) {
-    console.log(`Creating categories for workspace: ${workspace.name}`)
-    for (const category of foodCategories) {
-      const existingCategory = await prisma.categories.findFirst({
-        where: {
-          slug: category.slug,
-          workspaceId: workspace.id,
-        },
-      })
+  // Create categories for the main workspace
+  console.log(`Creating categories for workspace: ${createdWorkspaces[0].name}`)
+  for (const category of foodCategories) {
+    const existingCategory = await prisma.categories.findFirst({
+      where: {
+        slug: category.slug,
+        workspaceId: mainWorkspaceId,
+      },
+    })
 
-      if (!existingCategory) {
-        await prisma.categories.create({
-          data: {
-            ...category,
-            isActive: true,
-            workspace: {
-              connect: {
-                id: workspace.id,
-              },
+    if (!existingCategory) {
+      await prisma.categories.create({
+        data: {
+          ...category,
+          isActive: true,
+          workspace: {
+            connect: {
+              id: mainWorkspaceId,
             },
           },
-        })
-        console.log(
-          `Category created: ${category.name} for workspace ${workspace.name}`
-        )
-      } else {
-        console.log(
-          `Category already exists: ${category.name} for workspace ${workspace.name}`
-        )
-      }
+        },
+      })
+      console.log(
+        `Category created: ${category.name} for workspace ${createdWorkspaces[0].name}`
+      )
+    } else {
+      console.log(
+        `Category already exists: ${category.name} for workspace ${createdWorkspaces[0].name}`
+      )
     }
   }
 
@@ -218,7 +206,7 @@ async function main() {
   const existingLanguages = await prisma.languages.findMany({
     where: {
       code: { in: languageCodes },
-      workspaceId: createdWorkspaces[0].id,
+      workspaceId: mainWorkspaceId,
     },
   })
 
@@ -236,7 +224,7 @@ async function main() {
           data: {
             code,
             name: getLanguageName(code),
-            workspace: { connect: { id: createdWorkspaces[0].id } },
+            workspace: { connect: { id: mainWorkspaceId } },
           },
         })
       )
@@ -259,7 +247,7 @@ async function main() {
 
   // Connetti le lingue al workspace
   await prisma.workspace.update({
-    where: { id: createdWorkspaces[0].id },
+    where: { id: mainWorkspaceId },
     data: {
       languages: {
         connect: languages.map((lang: { id: string }) => ({ id: lang.id })),
@@ -277,7 +265,7 @@ async function main() {
       temperature: 0.7,
       top_p: 0.9,
       top_k: 40,
-      workspaceId: createdWorkspaces[0].id,
+      workspaceId: mainWorkspaceId,
     },
     {
       name: "Product Specialist",
@@ -287,7 +275,7 @@ async function main() {
       temperature: 0.5,
       top_p: 0.8,
       top_k: 30,
-      workspaceId: createdWorkspaces[0].id,
+      workspaceId: mainWorkspaceId,
     },
     {
       name: "Marketing Copy Writer",
@@ -297,94 +285,90 @@ async function main() {
       temperature: 0.9,
       top_p: 0.95,
       top_k: 50,
-      workspaceId: createdWorkspaces[0].id,
+      workspaceId: mainWorkspaceId,
     },
   ]
 
-  // Ensure prompts are created for all workspaces before creating agents
-  for (const workspace of createdWorkspaces) {
-    for (const prompt of defaultPrompts) {
-      const existingPrompt = await prisma.prompts.findFirst({
-        where: {
-          name: prompt.name,
-          workspaceId: workspace.id,
+  // Ensure prompts are created for the main workspace
+  for (const prompt of defaultPrompts) {
+    const existingPrompt = await prisma.prompts.findFirst({
+      where: {
+        name: prompt.name,
+        workspaceId: mainWorkspaceId,
+      },
+    })
+
+    if (!existingPrompt) {
+      await prisma.prompts.create({
+        data: {
+          ...prompt,
+          workspaceId: mainWorkspaceId,
         },
       })
-
-      if (!existingPrompt) {
-        await prisma.prompts.create({
-          data: {
-            ...prompt,
-            workspaceId: workspace.id,
-          },
-        })
-        console.log(
-          `Prompt created: ${prompt.name} for workspace ${workspace.name}`
-        )
-      } else {
-        console.log(
-          `Prompt already exists: ${prompt.name} for workspace ${workspace.name}`
-        )
-      }
+      console.log(
+        `Prompt created: ${prompt.name} for workspace ${createdWorkspaces[0].name}`
+      )
+    } else {
+      console.log(
+        `Prompt already exists: ${prompt.name} for workspace ${createdWorkspaces[0].name}`
+      )
     }
   }
 
-  // Proceed to create agents after ensuring prompts exist
-  for (const workspace of createdWorkspaces) {
-    for (const agent of agents) {
-      const prompt = await prisma.prompts.findFirst({
-        where: {
-          name: agent.promptName,
-          workspaceId: workspace.id,
-        },
-      })
+  // Proceed to create agents for the main workspace
+  for (const agent of agents) {
+    const prompt = await prisma.prompts.findFirst({
+      where: {
+        name: agent.promptName,
+        workspaceId: mainWorkspaceId,
+      },
+    })
 
-      if (!prompt) {
-        console.log(
-          `Prompt ${agent.promptName} not found for workspace ${workspace.name}. Skipping agent creation.`
-        )
-        continue
-      }
+    if (!prompt) {
+      console.log(
+        `Prompt ${agent.promptName} not found for workspace ${createdWorkspaces[0].name}. Skipping agent creation.`
+      )
+      continue
+    }
 
-      const agentWithPrompt = {
+    const agentWithPrompt = {
+      name: agent.name,
+      content: prompt.content,
+      isActive: agent.isActive,
+      isRouter: agent.isRouter,
+      department: agent.department,
+      workspaceId: mainWorkspaceId,
+      temperature: 0.7,
+      top_p: 0.9,
+      top_k: 40,
+    }
+
+    const existingAgent = await prisma.prompts.findFirst({
+      where: {
         name: agent.name,
-        content: prompt.content,
-        isActive: agent.isActive,
-        isRouter: agent.isRouter,
-        department: agent.department,
-        workspaceId: workspace.id,
-        temperature: 0.7,
-        top_p: 0.9,
-        top_k: 40,
-      }
+        workspaceId: mainWorkspaceId,
+      },
+    })
 
-      const existingAgent = await prisma.prompts.findFirst({
-        where: {
-          name: agent.name,
-          workspaceId: workspace.id,
-        },
+    if (!existingAgent) {
+      await prisma.prompts.create({
+        data: agentWithPrompt,
       })
-
-      if (!existingAgent) {
-        await prisma.prompts.create({
-          data: agentWithPrompt,
-        })
-        console.log(
-          `Agent created: ${agent.name} for workspace ${workspace.name}`
-        )
-      } else {
-        await prisma.prompts.update({
-          where: { id: existingAgent.id },
-          data: agentWithPrompt,
-        })
-        console.log(
-          `Agent updated: ${agent.name} for workspace ${workspace.name}`
-        )
-      }
+      console.log(
+        `Agent created: ${agent.name} for workspace ${createdWorkspaces[0].name}`
+      )
+    } else {
+      await prisma.prompts.update({
+        where: { id: existingAgent.id },
+        data: agentWithPrompt,
+      })
+      console.log(
+        `Agent updated: ${agent.name} for workspace ${createdWorkspaces[0].name}`
+      )
     }
   }
 
-  // Create products for all workspaces
+  // Create products for the main workspace
   const products = [
     // Pasta Category
     {
@@ -541,7 +525,7 @@ async function main() {
     },
   ]
 
-  // Create services for all workspaces
+  // Create services for the main workspace
   const services = [
     {
       name: "Insurance",
@@ -569,188 +553,145 @@ async function main() {
     },
   ]
 
-  for (const workspace of createdWorkspaces) {
-    // Create or update services
-    for (const service of services) {
-      const existingService = await prisma.services.findFirst({
-        where: {
-          name: service.name,
-          workspaceId: workspace.id,
+  // Create or update services for the main workspace
+  for (const service of services) {
+    const existingService = await prisma.services.findFirst({
+      where: {
+        name: service.name,
+        workspaceId: mainWorkspaceId,
+      },
+    })
+
+    if (!existingService) {
+      await prisma.services.create({
+        data: {
+          ...service,
+          workspaceId: mainWorkspaceId,
         },
       })
+      console.log(
+        `Service created: ${service.name} for workspace ${createdWorkspaces[0].name}`
+      )
+    } else {
+      // Update existing service
+      await prisma.services.update({
+        where: { id: existingService.id },
+        data: {
+          ...service,
+          workspaceId: mainWorkspaceId,
+        },
+      })
+      console.log(
+        `Service updated: ${service.name} for workspace ${createdWorkspaces[0].name}`
+      )
+    }
+  }
 
-      if (!existingService) {
-        await prisma.services.create({
-          data: {
-            ...service,
-            workspaceId: workspace.id,
-          },
-        })
-        console.log(
-          `Service created: ${service.name} for workspace ${workspace.name}`
-        )
-      } else {
-        // Update existing service
-        await prisma.services.update({
-          where: { id: existingService.id },
-          data: {
-            ...service,
-            workspaceId: workspace.id,
-          },
-        })
-        console.log(
-          `Service updated: ${service.name} for workspace ${workspace.name}`
-        )
-      }
+  // Create or update products with their categories
+  for (const product of products) {
+    // Find the category by name for this workspace
+    const category = await prisma.categories.findFirst({
+      where: {
+        name: product.categoryName,
+        workspaceId: mainWorkspaceId,
+      },
+    })
+
+    if (!category) {
+      console.log(
+        `Category ${product.categoryName} not found for workspace ${createdWorkspaces[0].name}`
+      )
+      continue
     }
 
-    // Create or update products with their categories
-    for (const product of products) {
-      // Find the category by name for this workspace
-      const category = await prisma.categories.findFirst({
-        where: {
-          name: product.categoryName,
-          workspaceId: workspace.id,
-        },
-      })
-
-      if (!category) {
-        console.log(
-          `Category ${product.categoryName} not found for workspace ${workspace.id}`
-        )
-        continue
-      }
-
-      // Add category ID to the product data and ensure status is a valid enum value
-      const productWithCategory = {
-        categoryId: category.id,
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        stock: product.stock,
-        image: product.image,
-        isActive: true,
-        status: ProductStatus.ACTIVE,
-        slug: workspace.id === "cm9hjgq9v00014qk8fsdy4ujv" 
-          ? `custom-${product.slug}-${Date.now()}` 
-          : product.slug,
-        workspaceId: workspace.id,
-      }
-
+    // Create a product with proper type for Prisma
+    try {
       const existingProduct = await prisma.products.findFirst({
         where: {
-          slug: productWithCategory.slug,
-          workspaceId: workspace.id,
+          name: product.name,
+          workspaceId: mainWorkspaceId,
         },
       })
 
       if (!existingProduct) {
-        try {
-          await prisma.products.create({
-            data: productWithCategory,
-          })
-          console.log(
-            `Product created: ${product.name} for workspace ${workspace.name}`
-          )
-        } catch (error: any) {
-          if (error.code === "P2002" && error.meta?.target?.includes("slug")) {
-            console.error(
-              `Duplicate slug detected for product: ${product.name} in workspace ${workspace.name}. Skipping creation.`
-            )
-          } else {
-            throw error
-          }
-        }
+        await prisma.products.create({
+          data: {
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            stock: product.stock,
+            image: product.image,
+            isActive: true,
+            status: "ACTIVE" as any, // Casting to any per evitare errori di tipo
+            slug: `${product.slug}-${Date.now()}`, // Generiamo slug unici
+            workspaceId: mainWorkspaceId,
+            categoryId: category.id,
+          },
+        })
+        console.log(
+          `Product created: ${product.name} for workspace ${createdWorkspaces[0].name}`
+        )
       } else {
         // Update existing product
         await prisma.products.update({
           where: { id: existingProduct.id },
-          data: productWithCategory,
+          data: {
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            stock: product.stock,
+            image: product.image,
+            isActive: true,
+            categoryId: category.id,
+          },
         })
         console.log(
-          `Product updated: ${product.name} for workspace ${workspace.name}`
+          `Product updated: ${product.name} for workspace ${createdWorkspaces[0].name}`
         )
       }
+    } catch (error: any) {
+      if (error.code === "P2002" && error.meta?.target?.includes("slug")) {
+        console.error(
+          `Duplicate slug detected for product: ${product.name}. Skipping creation.`
+        )
+      } else {
+        console.error(`Error creating/updating product ${product.name}:`, error)
+      }
     }
+  }
+
+  // Create whatsapp settings for the workspace if not exists
+  const existingWhatsappSettings = await prisma.whatsappSettings.findUnique({
+    where: { workspaceId: mainWorkspaceId },
+  });
+
+  if (!existingWhatsappSettings) {
+    await prisma.whatsappSettings.create({
+      data: {
+        phoneNumber: "+34654728753",
+        apiKey: "dummy-api-key",
+        workspaceId: mainWorkspaceId,
+      },
+    });
+    console.log("Impostazioni WhatsApp create per il workspace principale");
+  } else {
+    await prisma.whatsappSettings.update({
+      where: { workspaceId: mainWorkspaceId },
+      data: {
+        phoneNumber: "+34654728753",
+        apiKey: "dummy-api-key",
+      },
+    });
+    console.log("Impostazioni WhatsApp aggiornate per il workspace principale");
   }
 
   console.log(`Seed completato con successo!`)
   console.log(`- Admin user creato: ${adminEmail}`)
-  console.log(
-    `- Workspaces creati: ${createdWorkspaces.map((ws) => ws.name).join(", ")}`
-  )
+  console.log(`- Workspace creato/aggiornato: ${createdWorkspaces[0].name}`)
   console.log(`- Categorie create/esistenti: ${foodCategories.length}`)
   console.log(`- Prodotti creati/aggiornati: ${products.length}`)
   console.log(`- Agents creati/aggiornati: ${agents.length}`)
   console.log(`- Services creati/aggiornati: ${services.length}`)
-
-  // Update existing products to be associated with custom workspace
-  console.log(`\nAggancio i prodotti esistenti al workspace custom...`)
-  
-  // Find the original workspace products
-  const originalProducts = await prisma.products.findMany({
-    where: {
-      workspaceId: "cm9hpwcks0000lob9a40n03nt", // Original workspace
-    },
-    include: {
-      category: true
-    }
-  });
-
-  console.log(`Trovati ${originalProducts.length} prodotti nel workspace originale`)
-
-  // Find matching categories in custom workspace
-  for (const product of originalProducts) {
-    if (!product.category) {
-      console.log(`Categoria non trovata per il prodotto: ${product.name}`)
-      continue;
-    }
-
-    // Find matching category in custom workspace
-    const customCategory = await prisma.categories.findFirst({
-      where: {
-        name: product.category.name,
-        workspaceId: "cm9hjgq9v00014qk8fsdy4ujv", // Custom workspace
-      }
-    });
-
-    if (!customCategory) {
-      console.log(`Categoria ${product.category.name} non trovata nel workspace custom`)
-      continue;
-    }
-
-    // Check if a product with this name already exists in custom workspace
-    const existingCustomProduct = await prisma.products.findFirst({
-      where: {
-        name: product.name,
-        workspaceId: "cm9hjgq9v00014qk8fsdy4ujv", // Custom workspace
-      }
-    });
-
-    if (existingCustomProduct) {
-      console.log(`Prodotto ${product.name} già esistente nel workspace custom`)
-      continue;
-    }
-
-    // Create a copy of the product in the custom workspace
-    const customSlug = `custom-${product.slug}-${Date.now()}`;
-    
-    await prisma.products.create({
-      data: {
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        stock: product.stock,
-        image: product.image,
-        isActive: product.isActive,
-        status: product.status,
-        slug: customSlug,
-        workspaceId: "cm9hjgq9v00014qk8fsdy4ujv", // Custom workspace
-        categoryId: customCategory.id,
-      }
-    });
-    console.log(`Prodotto ${product.name} copiato nel workspace custom`)
-  }
 }
 
 main()

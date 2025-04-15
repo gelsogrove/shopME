@@ -34,3 +34,6 @@ browser-tools-mcp/
 
 # Turbo
 .turbo
+
+
+/backend/node_modules
