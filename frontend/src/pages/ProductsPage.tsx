@@ -3,6 +3,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { ProductSheet } from "@/components/shared/ProductSheet"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
     Tooltip,
     TooltipContent,
@@ -10,6 +11,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
+import { categoriesApi } from "@/services/categoriesApi"
 import { productsApi, type Product } from "@/services/productsApi"
 import { Package2, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -26,25 +28,11 @@ interface ProductDisplay {
   image: string | null
 }
 
-const availableCategories = [
-  { value: "Pasta", label: "Pasta" },
-  { value: "Cheese", label: "Cheese" },
-  { value: "Oil", label: "Oil" },
-  { value: "Condiments", label: "Condiments" },
-  { value: "Cured Meats", label: "Cured Meats" },
-  { value: "DOP", label: "DOP" },
-  { value: "IGP", label: "IGP" },
-  { value: "DOCG", label: "DOCG" },
-  { value: "Vegetables", label: "Vegetables" },
-  { value: "Wine", label: "Wine" },
-  { value: "Nuts", label: "Nuts" },
-  { value: "Spirits", label: "Spirits" },
-]
-
 export function ProductsPage() {
   const { workspace, loading: isWorkspaceLoading } = useWorkspace()
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [categories, setCategories] = useState<Array<{ id: string, name: string }>>([])
   const [showAddSheet, setShowAddSheet] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<ProductDisplay | null>(
@@ -53,6 +41,7 @@ export function ProductsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [searchValue, setSearchValue] = useState("")
 
+  // Fetch products when workspace changes
   useEffect(() => {
     const loadProducts = async () => {
       if (!workspace?.id) return
@@ -64,6 +53,7 @@ export function ProductsPage() {
         
         // Verifichiamo che response.products esista e sia un array
         if (response && response.products && Array.isArray(response.products)) {
+          console.log('Product sample with category:', response.products[0])
           setProducts(response.products)
         } else {
           console.error('Formato risposta API non valido:', response)
@@ -82,39 +72,82 @@ export function ProductsPage() {
     loadProducts()
   }, [workspace?.id])
 
+  // Fetch categories when workspace changes
+  useEffect(() => {
+    const loadCategories = async () => {
+      if (!workspace?.id) return
+
+      try {
+        const categoriesData = await categoriesApi.getAllForWorkspace(workspace.id)
+        setCategories(categoriesData)
+      } catch (error) {
+        console.error("Failed to load categories:", error)
+        toast.error("Failed to load categories")
+      }
+    }
+
+    loadCategories()
+  }, [workspace?.id])
+
   // Filter products based on search value
   const filteredProducts = products.filter(
-    (product) =>
+    (product) => 
       product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchValue.toLowerCase()) ||
-      (product.categoryId || "")
-        .toLowerCase()
-        .includes(searchValue.toLowerCase())
+      product.description.toLowerCase().includes(searchValue.toLowerCase())
   )
 
-  const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  // Create a properly formatted array of categories for the select dropdown
+  const availableCategories = [
+    { value: "none", label: "No Category" },
+    ...categories.map(category => ({
+      value: category.id,
+      label: category.name
+    }))
+  ];
+
+  const handleAdd = async (formData: FormData) => {
     if (!workspace?.id) {
       toast.error("No workspace selected")
       return
     }
 
-    const form = e.target as HTMLFormElement
-    const formData = new FormData(form)
-
-    const newProduct = {
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      price: parseFloat(
-        (formData.get("price") as string).replace("€", "").trim()
-      ),
-      stock: parseInt(formData.get("stock") as string) || 0,
-      categoryId: formData.get("categoryId") as string,
-      image: (formData.get("image") as string) || undefined,
-      isActive: true,
-    }
-
     try {
+      let imageUrl: string | undefined = undefined;
+      
+      // Upload image if provided
+      const imageFile = formData.get("imageFile") as File | null;
+      if (imageFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', imageFile);
+        
+        const response = await fetch(`/api/workspaces/${workspace.id}/upload`, {
+          method: 'POST',
+          body: uploadFormData,
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to upload image');
+        }
+        
+        const uploadResult = await response.json();
+        imageUrl = uploadResult.url;
+      } else {
+        // Use existing image URL if available
+        imageUrl = formData.get("image") as string || undefined;
+      }
+
+      const newProduct = {
+        name: formData.get("name") as string,
+        description: formData.get("description") as string,
+        price: parseFloat(
+          (formData.get("price") as string).replace("€", "").trim()
+        ),
+        stock: parseInt(formData.get("stock") as string) || 0,
+        categoryId: formData.get("categoryId") as string,
+        image: imageUrl,
+        isActive: true,
+      }
+
       const createdProduct = await productsApi.create(workspace.id, newProduct)
       setProducts([...products, createdProduct])
       toast.success("Product added successfully")
@@ -139,25 +172,45 @@ export function ProductsPage() {
     setShowEditSheet(true)
   }
 
-  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const handleEditSubmit = async (formData: FormData) => {
     if (!selectedProduct || !workspace?.id) return
 
-    const form = e.target as HTMLFormElement
-    const formData = new FormData(form)
-
-    const updatedProduct = {
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      price: parseFloat(
-        (formData.get("price") as string).replace("€", "").trim()
-      ),
-      stock: parseInt(formData.get("stock") as string) || 0,
-      categoryId: (formData.get("categoryId") as string) || undefined,
-      image: (formData.get("image") as string) || undefined,
-    }
-
     try {
+      let imageUrl: string | undefined = undefined;
+      
+      // Upload image if provided
+      const imageFile = formData.get("imageFile") as File | null;
+      if (imageFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', imageFile);
+        
+        const response = await fetch(`/api/workspaces/${workspace.id}/upload`, {
+          method: 'POST',
+          body: uploadFormData,
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to upload image');
+        }
+        
+        const uploadResult = await response.json();
+        imageUrl = uploadResult.url;
+      } else {
+        // Use existing image URL if available
+        imageUrl = formData.get("image") as string || undefined;
+      }
+
+      const updatedProduct = {
+        name: formData.get("name") as string,
+        description: formData.get("description") as string,
+        price: parseFloat(
+          (formData.get("price") as string).replace("€", "").trim()
+        ),
+        stock: parseInt(formData.get("stock") as string) || 0,
+        categoryId: formData.get("categoryId") as string || undefined,
+        image: imageUrl,
+      }
+
       const response = await productsApi.update(
         selectedProduct.id,
         workspace.id,
@@ -205,6 +258,29 @@ export function ProductsPage() {
     }
   }
 
+  const handleCategoryChange = (productId: string, categoryId: string) => {
+    setProducts(products.map(prod => {
+      if (prod.id === productId) {
+        const selectedCategory = categories.find(cat => cat.id === categoryId);
+        
+        return {
+          ...prod,
+          categoryId: categoryId === "none" ? null : categoryId,
+          category: selectedCategory ? {
+            id: selectedCategory.id,
+            name: selectedCategory.name,
+            workspaceId: workspace?.id || "",
+            slug: selectedCategory.id,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          } : null
+        };
+      }
+      return prod;
+    }));
+  };
+
   if (isWorkspaceLoading || isLoading) {
     return (
       <div className="flex justify-center items-center h-96">
@@ -226,6 +302,11 @@ export function ProductsPage() {
             onAdd={() => setShowAddSheet(true)}
             addButtonText="Add Product"
           />
+
+          {/* Number of items display */}
+          <div className="text-muted-foreground text-lg ml-1">
+            {filteredProducts.length} items
+          </div>
 
           <div className="mt-6 w-full">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -255,12 +336,35 @@ export function ProductsPage() {
                     </span>
                   </div>
 
-                  {/* Category */}
-                  {product.categoryId && (
-                    <div className="mb-2">
-                      <CategoryBadge category={product.categoryId} />
+                  {/* Category - with dropdown to change */}
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="flex-1">
+                      {product.categoryId && (
+                        <CategoryBadge 
+                          category={product.category || product.categoryId} 
+                        />
+                      )}
+                      {!product.categoryId && (
+                        <span className="text-xs text-gray-500">No category</span>
+                      )}
                     </div>
-                  )}
+                    <Select 
+                      defaultValue={product.categoryId || "none"}
+                      onValueChange={(value) => handleCategoryChange(product.id, value)}
+                    >
+                      <SelectTrigger className="w-[120px] h-7 text-xs">
+                        <SelectValue placeholder="Change Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No Category</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   {/* Description */}
                   <p className="text-sm text-gray-600 line-clamp-2 mb-3">

@@ -682,3 +682,16 @@ Technical Requirements:
   - Updated inline Sheet components in OffersPage to use Drawer
   - Maintained consistent styling and functionality
   - Ensured proper side placement and animation behavior
+
+=============== TASK-0063 ============================
+**Epic**: Product Management
+**Title**: Enhance product category display in frontend
+**Description**:
+Modify the product card component to show category names instead of category IDs. Update data models and API integration to support this change.
+
+- [x] Completed
+  - Updated Product interface to include category object
+  - Enhanced CategoryBadge component to handle both category strings and objects
+  - Modified ProductsPage to display category names
+  - Added fallback for backward compatibility with category IDs
+  - Improved user experience by showing human-readable category labels

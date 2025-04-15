@@ -3,10 +3,10 @@ import { api } from './api'
 export interface Category {
   id: string
   name: string
-  description: string
+  description?: string
+  workspaceId: string
   slug: string
   isActive: boolean
-  workspaceId: string
   createdAt: string
   updatedAt: string
 }
@@ -27,59 +27,39 @@ export interface UpdateCategoryData {
  * Get all categories for a workspace
  */
 export const getAllForWorkspace = async (workspaceId: string): Promise<Category[]> => {
-  console.log(`API Call - getAllForWorkspace: GET /api/workspaces/${workspaceId}/categories`);
   try {
+    console.log('Fetching categories for workspace:', workspaceId);
     const response = await api.get(`/api/workspaces/${workspaceId}/categories`);
-    console.log("API Response (getAllForWorkspace):", response.status, response.data);
-    return response.data;
-  } catch (error: any) {
-    console.error("API Error (getAllForWorkspace):", error);
-    if (error.response) {
-      console.error(`Error status: ${error.response.status}`);
-      console.error("Error data:", error.response.data);
-    } else if (error.request) {
-      console.error("No response received:", error.request);
-    } else {
-      console.error("Error message:", error.message);
-    }
-    throw error;
+    console.log('Categories response:', response.data);
+    return response.data || [];
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return [];
   }
 }
 
 /**
- * Get a specific category by ID
+ * Get a category by ID
  */
-export const getById = async (id: string, workspaceId: string): Promise<Category> => {
-  console.log(`API Call - getById: GET /api/workspaces/${workspaceId}/categories/${id}`);
+export const getById = async (id: string, workspaceId: string): Promise<Category | null> => {
   try {
     const response = await api.get(`/api/workspaces/${workspaceId}/categories/${id}`);
-    console.log("API Response (getById):", response.status, response.data);
     return response.data;
-  } catch (error: any) {
-    console.error("API Error (getById):", error);
-    if (error.response) {
-      console.error(`Error status: ${error.response.status}`);
-      console.error("Error data:", error.response.data);
-    }
-    throw error;
+  } catch (error) {
+    console.error('Error fetching category:', error);
+    return null;
   }
 }
 
 /**
  * Create a new category
  */
-export const create = async (workspaceId: string, data: CreateCategoryData): Promise<Category> => {
-  console.log(`API Call - create: POST /api/workspaces/${workspaceId}/categories`, data);
+export const create = async (workspaceId: string, data: { name: string; description?: string }): Promise<Category> => {
   try {
     const response = await api.post(`/api/workspaces/${workspaceId}/categories`, data);
-    console.log("API Response (create):", response.status, response.data);
     return response.data;
-  } catch (error: any) {
-    console.error("API Error (create):", error);
-    if (error.response) {
-      console.error(`Error status: ${error.response.status}`);
-      console.error("Error data:", error.response.data);
-    }
+  } catch (error) {
+    console.error('Error creating category:', error);
     throw error;
   }
 }

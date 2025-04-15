@@ -70,7 +70,20 @@ async function main() {
     createdWorkspaces.push(existingCustomWorkspace);
   } else {
     console.log(`Il workspace con ID ${customWorkspaceId} non esiste nel database`);
-    // Opzionalmente, potresti crearlo qui
+    // Create the workspace if it doesn't exist
+    const customWorkspace = await prisma.workspace.create({
+      data: {
+        id: customWorkspaceId,
+        name: "Custom Workspace",
+        slug: "custom-workspace",
+        whatsappPhoneNumber: "+123456789",
+        isActive: true,
+        language: "it",
+        currency: "EUR",
+      },
+    });
+    console.log(`Workspace creato: ${customWorkspace.name} con ID ${customWorkspace.id}`);
+    createdWorkspaces.push(customWorkspace);
   }
 
   // Check if the workspaces already exist
@@ -380,7 +393,7 @@ async function main() {
         "Traditional spaghetti from Gragnano, made with selected durum wheat semolina. Bronze drawn for the perfect texture.",
       price: 4.99,
       stock: 120,
-      image: "https://example.com/spaghetti.jpg",
+      image: "https://images.unsplash.com/photo-1516100882582-96c3a05fe590?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "gragnano-igp-pasta-spaghetti",
@@ -392,7 +405,7 @@ async function main() {
         "Freshly made egg tagliatelle, perfect for rich meat sauces and ragù.",
       price: 6.99,
       stock: 45,
-      image: "https://example.com/tagliatelle.jpg",
+      image: "https://images.unsplash.com/photo-1633352615955-384ee00b1fe7?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "homemade-tagliatelle",
@@ -405,7 +418,7 @@ async function main() {
         "Authentic Parmigiano Reggiano DOP aged 24 months. Intense flavor with a granular texture.",
       price: 29.99,
       stock: 25,
-      image: "https://example.com/parmigiano.jpg",
+      image: "https://images.unsplash.com/photo-1634487359989-3e90c9432133?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "parmigiano-reggiano-dop-24-months",
@@ -417,7 +430,7 @@ async function main() {
         "Fresh buffalo mozzarella DOP from Campania. Soft texture and delicate milk flavor.",
       price: 9.99,
       stock: 40,
-      image: "https://example.com/mozzarella.jpg",
+      image: "https://images.unsplash.com/photo-1626200625013-eda4cc9bf49d?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "mozzarella-di-bufala-campana-dop",
@@ -430,7 +443,7 @@ async function main() {
         "Premium extra virgin olive oil from Tuscany with balanced flavor and fruity notes.",
       price: 19.99,
       stock: 48,
-      image: "https://example.com/olive-oil.jpg",
+      image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "tuscan-igp-extra-virgin-olive-oil",
@@ -442,7 +455,7 @@ async function main() {
         "Traditional balsamic vinegar of Modena IGP with a perfect balance of sweet and sour.",
       price: 14.99,
       stock: 30,
-      image: "https://example.com/balsamic-vinegar.jpg",
+      image: "https://images.unsplash.com/photo-1608041728715-927233b503fb?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "aceto-balsamico-di-modena-igp",
@@ -455,7 +468,7 @@ async function main() {
         "Fine Parma ham aged for 24 months. Sweet flavor and delicate aroma.",
       price: 24.99,
       stock: 15,
-      image: "https://example.com/prosciutto.jpg",
+      image: "https://images.unsplash.com/photo-1625938145744-82e8f57a5854?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "prosciutto-di-parma-dop-24-months",
@@ -468,7 +481,7 @@ async function main() {
         "Authentic San Marzano tomatoes grown in the volcanic soil of Mount Vesuvius. Sweet flavor with low acidity.",
       price: 6.99,
       stock: 85,
-      image: "https://example.com/tomatoes.jpg",
+      image: "https://images.unsplash.com/photo-1597118850-5cb3d965e455?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "san-marzano-dop-tomatoes",
@@ -481,7 +494,7 @@ async function main() {
         "Premium Barolo DOCG wine from Piedmont, made from Nebbiolo grapes. Full-bodied with notes of roses, tar and herbs.",
       price: 49.99,
       stock: 24,
-      image: "https://example.com/barolo.jpg",
+      image: "https://images.unsplash.com/photo-1586370434639-0fe27570a32f?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "barolo-docg-wine",
@@ -494,7 +507,7 @@ async function main() {
         "Vibrant green pistachios from Bronte, Sicily. Intensely flavored with sweet and slightly resinous notes.",
       price: 18.99,
       stock: 35,
-      image: "https://example.com/pistachios.jpg",
+      image: "https://images.unsplash.com/photo-1621058311910-76a2fc844337?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "pistacchi-di-bronte-dop",
@@ -507,7 +520,7 @@ async function main() {
         "Traditional lemon liqueur made with Sorrento lemons. Bright, sweet and intensely citrusy.",
       price: 22.99,
       stock: 42,
-      image: "https://example.com/limoncello.jpg",
+      image: "https://images.unsplash.com/photo-1566108254082-08a1032e040d?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "limoncello-di-sorrento-igp",
@@ -520,7 +533,7 @@ async function main() {
         "Make authentic Sicilian cannoli at home with this kit including shells, ricotta cream, and toppings.",
       price: 16.99,
       stock: 28,
-      image: "https://example.com/cannoli-kit.jpg",
+      image: "https://images.unsplash.com/photo-1675421693111-db4c8cddec3e?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "sicilian-cannoli-kit",
@@ -618,13 +631,15 @@ async function main() {
         image: product.image,
         isActive: true,
         status: ProductStatus.ACTIVE,
-        slug: product.slug,
+        slug: workspace.id === "cm9hjgq9v00014qk8fsdy4ujv" 
+          ? `custom-${product.slug}-${Date.now()}` 
+          : product.slug,
         workspaceId: workspace.id,
       }
 
       const existingProduct = await prisma.products.findFirst({
         where: {
-          slug: product.slug,
+          slug: productWithCategory.slug,
           workspaceId: workspace.id,
         },
       })
@@ -668,6 +683,74 @@ async function main() {
   console.log(`- Prodotti creati/aggiornati: ${products.length}`)
   console.log(`- Agents creati/aggiornati: ${agents.length}`)
   console.log(`- Services creati/aggiornati: ${services.length}`)
+
+  // Update existing products to be associated with custom workspace
+  console.log(`\nAggancio i prodotti esistenti al workspace custom...`)
+  
+  // Find the original workspace products
+  const originalProducts = await prisma.products.findMany({
+    where: {
+      workspaceId: "cm9hpwcks0000lob9a40n03nt", // Original workspace
+    },
+    include: {
+      category: true
+    }
+  });
+
+  console.log(`Trovati ${originalProducts.length} prodotti nel workspace originale`)
+
+  // Find matching categories in custom workspace
+  for (const product of originalProducts) {
+    if (!product.category) {
+      console.log(`Categoria non trovata per il prodotto: ${product.name}`)
+      continue;
+    }
+
+    // Find matching category in custom workspace
+    const customCategory = await prisma.categories.findFirst({
+      where: {
+        name: product.category.name,
+        workspaceId: "cm9hjgq9v00014qk8fsdy4ujv", // Custom workspace
+      }
+    });
+
+    if (!customCategory) {
+      console.log(`Categoria ${product.category.name} non trovata nel workspace custom`)
+      continue;
+    }
+
+    // Check if a product with this name already exists in custom workspace
+    const existingCustomProduct = await prisma.products.findFirst({
+      where: {
+        name: product.name,
+        workspaceId: "cm9hjgq9v00014qk8fsdy4ujv", // Custom workspace
+      }
+    });
+
+    if (existingCustomProduct) {
+      console.log(`Prodotto ${product.name} già esistente nel workspace custom`)
+      continue;
+    }
+
+    // Create a copy of the product in the custom workspace
+    const customSlug = `custom-${product.slug}-${Date.now()}`;
+    
+    await prisma.products.create({
+      data: {
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        stock: product.stock,
+        image: product.image,
+        isActive: product.isActive,
+        status: product.status,
+        slug: customSlug,
+        workspaceId: "cm9hjgq9v00014qk8fsdy4ujv", // Custom workspace
+        categoryId: customCategory.id,
+      }
+    });
+    console.log(`Prodotto ${product.name} copiato nel workspace custom`)
+  }
 }
 
 main()

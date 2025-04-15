@@ -1,5 +1,13 @@
 import { api } from './api'
 
+export interface Category {
+  id: string
+  name: string
+  description?: string
+  workspaceId: string
+  slug: string
+}
+
 export interface Product {
   id: string
   name: string
@@ -15,6 +23,7 @@ export interface Product {
   status: 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK'
   createdAt: string
   updatedAt: string
+  category?: Category | null
 }
 
 export interface CreateProductData {

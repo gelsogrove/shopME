@@ -10,6 +10,7 @@ import agentsRoutes from "./agents.routes"
 import languagesRoutes from "./languages"
 import { productsRouter } from './products.routes'
 import promptsRoutes from "./prompts.routes"
+import uploadRoutes from "./upload.routes"
 import userRoutes from "./user.routes"
 import workspaceRoutes from "./workspace.routes"
 
@@ -25,6 +26,7 @@ router.use("/users", userRoutes)
 router.use(promptsRoutes)
 router.use(agentsRoutes)
 router.use(productsRouter())
+router.use(uploadRoutes)
 router.use(servicesRouter(new ServicesController()))
 router.use(categoriesRouter(new CategoriesController()))
 router.use(customersRouter(new CustomersController()))
