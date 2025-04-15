@@ -402,7 +402,7 @@ async function main() {
         "Authentic Parmigiano Reggiano DOP aged 24 months. Intense flavor with a granular texture.",
       price: 29.99,
       stock: 25,
-      image: "https://images.unsplash.com/photo-1628088062854-d1870b4553da?q=80&w=800&auto=format&fit=crop",
+      image: "https://www.emiliaitalianfood.com/pimages/PARMIGIANO-REGGIANO-DOP-MIN-24-MESI1-0-kg-ca-extra-big-9.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "parmigiano-reggiano-dop-24-months",

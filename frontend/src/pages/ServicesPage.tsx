@@ -201,25 +201,29 @@ export function ServicesPage() {
   )
 
   return (
-    <div className="container mx-auto py-6">
-      <PageHeader
-        title="Services"
-        titleIcon={<Wrench className={commonStyles.headerIcon} />}
-        searchValue={searchValue}
-        onSearch={setSearchValue}
-        searchPlaceholder="Search services..."
-        onAdd={() => setShowAddSheet(true)}
-        itemCount={filteredServices.length}
-      />
+    <div className="container pl-0 pr-4 pt-4 pb-4">
+      <div className="grid grid-cols-12 gap-0">
+        <div className="col-span-11 col-start-1">
+          <PageHeader
+            title="Services"
+            titleIcon={<Wrench className={commonStyles.headerIcon} />}
+            searchValue={searchValue}
+            onSearch={setSearchValue}
+            searchPlaceholder="Search services..."
+            onAdd={() => setShowAddSheet(true)}
+            itemCount={filteredServices.length}
+          />
 
-      <div className="mt-6">
-        <DataTable
-          data={filteredServices}
-          columns={columns}
-          globalFilter={searchValue}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+          <div className="mt-6 w-full">
+            <DataTable
+              data={filteredServices}
+              columns={columns}
+              globalFilter={searchValue}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Add Service Sheet */}

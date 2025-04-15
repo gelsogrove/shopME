@@ -76,7 +76,6 @@ model Products {
   price       Float
   stock       Int           @default(0)
   sku         String?
-  image       String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   isActive    Boolean       @default(true)
@@ -84,6 +83,7 @@ model Products {
   categoryId  String?
   slug        String        @unique
   status      ProductStatus @default(ACTIVE)
+  image       String?
   cartItems   CartItems[]
   orderItems  OrderItems[]
   category    Categories?   @relation(fields: [categoryId], references: [id])
@@ -174,11 +174,11 @@ model Prompts {
   updatedAt   DateTime  @updatedAt
   isActive    Boolean   @default(true)
   workspaceId String
-  isRouter    Boolean   @default(false)
-  department  String?
   temperature Float?    @default(0.7)
   top_k       Int?      @default(40)
   top_p       Float?    @default(0.9)
+  department  String?
+  isRouter    Boolean   @default(false)
   messages    Message[]
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
@@ -319,7 +319,7 @@ model Language {
 model Services {
   id          String    @id @default(cuid())
   name        String
-  description String    @db.Text
+  description String
   price       Float
   currency    String    @default("€")
   isActive    Boolean   @default(true)
