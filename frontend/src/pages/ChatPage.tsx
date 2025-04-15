@@ -242,7 +242,7 @@ export function ChatPage() {
 
   return (
     <PageLayout>
-      <div className="grid grid-cols-12 gap-6 h-[calc(100vh-8rem)]">
+      <div className="grid grid-cols-12 gap-6 h-[calc(100vh-12rem)]">
         {/* Chat List */}
         <Card className="col-span-4 p-4 overflow-hidden flex flex-col">
           <div className="mb-4">
@@ -267,12 +267,12 @@ export function ChatPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-medium">{chat.customerName}</h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-green-600">
                       {chat.customerPhone}
                     </p>
                   </div>
                   {chat.unreadCount > 0 && (
-                    <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                    <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
                       {chat.unreadCount}
                     </span>
                   )}
@@ -303,7 +303,7 @@ export function ChatPage() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto py-4 space-y-4">
+              <div className="flex-1 overflow-y-scroll py-4 space-y-4 h-[calc(100%-115px)] border border-gray-100 rounded-md p-2">
                 {selectedChat.messages.map((message) => (
                   <div
                     key={message.id}
@@ -314,15 +314,15 @@ export function ChatPage() {
                     }`}
                   >
                     <div
-                      className={`max-w-[70%] p-3 rounded-lg ${
+                      className={`max-w-[45%] p-3 rounded-lg ${
                         message.sender === "user"
-                          ? "bg-blue-500 text-white"
+                          ? "bg-green-100 text-gray-900"
                           : "bg-gray-100 text-gray-900"
                       }`}
                     >
                       <p>{message.content}</p>
-                      <p className="text-xs mt-1 opacity-70">
-                        {new Date(message.timestamp).toLocaleTimeString()}
+                      <p className="text-xs mt-1 opacity-70 text-right">
+                        {new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                       </p>
                     </div>
                   </div>
@@ -330,12 +330,12 @@ export function ChatPage() {
               </div>
 
               {/* Message Input */}
-              <div className="mt-4 flex gap-2">
+              <div className="mt-2 flex gap-2">
                 <Textarea
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
                   placeholder="Type your message..."
-                  className="min-h-[80px] resize-none"
+                  className="min-h-[50px] resize-none"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault()

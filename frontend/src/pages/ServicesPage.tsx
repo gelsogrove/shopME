@@ -4,6 +4,7 @@ import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { FormSheet } from "@/components/shared/FormSheet"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { Service, servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
@@ -48,7 +49,37 @@ export function ServicesPage() {
 
   const columns = [
     { header: "Name", accessorKey: "name" as keyof Service, size: 200 },
-    { header: "Description", accessorKey: "description" as keyof Service, size: 400 },
+    { 
+      header: "Description", 
+      accessorKey: "description" as keyof Service, 
+      size: 400,
+      cell: ({ row }: { row: { original: Service } }) => {
+        const description = row.original.description;
+        const maxLength = 80;
+        const isTruncated = description.length > maxLength;
+        
+        return (
+          <div>
+            {isTruncated ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-help">
+                      {description.substring(0, maxLength)}...
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-md p-4 text-sm">
+                    <p>{description}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              description
+            )}
+          </div>
+        );
+      }
+    },
     {
       header: "Price",
       accessorKey: "price" as keyof Service,
@@ -178,11 +209,12 @@ export function ServicesPage() {
         <textarea
           id="description"
           name="description"
-          className="w-full min-h-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="Service description"
+          className="w-full min-h-[300px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          placeholder="Service description - Provide detailed information about the service, including what it includes, limitations, and any special requirements"
           defaultValue={service?.description}
           required
         />
+        <p className="text-xs text-gray-500">Enter a detailed description of the service. You can include features, benefits, and any important information customers should know.</p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="price">Price (€)</Label>

@@ -63,7 +63,7 @@ export function DataTable<TData>({
         id: "actions",
         header: "",
         cell: ({ row }) => (
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end items-center space-x-2">
             {renderActions && renderActions(row.original)}
             {onEdit && (
               <TooltipProvider>
@@ -77,7 +77,7 @@ export function DataTable<TData>({
                         e.preventDefault();
                         handleEdit(row);
                       }}
-                      className={commonStyles.buttonGhost}
+                      className="h-8 w-8 p-0 flex items-center justify-center"
                     >
                       <Pencil className={`${commonStyles.actionIcon} ${commonStyles.primary}`} />
                     </Button>
@@ -100,7 +100,7 @@ export function DataTable<TData>({
                         e.preventDefault();
                         handleDelete(row);
                       }}
-                      className="hover:bg-red-50"
+                      className="h-8 w-8 p-0 flex items-center justify-center hover:bg-red-50"
                     >
                       <Trash2 className={commonStyles.actionIcon + " text-red-600"} />
                     </Button>

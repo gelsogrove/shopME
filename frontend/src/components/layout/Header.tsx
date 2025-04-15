@@ -1,22 +1,22 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { api } from "@/services/api"
 import { getUserProfile } from "@/services/userApi"
 import {
-    ArrowLeftRight,
-    CreditCard,
-    LogOut,
-    Phone,
-    Settings,
-    User,
+  ArrowLeftRight,
+  CreditCard,
+  LogOut,
+  Phone,
+  Settings,
+  User,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
@@ -116,7 +116,7 @@ export function Header() {
                 <span className="font-medium">{phoneNumber}</span>
               </div>
               <span className="text-xs text-muted-foreground ml-7">
-                Alias: {channelName}
+                 {channelName}
               </span>
             </div>
           </div>

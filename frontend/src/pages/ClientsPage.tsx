@@ -443,7 +443,7 @@ export default function ClientsPage(): JSX.Element {
       id: "actions",
       header: "",
       cell: ({ row }) => (
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end items-center space-x-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -454,9 +454,9 @@ export default function ClientsPage(): JSX.Element {
                     e.stopPropagation()
                     handleViewChatHistory(row.original)
                   }}
-                  className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
+                  className="h-8 w-8 p-0 flex items-center justify-center hover:bg-blue-100"
                 >
-                  <MessageSquare className="h-5 w-5" />
+                  <MessageSquare className="h-5 w-5 text-blue-600" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
