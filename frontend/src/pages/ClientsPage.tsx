@@ -8,21 +8,25 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useWorkspace } from "@/hooks/use-workspace"
+import { clientsApi, type Client as ApiClient } from "@/services/clientsApi"
+import { servicesApi } from "@/services/servicesApi"
 import { type ColumnDef } from "@tanstack/react-table"
 import { MessageSquare, Users } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
 // Shared interfaces
-interface ShippingAddress {
+export interface ShippingAddress {
   street: string
   city: string
   zip: string
   country: string
 }
 
-interface Client {
-  id: number
+export interface Client {
+  id: string
   name: string
   email: string
   company: string
@@ -32,9 +36,12 @@ interface Client {
   notes?: string
   serviceIds: string[]
   shippingAddress: ShippingAddress
+  workspaceId?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
-interface ClientService {
+export interface ClientService {
   id: string
   name: string
   description: string
@@ -42,88 +49,71 @@ interface ClientService {
   status: "active" | "inactive"
 }
 
-// Mock data for services
-const availableServices: ClientService[] = [
-  {
-    id: "1",
-    name: "Shipping Service",
-    description:
-      "Express courier shipping service with delivery within 24/48 business hours.",
-    price: "9.99",
-    status: "active",
-  },
-  {
-    id: "2",
-    name: "Christmas Gift Wrapping",
-    description:
-      "Special packaging for Christmas gifts with wrapping paper, ribbons and personalized card.",
-    price: "12.50",
-    status: "active",
-  },
-  {
-    id: "3",
-    name: "Shipping Insurance",
-    description:
-      "Full insurance coverage for transported goods up to €1000 in value.",
-    price: "7.99",
-    status: "active",
-  },
-  {
-    id: "4",
-    name: "Gift Wrapping",
-    description:
-      "Standard gift wrapping service with elegant paper, ribbon and gift tag.",
-    price: "5.99",
-    status: "active",
-  },
-]
-
-// Mock data for clients
-const clients: Client[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    company: "Acme Inc",
-    discount: 10,
-    phone: "+1234567890",
-    language: "English",
-    notes: "Regular customer",
-    serviceIds: ["1", "4"], // Shipping Service and Gift Wrapping
-    shippingAddress: {
-      street: "123 Main St",
-      city: "New York",
-      zip: "10001",
-      country: "USA",
-    },
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    company: "Tech Corp",
-    discount: 15,
-    phone: "+0987654321",
-    language: "Spanish",
-    notes: "Prefers email contact",
-    serviceIds: ["1", "2"], // Shipping Service and Christmas Gift Wrapping
-    shippingAddress: {
-      street: "456 Oak Ave",
-      city: "Los Angeles",
-      zip: "90001",
-      country: "USA",
-    },
-  },
-]
-
 const availableLanguages = ["Spanish", "English", "Italian"]
 
 export default function ClientsPage(): JSX.Element {
+  const { workspace, loading: isLoadingWorkspace } = useWorkspace()
   const [searchValue, setSearchValue] = useState("")
+  const [clients, setClients] = useState<Client[]>([])
+  const [availableServices, setAvailableServices] = useState<ClientService[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [clientSheetOpen, setClientSheetOpen] = useState(false)
   const [clientSheetMode, setClientSheetMode] = useState<"view" | "edit">("view")
   const navigate = useNavigate()
+
+  // Load clients and services when workspace changes
+  useEffect(() => {
+    const loadData = async () => {
+      if (!workspace?.id) return
+      
+      try {
+        setIsLoading(true)
+        
+        // Load clients
+        const clientsData = await clientsApi.getAllForWorkspace(workspace.id)
+        // Convert API clients to our local Client type
+        const formattedClients = (clientsData.clients || []).map((apiClient: ApiClient) => ({
+          id: apiClient.id,
+          name: apiClient.name,
+          email: apiClient.email,
+          company: apiClient.company,
+          discount: apiClient.discount,
+          phone: apiClient.phone,
+          language: apiClient.language,
+          notes: apiClient.notes,
+          serviceIds: apiClient.serviceIds,
+          shippingAddress: apiClient.shippingAddress,
+          workspaceId: apiClient.workspaceId,
+          createdAt: apiClient.createdAt,
+          updatedAt: apiClient.updatedAt
+        }))
+        setClients(formattedClients)
+        
+        // Load services
+        const servicesData = await servicesApi.getAllForWorkspace(workspace.id)
+        // Convert API services to our local ClientService type
+        const formattedServices = servicesData.map(service => ({
+          id: service.id,
+          name: service.name,
+          description: service.description || "",
+          price: service.price?.toString() || "0",
+          status: service.isActive ? "active" as const : "inactive" as const
+        }))
+        setAvailableServices(formattedServices)
+        
+      } catch (error) {
+        console.error('Error loading data:', error)
+        toast.error('Failed to load clients')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (!isLoadingWorkspace) {
+      loadData()
+    }
+  }, [workspace?.id, isLoadingWorkspace])
 
   // Filter clients based on search value
   const filteredClients = clients.filter(
@@ -134,38 +124,170 @@ export default function ClientsPage(): JSX.Element {
       client.phone.toLowerCase().includes(searchValue.toLowerCase())
   )
 
-  // Handle sheet submission
+  // Handle sheet submission for new client
+  const handleCreateClient = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!workspace?.id) return
+
+    try {
+      const formData = new FormData(e.currentTarget)
+      
+      // Extract service IDs from form data
+      const serviceIds: string[] = []
+      availableServices.forEach(service => {
+        if (formData.get(`service-${service.id}`) === "on") {
+          serviceIds.push(service.id)
+        }
+      })
+      
+      // Prepare client data
+      const clientData = {
+        name: formData.get('name') as string,
+        email: formData.get('email') as string,
+        company: formData.get('company') as string,
+        phone: formData.get('phone') as string,
+        language: formData.get('language') as string,
+        discount: parseFloat(formData.get('discount') as string) || 0,
+        notes: formData.get('notes') as string,
+        serviceIds,
+        shippingAddress: {
+          street: formData.get('street') as string,
+          city: formData.get('city') as string,
+          zip: formData.get('zip') as string,
+          country: formData.get('country') as string
+        }
+      }
+      
+      // Create client in API
+      const newClient = await clientsApi.create(clientData, workspace.id)
+      
+      if (newClient) {
+        // Add the new client to state
+        setClients(prevClients => [...prevClients, {
+          ...newClient,
+          id: newClient.id.toString()
+        }])
+        toast.success('Client created successfully')
+      }
+      
+    } catch (error) {
+      console.error('Error creating client:', error)
+      toast.error('Failed to create client')
+    }
+  }
+
+  // Handle sheet submission for updating client
+  const handleUpdateClient = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!workspace?.id || !selectedClient) return
+
+    try {
+      const formData = new FormData(e.currentTarget)
+      
+      // Extract service IDs from form data
+      const serviceIds: string[] = []
+      availableServices.forEach(service => {
+        if (formData.get(`service-${service.id}`) === "on") {
+          serviceIds.push(service.id)
+        }
+      })
+      
+      // Prepare client data
+      const clientData = {
+        name: formData.get('name') as string,
+        email: formData.get('email') as string,
+        company: formData.get('company') as string,
+        phone: formData.get('phone') as string,
+        language: formData.get('language') as string,
+        discount: parseFloat(formData.get('discount') as string) || 0,
+        notes: formData.get('notes') as string,
+        serviceIds,
+        shippingAddress: {
+          street: formData.get('street') as string,
+          city: formData.get('city') as string,
+          zip: formData.get('zip') as string,
+          country: formData.get('country') as string
+        }
+      }
+      
+      // Update client in API
+      const updatedClient = await clientsApi.update(
+        selectedClient.id.toString(), 
+        clientData, 
+        workspace.id
+      )
+      
+      if (updatedClient) {
+        // Update the client in state
+        setClients(prevClients => 
+          prevClients.map(client => 
+            client.id === updatedClient.id ? {
+              ...updatedClient,
+              id: updatedClient.id.toString()
+            } : client
+          )
+        )
+        toast.success('Client updated successfully')
+      }
+      
+    } catch (error) {
+      console.error('Error updating client:', error)
+      toast.error('Failed to update client')
+    }
+  }
+
+  // Handle client form submission (create or update)
   const handleClientSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    const formData = new FormData(e.currentTarget);
-    
-    // In a real app, you would update the client in your backend
-    console.log("Updated client data:", Object.fromEntries(formData.entries()));
-  };
+    if (selectedClient?.id) {
+      handleUpdateClient(e)
+    } else {
+      handleCreateClient(e)
+    }
+  }
 
   // Handle view chat history
   const handleViewChatHistory = (client: Client) => {
     navigate(`/chat?client=${encodeURIComponent(client.name)}`);
-  };
+  }
 
   // Handle edit client
   const handleEdit = (client: Client) => {
-    setSelectedClient(client);
-    setClientSheetMode("edit");
-    setClientSheetOpen(true);
-  };
+    setSelectedClient(client)
+    setClientSheetMode("edit")
+    setClientSheetOpen(true)
+  }
 
   // Handle view client details
   const handleView = (client: Client) => {
-    setSelectedClient(client);
-    setClientSheetMode("view");
-    setClientSheetOpen(true);
-  };
+    setSelectedClient(client)
+    setClientSheetMode("view")
+    setClientSheetOpen(true)
+  }
+
+  // Handle delete client
+  const handleDelete = async (client: Client) => {
+    if (!workspace?.id) return
+    
+    if (window.confirm(`Are you sure you want to delete ${client.name}?`)) {
+      try {
+        const success = await clientsApi.delete(client.id.toString(), workspace.id)
+        
+        if (success) {
+          setClients(clients.filter(c => c.id !== client.id))
+          toast.success('Client deleted successfully')
+        }
+      } catch (error) {
+        console.error('Error deleting client:', error)
+        toast.error('Failed to delete client')
+      }
+    }
+  }
 
   // Handle add new client
   const handleAddClient = () => {
     // Create an empty client template
     const newClient: Client = {
-      id: Date.now(), // Temporary ID
+      id: "", // This will be assigned by the backend
       name: "",
       email: "",
       company: "",
@@ -179,12 +301,12 @@ export default function ClientsPage(): JSX.Element {
         zip: "",
         country: "",
       },
-    };
+    }
     
-    setSelectedClient(newClient);
-    setClientSheetMode("edit");
-    setClientSheetOpen(true);
-  };
+    setSelectedClient(newClient)
+    setClientSheetMode("edit")
+    setClientSheetOpen(true)
+  }
 
   // Define columns for the DataTable
   const columns: ColumnDef<Client>[] = [
@@ -232,8 +354,8 @@ export default function ClientsPage(): JSX.Element {
                   variant="ghost"
                   size="icon"
                   onClick={(e) => {
-                    e.stopPropagation();
-                    handleViewChatHistory(row.original);
+                    e.stopPropagation()
+                    handleViewChatHistory(row.original)
                   }}
                   className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-100"
                 >
@@ -248,7 +370,17 @@ export default function ClientsPage(): JSX.Element {
         </div>
       ),
     },
-  ];
+  ]
+
+  // Show loading state
+  if (isLoadingWorkspace || isLoading) {
+    return <div>Loading...</div>
+  }
+
+  // Show error if no workspace selected
+  if (!workspace?.id) {
+    return <div>No workspace selected</div>
+  }
 
   return (
     <div className="container pl-0 pr-4 pt-4 pb-4">
@@ -275,6 +407,7 @@ export default function ClientsPage(): JSX.Element {
               data={filteredClients}
               globalFilter={searchValue}
               onEdit={handleEdit}
+              onDelete={handleDelete}
               renderActions={(client) => (
                 <TooltipProvider>
                   <Tooltip>
@@ -283,8 +416,8 @@ export default function ClientsPage(): JSX.Element {
                         variant="ghost"
                         size="icon"
                         onClick={(e) => {
-                          e.stopPropagation();
-                          handleView(client);
+                          e.stopPropagation()
+                          handleView(client)
                         }}
                         className="h-8 w-8 p-0 text-gray-600 hover:bg-gray-100"
                       >

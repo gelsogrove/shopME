@@ -11,35 +11,8 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
+import { Client, ClientService } from "@/pages/ClientsPage"
 import { useEffect, useState } from "react"
-
-interface ShippingAddress {
-  street: string
-  city: string
-  zip: string
-  country: string
-}
-
-interface Client {
-  id: number
-  name: string
-  email: string
-  company: string
-  discount: number
-  phone: string
-  language: string
-  notes?: string
-  serviceIds: string[]
-  shippingAddress: ShippingAddress
-}
-
-interface ClientService {
-  id: string
-  name: string
-  description: string
-  price: string
-  status: "active" | "inactive"
-}
 
 interface ClientSheetProps {
   client: Client | null
