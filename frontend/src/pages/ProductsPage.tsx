@@ -333,7 +333,7 @@ export function ProductsPage() {
                   </div>
 
                   {/* Category - with dropdown to change */}
-                  <div className="mb-2 flex items-center justify-between">
+                  <div className="mb-2 flex items-center">
                     <div className="flex-1">
                       {product.categoryId && (
                         <CategoryBadge 
@@ -344,22 +344,6 @@ export function ProductsPage() {
                         <span className="text-xs text-gray-500">No category</span>
                       )}
                     </div>
-                    <Select 
-                      defaultValue={product.categoryId || "none"}
-                      onValueChange={(value) => handleCategoryChange(product.id, value)}
-                    >
-                      <SelectTrigger className="w-[120px] h-7 text-xs">
-                        <SelectValue placeholder="Change Category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No Category</SelectItem>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </div>
 
                   {/* Description */}

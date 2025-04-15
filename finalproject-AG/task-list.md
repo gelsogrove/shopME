@@ -1,23 +1,26 @@
-# ShopMe – Realistic Project Task List (60 Unique Tasks)
+# ShopMe – Realistic Project Task List (63 Unique Tasks)
 
 ## 📊 Stato Attuale del Progetto
 **Ultimo aggiornamento:** 2023-07-03
 
-- **Completati:** 22/63 task (35%)
-- **In corso:** 1/63 task (1.5%)
-- **Out of scope:** 5/63 task (8%)
-- **Da iniziare:** 35/63 task (55.5%)
+- **Completati:** 26/63 task (41.3%)
+- **In corso:** 0/63 task (0%)
+- **Out of scope:** 6/63 task (9.5%)
+- **Da iniziare:** 31/63 task (49.2%)
+
 
 ### 🚩 Prossimo Task Prioritario
-**TASK-0021**: Create GET /products endpoint
-- Implementare endpoint per listare tutti i prodotti
-- Aggiungere filtri (nome, categoria, stato del magazzino) e paginazione
-- Integrare con il frontend per visualizzare i prodotti
+**TASK-0029**: Add unit tests for product service
+- Cover edge cases for price < 0, missing fields, image format
+- Ensure proper validation and error handling
+- Focus on critical business logic paths
+- Write comprehensive tests for all product-related functionality
+
 
 ### 🏆 Progressi per Epic
 - System Setup & Architecture: 12/12 completati ✅
 - Authentication & 2FA: 4/10 completati, 5/10 fuori scope ⏳
-- Product Management: 5/10 completati, 1/10 in corso 🔄
+- Product Management: 9/10 completati, 0/10 in corso 🔄
 - Orders & Cart: 1/10 completati 🔄
 - Clients, GDPR & Tokenization: 4/10 completati 🔄
 - AI, WhatsApp & Messaging: 1/11 completati 🔄
@@ -26,10 +29,10 @@
 
 - System Setup & Architecture: 12 tasks
 - Authentication & 2FA: 10 tasks
-- Product Management: 10 tasks
-- Orders & Cart: 10 tasks
-- Clients, GDPR & Tokenization: 10 tasks
-- AI, WhatsApp & Messaging: 11 tasks
+- Product Management: 10 tasks (9 completati)
+- Orders & Cart: 10 tasks (1 completato)
+- Clients, GDPR & Tokenization: 10 tasks (4 completati)
+- AI, WhatsApp & Messaging: 11 tasks (1 completato)
 
 **Total Tasks: 63**
 
@@ -266,7 +269,7 @@ Log all login attempts, 2FA failures, token refreshes and store them in an audit
 **Description**:
 List all products with filters (name, category, stock status) and pagination.
 
-- [ ] In corso
+- [x] Completed
   - Implementato endpoint GET /workspaces/:workspaceId/products
   - Aggiunto supporto per filtri: nome, categoria, stato stock
   - Implementata la paginazione con parametri page e limit
@@ -279,7 +282,11 @@ List all products with filters (name, category, stock status) and pagination.
 **Description**:
 Add a new product with fields: name, categoryId, price, image URL, and stock.
 
-- [ ] Not started
+- [x] Completed
+  - Implemented endpoint for creating new products
+  - Handled fields like name, categoryId, price, image URL, and stock
+  - Implemented data validation
+  - Integrated with frontend for product creation
 
 =============== TASK-0023 ============================
 **Epic**: Product Management
@@ -287,17 +294,13 @@ Add a new product with fields: name, categoryId, price, image URL, and stock.
 **Description**:
 Edit product details and handle image replacement if a new image is uploaded.
 
-- [ ] Not started
+- [x] Completed
+  - Implementato endpoint per la modifica dei dettagli dei prodotti
+  - Gestita la logica di sostituzione dell'immagine
+  - Aggiornate le informazioni dei prodotti nel database
+  - Integrato con il frontend per la modifica dei prodotti
 
 =============== TASK-0024 ============================
-**Epic**: Product Management
-**Title**: Create DELETE /products/:id
-**Description**:
-Soft-delete a product and mark as unavailable instead of deleting.
-
-- [ ] Not started
-
-=============== TASK-0025 ============================
 **Epic**: Product Management
 **Title**: List categories
 **Description**:
@@ -310,7 +313,7 @@ Implement `GET /categories` to return all product categories.
   - Integrated with frontend
   - Implemented categories page in UI
 
-=============== TASK-0026 ============================
+=============== TASK-0025 ============================
 **Epic**: Product Management
 **Title**: Add category CRUD
 **Description**:
@@ -323,15 +326,15 @@ Allow admins to create, edit, and delete categories via dedicated endpoints.
   - Implemented form validation
   - Added success/error notifications
 
-=============== TASK-0027 ============================
+=============== TASK-0026 ============================
 **Epic**: Product Management
 **Title**: Upload product image to S3
 **Description**:
 Integrate with S3 or local storage to upload and retrieve product images.
 
-- [ ] Not started
+- [ ] Out of scope per l'MVP
 
-=============== TASK-0028 ============================
+=============== TASK-0027 ============================
 **Epic**: Product Management
 **Title**: Display product list in dashboard
 **Description**:
@@ -344,7 +347,7 @@ Show table view with name, image, price, stock and filters.
   - Implemented product actions (edit, delete)
   - Added visual indicators for product status
 
-=============== TASK-0029 ============================
+=============== TASK-0028 ============================
 **Epic**: Product Management
 **Title**: Create product form modal
 **Description**:
@@ -357,7 +360,7 @@ Use shadcn/ui modal to create or edit products with validation.
   - Created responsive form layout
   - Added success/error notifications
 
-=============== TASK-0030 ============================
+=============== TASK-0029 ============================
 **Epic**: Product Management
 **Title**: Add unit tests for product service
 **Description**:
@@ -365,7 +368,7 @@ Cover edge cases for price < 0, missing fields, image format.
 
 - [ ] Not started
 
-=============== TASK-0031 ============================
+=============== TASK-0030 ============================
 **Epic**: Orders & Cart
 **Title**: Create POST /orders
 **Description**:
@@ -373,7 +376,7 @@ Submit order from current cart items. Save order lines and total amount.
 
 - [ ] Not started
 
-=============== TASK-0032 ============================
+=============== TASK-0031 ============================
 **Epic**: Orders & Cart
 **Title**: List orders
 **Description**:
@@ -381,7 +384,7 @@ Implement paginated `GET /orders` with filters by status, client, and date.
 
 - [ ] Not started
 
-=============== TASK-0033 ============================
+=============== TASK-0032 ============================
 **Epic**: Orders & Cart
 **Title**: View order details
 **Description**:
@@ -389,7 +392,7 @@ Add endpoint `GET /orders/:id` to return full breakdown of items and statuses.
 
 - [ ] Not started
 
-=============== TASK-0034 ============================
+=============== TASK-0033 ============================
 **Epic**: Orders & Cart
 **Title**: Manage order status
 **Description**:
@@ -397,7 +400,7 @@ Allow update of order status (pending, confirmed, shipped, delivered, cancelled)
 
 - [ ] Not started
 
-=============== TASK-0035 ============================
+=============== TASK-0034 ============================
 **Epic**: Orders & Cart
 **Title**: Cart: Add product
 **Description**:
@@ -405,7 +408,7 @@ POST `/cart/add` to add item to the user's current cart.
 
 - [ ] Not started
 
-=============== TASK-0036 ============================
+=============== TASK-0035 ============================
 **Epic**: Orders & Cart
 **Title**: Cart: Remove product
 **Description**:
@@ -413,7 +416,7 @@ POST `/cart/remove` to delete product from cart.
 
 - [ ] Not started
 
-=============== TASK-0037 ============================
+=============== TASK-0036 ============================
 **Epic**: Orders & Cart
 **Title**: Cart: Update quantity
 **Description**:
@@ -421,7 +424,7 @@ POST `/cart/update` to change quantity of a product already in the cart.
 
 - [ ] Not started
 
-=============== TASK-0038 ============================
+=============== TASK-0037 ============================
 **Epic**: Orders & Cart
 **Title**: Get current cart
 **Description**:
@@ -429,7 +432,7 @@ GET `/cart` returns items, totals, and estimated shipping.
 
 - [ ] Not started
 
-=============== TASK-0039 ============================
+=============== TASK-0038 ============================
 **Epic**: Orders & Cart
 **Title**: Display order history in dashboard
 **Description**:
@@ -442,7 +445,7 @@ Show list of orders per client with filters and links.
   - Implemented status indicators
   - Added invoice and shipping note download options
 
-=============== TASK-0040 ============================
+=============== TASK-0039 ============================
 **Epic**: Orders & Cart
 **Title**: Send order confirmation via WhatsApp
 **Description**:
@@ -450,7 +453,7 @@ Trigger message through n8n flow after order success.
 
 - [ ] Not started
 
-=============== TASK-0041 ============================
+=============== TASK-0040 ============================
 **Epic**: Clients, GDPR & Tokenization
 **Title**: Detect first-time user consent
 **Description**:
@@ -458,7 +461,7 @@ On first WhatsApp message, reply with privacy terms and wait for 'I ACCEPT'.
 
 - [ ] Not started
 
-=============== TASK-0042 ============================
+=============== TASK-0041 ============================
 **Epic**: Clients, GDPR & Tokenization
 **Title**: Store GDPR acceptance in DB
 **Description**:
@@ -471,7 +474,7 @@ Add `privacyAcceptedAt`, `privacyVersion` to `clients` table.
   - Added frontend support for consent status
   - Implemented version tracking for policy updates
 
-=============== TASK-0043 ============================
+=============== TASK-0042 ============================
 **Epic**: Clients, GDPR & Tokenization
 **Title**: Re-ask for consent if version outdated
 **Description**:
@@ -484,7 +487,7 @@ Compare accepted version with current, resend if different.
   - Added timestamp tracking for consents
   - Implemented consent history
 
-=============== TASK-0044 ============================
+=============== TASK-0043 ============================
 **Epic**: Clients, GDPR & Tokenization
 **Title**: Tokenize PII before AI prompt
 **Description**:
@@ -492,7 +495,7 @@ Replace names, phones, addresses with tokens before OpenRouter calls.
 
 - [ ] Not started
 
-=============== TASK-0045 ============================
+=============== TASK-0044 ============================
 **Epic**: Clients, GDPR & Tokenization
 **Title**: De-tokenize AI response
 **Description**:
@@ -500,7 +503,7 @@ Replace tokens with real data before sending back to user.
 
 - [ ] Not started
 
-=============== TASK-0046 ============================
+=============== TASK-0045 ============================
 **Epic**: Clients, GDPR & Tokenization
 **Title**: List clients in dashboard
 **Description**:
@@ -513,7 +516,7 @@ Create UI table with filters and GDPR status indicator.
   - Implemented client actions (edit, view details)
   - Added visual indicators for important information
 
-=============== TASK-0047 ============================
+=============== TASK-0046 ============================
 **Epic**: Clients, GDPR & Tokenization
 **Title**: Client detail page
 **Description**:
@@ -526,7 +529,7 @@ Show purchase history, messages, total spent and notes.
   - Implemented contact information section
   - Added edit functionality for client details
 
-=============== TASK-0048 ============================
+=============== TASK-0047 ============================
 **Epic**: Clients, GDPR & Tokenization
 **Title**: Add export client data
 **Description**:
@@ -534,7 +537,7 @@ Create GDPR-compliant `Download My Data` button.
 
 - [ ] Not started
 
-=============== TASK-0049 ============================
+=============== TASK-0048 ============================
 **Epic**: Clients, GDPR & Tokenization
 **Title**: Delete client data
 **Description**:
@@ -542,7 +545,7 @@ Support deletion of a client and anonymize logs.
 
 - [ ] Not started
 
-=============== TASK-0050 ============================
+=============== TASK-0049 ============================
 **Epic**: Clients, GDPR & Tokenization
 **Title**: Track consent history
 **Description**:
@@ -550,7 +553,7 @@ Log every policy update with timestamp and message sent.
 
 - [ ] Not started
 
-=============== TASK-0051 ============================
+=============== TASK-0050 ============================
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Connect WhatsApp webhook to n8n
 **Description**:
@@ -558,7 +561,7 @@ Configure webhook to forward all messages to n8n for processing.
 
 - [ ] Not started
 
-=============== TASK-0052 ============================
+=============== TASK-0051 ============================
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Classify message type
 **Description**:
@@ -566,7 +569,7 @@ Use keywords and NLP to detect if message is an order, question, or other.
 
 - [ ] Not started
 
-=============== TASK-0053 ============================
+=============== TASK-0052 ============================
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Respond with OpenRouter AI
 **Description**:
@@ -574,7 +577,7 @@ Send cleaned message to OpenRouter, receive and format reply.
 
 - [ ] Not started
 
-=============== TASK-0054 ============================
+=============== TASK-0053 ============================
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Fallback if AI fails
 **Description**:
@@ -582,7 +585,7 @@ Detect AI timeouts or errors and send friendly fallback message.
 
 - [ ] Not started
 
-=============== TASK-0055 ============================
+=============== TASK-0054 ============================
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Enable test mode per user
 **Description**:
@@ -590,7 +593,7 @@ Mark certain numbers as sandbox/test to avoid real order creation.
 
 - [ ] Not started
 
-=============== TASK-0056 ============================
+=============== TASK-0055 ============================
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Save chat history in DB
 **Description**:
@@ -598,7 +601,7 @@ Log all message exchanges with userId, timestamps, and intents.
 
 - [ ] Not started
 
-=============== TASK-0057 ============================
+=============== TASK-0056 ============================
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Paginate chat in dashboard
 **Description**:
@@ -606,7 +609,7 @@ Implement `GET /chat/messages` with filters and search.
 
 - [ ] Not started
 
-=============== TASK-0058 ============================
+=============== TASK-0057 ============================
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Push campaign system
 **Description**:
@@ -614,7 +617,7 @@ Create UI + backend to send promo messages to targeted segments.
 
 - [ ] Not started
 
-=============== TASK-0059 ============================
+=============== TASK-0058 ============================
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Track delivery & open rates
 **Description**:
@@ -622,7 +625,7 @@ Use WhatsApp message statuses to track opened/read.
 
 - [ ] Not started
 
-=============== TASK-0060 ============================
+=============== TASK-0059 ============================
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Monitor token usage by user
 **Description**:
@@ -635,7 +638,7 @@ Track usage metrics for AI processing, segregated by client, to enable future bi
   - Develop daily/weekly/monthly reporting
   - Add threshold alerts for overuse
 
-=============== TASK-0061 ============================
+=============== TASK-0060 ============================
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Implement Prompt Duplication
 **Description**:
@@ -660,7 +663,7 @@ Technical Requirements:
   - Added automatic naming with "(Copy)" suffix
   - Preserved all original prompt formatting and content
 
-=============== TASK-0062 ============================
+=============== TASK-0061 ============================
 **Epic**: System Setup & Architecture
 **Title**: Migrate Sheet components to Drawer
 **Description**:
@@ -683,7 +686,7 @@ Technical Requirements:
   - Maintained consistent styling and functionality
   - Ensured proper side placement and animation behavior
 
-=============== TASK-0063 ============================
+=============== TASK-0062 ============================
 **Epic**: Product Management
 **Title**: Enhance product category display in frontend
 **Description**:
@@ -696,7 +699,7 @@ Modify the product card component to show category names instead of category IDs
   - Added fallback for backward compatibility with category IDs
   - Improved user experience by showing human-readable category labels
 
-=============== TASK-0064 ============================
+=============== TASK-0063 ============================
 **Epic**: System Setup & Architecture
 **Title**: Standardize layout and CRUD components across app
 **Description**:
@@ -716,3 +719,22 @@ Technical Requirements:
   - Updated ServicesPage and ChatPage to use the new components
   - Created a comprehensive guide for CRUD components best practices
   - Ensured consistent spacing and alignment across all pages
+
+=============== TASK-0064 ============================
+**Epic**: Product Management
+**Title**: Prevent deletion of categories with associated products
+**Description**:
+Add validation check before category deletion tquindi o prevent removing categories that have products associated with them.
+
+Technical Requirements:
+- Create API endpoint to check if a category has products
+- Update category deletion logic to verify product associations
+- Implement clear user feedback when deletion is blocked
+- Modify UI to handle different confirmation dialog states
+
+- [x] Completed
+  - Created hasProducts function in categoriesApi service
+  - Updated handleDelete to check for associated products before showing confirmation
+  - Enhanced ConfirmDialog component to support different button styles and messages
+  - Added clear error messages explaining why deletion is blocked
+  - Improved user experience with actionable feedback

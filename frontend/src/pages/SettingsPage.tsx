@@ -1,30 +1,30 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import type { Language, Workspace } from "@/services/workspaceApi"
 import {
-    deleteWorkspace,
-    getCurrentWorkspace,
-    getLanguages,
-    updateWorkspace,
+  deleteWorkspace,
+  getCurrentWorkspace,
+  getLanguages,
+  updateWorkspace,
 } from "@/services/workspaceApi"
 import { Loader2, Settings, Trash2, Video } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -308,7 +308,7 @@ export default function SettingsPage() {
 
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Label>Message Limit</Label>
+                <Label>Daily messages limit por user</Label>
               </div>
               <Input
                 type="number"
@@ -320,7 +320,7 @@ export default function SettingsPage() {
 
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Label>Phone Number Blocklist</Label>
+                <Label>Phone Number Blacklist</Label>
               </div>
               <Textarea 
                 value={workspace.blocklist || ""}

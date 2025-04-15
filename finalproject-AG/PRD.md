@@ -102,6 +102,11 @@ The platform is designed for any business that offers products or services to cl
     - However, features like detailed consent management, data portability exports, and full audit logs can be developed iteratively.
     - The _core_ principles (data minimization, security) _must_ be in place.
 
+- **Product Image Upload to S3/Cloud Storage:**
+
+  - Integration with cloud storage services for product image upload and management.
+  - **Rationale:** While product image management is important, the MVP can use simpler approaches like URL references to existing images. Full integration with S3 or similar cloud storage services will be implemented in future versions.
+
   - development environments and monitoring infrastructure can be phased.
   - Product offerts
 
