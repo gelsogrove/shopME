@@ -169,8 +169,11 @@ export function ChatPage() {
         setSelectedChat(chat)
         setSearchTerm(clientName)
       }
+    } else if (!selectedChat && chats.length > 0) {
+      // If no chat is selected and there's no client in the URL, select the first chat by default
+      setSelectedChat(chats[0])
     }
-  }, [chats, searchParams])
+  }, [chats, searchParams, selectedChat])
 
   const filteredChats = chats.filter(
     (chat) =>
@@ -178,49 +181,59 @@ export function ChatPage() {
       chat.customerPhone.includes(searchTerm)
   )
 
+  useEffect(() => {
+    // When filtered chats change and no chat is selected, select the first one if available
+    if (!selectedChat && filteredChats.length > 0) {
+      setSelectedChat(filteredChats[0])
+    }
+  }, [filteredChats, selectedChat])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!messageInput.trim()) return
+    if (!messageInput.trim() || !selectedChat) return
     
     try {
-      // Add user message to chat
-      const userMessage = {
+      // Create new message
+      const newMessage = {
         id: Date.now().toString(),
         content: messageInput,
-        role: "user" as const,
-        createdAt: new Date(),
+        sender: "user" as const,
+        timestamp: new Date().toISOString()
       }
       
-      setMessages((prev) => [...prev, userMessage])
+      // Add the message to the selected chat
+      const updatedChat = {
+        ...selectedChat,
+        messages: [...selectedChat.messages, newMessage],
+        lastMessage: messageInput,
+        lastActive: new Date().toISOString()
+      }
+      
+      // Update the selected chat
+      setSelectedChat(updatedChat)
       setMessageInput("")
       
-      // Get AI response
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: messageInput,
-        }),
-      })
-      
-      if (!response.ok) {
-        throw new Error("Failed to get response")
-      }
-      
-      const data = await response.json()
-      
-      // Add AI response to chat
-      const aiMessage = {
-        id: (Date.now() + 1).toString(),
-        content: data.message,
-        role: "assistant" as const,
-        createdAt: new Date(),
-      }
-      
-      setMessages((prev) => [...prev, aiMessage])
+      // In a real app, you would send this to the backend
+      // For now, we'll simulate a response after a short delay
+      setTimeout(() => {
+        const responseMessage = {
+          id: (Date.now() + 1).toString(),
+          content: "Grazie per il tuo messaggio. Un operatore ti risponderà al più presto.",
+          sender: "customer" as const,
+          timestamp: new Date().toISOString()
+        }
+        
+        setSelectedChat(prevChat => {
+          if (!prevChat) return null
+          return {
+            ...prevChat,
+            messages: [...prevChat.messages, responseMessage],
+            lastMessage: responseMessage.content,
+            lastActive: new Date().toISOString()
+          }
+        })
+      }, 1000)
     } catch (error) {
       toast.error("Failed to send message")
     }
