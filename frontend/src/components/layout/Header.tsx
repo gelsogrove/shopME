@@ -1,22 +1,22 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { api } from "@/services/api"
 import { getUserProfile } from "@/services/userApi"
 import {
-  ArrowLeftRight,
-  CreditCard,
-  LogOut,
-  Phone,
-  Settings,
-  User,
+    ArrowLeftRight,
+    CreditCard,
+    LogOut,
+    Phone,
+    Settings,
+    User,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
@@ -26,6 +26,7 @@ export function Header() {
   const navigate = useNavigate()
   const [phoneNumber, setPhoneNumber] = useState<string>("")
   const [workspaceType, setWorkspaceType] = useState<string>("")
+  const [channelName, setChannelName] = useState<string>("")
   const [userName, setUserName] = useState<string>("")
   const [userEmail, setUserEmail] = useState<string>("")
   const [userInitials, setUserInitials] = useState<string>("")
@@ -33,11 +34,13 @@ export function Header() {
   useEffect(() => {
     // Recupera le informazioni del workspace dai sessionStorage
     const currentPhone =
-      sessionStorage.getItem("currentWorkspaceName") || "+39 XXX XXX XXXX"
+      sessionStorage.getItem("currentWorkspacePhone") || "+39 XXX XXX XXXX"
     const currentType = sessionStorage.getItem("currentWorkspaceType") || "Shop"
+    const currentChannel = sessionStorage.getItem("currentWorkspaceName") || "Shop"
 
     setPhoneNumber(currentPhone)
     setWorkspaceType(currentType)
+    setChannelName(currentChannel)
 
     // Carica i dati dell'utente
     loadUserProfile()
@@ -113,7 +116,7 @@ export function Header() {
                 <span className="font-medium">{phoneNumber}</span>
               </div>
               <span className="text-xs text-muted-foreground ml-7">
-                Type: {workspaceType}
+                Alias: {channelName}
               </span>
             </div>
           </div>

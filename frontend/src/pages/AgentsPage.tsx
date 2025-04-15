@@ -3,28 +3,27 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { Button } from "@/components/ui/button"
 import MarkdownEditor from "@/components/ui/markdown-editor"
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
 } from "@/components/ui/sheet"
 import { Switch } from "@/components/ui/switch"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from "@/components/ui/tooltip"
 import {
-  Agent,
-  createAgent,
-  deleteAgent,
-  duplicateAgent,
-  getAgents,
-  updateAgent,
+    Agent,
+    createAgent,
+    deleteAgent,
+    getAgents,
+    updateAgent,
 } from "@/services/agentsApi"
 import { getCurrentWorkspace } from "@/services/workspaceApi"
-import { Bot, Copy, Loader2, PanelTop, Trash2 } from "lucide-react"
+import { Bot, Loader2, PanelTop, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 
@@ -504,20 +503,6 @@ export function AgentsPage() {
     }
   }
 
-  const handleDuplicate = async (agent: Agent) => {
-    if (!workspaceId) {
-      return
-    }
-
-    try {
-      const duplicated = await duplicateAgent(workspaceId, agent.id)
-      setAgents([...agents, duplicated])
-      toast.success(`Agent "${agent.name}" duplicated successfully`)
-    } catch (error) {
-      toast.error("Failed to duplicate agent")
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="container flex items-center justify-center py-16">
@@ -556,7 +541,9 @@ export function AgentsPage() {
                   {/* Header con nome e badge router */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <h3 className="font-medium truncate">{agent.name}</h3>
+                      {!agent.isRouter && (
+                        <h3 className="font-medium truncate">{agent.name}</h3>
+                      )}
                       {agent.isRouter && (
                         <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-red-600 rounded">
                           <PanelTop className="w-3 h-3 mr-1" />
@@ -570,8 +557,7 @@ export function AgentsPage() {
                   <div className="mb-2">
                     <span className="text-sm text-gray-500">Department: </span>
                     <span className="text-sm font-medium">
-                      {agent.department ||
-                        (agent.isRouter ? "All Departments" : "—")}
+                      {agent.isRouter ? "-" : (agent.department || "-")}
                     </span>
                   </div>
 
@@ -592,28 +578,11 @@ export function AgentsPage() {
                             size="sm"
                             onClick={() => handleEdit(agent)}
                           >
-                            Edit
+                            <Pencil className="h-4 w-4 text-green-500" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Edit Agent</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDuplicate(agent)}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Duplicate Agent</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
