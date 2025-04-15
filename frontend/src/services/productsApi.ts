@@ -82,9 +82,8 @@ export const getAllForWorkspace = async (
     // Construct query parameters
     const queryParams = new URLSearchParams();
     
-    // Questo dovrebbe essere superfluo perché il workspaceId è già nell'URL
-    // ma lo manteniamo per retrocompatibilità
-    queryParams.append('workspaceId', workspaceId);
+    // Rimuoviamo il workspaceId dalla query string, è già nell'URL
+    // queryParams.append('workspaceId', workspaceId);
     
     if (options?.search) {
       queryParams.append('search', options.search);
@@ -106,7 +105,8 @@ export const getAllForWorkspace = async (
       queryParams.append('limit', options.limit.toString());
     }
     
-    const requestUrl = `/api/workspaces/${workspaceId}/products?${queryParams.toString()}`;
+    const queryString = queryParams.toString();
+    const requestUrl = `/api/workspaces/${workspaceId}/products${queryString ? `?${queryString}` : ''}`;
     console.log('API request URL:', requestUrl);
     
     const response = await api.get(requestUrl);
@@ -123,29 +123,30 @@ export const getAllForWorkspace = async (
       };
     }
     
-    if (!response.data.products) {
-      console.error('Risposta API non contiene products array:', response.data);
-      // Per retrocompatibilità, verifichiamo se la risposta è direttamente un array
-      if (Array.isArray(response.data)) {
-        console.log('Risposta API è un array diretto, compatibilità retroattiva');
-        return {
-          products: response.data,
-          total: response.data.length,
-          page: 1,
-          totalPages: 1
-        };
-      }
-      
-      // Se non è un array, ritorniamo vuoto
+    // La risposta ora è direttamente l'array dei prodotti
+    if (Array.isArray(response.data)) {
+      const products = response.data;
       return {
-        products: [],
-        total: 0,
-        page: 1,
-        totalPages: 0
+        products,
+        total: products.length,
+        page: options?.page || 1,
+        totalPages: Math.ceil(products.length / (options?.limit || 10))
       };
     }
     
-    return response.data;
+    // Per retrocompatibilità, supportiamo ancora il formato vecchio
+    if (response.data.products) {
+      return response.data;
+    }
+    
+    // Se non è né un array né ha il nodo products, ritorniamo vuoto
+    console.error('Formato risposta API non riconosciuto:', response.data);
+    return {
+      products: [],
+      total: 0,
+      page: 1,
+      totalPages: 0
+    };
   } catch (error) {
     console.error('Error getting products:', error);
     // In caso di errore, ritorna un oggetto vuoto standard

@@ -82,7 +82,8 @@ export class ProductController {
         totalePagine: result.totalPages
       });
       
-      return res.json(result);
+      // Restituiamo direttamente l'array dei prodotti per uniformare le API
+      return res.json(result.products);
     } catch (error) {
       console.error('Error fetching products:', error);
       return res.status(500).json({ 

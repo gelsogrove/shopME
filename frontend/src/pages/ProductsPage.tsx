@@ -51,8 +51,8 @@ export function ProductsPage() {
         const response = await productsApi.getAllForWorkspace(workspace.id)
         console.log('Risposta API prodotti:', response)
         
-        // Verifichiamo che response.products esista e sia un array
-        if (response && response.products && Array.isArray(response.products)) {
+        // La risposta ora è un oggetto che contiene direttamente l'array dei prodotti
+        if (response && Array.isArray(response.products)) {
           console.log('Product sample with category:', response.products[0])
           setProducts(response.products)
         } else {
