@@ -98,6 +98,11 @@ model Customers {
   email        String
   phone        String?
   address      String?
+  company      String?
+  discount     Float?        @default(0)
+  language     String?       @default("English")
+  notes        String?
+  serviceIds   String[]      @default([])
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   isActive     Boolean       @default(true)

@@ -9,11 +9,11 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
-import { clientsApi, type Client as ApiClient } from "@/services/clientsApi"
+import { api } from "@/services/api"
 import { servicesApi } from "@/services/servicesApi"
 import { type ColumnDef } from "@tanstack/react-table"
 import { MessageSquare, Users } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
@@ -51,6 +51,42 @@ export interface ClientService {
 
 const availableLanguages = ["Spanish", "English", "Italian"]
 
+// Effettua il parsing dell'indirizzo da una stringa
+const parseAddress = (addressStr?: string | null): ShippingAddress => {
+  if (!addressStr) {
+    return { street: '', city: '', zip: '', country: '' }
+  }
+  
+  try {
+    // Prova a fare il parsing come JSON
+    const parsed = JSON.parse(addressStr)
+    if (typeof parsed === 'object') {
+      return {
+        street: parsed.street || '',
+        city: parsed.city || '',
+        zip: parsed.zip || '',
+        country: parsed.country || ''
+      }
+    }
+  } catch (e) {
+    // Se non è JSON, lo trattiamo come indirizzo semplice
+    console.warn('Failed to parse address as JSON:', addressStr)
+  }
+  
+  // Default o fallback se il parsing fallisce
+  return {
+    street: addressStr,
+    city: '',
+    zip: '',
+    country: ''
+  }
+}
+
+// Converte un oggetto indirizzo in stringa
+const stringifyAddress = (address: ShippingAddress): string => {
+  return JSON.stringify(address)
+}
+
 export default function ClientsPage(): JSX.Element {
   const { workspace, loading: isLoadingWorkspace } = useWorkspace()
   const [searchValue, setSearchValue] = useState("")
@@ -61,59 +97,70 @@ export default function ClientsPage(): JSX.Element {
   const [clientSheetOpen, setClientSheetOpen] = useState(false)
   const [clientSheetMode, setClientSheetMode] = useState<"view" | "edit">("view")
   const navigate = useNavigate()
+  
+  // Riferimento per tenere traccia delle chiamate API già effettuate
+  const dataLoaded = useRef(false)
 
-  // Load clients and services when workspace changes
-  useEffect(() => {
-    const loadData = async () => {
-      if (!workspace?.id) return
+  // Memoizza la funzione di caricamento dati
+  const loadData = useCallback(async () => {
+    if (!workspace?.id || dataLoaded.current) return
+    
+    try {
+      setIsLoading(true)
       
-      try {
-        setIsLoading(true)
-        
-        // Load clients
-        const clientsData = await clientsApi.getAllForWorkspace(workspace.id)
-        // Convert API clients to our local Client type
-        const formattedClients = (clientsData.clients || []).map((apiClient: ApiClient) => ({
-          id: apiClient.id,
-          name: apiClient.name,
-          email: apiClient.email,
-          company: apiClient.company,
-          discount: apiClient.discount,
-          phone: apiClient.phone,
-          language: apiClient.language,
-          notes: apiClient.notes,
-          serviceIds: apiClient.serviceIds,
-          shippingAddress: apiClient.shippingAddress,
-          workspaceId: apiClient.workspaceId,
-          createdAt: apiClient.createdAt,
-          updatedAt: apiClient.updatedAt
-        }))
-        setClients(formattedClients)
-        
-        // Load services
-        const servicesData = await servicesApi.getAllForWorkspace(workspace.id)
-        // Convert API services to our local ClientService type
-        const formattedServices = servicesData.map(service => ({
-          id: service.id,
-          name: service.name,
-          description: service.description || "",
-          price: service.price?.toString() || "0",
-          status: service.isActive ? "active" as const : "inactive" as const
-        }))
-        setAvailableServices(formattedServices)
-        
-      } catch (error) {
-        console.error('Error loading data:', error)
-        toast.error('Failed to load clients')
-      } finally {
-        setIsLoading(false)
-      }
+      // Carica i clienti e i servizi in parallelo
+      const [customersResponse, servicesData] = await Promise.all([
+        api.get(`/api/workspaces/${workspace.id}/customers`),
+        servicesApi.getAllForWorkspace(workspace.id)
+      ])
+      
+      const customersData = customersResponse.data
+      
+      // Converti i dati dei clienti dal formato API al formato interno
+      const formattedClients = customersData.map((customer: any) => ({
+        id: customer.id || '',
+        name: customer.name || '',
+        email: customer.email || '',
+        company: customer.company || '',
+        discount: customer.discount || 0,
+        phone: customer.phone || '',
+        language: customer.language || 'English',
+        notes: customer.notes || '',
+        serviceIds: customer.serviceIds || [],
+        shippingAddress: parseAddress(customer.address),
+        workspaceId: customer.workspaceId,
+        createdAt: customer.createdAt,
+        updatedAt: customer.updatedAt
+      }))
+      
+      setClients(formattedClients)
+      
+      // Converti i dati dei servizi
+      const formattedServices = servicesData.map(service => ({
+        id: service.id,
+        name: service.name,
+        description: service.description || "",
+        price: service.price?.toString() || "0",
+        status: service.isActive ? "active" as const : "inactive" as const
+      }))
+      
+      setAvailableServices(formattedServices)
+      dataLoaded.current = true
+      
+    } catch (error) {
+      console.error('Error loading data:', error)
+      toast.error('Failed to load clients or services')
+    } finally {
+      setIsLoading(false)
     }
+  }, [workspace?.id])
 
-    if (!isLoadingWorkspace) {
+  // Carica i dati solo quando il workspace è disponibile e non stiamo ancora caricando
+  useEffect(() => {
+    if (!isLoadingWorkspace && workspace?.id && !dataLoaded.current) {
       loadData()
     }
-  }, [workspace?.id, isLoadingWorkspace])
+  }, [loadData, workspace?.id, isLoadingWorkspace])
 
   // Filter clients based on search value
   const filteredClients = clients.filter(
@@ -140,8 +187,16 @@ export default function ClientsPage(): JSX.Element {
         }
       })
       
-      // Prepare client data
-      const clientData = {
+      // Prepare shipping address data as a string (JSON)
+      const shippingAddress: ShippingAddress = {
+        street: formData.get('street') as string,
+        city: formData.get('city') as string,
+        zip: formData.get('zip') as string,
+        country: formData.get('country') as string
+      }
+      
+      // Prepare client data for customers API
+      const customerData = {
         name: formData.get('name') as string,
         email: formData.get('email') as string,
         company: formData.get('company') as string,
@@ -150,25 +205,36 @@ export default function ClientsPage(): JSX.Element {
         discount: parseFloat(formData.get('discount') as string) || 0,
         notes: formData.get('notes') as string,
         serviceIds,
-        shippingAddress: {
-          street: formData.get('street') as string,
-          city: formData.get('city') as string,
-          zip: formData.get('zip') as string,
-          country: formData.get('country') as string
-        }
+        // Convert address to string for API
+        address: stringifyAddress(shippingAddress)
       }
       
       // Create client in API
-      const newClient = await clientsApi.create(clientData, workspace.id)
+      const response = await api.post(`/api/workspaces/${workspace.id}/customers`, customerData)
+      const newCustomer = response.data
       
-      if (newClient) {
-        // Add the new client to state
+      if (newCustomer) {
+        // Add the new client to state with converted format
         setClients(prevClients => [...prevClients, {
-          ...newClient,
-          id: newClient.id.toString()
+          id: newCustomer.id,
+          name: newCustomer.name || '',
+          email: newCustomer.email || '',
+          company: newCustomer.company || '',
+          discount: newCustomer.discount || 0,
+          phone: newCustomer.phone || '',
+          language: newCustomer.language || 'English',
+          notes: newCustomer.notes || '',
+          serviceIds: newCustomer.serviceIds || [],
+          shippingAddress: parseAddress(newCustomer.address),
+          workspaceId: newCustomer.workspaceId,
+          createdAt: newCustomer.createdAt,
+          updatedAt: newCustomer.updatedAt
         }])
         toast.success('Client created successfully')
       }
+      
+      // Close the form
+      setClientSheetOpen(false)
       
     } catch (error) {
       console.error('Error creating client:', error)
@@ -176,10 +242,10 @@ export default function ClientsPage(): JSX.Element {
     }
   }
 
-  // Handle sheet submission for updating client
+  // Handle update client
   const handleUpdateClient = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!workspace?.id || !selectedClient) return
+    if (!workspace?.id || !selectedClient?.id) return
 
     try {
       const formData = new FormData(e.currentTarget)
@@ -192,8 +258,16 @@ export default function ClientsPage(): JSX.Element {
         }
       })
       
-      // Prepare client data
-      const clientData = {
+      // Prepare shipping address data as string
+      const shippingAddress: ShippingAddress = {
+        street: formData.get('street') as string,
+        city: formData.get('city') as string,
+        zip: formData.get('zip') as string,
+        country: formData.get('country') as string
+      }
+      
+      // Prepare client data for customers API - includendo tutti i campi
+      const customerData = {
         name: formData.get('name') as string,
         email: formData.get('email') as string,
         company: formData.get('company') as string,
@@ -202,37 +276,60 @@ export default function ClientsPage(): JSX.Element {
         discount: parseFloat(formData.get('discount') as string) || 0,
         notes: formData.get('notes') as string,
         serviceIds,
-        shippingAddress: {
-          street: formData.get('street') as string,
-          city: formData.get('city') as string,
-          zip: formData.get('zip') as string,
-          country: formData.get('country') as string
-        }
+        address: stringifyAddress(shippingAddress),
+        isActive: true
       }
       
-      // Update client in API
-      const updatedClient = await clientsApi.update(
-        selectedClient.id.toString(), 
-        clientData, 
-        workspace.id
-      )
+      console.log('Updating customer with data:', customerData)
+      console.log('Customer ID:', selectedClient.id)
+      console.log('Workspace ID:', workspace.id)
       
-      if (updatedClient) {
-        // Update the client in state
-        setClients(prevClients => 
-          prevClients.map(client => 
-            client.id === updatedClient.id ? {
-              ...updatedClient,
-              id: updatedClient.id.toString()
-            } : client
+      // Update client in API
+      const response = await api.put(
+        `/api/workspaces/${workspace.id}/customers/${selectedClient.id}`,
+        customerData
+      )
+      const updatedCustomer = response.data
+      
+      console.log('Response from update API:', updatedCustomer)
+      
+      if (updatedCustomer) {
+        // Update client in state with correct format and preserve existing data not returned by API
+        setClients(prevClients =>
+          prevClients.map(client =>
+            client.id === selectedClient.id
+              ? {
+                  ...client, // Mantieni i dati esistenti
+                  id: updatedCustomer.id,
+                  name: updatedCustomer.name || client.name,
+                  email: updatedCustomer.email || client.email,
+                  company: updatedCustomer.company || client.company,
+                  discount: updatedCustomer.discount ?? client.discount,
+                  phone: updatedCustomer.phone || client.phone,
+                  language: updatedCustomer.language || client.language,
+                  notes: updatedCustomer.notes || client.notes,
+                  serviceIds: updatedCustomer.serviceIds || client.serviceIds,
+                  shippingAddress: parseAddress(updatedCustomer.address),
+                  updatedAt: updatedCustomer.updatedAt
+                }
+              : client
           )
         )
         toast.success('Client updated successfully')
       }
       
-    } catch (error) {
+      // Close the form
+      setClientSheetOpen(false)
+      setSelectedClient(null)
+      
+    } catch (error: any) {
       console.error('Error updating client:', error)
-      toast.error('Failed to update client')
+      // Log detailed error information
+      if (error.response) {
+        console.error('Response status:', error.response.status)
+        console.error('Response data:', error.response.data)
+      }
+      toast.error(`Failed to update client: ${error.message || 'Unknown error'}`)
     }
   }
 
@@ -270,12 +367,12 @@ export default function ClientsPage(): JSX.Element {
     
     if (window.confirm(`Are you sure you want to delete ${client.name}?`)) {
       try {
-        const success = await clientsApi.delete(client.id.toString(), workspace.id)
+        // Delete client using customers API
+        await api.delete(`/api/workspaces/${workspace.id}/customers/${client.id}`)
         
-        if (success) {
-          setClients(clients.filter(c => c.id !== client.id))
-          toast.success('Client deleted successfully')
-        }
+        // Remove from state if successful
+        setClients(clients.filter(c => c.id !== client.id))
+        toast.success('Client deleted successfully')
       } catch (error) {
         console.error('Error deleting client:', error)
         toast.error('Failed to delete client')
@@ -408,28 +505,6 @@ export default function ClientsPage(): JSX.Element {
               globalFilter={searchValue}
               onEdit={handleEdit}
               onDelete={handleDelete}
-              renderActions={(client) => (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleView(client)
-                        }}
-                        className="h-8 w-8 p-0 text-gray-600 hover:bg-gray-100"
-                      >
-                        <Users className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>View Client Details</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
             />
           </div>
         </div>

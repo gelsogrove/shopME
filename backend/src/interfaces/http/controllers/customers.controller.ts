@@ -47,21 +47,29 @@ export class CustomersController {
   async createCustomer(req: Request, res: Response, next: NextFunction) {
     try {
       const { workspaceId } = req.params;
-      const { name, email, phone, address } = req.body;
+      const { name, email, phone, address, company, discount, language, notes, serviceIds } = req.body;
       
-      const customer = await prisma.customers.create({
-        data: {
-          name,
-          email,
-          phone,
-          address,
-          isActive: true,
-          workspace: {
-            connect: {
-              id: workspaceId
-            }
+      const customerData: any = {
+        name,
+        email,
+        phone,
+        address,
+        isActive: true,
+        workspace: {
+          connect: {
+            id: workspaceId
           }
         }
+      };
+      
+      if (company !== undefined) customerData.company = company;
+      if (discount !== undefined) customerData.discount = discount;
+      if (language !== undefined) customerData.language = language;
+      if (notes !== undefined) customerData.notes = notes;
+      if (serviceIds !== undefined) customerData.serviceIds = serviceIds;
+      
+      const customer = await prisma.customers.create({
+        data: customerData
       });
       
       res.status(201).json(customer);
@@ -73,24 +81,35 @@ export class CustomersController {
   async updateCustomer(req: Request, res: Response, next: NextFunction) {
     try {
       const { id, workspaceId } = req.params;
-      const { name, email, phone, address, isActive } = req.body;
+      const { name, email, phone, address, isActive, company, discount, language, notes, serviceIds } = req.body;
+      
+      const customerData: any = {
+        name,
+        email,
+        phone,
+        address,
+        isActive
+      };
+      
+      if (company !== undefined) customerData.company = company;
+      if (discount !== undefined) customerData.discount = discount;
+      if (language !== undefined) customerData.language = language;
+      if (notes !== undefined) customerData.notes = notes;
+      if (serviceIds !== undefined) customerData.serviceIds = serviceIds;
+      
+      console.log('Updating customer with data:', customerData);
       
       const customer = await prisma.customers.update({
         where: {
           id,
           workspaceId
         },
-        data: {
-          name,
-          email,
-          phone,
-          address,
-          isActive
-        }
+        data: customerData
       });
       
       res.json(customer);
     } catch (error) {
+      console.error('Error updating customer:', error);
       next(error);
     }
   }
