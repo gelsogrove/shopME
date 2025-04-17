@@ -515,6 +515,104 @@ This mechanism protects against spam attacks, prevents AI resource waste, and en
     - Loyalty Programs: Update clients on points, rewards, and milestones.
     - Event Notifications: Inform clients about upcoming events or new services.
 
+## 6.5 WhatsApp Messaging Flow API
+
+The platform implements a comprehensive messaging flow through the `MessageProcessorAPI` that handles all WhatsApp communications. This API serves as the core middleware between incoming WhatsApp messages and AI-powered responses.
+
+### 6.5.1 Flow Architecture
+
+The messaging flow follows this sequence:
+
+1. **Reception**: Incoming messages from WhatsApp are received via webhook
+2. **Challenge Verification**: System checks if the workspace is active
+3. **User Identification**: System identifies the user and checks if they're new or existing
+4. **Agent Selection**: For existing users, the appropriate specialized agent is selected based on message context
+5. **Context Loading**: User data, order history, and previous messages are retrieved
+6. **Data Protection**: Personal data is tokenized before processing
+7. **AI Processing**: The tokenized message is processed by OpenRouter AI
+8. **Response Formatting**: AI response is made conversational
+9. **Data Restoration**: Tokens are replaced with actual user data
+10. **History Tracking**: The exchange is logged in the chat history
+11. **Delivery**: The response is sent back to the user via WhatsApp
+
+### 6.5.2 Implementation
+
+The API is implemented through the following core function:
+
+```javascript
+try {
+    // Check if challenge is active
+    if (!isChallengeActive()) {
+        inactiveMessage = getInactiveMessage()
+        sendMessage(inactiveMessage);
+        return;
+    }
+
+    let systemResp;
+    const message = GetQuestion();  
+    const userID = GetUserId();
+    const userInfo = getUserData(userID);
+    const isNewUser = isPresent(userInfo) ? false : true;
+  
+    if (isNewUser) {
+        // New link to the registration form
+         return "LINK";   
+    } else {
+
+        // 0. GET DATA
+        routerAgent = getRouterAgent()
+        const agentSelected = GetAgentDedicatedFromRouterAgent(routerAgent,message);
+        const prompt = loadPrompt(agentSelected);  
+        const orders = getOrders();
+        const products = getProducts();  
+        const historyMessages = GetHistory("last 30 messages");
+
+        // 1. TOKENIZE (ora restituisce anche la mappa)
+        const { fakeMessage, fakeUserInfo, tokenMap } = Tokenize(message, userInfo);
+
+        // 2. OPENROUTER 
+        systemResp = getResponse(prompt, agentSelected, historyMessages, fakeMessage, fakeUserInfo, orders, products);
+        // Attach a calling function when we have the order details  
+        // Attach a calling function when we have to send the invoices     
+
+         // 4. CONVERSIONAL RESPONSE
+        systemResp = conversationalResponse("metti la frase in maniera discorsiva:" + systemResp);
+ 
+        // 5. DETOKENIZE
+        const resp = Detokenize(systemResp, systemResp);
+        
+        // 6. SAVE TO HISTORY
+        saveToChatHistory(userID, agentSelected, message, resp);  
+
+        return resp;  
+    }
+
+    
+} catch (error) {
+    console.error("Errore in main:", error);
+}
+```
+
+### 6.5.3 Database Requirements
+
+To support this messaging flow, the database includes the following key entities:
+
+- **ChatSession**: Tracks ongoing conversations with metadata
+- **Message**: Stores individual messages with direction, content, and status
+- **Prompts**: Stores AI agent configurations and prompts
+- **Customers**: Contains user data and preferences
+
+These models support the conversational interface shown in the platform's chat interface:
+
+![Chat Interface](https://path-to-chat-interface-image.png)
+
+The interface provides:
+- List of recent conversations on the left panel
+- Detailed conversation view on the right panel
+- Real-time message exchange with timestamps
+- Order tracking and status information
+- Clear visual distinction between incoming and outgoing messages
+
 ## 7. Use Cases
 
 ### Admin Use Case:

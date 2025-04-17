@@ -31,6 +31,47 @@ const agents = [
     department: "Support",
     promptName: "Default Customer Support",
   },
+  // Aggiunti dal seed.js.old
+  {
+    name: "AGENT_1",
+    description: "Generic customer service assistant",
+    isActive: true,
+    isRouter: false,
+    department: "GENERIC",
+    promptName: "Default Customer Support",
+  },
+  {
+    name: "AGENT_2",
+    description: "Product specialist for Italian food products",
+    isActive: true,
+    isRouter: false,
+    department: "PRODUCTS",
+    promptName: "Product Specialist",
+  },
+  {
+    name: "AGENT_3",
+    description: "Transportation and logistics specialist",
+    isActive: true,
+    isRouter: false,
+    department: "TRANSPORT",
+    promptName: "Default Customer Support",
+  },
+  {
+    name: "AGENT_4",
+    description: "Invoicing and payments specialist",
+    isActive: true,
+    isRouter: false,
+    department: "INVOICES",
+    promptName: "Default Customer Support",
+  },
+  {
+    name: "AGENT_5",
+    description: "Additional services specialist",
+    isActive: true,
+    isRouter: false,
+    department: "SERVICES",
+    promptName: "Default Customer Support",
+  },
 ]
 
 // Inizializziamo createdWorkspaces qui, prima di main()
@@ -112,19 +153,18 @@ async function main() {
     // Non li cancelliamo per sicurezza, ma non li includiamo nelle operazioni successive
   }
 
-  // Create food categories for each workspace
+  // Create combined food categories (from both files)
   const foodCategories = [
+    // Categorie dal seed.ts originale
     {
       name: "Beverages",
       slug: "beverages",
-      description:
-        "Italian beverages including coffee, soft drinks, and non-alcoholic options",
+      description: "Italian beverages including coffee, soft drinks, and non-alcoholic options",
     },
     {
       name: "Pasta",
       slug: "pasta",
-      description:
-        "Fresh and dried pasta varieties from different regions of Italy",
+      description: "Fresh and dried pasta varieties from different regions of Italy",
     },
     {
       name: "Cheese",
@@ -144,8 +184,7 @@ async function main() {
     {
       name: "Preserves",
       slug: "preserves",
-      description:
-        "Jams, marmalades, and preserved fruits made with traditional recipes",
+      description: "Jams, marmalades, and preserved fruits made with traditional recipes",
     },
     {
       name: "Snacks",
@@ -166,6 +205,37 @@ async function main() {
       name: "Desserts",
       slug: "desserts",
       description: "Traditional Italian sweets and desserts",
+    },
+    // Categorie aggiunte dal seed.js.old
+    {
+      name: "Pizza e Pasta",
+      slug: "pizza-e-pasta",
+      description: "Pizze artigianali e pasta fresca della tradizione italiana",
+    },
+    {
+      name: "Antipasti",
+      slug: "antipasti",
+      description: "Antipasti tradizionali italiani",
+    },
+    {
+      name: "Piatti Pronti",
+      slug: "piatti-pronti",
+      description: "Piatti pronti da riscaldare e servire",
+    },
+    {
+      name: "Salumi",
+      slug: "salumi",
+      description: "Salumi e affettati tipici italiani",
+    },
+    {
+      name: "Pesce",
+      slug: "pesce",
+      description: "Specialità di pesce della tradizione italiana",
+    },
+    {
+      name: "Salse",
+      slug: "salse",
+      description: "Salse e condimenti italiani",
     },
   ]
 
@@ -241,6 +311,8 @@ async function main() {
       it: "Italiano",
       en: "English",
       es: "Español",
+      fr: "Français",
+      de: "Deutsch",
     }
     return names[code] || code
   }
@@ -270,7 +342,7 @@ async function main() {
     {
       name: "Product Specialist",
       content:
-        'You are a product specialist for the Italian food shop "L\'Altra Italia". You can answer detailed questions about our products, including ingredients, origin, traditional uses, and comparisons between different products. Your tone should be informative and authoritative. Always emphasize the quality and authenticity of our Italian offerings.',
+        'You are a product specialist for the Italian food shop "L\'Altra Italia". You can answer detailed questions about our products, including ingredients, origin, traditional preparation methods, and culinary uses. Be knowledgeable, passionate, and provide authentic Italian cultural context when appropriate.',
       isActive: true,
       temperature: 0.5,
       top_p: 0.8,
@@ -368,9 +440,9 @@ async function main() {
     }
   }
 
-  // Create products for the main workspace
+  // Create combined products list (from both files)
   const products = [
-    // Pasta Category
+    // Prodotti dal seed.ts originale
     {
       name: "Gragnano IGP Pasta - Spaghetti",
       description:
@@ -395,7 +467,6 @@ async function main() {
       slug: "homemade-tagliatelle",
       categoryName: "Pasta",
     },
-    // Cheese Category
     {
       name: "Parmigiano Reggiano DOP 24 months",
       description:
@@ -420,7 +491,6 @@ async function main() {
       slug: "mozzarella-di-bufala-campana-dop",
       categoryName: "Cheese",
     },
-    // Oil Category (Condiments)
     {
       name: "Tuscan IGP Extra Virgin Olive Oil",
       description:
@@ -445,7 +515,6 @@ async function main() {
       slug: "aceto-balsamico-di-modena-igp",
       categoryName: "Condiments",
     },
-    // Cured Meats (adding to Gourmet category)
     {
       name: "Prosciutto di Parma DOP 24 months",
       description:
@@ -458,7 +527,6 @@ async function main() {
       slug: "prosciutto-di-parma-dop-24-months",
       categoryName: "Gourmet",
     },
-    // Vegetables
     {
       name: "San Marzano DOP Tomatoes",
       description:
@@ -471,7 +539,6 @@ async function main() {
       slug: "san-marzano-dop-tomatoes",
       categoryName: "Vegetables",
     },
-    // Wine (adding to Beverages)
     {
       name: "Barolo DOCG Wine",
       description:
@@ -484,7 +551,6 @@ async function main() {
       slug: "barolo-docg-wine",
       categoryName: "Beverages",
     },
-    // Nuts (adding to Snacks)
     {
       name: "Pistacchi di Bronte DOP",
       description:
@@ -497,7 +563,6 @@ async function main() {
       slug: "pistacchi-di-bronte-dop",
       categoryName: "Snacks",
     },
-    // Spirits (adding to Beverages)
     {
       name: "Limoncello di Sorrento IGP",
       description:
@@ -510,7 +575,6 @@ async function main() {
       slug: "limoncello-di-sorrento-igp",
       categoryName: "Beverages",
     },
-    // Desserts
     {
       name: "Sicilian Cannoli Kit",
       description:
@@ -522,6 +586,118 @@ async function main() {
       status: "ACTIVE",
       slug: "sicilian-cannoli-kit",
       categoryName: "Desserts",
+    },
+    
+    // Prodotti aggiunti dal seed.js.old
+    {
+      name: "Pizza Napoletana Artigianale",
+      description: "Autentica pizza napoletana con impasto a lunga lievitazione (24h), pomodoro San Marzano DOP, mozzarella di bufala campana e basilico fresco. Cotta in forno a legna a 485°C per 60-90 secondi secondo la tradizione. Certificata Specialità Tradizionale Garantita (STG).",
+      price: 12.90,
+      stock: 25,
+      image: "https://www.lapassionefalochef.it/wp-content/uploads/2024/05/pizza-in-padella.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "pizza-napoletana-artigianale",
+      categoryName: "Pizza e Pasta",
+    },
+    {
+      name: "Tagliatelle al Ragù Bolognese",
+      description: "Autentica pasta all'uovo tagliata a mano (8mm di larghezza) secondo la ricetta depositata alla Camera di Commercio di Bologna. Accompagnata dal tradizionale ragù bolognese preparato con carne di manzo e maiale, soffritto, pomodoro e vino, cotto lentamente per almeno 4 ore.",
+      price: 14.50,
+      stock: 20,
+      image: "https://b3067249.smushcdn.com/3067249/wp-content/uploads/2022/03/ragu-authenric-taglietelle.jpg?lossy=0&strip=1&webp=1",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "tagliatelle-al-ragu-bolognese",
+      categoryName: "Pizza e Pasta",
+    },
+    {
+      name: "Trofie al Pesto Genovese",
+      description: "Trofie fresche artigianali servite con autentico pesto genovese preparato secondo la ricetta tradizionale ligure con basilico DOP di Prà, pinoli italiani, formaggio Parmigiano Reggiano e Pecorino, aglio e olio extravergine d'oliva della Riviera Ligure.",
+      price: 13.90,
+      stock: 18,
+      image: "https://www.ilgiornaledelcibo.it/wp-content/uploads/2008/05/trofie-al-pesto-li-per-li.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "trofie-al-pesto-genovese",
+      categoryName: "Pizza e Pasta",
+    },
+    {
+      name: "Tiramisù Tradizionale",
+      description: "Autentico dolce italiano preparato secondo la ricetta tradizionale veneta. Strati di savoiardi inzuppati in caffè espresso, alternati a crema al mascarpone e cacao amaro in polvere. Ogni porzione è preparata a mano e conservata a temperatura controllata.",
+      price: 8.90,
+      stock: 30,
+      image: "https://primochef.it/wp-content/uploads/2019/06/SH_tiramisu.jpg.webp",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "tiramisu-tradizionale",
+      categoryName: "Desserts",
+    },
+    {
+      name: "Lasagna al Forno Tradizionale",
+      description: "Autentica lasagna italiana con sfoglie di pasta all'uovo fatte a mano, stratificate con ragù di carne selezionata, besciamella cremosa e Parmigiano Reggiano DOP. Cotta lentamente al forno per ottenere la perfetta consistenza e il caratteristico bordo croccante.",
+      price: 15.90,
+      stock: 15,
+      image: "https://www.donnamoderna.com/content/uploads/2002/08/Lasagne-alla-bolognese-ricetta-tradizionale-830x625.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "lasagna-al-forno-tradizionale",
+      categoryName: "Piatti Pronti",
+    },
+    {
+      name: "Linguine allo Scoglio",
+      description: "Pasta linguine di grano duro servita con un ricco sugo di mare che include cozze, vongole, gamberetti e calamari freschi. Preparata con pomodorini freschi, aglio, prezzemolo e un tocco di peperoncino. Un classico piatto della cucina costiera italiana.",
+      price: 16.90,
+      stock: 12,
+      image: "https://www.giallozafferano.it/images/231-23195/Spaghetti-allo-scoglio_450x300.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "linguine-allo-scoglio",
+      categoryName: "Pesce",
+    },
+    {
+      name: "Cannolo Siciliano Artigianale",
+      description: "Autentico cannolo siciliano con croccante scorza di cialda fritta a mano, ripiena di ricotta di pecora fresca setacciata e dolcificata con zucchero. Arricchito con gocce di cioccolato fondente e guarnito con pistacchi di Bronte DOP e scorze di arancia candita.",
+      price: 7.50,
+      stock: 35,
+      image: "https://barpompi.it/wp-content/uploads/2021/05/cannolo-grande.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "cannolo-siciliano-artigianale",
+      categoryName: "Desserts",
+    },
+    {
+      name: "Porchetta di Ariccia IGP",
+      description: "Autentica porchetta di Ariccia IGP, specialità laziale preparata con maiale intero disossato, arrotolato e aromatizzato con una miscela di erbe aromatiche (rosmarino, finocchietto selvatico, aglio e pepe nero). Cotta lentamente in forno a legna per 8 ore, presenta una crosta croccante e una carne interna tenera e succosa.",
+      price: 18.90,
+      stock: 10,
+      image: "https://www.spesa-on-line.com/wp-content/uploads/2020/03/porchetta-di-ariccia-igp.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "porchetta-di-ariccia-igp",
+      categoryName: "Salumi",
+    },
+    {
+      name: "Vitello Tonnato Piemontese",
+      description: "Classica preparazione piemontese di fettine sottili di vitello cotto a bassa temperatura, servite con salsa tonnata cremosa preparata con tonno, capperi, acciughe e maionese. Un antipasto elegante e raffinato, perfetto per le occasioni speciali.",
+      price: 14.50,
+      stock: 15,
+      image: "https://langhe.net/wp-content/uploads/2011/05/vitello_tonnato2.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "vitello-tonnato-piemontese",
+      categoryName: "Antipasti",
+    },
+    {
+      name: "Pesto alla Genovese DOP",
+      description: "Autentico pesto genovese preparato secondo la ricetta tradizionale ligure con basilico DOP di Prà, pinoli italiani, aglio, sale marino, Parmigiano Reggiano DOP invecchiato 24 mesi, Pecorino Sardo e olio extravergine d'oliva della Riviera Ligure. Lavorato a crudo nel mortaio di marmo per preservare tutti gli aromi.",
+      price: 8.90,
+      stock: 40,
+      image: "https://discovernorthernitaly.com/wp-content/uploads/2024/08/Liguria-3.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "pesto-alla-genovese-dop",
+      categoryName: "Salse",
     },
   ]
 
@@ -551,6 +727,40 @@ async function main() {
       currency: "EUR",
       isActive: true,
     },
+  ]
+
+  // Clienti demo (aggiunti dal seed.js.old)
+  const clients = [
+    {
+      name: "Mario Rossi",
+      email: "mario.rossi@example.com",
+      company: "Ristorante Da Mario",
+      phone: "3331234567",
+      language: "Italian",
+      discount: 10,
+      address: "Via Roma 123, Milano, 20100, Italy",
+      workspaceId: mainWorkspaceId,
+    },
+    {
+      name: "Giulia Bianchi",
+      email: "giulia.bianchi@example.com",
+      company: "Pasticceria Bianchi",
+      phone: "3397654321",
+      language: "Italian",
+      discount: 15,
+      address: "Corso Italia 45, Roma, 00100, Italy",
+      workspaceId: mainWorkspaceId,
+    },
+    {
+      name: "Restaurant Da Luigi",
+      email: "info@daluigi.it",
+      company: "Da Luigi SRL",
+      phone: "028765432",
+      language: "Italian",
+      discount: 20,
+      address: "Piazza Navona 7, Roma, 00186, Italy",
+      workspaceId: mainWorkspaceId,
+    }
   ]
 
   // Create or update services for the main workspace
@@ -583,6 +793,41 @@ async function main() {
       })
       console.log(
         `Service updated: ${service.name} for workspace ${createdWorkspaces[0].name}`
+      )
+    }
+  }
+
+  // Create or update clients
+  for (const client of clients) {
+    const existingClient = await prisma.customers.findFirst({
+      where: {
+        email: client.email,
+        workspaceId: mainWorkspaceId,
+      }
+    })
+
+    if (!existingClient) {
+      await prisma.customers.create({
+        data: {
+          ...client,
+          workspaceId: mainWorkspaceId,
+          isActive: true,
+        }
+      })
+      console.log(
+        `Client created: ${client.name} for workspace ${createdWorkspaces[0].name}`
+      )
+    } else {
+      await prisma.customers.update({
+        where: { id: existingClient.id },
+        data: {
+          ...client,
+          workspaceId: mainWorkspaceId,
+          isActive: true,
+        }
+      })
+      console.log(
+        `Client updated: ${client.name} for workspace ${createdWorkspaces[0].name}`
       )
     }
   }
@@ -692,6 +937,7 @@ async function main() {
   console.log(`- Prodotti creati/aggiornati: ${products.length}`)
   console.log(`- Agents creati/aggiornati: ${agents.length}`)
   console.log(`- Services creati/aggiornati: ${services.length}`)
+  console.log(`- Clienti creati/aggiornati: ${clients.length}`)
 }
 
 main()
@@ -701,4 +947,4 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect()
-  })
+  }) 

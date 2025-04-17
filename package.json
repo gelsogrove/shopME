@@ -7,18 +7,6 @@
     "frontend"
   ],
   "description": "Italian Products E-commerce Platform",
-  "scripts": {
-    "start:mcp": "npx @agentdeskai/browser-tools-server@latest",
-    "db:reset": "cd backend && npx prisma migrate reset --force",
-    "db:seed": "cd backend && npx prisma db seed",
-    "db:studio": "cd backend && npx prisma studio",
-    "db:generate": "cd backend && npx prisma generate"
-  },
-  "keywords": [
-    "ecommerce",
-    "whatsapp",
-    "italian-products"
-  ],
   "author": "",
   "license": "ISC"
 }

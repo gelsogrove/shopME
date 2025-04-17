@@ -19,7 +19,10 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "clean": "rm -rf dist",
-    "start:mcp": "cd frontend && npm run dev"
+    "start:mcp": "cd frontend && npm run dev",
+    "db:seed": "npx prisma db seed",
+    "db:studio": "npx prisma studio",
+    "db:generate": "npx prisma generate"
   },
   "keywords": [],
   "author": "",

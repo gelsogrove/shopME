@@ -1,4 +1,5 @@
 import { ClientSheet } from "@/components/shared/ClientSheet"
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { Button } from "@/components/ui/button"
@@ -10,8 +11,9 @@ import {
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { api } from "@/services/api"
+import { commonStyles } from "@/styles/common"
 import { type ColumnDef } from "@tanstack/react-table"
-import { MessageSquare, Users } from "lucide-react"
+import { MessageSquare, Pencil, Trash2, Users } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -89,6 +91,10 @@ export default function ClientsPage(): JSX.Element {
   
   // Riferimento per tenere traccia delle chiamate API già effettuate
   const dataLoaded = useRef(false)
+
+  // Stati per il dialogo di conferma eliminazione
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
 
   // Memoizza la funzione di caricamento dati
   const loadData = useCallback(async () => {
@@ -315,21 +321,27 @@ export default function ClientsPage(): JSX.Element {
   }
 
   // Handle delete client
-  const handleDelete = async (client: Client) => {
-    if (!workspace?.id) return
+  const handleDelete = (client: Client) => {
+    setClientToDelete(client)
+    setShowDeleteDialog(true)
+  }
+
+  // Handle confirm delete
+  const handleConfirmDelete = async () => {
+    if (!workspace?.id || !clientToDelete) return
     
-    if (window.confirm(`Are you sure you want to delete ${client.name}?`)) {
-      try {
-        // Delete client using customers API
-        await api.delete(`/api/workspaces/${workspace.id}/customers/${client.id}`)
-        
-        // Remove from state if successful
-        setClients(clients.filter(c => c.id !== client.id))
-        toast.success('Client deleted successfully')
-      } catch (error) {
-        console.error('Error deleting client:', error)
-        toast.error('Failed to delete client')
-      }
+    try {
+      // Delete client using customers API
+      await api.delete(`/api/workspaces/${workspace.id}/customers/${clientToDelete.id}`)
+      
+      // Remove from state if successful
+      setClients(clients.filter(c => c.id !== clientToDelete.id))
+      toast.success('Client deleted successfully')
+      setShowDeleteDialog(false)
+      setClientToDelete(null)
+    } catch (error) {
+      console.error('Error deleting client:', error)
+      toast.error('Failed to delete client')
     }
   }
 
@@ -360,20 +372,12 @@ export default function ClientsPage(): JSX.Element {
   // Define columns for the DataTable
   const columns: ColumnDef<Client>[] = [
     {
-      header: "Name",
-      accessorKey: "name",
-    },
-    {
-      header: "Email",
-      accessorKey: "email",
+      header: "Phone",
+      accessorKey: "phone",
     },
     {
       header: "Company",
       accessorKey: "company",
-    },
-    {
-      header: "Phone",
-      accessorKey: "phone",
     },
     {
       header: "Language",
@@ -395,13 +399,13 @@ export default function ClientsPage(): JSX.Element {
       id: "actions",
       header: "",
       cell: ({ row }) => (
-        <div className="flex justify-end items-center space-x-2">
+        <div className="flex justify-end items-center gap-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 flex items-center justify-center"
                   onClick={() => handleViewChatHistory(row.original)}
                 >
                   <span className="sr-only">Chat history</span>
@@ -414,57 +418,41 @@ export default function ClientsPage(): JSX.Element {
             </Tooltip>
           </TooltipProvider>
 
-          <Button
-            variant="ghost"
-            className="h-8 w-8 p-0"
-            onClick={() => handleView(row.original)}
-          >
-            <span className="sr-only">View details</span>
-            <Users className="h-4 w-4" />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost" 
+                  className="h-8 w-8 p-0 flex items-center justify-center"
+                  onClick={() => handleEdit(row.original)}
+                >
+                  <span className="sr-only">Edit</span>
+                  <Pencil className={`${commonStyles.actionIcon} ${commonStyles.primary}`} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Edit</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-          <Button
-            variant="ghost"
-            className="h-8 w-8 p-0"
-            onClick={() => handleEdit(row.original)}
-          >
-            <span className="sr-only">Edit</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4"
-            >
-              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-              <path d="m15 5 4 4" />
-            </svg>
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="h-8 w-8 p-0"
-            onClick={() => handleDelete(row.original)}
-          >
-            <span className="sr-only">Delete</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4"
-            >
-              <path d="M3 6h18" />
-              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-            </svg>
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0 flex items-center justify-center hover:bg-red-50"
+                  onClick={() => handleDelete(row.original)}
+                >
+                  <span className="sr-only">Delete</span>
+                  <Trash2 className={`${commonStyles.actionIcon} text-red-600`} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Delete</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       ),
     },
@@ -504,8 +492,6 @@ export default function ClientsPage(): JSX.Element {
               columns={columns} 
               data={filteredClients}
               globalFilter={searchValue}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
             />
           </div>
         </div>
@@ -518,6 +504,17 @@ export default function ClientsPage(): JSX.Element {
         onSubmit={handleClientSubmit}
         mode={clientSheetMode}
         availableLanguages={availableLanguages}
+      />
+
+      {/* Dialog di conferma eliminazione */}
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete Client"
+        description={`Are you sure you want to delete ${clientToDelete?.name || 'this client'}? This action cannot be undone.`}
+        onConfirm={handleConfirmDelete}
+        confirmLabel="Delete"
+        variant="destructive"
       />
     </div>
   )

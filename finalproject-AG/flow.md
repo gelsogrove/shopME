@@ -1,12 +1,51 @@
+try {
+    // Check if challenge is active
+    if (!isChallengeActive()) {
+        inactiveMessage = getInactiveMessage()
+        sendMessage(inactiveMessage);
+        return;
+    }
 
+    let systemResp;
+    const message = GetQuestion();  
+    const userID = GetUserId();
+    const userInfo = getUserData(userID);
+    const isNewUser = isPresent(userInfo) ? false : true;
+  
+    if (isNewUser) {
+        // New linkl to the registration form
+         return ·"LINK";   
+    } else {
 
-controlla se il canale e' attio 
-se non e' attivo rispodnere con il messaggio presente dentro WIP Message
+        // 0. GET DATA
+        routerAgent = getRouterAgent()
+        const agentSelected = GetAgentDedicatedFromRouterAgent(routerAgent,message);
+        const prompt = loadPrompt(agentSelected);  
+        const orders = getOrders();
+        const products = getProducts();  
+        const historyMessages = GetHistory("last 30 messages");
 
-se e' attivo 
-controllare se l'utent e' gia presente nel BD
-    - se e' presente salutarlo con il suo nome e usare il suo nome nelle risposte
-    - se e' presente sappiamo anche gli ordini che ha fatto e l'indirizzo di spedizione
+        // 1. TOKENIZE (ora restituisce anche la mappa)
+        const { fakeMessage, fakeUserInfo, tokenMap } = Tokenize(message, userInfo);
 
-il messaggio deve andare al chat di router che decide a chi inviare la risposta
-ogni chatbot si carica la 
+        // 2. OPENROUTER 
+        systemResp = getResponse(prompt, agentSelected, historyMessages, fakeMessage, fakeUserInfo, orders, products);
+        // Attach a calling function when we have the order details  
+        // Attach a calling function when we have to send the invoices     
+
+         // 4. CONVERSIONAL RESPONSE
+        systemResp = conversationalResponse("metti la frase in maniera discorsiva:" + systemResp);
+ 
+        // 5. DETOKENIZE
+        const resp = Detokenize(systemResp, systemResp);
+        
+        // 6. SAVE TO HISTORY
+        saveToChatHistory(userID, agentSelected, message, resp);  
+
+        return resp;  
+    }
+
+    
+} catch (error) {
+    console.error("Errore in main:", error);
+}

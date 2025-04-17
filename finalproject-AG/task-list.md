@@ -738,3 +738,68 @@ Technical Requirements:
   - Enhanced ConfirmDialog component to support different button styles and messages
   - Added clear error messages explaining why deletion is blocked
   - Improved user experience with actionable feedback
+
+=============== TASK-0065 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Implement chat interface UI
+**Description**:
+Create a WhatsApp-like chat interface for the dashboard to view and manage customer conversations.
+
+Technical Requirements:
+- Create a chat list component showing all recent conversations
+- Design a conversation detail view with message bubbles
+- Add timestamps for all messages
+- Implement visual distinction between incoming and outgoing messages
+- Support real-time message updates
+- Include customer profile information in the conversation header
+
+- [ ] Not started
+
+=============== TASK-0066 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Develop MessageProcessorAPI service
+**Description**:
+Implement the core message processing service based on the flow documented in the PRD.
+
+Technical Requirements:
+- Create message processing pipeline with all documented steps
+- Implement challenge verification functionality
+- Create agent selection algorithm based on message context
+- Develop tokenization and de-tokenization services
+- Set up connections to OpenRouter AI
+- Implement conversational formatting for responses
+- Create comprehensive error handling and fallbacks
+
+- [ ] Not started
+
+=============== TASK-0067 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Enhance database schema for chat functionality
+**Description**:
+Extend the database schema to support the chat interface requirements.
+
+Technical Requirements:
+- Review and enhance existing ChatSession and Message models
+- Add necessary fields for tracking message status and metadata
+- Implement relationship between messages and agents/prompts
+- Create query optimizations for chat history retrieval
+- Add indexes for improved performance
+- Update Prisma schema and generate migrations
+
+- [ ] Not started
+
+=============== TASK-0068 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Create chat analytics dashboard
+**Description**:
+Develop a simple analytics view for monitoring chat activity and performance.
+
+Technical Requirements:
+- Create visual metrics for message volume over time
+- Implement agent effectiveness tracking
+- Add response time metrics
+- Create user engagement statistics
+- Develop message type distribution charts
+- Include filtering by date range and agent type
+
+- [ ] Not started

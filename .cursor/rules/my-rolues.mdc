@@ -16,15 +16,15 @@ alwaysApply: false
   - `TailwindCSS`
   - **Backend con Design Pattern DDD**
 - 🧩 **Utilizza MCP** (Model Code Processor) per individuare e correggere eventuali errori nel codice.
-- 📄 **Consulta sempre il `PDR.md`** (Product Requirements Document) prima di proporre soluzioni o modifiche.
+- 📄 **Consulta sempre il `PDR.md`** (Product Requirements Document) prima di proporre soluzioni o modifiche presente in /Users/gelso/workspace/AI/shop/finalproject-AG
 - ✍️ **Il `PDR.md` deve essere scritto e aggiornato solo in inglese.**
 - ⛔ **Non effettuare `git commit` o `git push`.** Solo **IO POSSO FARLO** puoi pero lanciare npm run build ovviamente
 - quando cambi IL PDR.MD o task-list.md fai un backup
+- task-list.md e' dentro /finalproject-AG
 - non devi usare o lanciare porte FE e' 3000 e BE e' 30001
 - rimani nel contesto di quello che ti chiedo senza uscire 
 - verifica che la risposta e' idonea alla domanda
 - se hai punti dubbi analizza la frase e dammi i dubbi che hai prima di ininziare
-- se quaclsao non e' specificato non eseguire chiedi 
-
-
- 
+- se quaclosao non e' specificato non eseguire chiedi se hai dubbi e sviuppiamo in maniera interattiva con metologia human in the loops
+- il backend e' dentro  /backend folder frontend e' dentro /frontend folder , primsa deve stare dento  /backend/prisma
+- 
