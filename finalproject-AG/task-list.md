@@ -803,3 +803,24 @@ Technical Requirements:
 - Include filtering by date range and agent type
 
 - [ ] Not started
+
+=============== TASK-0069 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Implement basic message processing API
+**Description**:
+Create a simple API endpoint that receives a message and returns it in uppercase as a first step toward implementing the full message processing flow.
+
+Technical Requirements:
+- Create a new endpoint to receive messages (POST /api/messages)
+- Implement a basic message response service that converts text to uppercase
+- Return the processed message in a chat-compatible format
+- Add basic error handling
+- Implement simple unit tests for the endpoint
+- Create a simple UI test page to interact with the API
+
+- [ ] In Progress
+  - Created message controller with POST endpoint
+  - Added message service with uppercase conversion
+  - Created routes for the message API
+  - Added basic error handling
+  - Created test UI page at /message-test

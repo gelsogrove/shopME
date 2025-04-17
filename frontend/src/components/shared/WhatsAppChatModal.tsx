@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
+import axios from 'axios';
 import { Send } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -19,9 +20,16 @@ interface WhatsAppChatModalProps {
   onClose: () => void;
   channelName?: string;
   phoneNumber?: string;
+  workspaceId?: string;
 }
 
-export function WhatsAppChatModal({ isOpen, onClose, channelName = "L'Altra Italia", phoneNumber = "" }: WhatsAppChatModalProps) {
+export function WhatsAppChatModal({ 
+  isOpen, 
+  onClose, 
+  channelName = "L'Altra Italia", 
+  phoneNumber = "",
+  workspaceId = "42d4d042-9b85-424e-a7fc-7dc047f0c376" // Default workspace ID
+}: WhatsAppChatModalProps) {
   const [userPhoneNumber, setUserPhoneNumber] = useState(phoneNumber);
   const [chatStarted, setChatStarted] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -71,13 +79,11 @@ export function WhatsAppChatModal({ isOpen, onClose, channelName = "L'Altra Ital
     return /^\+?[\d\s]{10,}$/.test(number.trim());
   };
   
-  const startChat = () => {
+  const startChat = async () => {
     if (!isValidPhoneNumber(userPhoneNumber)) return;
     if (!initialMessage.trim()) return;
     
     setChatStarted(true);
-    
-    const messages = [];
     
     // Add the initial message
     const userMessage: Message = {
@@ -87,16 +93,56 @@ export function WhatsAppChatModal({ isOpen, onClose, channelName = "L'Altra Ital
       timestamp: new Date(),
     };
     
-    messages.push(userMessage);
+    setMessages([userMessage]);
+    setInitialMessage('');
     
-    // Add a response to the initial message
-    const botResponse = generateBotResponse(initialMessage);
-    messages.push({
-      ...botResponse,
-      id: (Date.now() + 200).toString(),
-    });
-    
-    setMessages(messages);
+    try {
+      // Call the API to process the initial message
+      const apiUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages`;
+      
+      const response = await axios.post(apiUrl, { 
+        message: userMessage.content,
+        phoneNumber: userPhoneNumber,
+        workspaceId: workspaceId
+      });
+      
+      if (response.data.success) {
+        // Create the bot message from the API response
+        const botMessage: Message = {
+          id: (Date.now() + 200).toString(),
+          content: response.data.data.processedMessage,
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, botMessage]);
+      } else {
+        // Handle API error response
+        console.error('API Error:', response.data.error);
+        
+        // Add an error message
+        const errorMessage: Message = {
+          id: (Date.now() + 200).toString(),
+          content: 'Sorry, there was an error processing your message. Please try again later.',
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, errorMessage]);
+      }
+    } catch (error) {
+      console.error('Error calling message API:', error);
+      
+      // Add an error message
+      const errorMessage: Message = {
+        id: (Date.now() + 200).toString(),
+        content: 'Sorry, there was an error processing your message. Please try again later.',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
   
   const generateBotResponse = (userMessage: string) => {
@@ -123,7 +169,7 @@ export function WhatsAppChatModal({ isOpen, onClose, channelName = "L'Altra Ital
     } as Message;
   };
   
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!currentMessage.trim()) return;
     
     // Add user message
@@ -137,11 +183,53 @@ export function WhatsAppChatModal({ isOpen, onClose, channelName = "L'Altra Ital
     setMessages((prev) => [...prev, userMessage]);
     setCurrentMessage('');
     
-    // Simulate bot typing delay
-    setTimeout(() => {
-      const botMessage = generateBotResponse(userMessage.content);
-      setMessages((prev) => [...prev, botMessage]);
-    }, 1000);
+    try {
+      // Call the API to process the message
+      const apiUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages`;
+      
+      const response = await axios.post(apiUrl, { 
+        message: userMessage.content,
+        phoneNumber: userPhoneNumber,
+        workspaceId: workspaceId
+      });
+      
+      if (response.data.success) {
+        // Create the bot message from the API response
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: response.data.data.processedMessage,
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        
+        setMessages((prev) => [...prev, botMessage]);
+      } else {
+        // Handle API error response
+        console.error('API Error:', response.data.error);
+        
+        // Add an error message
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: 'Sorry, there was an error processing your message. Please try again later.',
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        
+        setMessages((prev) => [...prev, errorMessage]);
+      }
+    } catch (error) {
+      console.error('Error calling message API:', error);
+      
+      // Add an error message
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'Sorry, there was an error processing your message. Please try again later.',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      
+      setMessages((prev) => [...prev, errorMessage]);
+    }
   };
   
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

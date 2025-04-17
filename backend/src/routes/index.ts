@@ -4,7 +4,9 @@ import { CustomersController } from "../interfaces/http/controllers/customers.co
 import { ServicesController } from "../interfaces/http/controllers/services.controller"
 import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
+import { chatRouter } from "../interfaces/http/routes/chat.routes"
 import { customersRouter } from "../interfaces/http/routes/customers.routes"
+import { messagesRouter } from "../interfaces/http/routes/messages.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import agentsRoutes from "./agents.routes"
 import languagesRoutes from "./languages"
@@ -18,8 +20,10 @@ const router = Router()
 
 // Public routes
 router.use("/auth", authRouter)
+router.use("/messages", messagesRouter())
 
 // Protected routes - the auth middleware is applied in each router
+router.use("/chat", chatRouter())
 router.use("/workspaces", workspaceRoutes)
 router.use("/languages", languagesRoutes)
 router.use("/users", userRoutes)

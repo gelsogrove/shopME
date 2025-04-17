@@ -37,7 +37,7 @@ try {
         systemResp = conversationalResponse("metti la frase in maniera discorsiva:" + systemResp);
  
         // 5. DETOKENIZE
-        const resp = Detokenize(systemResp, systemResp);
+        const resp = Detokenize(systemResp, systemResp);xº
         
         // 6. SAVE TO HISTORY
         saveToChatHistory(userID, agentSelected, message, resp);  

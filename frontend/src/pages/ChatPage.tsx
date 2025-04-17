@@ -1,6 +1,7 @@
 import { PageLayout } from "@/components/layout/PageLayout"
+import { api } from "@/services/api"
 import { Send } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "react-hot-toast"
 import { useSearchParams } from "react-router-dom"
 import { Button } from "../components/ui/button"
@@ -17,177 +18,109 @@ interface Message {
 
 interface Chat {
   id: string
+  sessionId: string
+  customerId: string
   customerName: string
   customerPhone: string
+  companyName?: string
   lastMessage: string
   unreadCount: number
   lastActive: string
-  messages: Message[]
+  messages?: Message[]
 }
 
-const mockChats: Chat[] = [
-  {
-    id: "1",
-    customerName: "Giovanni Rossi",
-    customerPhone: "+39123456789",
-    lastMessage: "Vorrei sapere quando arriva il mio ordine",
-    unreadCount: 2,
-    lastActive: "2024-04-01T10:30:00",
-    messages: [
-      {
-        id: "1",
-        content: "Buongiorno, ho fatto un ordine ieri, numero #12345.",
-        sender: "customer",
-        timestamp: "2024-04-01T10:25:00",
-      },
-      {
-        id: "2",
-        content: "Vorrei sapere quando arriverà la spedizione.",
-        sender: "customer",
-        timestamp: "2024-04-01T10:26:00",
-      },
-      {
-        id: "3",
-        content:
-          "Buongiorno Sig. Rossi, grazie per averci contattato. Controllo subito il suo ordine.",
-        sender: "user",
-        timestamp: "2024-04-01T10:28:00",
-      },
-      {
-        id: "4",
-        content:
-          "Ho verificato l'ordine #12345. La spedizione è stata elaborata e partirà oggi pomeriggio.",
-        sender: "user",
-        timestamp: "2024-04-01T10:29:00",
-      },
-      {
-        id: "5",
-        content: "Riceverà il suo pacco entro 24-48 ore lavorative.",
-        sender: "user",
-        timestamp: "2024-04-01T10:29:30",
-      },
-      {
-        id: "6",
-        content: "Perfetto, grazie mille per l'informazione!",
-        sender: "customer",
-        timestamp: "2024-04-01T10:30:00",
-      },
-      {
-        id: "7",
-        content: "Vorrei sapere se è possibile tracciare la spedizione?",
-        sender: "customer",
-        timestamp: "2024-04-01T10:30:30",
-      },
-    ],
-  },
-  {
-    id: "2",
-    customerName: "Maria Bianchi",
-    customerPhone: "+39987654321",
-    lastMessage: "Grazie per le informazioni, ora è tutto chiaro",
-    unreadCount: 0,
-    lastActive: "2024-04-01T09:15:00",
-    messages: [
-      {
-        id: "1",
-        content:
-          "Salve, vorrei informazioni sul Parmigiano Reggiano DOP 24 mesi.",
-        sender: "customer",
-        timestamp: "2024-04-01T09:00:00",
-      },
-      {
-        id: "2",
-        content: "Buongiorno Sig.ra Bianchi, cosa vorrebbe sapere esattamente?",
-        sender: "user",
-        timestamp: "2024-04-01T09:05:00",
-      },
-      {
-        id: "3",
-        content:
-          "Vorrei sapere la disponibilità e se fate consegne nella mia zona (Milano centro).",
-        sender: "customer",
-        timestamp: "2024-04-01T09:07:00",
-      },
-      {
-        id: "4",
-        content:
-          "Il Parmigiano Reggiano DOP 24 mesi è disponibile in varie pezzature: 250g, 500g e 1kg.",
-        sender: "user",
-        timestamp: "2024-04-01T09:09:00",
-      },
-      {
-        id: "5",
-        content:
-          "Per quanto riguarda le consegne, copriamo tutta l'area di Milano con consegne gratuite per ordini superiori a 50€.",
-        sender: "user",
-        timestamp: "2024-04-01T09:10:00",
-      },
-      {
-        id: "6",
-        content: "Perfetto! Vorrei ordinare 500g. Come posso procedere?",
-        sender: "customer",
-        timestamp: "2024-04-01T09:12:00",
-      },
-      {
-        id: "7",
-        content:
-          "Può effettuare l'ordine direttamente sul nostro sito nella sezione 'Formaggi' o posso registrare io l'ordine per lei ora.",
-        sender: "user",
-        timestamp: "2024-04-01T09:14:00",
-      },
-      {
-        id: "8",
-        content:
-          "Grazie per le informazioni, ora è tutto chiaro. Procederò con l'ordine sul sito!",
-        sender: "customer",
-        timestamp: "2024-04-01T09:15:00",
-      },
-    ],
-  },
-]
-
 export function ChatPage() {
-  const [chats] = useState<Chat[]>(mockChats)
+  const [chats, setChats] = useState<Chat[]>([])
+  const [loading, setLoading] = useState(true)
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
   const [messageInput, setMessageInput] = useState("")
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const sessionId = searchParams.get("sessionId")
+  const initialLoadRef = useRef(true)
 
+  // Carica le chat all'avvio
   useEffect(() => {
-    // Check if there is a client parameter in the URL
-    const clientName = searchParams.get("client")
+    fetchChats()
+  }, [])
 
-    if (clientName) {
-      // Find the chat for this client by name, using normalized comparison
-      const normalizedClientName = decodeURIComponent(clientName)
-        .toLowerCase()
-        .trim()
-      const chat = chats.find(
-        (c) => c.customerName.toLowerCase().trim() === normalizedClientName
-      )
-
+  // Seleziona la chat dai parametri URL solo al caricamento iniziale o quando cambia l'URL esternamente
+  useEffect(() => {
+    if (sessionId && chats.length > 0 && initialLoadRef.current) {
+      const chat = chats.find(c => c.sessionId === sessionId)
       if (chat) {
-        setSelectedChat(chat)
-        setSearchTerm(clientName)
+        selectChat(chat, false) // false = don't update URL again
+        initialLoadRef.current = false
       }
-    } else if (!selectedChat && chats.length > 0) {
-      // If no chat is selected and there's no client in the URL, select the first chat by default
-      setSelectedChat(chats[0])
     }
-  }, [chats, searchParams, selectedChat])
+  }, [sessionId, chats])
 
-  const filteredChats = chats.filter(
-    (chat) =>
-      chat.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      chat.customerPhone.includes(searchTerm)
-  )
-
-  useEffect(() => {
-    // When filtered chats change and no chat is selected, select the first one if available
-    if (!selectedChat && filteredChats.length > 0) {
-      setSelectedChat(filteredChats[0])
+  // Funzione per caricare le chat recenti
+  const fetchChats = async () => {
+    setLoading(true)
+    try {
+      const response = await api.get("/api/chat/recent")
+      if (response.data.success) {
+        console.log("Chat data received:", response.data.data);
+        setChats(response.data.data)
+      } else {
+        toast.error("Errore nel caricamento delle chat")
+      }
+    } catch (error) {
+      console.error("Errore nel caricamento delle chat:", error)
+      toast.error("Non è stato possibile caricare le chat")
+    } finally {
+      setLoading(false)
     }
-  }, [filteredChats, selectedChat])
+  }
+
+  // Funzione per selezionare una chat e caricare i messaggi
+  const selectChat = async (chat: Chat, updateUrl = true) => {
+    try {
+      // Aggiorna i parametri URL solo se richiesto
+      if (updateUrl) {
+        setSearchParams({ sessionId: chat.sessionId })
+      }
+      
+      if (!chat.messages) {
+        // Carica i messaggi della chat selezionata
+        const response = await api.get(`/api/chat/${chat.sessionId}/messages`)
+        if (response.data.success) {
+          // Formatta i messaggi per la visualizzazione
+          const formattedMessages: Message[] = response.data.data.map((m: any) => ({
+            id: m.id,
+            content: m.content,
+            sender: m.direction === "INBOUND" ? "customer" : "user",
+            timestamp: m.createdAt
+          }))
+          
+          chat.messages = formattedMessages
+        }
+      }
+      
+      // Aggiorna lo stato della chat selezionata
+      setSelectedChat(chat)
+      
+      // Imposta il conteggio dei messaggi non letti a 0
+      if (chat.unreadCount > 0) {
+        setChats(prev => 
+          prev.map(c => 
+            c.id === chat.id ? { ...c, unreadCount: 0 } : c
+          )
+        )
+        
+        // Marca i messaggi come letti nel backend (una sola volta)
+        try {
+          await api.post(`/api/chat/${chat.sessionId}/mark-read`)
+        } catch (err) {
+          console.error("Errore nel marcare i messaggi come letti:", err)
+        }
+      }
+      
+    } catch (error) {
+      console.error("Errore nel caricamento dei messaggi:", error)
+      toast.error("Non è stato possibile caricare i messaggi")
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -195,7 +128,7 @@ export function ChatPage() {
     if (!messageInput.trim() || !selectedChat) return
     
     try {
-      // Create new message
+      // Crea un nuovo messaggio
       const newMessage = {
         id: Date.now().toString(),
         content: messageInput,
@@ -203,40 +136,50 @@ export function ChatPage() {
         timestamp: new Date().toISOString()
       }
       
-      // Add the message to the selected chat
+      // Aggiorna la chat selezionata con il nuovo messaggio
       const updatedChat = {
         ...selectedChat,
-        messages: [...selectedChat.messages, newMessage],
+        messages: [...(selectedChat.messages || []), newMessage],
         lastMessage: messageInput,
         lastActive: new Date().toISOString()
       }
       
-      // Update the selected chat
       setSelectedChat(updatedChat)
       setMessageInput("")
       
-      // In a real app, you would send this to the backend
-      // For now, we'll simulate a response after a short delay
-      setTimeout(() => {
+      // Invia il messaggio al backend
+      const response = await api.post('/api/messages', { 
+        message: messageInput,
+        phoneNumber: selectedChat.customerPhone,
+        workspaceId: "42d4d042-9b85-424e-a7fc-7dc047f0c376"
+      })
+      
+      if (response.data.success) {
+        // Dopo aver ricevuto la risposta, aggiorniamo nuovamente le chat
+        fetchChats()
+        
+        // Creiamo il messaggio di risposta dal sistema
         const responseMessage = {
           id: (Date.now() + 1).toString(),
-          content: "Grazie per il tuo messaggio. Un operatore ti risponderà al più presto.",
+          content: response.data.data.processedMessage,
           sender: "customer" as const,
           timestamp: new Date().toISOString()
         }
         
+        // Aggiorniamo la chat selezionata con la risposta del sistema
         setSelectedChat(prevChat => {
           if (!prevChat) return null
           return {
             ...prevChat,
-            messages: [...prevChat.messages, responseMessage],
+            messages: [...(prevChat.messages || []), responseMessage],
             lastMessage: responseMessage.content,
             lastActive: new Date().toISOString()
           }
         })
-      }, 1000)
+      }
     } catch (error) {
-      toast.error("Failed to send message")
+      console.error("Errore nell'invio del messaggio:", error)
+      toast.error("Non è stato possibile inviare il messaggio")
     }
   }
 
@@ -249,24 +192,26 @@ export function ChatPage() {
             <Input
               type="search"
               placeholder="Search chats..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchParams.get("client") || ""}
+              onChange={(e) => setSearchParams({ client: e.target.value })}
               className="w-full"
             />
           </div>
 
           <div className="overflow-y-auto flex-1">
-            {filteredChats.map((chat) => (
+            {chats.map((chat) => (
               <div
                 key={chat.id}
                 className={`p-4 cursor-pointer hover:bg-gray-50 rounded-lg mb-2 ${
                   selectedChat?.id === chat.id ? "bg-gray-50" : ""
                 }`}
-                onClick={() => setSelectedChat(chat)}
+                onClick={() => selectChat(chat)}
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-medium">{chat.customerName}</h3>
+                    <h3 className="font-medium">
+                      {chat.customerName} {chat.companyName && `(${chat.companyName})`}
+                    </h3>
                     <p className="text-sm text-green-600">
                       {chat.customerPhone}
                     </p>
@@ -281,7 +226,16 @@ export function ChatPage() {
                   {chat.lastMessage}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  {new Date(chat.lastActive).toLocaleTimeString()}
+                  {chat.lastActive ? (() => {
+                    try {
+                      const date = new Date(chat.lastActive);
+                      return !isNaN(date.getTime()) 
+                        ? date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
+                        : "Data non disponibile";
+                    } catch (e) {
+                      return "Data non disponibile";
+                    }
+                  })() : "Data non disponibile"}
                 </p>
               </div>
             ))}
@@ -295,7 +249,9 @@ export function ChatPage() {
               {/* Chat Header */}
               <div className="flex justify-between items-center pb-2 border-b h-[60px]">
                 <div>
-                  <h2 className="font-bold">{selectedChat.customerName}</h2>
+                  <h2 className="font-bold">
+                    {selectedChat.customerName} {selectedChat.companyName && `(${selectedChat.companyName})`}
+                  </h2>
                   <p className="text-sm text-gray-500">
                     {selectedChat.customerPhone}
                   </p>
@@ -304,7 +260,7 @@ export function ChatPage() {
 
               {/* Messages */}
               <div className="flex-1 overflow-y-scroll py-4 space-y-4 h-[calc(100%-115px)] border border-gray-100 rounded-md p-2">
-                {selectedChat.messages.map((message) => (
+                {selectedChat.messages?.map((message) => (
                   <div
                     key={message.id}
                     className={`flex ${

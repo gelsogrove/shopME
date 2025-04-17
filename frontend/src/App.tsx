@@ -10,6 +10,7 @@ import CustomersPage from "./pages/CustomersPage"
 import DashboardPage from "./pages/DashboardPage"
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage"
 import { LoginPage } from "./pages/LoginPage"
+import MessageTestPage from "./pages/MessageTestPage"
 import NotificationsPage from "./pages/NotificationsPage"
 import OrdersPage from "./pages/OrdersPage"
 import PlansPage from "./pages/PlansPage"
@@ -36,6 +37,9 @@ export function App() {
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
           <Route path="verify-otp" element={<VerifyOtpPage />} />
         </Route>
+
+        {/* Development/Test Routes */}
+        <Route path="/message-test" element={<MessageTestPage />} />
 
         {/* Protected Routes */}
         <Route

@@ -279,6 +279,7 @@ model Message {
   status        String           @default("sent")
   aiGenerated   Boolean          @default(false)
   metadata      Json?            @default("{}")
+  read          Boolean          @default(false)
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   chatSessionId String
