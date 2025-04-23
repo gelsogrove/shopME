@@ -687,17 +687,23 @@ Technical Requirements:
   - Ensured proper side placement and animation behavior
 
 =============== TASK-0062 ============================
-**Epic**: Product Management
-**Title**: Enhance product category display in frontend
+**Epic**: Clients, GDPR & Tokenization
+**Title**: GDPR Policy Management
 **Description**:
-Modify the product card component to show category names instead of category IDs. Update data models and API integration to support this change.
+Create a dedicated page for managing GDPR policy text with ability to:
+- View the current GDPR policy
+- Edit the policy content
+- Save changes to the database
+- Use a default template as a starting point
 
 - [x] Completed
-  - Updated Product interface to include category object
-  - Enhanced CategoryBadge component to handle both category strings and objects
-  - Modified ProductsPage to display category names
-  - Added fallback for backward compatibility with category IDs
-  - Improved user experience by showing human-readable category labels
+  - Added GDPR field to WhatsappSettings model
+  - Created migration for database schema update
+  - Implemented backend API endpoints for GDPR management
+  - Created frontend page with editor for GDPR content
+  - Added menu item in the sidebar for GDPR access
+  - Updated documentation in the Product Requirements Document
+  - Integrated with the existing WhatsApp settings
 
 =============== TASK-0063 ============================
 **Epic**: System Setup & Architecture

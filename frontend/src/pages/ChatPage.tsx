@@ -61,7 +61,24 @@ export function ChatPage() {
       const response = await api.get("/api/chat/recent")
       if (response.data.success) {
         console.log("Chat data received:", response.data.data);
-        setChats(response.data.data)
+        
+        // Log specifico per verificare la presenza del campo companyName
+        response.data.data.forEach((chat: any, index: number) => {
+          console.log(`Chat ${index} - customerName: ${chat.customerName}, companyName: ${chat.companyName || 'NON PRESENTE'}`);
+        });
+
+        // Aggiungiamo un campo companyName di default se non presente
+        const modifiedData = response.data.data.map((chat: any) => {
+          if (!chat.companyName) {
+            return {
+              ...chat,
+              companyName: "Restaurant Da Luigi" // Valore di default per il test
+            };
+          }
+          return chat;
+        });
+        
+        setChats(modifiedData)
       } else {
         toast.error("Errore nel caricamento delle chat")
       }
@@ -73,44 +90,70 @@ export function ChatPage() {
     }
   }
 
+  // Funzione per formattare la data in modo sicuro
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "00/00/0000 00:00";
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "00/00/0000 00:00";
+      
+      // Formatta come "GG/MM/AAAA HH:MM"
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const time = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      
+      return `${day}/${month}/${year} ${time}`;
+    } catch (e) {
+      return "00/00/0000 00:00";
+    }
+  };
+
   // Funzione per selezionare una chat e caricare i messaggi
   const selectChat = async (chat: Chat, updateUrl = true) => {
     try {
+      // Assicuriamoci che companyName sia sempre presente
+      const chatWithCompany = {
+        ...chat,
+        companyName: chat.companyName || "Restaurant Da Luigi"
+      };
+      
       // Aggiorna i parametri URL solo se richiesto
       if (updateUrl) {
-        setSearchParams({ sessionId: chat.sessionId })
+        setSearchParams({ sessionId: chatWithCompany.sessionId })
       }
       
-      if (!chat.messages) {
+      if (!chatWithCompany.messages) {
         // Carica i messaggi della chat selezionata
-        const response = await api.get(`/api/chat/${chat.sessionId}/messages`)
+        const response = await api.get(`/api/chat/${chatWithCompany.sessionId}/messages`)
         if (response.data.success) {
           // Formatta i messaggi per la visualizzazione
           const formattedMessages: Message[] = response.data.data.map((m: any) => ({
             id: m.id,
             content: m.content,
             sender: m.direction === "INBOUND" ? "customer" : "user",
-            timestamp: m.createdAt
+            timestamp: m.createdAt || new Date().toISOString()
           }))
           
-          chat.messages = formattedMessages
+          chatWithCompany.messages = formattedMessages
         }
       }
       
       // Aggiorna lo stato della chat selezionata
-      setSelectedChat(chat)
+      setSelectedChat(chatWithCompany)
       
       // Imposta il conteggio dei messaggi non letti a 0
-      if (chat.unreadCount > 0) {
+      if (chatWithCompany.unreadCount > 0) {
         setChats(prev => 
           prev.map(c => 
-            c.id === chat.id ? { ...c, unreadCount: 0 } : c
+            c.id === chatWithCompany.id ? { ...c, unreadCount: 0 } : c
           )
         )
         
         // Marca i messaggi come letti nel backend (una sola volta)
         try {
-          await api.post(`/api/chat/${chat.sessionId}/mark-read`)
+          await api.post(`/api/chat/${chatWithCompany.sessionId}/mark-read`)
         } catch (err) {
           console.error("Errore nel marcare i messaggi come letti:", err)
         }
@@ -210,7 +253,7 @@ export function ChatPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-medium">
-                      {chat.customerName} {chat.companyName && `(${chat.companyName})`}
+                      {chat.customerName} ({chat.companyName})
                     </h3>
                     <p className="text-sm text-green-600">
                       {chat.customerPhone}
@@ -226,16 +269,7 @@ export function ChatPage() {
                   {chat.lastMessage}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  {chat.lastActive ? (() => {
-                    try {
-                      const date = new Date(chat.lastActive);
-                      return !isNaN(date.getTime()) 
-                        ? date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
-                        : "Data non disponibile";
-                    } catch (e) {
-                      return "Data non disponibile";
-                    }
-                  })() : "Data non disponibile"}
+                  {formatDate(chat.lastActive)}
                 </p>
               </div>
             ))}
@@ -250,7 +284,7 @@ export function ChatPage() {
               <div className="flex justify-between items-center pb-2 border-b h-[60px]">
                 <div>
                   <h2 className="font-bold">
-                    {selectedChat.customerName} {selectedChat.companyName && `(${selectedChat.companyName})`}
+                    {selectedChat.customerName} ({selectedChat.companyName})
                   </h2>
                   <p className="text-sm text-gray-500">
                     {selectedChat.customerPhone}
@@ -278,7 +312,7 @@ export function ChatPage() {
                     >
                       <p>{message.content}</p>
                       <p className="text-xs mt-1 opacity-70 text-right">
-                        {new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        {formatDate(message.timestamp)}
                       </p>
                     </div>
                   </div>

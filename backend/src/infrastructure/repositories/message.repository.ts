@@ -1,5 +1,11 @@
 import { MessageDirection, MessageType, PrismaClient } from '@prisma/client';
+import OpenAI from 'openai';
 import logger from '../../utils/logger';
+
+// OpenAI client instance
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || 'your-api-key-here', // Usa variabile d'ambiente o configura in un posto sicuro
+});
 
 export class MessageRepository {
   private prisma: PrismaClient;
@@ -455,4 +461,239 @@ export class MessageRepository {
       throw new Error('Failed to get chat sessions with unread counts');
     }
   }
-} 
+
+  /**
+   * Get WhatsApp channel settings for a workspace
+   * @param workspaceId The workspace ID
+   * @returns Channel settings with isActive status and wipMessage
+   /**
+    * Get workspace settings for a workspace
+    * @param workspaceId The workspace ID
+    * @returns Workspace settings
+    */
+   async getWorkspaceSettings(workspaceId: string) {
+     try {
+       const workspace = await this.prisma.workspace.findUnique({
+         where: { id: workspaceId }
+       });
+       
+       if (!workspace) {
+         throw new Error('Workspace not found');
+       }
+
+       return workspace;
+       
+     } catch (error) {
+       logger.error('Error getting workspace settings', error);
+       throw new Error('Failed to get workspace settings');
+     }
+   }
+
+   /**
+    * Get the router agent for the workspace
+    * @returns The router agent prompt
+    */
+   async getRouterAgent() {
+     try {
+       const routerAgent = await this.prisma.prompts.findFirst({
+         where: {
+           isRouter: true,
+           isActive: true
+         }
+       });
+       
+       return routerAgent;
+     } catch (error) {
+       logger.error('Error getting router agent', error);
+       return null;
+     }
+   }
+
+   /**
+    * Get products list
+    * @returns List of active products
+    */
+   async getProducts() {
+     try {
+       const products = await this.prisma.products.findMany({
+         where: {
+           isActive: true
+         },
+         include: {
+           category: true
+         }
+       });
+       
+       return products;
+     } catch (error) {
+       logger.error('Error getting products', error);
+       return [];
+     }
+   }
+
+   /**
+    * Get chat messages for a phone number
+    * @param phoneNumber The phone number
+    * @param limit Number of messages to return
+    * @returns Recent chat messages
+    */
+   async getLatesttMessages(phoneNumber: string, limit = 30) {
+     try {
+       // Find customer by phone
+       const customer = await this.findCustomerByPhone(phoneNumber);
+       if (!customer) return [];
+       
+       // Find active chat session
+       const session = await this.prisma.chatSession.findFirst({
+         where: {
+           customerId: customer.id,
+           status: 'active'
+         },
+         orderBy: {
+           startedAt: 'desc'
+         }
+       });
+       
+       if (!session) return [];
+       
+       // Get messages for the session
+       const messages = await this.prisma.message.findMany({
+         where: {
+           chatSessionId: session.id
+         },
+         orderBy: {
+           createdAt: 'desc'
+         },
+         take: limit
+       });
+       
+       return messages.reverse(); // Return in chronological order
+     } catch (error) {
+       logger.error('Error getting messages', error);
+       return [];
+     }
+   }
+
+   /**
+    * Get response from primary LLM to route the conversation
+    * @param routerPrompt The router agent prompt
+    * @param message The user message
+    * @returns The selected agent/department prompt
+    */
+   async getResponseFromLLM(routerPrompt: any, message: string): Promise<any> {
+     try {
+       // In una implementazione reale, qui chiameresti un API di un LLM come OpenAI
+       // Per ora simulo una risposta basica
+       console.log(`Routing message with router prompt: ${routerPrompt?.name || 'Default router'}`);
+       
+       // Controlla se c'è una menzione di prodotti
+       if (message.toLowerCase().includes('prodotto') || 
+           message.toLowerCase().includes('product') ||
+           message.toLowerCase().includes('pizza') ||
+           message.toLowerCase().includes('pasta')) {
+         // Cerca un agent specializzato in prodotti
+         const productAgent = await this.prisma.prompts.findFirst({
+           where: {
+             department: 'PRODUCTS',
+             isActive: true
+           }
+         });
+         
+         return productAgent || routerPrompt;
+       }
+       
+       // Default: ritorna il router prompt stesso
+       return routerPrompt;
+     } catch (error) {
+       console.error('Error getting response from LLM:', error);
+       // In caso di errore ritorna il prompt originale
+       return routerPrompt;
+     }
+   }
+
+   /**
+    * Get system prompt from sub-LLM using agent, message, products and history
+    * @param agentPrompt The selected agent prompt
+    * @param message The user message
+    * @param products Available products
+    * @param chatHistory Chat history
+    * @returns Enriched system prompt
+    */
+   async getResponseFromRag(agentPrompt: any, message: string, products: any[], chatHistory: any[]): Promise<string> {
+     try {
+       // In una implementazione reale, qui chiameresti un'API di un LLM come OpenAI
+       // Per ora creiamo un prompt di sistema semplice
+       
+       // Estrai contenuto del prompt agent
+       const promptContent = agentPrompt?.content || "You are a helpful assistant for L'Altra Italia food shop.";
+       
+       // Prepara informazioni sui prodotti rilevanti (max 3 per non sovraccaricare)
+       let productInfo = "";
+       
+       // Se il messaggio menziona prodotti, includi informazioni
+       if (message.toLowerCase().includes('prodotto') || 
+           message.toLowerCase().includes('product') ||
+           message.toLowerCase().includes('pizza') ||
+           message.toLowerCase().includes('pasta')) {
+         
+         // Filtra prodotti che potrebbero essere rilevanti al messaggio
+         const relevantProducts = products
+           .filter(p => p.name.toLowerCase().includes('pizza') || p.name.toLowerCase().includes('pasta'))
+           .slice(0, 3);
+         
+         if (relevantProducts.length > 0) {
+           productInfo = "Relevant products:\n" + 
+             relevantProducts.map(p => 
+               `- ${p.name}: ${p.description} (Price: €${p.price})`
+             ).join("\n");
+         }
+       }
+       
+       // Costruisci il prompt di sistema
+       const systemPrompt = `${promptContent}
+       
+${productInfo}
+
+Remember to be helpful, concise and accurate. If you don't know something, say so.`;
+       
+       return systemPrompt;
+     } catch (error) {
+       console.error('Error getting system prompt from sub-LLM:', error);
+       return agentPrompt?.content || "You are a helpful assistant.";
+     }
+   }
+
+   /**
+    * Get conversational response using chat history, user message and system prompt
+    * @param chatHistory Chat history
+    * @param message User message
+    * @param systemPrompt System prompt
+    * @returns LLM generated response
+    */
+   async getConversationResponse(chatHistory: any[], message: string, systemPrompt: string): Promise<string> {
+     try {
+      
+       const formattedHistory = chatHistory.map(msg => ({
+         role: msg.direction === 'INBOUND' ? 'user' as const : 'assistant' as const,
+         content: msg.content
+       }));
+       
+       const response = await openai.chat.completions.create({
+         model: "gpt-4-mini",
+         messages: [
+           { role: "system" as const, content: systemPrompt },
+           ...formattedHistory,
+           { role: "user" as const, content: message }
+         ],
+         temperature: 0.7,
+         max_tokens: 2500
+       });
+       
+       return response.choices[0].message.content || "Mi dispiace, non sono riuscito a generare una risposta. Riprova.";
+     } catch (error) {
+       console.error('Error calling LLM API:', error);
+       return "Mi dispiace, c'è stato un problema con il servizio. Riprova più tardi.";
+     }
+   }
+} ``
+       

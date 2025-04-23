@@ -235,6 +235,7 @@ model WhatsappSettings {
   updatedAt   DateTime  @updatedAt
   workspaceId String    @unique
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  gdpr        String?   @db.Text
 
   @@map("whatsapp_settings")
 }

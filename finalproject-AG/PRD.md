@@ -1803,8 +1803,9 @@ erDiagram
         string api_key
         string webhook_url
         json settings
-        timestamp created_at
-        timestamp updated_at
+        gdpr TEXT,
+        LIKE base_entity INCLUDING ALL,
+        UNIQUE(workspace_id)
     }
 
     categories {
@@ -2514,6 +2515,7 @@ CREATE TABLE whatsapp_settings (
     api_key TEXT NOT NULL,
     webhook_url TEXT,
     settings JSONB DEFAULT '{}',
+    gdpr TEXT,
     LIKE base_entity INCLUDING ALL,
     UNIQUE(workspace_id)
 );
@@ -3623,3 +3625,23 @@ The system implements a secure authentication mechanism using JSON Web Tokens (J
    - Resource-level access controls
 
 The token payload contains the user's ID, email, and role, allowing for proper authorization checks across the application.
+
+### WhatsApp Settings Management
+
+- `GET /api/whatsapp-settings/:workspaceId/gdpr`
+
+  - **Description**: Retrieves the GDPR policy content for a workspace
+  - **Parameters**: `workspaceId` (required): Workspace identifier
+  - **Returns**: GDPR policy text
+
+- `PUT /api/whatsapp-settings/:workspaceId/gdpr`
+
+  - **Description**: Updates the GDPR policy content for a workspace
+  - **Parameters**: `workspaceId` (required): Workspace identifier
+  - **Body**: `gdpr` (required): GDPR policy text
+  - **Returns**: Updated WhatsApp settings
+
+- `GET /api/gdpr/default`
+
+  - **Description**: Retrieves the default GDPR policy text template
+  - **Returns**: Default GDPR policy content

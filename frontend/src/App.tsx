@@ -9,6 +9,7 @@ import ClientsPage from "./pages/ClientsPage"
 import CustomersPage from "./pages/CustomersPage"
 import DashboardPage from "./pages/DashboardPage"
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage"
+import GdprPage from "./pages/GdprPage"
 import { LoginPage } from "./pages/LoginPage"
 import MessageTestPage from "./pages/MessageTestPage"
 import NotificationsPage from "./pages/NotificationsPage"
@@ -92,6 +93,9 @@ export function App() {
         </Route>
         <Route path="/workspace" element={<Layout />}>
           <Route index element={<WorkspacePage />} />
+        </Route>
+        <Route path="/gdpr" element={<Layout />}>
+          <Route index element={<GdprPage />} />
         </Route>
 
         {/* Redirect root to login */}

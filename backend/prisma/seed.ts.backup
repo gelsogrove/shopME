@@ -1,7 +1,5 @@
 import { PrismaClient } from "@prisma/client"
 import * as bcrypt from "bcrypt"
-import fs from "fs"
-import path from "path"
 
 const prisma = new PrismaClient()
 
@@ -307,18 +305,6 @@ async function main() {
     console.log("Tutte le lingue esistono già")
   }
 
-  // Helper function to get language names
-  function getLanguageName(code: string): string {
-    const names: { [key: string]: string } = {
-      it: "Italiano",
-      en: "English",
-      es: "Español",
-      fr: "Français",
-      de: "Deutsch",
-    }
-    return names[code] || code
-  }
-
   // Connetti le lingue al workspace
   await prisma.workspace.update({
     where: { id: mainWorkspaceId },
@@ -503,7 +489,7 @@ async function main() {
       isActive: true,
       status: "ACTIVE",
       slug: "tuscan-igp-extra-virgin-olive-oil",
-      categoryName: "Beverages",
+      categoryName: "Condiments",
     },
     {
       name: "Aceto Balsamico di Modena IGP",
@@ -529,8 +515,30 @@ async function main() {
       slug: "prosciutto-di-parma-dop-24-months",
       categoryName: "Gourmet",
     },
-   
-   
+    {
+      name: "San Marzano DOP Tomatoes",
+      description:
+        "Authentic San Marzano tomatoes grown in the volcanic soil of Mount Vesuvius. Sweet flavor with low acidity.",
+      price: 6.99,
+      stock: 85,
+      image: "https://images.unsplash.com/photo-1594148882283-3019ea553e73?q=80&w=800&auto=format&fit=crop",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "san-marzano-dop-tomatoes",
+      categoryName: "Vegetables",
+    },
+    {
+      name: "Barolo DOCG Wine",
+      description:
+        "Premium Barolo DOCG wine from Piedmont, made from Nebbiolo grapes. Full-bodied with notes of roses, tar and herbs.",
+      price: 49.99,
+      stock: 24,
+      image: "https://images.unsplash.com/photo-1568213214202-aee0a28567f1?q=80&w=800&auto=format&fit=crop",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "barolo-docg-wine",
+      categoryName: "Beverages",
+    },
     {
       name: "Pistacchi di Bronte DOP",
       description:
@@ -541,7 +549,7 @@ async function main() {
       isActive: true,
       status: "ACTIVE",
       slug: "pistacchi-di-bronte-dop",
-      categoryName: "Antipasti",
+      categoryName: "Snacks",
     },
     {
       name: "Limoncello di Sorrento IGP",
@@ -555,7 +563,18 @@ async function main() {
       slug: "limoncello-di-sorrento-igp",
       categoryName: "Beverages",
     },
-    
+    {
+      name: "Sicilian Cannoli Kit",
+      description:
+        "Make authentic Sicilian cannoli at home with this kit including shells, ricotta cream, and toppings.",
+      price: 16.99,
+      stock: 28,
+      image: "https://images.unsplash.com/photo-1613743990305-736d763f5dce?q=80&w=800&auto=format&fit=crop",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "sicilian-cannoli-kit",
+      categoryName: "Desserts",
+    },
     
     // Prodotti aggiunti dal seed.js.old
     {
@@ -656,7 +675,18 @@ async function main() {
       status: "ACTIVE",
       slug: "mozzarella-di-bufala",
       categoryName: "Cheese",
-    }, 
+    },
+    {
+      name: "Vitello Tonnato Piemontese",
+      description: "Classica preparazione piemontese di fettine sottili di vitello cotto a bassa temperatura, servite con salsa tonnata cremosa preparata con tonno, capperi, acciughe e maionese. Un antipasto elegante e raffinato, perfetto per le occasioni speciali.",
+      price: 14.50,
+      stock: 15,
+      image: "https://langhe.net/wp-content/uploads/2011/05/vitello_tonnato2.jpg",
+      isActive: true,
+      status: "ACTIVE",
+      slug: "vitello-tonnato-piemontese",
+      categoryName: "Antipasti",
+    },
     {
       name: "Parmigiano Reggiano",
       description: "Autentico Parmigiano Reggiano DOP, un formaggio a pasta dura prodotto con latte vaccino crudo parzialmente scremato. Stagionato per almeno 12 mesi, si distingue per il suo sapore ricco, complesso e persistente con note di frutta secca e brodo. La sua consistenza è granulosa e friabile, con una crosta spessa di colore giallo paglierino. Considerato il 'Re dei formaggi', è ideale sia da tavola che da grattugia.",
@@ -690,29 +720,6 @@ async function main() {
       slug: "pesto-alla-genovese-dop",
       categoryName: "Salse",
     },
-    {
-      name: "Pizza Margherita",
-      description: "Un cornicione leggero e soffice, pomodori dolci, mozzarella e qualche foglia di basilico profumato. Questo è tutto ciò di cui hai bisogno per una classica pizza margherita, il punto di partenza perfetto per il tuo viaggio nella preparazione della pizza fatta in casa, nonché una ricetta collaudata per quando vuoi...",
-      price: 8.90,
-      stock: 40,
-      image: "https://cdn.shopify.com/s/files/1/0274/9503/9079/files/20220211142754-margherita-9920_5a73220e-4a1a-4d33-b38f-26e98e3cd986.jpg?v=1723650067?w=1024",
-      isActive: true,
-      status: "ACTIVE",
-      slug: "pesto-alla-genovese-dop",
-      categoryName: "Salse",
-    },
-    {
-      name: "Limoncello di Capri",
-      description: "Limoncello di Capri, prodotto secondo la ricetta tradizionale italiana, è un liquore dolce e leggero, caratterizzato da un sapore intenso e fruttato. È preparato con limoni freschi di Capri, zucchero e acqua, e viene fermentato per ottenere un'alchocolizzazione naturale.",
-      price: 8.90,
-      stock: 40,
-      image: "https://www.bodeboca.com/sites/default/files/product-gallery/2022-06/galeria-limoncellodicapri-01.jpg",
-      isActive: true,
-      status: "ACTIVE",
-      slug: "pesto-alla-genovese-dop",
-      categoryName: "Beverages",
-    },
-    
   ]
 
   // Create services for the main workspace
@@ -924,54 +931,24 @@ async function main() {
     where: { workspaceId: mainWorkspaceId },
   });
 
-  // Read default GDPR policy from file
-  const gdprFilePath = path.join(__dirname, '..', '..', '..', 'finalproject-AG', 'GDPR.md');
-  try {
-    const defaultGdprText = fs.readFileSync(gdprFilePath, 'utf8');
-    
-    if (!existingWhatsappSettings) {
-      await prisma.whatsappSettings.create({
-        data: {
-          phoneNumber: "+34654728753",
-          apiKey: "dummy-api-key",
-          workspaceId: mainWorkspaceId,
-          gdpr: defaultGdprText,
-        },
-      });
-      console.log("Impostazioni WhatsApp create per il workspace principale");
-    } else {
-      await prisma.whatsappSettings.update({
-        where: { workspaceId: mainWorkspaceId },
-        data: {
-          phoneNumber: "+34654728753",
-          apiKey: "dummy-api-key",
-          gdpr: existingWhatsappSettings.gdpr || defaultGdprText,
-        },
-      });
-      console.log("Impostazioni WhatsApp aggiornate per il workspace principale");
-    }
-  } catch (error) {
-    console.error("Non è stato possibile leggere il file GDPR.md:", error);
-    // Continua senza aggiungere il GDPR
-    if (!existingWhatsappSettings) {
-      await prisma.whatsappSettings.create({
-        data: {
-          phoneNumber: "+34654728753",
-          apiKey: "dummy-api-key",
-          workspaceId: mainWorkspaceId,
-        },
-      });
-      console.log("Impostazioni WhatsApp create per il workspace principale (senza GDPR)");
-    } else {
-      await prisma.whatsappSettings.update({
-        where: { workspaceId: mainWorkspaceId },
-        data: {
-          phoneNumber: "+34654728753",
-          apiKey: "dummy-api-key",
-        },
-      });
-      console.log("Impostazioni WhatsApp aggiornate per il workspace principale (GDPR invariato)");
-    }
+  if (!existingWhatsappSettings) {
+    await prisma.whatsappSettings.create({
+      data: {
+        phoneNumber: "+34654728753",
+        apiKey: "dummy-api-key",
+        workspaceId: mainWorkspaceId,
+      },
+    });
+    console.log("Impostazioni WhatsApp create per il workspace principale");
+  } else {
+    await prisma.whatsappSettings.update({
+      where: { workspaceId: mainWorkspaceId },
+      data: {
+        phoneNumber: "+34654728753",
+        apiKey: "dummy-api-key",
+      },
+    });
+    console.log("Impostazioni WhatsApp aggiornate per il workspace principale");
   }
 
   console.log(`Seed completato con successo!`)

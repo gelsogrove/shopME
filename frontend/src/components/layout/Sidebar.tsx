@@ -5,6 +5,7 @@ import {
     LayoutGrid,
     MessageSquare,
     Package2,
+    ShieldCheck,
     ShoppingCart,
     Tag,
     Users,
@@ -57,6 +58,11 @@ const mainLinks = [
     href: "/analytics",
     label: "Analytics (WIP)",
     icon: LayoutGrid,
+  },
+  {
+    href: "/gdpr",
+    label: "GDPR",
+    icon: ShieldCheck,
   },
 ]
 

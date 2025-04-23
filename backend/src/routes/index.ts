@@ -14,6 +14,7 @@ import { productsRouter } from './products.routes'
 import promptsRoutes from "./prompts.routes"
 import uploadRoutes from "./upload.routes"
 import userRoutes from "./user.routes"
+import whatsappSettingsRoutes from "./whatsapp-settings.routes"
 import workspaceRoutes from "./workspace.routes"
 
 const router = Router()
@@ -27,6 +28,8 @@ router.use("/chat", chatRouter())
 router.use("/workspaces", workspaceRoutes)
 router.use("/languages", languagesRoutes)
 router.use("/users", userRoutes)
+router.use("/whatsapp-settings", whatsappSettingsRoutes)
+router.use("/gdpr", whatsappSettingsRoutes)
 router.use(promptsRoutes)
 router.use(agentsRoutes)
 router.use(productsRouter())
