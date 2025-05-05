@@ -12,9 +12,10 @@ import {
 import { useWorkspace } from "@/hooks/use-workspace"
 import { api } from "@/services/api"
 import { commonStyles } from "@/styles/common"
+import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from "@tanstack/react-table"
 import { MessageSquare, Pencil, Trash2, Users } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 
@@ -82,34 +83,29 @@ const stringifyAddress = (address: ShippingAddress): string => {
 export default function ClientsPage(): JSX.Element {
   const { workspace, loading: isLoadingWorkspace } = useWorkspace()
   const [searchValue, setSearchValue] = useState("")
-  const [clients, setClients] = useState<Client[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [clientSheetOpen, setClientSheetOpen] = useState(false)
   const [clientSheetMode, setClientSheetMode] = useState<"view" | "edit">("view")
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   
-  // Riferimento per tenere traccia delle chiamate API già effettuate
-  const dataLoaded = useRef(false)
-
   // Stati per il dialogo di conferma eliminazione
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
 
-  // Memoizza la funzione di caricamento dati
-  const loadData = useCallback(async () => {
-    if (!workspace?.id || dataLoaded.current) return
-    
-    try {
-      setIsLoading(true)
-      
-      // Carica i clienti 
-      const customersResponse = await api.get(`/api/workspaces/${workspace.id}/customers`)
-      const customersData = customersResponse.data
-      
-      // Converti i dati dei clienti dal formato API al formato interno
-      const formattedClients = customersData.map((customer: any) => ({
+  // Replace with useQuery
+  const {
+    data: clients = [],
+    isLoading,
+    isError,
+    refetch
+  } = useQuery({
+    queryKey: ['clients', workspace?.id],
+    queryFn: async () => {
+      if (!workspace?.id) return [];
+      const customersResponse = await api.get(`/api/workspaces/${workspace.id}/customers`);
+      const customersData = customersResponse.data;
+      return customersData.map((customer: any) => ({
         id: customer.id || '',
         name: customer.name || '',
         email: customer.email || '',
@@ -122,25 +118,10 @@ export default function ClientsPage(): JSX.Element {
         workspaceId: customer.workspaceId,
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt
-      }))
-      
-      setClients(formattedClients)
-      dataLoaded.current = true
-      
-    } catch (error) {
-      console.error('Error loading data:', error)
-      toast.error('Failed to load clients')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [workspace?.id])
-
-  // Carica i dati solo quando il workspace è disponibile e non stiamo ancora caricando
-  useEffect(() => {
-    if (!isLoadingWorkspace && workspace?.id && !dataLoaded.current) {
-      loadData()
-    }
-  }, [loadData, workspace?.id, isLoadingWorkspace])
+      }));
+    },
+    enabled: !!workspace?.id
+  });
 
   // Controlla se c'è un parametro edit nell'URL per aprire automaticamente il form di modifica
   useEffect(() => {
@@ -148,7 +129,7 @@ export default function ClientsPage(): JSX.Element {
     const sourceParam = searchParams.get('source')
     
     if (clientIdToEdit && clients.length > 0) {
-      const clientToEdit = clients.find(client => client.id === clientIdToEdit)
+      const clientToEdit = clients.find((client: Client) => client.id === clientIdToEdit)
       
       if (clientToEdit) {
         console.log('Opening client edit form for:', clientToEdit.name)
@@ -156,22 +137,16 @@ export default function ClientsPage(): JSX.Element {
         setClientSheetMode('edit')
         setClientSheetOpen(true)
         
-        // Se veniamo dalla pagina chat, rimuovi i parametri dalla URL dopo aver aperto il form
-        if (sourceParam === 'chat') {
-          // Rimuovi i parametri dall'URL senza causare un refresh
-          navigate('/clients', { replace: true })
-        }
       }
     }
   }, [clients, searchParams, navigate])
 
-  // Filter clients based on search value
-  const filteredClients = clients.filter(
-    (client) => 
-      client.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchValue.toLowerCase()) ||
-      client.company.toLowerCase().includes(searchValue.toLowerCase()) ||
-      client.phone.toLowerCase().includes(searchValue.toLowerCase())
+  // Use isLoading and clients from useQuery for rendering and filtering
+  const filteredClients = clients.filter((client: Client) =>
+    client.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+    client.email.toLowerCase().includes(searchValue.toLowerCase()) ||
+    client.company.toLowerCase().includes(searchValue.toLowerCase()) ||
+    client.phone.toLowerCase().includes(searchValue.toLowerCase())
   )
 
   // Handle sheet submission for new client
@@ -209,20 +184,7 @@ export default function ClientsPage(): JSX.Element {
       
       if (newCustomer) {
         // Add the new client to state with converted format
-        setClients(prevClients => [...prevClients, {
-          id: newCustomer.id,
-          name: newCustomer.name || '',
-          email: newCustomer.email || '',
-          company: newCustomer.company || '',
-          discount: newCustomer.discount || 0,
-          phone: newCustomer.phone || '',
-          language: newCustomer.language || 'English',
-          notes: newCustomer.notes || '',
-          shippingAddress: parseAddress(newCustomer.address),
-          workspaceId: newCustomer.workspaceId,
-          createdAt: newCustomer.createdAt,
-          updatedAt: newCustomer.updatedAt
-        }])
+        refetch()
         toast.success('Client created successfully')
       }
       
@@ -279,25 +241,7 @@ export default function ClientsPage(): JSX.Element {
       
       if (updatedCustomer) {
         // Update client in state with correct format and preserve existing data not returned by API
-        setClients(prevClients =>
-          prevClients.map(client =>
-            client.id === selectedClient.id
-              ? {
-                  ...client, // Mantieni i dati esistenti
-                  id: updatedCustomer.id,
-                  name: updatedCustomer.name || client.name,
-                  email: updatedCustomer.email || client.email,
-                  company: updatedCustomer.company || client.company,
-                  discount: updatedCustomer.discount ?? client.discount,
-                  phone: updatedCustomer.phone || client.phone,
-                  language: updatedCustomer.language || client.language,
-                  notes: updatedCustomer.notes || client.notes,
-                  shippingAddress: parseAddress(updatedCustomer.address),
-                  updatedAt: updatedCustomer.updatedAt
-                }
-              : client
-          )
-        )
+        refetch()
         toast.success('Client updated successfully')
       }
       
@@ -359,7 +303,7 @@ export default function ClientsPage(): JSX.Element {
       await api.delete(`/api/workspaces/${workspace.id}/customers/${clientToDelete.id}`)
       
       // Remove from state if successful
-      setClients(clients.filter(c => c.id !== clientToDelete.id))
+      refetch()
       toast.success('Client deleted successfully')
       setShowDeleteDialog(false)
       setClientToDelete(null)
@@ -484,9 +428,13 @@ export default function ClientsPage(): JSX.Element {
     },
   ]
 
-  // Show loading state
+  // In the return, use isLoading from useQuery
   if (isLoadingWorkspace || isLoading) {
     return <div>Loading...</div>
+  }
+
+  if (isError) {
+    return <div>Error loading clients.</div>
   }
 
   // Show error if no workspace selected
@@ -518,7 +466,6 @@ export default function ClientsPage(): JSX.Element {
               columns={columns} 
               data={filteredClients}
               globalFilter={searchValue}
-              className="text-sm"
             />
           </div>
         </div>

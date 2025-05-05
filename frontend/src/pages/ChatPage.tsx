@@ -4,6 +4,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { getWorkspaceId } from "@/config/workspace.config"
 import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
+import { useQuery } from '@tanstack/react-query'
 import { Ban, Pencil, Send, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "react-hot-toast"
@@ -62,8 +63,34 @@ interface Chat {
   messages?: Message[]
 }
 
+const formatDate = (dateString: string | null | undefined, agentName?: string) => {
+  if (!dateString) {
+    console.log("formatDate: dateString è null o undefined");
+    return "Data non disponibile";
+  }
+  try {
+    console.log(`formatDate: tentativo di formattare "${dateString}"`);
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      console.log(`formatDate: data invalida "${dateString}"`);
+      return "Data non valida";
+    }
+    const options: Intl.DateTimeFormatOptions = {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    // Return only the formatted date without any suffix or agent name
+    return date.toLocaleDateString('it-IT', options);
+  } catch (error) {
+    console.error("formatDate: errore durante la formattazione", error);
+    return "Errore nella formattazione data";
+  }
+};
+
 export function ChatPage() {
-  const [chats, setChats] = useState<Chat[]>([])
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
   const [messageInput, setMessageInput] = useState("")
   const [loading, setLoading] = useState(false)
@@ -78,10 +105,24 @@ export function ChatPage() {
   const [showBlockDialog, setShowBlockDialog] = useState<boolean>(false)
   const navigate = useNavigate()
 
-  // Carica le chat all'avvio
-  useEffect(() => {
-    fetchChats();
-  }, [])
+  // Remove fetchChats, setChats, and loading state for chat list
+  // Replace with React Query
+  const {
+    data: chats = [],
+    isLoading: isLoadingChats,
+    isError: isErrorChats,
+    refetch: refetchChats
+  } = useQuery({
+    queryKey: ['chats'],
+    queryFn: async () => {
+      const response = await api.get("/api/chat/recent");
+      if (response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error("Errore nel caricamento delle chat");
+      }
+    }
+  });
 
   // Seleziona automaticamente la prima chat quando le chat sono caricate
   // e non c'è nessuna chat già selezionata o sessionId nell'URL
@@ -111,7 +152,7 @@ export function ChatPage() {
   // Seleziona la chat dai parametri URL solo al caricamento iniziale o quando cambia l'URL esternamente
   useEffect(() => {
     if (sessionId && chats.length > 0 && initialLoadRef.current) {
-      const chat = chats.find(c => c.sessionId === sessionId)
+      const chat = chats.find((c: Chat) => c.sessionId === sessionId)
       if (chat) {
         selectChat(chat, false) // false = don't update URL again
         initialLoadRef.current = false
@@ -126,81 +167,10 @@ export function ChatPage() {
     }
   }, [selectedChat?.messages, loadingChat]);
 
-  // Funzione per caricare le chat recenti
-  const fetchChats = async () => {
-    setLoading(true)
-    try {
-      const response = await api.get("/api/chat/recent")
-      if (response.data.success) {
-        console.log("Chat data received:", response.data.data);
-        
-        // Log specifico per verificare i campi di data
-        response.data.data.forEach((chat: any, index: number) => {
-          console.log(`Chat ${index} - lastMessageTime: ${chat.lastMessageTime || 'MANCANTE'}`);
-          // Prova a formattare la data per il debug
-          if (chat.lastMessageTime) {
-            try {
-              const date = new Date(chat.lastMessageTime);
-              console.log(`Chat ${index} - data formattata: ${date.toLocaleString()}`);
-            } catch (e) {
-              console.error(`Chat ${index} - errore formattazione data: ${e}`);
-            }
-          }
-        });
-        
-        setChats(response.data.data);
-      } else {
-        toast.error("Errore nel caricamento delle chat")
-      }
-    } catch (error) {
-      console.error("Errore nel caricamento delle chat:", error)
-      toast.error("Non è stato possibile caricare le chat")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Funzione per formattare la data in modo sicuro
-  const formatDate = (dateString: string | null | undefined, agentName?: string) => {
-    if (!dateString) {
-      console.log("formatDate: dateString è null o undefined");
-      return "Data non disponibile";
-    }
-    
-    try {
-      console.log(`formatDate: tentativo di formattare "${dateString}"`);
-      const date = new Date(dateString);
-      
-      if (isNaN(date.getTime())) {
-        console.log(`formatDate: data invalida "${dateString}"`);
-        return "Data non valida";
-      }
-      
-      const options: Intl.DateTimeFormatOptions = {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      };
-      
-      const formattedDate = date.toLocaleDateString('it-IT', options);
-      
-      // Aggiungiamo il nome dell'agente se disponibile
-      if (agentName) {
-        return `${formattedDate} - ${agentName}`;
-      }
-      
-      return formattedDate;
-    } catch (error) {
-      console.error("formatDate: errore durante la formattazione", error);
-      return "Errore nella formattazione data";
-    }
-  };
-
   // Funzione per selezionare una chat e caricare i messaggi
   const selectChat = async (chat: Chat, updateUrl = true) => {
-    setLoadingChat(true)
+    // Remove debug logs
+    setLoadingChat(true);
     try {
       // Assicuriamoci che companyName sia sempre presente
       const chatWithCompany = {
@@ -210,12 +180,12 @@ export function ChatPage() {
       
       // Aggiorna i parametri URL solo se richiesto
       if (updateUrl) {
-        setSearchParams({ sessionId: chatWithCompany.sessionId })
+        setSearchParams({ sessionId: chatWithCompany.sessionId });
       }
       
       if (!chatWithCompany.messages) {
         // Carica i messaggi della chat selezionata
-        const response = await api.get(`/api/chat/${chatWithCompany.sessionId}/messages`)
+        const response = await api.get(`/api/chat/${chatWithCompany.sessionId}/messages`);
         if (response.data.success) {
           // Formatta i messaggi per la visualizzazione
           const formattedMessages: Message[] = response.data.data.map((m: any) => ({
@@ -224,47 +194,28 @@ export function ChatPage() {
             sender: m.direction === "INBOUND" ? "customer" : "user",
             timestamp: m.createdAt || new Date().toISOString(),
             agentName: m.agentName || (m.direction === "OUTBOUND" ? "Generic" : undefined)
-          }))
+          }));
           
-          chatWithCompany.messages = formattedMessages
+          chatWithCompany.messages = formattedMessages;
         }
       }
       
       // Aggiorna lo stato della chat selezionata
-      setSelectedChat(chatWithCompany)
+      setSelectedChat(chatWithCompany);
       
       // Imposta il conteggio dei messaggi non letti a 0 solo per la chat corrente
       if (chatWithCompany.unreadCount > 0) {
         // Creiamo una nuova lista di chat per aggiornare lo stato correttamente
-        const updatedChats = chats.map(c => {
-          // Aggiorna solo la chat corrente, mantiene inalterato il conteggio per le altre
-          if (c.sessionId === chatWithCompany.sessionId) {
-            return { ...c, unreadCount: 0 };
-          }
-          return c;
-        });
-        
-        // Aggiorna lo stato chats con la nuova lista
-        setChats(updatedChats);
-        
-        // Marca i messaggi come letti nel backend (una sola volta)
-        try {
-          await api.post(`/api/chat/${chatWithCompany.sessionId}/mark-read`)
-          
-          // Dispatch a custom event to notify the sidebar to update the total unread count
-          window.dispatchEvent(new CustomEvent('messagesMarkedAsRead'));
-        } catch (err) {
-          console.error("Errore nel marcare i messaggi come letti:", err)
-        }
+        refetchChats();
       }
       
     } catch (error) {
-      console.error("Errore nel caricamento dei messaggi:", error)
-      toast.error("Non è stato possibile caricare i messaggi")
+      console.error("Errore nel caricamento dei messaggi:", error);
+      toast.error("Non è stato possibile caricare i messaggi");
     } finally {
-      setLoadingChat(false)
+      setLoadingChat(false);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -328,7 +279,7 @@ export function ChatPage() {
       
       if (response.data.success) {
         // Dopo aver ricevuto la risposta, aggiorniamo nuovamente le chat
-        fetchChats()
+        refetchChats()
         
         // Estraiamo il nome dell'agente dalla risposta
         let agentName = "Generic";
@@ -497,7 +448,7 @@ export function ChatPage() {
             toast.success("Chat deleted successfully (test endpoint)");
             
             // Remove chat from list
-            setChats(chats.filter(c => c.sessionId !== selectedChat.sessionId));
+            refetchChats()
             setSelectedChat(null);
             setSearchParams({});
             setShowDeleteDialog(false);
@@ -526,7 +477,7 @@ export function ChatPage() {
           toast.success("Chat deleted successfully");
           
           // Remove chat from list
-          setChats(chats.filter(c => c.sessionId !== selectedChat.sessionId));
+          refetchChats()
           setSelectedChat(null);
           setSearchParams({});
           setShowDeleteDialog(false);
@@ -544,10 +495,8 @@ export function ChatPage() {
       if (response.data.success) {
         toast.success("Chat deleted successfully");
         
-        // Rimuovi la chat dalla lista
-        setChats(chats.filter(c => c.sessionId !== selectedChat.sessionId));
-        
         // Deseleziona la chat
+        refetchChats()
         setSelectedChat(null);
         
         // Aggiorna i parametri URL
@@ -669,37 +618,45 @@ export function ChatPage() {
           </div>
 
           <div className="overflow-y-auto flex-1">
-            {chats.map((chat) => (
-              <div
-                key={chat.id}
-                className={`p-4 cursor-pointer hover:bg-gray-50 rounded-lg mb-2 ${
-                  selectedChat?.id === chat.id ? "bg-gray-50" : ""
-                } ${loadingChat && selectedChat?.id === chat.id ? "opacity-70 pointer-events-none" : ""}`}
-                onClick={() => selectChat(chat)}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-medium">
-                      {chat.customerName} {chat.companyName ? `(${chat.companyName})` : ''}
-                    </h3>
-                    <p className="text-sm text-green-600">
-                      {chat.customerPhone}
-                    </p>
+            {chats.map((chat: Chat) => {
+              // IMPORTANT: Compare sessionId instead of id
+              const isSelected = selectedChat?.sessionId === chat.sessionId;
+              
+              return (
+                <div
+                  key={chat.id}
+                  className={`p-4 cursor-pointer rounded-lg mb-2 transition-all
+                    ${isSelected 
+                      ? 'border-l-4 border-green-600 bg-green-50 text-green-800 font-bold' 
+                      : 'border-l-0 bg-white text-gray-900'}
+                    ${!isSelected ? 'hover:bg-gray-50' : ''}
+                    ${loadingChat && isSelected ? "opacity-70 pointer-events-none" : ""}`}
+                  onClick={() => selectChat(chat)}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium">
+                        {chat.customerName} {chat.companyName ? `(${chat.companyName})` : ''}
+                      </h3>
+                      <p className="text-sm text-green-600">
+                        {chat.customerPhone}
+                      </p>
+                    </div>
+                    {chat.unreadCount > 0 && (
+                      <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                        {chat.unreadCount}
+                      </span>
+                    )}
                   </div>
-                  {chat.unreadCount > 0 && (
-                    <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                      {chat.unreadCount}
-                    </span>
-                  )}
+                  <p className="text-sm text-gray-600 mt-1 truncate">
+                    {chat.lastMessage}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {formatDate(chat.lastMessageTime, chat.companyName)}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-600 mt-1 truncate">
-                  {chat.lastMessage}
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {formatDate(chat.lastMessageTime, chat.companyName)}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
         {/* Chat Window */}
