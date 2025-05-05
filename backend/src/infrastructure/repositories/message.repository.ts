@@ -15,16 +15,22 @@ if (apiKey) {
 
 // OpenAI client instance
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'your-api-key-here',
+  apiKey: apiKey,  // No default 'your-api-key-here' value, just use the actual key
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: {
     "HTTP-Referer": "https://laltroitalia.shop",
+    "X-Title": "L'Altra Italia Shop"
   },
 });
 
 // Helper function to check if OpenAI is properly configured
 function isOpenAIConfigured() {
   const apiKey = process.env.OPENAI_API_KEY;
+  // Log for debugging
+  console.log(`API key check - key present: ${!!apiKey}, key length: ${apiKey ? apiKey.length : 0}`);
+  if (apiKey) {
+    console.log(`API key prefix: ${apiKey.substring(0, 10)}...`);
+  }
   return apiKey && apiKey.length > 10 && apiKey !== 'your-api-key-here';
 }
 
@@ -208,16 +214,41 @@ export class MessageRepository {
   
   async findCustomerByPhone(phoneNumber: string) {
     try {
-      const whereClause: any = { phone: phoneNumber };
-      
       const customer = await this.prisma.customers.findFirst({
-        where: whereClause
+        where: {
+          phone: phoneNumber
+        }
       });
       
       return customer;
     } catch (error) {
-      logger.error('Error finding customer:', error);
-      return null;
+      logger.error('Error finding customer by phone:', error);
+      throw new Error('Failed to find customer by phone');
+    }
+  }
+  
+  /**
+   * Check if customer is in the blacklist
+   * 
+   * @param phoneNumber The customer phone number to check
+   * @returns True if customer is blacklisted, false otherwise
+   */
+  async isCustomerBlacklisted(phoneNumber: string): Promise<boolean> {
+    try {
+      const customer = await this.prisma.customers.findFirst({
+        where: {
+          phone: phoneNumber
+        },
+        select: {
+          isActive: true
+        }
+      });
+      
+      // If customer is not active, consider them blacklisted
+      return customer?.isActive === false;
+    } catch (error) {
+      logger.error('Error checking customer blacklist status:', error);
+      return false;
     }
   }
   
@@ -233,6 +264,7 @@ export class MessageRepository {
     message: string;
     response: string;
     direction?: string;
+    agentSelected?: string;
   }) {
     try {
       // Validate required fields
@@ -366,6 +398,9 @@ export class MessageRepository {
       const userMessage = direction === MessageDirection.INBOUND ? data.message : data.response;
       const botMessage = direction === MessageDirection.INBOUND ? data.response : data.message;
       
+      // Prepare metadata for bot response with agent info
+      const botMetadata = data.agentSelected ? { agentName: data.agentSelected } : {};
+      
       // Save user message
       await this.prisma.message.create({
         data: {
@@ -384,7 +419,8 @@ export class MessageRepository {
           content: botMessage,
           direction: MessageDirection.OUTBOUND,
           type: MessageType.TEXT,
-          aiGenerated: true
+          aiGenerated: true,
+          metadata: botMetadata // Aggiungo i metadata con l'agente selezionato
         }
       });
       
@@ -871,7 +907,6 @@ export class MessageRepository {
     customer: any = null
   ): Promise<string> {
     try {
-
       // Check if OpenAI is properly configured
       if (!isOpenAIConfigured()) {
         logger.warn('OpenAI API key not configured properly');
@@ -885,45 +920,98 @@ export class MessageRepository {
       const top_k = typeof agent === 'object' ? agent.top_k || 40 : 40;
       const agentName = typeof agent === 'object' ? agent.name || 'Generic' : 'Generic';
       
-      logger.info(`Using agent "${agentName}" with temp=${temperature}, top_p=${top_p}, top_k=${top_k}`);
+      // Get customer language preference
+      const customerLanguage = customer?.language || 'Italian';
       
-      // Log per debug
+      // Get customer currency preference
+      const customerCurrency = customer?.currency || 'EUR';
+      const shouldDisplayUSD = customerCurrency === 'USD';
+      
+      // Get customer discount (if any)
+      const customerDiscount = customer?.discount || 0;
+      const hasDiscount = customerDiscount > 0;
+      
+      logger.info(`Using agent "${agentName}" with temp=${temperature}, top_p=${top_p}, top_k=${top_k}, language=${customerLanguage}, currency=${customerCurrency}, discount=${customerDiscount}%`);
+      
+      // Log for debug
       const isProductAgent = agentName.toLowerCase().includes('products');
       const isServiceAgent = agentName.toLowerCase().includes('service');
       
-      
-      // Prepara il messaggio utente finale
+      // Prepare the final user message
       const userMessage = { role: "user" as const, content: message };
       
-      // Prepara i messaggi per l'API
+  
       const systemMessage = { 
         role: "system" as const, 
-        content: agentContent + "\n\nIMPORTANT: Your response MUST be in natural language. DO NOT include 'Messaggio generato da' anywhere in your response."
+        content: agentContent
       };
       
-      // Prepara eventuali messaggi per prodotti e servizi
-      // Includi prodotti SOLO se l'agente è Products
+      // Helper function to calculate discounted price
+      const applyDiscount = (price: number, discount: number): number => {
+        if (discount <= 0) return price;
+        const discountedPrice = price * (1 - discount / 100);
+        return +discountedPrice.toFixed(2); // Round to 2 decimals
+      };
+      
+      
+      
+      // Prepare messages for products and services
+      // Include products ONLY if the agent is Products
       const productMessage = (products && products.length > 0 && isProductAgent) ? 
         { 
           role: "system" as const, 
-          content: `I prodotti disponibili sono: ${JSON.stringify(
-            products.map(p => ({
-              id: p.id,
-              name: p.name,
-              description: p.description,
-              price: p.price,
-              category: p.category?.name || 'Non categorizzato',
-              stock: p.stock || 'Disponibile',
-            }))
+          content: `Available products: ${JSON.stringify(
+            products.map(p => {
+              // Add basic product info
+              const productInfo: any = {
+                name: p.name,
+                description: p.description,
+                price: p.price,
+                currency: customerCurrency || 'Eur',  
+                stock: p.stock || 'Disponibile',
+                category: p.category?.name || 'empty',
+              };
+              
+              // Apply discount if customer has one
+              if (hasDiscount) {
+                productInfo.discountPercentage = customerDiscount;
+                productInfo.originalPrice = productInfo.price;
+                productInfo.price = applyDiscount(productInfo.price, customerDiscount);
+              }
+              
+              return productInfo;
+            })
           )}`
         } : null;
         
-      // Includi servizi SOLO se l'agente è Services
+      // Include services ONLY if the agent is Services
       const serviceMessage = (services && services.length > 0 && isServiceAgent) ? 
-        { role: "system" as const, content: JSON.stringify({ services }) } : null;
-        
-     
-      // Prepara gli eventuali messaggi dalla chat history
+        { 
+          role: "system" as const, 
+          content: JSON.stringify({ 
+            services: services.map(s => {
+              // Add information about original currency and conversion if needed
+              const serviceInfo: any = {
+                name: s.name,
+                description: s.description,
+                price: s.price,
+                currency: customerCurrency,
+              };
+              
+              // Apply discount if customer has one
+              if (hasDiscount) {
+                serviceInfo.discountPercentage = customerDiscount;
+                serviceInfo.originalPrice = serviceInfo.price;
+                serviceInfo.price = applyDiscount(serviceInfo.price, customerDiscount);
+              }
+              
+              
+              return serviceInfo;
+            }) 
+          })
+        } : null;
+       
+      // Prepare messages from chat history
       const historyMessages = [];
       if (chatHistory && chatHistory.length > 0) {
         for (const msg of chatHistory) {
@@ -935,18 +1023,18 @@ export class MessageRepository {
         }
       }
       
-      // Costruisci array di messaggi finale
+      // Build final array of messages
       const messages = [
         systemMessage,
-        ...(customer ? [{ role: "system" as const, content: `Informazioni cliente: ${JSON.stringify({
-          id: customer.id,
+        ...(customer ? [{ role: "system" as const, content: `Info client:: ${JSON.stringify({   
           name: customer.name,
           phone: customer.phone,
           email: customer.email,
-          company: customer.company || 'Non specificato',
-          language: customer.language || 'it',
-          address: customer.address || 'Non specificato',
-          notes: customer.notes || ''
+          company: customer.company || '',
+          language: customerLanguage,
+          currency: customerCurrency,
+          discount: customerDiscount,
+          address: customer.address || ''
         })}` }] : []),
         ...(productMessage ? [productMessage] : []),
         ...(serviceMessage ? [serviceMessage] : []),
@@ -954,39 +1042,60 @@ export class MessageRepository {
         userMessage
       ];
 
-      console.log("================================================")
-      console.log(messages)
-      console.log("================================================")
+ 
       
-      // Make API call to OpenAI
-      const response = await openai.chat.completions.create({
-        model: "openai/gpt-4o-mini", 
-        messages: messages,
-        temperature: temperature,
-        top_p: top_p,
-        max_tokens: 1000
-      });
-      
-      // Validate response and extract content
-      let responseContent = "";
-      
-      if (response && response.choices && response.choices.length > 0 && response.choices[0].message) {
-        responseContent = response.choices[0].message.content || "";
-        logger.info(`AI response (${responseContent.length} chars): "${responseContent.substring(0, 50)}${responseContent.length > 50 ? '...' : ''}"`);
-      } else {
-        logger.error('OpenAI API returned an empty or invalid response structure:', response);
-        responseContent = "Mi dispiace, il servizio ha risposto in modo non valido. Un operatore ti contatterà a breve.";
+ 
+      try {
+        // Initialize a new OpenAI client instance for this call to ensure fresh configuration
+        const openaiClient = new OpenAI({
+          apiKey: process.env.OPENAI_API_KEY || 'your-api-key-here',
+          baseURL: "https://openrouter.ai/api/v1",
+          defaultHeaders: {
+            "HTTP-Referer": "https://laltroitalia.shop",
+            "X-Title": "L'Altra Italia Shop"
+          }
+        });
+
+        console.log("===============================================");
+        console.log(messages);
+        console.log("===============================================");
+        
+        // Make API call to OpenAI
+        const response = await openaiClient.chat.completions.create({
+          model: "openai/gpt-4o-mini", 
+          messages: messages,
+          temperature: temperature,
+          top_p: top_p,
+          max_tokens: 1000
+        });
+        
+        // Validate response and extract content
+        let responseContent = "";
+        
+        if (response && response.choices && response.choices.length > 0 && response.choices[0].message) {
+          responseContent = response.choices[0].message.content || "";
+          logger.info(`AI response (${responseContent.length} chars): "${responseContent.substring(0, 50)}${responseContent.length > 50 ? '...' : ''}"`);
+        } else {
+          logger.error('OpenAI API returned an empty or invalid response structure:', response);
+          responseContent = "Mi dispiace, il servizio ha risposto in modo non valido. Un operatore ti contatterà a breve.";
+        }
+        
+        return responseContent;
+      } catch (apiError) {
+        // Detailed API error logging
+        logger.error(`OpenAI API error details - name: ${apiError.name}, message: ${apiError.message}, status: ${apiError.status || 'unknown'}`);
+        if (apiError.response) {
+          logger.error(`API response data: ${JSON.stringify(apiError.response.data || {})}`);
+        }
+        
+        // Throw the error for handling in the outer catch block
+        throw apiError;
       }
-      
-      return responseContent;
-      
     } catch (error) {
       // Detailed error handling
       logger.error('Error calling OpenAI API:', error);
-      
     
-      // Generic error message
-      return "Mi dispiace....errore";
+      return "Error calling OpenAI API: " + error;
     }
   }
 

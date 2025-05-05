@@ -57,7 +57,13 @@ export class MessageController {
         workspaceId
       );
       
-      // Return the processed message
+      // Get the last message which should include the metadata
+      const messageRepository = this.messageService.getMessageRepository();
+      const recentMessages = await messageRepository.getLatesttMessages(phoneNumber, 1);
+      const lastMessage = recentMessages[0];
+      const metadata = lastMessage?.metadata || {};
+      
+      // Return the processed message with metadata
       res.status(200).json({
         success: true,
         data: {
@@ -65,7 +71,8 @@ export class MessageController {
           processedMessage: response,
           phoneNumber: phoneNumber,
           workspaceId: workspaceId,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          metadata: metadata
         }
       });
     } catch (error) {

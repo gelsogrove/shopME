@@ -11,6 +11,14 @@ export class MessageService {
     this.messageRepository = new MessageRepository();
   }
   
+  /**
+   * Get the message repository instance
+   * @returns MessageRepository instance
+   */
+  getMessageRepository(): MessageRepository {
+    return this.messageRepository;
+  }
+  
   
   
   /**
@@ -62,8 +70,7 @@ export class MessageService {
             // Format with bullet points and italics for categories
             let detailLine = lines[j]
               .replace(/^\s*[-–•]\s*/, '   • ')
-              .replace(/Categoria:/, '_Categoria:_')
-              .replace(/Descrizione:/, '_Descrizione:_');
+ 
             
             details.push(detailLine);
             j++;
@@ -122,6 +129,7 @@ export class MessageService {
   async processMessage(message: string, phoneNumber: string, workspaceId: string): Promise<string> {
 
     let response = ""; 
+    let agentSelected = ""; // Aggiungo una variabile per tracciare l'agente selezionato
 
     try {   
         logger.info(`Processing message: "${message}" from ${phoneNumber} for workspace ${workspaceId}`);
@@ -138,6 +146,14 @@ export class MessageService {
             logger.warn(`Workspace ${workspaceId} exists but is inactive`);
             return workspaceSettings.wipMessage ? workspaceSettings.wipMessage : 'WhatsApp channel is inactive';
         }
+        
+        // Check if customer is in blacklist
+        const isBlacklisted = await this.messageRepository.isCustomerBlacklisted(phoneNumber);
+        if (isBlacklisted) {
+            logger.warn(`Phone number ${phoneNumber} is blacklisted. Message rejected.`);
+            // Silently ignore the message without responding
+            return '';
+        }
 
         // Check if customer exists - simplified binary check
         const customer = await this.messageRepository.findCustomerByPhone(phoneNumber);
@@ -152,8 +168,20 @@ export class MessageService {
             const tempCustomer = await this.messageRepository.findOrCreateCustomerByPhone(workspaceId, phoneNumber);
             logger.info(`Created temporary customer record: ${tempCustomer.id}`);
             
+            agentSelected = "Registration"; // Imposto l'agente usato come "Registration"
             return response;
         } 
+        
+        // Check if customer is registered (has completed registration)
+        // Consider customer unregistered if name is "Unknown Customer" - this is the default name for new customers
+        if (customer.name === 'Unknown Customer') {
+            logger.info(`User with phone ${phoneNumber} is still unregistered - showing registration link again`);
+            const registrationUrl = `${process.env.FRONTEND_URL || 'https://laltroitalia.shop'}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`;
+            response = `Per favore completa la registrazione prima di continuare: ${registrationUrl}`;
+            
+            agentSelected = "Registration"; // Imposto l'agente usato come "Registration"
+            return response;
+        }
         
         // Process message for existing customer
         logger.info("Processing existing customer message");
@@ -168,11 +196,14 @@ export class MessageService {
                 logger.info(`USER MESSAGE: "${message}"`);
                 
                 // 1. Seleziona l'agente appropriato con il router
-                const agentSelected = await this.messageRepository.getResponseFromAgentRouter(routerAgentPrompt, message);
-                logger.info(`AGENT SELECTED: "${agentSelected.name}"`);
+                const selectedAgent = await this.messageRepository.getResponseFromAgentRouter(routerAgentPrompt, message);
+                logger.info(`AGENT SELECTED: "${selectedAgent.name}"`);
+                
+                // Salvo il nome dell'agente selezionato
+                agentSelected = selectedAgent.name || "Unknown";
                 
                 // 2. Genera il prompt arricchito con il contesto dei prodotti e servizi
-                const systemPrompt = await this.messageRepository.getResponseFromRag(agentSelected, message, products, services, chatHistory, customer);
+                const systemPrompt = await this.messageRepository.getResponseFromRag(selectedAgent, message, products, services, chatHistory, customer);
                 logger.info(`SYSTEM PROMT: "${systemPrompt}"`);
 
                 // 3. converte il systemPrompt in prompt per il conversazione
@@ -180,28 +211,24 @@ export class MessageService {
                 logger.info(`FINAL PROMT: "${response}"`);
   
                 // 4. Formatta la risposta e aggiungi info sul chatbot
-                response = this.formatListForWhatsApp(response);
+                //response = this.formatListForWhatsApp(response);
                 
-                // Aggiungi l'informazione sul chatbot che ha risposto
-                if (agentSelected && agentSelected.name) {
-                  const agentName = agentSelected.name;
-                  if (!response.includes("Messaggio generato da:")) {
-                    response += `\n\n_Agente: ${agentName}_`;
-                  }
-                }
+                // Non aggiungiamo qui l'agente nel messaggio, verrà fatto dal frontend
+                // che leggerà il campo agentSelected dal database
             
             } catch (apiError) {
-                
+                agentSelected = "Error";
                 response = apiError;
-               
             }
             return response;
         } catch (processingError) {
+            agentSelected = "Error";
             return "Error processing customer message:" + processingError;
         }
         
     } catch (error) {
       logger.error("Error processing message:", error);
+      agentSelected = "System";
       return "Sorry, there was an error processing your message. Please try again later.";
     } finally {
       // Save both the user message and our response in one call
@@ -210,7 +237,8 @@ export class MessageService {
           workspaceId,
           phoneNumber,
           message,
-          response
+          response,
+          agentSelected // Passo l'agente selezionato al repository
         });
         logger.info("Message saved successfully");
       } catch (saveError) {

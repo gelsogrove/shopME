@@ -10,13 +10,13 @@ import { useEffect, useRef, useState } from "react"
 import { toast } from "react-hot-toast"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "../components/ui/alert-dialog"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
@@ -63,18 +63,17 @@ interface Chat {
   messages?: Message[]
 }
 
-const formatDate = (dateString: string | null | undefined, agentName?: string) => {
+const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString) {
-    console.log("formatDate: dateString è null o undefined");
     return "Data non disponibile";
   }
+  
   try {
-    console.log(`formatDate: tentativo di formattare "${dateString}"`);
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
-      console.log(`formatDate: data invalida "${dateString}"`);
       return "Data non valida";
     }
+    
     const options: Intl.DateTimeFormatOptions = {
       day: '2-digit',
       month: '2-digit',
@@ -82,10 +81,9 @@ const formatDate = (dateString: string | null | undefined, agentName?: string) =
       hour: '2-digit',
       minute: '2-digit'
     };
-    // Return only the formatted date without any suffix or agent name
+    
     return date.toLocaleDateString('it-IT', options);
   } catch (error) {
-    console.error("formatDate: errore durante la formattazione", error);
     return "Errore nella formattazione data";
   }
 };
@@ -107,7 +105,7 @@ export function ChatPage() {
   const [showOrdersDialog, setShowOrdersDialog] = useState<boolean>(false)
   const navigate = useNavigate()
 
-  // Replace with React Query
+  // Fetch chats with React Query
   const {
     data: allChats = [],
     isLoading: isLoadingChats,
@@ -135,8 +133,7 @@ export function ChatPage() {
       )
     : allChats;
 
-  // Seleziona automaticamente la prima chat quando le chat sono caricate
-  // e non c'è nessuna chat già selezionata o sessionId nell'URL
+  // Select first chat when chats are loaded and no chat is selected
   useEffect(() => {
     if (chats.length > 0 && !selectedChat && !sessionId) {
       selectChat(chats[0]);
@@ -152,7 +149,6 @@ export function ChatPage() {
           setAvailableLanguages(languages.map((lang: Language) => lang.name));
         }
       } catch (error) {
-        console.error("Error fetching languages:", error);
         // Keep default languages in state
       }
     };
@@ -160,7 +156,7 @@ export function ChatPage() {
     fetchLanguages();
   }, []);
 
-  // Seleziona la chat dai parametri URL solo al caricamento iniziale o quando cambia l'URL esternamente
+  // Select chat from URL parameters on initial load
   useEffect(() => {
     if (sessionId && chats.length > 0 && initialLoadRef.current) {
       const chat = chats.find((c: Chat) => c.sessionId === sessionId)
@@ -171,80 +167,74 @@ export function ChatPage() {
     }
   }, [sessionId, chats])
 
-  // Funzione per auto-scrollare agli ultimi messaggi
+  // Auto-scroll to latest messages
   useEffect(() => {
     if (messagesEndRef.current && !loadingChat) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [selectedChat?.messages, loadingChat]);
 
-  // Funzione per selezionare una chat e caricare i messaggi
+  // Select a chat and load its messages
   const selectChat = async (chat: Chat, updateUrl = true) => {
-    // Remove debug logs
     setLoadingChat(true);
     try {
-      // Assicuriamoci che companyName sia sempre presente
       const chatWithCompany = {
         ...chat,
         companyName: chat.companyName || ""
       };
       
-      // Aggiorna i parametri URL solo se richiesto
       if (updateUrl) {
         setSearchParams({ sessionId: chatWithCompany.sessionId });
       }
       
       if (!chatWithCompany.messages) {
-        // Carica i messaggi della chat selezionata
         const response = await api.get(`/api/chat/${chatWithCompany.sessionId}/messages`);
         if (response.data.success) {
-          // Formatta i messaggi per la visualizzazione
           const formattedMessages: Message[] = response.data.data.map((m: any) => ({
             id: m.id,
             content: m.content,
             sender: m.direction === "INBOUND" ? "customer" : "user",
             timestamp: m.createdAt || new Date().toISOString(),
-            agentName: m.agentName || (m.direction === "OUTBOUND" ? "Generic" : undefined)
+            agentName: m.direction === "OUTBOUND" ? (m.metadata?.agentName || "Generic") : undefined
           }));
           
           chatWithCompany.messages = formattedMessages;
         }
       }
       
-      // Aggiorna lo stato della chat selezionata
       setSelectedChat(chatWithCompany);
       
-      // Imposta il conteggio dei messaggi non letti a 0 solo per la chat corrente
       if (chatWithCompany.unreadCount > 0) {
-        // Creiamo una nuova lista di chat per aggiornare lo stato correttamente
         refetchChats();
       }
       
     } catch (error) {
-      console.error("Errore nel caricamento dei messaggi:", error);
       toast.error("Non è stato possibile caricare i messaggi");
     } finally {
       setLoadingChat(false);
     }
   };
 
+  // Handle message submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!messageInput.trim() || !selectedChat) return
     
+    // Set loading state to true before sending the message
+    setLoading(true)
+    
     try {
-      console.log("Invio messaggio...");
-      
-      // Crea un nuovo messaggio
+      // Create a new message - this is a human user sending a message to the bot
       const newMessage = {
         id: Date.now().toString(),
         content: messageInput,
-        sender: "user" as const,
+        // This is the customer's message, so sender should be "customer"
+        sender: "customer" as const,
         timestamp: new Date().toISOString()
       }
       
-      // Aggiorna la chat selezionata con il nuovo messaggio
+      // Update selected chat with the new message
       const updatedChat = {
         ...selectedChat,
         messages: [...(selectedChat.messages || []), newMessage],
@@ -255,69 +245,48 @@ export function ChatPage() {
       setSelectedChat(updatedChat)
       setMessageInput("")
       
-      // Ottieni il workspaceId direttamente dal localStorage invece di fare una chiamata API
+      // Get workspaceId from storage
       let currentWorkspaceId = "";
       try {
         const workspaceData = sessionStorage.getItem("currentWorkspace");
         if (workspaceData) {
           const workspace = JSON.parse(workspaceData);
           currentWorkspaceId = workspace.id;
-          console.log("WorkspaceId dal sessionStorage:", currentWorkspaceId);
         } else {
           currentWorkspaceId = getWorkspaceId();
-          console.log("WorkspaceId di fallback:", currentWorkspaceId);
         }
       } catch (err) {
-        console.error("Errore nel recupero del workspaceId:", err);
         currentWorkspaceId = getWorkspaceId();
       }
       
-      console.log("Invio messaggio al backend con workspaceId:", currentWorkspaceId);
-      console.log("Dati messaggio:", {
-        message: messageInput,
-        phoneNumber: selectedChat.customerPhone,
-        workspaceId: currentWorkspaceId
-      });
-      
-      // Invia il messaggio al backend
+      // Send message to backend
       const response = await api.post('/api/messages', { 
         message: messageInput,
         phoneNumber: selectedChat.customerPhone,
         workspaceId: currentWorkspaceId
       });
       
-      console.log("Risposta dal backend:", response.data);
-      
       if (response.data.success) {
-        // Dopo aver ricevuto la risposta, aggiorniamo nuovamente le chat
+        // Refresh chats after sending a message
         refetchChats()
         
-        // Estraiamo il nome dell'agente dalla risposta
+        // Extract agent name from response metadata if available
         let agentName = "Generic";
-        // Cerca il nome dell'agente nella risposta, che potrebbe essere in formato "_Agente: NomeAgente_"
-        console.log("Controllo contenuto per agente:", response.data.data.processedMessage);
-        const agentMatch = response.data.data.processedMessage.match(/_Agente:\s*([^_]+)_/);
-        console.log("Risultato match agente:", agentMatch);
-        
-        if (agentMatch && agentMatch[1]) {
-          agentName = agentMatch[1].trim();
-          console.log("Nome agente estratto:", agentName);
-        } else {
-          console.log("Nessun agente trovato nella risposta, uso il valore predefinito:", agentName);
+        if (response.data.data.metadata && response.data.data.metadata.agentName) {
+          agentName = response.data.data.metadata.agentName;
         }
         
-        // Creiamo il messaggio di risposta dal sistema
+        // Create response message from the bot
         const responseMessage = {
           id: (Date.now() + 1).toString(),
           content: response.data.data.processedMessage,
-          sender: "customer" as const,
+          // This is the bot's response, so sender should be "user"
+          sender: "user" as const,
           timestamp: new Date().toISOString(),
-          agentName: agentName // Usiamo il nome dell'agente estratto
+          agentName: agentName
         }
         
-        console.log("Messaggio di risposta creato:", responseMessage);
-        
-        // Aggiorniamo la chat selezionata con la risposta del sistema
+        // Update selected chat with the bot response
         setSelectedChat(prevChat => {
           if (!prevChat) return null
           return {
@@ -329,21 +298,23 @@ export function ChatPage() {
         })
       }
     } catch (error) {
-      console.error("Errore nell'invio del messaggio:", error)
       toast.error("Non è stato possibile inviare il messaggio")
+    } finally {
+      // Set loading state back to false after the request is complete
+      setLoading(false)
     }
   }
 
   // Disable message input during loading
   const isInputDisabled = loadingChat;
 
-  // Funzione per eliminare una chat
+  // Handle chat deletion
   const handleDeleteChat = () => {
     if (!selectedChat) return
     setShowDeleteDialog(true)
   }
 
-  // Funzione per aprire il form di modifica cliente
+  // Handle customer editing
   const handleEditCustomer = async () => {
     if (!selectedChat) {
       toast.error("No chat selected");
@@ -352,24 +323,20 @@ export function ChatPage() {
     setShowEditSheet(true);
   };
   
-  // Function to convert address object to string
+  // Convert address object to string
   const stringifyAddress = (address: ShippingAddress): string => {
     try {
       return JSON.stringify(address);
     } catch (e) {
-      console.error("Error stringifying address:", e);
       return '';
     }
   }
   
-  // Function to convert text with URLs to HTML with clickable links
+  // Convert text with URLs to HTML with clickable links
   const formatTextWithLinks = (text: string): string => {
-    // Regex for URLs - includes support for URLs with query parameters and anchors
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     
-    // Replace any URL with an HTML link
     return text.replace(urlRegex, (url) => {
-      // Sanitize the URL display to prevent XSS
       const displayUrl = url
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -377,12 +344,11 @@ export function ChatPage() {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
       
-      // Create a fully clickable link 
       return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline break-all">${displayUrl}</a>`;
     });
   };
 
-  // Try to get auth credentials from different sources
+  // Get auth credentials from different storage sources
   const getAuthCredentials = () => {
     try {
       // Try localStorage first
@@ -390,7 +356,6 @@ export function ChatPage() {
       if (user) {
         const userData = JSON.parse(user);
         if (userData?.token) {
-          console.log("Found token in localStorage user object");
           return userData.token;
         }
       }
@@ -398,7 +363,6 @@ export function ChatPage() {
       // Try token directly
       const token = localStorage.getItem("token");
       if (token) {
-        console.log("Found token directly in localStorage");
         return token;
       }
       
@@ -407,43 +371,32 @@ export function ChatPage() {
       if (sessionUser) {
         const sessionUserData = JSON.parse(sessionUser);
         if (sessionUserData?.token) {
-          console.log("Found token in sessionStorage user object");
           return sessionUserData.token;
         }
       }
       
-      // No token found
-      console.log("No token found in any storage");
       return null;
     } catch (error) {
-      console.error("Error getting auth credentials:", error);
       return null;
     }
   };
 
-  // Funzione per confermare l'eliminazione della chat
+  // Confirm chat deletion
   const handleDeleteConfirm = async () => {
     if (!selectedChat) return
     
     try {
-      console.log(`Attempting to delete chat with sessionId: ${selectedChat.sessionId}`);
-      
       // Get the auth token from localStorage
       const token = getAuthCredentials();
-      console.log("Auth token available:", !!token);
       
       // Construct full URL
       const apiUrl = import.meta.env.VITE_API_URL || "";
       const fullUrl = `${apiUrl}/api/chat/${selectedChat.sessionId}`;
-      console.log("Full DELETE URL:", fullUrl);
       
       // Try with native fetch API as fallback
       if (token) {
-        console.log("Trying with direct fetch API");
-        
         // First try the test endpoint without auth
         try {
-          console.log("Trying test endpoint without auth");
           const testUrl = `${apiUrl}/api/chat/test/${selectedChat.sessionId}`;
           const testResponse = await fetch(testUrl, {
             method: 'DELETE',
@@ -454,7 +407,6 @@ export function ChatPage() {
           
           if (testResponse.ok) {
             const data = await testResponse.json();
-            console.log("Test endpoint response:", data);
             
             toast.success("Chat deleted successfully (test endpoint)");
             
@@ -464,11 +416,9 @@ export function ChatPage() {
             setSearchParams({});
             setShowDeleteDialog(false);
             return;
-          } else {
-            console.error("Test endpoint failed:", testResponse.status, await testResponse.text());
           }
         } catch (testError) {
-          console.error("Error with test endpoint:", testError);
+          // Continue with normal endpoint
         }
         
         // Try normal endpoint with auth
@@ -482,9 +432,6 @@ export function ChatPage() {
         });
         
         if (fetchResponse.ok) {
-          const data = await fetchResponse.json();
-          console.log("Fetch response:", data);
-          
           toast.success("Chat deleted successfully");
           
           // Remove chat from list
@@ -493,34 +440,25 @@ export function ChatPage() {
           setSearchParams({});
           setShowDeleteDialog(false);
           return;
-        } else {
-          console.error("Fetch failed:", fetchResponse.status, await fetchResponse.text());
         }
       }
       
       // Fall back to axios if fetch didn't work
       const response = await api.delete(`/api/chat/${selectedChat.sessionId}`);
       
-      console.log("Delete response:", response);
-      
       if (response.data.success) {
         toast.success("Chat deleted successfully");
         
-        // Deseleziona la chat
+        // Deselect the chat
         refetchChats()
         setSelectedChat(null);
         
-        // Aggiorna i parametri URL
+        // Update URL parameters
         setSearchParams({});
       } else {
         toast.error("Error deleting chat");
       }
     } catch (error: any) {
-      console.error("Error deleting chat:", error);
-      if (error.response) {
-        console.error("Response status:", error.response.status);
-        console.error("Response data:", error.response.data);
-      }
       toast.error("Could not delete chat. Please try again.");
     } finally {
       setShowDeleteDialog(false);
@@ -535,33 +473,26 @@ export function ChatPage() {
     
     try {
       setLoading(true);
-      console.log("Form submission started");
       
       // Get a valid workspace ID
       const workspaceId = getWorkspaceId();
       
       // Check if workspace ID is valid
       if (!workspaceId) {
-        console.error("Invalid workspace ID");
         toast.error("Missing workspace ID");
         return;
       }
       
-      console.log("Using workspace ID:", workspaceId);
-      
       // Extract form data
       const formData = new FormData(e.currentTarget);
-      console.log("Form data:", Object.fromEntries(formData.entries()));
       
-      // Prepare shipping address - make sure all fields are properly populated
+      // Prepare shipping address
       const shippingAddress = {
         street: formData.get('street') as string || '',
         city: formData.get('city') as string || '',
         zip: formData.get('zip') as string || '',
         country: formData.get('country') as string || ''
       };
-      
-      console.log("Shipping address:", shippingAddress);
       
       // Get the form values - format to match the API expectations
       const customerData = {
@@ -576,18 +507,11 @@ export function ChatPage() {
         isActive: true
       };
       
-      console.log("Updating customer with data:", customerData);
-      console.log("Customer ID:", selectedChat.customerId);
-      console.log("Workspace ID:", workspaceId);
-      
       // Build the endpoint URL
       const endpoint = `/api/workspaces/${workspaceId}/customers/${selectedChat.customerId}`;
-      console.log("PUT endpoint:", endpoint);
       
       // Make API call with PUT method to update customer
       const response = await api.put(endpoint, customerData);
-      
-      console.log("Update response:", response);
       
       if (response.status === 200) {
         toast.success("Customer updated successfully");
@@ -606,14 +530,13 @@ export function ChatPage() {
         toast.error("Failed to update customer: " + (response.data?.error || "Unknown error"));
       }
     } catch (error) {
-      console.error("Error updating customer:", error);
       toast.error("Failed to update customer. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Update the handleViewOrders function to show the dialog
+  // Show orders dialog
   const handleViewOrders = () => {
     setShowOrdersDialog(true);
   };
@@ -681,7 +604,7 @@ export function ChatPage() {
                       {chat.lastMessage}
                     </p>
                     <p className="text-[10px] text-gray-400 mt-1">
-                      {formatDate(chat.lastMessageTime, chat.companyName)}
+                      {formatDate(chat.lastMessageTime)}
                     </p>
                   </div>
                 );
@@ -802,16 +725,38 @@ export function ChatPage() {
                               : "bg-gray-100 text-gray-900"
                           }`}
                         >
+                          {message.sender === "user" && message.agentName && (
+                            <div className="text-[10px] text-green-700 font-medium mb-1 border-b border-green-200 pb-1">
+                              Agent: {message.agentName}
+                            </div>
+                          )}
                           <div 
                             dangerouslySetInnerHTML={{ __html: formatTextWithLinks(message.content) }}
                             className="message-content break-words whitespace-pre-wrap text-xs"
                           />
                           <p className="text-[10px] mt-1 opacity-70 text-right">
-                            {formatDate(message.timestamp, message.sender === "customer" ? message.agentName : undefined)}
+                            {formatDate(message.timestamp)}
                           </p>
                         </div>
                       </div>
                     ))}
+                    
+                    {/* Indicatore di loading quando si attende la risposta */}
+                    {loading && (
+                      <div className="flex justify-start">
+                        <div className="max-w-[45%] p-2 rounded-lg bg-gray-100 text-gray-900">
+                          <div className="flex items-center space-x-1">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" 
+                                style={{ animationDelay: '0ms', animationDuration: '0.6s' }}></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" 
+                                style={{ animationDelay: '150ms', animationDuration: '0.6s' }}></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" 
+                                style={{ animationDelay: '300ms', animationDuration: '0.6s' }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div ref={messagesEndRef} />
                   </>
                 )}
@@ -830,15 +775,19 @@ export function ChatPage() {
                       handleSubmit(e)
                     }
                   }}
-                  disabled={isInputDisabled}
+                  disabled={isInputDisabled || loading}
                 />
                 <Button
                   onClick={(e) => handleSubmit(e)}
                   className="self-end h-8 w-8 p-0"
                   size="sm"
-                  disabled={isInputDisabled}
+                  disabled={isInputDisabled || loading}
                 >
-                  <Send className="h-3 w-3" />
+                  {loading ? (
+                    <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Send className="h-3 w-3" />
+                  )}
                 </Button>
               </div>
             </>

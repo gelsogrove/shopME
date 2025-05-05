@@ -4,6 +4,7 @@ import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { FormSheet } from "@/components/shared/FormSheet"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { Service, servicesApi } from "@/services/servicesApi"
@@ -88,6 +89,20 @@ export function ServicesPage() {
         <span>{row.original.price}€</span>
       ),
     },
+    {
+      header: "Status",
+      accessorKey: "isActive" as keyof Service,
+      size: 100,
+      cell: ({ row }: { row: { original: Service } }) => (
+        <span className={`px-2 py-1 rounded-full text-xs ${
+          row.original.isActive 
+            ? "bg-green-100 text-green-800"
+            : "bg-gray-100 text-gray-800"
+        }`}>
+          {row.original.isActive ? "Active" : "Inactive"}
+        </span>
+      ),
+    },
   ]
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -108,6 +123,7 @@ export function ServicesPage() {
       description: formData.get("description") as string,
       price,
       currency: "€",
+      isActive: formData.get("isActive") === "on"
     }
 
     try {
@@ -144,6 +160,7 @@ export function ServicesPage() {
       description: formData.get("description") as string,
       price,
       currency: "€",
+      isActive: formData.get("isActive") === "on"
     }
 
     try {
@@ -229,6 +246,15 @@ export function ServicesPage() {
           required
         />
       </div>
+      <div className="flex items-center space-x-2">
+        <Switch 
+          id="isActive" 
+          name="isActive"
+          defaultChecked={service ? service.isActive : true}
+        />
+        <Label htmlFor="isActive">Active</Label>
+        <p className="text-xs text-gray-500 ml-2">Only active services will be shown to customers</p>
+      </div>
     </div>
   )
 
@@ -248,39 +274,31 @@ export function ServicesPage() {
         isLoading={isLoading}
       />
 
-      {/* Add Service Sheet */}
       <FormSheet
         open={showAddSheet}
         onOpenChange={setShowAddSheet}
         title="Add Service"
-        description="Add a new service to your workspace"
+        description="Add a new service that you offer to your customers"
         onSubmit={handleAdd}
-        submitLabel="Add Service"
       >
         {renderFormFields(null)}
       </FormSheet>
 
-      {/* Edit Service Sheet */}
       <FormSheet
         open={showEditSheet}
         onOpenChange={setShowEditSheet}
-        title={selectedService ? "Edit Service" : "Add Service"}
-        description={
-          selectedService
-            ? "Edit an existing service"
-            : "Add a new service to your workspace"
-        }
+        title="Edit Service"
+        description="Edit the details of this service"
         onSubmit={handleEditSubmit}
-        submitLabel={selectedService ? "Save Changes" : "Add Service"}
       >
-        {renderFormFields(selectedService)}
+        {selectedService && renderFormFields(selectedService)}
       </FormSheet>
 
       <ConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         title="Delete Service"
-        description={`Are you sure you want to delete ${selectedService?.name}? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${selectedService?.name}"? This action cannot be undone.`}
         onConfirm={handleDeleteConfirm}
       />
     </PageLayout>

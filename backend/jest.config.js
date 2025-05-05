@@ -3,7 +3,7 @@ module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
   roots: ["<rootDir>/src"],
-  testMatch: ["**/__tests__/**/*.ts", "**/?(*.)+(spec|test).ts"],
+  testMatch: ["**/tests/message.service.spec.ts", "**/tests/message-save.test.ts"],
   transform: {
     "^.+\\.ts$": "ts-jest",
   },

@@ -985,3 +985,89 @@ Implementare i badge di notifica per "Chat History" e "Clients" nella Sidebar de
   - Implementato aggiornamento dinamico del badge Chat History quando si leggono i messaggi
   - Aggiornata la documentazione nel PRD per descrivere il funzionamento dei badge
   - Risolto problema di autenticazione per gli endpoint di conteggio
+
+=============== TASK-0072 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Implementare la blacklist per i messaggi
+**Description**:
+Implementare una funzionalità per bloccare la risposta ai messaggi provenienti da numeri inseriti nella blacklist. Se un utente è nella blacklist, il chatbot non deve rispondere ai suoi messaggi.
+
+- [x] Completed
+  - Aggiunto campo isBlacklisted al modello Customers nel database
+  - Creata la migrazione del database per il nuovo campo
+  - Implementato metodo isCustomerBlacklisted nel MessageRepository
+  - Modificato MessageService per controllare la blacklist prima di processare i messaggi
+  - Creati unit test completi per verificare il funzionamento della blacklist
+  - Test verificati sia per utenti nella blacklist che per utenti regolari
+
+=============== TASK-0073 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Implementare il supporto multilingua nei messaggi
+**Description**:
+Implementare il supporto multilingua per i messaggi del chatbot basato sulla preferenza di lingua impostata nel profilo dell'utente.
+
+- [x] Completed
+  - Modificato il repository dei messaggi per includere la lingua dell'utente
+  - Passato il cliente con la sua lingua al sistema RAG per generare risposte
+  - Implementata logica per ottenere la lingua preferita dell'utente dal database
+  - Aggiunte istruzioni all'LLM per rispondere nella lingua preferita dell'utente
+  - Creati test per verificare il supporto multilingua (inglese, francese, ecc.)
+  - Aggiunto script di test manuale per verificare il supporto alla lingua
+
+=============== TASK-0074 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Mostrare link di registrazione persistente agli utenti non registrati
+**Description**:
+Implementare una funzionalità che mostri sempre il link di registrazione agli utenti non registrati, anche se continuano a inviare messaggi senza registrarsi.
+
+- [x] Completed
+  - Aggiunto controllo per verificare se un cliente è ancora nella fase "Unknown Customer"
+  - Implementato sistema che mostra sempre il link di registrazione a utenti non registrati
+  - Creati test per verificare che il link venga mostrato per utenti parzialmente registrati
+  - Aggiunto test per verificare che link venga mostrato anche dopo ripetuti messaggi
+  - Implementata logica che impedisce la normale elaborazione dei messaggi fino alla registrazione
+  - Verificato il corretto funzionamento della lista prodotti per utenti già registrati
+  - Verificato il corretto funzionamento della lista servizi per utenti già registrati
+
+=============== TASK-0075 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Test dell'agente Router per la selezione dell'agente appropriato
+**Description**:
+Implementare test per verificare che l'agente Router selezioni correttamente l'agente appropriato in base al messaggio dell'utente. In particolare, verificare che quando un utente chiede informazioni sui prodotti, l'agente Products venga selezionato, e quando chiede informazioni sui servizi, l'agente Services venga selezionato.
+
+- [x] Completed
+  - Creati test specifici per la selezione dell'agente Router
+  - Verificato che per la query "lista dei prodotti" venga selezionato l'agente Products
+  - Verificato che per la query "quali servizi offrite" venga selezionato l'agente Services
+  - Implementati test che simulano il comportamento del router per la classificazione dei messaggi
+  - Aggiunto controllo che verifica che l'agente selezionato dal router venga effettivamente utilizzato nella risposta
+
+=============== TASK-0076 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Implementare la conversione dei prezzi in USD per clienti con preferenza EUR
+**Description**:
+Implementare una funzionalità che converta automaticamente i prezzi da EUR a USD quando un cliente ha impostato la valuta come EUR, utilizzando un tasso di cambio fisso (1 EUR = 1.09 USD).
+
+- [x] Completed
+  - Aggiunta logica di rilevamento della preferenza di valuta nel MessageRepository
+  - Implementata conversione automatica dei prezzi in USD per utenti con valuta EUR
+  - Aggiunto campo currency al modello Cliente per memorizzare la preferenza di valuta
+  - Modificato il formato di output per mostrare il simbolo $ invece di € quando necessario
+  - Modificato il prompt di sistema per includere istruzioni di conversione valuta
+  - Creati test per verificare la corretta conversione e visualizzazione dei prezzi
+  - Verificato il funzionamento sia per i prodotti che per i servizi
+
+=============== TASK-0077 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Implementare sconto sui prezzi per clienti con percentuale di sconto
+**Description**:
+Implementare una funzionalità che applichi automaticamente uno sconto ai prezzi dei prodotti e servizi quando un cliente ha una percentuale di sconto impostata nel suo profilo, arrotondando i prezzi a due decimali.
+
+- [x] Completed
+  - Implementata logica per rilevare la percentuale di sconto nel profilo cliente
+  - Aggiunta funzionalità di calcolo del prezzo scontato con arrotondamento a due decimali
+  - Modificato il formato di output per mostrare sia il prezzo scontato che quello originale
+  - Aggiunta indicazione della percentuale di sconto nell'intestazione della risposta
+  - Creata funzione helper applyDiscount per standardizzare il calcolo dello sconto
+  - Implementata gestione combinata di sconto e conversione valutaria
+  - Creati test per verificare il corretto funzionamento della funzionalità di sconto
