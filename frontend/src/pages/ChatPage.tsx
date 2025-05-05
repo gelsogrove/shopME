@@ -5,7 +5,7 @@ import { getWorkspaceId } from "@/config/workspace.config"
 import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
 import { useQuery } from '@tanstack/react-query'
-import { Ban, Pencil, Send, Trash2 } from "lucide-react"
+import { Ban, Pencil, Send, ShoppingBag, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "react-hot-toast"
 import { useNavigate, useSearchParams } from "react-router-dom"
@@ -103,6 +103,7 @@ export function ChatPage() {
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [availableLanguages, setAvailableLanguages] = useState<string[]>(['English', 'Italian', 'Spanish', 'French'])
   const [showBlockDialog, setShowBlockDialog] = useState<boolean>(false)
+  const [showOrdersDialog, setShowOrdersDialog] = useState<boolean>(false)
   const navigate = useNavigate()
 
   // Remove fetchChats, setChats, and loading state for chat list
@@ -602,6 +603,11 @@ export function ChatPage() {
     }
   };
 
+  // Update the handleViewOrders function to show the dialog
+  const handleViewOrders = () => {
+    setShowOrdersDialog(true);
+  };
+
   return (
     <PageLayout>
       <div className="grid grid-cols-12 gap-6 h-[calc(100vh-12rem)]">
@@ -680,6 +686,16 @@ export function ChatPage() {
                   </p>
                 </div>
                 <div className="flex space-x-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleViewOrders}
+                    className="hover:bg-blue-50"
+                    title="View Customer Orders"
+                  >
+                    <ShoppingBag className="h-4 w-4 text-blue-600 mr-1" />
+                    <span className="text-blue-600 text-sm">View orders</span>
+                  </Button>
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -801,6 +817,21 @@ export function ChatPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Block Chatbot</AlertDialogTitle>
+            <AlertDialogDescription>
+              This functionality is currently under development and will be available soon.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* View Orders Dialog */}
+      <AlertDialog open={showOrdersDialog} onOpenChange={setShowOrdersDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>View Customer Orders</AlertDialogTitle>
             <AlertDialogDescription>
               This functionality is currently under development and will be available soon.
             </AlertDialogDescription>
