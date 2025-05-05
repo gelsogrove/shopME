@@ -98,6 +98,7 @@ export function ChatPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const sessionId = searchParams.get("sessionId")
+  const clientSearchTerm = searchParams.get("client") || ""
   const initialLoadRef = useRef(true)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
@@ -106,10 +107,9 @@ export function ChatPage() {
   const [showOrdersDialog, setShowOrdersDialog] = useState<boolean>(false)
   const navigate = useNavigate()
 
-  // Remove fetchChats, setChats, and loading state for chat list
   // Replace with React Query
   const {
-    data: chats = [],
+    data: allChats = [],
     isLoading: isLoadingChats,
     isError: isErrorChats,
     refetch: refetchChats
@@ -124,6 +124,16 @@ export function ChatPage() {
       }
     }
   });
+
+  // Filter chats based on search term
+  const chats = clientSearchTerm
+    ? allChats.filter((chat: Chat) => 
+        chat.customerName?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+        chat.customerPhone?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+        chat.companyName?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+        chat.lastMessage?.toLowerCase().includes(clientSearchTerm.toLowerCase())
+      )
+    : allChats;
 
   // Seleziona automaticamente la prima chat quando le chat sono caricate
   // e non c'è nessuna chat già selezionata o sessionId nell'URL
@@ -617,52 +627,91 @@ export function ChatPage() {
             <Input
               type="search"
               placeholder="Search chats..."
-              value={searchParams.get("client") || ""}
-              onChange={(e) => setSearchParams({ client: e.target.value })}
+              value={clientSearchTerm}
+              onChange={(e) => {
+                const newParams = new URLSearchParams(searchParams);
+                if (e.target.value) {
+                  newParams.set("client", e.target.value);
+                } else {
+                  newParams.delete("client");
+                }
+                // Mantieni il sessionId se presente
+                if (sessionId) {
+                  newParams.set("sessionId", sessionId);
+                }
+                setSearchParams(newParams);
+              }}
               className="w-full"
             />
           </div>
 
           <div className="overflow-y-auto flex-1">
-            {chats.map((chat: Chat) => {
-              // IMPORTANT: Compare sessionId instead of id
-              const isSelected = selectedChat?.sessionId === chat.sessionId;
-              
-              return (
-                <div
-                  key={chat.id}
-                  className={`p-4 cursor-pointer rounded-lg mb-2 transition-all
-                    ${isSelected 
-                      ? 'border-l-4 border-green-600 bg-green-50 text-green-800 font-bold' 
-                      : 'border-l-0 bg-white text-gray-900'}
-                    ${!isSelected ? 'hover:bg-gray-50' : ''}
-                    ${loadingChat && isSelected ? "opacity-70 pointer-events-none" : ""}`}
-                  onClick={() => selectChat(chat)}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium text-sm">
-                        {chat.customerName} {chat.companyName ? `(${chat.companyName})` : ''}
-                      </h3>
-                      <p className="text-xs text-green-600">
-                        {chat.customerPhone}
-                      </p>
+            {chats.length > 0 ? (
+              chats.map((chat: Chat) => {
+                // IMPORTANT: Compare sessionId instead of id
+                const isSelected = selectedChat?.sessionId === chat.sessionId;
+                
+                return (
+                  <div
+                    key={chat.id}
+                    className={`p-4 cursor-pointer rounded-lg mb-2 transition-all
+                      ${isSelected 
+                        ? 'border-l-4 border-green-600 bg-green-50 text-green-800 font-bold' 
+                        : 'border-l-0 bg-white text-gray-900'}
+                      ${!isSelected ? 'hover:bg-gray-50' : ''}
+                      ${loadingChat && isSelected ? "opacity-70 pointer-events-none" : ""}`}
+                    onClick={() => selectChat(chat)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium text-sm">
+                          {chat.customerName} {chat.companyName ? `(${chat.companyName})` : ''}
+                        </h3>
+                        <p className="text-xs text-green-600">
+                          {chat.customerPhone}
+                        </p>
+                      </div>
+                      {chat.unreadCount > 0 && (
+                        <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                          {chat.unreadCount}
+                        </span>
+                      )}
                     </div>
-                    {chat.unreadCount > 0 && (
-                      <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                        {chat.unreadCount}
-                      </span>
-                    )}
+                    <p className="text-xs text-gray-600 mt-1 truncate">
+                      {chat.lastMessage}
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      {formatDate(chat.lastMessageTime, chat.companyName)}
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1 truncate">
-                    {chat.lastMessage}
-                  </p>
-                  <p className="text-[10px] text-gray-400 mt-1">
-                    {formatDate(chat.lastMessageTime, chat.companyName)}
-                  </p>
+                );
+              })
+            ) : isLoadingChats ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="space-x-2 flex">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" 
+                       style={{ animationDelay: '0ms', animationDuration: '0.8s' }}></div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" 
+                       style={{ animationDelay: '150ms', animationDuration: '0.8s' }}></div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" 
+                       style={{ animationDelay: '300ms', animationDuration: '0.8s' }}></div>
                 </div>
-              );
-            })}
+              </div>
+            ) : clientSearchTerm ? (
+              <div className="flex flex-col items-center justify-center h-40 text-center">
+                <p className="text-gray-500 mb-2">Nessun risultato trovato per "{clientSearchTerm}"</p>
+                <button 
+                  className="text-sm text-green-600 hover:text-green-800"
+                  onClick={() => setSearchParams(sessionId ? { sessionId } : {})}
+                >
+                  Cancella ricerca
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-500">
+                Nessuna chat disponibile
+              </div>
+            )}
           </div>
         </Card>
         {/* Chat Window */}
