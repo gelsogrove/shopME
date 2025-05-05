@@ -416,6 +416,7 @@ This multi-environment approach combined with a robust CI/CD pipeline ensures re
 - Intuitive dashboard with 2FA authentication.
 - Seamless integration between n8n and exposed APIs.
 - Anti-abuse protection system that automatically blocks users sending more than 8 messages per minute.
+- Manual blocking functionality allowing administrators to block specific users directly from the chat interface when necessary.
 
 ### Anti-Abuse System
 
@@ -426,7 +427,13 @@ To prevent system abuse and ensure fair resource allocation, the platform implem
 - Administrators can view blocked users in the dashboard and manually unblock legitimate users
 - The system maintains logs of blocking events for security analysis
 
-This mechanism protects against spam attacks, prevents AI resource waste, and ensures a smooth experience for all legitimate users. Rate limits are configurable by workspace administrators to accommodate different business needs and usage patterns.
+Additionally, administrators can manually block problematic users directly from the chat interface:
+- A block button in the chat header allows for immediate blocking of the current user
+- When manually blocked, users receive notification about their blocked status
+- Administrators can view and manage all blocked users from a centralized section in the dashboard
+- Block/unblock actions are logged for audit purposes
+
+This dual approach (automatic and manual blocking) protects against spam attacks, prevents AI resource waste, and ensures a smooth experience for all legitimate users. Rate limits and blocking policies are configurable by workspace administrators to accommodate different business needs and usage patterns.
 
 ## 6. Key Features
 
@@ -479,6 +486,7 @@ This mechanism protects against spam attacks, prevents AI resource waste, and en
    - Client Profiles: Maintain comprehensive records of all clients.
    - Purchase History: Track client purchasing patterns and preferences.
    - Communication Log: Access past interactions with clients.
+   - User Blocking: Ability to block specific users from interacting with the system through the chat interface, preventing potential abuse.
    - Reservation Management: Track and manage client bookings and appointments (future expansion).
    - Push Notifications: Send targeted messages for marketing, reminders, and loyalty programs.
 

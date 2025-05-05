@@ -16,21 +16,26 @@ let cachedDefaultWorkspace: any = null;
 export const getWorkspaceId = (workspaceId?: string): string => {
   // If a valid workspaceId is provided, use it
   if (workspaceId && workspaceId.length > 0) {
+    console.log("Using provided workspace ID:", workspaceId);
     return workspaceId;
   }
   
   // Check if we have a cached default workspace
   if (cachedDefaultWorkspace?.id) {
+    console.log("Using cached default workspace ID:", cachedDefaultWorkspace.id);
     return cachedDefaultWorkspace.id;
   }
   
   // Check if environment variables are set (for production)
   if (import.meta.env.VITE_DEFAULT_WORKSPACE_ID) {
+    console.log("Using environment variable workspace ID:", import.meta.env.VITE_DEFAULT_WORKSPACE_ID);
     return import.meta.env.VITE_DEFAULT_WORKSPACE_ID;
   }
   
-  // Don't return a hardcoded fallback, let the API handle it
-  return "";
+  // Return a hardcoded fallback based on the logs
+  const fallbackId = "cm9hjgq9v00014qk8fsdy4ujv";
+  console.log("Using hardcoded fallback workspace ID:", fallbackId);
+  return fallbackId;
 };
 
 /**

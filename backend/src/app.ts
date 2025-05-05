@@ -5,6 +5,7 @@ import helmet from "helmet"
 import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware"
 import { loggingMiddleware } from "./middlewares/logging.middleware"
 import apiRouter from "./routes"
+import logger from "./utils/logger"
 
 // Initialize Express app
 const app = express()
@@ -31,17 +32,22 @@ app.options('*', cors())
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }))
+
 app.use(express.json())
 app.use(cookieParser())
+
+// Log that we're about to mount the API router
+logger.info("Mounting API router at /api prefix")
 
 // Routes
 app.use("/api", apiRouter)
 
-
-
-
-
 // Error handling should be last
 app.use(errorMiddleware)
+
+// Add diagnostics endpoint for direct access
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
 
 export default app

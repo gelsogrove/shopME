@@ -1014,5 +1014,35 @@ export class MessageRepository {
       return "Mi dispiace, c'è stato un problema nell'elaborazione del messaggio. Un operatore ti contatterà a breve.";
     }
   }
+
+  /**
+   * Delete a chat session and all associated messages
+   * 
+   * @param chatSessionId The chat session ID
+   * @returns True if successful, false otherwise
+   */
+  async deleteChat(chatSessionId: string): Promise<boolean> {
+    try {
+      // First delete all messages in the chat session
+      await this.prisma.message.deleteMany({
+        where: {
+          chatSessionId
+        }
+      });
+      
+      // Then delete the chat session itself
+      await this.prisma.chatSession.delete({
+        where: {
+          id: chatSessionId
+        }
+      });
+      
+      logger.info(`Deleted chat session: ${chatSessionId}`);
+      return true;
+    } catch (error) {
+      logger.error(`Error deleting chat session ${chatSessionId}:`, error);
+      return false;
+    }
+  }
 }
        

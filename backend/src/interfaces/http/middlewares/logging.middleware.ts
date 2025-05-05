@@ -39,3 +39,21 @@ export const loggingMiddleware = (
 
   next()
 }
+
+export const requestLoggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  // Log the request
+  logger.info(`Request: ${req.method} ${req.originalUrl}`);
+  
+  // Store the original end function
+  const originalEnd = res.end;
+  
+  // Override the end function to log the response
+  res.end = function(chunk?: any, encoding?: BufferEncoding, cb?: () => void) {
+    logger.info(`Response for ${req.method} ${req.originalUrl} - Status: ${res.statusCode}`);
+    
+    // Call the original end function
+    return originalEnd.call(this, chunk, encoding, cb);
+  };
+  
+  next();
+};

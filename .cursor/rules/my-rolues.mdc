@@ -27,4 +27,5 @@ alwaysApply: false
 - se hai punti dubbi analizza la frase e dammi i dubbi che hai prima di ininziare
 - se quaclosao non e' specificato non eseguire chiedi se hai dubbi e sviuppiamo in maniera interattiva con metologia human in the loops
 - il backend e' dentro  /backend folder frontend e' dentro /frontend folder , primsa deve stare dento  /backend/prisma
-- 
+- non riavviare i servizi ci penso io !!!
+- quando devi testeare una funzionalita segui il processo dal dal bottone segui il click chiama l'api vai al backend guarda i log 

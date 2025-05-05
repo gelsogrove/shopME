@@ -29,6 +29,21 @@ export class AuthController {
     )
   }
 
+  // Set JWT token in cookies
+  private setTokenCookie = (res: Response, token: string) => {
+    console.log("Setting auth_token cookie");
+    
+    // Set in HTTP-only cookie
+    res.cookie("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Only in HTTPS in production
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+    
+    console.log("Auth token cookie set successfully");
+  }
+
   async login(req: Request, res: Response): Promise<void> {
     const { email, password } = req.body
 
@@ -51,12 +66,7 @@ export class AuthController {
     const jwtToken = this.generateToken(user)
 
     // Set the token as an HTTP-only cookie
-    res.cookie("auth_token", jwtToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Use secure in production
-      sameSite: "strict",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    });
+    this.setTokenCookie(res, jwtToken)
 
     // Return success response with user info (without token in body)
     res.status(200).json({
@@ -113,12 +123,7 @@ export class AuthController {
     const jwtToken = this.generateToken(user)
 
     // Set the token as an HTTP-only cookie
-    res.cookie("auth_token", jwtToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Use secure in production
-      sameSite: "strict",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    });
+    this.setTokenCookie(res, jwtToken)
 
     // Return success response with user info (without token in body)
     res.status(200).json({

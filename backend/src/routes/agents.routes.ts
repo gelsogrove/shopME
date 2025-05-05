@@ -8,21 +8,21 @@ const router = Router()
 router.use(authMiddleware)
 
 // Get all agents for a workspace
-router.get("/workspaces/:workspaceId/agents", agentsController.getAllForWorkspace)
+router.get("/", agentsController.getAllForWorkspace)
 
 // Get a specific agent
-router.get("/workspaces/:workspaceId/agents/:id", agentsController.getById)
+router.get("/:id", agentsController.getById)
 
 // Create a new agent
-router.post("/workspaces/:workspaceId/agents", agentsController.create)
+router.post("/", agentsController.create)
 
 // Update an agent
-router.put("/workspaces/:workspaceId/agents/:id", agentsController.update)
+router.put("/:id", agentsController.update)
 
 // Delete an agent
-router.delete("/workspaces/:workspaceId/agents/:id", agentsController.delete)
+router.delete("/:id", agentsController.delete)
 
 // Duplicate an agent
-router.post("/workspaces/:workspaceId/agents/:id/duplicate", agentsController.duplicate)
+router.post("/:id/duplicate", agentsController.duplicate)
 
 export default router 

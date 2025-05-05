@@ -29,8 +29,11 @@ export const authMiddleware = (
   next: NextFunction
 ): void => {
   console.log("Auth middleware invoked for path:", req.path);
+  console.log("Method:", req.method);
+  console.log("Query params:", req.query);
   console.log("Cookies:", req.cookies);
   console.log("Auth header:", req.headers.authorization);
+  console.log("Request URL:", req.originalUrl);
   
   try {
     // Check for token in cookies
@@ -40,11 +43,23 @@ export const authMiddleware = (
     if (!token) {
       console.log("No token in cookies, checking headers");
       const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        console.log("No token in headers either");
+      if (!authHeader) {
+        console.log("No authorization header");
         throw new AppError(401, "Authentication required");
       }
+      
+      if (!authHeader.startsWith("Bearer ")) {
+        console.log("Authorization header doesn't start with 'Bearer '");
+        throw new AppError(401, "Invalid authorization format");
+      }
+      
       token = authHeader.split(" ")[1];
+      
+      // Check if token is empty after 'Bearer '
+      if (!token || token.trim() === '') {
+        console.log("Empty token in authorization header");
+        throw new AppError(401, "Empty authorization token");
+      }
     }
     
     if (!token) {

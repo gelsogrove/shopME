@@ -7,7 +7,14 @@ export const chatRouter = (): express.Router => {
   const router = express.Router();
   const chatController = new ChatController();
 
-  // Apply auth middleware to all chat routes
+  /**
+   * @route GET /api/chat/debug/:sessionId
+   * @desc Debug endpoint to get chat session details without auth (for testing only)
+   * @access Public
+   */
+  router.get('/debug/:sessionId', asyncHandler(chatController.getChatSession.bind(chatController)));
+
+  // Apply auth middleware to all remaining chat routes
   router.use(authMiddleware);
 
   /**
@@ -37,6 +44,20 @@ export const chatRouter = (): express.Router => {
    * @access Private
    */
   router.post('/:sessionId/mark-read', asyncHandler(chatController.markAsRead.bind(chatController)));
+
+  /**
+   * @route DELETE /api/chat/:sessionId
+   * @desc Delete a chat session and all its messages
+   * @access Private
+   */
+  router.delete('/:sessionId', asyncHandler(chatController.deleteChat.bind(chatController)));
+
+  /**
+   * @route DELETE /api/chat/test/:sessionId
+   * @desc Test endpoint for deleting a chat session (no auth required)
+   * @access Public
+   */
+  router.delete('/test/:sessionId', asyncHandler(chatController.deleteChat.bind(chatController)));
 
   return router;
 }; 

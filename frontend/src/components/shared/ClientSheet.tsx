@@ -14,8 +14,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Client } from "@/pages/ClientsPage"
 import { useEffect, useState } from "react"
 
+// Extend the Client type for internal use to include address string property
+interface ExtendedClient extends Client {
+  address?: string;
+}
+
 interface ClientSheetProps {
-  client: Client | null
+  client: ExtendedClient | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
@@ -44,8 +49,14 @@ export function ClientSheet({
   const [zip, setZip] = useState("");
   const [country, setCountry] = useState("");
   
+  // Debug dell'apertura
+  useEffect(() => {
+    console.log("ClientSheet open state changed:", { open, client: client?.id || 'none' });
+  }, [open]);
+  
   // Reset form when client changes
   useEffect(() => {
+    console.log("ClientSheet useEffect triggered for client/availableLanguages", { client, open, availableLanguages });
     if (client) {
       setName(client.name || "");
       setEmail(client.email || "");
@@ -54,10 +65,42 @@ export function ClientSheet({
       setLanguage(client.language || "");
       setDiscount(client.discount?.toString() || "0");
       setNotes(client.notes || "");
-      setStreet(client.shippingAddress?.street || "");
-      setCity(client.shippingAddress?.city || "");
-      setZip(client.shippingAddress?.zip || "");
-      setCountry(client.shippingAddress?.country || "");
+      
+      // Handle address data from either client.shippingAddress or client.address (JSON string)
+      let addressData = client.shippingAddress || { street: '', city: '', zip: '', country: '' };
+      
+      // If client has address as string, try to parse it
+      if (client.address && typeof client.address === 'string') {
+        try {
+          const parsedAddress = JSON.parse(client.address);
+          if (parsedAddress && typeof parsedAddress === 'object') {
+            addressData = {
+              street: parsedAddress.street || '',
+              city: parsedAddress.city || '',
+              zip: parsedAddress.zip || '',
+              country: parsedAddress.country || ''
+            };
+            console.log("Successfully parsed address from string:", addressData);
+          }
+        } catch (error) {
+          console.error("Error parsing address JSON:", error);
+          // If parsing fails, try to use the raw address string as the street
+          addressData = {
+            street: client.address || '',
+            city: '',
+            zip: '',
+            country: ''
+          };
+        }
+      }
+      
+      // Set address fields with data from either source
+      setStreet(addressData.street || "");
+      setCity(addressData.city || "");
+      setZip(addressData.zip || "");
+      setCountry(addressData.country || "");
+      
+      console.log("Form fields set with client data, address:", { addressData });
     } else {
       // Reset form for new client
       setName("");
@@ -71,19 +114,25 @@ export function ClientSheet({
       setCity("");
       setZip("");
       setCountry("");
+      console.log("Form fields reset for new client");
     }
-  }, [client, open, availableLanguages]);
+  }, [client, availableLanguages, open]);
+
+  // Add a separate effect for the open state to better debug the issue
+  useEffect(() => {
+    console.log("ClientSheet open state changed:", open);
+    console.log("Current client data:", client);
+  }, [open]);
 
   // Handle form submission
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    console.log("Form submitted");
     e.preventDefault();
     onSubmit(e);
-    onOpenChange(false);
   };
   
-  if (!open) {
-    return null;
-  }
+  // Make sure to render even if not open
+  console.log("ClientSheet render", { open, mode, client: client?.id || 'none' });
 
   const isViewMode = mode === "view";
   const title = isViewMode ? "Client Details" : client?.id ? "Edit Client" : "Add Client";
@@ -94,6 +143,9 @@ export function ClientSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-[90%] sm:w-[540px] md:w-[700px] p-0 overflow-y-auto">
+        <div className="absolute top-0 right-3 text-xs p-1 bg-gray-100 text-gray-700 rounded">
+          Debug: {open ? "Sheet OPEN" : "Sheet CLOSED"}
+        </div>
         {isViewMode ? (
           <div className="flex flex-col h-full">
             <SheetHeader className="px-6 pt-6 pb-2">
