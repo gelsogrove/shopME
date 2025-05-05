@@ -1,12 +1,12 @@
-# ShopMe – Realistic Project Task List (63 Unique Tasks)
+# ShopMe – Realistic Project Task List (64 Unique Tasks)
 
 ## 📊 Stato Attuale del Progetto
 **Ultimo aggiornamento:** 2023-07-04
 
-- **Completati:** 26/63 task (41.3%)
-- **In corso:** 1/63 task (1.6%)
-- **Out of scope:** 16/63 task (25.4%)
-- **Da iniziare:** 20/63 task (31.7%)
+- **Completati:** 30/64 task (46.9%)
+- **In corso:** 1/64 task (1.6%)
+- **Out of scope:** 16/64 task (25.0%)
+- **Da iniziare:** 17/64 task (26.5%)
 
 
 ### 🚩 Prossimo Task Prioritario
@@ -21,9 +21,123 @@
 - System Setup & Architecture: 12/12 completati ✅
 - Authentication & 2FA: 4/10 completati, 5/10 fuori scope ⏳
 - Product Management: 9/10 completati, 1/10 in corso 🔄
-- Orders & Cart: 1/10 completati, 9/10 fuori scope ⏳
-- Clients, GDPR & Tokenization: 4/10 completati 🔄
-- AI, WhatsApp & Messaging: 1/11 completati 🔄
+- Orders & Cart: 1/10 completati, 8/10 fuori scope 🔄
+- User Interface & UX: 4/10 completati ⏳
+- WhatsApp Integration: 0/10 completati ❌
+- API Design: 0/2 completati ❌
+
+### 🌟 Task Completati Recentemente
+- **TASK-0064**: Implementare notifiche badge nella sidebar
+  - Aggiunto badge di notifica per Chat History che mostra il numero di messaggi non letti
+  - Aggiunto badge per Clients che mostra il numero di clienti sconosciuti
+  - Implementata logica per aggiornare i badge quando i messaggi vengono letti
+
+- **TASK-0065**: Spostare GDPR nelle impostazioni
+  - Spostata la gestione GDPR da pagina separata a tab nelle impostazioni
+  - Creato nuovo componente GdprSettingsTab
+  - Aggiornata la navigazione per rimuovere link alla vecchia pagina GDPR
+
+- **TASK-0066**: Implementare Blocklist per i numeri di telefono
+  - Creata nuova pagina per gestire la blocklist dei numeri di telefono
+  - Aggiunto link nella sidebar sotto Clients
+  - Implementata interfaccia per aggiungere/rimuovere numeri dalla blocklist
+  - Collegata l'interfaccia all'API per salvare le modifiche
+
+### 📋 Task Completati
+**System Setup & Architecture**
+- **TASK-0001**: Create repository structure following modular architecture
+- **TASK-0002**: Setup Node.js, Express.js, TS, and PostgreSQL for backend
+- **TASK-0003**: Initialize React project with proper routing and state management
+- **TASK-0004**: Establish database connection and base models
+- **TASK-0005**: Configure authentication middleware with JWT
+- **TASK-0006**: Create base controllers and services architecture
+- **TASK-0007**: Implement logging system
+- **TASK-0008**: Setup error handling middleware
+- **TASK-0009**: Configure CORS
+- **TASK-0010**: Implement request validation
+- **TASK-0011**: Set up testing environment
+- **TASK-0012**: Create CI pipeline for automated testing
+
+**Authentication & User Management**
+- **TASK-0013**: Implement user registration
+- **TASK-0014**: Create login endpoint and functionality
+- **TASK-0015**: Add email verification
+- **TASK-0016**: Design and create user profile management
+
+**Product Management**
+- **TASK-0020**: Create database schema for products and categories
+- **TASK-0021**: Implement product CRUD operations
+- **TASK-0022**: Add category management functionality
+- **TASK-0023**: Create product search and filtering
+- **TASK-0024**: Design and implement product variants
+- **TASK-0025**: Add inventory management
+- **TASK-0026**: Create image upload and management for products
+- **TASK-0027**: Implement product import/export
+- **TASK-0028**: Add product status (active/inactive) controls
+
+**UI & UX Improvements**
+- **TASK-0064**: Implementare notifiche badge nella sidebar
+- **TASK-0065**: Spostare GDPR nelle impostazioni
+- **TASK-0066**: Implementare Blocklist per i numeri di telefono
+- **TASK-0050**: Design responsive UI components
+- **TASK-0051**: Create dashboard layout and navigation
+
+**Orders & Cart**
+- **TASK-0030**: Design cart data model
+
+### ⏳ Task In Corso
+**Product Management**
+- **TASK-0029**: Add unit tests for product service
+
+### ⭕ Task Fuori Scope (Out of Scope)
+**Authentication & 2FA**
+- ~~**TASK-0017**: Implement 2FA authentication~~
+- ~~**TASK-0018**: Create password reset functionality~~
+- ~~**TASK-0019**: Add social login options~~
+- ~~**TASK-0071**: Implement role-based access control~~
+- ~~**TASK-0072**: Add user session management~~
+
+**Orders & Cart**
+- ~~**TASK-0031**: Implement shopping cart functionality~~
+- ~~**TASK-0032**: Create checkout process~~
+- ~~**TASK-0033**: Implement payment gateway integration~~
+- ~~**TASK-0034**: Add order confirmation and receipt generation~~
+- ~~**TASK-0035**: Create order management for administrators~~
+- ~~**TASK-0036**: Implement order status tracking~~
+- ~~**TASK-0037**: Add shipping options and calculation~~
+- ~~**TASK-0038**: Implement discount and coupon system~~
+
+**Other**
+- ~~**TASK-0039**: Design and implement customer reviews and ratings~~
+- ~~**TASK-0040**: Add wishlist functionality~~
+- ~~**TASK-0041**: Implement product recommendations~~
+
+### 📅 Task Da Iniziare
+**API Design**
+- **TASK-0080**: Create comprehensive API documentation
+- **TASK-0081**: Implement API versioning
+
+**User Interface & UX**
+- **TASK-0052**: Implement client-side form validation
+- **TASK-0053**: Create error handling and notifications
+- **TASK-0054**: Design and implement responsive product listings
+- **TASK-0055**: Optimize UI performance
+- **TASK-0056**: Add dark mode support
+
+**WhatsApp Integration**
+- **TASK-0060**: Setup WhatsApp Business API connection
+- **TASK-0061**: Implement webhook for incoming WhatsApp messages
+- **TASK-0062**: Create message processing service
+- **TASK-0063**: Design conversation flow for product ordering
+- **TASK-0064**: Implement product catalog browsing via WhatsApp
+- **TASK-0065**: Add cart management through WhatsApp
+- **TASK-0066**: Implement order status queries via WhatsApp
+- **TASK-0067**: Create notification system for order updates
+- **TASK-0068**: Design and implement automated responses
+- **TASK-0069**: Add language detection and multilingual support
+
+**Misc**
+- **TASK-0070**: Implement comprehensive logging and monitoring
 
 ## 📌 Summary by Epic
 
@@ -32,9 +146,9 @@
 - Product Management: 10 tasks (9 completati)
 - Orders & Cart: 10 tasks (1 completato)
 - Clients, GDPR & Tokenization: 10 tasks (4 completati)
-- AI, WhatsApp & Messaging: 11 tasks (1 completato)
+- AI, WhatsApp & Messaging: 12 tasks (2 completati)
 
-**Total Tasks: 63**
+**Total Tasks: 64**
 
 ## ✅ Full Task List
 
@@ -857,3 +971,17 @@ Technical Requirements:
   - Enhanced the typing indicator with better animation
   - Improved UX during loading states with visual feedback
   - Created comprehensive documentation in fixes folder
+
+=============== TASK-0071 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Implementare i badge di notifica nella Sidebar
+**Description**:
+Implementare i badge di notifica per "Chat History" e "Clients" nella Sidebar dell'applicazione. Il badge di Chat History deve mostrare il numero di messaggi non letti, mentre il badge di Clients deve mostrare il numero di clienti sconosciuti che richiedono registrazione.
+
+- [x] Completed
+  - Implementato sistema di conteggio messaggi non letti per Chat History
+  - Implementato badge per i clienti sconosciuti nella sezione Clients
+  - Aggiunto API endpoint per recuperare il conteggio dei clienti sconosciuti
+  - Implementato aggiornamento dinamico del badge Chat History quando si leggono i messaggi
+  - Aggiornata la documentazione nel PRD per descrivere il funzionamento dei badge
+  - Risolto problema di autenticazione per gli endpoint di conteggio

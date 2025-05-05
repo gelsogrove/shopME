@@ -3,15 +3,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { Client } from "@/pages/ClientsPage"
+import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
 
 // Extend the Client type for internal use to include address string property
@@ -20,12 +21,24 @@ interface ExtendedClient extends Client {
 }
 
 interface ClientSheetProps {
-  client: ExtendedClient | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
-  mode: "view" | "edit"
-  availableLanguages: string[]
+  client: ExtendedClient | string | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>, clientId?: string) => void;
+  mode: "view" | "edit";
+  availableLanguages: string[];
+}
+
+// Helper to get workspaceId from sessionStorage
+function getWorkspaceId() {
+  const workspaceData = sessionStorage.getItem("currentWorkspace");
+  if (workspaceData) {
+    try {
+      const workspace = JSON.parse(workspaceData);
+      return workspace.id;
+    } catch {}
+  }
+  return null;
 }
 
 export function ClientSheet({
@@ -48,31 +61,44 @@ export function ClientSheet({
   const [city, setCity] = useState("");
   const [zip, setZip] = useState("");
   const [country, setCountry] = useState("");
+  const [fetchedClient, setFetchedClient] = useState<ExtendedClient | null>(null);
+  const [loadingClient, setLoadingClient] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   
   // Debug dell'apertura
   useEffect(() => {
-    console.log("ClientSheet open state changed:", { open, client: client?.id || 'none' });
+    console.log("ClientSheet open state changed:", { open, client });
   }, [open]);
   
   // Reset form when client changes
   useEffect(() => {
     console.log("ClientSheet useEffect triggered for client/availableLanguages", { client, open, availableLanguages });
-    if (client) {
-      setName(client.name || "");
-      setEmail(client.email || "");
-      setCompany(client.company || "");
-      setPhone(client.phone || "");
-      setLanguage(client.language || "");
-      setDiscount(client.discount?.toString() || "0");
-      setNotes(client.notes || "");
-      
-      // Handle address data from either client.shippingAddress or client.address (JSON string)
-      let addressData = client.shippingAddress || { street: '', city: '', zip: '', country: '' };
-      
-      // If client has address as string, try to parse it
-      if (client.address && typeof client.address === 'string') {
+    if (fetchedClient) {
+      setName(fetchedClient.name || "");
+      setEmail(fetchedClient.email || "");
+      setCompany(fetchedClient.company || "");
+      setPhone(fetchedClient.phone || "");
+      setLanguage(fetchedClient.language || "");
+      setDiscount(fetchedClient.discount?.toString() || "0");
+      setNotes(fetchedClient.notes || "");
+      // Always ensure addressData is a complete object with all fields as strings
+      let addressData = {
+        street: '',
+        city: '',
+        zip: '',
+        country: ''
+      };
+      if (fetchedClient.shippingAddress) {
+        addressData = {
+          street: fetchedClient.shippingAddress.street || '',
+          city: fetchedClient.shippingAddress.city || '',
+          zip: fetchedClient.shippingAddress.zip || '',
+          country: fetchedClient.shippingAddress.country || ''
+        };
+      }
+      if (fetchedClient.address && typeof fetchedClient.address === 'string') {
         try {
-          const parsedAddress = JSON.parse(client.address);
+          const parsedAddress = JSON.parse(fetchedClient.address);
           if (parsedAddress && typeof parsedAddress === 'object') {
             addressData = {
               street: parsedAddress.street || '',
@@ -80,29 +106,21 @@ export function ClientSheet({
               zip: parsedAddress.zip || '',
               country: parsedAddress.country || ''
             };
-            console.log("Successfully parsed address from string:", addressData);
           }
         } catch (error) {
-          console.error("Error parsing address JSON:", error);
-          // If parsing fails, try to use the raw address string as the street
           addressData = {
-            street: client.address || '',
+            street: fetchedClient.address || '',
             city: '',
             zip: '',
             country: ''
           };
         }
       }
-      
-      // Set address fields with data from either source
-      setStreet(addressData.street || "");
-      setCity(addressData.city || "");
-      setZip(addressData.zip || "");
-      setCountry(addressData.country || "");
-      
-      console.log("Form fields set with client data, address:", { addressData });
+      setStreet(addressData.street);
+      setCity(addressData.city);
+      setZip(addressData.zip);
+      setCountry(addressData.country);
     } else {
-      // Reset form for new client
       setName("");
       setEmail("");
       setCompany("");
@@ -114,9 +132,8 @@ export function ClientSheet({
       setCity("");
       setZip("");
       setCountry("");
-      console.log("Form fields reset for new client");
     }
-  }, [client, availableLanguages, open]);
+  }, [fetchedClient, availableLanguages, open]);
 
   // Add a separate effect for the open state to better debug the issue
   useEffect(() => {
@@ -124,21 +141,57 @@ export function ClientSheet({
     console.log("Current client data:", client);
   }, [open]);
 
+  // Fetch client if client is a string (ID)
+  useEffect(() => {
+    if (typeof client === 'string' && open) {
+      setLoadingClient(true);
+      setFetchError(null);
+      const workspaceId = getWorkspaceId();
+      if (!workspaceId) {
+        setFetchedClient(null);
+        setLoadingClient(false);
+        setFetchError('Workspace ID not found.');
+        return;
+      }
+      fetch(`/api/workspaces/${workspaceId}/customers/${client}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to fetch client');
+          return res.json();
+        })
+        .then(data => {
+          if (!data || !data.id) throw new Error('Client not found');
+          setFetchedClient(data);
+          setLoadingClient(false);
+        })
+        .catch((err) => {
+          setFetchedClient(null);
+          setLoadingClient(false);
+          setFetchError('Client not found or error loading client data.');
+        });
+    } else if (typeof client === 'object' && client !== null) {
+      setFetchedClient(client);
+      setFetchError(null);
+    } else {
+      setFetchedClient(null);
+      setFetchError(null);
+    }
+  }, [client, open]);
+
   // Handle form submission
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     console.log("Form submitted");
     e.preventDefault();
-    onSubmit(e);
+    onSubmit(e, typeof client === 'string' ? client : fetchedClient?.id);
   };
   
   // Make sure to render even if not open
-  console.log("ClientSheet render", { open, mode, client: client?.id || 'none' });
+  console.log("ClientSheet render", { open, mode, client });
 
   const isViewMode = mode === "view";
-  const title = isViewMode ? "Client Details" : client?.id ? "Edit Client" : "Add Client";
+  const title = isViewMode ? "Client Details" : fetchedClient?.id ? "Edit Client" : "Add Client";
   const description = isViewMode 
     ? "View client information" 
-    : client?.id ? "Edit an existing client" : "Add a new client";
+    : fetchedClient?.id ? "Edit an existing client" : "Add a new client";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -146,86 +199,17 @@ export function ClientSheet({
         <div className="absolute top-0 right-3 text-xs p-1 bg-gray-100 text-gray-700 rounded">
           Debug: {open ? "Sheet OPEN" : "Sheet CLOSED"}
         </div>
-        {isViewMode ? (
-          <div className="flex flex-col h-full">
-            <SheetHeader className="px-6 pt-6 pb-2">
-              <SheetTitle>{title}</SheetTitle>
-              <SheetDescription>{description}</SheetDescription>
-            </SheetHeader>
-
-            <div className="flex-1 overflow-y-auto px-6 py-4">
-              <div className="space-y-6">
-                <div className="bg-white rounded-lg border p-4">
-                  <h3 className="text-lg font-medium mb-3">Client Info</h3>
-                  <dl className="grid gap-2">
-                    <div className="flex justify-between">
-                      <dt className="font-medium">Name:</dt>
-                      <dd>{client?.name}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="font-medium">Email:</dt>
-                      <dd>{client?.email}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="font-medium">Company:</dt>
-                      <dd>{client?.company}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="font-medium">Language:</dt>
-                      <dd>{client?.language}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="font-medium">Discount:</dt>
-                      <dd>{client?.discount}%</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="font-medium">Phone:</dt>
-                      <dd>{client?.phone}</dd>
-                    </div>
-                  </dl>
-                </div>
-
-                <div className="bg-white rounded-lg border p-4">
-                  <h3 className="text-lg font-medium mb-3">Shipping Address</h3>
-                  <address className="not-italic">
-                    {client?.shippingAddress.street}
-                    <br />
-                    {client?.shippingAddress.city}, {client?.shippingAddress.zip}
-                    <br />
-                    {client?.shippingAddress.country}
-                  </address>
-                </div>
-
-                {client?.notes && (
-                  <div className="bg-white rounded-lg border p-4">
-                    <h3 className="text-lg font-medium mb-3">Additional Information</h3>
-                    <div className="space-y-2">
-                      <Label htmlFor="notes">Client Notes</Label>
-                      <Textarea
-                        id="notes"
-                        value={client.notes}
-                        className="min-h-[100px]"
-                        readOnly
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <SheetFooter className="px-6 py-4 border-t">
-              <div className="flex justify-end w-full gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                >
-                  Close
-                </Button>
-              </div>
-            </SheetFooter>
+        {loadingClient ? (
+          <div className="flex flex-col items-center justify-center h-full py-20">
+            <Loader2 className="animate-spin w-8 h-8 text-green-600 mb-4" />
+            <div className="text-gray-600">Loading client data...</div>
           </div>
-        ) : (
+        ) : fetchError ? (
+          <div className="flex flex-col items-center justify-center h-full py-20">
+            <div className="text-red-600 font-semibold mb-2">{fetchError}</div>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          </div>
+        ) : mode === "edit" ? (
           <form onSubmit={handleSubmit} className="flex flex-col h-full">
             <SheetHeader className="px-6 pt-6 pb-2">
               <SheetTitle>{title}</SheetTitle>
@@ -395,11 +379,90 @@ export function ClientSheet({
                   Cancel
                 </Button>
                 <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                  {client?.id ? "Save Changes" : "Add Client"}
+                  {(fetchedClient as ExtendedClient | null)?.id ? "Save Changes" : "Add Client"}
                 </Button>
               </div>
             </SheetFooter>
           </form>
+        ) : (
+          <div className="flex flex-col h-full">
+            <SheetHeader className="px-6 pt-6 pb-2">
+              <SheetTitle>{title}</SheetTitle>
+              <SheetDescription>{description}</SheetDescription>
+            </SheetHeader>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg border p-4">
+                  <h3 className="text-lg font-medium mb-3">Client Info</h3>
+                  <dl className="grid gap-2">
+                    <div className="flex justify-between">
+                      <dt className="font-medium">Name:</dt>
+                      <dd>{fetchedClient?.name}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="font-medium">Email:</dt>
+                      <dd>{fetchedClient?.email}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="font-medium">Company:</dt>
+                      <dd>{fetchedClient?.company}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="font-medium">Language:</dt>
+                      <dd>{fetchedClient?.language}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="font-medium">Discount:</dt>
+                      <dd>{fetchedClient?.discount}%</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="font-medium">Phone:</dt>
+                      <dd>{fetchedClient?.phone}</dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <div className="bg-white rounded-lg border p-4">
+                  <h3 className="text-lg font-medium mb-3">Shipping Address</h3>
+                  <address className="not-italic">
+                    {fetchedClient?.shippingAddress?.street || ""}
+                    <br />
+                    {fetchedClient?.shippingAddress?.city || ""}, {fetchedClient?.shippingAddress?.zip || ""}
+                    <br />
+                    {fetchedClient?.shippingAddress?.country || ""}
+                  </address>
+                </div>
+
+                {fetchedClient?.notes && (
+                  <div className="bg-white rounded-lg border p-4">
+                    <h3 className="text-lg font-medium mb-3">Additional Information</h3>
+                    <div className="space-y-2">
+                      <Label htmlFor="notes">Client Notes</Label>
+                      <Textarea
+                        id="notes"
+                        value={fetchedClient.notes}
+                        className="min-h-[100px]"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <SheetFooter className="px-6 py-4 border-t">
+              <div className="flex justify-end w-full gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </SheetFooter>
+          </div>
         )}
       </SheetContent>
     </Sheet>

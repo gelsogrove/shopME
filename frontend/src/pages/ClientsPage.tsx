@@ -15,7 +15,7 @@ import { commonStyles } from "@/styles/common"
 import { type ColumnDef } from "@tanstack/react-table"
 import { MessageSquare, Pencil, Trash2, Users } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 
 // Shared interfaces
@@ -88,6 +88,7 @@ export default function ClientsPage(): JSX.Element {
   const [clientSheetOpen, setClientSheetOpen] = useState(false)
   const [clientSheetMode, setClientSheetMode] = useState<"view" | "edit">("view")
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   
   // Riferimento per tenere traccia delle chiamate API già effettuate
   const dataLoaded = useRef(false)
@@ -140,6 +141,29 @@ export default function ClientsPage(): JSX.Element {
       loadData()
     }
   }, [loadData, workspace?.id, isLoadingWorkspace])
+
+  // Controlla se c'è un parametro edit nell'URL per aprire automaticamente il form di modifica
+  useEffect(() => {
+    const clientIdToEdit = searchParams.get('edit')
+    const sourceParam = searchParams.get('source')
+    
+    if (clientIdToEdit && clients.length > 0) {
+      const clientToEdit = clients.find(client => client.id === clientIdToEdit)
+      
+      if (clientToEdit) {
+        console.log('Opening client edit form for:', clientToEdit.name)
+        setSelectedClient(clientToEdit)
+        setClientSheetMode('edit')
+        setClientSheetOpen(true)
+        
+        // Se veniamo dalla pagina chat, rimuovi i parametri dalla URL dopo aver aperto il form
+        if (sourceParam === 'chat') {
+          // Rimuovi i parametri dall'URL senza causare un refresh
+          navigate('/clients', { replace: true })
+        }
+      }
+    }
+  }, [clients, searchParams, navigate])
 
   // Filter clients based on search value
   const filteredClients = clients.filter(
@@ -369,11 +393,15 @@ export default function ClientsPage(): JSX.Element {
     setClientSheetOpen(true)
   }
 
-  // Define columns for the DataTable
+  // Define columns for the DataTable in the requested order
   const columns: ColumnDef<Client>[] = [
     {
       header: "Phone",
       accessorKey: "phone",
+    },
+    {
+      header: "Name",
+      accessorKey: "name",
     },
     {
       header: "Company",
@@ -417,12 +445,11 @@ export default function ClientsPage(): JSX.Element {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant="ghost" 
+                  variant="ghost"
                   className="h-8 w-8 p-0 flex items-center justify-center"
                   onClick={() => handleEdit(row.original)}
                 >
@@ -435,7 +462,6 @@ export default function ClientsPage(): JSX.Element {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -492,6 +518,7 @@ export default function ClientsPage(): JSX.Element {
               columns={columns} 
               data={filteredClients}
               globalFilter={searchValue}
+              className="text-sm"
             />
           </div>
         </div>

@@ -1,32 +1,34 @@
+import { GdprSettingsTab } from "@/components/settings/GdprSettingsTab"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import type { Language, Workspace } from "@/services/workspaceApi"
 import {
-  deleteWorkspace,
-  getCurrentWorkspace,
-  getLanguages,
-  updateWorkspace,
+    deleteWorkspace,
+    getCurrentWorkspace,
+    getLanguages,
+    updateWorkspace,
 } from "@/services/workspaceApi"
-import { Loader2, Settings, Trash2, Video } from "lucide-react"
+import { Loader2, Settings, ShieldCheck, Trash2, Video } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
@@ -45,6 +47,7 @@ export default function SettingsPage() {
   const [languages, setLanguages] = useState<Language[]>([])
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showVideoDialog, setShowVideoDialog] = useState(false)
+  const [activeTab, setActiveTab] = useState("general")
   const [errors, setErrors] = useState({
     language: "",
   })
@@ -205,166 +208,187 @@ export default function SettingsPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <Card className="mb-6">
-        <CardContent className="p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Settings className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-2xl font-bold">Channel Settings</h2>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Active</span>
-              <Switch
-                checked={workspace.isActive}
-                onCheckedChange={(checked) => handleFieldChange("isActive", checked)}
-              />
-            </div>
-          </div>
+      <h2 className="text-2xl font-bold mb-6">Settings</h2>
+      
+      <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="general" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            <span>General Settings</span>
+          </TabsTrigger>
+          <TabsTrigger value="gdpr" className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4" />
+            <span>GDPR Policy</span>
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="general" className="space-y-4">
+          <Card>
+            <CardContent className="p-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-muted-foreground" />
+                  <h3 className="text-xl font-medium">Channel Settings</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Active</span>
+                  <Switch
+                    checked={workspace.isActive}
+                    onCheckedChange={(checked) => handleFieldChange("isActive", checked)}
+                  />
+                </div>
+              </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Channel Name
-              </label>
-              <Input
-                value={workspace.name}
-                onChange={(e) => handleFieldChange("name", e.target.value)}
-                className="mt-1"
-              />
-            </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Channel Name
+                  </label>
+                  <Input
+                    value={workspace.name}
+                    onChange={(e) => handleFieldChange("name", e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                WhatsApp Phone Number
-              </label>
-              <Input
-                value={workspace.whatsappPhoneNumber || ""}
-                onChange={(e) =>
-                  handleFieldChange("whatsappPhoneNumber", e.target.value)
-                }
-                className="mt-1"
-              />
-            </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    WhatsApp Phone Number
+                  </label>
+                  <Input
+                    value={workspace.whatsappPhoneNumber || ""}
+                    onChange={(e) =>
+                      handleFieldChange("whatsappPhoneNumber", e.target.value)
+                    }
+                    className="mt-1"
+                  />
+                </div>
 
-            <div>
-              <div className="flex items-center gap-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  WhatsApp API Key
-                </label>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      WhatsApp API Key
+                    </label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-blue-500 hover:text-blue-700"
+                      type="button"
+                      onClick={() => setShowVideoDialog(true)}
+                    >
+                      <Video className="h-4 w-4 mr-1" />
+                      How to get API Key
+                    </Button>
+                  </div>
+                  <Input
+                    value={workspace.whatsappApiKey || ""}
+                    onChange={(e) =>
+                      handleFieldChange("whatsappApiKey", e.target.value)
+                    }
+                    className="mt-1"
+                    type="password"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="currency">Currency</Label>
+                  <Select
+                    value={workspace.currency || 'EUR'}
+                    onValueChange={(value) => handleFieldChange('currency', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CURRENCY_OPTIONS.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Work in Progress Message
+                  </label>
+                  <Textarea
+                    value={workspace.wipMessage || ""}
+                    onChange={(e) =>
+                      handleFieldChange("wipMessage", e.target.value)
+                    }
+                    className="mt-1"
+                    rows={3}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This message will be shown to users when your chatbot is not available.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Phone Number Blocklist
+                  </label>
+                  <Textarea
+                    value={workspace.blocklist || ""}
+                    onChange={(e) =>
+                      handleFieldChange("blocklist", e.target.value)
+                    }
+                    className="mt-1"
+                    rows={3}
+                    placeholder="Enter phone numbers to block, one per line. Format: +1234567890"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Enter phone numbers to block, one per line (e.g., +1234567890)
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-4">
                 <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setShowVideoDialog(true)}
+                  variant="destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="flex items-center"
                 >
-                  <Video className="h-5 w-5 text-muted-foreground hover:text-primary" />
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Workspace
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={isLoading}
+                  className="flex items-center"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
                 </Button>
               </div>
-              <Input
-                value={workspace.whatsappApiKey || ""}
-                onChange={(e) =>
-                  handleFieldChange("whatsappApiKey", e.target.value)
-                }
-                className="mt-1"
-                type="password"
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Currency
-                </label>
-              </div>
-              <Select
-                value={workspace.currency}
-                onValueChange={(value) => handleFieldChange("currency", value)}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select currency" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CURRENCY_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  WIP Message
-                </label>
-              </div>
-              <Input
-                value={workspace.wipMessage}
-                onChange={(e) => handleFieldChange("wipMessage", e.target.value)}
-                disabled={workspace.isActive}
-                className={workspace.isActive ? "bg-gray-100" : ""}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Label>Daily messages limit por user</Label>
-              </div>
-              <Input
-                type="number"
-                value={workspace.messageLimit}
-                onChange={(e) => setWorkspace({ ...workspace, messageLimit: parseInt(e.target.value) })}
-                placeholder="Enter message limit"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Label>Phone Number Blacklist</Label>
-              </div>
-              <Textarea 
-                value={workspace.blocklist || ""}
-                onChange={(e) => handleFieldChange("blocklist", e.target.value)}
-                placeholder="Enter phone numbers to block (separated by semicolons, e.g. +123456789;+987654321)"
-                className="h-24"
-              />
-            </div>
-
-            <div className="flex justify-end space-x-4 mt-6">
-              <Button
-                variant="destructive"
-                onClick={() => setShowDeleteDialog(true)}
-                disabled={isLoading}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Channel
-              </Button>
-              <Button
-                variant="default"
-                onClick={handleSave}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save Changes"
-                )}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="gdpr">
+          <Card>
+            <CardContent className="p-6">
+              <GdprSettingsTab />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogTitle>Delete Workspace</DialogTitle>
             <DialogDescription>
               This action cannot be undone. This will permanently delete your
-              workspace and remove your data from our servers.
+              workspace and all associated data.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -381,11 +405,11 @@ export default function SettingsPage() {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   Deleting...
                 </>
               ) : (
-                "Delete Workspace"
+                "Delete"
               )}
             </Button>
           </DialogFooter>
@@ -393,23 +417,34 @@ export default function SettingsPage() {
       </Dialog>
 
       <Dialog open={showVideoDialog} onOpenChange={setShowVideoDialog}>
-        <DialogContent className="sm:max-w-[800px]">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>WhatsApp API Key Tutorial</DialogTitle>
+            <DialogTitle>How to Get Your WhatsApp API Key</DialogTitle>
+            <DialogDescription>
+              Follow these steps to obtain your WhatsApp Business API key.
+            </DialogDescription>
           </DialogHeader>
-          <div className="aspect-video w-full">
-            <iframe
-              width="100%"
-              height="100%"
-              src="https://www.youtube.com/embed/T_4R2xuRaIY"
-              title="WhatsApp API Key Tutorial"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+          <div className="space-y-4">
+            <ol className="list-decimal pl-5 space-y-2">
+              <li>Log in to your Meta Business account.</li>
+              <li>Navigate to the Business Settings &gt; WhatsApp Accounts.</li>
+              <li>Select the phone number you want to use.</li>
+              <li>
+                Go to the API settings tab and generate a new API key (or use an
+                existing one).
+              </li>
+              <li>Copy the API key and paste it in the field above.</li>
+            </ol>
+            <p className="text-sm text-gray-500">
+              Note: You need a verified business account to use the WhatsApp
+              Business API.
+            </p>
           </div>
+          <DialogFooter>
+            <Button onClick={() => setShowVideoDialog(false)}>Close</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

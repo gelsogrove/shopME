@@ -7,7 +7,7 @@ import {
     LayoutGrid,
     MessageSquare,
     Package2,
-    ShieldCheck,
+    Settings,
     ShoppingCart,
     Tag,
     Users,
@@ -113,9 +113,9 @@ export function Sidebar() {
       icon: LayoutGrid,
     },
     {
-      href: "/gdpr",
-      label: "GDPR",
-      icon: ShieldCheck,
+      href: "/settings",
+      label: "Settings",
+      icon: Settings,
     },
   ];
 
@@ -127,7 +127,7 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 px-4 space-y-2 py-6">
-          {mainLinks.map(({ href, label, icon: Icon, badge }) => (
+          {mainLinks.map(({ href, label, icon: Icon, badge, className }) => (
             <NavLink
               key={href}
               to={href}
@@ -137,7 +137,8 @@ export function Sidebar() {
                   "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors relative",
                   isActive
                     ? "bg-green-50 text-green-600"
-                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50",
+                  className
                 )
               }
             >

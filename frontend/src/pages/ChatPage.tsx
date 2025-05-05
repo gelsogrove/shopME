@@ -7,7 +7,7 @@ import { getLanguages, Language } from "@/services/workspaceApi"
 import { Ban, Pencil, Send, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "react-hot-toast"
-import { useSearchParams } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -27,6 +27,7 @@ interface Message {
   content: string
   sender: "user" | "customer"
   timestamp: string
+  agentName?: string
 }
 
 interface ShippingAddress {
@@ -73,9 +74,9 @@ export function ChatPage() {
   const initialLoadRef = useRef(true)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
-  const [customerData, setCustomerData] = useState<Customer | null>(null)
   const [availableLanguages, setAvailableLanguages] = useState<string[]>(['English', 'Italian', 'Spanish', 'French'])
   const [showBlockDialog, setShowBlockDialog] = useState<boolean>(false)
+  const navigate = useNavigate()
 
   // Carica le chat all'avvio
   useEffect(() => {
@@ -160,7 +161,7 @@ export function ChatPage() {
   }
 
   // Funzione per formattare la data in modo sicuro
-  const formatDate = (dateString: string | null | undefined) => {
+  const formatDate = (dateString: string | null | undefined, agentName?: string) => {
     if (!dateString) {
       console.log("formatDate: dateString è null o undefined");
       return "Data non disponibile";
@@ -175,19 +176,25 @@ export function ChatPage() {
         return "Data non valida";
       }
       
-      // Formatta come "GG/MM/AAAA HH:MM"
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const year = date.getFullYear();
-      const hours = date.getHours().toString().padStart(2, '0');
-      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const options: Intl.DateTimeFormatOptions = {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
       
-      const formattedDate = `${day}/${month}/${year} ${hours}:${minutes}`;
-      console.log(`formatDate: risultato "${formattedDate}"`);
+      const formattedDate = date.toLocaleDateString('it-IT', options);
+      
+      // Aggiungiamo il nome dell'agente se disponibile
+      if (agentName) {
+        return `${formattedDate} - ${agentName}`;
+      }
+      
       return formattedDate;
-    } catch (e) {
-      console.error(`formatDate: errore durante la formattazione della data "${dateString}"`, e);
-      return "Errore data";
+    } catch (error) {
+      console.error("formatDate: errore durante la formattazione", error);
+      return "Errore nella formattazione data";
     }
   };
 
@@ -215,7 +222,8 @@ export function ChatPage() {
             id: m.id,
             content: m.content,
             sender: m.direction === "INBOUND" ? "customer" : "user",
-            timestamp: m.createdAt || new Date().toISOString()
+            timestamp: m.createdAt || new Date().toISOString(),
+            agentName: m.agentName || (m.direction === "OUTBOUND" ? "Generic" : undefined)
           }))
           
           chatWithCompany.messages = formattedMessages
@@ -264,6 +272,8 @@ export function ChatPage() {
     if (!messageInput.trim() || !selectedChat) return
     
     try {
+      console.log("Invio messaggio...");
+      
       // Crea un nuovo messaggio
       const newMessage = {
         id: Date.now().toString(),
@@ -283,28 +293,67 @@ export function ChatPage() {
       setSelectedChat(updatedChat)
       setMessageInput("")
       
-      // Ottieni il workspaceId dalla sessione di chat corrente
-      const sessionResponse = await api.get(`/api/chat/${selectedChat.sessionId}`);
-      const currentWorkspaceId = sessionResponse.data?.data?.workspaceId || getWorkspaceId();
+      // Ottieni il workspaceId direttamente dal localStorage invece di fare una chiamata API
+      let currentWorkspaceId = "";
+      try {
+        const workspaceData = sessionStorage.getItem("currentWorkspace");
+        if (workspaceData) {
+          const workspace = JSON.parse(workspaceData);
+          currentWorkspaceId = workspace.id;
+          console.log("WorkspaceId dal sessionStorage:", currentWorkspaceId);
+        } else {
+          currentWorkspaceId = getWorkspaceId();
+          console.log("WorkspaceId di fallback:", currentWorkspaceId);
+        }
+      } catch (err) {
+        console.error("Errore nel recupero del workspaceId:", err);
+        currentWorkspaceId = getWorkspaceId();
+      }
+      
+      console.log("Invio messaggio al backend con workspaceId:", currentWorkspaceId);
+      console.log("Dati messaggio:", {
+        message: messageInput,
+        phoneNumber: selectedChat.customerPhone,
+        workspaceId: currentWorkspaceId
+      });
       
       // Invia il messaggio al backend
       const response = await api.post('/api/messages', { 
         message: messageInput,
         phoneNumber: selectedChat.customerPhone,
         workspaceId: currentWorkspaceId
-      })
+      });
+      
+      console.log("Risposta dal backend:", response.data);
       
       if (response.data.success) {
         // Dopo aver ricevuto la risposta, aggiorniamo nuovamente le chat
         fetchChats()
+        
+        // Estraiamo il nome dell'agente dalla risposta
+        let agentName = "Generic";
+        // Cerca il nome dell'agente nella risposta, che potrebbe essere in formato "_Agente: NomeAgente_"
+        console.log("Controllo contenuto per agente:", response.data.data.processedMessage);
+        const agentMatch = response.data.data.processedMessage.match(/_Agente:\s*([^_]+)_/);
+        console.log("Risultato match agente:", agentMatch);
+        
+        if (agentMatch && agentMatch[1]) {
+          agentName = agentMatch[1].trim();
+          console.log("Nome agente estratto:", agentName);
+        } else {
+          console.log("Nessun agente trovato nella risposta, uso il valore predefinito:", agentName);
+        }
         
         // Creiamo il messaggio di risposta dal sistema
         const responseMessage = {
           id: (Date.now() + 1).toString(),
           content: response.data.data.processedMessage,
           sender: "customer" as const,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          agentName: agentName // Usiamo il nome dell'agente estratto
         }
+        
+        console.log("Messaggio di risposta creato:", responseMessage);
         
         // Aggiorniamo la chat selezionata con la risposta del sistema
         setSelectedChat(prevChat => {
@@ -334,46 +383,11 @@ export function ChatPage() {
 
   // Funzione per aprire il form di modifica cliente
   const handleEditCustomer = async () => {
-    console.log("handleEditCustomer called");
     if (!selectedChat) {
-      console.error("No chat selected");
+      toast.error("No chat selected");
       return;
     }
-    
-    try {
-      setLoading(true);
-      
-      // Create a customer object using data from the selected chat
-      const basicCustomer: Customer = {
-        id: selectedChat.customerId,
-        name: selectedChat.customerName || 'Unknown Customer',
-        email: '',
-        phone: selectedChat.customerPhone || '',
-        company: selectedChat.companyName || '',
-        discount: 0,
-        language: availableLanguages[0] || 'English',
-        notes: '',
-        shippingAddress: {
-          street: '',
-          city: '',
-          zip: '',
-          country: ''
-        }
-      };
-      
-      console.log("Setting customer data and opening form:", basicCustomer);
-      
-      // Set the customer data first
-      setCustomerData(basicCustomer);
-      
-      // Then open the form
-      setShowEditSheet(true);
-    } catch (error) {
-      console.error("Error in handleEditCustomer:", error);
-      toast.error("Failed to open customer editor");
-    } finally {
-      setLoading(false);
-    }
+    setShowEditSheet(true);
   };
   
   // Function to convert address object to string
@@ -557,7 +571,7 @@ export function ChatPage() {
   const handleSaveCustomer = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    if (!customerData || !selectedChat) return;
+    if (!selectedChat) return;
     
     try {
       setLoading(true);
@@ -618,17 +632,15 @@ export function ChatPage() {
       if (response.status === 200) {
         toast.success("Customer updated successfully");
         setShowEditSheet(false);
-        
-        // Refresh the chat list to get updated data
-        await fetchChats();
-        
-        // If we have a selected chat, reload it with the new data
-        if (selectedChat?.sessionId) {
-          // Find the chat and select it again to reload
-          const chat = chats.find(c => c.sessionId === selectedChat.sessionId);
-          if (chat) {
-            await selectChat(chat, false);
-          }
+        // Update only the selected chat's customer info
+        if (selectedChat) {
+          const updatedCustomer = response.data;
+          setSelectedChat({
+            ...selectedChat,
+            customerName: updatedCustomer.name || selectedChat.customerName,
+            customerPhone: updatedCustomer.phone || selectedChat.customerPhone,
+            companyName: updatedCustomer.company || selectedChat.companyName,
+          });
         }
       } else {
         toast.error("Failed to update customer: " + (response.data?.error || "Unknown error"));
@@ -684,7 +696,7 @@ export function ChatPage() {
                   {chat.lastMessage}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  {formatDate(chat.lastMessageTime)}
+                  {formatDate(chat.lastMessageTime, chat.companyName)}
                 </p>
               </div>
             ))}
@@ -716,10 +728,10 @@ export function ChatPage() {
                     size="sm" 
                     onClick={() => setShowBlockDialog(true)}
                     className="hover:bg-orange-50"
-                    title="Block User (Coming Soon)"
+                    title="Block Use (Coming Soon)"
                   >
                     <Ban className="h-4 w-4 text-orange-600 mr-1" />
-                    <span className="text-orange-600 text-sm">Block</span>
+                    <span className="text-orange-600 text-sm">Block user</span>
                   </Button>
                   <Button 
                     id="delete-chat-button"
@@ -734,8 +746,8 @@ export function ChatPage() {
                 </div>
               </div>
 
-              {/* Messages */}
-              <div className="flex-1 overflow-y-scroll py-4 space-y-4 h-[calc(100%-115px)] border border-gray-100 rounded-md p-2">
+              {/* Messages - Modificato lo stile per una scrollbar dedicata e auto-scroll al fondo */}
+              <div className="flex-1 overflow-y-auto py-4 space-y-4 h-[calc(100%-115px)] border border-gray-100 rounded-md p-2 scrollbar-container">
                 {loadingChat ? (
                   <div className="h-full flex items-center justify-center">
                     <div className="flex flex-col items-center">
@@ -751,34 +763,36 @@ export function ChatPage() {
                     </div>
                   </div>
                 ) : (
-                  selectedChat.messages?.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${
-                        message.sender === "user"
-                          ? "justify-end"
-                          : "justify-start"
-                      }`}
-                    >
+                  <>
+                    {selectedChat.messages?.map((message) => (
                       <div
-                        className={`max-w-[45%] p-3 rounded-lg ${
+                        key={message.id}
+                        className={`flex ${
                           message.sender === "user"
-                            ? "bg-green-100 text-gray-900"
-                            : "bg-gray-100 text-gray-900"
+                            ? "justify-end"
+                            : "justify-start"
                         }`}
                       >
-                        <div 
-                          dangerouslySetInnerHTML={{ __html: formatTextWithLinks(message.content) }}
-                          className="message-content break-words whitespace-pre-wrap"
-                        />
-                        <p className="text-xs mt-1 opacity-70 text-right">
-                          {formatDate(message.timestamp)}
-                        </p>
+                        <div
+                          className={`max-w-[45%] p-3 rounded-lg ${
+                            message.sender === "user"
+                              ? "bg-green-100 text-gray-900"
+                              : "bg-gray-100 text-gray-900"
+                          }`}
+                        >
+                          <div 
+                            dangerouslySetInnerHTML={{ __html: formatTextWithLinks(message.content) }}
+                            className="message-content break-words whitespace-pre-wrap"
+                          />
+                          <p className="text-xs mt-1 opacity-70 text-right">
+                            {formatDate(message.timestamp, message.sender === "customer" ? message.agentName : undefined)}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </>
                 )}
-                <div ref={messagesEndRef} />
               </div>
 
               {/* Message Input */}
@@ -829,7 +843,7 @@ export function ChatPage() {
       <AlertDialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Block User</AlertDialogTitle>
+            <AlertDialogTitle>Block Chatbot</AlertDialogTitle>
             <AlertDialogDescription>
               This functionality is currently under development and will be available soon.
             </AlertDialogDescription>
@@ -842,7 +856,7 @@ export function ChatPage() {
       
       {/* Customer Edit Sheet */}
       <ClientSheet
-        client={customerData as any}
+        client={selectedChat ? selectedChat.customerId : null}
         open={showEditSheet}
         onOpenChange={setShowEditSheet}
         onSubmit={handleSaveCustomer}

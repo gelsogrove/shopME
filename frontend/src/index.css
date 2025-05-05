@@ -130,6 +130,34 @@
   }
 }
 
+/* Stili per la scrollbar della chat */
+.scrollbar-container {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 185, 129, 0.5) transparent;
+  height: 600px !important; /* Fixed height for chat container */
+  max-height: 600px !important;
+  overflow-y: auto;
+}
+
+.scrollbar-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-container::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.scrollbar-container::-webkit-scrollbar-thumb {
+  background-color: rgba(16, 185, 129, 0.5);
+  border-radius: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.scrollbar-container::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(16, 185, 129, 0.8);
+}
+
 /* Markdown content styling */
 .markdown-content {
   overflow-y: auto;
