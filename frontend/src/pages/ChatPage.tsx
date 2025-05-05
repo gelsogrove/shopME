@@ -641,10 +641,10 @@ export function ChatPage() {
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-medium">
+                      <h3 className="font-medium text-sm">
                         {chat.customerName} {chat.companyName ? `(${chat.companyName})` : ''}
                       </h3>
-                      <p className="text-sm text-green-600">
+                      <p className="text-xs text-green-600">
                         {chat.customerPhone}
                       </p>
                     </div>
@@ -654,10 +654,10 @@ export function ChatPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 mt-1 truncate">
+                  <p className="text-xs text-gray-600 mt-1 truncate">
                     {chat.lastMessage}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-[10px] text-gray-400 mt-1">
                     {formatDate(chat.lastMessageTime, chat.companyName)}
                   </p>
                 </div>
@@ -676,12 +676,12 @@ export function ChatPage() {
                     className="flex items-center cursor-pointer group"
                     onClick={handleEditCustomer}
                   >
-                    <h2 className="font-bold group-hover:text-green-600 transition-colors">
+                    <h2 className="font-bold text-sm group-hover:text-green-600 transition-colors">
                       {selectedChat.customerName} {selectedChat.companyName ? `(${selectedChat.companyName})` : ''}
                     </h2>
-                    <Pencil className="h-4 w-4 ml-2 text-green-600 group-hover:text-green-700 transition-colors" />
+                    <Pencil className="h-3 w-3 ml-1 text-green-600 group-hover:text-green-700 transition-colors" />
                   </div>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-xs text-gray-500">
                     {selectedChat.customerPhone}
                   </p>
                 </div>
@@ -690,37 +690,37 @@ export function ChatPage() {
                     variant="ghost" 
                     size="sm" 
                     onClick={handleViewOrders}
-                    className="hover:bg-blue-50"
+                    className="hover:bg-blue-50 h-7 px-2 py-0"
                     title="View Customer Orders"
                   >
-                    <ShoppingBag className="h-4 w-4 text-blue-600 mr-1" />
-                    <span className="text-blue-600 text-sm">View orders</span>
+                    <ShoppingBag className="h-3 w-3 text-blue-600 mr-1" />
+                    <span className="text-blue-600 text-xs">View orders</span>
                   </Button>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={() => setShowBlockDialog(true)}
-                    className="hover:bg-orange-50"
+                    className="hover:bg-orange-50 h-7 px-2 py-0"
                     title="Block Use (Coming Soon)"
                   >
-                    <Ban className="h-4 w-4 text-orange-600 mr-1" />
-                    <span className="text-orange-600 text-sm">Block user</span>
+                    <Ban className="h-3 w-3 text-orange-600 mr-1" />
+                    <span className="text-orange-600 text-xs">Block user</span>
                   </Button>
                   <Button 
                     id="delete-chat-button"
                     variant="ghost" 
                     size="sm" 
                     onClick={handleDeleteChat}
-                    className="hover:bg-red-50"
+                    className="hover:bg-red-50 h-7 px-2 py-0"
                   >
-                    <Trash2 className="h-4 w-4 text-red-600 mr-1" />
-                    <span className="text-red-600 text-sm">Delete</span>
+                    <Trash2 className="h-3 w-3 text-red-600 mr-1" />
+                    <span className="text-red-600 text-xs">Delete</span>
                   </Button>
                 </div>
               </div>
 
               {/* Messages - Modificato lo stile per una scrollbar dedicata e auto-scroll al fondo */}
-              <div className="flex-1 overflow-y-auto py-4 space-y-4 h-[calc(100%-115px)] border border-gray-100 rounded-md p-2 scrollbar-container">
+              <div className="flex-1 overflow-y-auto py-2 space-y-2 h-[calc(100%-115px)] border border-gray-100 rounded-md p-2 scrollbar-container">
                 {loadingChat ? (
                   <div className="h-full flex items-center justify-center">
                     <div className="flex flex-col items-center">
@@ -747,7 +747,7 @@ export function ChatPage() {
                         }`}
                       >
                         <div
-                          className={`max-w-[45%] p-3 rounded-lg ${
+                          className={`max-w-[45%] p-2 rounded-lg ${
                             message.sender === "user"
                               ? "bg-green-100 text-gray-900"
                               : "bg-gray-100 text-gray-900"
@@ -755,9 +755,9 @@ export function ChatPage() {
                         >
                           <div 
                             dangerouslySetInnerHTML={{ __html: formatTextWithLinks(message.content) }}
-                            className="message-content break-words whitespace-pre-wrap"
+                            className="message-content break-words whitespace-pre-wrap text-xs"
                           />
-                          <p className="text-xs mt-1 opacity-70 text-right">
+                          <p className="text-[10px] mt-1 opacity-70 text-right">
                             {formatDate(message.timestamp, message.sender === "customer" ? message.agentName : undefined)}
                           </p>
                         </div>
@@ -774,7 +774,7 @@ export function ChatPage() {
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
                   placeholder="Type your message..."
-                  className="min-h-[50px] resize-none"
+                  className="min-h-[40px] resize-none text-xs"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault()
@@ -785,11 +785,11 @@ export function ChatPage() {
                 />
                 <Button
                   onClick={(e) => handleSubmit(e)}
-                  className="self-end"
-                  size="icon"
+                  className="self-end h-8 w-8 p-0"
+                  size="sm"
                   disabled={isInputDisabled}
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-3 w-3" />
                 </Button>
               </div>
             </>
