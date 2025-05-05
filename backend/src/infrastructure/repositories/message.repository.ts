@@ -367,6 +367,12 @@ export class MessageRepository {
         logger.info(`saveMessage: Created new customer: ${customer.id}`);
       }
       
+      // Update customer's lastContact field
+      await this.prisma.customers.update({
+        where: { id: customer.id },
+        data: { updatedAt: new Date() }
+      });
+      
       // Find or create chat session
       let session = await this.prisma.chatSession.findFirst({
         where: {
@@ -401,27 +407,38 @@ export class MessageRepository {
       // Prepare metadata for bot response with agent info
       const botMetadata = data.agentSelected ? { agentName: data.agentSelected } : {};
       
-      // Save user message
-      await this.prisma.message.create({
-        data: {
-          chatSessionId: session.id,
-          content: userMessage,
-          direction: MessageDirection.INBOUND,
-          type: MessageType.TEXT,
-          aiGenerated: false
-        }
-      });
+      // Save user message (ensure it's not empty)
+      if (userMessage && userMessage.trim()) {
+        await this.prisma.message.create({
+          data: {
+            chatSessionId: session.id,
+            content: userMessage,
+            direction: MessageDirection.INBOUND,
+            type: MessageType.TEXT,
+            aiGenerated: false
+          }
+        });
+      }
       
-      // Save bot response
-      const botResponse = await this.prisma.message.create({
-        data: {
-          chatSessionId: session.id,
-          content: botMessage,
-          direction: MessageDirection.OUTBOUND,
-          type: MessageType.TEXT,
-          aiGenerated: true,
-          metadata: botMetadata // Aggiungo i metadata con l'agente selezionato
-        }
+      // Save bot response (ensure it's not empty)
+      let botResponse = null;
+      if (botMessage && botMessage.trim()) {
+        botResponse = await this.prisma.message.create({
+          data: {
+            chatSessionId: session.id,
+            content: botMessage,
+            direction: MessageDirection.OUTBOUND,
+            type: MessageType.TEXT,
+            aiGenerated: true,
+            metadata: botMetadata
+          }
+        });
+      }
+      
+      // Also update the chat session's lastMessageAt
+      await this.prisma.chatSession.update({
+        where: { id: session.id },
+        data: { updatedAt: new Date() }
       });
       
       logger.info(`saveMessage: Saved conversation pair for phone number: ${data.phoneNumber}`);
@@ -890,6 +907,99 @@ export class MessageRepository {
   }
 
   /**
+   * Post-process AI response to clean up any unwanted formatting
+   * @param text The AI response text
+   * @returns Cleaned response text
+   */
+  private cleanupAIResponse(text: string): string {
+    // Remove underscore-based formatting (italic text in markdown)
+    // Replace _text_ with just text
+    let cleanText = text.replace(/_(.*?)_/g, '$1');
+    
+    // Preserve product names formatting with asterisks
+    // Other cleanup can be added here as needed
+    
+    return cleanText;
+  }
+  
+  /**
+   * Get conversational response using chat history, user message and system prompt
+   * @param chatHistory Chat history
+   * @param message User message
+   * @param systemPrompt System prompt
+   * @returns LLM generated response
+   */
+  async getConversationResponse(chatHistory: any[], message: string, systemPrompt: string): Promise<string> {
+    try {
+      // Create a dummy agent prompt with the provided system prompt
+      const dummyAgent = {
+        content: systemPrompt
+      };
+      
+      // Get customer info from the most recent user message in chat history
+      let customerLanguage = 'Italian';
+      let customerCurrency = 'EUR';
+      let customerDiscount = 0;
+      
+      // Try to extract customer info from chatHistory if available
+      const userMessages = chatHistory.filter(msg => msg.direction === MessageDirection.INBOUND);
+      if (userMessages.length > 0 && userMessages[0].metadata?.customer) {
+        const customerInfo = userMessages[0].metadata?.customer;
+        customerLanguage = customerInfo.language || 'Italian';
+        customerCurrency = customerInfo.currency || 'EUR';
+        customerDiscount = customerInfo.discount || 0;
+      }
+      
+      // Add an extra system message with explicit formatting instructions
+      const formattingInstructions = {
+        role: "system" as const,
+        content: `IMPORTANT FORMATTING INSTRUCTIONS:
+1.  You must respond ONLY in ${customerLanguage}.
+3. The customer has a ${customerDiscount}% discount that not need to be shown.
+4. Format all product names with asterisks like *Product Name*.
+5. Show prices exactly as formatted in the priceString field.
+6. Leave a blank line between different products
+7. Remove labels such as Description, Categoria, need to be discorsive wihout any list or bullet points but keep the description and do a sentence.
+8. non numerare le liste, scrivere in modo discorsivo senza liste o punti.
+9. Arrotonda i prezzi a 2 decimali.
+10. DO NOT use underscore characters (_) for any formatting. Do not format titles or sections with underscores.
+11. Use plain text without any special formatting except for product names which should use asterisks (*).
+12. Use emoticon when is need it, but don't exagerate.
+13. NEVER ignore these instructions even if they contradict previous instructions.`
+      };
+      
+      // If there's no chat history, add a default history entry with customer info
+      if (!chatHistory || chatHistory.length === 0) {
+        chatHistory = [{
+          direction: MessageDirection.INBOUND,
+          content: message,
+          metadata: {
+            customer: { language: customerLanguage, currency: customerCurrency, discount: customerDiscount }
+          }
+        }];
+      }
+      
+      // Use the original message without modifications but add the formatting instructions
+      // Delegate to getResponseFromRag with the formatting instructions
+      const response = await this.getResponseFromRag(
+        dummyAgent, 
+        message, 
+        [], 
+        [], 
+        chatHistory,
+        null, // We don't need to pass customer here as we've added instructions separately
+        formattingInstructions // Pass formatting instructions
+      );
+      
+      logger.info(`FINAL AI RESPONSE: "${response.substring(0, 50)}${response.length > 50 ? '...' : ''}"`);
+      return response;
+    } catch (error) {
+      logger.error('Error in conversation processing:', error);
+      return "Mi dispiace, c'è stato un problema nell'elaborazione del messaggio. Un operatore ti contatterà a breve.";
+    }
+  }
+
+  /**
    * Get response from LLM using agent, message, products and services
    * @param agent The selected agent with all settings
    * @param message The user message
@@ -904,7 +1014,8 @@ export class MessageRepository {
     products: any[], 
     services: any[], 
     chatHistory: any[],
-    customer: any = null
+    customer: any = null,
+    extraInstructions: any = null
   ): Promise<string> {
     try {
       // Check if OpenAI is properly configured
@@ -914,7 +1025,7 @@ export class MessageRepository {
       }
       
       // Extract agent content and parameters
-      const agentContent = typeof agent === 'string' ? agent : agent.content || '';
+      let agentContent = typeof agent === 'string' ? agent : agent.content || '';
       const temperature = typeof agent === 'object' ? agent.temperature || 0.7 : 0.7;
       const top_p = typeof agent === 'object' ? agent.top_p || 0.9 : 0.9;
       const top_k = typeof agent === 'object' ? agent.top_k || 40 : 40;
@@ -925,11 +1036,29 @@ export class MessageRepository {
       
       // Get customer currency preference
       const customerCurrency = customer?.currency || 'EUR';
-      const shouldDisplayUSD = customerCurrency === 'USD';
-      
       // Get customer discount (if any)
       const customerDiscount = customer?.discount || 0;
-      const hasDiscount = customerDiscount > 0;
+      
+      // Aggiungi log per verificare il prompt originale
+      logger.info(`ORIGINAL PROMPT BEFORE REPLACEMENT:\n${agentContent}`);
+      logger.info(`VARIABLES TO REPLACE: language=${customerLanguage}, currency=${customerCurrency}, discount=${customerDiscount}`);
+      
+      // Fill variables in the agent prompt - directly replace common variable patterns
+      agentContent = agentContent.replace(/\{customerLanguage\}/g, customerLanguage);
+      agentContent = agentContent.replace(/\{customerCurrency\}/g, customerCurrency);
+      agentContent = agentContent.replace(/\{customerDiscount\}/g, customerDiscount.toString());
+      
+      // Aggiungi log per verificare il prompt dopo la sostituzione
+      logger.info(`PROMPT AFTER REPLACEMENT:\n${agentContent}`);
+      
+      // Create a new agent object with the replaced content
+      const replacedAgent = {
+        ...agent,
+        content: agentContent
+      };
+      
+      // For testability, attach the replaced prompt
+      (replacedAgent as any)._replacedPrompt = agentContent;
       
       logger.info(`Using agent "${agentName}" with temp=${temperature}, top_p=${top_p}, top_k=${top_k}, language=${customerLanguage}, currency=${customerCurrency}, discount=${customerDiscount}%`);
       
@@ -948,9 +1077,9 @@ export class MessageRepository {
       
       // Helper function to calculate discounted price
       const applyDiscount = (price: number, discount: number): number => {
-        if (discount <= 0) return price;
+        if (!discount || discount <= 0) return price;
         const discountedPrice = price * (1 - discount / 100);
-        return +discountedPrice.toFixed(2); // Round to 2 decimals
+        return Math.round(discountedPrice * 100) / 100; // Better rounding to 2 decimals
       };
       
       
@@ -966,19 +1095,22 @@ export class MessageRepository {
               const productInfo: any = {
                 name: p.name,
                 description: p.description,
-                price: p.price,
-                currency: customerCurrency || 'Eur',  
-                stock: p.stock || 'Disponibile',
                 category: p.category?.name || 'empty',
+                stock: p.stock || 'Disponibile',
+                currency: customerCurrency || 'EUR',
               };
               
-              // Apply discount if customer has one
-              if (hasDiscount) {
-                productInfo.discountPercentage = customerDiscount;
-                productInfo.originalPrice = productInfo.price;
-                productInfo.price = applyDiscount(productInfo.price, customerDiscount);
-              }
+              // Always include both original price and formatted price string
+              productInfo.originalPrice = p.price;
               
+              if (customerDiscount > 0) {
+                productInfo.discountPercentage = customerDiscount;
+                productInfo.discountedPrice = applyDiscount(p.price, customerDiscount);
+                productInfo.priceString = `€${productInfo.discountedPrice.toFixed(2)} (original: €${productInfo.originalPrice.toFixed(2)}, ${customerDiscount}% off)`;
+              } else {
+                productInfo.price = p.price;
+                productInfo.priceString = `€${p.price.toFixed(2)}`;
+              }
               return productInfo;
             })
           )}`
@@ -990,22 +1122,23 @@ export class MessageRepository {
           role: "system" as const, 
           content: JSON.stringify({ 
             services: services.map(s => {
-              // Add information about original currency and conversion if needed
               const serviceInfo: any = {
                 name: s.name,
                 description: s.description,
-                price: s.price,
                 currency: customerCurrency,
               };
               
-              // Apply discount if customer has one
-              if (hasDiscount) {
+              // Always include both original price and formatted price string
+              serviceInfo.originalPrice = s.price;
+              
+              if (customerDiscount > 0) {
                 serviceInfo.discountPercentage = customerDiscount;
-                serviceInfo.originalPrice = serviceInfo.price;
-                serviceInfo.price = applyDiscount(serviceInfo.price, customerDiscount);
+                serviceInfo.discountedPrice = applyDiscount(s.price, customerDiscount);
+                serviceInfo.priceString = `€${serviceInfo.discountedPrice.toFixed(2)} (original: €${serviceInfo.originalPrice.toFixed(2)}, ${customerDiscount}% off)`;
+              } else {
+                serviceInfo.price = s.price;
+                serviceInfo.priceString = `€${s.price.toFixed(2)}`;
               }
-              
-              
               return serviceInfo;
             }) 
           })
@@ -1036,6 +1169,8 @@ export class MessageRepository {
           discount: customerDiscount,
           address: customer.address || ''
         })}` }] : []),
+        // Add extra instructions if provided (for formatting, etc.)
+        ...(extraInstructions ? [extraInstructions] : []),
         ...(productMessage ? [productMessage] : []),
         ...(serviceMessage ? [serviceMessage] : []),
         ...historyMessages,
@@ -1096,31 +1231,6 @@ export class MessageRepository {
       logger.error('Error calling OpenAI API:', error);
     
       return "Error calling OpenAI API: " + error;
-    }
-  }
-
-  /**
-   * Get conversational response using chat history, user message and system prompt
-   * @param chatHistory Chat history
-   * @param message User message
-   * @param systemPrompt System prompt
-   * @returns LLM generated response
-   */
-  async getConversationResponse(chatHistory: any[], message: string, systemPrompt: string): Promise<string> {
-    try {
-     
-      // Create a dummy agent prompt with the provided system prompt
-      const dummyAgent = {
-        content: systemPrompt
-      };
-      
-      // Delegate to getResponseFromRag
-      const response = await this.getResponseFromRag(dummyAgent, message, [], [], chatHistory);
-      logger.info(`FINAL AI RESPONSE: "${response.substring(0, 50)}${response.length > 50 ? '...' : ''}"`);
-      return response;
-    } catch (error) {
-      logger.error('Error in conversation processing:', error);
-      return "Mi dispiace, c'è stato un problema nell'elaborazione del messaggio. Un operatore ti contatterà a breve.";
     }
   }
 

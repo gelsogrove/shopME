@@ -26,97 +26,97 @@ export class MessageService {
    * @param text Text to format
    * @returns Text formatted for WhatsApp
    */
-  private formatListForWhatsApp(text: string): string {
-    try {
-      // Convert double asterisks to single (WhatsApp uses single asterisks for bold)
-      let formattedText = text.replace(/\*\*([^*]+)\*\*/g, '*$1*');
+  // private formatListForWhatsApp(text: string): string {
+  //   try {
+  //     // Convert double asterisks to single (WhatsApp uses single asterisks for bold)
+  //     let formattedText = text.replace(/\*\*([^*]+)\*\*/g, '*$1*');
       
-      // Split text into lines for processing
-      const lines = formattedText.split('\n');
-      const processedLines = [];
+  //     // Split text into lines for processing
+  //     const lines = formattedText.split('\n');
+  //     const processedLines = [];
       
-      // Process lines for product list formatting
-      let i = 0;
-      while (i < lines.length) {
-        const line = lines[i];
-        
-        // Check if this is a numbered list item (product) with price
-        // Match formats like: "1. Product Name - €10.99" or "1. Product Name - 10.99€"
-        const productMatch = line.match(/^(\d+\.)\s*(.*?)(\s*[-–—]\s*(?:€\s*\d+[\.,]?\d*|\d+[\.,]?\d*\s*€))$/);
-        
-        if (productMatch) {
-          const [_, number, name, price] = productMatch;
-          
-          // Make product name bold if not already
-          const formattedName = name.includes('*') ? name.trim() : `*${name.trim()}*`;
-          
-          // Format price consistently 
-          const cleanPrice = price.replace(/\s+/g, ' ').trim();
-          
-          // Combine number, name and price on one line
-          let formattedProduct = `${number} ${formattedName} ${cleanPrice}`;
-          
-          // Look ahead for category and description lines
-          let details = [];
-          let j = i + 1;
-          
-          // Collect category and description lines
-          while (j < lines.length && (
-            lines[j].trim().startsWith('Categoria:') || 
-            lines[j].trim().startsWith('Descrizione:') ||
-            lines[j].trim().startsWith('-') ||
-            lines[j].trim().startsWith('•')
-          )) {
-            // Format with bullet points and italics for categories
-            let detailLine = lines[j]
-              .replace(/^\s*[-–•]\s*/, '   • ')
- 
-            
-            details.push(detailLine);
-            j++;
-          }
-          
-          // Add the formatted product with its details
-          if (details.length > 0) {
-            formattedProduct += '\n' + details.join('\n');
-          }
-          
-          processedLines.push(formattedProduct);
-          
-          // Skip the lines we've processed
-          i = j;
-        } else {
-          // Check if this is a section header (all caps or ends with :)
-          const isSectionHeader = line.trim().toUpperCase() === line.trim() && line.trim().length > 3;
-          const isLabelLine = /:\s*$/.test(line.trim());
-          
-          if (isSectionHeader) {
-            // Format section headers with bold
-            processedLines.push(`*${line.trim()}*`); 
-          } else if (isLabelLine) {
-            // Format labels with emphasis
-            processedLines.push(`_${line.trim()}_`);
-          } else {
-            // Regular line - ensure consistent bullet point formatting
-            processedLines.push(line.replace(/^[•-]\s*/, '• '));
-          }
-          i++;
-        }
-      }
+  //     // Process lines for product list formatting
+  //     let i = 0;
+  //     while (i < lines.length) {
+  //       const line = lines[i];
+  //       
+  //       // Check if this is a numbered list item (product) with price
+  //       // Match formats like: "1. Product Name - €10.99" or "1. Product Name - 10.99€"
+  //       const productMatch = line.match(/^(\d+\.)\s*(.*?)(\s*[-–—]\s*(?:€\s*\d+[\.,]?\d*|\d+[\.,]?\d*\s*€))$/);
+  //       
+  //       if (productMatch) {
+  //         const [_, number, name, price] = productMatch;
+  //         
+  //         // Make product name bold if not already
+  //         const formattedName = name.includes('*') ? name.trim() : `*${name.trim()}*`;
+  //         
+  //         // Format price consistently 
+  //         const cleanPrice = price.replace(/\s+/g, ' ').trim();
+  //         
+  //         // Combine number, name and price on one line
+  //         let formattedProduct = `${number} ${formattedName} ${cleanPrice}`;
+  //         
+  //         // Look ahead for category and description lines
+  //         let details = [];
+  //         let j = i + 1;
+  //         
+  //         // Collect category and description lines
+  //         while (j < lines.length && (
+  //           lines[j].trim().startsWith('Categoria:') || 
+  //           lines[j].trim().startsWith('Descrizione:') ||
+  //           lines[j].trim().startsWith('-') ||
+  //           lines[j].trim().startsWith('•')
+  //         )) {
+  //           // Format with bullet points and italics for categories
+  //           let detailLine = lines[j]
+  //             .replace(/^\s*[-–•]\s*/, '   • ')
+  // 
+  //           
+  //           details.push(detailLine);
+  //           j++;
+  //         }
+  //         
+  //         // Add the formatted product with its details
+  //         if (details.length > 0) {
+  //           formattedProduct += '\n' + details.join('\n');
+  //         }
+  //         
+  //         processedLines.push(formattedProduct);
+  //         
+  //         // Skip the lines we've processed
+  //         i = j;
+  //       } else {
+  //         // Check if this is a section header (all caps or ends with :)
+  //         const isSectionHeader = line.trim().toUpperCase() === line.trim() && line.trim().length > 3;
+  //         const isLabelLine = /:\s*$/.test(line.trim());
+  //         
+  //         if (isSectionHeader) {
+  //           // Format section headers with bold
+  //           processedLines.push(`*${line.trim()}*`); 
+  //         } else if (isLabelLine) {
+  //           // Format labels with emphasis
+  //           processedLines.push(`_${line.trim()}_`);
+  //         } else {
+  //           // Regular line - ensure consistent bullet point formatting
+  //           processedLines.push(line.replace(/^[•-]\s*/, '• '));
+  //         }
+  //         i++;
+  //       }
+  //     }
       
-      // Rejoin the lines
-      formattedText = processedLines.join('\n');
+  //     // Rejoin the lines
+  //     formattedText = processedLines.join('\n');
       
-      // Ensure no double blank lines
-      formattedText = formattedText.replace(/\n\s*\n\s*\n/g, '\n\n');
+  //     // Ensure no double blank lines
+  //     formattedText = formattedText.replace(/\n\s*\n\s*\n/g, '\n\n');
       
-      logger.info('WhatsApp formatting completed with enhanced product list support');
-      return formattedText;
-    } catch (error) {
-      logger.error('Error formatting WhatsApp message:', error);
-      return text; // Return original text in case of error
-    }
-  }
+  //     logger.info('WhatsApp formatting completed with enhanced product list support');
+  //     return formattedText;
+  //   } catch (error) {
+  //     logger.error('Error formatting WhatsApp message:', error);
+  //     return text; // Return original text in case of error
+  //   }
+  // }
   
   /**
    * Process a message and return a response

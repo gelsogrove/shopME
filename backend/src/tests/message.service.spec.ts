@@ -218,6 +218,39 @@ describe('MessageService', () => {
         mockFrenchCustomer // customer with French language preference
       );
     })
+
+    // Test case: Prompt variable replacement for customerLanguage
+    it('should replace {customerLanguage} in the prompt with the actual language', async () => {
+      mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
+        id: 'workspace-id',
+        isActive: true
+      } as any)
+      mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false)
+      const mockCustomer = {
+        id: 'customer-id',
+        phone: '+1234567890',
+        language: 'English',
+        name: 'Test Customer'
+      } as any;
+      mockMessageRepository.findCustomerByPhone.mockResolvedValue(mockCustomer);
+      mockMessageRepository.getRouterAgent.mockResolvedValue('router prompt');
+      mockMessageRepository.getProducts.mockResolvedValue([]);
+      mockMessageRepository.getServices.mockResolvedValue([]);
+      mockMessageRepository.getLatesttMessages.mockResolvedValue([]);
+      // The agent prompt contains the variable
+      const agentPromptWithVar = 'Your response MUST be in **{customerLanguage}** language.';
+      const mockAgent = { name: 'TestAgent', content: agentPromptWithVar };
+      mockMessageRepository.getResponseFromAgentRouter.mockResolvedValue(mockAgent);
+      let promptSentToRag = '';
+      mockMessageRepository.getResponseFromRag.mockImplementation((agent) => {
+        promptSentToRag = agent._replacedPrompt || agent.content;
+        return Promise.resolve('Test response');
+      });
+      mockMessageRepository.getConversationResponse.mockResolvedValue('Test response');
+      await messageService.processMessage('Hello', '+1234567890', 'workspace-id');
+      expect(promptSentToRag).toContain('**English**');
+      expect(promptSentToRag).not.toContain('{customerLanguage}');
+    });
   })
   
   describe('processMessage with unregistered customer', () => {

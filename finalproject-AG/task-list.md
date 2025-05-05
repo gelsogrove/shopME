@@ -1071,3 +1071,10 @@ Implementare una funzionalità che applichi automaticamente uno sconto ai prezzi
   - Creata funzione helper applyDiscount per standardizzare il calcolo dello sconto
   - Implementata gestione combinata di sconto e conversione valutaria
   - Creati test per verificare il corretto funzionamento della funzionalità di sconto
+
+- [ ] Fix test errors due to unused variables in message.service.ts and message.repository.ts
+- [x] All backend tests pass after removing unused variables (formatListForWhatsApp, shouldDisplayUSD)
+- [x] Fixed variable replacement in prompts for customerLanguage, customerCurrency and customerDiscount
+- [x] Fixed price formatting to correctly show discounted prices and original prices with toFixed(2)
+- [x] Fixed message persistence by properly saving messages and updating customer's updatedAt timestamp
+- [x] Fixed the conversation flow to remove unwanted formatting instructions in the user message
