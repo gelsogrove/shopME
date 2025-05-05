@@ -1,4 +1,5 @@
 import { PageLayout } from "@/components/layout/PageLayout"
+import { getWorkspaceId } from "@/config/workspace.config"
 import { api } from "@/services/api"
 import { Send } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
@@ -25,7 +26,7 @@ interface Chat {
   companyName?: string
   lastMessage: string
   unreadCount: number
-  lastActive: string
+  lastMessageTime: string
   messages?: Message[]
 }
 
@@ -62,23 +63,21 @@ export function ChatPage() {
       if (response.data.success) {
         console.log("Chat data received:", response.data.data);
         
-        // Log specifico per verificare la presenza del campo companyName
+        // Log specifico per verificare i campi di data
         response.data.data.forEach((chat: any, index: number) => {
-          console.log(`Chat ${index} - customerName: ${chat.customerName}, companyName: ${chat.companyName || 'NON PRESENTE'}`);
-        });
-
-        // Aggiungiamo un campo companyName di default se non presente
-        const modifiedData = response.data.data.map((chat: any) => {
-          if (!chat.companyName) {
-            return {
-              ...chat,
-              companyName: "Restaurant Da Luigi" // Valore di default per il test
-            };
+          console.log(`Chat ${index} - lastMessageTime: ${chat.lastMessageTime || 'MANCANTE'}`);
+          // Prova a formattare la data per il debug
+          if (chat.lastMessageTime) {
+            try {
+              const date = new Date(chat.lastMessageTime);
+              console.log(`Chat ${index} - data formattata: ${date.toLocaleString()}`);
+            } catch (e) {
+              console.error(`Chat ${index} - errore formattazione data: ${e}`);
+            }
           }
-          return chat;
         });
         
-        setChats(modifiedData)
+        setChats(response.data.data);
       } else {
         toast.error("Errore nel caricamento delle chat")
       }
@@ -92,21 +91,33 @@ export function ChatPage() {
 
   // Funzione per formattare la data in modo sicuro
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return "00/00/0000 00:00";
+    if (!dateString) {
+      console.log("formatDate: dateString è null o undefined");
+      return "Data non disponibile";
+    }
     
     try {
+      console.log(`formatDate: tentativo di formattare "${dateString}"`);
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "00/00/0000 00:00";
+      
+      if (isNaN(date.getTime())) {
+        console.log(`formatDate: data invalida "${dateString}"`);
+        return "Data non valida";
+      }
       
       // Formatta come "GG/MM/AAAA HH:MM"
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const year = date.getFullYear();
-      const time = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
       
-      return `${day}/${month}/${year} ${time}`;
+      const formattedDate = `${day}/${month}/${year} ${hours}:${minutes}`;
+      console.log(`formatDate: risultato "${formattedDate}"`);
+      return formattedDate;
     } catch (e) {
-      return "00/00/0000 00:00";
+      console.error(`formatDate: errore durante la formattazione della data "${dateString}"`, e);
+      return "Errore data";
     }
   };
 
@@ -116,7 +127,7 @@ export function ChatPage() {
       // Assicuriamoci che companyName sia sempre presente
       const chatWithCompany = {
         ...chat,
-        companyName: chat.companyName || "Restaurant Da Luigi"
+        companyName: chat.companyName || ""
       };
       
       // Aggiorna i parametri URL solo se richiesto
@@ -143,13 +154,19 @@ export function ChatPage() {
       // Aggiorna lo stato della chat selezionata
       setSelectedChat(chatWithCompany)
       
-      // Imposta il conteggio dei messaggi non letti a 0
+      // Imposta il conteggio dei messaggi non letti a 0 solo per la chat corrente
       if (chatWithCompany.unreadCount > 0) {
-        setChats(prev => 
-          prev.map(c => 
-            c.id === chatWithCompany.id ? { ...c, unreadCount: 0 } : c
-          )
-        )
+        // Creiamo una nuova lista di chat per aggiornare lo stato correttamente
+        const updatedChats = chats.map(c => {
+          // Aggiorna solo la chat corrente, mantiene inalterato il conteggio per le altre
+          if (c.sessionId === chatWithCompany.sessionId) {
+            return { ...c, unreadCount: 0 };
+          }
+          return c;
+        });
+        
+        // Aggiorna lo stato chats con la nuova lista
+        setChats(updatedChats);
         
         // Marca i messaggi come letti nel backend (una sola volta)
         try {
@@ -184,17 +201,21 @@ export function ChatPage() {
         ...selectedChat,
         messages: [...(selectedChat.messages || []), newMessage],
         lastMessage: messageInput,
-        lastActive: new Date().toISOString()
+        lastMessageTime: new Date().toISOString()
       }
       
       setSelectedChat(updatedChat)
       setMessageInput("")
       
+      // Ottieni il workspaceId dalla sessione di chat corrente
+      const sessionResponse = await api.get(`/api/chat/${selectedChat.sessionId}`);
+      const currentWorkspaceId = sessionResponse.data?.data?.workspaceId || getWorkspaceId();
+      
       // Invia il messaggio al backend
       const response = await api.post('/api/messages', { 
         message: messageInput,
         phoneNumber: selectedChat.customerPhone,
-        workspaceId: "42d4d042-9b85-424e-a7fc-7dc047f0c376"
+        workspaceId: currentWorkspaceId
       })
       
       if (response.data.success) {
@@ -216,7 +237,7 @@ export function ChatPage() {
             ...prevChat,
             messages: [...(prevChat.messages || []), responseMessage],
             lastMessage: responseMessage.content,
-            lastActive: new Date().toISOString()
+            lastMessageTime: new Date().toISOString()
           }
         })
       }
@@ -253,7 +274,7 @@ export function ChatPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-medium">
-                      {chat.customerName} ({chat.companyName})
+                      {chat.customerName} {chat.companyName ? `(${chat.companyName})` : ''}
                     </h3>
                     <p className="text-sm text-green-600">
                       {chat.customerPhone}
@@ -269,7 +290,7 @@ export function ChatPage() {
                   {chat.lastMessage}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  {formatDate(chat.lastActive)}
+                  {formatDate(chat.lastMessageTime)}
                 </p>
               </div>
             ))}
@@ -284,7 +305,7 @@ export function ChatPage() {
               <div className="flex justify-between items-center pb-2 border-b h-[60px]">
                 <div>
                   <h2 className="font-bold">
-                    {selectedChat.customerName} ({selectedChat.companyName})
+                    {selectedChat.customerName} {selectedChat.companyName ? `(${selectedChat.companyName})` : ''}
                   </h2>
                   <p className="text-sm text-gray-500">
                     {selectedChat.customerPhone}

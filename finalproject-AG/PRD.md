@@ -4,20 +4,19 @@
 
 The ShopMe project aims to develop a WhatsApp-based e-commerce platform that leverages the WhatsApp Business API and AI technology to automate client support and order management. Designed as a Software as a Service (SaaS) solution, the platform enables businesses to create their own white-labeled e-commerce presence with minimal setup. The goal is to provide immediate and continuous 24/7 assistance, enhancing client experience and streamlining business operations.
 
-### 1.1 Initial Use Case: Italian Products E-commerce
+### 1.1 Initial Use Case: Italian Products Chatbots
 
 As our first implementation, the platform will be specialized in selling high-quality Italian products. Users will be able to:
 
 **Product Discovery and Information**:
 
-- Browse a curated selection of Italian DOP, IGP, and DOCG products
-- Access detailed product information, including origin, certifications, and usage suggestions
+- Access detailed product information
 - Receive personalized product recommendations
 - Learn about producers' stories and traditional production methods
 
 **Order Management**:
 
-- Place orders directly through WhatsApp
+- Place orders directly through WhatsApp chatbot
 - Receive immediate order confirmations
 - Track shipment status
 - Download invoices and fiscal documents

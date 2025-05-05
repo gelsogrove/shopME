@@ -18,6 +18,13 @@ export const chatRouter = (): express.Router => {
   router.get('/recent', asyncHandler(chatController.getRecentChats.bind(chatController)));
 
   /**
+   * @route GET /api/chat/:sessionId
+   * @desc Get details for a specific chat session
+   * @access Private
+   */
+  router.get('/:sessionId', asyncHandler(chatController.getChatSession.bind(chatController)));
+
+  /**
    * @route GET /api/chat/:sessionId/messages
    * @desc Get messages for a specific chat session
    * @access Private

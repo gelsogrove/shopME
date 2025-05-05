@@ -1,11 +1,32 @@
 import { MessageDirection, MessageType, PrismaClient } from '@prisma/client';
+import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import logger from '../../utils/logger';
 
+// Load environment variables
+dotenv.config();
+
+// Log API key status (safely)
+const apiKey = process.env.OPENAI_API_KEY || '';
+logger.info(`OpenAI API key status: ${apiKey ? 'Present (length: ' + apiKey.length + ')' : 'Missing'}`);
+if (apiKey) {
+  logger.info(`API key prefix: ${apiKey.substring(0, 10)}...`);
+}
+
 // OpenAI client instance
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'your-api-key-here', // Usa variabile d'ambiente o configura in un posto sicuro
+  apiKey: process.env.OPENAI_API_KEY || 'your-api-key-here',
+  baseURL: "https://openrouter.ai/api/v1",
+  defaultHeaders: {
+    "HTTP-Referer": "https://laltroitalia.shop",
+  },
 });
+
+// Helper function to check if OpenAI is properly configured
+function isOpenAIConfigured() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  return apiKey && apiKey.length > 10 && apiKey !== 'your-api-key-here';
+}
 
 export class MessageRepository {
   private prisma: PrismaClient;
@@ -214,48 +235,94 @@ export class MessageRepository {
     direction?: string;
   }) {
     try {
-      // Verifica se esiste un workspace valido
-      let workspaceId = data.workspaceId;
+      // Validate required fields
+      if (!data.phoneNumber) {
+        logger.error('saveMessage: Phone number is required');
+        throw new Error('Phone number is required');
+      }
       
-      // Cerca un workspace valido nel database
-      if (!workspaceId) {
-        // Cerca il primo workspace disponibile
-        const workspace = await this.prisma.workspace.findFirst({
-          select: { id: true }
-        });
-        
-        if (workspace) {
-          workspaceId = workspace.id;
-          logger.info(`Using workspace: ${workspaceId}`);
+      if (!data.message) {
+        logger.error('saveMessage: Message content is required');
+        throw new Error('Message content is required');
+      }
+      
+      // Verify workspace ID
+      let workspaceId = data.workspaceId;
+      logger.info(`saveMessage: Using provided workspace ID: ${workspaceId}`);
+      
+      // Validate workspace ID using the dedicated method
+      if (workspaceId) {
+        const isValid = await this.validateWorkspaceId(workspaceId);
+        if (!isValid) {
+          logger.warn(`saveMessage: Provided workspace ID ${workspaceId} is invalid, will search for alternative`);
+          workspaceId = '';
         } else {
-          throw new Error('No workspace found in the database');
-        }
-      } else {
-        // Verifica che il workspace fornito esista
-        const workspace = await this.prisma.workspace.findUnique({
-          where: { id: workspaceId },
-          select: { id: true }
-        });
-        
-        if (!workspace) {
-          // Se non esiste, cerca il primo workspace disponibile
-          const firstWorkspace = await this.prisma.workspace.findFirst({
-            select: { id: true }
+          // Check if workspace is active
+          const workspace = await this.prisma.workspace.findUnique({
+            where: { id: workspaceId },
+            select: { isActive: true }
           });
           
-          if (firstWorkspace) {
-            workspaceId = firstWorkspace.id;
-            logger.info(`Provided workspace not found. Using workspace: ${workspaceId}`);
-          } else {
-            throw new Error('No workspace found in the database');
+          if (!workspace?.isActive) {
+            logger.warn(`saveMessage: Workspace ${workspaceId} exists but is inactive, will search for active workspace`);
+            workspaceId = '';
           }
         }
       }
       
-      // Prima cerca il cliente (senza crearlo)
+      // If no valid workspace ID provided, try to find an existing workspace
+      if (!workspaceId) {
+        // Try to find an active workspace
+        logger.info('saveMessage: Searching for an active workspace');
+        
+        // First try to get a workspace associated with this phone number
+        let existingCustomer = await this.prisma.customers.findFirst({
+          where: { 
+            phone: data.phoneNumber 
+          },
+          include: {
+            workspace: {
+              select: { id: true, isActive: true }
+            }
+          }
+        });
+        
+        // If customer exists and has a workspace associated
+        if (existingCustomer?.workspace?.id) {
+          workspaceId = existingCustomer.workspace.id;
+          logger.info(`saveMessage: Found workspace ${workspaceId} associated with customer ${existingCustomer.id}`);
+        } 
+        // Otherwise look for any active workspace
+        else {
+          const activeWorkspace = await this.prisma.workspace.findFirst({
+            where: { isActive: true },
+            select: { id: true }
+          });
+          
+          if (activeWorkspace) {
+            workspaceId = activeWorkspace.id;
+            logger.info(`saveMessage: Found active workspace: ${workspaceId}`);
+          } else {
+            // If no active workspace, try any workspace
+            const anyWorkspace = await this.prisma.workspace.findFirst({
+              select: { id: true }
+            });
+            
+            if (anyWorkspace) {
+              workspaceId = anyWorkspace.id;
+              logger.info(`saveMessage: No active workspaces. Using workspace: ${workspaceId}`);
+            } else {
+              logger.error('saveMessage: No workspaces found in the database');
+              throw new Error('No workspace found in the database');
+            }
+          }
+        }
+      }
+      
+      // Find or create customer
       let customer = await this.findCustomerByPhone(data.phoneNumber);
       
-      // Se non esiste, crealo ora con il workspaceId
+      // If no customer exists, create one with the determined workspaceId
       if (!customer) {
         customer = await this.prisma.customers.create({
           data: {
@@ -265,10 +332,10 @@ export class MessageRepository {
             workspaceId: workspaceId,
           }
         });
-        logger.info(`Created new customer: ${customer.id}`);
+        logger.info(`saveMessage: Created new customer: ${customer.id}`);
       }
       
-      // Trova o crea una sessione di chat
+      // Find or create chat session
       let session = await this.prisma.chatSession.findFirst({
         where: {
           customerId: customer.id,
@@ -287,7 +354,7 @@ export class MessageRepository {
             status: 'active',
           }
         });
-        logger.info(`Created new chat session: ${session.id}`);
+        logger.info(`saveMessage: Created new chat session: ${session.id}`);
       }
       
       // Use INBOUND as default direction
@@ -321,11 +388,11 @@ export class MessageRepository {
         }
       });
       
-      logger.info(`Saved conversation pair for phone number: ${data.phoneNumber}`);
+      logger.info(`saveMessage: Saved conversation pair for phone number: ${data.phoneNumber}`);
       return botResponse;
     } catch (error) {
       logger.error('Error saving message pair:', error);
-      throw new Error('Failed to save message pair');
+      throw new Error(`Failed to save message pair: ${error.message}`);
     }
   }
   
@@ -362,6 +429,7 @@ export class MessageRepository {
           customerId: session.customerId,
           customerName: session.customer.name,
           customerPhone: session.customer.phone,
+          companyName: session.customer.company || null,
           lastMessage: lastMessage ? lastMessage.content : null,
           lastMessageTime: lastMessage ? lastMessage.createdAt : session.updatedAt,
           status: session.status,
@@ -463,237 +531,488 @@ export class MessageRepository {
   }
 
   /**
-   * Get WhatsApp channel settings for a workspace
-   * @param workspaceId The workspace ID
-   * @returns Channel settings with isActive status and wipMessage
-   /**
-    * Get workspace settings for a workspace
-    * @param workspaceId The workspace ID
-    * @returns Workspace settings
-    */
-   async getWorkspaceSettings(workspaceId: string) {
-     try {
-       const workspace = await this.prisma.workspace.findUnique({
-         where: { id: workspaceId }
-       });
-       
-       if (!workspace) {
-         throw new Error('Workspace not found');
-       }
-
-       return workspace;
-       
-     } catch (error) {
-       logger.error('Error getting workspace settings', error);
-       throw new Error('Failed to get workspace settings');
-     }
-   }
-
-   /**
-    * Get the router agent for the workspace
-    * @returns The router agent prompt
-    */
-   async getRouterAgent() {
-     try {
-       const routerAgent = await this.prisma.prompts.findFirst({
-         where: {
-           isRouter: true,
-           isActive: true
-         }
-       });
-       
-       return routerAgent;
-     } catch (error) {
-       logger.error('Error getting router agent', error);
-       return null;
-     }
-   }
-
-   /**
-    * Get products list
-    * @returns List of active products
-    */
-   async getProducts() {
-     try {
-       const products = await this.prisma.products.findMany({
-         where: {
-           isActive: true
-         },
-         include: {
-           category: true
-         }
-       });
-       
-       return products;
-     } catch (error) {
-       logger.error('Error getting products', error);
-       return [];
-     }
-   }
-
-   /**
-    * Get chat messages for a phone number
-    * @param phoneNumber The phone number
-    * @param limit Number of messages to return
-    * @returns Recent chat messages
-    */
-   async getLatesttMessages(phoneNumber: string, limit = 30) {
-     try {
-       // Find customer by phone
-       const customer = await this.findCustomerByPhone(phoneNumber);
-       if (!customer) return [];
-       
-       // Find active chat session
-       const session = await this.prisma.chatSession.findFirst({
-         where: {
-           customerId: customer.id,
-           status: 'active'
-         },
-         orderBy: {
-           startedAt: 'desc'
-         }
-       });
-       
-       if (!session) return [];
-       
-       // Get messages for the session
-       const messages = await this.prisma.message.findMany({
-         where: {
-           chatSessionId: session.id
-         },
-         orderBy: {
-           createdAt: 'desc'
-         },
-         take: limit
-       });
-       
-       return messages.reverse(); // Return in chronological order
-     } catch (error) {
-       logger.error('Error getting messages', error);
-       return [];
-     }
-   }
-
-   /**
-    * Get response from primary LLM to route the conversation
-    * @param routerPrompt The router agent prompt
-    * @param message The user message
-    * @returns The selected agent/department prompt
-    */
-   async getResponseFromLLM(routerPrompt: any, message: string): Promise<any> {
-     try {
-       // In una implementazione reale, qui chiameresti un API di un LLM come OpenAI
-       // Per ora simulo una risposta basica
-       console.log(`Routing message with router prompt: ${routerPrompt?.name || 'Default router'}`);
-       
-       // Controlla se c'è una menzione di prodotti
-       if (message.toLowerCase().includes('prodotto') || 
-           message.toLowerCase().includes('product') ||
-           message.toLowerCase().includes('pizza') ||
-           message.toLowerCase().includes('pasta')) {
-         // Cerca un agent specializzato in prodotti
-         const productAgent = await this.prisma.prompts.findFirst({
-           where: {
-             department: 'PRODUCTS',
-             isActive: true
-           }
-         });
-         
-         return productAgent || routerPrompt;
-       }
-       
-       // Default: ritorna il router prompt stesso
-       return routerPrompt;
-     } catch (error) {
-       console.error('Error getting response from LLM:', error);
-       // In caso di errore ritorna il prompt originale
-       return routerPrompt;
-     }
-   }
-
-   /**
-    * Get system prompt from sub-LLM using agent, message, products and history
-    * @param agentPrompt The selected agent prompt
-    * @param message The user message
-    * @param products Available products
-    * @param chatHistory Chat history
-    * @returns Enriched system prompt
-    */
-   async getResponseFromRag(agentPrompt: any, message: string, products: any[], chatHistory: any[]): Promise<string> {
-     try {
-       // In una implementazione reale, qui chiameresti un'API di un LLM come OpenAI
-       // Per ora creiamo un prompt di sistema semplice
-       
-       // Estrai contenuto del prompt agent
-       const promptContent = agentPrompt?.content || "You are a helpful assistant for L'Altra Italia food shop.";
-       
-       // Prepara informazioni sui prodotti rilevanti (max 3 per non sovraccaricare)
-       let productInfo = "";
-       
-       // Se il messaggio menziona prodotti, includi informazioni
-       if (message.toLowerCase().includes('prodotto') || 
-           message.toLowerCase().includes('product') ||
-           message.toLowerCase().includes('pizza') ||
-           message.toLowerCase().includes('pasta')) {
-         
-         // Filtra prodotti che potrebbero essere rilevanti al messaggio
-         const relevantProducts = products
-           .filter(p => p.name.toLowerCase().includes('pizza') || p.name.toLowerCase().includes('pasta'))
-           .slice(0, 3);
-         
-         if (relevantProducts.length > 0) {
-           productInfo = "Relevant products:\n" + 
-             relevantProducts.map(p => 
-               `- ${p.name}: ${p.description} (Price: €${p.price})`
-             ).join("\n");
-         }
-       }
-       
-       // Costruisci il prompt di sistema
-       const systemPrompt = `${promptContent}
-       
-${productInfo}
-
-Remember to be helpful, concise and accurate. If you don't know something, say so.`;
-       
-       return systemPrompt;
-     } catch (error) {
-       console.error('Error getting system prompt from sub-LLM:', error);
-       return agentPrompt?.content || "You are a helpful assistant.";
-     }
-   }
-
-   /**
-    * Get conversational response using chat history, user message and system prompt
-    * @param chatHistory Chat history
-    * @param message User message
-    * @param systemPrompt System prompt
-    * @returns LLM generated response
-    */
-   async getConversationResponse(chatHistory: any[], message: string, systemPrompt: string): Promise<string> {
-     try {
+   * Validate a workspace ID
+   * @param workspaceId The workspace ID to validate
+   * @returns True if valid, False otherwise
+   */
+  async validateWorkspaceId(workspaceId: string): Promise<boolean> {
+    try {
+      if (!workspaceId || typeof workspaceId !== 'string') {
+        logger.warn('Invalid workspace ID format');
+        return false;
+      }
       
-       const formattedHistory = chatHistory.map(msg => ({
-         role: msg.direction === 'INBOUND' ? 'user' as const : 'assistant' as const,
-         content: msg.content
-       }));
-       
-       const response = await openai.chat.completions.create({
-         model: "gpt-4-mini",
-         messages: [
-           { role: "system" as const, content: systemPrompt },
-           ...formattedHistory,
-           { role: "user" as const, content: message }
-         ],
-         temperature: 0.7,
-         max_tokens: 2500
-       });
-       
-       return response.choices[0].message.content || "Mi dispiace, non sono riuscito a generare una risposta. Riprova.";
-     } catch (error) {
-       console.error('Error calling LLM API:', error);
-       return "Mi dispiace, c'è stato un problema con il servizio. Riprova più tardi.";
-     }
-   }
-} ``
+      const workspace = await this.prisma.workspace.findUnique({
+        where: { id: workspaceId }
+      });
+      
+      return !!workspace;
+    } catch (error) {
+      logger.error('Error validating workspace ID:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get workspace settings for a workspace
+   * @param workspaceId The workspace ID
+   * @returns Workspace settings
+   */
+  async getWorkspaceSettings(workspaceId: string) {
+    try {
+      logger.info(`Getting workspace settings for workspace ${workspaceId}`);
+      
+      // Check if workspaceId is missing or empty
+      if (!workspaceId || workspaceId.trim() === '') {
+        logger.warn('getWorkspaceSettings: No workspace ID provided, trying to find default workspace');
+        
+        // Try to find any active workspace
+        const activeWorkspace = await this.prisma.workspace.findFirst({
+          where: { isActive: true }
+        });
+        
+        if (activeWorkspace) {
+          logger.info(`getWorkspaceSettings: Found active workspace ${activeWorkspace.id} to use as default`);
+          return activeWorkspace;
+        }
+        
+        // If no active workspace, try any workspace
+        const anyWorkspace = await this.prisma.workspace.findFirst();
+        if (anyWorkspace) {
+          logger.warn(`getWorkspaceSettings: No active workspaces found, using ${anyWorkspace.id} (inactive)`);
+          return anyWorkspace;
+        }
+        
+        logger.error('getWorkspaceSettings: No workspaces found in the database');
+        return null;
+      }
+      
+      // Try to find by exact ID first
+      const workspace = await this.prisma.workspace.findUnique({
+        where: { id: workspaceId }
+      });
+      
+      // If found, return it
+      if (workspace) {
+        logger.info(`getWorkspaceSettings: Workspace ${workspaceId} found, isActive: ${workspace.isActive}`);
+        return workspace;
+      }
+      
+      // If not found by ID, try searching by name or slug
+      logger.warn(`getWorkspaceSettings: Workspace with ID ${workspaceId} not found, trying alternative searches`);
+      
+      // Try by name or slug
+      const workspaceByName = await this.prisma.workspace.findFirst({
+        where: {
+          OR: [
+            { name: { contains: workspaceId, mode: 'insensitive' } },
+            { slug: { contains: workspaceId, mode: 'insensitive' } }
+          ]
+        }
+      });
+      
+      if (workspaceByName) {
+        logger.info(`getWorkspaceSettings: Found workspace by name/slug match: ${workspaceByName.id}`);
+        return workspaceByName;
+      }
+      
+      // If still not found, try to get any active workspace
+      logger.warn('getWorkspaceSettings: No matching workspace found, falling back to any active workspace');
+      
+      const fallbackWorkspace = await this.prisma.workspace.findFirst({
+        where: { isActive: true }
+      });
+      
+      if (fallbackWorkspace) {
+        logger.info(`getWorkspaceSettings: Using fallback active workspace: ${fallbackWorkspace.id}`);
+        return fallbackWorkspace;
+      }
+      
+      logger.error('getWorkspaceSettings: No workspaces found after all fallback attempts');
+      return null;
+      
+    } catch (error) {
+      logger.error(`Error getting workspace settings for ${workspaceId}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Get the router agent for the workspace
+   * @returns The router agent prompt
+   */
+  async getRouterAgent() {
+    try {
+      const routerAgent = await this.prisma.prompts.findFirst({
+        where: {
+          isRouter: true,
+          isActive: true
+        }
+      });
+      
+      return routerAgent?.content;
+    } catch (error) {
+      logger.error('Error getting router agent', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get products list
+   * @returns List of active products
+   */
+  async getProducts() {
+    try {
+      const products = await this.prisma.products.findMany({
+        where: {
+          isActive: true
+        },
+        include: {
+          category: true
+        }
+      });
+      
+      return products;
+    } catch (error) {
+      logger.error('Error getting products', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get services list
+   * @returns List of active services
+   */
+  async getServices() {
+    try {
+      const services = await this.prisma.services.findMany({
+        where: {
+          isActive: true
+        }
+      });
+      
+      return services;
+    } catch (error) {
+      logger.error('Error getting services', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get chat messages for a phone number
+   * @param phoneNumber The phone number
+   * @param limit Number of messages to return
+   * @returns Recent chat messages
+   */
+  async getLatesttMessages(phoneNumber: string, limit = 30) {
+    try {
+      // Find customer by phone
+      const customer = await this.findCustomerByPhone(phoneNumber);
+      if (!customer) return [];
+      
+      // Find active chat session
+      const session = await this.prisma.chatSession.findFirst({
+        where: {
+          customerId: customer.id,
+          status: 'active'
+        },
+        orderBy: {
+          startedAt: 'desc'
+        }
+      });
+      
+      if (!session) return [];
+      
+      // Get messages for the session
+      const messages = await this.prisma.message.findMany({
+        where: {
+          chatSessionId: session.id
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        take: limit
+      });
+      
+      return messages.reverse(); // Return in chronological order
+    } catch (error) {
+      logger.error('Error getting messages', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get response from primary LLM to route the conversation
+   * @param routerPrompt The router agent prompt
+   * @param message The user message
+   * @returns The selected agent/department prompt
+   */
+  async getResponseFromAgentRouter(routerPrompt: any, message: string): Promise<any> {
+    try {
+      // Check if OpenAI is properly configured
+      if (!isOpenAIConfigured()) {
+        logger.warn('OpenAI API key not configured properly for router agent');
+        return {
+          id: "default",
+          name: "Generic",
+          content: "You are a helpful assistant for L'Altra Italia food shop. Respond in Italian.",
+          isRouter: false,
+          isActive: true,
+          department: "GENERIC",
+          temperature: 0.7,
+          top_p: 0.9,
+          top_k: 40,
+          selectedType: "Generic",
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      }
+      
+      logger.info(`Using router prompt for message: "${message.substring(0, 30)}..."`);
+      
+      try {
+        // Chiamata all'API per il routing
+        const routerResponse = await openai.chat.completions.create({
+          model: "openai/gpt-4o-mini",
+          messages: [
+            { role: "system", content: routerPrompt },
+            { role: "user", content: message }
+          ],
+          temperature: 0.3,  
+          max_tokens: 50
+        });
+        
+        const routerChoice = routerResponse.choices[0]?.message?.content || '';
+        
+        // Pulisce il testo da delimitatori markdown
+        let cleanedResponse = routerChoice.trim()
+          .replace(/^```(json)?/, '')
+          .replace(/```$/, '')
+          .trim();
+        
+        // Tenta di analizzare la risposta come JSON
+        const parsedResponse = JSON.parse(cleanedResponse);
+        
+        // Estrae l'agente dalla risposta
+        const agentName = parsedResponse.agent || "Generic";
+        logger.info(`SELECTED AGENT TYPE: "${agentName}"`);
+        
+        // Cerca l'agente nel database
+        const agentPrompt = await this.prisma.prompts.findFirst({
+          where: {
+            name: {
+              contains: agentName,
+              mode: 'insensitive'
+            },
+            isActive: true
+          }
+        });
+        
+        if (agentPrompt) {
+          logger.info(`AGENT FOUND: "${agentPrompt.name}"`);
+          
+          // Restituisce l'oggetto agente completo con valori di default per campi mancanti
+          return {
+            id: agentPrompt.id,
+            name: agentPrompt.name,
+            content: agentPrompt.content,
+            isRouter: agentPrompt.isRouter || false,
+            isActive: agentPrompt.isActive,
+            department: agentPrompt.department || "GENERAL",
+            temperature: agentPrompt.temperature || 0.7,
+            top_p: agentPrompt.top_p || 0.9,
+            top_k: agentPrompt.top_k || 40,
+            selectedType: agentName,
+            createdAt: agentPrompt.createdAt,
+            updatedAt: agentPrompt.updatedAt
+          };
+        }
+      } catch (parseError) {
+        logger.error(`JSON parsing error: ${parseError.message}`);
+        
+        // Restituisce un oggetto agente di fallback in caso di errore parsing
+        return {
+          id: "fallback",
+          name: "Fallback",
+          content: routerPrompt,
+          isRouter: false,
+          isActive: true,
+          department: "GENERAL",
+          temperature: 0.7,
+          top_p: 0.9,
+          top_k: 40,
+          selectedType: "Fallback",
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      }
+    } catch (error) {
+      logger.error('Error in router function:', error);
+    
+      return null;
+    }
+  }
+
+  /**
+   * Get response from LLM using agent, message, products and services
+   * @param agent The selected agent with all settings
+   * @param message The user message
+   * @param products Available products
+   * @param services Available services
+   * @param chatHistory Chat history
+   * @returns Response from LLM as string
+   */
+  async getResponseFromRag(
+    agent: any, 
+    message: string, 
+    products: any[], 
+    services: any[], 
+    chatHistory: any[],
+    customer: any = null
+  ): Promise<string> {
+    try {
+
+      // Check if OpenAI is properly configured
+      if (!isOpenAIConfigured()) {
+        logger.warn('OpenAI API key not configured properly');
+        return "Il servizio di intelligenza artificiale non è attualmente disponibile. Un operatore ti contatterà a breve.";
+      }
+      
+      // Extract agent content and parameters
+      const agentContent = typeof agent === 'string' ? agent : agent.content || '';
+      const temperature = typeof agent === 'object' ? agent.temperature || 0.7 : 0.7;
+      const top_p = typeof agent === 'object' ? agent.top_p || 0.9 : 0.9;
+      const top_k = typeof agent === 'object' ? agent.top_k || 40 : 40;
+      const agentName = typeof agent === 'object' ? agent.name || 'Generic' : 'Generic';
+      
+      logger.info(`Using agent "${agentName}" with temp=${temperature}, top_p=${top_p}, top_k=${top_k}`);
+      
+      // Log per debug
+      const isProductAgent = agentName.toLowerCase().includes('products');
+      const isServiceAgent = agentName.toLowerCase().includes('service');
+      
+      
+      // Prepara il messaggio utente finale
+      const userMessage = { role: "user" as const, content: message };
+      
+      // Prepara i messaggi per l'API
+      const systemMessage = { 
+        role: "system" as const, 
+        content: agentContent + "\n\nIMPORTANT: Your response MUST be in natural language. DO NOT include 'Messaggio generato da' anywhere in your response."
+      };
+      
+      // Prepara eventuali messaggi per prodotti e servizi
+      // Includi prodotti SOLO se l'agente è Products
+      const productMessage = (products && products.length > 0 && isProductAgent) ? 
+        { 
+          role: "system" as const, 
+          content: `I prodotti disponibili sono: ${JSON.stringify(
+            products.map(p => ({
+              id: p.id,
+              name: p.name,
+              description: p.description,
+              price: p.price,
+              category: p.category?.name || 'Non categorizzato',
+              stock: p.stock || 'Disponibile',
+            }))
+          )}`
+        } : null;
+        
+      // Includi servizi SOLO se l'agente è Services
+      const serviceMessage = (services && services.length > 0 && isServiceAgent) ? 
+        { role: "system" as const, content: JSON.stringify({ services }) } : null;
+        
+     
+      // Prepara gli eventuali messaggi dalla chat history
+      const historyMessages = [];
+      if (chatHistory && chatHistory.length > 0) {
+        for (const msg of chatHistory) {
+          if (msg.direction === MessageDirection.INBOUND) {
+            historyMessages.push({ role: "user" as const, content: msg.content || '' });
+          } else if (msg.direction === MessageDirection.OUTBOUND) {
+            historyMessages.push({ role: "assistant" as const, content: msg.content || '' });
+          }
+        }
+      }
+      
+      // Costruisci array di messaggi finale
+      const messages = [
+        systemMessage,
+        ...(customer ? [{ role: "system" as const, content: `Informazioni cliente: ${JSON.stringify({
+          id: customer.id,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+          company: customer.company || 'Non specificato',
+          language: customer.language || 'it',
+          address: customer.address || 'Non specificato',
+          notes: customer.notes || ''
+        })}` }] : []),
+        ...(productMessage ? [productMessage] : []),
+        ...(serviceMessage ? [serviceMessage] : []),
+        ...historyMessages,
+        userMessage
+      ];
+
+      console.log("================================================")
+      console.log(messages)
+      console.log("================================================")
+      
+      // Make API call to OpenAI
+      const response = await openai.chat.completions.create({
+        model: "openai/gpt-4o-mini", 
+        messages: messages,
+        temperature: temperature,
+        top_p: top_p,
+        max_tokens: 1000
+      });
+      
+      // Validate response and extract content
+      let responseContent = "";
+      
+      if (response && response.choices && response.choices.length > 0 && response.choices[0].message) {
+        responseContent = response.choices[0].message.content || "";
+        logger.info(`AI response (${responseContent.length} chars): "${responseContent.substring(0, 50)}${responseContent.length > 50 ? '...' : ''}"`);
+      } else {
+        logger.error('OpenAI API returned an empty or invalid response structure:', response);
+        responseContent = "Mi dispiace, il servizio ha risposto in modo non valido. Un operatore ti contatterà a breve.";
+      }
+      
+      return responseContent;
+      
+    } catch (error) {
+      // Detailed error handling
+      logger.error('Error calling OpenAI API:', error);
+      
+    
+      // Generic error message
+      return "Mi dispiace....errore";
+    }
+  }
+
+  /**
+   * Get conversational response using chat history, user message and system prompt
+   * @param chatHistory Chat history
+   * @param message User message
+   * @param systemPrompt System prompt
+   * @returns LLM generated response
+   */
+  async getConversationResponse(chatHistory: any[], message: string, systemPrompt: string): Promise<string> {
+    try {
+     
+      // Create a dummy agent prompt with the provided system prompt
+      const dummyAgent = {
+        content: systemPrompt
+      };
+      
+      // Delegate to getResponseFromRag
+      const response = await this.getResponseFromRag(dummyAgent, message, [], [], chatHistory);
+      logger.info(`FINAL AI RESPONSE: "${response.substring(0, 50)}${response.length > 50 ? '...' : ''}"`);
+      return response;
+    } catch (error) {
+      logger.error('Error in conversation processing:', error);
+      return "Mi dispiace, c'è stato un problema nell'elaborazione del messaggio. Un operatore ti contatterà a breve.";
+    }
+  }
+}
        

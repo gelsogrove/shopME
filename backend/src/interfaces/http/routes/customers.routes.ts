@@ -14,6 +14,9 @@ export const customersRouter = (controller: CustomersController): Router => {
   router.get("/workspaces/:workspaceId/customers/:id", controller.getCustomerById.bind(controller));
   router.put("/workspaces/:workspaceId/customers/:id", controller.updateCustomer.bind(controller));
   router.delete("/workspaces/:workspaceId/customers/:id", controller.deleteCustomer.bind(controller));
+  
+  // Route for counting unknown customers
+  router.get("/workspaces/:workspaceId/unknown-customers/count", controller.countUnknownCustomers.bind(controller));
 
   return router;
 }; 

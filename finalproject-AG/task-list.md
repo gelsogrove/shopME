@@ -824,9 +824,36 @@ Technical Requirements:
 - Implement simple unit tests for the endpoint
 - Create a simple UI test page to interact with the API
 
-- [ ] In Progress
+- [x] Completed
   - Created message controller with POST endpoint
-  - Added message service with uppercase conversion
+  - Added message service for processing messages
   - Created routes for the message API
-  - Added basic error handling
-  - Created test UI page at /message-test
+  - Added WhatsApp formatting for better text display
+  - Implemented proper API response structure
+  - Enhanced the loading state in the chat UI
+  - Improved product list formatting for WhatsApp messages
+  - Added message formatting for category information
+  - Added support for bold and italic text formatting
+
+=============== TASK-0070 ============================
+**Epic**: AI, WhatsApp & Messaging
+**Title**: Enhance WhatsApp Message Formatting
+**Description**:
+Improve the formatting of messages sent to WhatsApp to make them more readable and visually appealing, with special focus on product list displays.
+
+Technical Requirements:
+- Enhance product list readability with proper line breaks
+- Add support for WhatsApp's bold and italic formatting syntax
+- Improve formatting of category information
+- Show clear loading indicators during message processing
+- Ensure proper rendering of formatting in frontend preview
+
+- [x] Completed
+  - Enhanced `formatListForWhatsApp` method to better handle product lists
+  - Added automatic bold formatting for product names with WhatsApp's asterisk syntax
+  - Added support for displaying categories in italic format using underscores
+  - Improved the `getResponseFromRag` method with better product data structure
+  - Added frontend support for rendering WhatsApp formatting in HTML
+  - Enhanced the typing indicator with better animation
+  - Improved UX during loading states with visual feedback
+  - Created comprehensive documentation in fixes folder

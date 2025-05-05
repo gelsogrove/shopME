@@ -17,7 +17,9 @@ export class MessageController {
     try {
       const { message, phoneNumber, workspaceId } = req.body;
 
+      // Validate required fields
       if (!message || typeof message !== 'string') {
+        logger.warn('Invalid request: Message is required and must be a string');
         res.status(400).json({
           success: false,
           error: 'Message is required and must be a string'
@@ -25,14 +27,28 @@ export class MessageController {
         return;
       }
 
+      if (!phoneNumber || typeof phoneNumber !== 'string') {
+        logger.warn('Invalid request: Phone number is required and must be a string');
+        res.status(400).json({
+          success: false,
+          error: 'Phone number is required and must be a string'
+        });
+        return;
+      }
+
+      if (!workspaceId || typeof workspaceId !== 'string') {
+        logger.warn('Invalid request: Workspace ID is required and must be a string');
+        res.status(400).json({
+          success: false,
+          error: 'Workspace ID is required and must be a string'
+        });
+        return;
+      }
+
       // Log the request details
       logger.info(`Processing message: ${message}`);
-      if (phoneNumber) {
-        logger.info(`From phone number: ${phoneNumber}`);
-      }
-      if (workspaceId) {
-        logger.info(`For workspace: ${workspaceId}`);
-      }
+      logger.info(`From phone number: ${phoneNumber}`);
+      logger.info(`For workspace: ${workspaceId}`);
       
       // Process the message using the service
       const response = await this.messageService.processMessage(
@@ -47,8 +63,8 @@ export class MessageController {
         data: {
           originalMessage: message,
           processedMessage: response,
-          phoneNumber: phoneNumber || null,
-          workspaceId: workspaceId || null,
+          phoneNumber: phoneNumber,
+          workspaceId: workspaceId,
           timestamp: new Date().toISOString()
         }
       });

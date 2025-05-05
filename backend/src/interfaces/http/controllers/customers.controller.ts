@@ -133,4 +133,25 @@ export class CustomersController {
       next(error);
     }
   }
+
+  /**
+   * Count all "Unknown Customer" records in a workspace
+   */
+  async countUnknownCustomers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { workspaceId } = req.params;
+      
+      const count = await prisma.customers.count({
+        where: {
+          workspaceId,
+          isActive: true,
+          name: 'Unknown Customer'
+        }
+      });
+      
+      res.json({ count });
+    } catch (error) {
+      next(error);
+    }
+  }
 } 

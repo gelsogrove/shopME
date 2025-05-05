@@ -1,12 +1,15 @@
+import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import { MessageRepository } from '../../../infrastructure/repositories/message.repository';
 import logger from '../../../utils/logger';
 
 export class ChatController {
   private messageRepository: MessageRepository;
+  private prisma: PrismaClient;
 
   constructor() {
     this.messageRepository = new MessageRepository();
+    this.prisma = new PrismaClient();
   }
 
   /**
@@ -27,6 +30,57 @@ export class ChatController {
       res.status(500).json({
         success: false,
         error: 'Failed to get recent chats'
+      });
+    }
+  }
+
+  /**
+   * Get details for a specific chat session
+   */
+  async getChatSession(req: Request, res: Response): Promise<void> {
+    try {
+      const { sessionId } = req.params;
+      
+      if (!sessionId) {
+        res.status(400).json({
+          success: false,
+          error: 'Session ID is required'
+        });
+        return;
+      }
+      
+      // Get chat session details including workspace information
+      const chatSession = await this.prisma.chatSession.findUnique({
+        where: { id: sessionId },
+        include: {
+          customer: true,
+          workspace: {
+            select: {
+              id: true,
+              name: true,
+              isActive: true
+            }
+          }
+        }
+      });
+      
+      if (!chatSession) {
+        res.status(404).json({
+          success: false,
+          error: 'Chat session not found'
+        });
+        return;
+      }
+      
+      res.status(200).json({
+        success: true,
+        data: chatSession
+      });
+    } catch (error) {
+      logger.error(`Error getting chat session details for ${req.params.sessionId}:`, error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get chat session details'
       });
     }
   }

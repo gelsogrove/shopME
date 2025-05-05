@@ -27,6 +27,7 @@ export function WorkspaceSelectionPage() {
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false)
   const [selectedPhoneNumber, setSelectedPhoneNumber] = useState("")
   const [selectedChannelName, setSelectedChannelName] = useState("")
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState("")
 
   // Carica i workspace all'avvio
   useEffect(() => {
@@ -207,6 +208,7 @@ export function WorkspaceSelectionPage() {
                           e.stopPropagation();
                           setSelectedPhoneNumber(workspace.whatsappPhoneNumber || "");
                           setSelectedChannelName(workspace.name);
+                          setSelectedWorkspaceId(workspace.id);
                           setWhatsappModalOpen(true);
                         }}
                       >
@@ -352,6 +354,7 @@ export function WorkspaceSelectionPage() {
           onClose={() => setWhatsappModalOpen(false)}
           channelName={selectedChannelName}
           phoneNumber={selectedPhoneNumber}
+          workspaceId={selectedWorkspaceId}
         />
       </div>
     </div>

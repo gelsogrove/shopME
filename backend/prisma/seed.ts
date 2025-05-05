@@ -928,27 +928,27 @@ async function main() {
   const gdprFilePath = path.join(__dirname, '..', '..', '..', 'finalproject-AG', 'GDPR.md');
   try {
     const defaultGdprText = fs.readFileSync(gdprFilePath, 'utf8');
-    
-    if (!existingWhatsappSettings) {
-      await prisma.whatsappSettings.create({
-        data: {
-          phoneNumber: "+34654728753",
-          apiKey: "dummy-api-key",
-          workspaceId: mainWorkspaceId,
+
+  if (!existingWhatsappSettings) {
+    await prisma.whatsappSettings.create({
+      data: {
+        phoneNumber: "+34654728753",
+        apiKey: "dummy-api-key",
+        workspaceId: mainWorkspaceId,
           gdpr: defaultGdprText,
-        },
-      });
-      console.log("Impostazioni WhatsApp create per il workspace principale");
-    } else {
-      await prisma.whatsappSettings.update({
-        where: { workspaceId: mainWorkspaceId },
-        data: {
-          phoneNumber: "+34654728753",
-          apiKey: "dummy-api-key",
+      },
+    });
+    console.log("Impostazioni WhatsApp create per il workspace principale");
+  } else {
+    await prisma.whatsappSettings.update({
+      where: { workspaceId: mainWorkspaceId },
+      data: {
+        phoneNumber: "+34654728753",
+        apiKey: "dummy-api-key",
           gdpr: existingWhatsappSettings.gdpr || defaultGdprText,
-        },
-      });
-      console.log("Impostazioni WhatsApp aggiornate per il workspace principale");
+      },
+    });
+    console.log("Impostazioni WhatsApp aggiornate per il workspace principale");
     }
   } catch (error) {
     console.error("Non è stato possibile leggere il file GDPR.md:", error);
