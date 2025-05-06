@@ -9,6 +9,7 @@ export function GdprSettingsTab() {
   const [isLoading, setIsLoading] = useState(false)
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [gdprText, setGdprText] = useState("")
+  const [defaultGdpr, setDefaultGdpr] = useState("")
 
   useEffect(() => {
     const loadData = async () => {
@@ -25,8 +26,9 @@ export function GdprSettingsTab() {
           setGdprText(response.data.gdpr)
         } else {
           // If no GDPR policy exists yet, load the default from the file
-          const defaultResponse = await api.get('/api/gdpr/default')
+          const defaultResponse = await api.get('/gdpr/default')
           setGdprText(defaultResponse.data.content)
+          setDefaultGdpr(defaultResponse.data.content)
         }
       } catch (error) {
         console.error("Failed to load GDPR data:", error)
@@ -56,6 +58,17 @@ export function GdprSettingsTab() {
       setIsLoading(false)
     }
   }
+
+  const fetchDefaultGdpr = async () => {
+    try {
+      const defaultResponse = await api.get('/gdpr/default');
+      if (defaultResponse.data) {
+        setDefaultGdpr(defaultResponse.data);
+      }
+    } catch (error) {
+      console.error('Error fetching default GDPR:', error);
+    }
+  };
 
   if (isPageLoading) {
     return (

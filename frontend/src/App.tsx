@@ -9,15 +9,19 @@ import { ChatPage } from "./pages/ChatPage"
 import ClientsPage from "./pages/ClientsPage"
 import CustomersPage from "./pages/CustomersPage"
 import DashboardPage from "./pages/DashboardPage"
+import DataProtectionPage from './pages/data-protection'
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage"
 import { LoginPage } from "./pages/LoginPage"
 import MessageTestPage from "./pages/MessageTestPage"
+import NotFoundPage from './pages/not-found'
 import NotificationsPage from "./pages/NotificationsPage"
 import OrdersPage from "./pages/OrdersPage"
 import PlansPage from "./pages/PlansPage"
 import CategoriesPage from "./pages/products/CategoriesPage"
 import { ProductsPage } from "./pages/ProductsPage"
 import ProfilePage from "./pages/ProfilePage"
+import RegisterPage from './pages/register'
+import RegistrationSuccess from './pages/registration-success'
 import { ServicesPage } from "./pages/ServicesPage"
 import { CategoriesPage as SettingsCategoriesPage } from "./pages/settings/CategoriesPage"
 import { ChannelTypesPage } from "./pages/settings/ChannelTypesPage"
@@ -99,6 +103,11 @@ export function App() {
 
         {/* Redirect root to login */}
         <Route path="/" element={<Navigate to="/auth/login" replace />} />
+
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/registration-success" element={<RegistrationSuccess />} />
+        <Route path="/data-protection" element={<DataProtectionPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )

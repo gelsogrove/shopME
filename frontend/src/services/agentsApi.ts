@@ -8,7 +8,7 @@ export type { Agent, CreateAgentData, UpdateAgentData }
  */
 export const getAgents = async (workspaceId: string): Promise<Agent[]> => {
   try {
-    const response = await api.get<Agent[]>(`/api/workspaces/${workspaceId}/agents`)
+    const response = await api.get<Agent[]>(`/workspaces/${workspaceId}/agents`)
     console.log("getAgents response:", response.data)
     return response.data
   } catch (error) {
@@ -22,7 +22,7 @@ export const getAgents = async (workspaceId: string): Promise<Agent[]> => {
  */
 export const getAgent = async (workspaceId: string, agentId: string): Promise<Agent> => {
   try {
-    const response = await api.get<Agent>(`/api/workspaces/${workspaceId}/agents/${agentId}`)
+    const response = await api.get<Agent>(`/workspaces/${workspaceId}/agents/${agentId}`)
     return response.data
   } catch (error) {
     console.error("Error getting agent:", error)
@@ -39,7 +39,7 @@ export const createAgent = async (workspaceId: string, data: CreateAgentData): P
       workspaceId,
       ...data
     })
-    const response = await api.post<Agent>(`/api/workspaces/${workspaceId}/agents`, data)
+    const response = await api.post<Agent>(`/workspaces/${workspaceId}/agents`, data)
     console.log("createAgent response:", response.data)
     return response.data
   } catch (error) {
@@ -63,7 +63,7 @@ export const updateAgent = async (
       ...data
     })
     const response = await api.put<Agent>(
-      `/api/workspaces/${workspaceId}/agents/${agentId}`,
+      `/workspaces/${workspaceId}/agents/${agentId}`,
       data
     )
     console.log("updateAgent response:", response.data)
@@ -80,27 +80,10 @@ export const updateAgent = async (
 export const deleteAgent = async (workspaceId: string, agentId: string): Promise<void> => {
   try {
     console.log("Deleting agent:", { workspaceId, agentId })
-    await api.delete(`/api/workspaces/${workspaceId}/agents/${agentId}`)
+    await api.delete(`/workspaces/${workspaceId}/agents/${agentId}`)
     console.log("Agent deleted successfully")
   } catch (error) {
     console.error("Error deleting agent:", error)
-    throw error
-  }
-}
-
-/**
- * Duplicate an agent
- */
-export const duplicateAgent = async (workspaceId: string, agentId: string): Promise<Agent> => {
-  try {
-    console.log("Duplicating agent:", { workspaceId, agentId })
-    const response = await api.post<Agent>(
-      `/api/workspaces/${workspaceId}/agents/${agentId}/duplicate`
-    )
-    console.log("duplicateAgent response:", response.data)
-    return response.data
-  } catch (error) {
-    console.error("Error duplicating agent:", error)
     throw error
   }
 } 

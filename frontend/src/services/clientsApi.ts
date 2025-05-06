@@ -79,7 +79,7 @@ export const getAllForWorkspace = async (
     }
     
     const queryString = queryParams.toString();
-    const requestUrl = `/api/workspaces/${workspaceId}/clients${queryString ? `?${queryString}` : ''}`;
+    const requestUrl = `/workspaces/${workspaceId}/clients${queryString ? `?${queryString}` : ''}`;
     console.log('Clients API request URL:', requestUrl);
     
     const response = await api.get(requestUrl);
@@ -113,7 +113,7 @@ export const getAllForWorkspace = async (
  */
 export const getById = async (clientId: string, workspaceId: string): Promise<Client | null> => {
   try {
-    const response = await api.get(`/api/workspaces/${workspaceId}/clients/${clientId}`);
+    const response = await api.get(`/workspaces/${workspaceId}/clients/${clientId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching client by ID:', error);
@@ -126,7 +126,7 @@ export const getById = async (clientId: string, workspaceId: string): Promise<Cl
  */
 export const create = async (clientData: CreateClientData, workspaceId: string): Promise<Client | null> => {
   try {
-    const response = await api.post(`/api/workspaces/${workspaceId}/clients`, clientData);
+    const response = await api.post(`/workspaces/${workspaceId}/clients`, clientData);
     return response.data;
   } catch (error) {
     console.error('Error creating client:', error);
@@ -139,7 +139,7 @@ export const create = async (clientData: CreateClientData, workspaceId: string):
  */
 export const update = async (clientId: string, clientData: UpdateClientData, workspaceId: string): Promise<Client | null> => {
   try {
-    const response = await api.put(`/api/workspaces/${workspaceId}/clients/${clientId}`, clientData);
+    const response = await api.put(`/workspaces/${workspaceId}/clients/${clientId}`, clientData);
     return response.data;
   } catch (error) {
     console.error('Error updating client:', error);
@@ -152,7 +152,7 @@ export const update = async (clientId: string, clientData: UpdateClientData, wor
  */
 export const delete_ = async (clientId: string, workspaceId: string): Promise<boolean> => {
   try {
-    await api.delete(`/api/workspaces/${workspaceId}/clients/${clientId}`);
+    await api.delete(`/workspaces/${workspaceId}/clients/${clientId}`);
     return true;
   } catch (error) {
     console.error('Error deleting client:', error);

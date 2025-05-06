@@ -56,7 +56,7 @@ export function useWorkspace() {
       
       // First check if user is authenticated
       try {
-        await api.get("/api/auth/me")
+        await api.get("/auth/me")
       } catch (err) {
         navigate("/auth/login")
         return
@@ -77,7 +77,7 @@ export function useWorkspace() {
       }
       
       // If no cached workspace, fetch from API
-      const response = await api.get("/api/workspaces")
+      const response = await api.get("/workspaces")
       console.log("Workspaces API response:", response.data)
       
       // Get the active workspace or the first one
@@ -113,7 +113,7 @@ export function useWorkspace() {
 
     try {
       setLoading(true)
-      const response = await api.put(`/api/workspaces/${workspace.id}`, updates)
+      const response = await api.put(`/workspaces/${workspace.id}`, updates)
       setWorkspace(response.data)
       // Update the cached workspace in sessionStorage
       sessionStorage.setItem("currentWorkspace", JSON.stringify(response.data))
@@ -139,7 +139,7 @@ export function useWorkspace() {
     
     try {
       setServicesLoading(true)
-      const response = await api.get(`/api/workspaces/${workspace.id}/services`)
+      const response = await api.get(`/workspaces/${workspace.id}/services`)
       setServices(response.data)
       return response.data
     } catch (err) {

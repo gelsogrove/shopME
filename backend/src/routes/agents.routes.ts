@@ -23,7 +23,4 @@ router.put("/:id", wrapController(agentsController.update))
 // Delete an agent
 router.delete("/:id", wrapController(agentsController.delete))
 
-// Duplicate an agent
-router.post("/:id/duplicate", wrapController(agentsController.duplicate))
-
 export default router 

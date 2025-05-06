@@ -24,6 +24,8 @@ interface Customer {
   totalSpent: number
   lastActive: string
   status: "active" | "inactive"
+  gdprConsent: boolean
+  pushNotificationsConsent: boolean
 }
 
 const mockCustomers: Customer[] = [
@@ -36,6 +38,8 @@ const mockCustomers: Customer[] = [
     totalSpent: 1250.5,
     lastActive: "2024-04-01T10:30:00",
     status: "active",
+    gdprConsent: true,
+    pushNotificationsConsent: true,
   },
   {
     id: "2",
@@ -46,6 +50,8 @@ const mockCustomers: Customer[] = [
     totalSpent: 750.25,
     lastActive: "2024-03-30T15:45:00",
     status: "active",
+    gdprConsent: true,
+    pushNotificationsConsent: true,
   },
   {
     id: "3",
@@ -56,6 +62,8 @@ const mockCustomers: Customer[] = [
     totalSpent: 250.75,
     lastActive: "2024-03-15T09:20:00",
     status: "inactive",
+    gdprConsent: false,
+    pushNotificationsConsent: false,
   },
 ]
 
@@ -152,6 +160,8 @@ export default function CustomersPage() {
               <TableHead>Total Spent</TableHead>
               <TableHead>Last Active</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>GDPR</TableHead>
+              <TableHead>Push</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -180,6 +190,24 @@ export default function CustomersPage() {
                   >
                     {customer.status.charAt(0).toUpperCase() +
                       customer.status.slice(1)}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    customer.gdprConsent
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}>
+                    {customer.gdprConsent ? "Accepted" : "Not Accepted"}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    customer.pushNotificationsConsent
+                      ? "bg-green-100 text-green-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}>
+                    {customer.pushNotificationsConsent ? "Enabled" : "Disabled"}
                   </span>
                 </TableCell>
                 <TableCell>

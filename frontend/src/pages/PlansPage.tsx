@@ -37,7 +37,7 @@ export default function PlansPage() {
       name: "Free",
       description: "Perfect for getting started with basic features",
       price: "€0",
-      period: "14 days",
+      period: "21 days",
       features: [
         { text: "1 WhatsApp channel", included: true },
         { text: "Unlimited users", included: true },
@@ -56,7 +56,7 @@ export default function PlansPage() {
       id: "premium",
       name: "Premium",
       description: "Ideal for growing businesses with more needs",
-      price: "€99",
+      price: "€119",
       period: "per month",
       badge: "Popular",
       features: [
@@ -79,10 +79,10 @@ export default function PlansPage() {
       id: "enterprise",
       name: "Enterprise",
       description: "For large organizations with advanced requirements",
-      price: "€199",
+      price: "€249",
       period: "per month",
       features: [
-        { text: "3 WhatsApp channels", included: true },
+        { text: "Unlimited WhatsApp channels", included: true },
         { text: "Unlimited users", included: true },
         { text: "Unlimited Products", included: true },
         { text: "Unlimited Services", included: true },

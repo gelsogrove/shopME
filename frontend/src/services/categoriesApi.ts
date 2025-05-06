@@ -29,7 +29,7 @@ export interface UpdateCategoryData {
 export const getAllForWorkspace = async (workspaceId: string): Promise<Category[]> => {
   try {
     console.log('Fetching categories for workspace:', workspaceId);
-    const response = await api.get(`/api/workspaces/${workspaceId}/categories`);
+    const response = await api.get(`/workspaces/${workspaceId}/categories`);
     console.log('Categories response:', response.data);
     return response.data || [];
   } catch (error) {
@@ -43,7 +43,7 @@ export const getAllForWorkspace = async (workspaceId: string): Promise<Category[
  */
 export const getById = async (id: string, workspaceId: string): Promise<Category | null> => {
   try {
-    const response = await api.get(`/api/workspaces/${workspaceId}/categories/${id}`);
+    const response = await api.get(`/workspaces/${workspaceId}/categories/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching category:', error);
@@ -56,7 +56,7 @@ export const getById = async (id: string, workspaceId: string): Promise<Category
  */
 export const hasProducts = async (id: string, workspaceId: string): Promise<boolean> => {
   try {
-    const response = await api.get(`/api/workspaces/${workspaceId}/categories/${id}/products`);
+    const response = await api.get(`/workspaces/${workspaceId}/categories/${id}/products`);
     return Array.isArray(response.data) && response.data.length > 0;
   } catch (error) {
     console.error('Error checking if category has products:', error);
@@ -70,7 +70,7 @@ export const hasProducts = async (id: string, workspaceId: string): Promise<bool
  */
 export const create = async (workspaceId: string, data: { name: string; description?: string }): Promise<Category> => {
   try {
-    const response = await api.post(`/api/workspaces/${workspaceId}/categories`, data);
+    const response = await api.post(`/workspaces/${workspaceId}/categories`, data);
     return response.data;
   } catch (error) {
     console.error('Error creating category:', error);
@@ -82,9 +82,9 @@ export const create = async (workspaceId: string, data: { name: string; descript
  * Update an existing category
  */
 export const update = async (id: string, workspaceId: string, data: UpdateCategoryData): Promise<Category> => {
-  console.log(`API Call - update: PUT /api/workspaces/${workspaceId}/categories/${id}`, data);
+  console.log(`API Call - update: PUT /workspaces/${workspaceId}/categories/${id}`, data);
   try {
-    const response = await api.put(`/api/workspaces/${workspaceId}/categories/${id}`, data);
+    const response = await api.put(`/workspaces/${workspaceId}/categories/${id}`, data);
     console.log("API Response (update):", response.status, response.data);
     return response.data;
   } catch (error: any) {
@@ -101,9 +101,9 @@ export const update = async (id: string, workspaceId: string, data: UpdateCatego
  * Delete a category
  */
 export const delete_ = async (id: string, workspaceId: string): Promise<void> => {
-  console.log(`API Call - delete: DELETE /api/workspaces/${workspaceId}/categories/${id}`);
+  console.log(`API Call - delete: DELETE /workspaces/${workspaceId}/categories/${id}`);
   try {
-    const response = await api.delete(`/api/workspaces/${workspaceId}/categories/${id}`);
+    const response = await api.delete(`/workspaces/${workspaceId}/categories/${id}`);
     console.log("API Response (delete):", response.status, response.data);
   } catch (error: any) {
     console.error("API Error (delete):", error);

@@ -22,6 +22,7 @@ export interface Workspace {
   challengeStatus?: boolean
   wipMessage?: string
   blocklist?: string
+  url?: string | null
 }
 
 export interface CreateWorkspaceData {
@@ -30,6 +31,7 @@ export interface CreateWorkspaceData {
   language?: string
   isActive?: boolean
   isDelete?: boolean
+  url?: string
 }
 
 export interface UpdateWorkspaceData {
@@ -39,6 +41,7 @@ export interface UpdateWorkspaceData {
   language?: string
   isActive?: boolean
   isDelete?: boolean
+  url?: string
 }
 
 export const transformWorkspaceResponse = (workspace: any): Workspace => {
@@ -49,6 +52,7 @@ export const transformWorkspaceResponse = (workspace: any): Workspace => {
     messageLimit: workspace.messageLimit || 50,
     challengeStatus: workspace.challengeStatus || false,
     blocklist: workspace.blocklist || '',
+    url: workspace.url || '',
   };
 }
 
@@ -72,7 +76,7 @@ export const getCurrentWorkspace = async (): Promise<Workspace> => {
     }
     
     // Get fresh data from API
-    const response = await api.get(`/api/workspaces/${workspace.id}`)
+    const response = await api.get(`/workspaces/${workspace.id}`)
     console.log('API Response - getCurrentWorkspace:', response.data)
     return transformWorkspaceResponse(response.data)
   } catch (error) {
@@ -89,7 +93,7 @@ export const getWorkspaces = async (): Promise<Workspace[]> => {
       throw new Error('User not authenticated')
     }
 
-    const response = await api.get("/api/workspaces")
+    const response = await api.get("/workspaces")
     console.log('API Response - getWorkspaces:', response.data)
     return response.data.map(transformWorkspaceResponse)
   } catch (error) {
@@ -108,7 +112,7 @@ export const getLanguages = async (): Promise<Language[]> => {
   }
   try {
     const workspace = JSON.parse(workspaceStr)
-    const response = await api.get("/api/languages", {
+    const response = await api.get("/languages", {
       headers: {
         "x-workspace-id": workspace.id
       }
@@ -123,7 +127,7 @@ export const getLanguages = async (): Promise<Language[]> => {
 
 export const createWorkspace = async (data: CreateWorkspaceData): Promise<Workspace> => {
   try {
-    const response = await api.post("/api/workspaces", transformWorkspaceRequest(data))
+    const response = await api.post("/workspaces", transformWorkspaceRequest(data))
     console.log('API Response - createWorkspace:', response.data)
     return transformWorkspaceResponse(response.data)
   } catch (error) {
@@ -134,7 +138,7 @@ export const createWorkspace = async (data: CreateWorkspaceData): Promise<Worksp
 
 export const updateWorkspace = async (id: string, data: UpdateWorkspaceData): Promise<Workspace> => {
   try {
-    const response = await api.put(`/api/workspaces/${id}`, transformWorkspaceRequest(data))
+    const response = await api.put(`/workspaces/${id}`, transformWorkspaceRequest(data))
     console.log('API Response - updateWorkspace:', response.data)
     return transformWorkspaceResponse(response.data)
   } catch (error) {
@@ -159,8 +163,8 @@ export const deleteWorkspace = async (id: string): Promise<void> => {
     }
 
     // Make the DELETE request with detailed logging
-    console.log('Sending DELETE request to:', `/api/workspaces/${id}`);
-    const response = await api.delete(`/api/workspaces/${id}`);
+    console.log('Sending DELETE request to:', `/workspaces/${id}`);
+    const response = await api.delete(`/workspaces/${id}`);
     
     console.log('Delete workspace response status:', response.status);
     console.log('Delete workspace response data:', response.data);

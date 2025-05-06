@@ -31,7 +31,7 @@ export class WorkspaceController {
 
   async createWorkspace(req: Request, res: Response) {
     const workspace = await this.createWorkspaceUseCase.execute(req.body)
-    res.status(201).json(workspace)
+    res.status(201).json(workspace.toJSON())
   }
 
   async getWorkspace(req: Request, res: Response) {
@@ -40,12 +40,12 @@ export class WorkspaceController {
     if (!workspace) {
       throw new AppError(404, "Workspace not found")
     }
-    res.json(workspace)
+    res.json(workspace.toJSON())
   }
 
   async listWorkspaces(_req: Request, res: Response) {
     const workspaces = await this.listWorkspacesUseCase.execute()
-    res.json(workspaces)
+    res.json(workspaces.map(w => w.toJSON()))
   }
 
   async updateWorkspace(req: Request, res: Response) {
@@ -54,7 +54,7 @@ export class WorkspaceController {
     if (!workspace) {
       throw new AppError(404, "Workspace not found")
     }
-    res.json(workspace)
+    res.json(workspace.toJSON())
   }
 
   async deleteWorkspace(req: Request, res: Response) {

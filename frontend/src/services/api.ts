@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create an axios instance with custom config
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "",
+  baseURL: "/api",  // Set standard /api prefix for all API calls
   withCredentials: true,
 })
 
@@ -11,7 +11,7 @@ api.interceptors.request.use(
   (config) => {
     console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`, config.data || {});
     
-    // Aggiungi il token se disponibile
+    // Add token if available
     const user = localStorage.getItem("user")
     if (user) {
       try {
@@ -40,9 +40,9 @@ api.interceptors.response.use(
   (error) => {
     console.error("API Response Error:", error.response || error);
     
-    // Gestisci gli errori di autenticazione (401)
+    // Handle authentication errors (401)
     if (error.response && error.response.status === 401) {
-      // Reindirizza alla pagina di login se non autenticato
+      // Redirect to login page if not authenticated
       if (window.location.pathname !== "/auth/login") {
         localStorage.removeItem("user")
         localStorage.removeItem("token")
@@ -57,7 +57,7 @@ api.interceptors.response.use(
 // Check if the user is authenticated
 export async function checkAuth(): Promise<boolean> {
   try {
-    await api.get("/api/auth/me")
+    await api.get("/auth/me")
     return true
   } catch (error) {
     return false
@@ -67,23 +67,23 @@ export async function checkAuth(): Promise<boolean> {
 // API endpoints
 export const auth = {
   login: (credentials: { email: string; password: string }) =>
-    api.post("/api/auth/login", credentials),
-  me: () => api.get("/api/auth/me"),
-  logout: () => api.post("/api/auth/logout")
+    api.post("/auth/login", credentials),
+  me: () => api.get("/auth/me"),
+  logout: () => api.post("/auth/logout")
 }
 
 export const workspaces = {
-  list: () => api.get("/api/workspaces"),
-  get: (id: string) => api.get(`/api/workspaces/${id}`),
-  create: (data: any) => api.post("/api/workspaces", data),
-  update: (id: string, data: any) => api.put(`/api/workspaces/${id}`, data),
-  delete: (id: string) => api.delete(`/api/workspaces/${id}`)
+  list: () => api.get("/workspaces"),
+  get: (id: string) => api.get(`/workspaces/${id}`),
+  create: (data: any) => api.post("/workspaces", data),
+  update: (id: string, data: any) => api.put(`/workspaces/${id}`, data),
+  delete: (id: string) => api.delete(`/workspaces/${id}`)
 }
 
 export const products = {
-  list: (workspaceId: string) => api.get(`/api/workspaces/${workspaceId}/products`),
-  get: (workspaceId: string, id: string) => api.get(`/api/workspaces/${workspaceId}/products/${id}`),
-  create: (workspaceId: string, data: any) => api.post(`/api/workspaces/${workspaceId}/products`, data),
-  update: (workspaceId: string, id: string, data: any) => api.put(`/api/workspaces/${workspaceId}/products/${id}`, data),
-  delete: (workspaceId: string, id: string) => api.delete(`/api/workspaces/${workspaceId}/products/${id}`)
+  list: (workspaceId: string) => api.get(`/workspaces/${workspaceId}/products`),
+  get: (workspaceId: string, id: string) => api.get(`/workspaces/${workspaceId}/products/${id}`),
+  create: (workspaceId: string, data: any) => api.post(`/workspaces/${workspaceId}/products`, data),
+  update: (workspaceId: string, id: string, data: any) => api.put(`/workspaces/${workspaceId}/products/${id}`, data),
+  delete: (workspaceId: string, id: string) => api.delete(`/workspaces/${workspaceId}/products/${id}`)
 }

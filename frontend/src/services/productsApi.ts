@@ -106,7 +106,7 @@ export const getAllForWorkspace = async (
     }
     
     const queryString = queryParams.toString();
-    const requestUrl = `/api/workspaces/${workspaceId}/products${queryString ? `?${queryString}` : ''}`;
+    const requestUrl = `/workspaces/${workspaceId}/products${queryString ? `?${queryString}` : ''}`;
     console.log('API request URL:', requestUrl);
     
     const response = await api.get(requestUrl);
@@ -164,7 +164,7 @@ export const getAllForWorkspace = async (
  */
 export const getById = async (id: string, workspaceId: string): Promise<Product> => {
   try {
-    const response = await api.get(`/api/workspaces/${workspaceId}/products/${id}`)
+    const response = await api.get(`/workspaces/${workspaceId}/products/${id}`)
     return response.data
   } catch (error) {
     console.error('Error getting product:', error)
@@ -177,7 +177,7 @@ export const getById = async (id: string, workspaceId: string): Promise<Product>
  */
 export const getByCategory = async (categoryId: string, workspaceId: string): Promise<Product[]> => {
   try {
-    const response = await api.get(`/api/workspaces/${workspaceId}/categories/${categoryId}/products`)
+    const response = await api.get(`/workspaces/${workspaceId}/categories/${categoryId}/products`)
     return response.data
   } catch (error) {
     console.error('Error getting products by category:', error)
@@ -190,7 +190,7 @@ export const getByCategory = async (categoryId: string, workspaceId: string): Pr
  */
 export const create = async (workspaceId: string, data: CreateProductData): Promise<Product> => {
   try {
-    const response = await api.post(`/api/workspaces/${workspaceId}/products`, data)
+    const response = await api.post(`/workspaces/${workspaceId}/products`, data)
     return response.data
   } catch (error) {
     console.error('Error creating product:', error)
@@ -203,7 +203,7 @@ export const create = async (workspaceId: string, data: CreateProductData): Prom
  */
 export const update = async (id: string, workspaceId: string, data: UpdateProductData): Promise<Product> => {
   try {
-    const response = await api.put(`/api/workspaces/${workspaceId}/products/${id}`, data)
+    const response = await api.put(`/workspaces/${workspaceId}/products/${id}`, data)
     return response.data
   } catch (error) {
     console.error('Error updating product:', error)
@@ -216,7 +216,7 @@ export const update = async (id: string, workspaceId: string, data: UpdateProduc
  */
 export const delete_ = async (id: string, workspaceId: string): Promise<void> => {
   try {
-    await api.delete(`/api/workspaces/${workspaceId}/products/${id}`)
+    await api.delete(`/workspaces/${workspaceId}/products/${id}`)
   } catch (error) {
     console.error('Error deleting product:', error)
     throw error
@@ -228,7 +228,7 @@ export const delete_ = async (id: string, workspaceId: string): Promise<void> =>
  */
 export const updateStock = async (id: string, workspaceId: string, stock: number): Promise<Product> => {
   try {
-    const response = await api.patch(`/api/workspaces/${workspaceId}/products/${id}/stock`, { stock })
+    const response = await api.patch(`/workspaces/${workspaceId}/products/${id}/stock`, { stock })
     return response.data
   } catch (error) {
     console.error('Error updating product stock:', error)

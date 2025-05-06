@@ -106,9 +106,13 @@ The platform is designed for any business that offers products or services to cl
       - First Name (required)
       - Last Name (required)
       - Company Name (required)
+      - Language preference selection (required) - Default language is detected from user's browser
+      - Currency preference selection (required) - Default EUR
       - GDPR consent with full text of the privacy policy displayed for review
+      - Push notification consent checkbox with label: "Are you interested to receive offers with push notifications? You will be able to unsubscribe whenever you want" (optional)
       - Submit button to complete registration
     - Upon successful submission, the user is registered in the system and can immediately continue their interaction through WhatsApp.
+    - A personalized welcome message is sent in the user's selected language, confirming their registration and explaining data protection measures, including a link to a dedicated page with detailed information about the encryption system used to protect their data.
   - **Returning Users**: Existing users receive a personalized greeting and can request information, place orders, and receive communications.
   - **Continuous Experience**: All subsequent interactions happen seamlessly within WhatsApp, creating a frictionless shopping experience.
 
@@ -1291,7 +1295,7 @@ This architecture will ensure a robust, secure, and scalable backend system, in 
 - `POST /api/clients/register`
 
   - **Description**: Handles registration from WhatsApp-generated registration link 
-  - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `gdpr_consent` (boolean)
+  - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `language`, `currency`, `gdpr_consent` (boolean), `push_notifications_consent` (boolean, optional)
   - **Returns**: Registration confirmation and redirect to WhatsApp with instructions to continue the conversation
   - **Note**: This endpoint is specifically designed for the web form accessed via the registration link sent through WhatsApp to new users
 
@@ -2079,7 +2083,7 @@ This deployment strategy allows for cost-effective development while ensuring sc
 - `POST /api/clients/register`
 
   - **Description**: Handles registration from WhatsApp-generated registration link 
-  - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `gdpr_consent` (boolean)
+  - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `language`, `currency`, `gdpr_consent` (boolean), `push_notifications_consent` (boolean, optional)
   - **Returns**: Registration confirmation and redirect to WhatsApp with instructions to continue the conversation
   - **Note**: This endpoint is specifically designed for the web form accessed via the registration link sent through WhatsApp to new users
 
@@ -2731,6 +2735,8 @@ erDiagram
         timestamp privacy_accepted_at
         timestamp created_at
         timestamp updated_at
+        push_notifications_consent BOOLEAN DEFAULT false,
+        push_notifications_consent_at TIMESTAMP WITH TIME ZONE,
     }
 
     carts {
@@ -3437,10 +3443,15 @@ CREATE TABLE clients (
     first_name VARCHAR(100),
     last_name VARCHAR(100),
     language VARCHAR(10),
+    currency VARCHAR(3) DEFAULT 'EUR',
     discount_percentage DECIMAL(5,2) DEFAULT 0,
     discount_active BOOLEAN DEFAULT false,
     status user_status DEFAULT 'active',
     metadata JSONB DEFAULT '{}',
+    last_privacy_version_accepted VARCHAR(20),
+    privacy_accepted_at TIMESTAMP WITH TIME ZONE,
+    push_notifications_consent BOOLEAN DEFAULT false,
+    push_notifications_consent_at TIMESTAMP WITH TIME ZONE,
     LIKE base_entity INCLUDING ALL,
     UNIQUE(workspace_id, phone)
 );
@@ -4400,6 +4411,79 @@ By replying "I ACCEPT", you confirm that you have read and understood this Priva
 
 This template will be customized for each workspace with specific business information, retention periods, and contact details. The system tracks the version and timestamp of acceptance for compliance purposes.
 
+### User Preferences Management and Account Deletion
+
+To ensure full control over their data and comply with GDPR requirements, the platform provides users with comprehensive self-service options for managing their account:
+
+#### 1. User Preferences Management
+
+- **Access Method**: Users can request a preferences management link through WhatsApp with the command "update my preferences"
+- **Security**: The link contains a secure, time-limited token valid for 24 hours
+- **Editable Information**:
+  - Personal details (name, company)
+  - Language preference
+  - Currency preference
+  - Push notification settings
+  - Communication preferences
+- **Process Flow**:
+  1. User requests preferences update link via WhatsApp
+  2. System generates a secure token and creates a unique URL
+  3. URL is sent to user via WhatsApp
+  4. User accesses the web interface with pre-filled current settings
+  5. User makes desired changes and submits the form
+  6. System updates the profile and confirms changes
+  7. User receives confirmation message via WhatsApp
+
+#### 2. Account Deletion Process
+
+- **Access Method**: Within the preferences management page, users have access to an "Delete My Account" option
+- **Confirmation Process**:
+  - Users must type their phone number to confirm deletion
+  - A clear warning about the permanent nature of deletion is shown
+  - Two-step verification with a WhatsApp confirmation message
+- **Data Handling**:
+  - **Deleted Immediately**:
+    - Personal identifying information (name, email, contact details)
+    - Chat history and conversation logs
+    - Preferences and consent records
+  - **Preserved Data**:
+    - Order records (anonymized with a reference ID)
+    - Transaction history (required for legal and financial records)
+    - Aggregate usage statistics (fully anonymized)
+- **Technical Implementation**:
+  - User record is not physically deleted but pseudonymized
+  - Name is replaced with "Deleted User"
+  - Contact information is nullified
+  - A deletion timestamp is recorded
+  - Associated chat history is physically deleted
+- **Confirmation**:
+  - User receives final confirmation of account deletion
+  - Instructions for data recovery during grace period (30 days)
+  - Contact information for any questions about remaining data
+
+#### 3. API Endpoints
+
+- `GET /api/clients/preferences/:token`
+  - **Description**: Retrieves user preferences for editing using a secure token
+  - **Returns**: Current user preferences and profile information
+  
+- `PUT /api/clients/preferences/:token`
+  - **Description**: Updates user preferences
+  - **Body**: Modified user preferences
+  - **Returns**: Confirmation of updates applied
+  
+- `POST /api/clients/deletion-request/:token`
+  - **Description**: Initiates account deletion process
+  - **Body**: `phone_confirmation` (user's phone for verification)
+  - **Returns**: Confirmation and next steps for two-factor verification
+
+- `POST /api/clients/confirm-deletion`
+  - **Description**: Completes account deletion after two-factor verification
+  - **Body**: `verification_code` sent via WhatsApp
+  - **Returns**: Final confirmation of account deletion
+
+This comprehensive approach ensures users maintain control over their data while the platform preserves necessary information for legal and business continuity purposes.
+
 ## Multi-Tenant Architecture Implementation
 
 The ShopMe platform follows a strict multi-tenant architecture where each client business operates within its own isolated workspace. This architectural approach ensures data isolation, security, and scalability.
@@ -4608,3 +4692,36 @@ This notification system improves workflow efficiency by providing visual cues f
    - Customizable Prompts: Configure AI responses to reflect business voice and policies.
    - Context Awareness: AI understands conversation history and user preferences.
    - Data Pseudonymization: Privacy protection when processing data with external models.
+
+### Data Protection and Encryption System
+
+To ensure the highest level of data protection and privacy for users, the platform implements a comprehensive tokenization and encryption system:
+
+#### 1. Tokenization System
+
+- **Personal Data Protection**: The system automatically tokenizes all personally identifiable information (PII) before processing messages with any AI model.
+- **How It Works**: When a user sends a message, their personal data (name, phone number, address, etc.) is replaced with random tokens before being sent to the AI for processing.
+- **Real-time De-tokenization**: After receiving the AI response, the system automatically replaces tokens with the original data before sending the message back to the user.
+
+#### 2. Dedicated Information Page
+
+- A dedicated informational page explains the encryption and tokenization process in detail.
+- The page includes:
+  - Visual representation of how data is protected
+  - Technical explanation of the tokenization process
+  - Information about data storage security measures
+  - Compliance with GDPR and other privacy regulations
+  - FAQ about data protection
+
+#### 3. Post-Registration Communication
+
+- After successful registration, users receive an automatic welcome message in their selected language that:
+  - Welcomes them by name
+  - Confirms their successful registration
+  - Explains briefly that their data is protected through tokenization
+  - Includes a link to the detailed data protection information page
+  - Encourages them to continue the conversation
+
+This approach ensures users are well-informed about data protection measures while building trust in the platform's security practices.
+
+### User Preferences Management and Account Deletion

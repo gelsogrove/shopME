@@ -136,34 +136,18 @@ export class MessageRepository {
    * @param phoneNumber The customer's phone number
    * @returns The customer
    */
-  async findOrCreateCustomerByPhone(workspaceId: string, phoneNumber: string) {
+  async findCustomerByPhone(phoneNumber: string, workspaceId: string) {
     try {
-      // Try to find an existing customer with this phone number
-      let customer = await this.prisma.customers.findFirst({
+      const customer = await this.prisma.customers.findFirst({
         where: {
           phone: phoneNumber,
           workspaceId
         }
       });
-      
-      // If no customer found, create a new one
-      if (!customer) {
-        customer = await this.prisma.customers.create({
-          data: {
-            name: 'Unknown Customer',
-            email: `customer-${Date.now()}@example.com`,
-            phone: phoneNumber,
-            workspaceId,
-          }
-        });
-        
-        logger.info(`Created new customer: ${customer.id}`);
-      }
-      
       return customer;
     } catch (error) {
-      logger.error('Error finding or creating customer:', error);
-      throw new Error('Failed to find or create customer');
+      logger.error('Error finding customer by phone:', error);
+      throw new Error('Failed to find customer by phone');
     }
   }
   
@@ -208,22 +192,6 @@ export class MessageRepository {
     } catch (error) {
       logger.error('Error finding or creating chat session:', error);
       throw new Error('Failed to find or create chat session');
-    }
-  }
-  
-  
-  async findCustomerByPhone(phoneNumber: string) {
-    try {
-      const customer = await this.prisma.customers.findFirst({
-        where: {
-          phone: phoneNumber
-        }
-      });
-      
-      return customer;
-    } catch (error) {
-      logger.error('Error finding customer by phone:', error);
-      throw new Error('Failed to find customer by phone');
     }
   }
   
@@ -352,7 +320,7 @@ export class MessageRepository {
       }
       
       // Find or create customer
-      let customer = await this.findCustomerByPhone(data.phoneNumber);
+      let customer = await this.findCustomerByPhone(data.phoneNumber, workspaceId);
       
       // If no customer exists, create one with the determined workspaceId
       if (!customer) {
@@ -760,7 +728,7 @@ export class MessageRepository {
   async getLatesttMessages(phoneNumber: string, limit = 30) {
     try {
       // Find customer by phone
-      const customer = await this.findCustomerByPhone(phoneNumber);
+      const customer = await this.findCustomerByPhone(phoneNumber, '');
       if (!customer) return [];
       
       // Find active chat session
@@ -1242,6 +1210,13 @@ export class MessageRepository {
       logger.error(`Error deleting chat session ${chatSessionId}:`, error);
       return false;
     }
+  }
+
+  // Add a public method to create a customer
+  async createCustomer({ name, email, phone, workspaceId }: { name: string, email: string, phone: string, workspaceId: string }) {
+    return this.prisma.customers.create({
+      data: { name, email, phone, workspaceId }
+    });
   }
 }
        

@@ -10,6 +10,7 @@ const createWorkspaceSchema = Joi.object({
   whatsappPhoneNumber: Joi.string().allow(null),
   whatsappApiToken: Joi.string().allow(null),
   whatsappWebhookUrl: Joi.string().uri().allow(null),
+  url: Joi.string().uri().allow(null),
 })
 
 const updateWorkspaceSchema = Joi.object({
@@ -22,6 +23,7 @@ const updateWorkspaceSchema = Joi.object({
   whatsappApiToken: Joi.string().allow(null),
   whatsappWebhookUrl: Joi.string().uri().allow(null),
   isActive: Joi.boolean(),
+  url: Joi.string().uri().allow(null),
 })
 
 export const validateCreateWorkspace = (

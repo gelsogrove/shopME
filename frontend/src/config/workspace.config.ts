@@ -51,7 +51,7 @@ export const fetchWorkspace = async (workspaceId: string): Promise<any | null> =
     }
     
     // Fetch from API
-    const response = await api.get(`/api/workspaces/${workspaceId}`);
+    const response = await api.get(`/workspaces/${workspaceId}`);
     
     if (response.data?.success && response.data?.data) {
       // Cache the result
@@ -78,7 +78,7 @@ export const fetchDefaultWorkspace = async (): Promise<any | null> => {
     }
     
     // Fetch from API
-    const response = await api.get('/api/workspaces/active');
+    const response = await api.get('/workspaces/active');
     
     if (response.data?.success && response.data?.data?.length > 0) {
       // Cache the first active workspace

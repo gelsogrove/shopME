@@ -1,4 +1,4 @@
-import { PrismaClient, Workspace as PrismaWorkspace } from "@prisma/client"
+import { PrismaClient } from "@prisma/client"
 import { UpdateWorkspaceDTO } from "../../application/dtos/workspace.dto"
 import { IWorkspaceRepository } from "../../application/interfaces/workspace.repository"
 import { Workspace } from "../../domain/entities/workspace.entity"
@@ -21,6 +21,7 @@ export class WorkspaceRepository implements IWorkspaceRepository {
         whatsappWebhookUrl: workspace.whatsappWebhookUrl,
         createdAt: workspace.createdAt,
         updatedAt: workspace.updatedAt,
+        url: workspace.url,
       },
     })
     return this.mapToEntity(created)
@@ -48,7 +49,10 @@ export class WorkspaceRepository implements IWorkspaceRepository {
   async update(id: string, data: UpdateWorkspaceDTO): Promise<Workspace> {
     const workspace = await this.prisma.workspace.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        url: data.url,
+      },
     })
     return this.mapToEntity(workspace)
   }
@@ -59,7 +63,7 @@ export class WorkspaceRepository implements IWorkspaceRepository {
     })
   }
 
-  private mapToEntity(data: PrismaWorkspace): Workspace {
+  private mapToEntity(data: any): Workspace {
     return new Workspace(
       data.id,
       data.name,
@@ -72,7 +76,8 @@ export class WorkspaceRepository implements IWorkspaceRepository {
       data.whatsappWebhookUrl,
       data.isActive,
       data.createdAt,
-      data.updatedAt
+      data.updatedAt,
+      data.url && data.url.trim() !== '' ? data.url : 'http://localhost:3000'
     )
   }
 }

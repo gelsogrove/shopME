@@ -5,6 +5,7 @@ import {
     Bell,
     Bot,
     LayoutGrid,
+    LucideIcon,
     MessageSquare,
     Package2,
     Settings,
@@ -15,6 +16,14 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { NavLink } from "react-router-dom"
+
+interface SidebarLink {
+  href: string
+  label: string
+  icon: LucideIcon
+  badge?: number
+  className?: string
+}
 
 export function Sidebar() {
   const [totalUnreadMessages, setTotalUnreadMessages] = useState<number>(2);
@@ -27,7 +36,7 @@ export function Sidebar() {
     const fetchTotalUnreadMessages = async () => {
       try {
         console.log("Fetching unread messages count...");
-        const response = await api.get('/api/chat/recent');
+        const response = await api.get('/chat/recent');
         
         if (response.data && response.data.data) {
           const chatData = response.data.data;
@@ -64,7 +73,7 @@ export function Sidebar() {
     };
   }, [workspace]);
 
-  const mainLinks = [
+  const mainLinks: SidebarLink[] = [
     {
       href: "/chat",
       label: "Chat History",
@@ -74,8 +83,7 @@ export function Sidebar() {
     {
       href: "/clients",
       label: "Clients",
-      icon: Users,
-      badge: 2  // Valore fisso di 2 per Clients
+      icon: Users
     },
     {
       href: "/products",

@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom"
 import { createWorkspace, getWorkspaces, updateWorkspace } from "../services/workspaceApi"
 
 // Definizione dei tipi di attività supportati
-type BusinessType = "Shop" | "Hotel" | "Gym" | "Restaurant"
+type BusinessType = "Shop" | "Hotel" | "Events" | "Restaurant"
 
 export function WorkspaceSelectionPage() {
   const navigate = useNavigate()
@@ -270,7 +270,7 @@ export function WorkspaceSelectionPage() {
                   className="h-24 text-lg opacity-50 cursor-not-allowed"
                   disabled
                 >
-                  Gym
+                  Events
                 </Button>
                 <Button
                   type="button"

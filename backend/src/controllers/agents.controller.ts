@@ -204,43 +204,5 @@ export const agentsController = {
       console.error(`Error deleting agent:`, error);
       next(error)
     }
-  },
-
-  /**
-   * Duplicate an agent
-   */
-  async duplicate(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      let { workspaceId } = req.params;
-      
-      // If workspaceId is not provided in the params (direct /agents/:id/duplicate route)
-      if (!workspaceId) {
-        try {
-          // Try to get from user context or use a default
-          const user = req.user as any;
-          workspaceId = user?.workspaceId || getDefaultWorkspaceId();
-          console.log(`No workspaceId in params, using ${workspaceId} from user or default`);
-        } catch (error) {
-          console.error("Failed to get default workspace ID:", error);
-          return res.status(400).json({ message: "Workspace ID is required" });
-        }
-      }
-      
-      console.log(`Duplicate request received for agent ${id} in workspace ${workspaceId}`)
-      
-      const duplicatedAgent = await agentsService.duplicate(id, workspaceId)
-      
-      if (!duplicatedAgent) {
-        console.log(`Agent ${id} not found for duplication`);
-        return res.status(404).json({ message: "Agent not found" })
-      }
-      
-      console.log(`Agent ${id} duplicated successfully, new ID: ${duplicatedAgent.id}`);
-      res.json(duplicatedAgent)
-    } catch (error) {
-      console.error(`Error duplicating agent ${req.params.id}:`, error)
-      next(error)
-    }
   }
 } 

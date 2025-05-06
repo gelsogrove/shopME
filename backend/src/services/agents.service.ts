@@ -197,39 +197,4 @@ export const agentsService = {
       where: { id },
     });
   },
-
-  /**
-   * Duplicate an agent
-   */
-  async duplicate(id: string, workspaceId: string) {
-    console.log(`Duplicating agent ${id}`);
-    
-    const agent = await prisma.prompts.findFirst({
-      where: { 
-        id,
-        workspaceId
-      }
-    });
-
-    if (!agent) {
-      console.log(`Agent ${id} not found`);
-      return null;
-    }
-
-    // Create a copy with "(Copy)" appended to the name
-    const duplicated = await prisma.prompts.create({
-      data: {
-        name: `${agent.name} (Copy)`,
-        content: agent.content,
-        workspaceId: agent.workspaceId,
-        isRouter: false, // The copy is never a router
-        department: agent.department,
-        temperature: agent.temperature,
-        top_p: agent.top_p,
-        top_k: agent.top_k
-      }
-    });
-
-    return duplicated;
-  }
 } 

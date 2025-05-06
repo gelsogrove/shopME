@@ -10,6 +10,7 @@ export interface Service {
   workspaceId: string
   createdAt: string
   updatedAt: string
+  email: string
 }
 
 export interface CreateServiceData {
@@ -18,6 +19,7 @@ export interface CreateServiceData {
   price: number
   currency?: string
   isActive?: boolean
+  email: string
 }
 
 export interface UpdateServiceData {
@@ -26,6 +28,7 @@ export interface UpdateServiceData {
   price?: number
   currency?: string
   isActive?: boolean
+  email?: string
 }
 
 // Mock data for services when API fails
@@ -39,7 +42,8 @@ const mockServices: Service[] = [
     isActive: true,
     workspaceId: 'mock-workspace',
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    email: 'base-website-design@example.com'
   },
   {
     id: 'mock-service-2',
@@ -50,7 +54,8 @@ const mockServices: Service[] = [
     isActive: true,
     workspaceId: 'mock-workspace',
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    email: 'e-commerce-setup@example.com'
   },
   {
     id: 'mock-service-3',
@@ -61,119 +66,83 @@ const mockServices: Service[] = [
     isActive: true,
     workspaceId: 'mock-workspace',
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    email: 'seo-optimization@example.com'
   }
 ];
 
 /**
  * Get all services for a workspace
  */
-export const getAllForWorkspace = async (workspaceId: string): Promise<Service[]> => {
+export const getServices = async (workspaceId: string): Promise<Service[]> => {
   try {
-    const response = await api.get(`/api/workspaces/${workspaceId}/services`)
+    const response = await api.get(`/workspaces/${workspaceId}/services`)
     return response.data
   } catch (error) {
-    console.warn('Error getting services from API, using mock data instead:', error)
-    // Use mock data when API fails
-    return mockServices.map(service => ({
-      ...service,
-      workspaceId: workspaceId
-    }))
+    console.error('Error getting services:', error)
+    throw error
   }
 }
 
 /**
  * Get a specific service by ID
  */
-export const getById = async (id: string, workspaceId: string): Promise<Service> => {
+export const getServiceById = async (workspaceId: string, id: string): Promise<Service> => {
   try {
-    const response = await api.get(`/api/workspaces/${workspaceId}/services/${id}`)
+    const response = await api.get(`/workspaces/${workspaceId}/services/${id}`)
     return response.data
   } catch (error) {
-    console.warn('Error getting service from API, using mock data instead:', error)
-    // Find mock service or return the first one if not found
-    const mockService = mockServices.find(s => s.id === id) || mockServices[0]
-    return {
-      ...mockService,
-      workspaceId: workspaceId
-    }
+    console.error('Error getting service:', error)
+    throw error
   }
 }
 
 /**
  * Create a new service
  */
-export const create = async (workspaceId: string, data: CreateServiceData): Promise<Service> => {
+export const createService = async (workspaceId: string, data: CreateServiceData): Promise<Service> => {
   try {
-    const response = await api.post(`/api/workspaces/${workspaceId}/services`, data)
+    const response = await api.post(`/workspaces/${workspaceId}/services`, data)
     return response.data
   } catch (error) {
-    console.warn('Error creating service via API, using mock instead:', error)
-    // Create a new mock service
-    const newService: Service = {
-      id: `mock-service-${Date.now()}`,
-      name: data.name,
-      description: data.description,
-      price: data.price,
-      currency: data.currency || '€',
-      isActive: data.isActive !== undefined ? data.isActive : true,
-      workspaceId: workspaceId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-    // Add to mock services
-    mockServices.push(newService)
-    return newService
+    console.error('Error creating service:', error)
+    throw error
   }
 }
 
 /**
  * Update an existing service
  */
-export const update = async (id: string, workspaceId: string, data: UpdateServiceData): Promise<Service> => {
+export const updateService = async (
+  workspaceId: string,
+  id: string,
+  data: UpdateServiceData
+): Promise<Service> => {
   try {
-    const response = await api.put(`/api/workspaces/${workspaceId}/services/${id}`, data)
+    const response = await api.put(`/workspaces/${workspaceId}/services/${id}`, data)
     return response.data
   } catch (error) {
-    console.warn('Error updating service via API, using mock instead:', error)
-    // Find the service to update
-    const serviceIndex = mockServices.findIndex(s => s.id === id)
-    if (serviceIndex >= 0) {
-      // Update the service
-      const updatedService = {
-        ...mockServices[serviceIndex],
-        ...data,
-        updatedAt: new Date().toISOString(),
-        workspaceId: workspaceId
-      }
-      mockServices[serviceIndex] = updatedService
-      return updatedService
-    }
-    // If not found, return a new mock service
-    return create(workspaceId, data as CreateServiceData)
+    console.error('Error updating service:', error)
+    throw error
   }
 }
 
 /**
  * Delete a service
  */
-export const delete_ = async (id: string, workspaceId: string): Promise<void> => {
+export const deleteService = async (workspaceId: string, id: string): Promise<void> => {
   try {
-    await api.delete(`/api/workspaces/${workspaceId}/services/${id}`)
+    await api.delete(`/workspaces/${workspaceId}/services/${id}`)
   } catch (error) {
-    console.warn('Error deleting service via API, using mock instead:', error)
-    // Remove from mock services
-    const serviceIndex = mockServices.findIndex(s => s.id === id)
-    if (serviceIndex >= 0) {
-      mockServices.splice(serviceIndex, 1)
-    }
+    console.error('Error deleting service:', error)
+    throw error
   }
 }
 
 export const servicesApi = {
-  getAllForWorkspace,
-  getById,
-  create,
-  update,
-  delete: delete_
+  getServices,
+  getServiceById,
+  createService,
+  updateService,
+  deleteService
 } 

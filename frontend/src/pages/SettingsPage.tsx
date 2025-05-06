@@ -155,6 +155,7 @@ export default function SettingsPage() {
       messageLimit: workspace.messageLimit,
       wipMessage: workspace.wipMessage,
       blocklist: workspace.blocklist,
+      url: workspace.url,
     };
 
     try {
@@ -307,6 +308,21 @@ export default function SettingsPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="registration-url">Registration URL</Label>
+                  <Input
+                    id="registration-url"
+                    type="url"
+                    placeholder="https://yourdomain.com"
+                    value={workspace.url || ''}
+                    onChange={(e) => handleFieldChange('url', e.target.value)}
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This URL will be used to generate registration links for new users. Example: <code>http://localhost:3000</code> or <code>https://laltroitalia.shop</code>
+                  </p>
                 </div>
 
                 <div>

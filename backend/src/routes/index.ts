@@ -1,4 +1,4 @@
-import { NextFunction, Request, RequestHandler, Response, Router } from "express"
+import { NextFunction, Request, Response, Router } from "express"
 import { CategoriesController } from "../interfaces/http/controllers/categories.controller"
 import { CustomersController } from "../interfaces/http/controllers/customers.controller"
 import { ServicesController } from "../interfaces/http/controllers/services.controller"
@@ -15,6 +15,7 @@ import productsRouter from './products.routes'
 import promptsRoutes from "./prompts.routes"
 // Commentato per evitare conflitti con la route /unknown-customers/count
 // import unknownCustomersRoutes from "./unknown-customers.routes"
+import registrationApiRoutes from '../presentation/routes/api.routes'
 import uploadRoutes from "./upload.routes"
 import userRoutes from "./user.routes"
 import whatsappSettingsRoutes from "./whatsapp-settings.routes"
@@ -48,6 +49,7 @@ logger.info("Setting up API routes")
 
 // Public routes
 router.use("/auth", authRouter)
+router.use("/registration", registrationApiRoutes)
 
 // Create customer controller first to use before workspaces
 const customersController = new CustomersController()
@@ -77,10 +79,9 @@ logger.info("Registered agents routes on both /agents and /workspaces/:workspace
 router.use(productsRouter)
 logger.info("Registered products router with workspace routes")
 
-// Mount services router and add workspace-specific services routes
-router.use("/services", servicesRouter(new ServicesController()))
+// Mount services router only on the workspace-specific path
 router.use("/workspaces/:workspaceId/services", servicesRouter(new ServicesController()))
-logger.info("Registered services router on both paths")
+logger.info("Registered services router")
 
 // Register other routes
 router.use("/prompts", promptsRoutes)
@@ -97,7 +98,7 @@ router.get("/products", function(req: Request, res: Response) {
     message: "Products API endpoint is working", 
     documentation: "Use /workspaces/:workspaceId/products for workspace-specific products"
   });
-} as unknown as RequestHandler)
+})
 
 router.get("/services", function(req: Request, res: Response) {
   logger.info("Direct /services endpoint accessed");
@@ -106,7 +107,7 @@ router.get("/services", function(req: Request, res: Response) {
     message: "Services API endpoint is working", 
     documentation: "Use /workspaces/:workspaceId/services for workspace-specific services"
   });
-} as unknown as RequestHandler)
+})
 
 // Debug endpoint for direct chat access
 router.get("/chat-debug/:sessionId", function(req: Request, res: Response) {
@@ -117,7 +118,7 @@ router.get("/chat-debug/:sessionId", function(req: Request, res: Response) {
     sessionId: req.params.sessionId,
     timestamp: new Date().toISOString()
   });
-} as unknown as RequestHandler)
+})
 
 logger.info("API routes setup complete")
 

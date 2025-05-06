@@ -27,7 +27,7 @@ export function ServicesPage() {
     const loadServices = async () => {
       if (!workspace?.id) return
       try {
-        const data = await servicesApi.getAllForWorkspace(workspace.id)
+        const data = await servicesApi.getServices(workspace.id)
         setServices(data)
       } catch (error) {
         console.error("Error loading services:", error)
@@ -123,11 +123,12 @@ export function ServicesPage() {
       description: formData.get("description") as string,
       price,
       currency: "€",
-      isActive: formData.get("isActive") === "on"
+      isActive: formData.get("isActive") === "on",
+      email: formData.get("email") as string
     }
 
     try {
-      const newService = await servicesApi.create(workspace.id, data)
+      const newService = await servicesApi.createService(workspace.id, data)
       setServices([...services, newService])
       setShowAddSheet(false)
       toast.success("Service created successfully")
@@ -160,13 +161,14 @@ export function ServicesPage() {
       description: formData.get("description") as string,
       price,
       currency: "€",
-      isActive: formData.get("isActive") === "on"
+      isActive: formData.get("isActive") === "on",
+      email: formData.get("email") as string
     }
 
     try {
-      const updatedService = await servicesApi.update(
-        selectedService.id,
+      const updatedService = await servicesApi.updateService(
         workspace.id,
+        selectedService.id,
         data
       )
       setServices(
@@ -190,7 +192,7 @@ export function ServicesPage() {
     if (!selectedService || !workspace?.id) return
 
     try {
-      await servicesApi.delete(selectedService.id, workspace.id)
+      await servicesApi.deleteService(workspace.id, selectedService.id)
       setServices(services.filter((s) => s.id !== selectedService.id))
       setShowDeleteDialog(false)
       setSelectedService(null)
@@ -220,6 +222,18 @@ export function ServicesPage() {
           defaultValue={service?.name}
           required
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          placeholder="Service contact email"
+          defaultValue={service?.email}
+          required
+        />
+        <p className="text-xs text-gray-500">This email will be used for service-related communications.</p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>

@@ -40,6 +40,8 @@ export interface Client {
   workspaceId?: string
   createdAt?: string
   updatedAt?: string
+  last_privacy_version_accepted?: string
+  push_notifications_consent?: boolean
 }
 
 const availableLanguages = ["Spanish", "English", "Italian"]
@@ -97,14 +99,14 @@ export default function ClientsPage(): JSX.Element {
   // Replace with useQuery
   const {
     data: clients = [],
-    isLoading,
+    isLoading: isLoadingClients,
     isError,
-    refetch
+    refetch: refetchClients
   } = useQuery({
     queryKey: ['clients', workspace?.id],
     queryFn: async () => {
       if (!workspace?.id) return [];
-      const customersResponse = await api.get(`/api/workspaces/${workspace.id}/customers`);
+      const customersResponse = await api.get(`/workspaces/${workspace.id}/customers`);
       const customersData = customersResponse.data;
       
       // Map the client data
@@ -120,7 +122,9 @@ export default function ClientsPage(): JSX.Element {
         shippingAddress: parseAddress(customer.address),
         workspaceId: customer.workspaceId,
         createdAt: customer.createdAt,
-        updatedAt: customer.updatedAt
+        updatedAt: customer.updatedAt,
+        last_privacy_version_accepted: customer.last_privacy_version_accepted,
+        push_notifications_consent: customer.push_notifications_consent
       }));
       
       // Sort clients by ID in descending order (newer clients at the top)
@@ -138,7 +142,7 @@ export default function ClientsPage(): JSX.Element {
   useEffect(() => {
     const fetchExistingChats = async () => {
       try {
-        const response = await api.get("/api/chat/recent");
+        const response = await api.get("/chat/recent");
         if (response.data.success && response.data.data) {
           // First create a properly typed array of phone numbers
           const phoneNumbers: string[] = response.data.data
@@ -208,16 +212,18 @@ export default function ClientsPage(): JSX.Element {
         discount: parseFloat(formData.get('discount') as string) || 0,
         notes: formData.get('notes') as string,
         // Convert address to string for API
-        address: stringifyAddress(shippingAddress)
+        address: stringifyAddress(shippingAddress),
+        last_privacy_version_accepted: formData.get('last_privacy_version_accepted') as string,
+        push_notifications_consent: formData.get('push_notifications_consent') === 'on'
       }
       
       // Create client in API
-      const response = await api.post(`/api/workspaces/${workspace.id}/customers`, customerData)
+      const response = await api.post(`/workspaces/${workspace.id}/customers`, customerData)
       const newCustomer = response.data
       
       if (newCustomer) {
         // Add the new client to state with converted format
-        refetch()
+        refetchClients()
         toast.success('Client created successfully')
       }
       
@@ -256,7 +262,9 @@ export default function ClientsPage(): JSX.Element {
         discount: parseFloat(formData.get('discount') as string) || 0,
         notes: formData.get('notes') as string,
         address: stringifyAddress(shippingAddress),
-        isActive: true
+        isActive: true,
+        last_privacy_version_accepted: formData.get('last_privacy_version_accepted') as string,
+        push_notifications_consent: formData.get('push_notifications_consent') === 'on'
       }
       
       console.log('Updating customer with data:', customerData)
@@ -265,7 +273,7 @@ export default function ClientsPage(): JSX.Element {
       
       // Update client in API
       const response = await api.put(
-        `/api/workspaces/${workspace.id}/customers/${selectedClient.id}`,
+        `/workspaces/${workspace.id}/customers/${selectedClient.id}`,
         customerData
       )
       const updatedCustomer = response.data
@@ -274,7 +282,7 @@ export default function ClientsPage(): JSX.Element {
       
       if (updatedCustomer) {
         // Update client in state with correct format and preserve existing data not returned by API
-        refetch()
+        refetchClients()
         toast.success('Client updated successfully')
       }
       
@@ -306,7 +314,7 @@ export default function ClientsPage(): JSX.Element {
   const handleViewChatHistory = async (client: Client) => {
     try {
       // Cerca di trovare la chat esistente per questo cliente usando il suo numero di telefono
-      const response = await api.get("/api/chat/recent");
+      const response = await api.get("/chat/recent");
       
       if (response.data.success && response.data.data && response.data.data.length > 0) {
         // Cerca una chat con lo stesso numero di telefono
@@ -351,10 +359,10 @@ export default function ClientsPage(): JSX.Element {
     
     try {
       // Delete client using customers API
-      await api.delete(`/api/workspaces/${workspace.id}/customers/${clientToDelete.id}`)
+      await api.delete(`/workspaces/${workspace.id}/customers/${clientToDelete.id}`)
       
       // Remove from state if successful
-      refetch()
+      refetchClients()
       toast.success('Client deleted successfully')
       setShowDeleteDialog(false)
       setClientToDelete(null)
@@ -381,6 +389,8 @@ export default function ClientsPage(): JSX.Element {
         zip: "",
         country: "",
       },
+      last_privacy_version_accepted: "",
+      push_notifications_consent: false
     }
     
     setSelectedClient(newClient)
@@ -416,6 +426,32 @@ export default function ClientsPage(): JSX.Element {
       accessorKey: "discount",
       cell: ({ row }) => (
         <span className="font-medium">{row.original.discount}%</span>
+      ),
+    },
+    {
+      header: "GDPR",
+      accessorKey: "last_privacy_version_accepted",
+      cell: ({ row }) => (
+        <span className={`px-2 py-1 rounded-full text-xs ${
+          row.original.last_privacy_version_accepted 
+            ? 'bg-green-100 text-green-800' 
+            : 'bg-red-100 text-red-800'
+        }`}>
+          {row.original.last_privacy_version_accepted ? 'Accepted' : 'Not Accepted'}
+        </span>
+      ),
+    },
+    {
+      header: "Push",
+      accessorKey: "push_notifications_consent",
+      cell: ({ row }) => (
+        <span className={`px-2 py-1 rounded-full text-xs ${
+          row.original.push_notifications_consent
+            ? 'bg-green-100 text-green-800'
+            : 'bg-gray-100 text-gray-800'
+        }`}>
+          {row.original.push_notifications_consent ? 'Enabled' : 'Disabled'}
+        </span>
       ),
     },
     {
@@ -485,7 +521,7 @@ export default function ClientsPage(): JSX.Element {
   ]
 
   // In the return, use isLoading from useQuery
-  if (isLoadingWorkspace || isLoading) {
+  if (isLoadingWorkspace || isLoadingClients) {
     return <div>Loading...</div>
   }
 

@@ -6,6 +6,7 @@ export interface CreateWorkspaceDTO {
   whatsappApiToken?: string
   whatsappWebhookUrl?: string
   isActive?: boolean
+  url?: string
 }
 
 export interface UpdateWorkspaceDTO {
@@ -16,6 +17,7 @@ export interface UpdateWorkspaceDTO {
   whatsappApiToken?: string
   whatsappWebhookUrl?: string
   isActive?: boolean
+  url?: string
 }
 
 export interface WorkspaceResponseDTO {
@@ -29,4 +31,5 @@ export interface WorkspaceResponseDTO {
   isActive: boolean
   createdAt: Date
   updatedAt: Date
+  url?: string | null
 }

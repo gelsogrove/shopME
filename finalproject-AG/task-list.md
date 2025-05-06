@@ -1078,3 +1078,154 @@ Implementare una funzionalità che applichi automaticamente uno sconto ai prezzi
 - [x] Fixed price formatting to correctly show discounted prices and original prices with toFixed(2)
 - [x] Fixed message persistence by properly saving messages and updating customer's updatedAt timestamp
 - [x] Fixed the conversation flow to remove unwanted formatting instructions in the user message
+
+## 📋 Task List - Gestione Utenti e Registrazione
+
+### 🚩 Backend: Sistema Base (Priorità Alta)
+
+**TASK-B001**: Setup database per registrazione utenti
+- Aggiungere campo `currency` alla tabella clients
+- Aggiungere campi `push_notifications_consent` e `push_notifications_consent_at` alla tabella clients
+- Creare una nuova tabella `registration_tokens` per gestire i token di registrazione
+
+**TASK-B002**: Implementare generazione token sicuri
+- Creare servizio per generazione token random
+- Aggiungere validazione e scadenza token (24 ore)
+- Implementare meccanismo di pulizia token scaduti
+
+**TASK-B003**: Sviluppare API per gestione registrazione
+- Endpoint `POST /api/clients/register` con validazione input
+- Verifica token valido e non scaduto
+- Salvataggio dati utente con preferenze lingua e valuta
+- Gestione consensi (GDPR e notifiche push)
+
+**TASK-B004**: Modificare MessageService per link registrazione
+- Identificare utenti non registrati
+- Generare URL di registrazione con token, telefono e workspace
+- Inviare link di registrazione via WhatsApp
+- Tracciamento stato registrazione
+
+**TASK-B009**: Implementare messaggio di benvenuto post-registrazione
+- Creare sistema di messaggi multi-lingua per il benvenuto
+- Personalizzare il messaggio con il nome dell'utente
+- Includere informazioni sulla protezione dei dati
+- Aggiungere link alla pagina informativa sulla crittografia
+- Inviare automaticamente il messaggio dopo la registrazione completata
+
+### 🚩 Frontend: Form di Registrazione (Priorità Alta)
+
+**TASK-F001**: Creare pagina di registrazione
+- Configurare routing con parametri (token, phone, workspace)
+- Implementare verifica validità token
+- Design responsive del form con branding del workspace
+
+**TASK-F002**: Sviluppare form di raccolta dati
+- Campi per nome, cognome e azienda
+- Selezione lingua (con auto-detect da browser)
+- Selezione valuta (default EUR)
+- Checkbox consenso GDPR con testo completo
+- Checkbox per consenso notifiche push
+- Validazione client-side e messaggi errore
+
+**TASK-F003**: Integrare API e gestire sottomissione
+- Connessione con API di registrazione
+- Gestione errori e retry
+- Schermata di conferma registrazione
+- Reindirizzamento a WhatsApp con istruzioni
+
+**TASK-F007**: Creare pagina informativa sulla protezione dati e crittografia
+- Sviluppare una pagina dedicata che spieghi il sistema di tokenizzazione
+- Includere rappresentazioni visive del processo di protezione dati
+- Spiegare le misure di sicurezza implementate sui server
+- Creare una sezione FAQ sulla protezione dei dati
+- Garantire che la pagina sia accessibile dal link inviato nel messaggio di benvenuto
+- Implementare design responsive e traduzione in più lingue
+
+### 🚩 Backend: Gestione Preferenze (Priorità Media)
+
+**TASK-B005**: Implementare API per gestione preferenze
+- Endpoint `GET /api/clients/preferences/:token`
+- Endpoint `PUT /api/clients/preferences/:token`
+- Generazione token per accesso preferenze
+- Validazione e salvataggio modifiche
+
+**TASK-B006**: Gestire richiesta preferenze via WhatsApp
+- Riconoscimento comando "update my preferences"
+- Generazione link sicuro con token
+- Invio link via WhatsApp
+
+### 🚩 Frontend: Gestione Preferenze (Priorità Media)
+
+**TASK-F004**: Creare pagina gestione preferenze
+- Configurare routing con parametri token
+- Form pre-compilato con dati attuali
+- UI per modifica lingua, valuta, notifiche push
+- Link per cancellazione account
+
+**TASK-F005**: Implementare conferma modifiche
+- Validazione client-side
+- Comunicazione con API
+- Gestione errori
+- Conferma salvataggio preferenze
+
+### 🚩 Backend: Cancellazione Account (Priorità Bassa)
+
+**TASK-B007**: Implementare API cancellazione account
+- Endpoint `POST /api/clients/deletion-request/:token`
+- Endpoint `POST /api/clients/confirm-deletion`
+- Sistema di verifica in due fasi
+- Logica per pseudonimizzazione dati
+
+**TASK-B008**: Sviluppare sistema di cancellazione selettiva
+- Cancellazione dati personali e chat
+- Preservazione ordini e transazioni in formato anonimizzato
+- Implementazione periodo di grazia (30 giorni)
+
+### 🚩 Frontend: Cancellazione Account (Priorità Bassa)
+
+**TASK-F006**: Creare interfaccia cancellazione account
+- Design chiaro con avvisi sulle conseguenze
+- Campo di conferma con numero di telefono
+- Processo di verifica in due fasi
+- Conferma finale e istruzioni post-cancellazione
+
+### 🚩 Testing e Integrazione (Priorità Alta)
+
+**TASK-T001**: Test unitari e di integrazione
+- Test delle API di registrazione
+- Test di validazione e scadenza token
+- Test del processo di registrazione end-to-end
+- Test di modifica preferenze e cancellazione
+
+**TASK-T002**: Test di sicurezza
+- Verifica protezione contro attacchi CSRF e XSS
+- Test di robustezza dei token
+- Verifica corretta implementazione GDPR
+- Test di penetrazione delle API
+
+## 📅 Tempistiche Stimate
+- Backend Sistema Base (TASK-B001 - TASK-B004): 3-4 giorni
+- Frontend Form di Registrazione (TASK-F001 - TASK-F003): 2-3 giorni
+- Backend Messaggio Benvenuto (TASK-B009): 1-2 giorni
+- Frontend Pagina Protezione Dati (TASK-F007): 2 giorni
+- Gestione Preferenze Backend e Frontend (TASK-B005 - TASK-F005): 3-4 giorni
+- Cancellazione Account (TASK-B007 - TASK-F006): 2-3 giorni
+- Testing e Integrazione: 2 giorni
+
+## 👥 Assegnazione Task
+- To be determined based on team availability
+
+## 📌 Dipendenze
+- TASK-B001 deve essere completato prima di TASK-B003
+- TASK-B002 deve essere completato prima di TASK-B003
+- TASK-B003 deve essere completato prima di TASK-F003
+- TASK-B004 deve essere completato per il test completo end-to-end
+- TASK-B005 deve essere completato prima di TASK-F005
+- TASK-B007 deve essere completato prima di TASK-F006
+- TASK-B003 deve essere completato prima di TASK-B009
+- TASK-F007 deve essere completato prima del testing di TASK-B009
+
+## 🌟 Stato dei Task
+- Tutti i task: Non iniziati
+
+- [ ] Check and correct any usage of '/api/api/workspaces' to '/api/workspaces' in the codebase. Reason: The correct backend route is '/api/workspaces'; using '/api/api/workspaces' results in a 404 error (Cannot GET /api/api/workspaces).

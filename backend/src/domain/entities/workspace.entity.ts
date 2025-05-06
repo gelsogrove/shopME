@@ -9,7 +9,8 @@ export class Workspace {
     public whatsappWebhookUrl: string | null,
     public isActive: boolean,
     public readonly createdAt: Date,
-    public updatedAt: Date
+    public updatedAt: Date,
+    public url: string | null
   ) {}
 
   static create(
@@ -20,7 +21,8 @@ export class Workspace {
     whatsappPhoneNumber?: string | null,
     whatsappApiToken?: string | null,
     whatsappWebhookUrl?: string | null,
-    isActive: boolean = true
+    isActive: boolean = true,
+    url: string | null = null
   ): Workspace {
     return new Workspace(
       id,
@@ -32,7 +34,8 @@ export class Workspace {
       whatsappWebhookUrl || null,
       isActive,
       new Date(),
-      new Date()
+      new Date(),
+      url
     )
   }
 
@@ -106,5 +109,25 @@ export class Workspace {
   public deactivate(): void {
     this.isActive = false
     this.updatedAt = new Date()
+  }
+
+  public getUrl(): string | null {
+    return this.url;
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      name: this.name,
+      slug: this.slug,
+      description: this.description,
+      whatsappPhoneNumber: this.whatsappPhoneNumber,
+      whatsappApiToken: this.whatsappApiToken,
+      whatsappWebhookUrl: this.whatsappWebhookUrl,
+      isActive: this.isActive,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      url: this.url,
+    };
   }
 }

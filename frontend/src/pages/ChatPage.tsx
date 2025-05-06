@@ -116,7 +116,7 @@ export function ChatPage() {
   } = useQuery({
     queryKey: ['chats'],
     queryFn: async () => {
-      const response = await api.get("/api/chat/recent");
+      const response = await api.get("/chat/recent");
       if (response.data.success) {
         return response.data.data;
       } else {
@@ -190,7 +190,7 @@ export function ChatPage() {
       }
       
       if (!chatWithCompany.messages) {
-        const response = await api.get(`/api/chat/${chatWithCompany.sessionId}/messages`);
+        const response = await api.get(`/chat/${chatWithCompany.sessionId}/messages`);
         if (response.data.success) {
           const formattedMessages: Message[] = response.data.data.map((m: any) => ({
             id: m.id,
@@ -262,7 +262,7 @@ export function ChatPage() {
       }
       
       // Send message to backend
-      const response = await api.post('/api/messages', { 
+      const response = await api.post('/messages', { 
         message: messageInput,
         phoneNumber: selectedChat.customerPhone,
         workspaceId: currentWorkspaceId
@@ -393,13 +393,13 @@ export function ChatPage() {
       
       // Construct full URL
       const apiUrl = import.meta.env.VITE_API_URL || "";
-      const fullUrl = `${apiUrl}/api/chat/${selectedChat.sessionId}`;
+      const fullUrl = `${apiUrl}/chat/${selectedChat.sessionId}`;
       
       // Try with native fetch API as fallback
       if (token) {
         // First try the test endpoint without auth
         try {
-          const testUrl = `${apiUrl}/api/chat/test/${selectedChat.sessionId}`;
+          const testUrl = `${apiUrl}/chat/test/${selectedChat.sessionId}`;
           const testResponse = await fetch(testUrl, {
             method: 'DELETE',
             headers: {
@@ -446,7 +446,7 @@ export function ChatPage() {
       }
       
       // Fall back to axios if fetch didn't work
-      const response = await api.delete(`/api/chat/${selectedChat.sessionId}`);
+      const response = await api.delete(`/chat/${selectedChat.sessionId}`);
       
       if (response.data.success) {
         toast.success("Chat deleted successfully");
@@ -510,7 +510,7 @@ export function ChatPage() {
       };
       
       // Build the endpoint URL
-      const endpoint = `/api/workspaces/${workspaceId}/customers/${selectedChat.customerId}`;
+      const endpoint = `/chat/workspaces/${workspaceId}/customers/${selectedChat.customerId}`;
       
       // Make API call with PUT method to update customer
       const response = await api.put(endpoint, customerData);

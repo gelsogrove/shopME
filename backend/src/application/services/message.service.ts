@@ -1,14 +1,17 @@
 import { MessageRepository } from '../../infrastructure/repositories/message.repository';
 import logger from '../../utils/logger';
+import { TokenService } from './token.service';
 
 /**
  * Service for processing messages
  */
 export class MessageService {
   private messageRepository: MessageRepository;
+  private tokenService: TokenService;
   
   constructor() {
     this.messageRepository = new MessageRepository();
+    this.tokenService = new TokenService();
   }
   
   /**
@@ -57,17 +60,39 @@ export class MessageService {
         }
 
         // Check if customer exists - simplified binary check
-        const customer = await this.messageRepository.findCustomerByPhone(phoneNumber);
+        const customer = await this.messageRepository.findCustomerByPhone(phoneNumber, workspaceId);
         
-        // If customer doesn't exist, send registration link
+        // If customer doesn't exist, send registration link with secure token
         if (!customer) {
-            logger.info("New user detected - sending registration link");
-            const registrationUrl = `${process.env.FRONTEND_URL || 'https://laltroitalia.shop'}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`;
-            response = `Benvenuto! To proceed with the chat, please register here: ${registrationUrl}`;
+            logger.info("New user detected - sending registration link with secure token");
+            
+            // Generate secure registration token
+            const token = await this.tokenService.createRegistrationToken(phoneNumber, workspaceId);
+            
+            // Usa workspaceSettings.url se presente, altrimenti fallback
+            const baseUrl = workspaceSettings.url || process.env.FRONTEND_URL || 'https://laltroitalia.shop';
+            const registrationUrl = `${baseUrl}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}&token=${token}`;
+            
+            // Get workspace name for personalized message if available
+            let workspaceName = "our service";
+            if (workspaceSettings.name) {
+                workspaceName = workspaceSettings.name;
+            }
+            
+            // Create a welcome message
+            response = `Welcome to ${workspaceName}! To continue with our service, please complete your registration here: ${registrationUrl}`;
             
             // Create temporary customer record
-            const tempCustomer = await this.messageRepository.findOrCreateCustomerByPhone(workspaceId, phoneNumber);
-            logger.info(`Created temporary customer record: ${tempCustomer.id}`);
+            let tempCustomer = await this.messageRepository.findCustomerByPhone(phoneNumber, workspaceId);
+            if (!tempCustomer) {
+              tempCustomer = await this.messageRepository.createCustomer({
+                name: 'Unknown Customer',
+                email: `customer-${Date.now()}@example.com`,
+                phone: phoneNumber,
+                workspaceId,
+              });
+              logger.info(`Created temporary customer record: ${tempCustomer.id}`);
+            }
             
             agentSelected = "Registration"; // Set the agent used as "Registration"
             return response;
@@ -77,7 +102,15 @@ export class MessageService {
         // Consider customer unregistered if name is "Unknown Customer" - this is the default name for new customers
         if (customer.name === 'Unknown Customer') {
             logger.info(`User with phone ${phoneNumber} is still unregistered - showing registration link again`);
-            const registrationUrl = `${process.env.FRONTEND_URL || 'https://laltroitalia.shop'}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`;
+            
+            // Generate secure registration token
+            const token = await this.tokenService.createRegistrationToken(phoneNumber, workspaceId);
+            
+            // Usa workspaceSettings.url se presente, altrimenti fallback
+            const baseUrl = workspaceSettings.url || process.env.FRONTEND_URL || 'https://laltroitalia.shop';
+            const registrationUrl = `${baseUrl}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}&token=${token}`;
+            
+            // Create reminder message
             response = `Per favore completa la registrazione prima di continuare: ${registrationUrl}`;
             
             agentSelected = "Registration"; // Set the agent used as "Registration"
