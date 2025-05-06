@@ -1,4 +1,6 @@
 =============== TODO =============
+
+
 - non mi va se l'utente e' setting language english deve rispondere in inglese
 - se settigns e' Dollar deveono venire fuori i prezzi i dollari (solo currency symbol)
 - la chat non prende gli sconti e non prende la lingua (non so se vanno bene i replace)
@@ -33,4 +35,7 @@ cerchiamo un layouy simile ad una chat di whatsapp , l'icona deve essere un + co
 
 - .env che variabili servono ? 
 
-- fa la build?
+
+- fa la build? fa la cartella dist
+
+- Documentazione
