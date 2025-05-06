@@ -1,4 +1,4 @@
-=============== TODO =============
+=============== TEST =============
 
 
 - non mi va se l'utente e' setting language english deve rispondere in inglese
@@ -6,6 +6,8 @@
 - la chat non prende gli sconti e non prende la lingua (non so se vanno bene i replace)
 - deve essere piu' simpatico discorsivo con faccine e piu ricco di testo e discorsiva cambia il prompt
 
+
+=============== TODO =============
 - se l'operatore scrive dentro la chat la chatbot si ferma e prende il controllo l'operatore fino a che non disattiva l'opzione chatbot per quell'utente
 (toggle e campo nuovo dentro prisma)
 
@@ -35,7 +37,11 @@ cerchiamo un layouy simile ad una chat di whatsapp , l'icona deve essere un + co
 
 - .env che variabili servono ? 
 
-
 - fa la build? fa la cartella dist
 
 - Documentazione
+  01_metaprompt.md
+  02_prompt.md
+  03_PDR.md
+  04_userstories.md
+  05_todolist.md
