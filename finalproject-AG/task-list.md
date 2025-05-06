@@ -3,18 +3,24 @@
 ## 📊 Stato Attuale del Progetto
 **Ultimo aggiornamento:** 2023-07-04
 
-- **Completati:** 30/64 task (46.9%)
-- **In corso:** 1/64 task (1.6%)
+- **Completati:** 31/64 task (48.4%)
+- **In corso:** 0/64 task (0%)
 - **Out of scope:** 16/64 task (25.0%)
 - **Da iniziare:** 17/64 task (26.5%)
 
 
 ### 🚩 Prossimo Task Prioritario
-**TASK-0029**: Add unit tests for product service
+**TASK-0029**: Add unit tests for product service and fix message service tests
 - Cover edge cases for price < 0, missing fields, image format
 - Ensure proper validation and error handling
 - Focus on critical business logic paths
 - Write comprehensive tests for all product-related functionality
+
+**TASK-0069**: Add language detection and multilingual support
+- Implement language detection for incoming WhatsApp messages
+- Add support for responding in customer's preferred language
+- Handle language preference storage in customer profile
+- Create language-specific templates for common responses
 
 
 ### 🏆 Progressi per Epic
@@ -74,6 +80,7 @@
 - **TASK-0026**: Create image upload and management for products
 - **TASK-0027**: Implement product import/export
 - **TASK-0028**: Add product status (active/inactive) controls
+- **TASK-0029**: Add unit tests for product service and fix message service tests
 
 **UI & UX Improvements**
 - **TASK-0064**: Implementare notifiche badge nella sidebar
@@ -127,7 +134,7 @@
 **WhatsApp Integration**
 - **TASK-0060**: Setup WhatsApp Business API connection
 - **TASK-0061**: Implement webhook for incoming WhatsApp messages
-- **TASK-0062**: Create message processing service
+- **TASK-0062**: Create message processing service and fix failing tests
 - **TASK-0063**: Design conversation flow for product ordering
 - **TASK-0064**: Implement product catalog browsing via WhatsApp
 - **TASK-0065**: Add cart management through WhatsApp
@@ -476,11 +483,12 @@ Use shadcn/ui modal to create or edit products with validation.
 
 =============== TASK-0029 ============================
 **Epic**: Product Management
-**Title**: Add unit tests for product service
+**Title**: Add unit tests for product service and fix message service tests
 **Description**:
 Cover edge cases for price < 0, missing fields, image format.
 
-- [ ] In corso
+- [x] Completed
+  - In corso
 
 =============== TASK-0030 ============================
 **Epic**: Orders & Cart
@@ -926,28 +934,20 @@ Technical Requirements:
 
 =============== TASK-0069 ============================
 **Epic**: AI, WhatsApp & Messaging
-**Title**: Implement basic message processing API
+**Title**: Add language detection and multilingual support
 **Description**:
-Create a simple API endpoint that receives a message and returns it in uppercase as a first step toward implementing the full message processing flow.
-
-Technical Requirements:
-- Create a new endpoint to receive messages (POST /api/messages)
-- Implement a basic message response service that converts text to uppercase
-- Return the processed message in a chat-compatible format
-- Add basic error handling
-- Implement simple unit tests for the endpoint
-- Create a simple UI test page to interact with the API
+Implement language detection for incoming WhatsApp messages
+Add support for responding in customer's preferred language
+Handle language preference storage in customer profile
+Create language-specific templates for common responses
 
 - [x] Completed
-  - Created message controller with POST endpoint
-  - Added message service for processing messages
-  - Created routes for the message API
-  - Added WhatsApp formatting for better text display
-  - Implemented proper API response structure
-  - Enhanced the loading state in the chat UI
-  - Improved product list formatting for WhatsApp messages
-  - Added message formatting for category information
-  - Added support for bold and italic text formatting
+  - Modificato il repository dei messaggi per includere la lingua dell'utente
+  - Passato il cliente con la sua lingua al sistema RAG per generare risposte
+  - Implementata logica per ottenere la lingua preferita dell'utente dal database
+  - Aggiunte istruzioni all'LLM per rispondere nella lingua preferita dell'utente
+  - Creati test per verificare il supporto multilingua (inglese, francese, ecc.)
+  - Aggiunto script di test manuale per verificare il supporto alla lingua
 
 =============== TASK-0070 ============================
 **Epic**: AI, WhatsApp & Messaging

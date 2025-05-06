@@ -63,7 +63,7 @@ export class MessageService {
         if (!customer) {
             logger.info("New user detected - sending registration link");
             const registrationUrl = `${process.env.FRONTEND_URL || 'https://laltroitalia.shop'}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`;
-            response = `Welcome! To proceed with the chat, please register here: ${registrationUrl}`;
+            response = `Benvenuto! To proceed with the chat, please register here: ${registrationUrl}`;
             
             // Create temporary customer record
             const tempCustomer = await this.messageRepository.findOrCreateCustomerByPhone(workspaceId, phoneNumber);
@@ -78,7 +78,7 @@ export class MessageService {
         if (customer.name === 'Unknown Customer') {
             logger.info(`User with phone ${phoneNumber} is still unregistered - showing registration link again`);
             const registrationUrl = `${process.env.FRONTEND_URL || 'https://laltroitalia.shop'}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`;
-            response = `Please complete the registration before continuing: ${registrationUrl}`;
+            response = `Per favore completa la registrazione prima di continuare: ${registrationUrl}`;
             
             agentSelected = "Registration"; // Set the agent used as "Registration"
             return response;
@@ -103,20 +103,33 @@ export class MessageService {
                 // Save the name of the selected agent
                 agentSelected = selectedAgent.name || "Unknown";
                 
+                // Process agent prompt to replace variables like {customerLanguage}
+                if (selectedAgent.content && customer) {
+                    // Replace customerLanguage placeholder with actual customer language
+                    const customerLanguage = customer.language || 'Italian';
+                    selectedAgent._replacedPrompt = selectedAgent.content.replace(/\{customerLanguage\}/g, customerLanguage);
+                }
+                
                 // 2. Generate the prompt enriched with product and service context
-                const systemPrompt = await this.messageRepository.getResponseFromRag(selectedAgent, message, products, services, chatHistory, customer);
+                const systemPrompt = await this.messageRepository.getResponseFromRag(
+                  selectedAgent, 
+                  message, 
+                  products, 
+                  services, 
+                  chatHistory, 
+                  customer
+                );
                 logger.info(`SYSTEM PROMPT: "${systemPrompt}"`);
 
-                response = systemPrompt;
                 // 3. Convert systemPrompt to conversation prompt
-               // response = await this.messageRepository.getConversationResponse(chatHistory, message, systemPrompt);
+                response = await this.messageRepository.getConversationResponse(chatHistory, message, systemPrompt);
                 logger.info(`FINAL PROMPT: "${response}"`);
   
                 // The agent info will be added by the frontend which will read the agentSelected field from the database
             
             } catch (apiError) {
                 agentSelected = "Error";
-                response = apiError;
+                response = apiError.toString();
             }
             return response;
         } catch (processingError) {

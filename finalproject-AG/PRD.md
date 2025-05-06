@@ -1,5 +1,35 @@
 # ShopMe - WhatsApp E-commerce Platform - Product Requirements Document
 
+## Executive Overview
+
+ShopMe is a revolutionary SaaS platform that transforms WhatsApp into a powerful e-commerce channel by connecting businesses directly with customers through intelligent, automated conversations. Built on the foundations of AI and conversational commerce, ShopMe enables businesses to provide seamless shopping experiences and exceptional customer service through the world's most popular messaging app.
+
+### Why ShopMe Matters
+
+In today's digital landscape, businesses face numerous challenges:
+- Customer support is increasingly expected to be available 24/7
+- Consumer attention is fragmented across multiple platforms
+- Traditional e-commerce requires customers to download apps or navigate websites
+- Small and medium businesses lack resources for comprehensive digital solutions
+
+ShopMe solves these challenges by meeting customers where they already are—on WhatsApp, with over 2 billion active users worldwide. Our solution eliminates friction in the shopping journey by enabling complete transactions through natural conversation, without requiring customers to leave their preferred messaging platform.
+
+### Core Benefits
+
+1. **24/7 Customer Service**: Our AI-powered chatbots provide immediate responses at any time, ensuring customer queries never go unanswered and sales opportunities are never missed.
+
+2. **Increased Conversion Rates**: By reducing friction in the purchase journey and providing personalized assistance, businesses can convert more inquiries into sales.
+
+3. **Enhanced Customer Engagement**: Natural language conversations create more engaging and human-like interactions compared to traditional e-commerce interfaces.
+
+4. **Operational Efficiency**: Automation of routine inquiries and processes reduces staff workload and operational costs while improving response times.
+
+5. **Rich Customer Insights**: Every conversation generates valuable data that helps businesses understand customer preferences and improve their offerings over time.
+
+6. **Scalability Without Complexity**: The SaaS model allows businesses of any size to implement sophisticated e-commerce capabilities without technical expertise or major investments.
+
+ShopMe represents the next evolution in e-commerce—one where commerce happens conversationally, businesses are always available, and shopping is as simple as sending a message.
+
 ## 1. Project Vision
 
 The ShopMe project aims to develop a WhatsApp-based e-commerce platform that leverages the WhatsApp Business API and AI technology to automate client support and order management. Designed as a Software as a Service (SaaS) solution, the platform enables businesses to create their own white-labeled e-commerce presence with minimal setup. The goal is to provide immediate and continuous 24/7 assistance, enhancing client experience and streamlining business operations.
@@ -29,6 +59,30 @@ As our first implementation, the platform will be specialized in selling high-qu
 - Receive post-sale assistance
 - Access FAQ and product guides
 
+### 1.2 Future Industry Expansion
+
+While the initial MVP focuses exclusively on e-commerce for Italian products, the platform is architecturally designed to support future expansion into various service-based industries including:
+
+**Gym & Fitness Centers**:
+- Class booking and membership management
+- Personal training session scheduling
+- Workout plan delivery through messaging
+- Fitness goal tracking and progress updates
+
+**Restaurants & Cafes**:
+- Table reservations and wait list management
+- Digital menu browsing via chat interface
+- Special event bookings (private dining, catering)
+- Delivery coordination through messaging
+
+**Hotels & Accommodations**:
+- Room booking and availability checking via WhatsApp
+- Automated check-in/check-out reminders
+- Special requests handling through chat interface
+- Room service ordering through messaging
+
+This planned expansion will be developed in future phases after the core e-commerce functionality is successfully implemented and validated in the marketplace.
+
 The platform is designed for any business that offers products or services to clients, from retail stores and service providers to hospitality businesses like hotels, restaurants, gyms, and fitness centers. This versatility allows businesses to not only sell products but also manage appointments, reservations, and memberships through conversational interfaces.
 
 ## 2. User Journey
@@ -44,8 +98,19 @@ The platform is designed for any business that offers products or services to cl
 ### End User Experience
 
 - Interact exclusively through WhatsApp:
-  - New users receive a welcome message and a request for basic registration information.
-  - Existing users receive a personalized greeting and can request information, place orders, and receive communications.
+  - **Initial Contact**: New users receive a welcome message introducing the service.
+  - **Registration Process**:
+    - For unregistered users, the system automatically generates and sends a unique registration link via WhatsApp.
+    - The link directs users to a secure web-based registration form.
+    - The registration form collects essential information:
+      - First Name (required)
+      - Last Name (required)
+      - Company Name (required)
+      - GDPR consent with full text of the privacy policy displayed for review
+      - Submit button to complete registration
+    - Upon successful submission, the user is registered in the system and can immediately continue their interaction through WhatsApp.
+  - **Returning Users**: Existing users receive a personalized greeting and can request information, place orders, and receive communications.
+  - **Continuous Experience**: All subsequent interactions happen seamlessly within WhatsApp, creating a frictionless shopping experience.
 
 ## 3. Objectives
 
@@ -1223,6 +1288,13 @@ This architecture will ensure a robust, secure, and scalable backend system, in 
   - **Body**: Updated client details
   - **Returns**: Updated client profile
 
+- `POST /api/clients/register`
+
+  - **Description**: Handles registration from WhatsApp-generated registration link 
+  - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `gdpr_consent` (boolean)
+  - **Returns**: Registration confirmation and redirect to WhatsApp with instructions to continue the conversation
+  - **Note**: This endpoint is specifically designed for the web form accessed via the registration link sent through WhatsApp to new users
+
 ### Cart Management
 
 - `GET /api/cart/:user_id`
@@ -2003,6 +2075,13 @@ This deployment strategy allows for cost-effective development while ensuring sc
   - **Parameters**: `id` (required): Client identifier
   - **Body**: Updated client details
   - **Returns**: Updated client profile
+
+- `POST /api/clients/register`
+
+  - **Description**: Handles registration from WhatsApp-generated registration link 
+  - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `gdpr_consent` (boolean)
+  - **Returns**: Registration confirmation and redirect to WhatsApp with instructions to continue the conversation
+  - **Note**: This endpoint is specifically designed for the web form accessed via the registration link sent through WhatsApp to new users
 
 ### Cart Management
 

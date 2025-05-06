@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { CreateWorkspaceDTO } from '../../../../../src/application/dtos/workspace.dto';
-import { IWorkspaceRepository } from '../../../../../src/application/interfaces/workspace.repository';
-import { CreateWorkspaceUseCase } from '../../../../../src/application/use-cases/workspace/create-workspace.use-case';
-import { Workspace } from '../../../../../src/domain/entities/workspace.entity';
+import { CreateWorkspaceDTO } from '../../../../../backend/src/application/dtos/workspace.dto';
+import { IWorkspaceRepository } from '../../../../../backend/src/application/interfaces/workspace.repository';
+import { CreateWorkspaceUseCase } from '../../../../../backend/src/application/use-cases/workspace/create-workspace.use-case';
+import { Workspace } from '../../../../../backend/src/domain/entities/workspace.entity';
 
 describe('CreateWorkspaceUseCase', () => {
   let useCase: CreateWorkspaceUseCase;

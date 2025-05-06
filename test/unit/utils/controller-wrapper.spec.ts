@@ -2,8 +2,8 @@ import chai, { expect } from 'chai';
 import { NextFunction, Request, Response } from 'express';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
-import { ControllerFunction } from '../../../src/types/express';
-import { wrapController } from '../../../src/utils/controller-wrapper';
+import { ControllerFunction } from '../../../backend/src/types/express';
+import { wrapController } from '../../../backend/src/utils/controller-wrapper';
 
 // Configurare chai per usare sinon-chai
 chai.use(sinonChai);
