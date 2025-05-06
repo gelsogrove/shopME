@@ -1,5 +1,4 @@
 import { Workspace } from "../../../domain/entities/workspace.entity"
-import { generateSlug } from "../../../utils/slug"
 import { UpdateWorkspaceDTO } from "../../dtos/workspace.dto"
 import { IWorkspaceRepository } from "../../interfaces/workspace.repository"
 
@@ -14,7 +13,11 @@ export class UpdateWorkspaceUseCase {
 
     // If name is being updated, generate new slug
     if (dto.name) {
-      dto.slug = generateSlug(dto.name)
+      // Genera uno slug semplice dal nome
+      dto.slug = dto.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
 
       // Check if new slug would conflict with existing workspace
       const existingWorkspace = await this.workspaceRepository.findBySlug(

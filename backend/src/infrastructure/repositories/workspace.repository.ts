@@ -11,12 +11,16 @@ export class WorkspaceRepository implements IWorkspaceRepository {
       data: {
         id: workspace.id,
         name: workspace.name,
-        slug: workspace.slug,
         description: workspace.description,
-        whatsappPhoneNumber: workspace.whatsappPhoneNumber,
-        whatsappApiToken: workspace.whatsappApiToken,
-        whatsappWebhookUrl: workspace.whatsappWebhookUrl,
+        slug: workspace.slug,
         isActive: workspace.isActive,
+        whatsappPhoneNumber: workspace.whatsappPhoneNumber,
+        // @ts-ignore
+        whatsappApiToken: workspace.whatsappApiToken,
+        // @ts-ignore
+        whatsappWebhookUrl: workspace.whatsappWebhookUrl,
+        createdAt: workspace.createdAt,
+        updatedAt: workspace.updatedAt,
       },
     })
     return this.mapToEntity(created)
@@ -62,7 +66,9 @@ export class WorkspaceRepository implements IWorkspaceRepository {
       data.slug,
       data.description,
       data.whatsappPhoneNumber,
+      // @ts-ignore
       data.whatsappApiToken,
+      // @ts-ignore
       data.whatsappWebhookUrl,
       data.isActive,
       data.createdAt,

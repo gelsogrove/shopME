@@ -1,7 +1,14 @@
-import { Prisma, PrismaClient } from "@prisma/client"
-import { slugify } from "../utils/slug"
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient()
+
+// Funzione interna per generare uno slug
+function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 type CreateCategoryParams = {
   name: string
@@ -21,20 +28,16 @@ class CategoriesService {
     console.log("=== Categories Query ===");
     console.log("WorkspaceId:", workspaceId);
     
-    // Log the query we're about to execute
-    const query = {
+    // Execute query
+    const categories = await prisma.categories.findMany({
       where: {
         workspaceId,
         isActive: true,
       },
       orderBy: {
-        name: 'asc' as Prisma.SortOrder,
+        name: 'asc',
       },
-    };
-    console.log("Prisma Query:", JSON.stringify(query, null, 2));
-    
-    // Execute query
-    const categories = await prisma.categories.findMany(query);
+    });
     
     // Log results
     console.log("Raw Database Response:", categories);
@@ -56,7 +59,7 @@ class CategoriesService {
     const { name, description, workspaceId, isActive = true } = params
 
     // Generate a slug from the name
-    const slug = slugify(name)
+    const slug = generateSlug(name)
 
     // Check if the slug already exists in this workspace
     const existingCategory = await prisma.categories.findFirst({
@@ -105,7 +108,7 @@ class CategoriesService {
     if (name !== undefined) {
       updateData.name = name
       // Generate a slug from the name
-      const slug = slugify(name)
+      const slug = generateSlug(name)
       
       // Check if the slug already exists and is not the current category
       // Also consider the workspace context

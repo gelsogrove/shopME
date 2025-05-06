@@ -8,6 +8,8 @@ import { getWorkspaceId } from '@/config/workspace.config';
 import axios from 'axios';
 import { Send } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   id: string;
@@ -339,10 +341,9 @@ export function WhatsAppChatModal({
                           : 'bg-white rounded-tl-none'
                       }`}
                     >
-                      <div 
-                        className="text-sm whitespace-pre-wrap"
-                        dangerouslySetInnerHTML={{ __html: formatWhatsAppMessage(message.content) }}
-                      />
+                      <div className="text-sm whitespace-pre-wrap">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+                      </div>
                       <div className="text-right text-xs text-gray-500 mt-1">
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>

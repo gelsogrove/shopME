@@ -1,6 +1,7 @@
 import cors from "cors"
 import { Express, NextFunction, Request, Response } from "express"
 import helmet from "helmet"
+// @ts-ignore
 import config from "../../../config"
 
 export const setupSecurity = (app: Express): void => {

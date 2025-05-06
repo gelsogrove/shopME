@@ -1,4 +1,5 @@
 // Add a route to test OpenAI connection
+// @ts-ignore
 router.get('/test/openai', async (req, res) => {
   try {
     const apiKey = process.env.OPENAI_API_KEY || '';

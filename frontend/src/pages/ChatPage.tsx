@@ -8,15 +8,17 @@ import { useQuery } from '@tanstack/react-query'
 import { Ban, Pencil, Send, ShoppingBag, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "react-hot-toast"
+import ReactMarkdown from 'react-markdown'
 import { useNavigate, useSearchParams } from "react-router-dom"
+import remarkGfm from 'remark-gfm'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "../components/ui/alert-dialog"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
@@ -730,10 +732,9 @@ export function ChatPage() {
                               Agent: {message.agentName}
                             </div>
                           )}
-                          <div 
-                            dangerouslySetInnerHTML={{ __html: formatTextWithLinks(message.content) }}
-                            className="message-content break-words whitespace-pre-wrap text-xs"
-                          />
+                          <div className="message-content break-words whitespace-pre-wrap text-xs">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+                          </div>
                           <p className="text-[10px] mt-1 opacity-70 text-right">
                             {formatDate(message.timestamp)}
                           </p>

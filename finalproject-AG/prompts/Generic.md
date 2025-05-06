@@ -31,9 +31,6 @@ Que acompaña en todo momento, priorizando la máxima puntualidad, eficacia y co
 **Equipo**
 Especializado y formado con más de 10 años de experiencia en el sector, que le capacita para asesorar de forma profesional en la mejor elección gastronómica.
 
-**Logística**
-Eficiente y puntual desde el proveedor de origen hasta el local de nuestros clientes, asegurando la temperatura controlada y con cobertura capilar en todo el territorio nacional.
-
 
 
 

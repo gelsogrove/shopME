@@ -19,105 +19,6 @@ export class MessageService {
     return this.messageRepository;
   }
   
-  
-  
-  /**
-   * Formats text for WhatsApp applying proper formatting for product lists and special elements
-   * @param text Text to format
-   * @returns Text formatted for WhatsApp
-   */
-  // private formatListForWhatsApp(text: string): string {
-  //   try {
-  //     // Convert double asterisks to single (WhatsApp uses single asterisks for bold)
-  //     let formattedText = text.replace(/\*\*([^*]+)\*\*/g, '*$1*');
-      
-  //     // Split text into lines for processing
-  //     const lines = formattedText.split('\n');
-  //     const processedLines = [];
-      
-  //     // Process lines for product list formatting
-  //     let i = 0;
-  //     while (i < lines.length) {
-  //       const line = lines[i];
-  //       
-  //       // Check if this is a numbered list item (product) with price
-  //       // Match formats like: "1. Product Name - €10.99" or "1. Product Name - 10.99€"
-  //       const productMatch = line.match(/^(\d+\.)\s*(.*?)(\s*[-–—]\s*(?:€\s*\d+[\.,]?\d*|\d+[\.,]?\d*\s*€))$/);
-  //       
-  //       if (productMatch) {
-  //         const [_, number, name, price] = productMatch;
-  //         
-  //         // Make product name bold if not already
-  //         const formattedName = name.includes('*') ? name.trim() : `*${name.trim()}*`;
-  //         
-  //         // Format price consistently 
-  //         const cleanPrice = price.replace(/\s+/g, ' ').trim();
-  //         
-  //         // Combine number, name and price on one line
-  //         let formattedProduct = `${number} ${formattedName} ${cleanPrice}`;
-  //         
-  //         // Look ahead for category and description lines
-  //         let details = [];
-  //         let j = i + 1;
-  //         
-  //         // Collect category and description lines
-  //         while (j < lines.length && (
-  //           lines[j].trim().startsWith('Categoria:') || 
-  //           lines[j].trim().startsWith('Descrizione:') ||
-  //           lines[j].trim().startsWith('-') ||
-  //           lines[j].trim().startsWith('•')
-  //         )) {
-  //           // Format with bullet points and italics for categories
-  //           let detailLine = lines[j]
-  //             .replace(/^\s*[-–•]\s*/, '   • ')
-  // 
-  //           
-  //           details.push(detailLine);
-  //           j++;
-  //         }
-  //         
-  //         // Add the formatted product with its details
-  //         if (details.length > 0) {
-  //           formattedProduct += '\n' + details.join('\n');
-  //         }
-  //         
-  //         processedLines.push(formattedProduct);
-  //         
-  //         // Skip the lines we've processed
-  //         i = j;
-  //       } else {
-  //         // Check if this is a section header (all caps or ends with :)
-  //         const isSectionHeader = line.trim().toUpperCase() === line.trim() && line.trim().length > 3;
-  //         const isLabelLine = /:\s*$/.test(line.trim());
-  //         
-  //         if (isSectionHeader) {
-  //           // Format section headers with bold
-  //           processedLines.push(`*${line.trim()}*`); 
-  //         } else if (isLabelLine) {
-  //           // Format labels with emphasis
-  //           processedLines.push(`_${line.trim()}_`);
-  //         } else {
-  //           // Regular line - ensure consistent bullet point formatting
-  //           processedLines.push(line.replace(/^[•-]\s*/, '• '));
-  //         }
-  //         i++;
-  //       }
-  //     }
-      
-  //     // Rejoin the lines
-  //     formattedText = processedLines.join('\n');
-      
-  //     // Ensure no double blank lines
-  //     formattedText = formattedText.replace(/\n\s*\n\s*\n/g, '\n\n');
-      
-  //     logger.info('WhatsApp formatting completed with enhanced product list support');
-  //     return formattedText;
-  //   } catch (error) {
-  //     logger.error('Error formatting WhatsApp message:', error);
-  //     return text; // Return original text in case of error
-  //   }
-  // }
-  
   /**
    * Process a message and return a response
    * 
@@ -129,7 +30,7 @@ export class MessageService {
   async processMessage(message: string, phoneNumber: string, workspaceId: string): Promise<string> {
 
     let response = ""; 
-    let agentSelected = ""; // Aggiungo una variabile per tracciare l'agente selezionato
+    let agentSelected = ""; // Variable to track the selected agent
 
     try {   
         logger.info(`Processing message: "${message}" from ${phoneNumber} for workspace ${workspaceId}`);
@@ -162,13 +63,13 @@ export class MessageService {
         if (!customer) {
             logger.info("New user detected - sending registration link");
             const registrationUrl = `${process.env.FRONTEND_URL || 'https://laltroitalia.shop'}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`;
-            response = `Benvenuto! Per procedere con la chat, registrati qui: ${registrationUrl}`;
+            response = `Welcome! To proceed with the chat, please register here: ${registrationUrl}`;
             
             // Create temporary customer record
             const tempCustomer = await this.messageRepository.findOrCreateCustomerByPhone(workspaceId, phoneNumber);
             logger.info(`Created temporary customer record: ${tempCustomer.id}`);
             
-            agentSelected = "Registration"; // Imposto l'agente usato come "Registration"
+            agentSelected = "Registration"; // Set the agent used as "Registration"
             return response;
         } 
         
@@ -177,9 +78,9 @@ export class MessageService {
         if (customer.name === 'Unknown Customer') {
             logger.info(`User with phone ${phoneNumber} is still unregistered - showing registration link again`);
             const registrationUrl = `${process.env.FRONTEND_URL || 'https://laltroitalia.shop'}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`;
-            response = `Per favore completa la registrazione prima di continuare: ${registrationUrl}`;
+            response = `Please complete the registration before continuing: ${registrationUrl}`;
             
-            agentSelected = "Registration"; // Imposto l'agente usato come "Registration"
+            agentSelected = "Registration"; // Set the agent used as "Registration"
             return response;
         }
         
@@ -195,26 +96,23 @@ export class MessageService {
                 logger.info(`=== MESSAGE PROCESSING START ===`);
                 logger.info(`USER MESSAGE: "${message}"`);
                 
-                // 1. Seleziona l'agente appropriato con il router
+                // 1. Select the appropriate agent with the router
                 const selectedAgent = await this.messageRepository.getResponseFromAgentRouter(routerAgentPrompt, message);
                 logger.info(`AGENT SELECTED: "${selectedAgent.name}"`);
                 
-                // Salvo il nome dell'agente selezionato
+                // Save the name of the selected agent
                 agentSelected = selectedAgent.name || "Unknown";
                 
-                // 2. Genera il prompt arricchito con il contesto dei prodotti e servizi
+                // 2. Generate the prompt enriched with product and service context
                 const systemPrompt = await this.messageRepository.getResponseFromRag(selectedAgent, message, products, services, chatHistory, customer);
-                logger.info(`SYSTEM PROMT: "${systemPrompt}"`);
+                logger.info(`SYSTEM PROMPT: "${systemPrompt}"`);
 
-                // 3. converte il systemPrompt in prompt per il conversazione
-                response = await this.messageRepository.getConversationResponse(chatHistory, message, systemPrompt);
-                logger.info(`FINAL PROMT: "${response}"`);
+                response = systemPrompt;
+                // 3. Convert systemPrompt to conversation prompt
+               // response = await this.messageRepository.getConversationResponse(chatHistory, message, systemPrompt);
+                logger.info(`FINAL PROMPT: "${response}"`);
   
-                // 4. Formatta la risposta e aggiungi info sul chatbot
-                //response = this.formatListForWhatsApp(response);
-                
-                // Non aggiungiamo qui l'agente nel messaggio, verrà fatto dal frontend
-                // che leggerà il campo agentSelected dal database
+                // The agent info will be added by the frontend which will read the agentSelected field from the database
             
             } catch (apiError) {
                 agentSelected = "Error";
@@ -238,7 +136,7 @@ export class MessageService {
           phoneNumber,
           message,
           response,
-          agentSelected // Passo l'agente selezionato al repository
+          agentSelected // Pass the selected agent to the repository
         });
         logger.info("Message saved successfully");
       } catch (saveError) {
@@ -246,5 +144,4 @@ export class MessageService {
       }
     }
   }
-  
 } 

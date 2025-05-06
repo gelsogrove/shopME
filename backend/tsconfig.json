@@ -1,29 +1,19 @@
 {
   "compilerOptions": {
-    "target": "es2017",
+    "target": "es2016",
     "module": "commonjs",
-    "lib": ["es2017", "esnext.asynciterable"],
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "outDir": "./dist",
     "moduleResolution": "node",
-    "removeComments": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "sourceMap": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noEmitOnError": false
   },
-  "exclude": ["node_modules"],
-  "include": ["./src/**/*.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
 }

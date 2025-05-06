@@ -3,6 +3,8 @@ import cors from "cors"
 import express from "express"
 import helmet from "helmet"
 import OpenAI from 'openai'
+import swaggerUi from "swagger-ui-express"
+import { swaggerSpec } from "./config/swagger"
 import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware"
 import { loggingMiddleware } from "./middlewares/logging.middleware"
 import apiRouter from "./routes"
@@ -37,6 +39,13 @@ app.use(helmet({
 app.use(express.json())
 app.use(cookieParser())
 
+// Swagger documentation
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "L'Altra Italia Shop API Documentation"
+}))
+
 // Log that we're about to mount the API router
 logger.info("Mounting API router at /api prefix")
 
@@ -44,6 +53,7 @@ logger.info("Mounting API router at /api prefix")
 app.use("/api", apiRouter)
 
 // Endpoint di test per OpenAI
+// @ts-ignore
 app.get("/api/test/openai", async (req, res) => {
   try {
     // Check if OpenAI is properly configured

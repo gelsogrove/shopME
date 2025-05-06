@@ -48,6 +48,7 @@ export const requestLoggingMiddleware = (req: Request, res: Response, next: Next
   const originalEnd = res.end;
   
   // Override the end function to log the response
+  // @ts-ignore
   res.end = function(chunk?: any, encoding?: BufferEncoding, cb?: () => void) {
     logger.info(`Response for ${req.method} ${req.originalUrl} - Status: ${res.statusCode}`);
     

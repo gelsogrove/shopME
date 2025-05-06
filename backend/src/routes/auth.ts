@@ -1,5 +1,6 @@
 import { Router } from "express"
 import { login } from "../controllers/auth.controller"
+import { wrapController } from "../utils/controller-wrapper"
 
 const router = Router()
 
@@ -9,6 +10,6 @@ router.get("/health", (req, res) => {
 })
 
 // Authentication routes
-router.post("/login", login)
+router.post("/login", wrapController(login))
 
 export default router 

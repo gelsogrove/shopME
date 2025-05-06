@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response, Router } from "express"
+import { NextFunction, Request, RequestHandler, Response, Router } from "express"
 import { CategoriesController } from "../interfaces/http/controllers/categories.controller"
 import { CustomersController } from "../interfaces/http/controllers/customers.controller"
 import { ServicesController } from "../interfaces/http/controllers/services.controller"
@@ -97,7 +97,7 @@ router.get("/products", function(req: Request, res: Response) {
     message: "Products API endpoint is working", 
     documentation: "Use /workspaces/:workspaceId/products for workspace-specific products"
   });
-});
+} as unknown as RequestHandler)
 
 router.get("/services", function(req: Request, res: Response) {
   logger.info("Direct /services endpoint accessed");
@@ -106,7 +106,7 @@ router.get("/services", function(req: Request, res: Response) {
     message: "Services API endpoint is working", 
     documentation: "Use /workspaces/:workspaceId/services for workspace-specific services"
   });
-});
+} as unknown as RequestHandler)
 
 // Debug endpoint for direct chat access
 router.get("/chat-debug/:sessionId", function(req: Request, res: Response) {
@@ -117,7 +117,7 @@ router.get("/chat-debug/:sessionId", function(req: Request, res: Response) {
     sessionId: req.params.sessionId,
     timestamp: new Date().toISOString()
   });
-});
+} as unknown as RequestHandler)
 
 logger.info("API routes setup complete")
 

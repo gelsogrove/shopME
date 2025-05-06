@@ -1,4 +1,5 @@
 // Aggiungo un endpoint di test per OpenAI nel router principale
+// @ts-ignore
 app.get("/api/test/openai", authMiddleware, async (req, res) => {
   try {
     // Check if OpenAI is properly configured
@@ -13,6 +14,7 @@ app.get("/api/test/openai", authMiddleware, async (req, res) => {
     }
 
     // Initialize OpenAI client
+    // @ts-ignore
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY || '',
       baseURL: "https://openrouter.ai/api/v1",

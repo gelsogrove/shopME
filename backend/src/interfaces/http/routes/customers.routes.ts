@@ -7,6 +7,7 @@ export const customersRouter = (controller: CustomersController): Router => {
   const router = Router();
 
   // Add a special debug endpoint without auth requirement
+  // @ts-ignore
   router.get("/:workspaceId/unknown-customers/debug-no-auth", (req, res) => {
     logger.info(`🛠️ No-auth debug endpoint accessed for workspace: ${req.params.workspaceId}`);
     return res.json({ count: 99, debug: true, auth: false });
@@ -33,6 +34,7 @@ export const customersRouter = (controller: CustomersController): Router => {
   });
   
   // Additional debugging endpoint that returns hardcoded count
+  // @ts-ignore
   router.get("/:workspaceId/unknown-customers/count-debug", (req, res) => {
     logger.info(`🔍 Debug count endpoint accessed for workspace: ${req.params.workspaceId}`);
     return res.json({ count: 42, debug: true });

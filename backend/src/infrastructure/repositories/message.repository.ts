@@ -907,22 +907,6 @@ export class MessageRepository {
   }
 
   /**
-   * Post-process AI response to clean up any unwanted formatting
-   * @param text The AI response text
-   * @returns Cleaned response text
-   */
-  private cleanupAIResponse(text: string): string {
-    // Remove underscore-based formatting (italic text in markdown)
-    // Replace _text_ with just text
-    let cleanText = text.replace(/_(.*?)_/g, '$1');
-    
-    // Preserve product names formatting with asterisks
-    // Other cleanup can be added here as needed
-    
-    return cleanText;
-  }
-  
-  /**
    * Get conversational response using chat history, user message and system prompt
    * @param chatHistory Chat history
    * @param message User message
@@ -959,9 +943,9 @@ export class MessageRepository {
 4. Format all product names with asterisks like *Product Name*.
 5. Show prices exactly as formatted in the priceString field.
 6. Leave a blank line between different products
-7. Remove labels such as Description, Categoria, need to be discorsive wihout any list or bullet points but keep the description and do a sentence.
-8. non numerare le liste, scrivere in modo discorsivo senza liste o punti.
-9. Arrotonda i prezzi a 2 decimali.
+7. Remove labels such as Description, Category, need to be discursive without any list or bullet points but keep the description and do a sentence.
+8. Do not number lists, write in a discursive way without lists or bullet points.
+9. Round prices to 2 decimal places.
 10. DO NOT use underscore characters (_) for any formatting. Do not format titles or sections with underscores.
 11. Use plain text without any special formatting except for product names which should use asterisks (*).
 12. Use emoticon when is need it, but don't exagerate.
@@ -995,7 +979,7 @@ export class MessageRepository {
       return response;
     } catch (error) {
       logger.error('Error in conversation processing:', error);
-      return "Mi dispiace, c'è stato un problema nell'elaborazione del messaggio. Un operatore ti contatterà a breve.";
+      return "I'm sorry, there was a problem processing your message. An operator will contact you shortly.";
     }
   }
 
@@ -1021,7 +1005,7 @@ export class MessageRepository {
       // Check if OpenAI is properly configured
       if (!isOpenAIConfigured()) {
         logger.warn('OpenAI API key not configured properly');
-        return "Il servizio di intelligenza artificiale non è attualmente disponibile. Un operatore ti contatterà a breve.";
+        return "The artificial intelligence service is currently unavailable. An operator will contact you shortly.";
       }
       
       // Extract agent content and parameters
@@ -1039,17 +1023,13 @@ export class MessageRepository {
       // Get customer discount (if any)
       const customerDiscount = customer?.discount || 0;
       
-      // Aggiungi log per verificare il prompt originale
-      logger.info(`ORIGINAL PROMPT BEFORE REPLACEMENT:\n${agentContent}`);
-      logger.info(`VARIABLES TO REPLACE: language=${customerLanguage}, currency=${customerCurrency}, discount=${customerDiscount}`);
+      // Replace with more professional English log message
+      logger.info(`Agent prompt prepared with language=${customerLanguage}, currency=${customerCurrency}, discount=${customerDiscount}%`);
       
       // Fill variables in the agent prompt - directly replace common variable patterns
       agentContent = agentContent.replace(/\{customerLanguage\}/g, customerLanguage);
       agentContent = agentContent.replace(/\{customerCurrency\}/g, customerCurrency);
       agentContent = agentContent.replace(/\{customerDiscount\}/g, customerDiscount.toString());
-      
-      // Aggiungi log per verificare il prompt dopo la sostituzione
-      logger.info(`PROMPT AFTER REPLACEMENT:\n${agentContent}`);
       
       // Create a new agent object with the replaced content
       const replacedAgent = {
@@ -1096,7 +1076,7 @@ export class MessageRepository {
                 name: p.name,
                 description: p.description,
                 category: p.category?.name || 'empty',
-                stock: p.stock || 'Disponibile',
+                stock: p.stock || 'Available',
                 currency: customerCurrency || 'EUR',
               };
               
@@ -1212,7 +1192,7 @@ export class MessageRepository {
           logger.info(`AI response (${responseContent.length} chars): "${responseContent.substring(0, 50)}${responseContent.length > 50 ? '...' : ''}"`);
         } else {
           logger.error('OpenAI API returned an empty or invalid response structure:', response);
-          responseContent = "Mi dispiace, il servizio ha risposto in modo non valido. Un operatore ti contatterà a breve.";
+          responseContent = "I'm sorry, the service responded with an invalid format. An operator will contact you shortly.";
         }
         
         return responseContent;
