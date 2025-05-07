@@ -12,6 +12,8 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
+import { useWorkspace } from "@/hooks/use-workspace"
+import { getCurrencySymbol } from "@/utils/format"
 import { useEffect, useState } from "react"
 
 interface Product {
@@ -47,6 +49,7 @@ export function ProductSheet({
   title,
   availableCategories,
 }: ProductSheetProps) {
+  const { workspace } = useWorkspace()
   // Form state
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -57,6 +60,9 @@ export function ProductSheet({
   // Image URL state
   const [imageUrl, setImageUrl] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Ottieni il simbolo della valuta dal workspace
+  const currencySymbol = getCurrencySymbol(workspace?.currency)
 
   // Reset form when product changes
   useEffect(() => {
@@ -168,7 +174,7 @@ export function ProductSheet({
                 {/* Price */}
                 <div className="space-y-2">
                   <Label htmlFor="price" className="text-sm font-medium">
-                    Price (€)
+                    Price ({currencySymbol})
                   </Label>
                   <Input
                     id="price"

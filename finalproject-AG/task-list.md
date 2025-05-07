@@ -1,12 +1,12 @@
 # ShopMe – Realistic Project Task List (64 Unique Tasks)
 
 ## 📊 Stato Attuale del Progetto
-**Ultimo aggiornamento:** 2023-07-04
+**Ultimo aggiornamento:** 2025-05-08
 
-- **Completati:** 31/64 task (48.4%)
-- **In corso:** 0/64 task (0%)
-- **Out of scope:** 16/64 task (25.0%)
-- **Da iniziare:** 17/64 task (26.5%)
+- **Completati:** 34/66 task (51.5%)
+- **In corso:** 0/66 task (0%)
+- **Out of scope:** 16/66 task (24.2%)
+- **Da iniziare:** 16/66 task (24.2%)
 
 
 ### 🚩 Prossimo Task Prioritario
@@ -28,11 +28,47 @@
 - Authentication & 2FA: 4/10 completati, 5/10 fuori scope ⏳
 - Product Management: 9/10 completati, 1/10 in corso 🔄
 - Orders & Cart: 1/10 completati, 8/10 fuori scope 🔄
-- User Interface & UX: 4/10 completati ⏳
+- User Interface & UX: 7/12 completati ⏳
 - WhatsApp Integration: 0/10 completati ❌
 - API Design: 0/2 completati ❌
 
 ### 🌟 Task Completati Recentemente
+- **TASK-0095**: Implementato sistema di messaggi di benvenuto multilingua
+  - Aggiunto nuovo campo welcomeMessages al modello Workspace
+  - Creata migration per aggiornare il database
+  - Aggiornato seed con messaggi di benvenuto di default in IT, EN, ES
+  - Implementata UI per modificare i messaggi nelle impostazioni
+  - Aggiunto PDR con documentazione della funzionalità
+
+- **TASK-0094**: Risolto errore di salvataggio cliente
+  - Corretto bug di referenza circolare nel salvataggio dati cliente
+  - Implementato sanitizer per rimuovere referenze DOM/React nei dati inviati all'API
+  - Evitato l'errore "Converting circular structure to JSON" durante il salvataggio
+  - Aggiunto logging migliorato in caso di errore per facilitare il debug
+
+- **TASK-0093**: Sistemata visualizzazione chat
+  - Corretto il problema di visualizzazione dei messaggi nella chat (user/chatbot)
+  - Implementato mapping corretto tra MessageDirection (INBOUND/OUTBOUND) e visualizzazione (user/customer)
+  - Sistemata la trasformazione dei messaggi ricevuti dall'API in frontend
+  - Garantita la consistenza dei messaggi inviati e ricevuti
+
+- **TASK-0090**: Miglioramenti interfaccia chat
+  - Corretta visualizzazione dell'agente che ha risposto in chat
+  - Sistemato allineamento dei messaggi (agente a destra, utente a sinistra)
+  - Implementato disattivazione automatica del chatbot quando l'agente prende il controllo
+  - Aggiunta conferma una sola volta quando si disattiva il chatbot
+
+- **TASK-0091**: Miglioramenti navigazione e UX
+  - Modificati i link per aprirsi in nuove schede
+  - Implementata navigazione diretta da cliente alla chat history
+  - Aggiunto supporto per messaggi di benvenuto multilingua
+  - Aggiunto supporto per simboli di valuta nelle impostazioni
+
+- **TASK-0067**: Rimosso campo email dai servizi
+  - Rimosso il campo email dall'interfaccia Service nel frontend
+  - Rimosso il campo email dal form di creazione e modifica dei servizi
+  - Rimosso il campo email dai dati inviati alle API
+
 - **TASK-0064**: Implementare notifiche badge nella sidebar
   - Aggiunto badge di notifica per Chat History che mostra il numero di messaggi non letti
   - Aggiunto badge per Clients che mostra il numero di clienti sconosciuti
@@ -88,6 +124,9 @@
 - **TASK-0066**: Implementare Blocklist per i numeri di telefono
 - **TASK-0050**: Design responsive UI components
 - **TASK-0051**: Create dashboard layout and navigation
+- **TASK-0090**: Miglioramenti interfaccia chat
+- **TASK-0091**: Miglioramenti navigazione e UX
+- **TASK-0092**: Campi di spedizione opzionali nel form client
 
 **Orders & Cart**
 - **TASK-0030**: Design cart data model
@@ -148,14 +187,14 @@
 
 ## 📌 Summary by Epic
 
-- System Setup & Architecture: 12 tasks
-- Authentication & 2FA: 10 tasks
+- System Setup & Architecture: 12 tasks (12 completati)
+- Authentication & 2FA: 10 tasks (4 completati)
 - Product Management: 10 tasks (9 completati)
 - Orders & Cart: 10 tasks (1 completato)
-- Clients, GDPR & Tokenization: 10 tasks (4 completati)
+- User Interface & UX: 12 tasks (7 completati)
 - AI, WhatsApp & Messaging: 12 tasks (2 completati)
 
-**Total Tasks: 64**
+**Total Tasks: 66**
 
 ## ✅ Full Task List
 
@@ -1228,4 +1267,6 @@ Implementare una funzionalità che applichi automaticamente uno sconto ai prezzi
 ## 🌟 Stato dei Task
 - Tutti i task: Non iniziati
 
-- [ ] Check and correct any usage of '/api/api/workspaces' to '/api/workspaces' in the codebase. Reason: The correct backend route is '/api/workspaces'; using '/api/api/workspaces' results in a 404 error (Cannot GET /api/api/workspaces).
+- [x] Check and correct any usage of '/api/api/workspaces' to '/api/workspaces' in the codebase. Reason: The correct backend route is '/api/workspaces'; using '/api/api/workspaces' results in a 404 error (Cannot GET /api/api/workspaces).
+- [x] Remove the discount column from the clients table UI (/clients page)
+- [ ] Check for any further discount-related UI or logic in the client management flow and remove if not needed

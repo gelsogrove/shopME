@@ -103,7 +103,7 @@ export default function MarkdownEditor({ value, onChange, minHeight = "400px", n
                   ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
                   ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
                   li: ({node, ...props}) => <li className="my-1" {...props} />,
-                  a: ({node, ...props}) => <a className="text-blue-600 hover:underline" {...props} />,
+                  a: ({node, ...props}) => <a className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
                   blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-2" {...props} />,
                   code: ({node, inline, ...props}: {node: any, inline?: boolean, [key: string]: any}) => 
                     inline 

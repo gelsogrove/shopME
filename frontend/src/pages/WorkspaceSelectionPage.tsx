@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom"
 import { createWorkspace, getWorkspaces, updateWorkspace } from "../services/workspaceApi"
 
 // Definizione dei tipi di attività supportati
-type BusinessType = "Shop" | "Hotel" | "Events" | "Restaurant"
+type BusinessType = "Shop" | "Hotel" | "Event" | "Restaurant"
 
 export function WorkspaceSelectionPage() {
   const navigate = useNavigate()

@@ -1,159 +1,218 @@
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { DataTable } from "@/components/shared/DataTable"
+import { FormDialog } from "@/components/shared/FormDialog"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { StatusBadge } from "@/components/shared/StatusBadge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { Save } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import { useState } from "react"
 
-interface Channel {
+interface ChannelType {
   id: string
   name: string
-  description: string
-  enabled: boolean
+  code: string
+  status: "active" | "inactive"
 }
 
-const channelTypes: Channel[] = [
+const initialChannelTypes: ChannelType[] = [
   {
-    id: "whatsapp",
+    id: "1",
     name: "WhatsApp",
-    description: "Connect via WhatsApp",
-    enabled: true,
+    code: "whatsapp",
+    status: "active",
   },
   {
-    id: "telegram",
-    name: "Telegram",
-    description: "Connect via Telegram",
-    enabled: false,
+    id: "2",
+    name: "Messenger",
+    code: "messenger",
+    status: "active",
   },
   {
-    id: "messenger",
-    name: "Facebook Messenger",
-    description: "Connect via Facebook Messenger",
-    enabled: false,
-  },
-  {
-    id: "line",
-    name: "LINE",
-    description: "Connect via LINE messaging",
-    enabled: false,
+    id: "3",
+    name: "Instagram",
+    code: "instagram",
+    status: "inactive",
   },
 ]
 
 export function ChannelTypesPage() {
-  const [channels, setChannels] = useState<Channel[]>(channelTypes)
-  const [welcomeMessage, setWelcomeMessage] = useState(
-    "Hello! Thank you for contacting us. How can we help you today?"
+  const [channelTypes, setChannelTypes] = useState<ChannelType[]>(initialChannelTypes)
+  const [searchValue, setSearchValue] = useState("")
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [selectedChannelType, setSelectedChannelType] = useState<ChannelType | null>(
+    null
   )
-  const [offlineMessage, setOfflineMessage] = useState(
-    "Thank you for your message. We are currently offline but will respond as soon as possible."
-  )
-  const [isSaving, setIsSaving] = useState(false)
 
-  const handleChannelToggle = (id: string, enabled: boolean) => {
-    setChannels(
-      channels.map((channel) =>
-        channel.id === id ? { ...channel, enabled } : channel
-      )
+  const filteredChannelTypes = channelTypes.filter((channelType) =>
+    Object.values(channelType).some((value) =>
+      value.toString().toLowerCase().includes(searchValue.toLowerCase())
+    )
+  )
+
+  const handleToggleStatus = (channelType: ChannelType) => {
+    setChannelTypes(
+      channelTypes.map((c) => ({
+        ...c,
+        status: c.id === channelType.id 
+          ? (c.status === "active" ? "inactive" : "active")
+          : c.status,
+      }))
     )
   }
 
-  const handleSave = async () => {
-    setIsSaving(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsSaving(false)
+  const columns = [
+    { header: "Name", accessorKey: "name" as keyof ChannelType },
+    { header: "Code", accessorKey: "code" as keyof ChannelType },
+    {
+      header: "Status",
+      accessorKey: "status" as keyof ChannelType,
+      cell: ({ row }: { row: { original: ChannelType } }) => (
+        <Button
+          variant={row.original.status === "active" ? "default" : "outline"}
+          onClick={() => handleToggleStatus(row.original)}
+          className="w-24 cursor-pointer"
+        >
+          <StatusBadge status={row.original.status}>
+            {row.original.status.charAt(0).toUpperCase() +
+              row.original.status.slice(1)}
+          </StatusBadge>
+        </Button>
+      ),
+    },
+  ]
+
+  const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const form = e.target as HTMLFormElement
+    const formData = new FormData(form)
+
+    const newChannelType: ChannelType = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: formData.get("name") as string,
+      code: formData.get("code") as string,
+      status: "inactive",
+    }
+
+    setChannelTypes([...channelTypes, newChannelType])
+    setShowAddDialog(false)
+  }
+
+  const handleEdit = (channelType: ChannelType) => {
+    setSelectedChannelType(channelType)
+    setShowEditDialog(true)
+  }
+
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!selectedChannelType) return
+
+    const form = e.target as HTMLFormElement
+    const formData = new FormData(form)
+
+    const updatedChannelType: ChannelType = {
+      ...selectedChannelType,
+      name: formData.get("name") as string,
+      code: formData.get("code") as string,
+      status: selectedChannelType.status,
+    }
+
+    setChannelTypes(
+      channelTypes.map((c) => (c.id === selectedChannelType.id ? updatedChannelType : c))
+    )
+    setShowEditDialog(false)
+    setSelectedChannelType(null)
+  }
+
+  const handleDelete = (channelType: ChannelType) => {
+    setSelectedChannelType(channelType)
+    setShowDeleteDialog(true)
+  }
+
+  const handleDeleteConfirm = () => {
+    if (!selectedChannelType) return
+    setChannelTypes(channelTypes.filter((c) => c.id !== selectedChannelType.id))
+    setShowDeleteDialog(false)
+    setSelectedChannelType(null)
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold mb-6">Channel Types</h1>
-        <p className="text-gray-500 mb-6">
-          Configure which messaging channels you want to enable for your
-          customers to contact you
-        </p>
+    <div className="container mx-auto py-6">
+      <Alert className="mb-6 bg-blue-50 border border-blue-200 text-blue-800">
+        <AlertCircle className="h-5 w-5 text-blue-500" />
+        <AlertDescription className="ml-2 text-sm font-medium">
+          Channel types determine the communication channels available in your workspace.
+        </AlertDescription>
+      </Alert>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {channels.map((channel) => (
-            <Card key={channel.id}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle>{channel.name}</CardTitle>
-                  <Switch
-                    id={`${channel.id}-toggle`}
-                    checked={channel.enabled}
-                    onCheckedChange={(checked) =>
-                      handleChannelToggle(channel.id, checked)
-                    }
-                  />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-500">{channel.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      <PageHeader
+        title="Channel Types"
+        searchValue={searchValue}
+        onSearch={setSearchValue}
+        searchPlaceholder="Search channel types..."
+        onAdd={() => setShowAddDialog(true)}
+        itemCount={filteredChannelTypes.length}
+      />
+
+      <div className="mt-6">
+        <DataTable
+          data={filteredChannelTypes}
+          columns={columns}
+          globalFilter={searchValue}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </div>
 
-      <div>
-        <h2 className="text-xl font-bold mb-4">Message Templates</h2>
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle>Welcome Message</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={welcomeMessage}
-              onChange={(e) => setWelcomeMessage(e.target.value)}
-              rows={4}
-              className="resize-none"
-            />
-            <p className="text-sm text-gray-500 mt-2">
-              This message is sent when a customer starts a new conversation
-            </p>
-          </CardContent>
-        </Card>
+      <FormDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        title="Add New Channel Type"
+        fields={[
+          {
+            name: "name",
+            label: "Name",
+            type: "text",
+          },
+          {
+            name: "code",
+            label: "Code",
+            type: "text",
+          },
+        ]}
+        onSubmit={handleAdd}
+      />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Offline Message</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={offlineMessage}
-              onChange={(e) => setOfflineMessage(e.target.value)}
-              rows={4}
-              className="resize-none"
-            />
-            <p className="text-sm text-gray-500 mt-2">
-              This message is sent when no agents are available to respond
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <FormDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        title="Edit Channel Type"
+        fields={[
+          {
+            name: "name",
+            label: "Name",
+            type: "text",
+            defaultValue: selectedChannelType?.name,
+          },
+          {
+            name: "code",
+            label: "Code",
+            type: "text",
+            defaultValue: selectedChannelType?.code,
+          },
+        ]}
+        onSubmit={handleEditSubmit}
+      />
 
-      <div className="flex justify-end">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button onClick={handleSave} disabled={isSaving}>
-                <Save className="w-4 h-4 mr-2" />
-                {isSaving ? "Saving..." : "Save Configuration"}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Save all channel configurations and messages</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete Channel Type"
+        description={`Are you sure you want to delete ${selectedChannelType?.name}? This action cannot be undone.`}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   )
 }

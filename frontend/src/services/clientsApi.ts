@@ -20,6 +20,7 @@ export interface Client {
   workspaceId: string
   createdAt: string
   updatedAt: string
+  activeChatbot?: boolean
 }
 
 export interface CreateClientData {

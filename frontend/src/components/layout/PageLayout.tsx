@@ -1,17 +1,19 @@
 import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { Button } from "@/components/ui/button"
+import { Chat } from "@/types/chat"
 import { MessageCircle } from "lucide-react"
 import { ReactNode, useState } from "react"
 
 interface PageLayoutProps {
   children: ReactNode
+  selectedChat?: Chat | null
 }
 
 /**
  * Standard layout wrapper for all main pages in the application
  * Ensures consistent page structure and spacing
  */
-export function PageLayout({ children }: PageLayoutProps) {
+export function PageLayout({ children, selectedChat }: PageLayoutProps) {
   const [showPlaygroundDialog, setShowPlaygroundDialog] = useState<boolean>(false)
 
   const handlePlaygroundClick = () => {
@@ -51,6 +53,8 @@ export function PageLayout({ children }: PageLayoutProps) {
         isOpen={showPlaygroundDialog}
         onClose={handleClosePlayground}
         channelName="WhatsApp Chat"
+        phoneNumber={selectedChat?.customerPhone || ""}
+        selectedChat={selectedChat}
       />
     </div>
   )

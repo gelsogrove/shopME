@@ -27,6 +27,7 @@ model Workspace {
   messageLimit        Int               @default(50)
   blocklist           String?           @default("")
   url                 String?
+  welcomeMessages     Json?             @default("{\"it\": \"Benvenuto!\", \"en\": \"Welcome!\", \"es\": \"¡Bienvenido!\"}")
   carts               Carts[]
   categories          Categories[]
   chatSessions        ChatSession[]
@@ -118,6 +119,7 @@ model Customers {
   chatSessions               ChatSession[]
   workspace                  Workspace     @relation(fields: [workspaceId], references: [id])
   orders                     Orders[]
+  activeChatbot              Boolean       @default(true)
 
   @@map("customers")
 }

@@ -3,24 +3,23 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { Button } from "@/components/ui/button"
 import MarkdownEditor from "@/components/ui/markdown-editor"
 import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
-import { Switch } from "@/components/ui/switch"
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import {
-    Agent,
-    createAgent,
-    deleteAgent,
-    getAgents,
-    updateAgent,
+  Agent,
+  createAgent,
+  deleteAgent,
+  getAgents,
+  updateAgent,
 } from "@/services/agentsApi"
 import { getCurrentWorkspace } from "@/services/workspaceApi"
 import { Bot, Loader2, PanelTop, Pencil, Trash2 } from "lucide-react"
@@ -39,6 +38,7 @@ export function AgentsPage() {
   const [tempValue, setTempValue] = useState(0.7)
   const [topPValue, setTopPValue] = useState(0.9)
   const [topKValue, setTopKValue] = useState(40)
+  const [isRouterDefault, setIsRouterDefault] = useState(false)
 
   // Carica il workspace corrente e gli agenti all'avvio
   useEffect(() => {
@@ -69,6 +69,7 @@ export function AgentsPage() {
       setTempValue(selectedAgent.temperature || 0.7)
       setTopPValue(selectedAgent.top_p || 0.9)
       setTopKValue(selectedAgent.top_k || 40)
+      setIsRouterDefault(selectedAgent.isRouter || false)
 
       // Delayed check for department field
       setTimeout(() => {
@@ -79,6 +80,8 @@ export function AgentsPage() {
           departmentField.value = selectedAgent.department || ""
         }
       }, 100)
+    } else {
+      setIsRouterDefault(false)
     }
   }, [selectedAgent])
 
@@ -97,10 +100,8 @@ export function AgentsPage() {
     })
 
   const renderFormFields = (isEdit = false) => {
-    const isRouterDefault =
-      isEdit && selectedAgent ? selectedAgent.isRouter : false
-    const departmentDefault =
-      isEdit && selectedAgent ? selectedAgent.department : ""
+    const isRouter = isEdit && selectedAgent ? selectedAgent.isRouter : false
+    const departmentDefault = isEdit && selectedAgent ? selectedAgent.department : ""
 
     return (
       <div className="space-y-6 pb-6">
@@ -131,44 +132,18 @@ export function AgentsPage() {
               id="department"
               name="department"
               defaultValue={departmentDefault}
-              disabled={isRouterDefault}
+              disabled={isRouter}
               placeholder="Enter department name"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
             <p className="text-xs text-muted-foreground">
-              {isRouterDefault
+              {isRouter
                 ? "Router agents don't need a department"
                 : "The specialized department for this agent"}
             </p>
           </div>
         </div>
-
-        <div className="flex justify-between items-center border rounded-md p-3">
-          <div className="flex flex-col">
-            <label htmlFor="isRouter" className="text-sm font-medium mb-1">
-              Router Agent
-            </label>
-            <p className="text-xs text-muted-foreground max-w-xs">
-              A router agent dispatches requests to other specialized agents.
-              Only one router can be active at a time.
-            </p>
-          </div>
-          <Switch
-            id="isRouter"
-            name="isRouter"
-            defaultChecked={isRouterDefault}
-            onCheckedChange={(checked) => {
-              // Disable department field when isRouter is true
-              const departmentField = document.getElementById(
-                "department"
-              ) as HTMLInputElement
-              if (departmentField) {
-                departmentField.disabled = checked
-                if (checked) departmentField.value = ""
-              }
-            }}
-          />
-        </div>
+ 
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
@@ -404,8 +379,12 @@ export function AgentsPage() {
     try {
       const name = formData.get("name") as string
       let content = formData.get("content") as string
-      const isRouter = formData.get("isRouter") === "on"
-      let department = formData.get("department") as string
+      
+      // Manteniamo l'attributo isRouter originale dell'agente
+      const isRouter = selectedAgent.isRouter
+      
+      // Per il department utilizziamo il valore originale se l'agente è router
+      let department = isRouter ? null : (formData.get("department") as string)
 
       // Controllo e log esplicito del content
       console.log("Content from form:", content)
@@ -438,6 +417,7 @@ export function AgentsPage() {
         return
       }
 
+      // Saltiamo questo controllo per gli agenti router
       if (!isRouter && !department) {
         console.error("Missing department for non-router agent")
         toast.error("Please select a department for this specialized agent")
@@ -457,7 +437,7 @@ export function AgentsPage() {
       const updatedAgent = await updateAgent(workspaceId, selectedAgent.id, {
         name,
         content,
-        isRouter,
+        // Non inviamo isRouter per mantenere il valore originale nel backend
         department: department || undefined,
         temperature: tempValue,
         top_p: topPValue,
@@ -570,40 +550,60 @@ export function AgentsPage() {
 
                   {/* Actions */}
                   <div className="flex items-center justify-end gap-2 mt-auto">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(agent)}
-                          >
-                            <Pencil className="h-4 w-4 text-green-500" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Edit Agent</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(agent)}
-                            className="hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4 text-red-600" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Delete Agent</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    {agent.isRouter ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(agent)}
+                            >
+                              <Pencil className="h-4 w-4 text-green-500" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Edit Agent</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEdit(agent)}
+                              >
+                                <Pencil className="h-4 w-4 text-green-500" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Edit Agent</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(agent)}
+                                className="hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Delete Agent</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -643,10 +643,6 @@ export function AgentsPage() {
               <Button
                 type="submit"
                 className="bg-green-600 hover:bg-green-700"
-                onClick={(e) => {
-                  console.log("Save button clicked for Add Agent form")
-                  // Non preveniamo l'evento di default per permettere il submit naturale del form
-                }}
               >
                 Save
               </Button>
@@ -686,10 +682,6 @@ export function AgentsPage() {
               <Button
                 type="submit"
                 className="bg-green-600 hover:bg-green-700"
-                onClick={(e) => {
-                  console.log("Save button clicked for Edit Agent form")
-                  // Non preveniamo l'evento di default per permettere il submit naturale del form
-                }}
               >
                 Save
               </Button>

@@ -26,6 +26,7 @@ interface Customer {
   status: "active" | "inactive"
   gdprConsent: boolean
   pushNotificationsConsent: boolean
+  activeChatbot: boolean
 }
 
 const mockCustomers: Customer[] = [
@@ -40,6 +41,7 @@ const mockCustomers: Customer[] = [
     status: "active",
     gdprConsent: true,
     pushNotificationsConsent: true,
+    activeChatbot: true,
   },
   {
     id: "2",
@@ -52,6 +54,7 @@ const mockCustomers: Customer[] = [
     status: "active",
     gdprConsent: true,
     pushNotificationsConsent: true,
+    activeChatbot: true,
   },
   {
     id: "3",
@@ -64,6 +67,7 @@ const mockCustomers: Customer[] = [
     status: "inactive",
     gdprConsent: false,
     pushNotificationsConsent: false,
+    activeChatbot: false,
   },
 ]
 

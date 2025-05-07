@@ -111,11 +111,19 @@ describe('MessageService', () => {
       // Mock the URL for the registration link
       process.env.FRONTEND_URL = 'https://laltroitalia.shop';
       
-      // Mock the findOrCreateCustomerByPhone method to return a customer
-      mockMessageRepository.findOrCreateCustomerByPhone.mockResolvedValue({
+      // Mock the findCustomerByPhone method to return a newly created customer
+      const mockCustomer = {
         id: 'customer-id',
         phone: '+1234567890'
-      } as any);
+      };
+      mockMessageRepository.findCustomerByPhone.mockResolvedValueOnce(null); // First call: not found
+      mockMessageRepository.findCustomerByPhone.mockResolvedValueOnce(mockCustomer as any); // Second call: return created customer
+      
+      // Mock service creating the customer
+      // @ts-ignore: Mock implementation for test purposes
+      mockMessageRepository.createCustomer = jest.fn().mockImplementation(
+        () => Promise.resolve(mockCustomer)
+      );
       
       // Execute
       const result = await messageService.processMessage('Test message', '+1234567890', 'workspace-id')
@@ -123,8 +131,8 @@ describe('MessageService', () => {
       // Verify
       expect(mockMessageRepository.getWorkspaceSettings).toHaveBeenCalledWith('workspace-id')
       expect(mockMessageRepository.isCustomerBlacklisted).toHaveBeenCalledWith('+1234567890')
-      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith('+1234567890')
-      expect(result).toContain('Benvenuto!') // Should contain registration message
+      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith('+1234567890', 'workspace-id')
+      expect(result).toContain('Welcome') // Should contain registration message
     })
   })
   
@@ -281,7 +289,7 @@ describe('MessageService', () => {
       // Verify
       expect(mockMessageRepository.getWorkspaceSettings).toHaveBeenCalledWith('workspace-id')
       expect(mockMessageRepository.isCustomerBlacklisted).toHaveBeenCalledWith('+1234567890')
-      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith('+1234567890')
+      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith('+1234567890', 'workspace-id')
       expect(result).toContain('completa la registrazione') // Should contain registration message
       expect(result).toContain('https://laltroitalia.shop/register') // Should contain registration URL
       
@@ -429,7 +437,7 @@ describe('MessageService', () => {
       // Verify
       expect(mockMessageRepository.getWorkspaceSettings).toHaveBeenCalledWith('workspace-id');
       expect(mockMessageRepository.isCustomerBlacklisted).toHaveBeenCalledWith('+1234567890');
-      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith('+1234567890');
+      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith('+1234567890', 'workspace-id');
       
       // Verify that we correctly processed the message with AI
       expect(mockMessageRepository.getRouterAgent).toHaveBeenCalled();
@@ -516,7 +524,7 @@ describe('MessageService', () => {
       // Verify
       expect(mockMessageRepository.getWorkspaceSettings).toHaveBeenCalledWith('workspace-id');
       expect(mockMessageRepository.isCustomerBlacklisted).toHaveBeenCalledWith('+1234567890');
-      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith('+1234567890');
+      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith('+1234567890', 'workspace-id');
       
       // Verify that we correctly processed the message with AI
       expect(mockMessageRepository.getRouterAgent).toHaveBeenCalled();
@@ -908,7 +916,7 @@ describe('MessageService', () => {
       const result = await messageService.processMessage('Quali prodotti avete?', '+1234567890', 'workspace-id');
       
       // Verify base expectations
-      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith('+1234567890');
+      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith('+1234567890', 'workspace-id');
       expect(mockMessageRepository.getResponseFromRag).toHaveBeenCalled();
       
       // Verify the response contains USD prices (not EUR)
@@ -1037,7 +1045,7 @@ describe('MessageService', () => {
       const result = await messageService.processMessage('Quali prodotti avete?', '+1234567890', 'workspace-id');
       
       // Verify base expectations
-      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith('+1234567890');
+      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith('+1234567890', 'workspace-id');
       expect(mockMessageRepository.getResponseFromRag).toHaveBeenCalled();
       
       // Verify the response contains discounted prices
@@ -1237,4 +1245,110 @@ describe('MessageService', () => {
       expect(result).not.toContain('Servizio non disponibile');
     })
   })
+
+  describe('activeChatbot flag handling', () => {
+    // Test case: Customer with activeChatbot=false should not get automated responses
+    it('should skip bot response when customer has activeChatbot=false', async () => {
+      // Setup
+      mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
+        id: 'workspace-id',
+        isActive: true
+      } as any);
+      mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false);
+      
+      // Mock a customer with activeChatbot disabled (operator manual control)
+      const customerWithDisabledChatbot = {
+        id: 'customer-id',
+        phone: '+1234567890',
+        name: 'John Doe',
+        language: 'Italian',
+        activeChatbot: false // Chatbot disabled, operator manual control
+      } as any;
+      
+      mockMessageRepository.findCustomerByPhone.mockResolvedValue(customerWithDisabledChatbot);
+      
+      // Clear previous calls
+      mockMessageRepository.getRouterAgent.mockClear();
+      mockMessageRepository.getResponseFromAgentRouter.mockClear();
+      mockMessageRepository.getResponseFromRag.mockClear();
+      mockMessageRepository.getConversationResponse.mockClear();
+      
+      // Execute with any message
+      const result = await messageService.processMessage('Ciao, vorrei informazioni', '+1234567890', 'workspace-id');
+      
+      // Verify no chatbot response was generated
+      expect(result).toBe(''); // Empty response means no chatbot response
+      
+      // Verify that none of the AI processing steps were called
+      expect(mockMessageRepository.getRouterAgent).not.toHaveBeenCalled();
+      expect(mockMessageRepository.getResponseFromAgentRouter).not.toHaveBeenCalled();
+      expect(mockMessageRepository.getResponseFromRag).not.toHaveBeenCalled();
+      expect(mockMessageRepository.getConversationResponse).not.toHaveBeenCalled();
+      
+      // Verify message was saved with special "Manual Operator Control" tag
+      expect(mockMessageRepository.saveMessage).toHaveBeenCalledWith({
+        workspaceId: 'workspace-id',
+        phoneNumber: '+1234567890',
+        message: 'Ciao, vorrei informazioni',
+        response: '',
+        agentSelected: 'Manual Operator Control'
+      });
+    });
+    
+    // Test case: Customer with activeChatbot=true should get normal automated responses
+    it('should process bot response normally when customer has activeChatbot=true', async () => {
+      // Setup
+      mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
+        id: 'workspace-id',
+        isActive: true
+      } as any);
+      mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false);
+      
+      // Mock a customer with activeChatbot enabled (default behavior)
+      const customerWithEnabledChatbot = {
+        id: 'customer-id',
+        phone: '+1234567890',
+        name: 'John Doe',
+        language: 'Italian',
+        activeChatbot: true // Chatbot enabled (default)
+      } as any;
+      
+      mockMessageRepository.findCustomerByPhone.mockResolvedValue(customerWithEnabledChatbot);
+      
+      // Mock the bot processing steps
+      mockMessageRepository.getRouterAgent.mockResolvedValue('router prompt');
+      mockMessageRepository.getProducts.mockResolvedValue([]);
+      mockMessageRepository.getServices.mockResolvedValue([]);
+      mockMessageRepository.getLatesttMessages.mockResolvedValue([]);
+      mockMessageRepository.getResponseFromAgentRouter.mockResolvedValue({ 
+        name: 'TestAgent', 
+        content: 'You are a test agent' 
+      });
+      mockMessageRepository.getResponseFromRag.mockResolvedValue('Test system prompt');
+      mockMessageRepository.getConversationResponse.mockResolvedValue('Bot response');
+      
+      // Execute with any message
+      const result = await messageService.processMessage('Ciao, vorrei informazioni', '+1234567890', 'workspace-id');
+      
+      // Verify normal chatbot response was generated
+      expect(result).toBe('Bot response');
+      
+      // Verify that all AI processing steps were called
+      expect(mockMessageRepository.getRouterAgent).toHaveBeenCalled();
+      expect(mockMessageRepository.getResponseFromAgentRouter).toHaveBeenCalled();
+      expect(mockMessageRepository.getResponseFromRag).toHaveBeenCalled();
+      expect(mockMessageRepository.getConversationResponse).toHaveBeenCalled();
+      
+      // Verify message was saved with the agent name
+      expect(mockMessageRepository.saveMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workspaceId: 'workspace-id',
+          phoneNumber: '+1234567890',
+          message: 'Ciao, vorrei informazioni',
+          response: 'Bot response',
+          agentSelected: 'TestAgent'
+        })
+      );
+    });
+  });
 }) 

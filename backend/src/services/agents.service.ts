@@ -77,6 +77,15 @@ export const agentsService = {
    */
   async create(data: CreateAgentData) {
     const { workspaceId, isRouter = false } = data;
+    // Se si sta tentando di creare un router agent e ne esiste già uno, blocca
+    if (isRouter) {
+      const existingRouter = await prisma.prompts.findFirst({
+        where: { workspaceId, isRouter: true },
+      });
+      if (existingRouter) {
+        throw new Error("A router agent already exists for this workspace");
+      }
+    }
     console.log(`Creating agent for workspace ${workspaceId}, isRouter: ${isRouter}`);
 
     // Start a transaction
@@ -116,56 +125,25 @@ export const agentsService = {
    * If isRouter is set to true, set all other agents' isRouter to false
    */
   async update(id: string, workspaceId: string, data: UpdateAgentData) {
+    // Verifica solo che l'agente esista
+    const agent = await prisma.prompts.findFirst({ where: { id, workspaceId } });
+    if (!agent) return null;
+    
     console.log(`Updating agent ${id} with data:`, data);
     
-    const agent = await prisma.prompts.findFirst({
-      where: { 
-        id,
-        workspaceId
-      }
-    });
-
-    if (!agent) {
-      console.log(`Agent ${id} not found`);
-      return null;
-    }
-
-    // Process the department field - ensure it's null for router agents
+    // Rimuovi isRouter dai dati di aggiornamento per mantenere il valore originale
+    const { isRouter, ...dataWithoutIsRouter } = data;
+    
+    // Process the department field - use the original agent's isRouter value
     const processedData = {
-      ...data,
-      department: data.isRouter === true ? null : (data.department || agent.department)
+      ...dataWithoutIsRouter,
+      // Mantieni isRouter originale, non permettendo la sua modifica
+      department: agent.isRouter ? null : (data.department || agent.department)
     };
 
     console.log(`Processed update data:`, processedData);
 
-    // If we're trying to set this agent as router
-    if (processedData.isRouter === true) {
-      console.log(`Setting agent ${id} as router and removing router status from others`);
-      // Start a transaction
-      return prisma.$transaction(async (tx) => {
-        // Set isRouter to false for all other agents
-        await tx.prompts.updateMany({
-          where: {
-            workspaceId,
-            isRouter: true,
-            id: { not: id }, // Exclude this agent
-          },
-          data: {
-            isRouter: false,
-          },
-        });
-
-        // Update this agent
-        const updated = await tx.prompts.update({
-          where: { id },
-          data: processedData,
-        });
-
-        return updated;
-      });
-    }
-
-    // Regular update (not changing router status or explicitly setting to false)
+    // Regular update (without changing router status)
     console.log(`Regular update for agent ${id}`);
     const updated = await prisma.prompts.update({
       where: { id },
@@ -179,20 +157,12 @@ export const agentsService = {
    * Delete an agent
    */
   async delete(id: string, workspaceId: string) {
+    // Verifica solo che l'agente esista
+    const agent = await prisma.prompts.findFirst({ where: { id, workspaceId } });
+    if (!agent) throw new Error("Agent not found");
+    
     console.log(`Deleting agent ${id}`);
     
-    // First check if agent exists in this workspace
-    const agent = await prisma.prompts.findFirst({
-      where: { 
-        id,
-        workspaceId
-      }
-    });
-
-    if (!agent) {
-      throw new Error("Agent not found");
-    }
-
     return prisma.prompts.delete({
       where: { id },
     });

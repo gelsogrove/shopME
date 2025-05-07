@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { categoriesApi } from "@/services/categoriesApi"
 import { Product, productsApi } from "@/services/productsApi"
+import { formatPrice, getCurrencySymbol } from "@/utils/format"
 import { Package2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -19,6 +20,9 @@ export function ProductsPage() {
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+
+  // Get currency symbol based on workspace settings
+  const currencySymbol = getCurrencySymbol(workspace?.currency)
 
   useEffect(() => {
     const loadData = async () => {
@@ -55,19 +59,11 @@ export function ProductsPage() {
     (product.status || "").toLowerCase().includes(searchValue.toLowerCase())
   )
 
-  // Define price formatter
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('it-IT', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(price)
-  }
-
   const columns = [
     { header: "Name", accessorKey: "name" as keyof Product },
     { header: "Price", 
       accessorKey: "price" as keyof Product,
-      cell: ({ row }: any) => formatPrice(row.original.price)
+      cell: ({ row }: any) => formatPrice(row.original.price, workspace?.currency)
     },
     { header: "Stock", accessorKey: "stock" as keyof Product },
     { header: "Status", accessorKey: "status" as keyof Product },
@@ -179,7 +175,7 @@ export function ProductsPage() {
     },
     {
       name: "price",
-      label: "Price",
+      label: `Price (${currencySymbol})`,
       type: "number" as const,
       required: true,
       min: "0",

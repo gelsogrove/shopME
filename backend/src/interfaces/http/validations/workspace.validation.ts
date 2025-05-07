@@ -15,4 +15,11 @@ export const updateWorkspaceSchema = Joi.object({
   whatsappApiToken: Joi.string().allow(null, ""),
   whatsappWebhookUrl: Joi.string().uri().allow(null, ""),
   isActive: Joi.boolean(),
+  currency: Joi.string().valid('EUR', 'USD', 'GBP'),
+  language: Joi.string().valid('en', 'it', 'es'),
+  welcomeMessages: Joi.object({
+    it: Joi.string().allow(null, ""),
+    en: Joi.string().allow(null, ""),
+    es: Joi.string().allow(null, "")
+  }).allow(null)
 }).min(1)

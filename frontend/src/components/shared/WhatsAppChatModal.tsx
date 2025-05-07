@@ -5,8 +5,9 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { getWorkspaceId } from '@/config/workspace.config';
+import { api } from '@/services/api';
 import axios from 'axios';
-import { Send } from 'lucide-react';
+import { MessageCircle, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -14,8 +15,24 @@ import remarkGfm from 'remark-gfm';
 interface Message {
   id: string;
   content: string;
-  sender: 'user' | 'bot';
+  sender: 'user' | 'customer';
   timestamp: Date;
+}
+
+// Interface for selected chat from chat history
+interface Chat {
+  id: string;
+  sessionId: string;
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  companyName?: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
+  isActive: boolean;
+  isFavorite: boolean;
+  messages?: Message[];
 }
 
 interface WhatsAppChatModalProps {
@@ -24,6 +41,7 @@ interface WhatsAppChatModalProps {
   channelName?: string;
   phoneNumber?: string;
   workspaceId?: string;
+  selectedChat?: Chat | null;
 }
 
 export function WhatsAppChatModal({ 
@@ -31,9 +49,10 @@ export function WhatsAppChatModal({
   onClose, 
   channelName = "L'Altra Italia", 
   phoneNumber = "",
-  workspaceId = ""
+  workspaceId = "",
+  selectedChat
 }: WhatsAppChatModalProps) {
-  const [userPhoneNumber, setUserPhoneNumber] = useState(phoneNumber);
+  const [userPhoneNumber, setUserPhoneNumber] = useState(phoneNumber || selectedChat?.customerPhone || "");
   const [chatStarted, setChatStarted] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
@@ -51,18 +70,53 @@ export function WhatsAppChatModal({
         setMessages([]);
         setCurrentMessage('');
         setInitialMessage('');
-        setUserPhoneNumber(phoneNumber);
+        setUserPhoneNumber(phoneNumber || selectedChat?.customerPhone || "");
         setIsLoading(false);
       }, 300);
     } else {
-      // Focus input field when chat opens
-      setTimeout(() => {
-        if (inputRef.current && chatStarted) {
-          inputRef.current.focus();
-        }
-      }, 100);
+      // If we have a selected chat, start the chat with that data
+      if (selectedChat) {
+        setUserPhoneNumber(selectedChat.customerPhone);
+        setChatStarted(true);
+        // Load the messages for this chat
+        fetchMessagesForSelectedChat();
+      } else {
+        // Focus input field when chat opens
+        setTimeout(() => {
+          if (inputRef.current && chatStarted) {
+            inputRef.current.focus();
+          }
+        }, 100);
+      }
     }
-  }, [isOpen, phoneNumber, chatStarted]);
+  }, [isOpen, phoneNumber, chatStarted, selectedChat]);
+  
+  // Fetch messages for the selected chat
+  const fetchMessagesForSelectedChat = async () => {
+    if (!selectedChat) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await api.get(`/chat/${selectedChat.sessionId}/messages`);
+      
+      if (response.data.success) {
+        // Transform backend messages to frontend format for the playground
+        const chatMessages = response.data.data.map((message: any) => ({
+          id: message.id,
+          content: message.content,
+          // Map MessageDirection.INBOUND to 'customer' and MessageDirection.OUTBOUND to 'user' (like main chat)
+          sender: message.direction === 'INBOUND' ? 'customer' : 'user',
+          timestamp: new Date(message.createdAt)
+        }));
+        
+        setMessages(chatMessages);
+      }
+    } catch (error) {
+      console.error("Error loading messages for selected chat:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   // Auto-scroll to the latest message
   useEffect(() => {
@@ -134,7 +188,7 @@ export function WhatsAppChatModal({
         const botMessage: Message = {
           id: (Date.now() + 200).toString(),
           content: response.data.data.processedMessage,
-          sender: 'bot',
+          sender: 'customer',
           timestamp: new Date()
         };
         
@@ -147,7 +201,7 @@ export function WhatsAppChatModal({
         const errorMessage: Message = {
           id: (Date.now() + 200).toString(),
           content: 'Sorry, there was an error processing your message. Please try again later.',
-          sender: 'bot',
+          sender: 'customer',
           timestamp: new Date()
         };
         
@@ -160,7 +214,7 @@ export function WhatsAppChatModal({
       const errorMessage: Message = {
         id: (Date.now() + 200).toString(),
         content: 'Sorry, there was an error processing your message. Please try again later.',
-        sender: 'bot',
+        sender: 'customer',
         timestamp: new Date()
       };
       
@@ -203,7 +257,7 @@ export function WhatsAppChatModal({
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
           content: response.data.data.processedMessage,
-          sender: 'bot',
+          sender: 'customer',
           timestamp: new Date()
         };
         
@@ -216,7 +270,7 @@ export function WhatsAppChatModal({
         const errorMessage: Message = {
           id: (Date.now() + 1).toString(),
           content: 'Sorry, there was an error processing your message. Please try again later.',
-          sender: 'bot',
+          sender: 'customer',
           timestamp: new Date()
         };
         
@@ -229,7 +283,7 @@ export function WhatsAppChatModal({
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: 'Sorry, there was an error processing your message. Please try again later.',
-        sender: 'bot',
+        sender: 'customer',
         timestamp: new Date()
       };
       
@@ -246,6 +300,17 @@ export function WhatsAppChatModal({
     }
   };
   
+  // Reset chat to allow new message
+  const handleNewMessage = () => {
+    setChatStarted(false);
+    setMessages([]);
+    setCurrentMessage('');
+    setInitialMessage('');
+    setUserPhoneNumber('');
+    // Optionally, clear selectedChat if you want to fully reset
+    // if (typeof setSelectedChat === 'function') setSelectedChat(null);
+  };
+  
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       // Only allow closing via the X button, not by clicking outside
@@ -253,34 +318,29 @@ export function WhatsAppChatModal({
         // Do nothing, prevent closing
       }
     }}>
-      <DialogContent className="sm:max-w-[600px] md:max-w-[700px] p-0 overflow-hidden [&>button]:hidden h-[700px] flex flex-col" aria-describedby="whatsapp-dialog-description">
+      <DialogContent className="sm:max-w-[600px] md:max-w-[700px] p-0 overflow-hidden [&>button]:hidden h-[850px] flex flex-col" aria-describedby="whatsapp-dialog-description">
         <DialogTitle className="sr-only">WhatsApp Chat</DialogTitle>
         <DialogDescription id="whatsapp-dialog-description" className="sr-only">
           WhatsApp conversation interface to chat with a contact
         </DialogDescription>
-        
-        {/* WhatsApp header */}
-        <div className="bg-green-500 text-white p-4 flex items-center justify-between">
+        {/* WhatsApp header migliorato con icona WhatsApp e X */}
+        <div className="bg-gradient-to-r from-green-500 to-green-400 shadow-md p-4 flex items-center justify-between">
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-              <span className="text-green-500 font-bold">{getInitials(channelName)}</span>
+            <div className="w-12 h-12 bg-white text-green-600 rounded-full flex items-center justify-center text-xl font-bold shadow mr-4">
+              {selectedChat?.customerName ? getInitials(selectedChat.customerName) : "WC"}
             </div>
-            <div>
-              <h3 className="font-bold">{!chatStarted ? "WhatsApp Chat" : userPhoneNumber}</h3>
-              {!chatStarted && <p className="text-xs">PLAYGROUND</p>}
-            </div>
+            <span className="text-white text-lg font-bold flex items-center">
+              <MessageCircle className="h-6 w-6 mr-2 text-white opacity-80" />
+              {userPhoneNumber || channelName}
+            </span>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-white hover:bg-green-600 rounded-full" 
+          <button
             onClick={onClose}
+            className="text-white hover:bg-green-600 rounded-full p-2 transition"
+            aria-label="Close"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </Button>
+            <X className="h-6 w-6" />
+          </button>
         </div>
         
         {!chatStarted ? (
@@ -332,38 +392,47 @@ export function WhatsAppChatModal({
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                    className={`flex ${message.sender === 'customer' ? 'justify-start' : 'justify-end'} mb-3`}
                   >
                     <div
-                      className={`max-w-[75%] rounded-lg p-3 ${
-                        message.sender === 'user' 
-                          ? 'bg-green-100 rounded-tr-none' 
-                          : 'bg-white rounded-tl-none'
-                      }`}
+                      className={
+                        message.sender === 'customer'
+                          ? 'bg-white border border-gray-200 rounded-2xl rounded-br-md shadow-sm px-5 py-3 max-w-[600px] mb-2'
+                          : 'bg-green-100 text-green-900 rounded-2xl rounded-bl-md shadow-sm px-5 py-3 max-w-[600px] mb-2'
+                      }
                     >
-                      <div className="text-sm whitespace-pre-wrap">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
-                      </div>
-                      <div className="text-right text-xs text-gray-500 mt-1">
+                      <span className="break-words whitespace-pre-line text-sm">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            a: ({node, ...props}) => (
+                              <a
+                                {...props}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              />
+                            )
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      </span>
+                      <div className="text-[10px] text-gray-300 text-right mt-1">
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
                   </div>
                 ))}
-                
-                {/* Enhanced typing indicator with pulsing animation */}
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="bg-white rounded-lg rounded-tl-none p-3 max-w-[75%]">
+                    <div className="bg-white border border-gray-200 rounded-2xl rounded-br-md shadow-sm px-4 py-2 max-w-[90%]">
                       <div className="flex items-center">
                         <span className="text-xs text-gray-500 mr-2">typing</span>
                         <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" 
-                               style={{ animationDelay: '0ms', animationDuration: '0.8s' }}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" 
-                               style={{ animationDelay: '150ms', animationDuration: '0.8s' }}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" 
-                               style={{ animationDelay: '300ms', animationDuration: '0.8s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms', animationDuration: '0.8s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms', animationDuration: '0.8s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms', animationDuration: '0.8s' }}></div>
                         </div>
                       </div>
                       <div className="text-right text-xs text-gray-500 mt-1">
@@ -372,21 +441,20 @@ export function WhatsAppChatModal({
                     </div>
                   </div>
                 )}
-                
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
             
-            {/* Message input */}
-            <div className="p-3 bg-gray-50 flex items-center space-x-2">
+            {/* Input migliorato */}
+            <div className="flex items-center p-3 border-t bg-white">
               <Textarea
                 ref={inputRef}
                 placeholder={isLoading ? "Please wait..." : "Type a message"}
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className={`bg-white min-h-[80px] ${isLoading ? 'opacity-70' : ''}`}
-                rows={3}
+                className={`flex-1 rounded-full border border-gray-300 px-4 py-2 mr-2 min-h-[40px] resize-none text-xs ${isLoading ? 'opacity-70' : ''}`}
+                rows={2}
                 disabled={isLoading}
               />
               <Button
@@ -394,10 +462,10 @@ export function WhatsAppChatModal({
                 size="icon"
                 onClick={sendMessage}
                 disabled={!currentMessage.trim() || isLoading}
-                className={`${isLoading ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'} text-white h-10 w-10 rounded-full p-2 self-end`}
+                className={`bg-green-500 hover:bg-green-600 text-white rounded-full p-3 shadow transition h-10 w-10 flex items-center justify-center ${isLoading ? 'bg-gray-400' : ''}`}
                 aria-label="Send message"
               >
-                <Send size={18} />
+                <Send size={20} />
               </Button>
             </div>
           </>

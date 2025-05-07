@@ -79,6 +79,7 @@
     "chai": "^5.2.0",
     "eslint": "8.43.0",
     "jest": "^29.7.0",
+    "jest-mock-extended": "^4.0.0-beta1",
     "mocha": "^11.2.2",
     "nyc": "^17.1.0",
     "prisma": "5.0.0",

@@ -2,6 +2,23 @@ import { MessageRepository } from '../../infrastructure/repositories/message.rep
 import logger from '../../utils/logger';
 import { TokenService } from './token.service';
 
+// Customer interface che include activeChatbot
+interface Customer {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  company?: string;
+  discount?: number;
+  language?: string;
+  currency?: string;
+  notes?: string;
+  isActive: boolean;
+  activeChatbot?: boolean;  // Flag per il controllo manuale dell'operatore
+  // Altri campi che potrebbero essere necessari...
+}
+
 /**
  * Service for processing messages
  */
@@ -61,6 +78,21 @@ export class MessageService {
 
         // Check if customer exists - simplified binary check
         const customer = await this.messageRepository.findCustomerByPhone(phoneNumber, workspaceId);
+        
+        // Check if the chatbot is active for this customer
+        if (customer && customer.activeChatbot === false) {
+            logger.info(`Operator manual control active for ${phoneNumber} (${customer.name}). Chatbot response skipped.`);
+            // Save the message without response (only store the user message)
+            await this.messageRepository.saveMessage({
+                workspaceId,
+                phoneNumber,
+                message,
+                response: '',
+                agentSelected: 'Manual Operator Control'
+            });
+            // Return empty string to indicate no bot response should be sent
+            return '';
+        }
         
         // If customer doesn't exist, send registration link with secure token
         if (!customer) {

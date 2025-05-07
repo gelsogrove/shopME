@@ -32,7 +32,7 @@ export const getUserProfile = async (): Promise<UserProfile> => {
 // Update user profile
 export const updateUserProfile = async (data: UpdateProfileData): Promise<UserProfile> => {
   try {
-    const response = await api.put("/api/users/profile", data)
+    const response = await api.put("/users/profile", data)
     return response.data
   } catch (error) {
     console.error("Error updating user profile:", error)
@@ -43,7 +43,7 @@ export const updateUserProfile = async (data: UpdateProfileData): Promise<UserPr
 // Change user password
 export const changePassword = async (data: ChangePasswordData): Promise<void> => {
   try {
-    await api.post("/api/users/change-password", data)
+    await api.post("/users/change-password", data)
   } catch (error) {
     console.error("Error changing password:", error)
     throw error

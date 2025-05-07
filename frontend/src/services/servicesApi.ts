@@ -10,7 +10,6 @@ export interface Service {
   workspaceId: string
   createdAt: string
   updatedAt: string
-  email: string
 }
 
 export interface CreateServiceData {
@@ -19,7 +18,6 @@ export interface CreateServiceData {
   price: number
   currency?: string
   isActive?: boolean
-  email: string
 }
 
 export interface UpdateServiceData {
@@ -28,7 +26,6 @@ export interface UpdateServiceData {
   price?: number
   currency?: string
   isActive?: boolean
-  email?: string
 }
 
 // Mock data for services when API fails
@@ -42,8 +39,7 @@ const mockServices: Service[] = [
     isActive: true,
     workspaceId: 'mock-workspace',
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    email: 'base-website-design@example.com'
+    updatedAt: new Date().toISOString()
   },
   {
     id: 'mock-service-2',
@@ -54,8 +50,7 @@ const mockServices: Service[] = [
     isActive: true,
     workspaceId: 'mock-workspace',
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    email: 'e-commerce-setup@example.com'
+    updatedAt: new Date().toISOString()
   },
   {
     id: 'mock-service-3',
@@ -66,8 +61,7 @@ const mockServices: Service[] = [
     isActive: true,
     workspaceId: 'mock-workspace',
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    email: 'seo-optimization@example.com'
+    updatedAt: new Date().toISOString()
   }
 ];
 

@@ -10,69 +10,52 @@ let adminEmail = "admin@shopme.com" // Define a variable to store admin email
 // Define the agents array at the top level of the script
 const agents = [
   {
-    name: "Sales Agent",
-    description: "Sales agent for handling product inquiries and orders",
-    isActive: true,
-    isRouter: false,
-    department: "Sales",
-    promptName: "Default Customer Support",
-  },
-  {
-    name: "Router",
-    description:
-      "Main router for directing conversations to appropriate departments",
+    name: "ROUTER",
+    description: "Main router for directing conversations to appropriate departments",
     isActive: true,
     isRouter: true,
-    promptName: "Default Customer Support",
+    department: "ROUTER",
+    promptName: "Router Prompt",
   },
   {
-    name: "Support Agent",
-    description: "Customer support agent for handling issues and questions",
-    isActive: true,
-    isRouter: false,
-    department: "Support",
-    promptName: "Default Customer Support",
-  },
-  // Aggiunti dal seed.js.old
-  {
-    name: "AGENT_1",
+    name: "GENERIC",
     description: "Generic customer service assistant",
     isActive: true,
     isRouter: false,
-    department: "GENERIC",
-    promptName: "Default Customer Support",
+    department: "Markering",
+    promptName: "Generic Prompt",
   },
   {
-    name: "AGENT_2",
-    description: "Product specialist for Italian food products",
+    name: "PRODUCTS AND CARTS",
+    description: "Product specialist for handling product inquiries and cart management",
     isActive: true,
     isRouter: false,
-    department: "PRODUCTS",
-    promptName: "Product Specialist",
+    department: "Logistic",
+    promptName: "Product Prompt",
   },
   {
-    name: "AGENT_3",
+    name: "ORDERS AND INVOICES",
+    description: "Invoicing and orders specialist",
+    isActive: true,
+    isRouter: false,
+    department: "Accounts",
+    promptName: "Orders Prompt",
+  },
+  {
+    name: "TRANSPORT",
     description: "Transportation and logistics specialist",
     isActive: true,
     isRouter: false,
-    department: "TRANSPORT",
-    promptName: "Default Customer Support",
+    department: "Logistic",
+    promptName: "Transport Prompt",
   },
   {
-    name: "AGENT_4",
-    description: "Invoicing and payments specialist",
-    isActive: true,
-    isRouter: false,
-    department: "INVOICES",
-    promptName: "Default Customer Support",
-  },
-  {
-    name: "AGENT_5",
+    name: "SERVICES",
     description: "Additional services specialist",
     isActive: true,
     isRouter: false,
-    department: "SERVICES",
-    promptName: "Default Customer Support",
+    department: "Logistic",
+    promptName: "Services Prompt",
   },
 ]
 
@@ -110,6 +93,101 @@ async function main() {
 
   if (existingMainWorkspace) {
     console.log(`Trovato workspace principale con ID: ${mainWorkspaceId}`);
+    
+    // PULIZIA COMPLETA: Elimina tutti i dati del workspace principale
+    console.log("Pulizia COMPLETA: eliminazione di tutti i dati del workspace...");
+    
+    // 1. Prima eliminiamo gli elementi con dipendenze
+    // Elimina tutti gli ordini e gli items
+    await prisma.orderItems.deleteMany({
+      where: {
+        order: {
+          workspaceId: mainWorkspaceId
+        }
+      }
+    });
+    await prisma.paymentDetails.deleteMany({
+      where: {
+        order: {
+          workspaceId: mainWorkspaceId
+        }
+      }
+    });
+    await prisma.orders.deleteMany({
+      where: {
+        workspaceId: mainWorkspaceId
+      }
+    });
+    
+    // Elimina tutti i carrelli e items
+    await prisma.cartItems.deleteMany({
+      where: {
+        cart: {
+          workspaceId: mainWorkspaceId
+        }
+      }
+    });
+    await prisma.carts.deleteMany({
+      where: {
+        workspaceId: mainWorkspaceId
+      }
+    });
+    
+    // Elimina tutte le chat e messaggi
+    await prisma.message.deleteMany({
+      where: {
+        chatSession: {
+          workspaceId: mainWorkspaceId
+        }
+      }
+    });
+    await prisma.chatSession.deleteMany({
+      where: {
+        workspaceId: mainWorkspaceId
+      }
+    });
+    
+    // 2. Poi eliminiamo le entità principali
+    // Elimina tutti i prodotti
+    await prisma.products.deleteMany({
+      where: {
+        workspaceId: mainWorkspaceId
+      }
+    });
+    console.log("Eliminati tutti i prodotti dal workspace principale");
+    
+    // Elimina tutti i clienti
+    await prisma.customers.deleteMany({
+      where: {
+        workspaceId: mainWorkspaceId
+      }
+    });
+    console.log("Eliminati tutti i clienti dal workspace principale");
+    
+    // Elimina tutte le categorie
+    await prisma.categories.deleteMany({
+      where: {
+        workspaceId: mainWorkspaceId
+      }
+    });
+    console.log("Eliminate tutte le categorie dal workspace principale");
+    
+    // Elimina tutti i servizi
+    await prisma.services.deleteMany({
+      where: {
+        workspaceId: mainWorkspaceId
+      }
+    });
+    console.log("Eliminati tutti i servizi dal workspace principale");
+    
+    // Elimina tutti i prompt e agenti
+    const deletedPrompts = await prisma.prompts.deleteMany({
+      where: {
+        workspaceId: mainWorkspaceId,
+      },
+    });
+    console.log(`Eliminati ${deletedPrompts.count} prompt dal workspace principale`);
+    
     // Aggiorniamo il workspace con i dati richiesti, ma manteniamo lo slug originale
     const updatedWorkspace = await prisma.workspace.update({
       where: { id: mainWorkspaceId },
@@ -119,6 +197,8 @@ async function main() {
         isActive: true,
         language: "es",
         currency: "EUR",
+        url: "http://localhost:3000",
+        wipMessage: "L'Altra Italia está en mantenimiento. Por favor, intente más tarde.",
       },
     });
     console.log(`Workspace aggiornato: ${updatedWorkspace.name} con ID ${updatedWorkspace.id}`);
@@ -135,6 +215,13 @@ async function main() {
         isActive: true,
         language: "es",
         currency: "EUR",
+        url: "http://localhost:3000",
+        wipMessage: "L'Altra Italia está en mantenimiento. Por favor, intente más tarde.",
+        welcomeMessages: {
+          it: "Benvenuto a L'Altra Italia! 👋 Sono il tuo assistente virtuale e sono qui per aiutarti con qualsiasi informazione sui nostri prodotti e servizi. Come posso assisterti oggi? 😊",
+          en: "Welcome to L'Altra Italia! 👋 I'm your virtual assistant and I'm here to help you with any information about our products and services. How can I assist you today? 😊",
+          es: "¡Bienvenido a L'Altra Italia! 👋 Soy tu asistente virtual y estoy aquí para ayudarte con cualquier información sobre nuestros productos y servicios. ¿Cómo puedo ayudarte hoy? 😊"
+        }
       },
     });
     console.log(`Workspace creato: ${mainWorkspace.name} con ID ${mainWorkspace.id}`);
@@ -288,6 +375,18 @@ async function main() {
   )
 
   const languages = [...existingLanguages]
+  
+  // Helper function to get language names
+  function getLanguageName(code: string): string {
+    const names: { [key: string]: string } = {
+      it: "Italiano",
+      en: "English",
+      es: "Español",
+      fr: "Français",
+      de: "Deutsch",
+    }
+    return names[code] || code
+  }
 
   if (languagesToCreate.length > 0) {
     const newLanguages = await Promise.all(
@@ -307,18 +406,6 @@ async function main() {
     console.log("Tutte le lingue esistono già")
   }
 
-  // Helper function to get language names
-  function getLanguageName(code: string): string {
-    const names: { [key: string]: string } = {
-      it: "Italiano",
-      en: "English",
-      es: "Español",
-      fr: "Français",
-      de: "Deutsch",
-    }
-    return names[code] || code
-  }
-
   // Connetti le lingue al workspace
   await prisma.workspace.update({
     where: { id: mainWorkspaceId },
@@ -329,115 +416,75 @@ async function main() {
     },
   })
 
-  // Create default prompts
-  const defaultPrompts = [
-    {
-      name: "Default Customer Support",
-      content:
-        "You are a helpful customer service assistant for our online shop \"L'Altra Italia\". Respond to customer queries in a polite and helpful manner. Be concise and direct in your answers. If you don't know the answer, say so and offer to connect them with a human agent.",
-      isActive: true,
-      temperature: 0.7,
-      top_p: 0.9,
-      top_k: 40,
-      workspaceId: mainWorkspaceId,
-    },
-    {
-      name: "Product Specialist",
-      content:
-        'You are a product specialist for the Italian food shop "L\'Altra Italia". You can answer detailed questions about our products, including ingredients, origin, traditional preparation methods, and culinary uses. Be knowledgeable, passionate, and provide authentic Italian cultural context when appropriate.',
-      isActive: true,
-      temperature: 0.5,
-      top_p: 0.8,
-      top_k: 30,
-      workspaceId: mainWorkspaceId,
-    },
-    {
-      name: "Marketing Copy Writer",
-      content:
-        'You are a marketing copywriter for the Italian food shop "L\'Altra Italia". Create compelling and engaging marketing copy for our authentic Italian products. Your tone should be persuasive, exciting, and highlight the key benefits of our products. Use vivid language that appeals to emotions and desires, emphasizing Italian tradition, quality, and authenticity.',
-      isActive: true,
-      temperature: 0.9,
-      top_p: 0.95,
-      top_k: 50,
-      workspaceId: mainWorkspaceId,
-    },
-  ]
-
-  // Ensure prompts are created for the main workspace
-  for (const prompt of defaultPrompts) {
-    const existingPrompt = await prisma.prompts.findFirst({
-      where: {
-        name: prompt.name,
-        workspaceId: mainWorkspaceId,
-      },
-    })
-
-    if (!existingPrompt) {
-      await prisma.prompts.create({
-        data: {
-          ...prompt,
-          workspaceId: mainWorkspaceId,
-        },
-      })
-      console.log(
-        `Prompt created: ${prompt.name} for workspace ${createdWorkspaces[0].name}`
-      )
-    } else {
-      console.log(
-        `Prompt already exists: ${prompt.name} for workspace ${createdWorkspaces[0].name}`
-      )
-    }
-  }
-
-  // Proceed to create agents for the main workspace
+  // Create prompts for all agents
+  console.log("Creating prompts for all agents...")
   for (const agent of agents) {
-    const prompt = await prisma.prompts.findFirst({
+    const existingPrompt = await prisma.prompts.findFirst({
       where: {
         name: agent.promptName,
         workspaceId: mainWorkspaceId,
       },
     })
 
-    if (!prompt) {
-      console.log(
-        `Prompt ${agent.promptName} not found for workspace ${createdWorkspaces[0].name}. Skipping agent creation.`
-      )
-      continue
-    }
-
-    const agentWithPrompt = {
-      name: agent.name,
-      content: prompt.content,
-      isActive: agent.isActive,
-      isRouter: agent.isRouter,
-      department: agent.department,
-      workspaceId: mainWorkspaceId,
-      temperature: 0.7,
-      top_p: 0.9,
-      top_k: 40,
-    }
-
-    const existingAgent = await prisma.prompts.findFirst({
-      where: {
-        name: agent.name,
-        workspaceId: mainWorkspaceId,
-      },
-    })
-
-    if (!existingAgent) {
+    if (!existingPrompt) {
+      let promptContent = '';
+      let promptFilePath = '';
+      
+      // Use specific prompt files based on agent name
+      switch (agent.name) {
+        case "GENERIC":
+          promptFilePath = path.join(__dirname, 'prompts/gdpr.md');
+          break;
+        case "PRODUCTS AND CARTS":
+          promptFilePath = path.join(__dirname, 'prompts/product-and.carts.md');
+          break;
+        case "ORDERS AND INVOICES":
+          promptFilePath = path.join(__dirname, 'prompts/orders-and-invoice.md');
+          break;
+        case "TRANSPORT":
+          promptFilePath = path.join(__dirname, 'prompts/transport.md');
+          break;
+        case "SERVICES":
+          promptFilePath = path.join(__dirname, 'prompts/services.md');
+          break;
+        default:
+          promptFilePath = path.join(__dirname, 'prompts/gdpr.md');
+      }
+      
+      try {
+        promptContent = fs.readFileSync(promptFilePath, 'utf8');
+        console.log(`Using specific content from ${path.basename(promptFilePath)} for ${agent.name} agent`);
+      } catch (error) {
+        console.error(`Error reading ${path.basename(promptFilePath)} file: ${error}`);
+        // Fallback to GDPR.md if specific file doesn't exist or can't be read
+        try {
+          promptContent = fs.readFileSync(path.join(__dirname, 'prompts/gdpr.md'), 'utf8');
+          console.log(`Using fallback GDPR.md content for ${agent.name} agent`);
+        } catch (fallbackError) {
+          console.error(`Error reading fallback GDPR.md file: ${fallbackError}`);
+          promptContent = 'Default prompt content. Please update with proper instructions.';
+        }
+      }
+      
       await prisma.prompts.create({
-        data: agentWithPrompt,
+        data: {
+          name: agent.promptName,
+          content: promptContent,
+          isActive: agent.isActive,
+          isRouter: agent.isRouter,
+          department: agent.department,
+          temperature: 0.3,
+          top_p: 0.8,
+          top_k: 30,
+          workspaceId: mainWorkspaceId,
+        },
       })
       console.log(
-        `Agent created: ${agent.name} for workspace ${createdWorkspaces[0].name}`
+        `Prompt created: ${agent.promptName} for agent ${agent.name} for workspace ${createdWorkspaces[0].name}`
       )
     } else {
-      await prisma.prompts.update({
-        where: { id: existingAgent.id },
-        data: agentWithPrompt,
-      })
       console.log(
-        `Agent updated: ${agent.name} for workspace ${createdWorkspaces[0].name}`
+        `Prompt already exists: ${agent.promptName} for agent ${agent.name} for workspace ${createdWorkspaces[0].name}`
       )
     }
   }
@@ -487,7 +534,7 @@ async function main() {
         "Fresh buffalo mozzarella DOP from Campania. Soft texture and delicate milk flavor.",
       price: 9.99,
       stock: 40,
-      image: "https://images.unsplash.com/photo-1629497347864-552e01b48e81?q=80&w=800&auto=format&fit=crop",
+      image: "https://www.eliasseleccio.com/foto/902/bufala.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "mozzarella-di-bufala-campana-dop",
@@ -499,7 +546,7 @@ async function main() {
         "Premium extra virgin olive oil from Tuscany with balanced flavor and fruity notes.",
       price: 19.99,
       stock: 48,
-      image: "https://images.unsplash.com/photo-1565999103945-56255e8002be?q=80&w=800&auto=format&fit=crop",
+      image: "https://www.menu.it//media/prodotti/olio-extravergine-di-oliva-119597/conversions/EK5-main.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "tuscan-igp-extra-virgin-olive-oil",
@@ -511,7 +558,7 @@ async function main() {
         "Traditional balsamic vinegar of Modena IGP with a perfect balance of sweet and sour.",
       price: 14.99,
       stock: 30,
-      image: "https://images.unsplash.com/photo-1632383416396-21178e94a2d0?q=80&w=800&auto=format&fit=crop",
+      image: "https://www.gustorotondo.it/wp-content/uploads/2018/08/aceto-balsamico-di-modena.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "aceto-balsamico-di-modena-igp",
@@ -523,7 +570,7 @@ async function main() {
         "Fine Parma ham aged for 24 months. Sweet flavor and delicate aroma.",
       price: 24.99,
       stock: 15,
-      image: "https://images.unsplash.com/photo-1647754671851-69acc25fe0f4?q=80&w=800&auto=format&fit=crop",
+      image: "https://grancaffelaquila.com/cdn/shop/products/PROSCIUTTODIPARMA_648x.jpg?v=1595543925",
       isActive: true,
       status: "ACTIVE",
       slug: "prosciutto-di-parma-dop-24-months",
@@ -537,24 +584,13 @@ async function main() {
         "Vibrant green pistachios from Bronte, Sicily. Intensely flavored with sweet and slightly resinous notes.",
       price: 18.99,
       stock: 35,
-      image: "https://images.unsplash.com/photo-1569362568247-3a43d9ce5978?q=80&w=800&auto=format&fit=crop",
+      image: "https://www.qualivita.it/wp-content/uploads/2020/04/Galleria_Pistacchio-Verde-di-Bronte_13.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "pistacchi-di-bronte-dop",
       categoryName: "Antipasti",
     },
-    {
-      name: "Limoncello di Sorrento IGP",
-      description:
-        "Traditional lemon liqueur made with Sorrento lemons. Bright, sweet and intensely citrusy.",
-      price: 22.99,
-      stock: 42,
-      image: "https://images.unsplash.com/photo-1592967854753-8be064e65f66?q=80&w=800&auto=format&fit=crop",
-      isActive: true,
-      status: "ACTIVE",
-      slug: "limoncello-di-sorrento-igp",
-      categoryName: "Beverages",
-    },
+  
     
     
     // Prodotti aggiunti dal seed.js.old
@@ -743,40 +779,6 @@ async function main() {
     },
   ]
 
-  // Clienti demo (aggiunti dal seed.js.old)
-  const clients = [
-    {
-      name: "Mario Rossi",
-      email: "mario.rossi@example.com",
-      company: "Ristorante Da Mario",
-      phone: "3331234567",
-      language: "Italian",
-      discount: 10,
-      address: "Via Roma 123, Milano, 20100, Italy",
-      workspaceId: mainWorkspaceId,
-    },
-    {
-      name: "Giulia Bianchi",
-      email: "giulia.bianchi@example.com",
-      company: "Pasticceria Bianchi",
-      phone: "3397654321",
-      language: "Italian",
-      discount: 15,
-      address: "Corso Italia 45, Roma, 00100, Italy",
-      workspaceId: mainWorkspaceId,
-    },
-    {
-      name: "Restaurant Da Luigi",
-      email: "info@daluigi.it",
-      company: "Da Luigi SRL",
-      phone: "028765432",
-      language: "Italian",
-      discount: 20,
-      address: "Piazza Navona 7, Roma, 00186, Italy",
-      workspaceId: mainWorkspaceId,
-    }
-  ]
-
   // Create or update services for the main workspace
   for (const service of services) {
     const existingService = await prisma.services.findFirst({
@@ -807,41 +809,6 @@ async function main() {
       })
       console.log(
         `Service updated: ${service.name} for workspace ${createdWorkspaces[0].name}`
-      )
-    }
-  }
-
-  // Create or update clients
-  for (const client of clients) {
-    const existingClient = await prisma.customers.findFirst({
-      where: {
-        email: client.email,
-        workspaceId: mainWorkspaceId,
-      }
-    })
-
-    if (!existingClient) {
-      await prisma.customers.create({
-        data: {
-          ...client,
-          workspaceId: mainWorkspaceId,
-          isActive: true,
-        }
-      })
-      console.log(
-        `Client created: ${client.name} for workspace ${createdWorkspaces[0].name}`
-      )
-    } else {
-      await prisma.customers.update({
-        where: { id: existingClient.id },
-        data: {
-          ...client,
-          workspaceId: mainWorkspaceId,
-          isActive: true,
-        }
-      })
-      console.log(
-        `Client updated: ${client.name} for workspace ${createdWorkspaces[0].name}`
       )
     }
   }
@@ -925,7 +892,7 @@ async function main() {
   });
 
   // Read default GDPR policy from file
-  const gdprFilePath = path.join(__dirname, '..', '..', '..', 'finalproject-AG', 'GDPR.md');
+  const gdprFilePath = path.join(__dirname, 'prompts', 'gdpr.md');
   try {
     const defaultGdprText = fs.readFileSync(gdprFilePath, 'utf8');
 
@@ -951,7 +918,7 @@ async function main() {
     console.log("Impostazioni WhatsApp aggiornate per il workspace principale");
     }
   } catch (error) {
-    console.error("Non è stato possibile leggere il file GDPR.md:", error);
+    console.error("Non è stato possibile leggere il file gdpr.md:", error);
     // Continua senza aggiungere il GDPR
     if (!existingWhatsappSettings) {
       await prisma.whatsappSettings.create({
@@ -979,9 +946,7 @@ async function main() {
   console.log(`- Workspace creato/aggiornato: ${createdWorkspaces[0].name}`)
   console.log(`- Categorie create/esistenti: ${foodCategories.length}`)
   console.log(`- Prodotti creati/aggiornati: ${products.length}`)
-  console.log(`- Agents creati/aggiornati: ${agents.length}`)
   console.log(`- Services creati/aggiornati: ${services.length}`)
-  console.log(`- Clienti creati/aggiornati: ${clients.length}`)
 }
 
 main()

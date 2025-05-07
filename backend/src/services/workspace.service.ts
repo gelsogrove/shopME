@@ -17,6 +17,7 @@ interface CreateWorkspaceData {
   wipMessage?: string
   blocklist?: string
   url?: string
+  welcomeMessages?: any
 }
 
 interface UpdateWorkspaceData {
@@ -34,6 +35,7 @@ interface UpdateWorkspaceData {
   wipMessage?: string
   blocklist?: string
   url?: string
+  welcomeMessages?: any
 }
 
 export const workspaceService = {
@@ -84,7 +86,8 @@ export const workspaceService = {
         challengeStatus: true,
         wipMessage: true,
         blocklist: true,
-        url: true
+        url: true,
+        welcomeMessages: true
       },
     })
   },
@@ -113,7 +116,8 @@ export const workspaceService = {
         challengeStatus: true,
         wipMessage: true,
         blocklist: true,
-        url: true
+        url: true,
+        welcomeMessages: true
       },
     })
   },
@@ -144,7 +148,8 @@ export const workspaceService = {
         challengeStatus: true,
         wipMessage: true,
         blocklist: true,
-        url: true
+        url: true,
+        welcomeMessages: true
       },
     })
   },

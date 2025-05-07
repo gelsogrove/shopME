@@ -2,7 +2,9 @@ import { ClientSheet } from "@/components/shared/ClientSheet"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
     Tooltip,
     TooltipContent,
@@ -14,7 +16,14 @@ import { api } from "@/services/api"
 import { commonStyles } from "@/styles/common"
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from "@tanstack/react-table"
-import { MessageSquare, Pencil, Trash2, Users } from "lucide-react"
+import {
+    Bot,
+    MessageSquare,
+    Pencil,
+    Plus,
+    Trash2,
+    Users
+} from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
@@ -42,6 +51,7 @@ export interface Client {
   updatedAt?: string
   last_privacy_version_accepted?: string
   push_notifications_consent?: boolean
+  activeChatbot?: boolean
 }
 
 const availableLanguages = ["Spanish", "English", "Italian"]
@@ -95,6 +105,7 @@ export default function ClientsPage(): JSX.Element {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
   const [clientsWithChats, setClientsWithChats] = useState<Set<string>>(new Set());
+  const [showPlayground, setShowPlayground] = useState(false)
 
   // Replace with useQuery
   const {
@@ -124,7 +135,8 @@ export default function ClientsPage(): JSX.Element {
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,
         last_privacy_version_accepted: customer.last_privacy_version_accepted,
-        push_notifications_consent: customer.push_notifications_consent
+        push_notifications_consent: customer.push_notifications_consent,
+        activeChatbot: customer.activeChatbot !== undefined ? customer.activeChatbot : true
       }));
       
       // Sort clients by ID in descending order (newer clients at the top)
@@ -328,8 +340,13 @@ export default function ClientsPage(): JSX.Element {
           return;
         }
       }
+      
+      // If no existing chat is found, navigate to the chat page with client name as search filter
+      navigate(`/chat?client=${encodeURIComponent(client.name)}`);
     } catch (error) {
       console.error("Error finding chat for client:", error);
+      // Navigate to chat page with client name as search filter even if there's an error
+      navigate(`/chat?client=${encodeURIComponent(client.name)}`);
     }
   }
 
@@ -422,13 +439,6 @@ export default function ClientsPage(): JSX.Element {
       ),
     },
     {
-      header: "Discount",
-      accessorKey: "discount",
-      cell: ({ row }) => (
-        <span className="font-medium">{row.original.discount}%</span>
-      ),
-    },
-    {
       header: "GDPR",
       accessorKey: "last_privacy_version_accepted",
       cell: ({ row }) => (
@@ -455,30 +465,44 @@ export default function ClientsPage(): JSX.Element {
       ),
     },
     {
+      header: "Chatbot",
+      accessorKey: "activeChatbot",
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          <Bot className={`h-4 w-4 mr-1 ${row.original.activeChatbot !== false ? 'text-green-600' : 'text-gray-400'}`} />
+          <span className={`px-2 py-1 rounded-full text-xs ${
+            row.original.activeChatbot !== false
+              ? 'bg-green-100 text-green-800'
+              : 'bg-red-100 text-red-800'
+          }`}>
+            {row.original.activeChatbot !== false ? 'Auto' : 'Manual'}
+          </span>
+        </div>
+      ),
+    },
+    {
       id: "actions",
       header: "",
       cell: ({ row }) => (
         <div className="flex justify-end items-center gap-2">
-          {/* Only show chat icon if the client has an existing chat */}
-          {clientsWithChats.has(row.original.phone) && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="h-8 w-8 p-0 flex items-center justify-center"
-                    onClick={() => handleViewChatHistory(row.original)}
-                  >
-                    <span className="sr-only">Chat history</span>
-                    <MessageSquare className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>View chat history</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+          {/* Chat history button for all clients */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0 flex items-center justify-center"
+                  onClick={() => handleViewChatHistory(row.original)}
+                >
+                  <span className="sr-only">Chat history</span>
+                  <MessageSquare className={`h-4 w-4 ${clientsWithChats.has(row.original.phone) ? 'text-blue-600' : 'text-gray-400'}`} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View chat history</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           {/* Edit button */}
           <TooltipProvider>
             <Tooltip>
@@ -541,12 +565,26 @@ export default function ClientsPage(): JSX.Element {
           <PageHeader
             title="Clients"
             titleIcon={<Users className="mr-2 h-6 w-6 text-green-500" />}
-            searchValue={searchValue}
-            onSearch={setSearchValue}
-            searchPlaceholder="Search clients..."
-            onAdd={handleAddClient}
-            addButtonText="Add Client"
           />
+
+          {/* Search and New Chat aligned */}
+          <div className="flex items-center justify-between mb-4 mt-2">
+            <Button
+              variant="default"
+              className="bg-green-500 hover:bg-green-600 text-white mr-2"
+              onClick={() => setShowPlayground(true)}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              New Chat
+            </Button>
+            <Input
+              type="search"
+              placeholder="Search clients..."
+              value={searchValue}
+              onChange={e => setSearchValue(e.target.value)}
+              className="max-w-xs"
+            />
+          </div>
 
           {/* Number of items display */}
           <div className="text-sm text-muted-foreground ml-1 mb-2">
@@ -562,6 +600,15 @@ export default function ClientsPage(): JSX.Element {
           </div>
         </div>
       </div>
+
+      {/* WhatsApp Playground Modal */}
+      <WhatsAppChatModal
+        isOpen={showPlayground}
+        onClose={() => setShowPlayground(false)}
+        channelName="WhatsApp Chat"
+        phoneNumber={""}
+        selectedChat={null}
+      />
 
       <ClientSheet
         client={selectedClient}

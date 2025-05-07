@@ -13,16 +13,21 @@ export interface Workspace {
   whatsappPhoneNumber?: string
   whatsappApiKey?: string
   createdAt: string
-  updatedAt: string
+  updatedAt?: string
   isActive: boolean
   isDelete: boolean
-  currency?: string
-  language?: string
+  currency: string
+  language: string
   messageLimit?: number
-  challengeStatus?: boolean
+  challengeStatus: boolean
   wipMessage?: string
   blocklist?: string
   url?: string | null
+  welcomeMessages?: {
+    it: string;
+    en: string;
+    es: string;
+  } | string;
 }
 
 export interface CreateWorkspaceData {
@@ -118,7 +123,9 @@ export const getLanguages = async (): Promise<Language[]> => {
       }
     })
     console.log('API Response - getLanguages:', response.data)
-    return response.data
+    // Extract languages array from response
+    const languages = response.data.languages || []
+    return languages
   } catch (error) {
     console.error('Error getting languages:', error)
     throw new Error('Failed to get languages. Please try again.')

@@ -2,42 +2,42 @@ import { GdprSettingsTab } from "@/components/settings/GdprSettingsTab"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import type { Language, Workspace } from "@/services/workspaceApi"
 import {
-    deleteWorkspace,
-    getCurrentWorkspace,
-    getLanguages,
-    updateWorkspace,
+  deleteWorkspace,
+  getCurrentWorkspace,
+  getLanguages,
+  updateWorkspace,
 } from "@/services/workspaceApi"
 import { Loader2, Settings, ShieldCheck, Trash2, Video } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
 
-// Aggiungiamo le opzioni per le valute
+// Currency options with symbols
 const CURRENCY_OPTIONS = [
-  { value: 'EUR', label: 'Euro (EUR)' },
-  { value: 'USD', label: 'US Dollar (USD)' },
-  { value: 'GBP', label: 'British Pound (GBP)' }
+  { value: 'EUR', label: 'Euro (€)', symbol: '€' },
+  { value: 'USD', label: 'US Dollar ($)', symbol: '$' },
+  { value: 'GBP', label: 'British Pound (£)', symbol: '£' }
 ];
 
 export default function SettingsPage() {
@@ -67,6 +67,12 @@ export default function SettingsPage() {
   })
 
   const [selectedLanguage, setSelectedLanguage] = useState("en")
+  const [welcomeMessages, setWelcomeMessages] = useState({
+    en: "Hello! Thank you for contacting us. How can we help you today?",
+    it: "Ciao! Grazie per averci contattato. Come possiamo aiutarti oggi?",
+    es: "¡Hola! Gracias por contactarnos. ¿Cómo podemos ayudarte hoy?"
+  });
+  const [selectedWelcomeLang, setSelectedWelcomeLang] = useState("en");
 
   useEffect(() => {
     const loadData = async () => {
@@ -84,6 +90,24 @@ export default function SettingsPage() {
           ...workspaceData,
           language: workspaceData.language || 'en'
         })
+        
+        // Carica i messaggi di benvenuto dal backend
+        if (workspaceData.welcomeMessages) {
+          try {
+            const parsedMessages = typeof workspaceData.welcomeMessages === 'string' 
+              ? JSON.parse(workspaceData.welcomeMessages)
+              : workspaceData.welcomeMessages;
+              
+            setWelcomeMessages({
+              en: parsedMessages.en || welcomeMessages.en,
+              it: parsedMessages.it || welcomeMessages.it,
+              es: parsedMessages.es || welcomeMessages.es
+            });
+          } catch (e) {
+            console.error('Error parsing welcome messages:', e);
+          }
+        }
+        
         setLanguages(languagesData)
       } catch (error) {
         console.error("Failed to load data:", error)
@@ -144,18 +168,17 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     setIsLoading(true);
+    
+    // Verifica che i messaggi di benvenuto abbiano tutte le lingue necessarie
+    const updatedWelcomeMessages = {
+      en: welcomeMessages.en || "Welcome!",
+      it: welcomeMessages.it || "Benvenuto!",
+      es: welcomeMessages.es || "¡Bienvenido!"
+    };
+    
     const updateData = {
-      id: workspace.id,
-      name: workspace.name,
-      description: workspace.description,
-      whatsappPhoneNumber: workspace.whatsappPhoneNumber,
-      whatsappApiKey: workspace.whatsappApiKey,
-      currency: workspace.currency,
-      language: workspace.language,
-      messageLimit: workspace.messageLimit,
-      wipMessage: workspace.wipMessage,
-      blocklist: workspace.blocklist,
-      url: workspace.url,
+      ...workspace,
+      welcomeMessages: updatedWelcomeMessages
     };
 
     try {
@@ -311,7 +334,38 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="registration-url">Registration URL</Label>
+                  <Label>Welcome Message</Label>
+                  <div className="flex gap-2 mb-2">
+                    <Button
+                      variant={selectedWelcomeLang === "en" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedWelcomeLang("en")}
+                    >EN</Button>
+                    <Button
+                      variant={selectedWelcomeLang === "it" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedWelcomeLang("it")}
+                    >IT</Button>
+                    <Button
+                      variant={selectedWelcomeLang === "es" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedWelcomeLang("es")}
+                    >ES</Button>
+                  </div>
+                  <Textarea
+                    value={welcomeMessages[selectedWelcomeLang]}
+                    onChange={e => setWelcomeMessages({
+                      ...welcomeMessages,
+                      [selectedWelcomeLang]: e.target.value
+                    })}
+                    rows={3}
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">This message will be sent as the first message in a new chat, based on the user's language.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="registration-url">URL Domain</Label>
                   <Input
                     id="registration-url"
                     type="url"

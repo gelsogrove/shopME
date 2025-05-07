@@ -13,6 +13,7 @@ import {
 import { useWorkspace } from "@/hooks/use-workspace"
 import { categoriesApi } from "@/services/categoriesApi"
 import { productsApi, type Product } from "@/services/productsApi"
+import { formatPrice } from "@/utils/format"
 import { Package2, Pencil, Tag, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
@@ -328,7 +329,7 @@ export function ProductsPage() {
                       {product.name}
                     </h3>
                     <span className="text-green-600 font-semibold ml-2">
-                      €{product.price.toFixed(2)}
+                      {formatPrice(product.price, workspace?.currency)}
                     </span>
                   </div>
 

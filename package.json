@@ -8,5 +8,9 @@
   ],
   "description": "Italian Products E-commerce Platform",
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2"
+  }
 }

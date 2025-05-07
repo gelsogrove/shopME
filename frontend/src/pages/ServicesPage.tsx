@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useWorkspace } from "@/hooks/use-workspace"
 import { Service, servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
+import { formatPrice, getCurrencySymbol } from "@/utils/format"
 import { Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -86,7 +87,7 @@ export function ServicesPage() {
       accessorKey: "price" as keyof Service,
       size: 100,
       cell: ({ row }: { row: { original: Service } }) => (
-        <span>{row.original.price}€</span>
+        <span>{formatPrice(row.original.price, workspace?.currency)}</span>
       ),
     },
     {
@@ -122,9 +123,8 @@ export function ServicesPage() {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
       price,
-      currency: "€",
-      isActive: formData.get("isActive") === "on",
-      email: formData.get("email") as string
+      currency: workspace.currency || "EUR",
+      isActive: formData.get("isActive") === "on"
     }
 
     try {
@@ -160,9 +160,8 @@ export function ServicesPage() {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
       price,
-      currency: "€",
-      isActive: formData.get("isActive") === "on",
-      email: formData.get("email") as string
+      currency: workspace.currency || "EUR",
+      isActive: formData.get("isActive") === "on"
     }
 
     try {
@@ -211,6 +210,8 @@ export function ServicesPage() {
     return <div>No workspace selected</div>
   }
 
+  const currencySymbol = getCurrencySymbol(workspace?.currency)
+
   const renderFormFields = (service: Service | null) => (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -222,18 +223,6 @@ export function ServicesPage() {
           defaultValue={service?.name}
           required
         />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          placeholder="Service contact email"
-          defaultValue={service?.email}
-          required
-        />
-        <p className="text-xs text-gray-500">This email will be used for service-related communications.</p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
@@ -248,7 +237,7 @@ export function ServicesPage() {
         <p className="text-xs text-gray-500">Enter a detailed description of the service. You can include features, benefits, and any important information customers should know.</p>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="price">Price (€)</Label>
+        <Label htmlFor="price">Price ({currencySymbol})</Label>
         <Input
           id="price"
           name="price"

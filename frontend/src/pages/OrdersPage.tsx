@@ -2,24 +2,26 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
+    Drawer,
+    DrawerClose,
+    DrawerContent,
+    DrawerHeader,
+    DrawerTitle,
 } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select"
+import { useWorkspace } from "@/hooks/use-workspace"
 import { formatDate } from "@/lib/utils"
 import "@/styles/sheet.css"
+import { formatPrice, getCurrencySymbol } from "@/utils/format"
 import { X } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -145,6 +147,9 @@ function OrderDetailsSheet({
   open: boolean
   onClose: () => void
 }): JSX.Element | null {
+  const { workspace } = useWorkspace()
+  const currencySymbol = getCurrencySymbol(workspace?.currency)
+  
   if (!order) return null
 
   return (
@@ -220,7 +225,7 @@ function OrderDetailsSheet({
                     </div>
                     <div className="flex justify-between">
                       <dt className="font-medium">Total:</dt>
-                      <dd className="font-medium">€{order.total.toFixed(2)}</dd>
+                      <dd className="font-medium">{formatPrice(order.total, workspace?.currency)}</dd>
                     </div>
                   </dl>
                 </CardContent>
@@ -259,8 +264,8 @@ function OrderDetailsSheet({
                     <thead>
                       <tr>
                         <th className="text-left font-medium">Item</th>
+                        <th className="text-right font-medium">Price ({currencySymbol})</th>
                         <th className="text-right font-medium">Quantity</th>
-                        <th className="text-right font-medium">Price</th>
                         <th className="text-right font-medium">Total</th>
                       </tr>
                     </thead>
@@ -269,11 +274,11 @@ function OrderDetailsSheet({
                         <tr key={item.id}>
                           <td className="py-2">{item.name}</td>
                           <td className="py-2 text-right">
-                            €{item.price.toFixed(2)}
+                            {formatPrice(item.price, workspace?.currency)}
                           </td>
                           <td className="py-2 text-center">{item.quantity}</td>
                           <td className="py-2 text-right">
-                            €{(item.price * item.quantity).toFixed(2)}
+                            {formatPrice(item.price * item.quantity, workspace?.currency)}
                           </td>
                         </tr>
                       ))}
@@ -316,6 +321,8 @@ function OrderEditSheet({
   onClose: () => void
   onSave: (updatedOrder: Order) => void
 }): JSX.Element | null {
+  const { workspace } = useWorkspace()
+  const currencySymbol = getCurrencySymbol(workspace?.currency)
   const [items, setItems] = useState<Order["items"]>([])
   const [newItem, setNewItem] = useState({ name: "", price: 0, quantity: 1 })
 
@@ -483,7 +490,7 @@ function OrderEditSheet({
                       />
                     </div>
                     <div>
-                      <Label htmlFor="newItemPrice">Price (€)</Label>
+                      <Label htmlFor="newItemPrice">Price ({currencySymbol})</Label>
                       <Input
                         id="newItemPrice"
                         type="number"
@@ -532,7 +539,7 @@ function OrderEditSheet({
                         <tr className="border-b">
                           <th className="text-left py-4 font-medium">Item</th>
                           <th className="text-right py-4 font-medium">
-                            Price (€)
+                            Price ({currencySymbol})
                           </th>
                           <th className="text-right py-4 font-medium">
                             Quantity
@@ -565,7 +572,7 @@ function OrderEditSheet({
                               />
                             </td>
                             <td className="py-4 text-right">
-                              €{(item.price * item.quantity).toFixed(2)}
+                              {formatPrice(item.price * item.quantity, workspace?.currency)}
                             </td>
                             <td className="py-4 text-right">
                               <Button
@@ -586,13 +593,7 @@ function OrderEditSheet({
                             Total:
                           </td>
                           <td className="py-4 text-right">
-                            €
-                            {items
-                              .reduce(
-                                (sum, item) => sum + item.price * item.quantity,
-                                0
-                              )
-                              .toFixed(2)}
+                            {formatPrice(items.reduce((sum, item) => sum + item.price * item.quantity, 0), workspace?.currency)}
                           </td>
                           <td></td>
                         </tr>

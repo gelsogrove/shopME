@@ -5,12 +5,12 @@ import { getWorkspaceId } from "@/config/workspace.config"
 import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
 import { useQuery } from '@tanstack/react-query'
-import { Ban, Pencil, Send, ShoppingBag, Trash2 } from "lucide-react"
+import { Ban, Bot, Pencil, Send, ShoppingBag, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "react-hot-toast"
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown from "react-markdown"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import remarkGfm from 'remark-gfm'
+import remarkGfm from "remark-gfm"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -23,6 +23,7 @@ import {
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
 import { Input } from "../components/ui/input"
+import { Switch } from "../components/ui/switch"
 import { Textarea } from "../components/ui/textarea"
 
 interface Message {
@@ -50,6 +51,7 @@ interface Customer {
   language?: string
   notes?: string
   shippingAddress: ShippingAddress
+  activeChatbot?: boolean
 }
 
 interface Chat {
@@ -60,8 +62,10 @@ interface Chat {
   customerPhone: string
   companyName?: string
   lastMessage: string
-  unreadCount: number
   lastMessageTime: string
+  unreadCount: number
+  isActive: boolean
+  isFavorite: boolean
   messages?: Message[]
 }
 
@@ -92,21 +96,26 @@ const formatDate = (dateString: string | null | undefined): string => {
 
 export function ChatPage() {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
   const [messageInput, setMessageInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [loadingChat, setLoadingChat] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const sessionId = searchParams.get("sessionId")
-  const clientSearchTerm = searchParams.get("client") || ""
+  const [clientSearchTerm, setClientSearchTerm] = useState(searchParams.get("client") || "")
   const initialLoadRef = useRef(true)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showBlockDialog, setShowBlockDialog] = useState(false)
+  const [showOrdersDialog, setShowOrdersDialog] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
-  const [availableLanguages, setAvailableLanguages] = useState<string[]>(['English', 'Italian', 'Spanish', 'French'])
-  const [showBlockDialog, setShowBlockDialog] = useState<boolean>(false)
-  const [showOrdersDialog, setShowOrdersDialog] = useState<boolean>(false)
+  const [chats, setChats] = useState<Chat[]>([])
+  const [isInputDisabled, setIsInputDisabled] = useState(false)
+  const [activeChatbot, setActiveChatbot] = useState<boolean>(true)
+  const [showActiveChatbotDialog, setShowActiveChatbotDialog] = useState(false)
+  const [hasToggledChatbot, setHasToggledChatbot] = useState(false)
   const navigate = useNavigate()
-
+  
   // Fetch chats with React Query
   const {
     data: allChats = [],
@@ -120,397 +129,256 @@ export function ChatPage() {
       if (response.data.success) {
         return response.data.data;
       } else {
-        throw new Error("Errore nel caricamento delle chat");
+        throw new Error("Error loading chats");
       }
     }
   });
 
   // Filter chats based on search term
-  const chats = clientSearchTerm
-    ? allChats.filter((chat: Chat) => 
-        chat.customerName?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
-        chat.customerPhone?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
-        chat.companyName?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
-        chat.lastMessage?.toLowerCase().includes(clientSearchTerm.toLowerCase())
-      )
-    : allChats;
-
-  // Select first chat when chats are loaded and no chat is selected
   useEffect(() => {
-    if (chats.length > 0 && !selectedChat && !sessionId) {
-      selectChat(chats[0]);
-    }
-  }, [chats, selectedChat, sessionId])
+    const filteredChats = clientSearchTerm
+      ? allChats.filter((chat: Chat) => 
+          chat.customerName?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+          chat.customerPhone?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+          chat.companyName?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+          chat.lastMessage?.toLowerCase().includes(clientSearchTerm.toLowerCase())
+        )
+      : allChats;
+    setChats(filteredChats);
+  }, [allChats, clientSearchTerm]);
 
-  // Fetch available languages
+  // Select first chat when chats are loaded and no chat is selected,
+  // or select the chat matching the client filter if present
   useEffect(() => {
-    const fetchLanguages = async () => {
-      try {
-        const languages: Language[] = await getLanguages();
-        if (languages && languages.length > 0) {
-          setAvailableLanguages(languages.map((lang: Language) => lang.name));
-        }
-      } catch (error) {
-        // Keep default languages in state
-      }
-    };
-    
-    fetchLanguages();
-  }, []);
-
-  // Select chat from URL parameters on initial load
-  useEffect(() => {
-    if (sessionId && chats.length > 0 && initialLoadRef.current) {
-      const chat = chats.find((c: Chat) => c.sessionId === sessionId)
-      if (chat) {
-        selectChat(chat, false) // false = don't update URL again
-        initialLoadRef.current = false
-      }
-    }
-  }, [sessionId, chats])
-
-  // Auto-scroll to latest messages
-  useEffect(() => {
-    if (messagesEndRef.current && !loadingChat) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [selectedChat?.messages, loadingChat]);
-
-  // Select a chat and load its messages
-  const selectChat = async (chat: Chat, updateUrl = true) => {
-    setLoadingChat(true);
-    try {
-      const chatWithCompany = {
-        ...chat,
-        companyName: chat.companyName || ""
-      };
-      
-      if (updateUrl) {
-        setSearchParams({ sessionId: chatWithCompany.sessionId });
-      }
-      
-      if (!chatWithCompany.messages) {
-        const response = await api.get(`/chat/${chatWithCompany.sessionId}/messages`);
-        if (response.data.success) {
-          const formattedMessages: Message[] = response.data.data.map((m: any) => ({
-            id: m.id,
-            content: m.content,
-            sender: m.direction === "INBOUND" ? "customer" : "user",
-            timestamp: m.createdAt || new Date().toISOString(),
-            agentName: m.direction === "OUTBOUND" ? (m.metadata?.agentName || "Generic") : undefined
-          }));
-          
-          chatWithCompany.messages = formattedMessages;
-        }
-      }
-      
-      setSelectedChat(chatWithCompany);
-      
-      if (chatWithCompany.unreadCount > 0) {
-        refetchChats();
-      }
-      
-    } catch (error) {
-      toast.error("Non è stato possibile caricare i messaggi");
-    } finally {
-      setLoadingChat(false);
-    }
-  };
-
-  // Handle message submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!messageInput.trim() || !selectedChat) return
-    
-    // Set loading state to true before sending the message
-    setLoading(true)
-    
-    try {
-      // Create a new message - this is a human user sending a message to the bot
-      const newMessage = {
-        id: Date.now().toString(),
-        content: messageInput,
-        // This is the customer's message, so sender should be "customer"
-        sender: "customer" as const,
-        timestamp: new Date().toISOString()
-      }
-      
-      // Update selected chat with the new message
-      const updatedChat = {
-        ...selectedChat,
-        messages: [...(selectedChat.messages || []), newMessage],
-        lastMessage: messageInput,
-        lastMessageTime: new Date().toISOString()
-      }
-      
-      setSelectedChat(updatedChat)
-      setMessageInput("")
-      
-      // Get workspaceId from storage
-      let currentWorkspaceId = "";
-      try {
-        const workspaceData = sessionStorage.getItem("currentWorkspace");
-        if (workspaceData) {
-          const workspace = JSON.parse(workspaceData);
-          currentWorkspaceId = workspace.id;
-        } else {
-          currentWorkspaceId = getWorkspaceId();
-        }
-      } catch (err) {
-        currentWorkspaceId = getWorkspaceId();
-      }
-      
-      // Send message to backend
-      const response = await api.post('/messages', { 
-        message: messageInput,
-        phoneNumber: selectedChat.customerPhone,
-        workspaceId: currentWorkspaceId
-      });
-      
-      if (response.data.success) {
-        // Refresh chats after sending a message
-        refetchChats()
-        
-        // Extract agent name from response metadata if available
-        let agentName = "Generic";
-        if (response.data.data.metadata && response.data.data.metadata.agentName) {
-          agentName = response.data.data.metadata.agentName;
-        }
-        
-        // Create response message from the bot
-        const responseMessage = {
-          id: (Date.now() + 1).toString(),
-          content: response.data.data.processedMessage,
-          // This is the bot's response, so sender should be "user"
-          sender: "user" as const,
-          timestamp: new Date().toISOString(),
-          agentName: agentName
-        }
-        
-        // Update selected chat with the bot response
-        setSelectedChat(prevChat => {
-          if (!prevChat) return null
-          return {
-            ...prevChat,
-            messages: [...(prevChat.messages || []), responseMessage],
-            lastMessage: responseMessage.content,
-            lastMessageTime: new Date().toISOString()
-          }
-        })
-      }
-    } catch (error) {
-      toast.error("Non è stato possibile inviare il messaggio")
-    } finally {
-      // Set loading state back to false after the request is complete
-      setLoading(false)
-    }
-  }
-
-  // Disable message input during loading
-  const isInputDisabled = loadingChat;
-
-  // Handle chat deletion
-  const handleDeleteChat = () => {
-    if (!selectedChat) return
-    setShowDeleteDialog(true)
-  }
-
-  // Handle customer editing
-  const handleEditCustomer = async () => {
-    if (!selectedChat) {
-      toast.error("No chat selected");
-      return;
-    }
-    setShowEditSheet(true);
-  };
-  
-  // Convert address object to string
-  const stringifyAddress = (address: ShippingAddress): string => {
-    try {
-      return JSON.stringify(address);
-    } catch (e) {
-      return '';
-    }
-  }
-  
-  // Convert text with URLs to HTML with clickable links
-  const formatTextWithLinks = (text: string): string => {
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    
-    return text.replace(urlRegex, (url) => {
-      const displayUrl = url
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-      
-      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline break-all">${displayUrl}</a>`;
-    });
-  };
-
-  // Get auth credentials from different storage sources
-  const getAuthCredentials = () => {
-    try {
-      // Try localStorage first
-      const user = localStorage.getItem("user");
-      if (user) {
-        const userData = JSON.parse(user);
-        if (userData?.token) {
-          return userData.token;
-        }
-      }
-      
-      // Try token directly
-      const token = localStorage.getItem("token");
-      if (token) {
-        return token;
-      }
-      
-      // Try session storage
-      const sessionUser = sessionStorage.getItem("user");
-      if (sessionUser) {
-        const sessionUserData = JSON.parse(sessionUser);
-        if (sessionUserData?.token) {
-          return sessionUserData.token;
-        }
-      }
-      
-      return null;
-    } catch (error) {
-      return null;
-    }
-  };
-
-  // Confirm chat deletion
-  const handleDeleteConfirm = async () => {
-    if (!selectedChat) return
-    
-    try {
-      // Get the auth token from localStorage
-      const token = getAuthCredentials();
-      
-      // Construct full URL
-      const apiUrl = import.meta.env.VITE_API_URL || "";
-      const fullUrl = `${apiUrl}/chat/${selectedChat.sessionId}`;
-      
-      // Try with native fetch API as fallback
-      if (token) {
-        // First try the test endpoint without auth
-        try {
-          const testUrl = `${apiUrl}/chat/test/${selectedChat.sessionId}`;
-          const testResponse = await fetch(testUrl, {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-          
-          if (testResponse.ok) {
-            const data = await testResponse.json();
-            
-            toast.success("Chat deleted successfully (test endpoint)");
-            
-            // Remove chat from list
-            refetchChats()
-            setSelectedChat(null);
-            setSearchParams({});
-            setShowDeleteDialog(false);
-            return;
-          }
-        } catch (testError) {
-          // Continue with normal endpoint
-        }
-        
-        // Try normal endpoint with auth
-        const fetchResponse = await fetch(fullUrl, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include'
-        });
-        
-        if (fetchResponse.ok) {
-          toast.success("Chat deleted successfully");
-          
-          // Remove chat from list
-          refetchChats()
-          setSelectedChat(null);
-          setSearchParams({});
-          setShowDeleteDialog(false);
+    if (chats.length > 0 && (!selectedChat || clientSearchTerm)) {
+      // If we have a sessionId, find that specific chat
+      if (sessionId) {
+        const chatWithSessionId = chats.find(chat => chat.sessionId === sessionId);
+        if (chatWithSessionId) {
+          selectChat(chatWithSessionId);
           return;
         }
       }
       
-      // Fall back to axios if fetch didn't work
-      const response = await api.delete(`/chat/${selectedChat.sessionId}`);
-      
-      if (response.data.success) {
-        toast.success("Chat deleted successfully");
+      // If we have a client search term, find chats for that client
+      if (clientSearchTerm) {
+        const clientChats = chats.filter(chat => 
+          chat.customerName?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+          chat.customerPhone?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+          chat.companyName?.toLowerCase().includes(clientSearchTerm.toLowerCase())
+        );
         
-        // Deselect the chat
-        refetchChats()
-        setSelectedChat(null);
-        
-        // Update URL parameters
-        setSearchParams({});
-      } else {
-        toast.error("Error deleting chat");
+        if (clientChats.length > 0) {
+          // Select the most recent chat for this client
+          selectChat(clientChats[0]);
+          return;
+        }
       }
-    } catch (error: any) {
-      toast.error("Could not delete chat. Please try again.");
-    } finally {
-      setShowDeleteDialog(false);
+      
+      // As a fallback, select the first chat
+      if (!selectedChat) {
+        selectChat(chats[0]);
+      }
     }
-  }
+  }, [chats, selectedChat, sessionId, clientSearchTerm]);
+  
+  // Calculate the workspaceId from the current route
+  const workspaceId = getWorkspaceId()
+  
+  // Fetch available languages
+  const { data: availableLanguages = [] } = useQuery<Language[]>({
+    queryKey: ["languages", workspaceId],
+    queryFn: async () => getLanguages(),
+    enabled: !!workspaceId
+  })
+  
+  // Log available languages whenever they change
+  useEffect(() => {
+    console.log('Available languages in ChatPage:', availableLanguages);
+  }, [availableLanguages]);
 
-  // Handle saving customer changes
-  const handleSaveCustomer = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // Fetch selected chat details
+  useEffect(() => {
+    if (selectedChat) {
+      // Load messages for the selected chat
+      fetchMessagesForChat(selectedChat);
+      
+      // Check for stored activeChatbot value and update the state
+      if (selectedChat.customerId) {
+        fetchCustomerDetails(selectedChat.customerId);
+      }
+    }
+  }, [selectedChat]);
+
+  // Function to load messages for a chat
+  const fetchMessagesForChat = async (chat: Chat) => {
+    if (!workspaceId) return;
+
+    try {
+      setLoadingChat(true);
+      const response = await api.get(`/chat/${chat.sessionId}/messages`);
+      if (response.data.success) {
+        // Transform backend messages to frontend format
+        const transformedMessages = response.data.data.map((message: any) => ({
+          id: message.id,
+          content: message.content,
+          // Map MessageDirection.INBOUND to 'customer' and MessageDirection.OUTBOUND to 'user'
+          sender: message.direction === 'INBOUND' ? 'customer' : 'user',
+          timestamp: message.createdAt,
+          agentName: message.metadata?.agentName || undefined
+        }));
+        
+        setMessages(transformedMessages);
+      } else {
+        toast.error("Failed to load chat messages");
+      }
+    } catch (error) {
+      console.error("Error loading messages:", error);
+      toast.error("Failed to load chat messages");
+    } finally {
+      setLoadingChat(false);
+    }
+  };
+  
+  // Function to fetch customer details
+  const fetchCustomerDetails = async (customerId: string) => {
+    if (!workspaceId) return;
     
-    if (!selectedChat) return;
+    try {
+      const response = await api.get(`/workspaces/${workspaceId}/customers/${customerId}`);
+      const customerData = response.data;
+      
+      // Update the activeChatbot state based on the customer data
+      setActiveChatbot(customerData.activeChatbot !== false); // Default to true if undefined
+    } catch (error) {
+      console.error("Error fetching customer details:", error);
+    }
+  };
+  
+  // Function to handle toggling the chatbot
+  const handleActiveChatbotToggle = async (checked: boolean) => {
+    if (!selectedChat || !workspaceId) return;
+    
+    // If turning off the chatbot and first time, show confirmation dialog
+    if (!checked && !hasToggledChatbot) {
+      setShowActiveChatbotDialog(true);
+      return;
+    }
+    
+    await updateActiveChatbotStatus(checked);
+  };
+  
+  // Function to confirm toggling the chatbot
+  const handleActiveChatbotConfirm = async () => {
+    setHasToggledChatbot(true);
+    setShowActiveChatbotDialog(false);
+    await updateActiveChatbotStatus(false);
+  };
+  
+  // Function to update the activeChatbot status in the backend
+  const updateActiveChatbotStatus = async (status: boolean) => {
+    if (!selectedChat?.customerId || !workspaceId) return;
     
     try {
       setLoading(true);
       
-      // Get a valid workspace ID
-      const workspaceId = getWorkspaceId();
+      // Update the customer in the backend
+      const response = await api.put(
+        `/workspaces/${workspaceId}/customers/${selectedChat.customerId}`, 
+        { activeChatbot: status }
+      );
       
-      // Check if workspace ID is valid
-      if (!workspaceId) {
-        toast.error("Missing workspace ID");
-        return;
+      if (response.status === 200) {
+        setActiveChatbot(status);
+        toast.success(
+          status 
+            ? "Chatbot has been re-enabled for this customer"
+            : "Chatbot has been disabled. You now have manual control"
+        );
+      } else {
+        toast.error("Failed to update chatbot status");
       }
+    } catch (error) {
+      console.error("Error updating chatbot status:", error);
+      toast.error("Failed to update chatbot status");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Function to select a chat
+  const selectChat = (chat: Chat) => {
+    setSelectedChat(chat);
+    // Update URL to include sessionId
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("sessionId", chat.sessionId);
+    // Preserve client search term if present
+    if (clientSearchTerm) {
+      newParams.set("client", clientSearchTerm);
+    } else {
+      newParams.delete("client");
+    }
+    setSearchParams(newParams);
+  };
+  
+  // Handle chat deletion
+  const handleDeleteChat = () => {
+    if (!selectedChat) return;
+    setShowDeleteDialog(true);
+  };
+  
+  // Handle chat deletion confirmation
+  const handleDeleteConfirm = async () => {
+    if (!selectedChat) return;
+    
+    try {
+      setLoading(true);
+      const response = await api.delete(`/chat/${selectedChat.sessionId}`);
       
-      // Extract form data
-      const formData = new FormData(e.currentTarget);
+      if (response.data.success) {
+        toast.success("Chat deleted successfully");
+        // Remove deleted chat from state
+        setChats(prev => prev.filter(chat => chat.sessionId !== selectedChat.sessionId));
+        setSelectedChat(null);
+        // Remove sessionId from URL
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete("sessionId");
+        setSearchParams(newParams);
+        // Refresh chat list
+        refetchChats();
+      } else {
+        toast.error("Failed to delete chat: " + (response.data.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+      toast.error("Failed to delete chat. Please try again.");
+    } finally {
+      setLoading(false);
+      setShowDeleteDialog(false);
+    }
+  };
+  
+  // Handle customer edit
+  const handleEditCustomer = () => {
+    if (!selectedChat) return;
+    setShowEditSheet(true);
+  };
+  
+  // Handle customer save after edit
+  const handleSaveCustomer = async (customerData: any, clientId?: string) => {
+    if ((!selectedChat?.customerId && !clientId) || !workspaceId) return;
+    
+    try {
+      setLoading(true);
       
-      // Prepare shipping address
-      const shippingAddress = {
-        street: formData.get('street') as string || '',
-        city: formData.get('city') as string || '',
-        zip: formData.get('zip') as string || '',
-        country: formData.get('country') as string || ''
-      };
+      // Use clientId if provided, otherwise use selectedChat.customerId
+      const customerId = clientId || selectedChat?.customerId;
       
-      // Get the form values - format to match the API expectations
-      const customerData = {
-        name: formData.get('name') as string,
-        email: formData.get('email') as string || '',
-        phone: formData.get('phone') as string || '',
-        company: formData.get('company') as string || '',
-        language: formData.get('language') as string || 'en',
-        discount: parseFloat(formData.get('discount') as string) || 0,
-        notes: formData.get('notes') as string || '',
-        address: JSON.stringify(shippingAddress),
-        isActive: true
-      };
+      // Log customerData for debugging
+      console.log('Customer data to save:', customerData);
       
-      // Build the endpoint URL
-      const endpoint = `/chat/workspaces/${workspaceId}/customers/${selectedChat.customerId}`;
+      // Endpoint for the customer update
+      const endpoint = `/workspaces/${workspaceId}/customers/${customerId}`;
       
       // Make API call with PUT method to update customer
       const response = await api.put(endpoint, customerData);
@@ -528,10 +396,13 @@ export function ChatPage() {
             companyName: updatedCustomer.company || selectedChat.companyName,
           });
         }
+        // Refresh chat list
+        refetchChats();
       } else {
         toast.error("Failed to update customer: " + (response.data?.error || "Unknown error"));
       }
     } catch (error) {
+      console.error("Error updating customer:", error);
       toast.error("Failed to update customer. Please try again.");
     } finally {
       setLoading(false);
@@ -543,8 +414,106 @@ export function ChatPage() {
     setShowOrdersDialog(true);
   };
 
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    if (!dateString) {
+      return "Data non disponibile";
+    }
+    
+    try {
+      const date = new Date(dateString);
+      
+      if (isNaN(date.getTime())) {
+        return "Data non valida";
+      }
+      
+      return date.toLocaleString('it-IT', {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    } catch (e) {
+      return "Errore nella formattazione data";
+    }
+  };
+
+  // Handle submitting a new message
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageInput.trim() || !selectedChat || loading) return;
+    
+    // Disable chatbot automatically when agent takes control by typing
+    if (activeChatbot) {
+      // Only show the dialog if it hasn't been shown before
+      if (!hasToggledChatbot) {
+        setShowActiveChatbotDialog(true);
+      } else {
+        // Otherwise just update the status directly
+        await updateActiveChatbotStatus(false);
+      }
+    }
+    
+    try {
+      setLoading(true);
+      
+      // Add message to UI immediately for better UX
+      const tempMessage: Message = {
+        id: `temp-${Date.now()}`,
+        content: messageInput,
+        sender: "user", // This is an agent (user) message
+        timestamp: new Date().toISOString(),
+      };
+      
+      setMessages(prev => [...prev, tempMessage]);
+      setMessageInput(""); // Clear input field
+      
+      // Send message to API
+      const response = await api.post(`/chat/${selectedChat.sessionId}/send`, {
+        content: messageInput,
+        sender: "user"
+      });
+
+      if (!response.data.success) {
+        toast.error("Failed to send message");
+        // Remove the temporary message
+        setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+      } else {
+        // Replace temp message with actual message from server, making sure to transform it
+        const responseMessages = Array.isArray(response.data.data) ? response.data.data : [response.data.data];
+        
+        const transformedMessages = responseMessages.map((message: any) => ({
+          id: message.id,
+          content: message.content,
+          sender: message.direction === 'INBOUND' ? 'customer' : 'user',
+          timestamp: message.createdAt || new Date().toISOString(),
+          agentName: message.metadata?.agentName
+        }));
+        
+        // Remove temp message and add transformed ones
+        setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id).concat(transformedMessages));
+        
+        // Update chat list to reflect new message
+        refetchChats();
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Scroll to bottom of messages when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
   return (
-    <PageLayout>
+    <PageLayout selectedChat={selectedChat}>
       <div className="grid grid-cols-12 gap-6 h-[calc(100vh-12rem)]">
         {/* Chat List */}
         <Card className="col-span-4 p-4 overflow-hidden flex flex-col">
@@ -560,11 +529,12 @@ export function ChatPage() {
                 } else {
                   newParams.delete("client");
                 }
-                // Mantieni il sessionId se presente
+                // Keep sessionId if present
                 if (sessionId) {
                   newParams.set("sessionId", sessionId);
                 }
                 setSearchParams(newParams);
+                setClientSearchTerm(e.target.value);
               }}
               className="w-full"
             />
@@ -573,7 +543,7 @@ export function ChatPage() {
           <div className="overflow-y-auto flex-1">
             {chats.length > 0 ? (
               chats.map((chat: Chat) => {
-                // IMPORTANT: Compare sessionId instead of id
+                // Compare sessionId instead of id
                 const isSelected = selectedChat?.sessionId === chat.sessionId;
                 
                 return (
@@ -611,35 +581,14 @@ export function ChatPage() {
                   </div>
                 );
               })
-            ) : isLoadingChats ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="space-x-2 flex">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" 
-                       style={{ animationDelay: '0ms', animationDuration: '0.8s' }}></div>
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" 
-                       style={{ animationDelay: '150ms', animationDuration: '0.8s' }}></div>
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" 
-                       style={{ animationDelay: '300ms', animationDuration: '0.8s' }}></div>
-                </div>
-              </div>
-            ) : clientSearchTerm ? (
-              <div className="flex flex-col items-center justify-center h-40 text-center">
-                <p className="text-gray-500 mb-2">Nessun risultato trovato per "{clientSearchTerm}"</p>
-                <button 
-                  className="text-sm text-green-600 hover:text-green-800"
-                  onClick={() => setSearchParams(sessionId ? { sessionId } : {})}
-                >
-                  Cancella ricerca
-                </button>
-              </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500">
-                Nessuna chat disponibile
+              <div className="text-center py-4 text-gray-500">
+                {isLoadingChats ? "Loading chats..." : "No chats found"}
               </div>
             )}
           </div>
         </Card>
-        {/* Chat Window */}
+        
         <Card className="col-span-8 p-4 flex flex-col">
           {selectedChat ? (
             <>
@@ -659,7 +608,18 @@ export function ChatPage() {
                     {selectedChat.customerPhone}
                   </p>
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 items-center">
+                  {/* ChatBot Toggle */}
+                  <div className="flex items-center mr-2">
+                    <Bot className={`h-4 w-4 mr-1 ${activeChatbot ? 'text-green-600' : 'text-gray-400'}`}/>
+                    <Switch
+                      className="mr-1"
+                      checked={activeChatbot}
+                      onCheckedChange={handleActiveChatbotToggle}
+                      title={activeChatbot ? "Disable chatbot" : "Enable chatbot"}
+                    />
+                  </div>
+                  
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -675,7 +635,7 @@ export function ChatPage() {
                     size="sm" 
                     onClick={() => setShowBlockDialog(true)}
                     className="hover:bg-orange-50 h-7 px-2 py-0"
-                    title="Block Use (Coming Soon)"
+                    title="Block User"
                   >
                     <Ban className="h-3 w-3 text-orange-600 mr-1" />
                     <span className="text-orange-600 text-xs">Block user</span>
@@ -693,74 +653,61 @@ export function ChatPage() {
                 </div>
               </div>
 
-              {/* Messages - Modificato lo stile per una scrollbar dedicata e auto-scroll al fondo */}
-              <div className="flex-1 overflow-y-auto py-2 space-y-2 h-[calc(100%-115px)] border border-gray-100 rounded-md p-2 scrollbar-container">
-                {loadingChat ? (
-                  <div className="h-full flex items-center justify-center">
-                    <div className="flex flex-col items-center">
-                      <div className="space-x-2 flex">
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" 
-                             style={{ animationDelay: '0ms', animationDuration: '0.8s' }}></div>
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" 
-                             style={{ animationDelay: '150ms', animationDuration: '0.8s' }}></div>
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce" 
-                             style={{ animationDelay: '300ms', animationDuration: '0.8s' }}></div>
-                      </div>
-                      <div className="mt-2 text-sm text-gray-500">Caricamento messaggi...</div>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {selectedChat.messages?.map((message) => (
+              {/* Chat Messages */}
+              <div className="flex-1 overflow-y-auto px-4 py-2">
+                {messages.length > 0 ? (
+                  messages.map((message) => {
+                    // Using the sender field which is properly mapped from direction
+                    const isAgentMessage = message.sender === "user";
+                    const isCustomerMessage = message.sender === "customer";
+                    
+                    return (
                       <div
                         key={message.id}
-                        className={`flex ${
-                          message.sender === "user"
-                            ? "justify-end"
-                            : "justify-start"
-                        }`}
+                        className={`flex mb-4 ${isAgentMessage ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`max-w-[45%] p-2 rounded-lg ${
-                            message.sender === "user"
-                              ? "bg-green-100 text-gray-900"
-                              : "bg-gray-100 text-gray-900"
+                          className={`p-3 rounded-lg max-w-[75%] ${
+                            isAgentMessage ? "bg-green-100 text-green-900" : "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {message.sender === "user" && message.agentName && (
-                            <div className="text-[10px] text-green-700 font-medium mb-1 border-b border-green-200 pb-1">
-                              Agent: {message.agentName}
-                            </div>
-                          )}
-                          <div className="message-content break-words whitespace-pre-wrap text-xs">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+                          <div className="text-sm break-words">
+                            <ReactMarkdown 
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                a: ({node, ...props}) => (
+                                  <a 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="text-blue-600 hover:underline" 
+                                    {...props} 
+                                  />
+                                )
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
                           </div>
-                          <p className="text-[10px] mt-1 opacity-70 text-right">
-                            {formatDate(message.timestamp)}
-                          </p>
+                          <div className="flex justify-between items-center mt-1">
+                            <span className="text-[10px] opacity-70">
+                              {formatDate(message.timestamp)}
+                            </span>
+                            {isAgentMessage && message.agentName && (
+                              <span className="text-[10px] font-medium bg-blue-100 text-blue-800 px-2 py-0.5 rounded ml-2">
+                                {message.agentName}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    ))}
-                    
-                    {/* Indicatore di loading quando si attende la risposta */}
-                    {loading && (
-                      <div className="flex justify-start">
-                        <div className="max-w-[45%] p-2 rounded-lg bg-gray-100 text-gray-900">
-                          <div className="flex items-center space-x-1">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" 
-                                style={{ animationDelay: '0ms', animationDuration: '0.6s' }}></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" 
-                                style={{ animationDelay: '150ms', animationDuration: '0.6s' }}></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" 
-                                style={{ animationDelay: '300ms', animationDuration: '0.6s' }}></div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div ref={messagesEndRef} />
-                  </>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    {loadingChat ? "Loading messages..." : "No messages yet"}
+                  </div>
                 )}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* Message Input */}
@@ -776,13 +723,13 @@ export function ChatPage() {
                       handleSubmit(e)
                     }
                   }}
-                  disabled={isInputDisabled || loading}
+                  disabled={loading}
                 />
                 <Button
                   onClick={(e) => handleSubmit(e)}
                   className="self-end h-8 w-8 p-0"
                   size="sm"
-                  disabled={isInputDisabled || loading}
+                  disabled={loading}
                 >
                   {loading ? (
                     <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -793,8 +740,8 @@ export function ChatPage() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-500">
-              Select a chat to view message history
+            <div className="text-center py-4 text-gray-500">
+              {isLoadingChats ? "Loading chats..." : "No chats found"}
             </div>
           )}
         </Card>
@@ -811,6 +758,18 @@ export function ChatPage() {
         variant="destructive"
       />
       
+      {/* Active Chatbot Confirmation Dialog */}
+      <ConfirmDialog
+        open={showActiveChatbotDialog}
+        onOpenChange={setShowActiveChatbotDialog}
+        title="Disable Chatbot"
+        description={`Are you sure you want to disable the chatbot for ${selectedChat?.customerName}? You will need to manually respond to their messages. You can re-enable it later.`}
+        onConfirm={handleActiveChatbotConfirm}
+        confirmLabel="Disable"
+        cancelLabel="Cancel"
+        variant="destructive"
+      />
+      
       {/* Block User Dialog */}
       <AlertDialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
         <AlertDialogContent>
@@ -821,7 +780,7 @@ export function ChatPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction>OK</AlertDialogAction>
+            <AlertDialogAction key="block-dialog-action">OK</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -836,7 +795,7 @@ export function ChatPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction>OK</AlertDialogAction>
+            <AlertDialogAction key="orders-dialog-action">OK</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -848,8 +807,8 @@ export function ChatPage() {
         onOpenChange={setShowEditSheet}
         onSubmit={handleSaveCustomer}
         mode="edit"
-        availableLanguages={availableLanguages}
+        availableLanguages={Array.isArray(availableLanguages) ? availableLanguages.map(lang => lang.name || "") : []}
       />
     </PageLayout>
-  );
+  )
 }

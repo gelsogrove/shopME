@@ -21,7 +21,7 @@ export function GdprSettingsTab() {
         }
         const workspace = JSON.parse(workspaceStr)
         
-        const response = await api.get(`/api/whatsapp-settings/${workspace.id}/gdpr`)
+        const response = await api.get(`/whatsapp-settings/${workspace.id}/gdpr`)
         if (response.data && response.data.gdpr) {
           setGdprText(response.data.gdpr)
         } else {
@@ -49,7 +49,7 @@ export function GdprSettingsTab() {
       }
       const workspace = JSON.parse(workspaceStr)
       
-      await api.put(`/api/whatsapp-settings/${workspace.id}/gdpr`, { gdpr: gdprText })
+      await api.put(`/whatsapp-settings/${workspace.id}/gdpr`, { gdpr: gdprText })
       toast.success("GDPR policy saved successfully")
     } catch (error) {
       console.error("Failed to save GDPR data:", error)

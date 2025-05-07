@@ -24,7 +24,7 @@ interface ClientSheetProps {
   client: ExtendedClient | string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>, clientId?: string) => void;
+  onSubmit: (data: any, clientId?: string) => void;
   mode: "view" | "edit";
   availableLanguages: string[];
 }
@@ -181,11 +181,42 @@ export function ClientSheet({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     console.log("Form submitted");
     e.preventDefault();
-    onSubmit(e, typeof client === 'string' ? client : fetchedClient?.id);
+    
+    // Create the customer data object from form values
+    const customerData = {
+      name,
+      email,
+      company,
+      phone,
+      language,
+      discount: parseFloat(discount),
+      notes,
+      address: street || '', // Use street as a simple address if no full shipping address
+      // Only include shippingAddress if fields have values
+      ...(street || city || zip || country ? {
+        shippingAddress: {
+          street,
+          city,
+          zip,
+          country
+        }
+      } : {})
+    };
+    
+    console.log("Submitting customer data:", customerData);
+    onSubmit(customerData, typeof client === 'string' ? client : fetchedClient?.id);
   };
   
   // Make sure to render even if not open
   console.log("ClientSheet render", { open, mode, client });
+
+  // Set default language if languages are available but current language is empty
+  useEffect(() => {
+    if (availableLanguages && availableLanguages.length > 0 && !language) {
+      console.log("Setting default language from availableLanguages", availableLanguages[0]);
+      setLanguage(availableLanguages[0]);
+    }
+  }, [availableLanguages, language]);
 
   const isViewMode = mode === "view";
   const title = isViewMode ? "Client Details" : fetchedClient?.id ? "Edit Client" : "Add Client";
@@ -289,20 +320,6 @@ export function ClientSheet({
                         </SelectContent>
                       </Select>
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="discount" className="text-sm font-medium">Discount (%)</Label>
-                      <Input
-                        id="discount"
-                        name="discount"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={discount}
-                        onChange={(e) => setDiscount(e.target.value)}
-                        required
-                      />
-                    </div>
                   </div>
                 </div>
                 
@@ -316,7 +333,6 @@ export function ClientSheet({
                       name="street"
                       value={street}
                       onChange={(e) => setStreet(e.target.value)}
-                      required
                     />
                   </div>
                   
@@ -328,7 +344,6 @@ export function ClientSheet({
                         name="city"
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
-                        required
                       />
                     </div>
                     
@@ -339,7 +354,6 @@ export function ClientSheet({
                         name="zip"
                         value={zip}
                         onChange={(e) => setZip(e.target.value)}
-                        required
                       />
                     </div>
                   </div>
@@ -351,7 +365,6 @@ export function ClientSheet({
                       name="country"
                       value={country}
                       onChange={(e) => setCountry(e.target.value)}
-                      required
                     />
                   </div>
                 </div>
@@ -411,10 +424,6 @@ export function ClientSheet({
                     <div className="flex justify-between">
                       <dt className="font-medium">Language:</dt>
                       <dd>{fetchedClient?.language}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="font-medium">Discount:</dt>
-                      <dd>{fetchedClient?.discount}%</dd>
                     </div>
                     <div className="flex justify-between">
                       <dt className="font-medium">Phone:</dt>

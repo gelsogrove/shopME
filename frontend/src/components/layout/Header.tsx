@@ -1,22 +1,22 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { api } from "@/services/api"
 import { getUserProfile } from "@/services/userApi"
 import {
-  ArrowLeftRight,
-  CreditCard,
-  LogOut,
-  Phone,
-  Settings,
-  User,
+    ArrowLeftRight,
+    CreditCard,
+    LogOut,
+    Phone,
+    Settings,
+    User,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
@@ -80,7 +80,7 @@ export function Header() {
   // Handle logout
   const handleLogout = async () => {
     try {
-      await api.post("/api/auth/logout")
+      await api.post("/auth/logout")
 
       // Clear all localStorage and sessionStorage data
       localStorage.removeItem("user")

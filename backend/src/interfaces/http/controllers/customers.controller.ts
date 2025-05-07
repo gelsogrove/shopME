@@ -107,7 +107,8 @@ export class CustomersController {
         notes, 
         serviceIds,
         last_privacy_version_accepted,
-        push_notifications_consent
+        push_notifications_consent,
+        activeChatbot
       } = req.body;
       
       const customerData: any = {
@@ -125,6 +126,7 @@ export class CustomersController {
       if (serviceIds !== undefined) customerData.serviceIds = serviceIds;
       if (last_privacy_version_accepted !== undefined) customerData.last_privacy_version_accepted = last_privacy_version_accepted;
       if (push_notifications_consent !== undefined) customerData.push_notifications_consent = push_notifications_consent;
+      if (activeChatbot !== undefined) customerData.activeChatbot = activeChatbot;
       
       console.log('Updating customer with data:', customerData);
       
