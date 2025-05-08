@@ -2,10 +2,10 @@ import { PageLayout } from "@/components/layout/PageLayout"
 import { ClientSheet } from "@/components/shared/ClientSheet"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { getWorkspaceId } from "@/config/workspace.config"
-import { useRecentChats } from '@/hooks/useRecentChats'
+import { useRecentChats } from "@/hooks/useRecentChats"
 import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from "@tanstack/react-query"
 import { Ban, Bot, Pencil, Send, ShoppingBag, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "react-hot-toast"
@@ -72,28 +72,28 @@ interface Chat {
 
 const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString) {
-    return "Data non disponibile";
+    return "Data non disponibile"
   }
-  
+
   try {
-    const date = new Date(dateString);
+    const date = new Date(dateString)
     if (isNaN(date.getTime())) {
-      return "Data non valida";
+      return "Data non valida"
     }
-    
+
     const options: Intl.DateTimeFormatOptions = {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
-    
-    return date.toLocaleDateString('it-IT', options);
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }
+
+    return date.toLocaleDateString("it-IT", options)
   } catch (error) {
-    return "Errore nella formattazione data";
+    return "Errore nella formattazione data"
   }
-};
+}
 
 export function ChatPage() {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
@@ -104,7 +104,9 @@ export function ChatPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const sessionId = searchParams.get("sessionId")
-  const [clientSearchTerm, setClientSearchTerm] = useState(searchParams.get("client") || "")
+  const [clientSearchTerm, setClientSearchTerm] = useState(
+    searchParams.get("client") || ""
+  )
   const initialLoadRef = useRef(true)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showBlockDialog, setShowBlockDialog] = useState(false)
@@ -116,21 +118,35 @@ export function ChatPage() {
   const [showActiveChatbotDialog, setShowActiveChatbotDialog] = useState(false)
   const [hasToggledChatbot, setHasToggledChatbot] = useState(false)
   const navigate = useNavigate()
-  
-  const { data: allChats = [], isLoading: isLoadingChats, isError: isErrorChats, refetch: refetchChats } = useRecentChats();
+
+  const {
+    data: allChats = [],
+    isLoading: isLoadingChats,
+    isError: isErrorChats,
+    refetch: refetchChats,
+  } = useRecentChats()
 
   // Filter chats based on search term
   useEffect(() => {
     const filteredChats = clientSearchTerm
-      ? allChats.filter((chat: Chat) => 
-          chat.customerName?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
-          chat.customerPhone?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
-          chat.companyName?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
-          chat.lastMessage?.toLowerCase().includes(clientSearchTerm.toLowerCase())
+      ? allChats.filter(
+          (chat: Chat) =>
+            chat.customerName
+              ?.toLowerCase()
+              .includes(clientSearchTerm.toLowerCase()) ||
+            chat.customerPhone
+              ?.toLowerCase()
+              .includes(clientSearchTerm.toLowerCase()) ||
+            chat.companyName
+              ?.toLowerCase()
+              .includes(clientSearchTerm.toLowerCase()) ||
+            chat.lastMessage
+              ?.toLowerCase()
+              .includes(clientSearchTerm.toLowerCase())
         )
-      : allChats;
-    setChats(filteredChats);
-  }, [allChats, clientSearchTerm]);
+      : allChats
+    setChats(filteredChats)
+  }, [allChats, clientSearchTerm])
 
   // Select first chat when chats are loaded and no chat is selected,
   // or select the chat matching the client filter if present
@@ -138,364 +154,413 @@ export function ChatPage() {
     if (chats.length > 0 && (!selectedChat || clientSearchTerm)) {
       // If we have a sessionId, find that specific chat
       if (sessionId) {
-        const chatWithSessionId = chats.find(chat => chat.sessionId === sessionId);
+        const chatWithSessionId = chats.find(
+          (chat) => chat.sessionId === sessionId
+        )
         if (chatWithSessionId) {
-          selectChat(chatWithSessionId);
-          return;
+          selectChat(chatWithSessionId)
+          return
         }
       }
-      
+
       // If we have a client search term, find chats for that client
       if (clientSearchTerm) {
-        const clientChats = chats.filter(chat => 
-          chat.customerName?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
-          chat.customerPhone?.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
-          chat.companyName?.toLowerCase().includes(clientSearchTerm.toLowerCase())
-        );
-        
+        const clientChats = chats.filter(
+          (chat) =>
+            chat.customerName
+              ?.toLowerCase()
+              .includes(clientSearchTerm.toLowerCase()) ||
+            chat.customerPhone
+              ?.toLowerCase()
+              .includes(clientSearchTerm.toLowerCase()) ||
+            chat.companyName
+              ?.toLowerCase()
+              .includes(clientSearchTerm.toLowerCase())
+        )
+
         if (clientChats.length > 0) {
           // Select the most recent chat for this client
-          selectChat(clientChats[0]);
-          return;
+          selectChat(clientChats[0])
+          return
         }
       }
-      
+
       // As a fallback, select the first chat
       if (!selectedChat) {
-        selectChat(chats[0]);
+        selectChat(chats[0])
       }
     }
-  }, [chats, selectedChat, sessionId, clientSearchTerm]);
-  
+  }, [chats, selectedChat, sessionId, clientSearchTerm])
+
   // Calculate the workspaceId from the current route
   const workspaceId = getWorkspaceId()
-  
+
   // Fetch available languages
   const { data: availableLanguages = [] } = useQuery<Language[]>({
     queryKey: ["languages", workspaceId],
     queryFn: async () => getLanguages(),
-    enabled: !!workspaceId
+    enabled: !!workspaceId,
   })
-  
+
   // Log available languages whenever they change
   useEffect(() => {
-    console.log('Available languages in ChatPage:', availableLanguages);
-  }, [availableLanguages]);
+    console.log("Available languages in ChatPage:", availableLanguages)
+  }, [availableLanguages])
 
   // Fetch selected chat details
   useEffect(() => {
     if (selectedChat) {
       // Load messages for the selected chat
-      fetchMessagesForChat(selectedChat);
-      
+      fetchMessagesForChat(selectedChat)
+
       // Check for stored activeChatbot value and update the state
       if (selectedChat.customerId) {
-        fetchCustomerDetails(selectedChat.customerId);
+        fetchCustomerDetails(selectedChat.customerId)
       }
     }
-  }, [selectedChat]);
+  }, [selectedChat])
 
   // Function to load messages for a chat
   const fetchMessagesForChat = async (chat: Chat) => {
-    if (!workspaceId) return;
+    if (!workspaceId) return
 
     try {
-      setLoadingChat(true);
-      const response = await api.get(`/chat/${chat.sessionId}/messages`);
+      setLoadingChat(true)
+      const response = await api.get(`/chat/${chat.sessionId}/messages`)
       if (response.data.success) {
         // Transform backend messages to frontend format
         const transformedMessages = response.data.data.map((message: any) => ({
           id: message.id,
           content: message.content,
           // Map MessageDirection.INBOUND to 'customer' and MessageDirection.OUTBOUND to 'user'
-          sender: message.direction === 'INBOUND' ? 'customer' : 'user',
+          sender: message.direction === "INBOUND" ? "customer" : "user",
           timestamp: message.createdAt,
-          agentName: message.metadata?.agentName || undefined
-        }));
-        
-        setMessages(transformedMessages);
+          agentName: message.metadata?.agentName || undefined,
+        }))
+
+        setMessages(transformedMessages)
       } else {
-        toast.error("Failed to load chat messages");
+        toast.error("Failed to load chat messages")
       }
     } catch (error) {
-      console.error("Error loading messages:", error);
-      toast.error("Failed to load chat messages");
+      console.error("Error loading messages:", error)
+      toast.error("Failed to load chat messages")
     } finally {
-      setLoadingChat(false);
+      setLoadingChat(false)
     }
-  };
-  
+  }
+
   // Function to fetch customer details
   const fetchCustomerDetails = async (customerId: string) => {
-    if (!workspaceId) return;
-    
+    if (!workspaceId) return
+
     try {
-      const response = await api.get(`/workspaces/${workspaceId}/customers/${customerId}`);
-      const customerData = response.data;
-      
+      const response = await api.get(
+        `/workspaces/${workspaceId}/customers/${customerId}`
+      )
+      const customerData = response.data
+
       // Update the activeChatbot state based on the customer data
-      setActiveChatbot(customerData.activeChatbot !== false); // Default to true if undefined
+      setActiveChatbot(customerData.activeChatbot !== false) // Default to true if undefined
     } catch (error) {
-      console.error("Error fetching customer details:", error);
+      console.error("Error fetching customer details:", error)
     }
-  };
-  
+  }
+
   // Function to handle toggling the chatbot
   const handleActiveChatbotToggle = async (checked: boolean) => {
-    if (!selectedChat || !workspaceId) return;
-    
+    if (!selectedChat || !workspaceId) return
+
     // If turning off the chatbot and first time, show confirmation dialog
     if (!checked && !hasToggledChatbot) {
-      setShowActiveChatbotDialog(true);
-      return;
+      setShowActiveChatbotDialog(true)
+      return
     }
-    
-    await updateActiveChatbotStatus(checked);
-  };
-  
+
+    await updateActiveChatbotStatus(checked)
+  }
+
   // Function to confirm toggling the chatbot
   const handleActiveChatbotConfirm = async () => {
-    setHasToggledChatbot(true);
-    setShowActiveChatbotDialog(false);
-    await updateActiveChatbotStatus(false);
-  };
-  
+    setHasToggledChatbot(true)
+    setShowActiveChatbotDialog(false)
+    await updateActiveChatbotStatus(false)
+  }
+
   // Function to update the activeChatbot status in the backend
   const updateActiveChatbotStatus = async (status: boolean) => {
-    if (!selectedChat?.customerId || !workspaceId) return;
-    
+    if (!selectedChat?.customerId || !workspaceId) return
+
     try {
-      setLoading(true);
-      
+      setLoading(true)
+
       // Update the customer in the backend
       const response = await api.put(
-        `/workspaces/${workspaceId}/customers/${selectedChat.customerId}`, 
+        `/workspaces/${workspaceId}/customers/${selectedChat.customerId}`,
         { activeChatbot: status }
-      );
-      
+      )
+
       if (response.status === 200) {
-        setActiveChatbot(status);
+        setActiveChatbot(status)
         toast.success(
-          status 
+          status
             ? "Chatbot has been re-enabled for this customer"
             : "Chatbot has been disabled. You now have manual control"
-        );
+        )
       } else {
-        toast.error("Failed to update chatbot status");
+        toast.error("Failed to update chatbot status")
       }
     } catch (error) {
-      console.error("Error updating chatbot status:", error);
-      toast.error("Failed to update chatbot status");
+      console.error("Error updating chatbot status:", error)
+      toast.error("Failed to update chatbot status")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
-  
+  }
+
   // Function to select a chat
   const selectChat = (chat: Chat) => {
-    setSelectedChat(chat);
+    setSelectedChat(chat)
     // Update URL to include sessionId
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set("sessionId", chat.sessionId);
+    const newParams = new URLSearchParams(searchParams)
+    newParams.set("sessionId", chat.sessionId)
     // Preserve client search term if present
     if (clientSearchTerm) {
-      newParams.set("client", clientSearchTerm);
+      newParams.set("client", clientSearchTerm)
     } else {
-      newParams.delete("client");
+      newParams.delete("client")
     }
-    setSearchParams(newParams);
-  };
-  
+    setSearchParams(newParams)
+
+    // Salva la chat selezionata nel localStorage
+    localStorage.setItem("selectedChat", JSON.stringify(chat))
+
+    // Reset unread count when selecting a chat
+    if (chat.unreadCount > 0) {
+      // Update unread count in the local state
+      setChats((prevChats) =>
+        prevChats.map((c) =>
+          c.sessionId === chat.sessionId ? { ...c, unreadCount: 0 } : c
+        )
+      )
+
+      // Call API to mark messages as read
+      api
+        .post(`/chat/${chat.sessionId}/read`)
+        .then((response) => {
+          if (!response.data.success) {
+            console.error("Failed to mark messages as read")
+          }
+        })
+        .catch((err) => {
+          console.error("Error marking messages as read:", err)
+        })
+    }
+  }
+
   // Handle chat deletion
   const handleDeleteChat = () => {
-    if (!selectedChat) return;
-    setShowDeleteDialog(true);
-  };
-  
+    if (!selectedChat) return
+    setShowDeleteDialog(true)
+  }
+
   // Handle chat deletion confirmation
   const handleDeleteConfirm = async () => {
-    if (!selectedChat) return;
-    
+    if (!selectedChat) return
+
     try {
-      setLoading(true);
-      const response = await api.delete(`/chat/${selectedChat.sessionId}`);
-      
+      setLoading(true)
+      const response = await api.delete(`/chat/${selectedChat.sessionId}`)
+
       if (response.data.success) {
-        toast.success("Chat deleted successfully");
+        toast.success("Chat deleted successfully")
         // Remove deleted chat from state
-        setChats(prev => prev.filter(chat => chat.sessionId !== selectedChat.sessionId));
-        setSelectedChat(null);
+        setChats((prev) =>
+          prev.filter((chat) => chat.sessionId !== selectedChat.sessionId)
+        )
+        setSelectedChat(null)
         // Remove sessionId from URL
-        const newParams = new URLSearchParams(searchParams);
-        newParams.delete("sessionId");
-        setSearchParams(newParams);
+        const newParams = new URLSearchParams(searchParams)
+        newParams.delete("sessionId")
+        setSearchParams(newParams)
         // Refresh chat list
-        refetchChats();
+        refetchChats()
       } else {
-        toast.error("Failed to delete chat: " + (response.data.error || "Unknown error"));
+        toast.error(
+          "Failed to delete chat: " + (response.data.error || "Unknown error")
+        )
       }
     } catch (error) {
-      console.error("Error deleting chat:", error);
-      toast.error("Failed to delete chat. Please try again.");
+      console.error("Error deleting chat:", error)
+      toast.error("Failed to delete chat. Please try again.")
     } finally {
-      setLoading(false);
-      setShowDeleteDialog(false);
+      setLoading(false)
+      setShowDeleteDialog(false)
     }
-  };
-  
+  }
+
   // Handle customer edit
   const handleEditCustomer = () => {
-    if (!selectedChat) return;
-    setShowEditSheet(true);
-  };
-  
+    if (!selectedChat) return
+    setShowEditSheet(true)
+  }
+
   // Handle customer save after edit
   const handleSaveCustomer = async (customerData: any, clientId?: string) => {
-    if ((!selectedChat?.customerId && !clientId) || !workspaceId) return;
-    
+    if ((!selectedChat?.customerId && !clientId) || !workspaceId) return
+
     try {
-      setLoading(true);
-      
+      setLoading(true)
+
       // Use clientId if provided, otherwise use selectedChat.customerId
-      const customerId = clientId || selectedChat?.customerId;
-      
+      const customerId = clientId || selectedChat?.customerId
+
       // Log customerData for debugging
-      console.log('Customer data to save:', customerData);
-      
+      console.log("Customer data to save:", customerData)
+
       // Endpoint for the customer update
-      const endpoint = `/workspaces/${workspaceId}/customers/${customerId}`;
-      
+      const endpoint = `/workspaces/${workspaceId}/customers/${customerId}`
+
       // Make API call with PUT method to update customer
-      const response = await api.put(endpoint, customerData);
-      
+      const response = await api.put(endpoint, customerData)
+
       if (response.status === 200) {
-        toast.success("Customer updated successfully");
-        setShowEditSheet(false);
+        toast.success("Customer updated successfully")
+        setShowEditSheet(false)
         // Update only the selected chat's customer info
         if (selectedChat) {
-          const updatedCustomer = response.data;
+          const updatedCustomer = response.data
           setSelectedChat({
             ...selectedChat,
             customerName: updatedCustomer.name || selectedChat.customerName,
             customerPhone: updatedCustomer.phone || selectedChat.customerPhone,
             companyName: updatedCustomer.company || selectedChat.companyName,
-          });
+          })
         }
         // Refresh chat list
-        refetchChats();
+        refetchChats()
       } else {
-        toast.error("Failed to update customer: " + (response.data?.error || "Unknown error"));
+        toast.error(
+          "Failed to update customer: " +
+            (response.data?.error || "Unknown error")
+        )
       }
     } catch (error) {
-      console.error("Error updating customer:", error);
-      toast.error("Failed to update customer. Please try again.");
+      console.error("Error updating customer:", error)
+      toast.error("Failed to update customer. Please try again.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Show orders dialog
   const handleViewOrders = () => {
-    setShowOrdersDialog(true);
-  };
+    setShowOrdersDialog(true)
+  }
 
   // Format date for display
   const formatDate = (dateString: string) => {
     if (!dateString) {
-      return "Data non disponibile";
+      return "Data non disponibile"
     }
-    
+
     try {
-      const date = new Date(dateString);
-      
+      const date = new Date(dateString)
+
       if (isNaN(date.getTime())) {
-        return "Data non valida";
+        return "Data non valida"
       }
-      
-      return date.toLocaleString('it-IT', {
+
+      return date.toLocaleString("it-IT", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
         hour: "2-digit",
-        minute: "2-digit"
-      });
+        minute: "2-digit",
+      })
     } catch (e) {
-      return "Errore nella formattazione data";
+      return "Errore nella formattazione data"
     }
-  };
+  }
 
   // Handle submitting a new message
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!messageInput.trim() || !selectedChat || loading) return;
-    
+    e.preventDefault()
+    if (!messageInput.trim() || !selectedChat || loading) return
+
     // Disable chatbot automatically when agent takes control by typing
     if (activeChatbot) {
       // Only show the dialog if it hasn't been shown before
       if (!hasToggledChatbot) {
-        setShowActiveChatbotDialog(true);
+        setShowActiveChatbotDialog(true)
       } else {
         // Otherwise just update the status directly
-        await updateActiveChatbotStatus(false);
+        await updateActiveChatbotStatus(false)
       }
     }
-    
+
     try {
-      setLoading(true);
-      
+      setLoading(true)
+
       // Add message to UI immediately for better UX
       const tempMessage: Message = {
         id: `temp-${Date.now()}`,
         content: messageInput,
         sender: "user", // This is an agent (user) message
         timestamp: new Date().toISOString(),
-      };
-      
-      setMessages(prev => [...prev, tempMessage]);
-      setMessageInput(""); // Clear input field
-      
+      }
+
+      setMessages((prev) => [...prev, tempMessage])
+      setMessageInput("") // Clear input field
+
       // Send message to API
       const response = await api.post(`/chat/${selectedChat.sessionId}/send`, {
         content: messageInput,
-        sender: "user"
-      });
+        sender: "user",
+      })
 
       if (!response.data.success) {
-        toast.error("Failed to send message");
+        toast.error("Failed to send message")
         // Remove the temporary message
-        setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+        setMessages((prev) => prev.filter((msg) => msg.id !== tempMessage.id))
       } else {
         // Replace temp message with actual message from server, making sure to transform it
-        const responseMessages = Array.isArray(response.data.data) ? response.data.data : [response.data.data];
-        
+        const responseMessages = Array.isArray(response.data.data)
+          ? response.data.data
+          : [response.data.data]
+
         const transformedMessages = responseMessages.map((message: any) => ({
           id: message.id,
           content: message.content,
-          sender: message.direction === 'INBOUND' ? 'customer' : 'user',
+          sender: message.direction === "INBOUND" ? "customer" : "user",
           timestamp: message.createdAt || new Date().toISOString(),
-          agentName: message.metadata?.agentName
-        }));
-        
+          agentName: message.metadata?.agentName,
+        }))
+
         // Remove temp message and add transformed ones
-        setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id).concat(transformedMessages));
-        
+        setMessages((prev) =>
+          prev
+            .filter((msg) => msg.id !== tempMessage.id)
+            .concat(transformedMessages)
+        )
+
         // Update chat list to reflect new message
-        refetchChats();
+        refetchChats()
       }
     } catch (error) {
-      console.error("Error sending message:", error);
-      toast.error("Failed to send message");
+      console.error("Error sending message:", error)
+      toast.error("Failed to send message")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
-  
+  }
+
   // Scroll to bottom of messages when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
-  }, [messages]);
+  }, [messages])
 
   return (
     <PageLayout selectedChat={selectedChat}>
@@ -508,18 +573,18 @@ export function ChatPage() {
               placeholder="Search chats..."
               value={clientSearchTerm}
               onChange={(e) => {
-                const newParams = new URLSearchParams(searchParams);
+                const newParams = new URLSearchParams(searchParams)
                 if (e.target.value) {
-                  newParams.set("client", e.target.value);
+                  newParams.set("client", e.target.value)
                 } else {
-                  newParams.delete("client");
+                  newParams.delete("client")
                 }
                 // Keep sessionId if present
                 if (sessionId) {
-                  newParams.set("sessionId", sessionId);
+                  newParams.set("sessionId", sessionId)
                 }
-                setSearchParams(newParams);
-                setClientSearchTerm(e.target.value);
+                setSearchParams(newParams)
+                setClientSearchTerm(e.target.value)
               }}
               className="w-full"
             />
@@ -529,23 +594,30 @@ export function ChatPage() {
             {chats.length > 0 ? (
               chats.map((chat: Chat) => {
                 // Compare sessionId instead of id
-                const isSelected = selectedChat?.sessionId === chat.sessionId;
-                
+                const isSelected = selectedChat?.sessionId === chat.sessionId
+
                 return (
                   <div
                     key={chat.id}
                     className={`p-4 cursor-pointer rounded-lg mb-2 transition-all
-                      ${isSelected 
-                        ? 'border-l-4 border-green-600 bg-green-50 text-green-800 font-bold' 
-                        : 'border-l-0 bg-white text-gray-900'}
-                      ${!isSelected ? 'hover:bg-gray-50' : ''}
-                      ${loadingChat && isSelected ? "opacity-70 pointer-events-none" : ""}`}
+                      ${
+                        isSelected
+                          ? "border-l-4 border-green-600 bg-green-50 text-green-800 font-bold"
+                          : "border-l-0 bg-white text-gray-900"
+                      }
+                      ${!isSelected ? "hover:bg-gray-50" : ""}
+                      ${
+                        loadingChat && isSelected
+                          ? "opacity-70 pointer-events-none"
+                          : ""
+                      }`}
                     onClick={() => selectChat(chat)}
                   >
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="font-medium text-sm">
-                          {chat.customerName} {chat.companyName ? `(${chat.companyName})` : ''}
+                          {chat.customerName}{" "}
+                          {chat.companyName ? `(${chat.companyName})` : ""}
                         </h3>
                         <p className="text-xs text-green-600">
                           {chat.customerPhone}
@@ -564,7 +636,7 @@ export function ChatPage() {
                       {formatDate(chat.lastMessageTime)}
                     </p>
                   </div>
-                );
+                )
               })
             ) : (
               <div className="text-center py-4 text-gray-500">
@@ -573,19 +645,22 @@ export function ChatPage() {
             )}
           </div>
         </Card>
-        
+
         <Card className="col-span-8 p-4 flex flex-col">
           {selectedChat ? (
             <>
               {/* Chat Header */}
               <div className="flex justify-between items-center pb-2 border-b h-[60px]">
                 <div>
-                  <div 
+                  <div
                     className="flex items-center cursor-pointer group"
                     onClick={handleEditCustomer}
                   >
                     <h2 className="font-bold text-sm group-hover:text-green-600 transition-colors">
-                      {selectedChat.customerName} {selectedChat.companyName ? `(${selectedChat.companyName})` : ''}
+                      {selectedChat.customerName}{" "}
+                      {selectedChat.companyName
+                        ? `(${selectedChat.companyName})`
+                        : ""}
                     </h2>
                     <Pencil className="h-3 w-3 ml-1 text-green-600 group-hover:text-green-700 transition-colors" />
                   </div>
@@ -596,18 +671,24 @@ export function ChatPage() {
                 <div className="flex space-x-2 items-center">
                   {/* ChatBot Toggle */}
                   <div className="flex items-center mr-2">
-                    <Bot className={`h-4 w-4 mr-1 ${activeChatbot ? 'text-green-600' : 'text-gray-400'}`}/>
+                    <Bot
+                      className={`h-4 w-4 mr-1 ${
+                        activeChatbot ? "text-green-600" : "text-gray-400"
+                      }`}
+                    />
                     <Switch
                       className="mr-1"
                       checked={activeChatbot}
                       onCheckedChange={handleActiveChatbotToggle}
-                      title={activeChatbot ? "Disable chatbot" : "Enable chatbot"}
+                      title={
+                        activeChatbot ? "Disable chatbot" : "Enable chatbot"
+                      }
                     />
                   </div>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={handleViewOrders}
                     className="hover:bg-blue-50 h-7 px-2 py-0"
                     title="View Customer Orders"
@@ -615,9 +696,9 @@ export function ChatPage() {
                     <ShoppingBag className="h-3 w-3 text-blue-600 mr-1" />
                     <span className="text-blue-600 text-xs">View orders</span>
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setShowBlockDialog(true)}
                     className="hover:bg-orange-50 h-7 px-2 py-0"
                     title="Block User"
@@ -625,10 +706,10 @@ export function ChatPage() {
                     <Ban className="h-3 w-3 text-orange-600 mr-1" />
                     <span className="text-orange-600 text-xs">Block user</span>
                   </Button>
-                  <Button 
+                  <Button
                     id="delete-chat-button"
-                    variant="ghost" 
-                    size="sm" 
+                    variant="ghost"
+                    size="sm"
                     onClick={handleDeleteChat}
                     className="hover:bg-red-50 h-7 px-2 py-0"
                   >
@@ -643,31 +724,35 @@ export function ChatPage() {
                 {messages.length > 0 ? (
                   messages.map((message) => {
                     // Using the sender field which is properly mapped from direction
-                    const isAgentMessage = message.sender === "user";
-                    const isCustomerMessage = message.sender === "customer";
-                    
+                    const isAgentMessage = message.sender === "user"
+                    const isCustomerMessage = message.sender === "customer"
+
                     return (
                       <div
                         key={message.id}
-                        className={`flex mb-4 ${isAgentMessage ? "justify-end" : "justify-start"}`}
+                        className={`flex mb-4 ${
+                          isAgentMessage ? "justify-end" : "justify-start"
+                        }`}
                       >
                         <div
                           className={`p-3 rounded-lg max-w-[75%] ${
-                            isAgentMessage ? "bg-green-100 text-green-900" : "bg-gray-100 text-gray-800"
+                            isAgentMessage
+                              ? "bg-green-100 text-green-900"
+                              : "bg-gray-100 text-gray-800"
                           }`}
                         >
                           <div className="text-sm break-words">
-                            <ReactMarkdown 
+                            <ReactMarkdown
                               remarkPlugins={[remarkGfm]}
                               components={{
-                                a: ({node, ...props}) => (
-                                  <a 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
-                                    className="text-blue-600 hover:underline" 
-                                    {...props} 
+                                a: ({ node, ...props }) => (
+                                  <a
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:underline"
+                                    {...props}
                                   />
-                                )
+                                ),
                               }}
                             >
                               {message.content}
@@ -685,7 +770,7 @@ export function ChatPage() {
                           </div>
                         </div>
                       </div>
-                    );
+                    )
                   })
                 ) : (
                   <div className="text-center py-4 text-gray-500">
@@ -742,7 +827,7 @@ export function ChatPage() {
         cancelLabel="Cancel"
         variant="destructive"
       />
-      
+
       {/* Active Chatbot Confirmation Dialog */}
       <ConfirmDialog
         open={showActiveChatbotDialog}
@@ -754,14 +839,15 @@ export function ChatPage() {
         cancelLabel="Cancel"
         variant="destructive"
       />
-      
+
       {/* Block User Dialog */}
       <AlertDialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Block Chatbot</AlertDialogTitle>
             <AlertDialogDescription>
-              This functionality is currently under development and will be available soon.
+              This functionality is currently under development and will be
+              available soon.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -769,14 +855,15 @@ export function ChatPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
+
       {/* View Orders Dialog */}
       <AlertDialog open={showOrdersDialog} onOpenChange={setShowOrdersDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>View Customer Orders</AlertDialogTitle>
             <AlertDialogDescription>
-              This functionality is currently under development and will be available soon.
+              This functionality is currently under development and will be
+              available soon.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -784,7 +871,7 @@ export function ChatPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
+
       {/* Customer Edit Sheet */}
       <ClientSheet
         client={selectedChat ? selectedChat.customerId : null}
@@ -792,7 +879,11 @@ export function ChatPage() {
         onOpenChange={setShowEditSheet}
         onSubmit={handleSaveCustomer}
         mode="edit"
-        availableLanguages={Array.isArray(availableLanguages) ? availableLanguages.map(lang => lang.name || "") : []}
+        availableLanguages={
+          Array.isArray(availableLanguages)
+            ? availableLanguages.map((lang) => lang.name || "")
+            : []
+        }
       />
     </PageLayout>
   )

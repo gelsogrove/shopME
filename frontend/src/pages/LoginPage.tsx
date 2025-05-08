@@ -24,30 +24,38 @@ export function LoginPage() {
 
     // Pulisci la sessionStorage prima del login
     sessionStorage.removeItem("currentWorkspace")
+    localStorage.removeItem("user")
 
     try {
+      // Usa await esplicitamente e salva la risposta
       const response = await auth.login({ email, password })
       console.log("Login successful:", response.data)
-      
+
       // Salva solo le informazioni dell'utente (senza token)
       if (response.data && response.data.user) {
         localStorage.setItem("user", JSON.stringify(response.data.user))
-        
-        // Naviga alla selezione del workspace
+
+        // Mostro toast di successo
         toast.success("Login effettuato con successo")
-        navigate("/workspace-selection")
+
+        // Aggiungo un breve ritardo per dare tempo ai cookie di essere salvati
+        setTimeout(() => {
+          // Naviga alla selezione del workspace
+          navigate("/workspace-selection")
+        }, 300)
       } else {
         throw new Error("Formato di risposta dal server non valido")
       }
     } catch (err: any) {
-      console.error('Login error:', err)
-      
+      console.error("Login error:", err)
+
       // Mostra messaggio di errore dettagliato
-      const errorMsg = err.response?.data?.error || 
-                       err.response?.data?.message || 
-                       err.message || 
-                       "Login fallito. Controlla le tue credenziali."
-      
+      const errorMsg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        "Login fallito. Controlla le tue credenziali."
+
       setError(errorMsg)
       toast.error(errorMsg)
     } finally {

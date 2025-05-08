@@ -14,7 +14,7 @@ interface CreateWorkspaceData {
   language?: string
   messageLimit?: number
   challengeStatus?: boolean
-  wipMessage?: string
+  wipMessages?: any // multilingua
   blocklist?: string
   url?: string
   welcomeMessages?: any
@@ -32,7 +32,7 @@ interface UpdateWorkspaceData {
   language?: string
   messageLimit?: number
   challengeStatus?: boolean
-  wipMessage?: string
+  wipMessages?: any // multilingua
   blocklist?: string
   url?: string
   welcomeMessages?: any
@@ -42,7 +42,7 @@ export const workspaceService = {
   async getAll() {
     return prisma.workspace.findMany({
       where: {
-        isDelete: false
+        isDelete: false,
       },
       select: {
         id: true,
@@ -59,9 +59,10 @@ export const workspaceService = {
         language: true,
         messageLimit: true,
         challengeStatus: true,
-        wipMessage: true,
+        wipMessages: true,
         blocklist: true,
-        url: true
+        url: true,
+        welcomeMessages: true,
       },
     })
   },
@@ -84,10 +85,10 @@ export const workspaceService = {
         language: true,
         messageLimit: true,
         challengeStatus: true,
-        wipMessage: true,
+        wipMessages: true,
         blocklist: true,
         url: true,
-        welcomeMessages: true
+        welcomeMessages: true,
       },
     })
   },
@@ -114,10 +115,10 @@ export const workspaceService = {
         language: true,
         messageLimit: true,
         challengeStatus: true,
-        wipMessage: true,
+        wipMessages: true,
         blocklist: true,
         url: true,
-        welcomeMessages: true
+        welcomeMessages: true,
       },
     })
   },
@@ -146,10 +147,10 @@ export const workspaceService = {
         language: true,
         messageLimit: true,
         challengeStatus: true,
-        wipMessage: true,
+        wipMessages: true,
         blocklist: true,
         url: true,
-        welcomeMessages: true
+        welcomeMessages: true,
       },
     })
   },

@@ -1,10 +1,10 @@
 import { useWorkspace } from "@/hooks/use-workspace"
-import { useRecentChats } from '@/hooks/useRecentChats'
+import { useRecentChats } from "@/hooks/useRecentChats"
 import { cn } from "@/lib/utils"
 import {
   Bell,
-  Bot,
   Calendar,
+  HelpCircle,
   LayoutGrid,
   LucideIcon,
   MessageSquare,
@@ -12,7 +12,7 @@ import {
   ShoppingCart,
   Tag,
   Users,
-  Wrench
+  Wrench,
 } from "lucide-react"
 import { NavLink } from "react-router-dom"
 
@@ -26,20 +26,23 @@ interface SidebarLink {
 
 export function Sidebar() {
   const { data: allChats = [] } = useRecentChats()
-  const totalUnreadMessages = allChats.reduce((acc, chat) => acc + (chat.unreadCount || 0), 0)
-  const { workspace } = useWorkspace();
+  const totalUnreadMessages = allChats.reduce(
+    (acc, chat) => acc + (chat.unreadCount || 0),
+    0
+  )
+  const { workspace } = useWorkspace()
 
   const mainLinks: SidebarLink[] = [
     {
       href: "/chat",
       label: "Chat History",
       icon: MessageSquare,
-      badge: totalUnreadMessages > 0 ? totalUnreadMessages : undefined
+      badge: totalUnreadMessages > 0 ? totalUnreadMessages : undefined,
     },
     {
       href: "/clients",
       label: "Clients",
-      icon: Users
+      icon: Users,
     },
     {
       href: "/products",
@@ -47,7 +50,7 @@ export function Sidebar() {
       icon: Package2,
     },
     {
-      href: "/products/categories",
+      href: "/categories",
       label: "Categories",
       icon: Tag,
     },
@@ -62,10 +65,11 @@ export function Sidebar() {
       icon: Calendar,
     },
     {
-      href: "/agents",
-      label: "Agents",
-      icon: Bot,
+      href: "/faq",
+      label: "FAQ",
+      icon: HelpCircle,
     },
+
     {
       href: "/orders",
       label: "Orders (WIP)",
@@ -81,7 +85,7 @@ export function Sidebar() {
       label: "Analytics (WIP)",
       icon: LayoutGrid,
     },
-  ];
+  ]
 
   return (
     <aside className="fixed inset-y-0 left-0 w-72 bg-white border-r">

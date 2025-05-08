@@ -14,26 +14,22 @@ interface PageLayoutProps {
  * Ensures consistent page structure and spacing
  */
 export function PageLayout({ children, selectedChat }: PageLayoutProps) {
-  const [showPlaygroundDialog, setShowPlaygroundDialog] = useState<boolean>(false)
+  const [showPlaygroundDialog, setShowPlaygroundDialog] =
+    useState<boolean>(false)
 
   const handlePlaygroundClick = () => {
     setShowPlaygroundDialog(true)
   }
-  
+
   const handleClosePlayground = () => {
     setShowPlaygroundDialog(false)
-    // Reload the page after a short delay to allow the modal to close
-    setTimeout(() => {
-      window.location.reload()
-    }, 300)
+    // Rimosso il ricaricamento della pagina che causava problemi di autenticazione
   }
 
   return (
     <div className="container pl-0 pr-4 pt-4 pb-4 relative">
       <div className="grid grid-cols-12 gap-0">
-        <div className="col-span-11 col-start-1">
-          {children}
-        </div>
+        <div className="col-span-11 col-start-1">{children}</div>
       </div>
 
       {/* Fixed WhatsApp-style Button with text - visible on all pages */}
@@ -58,4 +54,4 @@ export function PageLayout({ children, selectedChat }: PageLayoutProps) {
       />
     </div>
   )
-} 
+}

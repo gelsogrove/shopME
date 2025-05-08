@@ -8,10 +8,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useCurrentUser } from "@/hooks/useCurrentUser"
 import { api } from "@/services/api"
 import {
   ArrowLeftRight,
+  Bot,
   CreditCard,
   LogOut,
   Phone,
@@ -30,14 +31,15 @@ export function Header() {
   const [userName, setUserName] = useState<string>("")
   const [userEmail, setUserEmail] = useState<string>("")
   const [userInitials, setUserInitials] = useState<string>("")
-  const { data: userData, isLoading, isError } = useCurrentUser();
+  const { data: userData, isLoading, isError } = useCurrentUser()
 
   useEffect(() => {
     // Recupera le informazioni del workspace dai sessionStorage
     const currentPhone =
       sessionStorage.getItem("currentWorkspacePhone") || "+39 XXX XXX XXXX"
     const currentType = sessionStorage.getItem("currentWorkspaceType") || "Shop"
-    const currentChannel = sessionStorage.getItem("currentWorkspaceName") || "Shop"
+    const currentChannel =
+      sessionStorage.getItem("currentWorkspaceName") || "Shop"
 
     setPhoneNumber(currentPhone)
     setWorkspaceType(currentType)
@@ -88,7 +90,7 @@ export function Header() {
       sessionStorage.removeItem("currentWorkspaceName")
       sessionStorage.removeItem("currentWorkspaceType")
 
-      navigate("/login")
+      navigate("/auth/login")
     } catch (error) {
       console.error("Error logging out:", error)
       toast.error("Failed to logout")
@@ -116,7 +118,7 @@ export function Header() {
                 <span className="font-medium">{phoneNumber}</span>
               </div>
               <span className="text-xs text-muted-foreground ml-7">
-                 {channelName}
+                {channelName}
               </span>
             </div>
           </div>
@@ -169,6 +171,13 @@ export function Header() {
               >
                 <Settings className="mr-3 h-5 w-5" />
                 <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="p-4 text-lg cursor-pointer"
+                onClick={() => navigate("/agents")}
+              >
+                <Bot className="mr-3 h-5 w-5" />
+                <span>Agents</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

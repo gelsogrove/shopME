@@ -6,7 +6,7 @@ export default {
   },
   jwt: {
     secret: process.env.JWT_SECRET || "development-secret",
-    expiresIn: "1d",
+    expiresIn: "1h",
   },
   cors: {
     origin: [

@@ -35,10 +35,10 @@ import { useNavigate } from "react-router-dom"
 
 // Currency options with symbols
 const CURRENCY_OPTIONS = [
-  { value: 'EUR', label: 'Euro (€)', symbol: '€' },
-  { value: 'USD', label: 'US Dollar ($)', symbol: '$' },
-  { value: 'GBP', label: 'British Pound (£)', symbol: '£' }
-];
+  { value: "EUR", label: "Euro (€)", symbol: "€" },
+  { value: "USD", label: "US Dollar ($)", symbol: "$" },
+  { value: "GBP", label: "British Pound (£)", symbol: "£" },
+]
 
 export default function SettingsPage() {
   const navigate = useNavigate()
@@ -63,7 +63,7 @@ export default function SettingsPage() {
     language: "en",
     currency: "EUR",
     challengeStatus: false,
-    wipMessage: "Work in progress. Please contact us later."
+    wipMessage: "Work in progress. Please contact us later.",
   })
 
   const [selectedLanguage, setSelectedLanguage] = useState("en")
@@ -71,9 +71,17 @@ export default function SettingsPage() {
     en: "Hello! Thank you for contacting us. How can we help you today?",
     it: "Ciao! Grazie per averci contattato. Come possiamo aiutarti oggi?",
     es: "¡Hola! Gracias por contactarnos. ¿Cómo podemos ayudarte hoy?",
-    pt: "Olá! Obrigado por entrar em contato. Como podemos ajudar você hoje?"
-  });
-  const [selectedWelcomeLang, setSelectedWelcomeLang] = useState("en");
+    pt: "Olá! Obrigado por entrar em contato. Como podemos ajudar você hoje?",
+  })
+  const [selectedWelcomeLang, setSelectedWelcomeLang] = useState("en")
+
+  const [wipMessages, setWipMessages] = useState({
+    en: "Work in progress. Please contact us later.",
+    it: "Lavori in corso. Contattaci più tardi.",
+    es: "Trabajos en curso. Por favor, contáctenos más tarde.",
+    pt: "Em manutenção. Por favor, contacte-nos mais tarde.",
+  })
+  const [selectedWipLang, setSelectedWipLang] = useState("en")
 
   useEffect(() => {
     const loadData = async () => {
@@ -83,33 +91,52 @@ export default function SettingsPage() {
           getCurrentWorkspace(),
           getLanguages(),
         ])
-        console.log('Workspace data received:', workspaceData)
-        console.log('Languages data received:', languagesData)
-        
+        console.log("Workspace data received:", workspaceData)
+        console.log("Languages data received:", languagesData)
+
         // Assicurati che language sia 'en' se non è definito
         setWorkspace({
           ...workspaceData,
-          language: workspaceData.language || 'en'
+          language: workspaceData.language || "en",
         })
-        
+
         // Carica i messaggi di benvenuto dal backend
         if (workspaceData.welcomeMessages) {
           try {
-            const parsedMessages = typeof workspaceData.welcomeMessages === 'string' 
-              ? JSON.parse(workspaceData.welcomeMessages)
-              : workspaceData.welcomeMessages;
-              
+            const parsedMessages =
+              typeof workspaceData.welcomeMessages === "string"
+                ? JSON.parse(workspaceData.welcomeMessages)
+                : workspaceData.welcomeMessages
+
             setWelcomeMessages({
               en: parsedMessages.en || welcomeMessages.en,
               it: parsedMessages.it || welcomeMessages.it,
               es: parsedMessages.es || welcomeMessages.es,
-              pt: parsedMessages.pt || welcomeMessages.pt
-            });
+              pt: parsedMessages.pt || welcomeMessages.pt,
+            })
           } catch (e) {
-            console.error('Error parsing welcome messages:', e);
+            console.error("Error parsing welcome messages:", e)
           }
         }
-        
+
+        // Carica i messaggi di work in progress dal backend
+        if (workspaceData.wipMessages) {
+          try {
+            const parsedWip =
+              typeof workspaceData.wipMessages === "string"
+                ? JSON.parse(workspaceData.wipMessages)
+                : workspaceData.wipMessages
+            setWipMessages({
+              en: parsedWip.en || wipMessages.en,
+              it: parsedWip.it || wipMessages.it,
+              es: parsedWip.es || wipMessages.es,
+              pt: parsedWip.pt || wipMessages.pt,
+            })
+          } catch (e) {
+            console.error("Error parsing wip messages:", e)
+          }
+        }
+
         setLanguages(languagesData)
       } catch (error) {
         console.error("Failed to load data:", error)
@@ -135,23 +162,26 @@ export default function SettingsPage() {
     }
   }
 
-  const handleFieldChange = (field: keyof Workspace, value: string | boolean) => {
-    console.log(`Updating field ${field} with value:`, value);
+  const handleFieldChange = (
+    field: keyof Workspace,
+    value: string | boolean
+  ) => {
+    console.log(`Updating field ${field} with value:`, value)
     setWorkspace((prev: Workspace) => {
       const updated = {
         ...prev,
         [field]: value,
-      };
-      console.log('Updated workspace state:', updated);
-      return updated;
-    });
+      }
+      console.log("Updated workspace state:", updated)
+      return updated
+    })
 
     // Clear error when user starts typing
     if (field in errors) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
         [field]: "",
-      }));
+      }))
     }
   }
 
@@ -165,55 +195,65 @@ export default function SettingsPage() {
     }
 
     setErrors(newErrors)
-    return !Object.values(newErrors).some(error => error !== "")
+    return !Object.values(newErrors).some((error) => error !== "")
   }
 
   const handleSave = async () => {
-    setIsLoading(true);
-    
+    setIsLoading(true)
+
     // Verifica che i messaggi di benvenuto abbiano tutte le lingue necessarie
     const updatedWelcomeMessages = {
       en: welcomeMessages.en || "Welcome!",
       it: welcomeMessages.it || "Benvenuto!",
       es: welcomeMessages.es || "¡Bienvenido!",
-      pt: welcomeMessages.pt || "Bem-vindo!"
-    };
-    
+      pt: welcomeMessages.pt || "Bem-vindo!",
+    }
+
+    const updatedWipMessages = {
+      en: wipMessages.en || "Work in progress. Please contact us later.",
+      it: wipMessages.it || "Lavori in corso. Contattaci più tardi.",
+      es:
+        wipMessages.es ||
+        "Trabajos en curso. Por favor, contáctenos más tarde.",
+      pt:
+        wipMessages.pt || "Em manutenção. Por favor, contacte-nos mais tarde.",
+    }
+
     const updateData = {
       ...workspace,
-      welcomeMessages: updatedWelcomeMessages
-    };
+      welcomeMessages: updatedWelcomeMessages,
+      wipMessages: updatedWipMessages,
+    }
 
     try {
-      const response = await updateWorkspace(workspace.id, updateData);
-      console.log('Updated workspace:', response);
-      
+      const response = await updateWorkspace(workspace.id, updateData)
+      console.log("Updated workspace:", response)
+
       // Update the cached workspace in sessionStorage with the latest data
       // This ensures the currency and other settings are immediately available
       // to other components using the useWorkspace hook
-      sessionStorage.setItem("currentWorkspace", JSON.stringify(response));
-      
-      toast.success('Settings saved successfully');
-      
+      sessionStorage.setItem("currentWorkspace", JSON.stringify(response))
+
+      toast.success("Settings saved successfully")
+
       // Don't force reload which can trigger auth issues
       // Instead, update the local state with the new values
-      setWorkspace(response);
-      
+      setWorkspace(response)
     } catch (error) {
-      console.error('Error updating workspace:', error);
-      toast.error('Failed to save settings');
+      console.error("Error updating workspace:", error)
+      toast.error("Failed to save settings")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleDelete = async () => {
     setIsLoading(true)
     try {
       await deleteWorkspace(workspace.id)
-      sessionStorage.removeItem('currentWorkspace')
-      toast.success('Workspace deleted successfully')
-      navigate('/auth/login')
+      sessionStorage.removeItem("currentWorkspace")
+      toast.success("Workspace deleted successfully")
+      navigate("/auth/login")
     } catch (error) {
       console.error("Failed to delete workspace:", error)
       toast.error("Failed to delete workspace")
@@ -229,14 +269,19 @@ export default function SettingsPage() {
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
         <h2 className="text-xl font-medium">Loading settings...</h2>
       </div>
-    );
+    )
   }
 
   return (
     <div className="container mx-auto py-8">
       <h2 className="text-2xl font-bold mb-6">Settings</h2>
-      
-      <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+
+      <Tabs
+        defaultValue="general"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -247,7 +292,7 @@ export default function SettingsPage() {
             <span>GDPR Policy</span>
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="general" className="space-y-4">
           <Card>
             <CardContent className="p-6 space-y-6">
@@ -260,7 +305,9 @@ export default function SettingsPage() {
                   <span className="text-sm text-muted-foreground">Active</span>
                   <Switch
                     checked={workspace.isActive}
-                    onCheckedChange={(checked) => handleFieldChange("isActive", checked)}
+                    onCheckedChange={(checked) =>
+                      handleFieldChange("isActive", checked)
+                    }
                   />
                 </div>
               </div>
@@ -319,14 +366,16 @@ export default function SettingsPage() {
                 <div className="space-y-2">
                   <Label htmlFor="currency">Currency</Label>
                   <Select
-                    value={workspace.currency || 'EUR'}
-                    onValueChange={(value) => handleFieldChange('currency', value)}
+                    value={workspace.currency || "EUR"}
+                    onValueChange={(value) =>
+                      handleFieldChange("currency", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CURRENCY_OPTIONS.map(option => (
+                      {CURRENCY_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -339,68 +388,119 @@ export default function SettingsPage() {
                   <Label>Welcome Message</Label>
                   <div className="flex gap-2 mb-2">
                     <Button
-                      variant={selectedWelcomeLang === "en" ? "default" : "outline"}
+                      variant={
+                        selectedWelcomeLang === "en" ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => setSelectedWelcomeLang("en")}
-                    >EN</Button>
+                    >
+                      EN
+                    </Button>
                     <Button
-                      variant={selectedWelcomeLang === "it" ? "default" : "outline"}
+                      variant={
+                        selectedWelcomeLang === "it" ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => setSelectedWelcomeLang("it")}
-                    >IT</Button>
+                    >
+                      IT
+                    </Button>
                     <Button
-                      variant={selectedWelcomeLang === "es" ? "default" : "outline"}
+                      variant={
+                        selectedWelcomeLang === "es" ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => setSelectedWelcomeLang("es")}
-                    >ES</Button>
+                    >
+                      ES
+                    </Button>
                     <Button
-                      variant={selectedWelcomeLang === "pt" ? "default" : "outline"}
+                      variant={
+                        selectedWelcomeLang === "pt" ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => setSelectedWelcomeLang("pt")}
-                    >PT</Button>
+                    >
+                      PT
+                    </Button>
                   </div>
                   <Textarea
                     value={welcomeMessages[selectedWelcomeLang]}
-                    onChange={e => setWelcomeMessages({
-                      ...welcomeMessages,
-                      [selectedWelcomeLang]: e.target.value
-                    })}
+                    onChange={(e) =>
+                      setWelcomeMessages({
+                        ...welcomeMessages,
+                        [selectedWelcomeLang]: e.target.value,
+                      })
+                    }
                     rows={3}
                     className="resize-none"
                   />
-                  <p className="text-xs text-gray-500 mt-1">This message will be sent as the first message in a new chat, based on the user's language.</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    This message will be sent as the first message in a new
+                    chat, based on the user's language.
+                  </p>
                 </div>
 
+                <div className="space-y-2">
+                  <Label>Work in Progress Message</Label>
+                  <div className="flex gap-2 mb-2">
+                    <Button
+                      variant={selectedWipLang === "en" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedWipLang("en")}
+                    >
+                      EN
+                    </Button>
+                    <Button
+                      variant={selectedWipLang === "it" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedWipLang("it")}
+                    >
+                      IT
+                    </Button>
+                    <Button
+                      variant={selectedWipLang === "es" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedWipLang("es")}
+                    >
+                      ES
+                    </Button>
+                    <Button
+                      variant={selectedWipLang === "pt" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedWipLang("pt")}
+                    >
+                      PT
+                    </Button>
+                  </div>
+                  <Textarea
+                    value={wipMessages[selectedWipLang]}
+                    onChange={(e) =>
+                      setWipMessages({
+                        ...wipMessages,
+                        [selectedWipLang]: e.target.value,
+                      })
+                    }
+                    rows={3}
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This message will be shown to users when your chatbot is not
+                    available, based on the user's language.
+                  </p>
+                </div>
+
+                {/* URL Domain ora come campo finale */}
                 <div className="space-y-2">
                   <Label htmlFor="registration-url">URL Domain</Label>
                   <Input
                     id="registration-url"
                     type="url"
                     placeholder="https://yourdomain.com"
-                    value={workspace.url || ''}
-                    onChange={(e) => handleFieldChange('url', e.target.value)}
+                    value={workspace.url || ""}
+                    onChange={(e) => handleFieldChange("url", e.target.value)}
                     className="mt-1"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    This URL will be used to generate registration links for new users. Example: <code>http://localhost:3000</code> or <code>https://laltroitalia.shop</code>
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Work in Progress Message
-                  </label>
-                  <Textarea
-                    value={workspace.wipMessage || ""}
-                    onChange={(e) =>
-                      handleFieldChange("wipMessage", e.target.value)
-                    }
-                    className="mt-1"
-                    rows={3}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    This message will be shown to users when your chatbot is not available.
-                  </p>
                 </div>
 
                 <div>
@@ -417,7 +517,8 @@ export default function SettingsPage() {
                     placeholder="Enter phone numbers to block, one per line. Format: +1234567890"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Enter phone numbers to block, one per line (e.g., +1234567890)
+                    Enter phone numbers to block, one per line (e.g.,
+                    +1234567890)
                   </p>
                 </div>
               </div>
@@ -449,7 +550,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="gdpr">
           <Card>
             <CardContent className="p-6">
@@ -523,5 +624,5 @@ export default function SettingsPage() {
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }

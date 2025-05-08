@@ -12,19 +12,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
-import { useRecentChats } from '@/hooks/useRecentChats'
+import { useRecentChats } from "@/hooks/useRecentChats"
 import { api } from "@/services/api"
 import { commonStyles } from "@/styles/common"
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
-import {
-  Bot,
-  MessageSquare,
-  Pencil,
-  Plus,
-  Trash2,
-  Users
-} from "lucide-react"
+import { Bot, MessageSquare, Pencil, Plus, Trash2, Users } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
@@ -60,31 +53,31 @@ const availableLanguages = ["Spanish", "English", "Italian"]
 // Effettua il parsing dell'indirizzo da una stringa
 const parseAddress = (addressStr?: string | null): ShippingAddress => {
   if (!addressStr) {
-    return { street: '', city: '', zip: '', country: '' }
+    return { street: "", city: "", zip: "", country: "" }
   }
-  
+
   try {
     // Prova a fare il parsing come JSON
     const parsed = JSON.parse(addressStr)
-    if (typeof parsed === 'object') {
+    if (typeof parsed === "object") {
       return {
-        street: parsed.street || '',
-        city: parsed.city || '',
-        zip: parsed.zip || '',
-        country: parsed.country || ''
+        street: parsed.street || "",
+        city: parsed.city || "",
+        zip: parsed.zip || "",
+        country: parsed.country || "",
       }
     }
   } catch (e) {
     // Se non è JSON, lo trattiamo come indirizzo semplice
-    console.warn('Failed to parse address as JSON:', addressStr)
+    console.warn("Failed to parse address as JSON:", addressStr)
   }
-  
+
   // Default o fallback se il parsing fallisce
   return {
     street: addressStr,
-    city: '',
-    zip: '',
-    country: ''
+    city: "",
+    zip: "",
+    country: "",
   }
 }
 
@@ -98,14 +91,16 @@ export default function ClientsPage(): JSX.Element {
   const [searchValue, setSearchValue] = useState("")
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [clientSheetOpen, setClientSheetOpen] = useState(false)
-  const [clientSheetMode, setClientSheetMode] = useState<"view" | "edit">("view")
+  const [clientSheetMode, setClientSheetMode] = useState<"view" | "edit">(
+    "view"
+  )
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  
+
   // Stati per il dialogo di conferma eliminazione
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
-  const { data: allChats = [] } = useRecentChats();
+  const { data: allChats = [] } = useRecentChats()
   const [showPlayground, setShowPlayground] = useState(false)
 
   // Replace with useQuery
@@ -113,68 +108,73 @@ export default function ClientsPage(): JSX.Element {
     data: clients = [],
     isLoading: isLoadingClients,
     isError,
-    refetch: refetchClients
+    refetch: refetchClients,
   } = useQuery({
-    queryKey: ['clients', workspace?.id],
+    queryKey: ["clients", workspace?.id],
     queryFn: async () => {
-      if (!workspace?.id) return [];
-      const customersResponse = await api.get(`/workspaces/${workspace.id}/customers`);
-      const customersData = customersResponse.data;
-      
+      if (!workspace?.id) return []
+      const customersResponse = await api.get(
+        `/workspaces/${workspace.id}/customers`
+      )
+      const customersData = customersResponse.data
+
       // Map the client data
       const mappedClients = customersData.map((customer: any) => ({
-        id: customer.id || '',
-        name: customer.name || '',
-        email: customer.email || '',
-        company: customer.company || '',
+        id: customer.id || "",
+        name: customer.name || "",
+        email: customer.email || "",
+        company: customer.company || "",
         discount: customer.discount || 0,
-        phone: customer.phone || '',
-        language: customer.language || 'English',
-        notes: customer.notes || '',
+        phone: customer.phone || "",
+        language: customer.language || "English",
+        notes: customer.notes || "",
         shippingAddress: parseAddress(customer.address),
         workspaceId: customer.workspaceId,
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,
         last_privacy_version_accepted: customer.last_privacy_version_accepted,
         push_notifications_consent: customer.push_notifications_consent,
-        activeChatbot: customer.activeChatbot !== undefined ? customer.activeChatbot : true
-      }));
-      
+        activeChatbot:
+          customer.activeChatbot !== undefined ? customer.activeChatbot : true,
+      }))
+
       // Sort clients by ID in descending order (newer clients at the top)
       return mappedClients.sort((a: Client, b: Client) => {
         // If IDs are UUIDs or contain non-numeric characters, compare them as strings
-        if (a.id > b.id) return -1;
-        if (a.id < b.id) return 1;
-        return 0;
-      });
+        if (a.id > b.id) return -1
+        if (a.id < b.id) return 1
+        return 0
+      })
     },
-    enabled: !!workspace?.id
-  });
+    enabled: !!workspace?.id,
+  })
 
   // Controlla se c'è un parametro edit nell'URL per aprire automaticamente il form di modifica
   useEffect(() => {
-    const clientIdToEdit = searchParams.get('edit')
-    const sourceParam = searchParams.get('source')
-    
+    const clientIdToEdit = searchParams.get("edit")
+    const sourceParam = searchParams.get("source")
+
     if (clientIdToEdit && clients.length > 0) {
-      const clientToEdit = clients.find((client: Client) => client.id === clientIdToEdit)
-      
+      const clientToEdit = clients.find(
+        (client: Client) => client.id === clientIdToEdit
+      )
+
       if (clientToEdit) {
-        console.log('Opening client edit form for:', clientToEdit.name)
+        console.log("Opening client edit form for:", clientToEdit.name)
         setSelectedClient(clientToEdit)
-        setClientSheetMode('edit')
+        setClientSheetMode("edit")
         setClientSheetOpen(true)
-        
       }
     }
   }, [clients, searchParams, navigate])
 
   // Use isLoading and clients from useQuery for rendering and filtering
-  const filteredClients = clients.filter((client: Client) =>
-    client.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchValue.toLowerCase()) ||
-    client.company.toLowerCase().includes(searchValue.toLowerCase()) ||
-    client.phone.toLowerCase().includes(searchValue.toLowerCase())
+  const filteredClients = clients.filter(
+    (client: Client) =>
+      client.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+      client.email.toLowerCase().includes(searchValue.toLowerCase()) ||
+      client.company.toLowerCase().includes(searchValue.toLowerCase()) ||
+      client.phone.toLowerCase().includes(searchValue.toLowerCase())
   )
 
   // Handle sheet submission for new client
@@ -184,46 +184,51 @@ export default function ClientsPage(): JSX.Element {
 
     try {
       const formData = new FormData(e.currentTarget)
-      
+
       // Prepare shipping address data as a string (JSON)
       const shippingAddress: ShippingAddress = {
-        street: formData.get('street') as string,
-        city: formData.get('city') as string,
-        zip: formData.get('zip') as string,
-        country: formData.get('country') as string
+        street: formData.get("street") as string,
+        city: formData.get("city") as string,
+        zip: formData.get("zip") as string,
+        country: formData.get("country") as string,
       }
-      
+
       // Prepare client data for customers API
       const customerData = {
-        name: formData.get('name') as string,
-        email: formData.get('email') as string,
-        company: formData.get('company') as string,
-        phone: formData.get('phone') as string,
-        language: formData.get('language') as string,
-        discount: parseFloat(formData.get('discount') as string) || 0,
-        notes: formData.get('notes') as string,
+        name: formData.get("name") as string,
+        email: formData.get("email") as string,
+        company: formData.get("company") as string,
+        phone: formData.get("phone") as string,
+        language: formData.get("language") as string,
+        discount: parseFloat(formData.get("discount") as string) || 0,
+        notes: formData.get("notes") as string,
         // Convert address to string for API
         address: stringifyAddress(shippingAddress),
-        last_privacy_version_accepted: formData.get('last_privacy_version_accepted') as string,
-        push_notifications_consent: formData.get('push_notifications_consent') === 'on'
+        last_privacy_version_accepted: formData.get(
+          "last_privacy_version_accepted"
+        ) as string,
+        push_notifications_consent:
+          formData.get("push_notifications_consent") === "on",
       }
-      
+
       // Create client in API
-      const response = await api.post(`/workspaces/${workspace.id}/customers`, customerData)
+      const response = await api.post(
+        `/workspaces/${workspace.id}/customers`,
+        customerData
+      )
       const newCustomer = response.data
-      
+
       if (newCustomer) {
         // Add the new client to state with converted format
         refetchClients()
-        toast.success('Client created successfully')
+        toast.success("Client created successfully")
       }
-      
+
       // Close the form
       setClientSheetOpen(false)
-      
     } catch (error) {
-      console.error('Error creating client:', error)
-      toast.error('Failed to create client')
+      console.error("Error creating client:", error)
+      toast.error("Failed to create client")
     }
   }
 
@@ -234,61 +239,65 @@ export default function ClientsPage(): JSX.Element {
 
     try {
       const formData = new FormData(e.currentTarget)
-      
+
       // Prepare shipping address data as string
       const shippingAddress: ShippingAddress = {
-        street: formData.get('street') as string,
-        city: formData.get('city') as string,
-        zip: formData.get('zip') as string,
-        country: formData.get('country') as string
+        street: formData.get("street") as string,
+        city: formData.get("city") as string,
+        zip: formData.get("zip") as string,
+        country: formData.get("country") as string,
       }
-      
+
       // Prepare client data for customers API - includendo tutti i campi
       const customerData = {
-        name: formData.get('name') as string,
-        email: formData.get('email') as string,
-        company: formData.get('company') as string,
-        phone: formData.get('phone') as string,
-        language: formData.get('language') as string,
-        discount: parseFloat(formData.get('discount') as string) || 0,
-        notes: formData.get('notes') as string,
+        name: formData.get("name") as string,
+        email: formData.get("email") as string,
+        company: formData.get("company") as string,
+        phone: formData.get("phone") as string,
+        language: formData.get("language") as string,
+        discount: parseFloat(formData.get("discount") as string) || 0,
+        notes: formData.get("notes") as string,
         address: stringifyAddress(shippingAddress),
         isActive: true,
-        last_privacy_version_accepted: formData.get('last_privacy_version_accepted') as string,
-        push_notifications_consent: formData.get('push_notifications_consent') === 'on'
+        last_privacy_version_accepted: formData.get(
+          "last_privacy_version_accepted"
+        ) as string,
+        push_notifications_consent:
+          formData.get("push_notifications_consent") === "on",
       }
-      
-      console.log('Updating customer with data:', customerData)
-      console.log('Customer ID:', selectedClient.id)
-      console.log('Workspace ID:', workspace.id)
-      
+
+      console.log("Updating customer with data:", customerData)
+      console.log("Customer ID:", selectedClient.id)
+      console.log("Workspace ID:", workspace.id)
+
       // Update client in API
       const response = await api.put(
         `/workspaces/${workspace.id}/customers/${selectedClient.id}`,
         customerData
       )
       const updatedCustomer = response.data
-      
-      console.log('Response from update API:', updatedCustomer)
-      
+
+      console.log("Response from update API:", updatedCustomer)
+
       if (updatedCustomer) {
         // Update client in state with correct format and preserve existing data not returned by API
         refetchClients()
-        toast.success('Client updated successfully')
+        toast.success("Client updated successfully")
       }
-      
+
       // Close the form
       setClientSheetOpen(false)
       setSelectedClient(null)
-      
     } catch (error: any) {
-      console.error('Error updating client:', error)
+      console.error("Error updating client:", error)
       // Log detailed error information
       if (error.response) {
-        console.error('Response status:', error.response.status)
-        console.error('Response data:', error.response.data)
+        console.error("Response status:", error.response.status)
+        console.error("Response data:", error.response.data)
       }
-      toast.error(`Failed to update client: ${error.message || 'Unknown error'}`)
+      toast.error(
+        `Failed to update client: ${error.message || "Unknown error"}`
+      )
     }
   }
 
@@ -307,20 +316,20 @@ export default function ClientsPage(): JSX.Element {
       // Cerca di trovare la chat esistente per questo cliente usando il suo numero di telefono
       const existingChat = allChats.find(
         (chat: any) => chat.customerPhone === client.phone
-      );
-      
+      )
+
       if (existingChat) {
         // Se la chat esiste, vai direttamente alla chat con il sessionId corretto
-        navigate(`/chat?sessionId=${existingChat.sessionId}`);
-        return;
+        navigate(`/chat?sessionId=${existingChat.sessionId}`)
+        return
       }
-      
+
       // If no existing chat is found, navigate to the chat page with client name as search filter
-      navigate(`/chat?client=${encodeURIComponent(client.name)}`);
+      navigate(`/chat?client=${encodeURIComponent(client.name)}`)
     } catch (error) {
-      console.error("Error finding chat for client:", error);
+      console.error("Error finding chat for client:", error)
       // Navigate to chat page with client name as search filter even if there's an error
-      navigate(`/chat?client=${encodeURIComponent(client.name)}`);
+      navigate(`/chat?client=${encodeURIComponent(client.name)}`)
     }
   }
 
@@ -347,19 +356,21 @@ export default function ClientsPage(): JSX.Element {
   // Handle confirm delete
   const handleConfirmDelete = async () => {
     if (!workspace?.id || !clientToDelete) return
-    
+
     try {
       // Delete client using customers API
-      await api.delete(`/workspaces/${workspace.id}/customers/${clientToDelete.id}`)
-      
+      await api.delete(
+        `/workspaces/${workspace.id}/customers/${clientToDelete.id}`
+      )
+
       // Remove from state if successful
       refetchClients()
-      toast.success('Client deleted successfully')
+      toast.success("Client deleted successfully")
       setShowDeleteDialog(false)
       setClientToDelete(null)
     } catch (error) {
-      console.error('Error deleting client:', error)
-      toast.error('Failed to delete client')
+      console.error("Error deleting client:", error)
+      toast.error("Failed to delete client")
     }
   }
 
@@ -381,12 +392,20 @@ export default function ClientsPage(): JSX.Element {
         country: "",
       },
       last_privacy_version_accepted: "",
-      push_notifications_consent: false
+      push_notifications_consent: false,
+      activeChatbot: true,
     }
-    
     setSelectedClient(newClient)
     setClientSheetMode("edit")
     setClientSheetOpen(true)
+  }
+
+  // Handle opening the new chat modal
+  const handleOpenNewChat = () => {
+    // Clear any existing selectedChat from localStorage first
+    localStorage.removeItem("selectedChat")
+    // Then open the chat modal
+    setShowPlayground(true)
   }
 
   // Define columns for the DataTable in the requested order
@@ -416,12 +435,16 @@ export default function ClientsPage(): JSX.Element {
       header: "GDPR",
       accessorKey: "last_privacy_version_accepted",
       cell: ({ row }) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          row.original.last_privacy_version_accepted 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {row.original.last_privacy_version_accepted ? 'Accepted' : 'Not Accepted'}
+        <span
+          className={`px-2 py-1 rounded-full text-xs ${
+            row.original.last_privacy_version_accepted
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+          }`}
+        >
+          {row.original.last_privacy_version_accepted
+            ? "Accepted"
+            : "Not Accepted"}
         </span>
       ),
     },
@@ -429,12 +452,14 @@ export default function ClientsPage(): JSX.Element {
       header: "Push",
       accessorKey: "push_notifications_consent",
       cell: ({ row }) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          row.original.push_notifications_consent
-            ? 'bg-green-100 text-green-800'
-            : 'bg-gray-100 text-gray-800'
-        }`}>
-          {row.original.push_notifications_consent ? 'Enabled' : 'Disabled'}
+        <span
+          className={`px-2 py-1 rounded-full text-xs ${
+            row.original.push_notifications_consent
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {row.original.push_notifications_consent ? "Enabled" : "Disabled"}
         </span>
       ),
     },
@@ -443,13 +468,21 @@ export default function ClientsPage(): JSX.Element {
       accessorKey: "activeChatbot",
       cell: ({ row }) => (
         <div className="flex items-center">
-          <Bot className={`h-4 w-4 mr-1 ${row.original.activeChatbot !== false ? 'text-green-600' : 'text-gray-400'}`} />
-          <span className={`px-2 py-1 rounded-full text-xs ${
-            row.original.activeChatbot !== false
-              ? 'bg-green-100 text-green-800'
-              : 'bg-red-100 text-red-800'
-          }`}>
-            {row.original.activeChatbot !== false ? 'Auto' : 'Manual'}
+          <Bot
+            className={`h-4 w-4 mr-1 ${
+              row.original.activeChatbot !== false
+                ? "text-green-600"
+                : "text-gray-400"
+            }`}
+          />
+          <span
+            className={`px-2 py-1 rounded-full text-xs ${
+              row.original.activeChatbot !== false
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
+            {row.original.activeChatbot !== false ? "Auto" : "Manual"}
           </span>
         </div>
       ),
@@ -487,7 +520,9 @@ export default function ClientsPage(): JSX.Element {
                   onClick={() => handleEdit(row.original)}
                 >
                   <span className="sr-only">Edit</span>
-                  <Pencil className={`${commonStyles.actionIcon} ${commonStyles.primary}`} />
+                  <Pencil
+                    className={`${commonStyles.actionIcon} ${commonStyles.primary}`}
+                  />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -505,7 +540,9 @@ export default function ClientsPage(): JSX.Element {
                   onClick={() => handleDelete(row.original)}
                 >
                   <span className="sr-only">Delete</span>
-                  <Trash2 className={`${commonStyles.actionIcon} text-red-600`} />
+                  <Trash2
+                    className={`${commonStyles.actionIcon} text-red-600`}
+                  />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -540,41 +577,37 @@ export default function ClientsPage(): JSX.Element {
             title="Clients"
             titleIcon={<Users className="mr-2 h-6 w-6 text-green-500" />}
           />
-
           {/* Search and New Chat aligned to the right */}
           <div className="flex items-center justify-end gap-2 mb-4 mt-2">
             <Input
               type="search"
               placeholder="Search clients..."
               value={searchValue}
-              onChange={e => setSearchValue(e.target.value)}
+              onChange={(e) => setSearchValue(e.target.value)}
               className="max-w-xs"
             />
             <Button
               variant="default"
               className="bg-green-600 hover:bg-green-700 text-white"
-              onClick={() => setShowPlayground(true)}
+              onClick={handleOpenNewChat}
             >
               <Plus className="h-4 w-4 mr-1" />
               New Chat
             </Button>
           </div>
-
           {/* Number of items display */}
           <div className="text-sm text-muted-foreground ml-1 mb-2">
             {filteredClients.length} items
           </div>
-
           <div className="mt-6 w-full">
-            <DataTable 
-              columns={columns} 
+            <DataTable
+              columns={columns}
               data={filteredClients}
               globalFilter={searchValue}
             />
           </div>
         </div>
       </div>
-
       {/* WhatsApp Playground Modal */}
       <WhatsAppChatModal
         isOpen={showPlayground}
@@ -598,7 +631,9 @@ export default function ClientsPage(): JSX.Element {
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         title="Delete Client"
-        description={`Are you sure you want to delete ${clientToDelete?.name || 'this client'}? This action cannot be undone.`}
+        description={`Are you sure you want to delete ${
+          clientToDelete?.name || "this client"
+        }? This action cannot be undone.`}
         onConfirm={handleConfirmDelete}
         confirmLabel="Delete"
         variant="destructive"

@@ -40,3 +40,5 @@ browser-tools-mcp/
 /backend/dist
 /frontend/node_modules
 /backend/dist
+# SpecStory explanation file
+.specstory/.what-is-this.md

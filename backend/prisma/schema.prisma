@@ -22,7 +22,7 @@ model Workspace {
   isDelete            Boolean           @default(false)
   currency            String            @default("EUR")
   challengeStatus     Boolean           @default(false)
-  wipMessage          String?           @default("Work in progress. Please contact us later.")
+  wipMessages         Json?             @default("{\"it\": \"Lavori in corso. Contattaci più tardi.\", \"en\": \"Work in progress. Please contact us later.\", \"es\": \"Trabajos en curso. Por favor, contáctenos más tarde.\", \"pt\": \"Em manutenção. Por favor, contacte-nos mais tarde.\"}")
   description         String?
   messageLimit        Int               @default(50)
   blocklist           String?           @default("")
@@ -33,6 +33,7 @@ model Workspace {
   chatSessions        ChatSession[]
   customers           Customers[]
   events              Events[]
+  faqs                FAQ[]
   languages           Languages[]
   orders              Orders[]
   products            Products[]
@@ -379,6 +380,19 @@ model Events {
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   @@map("events")
+}
+
+model FAQ {
+  id          String    @id @default(cuid())
+  question    String
+  answer      String    @db.Text
+  isActive    Boolean   @default(true)
+  workspaceId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@map("faqs")
 }
 
 enum UserStatus {

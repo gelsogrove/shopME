@@ -12,12 +12,13 @@ import { messagesRouter } from "../interfaces/http/routes/messages.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import logger from "../utils/logger"
 import agentsRoutes from "./agents.routes"
+import faqRoutes from "./faq.routes"
 import languagesRoutes from "./languages"
-import productsRouter from './products.routes'
+import productsRouter from "./products.routes"
 import promptsRoutes from "./prompts.routes"
 // Commentato per evitare conflitti con la route /unknown-customers/count
 // import unknownCustomersRoutes from "./unknown-customers.routes"
-import registrationApiRoutes from '../presentation/routes/api.routes'
+import registrationApiRoutes from "../presentation/routes/api.routes"
 import uploadRoutes from "./upload.routes"
 import userRoutes from "./user.routes"
 import whatsappSettingsRoutes from "./whatsapp-settings.routes"
@@ -25,26 +26,28 @@ import workspaceRoutes from "./workspace.routes"
 
 // Simple logging middleware
 const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  logger.info(`Request: ${req.method} ${req.originalUrl}`);
-  
+  logger.info(`Request: ${req.method} ${req.originalUrl}`)
+
   // Track the original end method
-  const originalEnd = res.end;
-  
+  const originalEnd = res.end
+
   // Override the end method to log the response
-  res.end = function() {
-    logger.info(`Response for ${req.method} ${req.originalUrl} - Status: ${res.statusCode}`);
-    
+  res.end = function () {
+    logger.info(
+      `Response for ${req.method} ${req.originalUrl} - Status: ${res.statusCode}`
+    )
+
     // Call the original end method
-    return originalEnd.apply(this, arguments);
-  };
-  
-  next();
-};
+    return originalEnd.apply(this, arguments)
+  }
+
+  next()
+}
 
 const router = Router()
 
 // Add logging middleware
-router.use(loggingMiddleware);
+router.use(loggingMiddleware)
 
 // Log router setup
 logger.info("Setting up API routes")
@@ -75,19 +78,31 @@ router.use("/workspaces", workspaceRoutes)
 // Mount both direct routes and workspace-specific routes for agents
 router.use("/agents", agentsRoutes)
 router.use("/workspaces/:workspaceId/agents", agentsRoutes)
-logger.info("Registered agents routes on both /agents and /workspaces/:workspaceId/agents paths")
+logger.info(
+  "Registered agents routes on both /agents and /workspaces/:workspaceId/agents paths"
+)
 
 // Mount products router (contains workspaces/:workspaceId/products routes)
 router.use(productsRouter)
 logger.info("Registered products router with workspace routes")
 
 // Mount services router only on the workspace-specific path
-router.use("/workspaces/:workspaceId/services", servicesRouter(new ServicesController()))
+router.use(
+  "/workspaces/:workspaceId/services",
+  servicesRouter(new ServicesController())
+)
 logger.info("Registered services router")
 
 // Mount events router only on the workspace-specific path
-router.use("/workspaces/:workspaceId/events", eventsRouter(new EventsController()))
+router.use(
+  "/workspaces/:workspaceId/events",
+  eventsRouter(new EventsController())
+)
 logger.info("Registered events router")
+
+// Mount FAQ router only on the workspace-specific path
+router.use("/workspaces/:workspaceId/faqs", faqRoutes)
+logger.info("Registered FAQ router")
 
 // Register other routes
 router.use("/prompts", promptsRoutes)
@@ -98,46 +113,52 @@ router.use(categoriesRouter(new CategoriesController()))
 
 // Debug endpoint for direct products and services access
 // @ts-ignore
-router.get("/products", function(req: Request, res: Response) {
-  logger.info("Direct /products endpoint accessed");
-  return res.json({ 
-    success: true, 
-    message: "Products API endpoint is working", 
-    documentation: "Use /workspaces/:workspaceId/products for workspace-specific products"
-  });
-});
+router.get("/products", function (req: Request, res: Response) {
+  logger.info("Direct /products endpoint accessed")
+  return res.json({
+    success: true,
+    message: "Products API endpoint is working",
+    documentation:
+      "Use /workspaces/:workspaceId/products for workspace-specific products",
+  })
+})
 
 // @ts-ignore
-router.get("/services", function(req: Request, res: Response) {
-  logger.info("Direct /services endpoint accessed");
-  return res.json({ 
-    success: true, 
-    message: "Services API endpoint is working", 
-    documentation: "Use /workspaces/:workspaceId/services for workspace-specific services"
-  });
-});
+router.get("/services", function (req: Request, res: Response) {
+  logger.info("Direct /services endpoint accessed")
+  return res.json({
+    success: true,
+    message: "Services API endpoint is working",
+    documentation:
+      "Use /workspaces/:workspaceId/services for workspace-specific services",
+  })
+})
 
 // @ts-ignore
-router.get("/events", function(req: Request, res: Response) {
-  logger.info("Direct /events endpoint accessed");
-  return res.json({ 
-    success: true, 
-    message: "Events API endpoint is working", 
-    documentation: "Use /workspaces/:workspaceId/events for workspace-specific events"
-  });
-});
+router.get("/events", function (req: Request, res: Response) {
+  logger.info("Direct /events endpoint accessed")
+  return res.json({
+    success: true,
+    message: "Events API endpoint is working",
+    documentation:
+      "Use /workspaces/:workspaceId/events for workspace-specific events",
+  })
+})
 
 // Debug endpoint for direct chat access
 // @ts-ignore
-router.get("/chat-debug/:sessionId", function(req: Request, res: Response) {
-  logger.info("Direct /chat-debug endpoint accessed for sessionId:", req.params.sessionId);
-  return res.json({ 
-    success: true, 
-    message: "Chat debug endpoint is working", 
+router.get("/chat-debug/:sessionId", function (req: Request, res: Response) {
+  logger.info(
+    "Direct /chat-debug endpoint accessed for sessionId:",
+    req.params.sessionId
+  )
+  return res.json({
+    success: true,
+    message: "Chat debug endpoint is working",
     sessionId: req.params.sessionId,
-    timestamp: new Date().toISOString()
-  });
-});
+    timestamp: new Date().toISOString(),
+  })
+})
 
 logger.info("API routes setup complete")
 

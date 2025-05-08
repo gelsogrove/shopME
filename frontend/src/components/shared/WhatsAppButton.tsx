@@ -1,20 +1,27 @@
-import { Button, ButtonProps } from '@/components/ui/button';
-import { useState } from 'react';
-import { WhatsAppChatModal } from './WhatsAppChatModal';
+import { Button, ButtonProps } from "@/components/ui/button"
+import { Chat } from "@/types/chat"
+import { useState } from "react"
+import { WhatsAppChatModal } from "./WhatsAppChatModal"
 
 interface WhatsAppButtonProps extends ButtonProps {
-  iconOnly?: boolean;
+  iconOnly?: boolean
+  selectedChat?: Chat | null
 }
 
-export function WhatsAppButton({ iconOnly = false, className, ...props }: WhatsAppButtonProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export function WhatsAppButton({
+  iconOnly = false,
+  className,
+  selectedChat,
+  ...props
+}: WhatsAppButtonProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
     <>
       <Button
-        className={`bg-green-500 hover:bg-green-600 text-white ${className || ''}`}
-        onClick={() => setIsModalOpen(true)}
         size={iconOnly ? "icon" : "default"}
+        onClick={() => setIsModalOpen(true)}
+        className={className}
         {...props}
       >
         <svg
@@ -33,7 +40,8 @@ export function WhatsAppButton({ iconOnly = false, className, ...props }: WhatsA
       <WhatsAppChatModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        selectedChat={selectedChat}
       />
     </>
-  );
-} 
+  )
+}

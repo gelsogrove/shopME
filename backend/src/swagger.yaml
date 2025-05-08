@@ -44,6 +44,16 @@ components:
         updatedAt:
           type: string
           format: date-time
+        welcomeMessages:
+          type: object
+          additionalProperties:
+            type: string
+          description: Messaggio di benvenuto multilingua
+        wipMessages:
+          type: object
+          additionalProperties:
+            type: string
+          description: Messaggio "Work in Progress" multilingua
 
     CreateWorkspaceRequest:
       type: object
@@ -64,6 +74,16 @@ components:
         whatsappWebhookUrl:
           type: string
           nullable: true
+        welcomeMessages:
+          type: object
+          additionalProperties:
+            type: string
+          description: Messaggio di benvenuto multilingua
+        wipMessages:
+          type: object
+          additionalProperties:
+            type: string
+          description: Messaggio "Work in Progress" multilingua
 
     UpdateWorkspaceRequest:
       type: object
@@ -84,6 +104,16 @@ components:
           nullable: true
         isActive:
           type: boolean
+        welcomeMessages:
+          type: object
+          additionalProperties:
+            type: string
+          description: Messaggio di benvenuto multilingua
+        wipMessages:
+          type: object
+          additionalProperties:
+            type: string
+          description: Messaggio "Work in Progress" multilingua
 
     Error:
       type: object
@@ -188,6 +218,61 @@ components:
           type: string
           minLength: 8
           description: Must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character
+
+    FAQ:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        question:
+          type: string
+          description: La domanda della FAQ
+        answer:
+          type: string
+          description: La risposta alla domanda
+        isActive:
+          type: boolean
+          description: Indica se la FAQ è attiva o disattiva
+        workspaceId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateFAQRequest:
+      type: object
+      required:
+        - question
+        - answer
+      properties:
+        question:
+          type: string
+          description: La domanda della FAQ
+        answer:
+          type: string
+          description: La risposta alla domanda
+        isActive:
+          type: boolean
+          default: true
+          description: Indica se la FAQ è attiva o disattiva
+
+    UpdateFAQRequest:
+      type: object
+      properties:
+        question:
+          type: string
+          description: La domanda della FAQ
+        answer:
+          type: string
+          description: La risposta alla domanda
+        isActive:
+          type: boolean
+          description: Indica se la FAQ è attiva o disattiva
 
 paths:
   /workspaces:
@@ -532,6 +617,167 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /workspaces/{workspaceId}/faqs:
+    parameters:
+      - name: workspaceId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Lista di tutte le FAQ
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista delle FAQ per il workspace specificato
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FAQ"
+        "401":
+          description: Non autorizzato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Crea una nuova FAQ
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFAQRequest"
+      responses:
+        "201":
+          description: FAQ creata con successo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FAQ"
+        "400":
+          description: Richiesta non valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Non autorizzato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /workspaces/{workspaceId}/faqs/{id}:
+    parameters:
+      - name: workspaceId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Ottiene una FAQ per ID
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dettagli della FAQ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FAQ"
+        "401":
+          description: Non autorizzato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: FAQ non trovata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      summary: Aggiorna una FAQ
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFAQRequest"
+      responses:
+        "200":
+          description: FAQ aggiornata con successo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FAQ"
+        "400":
+          description: Richiesta non valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Non autorizzato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: FAQ non trovata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Elimina una FAQ
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: FAQ eliminata con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Non autorizzato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: FAQ non trovata
           content:
             application/json:
               schema:
