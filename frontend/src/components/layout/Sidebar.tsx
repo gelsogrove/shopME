@@ -1,20 +1,19 @@
 import { useWorkspace } from "@/hooks/use-workspace"
+import { useRecentChats } from '@/hooks/useRecentChats'
 import { cn } from "@/lib/utils"
-import { api } from "@/services/api"
 import {
-    Bell,
-    Bot,
-    LayoutGrid,
-    LucideIcon,
-    MessageSquare,
-    Package2,
-    Settings,
-    ShoppingCart,
-    Tag,
-    Users,
-    Wrench
+  Bell,
+  Bot,
+  Calendar,
+  LayoutGrid,
+  LucideIcon,
+  MessageSquare,
+  Package2,
+  ShoppingCart,
+  Tag,
+  Users,
+  Wrench
 } from "lucide-react"
-import { useEffect, useState } from "react"
 import { NavLink } from "react-router-dom"
 
 interface SidebarLink {
@@ -26,52 +25,9 @@ interface SidebarLink {
 }
 
 export function Sidebar() {
-  const [totalUnreadMessages, setTotalUnreadMessages] = useState<number>(2);
+  const { data: allChats = [] } = useRecentChats()
+  const totalUnreadMessages = allChats.reduce((acc, chat) => acc + (chat.unreadCount || 0), 0)
   const { workspace } = useWorkspace();
-  
-  // Fetch total unread messages count
-  useEffect(() => {
-    if (!workspace?.id) return;
-    
-    const fetchTotalUnreadMessages = async () => {
-      try {
-        console.log("Fetching unread messages count...");
-        const response = await api.get('/chat/recent');
-        
-        if (response.data && response.data.data) {
-          const chatData = response.data.data;
-          // Calculate total unread count from all chats
-          const totalUnread = chatData.reduce((acc: number, chat: any) => 
-            acc + (chat.unreadCount || 0), 0);
-          console.log(`Total unread messages: ${totalUnread}`);
-          setTotalUnreadMessages(totalUnread > 0 ? totalUnread : 0);
-        }
-      } catch (error) {
-        console.error("Error fetching total unread messages:", error);
-        // In caso di errore, impostiamo comunque a 2 come fallback
-        setTotalUnreadMessages(2);
-      }
-    };
-    
-    // Carica i dati iniziali
-    fetchTotalUnreadMessages();
-    
-    // Imposta un intervallo per aggiornare i dati ogni minuto
-    const intervalId = setInterval(fetchTotalUnreadMessages, 60000);
-    
-    // Listener per l'evento di messaggi letti
-    const handleMessagesRead = () => {
-      fetchTotalUnreadMessages();
-    };
-    
-    // Aggiungi event listener per quando i messaggi sono segnati come letti
-    window.addEventListener('messagesMarkedAsRead', handleMessagesRead);
-    
-    return () => {
-      clearInterval(intervalId);
-      window.removeEventListener('messagesMarkedAsRead', handleMessagesRead);
-    };
-  }, [workspace]);
 
   const mainLinks: SidebarLink[] = [
     {
@@ -101,6 +57,11 @@ export function Sidebar() {
       icon: Wrench,
     },
     {
+      href: "/events",
+      label: "Events",
+      icon: Calendar,
+    },
+    {
       href: "/agents",
       label: "Agents",
       icon: Bot,
@@ -119,11 +80,6 @@ export function Sidebar() {
       href: "/analytics",
       label: "Analytics (WIP)",
       icon: LayoutGrid,
-    },
-    {
-      href: "/settings",
-      label: "Settings",
-      icon: Settings,
     },
   ];
 

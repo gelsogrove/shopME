@@ -720,6 +720,32 @@ export class MessageRepository {
   }
 
   /**
+   * Get events list
+   * @returns List of active events
+   */
+  async getEvents() {
+    try {
+      // @ts-ignore - Prisma types issue
+      const events = await this.prisma.events.findMany({
+        where: {
+          isActive: true,
+          endDate: {
+            gte: new Date() // Only return future or ongoing events
+          }
+        },
+        orderBy: {
+          startDate: 'asc'
+        }
+      });
+      
+      return events;
+    } catch (error) {
+      logger.error('Error getting events', error);
+      return [];
+    }
+  }
+
+  /**
    * Get chat messages for a phone number
    * @param phoneNumber The phone number
    * @param limit Number of messages to return
@@ -970,215 +996,136 @@ export class MessageRepository {
     extraInstructions: any = null
   ): Promise<string> {
     try {
-      // Check if OpenAI is properly configured
-      if (!isOpenAIConfigured()) {
-        logger.warn('OpenAI API key not configured properly');
-        return "The artificial intelligence service is currently unavailable. An operator will contact you shortly.";
-      }
+      // Get events for RAG context
+      const events = await this.getEvents();
       
-      // Extract agent content and parameters
-      let agentContent = typeof agent === 'string' ? agent : agent.content || '';
-      const temperature = typeof agent === 'object' ? agent.temperature || 0.7 : 0.7;
-      const top_p = typeof agent === 'object' ? agent.top_p || 0.9 : 0.9;
-      const top_k = typeof agent === 'object' ? agent.top_k || 40 : 40;
-      const agentName = typeof agent === 'object' ? agent.name || 'Generic' : 'Generic';
+      // Original agent prompt or replaced prompt with customer language
+      const agentPrompt = agent._replacedPrompt || agent.content;
       
-      // Get customer language preference
-      const customerLanguage = customer?.language || 'Italian';
+      // Build the context with products and services information
+      let context = "";
       
-      // Get customer currency preference
-      const customerCurrency = customer?.currency || 'EUR';
-      // Get customer discount (if any)
-      const customerDiscount = customer?.discount || 0;
-      
-      // Replace with more professional English log message
-      logger.info(`Agent prompt prepared with language=${customerLanguage}, currency=${customerCurrency}, discount=${customerDiscount}%`);
-      
-      // Fill variables in the agent prompt - directly replace common variable patterns
-      agentContent = agentContent.replace(/\{customerLanguage\}/g, customerLanguage);
-      agentContent = agentContent.replace(/\{customerCurrency\}/g, customerCurrency);
-      agentContent = agentContent.replace(/\{customerDiscount\}/g, customerDiscount.toString());
-      
-      // Create a new agent object with the replaced content
-      const replacedAgent = {
-        ...agent,
-        content: agentContent
-      };
-      
-      // For testability, attach the replaced prompt
-      (replacedAgent as any)._replacedPrompt = agentContent;
-      
-      logger.info(`Using agent "${agentName}" with temp=${temperature}, top_p=${top_p}, top_k=${top_k}, language=${customerLanguage}, currency=${customerCurrency}, discount=${customerDiscount}%`);
-      
-      // Log for debug
-      const isProductAgent = agentName.toLowerCase().includes('products');
-      const isServiceAgent = agentName.toLowerCase().includes('service');
-      
-      // Prepare the final user message
-      const userMessage = { role: "user" as const, content: message };
-      
-  
-      const systemMessage = { 
-        role: "system" as const, 
-        content: agentContent
-      };
-      
-      // Helper function to calculate discounted price
-      const applyDiscount = (price: number, discount: number): number => {
-        if (!discount || discount <= 0) return price;
-        const discountedPrice = price * (1 - discount / 100);
-        return Math.round(discountedPrice * 100) / 100; // Better rounding to 2 decimals
-      };
-      
-      
-      
-      // Prepare messages for products and services
-      // Include products ONLY if the agent is Products
-      const productMessage = (products && products.length > 0 && isProductAgent) ? 
-        { 
-          role: "system" as const, 
-          content: `Available products: ${JSON.stringify(
-            products.map(p => {
-              // Add basic product info
-              const productInfo: any = {
-                name: p.name,
-                description: p.description,
-                category: p.category?.name || 'empty',
-                stock: p.stock || 'Available',
-                currency: customerCurrency || 'EUR',
-              };
-              
-              // Always include both original price and formatted price string
-              productInfo.originalPrice = p.price;
-              
-              if (customerDiscount > 0) {
-                productInfo.discountPercentage = customerDiscount;
-                productInfo.discountedPrice = applyDiscount(p.price, customerDiscount);
-                productInfo.priceString = `€${productInfo.discountedPrice.toFixed(2)} (original: €${productInfo.originalPrice.toFixed(2)}, ${customerDiscount}% off)`;
-              } else {
-                productInfo.price = p.price;
-                productInfo.priceString = `€${p.price.toFixed(2)}`;
-              }
-              return productInfo;
-            })
-          )}`
-        } : null;
+      // Add customer information if available
+      if (customer) {
+        const customerDiscount = customer.discount || 0;
         
-      // Include services ONLY if the agent is Services
-      const serviceMessage = (services && services.length > 0 && isServiceAgent) ? 
-        { 
-          role: "system" as const, 
-          content: JSON.stringify({ 
-            services: services.map(s => {
-              const serviceInfo: any = {
-                name: s.name,
-                description: s.description,
-                currency: customerCurrency,
-              };
-              
-              // Always include both original price and formatted price string
-              serviceInfo.originalPrice = s.price;
-              
-              if (customerDiscount > 0) {
-                serviceInfo.discountPercentage = customerDiscount;
-                serviceInfo.discountedPrice = applyDiscount(s.price, customerDiscount);
-                serviceInfo.priceString = `€${serviceInfo.discountedPrice.toFixed(2)} (original: €${serviceInfo.originalPrice.toFixed(2)}, ${customerDiscount}% off)`;
-              } else {
-                serviceInfo.price = s.price;
-                serviceInfo.priceString = `€${s.price.toFixed(2)}`;
-              }
-              return serviceInfo;
-            }) 
-          })
-        } : null;
-       
-      // Prepare messages from chat history
-      const historyMessages = [];
-      if (chatHistory && chatHistory.length > 0) {
-        for (const msg of chatHistory) {
-          if (msg.direction === MessageDirection.INBOUND) {
-            historyMessages.push({ role: "user" as const, content: msg.content || '' });
-          } else if (msg.direction === MessageDirection.OUTBOUND) {
-            historyMessages.push({ role: "assistant" as const, content: msg.content || '' });
-          }
+        // Function to apply discount to a price
+        const applyDiscount = (price: number, discount: number): number => {
+          return price * (1 - discount / 100);
+        };
+        
+        context += "## CUSTOMER INFORMATION\n";
+        context += `Name: ${customer.name}\n`;
+        context += `Email: ${customer.email || "Not provided"}\n`;
+        context += `Phone: ${customer.phone || "Not provided"}\n`;
+        context += `Language: ${customer.language || "Italian"}\n`;
+        context += `Discount: ${customerDiscount}%\n\n`;
+        
+        // Add products information
+        if (products && products.length > 0) {
+          context += "## PRODUCTS\n";
+          products.forEach((product: any) => {
+            if (!product.isActive) return;
+            
+            let productPrice = product.price;
+            if (customer && customer.discount) {
+              productPrice = applyDiscount(product.price, customer.discount);
+            }
+            
+            context += `- ${product.name}: ${productPrice.toFixed(2)}€ - ${product.description}\n`;
+          });
+          context += "\n";
+        }
+        
+        // Add services information
+        if (services && services.length > 0) {
+          context += "## SERVICES\n";
+          services.forEach((service: any) => {
+            if (!service.isActive) return;
+            
+            let servicePrice = service.price;
+            if (customer && customer.discount) {
+              servicePrice = applyDiscount(service.price, customer.discount);
+            }
+            
+            context += `- ${service.name}: ${servicePrice.toFixed(2)}€ - ${service.description}\n`;
+          });
+          context += "\n";
+        }
+        
+        // Add events information
+        if (events && events.length > 0) {
+          context += "## EVENTS\n";
+          events.forEach((event: any) => {
+            const startDate = new Date(event.startDate).toLocaleDateString();
+            const endDate = new Date(event.endDate).toLocaleDateString();
+            
+            let eventPrice = event.price;
+            if (customer && customer.discount) {
+              eventPrice = applyDiscount(event.price, customer.discount);
+            }
+            
+            const availability = event.maxAttendees 
+              ? `${event.currentAttendees || 0}/${event.maxAttendees} attendees` 
+              : "Unlimited spots available";
+            
+            context += `- ${event.name}: ${eventPrice.toFixed(2)}€ - ${startDate} to ${endDate} at ${event.location} - ${availability} - ${event.description}\n`;
+          });
+          context += "\n";
+        }
+      } else {
+        // No customer discount, just add basic information
+        
+        // Add products information
+        if (products && products.length > 0) {
+          context += "## PRODUCTS\n";
+          products.forEach((product: any) => {
+            if (!product.isActive) return;
+            context += `- ${product.name}: ${product.price.toFixed(2)}€ - ${product.description}\n`;
+          });
+          context += "\n";
+        }
+        
+        // Add services information
+        if (services && services.length > 0) {
+          context += "## SERVICES\n";
+          services.forEach((service: any) => {
+            if (!service.isActive) return;
+            context += `- ${service.name}: ${service.price.toFixed(2)}€ - ${service.description}\n`;
+          });
+          context += "\n";
+        }
+        
+        // Add events information
+        if (events && events.length > 0) {
+          context += "## EVENTS\n";
+          events.forEach((event: any) => {
+            const startDate = new Date(event.startDate).toLocaleDateString();
+            const endDate = new Date(event.endDate).toLocaleDateString();
+            
+            const availability = event.maxAttendees 
+              ? `${event.currentAttendees || 0}/${event.maxAttendees} attendees` 
+              : "Unlimited spots available";
+            
+            context += `- ${event.name}: ${event.price.toFixed(2)}€ - ${startDate} to ${endDate} at ${event.location} - ${availability} - ${event.description}\n`;
+          });
+          context += "\n";
         }
       }
       
-      // Build final array of messages
-      const messages = [
-        systemMessage,
-        ...(customer ? [{ role: "system" as const, content: `Info client:: ${JSON.stringify({   
-          name: customer.name,
-          phone: customer.phone,
-          email: customer.email,
-          company: customer.company || '',
-          language: customerLanguage,
-          currency: customerCurrency,
-          discount: customerDiscount,
-          address: customer.address || ''
-        })}` }] : []),
-        // Add extra instructions if provided (for formatting, etc.)
-        ...(extraInstructions ? [extraInstructions] : []),
-        ...(productMessage ? [productMessage] : []),
-        ...(serviceMessage ? [serviceMessage] : []),
-        ...historyMessages,
-        userMessage
-      ];
-
- 
-      
- 
-      try {
-        // Initialize a new OpenAI client instance for this call to ensure fresh configuration
-        const openaiClient = new OpenAI({
-          apiKey: process.env.OPENAI_API_KEY || 'your-api-key-here',
-          baseURL: "https://openrouter.ai/api/v1",
-          defaultHeaders: {
-            "HTTP-Referer": "https://laltroitalia.shop",
-            "X-Title": "L'Altra Italia Shop"
-          }
-        });
-
-        console.log("===============================================");
-        console.log(messages);
-        console.log("===============================================");
-        
-        // Make API call to OpenAI
-        const response = await openaiClient.chat.completions.create({
-          model: "openai/gpt-4o-mini", 
-          messages: messages,
-          temperature: temperature,
-          top_p: top_p,
-          max_tokens: 1000
-        });
-        
-        // Validate response and extract content
-        let responseContent = "";
-        
-        if (response && response.choices && response.choices.length > 0 && response.choices[0].message) {
-          responseContent = response.choices[0].message.content || "";
-          logger.info(`AI response (${responseContent.length} chars): "${responseContent.substring(0, 50)}${responseContent.length > 50 ? '...' : ''}"`);
-        } else {
-          logger.error('OpenAI API returned an empty or invalid response structure:', response);
-          responseContent = "I'm sorry, the service responded with an invalid format. An operator will contact you shortly.";
-        }
-        
-        return responseContent;
-      } catch (apiError) {
-        // Detailed API error logging
-        logger.error(`OpenAI API error details - name: ${apiError.name}, message: ${apiError.message}, status: ${apiError.status || 'unknown'}`);
-        if (apiError.response) {
-          logger.error(`API response data: ${JSON.stringify(apiError.response.data || {})}`);
-        }
-        
-        // Throw the error for handling in the outer catch block
-        throw apiError;
+      // Add extra instructions if provided
+      if (extraInstructions) {
+        context += "## EXTRA INSTRUCTIONS\n";
+        context += extraInstructions + "\n\n";
       }
+      
+      // Build the final prompt with the agent prompt and context
+      const finalPrompt = `${agentPrompt}\n\nCONTEXT:\n${context}`;
+      
+      return finalPrompt;
     } catch (error) {
-      // Detailed error handling
-      logger.error('Error calling OpenAI API:', error);
-    
-      return "Error calling OpenAI API: " + error;
+      logger.error('Error in RAG:', error);
+      return agent.content || "You are a helpful assistant for L'Altra Italia food shop.";
     }
   }
 

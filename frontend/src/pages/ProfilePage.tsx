@@ -1,21 +1,23 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { UserProfile, changePassword, getUserProfile, updateUserProfile } from "@/services/userApi"
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { UserProfile, changePassword, updateUserProfile } from "@/services/userApi"
 import { Loader2, User } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 
 export default function ProfilePage() {
+  const { data: userData, isLoading: userLoading, isError: userError } = useCurrentUser();
   const [isLoading, setIsLoading] = useState(false)
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
@@ -32,21 +34,11 @@ export default function ProfilePage() {
   })
   
   useEffect(() => {
-    const loadProfile = async () => {
-      setIsPageLoading(true)
-      try {
-        const userData = await getUserProfile()
-        setUser(userData)
-      } catch (error) {
-        console.error("Failed to load profile:", error)
-        toast.error("Failed to load profile")
-      } finally {
-        setIsPageLoading(false)
-      }
+    if (userData) {
+      setUser(userData)
+      setIsPageLoading(false)
     }
-    
-    loadProfile()
-  }, [])
+  }, [userData])
 
   const handleFieldChange = (field: keyof UserProfile, value: string) => {
     setUser((prev) => ({

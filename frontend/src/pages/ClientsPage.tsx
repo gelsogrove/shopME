@@ -6,23 +6,24 @@ import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
+import { useRecentChats } from '@/hooks/useRecentChats'
 import { api } from "@/services/api"
 import { commonStyles } from "@/styles/common"
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from "@tanstack/react-table"
 import {
-    Bot,
-    MessageSquare,
-    Pencil,
-    Plus,
-    Trash2,
-    Users
+  Bot,
+  MessageSquare,
+  Pencil,
+  Plus,
+  Trash2,
+  Users
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
@@ -104,7 +105,7 @@ export default function ClientsPage(): JSX.Element {
   // Stati per il dialogo di conferma eliminazione
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
-  const [clientsWithChats, setClientsWithChats] = useState<Set<string>>(new Set());
+  const { data: allChats = [] } = useRecentChats();
   const [showPlayground, setShowPlayground] = useState(false)
 
   // Replace with useQuery
@@ -149,28 +150,6 @@ export default function ClientsPage(): JSX.Element {
     },
     enabled: !!workspace?.id
   });
-
-  // Fetch chats to determine which clients have existing chats
-  useEffect(() => {
-    const fetchExistingChats = async () => {
-      try {
-        const response = await api.get("/chat/recent");
-        if (response.data.success && response.data.data) {
-          // First create a properly typed array of phone numbers
-          const phoneNumbers: string[] = response.data.data
-            .map((chat: any) => chat.customerPhone)
-            .filter((phone: any): phone is string => typeof phone === 'string');
-          
-          // Then create the Set from the typed array
-          setClientsWithChats(new Set(phoneNumbers));
-        }
-      } catch (error) {
-        console.error("Error fetching chat data:", error);
-      }
-    };
-    
-    fetchExistingChats();
-  }, []);
 
   // Controlla se c'è un parametro edit nell'URL per aprire automaticamente il form di modifica
   useEffect(() => {
@@ -326,19 +305,14 @@ export default function ClientsPage(): JSX.Element {
   const handleViewChatHistory = async (client: Client) => {
     try {
       // Cerca di trovare la chat esistente per questo cliente usando il suo numero di telefono
-      const response = await api.get("/chat/recent");
+      const existingChat = allChats.find(
+        (chat: any) => chat.customerPhone === client.phone
+      );
       
-      if (response.data.success && response.data.data && response.data.data.length > 0) {
-        // Cerca una chat con lo stesso numero di telefono
-        const existingChat = response.data.data.find(
-          (chat: any) => chat.customerPhone === client.phone
-        );
-        
-        if (existingChat) {
-          // Se la chat esiste, vai direttamente alla chat con il sessionId corretto
-          navigate(`/chat?sessionId=${existingChat.sessionId}`);
-          return;
-        }
+      if (existingChat) {
+        // Se la chat esiste, vai direttamente alla chat con il sessionId corretto
+        navigate(`/chat?sessionId=${existingChat.sessionId}`);
+        return;
       }
       
       // If no existing chat is found, navigate to the chat page with client name as search filter
@@ -495,7 +469,7 @@ export default function ClientsPage(): JSX.Element {
                   onClick={() => handleViewChatHistory(row.original)}
                 >
                   <span className="sr-only">Chat history</span>
-                  <MessageSquare className={`h-4 w-4 ${clientsWithChats.has(row.original.phone) ? 'text-blue-600' : 'text-gray-400'}`} />
+                  <MessageSquare className={`h-4 w-4`} />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -567,16 +541,8 @@ export default function ClientsPage(): JSX.Element {
             titleIcon={<Users className="mr-2 h-6 w-6 text-green-500" />}
           />
 
-          {/* Search and New Chat aligned */}
-          <div className="flex items-center justify-between mb-4 mt-2">
-            <Button
-              variant="default"
-              className="bg-green-500 hover:bg-green-600 text-white mr-2"
-              onClick={() => setShowPlayground(true)}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              New Chat
-            </Button>
+          {/* Search and New Chat aligned to the right */}
+          <div className="flex items-center justify-end gap-2 mb-4 mt-2">
             <Input
               type="search"
               placeholder="Search clients..."
@@ -584,6 +550,14 @@ export default function ClientsPage(): JSX.Element {
               onChange={e => setSearchValue(e.target.value)}
               className="max-w-xs"
             />
+            <Button
+              variant="default"
+              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => setShowPlayground(true)}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              New Chat
+            </Button>
           </div>
 
           {/* Number of items display */}

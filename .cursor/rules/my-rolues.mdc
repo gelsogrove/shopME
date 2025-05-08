@@ -30,4 +30,6 @@ alwaysApply: false
 - non riavviare i servizi ci penso io !!!
 - quando devi testeare una funzionalita segui il processo dal dal bottone segui il click chiama l'api vai al backend guarda i log 
 - non riavviare i servizi dimmi riavvia back riavvia front e io lo faccio se vuoi vedere i log dimmelo cosi io spengo seno abiamo un problema di porte chiuse
+- aggiorna sempre lo swagger quandp abbiamo dei nuovi cambi
+- i commenti del codice devono essere in inglese. tu mi parli in italiano ma il codice e i commenti in INGLESE
 

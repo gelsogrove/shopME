@@ -1,20 +1,21 @@
-import { checkAuth } from "@/services/api"
-import { Loader2 } from "lucide-react"
-import { useEffect, useState } from "react"
-import { Navigate, Outlet, useLocation } from "react-router-dom"
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 /**
  * Componente che protegge le rotte che richiedono autenticazione.
  * Controlla se l'utente è autenticato e in caso contrario reindirizza alla pagina di login.
  */
 export function ProtectedRoute() {
+  const { data: userData, isLoading, isError } = useCurrentUser();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
   const location = useLocation()
 
   useEffect(() => {
     const verifyAuth = async () => {
       try {
-        const isAuth = await checkAuth()
+        const isAuth = await userData
         setIsAuthenticated(isAuth)
       } catch (error) {
         console.error("Error verifying authentication:", error)
@@ -23,7 +24,7 @@ export function ProtectedRoute() {
     }
 
     verifyAuth()
-  }, [])
+  }, [userData])
 
   // Mostra un loader mentre verifichiamo l'autenticazione
   if (isAuthenticated === null) {

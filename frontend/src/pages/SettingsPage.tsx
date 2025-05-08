@@ -70,7 +70,8 @@ export default function SettingsPage() {
   const [welcomeMessages, setWelcomeMessages] = useState({
     en: "Hello! Thank you for contacting us. How can we help you today?",
     it: "Ciao! Grazie per averci contattato. Come possiamo aiutarti oggi?",
-    es: "¡Hola! Gracias por contactarnos. ¿Cómo podemos ayudarte hoy?"
+    es: "¡Hola! Gracias por contactarnos. ¿Cómo podemos ayudarte hoy?",
+    pt: "Olá! Obrigado por entrar em contato. Como podemos ajudar você hoje?"
   });
   const [selectedWelcomeLang, setSelectedWelcomeLang] = useState("en");
 
@@ -101,7 +102,8 @@ export default function SettingsPage() {
             setWelcomeMessages({
               en: parsedMessages.en || welcomeMessages.en,
               it: parsedMessages.it || welcomeMessages.it,
-              es: parsedMessages.es || welcomeMessages.es
+              es: parsedMessages.es || welcomeMessages.es,
+              pt: parsedMessages.pt || welcomeMessages.pt
             });
           } catch (e) {
             console.error('Error parsing welcome messages:', e);
@@ -173,7 +175,8 @@ export default function SettingsPage() {
     const updatedWelcomeMessages = {
       en: welcomeMessages.en || "Welcome!",
       it: welcomeMessages.it || "Benvenuto!",
-      es: welcomeMessages.es || "¡Bienvenido!"
+      es: welcomeMessages.es || "¡Bienvenido!",
+      pt: welcomeMessages.pt || "Bem-vindo!"
     };
     
     const updateData = {
@@ -192,11 +195,10 @@ export default function SettingsPage() {
       
       toast.success('Settings saved successfully');
       
-      // Force reload to update all components with the new settings
-      // Especially important for currency changes
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // Don't force reload which can trigger auth issues
+      // Instead, update the local state with the new values
+      setWorkspace(response);
+      
     } catch (error) {
       console.error('Error updating workspace:', error);
       toast.error('Failed to save settings');
@@ -351,6 +353,11 @@ export default function SettingsPage() {
                       size="sm"
                       onClick={() => setSelectedWelcomeLang("es")}
                     >ES</Button>
+                    <Button
+                      variant={selectedWelcomeLang === "pt" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedWelcomeLang("pt")}
+                    >PT</Button>
                   </div>
                   <Textarea
                     value={welcomeMessages[selectedWelcomeLang]}

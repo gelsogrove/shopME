@@ -2,6 +2,7 @@ import { PageLayout } from "@/components/layout/PageLayout"
 import { ClientSheet } from "@/components/shared/ClientSheet"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { getWorkspaceId } from "@/config/workspace.config"
+import { useRecentChats } from '@/hooks/useRecentChats'
 import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
 import { useQuery } from '@tanstack/react-query'
@@ -12,13 +13,13 @@ import ReactMarkdown from "react-markdown"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import remarkGfm from "remark-gfm"
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "../components/ui/alert-dialog"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
@@ -116,23 +117,7 @@ export function ChatPage() {
   const [hasToggledChatbot, setHasToggledChatbot] = useState(false)
   const navigate = useNavigate()
   
-  // Fetch chats with React Query
-  const {
-    data: allChats = [],
-    isLoading: isLoadingChats,
-    isError: isErrorChats,
-    refetch: refetchChats
-  } = useQuery({
-    queryKey: ['chats'],
-    queryFn: async () => {
-      const response = await api.get("/chat/recent");
-      if (response.data.success) {
-        return response.data.data;
-      } else {
-        throw new Error("Error loading chats");
-      }
-    }
-  });
+  const { data: allChats = [], isLoading: isLoadingChats, isError: isErrorChats, refetch: refetchChats } = useRecentChats();
 
   // Filter chats based on search term
   useEffect(() => {

@@ -1,28 +1,17 @@
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
 // Create an axios instance with custom config
 export const api = axios.create({
   baseURL: "/api",  // Set standard /api prefix for all API calls
-  withCredentials: true,
+  withCredentials: true, // Importante: invia i cookie con le richieste
 })
 
 // Add a request interceptor to handle authentication
 api.interceptors.request.use(
   (config) => {
     console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`, config.data || {});
-    
-    // Add token if available
-    const user = localStorage.getItem("user")
-    if (user) {
-      try {
-        const userData = JSON.parse(user)
-        if (userData.token) {
-          config.headers.Authorization = `Bearer ${userData.token}`
-        }
-      } catch (error) {
-        console.error("Error parsing user data from localStorage")
-      }
-    }
+    // Non aggiungere token manualmente - il server usa cookie HTTP-only
     return config
   },
   (error) => {
@@ -42,11 +31,29 @@ api.interceptors.response.use(
     
     // Handle authentication errors (401)
     if (error.response && error.response.status === 401) {
-      // Redirect to login page if not authenticated
-      if (window.location.pathname !== "/auth/login") {
-        localStorage.removeItem("user")
-        localStorage.removeItem("token")
-        window.location.href = "/auth/login"
+      // Special case for settings page
+      const isSettingsPage = window.location.pathname.includes('/settings');
+      
+      if (isSettingsPage) {
+        // Per la pagina settings, mostra solo il toast senza redirect immediato
+        toast.error("Sessione scaduta. Effettua nuovamente il login.");
+        
+        // Redirect dopo un ritardo per permettere all'utente di vedere il toast
+        setTimeout(() => {
+          sessionStorage.removeItem("currentWorkspace");
+          window.location.href = "/auth/login";
+        }, 2000);
+      } else if (window.location.pathname === "/auth/login") {
+        // Se già nella pagina di login, ricarica semplicemente la pagina
+        sessionStorage.removeItem("currentWorkspace");
+        window.location.reload();
+      } else {
+        // Per altre pagine, mostra toast e redirect
+        toast.error("Sessione scaduta. Effettua nuovamente il login.");
+        setTimeout(() => {
+          sessionStorage.removeItem("currentWorkspace");
+          window.location.href = "/auth/login";
+        }, 2000);
       }
     }
     
@@ -54,21 +61,15 @@ api.interceptors.response.use(
   }
 )
 
-// Check if the user is authenticated
-export async function checkAuth(): Promise<boolean> {
-  try {
-    await api.get("/auth/me")
-    return true
-  } catch (error) {
-    return false
-  }
-}
-
 // API endpoints
 export const auth = {
-  login: (credentials: { email: string; password: string }) =>
-    api.post("/auth/login", credentials),
-  me: () => api.get("/auth/me"),
+  login: async (credentials: { email: string; password: string }) => {
+    // Pulisci la sessionStorage prima del login
+    sessionStorage.removeItem("currentWorkspace");
+    
+    // Ora tenta il login con stato pulito
+    return api.post("/auth/login", credentials);
+  },
   logout: () => api.post("/auth/logout")
 }
 

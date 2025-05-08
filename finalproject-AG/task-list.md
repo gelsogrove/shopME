@@ -3,10 +3,10 @@
 ## 📊 Stato Attuale del Progetto
 **Ultimo aggiornamento:** 2025-05-08
 
-- **Completati:** 34/66 task (51.5%)
+- **Completati:** 35/66 task (53.0%)
 - **In corso:** 0/66 task (0%)
 - **Out of scope:** 16/66 task (24.2%)
-- **Da iniziare:** 16/66 task (24.2%)
+- **Da iniziare:** 15/66 task (22.7%)
 
 
 ### 🚩 Prossimo Task Prioritario
@@ -33,6 +33,21 @@
 - API Design: 0/2 completati ❌
 
 ### 🌟 Task Completati Recentemente
+- **TASK-0078**: Implementazione funzionalità Eventi
+  - Creato modello Events nel database con campi per data, luogo, prezzo e capienza
+  - Implementate API CRUD per la gestione degli eventi
+  - Creata interfaccia utente per la gestione degli eventi
+  - Aggiunto supporto per eventi nel sistema RAG per le risposte del chatbot
+  - Integrata visualizzazione degli eventi nella sidebar
+  - Implementato sistema di conteggio partecipanti
+
+- **TASK-0062**: Create message processing service and fix failing tests
+  - Implementato servizio di elaborazione messaggi con gestione completa del flusso
+  - Risolto errore TypeScript con type assertion per la proprietà activeChatbot
+  - Aggiornato il file flow.md per riflettere l'implementazione attuale
+  - Migliorata la gestione degli errori e il logging
+  - Aggiunta documentazione per la logica di elaborazione messaggi
+
 - **TASK-0095**: Implementato sistema di messaggi di benvenuto multilingua
   - Aggiunto nuovo campo welcomeMessages al modello Workspace
   - Creata migration per aggiornare il database
@@ -173,7 +188,6 @@
 **WhatsApp Integration**
 - **TASK-0060**: Setup WhatsApp Business API connection
 - **TASK-0061**: Implement webhook for incoming WhatsApp messages
-- **TASK-0062**: Create message processing service and fix failing tests
 - **TASK-0063**: Design conversation flow for product ordering
 - **TASK-0064**: Implement product catalog browsing via WhatsApp
 - **TASK-0065**: Add cart management through WhatsApp
@@ -1270,3 +1284,15 @@ Implementare una funzionalità che applichi automaticamente uno sconto ai prezzi
 - [x] Check and correct any usage of '/api/api/workspaces' to '/api/workspaces' in the codebase. Reason: The correct backend route is '/api/workspaces'; using '/api/api/workspaces' results in a 404 error (Cannot GET /api/api/workspaces).
 - [x] Remove the discount column from the clients table UI (/clients page)
 - [ ] Check for any further discount-related UI or logic in the client management flow and remove if not needed
+
+=============== TASK-NEW ============================
+**Epic**: Internationalization & Currency
+**Title**: Enforce 4-language and 3-currency support across all layers
+**Description**:
+- Update all forms, dropdowns, APIs, and backend logic to support ONLY:
+  - Languages: IT (Italian), ESP (Spanish), ENG (English), PRT (Portuguese)
+  - Currencies: EUR, USD, GBP
+- Ensure all validation, business logic, and user preferences enforce these options
+- Update frontend dropdowns and backend schema defaults accordingly
+- Reference: PRD.md update (see registration, settings, and welcome message logic)
+- High priority for next release

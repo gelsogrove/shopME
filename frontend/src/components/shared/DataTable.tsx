@@ -1,31 +1,31 @@
 import { Button } from "@/components/ui/button"
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table"
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { commonStyles } from "@/styles/common"
 import {
-    type ColumnDef,
-    type ColumnFiltersState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    Row,
-    type SortingState,
-    useReactTable,
-    type VisibilityState,
+  type ColumnDef,
+  type ColumnFiltersState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  Row,
+  type SortingState,
+  useReactTable,
+  type VisibilityState,
 } from "@tanstack/react-table"
 import { ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react"
 import React, { ReactNode, useState } from "react"
@@ -161,7 +161,7 @@ export function DataTable<TData>({
                 {headerGroup.headers.map((header) => (
                   <TableHead 
                     key={header.id} 
-                    className="py-2"
+                    className="py-1"
                     style={{
                       width: header.column.columnDef.size ? `${header.column.columnDef.size}px` : 'auto',
                     }}
@@ -181,11 +181,11 @@ export function DataTable<TData>({
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <React.Fragment key={row.id}>
-                  <TableRow className="h-[50px]">
+                  <TableRow className="h-[40px]">
                     {row.getVisibleCells().map((cell) => (
                       <TableCell 
                         key={cell.id} 
-                        className="py-2"
+                        className="py-1"
                         style={{
                           width: cell.column.columnDef.size ? `${cell.column.columnDef.size}px` : 'auto',
                         }}

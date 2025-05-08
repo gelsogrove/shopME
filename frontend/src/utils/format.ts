@@ -44,6 +44,26 @@ export const formatPrice = (price: number, currencyCode?: string): string => {
 };
 
 /**
+ * Format a date string to a more readable format
+ * @param dateString The date string to format
+ * @returns Formatted date string (e.g., "Jan 1, 2023 10:30")
+ */
+export const formatDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch (e) {
+    console.error('Error formatting date:', e);
+    return dateString; // Return the original string if there's an error
+  }
+};
+
+/**
  * Format a price with the workspace currency symbol - React hook version
  * This hook is preferable in React components where you have access to the context
  */

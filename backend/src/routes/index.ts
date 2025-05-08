@@ -1,11 +1,13 @@
 import { NextFunction, Request, Response, Router } from "express"
 import { CategoriesController } from "../interfaces/http/controllers/categories.controller"
 import { CustomersController } from "../interfaces/http/controllers/customers.controller"
+import { EventsController } from "../interfaces/http/controllers/events.controller"
 import { ServicesController } from "../interfaces/http/controllers/services.controller"
 import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
 import { chatRouter } from "../interfaces/http/routes/chat.routes"
 import { customersRouter } from "../interfaces/http/routes/customers.routes"
+import { eventsRouter } from "../interfaces/http/routes/events.routes"
 import { messagesRouter } from "../interfaces/http/routes/messages.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import logger from "../utils/logger"
@@ -83,6 +85,10 @@ logger.info("Registered products router with workspace routes")
 router.use("/workspaces/:workspaceId/services", servicesRouter(new ServicesController()))
 logger.info("Registered services router")
 
+// Mount events router only on the workspace-specific path
+router.use("/workspaces/:workspaceId/events", eventsRouter(new EventsController()))
+logger.info("Registered events router")
+
 // Register other routes
 router.use("/prompts", promptsRoutes)
 router.use("/upload", uploadRoutes)
@@ -108,6 +114,16 @@ router.get("/services", function(req: Request, res: Response) {
     success: true, 
     message: "Services API endpoint is working", 
     documentation: "Use /workspaces/:workspaceId/services for workspace-specific services"
+  });
+});
+
+// @ts-ignore
+router.get("/events", function(req: Request, res: Response) {
+  logger.info("Direct /events endpoint accessed");
+  return res.json({ 
+    success: true, 
+    message: "Events API endpoint is working", 
+    documentation: "Use /workspaces/:workspaceId/events for workspace-specific events"
   });
 });
 

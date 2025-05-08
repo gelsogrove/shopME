@@ -43,11 +43,10 @@ const RegisterPage = () => {
   
   // Array of available languages
   const languages = [
-    { code: 'English', name: 'English' },
-    { code: 'Italian', name: 'Italiano' },
-    { code: 'Spanish', name: 'Español' },
-    { code: 'French', name: 'Français' },
-    { code: 'German', name: 'Deutsch' }
+    { code: 'IT', name: 'Italiano' },
+    { code: 'ESP', name: 'Español' },
+    { code: 'ENG', name: 'English' },
+    { code: 'PRT', name: 'Português' }
   ];
   
   // Array of available currencies

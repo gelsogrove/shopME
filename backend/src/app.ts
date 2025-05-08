@@ -43,7 +43,7 @@ app.use(cookieParser())
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   explorer: true,
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: "L'Altra Italia Shop API Documentation"
+  customSiteTitle: ""
 }))
 
 // Log that we're about to mount the API router

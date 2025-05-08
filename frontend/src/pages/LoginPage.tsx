@@ -1,11 +1,12 @@
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card"
 import { useState } from "react"
+import { toast } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
 import { auth } from "../services/api"
 
@@ -21,17 +22,34 @@ export function LoginPage() {
     setError("")
     setIsLoading(true)
 
+    // Pulisci la sessionStorage prima del login
+    sessionStorage.removeItem("currentWorkspace")
+
     try {
       const response = await auth.login({ email, password })
+      console.log("Login successful:", response.data)
       
-      // Store user info in localStorage
-      localStorage.setItem("user", JSON.stringify(response.data.user))
-
-      // Navigate to workspace selection or dashboard
-      navigate("/workspace-selection")
+      // Salva solo le informazioni dell'utente (senza token)
+      if (response.data && response.data.user) {
+        localStorage.setItem("user", JSON.stringify(response.data.user))
+        
+        // Naviga alla selezione del workspace
+        toast.success("Login effettuato con successo")
+        navigate("/workspace-selection")
+      } else {
+        throw new Error("Formato di risposta dal server non valido")
+      }
     } catch (err: any) {
-      console.error('Login error:', err.response?.data)
-      setError(err.response?.data?.error || err.response?.data?.message || "Login failed. Please check your credentials.")
+      console.error('Login error:', err)
+      
+      // Mostra messaggio di errore dettagliato
+      const errorMsg = err.response?.data?.error || 
+                       err.response?.data?.message || 
+                       err.message || 
+                       "Login fallito. Controlla le tue credenziali."
+      
+      setError(errorMsg)
+      toast.error(errorMsg)
     } finally {
       setIsLoading(false)
     }

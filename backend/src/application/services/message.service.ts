@@ -17,6 +17,9 @@ interface Customer {
   isActive: boolean;
   activeChatbot?: boolean;  // Flag per il controllo manuale dell'operatore
   // Altri campi che potrebbero essere necessari...
+  createdAt: Date;
+  updatedAt: Date;
+  push_notifications_consent_at?: Date;
 }
 
 /**
@@ -80,7 +83,7 @@ export class MessageService {
         const customer = await this.messageRepository.findCustomerByPhone(phoneNumber, workspaceId);
         
         // Check if the chatbot is active for this customer
-        if (customer && customer.activeChatbot === false) {
+        if (customer && (customer as Customer).activeChatbot === false) {
             logger.info(`Operator manual control active for ${phoneNumber} (${customer.name}). Chatbot response skipped.`);
             // Save the message without response (only store the user message)
             await this.messageRepository.saveMessage({

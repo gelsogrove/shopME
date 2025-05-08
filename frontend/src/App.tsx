@@ -10,6 +10,7 @@ import ClientsPage from "./pages/ClientsPage"
 import CustomersPage from "./pages/CustomersPage"
 import DashboardPage from "./pages/DashboardPage"
 import DataProtectionPage from './pages/data-protection'
+import { EventsPage } from "./pages/EventsPage"
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage"
 import { LoginPage } from "./pages/LoginPage"
 import MessageTestPage from "./pages/MessageTestPage"
@@ -79,6 +80,9 @@ export function App() {
           </Route>
           <Route path="/services" element={<Layout />}>
             <Route index element={<ServicesPage />} />
+          </Route>
+          <Route path="/events" element={<Layout />}>
+            <Route index element={<EventsPage />} />
           </Route>
           <Route path="/notifications" element={<Layout />}>
             <Route index element={<NotificationsPage />} />

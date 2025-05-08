@@ -1,22 +1,22 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { api } from "@/services/api"
-import { getUserProfile } from "@/services/userApi"
 import {
-    ArrowLeftRight,
-    CreditCard,
-    LogOut,
-    Phone,
-    Settings,
-    User,
+  ArrowLeftRight,
+  CreditCard,
+  LogOut,
+  Phone,
+  Settings,
+  User,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
@@ -30,6 +30,7 @@ export function Header() {
   const [userName, setUserName] = useState<string>("")
   const [userEmail, setUserEmail] = useState<string>("")
   const [userInitials, setUserInitials] = useState<string>("")
+  const { data: userData, isLoading, isError } = useCurrentUser();
 
   useEffect(() => {
     // Recupera le informazioni del workspace dai sessionStorage
@@ -48,13 +49,12 @@ export function Header() {
 
   const loadUserProfile = async () => {
     try {
-      const userData = await getUserProfile()
-      const firstName = userData.firstName || ""
-      const lastName = userData.lastName || ""
+      const firstName = userData?.firstName || ""
+      const lastName = userData?.lastName || ""
       const fullName = `${firstName} ${lastName}`.trim()
 
       setUserName(fullName || "User")
-      setUserEmail(userData.email || "")
+      setUserEmail(userData?.email || "")
 
       // Crea le iniziali per l'avatar
       const initials =

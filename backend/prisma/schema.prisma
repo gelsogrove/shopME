@@ -16,7 +16,7 @@ model Workspace {
   notificationEmail   String?
   webhookUrl          String?
   isActive            Boolean           @default(true)
-  language            String            @default("en")
+  language            String            @default("ENG")
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
   isDelete            Boolean           @default(false)
@@ -32,6 +32,7 @@ model Workspace {
   categories          Categories[]
   chatSessions        ChatSession[]
   customers           Customers[]
+  events              Events[]
   languages           Languages[]
   orders              Orders[]
   products            Products[]
@@ -59,8 +60,8 @@ model Categories {
 
 model Languages {
   id          String    @id @default(uuid())
-  name        String
-  code        String
+  name        String    // e.g. 'Italiano', 'Español', 'English', 'Português'
+  code        String    // 'IT', 'ESP', 'ENG', 'PRT'
   isDefault   Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -102,7 +103,7 @@ model Customers {
   address                    String?
   company                    String?
   discount                   Float?        @default(0)
-  language                   String?       @default("English")
+  language                   String?       @default("ENG")
   currency                   String?       @default("EUR")
   notes                      String?
   serviceIds                 String[]      @default([])
@@ -254,7 +255,7 @@ model PaymentDetails {
   provider         String
   status           PaymentStatus @default(PENDING)
   amount           Float
-  currency         String        @default("USD")
+  currency         String        @default("EUR")
   providerResponse Json?         @default("{}")
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
@@ -339,8 +340,8 @@ model RegistrationToken {
 
 model Language {
   id        String   @id @default(cuid())
-  code      String   @unique
-  name      String
+  code      String   @unique // 'IT', 'ESP', 'ENG', 'PRT'
+  name      String   // 'Italiano', 'Español', 'English', 'Português'
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -350,7 +351,7 @@ model Services {
   name        String
   description String
   price       Float
-  currency    String    @default("€")
+  currency    String    @default("EUR")
   isActive    Boolean   @default(true)
   workspaceId String
   createdAt   DateTime  @default(now())
@@ -358,6 +359,26 @@ model Services {
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   @@map("services")
+}
+
+model Events {
+  id          String    @id @default(cuid())
+  name        String
+  description String
+  startDate   DateTime
+  endDate     DateTime
+  location    String
+  price       Float
+  currency    String    @default("EUR")
+  isActive    Boolean   @default(true)
+  maxAttendees Int?
+  currentAttendees Int? @default(0)
+  workspaceId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@map("events")
 }
 
 enum UserStatus {

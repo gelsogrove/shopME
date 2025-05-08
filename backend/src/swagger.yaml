@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: Shop API
+  title: ShopMe
   version: 1.0.0
   description: API for managing Italian products shop
 
