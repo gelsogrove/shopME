@@ -2083,4 +2083,309 @@ describe("MessageService", () => {
       process.env.NODE_ENV = originalNodeEnv
     }
   })
+
+  // Test case: Welcome message should always contain http:// or https:// in registration link
+  it("should include http protocol in registration link for welcome messages", async () => {
+    // Setup
+    mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
+      id: "workspace-id",
+      isActive: true,
+      welcomeMessages: {
+        en: "Welcome! Register here: {link}",
+      },
+    } as any)
+    mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false)
+    mockMessageRepository.findCustomerByPhone.mockResolvedValue(null)
+
+    // Simula la generazione del token di sicurezza
+    messageService["tokenService"] = {
+      createRegistrationToken: jest
+        .fn<() => Promise<string>>()
+        .mockResolvedValue("secure-token-123"),
+    } as any
+
+    // Imposta l'URL del frontend
+    process.env.FRONTEND_URL = "https://laltroitalia.shop"
+
+    // Invia un messaggio di saluto
+    const result = await messageService.processMessage(
+      "Hello",
+      "+1234567890",
+      "workspace-id"
+    )
+
+    // Verifica che il risultato contenga http:// o https://
+    expect(result).toMatch(/https?:\/\//)
+
+    // Verifica che contenga il token di sicurezza e altri parametri necessari
+    expect(result).toContain("token=secure-token-123")
+    expect(result).toContain("workspace=workspace-id")
+    expect(result).toContain("phone=")
+  })
+
+  // Test case: Verificare che non vengano inviati messaggi di benvenuto duplicati
+  it("should NOT send duplicate welcome messages for repeated greetings within a short time", async () => {
+    // Reset di tutti i mock prima del test
+    jest.resetAllMocks()
+
+    // Setup
+    mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
+      id: "workspace-id",
+      isActive: true,
+      welcomeMessages: {
+        es: "¡Bienvenido! (ES)",
+        en: "Welcome! (EN)",
+      },
+    } as any)
+
+    mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false)
+    mockMessageRepository.findCustomerByPhone.mockResolvedValue({
+      id: "customer-id",
+      name: "Unknown Customer", // Cliente non registrato
+      phone: "+34123456789",
+    } as any)
+
+    // Mock del token service
+    messageService["tokenService"] = createMockTokenService()
+
+    // PRIMO SCENARIO: simuliamo che non ci siano messaggi precedenti
+    // Questo è importante! Per il primo messaggio, restituiamo una lista vuota
+    mockMessageRepository.getLatesttMessages.mockResolvedValueOnce([])
+
+    // Eseguiamo il primo messaggio "Hola"
+    const firstResponse = await messageService.processMessage(
+      "Hola",
+      "+34123456789",
+      "workspace-id"
+    )
+
+    // Verifica che il primo messaggio sia un benvenuto
+    expect(firstResponse).toContain("¡Bienvenido!")
+
+    // Verifichiamo che il messaggio di benvenuto sia stato salvato correttamente
+    expect(mockMessageRepository.saveMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workspaceId: "workspace-id",
+        phoneNumber: "+34123456789",
+        message: "Hola",
+        response: expect.stringContaining("¡Bienvenido!"),
+        agentSelected: "Welcome",
+      })
+    )
+
+    // IMPORTANTE: Reset completo dei mock tra i due test
+    // Questo assicura che il secondo test sia completamente indipendente dal primo
+    jest.resetAllMocks()
+
+    // Setup per il secondo scenario - simuliamo esattamente la stessa configurazione
+    mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
+      id: "workspace-id",
+      isActive: true,
+      welcomeMessages: {
+        es: "¡Bienvenido! (ES)",
+        en: "Welcome! (EN)",
+      },
+    } as any)
+
+    mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false)
+    mockMessageRepository.findCustomerByPhone.mockResolvedValue({
+      id: "customer-id",
+      name: "Unknown Customer",
+      phone: "+34123456789",
+    } as any)
+
+    // Mock del token service
+    messageService["tokenService"] = createMockTokenService()
+
+    // SECONDO SCENARIO: simuliamo che CI SIA un messaggio di benvenuto recente
+    // Questo è cruciale per il test
+    mockMessageRepository.getLatesttMessages.mockResolvedValue([
+      {
+        id: "msg-1",
+        workspaceId: "workspace-id",
+        phoneNumber: "+34123456789",
+        direction: "OUTBOUND", // Inviato dal sistema
+        content:
+          "¡Bienvenido! (ES) https://example.com/register?token=test-token",
+        metadata: { agentName: "Welcome" },
+        createdAt: new Date(), // Messaggio recente (oggi)
+      },
+    ] as any)
+
+    // Eseguiamo il secondo messaggio "Hola" (ripetuto)
+    const secondResponse = await messageService.processMessage(
+      "Hola",
+      "+34123456789",
+      "workspace-id"
+    )
+
+    // Il punto chiave del test: verifichiamo che il sistema non risponda al secondo saluto
+    expect(secondResponse).toBe("")
+
+    // Verifichiamo che il messaggio sia stato salvato con agentSelected = "NoResponse"
+    // e che sia stato chiamato una sola volta
+    expect(mockMessageRepository.saveMessage).toHaveBeenCalledTimes(1)
+    expect(mockMessageRepository.saveMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workspaceId: "workspace-id",
+        phoneNumber: "+34123456789",
+        message: "Hola",
+        response: "",
+        agentSelected: "NoResponse",
+      })
+    )
+  })
+
+  it("should have exactly 1 record in history after a greeting (user message and bot response in one record)", async () => {
+    // Reset di tutti i mock prima del test
+    jest.resetAllMocks()
+
+    // Setup
+    mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
+      id: "workspace-id",
+      isActive: true,
+      welcomeMessages: {
+        es: "¡Bienvenido! (ES)",
+        en: "Welcome! (EN)",
+        it: "Benvenuto! (IT)",
+      },
+    } as any)
+
+    mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false)
+    mockMessageRepository.findCustomerByPhone.mockResolvedValue(null)
+    mockMessageRepository.getLatesttMessages.mockResolvedValue([])
+
+    // Mock del TokenService
+    messageService["tokenService"] = createMockTokenService()
+
+    // Eseguiamo il messaggio "Ciao"
+    const response = await messageService.processMessage(
+      "Ciao",
+      "+393331234567",
+      "workspace-id"
+    )
+
+    // Verifica che la risposta contenga il messaggio di benvenuto
+    expect(response).toContain("Benvenuto!")
+
+    // Verifica i dettagli del record salvato
+    expect(mockMessageRepository.saveMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workspaceId: "workspace-id",
+        phoneNumber: "+393331234567",
+        message: "Ciao",
+        response: expect.stringContaining("Benvenuto!"),
+        agentSelected: "Welcome",
+      })
+    )
+  })
+
+  it("should NOT send duplicate welcome messages for repeated greetings", async () => {
+    // Reset di tutti i mock prima del test
+    jest.resetAllMocks()
+
+    // Setup
+    mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
+      id: "workspace-id",
+      isActive: true,
+      welcomeMessages: {
+        es: "¡Bienvenido! (ES)",
+        en: "Welcome! (EN)",
+        it: "Benvenuto! (IT)",
+      },
+    } as any)
+
+    mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false)
+    mockMessageRepository.findCustomerByPhone.mockResolvedValue({
+      id: "customer-id",
+      name: "Unknown Customer",
+      phone: "+393331234567",
+    } as any)
+
+    // Mock del token service
+    messageService["tokenService"] = createMockTokenService()
+
+    // PRIMO SCENARIO: primo saluto senza messaggi precedenti
+    mockMessageRepository.getLatesttMessages.mockResolvedValueOnce([])
+
+    // Eseguiamo il primo messaggio "Ciao"
+    const firstResponse = await messageService.processMessage(
+      "Ciao",
+      "+393331234567",
+      "workspace-id"
+    )
+
+    // Verifichiamo la risposta al primo saluto
+    expect(firstResponse).toContain("Benvenuto!")
+
+    // Reset di tutti i mock prima del secondo scenario
+    jest.resetAllMocks()
+
+    // Setup per il secondo scenario
+    mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
+      id: "workspace-id",
+      isActive: true,
+      welcomeMessages: {
+        es: "¡Bienvenido! (ES)",
+        en: "Welcome! (EN)",
+        it: "Benvenuto! (IT)",
+      },
+    } as any)
+
+    mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false)
+    mockMessageRepository.findCustomerByPhone.mockResolvedValue({
+      id: "customer-id",
+      name: "Unknown Customer",
+      phone: "+393331234567",
+    } as any)
+
+    // SECONDO SCENARIO: secondo saluto con messaggio di benvenuto precedente
+    mockMessageRepository.getLatesttMessages.mockResolvedValueOnce([
+      {
+        id: "msg-id",
+        direction: "OUTBOUND",
+        content:
+          "Benvenuto! (IT) https://example.com/register?token=test-token",
+        metadata: { agentName: "Welcome" },
+        createdAt: new Date(), // Recente (oggi)
+      },
+    ] as any)
+
+    // Eseguiamo il secondo messaggio "Ciao" (ripetuto)
+    const secondResponse = await messageService.processMessage(
+      "Ciao",
+      "+393331234567",
+      "workspace-id"
+    )
+
+    // Punto chiave: verifichiamo che non ci sia risposta al secondo saluto
+    expect(secondResponse).toBe("")
+
+    // Verifichiamo che il messaggio sia stato salvato con NoResponse
+    expect(mockMessageRepository.saveMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentSelected: "NoResponse",
+        message: "Ciao",
+        response: "",
+      })
+    )
+  })
 })
+
+// Funzione helper per creare un mock completo di TokenService
+function createMockTokenService() {
+  return {
+    prisma: {} as any,
+    createRegistrationToken: jest
+      .fn()
+      .mockImplementation((_phoneNumber: string, _workspaceId: string) =>
+        Promise.resolve("test-token")
+      ),
+    validateToken: jest.fn().mockImplementation(() => Promise.resolve({})),
+    markTokenAsUsed: jest.fn().mockImplementation(() => Promise.resolve()),
+    cleanupExpiredTokens: jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(0)),
+    generateSecureToken: jest.fn().mockImplementation(() => "secure-token"),
+  } as any
+}

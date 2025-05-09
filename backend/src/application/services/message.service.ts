@@ -22,6 +22,12 @@ interface Customer {
   push_notifications_consent_at?: Date
 }
 
+// Define metadata interface to fix the type error
+interface MessageMetadata {
+  agentName?: string
+  [key: string]: any
+}
+
 /**
  * Service for processing messages
  */
@@ -43,6 +49,147 @@ export class MessageService {
   }
 
   /**
+   * Controlla se il messaggio è un saluto in una delle lingue supportate
+   * @param text Testo del messaggio
+   * @returns Codice lingua del saluto o null se non è un saluto
+   */
+  private detectGreeting(text: string): string | null {
+    const normalizedText = text.trim().toLowerCase()
+
+    // Saluti in italiano
+    if (["ciao", "buongiorno", "buonasera", "salve"].includes(normalizedText)) {
+      return "it"
+    }
+
+    // Saluti in inglese
+    if (
+      ["hello", "hi", "hey", "good morning", "good evening"].includes(
+        normalizedText
+      )
+    ) {
+      return "en"
+    }
+
+    // Saluti in spagnolo
+    if (
+      [
+        "hola",
+        "buenos dias",
+        "buenos días",
+        "buenas tardes",
+        "buenas noches",
+      ].includes(normalizedText)
+    ) {
+      return "es"
+    }
+
+    // Saluti in portoghese
+    if (
+      ["olá", "ola", "oi", "bom dia", "boa tarde", "boa noite"].includes(
+        normalizedText
+      )
+    ) {
+      return "pt"
+    }
+
+    return null
+  }
+
+  /**
+   * Controlla se c'è già stato un messaggio di benvenuto recente
+   * @param phoneNumber Il numero di telefono dell'utente
+   * @param workspaceId L'ID del workspace
+   * @returns True se c'è già stato un messaggio di benvenuto, false altrimenti
+   */
+  private async hasRecentWelcomeMessage(
+    phoneNumber: string,
+    workspaceId: string
+  ): Promise<boolean> {
+    try {
+      // Ottieni gli ultimi 30 messaggi per assicurarci di avere una cronologia sufficiente
+      const recentMessages = await this.messageRepository.getLatesttMessages(
+        phoneNumber,
+        30
+      )
+
+      // Log dettagliato per debug
+      logger.info(
+        `[hasRecentWelcomeMessage] Checking for welcome messages for ${phoneNumber}, found ${recentMessages.length} recent messages`
+      )
+
+      // Considera solo i messaggi delle ultime 24 ore
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+
+      // IMPORTANTE: Filtro più semplice e diretto - Controlla se c'è QUALSIASI messaggio in uscita nelle ultime 24 ore
+      // Questo assicura che se l'utente ha ricevuto qualsiasi messaggio dal sistema nelle ultime 24 ore,
+      // non riceverà un nuovo messaggio di benvenuto
+      const hasAnyOutboundMessage = recentMessages.some(
+        (msg) => msg.direction === "OUTBOUND" && msg.createdAt > oneDayAgo
+      )
+
+      if (hasAnyOutboundMessage) {
+        logger.info(
+          `[hasRecentWelcomeMessage] Found recent outbound message for ${phoneNumber}, not sending welcome message again`
+        )
+        return true
+      }
+
+      // Se non ci sono messaggi in uscita recenti, controlla specificamente per i messaggi di benvenuto
+      const hasWelcomeMessage = recentMessages.some((msg) => {
+        // Deve essere un messaggio in uscita (dal sistema all'utente)
+        if (msg.direction !== "OUTBOUND" || msg.createdAt <= oneDayAgo) {
+          return false
+        }
+
+        // Controlla se è specificatamente un messaggio di benvenuto
+        const isWelcome =
+          // Controlla il metadata (più affidabile)
+          (msg.metadata &&
+            (msg.metadata as MessageMetadata)?.agentSelected === "Welcome") ||
+          (msg.metadata &&
+            (msg.metadata as MessageMetadata)?.agentName === "Welcome") ||
+          // Controlla il contenuto (backup)
+          (msg.content &&
+            (msg.content.toLowerCase().includes("welcome") ||
+              msg.content.toLowerCase().includes("benvenuto") ||
+              msg.content.toLowerCase().includes("bienvenido") ||
+              msg.content.toLowerCase().includes("bem-vindo") ||
+              (msg.content.includes("register?") &&
+                (msg.content.includes("http://") ||
+                  msg.content.includes("https://")))))
+
+        if (isWelcome) {
+          logger.info(
+            `[hasRecentWelcomeMessage] Found welcome message: ${msg.content?.substring(
+              0,
+              50
+            )}...`
+          )
+        }
+
+        return isWelcome
+      })
+
+      // Log del risultato finale
+      logger.info(
+        `[hasRecentWelcomeMessage] Result for ${phoneNumber}: ${
+          hasAnyOutboundMessage || hasWelcomeMessage
+        }`
+      )
+
+      // Restituisci true se abbiamo trovato qualsiasi messaggio in uscita o specificamente un messaggio di benvenuto
+      return hasAnyOutboundMessage || hasWelcomeMessage
+    } catch (error) {
+      logger.error(
+        "[hasRecentWelcomeMessage] Error checking for welcome messages:",
+        error
+      )
+      // In caso di errore, per sicurezza consideriamo che non ci sia stato un messaggio di benvenuto
+      return false
+    }
+  }
+
+  /**
    * Process a message and return a response
    *
    * @param message The message to process
@@ -57,6 +204,7 @@ export class MessageService {
   ): Promise<string> {
     let response = ""
     let agentSelected = "" // Variable to track the selected agent
+    let messageSaved = false // Flag to track if the message has been saved
 
     try {
       logger.info(
@@ -122,8 +270,120 @@ export class MessageService {
           response: "",
           agentSelected: "Manual Operator Control",
         })
+        messageSaved = true // Mark message as saved
         // Return empty string to indicate no bot response should be sent
         return ""
+      }
+
+      // Se è un saluto, controlliamo se dobbiamo inviare un messaggio di benvenuto
+      const greetingLang = this.detectGreeting(message)
+
+      // Se è un saluto e c'è già stato un messaggio di benvenuto recente, non rispondere
+      if (
+        greetingLang &&
+        (await this.hasRecentWelcomeMessage(phoneNumber, workspaceId))
+      ) {
+        logger.info(
+          `Repeated greeting detected from ${phoneNumber}, not sending welcome message again`
+        )
+        // Impostiamo direttamente la risposta vuota e l'agente NoResponse
+        // e salviamo il messaggio immediatamente
+        await this.messageRepository.saveMessage({
+          workspaceId,
+          phoneNumber,
+          message,
+          response: "",
+          agentSelected: "NoResponse", // Indichiamo che abbiamo scelto di non rispondere
+        })
+        messageSaved = true // Mark message as saved
+
+        logger.debug(`Saved repeated greeting with agentSelected: NoResponse`)
+
+        // Impostare response a una stringa vuota e saltare il resto della funzione
+        return ""
+      }
+
+      // Se ci sono messaggi di benvenuto configurati, rispondi con un messaggio di benvenuto
+      // sia per saluti riconosciuti che per nuovi utenti non registrati con messaggi non-saluto
+      if (
+        workspaceSettings.welcomeMessages &&
+        (greetingLang || !customer || customer.name === "Unknown Customer")
+      ) {
+        const welcomeMessages = workspaceSettings.welcomeMessages as Record<
+          string,
+          string
+        >
+
+        // Genera un token per la registrazione
+        const token = await this.tokenService.createRegistrationToken(
+          phoneNumber,
+          workspaceId
+        )
+
+        // Assicuriamoci che baseUrl contenga il protocollo HTTP
+        let baseUrl =
+          workspaceSettings.url ||
+          process.env.FRONTEND_URL ||
+          "https://example.com"
+
+        // Aggiungi il protocollo se mancante
+        if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+          baseUrl = "https://" + baseUrl
+        }
+
+        // Costruisci l'URL di registrazione completo
+        const registrationUrl = `${baseUrl}/register?phone=${encodeURIComponent(
+          phoneNumber
+        )}&workspace=${workspaceId}&token=${token}`
+
+        // Per i saluti, usa la lingua del saluto, altrimenti fallback a inglese
+        let welcomeMessage = greetingLang
+          ? welcomeMessages[greetingLang] || welcomeMessages["en"]
+          : welcomeMessages["en"]
+
+        if (!welcomeMessage) {
+          welcomeMessage = "Welcome! Please register here: {link}"
+        }
+
+        // Log per debug
+        logger.debug(`Registration URL: ${registrationUrl}`)
+
+        // Sostituisci i placeholder
+        response = welcomeMessage
+          .replace("{link}", registrationUrl)
+          .replace("{phone}", phoneNumber)
+          .replace("{workspace}", workspaceId)
+
+        // Verifica che il link sia stato correttamente sostituito
+        if (!response.includes("http")) {
+          logger.warn(
+            `Registration link not properly included in welcome message. Adding it explicitly.`
+          )
+          response += `\n\nRegister here: ${registrationUrl}`
+        }
+
+        // Crea un record temporaneo del cliente se non esiste
+        if (!customer) {
+          await this.messageRepository.createCustomer({
+            name: "Unknown Customer",
+            email: `customer-${Date.now()}@example.com`,
+            phone: phoneNumber,
+            workspaceId,
+          })
+        }
+
+        agentSelected = "Welcome"
+
+        await this.messageRepository.saveMessage({
+          workspaceId,
+          phoneNumber,
+          message,
+          response,
+          agentSelected,
+        })
+        messageSaved = true // Mark message as saved
+
+        return response
       }
 
       // If customer doesn't exist, send registration link with secure token
@@ -138,11 +398,18 @@ export class MessageService {
           workspaceId
         )
 
-        // Usa workspaceSettings.url se presente, altrimenti fallback
-        const baseUrl =
+        // Assicuriamoci che baseUrl contenga il protocollo HTTP
+        let baseUrl =
           workspaceSettings.url ||
           process.env.FRONTEND_URL ||
           "https://laltroitalia.shop"
+
+        // Aggiungi il protocollo se mancante
+        if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+          baseUrl = "https://" + baseUrl
+        }
+
+        // Costruisci l'URL di registrazione completo
         const registrationUrl = `${baseUrl}/register?phone=${encodeURIComponent(
           phoneNumber
         )}&workspace=${workspaceId}&token=${token}`
@@ -188,11 +455,17 @@ export class MessageService {
           workspaceId
         )
 
-        // Usa workspaceSettings.url se presente, altrimenti fallback
-        const baseUrl =
+        // Assicuriamoci che baseUrl contenga il protocollo HTTP
+        let baseUrl =
           workspaceSettings.url ||
           process.env.FRONTEND_URL ||
           "https://laltroitalia.shop"
+
+        // Aggiungi il protocollo se mancante
+        if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+          baseUrl = "https://" + baseUrl
+        }
+
         const registrationUrl = `${baseUrl}/register?phone=${encodeURIComponent(
           phoneNumber
         )}&workspace=${workspaceId}&token=${token}`
@@ -275,18 +548,62 @@ export class MessageService {
       return "Sorry, there was an error processing your message. Please try again later."
     } finally {
       // Save both the user message and our response in one call
-      try {
-        await this.messageRepository.saveMessage({
-          workspaceId,
-          phoneNumber,
-          message,
-          response,
-          agentSelected, // Pass the selected agent to the repository
-        })
-        logger.info("Message saved successfully")
-      } catch (saveError) {
-        logger.error("Error saving message:", saveError)
+      // Ma solo se non è già stato salvato in uno dei percorsi precedenti
+      if (!messageSaved) {
+        try {
+          await this.messageRepository.saveMessage({
+            workspaceId,
+            phoneNumber,
+            message,
+            response,
+            agentSelected, // Pass the selected agent to the repository
+          })
+          logger.info("Message saved successfully")
+        } catch (saveError) {
+          logger.error("Error saving message:", saveError)
+        }
       }
     }
+  }
+
+  /**
+   * Genera un messaggio di benvenuto multilingua
+   * @param welcomeMessages Oggetto con i messaggi di benvenuto in diverse lingue
+   * @param language Lingua preferita
+   * @param registrationUrl URL per la registrazione
+   * @returns Il messaggio di benvenuto nella lingua richiesta o in inglese
+   */
+  private getWelcomeMessage(
+    welcomeMessages: any,
+    language: string,
+    registrationUrl: string,
+    phoneNumber: string,
+    workspaceId: string
+  ): string {
+    if (!welcomeMessages) {
+      // Se mancano i messaggi di benvenuto, usa un messaggio predefinito
+      return `Welcome! Please register here: ${registrationUrl}`
+    }
+
+    // Prova a usare il messaggio nella lingua rilevata
+    let welcomeMsg = welcomeMessages[language] || welcomeMessages["en"]
+
+    // Se non c'è un messaggio valido, usa un predefinito
+    if (!welcomeMsg) {
+      welcomeMsg = `Welcome! Please register here: {link}`
+    }
+
+    // Sostituisci il placeholder del link con l'URL di registrazione
+    const result = welcomeMsg
+      .replace("{link}", registrationUrl)
+      .replace("{phone}", phoneNumber)
+      .replace("{workspace}", workspaceId)
+
+    // Verifica che il link sia stato correttamente sostituito
+    if (!result.includes("http")) {
+      return `${result}\n\n ${registrationUrl}`
+    }
+
+    return result
   }
 }
