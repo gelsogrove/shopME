@@ -2,7 +2,8 @@ import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { Button } from "@/components/ui/button"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Chat } from "@/types/chat"
-import { MessageCircle } from "lucide-react"
+// Importiamo l'icona WhatsAppIcon che creiamo internamente
+import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
 import { useEffect, useState } from "react"
 import { Outlet } from "react-router-dom"
 import { Header } from "./Header"
@@ -90,7 +91,7 @@ export function Layout() {
             className="bg-[#25D366] hover:bg-[#22c35e] text-white rounded-full shadow-lg h-14 px-6 flex items-center justify-center gap-2"
             title="WhatsApp Playground"
           >
-            <MessageCircle className="h-6 w-6 fill-white" />
+            <WhatsAppIcon className="h-6 w-6 text-white" />
             <span className="font-medium text-sm">Playground</span>
           </Button>
         </div>

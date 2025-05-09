@@ -1284,4 +1284,319 @@ export class MessageRepository {
       data: { name, email, phone, workspaceId },
     })
   }
+
+  /**
+   * Ottiene il prompt per il router di funzioni
+   * @returns Il contenuto del prompt
+   */
+  async getFunctionRouterPrompt(): Promise<string> {
+    try {
+      // Ottieni il prompt per il function router
+      const functionRouterPrompt = await this.prisma.prompts.findFirst({
+        where: {
+          name: {
+            contains: "function-router",
+            mode: "insensitive",
+          },
+          isActive: true,
+        },
+      })
+
+      if (!functionRouterPrompt) {
+        logger.warn("Function router prompt not found, using default")
+
+        // Fallback: leggi il file direttamente
+        try {
+          const fs = require("fs")
+          const path = require("path")
+          const promptPath = path.join(
+            __dirname,
+            "../../../prisma/prompts/function-router.md"
+          )
+
+          if (fs.existsSync(promptPath)) {
+            return fs.readFileSync(promptPath, "utf8")
+          }
+        } catch (fsError) {
+          logger.error("Error reading function router prompt file:", fsError)
+        }
+
+        // Se tutto fallisce, usa un prompt di default
+        return "You are a function router for a WhatsApp chatbot. Your task is to analyze the user's message and determine which function to call."
+      }
+
+      return functionRouterPrompt.content
+    } catch (error) {
+      logger.error("Error getting function router prompt:", error)
+      return "You are a function router for a WhatsApp chatbot. Your task is to analyze the user's message and determine which function to call."
+    }
+  }
+
+  /**
+   * Chiama il function router di OpenAI per ottenere la funzione da chiamare
+   * @param message Messaggio dell'utente
+   * @returns Risultato della chiamata al function router
+   */
+  async callFunctionRouter(message: string): Promise<any> {
+    try {
+      // Check if OpenAI is properly configured
+      if (!isOpenAIConfigured()) {
+        logger.warn(
+          "OpenAI API key not configured properly for function router"
+        )
+        return {
+          function_call: {
+            name: "get_generic_response",
+            arguments: {},
+          },
+        }
+      }
+
+      // Ottieni il prompt del function router
+      const functionRouterPrompt = await this.getFunctionRouterPrompt()
+
+      // Definisci le funzioni disponibili per OpenAI
+      const availableFunctions = [
+        {
+          name: "get_product_info",
+          description: "Retrieves information about a specific product",
+          parameters: {
+            type: "object",
+            properties: {
+              product_name: {
+                type: "string",
+                description: "The name of the product to get information about",
+              },
+            },
+            required: ["product_name"],
+          },
+        },
+        {
+          name: "get_event_by_date",
+          description: "Retrieves events scheduled for a specific date",
+          parameters: {
+            type: "object",
+            properties: {
+              date: {
+                type: "string",
+                description: "The date in format YYYY-MM-DD",
+              },
+            },
+            required: ["date"],
+          },
+        },
+        {
+          name: "get_service_info",
+          description: "Retrieves information about a specific service",
+          parameters: {
+            type: "object",
+            properties: {
+              service_name: {
+                type: "string",
+                description: "The name of the service to get information about",
+              },
+            },
+            required: ["service_name"],
+          },
+        },
+        {
+          name: "welcome_user",
+          description: "Handles user greetings and generates welcome messages",
+          parameters: {
+            type: "object",
+            properties: {},
+          },
+        },
+        {
+          name: "create_order",
+          description:
+            "Creates a new order using products from the user's cart",
+          parameters: {
+            type: "object",
+            properties: {},
+          },
+        },
+        {
+          name: "get_cart_info",
+          description:
+            "Retrieves information about the user's current shopping cart",
+          parameters: {
+            type: "object",
+            properties: {},
+          },
+        },
+        {
+          name: "get_order_status",
+          description: "Retrieves the status of a user's order",
+          parameters: {
+            type: "object",
+            properties: {
+              order_id: {
+                type: "string",
+                description:
+                  "The ID of the order to check status for (optional)",
+              },
+            },
+          },
+        },
+        {
+          name: "add_to_cart",
+          description: "Adds a product to the user's cart",
+          parameters: {
+            type: "object",
+            properties: {
+              product_name: {
+                type: "string",
+                description: "The name of the product to add to the cart",
+              },
+              quantity: {
+                type: "integer",
+                description: "The quantity of the product to add (default: 1)",
+              },
+            },
+            required: ["product_name"],
+          },
+        },
+        {
+          name: "remove_from_cart",
+          description: "Removes a product from the user's cart",
+          parameters: {
+            type: "object",
+            properties: {
+              product_name: {
+                type: "string",
+                description: "The name of the product to remove from the cart",
+              },
+              quantity: {
+                type: "integer",
+                description: "The quantity of the product to remove (optional)",
+              },
+            },
+            required: ["product_name"],
+          },
+        },
+        {
+          name: "get_product_list",
+          description: "Gets a list of available products",
+          parameters: {
+            type: "object",
+            properties: {
+              limit: {
+                type: "integer",
+                description:
+                  "Maximum number of products to return, default is 10",
+              },
+            },
+          },
+        },
+        {
+          name: "get_products_by_category",
+          description: "Gets products filtered by a specific category",
+          parameters: {
+            type: "object",
+            properties: {
+              category_name: {
+                type: "string",
+                description: "The name of the category to filter products by",
+              },
+              limit: {
+                type: "integer",
+                description:
+                  "Maximum number of products to return, default is 10",
+              },
+            },
+            required: ["category_name"],
+          },
+        },
+        {
+          name: "get_categories",
+          description: "Gets a list of all available product categories",
+          parameters: {
+            type: "object",
+            properties: {},
+          },
+        },
+        {
+          name: "get_faq_info",
+          description: "Retrieves information from the FAQ database",
+          parameters: {
+            type: "object",
+            properties: {
+              question: {
+                type: "string",
+                description: "The question to search for in the FAQ database",
+              },
+            },
+            required: ["question"],
+          },
+        },
+        {
+          name: "get_generic_response",
+          description:
+            "Handles general conversation, greetings, or unclear requests",
+          parameters: {
+            type: "object",
+            properties: {},
+          },
+        },
+      ]
+
+      logger.info(
+        `Calling function router for message: "${message.substring(0, 30)}${
+          message.length > 30 ? "..." : ""
+        }"`
+      )
+
+      // Chiamata all'API OpenAI con le funzioni definite
+      const response = await openai.chat.completions.create({
+        model: "openai/gpt-4o-mini",
+        messages: [
+          { role: "system", content: functionRouterPrompt },
+          { role: "user", content: message },
+        ],
+        functions: availableFunctions,
+        function_call: "auto",
+      })
+
+      // Estrai la chiamata di funzione dal risultato
+      const functionCall = response.choices[0]?.message?.function_call
+
+      if (!functionCall) {
+        logger.warn("No function call returned by OpenAI")
+        return {
+          function_call: {
+            name: "get_generic_response",
+            arguments: {},
+          },
+        }
+      }
+
+      // Parsing degli argomenti della funzione
+      let functionArgs = {}
+      try {
+        if (functionCall.arguments) {
+          functionArgs = JSON.parse(functionCall.arguments)
+        }
+      } catch (error) {
+        logger.error("Error parsing function arguments:", error)
+      }
+
+      logger.info(`Function router selected: ${functionCall.name}`)
+
+      return {
+        function_call: {
+          name: functionCall.name,
+          arguments: functionArgs,
+        },
+      }
+    } catch (error) {
+      logger.error("Error calling function router:", error)
+      return {
+        function_call: {
+          name: "get_generic_response",
+          arguments: {},
+        },
+      }
+    }
+  }
 }

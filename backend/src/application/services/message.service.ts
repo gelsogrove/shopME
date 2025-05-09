@@ -244,11 +244,9 @@ export class MessageService {
         phoneNumber
       )
       if (isBlacklisted) {
-        logger.warn(
-          `Phone number ${phoneNumber} is blacklisted. Message rejected.`
-        )
-        // Silently ignore the message without responding
-        return ""
+        // Non fare nulla, non salvare nei log, ritornare null
+        // L'utente bloccato scriverà a vuoto senza ricevere risposte
+        return null
       }
 
       // Check if customer exists - simplified binary check
@@ -304,11 +302,8 @@ export class MessageService {
       }
 
       // Se ci sono messaggi di benvenuto configurati, rispondi con un messaggio di benvenuto
-      // sia per saluti riconosciuti che per nuovi utenti non registrati con messaggi non-saluto
-      if (
-        workspaceSettings.welcomeMessages &&
-        (greetingLang || !customer || customer.name === "Unknown Customer")
-      ) {
+      // solo per saluti riconosciuti
+      if (workspaceSettings.welcomeMessages && greetingLang) {
         const welcomeMessages = workspaceSettings.welcomeMessages as Record<
           string,
           string
@@ -337,9 +332,8 @@ export class MessageService {
         )}&workspace=${workspaceId}&token=${token}`
 
         // Per i saluti, usa la lingua del saluto, altrimenti fallback a inglese
-        let welcomeMessage = greetingLang
-          ? welcomeMessages[greetingLang] || welcomeMessages["en"]
-          : welcomeMessages["en"]
+        let welcomeMessage =
+          welcomeMessages[greetingLang] || welcomeMessages["en"]
 
         if (!welcomeMessage) {
           welcomeMessage = "Welcome! Please register here: {link}"
@@ -386,6 +380,14 @@ export class MessageService {
         return response
       }
 
+      // If customer doesn't exist and didn't send a standard greeting, return null
+      if (!customer && !greetingLang) {
+        logger.info(
+          "New user detected with non-standard greeting - not responding"
+        )
+        return null
+      }
+
       // If customer doesn't exist, send registration link with secure token
       if (!customer) {
         logger.info(
@@ -420,8 +422,22 @@ export class MessageService {
           workspaceName = workspaceSettings.name
         }
 
-        // Create a welcome message
-        response = `Welcome to ${workspaceName}! To continue with our service, please complete your registration here: ${registrationUrl}`
+        // Ottieni la lingua dal saluto o usa l'inglese come fallback
+        const language = greetingLang || "en"
+
+        // Usa il metodo getWelcomeMessage per generare un messaggio di benvenuto multilingua
+        if (workspaceSettings.welcomeMessages) {
+          response = this.getWelcomeMessage(
+            workspaceSettings.welcomeMessages,
+            language,
+            registrationUrl,
+            phoneNumber,
+            workspaceId
+          )
+        } else {
+          // Fallback al messaggio di benvenuto standard
+          response = `Welcome to ${workspaceName}! To continue with our service, please complete your registration here: ${registrationUrl}`
+        }
 
         // Create temporary customer record
         let tempCustomer = await this.messageRepository.findCustomerByPhone(
@@ -506,7 +522,10 @@ export class MessageService {
           // Process agent prompt to replace variables like {customerLanguage}
           if (selectedAgent.content && customer) {
             // Replace customerLanguage placeholder with actual customer language
+            // Per utenti registrati usiamo la lingua salvata nel loro profilo
             const customerLanguage = customer.language || "Italian"
+            logger.info(`Using customer language: ${customerLanguage}`)
+
             selectedAgent._replacedPrompt = selectedAgent.content.replace(
               /\{customerLanguage\}/g,
               customerLanguage

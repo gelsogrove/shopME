@@ -7,6 +7,7 @@ ShopMe is a revolutionary SaaS platform that transforms WhatsApp into a powerful
 ### Why ShopMe Matters
 
 In today's digital landscape, businesses face numerous challenges:
+
 - Customer support is increasingly expected to be available 24/7
 - Consumer attention is fragmented across multiple platforms
 - Traditional e-commerce requires customers to download apps or navigate websites
@@ -64,18 +65,21 @@ As our first implementation, the platform will be specialized in selling high-qu
 While the initial MVP focuses exclusively on e-commerce for Italian products, the platform is architecturally designed to support future expansion into various service-based industries including:
 
 **Gym & Fitness Centers**:
+
 - Class booking and membership management
 - Personal training session scheduling
 - Workout plan delivery through messaging
 - Fitness goal tracking and progress updates
 
 **Restaurants & Cafes**:
+
 - Table reservations and wait list management
 - Digital menu browsing via chat interface
 - Special event bookings (private dining, catering)
 - Delivery coordination through messaging
 
 **Hotels & Accommodations**:
+
 - Room booking and availability checking via WhatsApp
 - Automated check-in/check-out reminders
 - Special requests handling through chat interface
@@ -183,6 +187,7 @@ The platform is designed for any business that offers products or services to cl
 These features have been determined to be completely out of scope for the current version of the product. Unlike Non-Goals (MVP) which will be implemented in future phases, these features are not planned for implementation in the immediate roadmap.
 
 1. **Order Management System:**
+
    - Complete order processing and tracking
    - Order status management
    - Invoice generation and management
@@ -191,6 +196,7 @@ These features have been determined to be completely out of scope for the curren
    - **Rationale:** After evaluation, we've determined that the full order management system requires significant integration with external systems (payment, shipping, etc.) and complex business logic that would extend beyond our current development capacity. Users can still browse products and interact with the chatbot, but actual order processing will need to be handled through external systems.
 
 2. **Marketing Campaign Management:**
+
    - Campaign creation and scheduling
    - A/B testing tools
    - Campaign analytics
@@ -497,6 +503,7 @@ To prevent system abuse and ensure fair resource allocation, the platform implem
 - The system maintains logs of blocking events for security analysis
 
 Additionally, administrators can manually block problematic users directly from the chat interface:
+
 - A block button in the chat header allows for immediate blocking of the current user
 - When manually blocked, users receive notification about their blocked status
 - Administrators can view and manage all blocked users from a centralized section in the dashboard
@@ -541,8 +548,9 @@ This dual approach (automatic and manual blocking) protects against spam attacks
 6. **Order Management and Tracking:**
 
    > ⚠️ Note: This feature has been moved to Out of Scope. See "Out of Scope Features" section for details.
-   
+
    The following functionality was originally planned but is now out of scope:
+
    - Order History: View past purchases and current order status
    - Shipment Tracking: Real-time updates on shipment status
    - Invoice Management: Generate and download invoices
@@ -617,55 +625,62 @@ The API is implemented through the following core function:
 
 ```javascript
 try {
-    // Check if challenge is active
-    if (!isChallengeActive()) {
-        inactiveMessage = getInactiveMessage()
-        sendMessage(inactiveMessage);
-        return;
-    }
+  // Check if challenge is active
+  if (!isChallengeActive()) {
+    inactiveMessage = getInactiveMessage()
+    sendMessage(inactiveMessage)
+    return
+  }
 
-    let systemResp;
-    const message = GetQuestion();  
-    const userID = GetUserId();
-    const userInfo = getUserData(userID);
-    const isNewUser = isPresent(userInfo) ? false : true;
-  
-    if (isNewUser) {
-        // New link to the registration form
-         return "LINK";   
-    } else {
+  let systemResp
+  const message = GetQuestion()
+  const userID = GetUserId()
+  const userInfo = getUserData(userID)
+  const isNewUser = isPresent(userInfo) ? false : true
 
-        // 0. GET DATA
-        routerAgent = getRouterAgent()
-        const agentSelected = GetAgentDedicatedFromRouterAgent(routerAgent,message);
-        const prompt = loadPrompt(agentSelected);  
-        const orders = getOrders();
-        const products = getProducts();  
-        const historyMessages = GetHistory("last 30 messages");
+  if (isNewUser) {
+    // New link to the registration form
+    return "LINK"
+  } else {
+    // 0. GET DATA
+    routerAgent = getRouterAgent()
+    const agentSelected = GetAgentDedicatedFromRouterAgent(routerAgent, message)
+    const prompt = loadPrompt(agentSelected)
+    const orders = getOrders()
+    const products = getProducts()
+    const historyMessages = GetHistory("last 30 messages")
 
-        // 1. TOKENIZE (ora restituisce anche la mappa)
-        const { fakeMessage, fakeUserInfo, tokenMap } = Tokenize(message, userInfo);
+    // 1. TOKENIZE (ora restituisce anche la mappa)
+    const { fakeMessage, fakeUserInfo, tokenMap } = Tokenize(message, userInfo)
 
-        // 2. OPENROUTER 
-        systemResp = getResponse(prompt, agentSelected, historyMessages, fakeMessage, fakeUserInfo, orders, products);
-        // Attach a calling function when we have the order details  
-        // Attach a calling function when we have to send the invoices     
+    // 2. OPENROUTER
+    systemResp = getResponse(
+      prompt,
+      agentSelected,
+      historyMessages,
+      fakeMessage,
+      fakeUserInfo,
+      orders,
+      products
+    )
+    // Attach a calling function when we have the order details
+    // Attach a calling function when we have to send the invoices
 
-         // 4. CONVERSIONAL RESPONSE
-        systemResp = conversationalResponse("metti la frase in maniera discorsiva:" + systemResp);
- 
-        // 5. DETOKENIZE
-        const resp = Detokenize(systemResp, systemResp);
-        
-        // 6. SAVE TO HISTORY
-        saveToChatHistory(userID, agentSelected, message, resp);  
+    // 4. CONVERSIONAL RESPONSE
+    systemResp = conversationalResponse(
+      "metti la frase in maniera discorsiva:" + systemResp
+    )
 
-        return resp;  
-    }
+    // 5. DETOKENIZE
+    const resp = Detokenize(systemResp, systemResp)
 
-    
+    // 6. SAVE TO HISTORY
+    saveToChatHistory(userID, agentSelected, message, resp)
+
+    return resp
+  }
 } catch (error) {
-    console.error("Errore in main:", error);
+  console.error("Errore in main:", error)
 }
 ```
 
@@ -683,6 +698,7 @@ These models support the conversational interface shown in the platform's chat i
 ![Chat Interface](https://path-to-chat-interface-image.png)
 
 The interface provides:
+
 - List of recent conversations on the left panel
 - Detailed conversation view on the right panel
 - Real-time message exchange with timestamps
@@ -1304,6 +1320,7 @@ This architecture will ensure a robust, secure, and scalable backend system, in 
   - **Returns**: Created client details
 
 - `PUT /api/clients/:id`
+
   - **Description**: Updates client information
   - **Parameters**: `id` (required): Client identifier
   - **Body**: Updated client details
@@ -1311,7 +1328,878 @@ This architecture will ensure a robust, secure, and scalable backend system, in 
 
 - `POST /api/clients/register`
 
-  - **Description**: Handles registration from WhatsApp-generated registration link 
+  - **Description**: Handles registration from WhatsApp-generated registration link
+  - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `language`, `currency`, `gdpr_consent` (boolean), `push_notifications_consent` (boolean, optional)
+  - **Returns**: Registration confirmation and redirect to WhatsApp with instructions to continue the conversation
+  - **Note**: This endpoint is specifically designed for the web form accessed via the registration link sent through WhatsApp to new users
+
+### Cart Management
+
+- `GET /api/cart/:user_id`
+
+  - **Description**: Retrieves user's cart
+  - **Parameters**: `user_id` (required): User identifier
+  - **Returns**: Cart contents with product details
+
+- `POST /api/cart`
+
+  - **Description**: Adds a product to the cart
+  - **Body**: `user_id`, `product_id`, `quantity`
+  - **Returns**: Updated cart contents
+
+- `PUT /api/cart`
+
+  - **Description**: Modifies a product in the cart
+  - **Body**: `cart_id`, `product_id`, `quantity`
+  - **Returns**: Updated cart contents
+
+- `DELETE /api/cart`
+  - **Description**: Removes a product from the cart
+  - **Body**: `cart_id`, `product_id`
+  - **Returns**: Updated cart contents
+
+### Workspace Management
+
+- `GET /api/workspaces`
+
+  - **Description**: Retrieves all workspaces for the user
+  - **Headers**: `Authorization` with JWT token
+  - **Returns**: List of workspaces user has access to
+
+- `POST /api/workspaces`
+
+  - **Description**: Creates a new workspace
+  - **Body**: `name`, `description`, `settings`
+  - **Returns**: Created workspace details
+
+- `PUT /api/workspaces/:id`
+
+  - **Description**: Updates workspace settings
+  - **Parameters**: `id` (required): Workspace ID
+  - **Body**: Workspace details to update
+  - **Returns**: Updated workspace details
+
+- `DELETE /api/workspaces/:id`
+  - **Description**: Deletes a workspace
+  - **Parameters**: `id` (required): Workspace ID
+  - **Returns**: Success message
+
+### Settings Management
+
+- `GET /api/settings`
+
+  - **Description**: Retrieves workspace settings
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: All workspace settings
+
+- `PUT /api/settings`
+  - **Description**: Updates workspace settings
+  - **Body**: `workspace_id`, settings to update
+  - **Returns**: Updated settings
+
+### AI Configuration Settings
+
+- `GET /api/settings/ai`
+
+  - **Description**: Retrieves AI generation settings for the workspace
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: Current AI configuration parameters including temperature, top_p, and top_k values
+
+- `PUT /api/settings/ai`
+
+  - **Description**: Updates AI generation parameters
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Body**:
+    ```
+    {
+      "temperature": float, // Value between 0.0-1.0 controlling randomness
+      "top_p": float,       // Nucleus sampling parameter (0.0-1.0)
+      "top_k": integer,     // Limits token selection to top K options
+      "max_tokens": integer // Maximum tokens to generate in responses
+    }
+    ```
+  - **Returns**: Updated AI settings
+
+The AI configuration settings control how the AI model generates responses:
+
+- **Temperature**: Controls randomness. Lower values (e.g., 0.2) make responses more focused and deterministic, while higher values (e.g., 0.8) make output more creative and diverse.
+- **Top_p (Nucleus Sampling)**: Controls diversity by dynamically selecting from tokens whose cumulative probability exceeds the top_p value. Lower values (e.g., 0.5) make responses more focused, while higher values allow for more variety.
+- **Top_k**: Limits the model to consider only the top k most likely tokens at each step, reducing the chance of generating low-probability or irrelevant tokens.
+- **Max Tokens**: Defines the maximum length of generated responses to control verbosity and resource usage.
+
+These parameters allow workspace administrators to fine-tune the AI behavior to match their specific business needs, brand voice, and customer communication style.
+
+### User Management
+
+- `GET /api/users/:phone`
+
+  - **Description**: User identification and profile retrieval
+  - **Parameters**: `phone` (required): User's phone number
+  - **Returns**: User profile information
+
+- `GET /api/users`
+
+  - **Description**: Retrieves all users in the workspace
+  - **Parameters**: `workspace_id` (required), `role`, `page`, `limit`
+  - **Returns**: Paginated list of users
+
+- `POST /api/users`
+
+  - **Description**: Creates a new user
+  - **Body**: `email`, `password`, `name`, `role`, `workspace_id`
+  - **Returns**: Created user details
+
+- `PUT /api/users/:id`
+
+  - **Description**: Updates user information
+  - **Parameters**: `id` (required): User ID
+  - **Body**: User details to update
+  - **Returns**: Updated user details
+
+- `DELETE /api/users/:id`
+  - **Description**: Deletes a user
+  - **Parameters**: `id` (required): User ID
+  - **Returns**: Success message
+
+### Analytics API
+
+- `GET /api/analytics/overview`
+
+  - **Description**: Retrieves general statistics
+  - **Returns**: Total active users, total messages, revenue, growth percentages
+
+- `GET /api/analytics/recent-activity`
+  - **Description**: Retrieves recent activities
+  - **Returns**: New registrations, added products, received orders, activity timestamps
+
+### Dashboard API
+
+- `GET /api/dashboard/stats`
+  - **Description**: Retrieves statistics for the dashboard
+  - **Parameters**: `period` (optional): daily/weekly/monthly
+  - **Returns**: Active Users count, Total Messages count, Revenue, Growth percentages
+
+**Cross-cutting Requirements**:
+
+- All APIs are protected by JWT tokens
+- Communication exclusively via HTTPS
+- Request logging and tracking
+- Standardized error handling
+
+## 9. n8n Integration and Workflow Automation
+
+### Overview
+
+n8n is a workflow automation platform that serves as a crucial middleware component in the ShopMe architecture. It provides low-code/no-code capabilities to create complex workflows that connect WhatsApp messages with the ShopMe API and other services. This integration layer allows for flexible processing of message data, implementing business logic, and handling the communication flow between customers and the system.
+
+### Core Functionality
+
+- **Message Routing**: Acts as the central hub for incoming and outgoing WhatsApp messages
+- **Webhook Management**: Receives webhooks from WhatsApp Business API and forwards processed data
+- **Data Transformation**: Formats data between different systems in the architecture
+- **Conditional Logic**: Implements business rules for message processing
+- **API Integration**: Connects with the ShopMe API and third-party services
+- **Error Handling**: Manages exceptions and provides retry mechanisms
+
+### Key Workflows
+
+#### 1. Incoming Message Processing
+
+```mermaid
+flowchart TD
+    A[WhatsApp Webhook] --> B[n8n Webhook Trigger]
+    B --> C{Message Type?}
+    C -->|Text| D[Text Processing]
+    C -->|Media| E[Media Processing]
+    C -->|Location| F[Location Processing]
+    C -->|Order| G[Order Processing]
+    D --> H[Context Analysis]
+    E --> H
+    F --> H
+    G --> H
+    H --> I[API Request to ShopMe]
+    I --> J{Response Type?}
+    J -->|AI Needed| K[Send to OpenRouter]
+    J -->|Direct Response| L[Format Response]
+    K --> L
+    L --> M[Send to WhatsApp API]
+```
+
+This workflow handles all incoming messages from WhatsApp:
+
+1. **Initial Processing**:
+
+   - Receives webhook data from WhatsApp
+   - Extracts relevant information (sender, message content, timestamp)
+   - Identifies message type (text, media, location, order)
+
+2. **Context Building**:
+
+   - Retrieves conversation history
+   - Identifies the client and their associated workspace
+   - Determines the appropriate handling for the message
+
+3. **API Integration**:
+
+   - Sends the processed message to the ShopMe API
+   - Receives response data with instructions on how to respond
+
+4. **Response Handling**:
+   - Formats the response according to WhatsApp message standards
+   - Sends the response back to the customer via WhatsApp API
+
+#### 2. Product Catalog Workflow
+
+```mermaid
+flowchart TD
+    A[Product Request] --> B[n8n Processing]
+    B --> C[Fetch Products from API]
+    C --> D[Format Product Display]
+    D --> E{Product Count?}
+    E -->|Single| F[Send Product Card]
+    E -->|Multiple| G[Send Product List]
+    F --> H[Add Interactive Buttons]
+    G --> H
+    H --> I[Send to WhatsApp API]
+```
+
+This workflow manages product catalog browsing via WhatsApp:
+
+1. **Request Identification**:
+
+   - Recognizes product catalog requests or product searches
+   - Prepares query parameters for the API
+
+2. **Product Retrieval**:
+
+   - Fetches product data from the ShopMe API
+   - Processes and filters results based on customer request
+
+3. **Display Formatting**:
+
+   - Creates visually appealing product cards with images
+   - Generates interactive elements for browsing and selection
+
+4. **Interactive Options**:
+   - Adds buttons for Add to Cart, View Details, etc.
+   - Creates navigation options for catalog browsing
+
+#### 3. Order Management Workflow
+
+```mermaid
+flowchart TD
+    A[Order Action] --> B[n8n Processing]
+    B --> C{Action Type?}
+    C -->|Create| D[Create Order Flow]
+    C -->|Update| E[Update Order Flow]
+    C -->|Cancel| F[Cancel Order Flow]
+    C -->|Status| G[Check Status Flow]
+    D --> H[Send to ShopMe API]
+    E --> H
+    F --> H
+    G --> H
+    H --> I[Process Response]
+    I --> J[Format Confirmation]
+    J --> K[Send to WhatsApp API]
+```
+
+This workflow handles order-related operations:
+
+1. **Order Action Detection**:
+
+   - Identifies order-related requests (create, modify, cancel, status check)
+   - Validates the customer's permissions for the requested action
+
+2. **Order Processing**:
+
+   - Sends the order data to the ShopMe API
+   - Processes the response to confirm successful operations
+
+3. **Confirmation Generation**:
+   - Creates confirmation messages with order details
+   - Provides next steps or alternative options
+
+#### 4. AI Response Workflow
+
+```mermaid
+flowchart TD
+    A[Complex Query] --> B[n8n Processing]
+    B --> C[Prepare Context Data]
+    C --> D[Tokenize PII]
+    D --> E[Send to ShopMe API]
+    E --> F[API sends to OpenRouter]
+    F --> G[Receive AI Response]
+    G --> H[De-tokenize PII]
+    H --> I[Format Response]
+    I --> J[Send to WhatsApp API]
+```
+
+This workflow manages AI-assisted responses:
+
+1. **Query Preparation**:
+
+   - Identifies complex queries requiring AI assistance
+   - Collects relevant context information
+
+2. **Security Processing**:
+
+   - Tokenizes personally identifiable information (PII)
+   - Ensures sensitive data is protected
+
+3. **AI Integration**:
+
+   - Routes the processed query to the ShopMe API
+   - API forwards to OpenRouter for AI processing
+
+4. **Response Handling**:
+   - Receives and de-tokenizes the AI response
+   - Formats the response for WhatsApp delivery
+
+#### Data Tokenization Implementation
+
+To protect user privacy and ensure GDPR compliance, the system implements a tokenization service for all data processed by external AI models. This process replaces sensitive information with non-identifying tokens before sending data to OpenRouter, then reverses the process when receiving the response.
+
+##### Tokenization Process
+
+1. **Sensitive Data Identification**: The system identifies PII such as names, phone numbers, addresses, and other sensitive information in incoming messages
+2. **Token Generation**: Each piece of sensitive data is replaced with a unique token
+3. **Mapping Storage**: A mapping between tokens and original values is created and stored temporarily in the session
+4. **Processing**: The tokenized data is processed by the AI model
+5. **De-tokenization**: AI responses are scanned for tokens, which are replaced with the original values before sending back to the user
+
+##### Technical Implementation
+
+The tokenization service is implemented as follows:
+
+```typescript
+// Types definition
+export type SensitiveItem = {
+  type: string // e.g. 'NAME', 'PHONE', 'ADDRESS'
+  value: string
+}
+
+export type TokenMapping = Record<string, string>
+
+/**
+ * Tokenizes sensitive information in text
+ * @param text Original text containing sensitive information
+ * @param sensitiveData Array of sensitive items to tokenize
+ * @returns Object containing tokenized text and mapping for detokenization
+ */
+export function tokenize(
+  text: string,
+  sensitiveData: SensitiveItem[]
+): { tokenizedText: string; mapping: TokenMapping } {
+  const mapping: TokenMapping = {}
+  let tokenizedText = text
+
+  sensitiveData.forEach((item, index) => {
+    const token = `TOKEN_${item.type}_${index + 1}`
+    mapping[token] = item.value
+
+    // Replace all occurrences (case-sensitive)
+    const escaped = item.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    const regex = new RegExp(escaped, "g")
+    tokenizedText = tokenizedText.replace(regex, token)
+  })
+
+  return { tokenizedText, mapping }
+}
+
+/**
+ * Detokenizes text by replacing tokens with original values
+ * @param text Tokenized text
+ * @param mapping Token to original value mapping
+ * @returns Detokenized text with original values
+ */
+export function detokenize(text: string, mapping: TokenMapping): string {
+  let result = text
+  for (const [token, value] of Object.entries(mapping)) {
+    const regex = new RegExp(token, "g")
+    result = result.replace(regex, value)
+  }
+  return result
+}
+```
+
+##### Example Usage
+
+```typescript
+import { tokenize, detokenize } from "./tokenizer"
+
+// Original message with sensitive information
+const message =
+  "Ciao, sono Andrea Gelsomino. Il mio numero è +34 612345678 e vivo a Barcellona."
+
+// Identified sensitive data
+const sensitiveData = [
+  { type: "NAME", value: "Andrea Gelsomino" },
+  { type: "PHONE", value: "+34 612345678" },
+  { type: "CITY", value: "Barcellona" },
+]
+
+// Tokenize the message
+const { tokenizedText, mapping } = tokenize(message, sensitiveData)
+
+// Result: "Ciao, sono TOKEN_NAME_1. Il mio numero è TOKEN_PHONE_2 e vivo a TOKEN_CITY_3."
+console.log("Tokenized:", tokenizedText)
+
+// Send tokenized text to AI service
+
+// Simulated AI response containing tokens
+const aiReply = `Grazie TOKEN_NAME_1, ho registrato il numero TOKEN_PHONE_2 per l'utente a TOKEN_CITY_3.`
+
+// Detokenize the AI response
+const finalResponse = detokenize(aiReply, mapping)
+
+// Result: "Grazie Andrea Gelsomino, ho registrato il numero +34 612345678 per l'utente a Barcellona."
+console.log("Final AI Reply:", finalResponse)
+```
+
+### Implementation Strategy
+
+#### 1. Development Approach
+
+- **Template Workflows**: Pre-built workflow templates for common scenarios
+- **Modular Design**: Reusable components for different parts of message processing
+- **Environment Configuration**: Separate development, staging, and production environments
+- **Version Control**: Workflows stored in Git repositories for tracking changes
+
+#### 2. Deployment Process
+
+- **Initial Setup**: Configuration of n8n instance with connection to WhatsApp API
+- **Workflow Deployment**: Automated deployment of workflows via CI/CD pipeline
+- **Testing Strategy**: Comprehensive testing with mock WhatsApp messages
+
+#### 3. Monitoring and Maintenance
+
+- **Performance Monitoring**: Tracking of workflow execution times and success rates
+- **Error Alerts**: Notification system for failed workflows
+- **Audit Logging**: Detailed logs of all message processing for debugging
+- **Capacity Planning**: Regular assessment of workflow capacity needs
+
+### Integration Points
+
+#### 1. WhatsApp Business API
+
+- **Webhook Configuration**: Setup to receive all incoming WhatsApp messages
+- **Message Types**: Processing of text, media, location, and interactive messages
+- **Templates**: Management of pre-approved message templates
+- **Authentication**: Secure token management for API access
+
+#### 2. ShopMe API
+
+- **Authentication**: JWT-based authentication for secure API access
+- **Endpoints**: Integration with various API endpoints (products, orders, clients)
+- **Error Handling**: Graceful handling of API errors and retries
+- **Rate Limiting**: Respect for API rate limits and throttling
+
+#### 3. Third-Party Services
+
+- **Payment Gateways**: Integration with payment processing for orders
+- **Media Storage**: Handling of images and other media files
+- **Notification Services**: Integration with email or SMS providers for alerts
+
+### Deployment Strategy
+
+The n8n workflow automation component will be deployed using a two-phase approach:
+
+#### 1. Development Environment
+
+- **Local Development**: The free version of n8n will be used during development and testing
+- **Self-Hosted Setup**: Developers will run n8n locally to create and test workflows
+- **Docker-Based**: Local instances will use Docker for consistent environment configuration
+- **Workflow Export/Import**: Workflows will be exported as JSON for version control and sharing
+- **Mock Webhook Endpoints**: Development uses tools like ngrok to test webhook functionality
+
+#### 2. Production Environment
+
+- **Heroku Deployment**: Production environment will be hosted on Heroku
+- **Heroku Add-ons**:
+  - PostgreSQL for workflow storage
+  - Redis for caching and queue management
+- **Autoscaling Configuration**: Configured to handle varying loads
+- **Persistent Storage**: Ensuring workflow data isn't lost between deployments
+- **TLS Encryption**: Secure communication for all webhook endpoints
+- **Backup Strategy**: Regular automated backups of workflow configurations
+- **Monitoring Integration**: Connected to application monitoring services
+
+This deployment strategy allows for cost-effective development while ensuring scalable, reliable performance in production.
+
+### Security Considerations
+
+- **Credential Management**: Secure storage of API keys and tokens
+- **Data Encryption**: Encryption of sensitive data in transit
+- **Access Control**: Limited access to workflow configuration
+- **Audit Trails**: Comprehensive logging of all workflow executions
+- **Data Retention**: Policies for retaining message and order data
+
+### Business Continuity
+
+- **Failover Mechanisms**: Redundant n8n instances for high availability
+- **Backup Procedures**: Regular backups of workflow configurations
+- **Disaster Recovery**: Procedures for quickly restoring workflow functionality
+- **Scaling Strategy**: Horizontal scaling to handle increased message volume
+
+## 10. API Endpoints
+
+## 11. Casi Speciali di Gestione dei Messaggi
+
+Per garantire un'esperienza utente ottimale e proteggere il sistema da utilizzi impropri, la piattaforma implementa una serie di casi speciali nella gestione dei messaggi. Questa sezione descrive in dettaglio come il sistema si comporta in vari scenari.
+
+### 11.1 Gestione dei Nuovi Utenti
+
+#### Primo Contatto
+
+- **Solo saluti standard**: Il sistema risponde solo se il primo messaggio dell'utente è uno dei saluti standard riconosciuti: "Ciao", "Hello", "Hola" o "Olá"
+- **Rilevamento lingua**: La lingua del saluto determina la lingua della risposta di benvenuto
+- **Link di registrazione**: L'utente riceve un messaggio di benvenuto nella lingua rilevata con un link di registrazione
+- **Altri messaggi**: Se un nuovo utente invia un messaggio che non è un saluto standard, il sistema non risponde
+
+#### Esempio di flusso:
+
+1. **Utente** (nuovo): "Ciao"
+2. **Sistema**: "Benvenuto! Per continuare, completa la registrazione qui: [link]" (in italiano)
+3. **Utente** (nuovo): "Hello"
+4. **Sistema**: "Welcome! To continue, please complete the registration here: [link]" (in inglese)
+5. **Utente** (nuovo): "Come posso ordinare?"
+6. **Sistema**: _Nessuna risposta_ (poiché non è un saluto standard)
+
+### 11.2 Gestione Utenti in Blacklist
+
+Il sistema implementa un meccanismo di protezione contro utenti indesiderati:
+
+- **Nessuna risposta**: Se un numero di telefono è nella blacklist, il sistema non risponde ai suoi messaggi
+- **Nessun log**: I messaggi da utenti in blacklist non vengono salvati nei log
+- **Comportamento silenzioso**: L'utente bloccato scriverà a vuoto senza ricevere alcuna risposta o notifica
+- **Priorità alta**: La verifica della blacklist è uno dei primi controlli effettuati, prima di qualsiasi altra elaborazione
+
+### 11.3 Controllo Manuale dell'Operatore
+
+La piattaforma consente la disattivazione temporanea del chatbot per specifici utenti:
+
+- **Flag activeChatbot**: Ogni utente ha un flag `activeChatbot` che può essere impostato a `false`
+- **Nessuna risposta automatica**: Quando `activeChatbot` è `false`, il sistema non invia risposte automatiche
+- **Tracciamento**: I messaggi vengono comunque salvati nel database con `agentSelected` = "Manual Operator Control"
+- **Risposta vuota**: Il sistema ritorna una stringa vuota invece di una risposta generata dall'AI
+
+### 11.4 Gestione Messaggi Multilingua
+
+Il sistema supporta la comunicazione in più lingue:
+
+- **Per nuovi utenti**: La lingua viene determinata dal saluto iniziale
+- **Per utenti registrati**: La lingua viene salvata nel profilo dell'utente
+- **Fallback**: Se la lingua preferita non è disponibile, il sistema utilizza l'inglese
+- **Sostituzione dinamica**: I prompt degli agenti AI contengono placeholder `{customerLanguage}` che vengono sostituiti con la lingua dell'utente
+
+#### Lingue supportate per i saluti iniziali:
+
+- 🇮🇹 Italiano: "Ciao", "Buongiorno", "Buonasera", "Salve"
+- 🇬🇧 Inglese: "Hello", "Hi", "Hey", "Good morning", "Good evening"
+- 🇪🇸 Spagnolo: "Hola", "Buenos dias", "Buenos días", "Buenas tardes", "Buenas noches"
+- 🇵🇹 Portoghese: "Olá", "Ola", "Oi", "Bom dia", "Boa tarde", "Boa notte"
+
+### 11.5 Prevenzione Messaggi Duplicati
+
+Per evitare spam e risposte ripetitive:
+
+- **Rilevamento saluti ripetuti**: Se un utente invia un saluto e ha già ricevuto un messaggio di benvenuto nelle ultime 24 ore, non riceverà un nuovo messaggio di benvenuto
+- **Tag NoResponse**: I messaggi di saluto ripetuti vengono salvati con `agentSelected` = "NoResponse"
+- **Risposta vuota**: Il sistema ritorna una stringa vuota invece di inviare nuovamente il messaggio di benvenuto
+- **Durata**: Il rilevamento dei saluti ripetuti considera i messaggi inviati nelle ultime 24 ore
+
+### 11.6 Filtri Sui Contenuti
+
+Il sistema filtra automaticamente i contenuti inappropriati:
+
+- **Prodotti inattivi**: Solo i prodotti con `isActive` = `true` vengono mostrati nelle risposte
+- **Servizi inattivi**: Solo i servizi con `isActive` = `true` vengono mostrati nelle risposte
+- **Link obbligatorio**: I messaggi di benvenuto devono sempre contenere il link di registrazione; se non viene rilevato, il sistema lo aggiunge automaticamente
+
+### 11.7 Gestione Canale Inattivo
+
+Quando un workspace è disattivato:
+
+- **Messaggio multilingua**: Gli utenti ricevono un messaggio nella loro lingua preferita
+- **Configurazione personalizzabile**: I messaggi di inattività possono essere personalizzati per ogni lingua
+- **Fallback**: Se non è disponibile un messaggio nella lingua dell'utente, viene utilizzato il messaggio in inglese
+- **Messaggio predefinito**: Se non sono configurati messaggi personalizzati, viene mostrato "WhatsApp channel is inactive"
+
+### Authentication
+
+- `POST /api/auth/login`
+
+  - **Description**: Authenticates a user and returns a JWT token
+  - **Body**: `email`, `password`
+  - **Returns**: JWT token, user information
+
+- `POST /api/auth/logout`
+
+  - **Description**: Logs out the current user
+  - **Headers**: `Authorization` with JWT token
+  - **Returns**: Success message
+
+- `POST /api/auth/refresh`
+
+  - **Description**: Refreshes the JWT token
+  - **Headers**: `Authorization` with current JWT token
+  - **Returns**: New JWT token
+
+- `GET /api/auth/me`
+  - **Description**: Gets the current authenticated user's information
+  - **Headers**: `Authorization` with JWT token
+  - **Returns**: User profile information
+
+### Chat Management
+
+- `GET /api/chats`
+
+  - **Description**: Retrieves all chats for the workspace
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: List of chats with basic information
+
+- `GET /api/chat/:id`
+
+  - **Description**: Retrieves details of a specific chat
+  - **Parameters**: `id` (required): Chat identifier
+  - **Returns**: Chat details including messages
+
+- `GET /api/chat/:id/messages`
+
+  - **Description**: Retrieves messages for a specific chat
+  - **Parameters**: `id` (required): Chat identifier, `page`, `limit`
+  - **Returns**: Paginated list of messages
+
+- `POST /api/chat/message`
+
+  - **Description**: Sends a new message in a chat
+  - **Body**: `chat_id`, `content`, `sender_type`
+  - **Returns**: Created message details
+
+- `PUT /api/chat/message/:id/read`
+  - **Description**: Marks messages as read
+  - **Parameters**: `id` (required): Message identifier
+  - **Returns**: Updated message status
+
+### Prompt Management
+
+- `GET /api/prompt/:phone`
+
+  - **Description**: Retrieves the active prompt for a specific phone number
+  - **Parameters**: `phone` (required): WhatsApp phone number
+  - **Returns**: Active prompt text, language configurations, context settings
+  - **Note**: Only one prompt can be active per phone number at any time
+
+- `GET /api/prompts`
+
+  - **Description**: Retrieves all prompts in the workspace
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: List of prompts with active/inactive status
+
+- `POST /api/prompt`
+
+  - **Description**: Creates a new prompt
+  - **Body**: `prompt_text`, `reference_phone`, `workspace_id`, `active` (boolean)
+  - **Returns**: Created prompt details
+  - **Note**: If `active` is set to true, any previously active prompt for the same phone number will be automatically deactivated
+
+- `PUT /api/prompt/:id`
+
+  - **Description**: Updates an existing prompt
+  - **Parameters**: `id` (required): Prompt ID
+  - **Body**: `prompt_text`, `active` (boolean)
+  - **Returns**: Updated prompt details
+  - **Note**: If `active` is set to true, any previously active prompt for the same phone number will be automatically deactivated
+
+- `DELETE /api/prompt/:id`
+
+  - **Description**: Deletes a prompt
+  - **Parameters**: `id` (required): Prompt ID
+  - **Returns**: Success message
+
+- `POST /api/prompt/test-session`
+
+  - **Description**: Creates a temporary test session with an alternative prompt
+  - **Body**: `prompt_text`, `reference_phone`, `workspace_id`, `session_duration` (minutes)
+  - **Returns**: Session ID and expiration time
+  - **Note**: This allows testing alternative prompts without modifying the active production prompt
+
+- `GET /api/prompt/test-session/:id`
+
+  - **Description**: Retrieves a test session prompt
+  - **Parameters**: `id` (required): Session ID
+  - **Returns**: Test prompt details and remaining session time
+
+- `DELETE /api/prompt/test-session/:id`
+  - **Description**: Ends a test session early
+  - **Parameters**: `id` (required): Session ID
+  - **Returns**: Success message
+
+### Notification Management
+
+- `GET /api/notifications`
+
+  - **Description**: Retrieves all notifications for the workspace
+  - **Parameters**: `workspace_id` (required), `page`, `limit`
+  - **Returns**: Paginated list of notifications
+
+- `POST /api/notifications`
+
+  - **Description**: Creates a new push notification
+  - **Body**: `title`, `message`, `target_users`, `schedule_time`
+  - **Returns**: Created notification details
+
+- `PUT /api/notifications/:id`
+
+  - **Description**: Updates a notification's status or content
+  - **Parameters**: `id` (required): Notification ID
+  - **Body**: `status`, `title`, `message`
+  - **Returns**: Updated notification details
+
+- `DELETE /api/notifications/:id`
+  - **Description**: Deletes a notification
+  - **Parameters**: `id` (required): Notification ID
+  - **Returns**: Success message
+
+### Product and Category Management
+
+- `GET /api/products`
+
+  - **Description**: Retrieves complete product list
+  - **Parameters**: `workspace_id` (required), `category_id`, `page`, `limit`
+  - **Returns**: Paginated list of products
+
+- `POST /api/products`
+
+  - **Description**: Creates a new product
+  - **Body**: `name`, `description`, `price`, `category_id`, `images`, `stock`
+  - **Returns**: Created product details
+
+- `PUT /api/products/:id`
+
+  - **Description**: Updates a product
+  - **Parameters**: `id` (required): Product ID
+  - **Body**: Product details to update
+  - **Returns**: Updated product details
+
+- `DELETE /api/products/:id`
+
+  - **Description**: Deletes a product
+  - **Parameters**: `id` (required): Product ID
+  - **Returns**: Success message
+
+- `GET /api/categories`
+
+  - **Description**: Retrieves product categories
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: List of categories with products count
+
+- `POST /api/categories`
+
+  - **Description**: Creates a new category
+  - **Body**: `name`, `description`, `parent_id`
+  - **Returns**: Created category details
+
+- `PUT /api/categories/:id`
+
+  - **Description**: Updates a category
+  - **Parameters**: `id` (required): Category ID
+  - **Body**: Category details to update
+  - **Returns**: Updated category details
+
+- `DELETE /api/categories/:id`
+  - **Description**: Deletes a category
+  - **Parameters**: `id` (required): Category ID
+  - **Returns**: Success message
+
+### Service Management
+
+- `GET /api/services`
+
+  - **Description**: Retrieves list of available services
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: List of services
+
+- `POST /api/services`
+
+  - **Description**: Creates a new service
+  - **Body**: `name`, `description`, `price`, `duration`
+  - **Returns**: Created service details
+
+- `PUT /api/services/:id`
+
+  - **Description**: Updates a service
+  - **Parameters**: `id` (required): Service ID
+  - **Body**: Service details to update
+  - **Returns**: Updated service details
+
+- `DELETE /api/services/:id`
+  - **Description**: Deletes a service
+  - **Parameters**: `id` (required): Service ID
+  - **Returns**: Success message
+
+### Order Management
+
+- `GET /api/orders`
+
+  - **Description**: Retrieves all orders
+  - **Parameters**: `workspace_id` (required), `status`, `page`, `limit`
+  - **Returns**: Paginated list of orders
+
+- `GET /api/orders/:id`
+
+  - **Description**: Retrieves details of a specific order
+  - **Parameters**: `id` (required): Order ID
+  - **Returns**: Complete order details with items
+
+- `POST /api/orders`
+
+  - **Description**: Creates a new order
+  - **Body**: Order details including products, quantities, client information
+  - **Returns**: Created order details
+
+- `PUT /api/orders/:id`
+
+  - **Description**: Updates an order's status or details
+  - **Parameters**: `id` (required): Order ID
+  - **Body**: Order details to update
+  - **Returns**: Updated order details
+
+- `DELETE /api/orders/:id`
+  - **Description**: Cancels/deletes an order
+  - **Parameters**: `id` (required): Order ID
+  - **Returns**: Success message
+
+### Client Management
+
+- `GET /api/clients`
+
+  - **Description**: Retrieves list of clients
+  - **Parameters**: `workspace_id` (required), `page`, `limit`
+  - **Returns**: Paginated list of clients
+
+- `GET /api/clients/:id`
+
+  - **Description**: Retrieves client details
+  - **Parameters**: `id` (required): Client identifier
+  - **Returns**: Complete client profile with order history
+
+- `POST /api/clients`
+
+  - **Description**: Creates a new client
+  - **Body**: Client details including name, phone, email
+  - **Returns**: Created client details
+
+- `PUT /api/clients/:id`
+
+  - **Description**: Updates client information
+  - **Parameters**: `id` (required): Client identifier
+  - **Body**: Updated client details
+  - **Returns**: Updated client profile
+
+- `POST /api/clients/register`
+
+  - **Description**: Handles registration from WhatsApp-generated registration link
   - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `language`, `currency`, `gdpr_consent` (boolean), `push_notifications_consent` (boolean, optional)
   - **Returns**: Registration confirmation and redirect to WhatsApp with instructions to continue the conversation
   - **Note**: This endpoint is specifically designed for the web form accessed via the registration link sent through WhatsApp to new users
@@ -2092,6 +2980,7 @@ This deployment strategy allows for cost-effective development while ensuring sc
   - **Returns**: Created client details
 
 - `PUT /api/clients/:id`
+
   - **Description**: Updates client information
   - **Parameters**: `id` (required): Client identifier
   - **Body**: Updated client details
@@ -2099,7 +2988,7 @@ This deployment strategy allows for cost-effective development while ensuring sc
 
 - `POST /api/clients/register`
 
-  - **Description**: Handles registration from WhatsApp-generated registration link 
+  - **Description**: Handles registration from WhatsApp-generated registration link
   - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `language`, `currency`, `gdpr_consent` (boolean), `push_notifications_consent` (boolean, optional)
   - **Returns**: Registration confirmation and redirect to WhatsApp with instructions to continue the conversation
   - **Note**: This endpoint is specifically designed for the web form accessed via the registration link sent through WhatsApp to new users
@@ -2880,6 +3769,7 @@ This deployment strategy allows for cost-effective development while ensuring sc
   - **Returns**: Created client details
 
 - `PUT /api/clients/:id`
+
   - **Description**: Updates client information
   - **Parameters**: `id` (required): Client identifier
   - **Body**: Updated client details
@@ -2887,7 +3777,7 @@ This deployment strategy allows for cost-effective development while ensuring sc
 
 - `POST /api/clients/register`
 
-  - **Description**: Handles registration from WhatsApp-generated registration link 
+  - **Description**: Handles registration from WhatsApp-generated registration link
   - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `language`, `currency`, `gdpr_consent` (boolean), `push_notifications_consent` (boolean, optional)
   - **Returns**: Registration confirmation and redirect to WhatsApp with instructions to continue the conversation
   - **Note**: This endpoint is specifically designed for the web form accessed via the registration link sent through WhatsApp to new users
@@ -3668,6 +4558,7 @@ This deployment strategy allows for cost-effective development while ensuring sc
   - **Returns**: Created client details
 
 - `PUT /api/clients/:id`
+
   - **Description**: Updates client information
   - **Parameters**: `id` (required): Client identifier
   - **Body**: Updated client details
@@ -3675,7 +4566,7 @@ This deployment strategy allows for cost-effective development while ensuring sc
 
 - `POST /api/clients/register`
 
-  - **Description**: Handles registration from WhatsApp-generated registration link 
+  - **Description**: Handles registration from WhatsApp-generated registration link
   - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `language`, `currency`, `gdpr_consent` (boolean), `push_notifications_consent` (boolean, optional)
   - **Returns**: Registration confirmation and redirect to WhatsApp with instructions to continue the conversation
   - **Note**: This endpoint is specifically designed for the web form accessed via the registration link sent through WhatsApp to new users
@@ -4456,6 +5347,7 @@ This deployment strategy allows for cost-effective development while ensuring sc
   - **Returns**: Created client details
 
 - `PUT /api/clients/:id`
+
   - **Description**: Updates client information
   - **Parameters**: `id` (required): Client identifier
   - **Body**: Updated client details
@@ -4463,7 +5355,7 @@ This deployment strategy allows for cost-effective development while ensuring sc
 
 - `POST /api/clients/register`
 
-  - **Description**: Handles registration from WhatsApp-generated registration link 
+  - **Description**: Handles registration from WhatsApp-generated registration link
   - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `language`, `currency`, `gdpr_consent` (boolean), `push_notifications_consent` (boolean, optional)
   - **Returns**: Registration confirmation and redirect to WhatsApp with instructions to continue the conversation
   - **Note**: This endpoint is specifically designed for the web form accessed via the registration link sent through WhatsApp to new users
@@ -5244,6 +6136,7 @@ This deployment strategy allows for cost-effective development while ensuring sc
   - **Returns**: Created client details
 
 - `PUT /api/clients/:id`
+
   - **Description**: Updates client information
   - **Parameters**: `id` (required): Client identifier
   - **Body**: Updated client details
@@ -5251,7 +6144,7 @@ This deployment strategy allows for cost-effective development while ensuring sc
 
 - `POST /api/clients/register`
 
-  - **Description**: Handles registration from WhatsApp-generated registration link 
+  - **Description**: Handles registration from WhatsApp-generated registration link
   - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `language`, `currency`, `gdpr_consent` (boolean), `push_notifications_consent` (boolean, optional)
   - **Returns**: Registration confirmation and redirect to WhatsApp with instructions to continue the conversation
   - **Note**: This endpoint is specifically designed for the web form accessed via the registration link sent through WhatsApp to new users
@@ -5574,806 +6467,19 @@ This workflow manages AI-assisted responses:
    - Routes the processed query to the ShopMe API
    - API forwards to OpenRouter for AI processing
 
-4. **Response Handling**:
-   - Receives and de-tokenizes the AI response
-   - Formats the response for WhatsApp delivery
+   A[Client sends order via WhatsApp] --> B{Cart exists?}
+   B -->|No| C[Create new cart]
+   B -->|Yes| D[Update existing cart]
+   C --> E[Add products to cart]
+   D --> E
+   E --> F[Convert cart to order]
+   F --> G[Create payment record]
+   G --> H{Payment successful?}
+   H -->|Yes| I[Update order status to confirmed]
+   H -->|No| J[Update order status to payment failed]
+   I --> K[Send confirmation to client]
+   J --> L[Send payment retry options]
 
-#### Data Tokenization Implementation
-
-To protect user privacy and ensure GDPR compliance, the system implements a tokenization service for all data processed by external AI models. This process replaces sensitive information with non-identifying tokens before sending data to OpenRouter, then reverses the process when receiving the response.
-
-##### Tokenization Process
-
-1. **Sensitive Data Identification**: The system identifies PII such as names, phone numbers, addresses, and other sensitive information in incoming messages
-2. **Token Generation**: Each piece of sensitive data is replaced with a unique token
-3. **Mapping Storage**: A mapping between tokens and original values is created and stored temporarily in the session
-4. **Processing**: The tokenized data is processed by the AI model
-5. **De-tokenization**: AI responses are scanned for tokens, which are replaced with the original values before sending back to the user
-
-##### Technical Implementation
-
-The tokenization service is implemented as follows:
-
-```typescript
-// Types definition
-export type SensitiveItem = {
-  type: string // e.g. 'NAME', 'PHONE', 'ADDRESS'
-  value: string
-}
-
-export type TokenMapping = Record<string, string>
-
-/**
- * Tokenizes sensitive information in text
- * @param text Original text containing sensitive information
- * @param sensitiveData Array of sensitive items to tokenize
- * @returns Object containing tokenized text and mapping for detokenization
- */
-export function tokenize(
-  text: string,
-  sensitiveData: SensitiveItem[]
-): { tokenizedText: string; mapping: TokenMapping } {
-  const mapping: TokenMapping = {}
-  let tokenizedText = text
-
-  sensitiveData.forEach((item, index) => {
-    const token = `TOKEN_${item.type}_${index + 1}`
-    mapping[token] = item.value
-
-    // Replace all occurrences (case-sensitive)
-    const escaped = item.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-    const regex = new RegExp(escaped, "g")
-    tokenizedText = tokenizedText.replace(regex, token)
-  })
-
-  return { tokenizedText, mapping }
-}
-
-/**
- * Detokenizes text by replacing tokens with original values
- * @param text Tokenized text
- * @param mapping Token to original value mapping
- * @returns Detokenized text with original values
- */
-export function detokenize(text: string, mapping: TokenMapping): string {
-  let result = text
-  for (const [token, value] of Object.entries(mapping)) {
-    const regex = new RegExp(token, "g")
-    result = result.replace(regex, value)
-  }
-  return result
-}
-```
-
-##### Example Usage
-
-```typescript
-import { tokenize, detokenize } from "./tokenizer"
-
-// Original message with sensitive information
-const message =
-  "Ciao, sono Andrea Gelsomino. Il mio numero è +34 612345678 e vivo a Barcellona."
-
-// Identified sensitive data
-const sensitiveData = [
-  { type: "NAME", value: "Andrea Gelsomino" },
-  { type: "PHONE", value: "+34 612345678" },
-  { type: "CITY", value: "Barcellona" },
-]
-
-// Tokenize the message
-const { tokenizedText, mapping } = tokenize(message, sensitiveData)
-
-// Result: "Ciao, sono TOKEN_NAME_1. Il mio numero è TOKEN_PHONE_2 e vivo a TOKEN_CITY_3."
-console.log("Tokenized:", tokenizedText)
-
-// Send tokenized text to AI service
-
-// Simulated AI response containing tokens
-const aiReply = `Grazie TOKEN_NAME_1, ho registrato il numero TOKEN_PHONE_2 per l'utente a TOKEN_CITY_3.`
-
-// Detokenize the AI response
-const finalResponse = detokenize(aiReply, mapping)
-
-// Result: "Grazie Andrea Gelsomino, ho registrato il numero +34 612345678 per l'utente a Barcellona."
-console.log("Final AI Reply:", finalResponse)
-```
-
-### Implementation Strategy
-
-#### 1. Development Approach
-
-- **Template Workflows**: Pre-built workflow templates for common scenarios
-- **Modular Design**: Reusable components for different parts of message processing
-- **Environment Configuration**: Separate development, staging, and production environments
-- **Version Control**: Workflows stored in Git repositories for tracking changes
-
-#### 2. Deployment Process
-
-- **Initial Setup**: Configuration of n8n instance with connection to WhatsApp API
-- **Workflow Deployment**: Automated deployment of workflows via CI/CD pipeline
-- **Testing Strategy**: Comprehensive testing with mock WhatsApp messages
-
-#### 3. Monitoring and Maintenance
-
-- **Performance Monitoring**: Tracking of workflow execution times and success rates
-- **Error Alerts**: Notification system for failed workflows
-- **Audit Logging**: Detailed logs of all message processing for debugging
-- **Capacity Planning**: Regular assessment of workflow capacity needs
-
-### Integration Points
-
-#### 1. WhatsApp Business API
-
-- **Webhook Configuration**: Setup to receive all incoming WhatsApp messages
-- **Message Types**: Processing of text, media, location, and interactive messages
-- **Templates**: Management of pre-approved message templates
-- **Authentication**: Secure token management for API access
-
-#### 2. ShopMe API
-
-- **Authentication**: JWT-based authentication for secure API access
-- **Endpoints**: Integration with various API endpoints (products, orders, clients)
-- **Error Handling**: Graceful handling of API errors and retries
-- **Rate Limiting**: Respect for API rate limits and throttling
-
-#### 3. Third-Party Services
-
-- **Payment Gateways**: Integration with payment processing for orders
-- **Media Storage**: Handling of images and other media files
-- **Notification Services**: Integration with email or SMS providers for alerts
-
-### Deployment Strategy
-
-The n8n workflow automation component will be deployed using a two-phase approach:
-
-#### 1. Development Environment
-
-- **Local Development**: The free version of n8n will be used during development and testing
-- **Self-Hosted Setup**: Developers will run n8n locally to create and test workflows
-- **Docker-Based**: Local instances will use Docker for consistent environment configuration
-- **Workflow Export/Import**: Workflows will be exported as JSON for version control and sharing
-- **Mock Webhook Endpoints**: Development uses tools like ngrok to test webhook functionality
-
-#### 2. Production Environment
-
-- **Heroku Deployment**: Production environment will be hosted on Heroku
-- **Heroku Add-ons**:
-  - PostgreSQL for workflow storage
-  - Redis for caching and queue management
-- **Autoscaling Configuration**: Configured to handle varying loads
-- **Persistent Storage**: Ensuring workflow data isn't lost between deployments
-- **TLS Encryption**: Secure communication for all webhook endpoints
-- **Backup Strategy**: Regular automated backups of workflow configurations
-- **Monitoring Integration**: Connected to application monitoring services
-
-This deployment strategy allows for cost-effective development while ensuring scalable, reliable performance in production.
-
-### Security Considerations
-
-- **Credential Management**: Secure storage of API keys and tokens
-- **Data Encryption**: Encryption of sensitive data in transit
-- **Access Control**: Limited access to workflow configuration
-- **Audit Trails**: Comprehensive logging of all workflow executions
-- **Data Retention**: Policies for retaining message and order data
-
-### Business Continuity
-
-- **Failover Mechanisms**: Redundant n8n instances for high availability
-- **Backup Procedures**: Regular backups of workflow configurations
-- **Disaster Recovery**: Procedures for quickly restoring workflow functionality
-- **Scaling Strategy**: Horizontal scaling to handle increased message volume
-
-## 10. API Endpoints
-
-### Authentication
-
-- `POST /api/auth/login`
-
-  - **Description**: Authenticates a user and returns a JWT token
-  - **Body**: `email`, `password`
-  - **Returns**: JWT token, user information
-
-- `POST /api/auth/logout`
-
-  - **Description**: Logs out the current user
-  - **Headers**: `Authorization` with JWT token
-  - **Returns**: Success message
-
-- `POST /api/auth/refresh`
-
-  - **Description**: Refreshes the JWT token
-  - **Headers**: `Authorization` with current JWT token
-  - **Returns**: New JWT token
-
-- `GET /api/auth/me`
-  - **Description**: Gets the current authenticated user's information
-  - **Headers**: `Authorization` with JWT token
-  - **Returns**: User profile information
-
-### Chat Management
-
-- `GET /api/chats`
-
-  - **Description**: Retrieves all chats for the workspace
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Returns**: List of chats with basic information
-
-- `GET /api/chat/:id`
-
-  - **Description**: Retrieves details of a specific chat
-  - **Parameters**: `id` (required): Chat identifier
-  - **Returns**: Chat details including messages
-
-- `GET /api/chat/:id/messages`
-
-  - **Description**: Retrieves messages for a specific chat
-  - **Parameters**: `id` (required): Chat identifier, `page`, `limit`
-  - **Returns**: Paginated list of messages
-
-- `POST /api/chat/message`
-
-  - **Description**: Sends a new message in a chat
-  - **Body**: `chat_id`, `content`, `sender_type`
-  - **Returns**: Created message details
-
-- `PUT /api/chat/message/:id/read`
-  - **Description**: Marks messages as read
-  - **Parameters**: `id` (required): Message identifier
-  - **Returns**: Updated message status
-
-### Prompt Management
-
-- `GET /api/prompt/:phone`
-
-  - **Description**: Retrieves the active prompt for a specific phone number
-  - **Parameters**: `phone` (required): WhatsApp phone number
-  - **Returns**: Active prompt text, language configurations, context settings
-  - **Note**: Only one prompt can be active per phone number at any time
-
-- `GET /api/prompts`
-
-  - **Description**: Retrieves all prompts in the workspace
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Returns**: List of prompts with active/inactive status
-
-- `POST /api/prompt`
-
-  - **Description**: Creates a new prompt
-  - **Body**: `prompt_text`, `reference_phone`, `workspace_id`, `active` (boolean)
-  - **Returns**: Created prompt details
-  - **Note**: If `active` is set to true, any previously active prompt for the same phone number will be automatically deactivated
-
-- `PUT /api/prompt/:id`
-
-  - **Description**: Updates an existing prompt
-  - **Parameters**: `id` (required): Prompt ID
-  - **Body**: `prompt_text`, `active` (boolean)
-  - **Returns**: Updated prompt details
-  - **Note**: If `active` is set to true, any previously active prompt for the same phone number will be automatically deactivated
-
-- `DELETE /api/prompt/:id`
-
-  - **Description**: Deletes a prompt
-  - **Parameters**: `id` (required): Prompt ID
-  - **Returns**: Success message
-
-- `POST /api/prompt/test-session`
-
-  - **Description**: Creates a temporary test session with an alternative prompt
-  - **Body**: `prompt_text`, `reference_phone`, `workspace_id`, `session_duration` (minutes)
-  - **Returns**: Session ID and expiration time
-  - **Note**: This allows testing alternative prompts without modifying the active production prompt
-
-- `GET /api/prompt/test-session/:id`
-
-  - **Description**: Retrieves a test session prompt
-  - **Parameters**: `id` (required): Session ID
-  - **Returns**: Test prompt details and remaining session time
-
-- `DELETE /api/prompt/test-session/:id`
-  - **Description**: Ends a test session early
-  - **Parameters**: `id` (required): Session ID
-  - **Returns**: Success message
-
-### Notification Management
-
-- `GET /api/notifications`
-
-  - **Description**: Retrieves all notifications for the workspace
-  - **Parameters**: `workspace_id` (required), `page`, `limit`
-  - **Returns**: Paginated list of notifications
-
-- `POST /api/notifications`
-
-  - **Description**: Creates a new push notification
-  - **Body**: `title`, `message`, `target_users`, `schedule_time`
-  - **Returns**: Created notification details
-
-- `PUT /api/notifications/:id`
-
-  - **Description**: Updates a notification's status or content
-  - **Parameters**: `id` (required): Notification ID
-  - **Body**: `status`, `title`, `message`
-  - **Returns**: Updated notification details
-
-- `DELETE /api/notifications/:id`
-  - **Description**: Deletes a notification
-  - **Parameters**: `id` (required): Notification ID
-  - **Returns**: Success message
-
-### Product and Category Management
-
-- `GET /api/products`
-
-  - **Description**: Retrieves complete product list
-  - **Parameters**: `workspace_id` (required), `category_id`, `page`, `limit`
-  - **Returns**: Paginated list of products
-
-- `POST /api/products`
-
-  - **Description**: Creates a new product
-  - **Body**: `name`, `description`, `price`, `category_id`, `images`, `stock`
-  - **Returns**: Created product details
-
-- `PUT /api/products/:id`
-
-  - **Description**: Updates a product
-  - **Parameters**: `id` (required): Product ID
-  - **Body**: Product details to update
-  - **Returns**: Updated product details
-
-- `DELETE /api/products/:id`
-
-  - **Description**: Deletes a product
-  - **Parameters**: `id` (required): Product ID
-  - **Returns**: Success message
-
-- `GET /api/categories`
-
-  - **Description**: Retrieves product categories
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Returns**: List of categories with products count
-
-- `POST /api/categories`
-
-  - **Description**: Creates a new category
-  - **Body**: `name`, `description`, `parent_id`
-  - **Returns**: Created category details
-
-- `PUT /api/categories/:id`
-
-  - **Description**: Updates a category
-  - **Parameters**: `id` (required): Category ID
-  - **Body**: Category details to update
-  - **Returns**: Updated category details
-
-- `DELETE /api/categories/:id`
-  - **Description**: Deletes a category
-  - **Parameters**: `id` (required): Category ID
-  - **Returns**: Success message
-
-### Service Management
-
-- `GET /api/services`
-
-  - **Description**: Retrieves list of available services
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Returns**: List of services
-
-- `POST /api/services`
-
-  - **Description**: Creates a new service
-  - **Body**: `name`, `description`, `price`, `duration`
-  - **Returns**: Created service details
-
-- `PUT /api/services/:id`
-
-  - **Description**: Updates a service
-  - **Parameters**: `id` (required): Service ID
-  - **Body**: Service details to update
-  - **Returns**: Updated service details
-
-- `DELETE /api/services/:id`
-  - **Description**: Deletes a service
-  - **Parameters**: `id` (required): Service ID
-  - **Returns**: Success message
-
-### Order Management
-
-- `GET /api/orders`
-
-  - **Description**: Retrieves all orders
-  - **Parameters**: `workspace_id` (required), `status`, `page`, `limit`
-  - **Returns**: Paginated list of orders
-
-- `GET /api/orders/:id`
-
-  - **Description**: Retrieves details of a specific order
-  - **Parameters**: `id` (required): Order ID
-  - **Returns**: Complete order details with items
-
-- `POST /api/orders`
-
-  - **Description**: Creates a new order
-  - **Body**: Order details including products, quantities, client information
-  - **Returns**: Created order details
-
-- `PUT /api/orders/:id`
-
-  - **Description**: Updates an order's status or details
-  - **Parameters**: `id` (required): Order ID
-  - **Body**: Order details to update
-  - **Returns**: Updated order details
-
-- `DELETE /api/orders/:id`
-  - **Description**: Cancels/deletes an order
-  - **Parameters**: `id` (required): Order ID
-  - **Returns**: Success message
-
-### Client Management
-
-- `GET /api/clients`
-
-  - **Description**: Retrieves list of clients
-  - **Parameters**: `workspace_id` (required), `page`, `limit`
-  - **Returns**: Paginated list of clients
-
-- `GET /api/clients/:id`
-
-  - **Description**: Retrieves client details
-  - **Parameters**: `id` (required): Client identifier
-  - **Returns**: Complete client profile with order history
-
-- `POST /api/clients`
-
-  - **Description**: Creates a new client
-  - **Body**: Client details including name, phone, email
-  - **Returns**: Created client details
-
-- `PUT /api/clients/:id`
-  - **Description**: Updates client information
-  - **Parameters**: `id` (required): Client identifier
-  - **Body**: Updated client details
-  - **Returns**: Updated client profile
-
-- `POST /api/clients/register`
-
-  - **Description**: Handles registration from WhatsApp-generated registration link 
-  - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `language`, `currency`, `gdpr_consent` (boolean), `push_notifications_consent` (boolean, optional)
-  - **Returns**: Registration confirmation and redirect to WhatsApp with instructions to continue the conversation
-  - **Note**: This endpoint is specifically designed for the web form accessed via the registration link sent through WhatsApp to new users
-
-### Cart Management
-
-- `GET /api/cart/:user_id`
-
-  - **Description**: Retrieves user's cart
-  - **Parameters**: `user_id` (required): User identifier
-  - **Returns**: Cart contents with product details
-
-- `POST /api/cart`
-
-  - **Description**: Adds a product to the cart
-  - **Body**: `user_id`, `product_id`, `quantity`
-  - **Returns**: Updated cart contents
-
-- `PUT /api/cart`
-
-  - **Description**: Modifies a product in the cart
-  - **Body**: `cart_id`, `product_id`, `quantity`
-  - **Returns**: Updated cart contents
-
-- `DELETE /api/cart`
-  - **Description**: Removes a product from the cart
-  - **Body**: `cart_id`, `product_id`
-  - **Returns**: Updated cart contents
-
-### Workspace Management
-
-- `GET /api/workspaces`
-
-  - **Description**: Retrieves all workspaces for the user
-  - **Headers**: `Authorization` with JWT token
-  - **Returns**: List of workspaces user has access to
-
-- `POST /api/workspaces`
-
-  - **Description**: Creates a new workspace
-  - **Body**: `name`, `description`, `settings`
-  - **Returns**: Created workspace details
-
-- `PUT /api/workspaces/:id`
-
-  - **Description**: Updates workspace settings
-  - **Parameters**: `id` (required): Workspace ID
-  - **Body**: Workspace details to update
-  - **Returns**: Updated workspace details
-
-- `DELETE /api/workspaces/:id`
-  - **Description**: Deletes a workspace
-  - **Parameters**: `id` (required): Workspace ID
-  - **Returns**: Success message
-
-### Settings Management
-
-- `GET /api/settings`
-
-  - **Description**: Retrieves workspace settings
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Returns**: All workspace settings
-
-- `PUT /api/settings`
-  - **Description**: Updates workspace settings
-  - **Body**: `workspace_id`, settings to update
-  - **Returns**: Updated settings
-
-### AI Configuration Settings
-
-- `GET /api/settings/ai`
-
-  - **Description**: Retrieves AI generation settings for the workspace
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Returns**: Current AI configuration parameters including temperature, top_p, and top_k values
-
-- `PUT /api/settings/ai`
-
-  - **Description**: Updates AI generation parameters
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Body**:
-    ```
-    {
-      "temperature": float, // Value between 0.0-1.0 controlling randomness
-      "top_p": float,       // Nucleus sampling parameter (0.0-1.0)
-      "top_k": integer,     // Limits token selection to top K options
-      "max_tokens": integer // Maximum tokens to generate in responses
-    }
-    ```
-  - **Returns**: Updated AI settings
-
-The AI configuration settings control how the AI model generates responses:
-
-- **Temperature**: Controls randomness. Lower values (e.g., 0.2) make responses more focused and deterministic, while higher values (e.g., 0.8) make output more creative and diverse.
-- **Top_p (Nucleus Sampling)**: Controls diversity by dynamically selecting from tokens whose cumulative probability exceeds the top_p value. Lower values (e.g., 0.5) make responses more focused, while higher values allow for more variety.
-- **Top_k**: Limits the model to consider only the top k most likely tokens at each step, reducing the chance of generating low-probability or irrelevant tokens.
-- **Max Tokens**: Defines the maximum length of generated responses to control verbosity and resource usage.
-
-These parameters allow workspace administrators to fine-tune the AI behavior to match their specific business needs, brand voice, and customer communication style.
-
-### User Management
-
-- `GET /api/users/:phone`
-
-  - **Description**: User identification and profile retrieval
-  - **Parameters**: `phone` (required): User's phone number
-  - **Returns**: User profile information
-
-- `GET /api/users`
-
-  - **Description**: Retrieves all users in the workspace
-  - **Parameters**: `workspace_id` (required), `role`, `page`, `limit`
-  - **Returns**: Paginated list of users
-
-- `POST /api/users`
-
-  - **Description**: Creates a new user
-  - **Body**: `email`, `password`, `name`, `role`, `workspace_id`
-  - **Returns**: Created user details
-
-- `PUT /api/users/:id`
-
-  - **Description**: Updates user information
-  - **Parameters**: `id` (required): User ID
-  - **Body**: User details to update
-  - **Returns**: Updated user details
-
-- `DELETE /api/users/:id`
-  - **Description**: Deletes a user
-  - **Parameters**: `id` (required): User ID
-  - **Returns**: Success message
-
-### Analytics API
-
-- `GET /api/analytics/overview`
-
-  - **Description**: Retrieves general statistics
-  - **Returns**: Total active users, total messages, revenue, growth percentages
-
-- `GET /api/analytics/recent-activity`
-  - **Description**: Retrieves recent activities
-  - **Returns**: New registrations, added products, received orders, activity timestamps
-
-### Dashboard API
-
-- `GET /api/dashboard/stats`
-  - **Description**: Retrieves statistics for the dashboard
-  - **Parameters**: `period` (optional): daily/weekly/monthly
-  - **Returns**: Active Users count, Total Messages count, Revenue, Growth percentages
-
-**Cross-cutting Requirements**:
-
-- All APIs are protected by JWT tokens
-- Communication exclusively via HTTPS
-- Request logging and tracking
-- Standardized error handling
-
-## 9. n8n Integration and Workflow Automation
-
-### Overview
-
-n8n is a workflow automation platform that serves as a crucial middleware component in the ShopMe architecture. It provides low-code/no-code capabilities to create complex workflows that connect WhatsApp messages with the ShopMe API and other services. This integration layer allows for flexible processing of message data, implementing business logic, and handling the communication flow between customers and the system.
-
-### Core Functionality
-
-- **Message Routing**: Acts as the central hub for incoming and outgoing WhatsApp messages
-- **Webhook Management**: Receives webhooks from WhatsApp Business API and forwards processed data
-- **Data Transformation**: Formats data between different systems in the architecture
-- **Conditional Logic**: Implements business rules for message processing
-- **API Integration**: Connects with the ShopMe API and third-party services
-- **Error Handling**: Manages exceptions and provides retry mechanisms
-
-### Key Workflows
-
-#### 1. Incoming Message Processing
-
-```mermaid
-flowchart TD
-    A[WhatsApp Webhook] --> B[n8n Webhook Trigger]
-    B --> C{Message Type?}
-    C -->|Text| D[Text Processing]
-    C -->|Media| E[Media Processing]
-    C -->|Location| F[Location Processing]
-    C -->|Order| G[Order Processing]
-    D --> H[Context Analysis]
-    E --> H
-    F --> H
-    G --> H
-    H --> I[API Request to ShopMe]
-    I --> J{Response Type?}
-    J -->|AI Needed| K[Send to OpenRouter]
-    J -->|Direct Response| L[Format Response]
-    K --> L
-    L --> M[Send to WhatsApp API]
-```
-
-This workflow handles all incoming messages from WhatsApp:
-
-1. **Initial Processing**:
-
-   - Receives webhook data from WhatsApp
-   - Extracts relevant information (sender, message content, timestamp)
-   - Identifies message type (text, media, location, order)
-
-2. **Context Building**:
-
-   - Retrieves conversation history
-   - Identifies the client and their associated workspace
-   - Determines the appropriate handling for the message
-
-3. **API Integration**:
-
-   - Sends the processed message to the ShopMe API
-   - Receives response data with instructions on how to respond
-
-4. **Response Handling**:
-   - Formats the response according to WhatsApp message standards
-   - Sends the response back to the customer via WhatsApp API
-
-#### 2. Product Catalog Workflow
-
-```mermaid
-flowchart TD
-    A[Product Request] --> B[n8n Processing]
-    B --> C[Fetch Products from API]
-    C --> D[Format Product Display]
-    D --> E{Product Count?}
-    E -->|Single| F[Send Product Card]
-    E -->|Multiple| G[Send Product List]
-    F --> H[Add Interactive Buttons]
-    G --> H
-    H --> I[Send to WhatsApp API]
-```
-
-This workflow manages product catalog browsing via WhatsApp:
-
-1. **Request Identification**:
-
-   - Recognizes product catalog requests or product searches
-   - Prepares query parameters for the API
-
-2. **Product Retrieval**:
-
-   - Fetches product data from the ShopMe API
-   - Processes and filters results based on customer request
-
-3. **Display Formatting**:
-
-   - Creates visually appealing product cards with images
-   - Generates interactive elements for browsing and selection
-
-4. **Interactive Options**:
-   - Adds buttons for Add to Cart, View Details, etc.
-   - Creates navigation options for catalog browsing
-
-#### 3. Order Management Workflow
-
-```mermaid
-flowchart TD
-    A[Order Action] --> B[n8n Processing]
-    B --> C{Action Type?}
-    C -->|Create| D[Create Order Flow]
-    C -->|Update| E[Update Order Flow]
-    C -->|Cancel| F[Cancel Order Flow]
-    C -->|Status| G[Check Status Flow]
-    D --> H[Send to ShopMe API]
-    E --> H
-    F --> H
-    G --> H
-    H --> I[Process Response]
-    I --> J[Format Confirmation]
-    J --> K[Send to WhatsApp API]
-```
-
-This workflow handles order-related operations:
-
-1. **Order Action Detection**:
-
-   - Identifies order-related requests (create, modify, cancel, status check)
-   - Validates the customer's permissions for the requested action
-
-2. **Order Processing**:
-
-   - Sends the order data to the ShopMe API
-   - Processes the response to confirm successful operations
-
-3. **Confirmation Generation**:
-   - Creates confirmation messages with order details
-   - Provides next steps or alternative options
-
-#### 4. AI Response Workflow
-
-```mermaid
-flowchart TD
-    A[Complex Query] --> B[n8n Processing]
-    B --> C[Prepare Context Data]
-    C --> D[Tokenize PII]
-    D --> E[Send to ShopMe API]
-    E --> F[API sends to OpenRouter]
-    F --> G[Receive AI Response]
-    G --> H[De-tokenize PII]
-    H --> I[Format Response]
-    I --> J[Send to WhatsApp API]
-```
-
-This workflow manages AI-assisted responses:
-
-1. **Query Preparation**:
-
-   - Identifies complex queries requiring AI assistance
-   - Collects relevant context information
-
-2. **Security Processing**:
-
-   - Tokenizes personally identifiable information (PII)
-   - Ensures sensitive data is protected
-
-3. **AI Integration**:
-
-   - Routes the processed query to the ShopMe API
-   - API forwards to OpenRouter for AI processing
-
-    A[Client sends order via WhatsApp] --> B{Cart exists?}
-    B -->|No| C[Create new cart]
-    B -->|Yes| D[Update existing cart]
-    C --> E[Add products to cart]
-    D --> E
-    E --> F[Convert cart to order]
-    F --> G[Create payment record]
-    G --> H{Payment successful?}
-    H -->|Yes| I[Update order status to confirmed]
-    H -->|No| J[Update order status to payment failed]
-    I --> K[Send confirmation to client]
-    J --> L[Send payment retry options]
 ```
 
 ### Database Optimization Strategies
@@ -6807,6 +6913,7 @@ Regarding cross-cutting functionalities, **Routing** is centrally managed in App
 Below is the template content for the GDPR Privacy Policy that will be presented to users during the registration process:
 
 ```
+
 PRIVACY POLICY
 
 Last Updated: [DATE]
@@ -6819,6 +6926,7 @@ Welcome to ShopMe! This Privacy Policy explains how we collect, use, disclose, a
 2. INFORMATION WE COLLECT
 
 We collect the following types of information:
+
 - Contact information (name, phone number, email address)
 - Message content and history
 - Order and payment information
@@ -6828,6 +6936,7 @@ We collect the following types of information:
 3. HOW WE USE YOUR INFORMATION
 
 We use your information to:
+
 - Process orders and payments
 - Provide customer support
 - Personalize shopping experiences
@@ -6842,6 +6951,7 @@ Your information is stored securely using industry-standard encryption and secur
 5. SHARING YOUR INFORMATION
 
 We may share your information with:
+
 - Payment processors (to complete transactions)
 - Delivery services (to fulfill orders)
 - Service providers (who assist in operating our platform)
@@ -6852,6 +6962,7 @@ We never sell your personal data to third parties.
 6. YOUR RIGHTS UNDER GDPR
 
 You have the right to:
+
 - Access your personal data
 - Correct inaccurate data
 - Delete your data ("right to be forgotten")
@@ -6874,6 +6985,7 @@ We may update this policy periodically. When we make significant changes, we wil
 If you have questions about this Privacy Policy, please contact our Data Protection Officer at [EMAIL].
 
 By replying "I ACCEPT", you confirm that you have read and understood this Privacy Policy and consent to the collection and use of your information as described.
+
 ```
 
 This template will be customized for each workspace with specific business information, retention periods, and contact details. The system tracks the version and timestamp of acceptance for compliance purposes.
@@ -6933,12 +7045,12 @@ To ensure full control over their data and comply with GDPR requirements, the pl
 - `GET /api/clients/preferences/:token`
   - **Description**: Retrieves user preferences for editing using a secure token
   - **Returns**: Current user preferences and profile information
-  
+
 - `PUT /api/clients/preferences/:token`
   - **Description**: Updates user preferences
   - **Body**: Modified user preferences
   - **Returns**: Confirmation of updates applied
-  
+
 - `POST /api/clients/deletion-request/:token`
   - **Description**: Initiates account deletion process
   - **Body**: `phone_confirmation` (user's phone for verification)
@@ -7192,3 +7304,4 @@ To ensure the highest level of data protection and privacy for users, the platfo
 This approach ensures users are well-informed about data protection measures while building trust in the platform's security practices.
 
 ### User Preferences Management and Account Deletion
+```
