@@ -7,59 +7,16 @@ const prisma = new PrismaClient()
 
 let adminEmail = "admin@shopme.com" // Define a variable to store admin email
 
-// Define the agents array at the top level of the script
-const agents = [
-  {
-    name: "ROUTER",
-    description:
-      "Main router for directing conversations to appropriate departments",
-    isActive: true,
-    isRouter: true,
-    department: "ROUTER",
-    promptName: "Router Prompt",
-  },
-  {
-    name: "GENERIC",
-    description: "Generic customer service assistant",
-    isActive: true,
-    isRouter: false,
-    department: "Markering",
-    promptName: "Generic Prompt",
-  },
-  {
-    name: "PRODUCTS AND CARTS",
-    description:
-      "Product specialist for handling product inquiries and cart management",
-    isActive: true,
-    isRouter: false,
-    department: "Logistic",
-    promptName: "Product Prompt",
-  },
-  {
-    name: "ORDERS AND INVOICES",
-    description: "Invoicing and orders specialist",
-    isActive: true,
-    isRouter: false,
-    department: "Accounts",
-    promptName: "Orders Prompt",
-  },
-  {
-    name: "TRANSPORT",
-    description: "Transportation and logistics specialist",
-    isActive: true,
-    isRouter: false,
-    department: "Logistic",
-    promptName: "Transport Prompt",
-  },
-  {
-    name: "SERVICES",
-    description: "Additional services specialist",
-    isActive: true,
-    isRouter: false,
-    department: "Logistic",
-    promptName: "Services Prompt",
-  },
-]
+// Define the default agent at the top level of the script
+const defaultAgent = {
+  name: "Default Agent",
+  description: "Default agent for the system",
+  isActive: true,
+  isRouter: true,
+  department: null,
+  promptName: "Default Agent",
+  model: "openai/gpt-4.1-mini"
+}
 
 // Inizializziamo createdWorkspaces qui, prima di main()
 let createdWorkspaces: any[] = []
@@ -445,7 +402,7 @@ async function main() {
 
   // Create prompts for all agents
   console.log("Creating prompts for all agents...")
-  for (const agent of agents) {
+  for (const agent of [defaultAgent]) {
     const existingPrompt = await prisma.prompts.findFirst({
       where: {
         name: agent.promptName,
@@ -513,6 +470,7 @@ async function main() {
           temperature: 0.3,
           top_p: 0.8,
           top_k: 30,
+          model: agent.model,
           workspaceId: mainWorkspaceId,
         },
       })
@@ -1020,89 +978,6 @@ async function main() {
   console.log(`- Categorie create/esistenti: ${foodCategories.length}`)
   console.log(`- Prodotti creati/aggiornati: ${products.length}`)
   console.log(`- Services creati/aggiornati: ${services.length}`)
-
-  // Creo le FAQ di esempio per il workspace
-  console.log("Creazione FAQ di esempio...")
-
-  const faqs = [
-    {
-      question: "Come posso modificare il mio ordine?",
-      answer:
-        "Puoi modificare il tuo ordine accedendo alla sezione 'I miei ordini' nel tuo account, selezionando l'ordine che desideri modificare e cliccando su 'Modifica ordine'. Questa opzione è disponibile solo se l'ordine non è ancora stato spedito.",
-      isActive: true,
-    },
-    {
-      question: "Quali metodi di pagamento accettate?",
-      answer:
-        "Accettiamo pagamenti tramite carte di credito (Visa, Mastercard, American Express), PayPal e bonifico bancario. I dettagli del pagamento sono visibili alla cassa.",
-      isActive: true,
-    },
-    {
-      question: "Quanto tempo richiede la consegna?",
-      answer:
-        "I tempi di consegna variano da 2 a 5 giorni lavorativi per l'Italia, e da 5 a 10 giorni lavorativi per le spedizioni internazionali, a seconda della tua posizione. I dettagli esatti sono forniti al momento del checkout.",
-      isActive: true,
-    },
-    {
-      question: "È possibile effettuare resi?",
-      answer:
-        "Sì, accettiamo resi entro 14 giorni dalla data di consegna. Gli articoli devono essere in condizioni originali e non utilizzati. Per avviare un reso, accedi alla sezione 'I miei ordini' e segui le istruzioni.",
-      isActive: true,
-    },
-    {
-      question: "Offrite la spedizione gratuita?",
-      answer:
-        "Offriamo spedizione gratuita per ordini superiori a €50 in Italia e €100 per le spedizioni internazionali. Per ordini di importo inferiore si applicano le tariffe standard di spedizione.",
-      isActive: true,
-    },
-    {
-      question: "Come posso tracciare il mio ordine?",
-      answer:
-        "Una volta che il tuo ordine viene spedito, riceverai un'email con il numero di tracciamento e le istruzioni su come seguire la spedizione. Puoi anche verificare lo stato dell'ordine accedendo alla sezione 'I miei ordini' nel tuo account.",
-      isActive: false,
-    },
-    {
-      question: "I vostri prodotti hanno certificazioni biologiche?",
-      answer:
-        "Molti dei nostri prodotti sono certificati biologici. Puoi identificarli facilmente tramite il logo biologico dell'UE nelle immagini dei prodotti e nelle descrizioni dettagliate. Tutti i certificati sono verificabili nella sezione 'Qualità e Certificazioni' del nostro sito.",
-      isActive: true,
-    },
-  ]
-
-  for (const faqData of faqs) {
-    const existingFAQ = await prisma.fAQ.findFirst({
-      where: {
-        question: faqData.question,
-        workspaceId: mainWorkspaceId,
-      },
-    })
-
-    if (!existingFAQ) {
-      await prisma.fAQ.create({
-        data: {
-          ...faqData,
-          workspaceId: mainWorkspaceId,
-        },
-      })
-      console.log(
-        `FAQ creata: "${faqData.question}" per workspace ${createdWorkspaces[0].name}`
-      )
-    } else {
-      // Aggiorniamo la FAQ esistente
-      await prisma.fAQ.update({
-        where: { id: existingFAQ.id },
-        data: {
-          answer: faqData.answer,
-          isActive: faqData.isActive,
-        },
-      })
-      console.log(
-        `FAQ aggiornata: "${faqData.question}" per workspace ${createdWorkspaces[0].name}`
-      )
-    }
-  }
-
-  console.log(`- FAQ create/aggiornate: ${faqs.length}`)
 }
 
 main()

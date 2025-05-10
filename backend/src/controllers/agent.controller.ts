@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { agentsService } from "../services/agents.service";
+import { agentService } from "../services/agent.service";
 import { getDefaultWorkspaceId } from "../utils/workspace";
 
-export const agentsController = {
+export const agentController = {
   /**
    * Get all agents for a workspace
    */
@@ -10,7 +10,7 @@ export const agentsController = {
     // Get workspaceId from params or use default if not provided
     let workspaceId = req.params.workspaceId;
     
-    // If workspaceId is not provided in the params (direct /agents route)
+    // If workspaceId is not provided in the params (direct /agent route)
     if (!workspaceId) {
       try {
         // Try to get from user context or use a default
@@ -25,9 +25,11 @@ export const agentsController = {
     }
     
     console.log(`Getting all agents for workspace ${workspaceId}`);
+    console.log("Request params:", req.params);
+    console.log("Request headers:", req.headers);
     
     try {
-      const agents = await agentsService.getAllForWorkspace(workspaceId)
+      const agents = await agentService.getAllForWorkspace(workspaceId)
       console.log(`Found ${agents.length} agents for workspace ${workspaceId}`);
       res.json(agents)
     } catch (error) {
@@ -43,7 +45,7 @@ export const agentsController = {
     const { id } = req.params;
     let { workspaceId } = req.params;
     
-    // If workspaceId is not provided in the params (direct /agents/:id route)
+    // If workspaceId is not provided in the params (direct /agent/:id route)
     if (!workspaceId) {
       try {
         // Try to get from user context or use a default
@@ -59,7 +61,7 @@ export const agentsController = {
     console.log(`Getting agent ${id} from workspace ${workspaceId}`);
     
     try {
-      const agent = await agentsService.getById(id, workspaceId)
+      const agent = await agentService.getById(id, workspaceId)
       
       if (!agent) {
         console.log(`Agent ${id} not found in workspace ${workspaceId}`);
@@ -80,7 +82,7 @@ export const agentsController = {
   async create(req: Request, res: Response, next: NextFunction) {
     let { workspaceId } = req.params;
     
-    // If workspaceId is not provided in the params (direct /agents route)
+    // If workspaceId is not provided in the params (direct /agent route)
     if (!workspaceId) {
       try {
         // Try to get from user context or use a default
@@ -103,7 +105,7 @@ export const agentsController = {
       }
       
       console.log("Agent data to be created:", agentData);
-      const agent = await agentsService.create(agentData)
+      const agent = await agentService.create(agentData)
       console.log(`Agent created successfully with ID ${agent.id}`);
       res.status(201).json(agent)
     } catch (error) {
@@ -120,7 +122,7 @@ export const agentsController = {
       const { id } = req.params;
       let { workspaceId } = req.params;
       
-      // If workspaceId is not provided in the params (direct /agents/:id route)
+      // If workspaceId is not provided in the params (direct /agent/:id route)
       if (!workspaceId) {
         try {
           // Try to get from user context or use a default
@@ -150,7 +152,7 @@ export const agentsController = {
       }
       
       console.log("Agent data to be updated:", data);
-      const updatedAgent = await agentsService.update(id, workspaceId, data)
+      const updatedAgent = await agentService.update(id, workspaceId, data)
       
       if (!updatedAgent) {
         console.log(`Agent ${id} not found for update`);
@@ -173,7 +175,7 @@ export const agentsController = {
       const { id } = req.params;
       let { workspaceId } = req.params;
       
-      // If workspaceId is not provided in the params (direct /agents/:id route)
+      // If workspaceId is not provided in the params (direct /agent/:id route)
       if (!workspaceId) {
         try {
           // Try to get from user context or use a default
@@ -189,7 +191,7 @@ export const agentsController = {
       console.log(`Deleting agent ${id} from workspace ${workspaceId}`);
       
       try {
-        await agentsService.delete(id, workspaceId)
+        await agentService.delete(id, workspaceId)
         console.log(`Agent ${id} deleted successfully`);
         res.status(204).send()
       } catch (error: any) {

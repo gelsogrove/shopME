@@ -10,38 +10,74 @@ import { useWorkspace } from "@/hooks/use-workspace"
 import { Event, eventsApi } from "@/services/eventsApi"
 import { commonStyles } from "@/styles/common"
 import { formatDate, formatPrice, getCurrencySymbol } from "@/utils/format"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Calendar } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 
 export function EventsPage() {
   const { workspace, loading: isLoadingWorkspace } = useWorkspace()
-  const [events, setEvents] = useState<Event[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [searchValue, setSearchValue] = useState("")
   const [showAddSheet, setShowAddSheet] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    const loadEvents = async () => {
-      if (!workspace?.id) return
-      try {
-        const data = await eventsApi.getEvents(workspace.id)
-        setEvents(data)
-      } catch (error) {
-        console.error("Error loading events:", error)
-        toast.error("Failed to load events")
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  // Fetch events using React Query for caching
+  const { data: events = [], isLoading } = useQuery({
+    queryKey: ['events', workspace?.id],
+    queryFn: () => workspace?.id ? eventsApi.getEvents(workspace.id) : Promise.resolve([]),
+    enabled: !!workspace?.id && !isLoadingWorkspace,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false
+  })
 
-    if (!isLoadingWorkspace) {
-      loadEvents()
+  // Create event mutation
+  const createEventMutation = useMutation({
+    mutationFn: (data: any) => eventsApi.createEvent(workspace!.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events', workspace?.id] })
+      setShowAddSheet(false)
+      toast.success("Event created successfully")
+    },
+    onError: (error) => {
+      console.error("Error creating event:", error)
+      toast.error("Failed to create event")
     }
-  }, [workspace?.id, isLoadingWorkspace])
+  })
+
+  // Update event mutation
+  const updateEventMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string, data: any }) => 
+      eventsApi.updateEvent(workspace!.id, id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events', workspace?.id] })
+      setShowEditSheet(false)
+      setSelectedEvent(null)
+      toast.success("Event updated successfully")
+    },
+    onError: (error) => {
+      console.error("Error updating event:", error)
+      toast.error("Failed to update event")
+    }
+  })
+
+  // Delete event mutation
+  const deleteEventMutation = useMutation({
+    mutationFn: (id: string) => eventsApi.deleteEvent(workspace!.id, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events', workspace?.id] })
+      setShowDeleteDialog(false)
+      setSelectedEvent(null)
+      toast.success("Event deleted successfully")
+    },
+    onError: (error) => {
+      console.error("Error deleting event:", error)
+      toast.error("Failed to delete event")
+    }
+  })
 
   const filteredEvents = events.filter((event) =>
     Object.values(event).some((value) =>
@@ -151,15 +187,7 @@ export function EventsPage() {
       isActive: formData.get("isActive") === "on"
     }
 
-    try {
-      const newEvent = await eventsApi.createEvent(workspace.id, data)
-      setEvents([...events, newEvent])
-      setShowAddSheet(false)
-      toast.success("Event created successfully")
-    } catch (error) {
-      console.error("Error creating event:", error)
-      toast.error("Failed to create event")
-    }
+    createEventMutation.mutate(data)
   }
 
   const handleEdit = (event: Event) => {
@@ -199,22 +227,7 @@ export function EventsPage() {
       isActive: formData.get("isActive") === "on"
     }
 
-    try {
-      const updatedEvent = await eventsApi.updateEvent(
-        workspace.id,
-        selectedEvent.id,
-        data
-      )
-      setEvents(
-        events.map((e) => (e.id === selectedEvent.id ? updatedEvent : e))
-      )
-      setShowEditSheet(false)
-      setSelectedEvent(null)
-      toast.success("Event updated successfully")
-    } catch (error) {
-      console.error("Error updating event:", error)
-      toast.error("Failed to update event")
-    }
+    updateEventMutation.mutate({ id: selectedEvent.id, data })
   }
 
   const handleDelete = (event: Event) => {
@@ -224,17 +237,7 @@ export function EventsPage() {
 
   const handleDeleteConfirm = async () => {
     if (!selectedEvent || !workspace?.id) return
-
-    try {
-      await eventsApi.deleteEvent(workspace.id, selectedEvent.id)
-      setEvents(events.filter((e) => e.id !== selectedEvent.id))
-      setShowDeleteDialog(false)
-      setSelectedEvent(null)
-      toast.success("Event deleted successfully")
-    } catch (error) {
-      console.error("Error deleting event:", error)
-      toast.error("Failed to delete event")
-    }
+    deleteEventMutation.mutate(selectedEvent.id)
   }
 
   if (isLoadingWorkspace || isLoading) {

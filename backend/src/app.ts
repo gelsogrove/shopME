@@ -8,6 +8,7 @@ import { swaggerSpec } from "./config/swagger"
 import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware"
 import { loggingMiddleware } from "./middlewares/logging.middleware"
 import apiRouter from "./routes"
+import agentRoutes from "./routes/agent.routes"
 import logger from "./utils/logger"
 
 // Initialize Express app
@@ -51,6 +52,10 @@ logger.info("Mounting API router at /api prefix")
 
 // Routes
 app.use("/api", apiRouter)
+
+// Mount agent routes directly at root level for legacy support
+app.use("/workspaces/:workspaceId/agent", agentRoutes)
+logger.info("Mounted agent routes directly at /workspaces/:workspaceId/agent for legacy support")
 
 // Endpoint di test per OpenAI
 // @ts-ignore

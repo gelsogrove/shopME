@@ -10,15 +10,13 @@ import { customersRouter } from "../interfaces/http/routes/customers.routes"
 import { eventsRouter } from "../interfaces/http/routes/events.routes"
 import { messagesRouter } from "../interfaces/http/routes/messages.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
+import registrationApiRoutes from "../presentation/routes/api.routes"
 import logger from "../utils/logger"
-import agentsRoutes from "./agents.routes"
+import agentRoutes from "./agent.routes"
 import faqRoutes from "./faq.routes"
 import languagesRoutes from "./languages"
 import productsRouter from "./products.routes"
 import promptsRoutes from "./prompts.routes"
-// Commentato per evitare conflitti con la route /unknown-customers/count
-// import unknownCustomersRoutes from "./unknown-customers.routes"
-import registrationApiRoutes from "../presentation/routes/api.routes"
 import uploadRoutes from "./upload.routes"
 import userRoutes from "./user.routes"
 import whatsappSettingsRoutes from "./whatsapp-settings.routes"
@@ -68,18 +66,14 @@ router.use("/users", userRoutes)
 router.use("/workspaces", customersRouter(customersController))
 logger.info("Registered customers router with controller on /workspaces path")
 
-// Rimosso unknownCustomersRoutes per evitare conflitti con la route già definita in customersRouter
-// router.use("/workspaces", unknownCustomersRoutes())
-// logger.info("Registered unknown customers routes on /workspaces path")
-
 // Register workspace routes and other workspace-related routes
 router.use("/workspaces", workspaceRoutes)
 
-// Mount both direct routes and workspace-specific routes for agents
-router.use("/agents", agentsRoutes)
-router.use("/workspaces/:workspaceId/agents", agentsRoutes)
+// Mount both direct routes and workspace-specific routes for agent
+router.use("/agent", agentRoutes)
+router.use("/workspaces/:workspaceId/agent", agentRoutes)
 logger.info(
-  "Registered agents routes on both /agents and /workspaces/:workspaceId/agents paths"
+  "Registered agent routes on both /agent and /workspaces/:workspaceId/agent paths"
 )
 
 // Mount products router (contains workspaces/:workspaceId/products routes)
@@ -110,55 +104,6 @@ router.use("/upload", uploadRoutes)
 router.use("/whatsapp-settings", whatsappSettingsRoutes)
 router.use("/languages", languagesRoutes)
 router.use(categoriesRouter(new CategoriesController()))
-
-// Debug endpoint for direct products and services access
-// @ts-ignore
-router.get("/products", function (req: Request, res: Response) {
-  logger.info("Direct /products endpoint accessed")
-  return res.json({
-    success: true,
-    message: "Products API endpoint is working",
-    documentation:
-      "Use /workspaces/:workspaceId/products for workspace-specific products",
-  })
-})
-
-// @ts-ignore
-router.get("/services", function (req: Request, res: Response) {
-  logger.info("Direct /services endpoint accessed")
-  return res.json({
-    success: true,
-    message: "Services API endpoint is working",
-    documentation:
-      "Use /workspaces/:workspaceId/services for workspace-specific services",
-  })
-})
-
-// @ts-ignore
-router.get("/events", function (req: Request, res: Response) {
-  logger.info("Direct /events endpoint accessed")
-  return res.json({
-    success: true,
-    message: "Events API endpoint is working",
-    documentation:
-      "Use /workspaces/:workspaceId/events for workspace-specific events",
-  })
-})
-
-// Debug endpoint for direct chat access
-// @ts-ignore
-router.get("/chat-debug/:sessionId", function (req: Request, res: Response) {
-  logger.info(
-    "Direct /chat-debug endpoint accessed for sessionId:",
-    req.params.sessionId
-  )
-  return res.json({
-    success: true,
-    message: "Chat debug endpoint is working",
-    sessionId: req.params.sessionId,
-    timestamp: new Date().toISOString(),
-  })
-})
 
 logger.info("API routes setup complete")
 

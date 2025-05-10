@@ -7,6 +7,7 @@ import { ReactNode } from "react"
 interface PageHeaderProps {
   title: ReactNode
   titleIcon?: ReactNode
+  description?: string
   searchValue?: string
   onSearch?: (value: string) => void
   searchPlaceholder?: string
@@ -19,6 +20,7 @@ interface PageHeaderProps {
 export function PageHeader({
   title,
   titleIcon,
+  description,
   searchValue,
   onSearch,
   searchPlaceholder,
@@ -59,6 +61,13 @@ export function PageHeader({
           )}
         </div>
       </div>
+      
+      {/* Description text */}
+      {description && (
+        <div className="text-sm text-muted-foreground ml-1">
+          {description}
+        </div>
+      )}
       
       {/* Standardized item count display */}
       {itemCount !== undefined && (

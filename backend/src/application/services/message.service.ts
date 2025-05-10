@@ -556,12 +556,17 @@ export class MessageService {
           logger.info(`=== MESSAGE PROCESSING START ===`)
           logger.info(`USER MESSAGE: "${message}"`)
 
+          // Get the agent for this workspace
+          const agent = await this.messageRepository.getAgentByWorkspaceId(workspaceId)
+          if (!agent) {
+            throw new Error(`No agent found for workspace ${workspaceId}`)
+          }
+
           // 1. Select the appropriate agent with the router
-          const selectedAgent =
-            await this.messageRepository.getResponseFromAgentRouter(
-              routerAgentPrompt,
-              message
-            )
+          const selectedAgent = await this.messageRepository.getResponseFromAgent(
+            agent,
+            message
+          )
           logger.info(`AGENT SELECTED: "${selectedAgent.name}"`)
 
           // Save the name of the selected agent

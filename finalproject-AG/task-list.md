@@ -1,12 +1,12 @@
 # ShopMe – Realistic Project Task List (64 Unique Tasks)
 
 ## 📊 Stato Attuale del Progetto
-**Ultimo aggiornamento:** 2025-05-08
+**Ultimo aggiornamento:** 2025-05-10
 
-- **Completati:** 36/66 task (54.5%)
+- **Completati:** 39/66 task (59.1%)
 - **In corso:** 0/66 task (0%)
 - **Out of scope:** 16/66 task (24.2%)
-- **Da iniziare:** 14/66 task (21.2%)
+- **Da iniziare:** 11/66 task (16.7%)
 
 
 ### 🚩 Prossimo Task Prioritario
@@ -28,11 +28,33 @@
 - Authentication & 2FA: 4/10 completati, 5/10 fuori scope ⏳
 - Product Management: 9/10 completati, 1/10 in corso 🔄
 - Orders & Cart: 1/10 completati, 8/10 fuori scope 🔄
-- User Interface & UX: 7/12 completati ⏳
-- WhatsApp Integration: 0/10 completati ❌
+- User Interface & UX: 8/12 completati ⏳
+- WhatsApp Integration: 1/10 completati ⏳
 - API Design: 0/2 completati ❌
 
 ### 🌟 Task Completati Recentemente
+- **TASK-0099**: Miglioramento Message Service con parametri dinamici dell'agente
+  - Sostituito getResponseFromAgentRouter con getResponseFromAgent che accetta un oggetto Agent
+  - Implementato metodo getAgentByWorkspaceId per ottenere l'agente dal workspace
+  - Aggiornata la chiamata OpenAI per utilizzare i parametri dinamici dell'agente (model, temperature, max_tokens)
+  - Aggiornati i test per riflettere le modifiche
+  - Migliorata la gestione degli errori e il logging
+
+- **TASK-0098**: Miglioramenti interfaccia Agent Configuration
+  - Aggiornato il titolo "Agent" in "Agent Configuration" nella sidebar e nel menu utente
+  - Aggiunto icona del dischetto al pulsante "Save Changes"
+  - Corretto il problema di visualizzazione del playground nell'editor markdown
+  - Migliorato lo stile del pulsante di salvataggio per allinearlo con le altre pagine
+  - Risolti problemi di centratura e layout della pagina
+
+- **TASK-0097**: Semplificazione sistema Agenti in Agent singolo
+  - Modificato schema Prisma per aggiungere campo "model" agli agenti
+  - Aggiornato seed.ts per creare un solo agente predefinito
+  - Rinominato il percorso da "/agents" a "/agent" per riflettere il cambio di paradigma
+  - Semplificata l'interfaccia utente per gestire un solo agente
+  - Aggiornati i servizi API per supportare il nuovo modello
+  - Rimossa la funzionalità di gestione multi-agente
+
 - **TASK-0096**: Miglioramento Documentazione Frontend
   - Aggiornata la sezione Frontend Implementation nel README
   - Migliorata la descrizione delle tecnologie utilizzate
@@ -141,7 +163,9 @@
 - **TASK-0029**: Add unit tests for product service and fix message service tests
 
 **UI & UX Improvements**
+- **TASK-0098**: Miglioramenti interfaccia Agent Configuration
 - **TASK-0096**: Miglioramento Documentazione Frontend
+- **TASK-0097**: Semplificazione sistema Agenti in Agent singolo
 - **TASK-0064**: Implementare notifiche badge nella sidebar
 - **TASK-0065**: Spostare GDPR nelle impostazioni
 - **TASK-0066**: Implementare Blocklist per i numeri di telefono
@@ -150,6 +174,9 @@
 - **TASK-0090**: Miglioramenti interfaccia chat
 - **TASK-0091**: Miglioramenti navigazione e UX
 - **TASK-0092**: Campi di spedizione opzionali nel form client
+
+**WhatsApp Integration**
+- **TASK-0099**: Miglioramento Message Service con parametri dinamici dell'agente
 
 **Orders & Cart**
 - **TASK-0030**: Design cart data model
@@ -202,7 +229,6 @@
 - **TASK-0066**: Implement order status queries via WhatsApp
 - **TASK-0067**: Create notification system for order updates
 - **TASK-0068**: Design and implement automated responses
-- **TASK-0069**: Add language detection and multilingual support
 
 **Misc**
 - **TASK-0070**: Implement comprehensive logging and monitoring
@@ -213,7 +239,7 @@
 - Authentication & 2FA: 10 tasks (4 completati)
 - Product Management: 10 tasks (9 completati)
 - Orders & Cart: 10 tasks (1 completato)
-- User Interface & UX: 12 tasks (7 completati)
+- User Interface & UX: 12 tasks (9 completati)
 - AI, WhatsApp & Messaging: 12 tasks (2 completati)
 
 **Total Tasks: 66**
@@ -1304,3 +1330,14 @@ Implementare una funzionalità che applichi automaticamente uno sconto ai prezzi
 - Update frontend dropdowns and backend schema defaults accordingly
 - Reference: PRD.md update (see registration, settings, and welcome message logic)
 - High priority for next release
+
+## Agent Configuration Tasks
+
+- [x] Create single agent configuration page
+- [x] Display all parameters (temperature, top_p, top_k, model) on a single row
+- [x] Add max_tokens parameter with range slider (100-8000)
+- [x] Add tooltips for each parameter explaining their function
+- [x] Update database schema to include max_tokens field
+- [x] Update backend services to support max_tokens parameter
+- [x] Rename files from plural "agents" to singular "agent"
+- [x] Update PDR.md with information about OpenRouter parameters

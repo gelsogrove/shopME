@@ -1,7 +1,10 @@
+import { PrismaClient } from "@prisma/client"
 import { Router } from "express"
-import { agentsController } from "../controllers/agents.controller"
+import { agentController } from "../controllers/agent.controller"
 import { authMiddleware } from "../middlewares/auth.middleware"
 import { wrapController } from "../utils/controller-wrapper"
+
+const prisma = new PrismaClient()
 
 /**
  * @swagger
@@ -55,10 +58,10 @@ router.use(wrapController(authMiddleware))
 
 /**
  * @swagger
- * /api/agents:
+ * /api/agent:
  *   get:
  *     summary: Ottiene tutti gli agenti di un workspace
- *     tags: [Agents]
+ *     tags: [Agent]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -79,14 +82,14 @@ router.use(wrapController(authMiddleware))
  *                 $ref: '#/components/schemas/Agent'
  */
 // Get all agents for a workspace
-router.get("/", wrapController(agentsController.getAllForWorkspace))
+router.get("/", wrapController(agentController.getAllForWorkspace))
 
 /**
  * @swagger
- * /api/agents/{id}:
+ * /api/agent/{id}:
  *   get:
  *     summary: Ottiene un agente specifico
- *     tags: [Agents]
+ *     tags: [Agent]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -113,14 +116,14 @@ router.get("/", wrapController(agentsController.getAllForWorkspace))
  *         description: Agente non trovato
  */
 // Get a specific agent
-router.get("/:id", wrapController(agentsController.getById))
+router.get("/:id", wrapController(agentController.getById))
 
 /**
  * @swagger
- * /api/agents:
+ * /api/agent:
  *   post:
  *     summary: Crea un nuovo agente
- *     tags: [Agents]
+ *     tags: [Agent]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -168,14 +171,14 @@ router.get("/:id", wrapController(agentsController.getById))
  *               $ref: '#/components/schemas/Agent'
  */
 // Create a new agent
-router.post("/", wrapController(agentsController.create))
+router.post("/", wrapController(agentController.create))
 
 /**
  * @swagger
- * /api/agents/{id}:
+ * /api/agent/{id}:
  *   put:
  *     summary: Aggiorna un agente esistente
- *     tags: [Agents]
+ *     tags: [Agent]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -227,14 +230,14 @@ router.post("/", wrapController(agentsController.create))
  *         description: Agente non trovato
  */
 // Update an agent
-router.put("/:id", wrapController(agentsController.update))
+router.put("/:id", wrapController(agentController.update))
 
 /**
  * @swagger
- * /api/agents/{id}:
+ * /api/agent/{id}:
  *   delete:
  *     summary: Elimina un agente
- *     tags: [Agents]
+ *     tags: [Agent]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -257,6 +260,6 @@ router.put("/:id", wrapController(agentsController.update))
  *         description: Agente non trovato
  */
 // Delete an agent
-router.delete("/:id", wrapController(agentsController.delete))
+router.delete("/:id", wrapController(agentController.delete))
 
 export default router 

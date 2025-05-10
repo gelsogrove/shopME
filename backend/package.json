@@ -10,7 +10,6 @@
     "start": "ts-node-dev --respawn --transpile-only --notify false --clear --exit-child -r dotenv/config src/index.ts",
     "start:prod": "node dist/index.js",
     "start:dev": "ts-node-dev --respawn --transpile-only --notify false --clear --exit-child -r dotenv/config src/index.ts",
-    "dev": "ts-node-dev --respawn --transpile-only --notify false --clear --exit-child -r dotenv/config src/index.ts",
     "build": "npx tsc --skipLibCheck --noEmitOnError false || exit 0",
     "test": "jest",
     "test:mocha": "mocha",

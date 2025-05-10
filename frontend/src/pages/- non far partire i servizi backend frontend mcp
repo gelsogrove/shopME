@@ -1,0 +1,79 @@
+ - non far partire i servizi backend frontend mcp che sono gia' attivi se li lanci abnbiamo un problema di porte
+- non inventarti nulla attieniti alle istruzioni
+- ritorna la lista delle cose fatte 
+- usa gli strumenti per verificare il corretto funzionamento
+- se hai dubbi chiedi e' imporante che siamo allineati
+- context @Backend @Frontend  
+- la build funziona ?
+- il test cd backend npm run test funziona?
+
+
+
+
+
+
+
+=============== TEST =============
+- agent
+- il flow  
+- PDR
+
+
+
+- non far partire i servizi backend frontend mcp che sono gia' attivi se li lanci abnbiamo un problema di porte
+- non inventarti nulla attieniti alle istruzioni
+- ritorna la lista delle cose fatte 
+- usa gli strumenti per verificare il corretto funzionamento
+- se hai dubbi chiedi e' imporante che siamo allineati
+- context @Backend @Frontend  
+- la build funziona ?
+- il test cd backend npm run test funziona?
+
+
+
+
+
+
+TASK 4
+- mi piacerebbe avere delle offerte mna non so come gestirle ne parliamo ? 
+
+TASK 5
+- quando un utente viene bloccato nella block list non deve comparire da nessuna parte ne nelle chatbot ne nei nuovi clienti ,deve sparire da tutte le parti avremo solo un numero di telefono dentro il campo blocklist del settings ha senso per te?
+
+
+
+
+- troppe volte chiama /me (FE), per questa task ti chiedo di guardare bene come e' stato gestito il Frotendn
+non penso abbiamo la necessita di chiamare il /me cosi tante volte cosi saturiamo il DB e neanche recent
+dobbiamo alleggerire i pesi tenendo la stessa funzionalita cosa ne pensi ? parliamone dove possiamo risparmiare ? 
+ma anche le altre pagine per esemepio se guardo la pagina di events lancia 3 volte la query events
+5 volte l'endpoint me
+
+
+- offferts
+process.env.FRONTEND_URL 
+
+
+  ========= LATER ==================
+
+- deve essere piu' simpatico discorsivo con faccine e piu ricco di testo e discorsiva cambia il prompt
+- view profile page (anche il prompt)
+- block user deve aggiungere dentro la block list la chat e la deve cancellare dalla lista
+- sicurezza come siamo messi ?
+- un po' di responsive ?
+- la criptografia funziona ?
+- quando scrive l'operatore mettere OPERATORE in caso di cambio va rivisto
+
+- Documentazione per il 19
+  01_metaprompt.md
+  02_prompt.md
+  03_PDR.md
+  04_userstories.md
+  05_todolist.md
+  include > 01_flow,md
+  include> 02_gdpr.md
+
+  - funzionalita di dump dentro il settings
+  - se non passi di piano non puoi aggiugnere il secondo channel
+
+- flow.md possiamo metterlo dentro il PDR ?

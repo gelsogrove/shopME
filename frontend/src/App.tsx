@@ -2,7 +2,7 @@ import SettingsPage from "@/pages/SettingsPage"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
 import { Layout } from "./components/layout/Layout"
-import { AgentsPage } from "./pages/AgentsPage"
+import { AgentPage } from "./pages/AgentPage"
 import { AnalyticsPage } from "./pages/AnalyticsPage"
 import SignupPage from "./pages/auth/SignupPage"
 import { ChatPage } from "./pages/ChatPage"
@@ -66,8 +66,8 @@ export function App() {
           <Route path="/chat" element={<Layout />}>
             <Route index element={<ChatPage />} />
           </Route>
-          <Route path="/agents" element={<Layout />}>
-            <Route index element={<AgentsPage />} />
+          <Route path="/agent" element={<Layout />}>
+            <Route index element={<AgentPage />} />
           </Route>
           <Route path="/clients" element={<Layout />}>
             <Route index element={<ClientsPage />} />

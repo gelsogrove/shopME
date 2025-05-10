@@ -1,23 +1,23 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useCurrentUser } from "@/hooks/useCurrentUser"
 import { api } from "@/services/api"
 import {
-  ArrowLeftRight,
-  Bot,
-  CreditCard,
-  LogOut,
-  Phone,
-  Settings,
-  User,
+    ArrowLeftRight,
+    Bot,
+    CreditCard,
+    LogOut,
+    Phone,
+    Settings,
+    User,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
@@ -174,10 +174,10 @@ export function Header() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="p-4 text-lg cursor-pointer"
-                onClick={() => navigate("/agents")}
+                onClick={() => navigate("/agent")}
               >
                 <Bot className="mr-3 h-5 w-5" />
-                <span>Agents</span>
+                <span>Agent Configuration</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

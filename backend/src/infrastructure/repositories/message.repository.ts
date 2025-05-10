@@ -726,7 +726,6 @@ export class MessageRepository {
       const routerAgent = await this.prisma.prompts.findFirst({
         where: {
           isRouter: true,
-          isActive: true,
         },
       })
 
@@ -848,26 +847,52 @@ export class MessageRepository {
   }
 
   /**
+   * Get the agent for a specific workspace
+   * @param workspaceId The workspace ID
+   * @returns The agent for the workspace
+   */
+  async getAgentByWorkspaceId(workspaceId: string) {
+    try {
+      // Find the router agent for this workspace
+      const agent = await this.prisma.prompts.findFirst({
+        where: {
+          workspaceId: workspaceId,
+          isRouter: true,
+        },
+      });
+
+      if (!agent) {
+        logger.warn(`No router agent found for workspace ${workspaceId}`);
+        return null;
+      }
+
+      return agent;
+    } catch (error) {
+      logger.error(`Error getting agent for workspace ${workspaceId}:`, error);
+      return null;
+    }
+  }
+
+  /**
    * Get response from primary LLM to route the conversation
-   * @param routerPrompt The router agent prompt
+   * @param agent The agent object
    * @param message The user message
    * @returns The selected agent/department prompt
    */
-  async getResponseFromAgentRouter(
-    routerPrompt: any,
+  async getResponseFromAgent(
+    agent: any,
     message: string
   ): Promise<any> {
     try {
       // Check if OpenAI is properly configured
       if (!isOpenAIConfigured()) {
-        logger.warn("OpenAI API key not configured properly for router agent")
+        logger.warn("OpenAI API key not configured properly for router agent");
         return {
           id: "default",
           name: "Generic",
           content:
             "You are a helpful assistant for L'Altra Italia food shop. Respond in Italian.",
           isRouter: false,
-          isActive: true,
           department: "GENERIC",
           temperature: 0.7,
           top_p: 0.9,
@@ -875,40 +900,40 @@ export class MessageRepository {
           selectedType: "Generic",
           createdAt: new Date(),
           updatedAt: new Date(),
-        }
+        };
       }
 
       logger.info(
         `Using router prompt for message: "${message.substring(0, 30)}..."`
-      )
+      );
 
       try {
-        // Chiamata all'API per il routing
-        const routerResponse = await openai.chat.completions.create({
-          model: "openai/gpt-4o-mini",
+        // Chiamata all'API per il routing con i parametri dinamici dell'agent
+        const completion = await openai.chat.completions.create({
+          model: agent.model || "openai/gpt-3.5-turbo",
           messages: [
-            { role: "system", content: routerPrompt },
+            { role: "system", content: agent.content },
             { role: "user", content: message },
           ],
-          temperature: 0.3,
-          max_tokens: 50,
-        })
+          temperature: agent.temperature || 0.7,
+          max_tokens: agent.max_tokens || 500,
+        });
 
-        const routerChoice = routerResponse.choices[0]?.message?.content || ""
+        const routerChoice = completion.choices[0]?.message?.content || "";
 
         // Pulisce il testo da delimitatori markdown
         let cleanedResponse = routerChoice
           .trim()
           .replace(/^```(json)?/, "")
           .replace(/```$/, "")
-          .trim()
+          .trim();
 
         // Tenta di analizzare la risposta come JSON
-        const parsedResponse = JSON.parse(cleanedResponse)
+        const parsedResponse = JSON.parse(cleanedResponse);
 
         // Estrae l'agente dalla risposta
-        const agentName = parsedResponse.agent || "Generic"
-        logger.info(`SELECTED AGENT TYPE: "${agentName}"`)
+        const agentName = parsedResponse.agent || "Generic";
+        logger.info(`SELECTED AGENT TYPE: "${agentName}"`);
 
         // Cerca l'agente nel database
         const agentPrompt = await this.prisma.prompts.findFirst({
@@ -917,12 +942,11 @@ export class MessageRepository {
               contains: agentName,
               mode: "insensitive",
             },
-            isActive: true,
           },
-        })
+        });
 
         if (agentPrompt) {
-          logger.info(`AGENT FOUND: "${agentPrompt.name}"`)
+          logger.info(`AGENT FOUND: "${agentPrompt.name}"`);
 
           // Restituisce l'oggetto agente completo con valori di default per campi mancanti
           return {
@@ -930,7 +954,6 @@ export class MessageRepository {
             name: agentPrompt.name,
             content: agentPrompt.content,
             isRouter: agentPrompt.isRouter || false,
-            isActive: agentPrompt.isActive,
             department: agentPrompt.department || "GENERAL",
             temperature: agentPrompt.temperature || 0.7,
             top_p: agentPrompt.top_p || 0.9,
@@ -938,18 +961,17 @@ export class MessageRepository {
             selectedType: agentName,
             createdAt: agentPrompt.createdAt,
             updatedAt: agentPrompt.updatedAt,
-          }
+          };
         }
       } catch (parseError) {
-        logger.error(`JSON parsing error: ${parseError.message}`)
+        logger.error(`JSON parsing error: ${parseError.message}`);
 
         // Restituisce un oggetto agente di fallback in caso di errore parsing
         return {
           id: "fallback",
           name: "Fallback",
-          content: routerPrompt,
+          content: agent.content,
           isRouter: false,
-          isActive: true,
           department: "GENERAL",
           temperature: 0.7,
           top_p: 0.9,
@@ -957,12 +979,11 @@ export class MessageRepository {
           selectedType: "Fallback",
           createdAt: new Date(),
           updatedAt: new Date(),
-        }
+        };
       }
     } catch (error) {
-      logger.error("Error in router function:", error)
-
-      return null
+      logger.error("Error in router function:", error);
+      return null;
     }
   }
 
@@ -1328,7 +1349,6 @@ export class MessageRepository {
             contains: "function-router",
             mode: "insensitive",
           },
-          isActive: true,
         },
       })
 

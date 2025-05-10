@@ -1,3 +1,4 @@
+import { API_URL } from "@/config"
 import { api } from "./api"
 
 export interface Language {
@@ -89,50 +90,36 @@ const transformWorkspaceRequest = (
   }
 }
 
-export const getCurrentWorkspace = async (): Promise<Workspace> => {
-  const workspaceStr = sessionStorage.getItem("currentWorkspace")
-  if (!workspaceStr) {
-    throw new Error("No workspace selected")
+/**
+ * Get the current workspace from session storage or API
+ */
+export async function getCurrentWorkspace(): Promise<Workspace> {
+  // First check if we have the workspace in session storage
+  const storedWorkspace = sessionStorage.getItem("currentWorkspace")
+  
+  if (storedWorkspace) {
+    try {
+      return JSON.parse(storedWorkspace)
+    } catch (error) {
+      console.error("Failed to parse stored workspace:", error)
+    }
   }
-
-  try {
-    const workspace = JSON.parse(workspaceStr)
-    if (!workspace.id) {
-      throw new Error("Invalid workspace data")
-    }
-
-    // Check if we're on the settings page and just saved
-    // In this case, use the cached data to avoid unnecessary API calls
-    const isSettingsPage = window.location.pathname.includes("/settings")
-    const lastSaveTime = sessionStorage.getItem("lastWorkspaceSave")
-    const now = Date.now()
-    const recentlySaved = lastSaveTime && now - parseInt(lastSaveTime) < 5000 // 5 seconds
-
-    if (isSettingsPage && recentlySaved) {
-      console.log("Using cached workspace data (recently saved)")
-      return transformWorkspaceResponse(workspace)
-    }
-
-    // Get fresh data from API
-    const response = await api.get(`/workspaces/${workspace.id}`)
-    console.log("API Response - getCurrentWorkspace:", response.data)
-    return transformWorkspaceResponse(response.data)
-  } catch (error) {
-    console.error("Error getting workspace:", error)
-
-    // If we get a 401, don't throw immediately - check if we have workspace data
-    if (error.response?.status === 401) {
-      try {
-        const workspace = JSON.parse(workspaceStr)
-        console.log("Using cached workspace data due to auth error")
-        return transformWorkspaceResponse(workspace)
-      } catch (parseError) {
-        console.error("Error parsing cached workspace data:", parseError)
-      }
-    }
-
-    throw new Error("Failed to get current workspace. Please try again.")
+  
+  // If not in storage, fetch from API
+  const response = await fetch(`${API_URL}/workspaces/current`, {
+    credentials: "include",
+  })
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch current workspace")
   }
+  
+  const workspace = await response.json()
+  
+  // Store in session storage for future use
+  sessionStorage.setItem("currentWorkspace", JSON.stringify(workspace))
+  
+  return workspace
 }
 
 export const getWorkspaces = async (): Promise<Workspace[]> => {

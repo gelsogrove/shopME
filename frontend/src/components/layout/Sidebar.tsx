@@ -2,17 +2,17 @@ import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
 import { cn } from "@/lib/utils"
 import {
-  Bell,
-  Calendar,
-  HelpCircle,
-  LayoutGrid,
-  LucideIcon,
-  MessageSquare,
-  Package2,
-  ShoppingCart,
-  Tag,
-  Users,
-  Wrench,
+    Bell,
+    Calendar,
+    HelpCircle,
+    LayoutGrid,
+    LucideIcon,
+    MessageSquare,
+    Package2,
+    ShoppingCart,
+    Tag,
+    Users,
+    Wrench
 } from "lucide-react"
 import { NavLink } from "react-router-dom"
 
@@ -69,7 +69,6 @@ export function Sidebar() {
       label: "FAQ",
       icon: HelpCircle,
     },
-
     {
       href: "/orders",
       label: "Orders (WIP)",

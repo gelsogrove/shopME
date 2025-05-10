@@ -10,6 +10,7 @@ export interface Agent {
   temperature?: number
   top_p?: number
   top_k?: number
+  model?: string
 }
 
 export interface CreateAgentData {
@@ -20,6 +21,7 @@ export interface CreateAgentData {
   temperature?: number
   top_p?: number
   top_k?: number
+  model?: string
 }
 
 export interface UpdateAgentData {
@@ -30,4 +32,5 @@ export interface UpdateAgentData {
   temperature?: number
   top_p?: number
   top_k?: number
+  model?: string
 } 

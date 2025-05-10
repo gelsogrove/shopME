@@ -4,28 +4,31 @@ import { api } from "./api"
 export type { Agent, CreateAgentData, UpdateAgentData }
 
 /**
- * Get all agents for a workspace
+ * Get the agent for a workspace
  */
-export const getAgents = async (workspaceId: string): Promise<Agent[]> => {
+export const getAgent = async (workspaceId: string): Promise<Agent> => {
   try {
     const response = await api.get<Agent[]>(`/workspaces/${workspaceId}/agents`)
-    console.log("getAgents response:", response.data)
-    return response.data
+    console.log("getAgent response:", response.data)
+    if (response.data && response.data.length > 0) {
+      return response.data[0]
+    }
+    throw new Error("No agent found")
   } catch (error) {
-    console.error("Error getting agents:", error)
+    console.error("Error getting agent:", error)
     throw error
   }
 }
 
 /**
- * Get a specific agent by ID
+ * Get the agent by ID
  */
-export const getAgent = async (workspaceId: string, agentId: string): Promise<Agent> => {
+export const getAgentById = async (workspaceId: string, agentId: string): Promise<Agent> => {
   try {
     const response = await api.get<Agent>(`/workspaces/${workspaceId}/agents/${agentId}`)
     return response.data
   } catch (error) {
-    console.error("Error getting agent:", error)
+    console.error("Error getting agent by ID:", error)
     throw error
   }
 }
@@ -49,7 +52,7 @@ export const createAgent = async (workspaceId: string, data: CreateAgentData): P
 }
 
 /**
- * Update an existing agent
+ * Update the existing agent
  */
 export const updateAgent = async (
   workspaceId: string,
@@ -70,20 +73,6 @@ export const updateAgent = async (
     return response.data
   } catch (error) {
     console.error("Error updating agent:", error)
-    throw error
-  }
-}
-
-/**
- * Delete an agent
- */
-export const deleteAgent = async (workspaceId: string, agentId: string): Promise<void> => {
-  try {
-    console.log("Deleting agent:", { workspaceId, agentId })
-    await api.delete(`/workspaces/${workspaceId}/agents/${agentId}`)
-    console.log("Agent deleted successfully")
-  } catch (error) {
-    console.error("Error deleting agent:", error)
     throw error
   }
 } 

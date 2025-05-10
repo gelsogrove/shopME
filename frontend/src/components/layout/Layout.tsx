@@ -4,10 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { Chat } from "@/types/chat"
 // Importiamo l'icona WhatsAppIcon che creiamo internamente
 import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
-import { useEffect, useState } from "react"
+import { memo, useEffect, useState } from "react"
 import { Outlet } from "react-router-dom"
 import { Header } from "./Header"
 import { Sidebar } from "./Sidebar"
+
+// Memorizziamo i componenti per evitare re-render inutili
+const MemoizedHeader = memo(Header)
+const MemoizedSidebar = memo(Sidebar)
 
 export function Layout() {
   const [showPlaygroundDialog, setShowPlaygroundDialog] = useState(false)
@@ -77,9 +81,9 @@ export function Layout() {
   return (
     <TooltipProvider>
       <div className="relative flex min-h-screen">
-        <Sidebar />
+        <MemoizedSidebar />
         <div className="flex w-full flex-col pl-72">
-          <Header />
+          <MemoizedHeader />
           <main className="flex-1 p-8">
             <Outlet />
           </main>
