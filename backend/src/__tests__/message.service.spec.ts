@@ -160,56 +160,76 @@ describe("MessageService", () => {
   })
 
   describe("processMessage with blacklisted customer", () => {
-    // Test case: Customer is blacklisted
-
     // Test case: Customer is not blacklisted
     it("should process message for non-blacklisted customer", async () => {
       // Setup
       mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
         id: "workspace-id",
         isActive: true,
+        welcomeMessages: {
+          en: "Welcome! (EN)",
+          it: "Benvenuto! (IT)",
+        },
       } as any)
       mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false)
-      mockMessageRepository.findCustomerByPhone.mockResolvedValue(null) // Customer doesn't exist
 
-      // Mock the URL for the registration link
-      process.env.FRONTEND_URL = "https://laltroitalia.shop"
+      // Mock required services for processing
+      mockMessageRepository.getRouterAgent.mockResolvedValue("router prompt")
+      mockMessageRepository.getProducts.mockResolvedValue([])
+      mockMessageRepository.getServices.mockResolvedValue([])
+      mockMessageRepository.getLatesttMessages.mockResolvedValue([])
 
-      // Mock the findCustomerByPhone method to return a newly created customer
+      // Mock an existing customer with complete information
       const mockCustomer = {
         id: "customer-id",
         phone: "+1234567890",
+        name: "Test Customer",
+        email: "test@example.com",
+        language: "Italian",
+        shippingAddress: {
+          street: "Via Test 123",
+          city: "Test City",
+          country: "Italy"
+        }
       }
-      mockMessageRepository.findCustomerByPhone.mockResolvedValueOnce(null) // First call: not found
-      mockMessageRepository.findCustomerByPhone.mockResolvedValueOnce(
-        mockCustomer as any
-      ) // Second call: return created customer
+      mockMessageRepository.findCustomerByPhone.mockResolvedValue(mockCustomer as any)
 
-      // Mock service creating the customer
-      // @ts-ignore: Mock implementation for test purposes
-      mockMessageRepository.createCustomer = jest
-        .fn()
-        .mockImplementation(() => Promise.resolve(mockCustomer))
+      // Mock agent selection with customer info and function calls
+      const expectedContext = `## CUSTOMER INFORMATION
+Name: Test Customer
+Email: test@example.com
+Phone: +1234567890
+Language: Italian
+Shipping Address: Via Test 123
 
-      // Execute
+## AVAILABLE FUNCTIONS
+- searchProducts(query: string): Search for products
+- checkStock(productId: string): Check product availability
+- calculateShipping(address: string): Calculate shipping cost
+- placeOrder(products: string[]): Place a new order`
+
+      // Mock agent selection and RAG processes
+      const mockAgent = { 
+        name: "TestAgent", 
+        content: expectedContext 
+      }
+      mockMessageRepository.getResponseFromAgentRouter.mockResolvedValue(mockAgent)
+      mockMessageRepository.getResponseFromRag.mockResolvedValue("Test response")
+      mockMessageRepository.getConversationResponse.mockResolvedValue("Test response")
+
+      // Execute with a non-greeting message
       const result = await messageService.processMessage(
-        "Test message",
+        "Non saluto",
         "+1234567890",
         "workspace-id"
       )
 
-      // Verify
-      expect(mockMessageRepository.getWorkspaceSettings).toHaveBeenCalledWith(
-        "workspace-id"
-      )
-      expect(mockMessageRepository.isCustomerBlacklisted).toHaveBeenCalledWith(
-        "+1234567890"
-      )
-      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith(
-        "+1234567890",
-        "workspace-id"
-      )
-      expect(result).toContain("Welcome") // Should contain registration message
+      // Verify that the message was processed with customer info
+      expect(result).toBe("Test response")
+      const ragCallArg = mockMessageRepository.getResponseFromRag.mock.calls[0][0] as { content: string }
+      expect(ragCallArg.content).toContain("## CUSTOMER INFORMATION")
+      expect(ragCallArg.content).toContain("Name: Test Customer")
+      expect(ragCallArg.content).toContain("## AVAILABLE FUNCTIONS")
     })
   })
 
@@ -1030,6 +1050,154 @@ describe("MessageService", () => {
         })
       )
     })
+
+    it("should include function calls in router agent context", async () => {
+      // Setup
+      mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
+        id: "workspace-id",
+        isActive: true,
+      } as any)
+      mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false)
+
+      // Mock required services for processing
+      mockMessageRepository.getRouterAgent.mockResolvedValue("router prompt")
+      mockMessageRepository.getProducts.mockResolvedValue([])
+      mockMessageRepository.getServices.mockResolvedValue([])
+      mockMessageRepository.getLatesttMessages.mockResolvedValue([])
+
+      // Mock customer with complete information
+      const mockCustomer = {
+        id: "customer-id",
+        phone: "+1234567890",
+        name: "Test Customer",
+        email: "test@example.com",
+        language: "Italian",
+        shippingAddress: {
+          street: "Via Test 123",
+          city: "Test City",
+          country: "Italy"
+        }
+      }
+      mockMessageRepository.findCustomerByPhone.mockResolvedValue(mockCustomer as any)
+
+      // Define expected function calls
+      const expectedFunctions = [
+        "searchProducts(query: string): Search for products",
+        "checkStock(productId: string): Check product availability",
+        "calculateShipping(address: string): Calculate shipping cost",
+        "placeOrder(products: string[]): Place a new order"
+      ]
+
+      // Mock the agent response
+      const mockAgentContent = `## CUSTOMER INFORMATION
+Name: Test Customer
+Email: test@example.com
+Phone: +1234567890
+Language: Italian
+Shipping Address: Via Test 123
+
+## AVAILABLE FUNCTIONS
+- searchProducts(query: string): Search for products
+- checkStock(productId: string): Check product availability
+- calculateShipping(address: string): Calculate shipping cost
+- placeOrder(products: string[]): Place a new order`
+
+      mockMessageRepository.getResponseFromAgentRouter.mockResolvedValue({
+        name: "TestAgent",
+        content: mockAgentContent
+      })
+      mockMessageRepository.getResponseFromRag.mockResolvedValue("Test response")
+      mockMessageRepository.getConversationResponse.mockResolvedValue("Test response")
+
+      // Execute message processing
+      await messageService.processMessage(
+        "Vorrei ordinare dei prodotti",
+        "+1234567890",
+        "workspace-id"
+      )
+
+      // Verify that the RAG function was called with the correct context
+      const ragCallArg = mockMessageRepository.getResponseFromRag.mock.calls[0][0] as { content: string }
+      
+      // Verify customer info is included
+      expect(ragCallArg.content).toContain("## CUSTOMER INFORMATION")
+      expect(ragCallArg.content).toContain("Name: Test Customer")
+      expect(ragCallArg.content).toContain("Email: test@example.com")
+      expect(ragCallArg.content).toContain("Language: Italian")
+      expect(ragCallArg.content).toContain("Shipping Address: Via Test 123")
+
+      // Verify function calls are included
+      expect(ragCallArg.content).toContain("## AVAILABLE FUNCTIONS")
+      expectedFunctions.forEach(func => {
+        expect(ragCallArg.content).toContain(func)
+      })
+    })
+
+    it("should replace customer info and function calls in router agent context", async () => {
+      // Setup
+      mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
+        id: "workspace-id",
+        isActive: true,
+      } as any)
+      mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false)
+
+      // Mock customer with complete information
+      const mockCustomer = {
+        id: "customer-id",
+        phone: "+1234567890",
+        name: "Test Customer",
+        email: "test@example.com",
+        language: "Italian",
+        address: "Via Test 123"
+      }
+      mockMessageRepository.findCustomerByPhone.mockResolvedValue(mockCustomer as any)
+
+      // Mock required services for processing
+      mockMessageRepository.getRouterAgent.mockResolvedValue("router prompt")
+      mockMessageRepository.getProducts.mockResolvedValue([])
+      mockMessageRepository.getServices.mockResolvedValue([])
+      mockMessageRepository.getLatesttMessages.mockResolvedValue([])
+
+      // Mock the agent response with a template that should be replaced
+      const mockAgentTemplate = "Original agent content without customer info"
+      mockMessageRepository.getResponseFromAgentRouter.mockResolvedValue({
+        name: "TestAgent",
+        content: mockAgentTemplate
+      })
+
+      // Mock RAG and conversation responses
+      mockMessageRepository.getResponseFromRag.mockResolvedValue("Test response")
+      mockMessageRepository.getConversationResponse.mockResolvedValue("Test response")
+
+      // Execute message processing
+      await messageService.processMessage(
+        "Test message",
+        "+1234567890",
+        "workspace-id"
+      )
+
+      // Get the arguments passed to getResponseFromRag
+      const ragCallArgs = mockMessageRepository.getResponseFromRag.mock.calls[0]
+      const agentArg = ragCallArgs[0]
+
+      // Verify customer info was added to the context
+      expect(agentArg.content).toContain("## CUSTOMER INFORMATION")
+      expect(agentArg.content).toContain("Name: Test Customer")
+      expect(agentArg.content).toContain("Email: test@example.com")
+      expect(agentArg.content).toContain("Phone: +1234567890")
+      expect(agentArg.content).toContain("Language: Italian")
+      expect(agentArg.content).toContain("Shipping Address: Via Test 123")
+
+      // Verify function calls were added
+      expect(agentArg.content).toContain("## AVAILABLE FUNCTIONS")
+      expect(agentArg.content).toContain("searchProducts(query: string)")
+      expect(agentArg.content).toContain("checkStock(productId: string)")
+      expect(agentArg.content).toContain("calculateShipping(address: string)")
+      expect(agentArg.content).toContain("placeOrder(products: string[])")
+
+      // Verify the original content is preserved after the additions
+      expect(agentArg.content).toContain(mockAgentTemplate)
+    })
   })
 
   describe("processMessage with currency preferences", () => {
@@ -1767,7 +1935,8 @@ describe("MessageService", () => {
       "+393331234567",
       "workspace-id"
     )
-    expect(result).toContain("Welcome! (EN)")
+    // Ora ci aspettiamo che NON risponda (null)
+    expect(result).toBeNull()
   })
 
   it("should pass customer language to RAG function", async () => {
@@ -2370,6 +2539,28 @@ describe("MessageService", () => {
       })
     )
   })
+
+  describe("processMessage with new user and non-greeting message", () => {
+    it("should NOT respond to a new user if the first message is not a greeting", async () => {
+      mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
+        id: "workspace-id",
+        isActive: true,
+        welcomeMessages: {
+          en: "Welcome! (EN)",
+          it: "Benvenuto! (IT)",
+        },
+      } as any)
+      mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false)
+      mockMessageRepository.findCustomerByPhone.mockResolvedValue(null)
+      // Simula un messaggio NON saluto
+      const result = await messageService.processMessage(
+        "Ho bisogno di supporto",
+        "+393331234567",
+        "workspace-id"
+      )
+      expect(result).toBeNull()
+    })
+  })
 })
 
 // Funzione helper per creare un mock completo di TokenService
@@ -2378,9 +2569,7 @@ function createMockTokenService() {
     prisma: {} as any,
     createRegistrationToken: jest
       .fn()
-      .mockImplementation((_phoneNumber: string, _workspaceId: string) =>
-        Promise.resolve("test-token")
-      ),
+      .mockImplementation(() => Promise.resolve("test-token")),
     validateToken: jest.fn().mockImplementation(() => Promise.resolve({})),
     markTokenAsUsed: jest.fn().mockImplementation(() => Promise.resolve()),
     cleanupExpiredTokens: jest

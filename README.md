@@ -7,13 +7,27 @@ L'Altra Italia Shop è una piattaforma e-commerce completa per la vendita di pro
 ## Tecnologie
 
 ### Frontend
-- **React 18** con **TypeScript**
-- **Vite** per bundling e sviluppo (l'applicazione frontend utilizza Vite come dev server e build tool)
-- **React Router** per la navigazione
-- **TailwindCSS** per lo styling
-- **Shadcn/UI** per componenti UI
-- **React Query** per la gestione dello stato e le chiamate API
-- **React Hook Form** per la gestione dei form
+
+The frontend architecture leverages modern technologies and patterns to create a fast, maintainable, and user-friendly experience:
+
+- **React 18** with **TypeScript** for type-safe component development
+- **Vite** as the build tool and development server, providing:
+  - Lightning-fast Hot Module Replacement (HMR)
+  - Optimized build process with code splitting
+  - Built-in API proxy configuration for seamless backend integration
+- **Tailwind CSS** for utility-first styling that enables rapid UI development
+- **Shadcn/UI** for high-quality, accessible, and customizable UI components
+- **React Router** for declarative routing and navigation
+- **React Query** for efficient server state management and API integration
+- **React Hook Form** with Zod for type-safe form validation
+
+The UI design is inspired by the Bolt.new design system, providing a clean, modern interface with consistent styling and components. The frontend architecture follows best practices:
+
+- Component isolation with clear separation of concerns
+- Type safety throughout the application
+- Responsive design for all device sizes
+- Accessibility compliance
+- Performance optimization
 
 ### Backend
 - **Node.js** con **TypeScript**
@@ -208,64 +222,3 @@ Il backend include una documentazione interattiva delle API tramite Swagger UI. 
 
 2. Apri il browser e vai a:
    ```
-   http://localhost:3001/api/docs
-   ```
-
-La documentazione Swagger permette di:
-- Visualizzare tutti gli endpoint disponibili
-- Testare le API direttamente dall'interfaccia
-- Vedere i modelli di dati e i parametri richiesti
-- Eseguire richieste di prova con autenticazione
-
-### Estendere la Documentazione Swagger
-
-Attualmente, solo alcune API (principalmente quelle relative ai workspace) sono documentate con Swagger. Per aggiungere documentazione per altre API:
-
-1. Aggiungi commenti JSDoc con tag Swagger ai controller o alle route:
-
-```typescript
-/**
- * @swagger
- * /api/products:
- *   get:
- *     summary: Ottiene la lista dei prodotti
- *     tags: [Products]
- *     responses:
- *       200:
- *         description: Lista dei prodotti
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Product'
- */
-```
-
-2. Definisci i modelli di dati nel file `src/config/swagger.ts`:
-
-```typescript
-/**
- * @swagger
- * components:
- *   schemas:
- *     Product:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *         name:
- *           type: string
- *         price:
- *           type: number
- */
-```
-
-3. Riavvia il server per applicare le modifiche.
-
-## Autenticazione
-
-L'applicazione utilizza l'autenticazione JWT. Le credenziali predefinite per l'accesso sono:
-
-- Email: admin@shopme.com
-- Password: admin123

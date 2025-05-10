@@ -1035,9 +1035,8 @@ export class MessageRepository {
         ]
       }
 
-      // Use the original message without modifications but add the formatting instructions
-      // Delegate to getResponseFromRag with the formatting instructions
-      const response = await this.getResponseFromRag(
+      // Generate the RAG prompt with context
+      const contextualPrompt = await this.getResponseFromRag(
         dummyAgent,
         message,
         [],
@@ -1047,15 +1046,46 @@ export class MessageRepository {
         formattingInstructions // Pass formatting instructions
       )
 
-      logger.info(
-        `FINAL AI RESPONSE: "${response.substring(0, 50)}${
-          response.length > 50 ? "..." : ""
-        }"`
-      )
-      return response
+      // Now send the contextual prompt to the LLM to get an actual response
+      // Check if OpenAI is properly configured
+      if (!isOpenAIConfigured()) {
+        logger.warn("OpenAI API key not configured properly")
+        return "Mi dispiace, non posso rispondere al momento. Un operatore ti contatterà presto."
+      }
+
+      try {
+        // Convertire la chat history in formato per l'API OpenAI con tipi corretti
+        const apiMessages: Array<OpenAI.Chat.ChatCompletionMessageParam> = [
+          { role: "system", content: contextualPrompt },
+          { role: "user", content: message },
+        ]
+
+        // Chiamata all'API OpenAI per generare la risposta
+        const completion = await openai.chat.completions.create({
+          model: "openai/gpt-3.5-turbo", // Usa il modello appropriato
+          messages: apiMessages,
+          temperature: 0.7,
+          max_tokens: 500,
+        })
+
+        // Estrai la risposta generata
+        const response =
+          completion.choices[0]?.message?.content ||
+          "Mi dispiace, non sono riuscito a elaborare una risposta."
+
+        logger.info(
+          `FINAL AI RESPONSE: "${response.substring(0, 50)}${
+            response.length > 50 ? "..." : ""
+          }"`
+        )
+        return response
+      } catch (llmError) {
+        logger.error("Error calling LLM:", llmError)
+        return "Mi dispiace, c'è stato un problema nell'elaborazione della tua richiesta. Un operatore ti contatterà a breve."
+      }
     } catch (error) {
       logger.error("Error in conversation processing:", error)
-      return "I'm sorry, there was a problem processing your message. An operator will contact you shortly."
+      return "Mi dispiace, c'è stato un problema nell'elaborazione del tuo messaggio. Un operatore ti contatterà a breve."
     }
   }
 

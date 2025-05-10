@@ -2051,3 +2051,67 @@ The application implements a notification badge system in the sidebar navigation
 
 This notification system improves workflow efficiency by providing visual cues for pending actions, helping administrators prioritize their tasks and ensure timely responses to customers.
 
+## 6. Key Features
+
+1. **User Management:**
+
+   - Registration and Login: Secure authentication and profile management.
+   - Password Recovery: Functionality for credential reset.
+
+2. **Product Catalog:**
+
+   - Product Display: List and detailed view of products with images, descriptions, and prices.
+   - Search and Filtering: Tools to search products by category, price, popularity, etc.
+   - Categories: Management of product categories for better organization.
+
+3. **WhatsApp Cart Management:**
+
+   - Conversational Interface: Allows users to manage their cart via WhatsApp messages.
+   - Add/Remove Products: Commands to add or remove products from the cart.
+   - Cart Status Display: Sending cart summaries and updates via WhatsApp.
+
+4. **Checkout and Online Payments:**
+
+   - Order Confirmation: After cart management on WhatsApp, the user is redirected to a web platform to confirm the order.
+   - Online Payments: Secure and integrated payment procedure on the online platform.
+
+5. **AI Integration:**
+
+   - RAG Implementation: Retrieval Augmented Generation for better business context with customer data.
+   - Customizable Prompts: Configure AI responses to reflect business voice and policies.
+   - Context Awareness: AI understands conversation history and user preferences.
+   - Data Pseudonymization: Privacy protection when processing data with external models.
+
+### Data Protection and Encryption System
+
+To ensure the highest level of data protection and privacy for users, the platform implements a comprehensive tokenization and encryption system:
+
+#### 1. Tokenization System
+
+- **Personal Data Protection**: The system automatically tokenizes all personally identifiable information (PII) before processing messages with any AI model.
+- **How It Works**: When a user sends a message, their personal data (name, phone number, address, etc.) is replaced with random tokens before being sent to the AI for processing.
+- **Real-time De-tokenization**: After receiving the AI response, the system automatically replaces tokens with the original data before sending the message back to the user.
+
+#### 2. Dedicated Information Page
+
+- A dedicated informational page explains the encryption and tokenization process in detail.
+- The page includes:
+  - Visual representation of how data is protected
+  - Technical explanation of the tokenization process
+  - Information about data storage security measures
+  - Compliance with GDPR and other privacy regulations
+  - FAQ about data protection
+
+#### 3. Post-Registration Communication
+
+- After successful registration, users receive an automatic welcome message in their selected language that:
+  - Welcomes them by name
+  - Confirms their successful registration
+  - Explains briefly that their data is protected through tokenization
+  - Includes a link to the detailed data protection information page
+  - Encourages them to continue the conversation
+
+This approach ensures users are well-informed about data protection measures while building trust in the platform's security practices.
+
+### User Preferences Management and Account Deletion
+```

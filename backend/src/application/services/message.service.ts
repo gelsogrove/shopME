@@ -255,6 +255,57 @@ export class MessageService {
         workspaceId
       )
 
+      // Se è un saluto, controlliamo se dobbiamo inviare un messaggio di benvenuto
+      const greetingLang = this.detectGreeting(message)
+
+      // Se il customer NON esiste (nuovo utente)
+      if (!customer) {
+        // Se il messaggio NON è un saluto, non rispondere
+        if (!greetingLang) {
+          logger.info(
+            `New user detected with non-greeting message - not responding`
+          )
+          return null
+        }
+        // Se è un saluto, invia il messaggio di benvenuto/registrazione
+        if (workspaceSettings.welcomeMessages && greetingLang) {
+          const welcomeMessages = workspaceSettings.welcomeMessages as Record<string, string>
+          const token = await this.tokenService.createRegistrationToken(phoneNumber, workspaceId)
+          let baseUrl = workspaceSettings.url || process.env.FRONTEND_URL || "https://example.com"
+          if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+            baseUrl = "https://" + baseUrl
+          }
+          const registrationUrl = `${baseUrl}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}&token=${token}`
+          let welcomeMessage = welcomeMessages[greetingLang] || welcomeMessages["en"]
+          if (!welcomeMessage) {
+            welcomeMessage = "Welcome! Please register here: {link}"
+          }
+          response = welcomeMessage
+            .replace("{link}", registrationUrl)
+            .replace("{phone}", phoneNumber)
+            .replace("{workspace}", workspaceId)
+          if (!response.includes("http")) {
+            response += `\n\nRegister here: ${registrationUrl}`
+          }
+          await this.messageRepository.createCustomer({
+            name: "Unknown Customer",
+            email: `customer-${Date.now()}@example.com`,
+            phone: phoneNumber,
+            workspaceId,
+          })
+          agentSelected = "Welcome"
+          await this.messageRepository.saveMessage({
+            workspaceId,
+            phoneNumber,
+            message,
+            response,
+            agentSelected,
+          })
+          messageSaved = true
+          return response
+        }
+      }
+
       // Check if the chatbot is active for this customer
       if (customer && (customer as Customer).activeChatbot === false) {
         logger.info(
@@ -272,9 +323,6 @@ export class MessageService {
         // Return empty string to indicate no bot response should be sent
         return ""
       }
-
-      // Se è un saluto, controlliamo se dobbiamo inviare un messaggio di benvenuto
-      const greetingLang = this.detectGreeting(message)
 
       // Se è un saluto e c'è già stato un messaggio di benvenuto recente, non rispondere
       if (
@@ -519,14 +567,17 @@ export class MessageService {
           // Save the name of the selected agent
           agentSelected = selectedAgent.name || "Unknown"
 
+          // Add customer information and function calls to the agent context
+          this.enrichAgentContext(selectedAgent, customer)
+
           // Process agent prompt to replace variables like {customerLanguage}
           if (selectedAgent.content && customer) {
             // Replace customerLanguage placeholder with actual customer language
             // Per utenti registrati usiamo la lingua salvata nel loro profilo
-            const customerLanguage = customer.language || "Italian"
+            const customerLanguage = customer.language || "Enlglish"
             logger.info(`Using customer language: ${customerLanguage}`)
 
-            selectedAgent._replacedPrompt = selectedAgent.content.replace(
+            selectedAgent.content = selectedAgent.content.replace(
               /\{customerLanguage\}/g,
               customerLanguage
             )
@@ -624,5 +675,32 @@ export class MessageService {
     }
 
     return result
+  }
+
+  private getCustomerInfo(customer: Customer): string {
+    let context = "## CUSTOMER INFORMATION\n"
+    context += `Name: ${customer.name}\n`
+    context += `Email: ${customer.email || "Not provided"}\n`
+    context += `Phone: ${customer.phone || "Not provided"}\n`
+    context += `Language: ${customer.language || "Italian"}\n`
+    context += `Shipping Address: ${customer.address || "Not provided"}\n\n`
+    return context
+  }
+
+  private getAvailableFunctions(): string {
+    let context = "## AVAILABLE FUNCTIONS\n"
+    context += "- searchProducts(query: string): Search for products\n"
+    context += "- checkStock(productId: string): Check product availability\n"
+    context += "- calculateShipping(address: string): Calculate shipping cost\n"
+    context += "- placeOrder(products: string[]): Place a new order\n\n"
+    return context
+  }
+
+  private enrichAgentContext(selectedAgent: any, customer: Customer): void {
+    if (selectedAgent.content && customer) {
+      selectedAgent.content = this.getCustomerInfo(customer) + 
+                            this.getAvailableFunctions() + 
+                            selectedAgent.content
+    }
   }
 }

@@ -11,7 +11,7 @@ export default {
   cors: {
     origin: [
       process.env.FRONTEND_URL || "http://localhost:3000", // Frontend
-      process.env.N8N_URL || "http://localhost:5678", // n8n
+      process.env.WEBHOOK_URL || "http://localhost:5678", // webhook URL
     ],
     credentials: true,
   },

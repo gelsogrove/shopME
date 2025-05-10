@@ -1,4 +1,5 @@
 =============== TEST =============
+- PDR
 
 - il flow sarebbe da rivedere per lo meno nuovo > benveuto > chat > nuovo > playgorund
 
@@ -7,7 +8,7 @@
 - token cerchiamo di capire
 - top K top p c'e' la popup che spiega?
 - troppe volte chiama /me
-- nuovo channel non deve avere il type
+ 
 
   ========= LATER ==================
 
