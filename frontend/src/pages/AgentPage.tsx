@@ -2,20 +2,20 @@ import { PageLayout } from "@/components/layout/PageLayout"
 import { PageHeader } from "@/components/shared/PageHeader"
 import MarkdownEditor from "@/components/ui/markdown-editor"
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import {
-    Agent,
-    getAgent,
-    updateAgent,
+  Agent,
+  getAgent,
+  updateAgent,
 } from "@/services/agentApi"
 import { Bot, HelpCircle, Loader2, Save } from "lucide-react"
 import { useEffect, useState } from "react"
-import { toast } from "react-hot-toast"
+import { toast } from "sonner"
 
 export function AgentPage() {
   const { workspace } = useWorkspace()
@@ -50,9 +50,8 @@ export function AgentPage() {
         setModelValue(agentData.model || "openai/gpt-4.1-mini")
         setMaxTokensValue(agentData.max_tokens || 1000)
       } catch (error) {
-        console.error("Failed to load agent:", error)
-        setError("Failed to load agent configuration. Please try again later.")
-        toast.error("Failed to load agent")
+        console.error("Error loading agent:", error)
+        toast.error("Failed to load agent", { duration: 1000 })
       } finally {
         setIsLoading(false)
       }
@@ -66,8 +65,8 @@ export function AgentPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
-    if (!agent || !workspace?.id) {
-      toast.error("Missing agent or workspace data")
+    if (!agent || !workspace) {
+      toast.error("Missing agent or workspace data", { duration: 1000 })
       return
     }
     
@@ -77,7 +76,7 @@ export function AgentPage() {
     
     // Validate required fields
     if (!content) {
-      toast.error("Instructions are required")
+      toast.error("Instructions are required", { duration: 1000 })
       return
     }
     
@@ -107,10 +106,10 @@ export function AgentPage() {
       
       console.log("Agent updated successfully:", updatedAgent)
       setAgent(updatedAgent)
-      toast.success("Agent updated successfully")
+      toast.success("Agent updated successfully", { duration: 1000 })
     } catch (error) {
-      console.error("Failed to update agent:", error)
-      toast.error("Failed to update agent. Please try again.")
+      console.error("Error updating agent:", error)
+      toast.error("Failed to update agent. Please try again.", { duration: 1000 })
     } finally {
       setIsSaving(false)
     }

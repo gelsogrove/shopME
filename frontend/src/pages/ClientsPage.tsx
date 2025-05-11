@@ -6,10 +6,10 @@ import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
@@ -221,14 +221,14 @@ export default function ClientsPage(): JSX.Element {
       if (newCustomer) {
         // Add the new client to state with converted format
         refetchClients()
-        toast.success("Client created successfully")
+        toast.success("Client created successfully", { duration: 1000 })
       }
 
       // Close the form
       setClientSheetOpen(false)
     } catch (error) {
       console.error("Error creating client:", error)
-      toast.error("Failed to create client")
+      toast.error("Failed to create client", { duration: 1000 })
     }
   }
 
@@ -282,7 +282,7 @@ export default function ClientsPage(): JSX.Element {
       if (updatedCustomer) {
         // Update client in state with correct format and preserve existing data not returned by API
         refetchClients()
-        toast.success("Client updated successfully")
+        toast.success("Client updated successfully", { duration: 1000 })
       }
 
       // Close the form
@@ -296,7 +296,8 @@ export default function ClientsPage(): JSX.Element {
         console.error("Response data:", error.response.data)
       }
       toast.error(
-        `Failed to update client: ${error.message || "Unknown error"}`
+        error instanceof Error ? error.message : "Failed to update client",
+        { duration: 1000 }
       )
     }
   }
@@ -365,12 +366,12 @@ export default function ClientsPage(): JSX.Element {
 
       // Remove from state if successful
       refetchClients()
-      toast.success("Client deleted successfully")
+      toast.success("Client deleted successfully", { duration: 1000 })
       setShowDeleteDialog(false)
       setClientToDelete(null)
     } catch (error) {
       console.error("Error deleting client:", error)
-      toast.error("Failed to delete client")
+      toast.error("Failed to delete client", { duration: 1000 })
     }
   }
 

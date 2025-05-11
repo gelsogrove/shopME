@@ -212,21 +212,49 @@ export class MessageRepository {
    * Check if customer is in the blacklist
    *
    * @param phoneNumber The customer phone number to check
+   * @param workspaceId The workspace ID to check blocklist
    * @returns True if customer is blacklisted, false otherwise
    */
-  async isCustomerBlacklisted(phoneNumber: string): Promise<boolean> {
+  async isCustomerBlacklisted(phoneNumber: string, workspaceId?: string): Promise<boolean> {
     try {
+      // Check if customer has isBlacklisted flag
       const customer = await this.prisma.customers.findFirst({
         where: {
           phone: phoneNumber,
         },
         select: {
-          isActive: true,
+          isBlacklisted: true,
+          workspaceId: true,
         },
       })
 
-      // If customer is not active, consider them blacklisted
-      return customer?.isActive === false
+      // If customer is explicitly blacklisted, return true
+      if (customer?.isBlacklisted === true) {
+        return true
+      }
+
+      // If no workspaceId provided but we found the customer, use their workspaceId
+      if (!workspaceId && customer?.workspaceId) {
+        workspaceId = customer.workspaceId
+      }
+
+      // If we have a workspaceId, check the workspace blocklist
+      if (workspaceId) {
+        const workspace = await this.prisma.workspace.findUnique({
+          where: { id: workspaceId },
+          select: { blocklist: true },
+        })
+
+        if (workspace?.blocklist) {
+          // Split the blocklist by newlines and check if the phone number is in the list
+          const blockedNumbers = workspace.blocklist.split(/[\n,]/).map(num => num.trim())
+          if (blockedNumbers.includes(phoneNumber)) {
+            return true
+          }
+        }
+      }
+
+      return false
     } catch (error) {
       logger.error("Error checking customer blacklist status:", error)
       return false
@@ -488,6 +516,7 @@ export class MessageRepository {
             : session.updatedAt,
           status: session.status,
           unreadCount: 0, // Will be updated later
+          workspaceId: session.workspaceId, // Add workspaceId to the returned object
         }
       })
     } catch (error) {
@@ -563,9 +592,29 @@ export class MessageRepository {
       // Get basic chat information
       const chats = await this.getRecentChats(limit)
 
+      // Filter out chats from blocked customers
+      const filteredChats = []
+      for (const chat of chats) {
+        // Skip if no phone number
+        if (!chat.customerPhone) {
+          continue
+        }
+
+        // Check if customer is blacklisted
+        const isBlacklisted = await this.isCustomerBlacklisted(
+          chat.customerPhone,
+          chat.workspaceId
+        )
+        
+        // Only include non-blacklisted customers
+        if (!isBlacklisted) {
+          filteredChats.push(chat)
+        }
+      }
+
       // For each chat, get the unread count
       const chatsWithUnreadCounts = await Promise.all(
-        chats.map(async (chat) => {
+        filteredChats.map(async (chat) => {
           const unreadCount = await this.getUnreadCount(chat.sessionId)
           return {
             ...chat,
@@ -1344,21 +1393,67 @@ export class MessageRepository {
     }
   }
 
-  // Add a public method to create a customer
+  /**
+   * Update a customer's language preference
+   * 
+   * @param customerId The customer's ID
+   * @param language The language code to set
+   * @returns The updated customer
+   */
+  async updateCustomerLanguage(customerId: string, language: string) {
+    try {
+      const updatedCustomer = await this.prisma.customers.update({
+        where: {
+          id: customerId
+        },
+        data: {
+          language
+        }
+      });
+      
+      logger.info(`Updated language for customer ${customerId} to ${language}`);
+      return updatedCustomer;
+    } catch (error) {
+      logger.error(`Error updating customer language:`, error);
+      throw new Error("Failed to update customer language");
+    }
+  }
+
+  /**
+   * Create a new customer
+   *
+   * @param data Customer data
+   * @returns The created customer
+   */
   async createCustomer({
     name,
     email,
     phone,
     workspaceId,
+    language = "ENG" // Add default language
   }: {
     name: string
     email: string
     phone: string
     workspaceId: string
+    language?: string
   }) {
-    return this.prisma.customers.create({
-      data: { name, email, phone, workspaceId },
-    })
+    try {
+      const customer = await this.prisma.customers.create({
+        data: {
+          name,
+          email,
+          phone,
+          workspaceId,
+          language,
+        },
+      })
+      logger.info(`Created customer: ${customer.id}`)
+      return customer
+    } catch (error) {
+      logger.error("Error creating customer:", error)
+      throw new Error("Failed to create customer")
+    }
   }
 
   /**

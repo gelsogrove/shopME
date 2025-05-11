@@ -1,35 +1,35 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import type { Language, Workspace } from "@/services/workspaceApi"
 import {
-  deleteWorkspace,
-  getCurrentWorkspace,
-  getLanguages,
-  updateWorkspace,
+    deleteWorkspace,
+    getCurrentWorkspace,
+    getLanguages,
+    updateWorkspace,
 } from "@/services/workspaceApi"
 import { Loader2, Save, Settings, Trash2, Video } from "lucide-react"
 import { useEffect, useState } from "react"
-import { toast } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
 // Currency options with symbols
 const CURRENCY_OPTIONS = [
@@ -136,8 +136,8 @@ export default function SettingsPage() {
 
         setLanguages(languagesData)
       } catch (error) {
-        console.error("Failed to load data:", error)
-        toast.error("Failed to load settings data")
+        console.error("Error loading settings:", error)
+        toast.error("Failed to load settings data", { duration: 1000 })
       } finally {
         setIsPageLoading(false)
       }
@@ -231,14 +231,14 @@ export default function SettingsPage() {
       // to other components using the useWorkspace hook
       sessionStorage.setItem("currentWorkspace", JSON.stringify(response))
 
-      toast.success("Settings saved successfully")
+      toast.success("Settings saved successfully", { duration: 1000 })
 
       // Don't force reload which can trigger auth issues
       // Instead, update the local state with the new values
       setWorkspace(response)
     } catch (error) {
-      console.error("Error updating workspace:", error)
-      toast.error("Failed to save settings")
+      console.error("Error saving settings:", error)
+      toast.error("Failed to save settings", { duration: 1000 })
     } finally {
       setIsLoading(false)
     }
@@ -249,11 +249,11 @@ export default function SettingsPage() {
     try {
       await deleteWorkspace(workspace.id)
       sessionStorage.removeItem("currentWorkspace")
-      toast.success("Workspace deleted successfully")
+      toast.success("Workspace deleted successfully", { duration: 1000 })
       navigate("/auth/login")
     } catch (error) {
-      console.error("Failed to delete workspace:", error)
-      toast.error("Failed to delete workspace")
+      console.error("Error deleting workspace:", error)
+      toast.error("Failed to delete workspace", { duration: 1000 })
     } finally {
       setIsLoading(false)
       setShowDeleteDialog(false)

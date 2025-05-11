@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/services/api"
 import { Loader2, Save, ShieldCheck } from "lucide-react"
 import { useEffect, useState } from "react"
-import { toast } from "react-hot-toast"
+import { toast } from "sonner"
 
 export default function GdprPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -32,8 +32,8 @@ export default function GdprPage() {
           setDefaultGdpr(defaultResponse.data.content)
         }
       } catch (error) {
-        console.error("Failed to load GDPR data:", error)
-        toast.error("Failed to load GDPR policy")
+        console.error("Error loading GDPR policy:", error)
+        toast.error("Failed to load GDPR policy", { duration: 1000 })
       } finally {
         setIsPageLoading(false)
       }
@@ -51,11 +51,11 @@ export default function GdprPage() {
       const workspace = JSON.parse(workspaceStr)
       
       await api.put(`/whatsapp-settings/${workspace.id}/gdpr`, { gdpr: gdprText })
-      toast.success("GDPR policy saved successfully")
+      setIsLoading(false)
+      toast.success("GDPR policy saved successfully", { duration: 1000 })
     } catch (error) {
-      console.error("Failed to save GDPR data:", error)
-      toast.error("Failed to save GDPR policy")
-    } finally {
+      console.error("Error saving GDPR policy:", error)
+      toast.error("Failed to save GDPR policy", { duration: 1000 })
       setIsLoading(false)
     }
   }

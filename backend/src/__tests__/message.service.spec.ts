@@ -498,7 +498,8 @@ Shipping Address: Via Test 123
         "workspace-id"
       )
       expect(mockMessageRepository.isCustomerBlacklisted).toHaveBeenCalledWith(
-        "+1234567890"
+        "+1234567890",
+        "workspace-id"
       )
       expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith(
         "+1234567890",
@@ -734,7 +735,8 @@ Shipping Address: Via Test 123
         "workspace-id"
       )
       expect(mockMessageRepository.isCustomerBlacklisted).toHaveBeenCalledWith(
-        "+1234567890"
+        "+1234567890",
+        "workspace-id"
       )
       expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith(
         "+1234567890",
@@ -858,7 +860,8 @@ Shipping Address: Via Test 123
         "workspace-id"
       )
       expect(mockMessageRepository.isCustomerBlacklisted).toHaveBeenCalledWith(
-        "+1234567890"
+        "+1234567890",
+        "workspace-id"
       )
       expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith(
         "+1234567890",
@@ -1793,6 +1796,142 @@ Shipping Address: Via Test 123
       expect(result).toContain("sconto del 15%")
       expect(result).toContain("prezzo originale: €10.00")
       expect(result).toContain("prezzo originale: €20.00")
+    })
+    
+    // Test case: Display products with both customer discount and special offers
+    it("should display products with combined discounts from offers and customer profile", async () => {
+      // Setup
+      mockMessageRepository.getWorkspaceSettings.mockResolvedValue({
+        id: "workspace-id",
+        isActive: true,
+      } as any)
+      mockMessageRepository.isCustomerBlacklisted.mockResolvedValue(false)
+
+      // Mock a registered customer with 5% discount
+      const customerWithDiscount = {
+        id: "customer-id",
+        phone: "+1234567890",
+        name: "John Doe",
+        discount: 5, // 5% customer discount
+        language: "Italian",
+        currency: "EUR"
+      } as any
+
+      mockMessageRepository.findCustomerByPhone.mockResolvedValue(customerWithDiscount)
+
+      // Mock router prompt and agent selection
+      mockMessageRepository.getRouterAgent.mockResolvedValue("router prompt")
+      
+      const mockAgent = {
+        id: "agent-id",
+        name: "RouterAgent",
+        content: "router content",
+        workspaceId: "workspace-id",
+        isRouter: true,
+        department: "ROUTER",
+        temperature: 0.7,
+        top_p: 0.9,
+        top_k: 40,
+        model: "GPT-4.1-mini",
+        max_tokens: 1000,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      } as any
+      
+      mockMessageRepository.getAgentByWorkspaceId.mockResolvedValue(mockAgent)
+      
+      mockMessageRepository.getResponseFromAgent.mockResolvedValue({
+        name: "Products",
+        content: "You are a product specialist",
+        department: "PRODUCTS",
+      })
+
+      // Mock products with special offers applied
+      const productsWithOffers = [
+        {
+          id: "prod1",
+          name: "Pasta",
+          description: "Italian pasta",
+          price: 8.55, // Already has 5% customer discount applied (from 9.00)
+          originalPrice: 9.00,
+          stock: 100,
+          isActive: true,
+          category: { id: "cat1", name: "Food" },
+          hasDiscount: true,
+          discountPercent: 5,
+          discountSource: "customer"
+        },
+        {
+          id: "prod2",
+          name: "Olive Oil",
+          description: "Extra virgin",
+          price: 15.20, // Already has 5% customer discount + 20% special offer (from 20.00)
+          originalPrice: 20.00,
+          stock: 50,
+          isActive: true,
+          category: { id: "cat2", name: "Oil" },
+          hasDiscount: true,
+          discountPercent: 24, // Combined discount (5% + 20% - 0.05*0.20)
+          discountSource: "combined" // Both customer and offer
+        }
+      ] as any
+
+      mockMessageRepository.getProducts.mockResolvedValue(productsWithOffers)
+      mockMessageRepository.getServices.mockResolvedValue([])
+      mockMessageRepository.getLatesttMessages.mockResolvedValue([])
+
+      // Mock RAG response with combined discount information
+      const productListWithDiscountedPrices =
+        "Ecco i nostri prodotti:\n" + 
+        "1. Pasta - €8.55 (sconto cliente 5%, prezzo originale: €9.00)\n" + 
+        "Categoria: Food\n" + 
+        "Descrizione: Italian pasta\n\n" +
+        "2. Olive Oil - €15.20 (sconto combinato 24%, prezzo originale: €20.00)\n" + 
+        "Categoria: Oil\n" +
+        "Descrizione: Extra virgin\n" + 
+        "OFFERTA SPECIALE: Questo prodotto ha uno sconto speciale del 20% + il tuo sconto cliente del 5%!"
+
+      // Clear the mock and create a new implementation
+      mockMessageRepository.getResponseFromRag.mockClear()
+
+      // Add our implementation
+      mockMessageRepository.getResponseFromRag.mockImplementation(
+        (_agent, _msg, products, _servs, _hist, cust) => {
+          // Verify that products with offers are passed
+          expect(products).toEqual(productsWithOffers)
+          expect(cust).toBe(customerWithDiscount)
+          expect(cust.discount).toBe(5)
+
+          // Return response with discounted prices
+          return Promise.resolve(productListWithDiscountedPrices)
+        }
+      )
+
+      mockMessageRepository.getConversationResponse.mockResolvedValue(
+        productListWithDiscountedPrices
+      )
+
+      // Execute with a request for products
+      const result = await messageService.processMessage(
+        "Quali offerte avete sui prodotti?",
+        "+1234567890",
+        "workspace-id"
+      )
+
+      // Verify base expectations
+      expect(mockMessageRepository.findCustomerByPhone).toHaveBeenCalledWith(
+        "+1234567890",
+        "workspace-id"
+      )
+      expect(mockMessageRepository.getResponseFromRag).toHaveBeenCalled()
+
+      // Verify the response contains correctly formatted discount information
+      expect(result).toContain("€8.55") // Pasta with customer discount
+      expect(result).toContain("€15.20") // Olive oil with combined discount
+      expect(result).toContain("sconto cliente 5%") 
+      expect(result).toContain("sconto combinato 24%")
+      expect(result).toContain("OFFERTA SPECIALE")
+      expect(result).toContain("uno sconto speciale del 20% + il tuo sconto cliente del 5%")
     })
   })
 

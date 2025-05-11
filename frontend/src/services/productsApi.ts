@@ -83,7 +83,7 @@ export const getAllForWorkspace = async (
     const queryParams = new URLSearchParams();
     
     // Rimuoviamo il workspaceId dalla query string, è già nell'URL
-    // queryParams.append('workspaceId', workspaceId);
+    queryParams.append('workspaceId', workspaceId);
     
     if (options?.search) {
       queryParams.append('search', options.search);

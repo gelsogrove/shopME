@@ -2,15 +2,35 @@ import { Request, Response } from "express";
 import { categoriesService } from "../../../services/categories.service";
 import { AppError } from "../middlewares/error.middleware";
 
+// Funzione di utilità per ottenere il workspaceId
+const getWorkspaceId = (req: Request): string | undefined => {
+  console.log("Params in getWorkspaceId:", req.params);
+  console.log("Query in getWorkspaceId:", req.query);
+  console.log("workspaceId from params:", req.params.workspaceId);
+  console.log("workspaceId from query:", req.query.workspaceId);
+  
+  return req.params.workspaceId || req.query.workspaceId as string;
+};
+
 export class CategoriesController {
   async getCategoriesForWorkspace(req: Request, res: Response) {
     try {
-      const { workspaceId } = req.params
+      const workspaceId = getWorkspaceId(req);
+      
       console.log("=== Categories Request ===")
       console.log("WorkspaceId:", workspaceId)
+      console.log("Params:", req.params)
+      console.log("Query:", req.query)
       console.log("Headers:", req.headers)
       console.log("User:", req.user)
       console.log("======================")
+
+      if (!workspaceId) {
+        return res.status(400).json({ 
+          message: 'WorkspaceId is required',
+          error: 'Missing workspaceId parameter' 
+        });
+      }
 
       const categories = await categoriesService.getAllForWorkspace(workspaceId)
       console.log("=== Categories Response ===")
@@ -28,7 +48,15 @@ export class CategoriesController {
 
   async getCategoryById(req: Request, res: Response) {
     try {
-      const { id, workspaceId } = req.params
+      const { id } = req.params;
+      const workspaceId = getWorkspaceId(req);
+
+      if (!workspaceId) {
+        return res.status(400).json({ 
+          message: 'WorkspaceId is required',
+          error: 'Missing workspaceId parameter' 
+        });
+      }
 
       const category = await categoriesService.getById(id, workspaceId)
 
@@ -45,8 +73,15 @@ export class CategoriesController {
 
   async createCategory(req: Request, res: Response) {
     try {
-      const { workspaceId } = req.params
+      const workspaceId = getWorkspaceId(req);
       const { name, description, isActive } = req.body
+
+      if (!workspaceId) {
+        return res.status(400).json({ 
+          message: 'WorkspaceId is required',
+          error: 'Missing workspaceId parameter' 
+        });
+      }
 
       const result = await categoriesService.create({
         name,
@@ -67,9 +102,17 @@ export class CategoriesController {
 
   async updateCategory(req: Request, res: Response) {
     try {
-      const { id, workspaceId } = req.params
+      const { id } = req.params;
+      const workspaceId = getWorkspaceId(req);
       const { name, description, isActive } = req.body
       
+      if (!workspaceId) {
+        return res.status(400).json({ 
+          message: 'WorkspaceId is required',
+          error: 'Missing workspaceId parameter' 
+        });
+      }
+
       const result = await categoriesService.update(id, workspaceId, {
         name,
         description,
@@ -95,7 +138,15 @@ export class CategoriesController {
 
   async deleteCategory(req: Request, res: Response) {
     try {
-      const { id, workspaceId } = req.params
+      const { id } = req.params;
+      const workspaceId = getWorkspaceId(req);
+
+      if (!workspaceId) {
+        return res.status(400).json({ 
+          message: 'WorkspaceId is required',
+          error: 'Missing workspaceId parameter' 
+        });
+      }
 
       const category = await categoriesService.getById(id, workspaceId)
 

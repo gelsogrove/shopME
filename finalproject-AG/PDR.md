@@ -88,8 +88,141 @@ The Special Offers system allows store administrators to create time-limited dis
 - Category selector for targeted promotions
 
 ### API Endpoints
-- `GET /api/offers`: List all offers
-- `GET /api/offers/active`: Get only currently active offers
-- `POST /api/offers`: Create a new offer
-- `PUT /api/offers/:id`: Update an existing offer
-- `DELETE /api/offers/:id`: Remove an offer 
+- `GET /api/workspaces/:workspaceId/offers`: List all offers
+- `GET /api/workspaces/:workspaceId/offers/active`: Get only currently active offers
+- `POST /api/workspaces/:workspaceId/offers`: Create a new offer
+- `PUT /api/workspaces/:workspaceId/offers/:id`: Update an existing offer
+- `DELETE /api/workspaces/:workspaceId/offers/:id`: Remove an offer
+
+## Suppliers Management System
+
+The Suppliers Management system allows store administrators to manage product suppliers and associate products with their respective suppliers.
+
+### Features
+- Create, edit, and manage suppliers information
+- Associate products with specific suppliers
+- Filter products by supplier in product listings
+- Enable/disable suppliers with a simple toggle
+- Automatically hide products from inactive suppliers in customer-facing interfaces
+
+### Technical Implementation
+- Database model `Suppliers` with the following key fields:
+  - `name`: Name of the supplier
+  - `description`: Optional detailed description
+  - `address`: Physical address of the supplier
+  - `website`: Supplier's website URL
+  - `phone`: Contact phone number
+  - `email`: Contact email address
+  - `contactPerson`: Name of the primary contact person
+  - `notes`: Additional notes about the supplier
+  - `isActive`: Toggle to enable/disable the supplier
+  - `workspaceId`: Workspace association
+  - `slug`: URL-friendly version of the supplier name
+
+### Integration with Products
+- Products can be associated with a specific supplier
+- Product listing can be filtered by supplier
+- When a supplier is marked as inactive, all associated products are hidden from customer-facing interfaces
+
+### User Interface
+- Suppliers management page accessible as a sub-menu under Products
+- Consistent design with other system components
+- Enable/disable toggle for quick supplier management
+- Detailed view with all supplier information
+- List view showing key information for quick reference
+
+### API Endpoints
+- `GET /api/workspaces/:workspaceId/suppliers`: List all suppliers
+- `GET /api/workspaces/:workspaceId/suppliers/active`: Get only currently active suppliers
+- `GET /api/workspaces/:workspaceId/suppliers/:id`: Get a specific supplier
+- `POST /api/workspaces/:workspaceId/suppliers`: Create a new supplier
+- `PUT /api/workspaces/:workspaceId/suppliers/:id`: Update an existing supplier
+- `DELETE /api/workspaces/:workspaceId/suppliers/:id`: Remove a supplier
+
+## Phone Number Blocklist System
+
+The Phone Number Blocklist system allows administrators to block specific phone numbers from interacting with the WhatsApp chatbot and removes them from the chat history display.
+
+### Features
+- Block specific phone numbers from receiving automated responses
+- Blocked numbers are automatically hidden from chat history
+- Blocked numbers are hidden from new customer lists
+- Block users directly from the chat interface
+- Manage blocklist through workspace settings
+
+### Technical Implementation
+- Workspace model includes a `blocklist` field that stores blocked phone numbers
+- Blocked numbers are filtered out from chat history API responses
+- Message service checks the blocklist before processing messages
+- Block user functionality in chat interface updates the workspace blocklist
+- Blocked users receive no response when messaging the system
+
+### User Interface
+- Block button in chat interface to quickly block problematic users
+- Confirmation dialog before blocking a user
+- Immediate removal of blocked users from the chat list
+- Blocklist management in workspace settings for adding/removing numbers
+
+### API Integration
+- Chat history API automatically filters out blocked numbers
+- Message processing skips responses for blocked numbers
+- Settings API allows updating the blocklist
+
+### Privacy and Security
+- Blocked numbers are still stored in the database but not displayed in the UI
+- Admin users can unblock numbers by removing them from the blocklist in settings
+- System maintains privacy by not exposing blocked user data in the interface 
+
+## Language Detection and Multilingual Support
+
+The Language Detection and Multilingual Support system allows the WhatsApp chatbot to automatically detect the language of incoming messages and respond in the customer's preferred language.
+
+### Features
+- Automatic language detection for incoming WhatsApp messages
+- Support for responding in customer's preferred language (English, Italian, Spanish, Portuguese)
+- Automatic storage of language preference in customer profile
+- Language-specific templates for common responses
+- Consistent language experience across all customer interactions
+
+### Technical Implementation
+- Pattern-based language detection algorithm that identifies language based on:
+  - Common words and phrases
+  - Greetings and salutations
+  - Question formats
+  - Articles and pronouns
+- Supported languages:
+  - English (en / ENG)
+  - Italian (it / IT)
+  - Spanish (es / ESP)
+  - Portuguese (pt / PRT)
+- Language preference stored in customer profile
+- Workspace settings include multilingual templates for:
+  - Welcome messages
+  - Work-in-progress messages
+  - Error messages
+  - Common responses
+
+### API Integration
+- Message processing API returns detected language:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "processedMessage": "Thank you for your message.",
+      "detectedLanguage": "en",
+      "customerLanguage": "ENG",
+      "sessionId": "session-id",
+      "customerId": "customer-id"
+    }
+  }
+  ```
+- Language consistency across sessions:
+  - First interaction determines initial language preference
+  - Subsequent interactions may update language preference if customer switches language
+  - System responds in the customer's current language preference
+
+### User Experience
+- Seamless language transitions based on customer input
+- No explicit language selection required from customers
+- Consistent language usage across entire conversation
+- Appropriate cultural nuances in greetings and responses 

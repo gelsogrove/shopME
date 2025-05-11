@@ -1,6 +1,7 @@
 import GdprPage from "@/pages/GdprPage"
 import SettingsPage from "@/pages/SettingsPage"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
+import { Toaster } from "sonner"
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
 import { Layout } from "./components/layout/Layout"
 import { AgentPage } from "./pages/AgentPage"
@@ -31,6 +32,7 @@ import { CategoriesPage as SettingsCategoriesPage } from "./pages/settings/Categ
 import { ChannelTypesPage } from "./pages/settings/ChannelTypesPage"
 import { LanguagesPage } from "./pages/settings/LanguagesPage"
 import { ProductsPage as SettingsProductsPage } from "./pages/settings/ProductsPage"
+import { SuppliersPage } from "./pages/SuppliersPage"
 import SurveysPage from "./pages/SurveysPage"
 import { VerifyOtpPage } from "./pages/VerifyOtpPage"
 import { WorkspacePage } from "./pages/WorkspacePage"
@@ -39,6 +41,7 @@ import { WorkspaceSelectionPage } from "./pages/WorkspaceSelectionPage"
 export function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" duration={1000} />
       <Routes>
         {/* Auth Routes - accessibili senza autenticazione */}
         <Route path="/auth">
@@ -86,6 +89,9 @@ export function App() {
           </Route>
           <Route path="/categories" element={<Layout />}>
             <Route index element={<CategoriesPage />} />
+          </Route>
+          <Route path="/suppliers" element={<Layout />}>
+            <Route index element={<SuppliersPage />} />
           </Route>
           <Route path="/services" element={<Layout />}>
             <Route index element={<ServicesPage />} />

@@ -1,36 +1,30 @@
+import { PageLayout } from "@/components/layout/PageLayout"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
-import { DataTable } from "@/components/shared/DataTable"
-import { PageHeader } from "@/components/shared/PageHeader"
+import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
-} from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { api } from "@/services/api"
+import { commonStyles } from "@/styles/common"
 import { format } from "date-fns"
 import { Calendar as CalendarIcon, Percent } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -75,7 +69,7 @@ interface Category {
 }
 
 export function OffersPage() {
-  const { workspace } = useWorkspace()
+  const { workspace, loading: isLoadingWorkspace } = useWorkspace()
   const [offers, setOffers] = useState<Offer[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [showAddSheet, setShowAddSheet] = useState(false)
@@ -83,6 +77,7 @@ export function OffersPage() {
   const [currentOffer, setCurrentOffer] = useState<Offer | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Stato per i calendari
   const [startDate, setStartDate] = useState<Date | undefined>(new Date())
@@ -96,8 +91,9 @@ export function OffersPage() {
 
     const fetchData = async () => {
       try {
+        setIsLoading(true)
         // Carica le offerte
-        const offersResponse = await api.get(`/offers?workspaceId=${workspace.id}`)
+        const offersResponse = await api.get(`/workspaces/${workspace.id}/offers`)
         const offersWithDates = offersResponse.data.map((offer: any) => ({
           ...offer,
           startDate: new Date(offer.startDate),
@@ -108,11 +104,13 @@ export function OffersPage() {
         setOffers(offersWithDates)
         
         // Carica le categorie
-        const categoriesResponse = await api.get(`/api/categories?workspaceId=${workspace.id}`)
+        const categoriesResponse = await api.get(`/workspaces/${workspace.id}/categories`)
         setCategories(categoriesResponse.data)
       } catch (err) {
         console.error("Failed to fetch data:", err)
-        toast.error("Failed to load offers. Please try again.")
+        toast.error("Failed to load offers. Please try again.", { duration: 1000 })
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -217,14 +215,14 @@ export function OffersPage() {
     if (!currentOffer || !workspace) return;
     
     try {
-      await api.delete(`/offers/${currentOffer.id}?workspaceId=${workspace.id}`);
+      await api.delete(`/workspaces/${workspace.id}/offers/${currentOffer.id}`);
       setOffers(offers.filter((offer) => offer.id !== currentOffer.id));
       setShowConfirmDelete(false);
       setCurrentOffer(null);
-      toast.success("Offer deleted successfully");
+      toast.success("Offer deleted successfully", { duration: 1000 });
     } catch (error) {
       console.error("Failed to delete offer:", error);
-      toast.error("Failed to delete offer");
+      toast.error("Failed to delete offer", { duration: 1000 });
     }
   }
 
@@ -233,7 +231,7 @@ export function OffersPage() {
     
     try {
       const response = await api.put(
-        `/offers/${offer.id}?workspaceId=${workspace.id}`,
+        `/workspaces/${workspace.id}/offers/${offer.id}`,
         { isActive }
       );
       
@@ -244,10 +242,10 @@ export function OffersPage() {
         )
       );
       
-      toast.success(`Offer ${isActive ? 'enabled' : 'disabled'} successfully`);
+      toast.success(`Offer ${isActive ? 'enabled' : 'disabled'} successfully`, { duration: 1000 });
     } catch (error) {
       console.error("Failed to update offer status:", error);
-      toast.error("Failed to update offer status");
+      toast.error("Failed to update offer status", { duration: 1000 });
     }
   }
 
@@ -259,12 +257,28 @@ export function OffersPage() {
 
     // Validazione
     if (!startDate || !endDate) {
-      toast.error("Please select start and end dates");
+      toast.error("Please select start and end dates", { duration: 1000 });
       return;
     }
 
     try {
-      const categoryId = formData.get("categoryId") as string;
+      const allCategoriesChecked = formData.get("allCategories") === "on";
+      
+      // Se "All Categories" è selezionato, impostiamo categoryId a null
+      let categoryIds = null;
+      
+      // Altrimenti raccogliamo tutte le categorie selezionate
+      if (!allCategoriesChecked) {
+        categoryIds = categories
+          .filter(cat => formData.get(`category-${cat.id}`) === "on")
+          .map(cat => cat.id);
+        
+        // Se nessuna categoria è selezionata, mostriamo un errore
+        if (categoryIds.length === 0) {
+          toast.error("Please select at least one category or choose 'All Categories'", { duration: 1000 });
+          return;
+        }
+      }
       
       const newOffer = {
         name: formData.get("name") as string,
@@ -273,11 +287,11 @@ export function OffersPage() {
         startDate,
         endDate,
         isActive: formData.get("isActive") === "on",
-        categoryId: categoryId === "all" ? null : categoryId,
+        categoryIds: allCategoriesChecked ? null : categoryIds,
         workspaceId: workspace.id,
       };
 
-      const response = await api.post("/offers", newOffer);
+      const response = await api.post(`/workspaces/${workspace.id}/offers`, newOffer);
       
       // Converti le date
       const savedOffer = {
@@ -290,14 +304,14 @@ export function OffersPage() {
       
       setOffers([...offers, savedOffer]);
       setShowAddSheet(false);
-      toast.success("Offer created successfully");
+      toast.success("Offer created successfully", { duration: 1000 });
       
       // Reset form
       setStartDate(new Date());
       setEndDate(new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000));
     } catch (error) {
       console.error("Failed to add offer:", error);
-      toast.error("Failed to create offer");
+      toast.error("Failed to create offer", { duration: 1000 });
     }
   }
 
@@ -308,7 +322,23 @@ export function OffersPage() {
     const formData = new FormData(e.currentTarget);
 
     try {
-      const categoryId = formData.get("categoryId") as string;
+      const allCategoriesChecked = formData.get("allCategories") === "on";
+      
+      // Se "All Categories" è selezionato, impostiamo categoryId a null
+      let categoryIds = null;
+      
+      // Altrimenti raccogliamo tutte le categorie selezionate
+      if (!allCategoriesChecked) {
+        categoryIds = categories
+          .filter(cat => formData.get(`category-${cat.id}`) === "on")
+          .map(cat => cat.id);
+        
+        // Se nessuna categoria è selezionata, mostriamo un errore
+        if (categoryIds.length === 0) {
+          toast.error("Please select at least one category or choose 'All Categories'", { duration: 1000 });
+          return;
+        }
+      }
       
       const updatedOffer = {
         name: formData.get("name") as string,
@@ -317,7 +347,7 @@ export function OffersPage() {
         startDate,
         endDate,
         isActive: formData.get("isActive") === "on",
-        categoryId: categoryId === "all" ? null : categoryId,
+        categoryIds: allCategoriesChecked ? null : categoryIds,
       };
 
       const response = await api.put(
@@ -342,10 +372,10 @@ export function OffersPage() {
       
       setShowEditSheet(false);
       setCurrentOffer(null);
-      toast.success("Offer updated successfully");
+      toast.success("Offer updated successfully", { duration: 1000 });
     } catch (error) {
       console.error("Failed to update offer:", error);
-      toast.error("Failed to update offer");
+      toast.error("Failed to update offer", { duration: 1000 });
     }
   }
 
@@ -369,6 +399,7 @@ export function OffersPage() {
           name="description"
           placeholder="Special discounts for summer season"
           defaultValue={isEdit && currentOffer ? currentOffer.description || "" : ""}
+          className="min-h-[120px]"
         />
       </div>
 
@@ -388,26 +419,41 @@ export function OffersPage() {
 
       <div className="space-y-2">
         <Label htmlFor="categoryId">Apply to Category</Label>
-        <Select
-          name="categoryId"
-          defaultValue={
-            isEdit && currentOffer
-              ? currentOffer.categoryId || "all"
-              : "all"
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="border rounded-md p-4 space-y-2">
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="all-categories"
+              name="allCategories"
+              defaultChecked={isEdit && currentOffer ? !currentOffer.categoryId : true}
+              className="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-600"
+            />
+            <Label htmlFor="all-categories" className="text-sm font-normal cursor-pointer">
+              All Categories
+            </Label>
+          </div>
+          
+          <div className="pt-2 border-t mt-2">
+            <p className="text-sm text-gray-500 mb-2">Or select specific categories:</p>
+            <div className="grid grid-cols-1 gap-2 max-h-[150px] overflow-y-auto">
+              {categories.map((category) => (
+                <div key={category.id} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={`category-${category.id}`}
+                    name={`category-${category.id}`}
+                    value={category.id}
+                    defaultChecked={isEdit && currentOffer ? currentOffer.categoryId === category.id : false}
+                    className="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-600"
+                  />
+                  <Label htmlFor={`category-${category.id}`} className="text-sm font-normal cursor-pointer">
+                    {category.name}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -469,8 +515,16 @@ export function OffersPage() {
     </div>
   )
 
+  if (isLoadingWorkspace || isLoading) {
+    return <div>Loading...</div>
+  }
+
+  if (!workspace?.id) {
+    return <div>No workspace selected</div>
+  }
+
   return (
-    <div className="container mx-auto py-6">
+    <PageLayout>
       <Alert className="mb-6 bg-background border border-input text-foreground">
         <Percent className="h-5 w-5 text-green-500" />
         <AlertDescription className="ml-2 text-sm font-medium">
@@ -479,75 +533,57 @@ export function OffersPage() {
         </AlertDescription>
       </Alert>
 
-      <div className="flex flex-col space-y-6">
-        <div className="flex items-center justify-between">
-          <PageHeader
-            title="Special Offers"
-            description="Create and manage special discounts for products"
-          />
-          <Button onClick={() => setShowAddSheet(true)}>
-            <Percent className="mr-2 h-4 w-4" />
-            Add New Offer
-          </Button>
-        </div>
-
-        <div className="mt-6">
-          <div className="mb-4">
-            <Input
-              type="search"
-              placeholder="Search offers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          
-          <DataTable
-            columns={columns}
-            data={filteredOffers}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            globalFilter={searchQuery}
-          />
-        </div>
-      </div>
+      <CrudPageContent
+        title="Special Offers"
+        titleIcon={<Percent className={commonStyles.headerIcon} />}
+        searchValue={searchQuery}
+        onSearch={setSearchQuery}
+        searchPlaceholder="Search offers..."
+        onAdd={() => setShowAddSheet(true)}
+        data={filteredOffers}
+        columns={columns}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        isLoading={isLoading}
+        addButtonText="Add New Offer"
+      />
 
       {/* Add Offer Sheet */}
-      <Drawer open={showAddSheet} onOpenChange={setShowAddSheet}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Add New Offer</DrawerTitle>
-          </DrawerHeader>
+      <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>
+        <SheetContent className="sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Add New Offer</SheetTitle>
+          </SheetHeader>
           <form onSubmit={handleAdd}>
             {renderFormFields()}
-            <DrawerFooter>
-              <Button type="submit">Create Offer</Button>
-              <DrawerClose asChild>
+            <SheetFooter className="flex justify-end gap-2 pt-4">
+              <SheetClose asChild>
                 <Button variant="outline">Cancel</Button>
-              </DrawerClose>
-            </DrawerFooter>
+              </SheetClose>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">Create Offer</Button>
+            </SheetFooter>
           </form>
-        </DrawerContent>
-      </Drawer>
+        </SheetContent>
+      </Sheet>
 
       {/* Edit Offer Sheet */}
-      <Drawer open={showEditSheet} onOpenChange={setShowEditSheet}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Edit Offer</DrawerTitle>
-          </DrawerHeader>
+      <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
+        <SheetContent className="sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Edit Offer</SheetTitle>
+          </SheetHeader>
           <form onSubmit={handleEditSubmit}>
             {renderFormFields(true)}
-            <DrawerFooter>
-              <Button type="submit">Update Offer</Button>
-              <DrawerClose asChild>
+            <SheetFooter className="flex justify-end gap-2 pt-4">
+              <SheetClose asChild>
                 <Button variant="outline">Cancel</Button>
-              </DrawerClose>
-            </DrawerFooter>
+              </SheetClose>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">Save Changes</Button>
+            </SheetFooter>
           </form>
-        </DrawerContent>
-      </Drawer>
+        </SheetContent>
+      </Sheet>
 
-      {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         open={showConfirmDelete}
         onOpenChange={setShowConfirmDelete}
@@ -555,6 +591,6 @@ export function OffersPage() {
         description="Are you sure you want to delete this offer? This action cannot be undone."
         onConfirm={handleDeleteConfirm}
       />
-    </div>
+    </PageLayout>
   )
 }

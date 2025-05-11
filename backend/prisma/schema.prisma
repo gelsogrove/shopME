@@ -42,6 +42,7 @@ model Workspace {
   users               UserWorkspace[]
   whatsappSettings    WhatsappSettings?
   offers              Offers[]
+  suppliers           Suppliers[]
 }
 
 model Categories {
@@ -87,12 +88,14 @@ model Products {
   isActive    Boolean       @default(true)
   workspaceId String
   categoryId  String?
+  supplierId  String?
   slug        String        @unique
   status      ProductStatus @default(ACTIVE)
   image       String?
   cartItems   CartItems[]
   orderItems  OrderItems[]
   category    Categories?   @relation(fields: [categoryId], references: [id])
+  supplier    Suppliers?    @relation(fields: [supplierId], references: [id])
   workspace   Workspace     @relation(fields: [workspaceId], references: [id])
 
   @@map("products")
@@ -415,6 +418,28 @@ model Offers {
   workspace       Workspace   @relation(fields: [workspaceId], references: [id])
 
   @@map("offers")
+}
+
+model Suppliers {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  address     String?
+  website     String?
+  phone       String?
+  email       String?
+  contactPerson String?
+  notes       String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspaceId String
+  slug        String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  products    Products[]
+
+  @@unique([slug, workspaceId])
+  @@map("suppliers")
 }
 
 enum UserStatus {

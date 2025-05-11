@@ -1,4 +1,11 @@
 import { MessageRepository } from "../../infrastructure/repositories/message.repository"
+import {
+    detectGreeting as detectGreetingLang,
+    detectLanguage,
+    getLanguageDbCode,
+    normalizeDatabaseLanguage,
+    SupportedLanguage
+} from "../../utils/language-detector"
 import logger from "../../utils/logger"
 import { TokenService } from "./token.service"
 
@@ -54,45 +61,8 @@ export class MessageService {
    * @returns Codice lingua del saluto o null se non è un saluto
    */
   private detectGreeting(text: string): string | null {
-    const normalizedText = text.trim().toLowerCase()
-
-    // Saluti in italiano
-    if (["ciao", "buongiorno", "buonasera", "salve"].includes(normalizedText)) {
-      return "it"
-    }
-
-    // Saluti in inglese
-    if (
-      ["hello", "hi", "hey", "good morning", "good evening"].includes(
-        normalizedText
-      )
-    ) {
-      return "en"
-    }
-
-    // Saluti in spagnolo
-    if (
-      [
-        "hola",
-        "buenos dias",
-        "buenos días",
-        "buenas tardes",
-        "buenas noches",
-      ].includes(normalizedText)
-    ) {
-      return "es"
-    }
-
-    // Saluti in portoghese
-    if (
-      ["olá", "ola", "oi", "bom dia", "boa tarde", "boa noite"].includes(
-        normalizedText
-      )
-    ) {
-      return "pt"
-    }
-
-    return null
+    // Use the imported function from the language-detector utility
+    return detectGreetingLang(text);
   }
 
   /**
@@ -205,11 +175,16 @@ export class MessageService {
     let response = ""
     let agentSelected = "" // Variable to track the selected agent
     let messageSaved = false // Flag to track if the message has been saved
+    let detectedLanguage: SupportedLanguage = 'en' // Default language
 
     try {
       logger.info(
         `Processing message: "${message}" from ${phoneNumber} for workspace ${workspaceId}`
       )
+
+      // Detect language of the incoming message
+      detectedLanguage = detectLanguage(message)
+      logger.info(`Detected language for message: ${detectedLanguage}`)
 
       // Check if workspace exists and is active
       const workspaceSettings =
@@ -229,8 +204,12 @@ export class MessageService {
           workspaceId
         )
         if (customer && customer.language) {
-          userLang = customer.language.toLowerCase().slice(0, 2) // es. 'en', 'it', 'es', 'pt'
+          userLang = normalizeDatabaseLanguage(customer.language)
+        } else if (detectedLanguage) {
+          // If customer has no language preference set, use detected language
+          userLang = detectedLanguage
         }
+        
         let wipMessages = workspaceSettings.wipMessages || {}
         let msg =
           userLang && wipMessages[userLang]
@@ -241,7 +220,8 @@ export class MessageService {
 
       // Check if customer is in blacklist
       const isBlacklisted = await this.messageRepository.isCustomerBlacklisted(
-        phoneNumber
+        phoneNumber,
+        workspaceId
       )
       if (isBlacklisted) {
         // Non fare nulla, non salvare nei log, ritornare null
@@ -250,13 +230,34 @@ export class MessageService {
       }
 
       // Check if customer exists - simplified binary check
-      const customer = await this.messageRepository.findCustomerByPhone(
+      let customer = await this.messageRepository.findCustomerByPhone(
         phoneNumber,
         workspaceId
       )
 
       // Se è un saluto, controlliamo se dobbiamo inviare un messaggio di benvenuto
       const greetingLang = this.detectGreeting(message)
+
+      // Update customer language preference if we have a customer
+      if (customer) {
+        // Only update if language preference is different from detected language
+        const currentLang = normalizeDatabaseLanguage(customer.language || "ENG")
+        if (currentLang !== detectedLanguage) {
+          logger.info(`Updating customer language from ${currentLang} to ${detectedLanguage}`)
+          
+          // Convert detected language to database format
+          const dbLanguageCode = getLanguageDbCode(detectedLanguage)
+          
+          // Update the customer's language preference
+          await this.messageRepository.updateCustomerLanguage(
+            customer.id, 
+            dbLanguageCode
+          )
+          
+          // Update the local customer object with new language
+          customer.language = dbLanguageCode
+        }
+      }
 
       // Se il customer NON esiste (nuovo utente)
       if (!customer) {
@@ -276,7 +277,11 @@ export class MessageService {
             baseUrl = "https://" + baseUrl
           }
           const registrationUrl = `${baseUrl}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}&token=${token}`
-          let welcomeMessage = welcomeMessages[greetingLang] || welcomeMessages["en"]
+          
+          // Use detected language for new users
+          const langForWelcome = greetingLang || detectedLanguage
+          
+          let welcomeMessage = welcomeMessages[langForWelcome] || welcomeMessages["en"]
           if (!welcomeMessage) {
             welcomeMessage = "Welcome! Please register here: {link}"
           }
@@ -287,12 +292,16 @@ export class MessageService {
           if (!response.includes("http")) {
             response += `\n\n: ${registrationUrl}`
           }
+          
+          // Create customer with detected language
           await this.messageRepository.createCustomer({
             name: "Unknown Customer",
             email: `customer-${Date.now()}@example.com`,
             phone: phoneNumber,
             workspaceId,
+            language: getLanguageDbCode(detectedLanguage) // Set detected language
           })
+          
           agentSelected = "Welcome"
           await this.messageRepository.saveMessage({
             workspaceId,

@@ -6,20 +6,21 @@ import { useRecentChats } from "@/hooks/useRecentChats"
 import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
 import { useQuery } from "@tanstack/react-query"
-import { Ban, Bot, Pencil, Send, ShoppingBag, Trash2 } from "lucide-react"
+import { Ban, Bot, Loader2, Pencil, Send, ShoppingBag, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { toast } from "react-hot-toast"
 import ReactMarkdown from "react-markdown"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import remarkGfm from "remark-gfm"
+import { toast } from "sonner"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "../components/ui/alert-dialog"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
@@ -117,6 +118,7 @@ export function ChatPage() {
   const [activeChatbot, setActiveChatbot] = useState<boolean>(true)
   const [showActiveChatbotDialog, setShowActiveChatbotDialog] = useState(false)
   const [hasToggledChatbot, setHasToggledChatbot] = useState(false)
+  const [isBlocking, setIsBlocking] = useState(false)
   const navigate = useNavigate()
 
   const {
@@ -240,11 +242,11 @@ export function ChatPage() {
 
         setMessages(transformedMessages)
       } else {
-        toast.error("Failed to load chat messages")
+        toast.error("Failed to load chat messages", { duration: 1000 })
       }
     } catch (error) {
       console.error("Error loading messages:", error)
-      toast.error("Failed to load chat messages")
+      toast.error("Failed to load chat messages", { duration: 1000 })
     } finally {
       setLoadingChat(false)
     }
@@ -303,16 +305,15 @@ export function ChatPage() {
       if (response.status === 200) {
         setActiveChatbot(status)
         toast.success(
-          status
-            ? "Chatbot has been re-enabled for this customer"
-            : "Chatbot has been disabled. You now have manual control"
+          `Chatbot ${status ? "enabled" : "disabled"} for ${selectedChat.customerName}`,
+          { duration: 1000 }
         )
       } else {
-        toast.error("Failed to update chatbot status")
+        toast.error("Failed to update chatbot status", { duration: 1000 })
       }
     } catch (error) {
       console.error("Error updating chatbot status:", error)
-      toast.error("Failed to update chatbot status")
+      toast.error("Failed to update chatbot status", { duration: 1000 })
     } finally {
       setLoading(false)
     }
@@ -373,7 +374,7 @@ export function ChatPage() {
       const response = await api.delete(`/chat/${selectedChat.sessionId}`)
 
       if (response.data.success) {
-        toast.success("Chat deleted successfully")
+        toast.success("Chat deleted successfully", { duration: 1000 })
         // Remove deleted chat from state
         setChats((prev) =>
           prev.filter((chat) => chat.sessionId !== selectedChat.sessionId)
@@ -387,12 +388,16 @@ export function ChatPage() {
         refetchChats()
       } else {
         toast.error(
-          "Failed to delete chat: " + (response.data.error || "Unknown error")
+          "Failed to delete chat: " + (response.data.error || "Unknown error"),
+          { duration: 1000 }
         )
       }
     } catch (error) {
       console.error("Error deleting chat:", error)
-      toast.error("Failed to delete chat. Please try again.")
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete chat",
+        { duration: 1000 }
+      )
     } finally {
       setLoading(false)
       setShowDeleteDialog(false)
@@ -425,7 +430,7 @@ export function ChatPage() {
       const response = await api.put(endpoint, customerData)
 
       if (response.status === 200) {
-        toast.success("Customer updated successfully")
+        toast.success("Customer updated successfully", { duration: 1000 })
         setShowEditSheet(false)
         // Update only the selected chat's customer info
         if (selectedChat) {
@@ -442,12 +447,16 @@ export function ChatPage() {
       } else {
         toast.error(
           "Failed to update customer: " +
-            (response.data?.error || "Unknown error")
+            (response.data?.error || "Unknown error"),
+          { duration: 1000 }
         )
       }
     } catch (error) {
       console.error("Error updating customer:", error)
-      toast.error("Failed to update customer. Please try again.")
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update customer",
+        { duration: 1000 }
+      )
     } finally {
       setLoading(false)
     }
@@ -520,7 +529,7 @@ export function ChatPage() {
       })
 
       if (!response.data.success) {
-        toast.error("Failed to send message")
+        toast.error("Failed to send message", { duration: 1000 })
         // Remove the temporary message
         setMessages((prev) => prev.filter((msg) => msg.id !== tempMessage.id))
       } else {
@@ -549,7 +558,7 @@ export function ChatPage() {
       }
     } catch (error) {
       console.error("Error sending message:", error)
-      toast.error("Failed to send message")
+      toast.error("Failed to send message", { duration: 1000 })
     } finally {
       setLoading(false)
     }
@@ -561,6 +570,29 @@ export function ChatPage() {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
   }, [messages])
+
+  // Handle blocking a user
+  const handleBlockUser = async () => {
+    if (!selectedChat || !workspaceId) return
+
+    setIsBlocking(true)
+    try {
+      const blockResponse = await api.post(`/workspaces/${workspaceId}/customers/${selectedChat.customerId}/block`)
+      
+      if (blockResponse.status === 200) {
+        // Remove the chat from the list
+        setChats((prev) => prev.filter(chat => chat.customerId !== selectedChat.customerId))
+        setSelectedChat(null)
+        toast.success(`${selectedChat.customerName} has been blocked`, { duration: 1000 })
+      }
+    } catch (error) {
+      console.error("Error blocking user:", error)
+      toast.error("Failed to block user", { duration: 1000 })
+    } finally {
+      setIsBlocking(false)
+      setShowBlockDialog(false)
+    }
+  }
 
   return (
     <PageLayout selectedChat={selectedChat}>
@@ -844,14 +876,27 @@ export function ChatPage() {
       <AlertDialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Block Chatbot</AlertDialogTitle>
+            <AlertDialogTitle>Block User</AlertDialogTitle>
             <AlertDialogDescription>
-              This functionality is currently under development and will be
-              available soon.
+              Are you sure you want to block {selectedChat?.customerName}? They will no longer be able to send messages to your chatbot, and their chat will be removed from your chat history.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction key="block-dialog-action">OK</AlertDialogAction>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleBlockUser}
+              disabled={isBlocking}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isBlocking ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Blocking...
+                </>
+              ) : (
+                "Block User"
+              )}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

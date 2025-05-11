@@ -1,676 +1,353 @@
 # ShopMe - WhatsApp E-commerce Platform
 
-## Executive Overview
+# PARTE I: REQUISITI DI BUSINESS E FUNZIONALI
 
-ShopMe is a revolutionary SaaS platform that transforms WhatsApp into a powerful e-commerce channel by connecting businesses directly with customers through intelligent, automated conversations. Built on the foundations of AI and conversational commerce, ShopMe enables businesses to provide seamless shopping experiences and exceptional customer service through the world's most popular messaging app.
+## 1. Panoramica Esecutiva
 
-### Why ShopMe Matters
+ShopMe è una piattaforma SaaS rivoluzionaria che trasforma WhatsApp in un potente canale e-commerce, connettendo le aziende direttamente con i clienti attraverso conversazioni intelligenti e automatizzate. Costruita sulle fondamenta dell'AI e del commercio conversazionale, ShopMe consente alle aziende di fornire esperienze di acquisto senza soluzione di continuità e un servizio clienti eccezionale attraverso l'app di messaggistica più popolare al mondo.
 
-In today's digital landscape, businesses face numerous challenges:
+### Perché ShopMe è importante
 
-- Customer support is increasingly expected to be available 24/7
-- Consumer attention is fragmented across multiple platforms
-- Traditional e-commerce requires customers to download apps or navigate websites
-- Small and medium businesses lack resources for comprehensive digital solutions
+Nel panorama digitale odierno, le aziende affrontano numerose sfide:
 
-ShopMe solves these challenges by meeting customers where they already are—on WhatsApp, with over 2 billion active users worldwide. Our solution eliminates friction in the shopping journey by enabling complete transactions through natural conversation, without requiring customers to leave their preferred messaging platform.
+- Il supporto clienti deve essere sempre più disponibile 24/7
+- L'attenzione dei consumatori è frammentata su più piattaforme
+- L'e-commerce tradizionale richiede ai clienti di scaricare app o navigare su siti web
+- Le piccole e medie imprese non dispongono delle risorse necessarie per soluzioni digitali complete
 
-### Core Benefits
+ShopMe risolve queste sfide incontrando i clienti dove già si trovano—su WhatsApp, con oltre 2 miliardi di utenti attivi in tutto il mondo. La nostra soluzione elimina l'attrito nel percorso di acquisto consentendo transazioni complete attraverso conversazioni naturali, senza richiedere ai clienti di abbandonare la loro piattaforma di messaggistica preferita.
 
-1. **24/7 Customer Service**: Our AI-powered chatbots provide immediate responses at any time, ensuring customer queries never go unanswered and sales opportunities are never missed.
+### Vantaggi principali
 
-2. **Increased Conversion Rates**: By reducing friction in the purchase journey and providing personalized assistance, businesses can convert more inquiries into sales.
+1. **Servizio clienti 24/7**: I nostri chatbot alimentati dall'AI forniscono risposte immediate in qualsiasi momento, garantendo che le richieste dei clienti non rimangano mai senza risposta e che le opportunità di vendita non vadano mai perse.
 
-3. **Enhanced Customer Engagement**: Natural language conversations create more engaging and human-like interactions compared to traditional e-commerce interfaces.
+2. **Aumento dei tassi di conversione**: Riducendo l'attrito nel percorso di acquisto e fornendo assistenza personalizzata, le aziende possono convertire più richieste in vendite.
 
-4. **Operational Efficiency**: Automation of routine inquiries and processes reduces staff workload and operational costs while improving response times.
+3. **Miglioramento del coinvolgimento dei clienti**: Le conversazioni in linguaggio naturale creano interazioni più coinvolgenti e simili a quelle umane rispetto alle interfacce di e-commerce tradizionali.
 
-5. **Rich Customer Insights**: Every conversation generates valuable data that helps businesses understand customer preferences and improve their offerings over time.
+4. **Efficienza operativa**: L'automazione delle richieste e dei processi di routine riduce il carico di lavoro del personale e i costi operativi, migliorando al contempo i tempi di risposta.
 
-6. **Scalability Without Complexity**: The SaaS model allows businesses of any size to implement sophisticated e-commerce capabilities without technical expertise or major investments.
+5. **Informazioni preziose sui clienti**: Ogni conversazione genera dati preziosi che aiutano le aziende a comprendere le preferenze dei clienti e a migliorare le loro offerte nel tempo.
 
-ShopMe represents the next evolution in e-commerce—one where commerce happens conversationally, businesses are always available, and shopping is as simple as sending a message.
+6. **Scalabilità senza complessità**: Il modello SaaS consente alle aziende di qualsiasi dimensione di implementare sofisticate capacità di e-commerce senza competenze tecniche o investimenti importanti.
 
-## 1. Project Vision
+ShopMe rappresenta la prossima evoluzione nell'e-commerce—uno in cui il commercio avviene in modo conversazionale, le aziende sono sempre disponibili e lo shopping è semplice come inviare un messaggio.
 
-The ShopMe project aims to develop a WhatsApp-based e-commerce platform that leverages the WhatsApp Business API and AI technology to automate client support and order management. Designed as a Software as a Service (SaaS) solution, the platform enables businesses to create their own white-labeled e-commerce presence with minimal setup. The goal is to provide immediate and continuous 24/7 assistance, enhancing client experience and streamlining business operations.
+### Visione del progetto
 
-### 1.1 Initial Use Case: Italian Products Chatbots
+Il progetto ShopMe mira a sviluppare una piattaforma di e-commerce basata su WhatsApp che sfrutta l'API WhatsApp Business e la tecnologia AI per automatizzare il supporto clienti e la gestione degli ordini. Progettata come soluzione Software as a Service (SaaS), la piattaforma consente alle aziende di creare la propria presenza e-commerce white-label con configurazione minima. L'obiettivo è fornire assistenza immediata e continua 24/7, migliorando l'esperienza del cliente e semplificando le operazioni aziendali.
 
-As our first implementation, the platform will be specialized in selling high-quality Italian products. Users will be able to:
+#### Caso d'uso iniziale: Chatbot per prodotti italiani
 
-**Product Discovery and Information**:
+Come prima implementazione, la piattaforma sarà specializzata nella vendita di prodotti italiani di alta qualità. Gli utenti potranno:
 
-- Access detailed product information
-- Receive personalized product recommendations
-- Learn about producers' stories and traditional production methods
+**Scoperta e informazioni sui prodotti**:
 
-**Order Management**:
+- Accedere a informazioni dettagliate sui prodotti
+- Ricevere consigli personalizzati sui prodotti
+- Conoscere le storie dei produttori e i metodi di produzione tradizionali
 
-- Place orders directly through WhatsApp chatbot
-- Receive immediate order confirmations
-- Track shipment status
-- Download invoices and fiscal documents
-- Manage returns and complaints
+**Gestione degli ordini**:
 
-**Customer Support**:
+- Effettuare ordini direttamente tramite chatbot WhatsApp
+- Ricevere conferme d'ordine immediate
+- Monitorare lo stato della spedizione
+- Scaricare fatture e documenti fiscali
+- Gestire resi e reclami
 
-- Request product information and recommendations
-- Get advice on product pairings and usage
-- Receive post-sale assistance
-- Access FAQ and product guides
+**Assistenza clienti**:
 
-### 1.2 Future Industry Expansion
+- Richiedere informazioni sui prodotti e consigli
+- Ricevere consigli su abbinamenti e utilizzo dei prodotti
+- Ricevere assistenza post-vendita
+- Accedere a FAQ e guide sui prodotti
 
-While the initial MVP focuses exclusively on e-commerce for Italian products, the platform is architecturally designed to support future expansion into various service-based industries including:
+## 2. Casi d'Uso e Segmenti di Mercato
 
-**Gym & Fitness Centers**:
+### Espansione futura del settore
 
-- Class booking and membership management
-- Personal training session scheduling
-- Workout plan delivery through messaging
-- Fitness goal tracking and progress updates
+Mentre l'MVP iniziale si concentra esclusivamente sull'e-commerce per prodotti italiani, la piattaforma è architettonicamente progettata per supportare la futura espansione in vari settori basati sui servizi, tra cui:
 
-**Restaurants & Cafes**:
+**Palestre e centri fitness**:
 
-- Table reservations and wait list management
-- Digital menu browsing via chat interface
-- Special event bookings (private dining, catering)
-- Delivery coordination through messaging
+- Prenotazione di lezioni e gestione degli abbonamenti
+- Programmazione delle sessioni di personal training
+- Consegna di piani di allenamento tramite messaggistica
+- Monitoraggio degli obiettivi di fitness e aggiornamenti sui progressi
 
-**Hotels & Accommodations**:
+**Ristoranti e caffè**:
 
-- Room booking and availability checking via WhatsApp
-- Automated check-in/check-out reminders
-- Special requests handling through chat interface
-- Room service ordering through messaging
+- Prenotazioni di tavoli e gestione delle liste d'attesa
+- Navigazione nel menu digitale tramite interfaccia di chat
+- Prenotazioni per eventi speciali (cene private, catering)
+- Coordinamento della consegna tramite messaggistica
 
-This planned expansion will be developed in future phases after the core e-commerce functionality is successfully implemented and validated in the marketplace.
+**Hotel e alloggi**:
 
-The platform is designed for any business that offers products or services to clients, from retail stores and service providers to hospitality businesses like hotels, restaurants, gyms, and fitness centers. This versatility allows businesses to not only sell products but also manage appointments, reservations, and memberships through conversational interfaces.
+- Prenotazione di camere e verifica della disponibilità tramite WhatsApp
+- Promemoria automatici per check-in/check-out
+- Gestione delle richieste speciali tramite interfaccia di chat
+- Ordinazione del servizio in camera tramite messaggistica
 
-## 2. User Journey
+Questa espansione pianificata sarà sviluppata nelle fasi future dopo che la funzionalità core di e-commerce sarà stata implementata con successo e convalidata sul mercato.
 
-### Administrator Experience
+La piattaforma è progettata per qualsiasi azienda che offra prodotti o servizi ai clienti, dai negozi al dettaglio e fornitori di servizi alle attività di ospitalità come hotel, ristoranti, palestre e centri fitness. Questa versatilità consente alle aziende non solo di vendere prodotti, ma anche di gestire appuntamenti, prenotazioni e abbonamenti attraverso interfacce conversazionali.
 
-- Access a web dashboard to:
-  - Create and manage multiple workspaces.
-  - Configure WhatsApp channels (phone numbers, API tokens, webhooks).
-  - Customize AI prompts, add products (with photos, text, pricing,offerts), and organize them into service categories.
-  - Manage products, services, and clients through intuitive interfaces.
+## 3. Journey Utente
 
-### End User Experience
+### Esperienza dell'amministratore
 
-- Interact exclusively through WhatsApp:
-  - **Initial Contact**: New users receive a welcome message introducing the service.
-  - **Registration Process**:
-    - For unregistered users, the system automatically generates and sends a unique registration link via WhatsApp.
-    - The link directs users to a secure web-based registration form.
-    - The registration form collects essential information:
-      - First Name (required)
-      - Last Name (required)
-      - Company Name (required)
-      - Language preference selection (required) - Default language is detected from user's browser
-      - Currency preference selection (required) - Default EUR
-      - GDPR consent with full text of the privacy policy displayed for review
-      - Push notification consent checkbox with label: "Are you interested to receive offers with push notifications? You will be able to unsubscribe whenever you want" (optional)
-      - Submit button to complete registration
-    - Upon successful submission, the user is registered in the system and can immediately continue their interaction through WhatsApp.
-    - A personalized welcome message is sent in the user's selected language, confirming their registration and explaining data protection measures, including a link to a dedicated page with detailed information about the encryption system used to protect their data.
-  - **Returning Users**: Existing users receive a personalized greeting and can request information, place orders, and receive communications.
-  - **Continuous Experience**: All subsequent interactions happen seamlessly within WhatsApp, creating a frictionless shopping experience.
+- Accesso a una dashboard web per:
+  - Creare e gestire più workspace.
+  - Configurare canali WhatsApp (numeri di telefono, token API, webhook).
+  - Personalizzare prompt AI, aggiungere prodotti (con foto, testo, prezzi, offerte) e organizzarli in categorie di servizi.
+  - Gestire prodotti, servizi e clienti attraverso interfacce intuitive.
 
-## 3. Objectives
+### Esperienza dell'utente finale
 
-### Business Goals
+- Interazione esclusivamente tramite WhatsApp:
+  - **Primo contatto**: I nuovi utenti ricevono un messaggio di benvenuto che introduce il servizio.
+  - **Processo di registrazione**:
+    - Per gli utenti non registrati, il sistema genera automaticamente e invia un link di registrazione unico tramite WhatsApp.
+    - Il link indirizza gli utenti a un modulo di registrazione web sicuro.
+    - Il modulo di registrazione raccoglie informazioni essenziali:
+      - Nome (obbligatorio)
+      - Cognome (obbligatorio)
+      - Nome azienda (obbligatorio)
+      - Selezione della lingua preferita (obbligatorio) - La lingua predefinita viene rilevata dal browser dell'utente
+      - Selezione della valuta preferita (obbligatorio) - EUR predefinito
+      - Consenso GDPR con testo completo della politica sulla privacy visualizzato per la revisione
+      - Casella di consenso per le notifiche push con etichetta: "Sei interessato a ricevere offerte con notifiche push? Potrai annullare l'iscrizione quando vorrai" (facoltativo)
+      - Pulsante Invia per completare la registrazione
+    - Dopo l'invio con successo, l'utente viene registrato nel sistema e può continuare immediatamente la sua interazione tramite WhatsApp.
+    - Viene inviato un messaggio di benvenuto personalizzato nella lingua selezionata dall'utente, che conferma la registrazione e spiega le misure di protezione dei dati, incluso un link a una pagina dedicata con informazioni dettagliate sul sistema di crittografia utilizzato per proteggere i dati.
+  - **Utenti abituali**: Gli utenti esistenti ricevono un saluto personalizzato e possono richiedere informazioni, effettuare ordini e ricevere comunicazioni.
+  - **Esperienza continua**: Tutte le interazioni successive avvengono senza interruzioni all'interno di WhatsApp, creando un'esperienza di acquisto senza attrito.
 
-- Significantly reduce client service time through automation.
-- Provide 24/7 client support.
-- Build client loyalty through future push campaigns (e.g., greetings, promotions, appointment reminders).
-- Enable businesses of all types to engage with clients through familiar messaging interfaces.
-- Create a versatile platform adaptable to various industries and business models.
+## 4. Requisiti Funzionali
 
-### Non-Goals (MVP)
+### Gestione utenti:
 
-- **Integrated Payment System and Workable Payment Plan:**
+- Registrazione e login: Autenticazione sicura e gestione del profilo.
+- Recupero password: Funzionalità per il reset delle credenziali.
 
-  - This combines the original "Implement an integrated payment system" and "Usage and a workable plan for payments."
-  - It's crucial to state that _both_ the _implementation_ and a _detailed plan_ are out of scope for the MVP.
-  - **Rationale:** Even a high-level plan has design implications. If you defer _all_ payment considerations, you risk architectural issues later. However, in the MVP, the _actual integration_ and _full payment flow_ are not required.
+### Catalogo prodotti:
 
-- **Usage Statistics and Analytics:**
+- Visualizzazione prodotti: Elenco e vista dettagliata dei prodotti con immagini, descrizioni e prezzi.
+- Ricerca e filtro: Strumenti per cercare prodotti per categoria, prezzo, popolarità, ecc.
+- Categorie: Gestione delle categorie di prodotti per una migliore organizzazione.
 
-  - This is clearer than just "Usage" and separates it from other concerns.
-  - **Rationale:** Gathering and displaying detailed analytics can be complex. The MVP should focus on core functionality.
+### Gestione carrello tramite WhatsApp:
 
-- **Push Campaigns and Marketing Automation:**
+- Interfaccia conversazionale: Consente agli utenti di gestire il proprio carrello tramite messaggi WhatsApp.
+- Aggiungere/rimuovere prodotti: Comandi per aggiungere o rimuovere prodotti dal carrello.
+- Visualizzazione stato carrello: Invio di riepiloghi e aggiornamenti del carrello tramite WhatsApp.
 
-  - This is more specific than just "Push campaigns."
-  - **Rationale:** Marketing automation features are often added later to enhance user engagement.
+### Checkout e pagamenti online:
 
-- **Advanced Authentication and Security:**
+- Conferma ordine: Dopo la gestione del carrello su WhatsApp, l'utente viene reindirizzato a una piattaforma web per confermare l'ordine.
+- Pagamenti online: Procedura di pagamento sicura e integrata sulla piattaforma online.
 
-  - This groups related security features.
-  - Includes:
-    - JSON Web Tokens (JWT) for authentication (if you're using a simpler auth for MVP)
-    - 2FA authentication (Two-Factor Authentication)
-    - "Forgot Password" functionality
-    - "Create User" (if you're handling user creation in a very basic way for MVP)
-  - **Rationale:** While basic security is essential, more complex auth can be deferred.
+### Integrazione AI:
 
-- **Scalability and Monitoring Infrastructure:**
+- Implementazione RAG: Generazione aumentata da recupero per un migliore contesto aziendale con dati dei clienti.
+- Prompt personalizzabili: Configurare le risposte AI per riflettere la voce e le politiche aziendali.
+- Consapevolezza del contesto: L'AI comprende la cronologia delle conversazioni e le preferenze dell'utente.
+- Pseudonimizzazione dei dati: Protezione della privacy durante l'elaborazione dei dati con modelli esterni.
+- Traduzioni automatiche: Supporto per più lingue nella stessa conversazione.
+- Test dei prompt: Possibilità di testare prompt alternativi in sessioni isolate senza influire sul prompt di produzione attivo. Questo consente agli amministratori di sperimentare in sicurezza comportamenti AI diversi prima di implementarli per i clienti.
+- Duplicazione dei prompt: Possibilità di duplicare i prompt esistenti per creare variazioni o backup, mantenendo la struttura originale consentendo modifiche alla copia. Questa funzionalità consente agli utenti di iterare su prompt di successo esistenti senza dover partire da zero.
 
-  - This is more specific than just "scale and monitor the system."
-  - **Rationale:** While you need to _design_ for scalability, the _full infrastructure_ and monitoring setup can be iterative.
-    - For MVP, you might handle scaling manually or with basic tools.
-    - Detailed performance monitoring and automated scaling can come later.
+### Gestione ordini e monitoraggio:
 
-- **Comprehensive GDPR Compliance Implementation:**
+> ⚠️ Nota: Questa funzionalità è stata spostata in "Fuori Ambito". Vedere la sezione "Funzionalità fuori ambito" per i dettagli.
 
-  - This is carefully worded. You **must** _consider_ GDPR from the start, but the _full and polished implementation_ can be phased.
-  - **Rationale:**
+La seguente funzionalità era originariamente pianificata ma è ora fuori ambito:
 
-    - You can't ignore privacy. Design must be privacy-preserving.
-    - However, features like detailed consent management, data portability exports, and full audit logs can be developed iteratively.
-    - The _core_ principles (data minimization, security) _must_ be in place.
+- Cronologia ordini: Visualizzazione degli acquisti passati e dello stato dell'ordine corrente
+- Monitoraggio spedizione: Aggiornamenti in tempo reale sullo stato della spedizione
+- Gestione fatture: Generazione e download delle fatture
+- Elaborazione resi: Gestione dei resi di prodotti e rimborsi
 
-- **Product Image Upload to S3/Cloud Storage:**
+Per la versione attuale, gli utenti possono sfogliare i prodotti e interagire con il chatbot, ma l'elaborazione effettiva degli ordini dovrà essere gestita tramite sistemi esterni.
 
-  - Integration with cloud storage services for product image upload and management.
-  - **Rationale:** While product image management is important, the MVP can use simpler approaches like URL references to existing images. Full integration with S3 or similar cloud storage services will be implemented in future versions.
+### Gestione clienti:
 
-  - development environments and monitoring infrastructure can be phased.
-  - Product offerts
+- Profili cliente: Mantenere registri completi di tutti i clienti.
+- Cronologia acquisti: Tracciare i modelli di acquisto e le preferenze dei clienti.
+- Registro comunicazioni: Accesso alle interazioni passate con i clienti.
+- Blocco utenti: Possibilità di bloccare specifici utenti dall'interagire con il sistema attraverso l'interfaccia di chat, prevenendo potenziali abusi.
+- Gestione prenotazioni: Tracciare e gestire prenotazioni e appuntamenti dei clienti (espansione futura).
+- Notifiche push: Inviare messaggi mirati per marketing, promemoria e programmi di fidelizzazione.
 
-### Out of Scope Features
+### Cronologia chat:
 
-These features have been determined to be completely out of scope for the current version of the product. Unlike Non-Goals (MVP) which will be implemented in future phases, these features are not planned for implementation in the immediate roadmap.
+- Registri conversazioni: Revisione e analisi delle conversazioni WhatsApp con i clienti.
+- Ricerca messaggi: Ricerca nella cronologia chat per informazioni specifiche.
 
-1. **Order Management System:**
+### Analisi utilizzo:
 
-   - Complete order processing and tracking
-   - Order status management
-   - Invoice generation and management
-   - Shipping integration and tracking
-   - Returns and refunds processing
-   - **Rationale:** After evaluation, we've determined that the full order management system requires significant integration with external systems (payment, shipping, etc.) and complex business logic that would extend beyond our current development capacity. Users can still browse products and interact with the chatbot, but actual order processing will need to be handled through external systems.
+- Monitoraggio utilizzo: Raccolta e analisi dei dati di utilizzo della piattaforma per comprendere il comportamento degli utenti.
+- Report di utilizzo: Generazione di report e statistiche per migliorare l'esperienza e ottimizzare le funzionalità.
 
-2. **Marketing Campaign Management:**
+### Dashboard amministrativa:
 
-   - Campaign creation and scheduling
-   - A/B testing tools
-   - Campaign analytics
-   - Audience segmentation
-   - **Rationale:** Marketing campaign features require complex integration with analytics and user behavior tracking systems that are beyond our current scope.
+- Gestione contenuti: Strumenti per aggiungere, modificare o rimuovere prodotti e categorie.
+- Report e analisi: Statistiche su vendite, traffico e prestazioni del sistema.
 
-3. **Advanced Analytics Dashboard:**
-   - Real-time analytics
-   - Custom report generation
-   - Data visualization tools
-   - Export capabilities
-   - **Rationale:** Advanced analytics require significant data processing and storage capabilities that are not aligned with our current infrastructure plans.
+### Sistema di prenotazione (espansione futura):
 
-## 4. Technical Architecture
+- Programmazione appuntamenti: Consentire ai clienti di prenotare servizi tramite WhatsApp.
+- Prenotazioni tavoli: Abilitare la gestione delle prenotazioni ristorante.
+- Prenotazioni camere: Gestire le prenotazioni delle camere d'albergo.
+- Registrazioni corsi: Gestire le iscrizioni e la partecipazione ai corsi in palestra.
+- Gestione capacità: Monitorare la disponibilità e prevenire il sovraffollamento.
+- Promemoria automatici: Inviare notifiche prima degli appuntamenti.
 
-- **Frontend**: React (latest version) with shadcn/ui library and Tailwind CSS to accelerate development.
-- **Backend**: Node.js with Domain Driven Design (DDD) pattern.
+### Campagne di notifiche push:
+
+- Messaggistica mirata: Inviare offerte personalizzate basate sulla cronologia dei clienti.
+- Promemoria automatici: Notificare ai clienti appuntamenti o prenotazioni imminenti.
+- Campagne di riattivazione: Raggiungere clienti inattivi.
+- Promozioni speciali: Annunciare offerte e sconti a tempo limitato.
+- Programmi fedeltà: Aggiornare i clienti su punti, premi e traguardi.
+- Notifiche eventi: Informare i clienti su eventi imminenti o nuovi servizi.
+
+## 5. Accettazione e Anti-Abuso
+
+### Criteri di accettazione
+
+- Funzionalità CRUD completamente operativa per workspaces, prodotti, prompt, servizi, lingue e utenti.
+- Risposte del chatbot generate in pochi secondi.
+- Comunicazione API protetta tramite token JWT.
+- Dashboard intuitiva con autenticazione 2FA.
+- Sistema di protezione anti-abuso che blocca automaticamente gli utenti che inviano più di 8 messaggi al minuto.
+- Funzionalità di blocco manuale che consente agli amministratori di bloccare specifici utenti direttamente dall'interfaccia di chat quando necessario.
+
+### Sistema Anti-Abuso
+
+Per prevenire l'abuso del sistema e garantire un'equa allocazione delle risorse, la piattaforma implementa un meccanismo automatico di limitazione della frequenza:
+
+- Se un utente invia più di 8 messaggi in una finestra di 60 secondi, lo stato del suo profilo viene automaticamente modificato in "bloccato"
+- Il sistema risponde con un messaggio: "Il tuo numero è stato bloccato a causa di un uso improprio. Contatta l'amministratore per sbloccarlo."
+- Gli amministratori possono visualizzare gli utenti bloccati nella dashboard e sbloccare manualmente gli utenti legittimi
+- Il sistema mantiene registri degli eventi di blocco per l'analisi della sicurezza
+
+Inoltre, gli amministratori possono bloccare manualmente gli utenti problematici direttamente dall'interfaccia di chat:
+
+- Un pulsante di blocco nell'intestazione della chat consente il blocco immediato dell'utente corrente
+- Quando vengono bloccati manualmente, gli utenti ricevono una notifica sul loro stato di blocco
+- Gli amministratori possono visualizzare e gestire tutti gli utenti bloccati da una sezione centralizzata nella dashboard
+- Le azioni di blocco/sblocco vengono registrate per scopi di audit
+
+Questo approccio duale (blocco automatico e manuale) protegge dagli attacchi spam, previene lo spreco di risorse AI e garantisce un'esperienza fluida per tutti gli utenti legittimi. I limiti di frequenza e le politiche di blocco sono configurabili dagli amministratori del workspace per soddisfare le diverse esigenze aziendali e i modelli di utilizzo.
+
+## 6. Obiettivi e Non-Obiettivi
+
+### Obiettivi di business
+
+- Ridurre significativamente il tempo del servizio clienti attraverso l'automazione.
+- Fornire supporto clienti 24/7.
+- Fidelizzare i clienti attraverso future campagne push (ad es. saluti, promozioni, promemoria di appuntamenti).
+- Consentire alle aziende di tutti i tipi di coinvolgere i clienti attraverso interfacce di messaggistica familiari.
+- Creare una piattaforma versatile adattabile a vari settori e modelli di business.
+
+### Non-Obiettivi (MVP)
+
+- **Sistema di pagamento integrato e piano di pagamento funzionante:**
+
+  - Questo combina l'originale "Implementare un sistema di pagamento integrato" e "Utilizzo e un piano funzionale per i pagamenti."
+  - È cruciale affermare che _sia_ l'_implementazione_ che un _piano dettagliato_ sono fuori dall'ambito dell'MVP.
+  - **Motivazione:** Anche un piano di alto livello ha implicazioni di design. Se si rimandano _tutte_ le considerazioni di pagamento, si rischiano problemi architetturali in seguito. Tuttavia, nell'MVP, l'_integrazione effettiva_ e il _flusso di pagamento completo_ non sono richiesti.
+
+- **Statistiche di utilizzo e analisi:**
+
+  - Questo è più chiaro di "Utilizzo" e lo separa da altre preoccupazioni.
+  - **Motivazione:** Raccogliere e visualizzare analisi dettagliate può essere complesso. L'MVP dovrebbe concentrarsi sulla funzionalità di base.
+
+- **Campagne push e automazione marketing:**
+
+  - Questo è più specifico di "Campagne push."
+  - **Motivazione:** Le funzionalità di automazione del marketing vengono spesso aggiunte in seguito per migliorare il coinvolgimento degli utenti.
+
+- **Autenticazione e sicurezza avanzata:**
+
+  - Questo raggruppa funzionalità di sicurezza correlate.
+  - Include:
+    - JSON Web Tokens (JWT) per l'autenticazione (se si sta utilizzando un'autenticazione più semplice per l'MVP)
+    - Autenticazione 2FA (Two-Factor Authentication)
+    - Funzionalità "Password dimenticata"
+    - "Crea utente" (se si sta gestendo la creazione utente in modo molto basilare per l'MVP)
+  - **Motivazione:** Mentre la sicurezza di base è essenziale, l'autenticazione più complessa può essere rimandata.
+
+- **Infrastruttura di scalabilità e monitoraggio:**
+
+  - Questo è più specifico di "scalare e monitorare il sistema."
+  - **Motivazione:** Mentre è necessario _progettare_ per la scalabilità, la _completa infrastruttura_ e la configurazione di monitoraggio possono essere incrementali.
+    - Per l'MVP, la scalabilità potrebbe essere gestita manualmente o con strumenti di base.
+    - Il monitoraggio dettagliato delle prestazioni e la scalabilità automatizzata possono arrivare in seguito.
+
+- **Implementazione completa della conformità GDPR:**
+
+  - Questo è formulato con attenzione. **Deve** _considerare_ il GDPR fin dall'inizio, ma l'_implementazione completa e rifinita_ può essere graduale.
+  - **Motivazione:**
+
+    - Non si può ignorare la privacy. Il design deve preservare la privacy.
+    - Tuttavia, funzionalità come la gestione dettagliata del consenso, l'esportazione della portabilità dei dati e i log di audit completi possono essere sviluppati in modo incrementale.
+    - I principi _fondamentali_ (minimizzazione dei dati, sicurezza) _devono_ essere in atto.
+
+- **Upload immagini prodotto su S3/Cloud Storage:**
+
+  - Integrazione con servizi di cloud storage per il caricamento e la gestione delle immagini dei prodotti.
+  - **Motivazione:** Mentre la gestione delle immagini dei prodotti è importante, l'MVP può utilizzare approcci più semplici come riferimenti URL alle immagini esistenti. La piena integrazione con S3 o servizi di cloud storage simili sarà implementata nelle versioni future.
+
+  - Gli ambienti di sviluppo e l'infrastruttura di monitoraggio possono essere gradualmente implementati.
+  - Offerte di prodotti
+
+### Funzionalità fuori ambito
+
+Queste funzionalità sono state determinate essere completamente fuori dall'ambito della versione attuale del prodotto. A differenza dei Non-Obiettivi (MVP) che saranno implementati nelle fasi future, queste funzionalità non sono pianificate per l'implementazione nella roadmap immediata.
+
+1. **Sistema di gestione ordini:**
+
+   - Elaborazione e monitoraggio completo degli ordini
+   - Gestione dello stato dell'ordine
+   - Generazione e gestione delle fatture
+   - Integrazione con la spedizione e monitoraggio
+   - Elaborazione di resi e rimborsi
+   - **Motivazione:** Dopo la valutazione, abbiamo determinato che il sistema completo di gestione degli ordini richiede una significativa integrazione con sistemi esterni (pagamento, spedizione, ecc.) e una logica di business complessa che andrebbe oltre la nostra attuale capacità di sviluppo. Gli utenti possono ancora sfogliare i prodotti e interagire con il chatbot, ma l'elaborazione effettiva degli ordini dovrà essere gestita attraverso sistemi esterni.
+
+2. **Gestione campagne marketing:**
+
+   - Creazione e pianificazione di campagne
+   - Strumenti di test A/B
+   - Analisi delle campagne
+   - Segmentazione del pubblico
+   - **Motivazione:** Le funzionalità delle campagne di marketing richiedono un'integrazione complessa con i sistemi di analisi e tracciamento del comportamento degli utenti che va oltre il nostro ambito attuale.
+
+3. **Dashboard analitica avanzata:**
+   - Analisi in tempo reale
+   - Generazione di report personalizzati
+   - Strumenti di visualizzazione dati
+   - Capacità di esportazione
+   - **Motivazione:** L'analisi avanzata richiede significative capacità di elaborazione e archiviazione dei dati che non sono allineate con i nostri attuali piani infrastrutturali.
+
+# PARTE II: SPECIFICHE TECNICHE
+
+## 1. Architettura Tecnica
+
+- **Frontend**: React (ultima versione) con libreria shadcn/ui e Tailwind CSS per accelerare lo sviluppo.
+- **Backend**: Node.js con pattern Domain Driven Design (DDD).
 - **Database**: PostgreSQL.
-- **SaaS Architecture**: Multi-tenant design with complete data isolation betwee in man workspaces.
-- **AI Service**: OpenRouter (RAG) with data pseudonymization.
-- **WhatsApp Integration**: Official Meta API.
-- **Security**: HTTPS, JWT tokens, encrypted sensitive data in the database.
-- **Environments**: Development, test, and production; each workspace can activate debug mode with a test number.
-
-### Frontend Implementation
-
-The frontend will be built using Vite and React, coupled with Tailwind CSS and shadcn/ui for styling. This architecture provides several advantages:
-
-- **Fast Development**: Vite's lightning-fast HMR (Hot Module Replacement)
-- **API Proxy**: Built-in proxy configuration for seamless API integration
-- **Component isolation**: Clear separation of concerns with modular components
-- **Type Safety**: Full TypeScript support
-- **Styling**: Utility-first approach with Tailwind CSS for rapid development
-- **UI Components**: Shadcn/ui for consistent and accessible components
-
-#### Core API Integration
-
-The frontend communicates with the backend through a RESTful API architecture organized into these major categories:
-
-1. **Authentication API**:
-   - Login/Register flows
-   - JWT token management
-   - User session handling
-
-2. **Workspace API**:
-   - Workspace management
-   - Settings and configurations
-   - User permissions
-
-3. **Products API**:
-   - Product catalog management
-   - Categories CRUD
-   - Image upload handling
-
-4. **Orders API**:
-   - Order processing
-   - Cart management
-   - Order status tracking
-
-5. **Clients API**:
-   - Client profile management
-   - Purchase history
-   - GDPR compliance
-
-6. **Settings API**:
-   - Workspace configuration
-   - User preferences
-   - System settings
-   - Phone Number Blocklist: Ability to block specific phone numbers from interacting with the system, preventing potential abuse by adding phone numbers to a blocklist. Messages from these numbers will be automatically ignored.
-
-7. **Chat API**:
-   - Chat history management
-   - Message handling
-   - WhatsApp integration
-
-8. **Prompt API**:
-   - AI prompt management
-   - Prompt testing
-   - Language configurations
-
-9. **Analytics API**:
-   - Usage statistics
-   - Performance metrics
-   - Business intelligence
-
-The frontend uses a proxy configuration to route all `/api/*` requests to the backend server, handling CORS and other cross-origin concerns automatically.
-
-##### Detailed API Endpoints
-
-###### Authentication
-
-- `POST /api/auth/login`
-  - **Description**: Authenticates a user and returns a JWT token
-  - **Body**: `email`, `password`
-  - **Returns**: JWT token, user information
-
-- `POST /api/auth/logout`
-  - **Description**: Logs out the current user
-  - **Headers**: `Authorization` with JWT token
-  - **Returns**: Success message
-
-- `POST /api/auth/refresh`
-  - **Description**: Refreshes the JWT token
-  - **Headers**: `Authorization` with current JWT token
-  - **Returns**: New JWT token
-
-- `GET /api/auth/me`
-  - **Description**: Gets the current authenticated user's information
-  - **Headers**: `Authorization` with JWT token
-  - **Returns**: User profile information
-
-###### Chat Management
-
-- `GET /api/chats`
-  - **Description**: Retrieves all chats for the workspace
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Returns**: List of chats with basic information
-
-- `GET /api/chat/:id`
-  - **Description**: Retrieves details of a specific chat
-  - **Parameters**: `id` (required): Chat identifier
-  - **Returns**: Chat details including messages
-
-- `GET /api/chat/:id/messages`
-  - **Description**: Retrieves messages for a specific chat
-  - **Parameters**: `id` (required): Chat identifier, `page`, `limit`
-  - **Returns**: Paginated list of messages
-
-- `POST /api/chat/message`
-  - **Description**: Sends a new message in a chat
-  - **Body**: `chat_id`, `content`, `sender_type`
-  - **Returns**: Created message details
-
-- `PUT /api/chat/message/:id/read`
-  - **Description**: Marks messages as read
-  - **Parameters**: `id` (required): Message identifier
-  - **Returns**: Updated message status
-
-###### Prompt Management
-
-- `GET /api/prompt/:phone`
-  - **Description**: Retrieves the active prompt for a specific phone number
-  - **Parameters**: `phone` (required): WhatsApp phone number
-  - **Returns**: Active prompt text, language configurations, context settings
-  - **Note**: Only one prompt can be active per phone number at any time
-
-- `GET /api/prompts`
-  - **Description**: Retrieves all prompts in the workspace
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Returns**: List of prompts with active/inactive status
-
-- `POST /api/prompt`
-  - **Description**: Creates a new prompt
-  - **Body**: `prompt_text`, `reference_phone`, `workspace_id`, `active` (boolean)
-  - **Returns**: Created prompt details
-  - **Note**: If `active` is set to true, any previously active prompt for the same phone number will be automatically deactivated
-
-- `PUT /api/prompt/:id`
-  - **Description**: Updates an existing prompt
-  - **Parameters**: `id` (required): Prompt ID
-  - **Body**: `prompt_text`, `active` (boolean)
-  - **Returns**: Updated prompt details
-  - **Note**: If `active` is set to true, any previously active prompt for the same phone number will be automatically deactivated
-
-- `DELETE /api/prompt/:id`
-  - **Description**: Deletes a prompt
-  - **Parameters**: `id` (required): Prompt ID
-  - **Returns**: Success message
-
-- `POST /api/prompt/test-session`
-  - **Description**: Creates a temporary test session with an alternative prompt
-  - **Body**: `prompt_text`, `reference_phone`, `workspace_id`, `session_duration` (minutes)
-  - **Returns**: Session ID and expiration time
-  - **Note**: This allows testing alternative prompts without modifying the active production prompt
-
-- `GET /api/prompt/test-session/:id`
-  - **Description**: Retrieves a test session prompt
-  - **Parameters**: `id` (required): Session ID
-  - **Returns**: Test prompt details and remaining session time
-
-- `DELETE /api/prompt/test-session/:id`
-  - **Description**: Ends a test session early
-  - **Parameters**: `id` (required): Session ID
-  - **Returns**: Success message
-
-###### Notification Management
-
-- `GET /api/notifications`
-  - **Description**: Retrieves all notifications for the workspace
-  - **Parameters**: `workspace_id` (required), `page`, `limit`
-  - **Returns**: Paginated list of notifications
-
-- `POST /api/notifications`
-  - **Description**: Creates a new push notification
-  - **Body**: `title`, `message`, `target_users`, `schedule_time`
-  - **Returns**: Created notification details
-
-- `PUT /api/notifications/:id`
-  - **Description**: Updates a notification's status or content
-  - **Parameters**: `id` (required): Notification ID
-  - **Body**: `status`, `title`, `message`
-  - **Returns**: Updated notification details
-
-- `DELETE /api/notifications/:id`
-  - **Description**: Deletes a notification
-  - **Parameters**: `id` (required): Notification ID
-  - **Returns**: Success message
-
-###### Product and Category Management
-
-- `GET /api/products`
-  - **Description**: Retrieves complete product list
-  - **Parameters**: `workspace_id` (required), `category_id`, `page`, `limit`
-  - **Returns**: Paginated list of products
-
-- `POST /api/products`
-  - **Description**: Creates a new product
-  - **Body**: `name`, `description`, `price`, `category_id`, `images`, `stock`
-  - **Returns**: Created product details
-
-- `PUT /api/products/:id`
-  - **Description**: Updates a product
-  - **Parameters**: `id` (required): Product ID
-  - **Body**: Product details to update
-  - **Returns**: Updated product details
-
-- `DELETE /api/products/:id`
-  - **Description**: Deletes a product
-  - **Parameters**: `id` (required): Product ID
-  - **Returns**: Success message
-
-- `GET /api/categories`
-  - **Description**: Retrieves product categories
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Returns**: List of categories with products count
-
-- `POST /api/categories`
-  - **Description**: Creates a new category
-  - **Body**: `name`, `description`, `parent_id`
-  - **Returns**: Created category details
-
-- `PUT /api/categories/:id`
-  - **Description**: Updates a category
-  - **Parameters**: `id` (required): Category ID
-  - **Body**: Category details to update
-  - **Returns**: Updated category details
-
-- `DELETE /api/categories/:id`
-  - **Description**: Deletes a category
-  - **Parameters**: `id` (required): Category ID
-  - **Returns**: Success message
-
-###### Service Management
-
-- `GET /api/services`
-  - **Description**: Retrieves list of available services
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Returns**: List of services
-
-- `POST /api/services`
-  - **Description**: Creates a new service
-  - **Body**: `name`, `description`, `price`, `duration`
-  - **Returns**: Created service details
-
-- `PUT /api/services/:id`
-  - **Description**: Updates a service
-  - **Parameters**: `id` (required): Service ID
-  - **Body**: Service details to update
-  - **Returns**: Updated service details
-
-- `DELETE /api/services/:id`
-  - **Description**: Deletes a service
-  - **Parameters**: `id` (required): Service ID
-  - **Returns**: Success message
-
-###### Order Management
-
-- `GET /api/orders`
-  - **Description**: Retrieves all orders
-  - **Parameters**: `workspace_id` (required), `status`, `page`, `limit`
-  - **Returns**: Paginated list of orders
-
-- `GET /api/orders/:id`
-  - **Description**: Retrieves details of a specific order
-  - **Parameters**: `id` (required): Order ID
-  - **Returns**: Complete order details with items
-
-- `POST /api/orders`
-  - **Description**: Creates a new order
-  - **Body**: Order details including products, quantities, client information
-  - **Returns**: Created order details
-
-- `PUT /api/orders/:id`
-  - **Description**: Updates an order's status or details
-  - **Parameters**: `id` (required): Order ID
-  - **Body**: Order details to update
-  - **Returns**: Updated order details
-
-- `DELETE /api/orders/:id`
-  - **Description**: Cancels/deletes an order
-  - **Parameters**: `id` (required): Order ID
-  - **Returns**: Success message
-
-###### Client Management
-
-- `GET /api/clients`
-  - **Description**: Retrieves list of clients
-  - **Parameters**: `workspace_id` (required), `page`, `limit`
-  - **Returns**: Paginated list of clients
-
-- `GET /api/clients/:id`
-  - **Description**: Retrieves client details
-  - **Parameters**: `id` (required): Client identifier
-  - **Returns**: Complete client profile with order history
-
-- `POST /api/clients`
-  - **Description**: Creates a new client
-  - **Body**: Client details including name, phone, email
-  - **Returns**: Created client details
-
-- `PUT /api/clients/:id`
-  - **Description**: Updates client information
-  - **Parameters**: `id` (required): Client identifier
-  - **Body**: Updated client details
-  - **Returns**: Updated client profile
-
-- `POST /api/clients/register`
-  - **Description**: Handles registration from WhatsApp-generated registration link
-  - **Body**: `first_name`, `last_name`, `company`, `phone` (pre-filled), `workspace_id` (pre-filled), `language`, `currency`, `gdpr_consent` (boolean), `push_notifications_consent` (boolean, optional)
-  - **Returns**: Registration confirmation and redirect to WhatsApp with instructions to continue the conversation
-  - **Note**: This endpoint is specifically designed for the web form accessed via the registration link sent through WhatsApp to new users
-
-###### Cart Management
-
-- `GET /api/cart/:user_id`
-  - **Description**: Retrieves user's cart
-  - **Parameters**: `user_id` (required): User identifier
-  - **Returns**: Cart contents with product details
-
-- `POST /api/cart`
-  - **Description**: Adds a product to the cart
-  - **Body**: `user_id`, `product_id`, `quantity`
-  - **Returns**: Updated cart contents
-
-- `PUT /api/cart`
-  - **Description**: Modifies a product in the cart
-  - **Body**: `cart_id`, `product_id`, `quantity`
-  - **Returns**: Updated cart contents
-
-- `DELETE /api/cart`
-  - **Description**: Removes a product from the cart
-  - **Body**: `cart_id`, `product_id`
-  - **Returns**: Updated cart contents
-
-###### Workspace Management
-
-- `GET /api/workspaces`
-  - **Description**: Retrieves all workspaces for the user
-  - **Headers**: `Authorization` with JWT token
-  - **Returns**: List of workspaces user has access to
-
-- `POST /api/workspaces`
-  - **Description**: Creates a new workspace
-  - **Body**: `name`, `description`, `settings`
-  - **Returns**: Created workspace details
-
-- `PUT /api/workspaces/:id`
-  - **Description**: Updates workspace settings
-  - **Parameters**: `id` (required): Workspace ID
-  - **Body**: Workspace details to update
-  - **Returns**: Updated workspace details
-
-- `DELETE /api/workspaces/:id`
-  - **Description**: Deletes a workspace
-  - **Parameters**: `id` (required): Workspace ID
-  - **Returns**: Success message
-
-###### Settings Management
-
-- `GET /api/settings`
-  - **Description**: Retrieves workspace settings
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Returns**: All workspace settings
-
-- `PUT /api/settings`
-  - **Description**: Updates workspace settings
-  - **Body**: `workspace_id`, settings to update
-  - **Returns**: Updated settings
-
-###### AI Configuration Settings
-
-- `GET /api/settings/ai`
-  - **Description**: Retrieves AI generation settings for the workspace
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Returns**: Current AI configuration parameters including temperature, top_p, and top_k values
-
-- `PUT /api/settings/ai`
-  - **Description**: Updates AI generation parameters
-  - **Parameters**: `workspace_id` (required): Workspace identifier
-  - **Body**:
-    ```
-    {
-      "temperature": float, // Value between 0.0-1.0 controlling randomness
-      "top_p": float,       // Nucleus sampling parameter (0.0-1.0)
-      "top_k": integer,     // Limits token selection to top K options
-      "max_tokens": integer // Maximum tokens to generate in responses
-    }
-    ```
-  - **Returns**: Updated AI settings
-
-The AI configuration settings control how the AI model generates responses:
-
-- **Temperature**: Controls randomness. Lower values (e.g., 0.2) make responses more focused and deterministic, while higher values (e.g., 0.8) make output more creative and diverse.
-- **Top_p (Nucleus Sampling)**: Controls diversity by dynamically selecting from tokens whose cumulative probability exceeds the top_p value. Lower values (e.g., 0.5) make responses more focused, while higher values allow for more variety.
-- **Top_k**: Limits the model to consider only the top k most likely tokens at each step, reducing the chance of generating low-probability or irrelevant tokens.
-- **Max Tokens**: Defines the maximum length of generated responses to control verbosity and resource usage.
-
-These parameters allow workspace administrators to fine-tune the AI behavior to match their specific business needs, brand voice, and customer communication style.
-
-###### User Management
-
-- `GET /api/users/:phone`
-  - **Description**: User identification and profile retrieval
-  - **Parameters**: `phone` (required): User's phone number
-  - **Returns**: User profile information
-
-- `GET /api/users`
-  - **Description**: Retrieves all users in the workspace
-  - **Parameters**: `workspace_id` (required), `role`, `page`, `limit`
-  - **Returns**: Paginated list of users
-
-- `POST /api/users`
-  - **Description**: Creates a new user
-  - **Body**: `email`, `password`, `name`, `role`, `workspace_id`
-  - **Returns**: Created user details
-
-- `PUT /api/users/:id`
-  - **Description**: Updates user information
-  - **Parameters**: `id` (required): User ID
-  - **Body**: User details to update
-  - **Returns**: Updated user details
-
-- `DELETE /api/users/:id`
-  - **Description**: Deletes a user
-  - **Parameters**: `id` (required): User ID
-  - **Returns**: Success message
-
-###### Analytics API
-
-- `GET /api/analytics/overview`
-  - **Description**: Retrieves general statistics
-  - **Returns**: Total active users, total messages, revenue, growth percentages
-
-- `GET /api/analytics/recent-activity`
-  - **Description**: Retrieves recent activities
-  - **Returns**: New registrations, added products, received orders, activity timestamps
-
-###### Dashboard API
-
-- `GET /api/dashboard/stats`
-  - **Description**: Retrieves statistics for the dashboard
-  - **Parameters**: `period` (optional): daily/weekly/monthly
-  - **Returns**: Active Users count, Total Messages count, Revenue, Growth percentages
-
-**Cross-cutting Requirements**:
-
-- All APIs are protected by JWT tokens
-- Communication exclusively via HTTPS
-- Request logging and tracking
-- Standardized error handling
-
-### OpenRouter Integration and Data Flow
-
-The system uses OpenRouter's Retrieval Augmented Generation (RAG) capabilities to power the AI-assisted interactions within the platform. Here's how the data flows:
+- **Architettura SaaS**: Design multi-tenant con completo isolamento dei dati tra workspace.
+- **Servizio AI**: OpenRouter (RAG) con pseudonimizzazione dei dati.
+- **Integrazione WhatsApp**: API ufficiale Meta.
+- **Sicurezza**: HTTPS, token JWT, dati sensibili crittografati nel database.
+- **Ambienti**: Sviluppo, test e produzione; ogni workspace può attivare la modalità debug con un numero di test.
+
+### Integrazione OpenRouter e Flusso Dati
+
+Il sistema utilizza le capacità di Generazione Aumentata da Recupero (RAG) di OpenRouter per alimentare le interazioni assistite dall'AI all'interno della piattaforma. Ecco come fluiscono i dati:
 
 ```mermaid
 sequenceDiagram
@@ -691,326 +368,280 @@ sequenceDiagram
     WhatsApp->>Customer: Delivers response
 ```
 
-1. **Data Collection**: When a WhatsApp message is received from a client, it arrives through the Meta API.
+1. **Raccolta Dati**: Quando viene ricevuto un messaggio WhatsApp da un cliente, arriva attraverso l'API Meta.
 
-2. **Pre-processing**: The backend identifies any personal or sensitive information in the incoming message.
+2. **Pre-elaborazione**: Il backend identifica qualsiasi informazione personale o sensibile nel messaggio in entrata.
 
-3. **Pseudonymization**: Before sending data to OpenRouter, all personal identifiers are replaced with tokens (see Security section on Pseudonymization for details).
-
-4. **AI Processing**: The tokenized data is sent to OpenRouter, which generates contextually appropriate responses based on the prompt templates and product information.
+3. **Pseudonimizzazione**: Prima di inviare i dati a OpenRouter, tutti gli identificatori personali vengono sostituiti con token.
 
-5. **Post-processing**: The backend replaces any tokens in the AI response with the actual personal data before sending the response back to the client.
+4. **Elaborazione AI**: I dati tokenizzati vengono inviati a OpenRouter, che genera risposte contestualmente appropriate basate sui modelli di prompt e sulle informazioni sui prodotti.
 
-6. **Response Delivery**: The final processed response is sent to the client via the WhatsApp API.
+5. **Post-elaborazione**: Il backend sostituisce i token nella risposta AI con i dati personali effettivi prima di inviare la risposta al cliente.
 
-This architecture ensures that no personally identifiable information (PII) is exposed to external AI services while maintaining the conversational quality and personalization of responses.
+6. **Consegna Risposta**: La risposta elaborata finale viene inviata al cliente tramite l'API WhatsApp.
 
-### Hosting and Infrastructure
+Questa architettura garantisce che nessuna informazione personale identificabile (PII) sia esposta ai servizi AI esterni, mantenendo al contempo la qualità conversazionale e la personalizzazione delle risposte.
 
-The application will be hosted on Heroku's cloud platform, providing the following services:
+### Architettura Multi-Tenant
 
-1. **Application Hosting**:
+La piattaforma ShopMe segue una rigorosa architettura multi-tenant in cui ogni attività cliente opera all'interno del proprio workspace isolato. Questo approccio architettonico garantisce isolamento dei dati, sicurezza e scalabilità.
 
-   - Node.js runtime environment for the backend
-   - Automatic scaling and load balancing
-   - SSL/TLS encryption
-   - Continuous deployment integration
+#### Isolamento Dati Basato su Workspace
 
-2. **Database**:
-
-   - Heroku Postgres for primary database
-   - Automated backups and point-in-time recovery
-   - Database metrics and monitoring
-   - Connection pooling
-
-3. **Storage Solutions**:
-
-   - Bucketeer add-on for S3-compatible file storage
-   - Used for storing invoices, product images, and documents
-   - Automatic backup and versioning
-   - CDN integration for faster file delivery
-
-4. **Deployment Strategy**:
-   - Git-based deployment workflow
-   - Review apps for pull requests
-   - Staging and production environments
-   - Zero-downtime deployments
-
-### Environment Setup and CI/CD Pipeline (Out of Scope for MVP)
-
-The following environment structure and CI/CD pipeline represents the target infrastructure state that will be implemented in future phases after the MVP release. This section is explicitly excluded from the MVP scope as outlined in Section 3 (Non-Goals). When implemented in future versions, the application will utilize three distinct environments with a comprehensive CI/CD pipeline to ensure quality, reliability, and efficient deployment:
-
-#### 1. Environment Structure (out of scope for MVP)\*\*
-
-- **Development (dev)**
-
-  - Purpose: Active development and feature implementation
-  - URL structure: `https://dev.shopme.app` or `https://dev-[feature-branch].shopme.app`
-  - Database: Separate dev database with anonymized production data
-  - Deployed on: Heroku development dynos
-  - WhatsApp integration: Testing phone number with Meta API sandbox
-  - Features:
-    - Debug tools and extended logging
-    - Feature flags for in-development capabilities
-    - Automatic database schema reset option
-    - Performance monitoring with non-optimized assets
-
-- **Staging (staging)**
-
-  - Purpose: Pre-production testing, QA, and UAT
-  - URL structure: `https://staging.shopme.app`
-  - Database: Clone of production database with anonymized sensitive data
-  - Deployed on: Heroku standard dynos
-  - WhatsApp integration: Testing phone number with full API capabilities
-  - Features:
-    - Production-like environment
-    - A/B testing capabilities
-    - Performance testing tools
-    - Automated test suite execution
-    - Security scanning
-
-- **Production (prod)**
-  - Purpose: Live environment for end users
-  - URL structure: `https://shopme.app` and client subdomains
-  - Database: Production database with regular backups
-  - Deployed on: Heroku performance dynos with auto-scaling
-  - WhatsApp integration: Client production phone numbers
-  - Features:
-    - High availability configuration
-    - Optimized performance
-    - Comprehensive monitoring
-    - Automated rollback capabilities
-    - Regular security audits
-
-#### 2. CI/CD Pipeline
-
-- **Continuous Integration**
-
-  - Platform: GitHub Actions
-  - Triggered on: Pull request creation and updates
-  - Steps:
-    - Static code analysis (ESLint, TypeScript checking)
-    - Unit test execution
-    - Integration test execution
-    - Build process verification
-    - Bundle size analysis
-    - Dependency vulnerability scanning
-    - Code coverage reporting
-  - Pass criteria: All tests pass, no critical vulnerabilities, code coverage above 80%
-
-- **Continuous Deployment**
-
-  - **Development Deployment**
-
-    - Trigger: Merge to development branch
-    - Target: Development environment
-    - Process: Automated deployment with post-deployment tests
-    - Notification: Slack alerts for team
-
-  - **Staging Deployment**
-
-    - Trigger: Manual promotion from development
-    - Target: Staging environment
-    - Process:
-      - Database migration verification
-      - Automated deployment
-      - Smoke test execution
-      - End-to-end test suite execution
-      - Performance benchmark comparison
-    - Notification: Slack alerts for team and QA
+1. **Implementazione Database**:
 
-  - **Production Deployment**
-    - Trigger: Manual promotion from staging
-    - Approval: Required from technical lead and product owner
-    - Schedule: During defined maintenance windows (non-peak hours)
-    - Target: Production environment
-    - Process:
-      - Database backup
-      - Blue/green deployment
-      - Canary testing (initial 10% traffic)
-      - Gradual rollout with health monitoring
-      - Automated rollback if health checks fail
-    - Notification: Slack alerts for all stakeholders
+   - Ogni entità principale nel database include un riferimento di chiave esterna `workspace_id`
+   - I vincoli del database garantiscono che le entità possano essere associate solo a un singolo workspace
+   - Le query sono sempre limitate a uno specifico workspace_id per prevenire la perdita di dati tra tenant
+   - I trigger del database applicano l'isolamento dei dati del workspace nelle operazioni di inserimento/aggiornamento
 
-#### 3. Quality Assurance Process
+2. **Filtraggio Richieste API**:
 
-- **Automated Testing**
+   - Tutti gli endpoint API (eccetto l'autenticazione) richiedono un contesto di workspace
+   - L'identificazione del workspace viene gestita attraverso:
+     - Parametro esplicito `workspace_id` per richieste GET
+     - Campo `workspace_id` nei corpi delle richieste per richieste POST/PUT
+     - Payload del token JWT contenente il contesto del workspace per richieste autenticate
+   - Il middleware API applica automaticamente il filtraggio per workspace a tutte le query del database
+   - I tentativi di accedere a dati attraverso workspace sono bloccati con risposte 403 Forbidden
 
-  - Unit tests: Jest for frontend and backend logic
-  - Integration tests: API endpoint testing with Supertest
-  - End-to-end tests: Cypress for critical user journeys
-  - Performance tests: k6 for load testing
-  - Accessibility tests: pa11y for WCAG compliance
+3. **Relazione Utente-Workspace**:
+   - Gli utenti possono essere associati a più workspace attraverso la tabella di giunzione `user_workspaces`
+   - Ogni associazione utente-workspace ha un ruolo specifico (admin, manager, agent, ecc.)
+   - La gestione delle sessioni include il contesto del workspace attivo
+   - Il cambio di workspace richiede un'azione esplicita dell'utente e il ristabilimento del contesto della sessione
 
-- **Manual Testing**
+#### Misure di Sicurezza per l'Isolamento del Tenant
 
-  - UAT sessions with stakeholders in staging
-  - Exploratory testing by QA team
-  - Cross-browser compatibility testing
-  - Mobile responsiveness testing
+1. **Sicurezza a Livello di Query**:
 
-- **Monitoring and Observability**
-  - Error tracking: Sentry for frontend and backend errors
-  - Performance monitoring: New Relic for application performance
-  - Log management: Papertrail for centralized logging
-  - Synthetic monitoring: Uptime checks every 5 minutes
-  - Real user monitoring: Performance metrics from actual users
+   - Il livello ORM/Repository implementa il filtraggio per workspace come middleware non bypassabile
+   - Le query SQL dirette sono proibite; tutti gli accessi al database passano attraverso repository consapevoli del workspace
+   - La validazione del workspace avviene a livello di controller, servizio e repository (difesa in profondità)
 
-#### 4. Disaster Recovery
+2. **Allocazione Risorse**:
 
-- **Backup Strategy**
+   - Ogni workspace ha limiti di risorse configurabili (limiti di frequenza API, quote di storage, ecc.)
+   - Il monitoraggio delle risorse tiene traccia dell'utilizzo per workspace
+   - L'isolamento del tenant impedisce che il consumo di risorse da parte di un tenant influisca su altri
 
-  - Database: Hourly incremental backups, daily full backups
-  - Storage: Redundant storage with versioning
-  - Configuration: Infrastructure as Code with version control
+3. **Esportazione/Importazione Dati**:
+   - Le funzioni di esportazione dati includono la validazione del workspace
+   - Le operazioni in blocco mantengono il contesto del workspace per tutti i record interessati
+   - I processi ETL applicano i confini del workspace
 
-- **Recovery Process**
-  - Defined runbooks for common failure scenarios
-  - Regular recovery drills (quarterly)
-  - Maximum tolerable downtime: 1 hour
-  - Recovery time objective (RTO): 30 minutes
-  - Recovery point objective (RPO): 1 hour
+L'architettura multi-tenant garantisce che:
 
-This multi-environment approach combined with a robust CI/CD pipeline ensures reliable, consistent deployments while maintaining high quality standards across the application lifecycle.
+- I dati di ogni cliente rimangano completamente isolati da altri clienti
+- Le richieste API siano sempre limitate al workspace del cliente richiedente
+- Le operazioni del database mantengano i confini del tenant in ogni momento
+- Gli utenti con accesso a più workspace possano operare solo all'interno di un contesto di workspace alla volta
 
-## 5. Acceptance Criteria
+Questo approccio consente al sistema di servire in modo sicuro più aziende mantenendo una rigorosa separazione dei dati e ottimizzando l'utilizzo delle risorse.
 
-- Fully operational CRUD functionality for workspaces, products, prompts, services, languages, and users.
-- Chatbot responses generated within seconds.
-- API communication protected via JWT tokens.
-- Intuitive dashboard with 2FA authentication.
-- Anti-abuse protection system that automatically blocks users sending more than 8 messages per minute.
-- Manual blocking functionality allowing administrators to block specific users directly from the chat interface when necessary.
+## 2. Frontend
 
-### Anti-Abuse System
+### Implementazione Frontend
 
-To prevent system abuse and ensure fair resource allocation, the platform implements an automated rate-limiting mechanism:
+Il frontend sarà costruito utilizzando Vite e React, insieme a Tailwind CSS e shadcn/ui per lo styling. Questa architettura offre diversi vantaggi:
 
-- If a user sends more than 8 messages within a 60-second window, their profile status is automatically changed to "blocked"
-- The system responds with a message: "Your number has been blocked due to improper use. Please contact the administrator to unblock it."
-- Administrators can view blocked users in the dashboard and manually unblock legitimate users
-- The system maintains logs of blocking events for security analysis
+- **Sviluppo Veloce**: HMR (Hot Module Replacement) ultra veloce di Vite
+- **Proxy API**: Configurazione proxy integrata per una integrazione API senza soluzione di continuità
+- **Isolamento Componenti**: Chiara separazione delle preoccupazioni con componenti modulari
+- **Sicurezza dei Tipi**: Supporto completo TypeScript
+- **Styling**: Approccio utility-first con Tailwind CSS per sviluppo rapido
+- **Componenti UI**: Shadcn/ui per componenti coerenti e accessibili
 
-Additionally, administrators can manually block problematic users directly from the chat interface:
+### Layout Dashboard
 
-- A block button in the chat header allows for immediate blocking of the current user
-- When manually blocked, users receive notification about their blocked status
-- Administrators can view and manage all blocked users from a centralized section in the dashboard
-- Block/unblock actions are logged for audit purposes
+La dashboard segue un design moderno e pulito con enfasi su usabilità ed efficienza:
 
-This dual approach (automatic and manual blocking) protects against spam attacks, prevents AI resource waste, and ensures a smooth experience for all legitimate users. Rate limits and blocking policies are configurable by workspace administrators to accommodate different business needs and usage patterns.
+- **Navigazione**: Barra laterale sinistra con icone di categoria chiare
+- **Area Contenuto**: Allineamento centrale con design responsive
+- **Controlli**: Posizionati in modo coerente nella parte superiore delle sezioni di contenuto
+- **Visualizzazione Dati**: Organizzati in tabelle e card con spaziatura coerente
 
-## 6. Key Features
+### Schema Colori
 
-1. **User Management:**
+L'applicazione segue uno schema colori coerente per mantenere l'identità del marchio:
 
-   - Registration and Login: Secure authentication and profile management.
-   - Password Recovery: Functionality for credential reset.
+- **Primario**: Verde (#10b981) - Utilizzato per azioni primarie, pulsanti ed elementi UI chiave
+- **Secondario**: Grigio (#6b7280) - Utilizzato per elementi secondari, testo e bordi
+- **Accento**: Blu (#3b82f6) - Utilizzato con parsimonia per evidenziare informazioni importanti
+- **Neutro**: Bianco (#f9fafb) - Utilizzato per sfondi e spaziatura
+- **Errore**: Rosso (#ef4444) - Utilizzato per errori, avvisi e azioni distruttive
+- **Avviso**: Giallo (#f59e0b) - Utilizzato per avvertimenti e notifiche di cautela
+- **Successo**: Verde (#10b981) - Utilizzato per messaggi di successo e conferme
+
+### Badge di Notifica
+
+L'applicazione implementa un sistema di badge di notifica nella navigazione laterale per avvisare gli utenti su azioni in sospeso ed elementi che richiedono attenzione:
+
+#### Badge Cronologia Chat
+
+- **Scopo**: Visualizza il conteggio totale di messaggi non letti in tutte le conversazioni chat
+- **Aspetto Visivo**: Un piccolo badge circolare rosso contenente un numero bianco
+- **Comportamento**:
+  - Inizialmente mostra un conteggio di 2 messaggi non letti quando l'applicazione si carica
+  - Si aggiorna in tempo reale quando arrivano nuovi messaggi
+  - Quando un utente apre una chat, i messaggi associati vengono segnati come letti
+  - Il conteggio del badge diminuisce man mano che i messaggi vengono letti
+  - Il badge scompare completamente quando tutti i messaggi sono letti (conteggio uguale a zero)
+  - Dopo la lettura di tutti i messaggi, l'icona Cronologia Chat rimane senza badge fino all'arrivo di nuovi messaggi non letti
 
-2. **Product Catalog:**
+#### Badge Clienti
+
+- **Scopo**: Indica il numero di clienti sconosciuti che richiedono identificazione o completamento del profilo
+- **Aspetto Visivo**: Badge circolare rosso simile con numero bianco
+- **Comportamento**:
+  - Mostra un conteggio costante di 2 clienti sconosciuti per impostazione predefinita
+  - Rappresenta i clienti che hanno contattato l'azienda ma non sono stati profilati correttamente
+  - Quando gli amministratori identificano e categorizzano correttamente questi clienti, il conteggio del badge dovrebbe aggiornarsi
+  - Serve come promemoria per mantenere registri dei clienti puliti e completi
 
-   - Product Display: List and detailed view of products with images, descriptions, and prices.
-   - Search and Filtering: Tools to search products by category, price, popularity, etc.
-   - Categories: Management of product categories for better organization.
+#### Dettagli Implementazione
 
-3. **WhatsApp Cart Management:**
+- I conteggi dei badge sono memorizzati in variabili di stato del componente e aggiornati attraverso chiamate API
+- Il sistema aggiorna i conteggi dei badge in questi scenari:
+  - Al caricamento iniziale della pagina
+  - Quando un utente legge i messaggi
+  - Quando arriva un nuovo messaggio (tramite polling o websocket)
+  - Quando i profili dei clienti vengono aggiornati
+- Lo stile visivo del badge è coerente in tutta l'applicazione:
+  - Dimensione: Compatta (diametro 16-20px)
+  - Posizione: Angolo superiore destro dell'elemento di navigazione associato
+  - Colore: Sfondo rosso (#ef4444) con testo bianco
+  - Animazione: Sottile animazione di entrata quando il conteggio cambia
 
-   - Conversational Interface: Allows users to manage their cart via WhatsApp messages.
-   - Add/Remove Products: Commands to add or remove products from the cart.
-   - Cart Status Display: Sending cart summaries and updates via WhatsApp.
+Questo sistema di notifica migliora l'efficienza del flusso di lavoro fornendo indizi visivi per le azioni in sospeso, aiutando gli amministratori a dare priorità ai loro compiti e garantire risposte tempestive ai clienti.
 
-4. **Checkout and Online Payments:**
+## 3. Backend
 
-   - Order Confirmation: After cart management on WhatsApp, the user is redirected to a web platform to confirm the order.
-   - Online Payments: Secure and integrated payment procedure on the online platform.
+### Panoramica
+
+Il sistema backend di questa applicazione PDR sarà sviluppato utilizzando Node.js con il framework Express.js, adottando il pattern architetturale Domain-Driven Design (DDD) e implementato come monorepo utilizzando Turborepo. Questa architettura consente un'efficiente organizzazione del codice, dipendenze condivise e build ottimizzate su più pacchetti.
 
-5. **AI Integration:**
+La struttura monorepo, alimentata da Turborepo, offre diversi vantaggi chiave:
 
-   - RAG Implementation: Retrieval Augmented Generation for better business context with customer data.
-   - Customizable Prompts: Configure AI responses to reflect business voice and policies.
-   - Context Awareness: AI understands conversation history and user preferences.
-   - Data Pseudonymization: Privacy protection when processing data with external models.
-   - Automatic Translations: Support for multiple languages in the same conversation.
-   - Prompt Testing: Ability to test alternative prompts in isolated sessions without affecting the active production prompt. This allows administrators to safely experiment with different AI behaviors before deploying them to customers.
-   - Prompt Duplication: Ability to duplicate existing prompts to create variations or backups, maintaining the original structure while allowing modifications to the copy. This feature enables users to iterate on existing successful prompts without starting from scratch.
+- Gestione centralizzata del codice con configurazioni condivise
+- Pipeline di build ottimizzata con caching intelligente
+- Esperienza di sviluppo coerente su più pacchetti
+- Gestione efficiente delle dipendenze
+- Tooling e processi standardizzati
 
-6. **Order Management and Tracking:**
+### Funzionalità Chiave
 
-   > ⚠️ Note: This feature has been moved to Out of Scope. See "Out of Scope Features" section for details.
+#### Messaggi di Benvenuto Multilingue
 
-   The following functionality was originally planned but is now out of scope:
+Il sistema supporta messaggi di benvenuto configurabili in più lingue:
 
-   - Order History: View past purchases and current order status
-   - Shipment Tracking: Real-time updates on shipment status
-   - Invoice Management: Generate and download invoices
-   - Returns Processing: Handle product returns and refunds
+- **Lingue**: Italiano (IT), Inglese (EN) e Spagnolo (ES)
+- **Archiviazione**: I messaggi di benvenuto sono memorizzati nelle impostazioni del Workspace come dati JSON
+- **Configurazione**: Gli utenti amministratori possono personalizzare i messaggi di benvenuto per ogni lingua attraverso l'interfaccia Impostazioni
+- **Utilizzo**: La versione linguistica appropriata viene selezionata automaticamente in base a:
+  - Preferenza linguistica esplicita dell'utente (se impostata)
+  - Rilevamento della lingua del saluto iniziale (Hola → Spagnolo, Hello → Inglese, Ciao → Italiano)
+  - Lingua predefinita del workspace (fallback)
+- **Formato**: I messaggi possono includere emoji e formattazione per un'esperienza amichevole e coinvolgente
 
-   For the current version, users can browse products and interact with the chatbot, but actual order processing will need to be handled through external systems.
+Questa funzionalità garantisce che gli utenti ricevano saluti culturalmente appropriati che stabiliscono il tono giusto per la conversazione fin dall'inizio, migliorando la personalizzazione dell'esperienza del cliente.
 
-7. **Client Management:**
+### Struttura Monorepo
 
-   - Client Profiles: Maintain comprehensive records of all clients.
-   - Purchase History: Track client purchasing patterns and preferences.
-   - Communication Log: Access past interactions with clients.
-   - User Blocking: Ability to block specific users from interacting with the system through the chat interface, preventing potential abuse.
-   - Reservation Management: Track and manage client bookings and appointments (future expansion).
-   - Push Notifications: Send targeted messages for marketing, reminders, and loyalty programs.
+```
+.
+├── apps/
+│   ├── web/          # Applicazione frontend Next.js
+│   └── backend/      # Applicazione backend Node.js
+├── packages/
+│   ├── eslint-config/    # Configurazione ESLint condivisa
+│   ├── typescript-config/ # Configurazione TypeScript condivisa
+│   └── ui/              # Componenti UI condivisi
+├── package.json     # package.json root
+└── turbo.json      # Configurazione Turborepo
+```
 
-8. **Chat History:**
+### Implementazione Sicurezza
 
-   - Conversation Logs: Review and analyze WhatsApp conversations with clients.
-   - Message Search: Search through chat history for specific information.
+La sicurezza del sistema è una priorità. Pertanto, saranno implementate misure di sicurezza raccomandate da OWASP, tra cui:
 
-9. **Usage Analytics:**
+- Validazione input per prevenire attacchi di iniezione
+- Gestione sicura delle sessioni per proteggere l'autenticazione utente
+- Protezione contro SQL injection e Cross-Site Scripting (XSS) per garantire l'integrità dei dati
+- Validazione token JWT e meccanismi di refresh
+- Rate limiting e throttling delle richieste
+- Implementazione header di sicurezza
+- Configurazione policy CORS
 
-   - Usage Monitoring: Collection and analysis of platform usage data to understand user behavior.
-   - Usage Reports: Generation of reports and statistics to improve experience and optimize features.
+### Stack Tecnico e Organizzazione
 
-10. **Administrative Dashboard:**
+#### Tecnologie Core
 
-- Content Management: Tools to add, modify, or remove products and categories.
-- Reports and Analysis: Statistics on sales, traffic, and system performance.
+- Node.js con Express.js
+- PostgreSQL con Prisma ORM
+- Redis per caching
+- Docker per containerizzazione
 
-11. **Reservation and Booking System (Future Expansion):**
+#### Livelli Architettura
 
-    - Appointment Scheduling: Allow clients to book services via WhatsApp.
-    - Table Reservations: Enable restaurant booking management.
-    - Room Bookings: Handle hotel room reservations.
-    - Class Registrations: Manage gym class sign-ups and attendance.
-    - Capacity Management: Track availability and prevent overbooking.
-    - Automated Reminders: Send notifications before appointments.
+1. **Livello Routes**
 
-12. **Push Notification Campaigns:**
-    - Targeted Messaging: Send personalized offers based on client history.
-    - Automatic Reminders: Notify clients about upcoming appointments or reservations.
-    - Re-engagement Campaigns: Reach out to inactive clients.
-    - Special Promotions: Announce limited-time offers and discounts.
-    - Loyalty Programs: Update clients on points, rewards, and milestones.
-    - Event Notifications: Inform clients about upcoming events or new services.
+   - Definizioni endpoint API
+   - Validazione richieste
+   - Formattazione risposte
+   - Middleware gestione errori
 
-## 6.5 WhatsApp Messaging Flow API
+2. **Livello Use Cases**
 
-The platform implements a comprehensive messaging flow through the `MessageProcessorAPI` that handles all WhatsApp communications. This API serves as the core middleware between incoming WhatsApp messages and AI-powered responses.
+   - Implementazione logica business
+   - Gestione transazioni
+   - Gestione eventi
+   - Orchestrazione servizi
 
-### 6.5.1 Flow Architecture
+3. **Livello Services**
 
-The messaging flow follows this sequence:
+   - Logica di dominio
+   - Integrazione servizi esterni
+   - Trasformazione dati
+   - Applicazione regole business
 
-1. **Reception**: Incoming messages from WhatsApp are received via webhook
-2. **Challenge Verification**: System checks if the workspace is active
-3. **User Identification**: System identifies the user and checks if they're new or existing
-4. **Agent Selection**: For existing users, the appropriate specialized agent is selected based on message context
-5. **Context Loading**: User data, order history, and previous messages are retrieved
-6. **Data Protection**: Personal data is tokenized before processing
-7. **AI Processing**: The tokenized message is processed by OpenRouter AI
-8. **Response Formatting**: AI response is made conversational
-9. **Data Restoration**: Tokens are replaced with actual user data
-10. **History Tracking**: The exchange is logged in the chat history
-11. **Delivery**: The response is sent back to the user via WhatsApp
+4. **Livello Repository**
+   - Pattern accesso dati
+   - Ottimizzazione query
+   - Gestione cache
+   - Persistenza dati
 
-### 6.5.2 Implementation
+### Gestione errori e logging
 
-The API is implemented through the following core function:
+- Gestione errori centralizzata
+- Logging strutturato con Winston
+- Tracciamento ID richiesta
+- Monitoraggio performance
+- Segnalazione errori e allerta
+
+### Flusso API Messaggistica WhatsApp
+
+La piattaforma implementa un flusso di messaggistica completo attraverso la `MessageProcessorAPI` che gestisce tutte le comunicazioni WhatsApp. Questa API funge da middleware principale tra i messaggi WhatsApp in entrata e le risposte alimentate dall'AI.
+
+#### Architettura del Flusso
+
+Il flusso di messaggistica segue questa sequenza:
+
+1. **Ricezione**: I messaggi in entrata da WhatsApp vengono ricevuti tramite webhook
+2. **Verifica Challenge**: Il sistema controlla se il workspace è attivo
+3. **Identificazione Utente**: Il sistema identifica l'utente e controlla se è nuovo o esistente
+4. **Selezione Agente**: Per gli utenti esistenti, viene selezionato l'agente specializzato appropriato in base al contesto del messaggio
+5. **Caricamento Contesto**: Vengono recuperati i dati utente, la cronologia degli ordini e i messaggi precedenti
+6. **Protezione Dati**: I dati personali vengono tokenizzati prima dell'elaborazione
+7. **Elaborazione AI**: Il messaggio tokenizzato viene elaborato dall'AI OpenRouter
+8. **Formattazione Risposta**: La risposta AI viene resa conversazionale
+9. **Ripristino Dati**: I token vengono sostituiti con i dati utente effettivi
+10. **Tracciamento Cronologia**: Lo scambio viene registrato nella cronologia chat
+11. **Consegna**: La risposta viene inviata all'utente tramite WhatsApp
+
+#### Implementazione
+
+L'API è implementata attraverso la seguente funzione principale:
 
 ```javascript
 try {
@@ -1073,30 +704,22 @@ try {
 }
 ```
 
-### 6.5.3 Database Requirements
+#### Requisiti Database
 
-To support this messaging flow, the database includes the following key entities:
+Per supportare questo flusso di messaggistica, il database include le seguenti entità chiave:
 
-- **ChatSession**: Tracks ongoing conversations with metadata
-- **Message**: Stores individual messages with direction, content, and status
-- **Prompts**: Stores AI agent configurations and prompts
-- **Customers**: Contains user data and preferences
+- **ChatSession**: Tiene traccia delle conversazioni in corso con metadati
+- **Message**: Memorizza singoli messaggi con direzione, contenuto e stato
+- **Prompts**: Memorizza configurazioni e prompt degli agenti AI
+- **Customers**: Contiene dati utente e preferenze
 
-These models support the conversational interface shown in the platform's chat interface:
+Questi modelli supportano l'interfaccia conversazionale mostrata nell'interfaccia chat della piattaforma.
 
-![Chat Interface](https://path-to-chat-interface-image.png)
+## 4. Database
 
-The interface provides:
+### Modello Database
 
-- List of recent conversations on the left panel
-- Detailed conversation view on the right panel
-- Real-time message exchange with timestamps
-- Order tracking and status information
-- Clear visual distinction between incoming and outgoing messages
-
-## 7. Database Model
-
-The application uses PostgreSQL as its database system, with Prisma ORM for data access and migration management. Below is the complete database schema defined in Prisma:
+L'applicazione utilizza PostgreSQL come sistema di database, con Prisma ORM per l'accesso ai dati e la gestione delle migrazioni. Di seguito è riportato lo schema completo definito in Prisma:
 
 ```prisma
 generator client {
@@ -1143,911 +766,365 @@ model Workspace {
   users               UserWorkspace[]
   whatsappSettings    WhatsappSettings?
 }
-
-model Categories {
-  id          String     @id @default(uuid())
-  name        String
-  description String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  isActive    Boolean    @default(true)
-  workspaceId String
-  slug        String
-  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
-  products    Products[]
-
-  @@unique([slug, workspaceId])
-  @@map("categories")
-}
-
-model Languages {
-  id          String    @id @default(uuid())
-  name        String    // e.g. 'Italiano', 'Español', 'English', 'Português'
-  code        String    // 'IT', 'ESP', 'ENG', 'PRT'
-  isDefault   Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  isActive    Boolean   @default(true)
-  workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-
-  @@map("languages")
-}
-
-model Products {
-  id          String        @id @default(uuid())
-  name        String
-  description String?
-  price       Float
-  stock       Int           @default(0)
-  sku         String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  isActive    Boolean       @default(true)
-  workspaceId String
-  categoryId  String?
-  slug        String        @unique
-  status      ProductStatus @default(ACTIVE)
-  image       String?
-  cartItems   CartItems[]
-  orderItems  OrderItems[]
-  category    Categories?   @relation(fields: [categoryId], references: [id])
-  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
-
-  @@map("products")
-}
-
-model Customers {
-  id                         String        @id @default(uuid())
-  name                       String
-  email                      String
-  phone                      String?
-  address                    String?
-  company                    String?
-  discount                   Float?        @default(0)
-  language                   String?       @default("ENG")
-  currency                   String?       @default("EUR")
-  notes                      String?
-  serviceIds                 String[]      @default([])
-  isBlacklisted              Boolean       @default(false)
-  createdAt                  DateTime      @default(now())
-  updatedAt                  DateTime      @updatedAt
-  isActive                   Boolean       @default(true)
-  workspaceId                String
-  last_privacy_version_accepted String?
-  privacy_accepted_at        DateTime?
-  push_notifications_consent Boolean       @default(false)
-  push_notifications_consent_at DateTime?
-  cart                       Carts?
-  chatSessions               ChatSession[]
-  workspace                  Workspace     @relation(fields: [workspaceId], references: [id])
-  orders                     Orders[]
-  activeChatbot              Boolean       @default(true)
-
-  @@map("customers")
-}
-
-model Orders {
-  id             String          @id @default(uuid())
-  status         String
-  total          Float
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  customerId     String
-  workspaceId    String
-  items          OrderItems[]
-  customer       Customers       @relation(fields: [customerId], references: [id])
-  workspace      Workspace       @relation(fields: [workspaceId], references: [id])
-  paymentDetails PaymentDetails?
-
-  @@map("orders")
-}
-
-model OrderItems {
-  id        String   @id @default(uuid())
-  quantity  Int
-  price     Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  orderId   String
-  productId String
-  order     Orders   @relation(fields: [orderId], references: [id])
-  product   Products @relation(fields: [productId], references: [id])
-
-  @@map("order_items")
-}
-
-model Carts {
-  id          String      @id @default(uuid())
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  customerId  String      @unique
-  workspaceId String
-  items       CartItems[]
-  customer    Customers   @relation(fields: [customerId], references: [id])
-  workspace   Workspace   @relation(fields: [workspaceId], references: [id])
-
-  @@map("carts")
-}
-
-model CartItems {
-  id        String   @id @default(uuid())
-  quantity  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  cartId    String
-  productId String
-  cart      Carts    @relation(fields: [cartId], references: [id])
-  product   Products @relation(fields: [productId], references: [id])
-
-  @@map("cart_items")
-}
-
-model Prompts {
-  id          String    @id @default(uuid())
-  name        String
-  content     String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  isActive    Boolean   @default(true)
-  workspaceId String
-  temperature Float?    @default(0.7)
-  top_k       Int?      @default(40)
-  top_p       Float?    @default(0.9)
-  department  String?
-  isRouter    Boolean   @default(false)
-  messages    Message[]
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-
-  @@map("prompts")
-}
-
-model User {
-  id              String          @id @default(uuid())
-  email           String          @unique
-  passwordHash    String
-  firstName       String?
-  lastName        String?
-  status          UserStatus      @default(ACTIVE)
-  lastLogin       DateTime?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  role            UserRole        @default(MEMBER)
-  twoFactorSecret String?
-  gdprAccepted    DateTime?
-  phoneNumber     String?
-  otpTokens       OtpToken[]
-  passwordResets  PasswordReset[]
-  workspaces      UserWorkspace[]
-
-  @@map("users")
-}
-
-model UserWorkspace {
-  id          String    @id @default(uuid())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  userId      String
-  workspaceId String
-  role        UserRole  @default(MEMBER)
-  user        User      @relation(fields: [userId], references: [id])
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-
-  @@unique([userId, workspaceId])
-  @@map("user_workspaces")
-}
-
-model WhatsappSettings {
-  id          String    @id @default(uuid())
-  phoneNumber String    @unique
-  apiKey      String
-  webhookUrl  String?
-  settings    Json?     @default("{}")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  workspaceId String    @unique
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-  gdpr        String?   @db.Text
-
-  @@map("whatsapp_settings")
-}
-
-model PaymentDetails {
-  id               String        @id @default(uuid())
-  provider         String
-  status           PaymentStatus @default(PENDING)
-  amount           Float
-  currency         String        @default("EUR")
-  providerResponse Json?         @default("{}")
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  orderId          String        @unique
-  order            Orders        @relation(fields: [orderId], references: [id])
-
-  @@map("payment_details")
-}
-
-model ChatSession {
-  id          String    @id @default(uuid())
-  status      String    @default("active")
-  context     Json?     @default("{}")
-  startedAt   DateTime  @default(now())
-  endedAt     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  workspaceId String
-  customerId  String
-  customer    Customers @relation(fields: [customerId], references: [id])
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-  messages    Message[]
-
-  @@map("chat_sessions")
-}
-
-model Message {
-  id            String           @id @default(uuid())
-  direction     MessageDirection
-  content       String
-  type          MessageType      @default(TEXT)
-  status        String           @default("sent")
-  aiGenerated   Boolean          @default(false)
-  metadata      Json?            @default("{}")
-  read          Boolean          @default(false)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  chatSessionId String
-  promptId      String?
-  chatSession   ChatSession      @relation(fields: [chatSessionId], references: [id])
-  prompt        Prompts?         @relation(fields: [promptId], references: [id])
-
-  @@map("messages")
-}
-
-model PasswordReset {
-  id        String    @id @default(uuid())
-  userId    String
-  token     String    @unique
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
-  user      User      @relation(fields: [userId], references: [id])
-
-  @@map("password_resets")
-}
-
-model OtpToken {
-  id        String    @id @default(uuid())
-  userId    String
-  otpHash   String
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
-  user      User      @relation(fields: [userId], references: [id])
-
-  @@map("otp_tokens")
-}
-
-model RegistrationToken {
-  id            String    @id @default(uuid())
-  token         String    @unique
-  phoneNumber   String
-  workspaceId   String
-  expiresAt     DateTime
-  usedAt        DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@map("registration_tokens")
-}
-
-model Language {
-  id        String   @id @default(cuid())
-  code      String   @unique // 'IT', 'ESP', 'ENG', 'PRT'
-  name      String   // 'Italiano', 'Español', 'English', 'Português'
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Services {
-  id          String    @id @default(cuid())
-  name        String
-  description String
-  price       Float
-  currency    String    @default("EUR")
-  isActive    Boolean   @default(true)
-  workspaceId String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-
-  @@map("services")
-}
-
-model Events {
-  id          String    @id @default(cuid())
-  name        String
-  description String
-  startDate   DateTime
-  endDate     DateTime
-  location    String
-  price       Float
-  currency    String    @default("EUR")
-  isActive    Boolean   @default(true)
-  maxAttendees Int?
-  currentAttendees Int? @default(0)
-  workspaceId String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-
-  @@map("events")
-}
-
-model FAQ {
-  id          String    @id @default(cuid())
-  question    String
-  answer      String    @db.Text
-  isActive    Boolean   @default(true)
-  workspaceId String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-
-  @@map("faqs")
-}
-
-enum UserStatus {
-  ACTIVE
-  INACTIVE
-}
-
-enum WorkspaceStatus {
-  ACTIVE
-  INACTIVE
-  SUSPENDED
-}
-
-enum ProductStatus {
-  ACTIVE
-  INACTIVE
-  DRAFT
-  OUT_OF_STOCK
-}
-
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-}
-
-enum PaymentStatus {
-  PENDING
-  AUTHORIZED
-  COMPLETED
-  FAILED
-  REFUNDED
-}
-
-enum MessageDirection {
-  INBOUND
-  OUTBOUND
-}
-
-enum MessageType {
-  TEXT
-  IMAGE
-  DOCUMENT
-  LOCATION
-  CONTACT
-}
-
-enum ChannelType {
-  WHATSAPP
-  TELEGRAM
-  MESSENGER
-  LINE
-}
-
-enum UserRole {
-  ADMIN
-  OWNER
-  MEMBER
-}
 ```
 
-### Key Database Models
+### Modelli Chiave Database
+
+1. **Workspace**: Entità centrale che contiene la configurazione per l'istanza di ogni tenant
+2. **User e UserWorkspace**: Gestisce l'autenticazione e l'appartenenza al workspace
+3. **Products e Categories**: Catalogo prodotti e-commerce core
+4. **Customers**: Profili utente che interagiscono con il sistema
+5. **Orders e OrderItems**: Gestisce le transazioni di acquisto
+6. **Carts e CartItems**: Funzionalità carrello acquisti
+7. **ChatSession e Message**: Supporto per interazioni conversazionali
+8. **Services e Events**: Capacità offerta estesa
+9. **Prompts**: Template conversazione AI
+
+Questo schema implementa un'architettura multi-tenant con completo isolamento dei dati tra workspace, garantendo sicurezza e scalabilità.
+
+## 5. API e Endpoints
+
+Il frontend comunica con il backend attraverso un'architettura API RESTful organizzata in queste categorie principali:
+
+### Authentication API
+- `POST /api/auth/login`
+  - **Descrizione**: Autentica un utente e restituisce un token JWT
+  - **Body**: `email`, `password`
+  - **Restituisce**: Token JWT, informazioni utente
+
+- `POST /api/auth/logout`
+  - **Descrizione**: Disconnette l'utente corrente
+  - **Headers**: `Authorization` con token JWT
+  - **Restituisce**: Messaggio di successo
+
+- `POST /api/auth/refresh`
+  - **Descrizione**: Aggiorna il token JWT
+  - **Headers**: `Authorization` con token JWT corrente
+  - **Restituisce**: Nuovo token JWT
+
+- `GET /api/auth/me`
+  - **Descrizione**: Ottiene le informazioni dell'utente autenticato corrente
+  - **Headers**: `Authorization` con token JWT
+  - **Restituisce**: Informazioni profilo utente
+
+### Chat Management
+- `GET /api/chats`
+  - **Descrizione**: Recupera tutte le chat per il workspace
+  - **Parametri**: `workspace_id` (richiesto): Identificatore workspace
+  - **Restituisce**: Lista di chat con informazioni di base
+
+- `GET /api/chat/:id`
+  - **Descrizione**: Recupera i dettagli di una chat specifica
+  - **Parametri**: `id` (richiesto): Identificatore chat
+  - **Restituisce**: Dettagli chat inclusi i messaggi
+
+### Prompt Management
+- `GET /api/prompt/:phone`
+  - **Descrizione**: Recupera il prompt attivo per un numero di telefono specifico
+  - **Parametri**: `phone` (richiesto): Numero telefono WhatsApp
+  - **Restituisce**: Testo prompt attivo, configurazioni lingua, impostazioni contesto
+  - **Nota**: Solo un prompt può essere attivo per numero di telefono in qualsiasi momento
+
+- `GET /api/prompts`
+  - **Descrizione**: Recupera tutti i prompt nel workspace
+  - **Parametri**: `workspace_id` (richiesto): Identificatore workspace
+  - **Restituisce**: Lista di prompt con stato attivo/inattivo
+
+### Product and Category Management
+- `GET /api/products`
+  - **Descrizione**: Recupera lista completa prodotti
+  - **Parametri**: `workspace_id` (richiesto), `category_id`, `page`, `limit`
+  - **Restituisce**: Lista paginata di prodotti
+
+- `POST /api/products`
+  - **Descrizione**: Crea un nuovo prodotto
+  - **Body**: `name`, `description`, `price`, `category_id`, `images`, `stock`
+  - **Restituisce**: Dettagli prodotto creato
+
+### Workspace Management
+- `GET /api/workspaces`
+  - **Descrizione**: Recupera tutti i workspace per l'utente
+  - **Headers**: `Authorization` con token JWT
+  - **Restituisce**: Lista di workspace a cui l'utente ha accesso
+
+- `POST /api/workspaces`
+  - **Descrizione**: Crea un nuovo workspace
+  - **Body**: `name`, `description`, `settings`
+  - **Restituisce**: Dettagli workspace creato
+
+### Requisiti Trasversali
+
+- Tutte le API sono protette da token JWT
+- Comunicazione esclusivamente via HTTPS
+- Logging e tracking delle richieste
+- Gestione errori standardizzata
+
+## 6. Infrastruttura e DevOps
+
+### Hosting e Infrastruttura
+
+L'applicazione sarà ospitata sulla piattaforma cloud di Heroku, fornendo i seguenti servizi:
+
+1. **Hosting Applicazione**:
+   - Ambiente runtime Node.js per il backend
+   - Scaling e load balancing automatico
+   - Crittografia SSL/TLS
+   - Integrazione deployment continuo
 
-1. **Workspace**: Central entity that contains configuration for each tenant's instance
-2. **User and UserWorkspace**: Handles authentication and workspace membership
-3. **Products and Categories**: Core e-commerce product catalog
-4. **Customers**: User profiles who interact with the system
-5. **Orders and OrderItems**: Handles purchase transactions
-6. **Carts and CartItems**: Shopping cart functionality
-7. **ChatSession and Message**: Support for conversational interactions
-8. **Services and Events**: Extended offering capabilities
-9. **Prompts**: AI conversation templates
-
-This schema implements a multi-tenant architecture with complete data isolation between workspaces, ensuring security and scalability.
-
-## 8. Backend Architecture and Implementation
-
-### Overview
-
-The backend system of this PDR application will be developed using Node.js with the Express.js framework, adopting the Domain-Driven Design (DDD) architectural pattern and implemented as a monorepo using Turborepo. This architecture allows for efficient code organization, shared dependencies, and optimized builds across multiple packages.
-
-The monorepo structure, powered by Turborepo, provides several key benefits:
-
-- Centralized code management with shared configurations
-- Optimized build pipeline with intelligent caching
-- Consistent development experience across packages
-- Efficient dependency management
-- Standardized tooling and processes
-
-### Key Features
-
-#### Multilingual Welcome Messages
-
-The system supports configurable welcome messages in multiple languages:
-
-- **Languages**: Italian (IT), English (EN), and Spanish (ES)
-- **Storage**: Welcome messages are stored in the Workspace settings as JSON data
-- **Configuration**: Admin users can customize welcome messages for each language through the Settings interface
-- **Usage**: The appropriate language version is automatically selected based on:
-  - User's explicit language preference (if set)
-  - Initial greeting language detection (Hola → Spanish, Hello → English, Ciao → Italian)
-  - Workspace default language (fallback)
-- **Format**: Messages can include emojis and formatting for a friendly, engaging experience
-
-This feature ensures users receive culturally appropriate greetings that establish the right tone for the conversation from the very beginning, enhancing the personalization of the customer experience.
-
-### Monorepo Structure
-
-```
-.
-├── apps/
-│   ├── web/          # Next.js frontend application
-│   └── backend/      # Node.js backend application
-├── packages/
-│   ├── eslint-config/    # Shared ESLint configuration
-│   ├── typescript-config/ # Shared TypeScript configuration
-│   └── ui/              # Shared UI components
-├── package.json     # Root package.json
-└── turbo.json      # Turborepo configuration
-```
-
-### Security Implementation
-
-System security is a priority. Therefore, security measures recommended by OWASP will be implemented, including:
-
-- Input validation to prevent injection attacks
-- Secure session management to protect user authentication
-- Protection against SQL injection and Cross-Site Scripting (XSS) to ensure data integrity
-- JWT token validation and refresh mechanisms
-- Rate limiting and request throttling
-- Security headers implementation
-- CORS policy configuration
-
-### Technical Stack and Organization
-
-#### Core Technologies
-
-- Node.js with Express.js
-- PostgreSQL with Prisma ORM
-- Redis for caching
-- Docker for containerization
-
-#### Architecture Layers
-
-1. **Routes Layer**
-
-   - API endpoint definitions
-   - Request validation
-   - Response formatting
-   - Error handling middleware
-
-2. **Use Cases Layer**
-
-   - Business logic implementation
-   - Transaction management
-   - Event handling
-   - Service orchestration
-
-3. **Services Layer**
-
-   - Domain logic
-   - External service integration
-   - Data transformation
-   - Business rules enforcement
-
-4. **Repository Layer**
-   - Data access patterns
-   - Query optimization
-   - Cache management
-   - Data persistence
-
-### Development Guidelines
-
-#### Project Structure
-
-```
-src/
-├── config/         # Configuration files
-├── routes/         # API routes
-├── useCases/      # Business logic
-├── services/      # Domain services
-├── repositories/  # Data access
-├── models/        # Data models
-├── middleware/    # Custom middleware
-├── utils/         # Utility functions
-└── tests/         # Test files
-```
-
-#### Code Organization
-
-- Clear separation of concerns
-- Dependency injection pattern
-- Repository pattern for data access
-- Factory pattern for object creation
-- Strategy pattern for flexible algorithms
-
-### Error Handling and Logging
-
-- Centralized error handling
-- Structured logging with Winston
-- Request ID tracking
-- Performance monitoring
-- Error reporting and alerting
-
-### Documentation
-
-- Swagger/OpenAPI documentation
-- API endpoint documentation
-- Database schema documentation
-- Development setup guide
-- Deployment instructions
-
-### Development Workflow
-
-- Git workflow guidelines
-- Code review process
-- Testing requirements
-- CI/CD pipeline configuration
-- Environment management
-
-### Monitoring and Maintenance
-
-- Health check endpoints
-- Performance metrics
-- Resource monitoring
-- Backup strategies
-- Scaling guidelines
-
-### Docker Architecture
-
-The ShopMe platform utilizes a simplified containerized architecture with Docker to ensure consistency across development, testing, and production environments. The system is built with a minimalist approach, focusing only on essential containers:
-
-#### Container Architecture
-
-- **PostgreSQL Container**:
-
-  - Image: PostgreSQL 14
-  - Purpose: Primary database storing all application data
-  - Ports: 5432
-  - Volumes: Database data, periodic backups
-  - Configuration: Optimized for performance with appropriate memory allocation and connection pooling
-
- 
-
-#### Deployment Strategy
-
-This streamlined two-container approach is consistent across both local development and production environments:
-
-**Local Development:**
-
-- Docker Compose orchestrates both containers
-
-- Local volume mounts for easy development and debugging
-- Environment variables managed through .env files (not committed to version control)
-
-**Production (Heroku):**
-
-- Both containers deployed using Heroku container registry
-- PostgreSQL configured with Heroku PostgreSQL add-on for managed database service
-- Environment variables managed through Heroku config vars
-- Automated backups configured for both containers
-
-This minimalist container strategy reduces operational complexity while providing all necessary functionality for the application. The frontend and API are deployed using Heroku's standard buildpacks rather than containers, further simplifying the architecture.
-
-This architecture will ensure a robust, secure, and scalable backend system, in line with the digitization and resilience objectives of the PDR.
-
-- Delivery services (to fulfill orders)
-- Service providers (who assist in operating our platform)
-- Legal authorities (when required by law)
-
-We never sell your personal data to third parties.
-
-6. YOUR RIGHTS UNDER GDPR
-
-You have the right to:
-
-- Access your personal data
-- Correct inaccurate data
-- Delete your data ("right to be forgotten")
-- Restrict or object to processing
-- Data portability
-- Withdraw consent at any time
-
-To exercise these rights, send a message with "DATA REQUEST" to our customer service.
-
-7. DATA RETENTION
-
-We retain your data for as long as necessary to provide services and comply with legal obligations. Order information is kept for [X] years for tax and accounting purposes.
-
-8. UPDATES TO THIS POLICY
-
-We may update this policy periodically. When we make significant changes, we will notify you and request fresh consent where required by law.
-
-9. CONTACT US
-
-If you have questions about this Privacy Policy, please contact our Data Protection Officer at [EMAIL].
-
-By replying "I ACCEPT", you confirm that you have read and understood this Privacy Policy and consent to the collection and use of your information as described.
-
-```
-
-This template will be customized for each workspace with specific business information, retention periods, and contact details. The system tracks the version and timestamp of acceptance for compliance purposes.
-
-### User Preferences Management and Account Deletion
-
-To ensure full control over their data and comply with GDPR requirements, the platform provides users with comprehensive self-service options for managing their account:
-
-#### 1. User Preferences Management
-
-- **Access Method**: Users can request a preferences management link through WhatsApp with the command "update my preferences"
-- **Security**: The link contains a secure, time-limited token valid for 24 hours
-- **Editable Information**:
-  - Personal details (name, company)
-  - Language preference
-  - Currency preference
-  - Push notification settings
-  - Communication preferences
-- **Process Flow**:
-  1. User requests preferences update link via WhatsApp
-  2. System generates a secure token and creates a unique URL
-  3. URL is sent to user via WhatsApp
-  4. User accesses the web interface with pre-filled current settings
-  5. User makes desired changes and submits the form
-  6. System updates the profile and confirms changes
-  7. User receives confirmation message via WhatsApp
-
-#### 2. Account Deletion Process
-
-- **Access Method**: Within the preferences management page, users have access to an "Delete My Account" option
-- **Confirmation Process**:
-  - Users must type their phone number to confirm deletion
-  - A clear warning about the permanent nature of deletion is shown
-  - Two-step verification with a WhatsApp confirmation message
-- **Data Handling**:
-  - **Deleted Immediately**:
-    - Personal identifying information (name, email, contact details)
-    - Chat history and conversation logs
-    - Preferences and consent records
-  - **Preserved Data**:
-    - Order records (anonymized with a reference ID)
-    - Transaction history (required for legal and financial records)
-    - Aggregate usage statistics (fully anonymized)
-- **Technical Implementation**:
-  - User record is not physically deleted but pseudonymized
-  - Name is replaced with "Deleted User"
-  - Contact information is nullified
-  - A deletion timestamp is recorded
-  - Associated chat history is physically deleted
-- **Confirmation**:
-  - User receives final confirmation of account deletion
-  - Instructions for data recovery during grace period (30 days)
-  - Contact information for any questions about remaining data
-
-#### 3. API Endpoints
-
-- `GET /api/clients/preferences/:token`
-  - **Description**: Retrieves user preferences for editing using a secure token
-  - **Returns**: Current user preferences and profile information
-
-- `PUT /api/clients/preferences/:token`
-  - **Description**: Updates user preferences
-  - **Body**: Modified user preferences
-  - **Returns**: Confirmation of updates applied
-
-- `POST /api/clients/deletion-request/:token`
-  - **Description**: Initiates account deletion process
-  - **Body**: `phone_confirmation` (user's phone for verification)
-  - **Returns**: Confirmation and next steps for two-factor verification
-
-- `POST /api/clients/confirm-deletion`
-  - **Description**: Completes account deletion after two-factor verification
-  - **Body**: `verification_code` sent via WhatsApp
-  - **Returns**: Final confirmation of account deletion
-
-This comprehensive approach ensures users maintain control over their data while the platform preserves necessary information for legal and business continuity purposes.
-
-## Multi-Tenant Architecture Implementation
-
-The ShopMe platform follows a strict multi-tenant architecture where each client business operates within its own isolated workspace. This architectural approach ensures data isolation, security, and scalability.
-
-### Workspace-Based Data Isolation
-
-1. **Database Implementation**:
-
-   - Every major entity in the database includes a `workspace_id` foreign key reference
-   - Database constraints enforce that entities can only be associated with a single workspace
-   - Queries are always scoped to a specific workspace_id to prevent data leakage between tenants
-   - Database triggers enforce workspace data isolation on insert/update operations
-
-2. **API Request Filtering**:
-
-   - All API endpoints (except authentication) require a workspace context
-   - Workspace identification is handled through:
-     - Explicit `workspace_id` parameter for GET requests
-     - `workspace_id` field in request bodies for POST/PUT requests
-     - JWT token payload containing workspace context for authenticated requests
-   - API middleware automatically applies workspace filtering to all database queries
-   - Attempts to access data across workspaces are blocked with 403 Forbidden responses
-
-3. **User-Workspace Relationship**:
-   - Users can be associated with multiple workspaces through the `user_workspaces` junction table
-   - Each user-workspace association has a specific role (admin, manager, agent, etc.)
-   - Session management includes the active workspace context
-   - Workspace switching requires explicit user action and re-establishing session context
-
-### Security Measures for Tenant Isolation
-
-1. **Query Layer Security**:
-
-   - ORM/Repository layer implements workspace filtering as non-bypassable middleware
-   - Raw SQL queries are prohibited; all database access goes through workspace-aware repositories
-   - Workspace validation occurs at controller, service, and repository levels (defense in depth)
-
-2. **Resource Allocation**:
-
-   - Each workspace has configurable resource limits (API rate limits, storage quotas, etc.)
-   - Resource monitoring tracks usage per workspace
-   - Tenant isolation prevents resource consumption by one tenant from affecting others
-
-3. **Data Export/Import**:
-   - Data export functions include workspace validation
-   - Bulk operations maintain workspace context for all affected records
-   - ETL processes enforce workspace boundaries
-
-The multi-tenant architecture ensures that:
-
-- Each client's data remains completely isolated from other clients
-- API requests are always scoped to the requesting client's workspace
-- Database operations maintain tenant boundaries at all times
-- Users with access to multiple workspaces can only operate within one workspace context at a time
-
-This approach enables the system to securely serve multiple businesses while maintaining strict data separation and optimizing resource utilization.
-
-### Security
-
-#### Authentication and Authorization
-
-The system implements a secure authentication mechanism using JSON Web Tokens (JWT) stored in HTTP-only cookies:
-
-1. **JWT-based Authentication**:
-   - Tokens are stored in HTTP-only cookies to prevent JavaScript access
-   - Tokens are secure, with appropriate expiration times
-   - CSRF protection is implemented
-   - Fallback to Authorization headers for backward compatibility
-
-2. **Login Process**:
-   - User submits credentials (email/password)
-   - System validates credentials against the database
-   - Upon successful authentication, a JWT token is generated and stored in an HTTP-only cookie
-   - User information is returned to the frontend (without the token)
-
-3. **Authentication Middleware**:
-   - Checks for token in cookies first, then falls back to Authorization header
-   - Verifies token validity and signature
-   - Attaches user context to the request for downstream use
-   - Handles authentication errors appropriately
-
-4. **Logout Process**:
-   - Clears the HTTP-only cookie on the server
-   - Removes user data from local storage on the client
-   - Redirects to login page
-
-5. **Access Control**:
-   - Role-based authorization (Admin, Owner, Standard User)
-   - Workspace-specific permissions
-   - Resource-level access controls
-
-The token payload contains the user's ID, email, and role, allowing for proper authorization checks across the application.
-
-### WhatsApp Settings Management
-
-- `GET /api/whatsapp-settings/:workspaceId/gdpr`
-
-  - **Description**: Retrieves the GDPR policy content for a workspace
-  - **Parameters**: `workspaceId` (required): Workspace identifier
-  - **Returns**: GDPR policy text
-
-- `PUT /api/whatsapp-settings/:workspaceId/gdpr`
-
-  - **Description**: Updates the GDPR policy content for a workspace
-  - **Parameters**: `workspaceId` (required): Workspace identifier
-  - **Body**: `gdpr` (required): GDPR policy text
-  - **Returns**: Updated WhatsApp settings
-
-- `GET /api/gdpr/default`
-
-  - **Description**: Retrieves the default GDPR policy text template
-  - **Returns**: Default GDPR policy content
-
-## 5. User Interface
-
-### 5.1 Dashboard Layout
-
-The dashboard follows a modern, clean design with an emphasis on usability and efficiency:
-
-- **Navigation**: Left sidebar with clear category icons
-- **Content Area**: Center-aligned with responsive design
-- **Controls**: Positioned consistently at the top of content sections
-- **Data Display**: Organized in tables and cards with consistent spacing
-
-### 5.2 Color Schema
-
-The application follows a consistent color scheme to maintain brand identity:
-
-- **Primary**: Green (#10b981) - Used for primary actions, buttons, and key UI elements
-- **Secondary**: Gray (#6b7280) - Used for secondary elements, text, and borders
-- **Accent**: Blue (#3b82f6) - Used sparingly for highlighting important information
-- **Neutral**: White (#f9fafb) - Used for backgrounds and spacing
-- **Error**: Red (#ef4444) - Used for errors, alerts, and destructive actions
-- **Warning**: Yellow (#f59e0b) - Used for warnings and caution notifications
-- **Success**: Green (#10b981) - Used for success messages and confirmations
-
-### 5.3 Notification Badges
-
-The application implements a notification badge system in the sidebar navigation to alert users about pending actions and items requiring attention:
-
-#### Chat History Badge
-
-- **Purpose**: Displays the total count of unread messages across all chat conversations
-- **Visual Appearance**: A small red circular badge containing a white number
-- **Behavior**:
-  - Initially shows a count of 2 unread messages when the application loads
-  - Updates in real-time when new messages arrive
-  - When a user opens a chat, the associated messages are marked as read
-  - The badge count decreases as messages are read
-  - The badge disappears completely when all messages are read (count equals zero)
-  - After reading all messages, the Chat History icon remains without a badge until new unread messages arrive
-
-#### Clients Badge
-
-- **Purpose**: Indicates the number of unknown customers who require identification or profile completion
-- **Visual Appearance**: Similar red circular badge with white number
-- **Behavior**:
-  - Shows a consistent count of 2 unknown clients by default
-  - Represents customers who have contacted the business but haven't been properly profiled
-  - When administrators properly identify and categorize these clients, the badge count should update
-  - Serves as a reminder to maintain clean and complete customer records
-
-#### Implementation Details
-
-- Badge counts are stored in component state variables and updated through API calls
-- The system updates badge counts in these scenarios:
-  - On initial page load
-  - When a user reads messages
-  - When a new message arrives (via polling or websocket)
-  - When customer profiles are updated
-- The badge visual style is consistent across the application:
-  - Size: Compact (16-20px diameter)
-  - Position: Upper right corner of the associated navigation item
-  - Color: Red background (#ef4444) with white text
-  - Animation: Subtle entrance animation when count changes
-
-This notification system improves workflow efficiency by providing visual cues for pending actions, helping administrators prioritize their tasks and ensure timely responses to customers.
-
+2. **Database**:
+   - Heroku Postgres per database primario
+   - Backup automatizzati e recovery point-in-time
+   - Metriche e monitoraggio database
+   - Connection pooling
+
+3. **Soluzioni Storage**:
+   - Add-on Bucketeer per storage file S3-compatibile
+   - Utilizzato per memorizzare fatture, immagini prodotti e documenti
+   - Backup e versioning automatico
+   - Integrazione CDN per consegna file più veloce
+
+4. **Strategia Deployment**:
+   - Workflow deployment basato su Git
+   - App di revisione per pull request
+   - Ambienti staging e produzione
+   - Deployment senza tempi di inattività
+
+### Architettura Docker
+
+La piattaforma ShopMe utilizza un'architettura containerizzata semplificata con Docker per garantire coerenza tra gli ambienti di sviluppo, test e produzione. Il sistema è costruito con un approccio minimalista, concentrandosi solo sui container essenziali:
+
+#### Architettura Container
+
+- **Container PostgreSQL**:
+  - Immagine: PostgreSQL 14
+  - Scopo: Database primario che memorizza tutti i dati dell'applicazione
+  - Porte: 5432
+  - Volumi: Dati database, backup periodici
+  - Configurazione: Ottimizzato per le prestazioni con allocazione memoria appropriata e connection pooling
+
+#### Strategia Deployment
+
+Questo approccio snello è coerente tra gli ambienti di sviluppo locale e di produzione:
+
+**Sviluppo Locale:**
+- Docker Compose orchestrato per entrambi i container
+- Mount volumi locali per facile sviluppo e debugging
+- Variabili ambiente gestite tramite file .env (non committate nel controllo versione)
+
+**Produzione (Heroku):**
+- Entrambi i container deployati utilizzando il registry container Heroku
+- PostgreSQL configurato con add-on Heroku PostgreSQL per servizio database gestito
+- Variabili ambiente gestite tramite config vars Heroku
+- Backup automatizzati configurati per entrambi i container
+
+Questa strategia container minimalista riduce la complessità operativa fornendo tutta la funzionalità necessaria per l'applicazione. Il frontend e l'API sono deployati utilizzando i buildpack standard di Heroku piuttosto che i container, semplificando ulteriormente l'architettura.
+
+# PARTE III: OPERATIONAL
+
+## 1. Security e Privacy
+
+### Autenticazione e Autorizzazione
+
+Il sistema implementa un meccanismo di autenticazione sicuro utilizzando JSON Web Tokens (JWT) memorizzati in cookie HTTP-only:
+
+1. **Autenticazione basata su JWT**:
+   - I token sono memorizzati in cookie HTTP-only per prevenire l'accesso JavaScript
+   - I token sono sicuri, con tempi di scadenza appropriati
+   - È implementata la protezione CSRF
+   - Fallback agli header Authorization per retrocompatibilità
+
+2. **Processo di Login**:
+   - L'utente invia le credenziali (email/password)
+   - Il sistema convalida le credenziali contro il database
+   - Dopo l'autenticazione riuscita, viene generato un token JWT memorizzato in un cookie HTTP-only
+   - Le informazioni utente vengono restituite al frontend (senza il token)
+
+3. **Middleware di Autenticazione**:
+   - Controlla prima il token nei cookie, poi ricorre all'header Authorization
+   - Verifica validità e firma del token
+   - Allega il contesto utente alla richiesta per uso downstream
+   - Gestisce errori di autenticazione in modo appropriato
+
+4. **Processo di Logout**:
+   - Cancella il cookie HTTP-only sul server
+   - Rimuove i dati utente dallo storage locale sul client
+   - Reindirizza alla pagina di login
+
+5. **Controllo Accessi**:
+   - Autorizzazione basata sui ruoli (Admin, Owner, Standard User)
+   - Permessi specifici per workspace
+   - Controlli accesso a livello di risorsa
+
+Il payload del token contiene ID, email e ruolo dell'utente, consentendo adeguati controlli di autorizzazione in tutta l'applicazione.
+
+### Gestione Preferenze Utente e Cancellazione Account
+
+Per garantire il pieno controllo sui propri dati e rispettare i requisiti GDPR, la piattaforma fornisce agli utenti opzioni self-service complete per gestire il proprio account:
+
+#### 1. Gestione Preferenze Utente
+
+- **Metodo di Accesso**: Gli utenti possono richiedere un link di gestione preferenze tramite WhatsApp con il comando "aggiorna le mie preferenze"
+- **Sicurezza**: Il link contiene un token sicuro a tempo limitato valido per 24 ore
+- **Informazioni Modificabili**:
+  - Dettagli personali (nome, azienda)
+  - Preferenza lingua
+  - Preferenza valuta
+  - Impostazioni notifiche push
+  - Preferenze comunicazione
+- **Flusso Processo**:
+  1. L'utente richiede link aggiornamento preferenze via WhatsApp
+  2. Il sistema genera un token sicuro e crea un URL unico
+  3. L'URL viene inviato all'utente via WhatsApp
+  4. L'utente accede all'interfaccia web con impostazioni correnti precompilate
+  5. L'utente effettua le modifiche desiderate e invia il modulo
+  6. Il sistema aggiorna il profilo e conferma le modifiche
+  7. L'utente riceve messaggio di conferma via WhatsApp
+
+#### 2. Processo Cancellazione Account
+
+- **Metodo di Accesso**: Nella pagina gestione preferenze, gli utenti hanno accesso a un'opzione "Elimina Il Mio Account"
+- **Processo di Conferma**:
+  - Gli utenti devono digitare il proprio numero di telefono per confermare l'eliminazione
+  - Viene mostrato un chiaro avviso sulla natura permanente dell'eliminazione
+  - Verifica in due passaggi con un messaggio di conferma WhatsApp
+- **Gestione Dati**:
+  - **Eliminati Immediatamente**:
+    - Informazioni personali identificative (nome, email, dettagli contatto)
+    - Cronologia chat e log conversazione
+    - Preferenze e record consenso
+  - **Dati Conservati**:
+    - Record ordini (anonimizzati con un ID riferimento)
+    - Cronologia transazioni (richiesta per record legali e finanziari)
+    - Statistiche utilizzo aggregate (completamente anonimizzate)
+- **Implementazione Tecnica**:
+  - Il record utente non viene fisicamente eliminato ma pseudonimizzato
+  - Il nome viene sostituito con "Utente Eliminato"
+  - Le informazioni di contatto vengono annullate
+  - Viene registrato un timestamp di eliminazione
+  - La cronologia chat associata viene fisicamente eliminata
+- **Conferma**:
+  - L'utente riceve conferma finale dell'eliminazione account
+  - Istruzioni per recupero dati durante periodo di grazia (30 giorni)
+  - Informazioni contatto per eventuali domande sui dati rimanenti
+
+Questo approccio completo garantisce che gli utenti mantengano il controllo sui propri dati mentre la piattaforma conserva le informazioni necessarie per scopi legali e di continuità aziendale.
+
+## 2. Piani di Test e QA
+
+### Processo Quality Assurance
+
+- **Test Automatizzati**
+  - Test unitari: Jest per logica frontend e backend
+  - Test integrazione: Testing endpoint API con Supertest
+  - Test end-to-end: Cypress per percorsi utente critici
+  - Test performance: k6 per load testing
+  - Test accessibilità: pa11y per conformità WCAG
+
+- **Test Manuali**
+  - Sessioni UAT con stakeholder in staging
+  - Test esplorativo dal team QA
+  - Test compatibilità cross-browser
+  - Test responsive mobile
+
+- **Monitoraggio e Osservabilità**
+  - Tracciamento errori: Sentry per errori frontend e backend
+  - Monitoraggio performance: New Relic per performance applicazione
+  - Gestione log: Papertrail per logging centralizzato
+  - Monitoraggio sintetico: Controlli uptime ogni 5 minuti
+  - Monitoraggio utenti reali: Metriche performance da utenti effettivi
+
+### Strategia di Test
+
+#### 1. Test Unitari
+- **Scope**: Funzioni individuali e componenti
+- **Tecnologie**: Jest per backend, React Testing Library per componenti
+- **Criteri**: 80% copertura codice minima
+- **Integrazione CI**: Eseguiti in ogni pull request
+
+#### 2. Test Integrazione
+- **Scope**: Interazioni API, flussi dati multi-servizio
+- **Focus**: Validare comunicazione corretta tra componenti
+- **Automazione**: Test API endpoint con parametri validi/invalidi
+- **Database**: Usa un database di test dedicato con fixtures precaricate
+
+#### 3. Test End-to-End
+- **Scope**: Percorsi utente completi, principali flussi di business
+- **Scenari**:
+  - Registrazione cliente e onboarding
+  - Gestione prodotto e catalogo
+  - Configurazione workspace e preferenze
+  - Flusso conversazione WhatsApp e risposte AI
+- **Frequenza**: Eseguiti prima di ogni release in staging
+
+#### 4. Test Sicurezza
+- **Tipi di Test**:
+  - Scanning vulnerabilità
+  - Test penetrazione
+  - Revisione codice sicurezza
+- **Focus**: Protezione dati, autenticazione, autorizzazione
+- **Cadenza**: Test completi ogni trimestre o con cambiamenti architetturali significativi
+
+#### 5. Test Performance
+- **Metriche**:
+  - Tempo risposta API (<300ms per 95% richieste)
+  - Tempo caricamento pagina (<2s per scenari tipici)
+  - Utilizzo CPU e memoria sotto carico
+- **Scenari**: Simulazione 1000 utenti simultanei con comportamento realistico
+
+## 3. Rischi e Mitigazioni
+
+### Rischi Tecnici
+
+1. **Interruzioni API WhatsApp**
+   - **Rischio**: Meta potrebbe modificare l'API o avere interruzioni di servizio
+   - **Impatto**: Impossibilità per gli utenti di comunicare attraverso la piattaforma
+   - **Mitigazione**: 
+     - Sistema di retry e coda messaggi
+     - Monitoraggio stato API
+     - Notifica agli utenti durante interruzioni conosciute
+     - Piano di comunicazione alternativa
+
+2. **Limiti di scala AI**
+   - **Rischio**: Alta latenza o costi elevati con l'aumento del volume di messaggi
+   - **Impatto**: Risposte lente o alti costi operativi
+   - **Mitigazione**:
+     - Strategie di caching per risposte comuni
+     - Modelli efficienti per domande frequenti
+     - Sistema di prioritizzazione messaggi
+     - Monitoraggio uso e costi in tempo reale
+
+3. **Vulnerabilità Dati**
+   - **Rischio**: Accesso non autorizzato ai dati sensibili cliente
+   - **Impatto**: Violazione privacy, danni reputazionali, sanzioni GDPR
+   - **Mitigazione**:
+     - Crittografia dati a riposo e in transito
+     - Audit regolari sicurezza
+     - Minimizzazione dati raccolti
+     - Pseudonimizzazione informazioni personali
+
+### Rischi di Business
+
+1. **Adozione utente limitata**
+   - **Rischio**: Gli utenti potrebbero resistere all'interazione con un assistente AI
+   - **Impatto**: Basso engagement e churn cliente
+   - **Mitigazione**:
+     - Onboarding chiaro con esempi casi d'uso
+     - Opzione per passaggio a operatore umano
+     - Miglioramento continuo prompt basato sui feedback
+     - Test A/B interfaccia conversazionale
+
+2. **Cannibalizzazione canali esistenti**
+   - **Rischio**: Le aziende temono che il bot WhatsApp cannibalizza altri canali
+   - **Impatto**: Resistenza all'adozione da parte dei business
+   - **Mitigazione**:
+     - Strategie integrazione multicanale
+     - Formazione su utilizzo complementare canali
+     - Metriche che dimostrano incremento totale engagement
+
+3. **Mancata scala con richieste specifiche settore**
+   - **Rischio**: Difficoltà adattare la piattaforma a diverse nicchie di mercato
+   - **Impatto**: Limitata espansione verso nuovi segmenti verticali
+   - **Mitigazione**:
+     - Architettura modulare con estensioni specifiche settore
+     - Programmi early adopter per nuovi settori
+     - Partnership con esperti industria

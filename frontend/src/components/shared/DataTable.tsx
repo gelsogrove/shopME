@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -27,7 +28,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table"
-import { ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Pencil, Search, Trash2 } from "lucide-react"
 import React, { ReactNode, useState } from "react"
 
 interface DataTableProps<TData> {
@@ -39,6 +40,9 @@ interface DataTableProps<TData> {
   onDelete?: (item: TData) => void
   renderActions?: (item: TData) => React.ReactElement
   actionButtons?: (record: TData) => ReactNode
+  searchKey?: string
+  searchPlaceholder?: string
+  onSearchChange?: (value: string) => void
 }
 
 export function DataTable<TData>({
@@ -50,6 +54,9 @@ export function DataTable<TData>({
   onDelete,
   renderActions,
   actionButtons,
+  searchKey,
+  searchPlaceholder,
+  onSearchChange,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -153,6 +160,17 @@ export function DataTable<TData>({
 
   return (
     <div className="space-y-4">
+      {(searchKey || onSearchChange) && (
+        <div className="flex items-center border rounded-md px-3 mb-4">
+          <Search className="h-4 w-4 text-gray-400 mr-2" />
+          <Input
+            placeholder={searchPlaceholder || "Search..."}
+            value={globalFilter}
+            onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
+            className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+        </div>
+      )}
       <div className="rounded-md border">
         <Table>
           <TableHeader>

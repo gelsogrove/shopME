@@ -1,25 +1,29 @@
 import { Request, Response, Router } from 'express';
 import { OfferService } from '../application/services/offer.service';
+import { authMiddleware } from '../interfaces/http/middlewares/auth.middleware';
 import logger from '../utils/logger';
 
 // Create a new router instance
 const router = Router();
 const offerService = new OfferService();
 
+// Apply auth middleware to all routes
+router.use(authMiddleware);
+
 /**
  * Get all offers
- * GET /offers
+ * GET /workspaces/:workspaceId/offers
  */
 // @ts-ignore - Express typing issues
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { workspaceId } = req.query;
+    const { workspaceId } = req.params;
     
     if (!workspaceId) {
       return res.status(400).json({ error: 'Workspace ID is required' });
     }
     
-    const offers = await offerService.getAllOffers(workspaceId as string);
+    const offers = await offerService.getAllOffers(workspaceId);
     return res.json(offers);
   } catch (error) {
     logger.error('Error getting offers:', error);
@@ -29,19 +33,20 @@ router.get('/', async (req: Request, res: Response) => {
 
 /**
  * Get active offers
- * GET /offers/active
+ * GET /workspaces/:workspaceId/offers/active
  */
 // @ts-ignore - Express typing issues
 router.get('/active', async (req: Request, res: Response) => {
   try {
-    const { workspaceId, categoryId } = req.query;
+    const { workspaceId } = req.params;
+    const { categoryId } = req.query;
     
     if (!workspaceId) {
       return res.status(400).json({ error: 'Workspace ID is required' });
     }
     
     const offers = await offerService.getActiveOffers(
-      workspaceId as string, 
+      workspaceId, 
       categoryId as string | undefined
     );
     return res.json(offers);
@@ -53,19 +58,18 @@ router.get('/active', async (req: Request, res: Response) => {
 
 /**
  * Get offer by ID
- * GET /offers/:id
+ * GET /workspaces/:workspaceId/offers/:id
  */
 // @ts-ignore - Express typing issues
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const { workspaceId } = req.query;
+    const { id, workspaceId } = req.params;
     
     if (!workspaceId) {
       return res.status(400).json({ error: 'Workspace ID is required' });
     }
     
-    const offer = await offerService.getOfferById(id, workspaceId as string);
+    const offer = await offerService.getOfferById(id, workspaceId);
     
     if (!offer) {
       return res.status(404).json({ error: 'Offer not found' });
@@ -80,12 +84,14 @@ router.get('/:id', async (req: Request, res: Response) => {
 
 /**
  * Create a new offer
- * POST /offers
+ * POST /workspaces/:workspaceId/offers
  */
 // @ts-ignore - Express typing issues
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const offer = await offerService.createOffer(req.body);
+    const { workspaceId } = req.params;
+    const offerData = { ...req.body, workspaceId };
+    const offer = await offerService.createOffer(offerData);
     return res.status(201).json(offer);
   } catch (error) {
     logger.error('Error creating offer:', error);
@@ -95,13 +101,15 @@ router.post('/', async (req: Request, res: Response) => {
 
 /**
  * Update an offer
- * PUT /offers/:id
+ * PUT /workspaces/:workspaceId/offers/:id
  */
 // @ts-ignore - Express typing issues
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const offer = await offerService.updateOffer(id, req.body);
+    const { id, workspaceId } = req.params;
+    // Ensure the request belongs to the workspace
+    const offerData = { ...req.body, workspaceId };
+    const offer = await offerService.updateOffer(id, offerData);
     return res.json(offer);
   } catch (error) {
     logger.error(`Error updating offer ${req.params.id}:`, error);
@@ -111,12 +119,17 @@ router.put('/:id', async (req: Request, res: Response) => {
 
 /**
  * Delete an offer
- * DELETE /offers/:id
+ * DELETE /workspaces/:workspaceId/offers/:id
  */
 // @ts-ignore - Express typing issues
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id, workspaceId } = req.params;
+    
+    if (!workspaceId) {
+      return res.status(400).json({ error: 'Workspace ID is required' });
+    }
+    
     const result = await offerService.deleteOffer(id);
     return res.json({ success: result });
   } catch (error) {

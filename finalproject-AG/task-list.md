@@ -1,38 +1,56 @@
 # ShopMe – Realistic Project Task List (64 Unique Tasks)
 
 ## 📊 Stato Attuale del Progetto
-**Ultimo aggiornamento:** 2025-05-10
+**Ultimo aggiornamento:** 2025-05-12
 
-- **Completati:** 42/67 task (62.7%)
+- **Completati:** 44/67 task (65.7%)
 - **In corso:** 0/67 task (0%)
 - **Out of scope:** 16/67 task (23.9%)
-- **Da iniziare:** 9/67 task (13.4%)
+- **Da iniziare:** 7/67 task (10.4%)
 
 
 ### 🚩 Prossimo Task Prioritario
-**TASK-0029**: Add unit tests for product service and fix message service tests
-- Cover edge cases for price < 0, missing fields, image format
-- Ensure proper validation and error handling
-- Focus on critical business logic paths
-- Write comprehensive tests for all product-related functionality
-
-**TASK-0069**: Add language detection and multilingual support
-- Implement language detection for incoming WhatsApp messages
-- Add support for responding in customer's preferred language
-- Handle language preference storage in customer profile
-- Create language-specific templates for common responses
+**TASK-0080**: Create comprehensive API documentation
+- Document all available API endpoints
+- Include request/response formats, authentication requirements
+- Add examples for common use cases
+- Create interactive API documentation with Swagger/OpenAPI
 
 
 ### 🏆 Progressi per Epic
 - System Setup & Architecture: 12/12 completati ✅
 - Authentication & 2FA: 4/10 completati, 5/10 fuori scope ⏳
-- Product Management: 9/10 completati, 1/10 in corso 🔄
+- Product Management: 10/10 completati ✅
 - Orders & Cart: 1/10 completati, 8/10 fuori scope 🔄
 - User Interface & UX: 11/12 completati ⏳
-- WhatsApp Integration: 1/10 completati ⏳
+- WhatsApp Integration: 2/10 completati ⏳
 - API Design: 0/2 completati ❌
 
 ### 🌟 Task Completati Recentemente
+- **TASK-0069**: Add language detection and multilingual support
+  - Implementato sistema di rilevamento automatico della lingua dei messaggi in arrivo
+  - Aggiunto supporto per rispondere nella lingua preferita del cliente
+  - Creata memorizzazione delle preferenze linguistiche nel profilo cliente
+  - Implementati template specifici per lingua per le risposte comuni
+  - Creato un sistema di consistenza linguistica tra le sessioni
+  - Documentata la nuova funzionalità nel PDR
+
+- **TASK-0029**: Add unit tests for product service and fix message service tests
+  - Creati test unitari completi per ProductService
+  - Implementati test per validare prezzi negativi, campi mancanti, formati immagine
+  - Aggiunti test per gestione errori e casi limite
+  - Creata estensione della classe ProductService per test approfonditi
+  - Verificata la corretta applicazione di sconti
+  - Copertura completa di tutte le funzionalità di product service
+
+- **TASK-0103**: Implementazione funzionalità blocklist avanzata
+  - Aggiornato il sistema di blocklist per nascondere i numeri bloccati dalla chat history
+  - Implementata funzionalità per bloccare utenti direttamente dall'interfaccia chat
+  - Aggiornato il servizio di messaggi per non rispondere ai numeri bloccati
+  - Implementata rimozione automatica delle chat con utenti bloccati dall'interfaccia
+  - Aggiornato PDR con la documentazione della funzionalità
+  - Migliorata la gestione della privacy degli utenti bloccati
+
 - **TASK-0102**: Implementazione Dashboard Statica
   - Creata dashboard con visualizzazione statica dei dati
   - Implementati grafici simulati con CSS per conversazioni e tassi di conversione
@@ -90,65 +108,6 @@
   - Integrata visualizzazione degli eventi nella sidebar
   - Implementato sistema di conteggio partecipanti
 
-- **TASK-0062**: Create message processing service and fix failing tests
-  - Implementato servizio di elaborazione messaggi con gestione completa del flusso
-  - Risolto errore TypeScript con type assertion per la proprietà activeChatbot
-  - Aggiornato il file flow.md per riflettere l'implementazione attuale
-  - Migliorata la gestione degli errori e il logging
-  - Aggiunta documentazione per la logica di elaborazione messaggi
-
-- **TASK-0095**: Implementato sistema di messaggi di benvenuto multilingua
-  - Aggiunto nuovo campo welcomeMessages al modello Workspace
-  - Creata migration per aggiornare il database
-  - Aggiornato seed con messaggi di benvenuto di default in IT, EN, ES
-  - Implementata UI per modificare i messaggi nelle impostazioni
-  - Aggiunto PDR con documentazione della funzionalità
-
-- **TASK-0094**: Risolto errore di salvataggio cliente
-  - Corretto bug di referenza circolare nel salvataggio dati cliente
-  - Implementato sanitizer per rimuovere referenze DOM/React nei dati inviati all'API
-  - Evitato l'errore "Converting circular structure to JSON" durante il salvataggio
-  - Aggiunto logging migliorato in caso di errore per facilitare il debug
-
-- **TASK-0093**: Sistemata visualizzazione chat
-  - Corretto il problema di visualizzazione dei messaggi nella chat (user/chatbot)
-  - Implementato mapping corretto tra MessageDirection (INBOUND/OUTBOUND) e visualizzazione (user/customer)
-  - Sistemata la trasformazione dei messaggi ricevuti dall'API in frontend
-  - Garantita la consistenza dei messaggi inviati e ricevuti
-
-- **TASK-0090**: Miglioramenti interfaccia chat
-  - Corretta visualizzazione dell'agente che ha risposto in chat
-  - Sistemato allineamento dei messaggi (agente a destra, utente a sinistra)
-  - Implementato disattivazione automatica del chatbot quando l'agente prende il controllo
-  - Aggiunta conferma una sola volta quando si disattiva il chatbot
-
-- **TASK-0091**: Miglioramenti navigazione e UX
-  - Modificati i link per aprirsi in nuove schede
-  - Implementata navigazione diretta da cliente alla chat history
-  - Aggiunto supporto per messaggi di benvenuto multilingua
-  - Aggiunto supporto per simboli di valuta nelle impostazioni
-
-- **TASK-0067**: Rimosso campo email dai servizi
-  - Rimosso il campo email dall'interfaccia Service nel frontend
-  - Rimosso il campo email dal form di creazione e modifica dei servizi
-  - Rimosso il campo email dai dati inviati alle API
-
-- **TASK-0064**: Implementare notifiche badge nella sidebar
-  - Aggiunto badge di notifica per Chat History che mostra il numero di messaggi non letti
-  - Aggiunto badge per Clients che mostra il numero di clienti sconosciuti
-  - Implementata logica per aggiornare i badge quando i messaggi vengono letti
-
-- **TASK-0065**: Spostare GDPR nelle impostazioni
-  - Spostata la gestione GDPR da pagina separata a tab nelle impostazioni
-  - Creato nuovo componente GdprSettingsTab
-  - Aggiornata la navigazione per rimuovere link alla vecchia pagina GDPR
-
-- **TASK-0066**: Implementare Blocklist per i numeri di telefono
-  - Creata nuova pagina per gestire la blocklist dei numeri di telefono
-  - Aggiunto link nella sidebar sotto Clients
-  - Implementata interfaccia per aggiungere/rimuovere numeri dalla blocklist
-  - Collegata l'interfaccia all'API per salvare le modifiche
-
 ### 📋 Task Completati
 **System Setup & Architecture**
 - **TASK-0001**: Create repository structure following modular architecture
@@ -202,8 +161,7 @@
 - **TASK-0030**: Design cart data model
 
 ### ⏳ Task In Corso
-**Product Management**
-- **TASK-0029**: Add unit tests for product service
+<!-- Nessun task in corso -->
 
 ### ⭕ Task Fuori Scope (Out of Scope)
 **Authentication & 2FA**
@@ -241,25 +199,15 @@
 - **TASK-0056**: Add dark mode support
 
 **WhatsApp Integration**
-- **TASK-0060**: Setup WhatsApp Business API connection
-- **TASK-0061**: Implement webhook for incoming WhatsApp messages
-- **TASK-0063**: Design conversation flow for product ordering
-- **TASK-0064**: Implement product catalog browsing via WhatsApp
-- **TASK-0065**: Add cart management through WhatsApp
-- **TASK-0066**: Implement order status queries via WhatsApp
-- **TASK-0067**: Create notification system for order updates
-- **TASK-0068**: Design and implement automated responses
-
-**Misc**
-- **TASK-0070**: Implement comprehensive logging and monitoring
+~~- **TASK-0069**: Add language detection and multilingual support~~
 
 ## 📌 Summary by Epic
 
 - System Setup & Architecture: 12 tasks (12 completati)
 - Authentication & 2FA: 10 tasks (4 completati)
-- Product Management: 10 tasks (9 completati)
+- Product Management: 10 tasks (10 completati)
 - Orders & Cart: 10 tasks (1 completato)
-- User Interface & UX: 12 tasks (10 completati)
+- User Interface & UX: 12 tasks (11 completati)
 - AI, WhatsApp & Messaging: 12 tasks (2 completati)
 
 **Total Tasks: 67**
@@ -1039,23 +987,6 @@ Technical Requirements:
 
 - [ ] Not started
 
-=============== TASK-0069 ============================
-**Epic**: AI, WhatsApp & Messaging
-**Title**: Add language detection and multilingual support
-**Description**:
-Implement language detection for incoming WhatsApp messages
-Add support for responding in customer's preferred language
-Handle language preference storage in customer profile
-Create language-specific templates for common responses
-
-- [x] Completed
-  - Modificato il repository dei messaggi per includere la lingua dell'utente
-  - Passato il cliente con la sua lingua al sistema RAG per generare risposte
-  - Implementata logica per ottenere la lingua preferita dell'utente dal database
-  - Aggiunte istruzioni all'LLM per rispondere nella lingua preferita dell'utente
-  - Creati test per verificare il supporto multilingua (inglese, francese, ecc.)
-  - Aggiunto script di test manuale per verificare il supporto alla lingua
-
 =============== TASK-0070 ============================
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Enhance WhatsApp Message Formatting
@@ -1083,7 +1014,7 @@ Technical Requirements:
 **Epic**: AI, WhatsApp & Messaging
 **Title**: Implementare i badge di notifica nella Sidebar
 **Description**:
-Implementare i badge di notifica per "Chat History" e "Clients" nella Sidebar dell'applicazione. Il badge di Chat History deve mostrare il numero di messaggi non letti, mentre il badge di Clients deve mostrare il numero di clienti sconosciuti che richiedono registrazione.
+Implementare i badge di notifica per "Chat History" e "Clients" nella Sidebar dell'applicazione. Il badge di Chat History deve mostrare il numero di messaggi non letti, mentre il badge di Clients deve mostrare il numero di clienti sconosciuti
 
 - [x] Completed
   - Implementato sistema di conteggio messaggi non letti per Chat History
@@ -1406,3 +1337,14 @@ Implementare una funzionalità che applichi automaticamente uno sconto ai prezzi
 - Priorità automatica tra sconti cliente e offerte speciali
 - Aggiornamento automatico dei prezzi in base alle offerte attive
 - Informazioni sulle offerte incluse nei messaggi del chatbot AI
+
+## Completed Tasks
+
+- [x] Fix bug in chat session creation
+- [x] Implement product categories management
+- [x] Implement product management with categories
+- [x] Implement special offers system
+- [x] Implement suppliers management system
+- [x] Create frontend for suppliers management
+- [x] Connect products to suppliers
+- [x] Add supplier filtering for products

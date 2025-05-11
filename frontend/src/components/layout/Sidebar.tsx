@@ -2,21 +2,23 @@ import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
 import { cn } from "@/lib/utils"
 import {
-  Bell,
-  Calendar,
-  ClipboardList,
-  HelpCircle,
-  LayoutGrid,
-  LucideIcon,
-  MessageSquare,
-  Package2,
-  ShoppingCart,
-  Tag,
-  Users,
-  Wrench
+    Bell,
+    Calendar,
+    ClipboardList,
+    HelpCircle,
+    LayoutGrid,
+    LucideIcon,
+    MessageSquare,
+    Package2,
+    Percent,
+    ShoppingCart,
+    Tag,
+    Truck,
+    Users,
+    Wrench
 } from "lucide-react"
-import { useState } from "react"
-import { NavLink } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { NavLink, useLocation } from "react-router-dom"
 
 interface SidebarLink {
   href: string
@@ -26,6 +28,7 @@ interface SidebarLink {
   className?: string
   children?: SidebarLink[]
   isOpen?: boolean
+  key?: string
 }
 
 export function Sidebar() {
@@ -35,9 +38,21 @@ export function Sidebar() {
     0
   )
   const { workspace } = useWorkspace()
+  const location = useLocation()
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({
-    products: true // Inizialmente espanso
+    products: false // Inizialmente chiuso
   })
+
+  // Controlla se siamo in una pagina che fa parte del sottomenu Products
+  useEffect(() => {
+    const productPages = ["/products", "/categories", "/suppliers", "/offers"]
+    if (productPages.some(page => location.pathname.startsWith(page))) {
+      setExpandedItems(prev => ({
+        ...prev,
+        products: true
+      }))
+    }
+  }, [location.pathname])
 
   const toggleExpand = (key: string) => {
     setExpandedItems(prev => ({
@@ -59,14 +74,32 @@ export function Sidebar() {
       icon: Users,
     },
     {
-      href: "/products",
-      label: "Products",
+      href: "#",
+      label: "Catalog",
       icon: Package2,
-    },
-    {
-      href: "/categories",
-      label: "Categories",
-      icon: Tag,
+      key: "products",
+      children: [
+        {
+          href: "/products",
+          label: "Products",
+          icon: Package2,
+        },
+        {
+          href: "/categories",
+          label: "Categories",
+          icon: Tag,
+        },
+        {
+          href: "/suppliers",
+          label: "Suppliers",
+          icon: Truck,
+        },
+        {
+          href: "/offers",
+          label: "Offers",
+          icon: Percent,
+        },
+      ],
     },
     {
       href: "/services",
@@ -118,10 +151,10 @@ export function Sidebar() {
               {link.children ? (
                 <div className="mb-1">
                   <button
-                    onClick={() => toggleExpand('products')}
+                    onClick={() => toggleExpand(link.key || 'unknown')}
                     className={cn(
                       "flex w-full items-center justify-between gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors",
-                      expandedItems.products
+                      expandedItems[link.key || 'unknown']
                         ? "bg-green-50 text-green-600"
                         : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                     )}
@@ -132,7 +165,7 @@ export function Sidebar() {
                     </div>
                     <svg
                       className={`h-4 w-4 transition-transform ${
-                        expandedItems.products ? "rotate-180" : ""
+                        expandedItems[link.key || 'unknown'] ? "rotate-180" : ""
                       }`}
                       fill="none"
                       viewBox="0 0 24 24"
@@ -147,7 +180,7 @@ export function Sidebar() {
                     </svg>
                   </button>
                   
-                  {expandedItems.products && (
+                  {expandedItems[link.key || 'unknown'] && (
                     <div className="ml-6 mt-1 space-y-1">
                       {link.children.map((child) => (
                         <NavLink
@@ -177,18 +210,17 @@ export function Sidebar() {
                   end={link.href === "/"}
                   className={({ isActive }) =>
                     cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors relative",
+                      "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors",
                       isActive
                         ? "bg-green-50 text-green-600"
-                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50",
-                      link.className
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                     )
                   }
                 >
                   <link.icon className="h-6 w-6" />
-                  {link.label}
-                  {link.badge !== undefined && (
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-medium text-white">
+                  <span>{link.label}</span>
+                  {link.badge && (
+                    <span className="ml-auto flex h-6 w-6 items-center justify-center rounded-full bg-green-100 text-xs font-medium text-green-600">
                       {link.badge}
                     </span>
                   )}

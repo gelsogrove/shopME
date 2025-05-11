@@ -82,9 +82,9 @@ export const workspaces = {
 }
 
 export const products = {
-  list: (workspaceId: string) => api.get(`/workspaces/${workspaceId}/products`),
-  get: (workspaceId: string, id: string) => api.get(`/workspaces/${workspaceId}/products/${id}`),
-  create: (workspaceId: string, data: any) => api.post(`/workspaces/${workspaceId}/products`, data),
-  update: (workspaceId: string, id: string, data: any) => api.put(`/workspaces/${workspaceId}/products/${id}`, data),
-  delete: (workspaceId: string, id: string) => api.delete(`/workspaces/${workspaceId}/products/${id}`)
+  list: (workspaceId: string) => api.get(`/workspaces/${workspaceId}/products?workspaceId=${workspaceId}`),
+  get: (workspaceId: string, id: string) => api.get(`/workspaces/${workspaceId}/products/${id}?workspaceId=${workspaceId}`),
+  create: (workspaceId: string, data: any) => api.post(`/workspaces/${workspaceId}/products?workspaceId=${workspaceId}`, data),
+  update: (workspaceId: string, id: string, data: any) => api.put(`/workspaces/${workspaceId}/products/${id}?workspaceId=${workspaceId}`, data),
+  delete: (workspaceId: string, id: string) => api.delete(`/workspaces/${workspaceId}/products/${id}?workspaceId=${workspaceId}`)
 }

@@ -274,6 +274,146 @@ components:
           type: boolean
           description: Indica se la FAQ è attiva o disattiva
 
+    Supplier:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - workspaceId
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique ID of the supplier
+        name:
+          type: string
+          description: Name of the supplier
+        slug:
+          type: string
+          description: URL-friendly version of the supplier name
+        description:
+          type: string
+          nullable: true
+          description: Description of the supplier
+        address:
+          type: string
+          nullable: true
+          description: Address of the supplier
+        website:
+          type: string
+          nullable: true
+          description: Website URL of the supplier
+        phone:
+          type: string
+          nullable: true
+          description: Phone number of the supplier
+        email:
+          type: string
+          nullable: true
+          description: Email address of the supplier
+        contactPerson:
+          type: string
+          nullable: true
+          description: Name of the contact person at the supplier
+        notes:
+          type: string
+          nullable: true
+          description: Additional notes about the supplier
+        isActive:
+          type: boolean
+          description: Indicates if the supplier is active
+        workspaceId:
+          type: string
+          format: uuid
+          description: ID of the workspace this supplier belongs to
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date of the supplier
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update date of the supplier
+
+    CreateSupplierRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the supplier
+        description:
+          type: string
+          nullable: true
+          description: Description of the supplier
+        address:
+          type: string
+          nullable: true
+          description: Address of the supplier
+        website:
+          type: string
+          nullable: true
+          description: Website URL of the supplier
+        phone:
+          type: string
+          nullable: true
+          description: Phone number of the supplier
+        email:
+          type: string
+          nullable: true
+          description: Email address of the supplier
+        contactPerson:
+          type: string
+          nullable: true
+          description: Name of the contact person at the supplier
+        notes:
+          type: string
+          nullable: true
+          description: Additional notes about the supplier
+        isActive:
+          type: boolean
+          description: Indicates if the supplier is active
+
+    UpdateSupplierRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the supplier
+        description:
+          type: string
+          nullable: true
+          description: Description of the supplier
+        address:
+          type: string
+          nullable: true
+          description: Address of the supplier
+        website:
+          type: string
+          nullable: true
+          description: Website URL of the supplier
+        phone:
+          type: string
+          nullable: true
+          description: Phone number of the supplier
+        email:
+          type: string
+          nullable: true
+          description: Email address of the supplier
+        contactPerson:
+          type: string
+          nullable: true
+          description: Name of the contact person at the supplier
+        notes:
+          type: string
+          nullable: true
+          description: Additional notes about the supplier
+        isActive:
+          type: boolean
+          description: Indicates if the supplier is active
+
 paths:
   /workspaces:
     get:
@@ -782,3 +922,309 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+  /workspaces/{workspaceId}/suppliers:
+    get:
+      summary: Get all suppliers for a workspace
+      tags:
+        - Suppliers
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: workspaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the workspace
+      responses:
+        '200':
+          description: List of suppliers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Supplier'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new supplier
+      tags:
+        - Suppliers
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: workspaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSupplierRequest'
+      responses:
+        '201':
+          description: Supplier created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /workspaces/{workspaceId}/suppliers/active:
+    get:
+      summary: Get all active suppliers for a workspace
+      tags:
+        - Suppliers
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: workspaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the workspace
+      responses:
+        '200':
+          description: List of active suppliers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Supplier'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /workspaces/{workspaceId}/suppliers/{id}:
+    get:
+      summary: Get a specific supplier
+      tags:
+        - Suppliers
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: workspaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the workspace
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the supplier
+      responses:
+        '200':
+          description: Supplier details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+        '404':
+          description: Supplier not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update an existing supplier
+      tags:
+        - Suppliers
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: workspaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the workspace
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the supplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSupplierRequest'
+      responses:
+        '200':
+          description: Supplier updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+        '404':
+          description: Supplier not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a supplier
+      tags:
+        - Suppliers
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: workspaceId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the workspace
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the supplier
+      responses:
+        '204':
+          description: Supplier deleted successfully
+        '404':
+          description: Supplier not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Cannot delete supplier that is used by products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /messages:
+    post:
+      summary: Process a customer message
+      description: >
+        Processes an incoming message from a WhatsApp user and returns a response.
+        Now includes language detection that will automatically detect the language
+        of the message and update the customer's language preference accordingly.
+        This enables the system to respond in the customer's preferred language.
+      tags:
+        - Messages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+                - phoneNumber
+                - workspaceId
+              properties:
+                message:
+                  type: string
+                  description: The message text from the customer
+                  example: "Hello, I want to know more about your products"
+                phoneNumber:
+                  type: string
+                  description: The phone number of the sender in international format
+                  example: "+391234567890"
+                workspaceId:
+                  type: string
+                  description: The ID of the workspace to process the message in
+                  example: "clj1z6qxr0000qwzlgt7a02jm"
+                sessionId:
+                  type: string
+                  description: Optional session ID for existing conversations
+                  example: "clj1z6qxr0001qwzlgt7a02jm"
+                isNewConversation:
+                  type: boolean
+                  description: Flag to indicate this is a new conversation
+                  example: false
+      responses:
+        '200':
+          description: Message processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      processedMessage:
+                        type: string
+                        example: "Thank you for your message. Our best-selling product is Italian extra virgin olive oil."
+                      detectedLanguage:
+                        type: string
+                        description: The detected language of the customer's message
+                        example: "en"
+                      sessionId:
+                        type: string
+                        example: "clj1z6qxr0001qwzlgt7a02jm"
+                      customerId:
+                        type: string
+                        example: "clj1z6qxr0002qwzlgt7a02jm"
+        '400':
+          description: Bad request - invalid parameters
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error

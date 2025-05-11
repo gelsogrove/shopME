@@ -43,7 +43,7 @@ import { authMiddleware } from "../middlewares/auth.middleware";
  */
 
 export const categoriesRouter = (controller: CategoriesController): Router => {
-  const router = Router();
+  const router = Router({ mergeParams: true });
 
   // All routes require authentication
   router.use(authMiddleware);
@@ -73,7 +73,7 @@ export const categoriesRouter = (controller: CategoriesController): Router => {
    *               items:
    *                 $ref: '#/components/schemas/Category'
    */
-  router.get("/workspaces/:workspaceId/categories", controller.getCategoriesForWorkspace.bind(controller));
+  router.get("/", controller.getCategoriesForWorkspace.bind(controller));
   
   /**
    * @swagger
@@ -117,7 +117,7 @@ export const categoriesRouter = (controller: CategoriesController): Router => {
    *             schema:
    *               $ref: '#/components/schemas/Category'
    */
-  router.post("/workspaces/:workspaceId/categories", controller.createCategory.bind(controller));
+  router.post("/", controller.createCategory.bind(controller));
   
   /**
    * @swagger
@@ -150,7 +150,7 @@ export const categoriesRouter = (controller: CategoriesController): Router => {
    *       404:
    *         description: Categoria non trovata
    */
-  router.get("/workspaces/:workspaceId/categories/:id", controller.getCategoryById.bind(controller));
+  router.get("/:id", controller.getCategoryById.bind(controller));
   
   /**
    * @swagger
@@ -199,7 +199,7 @@ export const categoriesRouter = (controller: CategoriesController): Router => {
    *       404:
    *         description: Categoria non trovata
    */
-  router.put("/workspaces/:workspaceId/categories/:id", controller.updateCategory.bind(controller));
+  router.put("/:id", controller.updateCategory.bind(controller));
   
   /**
    * @swagger
@@ -230,7 +230,7 @@ export const categoriesRouter = (controller: CategoriesController): Router => {
    *       400:
    *         description: Impossibile eliminare la categoria (potrebbe contenere prodotti)
    */
-  router.delete("/workspaces/:workspaceId/categories/:id", controller.deleteCategory.bind(controller));
+  router.delete("/:id", controller.deleteCategory.bind(controller));
 
   return router;
 }; 

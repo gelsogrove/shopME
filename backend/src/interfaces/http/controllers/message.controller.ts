@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { MessageService } from '../../../application/services/message.service';
+import { detectLanguage } from '../../../utils/language-detector';
 import logger from '../../../utils/logger';
 
 export class MessageController {
@@ -15,7 +16,7 @@ export class MessageController {
    */
   async processMessage(req: Request, res: Response): Promise<void> {
     try {
-      const { message, phoneNumber, workspaceId } = req.body;
+      const { message, phoneNumber, workspaceId, sessionId, isNewConversation } = req.body;
 
       // Validate required fields
       if (!message || typeof message !== 'string') {
@@ -50,6 +51,10 @@ export class MessageController {
       logger.info(`From phone number: ${phoneNumber}`);
       logger.info(`For workspace: ${workspaceId}`);
       
+      // Detect language of the incoming message
+      const detectedLanguage = detectLanguage(message);
+      logger.info(`Detected language for message: ${detectedLanguage}`);
+      
       // Process the message using the service
       const response = await this.messageService.processMessage(
         message,
@@ -63,6 +68,9 @@ export class MessageController {
       const lastMessage = recentMessages[0];
       const metadata = lastMessage?.metadata || {};
       
+      // Find the customer to get the updated language preference
+      const customer = await messageRepository.findCustomerByPhone(phoneNumber, workspaceId);
+      
       // Return the processed message with metadata
       res.status(200).json({
         success: true,
@@ -72,7 +80,11 @@ export class MessageController {
           phoneNumber: phoneNumber,
           workspaceId: workspaceId,
           timestamp: new Date().toISOString(),
-          metadata: metadata
+          metadata: metadata,
+          detectedLanguage: detectedLanguage,
+          sessionId: lastMessage?.chatSessionId || sessionId,
+          customerId: customer?.id,
+          customerLanguage: customer?.language
         }
       });
     } catch (error) {

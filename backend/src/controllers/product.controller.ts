@@ -10,28 +10,30 @@ export class ProductController {
 
   getAllProducts = async (req: Request, res: Response) => {
     try {
-      const { workspaceId } = req.params; // Prendi workspaceId dai parametri dell'URL
-      const workspaceIdQuery = req.query.workspaceId as string; // Supporta anche workspaceId dalla query string
-      const effectiveWorkspaceId = workspaceId || workspaceIdQuery;
+      const workspaceIdParam = req.params.workspaceId;
+      const workspaceIdQuery = req.query.workspaceId as string;
+      const effectiveWorkspaceId = workspaceIdParam || workspaceIdQuery;
       
       const { 
         search, 
-        categoryId, 
+        categoryId,
+        supplierId, 
         status, 
         page, 
         limit 
       } = req.query;
       
-      // Log per debug completo
       console.log('Get products request received:', {
-        paramsWorkspaceId: workspaceId,
+        paramsWorkspaceId: workspaceIdParam,
         queryWorkspaceId: workspaceIdQuery,
         effectiveWorkspaceId,
         search,
         categoryId,
+        supplierId,
         status,
         page,
         limit,
+        params: req.params,
         headers: req.headers,
         url: req.url,
         method: req.method,
@@ -49,7 +51,6 @@ export class ProductController {
         });
       }
       
-      // Converti i parametri numerici da stringhe a numeri
       const pageNumber = page ? parseInt(page as string) : undefined;
       const limitNumber = limit ? parseInt(limit as string) : undefined;
       
@@ -58,6 +59,7 @@ export class ProductController {
         options: {
           search,
           categoryId,
+          supplierId,
           status,
           pageNumber,
           limitNumber
@@ -69,6 +71,7 @@ export class ProductController {
         {
           search: search as string,
           categoryId: categoryId as string,
+          supplierId: supplierId as string,
           status: status as string,
           page: pageNumber,
           limit: limitNumber
@@ -82,7 +85,6 @@ export class ProductController {
         totalePagine: result.totalPages
       });
       
-      // Restituiamo direttamente l'array dei prodotti per uniformare le API
       return res.json(result.products);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -95,7 +97,18 @@ export class ProductController {
 
   getProductById = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const product = await this.productService.getProductById(id);
+    const workspaceIdParam = req.params.workspaceId;
+    const workspaceIdQuery = req.query.workspaceId as string;
+    const workspaceId = workspaceIdParam || workspaceIdQuery;
+    
+    if (!workspaceId) {
+      return res.status(400).json({ 
+        message: 'WorkspaceId is required',
+        error: 'Missing workspaceId parameter' 
+      });
+    }
+    
+    const product = await this.productService.getProductById(id, workspaceId);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
@@ -104,26 +117,47 @@ export class ProductController {
 
   getProductsByCategory = async (req: Request, res: Response) => {
     const { categoryId } = req.params;
-    const products = await this.productService.getProductsByCategory(categoryId);
+    const workspaceIdParam = req.params.workspaceId;
+    const workspaceIdQuery = req.query.workspaceId as string;
+    const workspaceId = workspaceIdParam || workspaceIdQuery;
+    
+    if (!workspaceId) {
+      return res.status(400).json({ 
+        message: 'WorkspaceId is required',
+        error: 'Missing workspaceId parameter' 
+      });
+    }
+    
+    const products = await this.productService.getProductsByCategory(categoryId, workspaceId);
     return res.json(products);
   };
 
   createProduct = async (req: Request, res: Response) => {
     try {
-      const { workspaceId } = req.params;
+      const workspaceIdParam = req.params.workspaceId;
+      const workspaceIdQuery = req.query.workspaceId as string;
+      const workspaceId = workspaceIdParam || workspaceIdQuery;
+      
       const productData = req.body;
       
       console.log('Creazione prodotto richiesta:', {
-        workspaceId,
+        workspaceIdParam,
+        workspaceIdQuery,
+        effectiveWorkspaceId: workspaceId,
         productData
       });
       
-      // Assicuriamoci che il workspaceId sia incluso nei dati del prodotto
-      if (workspaceId && !productData.workspaceId) {
+      if (!workspaceId) {
+        return res.status(400).json({ 
+          message: 'WorkspaceId is required',
+          error: 'Missing workspaceId parameter' 
+        });
+      }
+      
+      if (!productData.workspaceId) {
         productData.workspaceId = workspaceId;
       }
       
-      // Generiamo uno slug dal nome del prodotto se non è fornito
       if (!productData.slug && productData.name) {
         productData.slug = productData.name
           .toLowerCase()
@@ -153,7 +187,22 @@ export class ProductController {
 
   updateProduct = async (req: Request, res: Response) => {
     const { id } = req.params;
+    const workspaceIdParam = req.params.workspaceId;
+    const workspaceIdQuery = req.query.workspaceId as string;
+    const workspaceId = workspaceIdParam || workspaceIdQuery;
+    
+    if (!workspaceId) {
+      return res.status(400).json({ 
+        message: 'WorkspaceId is required',
+        error: 'Missing workspaceId parameter' 
+      });
+    }
+    
     const productData = req.body;
+    if (!productData.workspaceId) {
+      productData.workspaceId = workspaceId;
+    }
+    
     const product = await this.productService.updateProduct(id, productData);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
@@ -163,14 +212,36 @@ export class ProductController {
 
   deleteProduct = async (req: Request, res: Response) => {
     const { id } = req.params;
-    await this.productService.deleteProduct(id);
+    const workspaceIdParam = req.params.workspaceId;
+    const workspaceIdQuery = req.query.workspaceId as string;
+    const workspaceId = workspaceIdParam || workspaceIdQuery;
+    
+    if (!workspaceId) {
+      return res.status(400).json({ 
+        message: 'WorkspaceId is required',
+        error: 'Missing workspaceId parameter' 
+      });
+    }
+    
+    await this.productService.deleteProduct(id, workspaceId);
     return res.status(204).send();
   };
 
   updateProductStock = async (req: Request, res: Response) => {
     const { id } = req.params;
+    const workspaceIdParam = req.params.workspaceId;
+    const workspaceIdQuery = req.query.workspaceId as string;
+    const workspaceId = workspaceIdParam || workspaceIdQuery;
+    
+    if (!workspaceId) {
+      return res.status(400).json({ 
+        message: 'WorkspaceId is required',
+        error: 'Missing workspaceId parameter' 
+      });
+    }
+    
     const { stock } = req.body;
-    const product = await this.productService.updateProductStock(id, stock);
+    const product = await this.productService.updateProductStock(id, stock, workspaceId);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
@@ -179,8 +250,19 @@ export class ProductController {
 
   updateProductStatus = async (req: Request, res: Response) => {
     const { id } = req.params;
+    const workspaceIdParam = req.params.workspaceId;
+    const workspaceIdQuery = req.query.workspaceId as string;
+    const workspaceId = workspaceIdParam || workspaceIdQuery;
+    
+    if (!workspaceId) {
+      return res.status(400).json({ 
+        message: 'WorkspaceId is required',
+        error: 'Missing workspaceId parameter' 
+      });
+    }
+    
     const { status } = req.body;
-    const product = await this.productService.updateProductStatus(id, status);
+    const product = await this.productService.updateProductStatus(id, status, workspaceId);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }

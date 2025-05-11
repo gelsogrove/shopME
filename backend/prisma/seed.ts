@@ -843,7 +843,212 @@ async function main() {
     }
   }
 
-  // Create or update products with their categories
+  // Define suppliers
+  const suppliers = [
+    {
+      name: "Pastificio di Gragnano",
+      description: "Traditional pasta makers from Gragnano, Italy",
+      address: "Via Roma 123, Gragnano, Italy",
+      website: "https://www.pastificiogragnano.it",
+      phone: "+39 081 123456",
+      email: "info@pastificiogragnano.it",
+      contactPerson: "Marco Rossi",
+      notes: "Specializing in bronze-drawn pasta",
+      isActive: true,
+      slug: "pastificio-di-gragnano",
+      products: ["Gragnano IGP Pasta - Spaghetti", "Homemade Tagliatelle"]
+    },
+    {
+      name: "Caseificio Campania",
+      description: "Authentic cheese producers from Campania region",
+      address: "Via Napoli 45, Naples, Italy",
+      website: "https://www.caseificiocampania.it",
+      phone: "+39 081 987654",
+      email: "info@caseificiocampania.it",
+      contactPerson: "Giuseppe Esposito",
+      notes: "Specializing in buffalo mozzarella and fresh cheeses",
+      isActive: true,
+      slug: "caseificio-campania",
+      products: ["Mozzarella di Bufala Campana DOP"]
+    },
+    {
+      name: "Parmigiano Reggiano Consortium",
+      description: "Official consortium of Parmigiano Reggiano producers",
+      address: "Via Emilia 103, Parma, Italy",
+      website: "https://www.parmigianoreggiano.it",
+      phone: "+39 0521 292700",
+      email: "info@parmigianoreggiano.it",
+      contactPerson: "Antonio Bianchi",
+      notes: "Only authentic Parmigiano Reggiano DOP",
+      isActive: true,
+      slug: "parmigiano-reggiano-consortium",
+      products: ["Parmigiano Reggiano DOP 24 months"]
+    },
+    {
+      name: "Olio Toscano",
+      description: "Premium olive oil producers from Tuscany",
+      address: "Via Siena 78, Florence, Italy",
+      website: "https://www.oliotoscano.it",
+      phone: "+39 055 123456",
+      email: "info@oliotoscano.it",
+      contactPerson: "Francesca Ricci",
+      notes: "Family-owned olive groves since 1890",
+      isActive: true,
+      slug: "olio-toscano",
+      products: ["Tuscan IGP Extra Virgin Olive Oil"]
+    },
+    {
+      name: "Acetaia Modena",
+      description: "Traditional balsamic vinegar producers",
+      address: "Via Emilia Est 46, Modena, Italy",
+      website: "https://www.acetaiamodena.it",
+      phone: "+39 059 123456",
+      email: "info@acetaiamodena.it",
+      contactPerson: "Luigi Ferrari",
+      notes: "Using traditional methods passed down for generations",
+      isActive: true,
+      slug: "acetaia-modena",
+      products: ["Aceto Balsamico di Modena IGP"]
+    },
+    {
+      name: "Salumificio Parma",
+      description: "Premium ham and cured meat producers",
+      address: "Via Parma 34, Parma, Italy",
+      website: "https://www.salumificioparma.it",
+      phone: "+39 0521 123456",
+      email: "info@salumificioparma.it",
+      contactPerson: "Paolo Verdi",
+      notes: "Traditional curing methods for authentic flavor",
+      isActive: true,
+      slug: "salumificio-parma",
+      products: ["Prosciutto di Parma DOP 24 months"]
+    },
+    {
+      name: "Sicilia Delizie",
+      description: "Sicilian specialty food producers",
+      address: "Via Etna 56, Catania, Sicily, Italy",
+      website: "https://www.siciliadelizie.it",
+      phone: "+39 095 123456",
+      email: "info@siciliadelizie.it",
+      contactPerson: "Salvatore Russo",
+      notes: "Specializing in Sicilian nuts and sweets",
+      isActive: true,
+      slug: "sicilia-delizie",
+      products: ["Pistacchi di Bronte DOP", "Cannolo Siciliano Artigianale"]
+    },
+    {
+      name: "Trattoria Napoletana",
+      description: "Authentic Neapolitan cuisine",
+      address: "Via Tribunali 123, Naples, Italy",
+      website: "https://www.trattorianapoletana.it",
+      phone: "+39 081 123789",
+      email: "info@trattorianapoletana.it",
+      contactPerson: "Antonio Esposito",
+      notes: "Specializing in pizza and pasta",
+      isActive: true,
+      slug: "trattoria-napoletana",
+      products: ["Pizza Napoletana Artigianale"]
+    },
+    {
+      name: "Cucina Bolognese",
+      description: "Traditional Bolognese recipes",
+      address: "Via Indipendenza 45, Bologna, Italy",
+      website: "https://www.cucinabolognese.it",
+      phone: "+39 051 123456",
+      email: "info@cucinabolognese.it",
+      contactPerson: "Maria Rossi",
+      notes: "Specializing in ragù and fresh pasta",
+      isActive: true,
+      slug: "cucina-bolognese",
+      products: ["Tagliatelle al Ragù Bolognese", "Lasagna al Forno Tradizionale"]
+    },
+    {
+      name: "Liguria Sapori",
+      description: "Authentic Ligurian specialties",
+      address: "Via Garibaldi 67, Genoa, Italy",
+      website: "https://www.liguriasapori.it",
+      phone: "+39 010 123456",
+      email: "info@liguriasapori.it",
+      contactPerson: "Giovanni Bianchi",
+      notes: "Specializing in pesto and seafood dishes",
+      isActive: true,
+      slug: "liguria-sapori",
+      products: ["Trofie al Pesto Genovese"]
+    },
+    {
+      name: "Dolci Veneziani",
+      description: "Traditional Venetian desserts",
+      address: "Via Venezia 89, Venice, Italy",
+      website: "https://www.dolciveneziani.it",
+      phone: "+39 041 123456",
+      email: "info@dolciveneziani.it",
+      contactPerson: "Laura Neri",
+      notes: "Specializing in tiramisu and traditional sweets",
+      isActive: true,
+      slug: "dolci-veneziani",
+      products: ["Tiramisù Tradizionale"]
+    },
+    {
+      name: "Pescato Fresco",
+      description: "Fresh seafood supplier",
+      address: "Via del Mare 12, Bari, Italy",
+      website: "https://www.pescatofresco.it",
+      phone: "+39 080 123456",
+      email: "info@pescatofresco.it",
+      contactPerson: "Roberto Marino",
+      notes: "Daily fresh catch from the Adriatic Sea",
+      isActive: true,
+      slug: "pescato-fresco",
+      products: ["Linguine allo Scoglio"]
+    }
+  ];
+
+  // Create or update suppliers for the main workspace
+  const supplierMap = new Map(); // To store supplier id by name
+  
+  for (const supplier of suppliers) {
+    try {
+      const existingSupplier = await prisma.suppliers.findFirst({
+        where: {
+          name: supplier.name,
+          workspaceId: mainWorkspaceId,
+        },
+      });
+
+      let supplierId;
+      
+      if (!existingSupplier) {
+        const { products: productNames, ...supplierData } = supplier;
+        const createdSupplier = await prisma.suppliers.create({
+          data: {
+            ...supplierData,
+            workspaceId: mainWorkspaceId,
+          },
+        });
+        console.log(`Supplier created: ${supplier.name} for workspace ${createdWorkspaces[0].name}`);
+        supplierId = createdSupplier.id;
+      } else {
+        // Update existing supplier
+        const { products: productNames, ...supplierData } = supplier;
+        await prisma.suppliers.update({
+          where: { id: existingSupplier.id },
+          data: {
+            ...supplierData,
+            workspaceId: mainWorkspaceId,
+          },
+        });
+        console.log(`Supplier updated: ${supplier.name} for workspace ${createdWorkspaces[0].name}`);
+        supplierId = existingSupplier.id;
+      }
+      
+      // Store the supplier id in the map
+      supplierMap.set(supplier.name, supplierId);
+    } catch (error) {
+      console.error(`Error creating/updating supplier ${supplier.name}:`, error);
+    }
+  }
+
+  // Create or update products with their categories and suppliers
   for (const product of products) {
     // Find the category by name for this workspace
     const category = await prisma.categories.findFirst({
@@ -858,6 +1063,15 @@ async function main() {
         `Category ${product.categoryName} not found for workspace ${createdWorkspaces[0].name}`
       )
       continue
+    }
+
+    // Find the supplier for this product
+    let supplierId = null;
+    for (const supplier of suppliers) {
+      if (supplier.products.includes(product.name)) {
+        supplierId = supplierMap.get(supplier.name);
+        break;
+      }
     }
 
     // Create a product with proper type for Prisma
@@ -882,6 +1096,7 @@ async function main() {
             slug: `${product.slug}-${Date.now()}`, // Generiamo slug unici
             workspaceId: mainWorkspaceId,
             categoryId: category.id,
+            supplierId: supplierId,
           },
         })
         console.log(
@@ -899,6 +1114,7 @@ async function main() {
             image: product.image,
             isActive: true,
             categoryId: category.id,
+            supplierId: supplierId,
           },
         })
         console.log(
@@ -912,6 +1128,109 @@ async function main() {
         )
       } else {
         console.error(`Error creating/updating product ${product.name}:`, error)
+      }
+    }
+  }
+
+  // Create special offers for the workspace
+  console.log("Creating special offers...")
+
+  // Define sample offers
+  const specialOffers = [
+    {
+      name: "Black Friday Special",
+      description: "Huge discounts on all products for Black Friday weekend!",
+      discountPercent: 25,
+      startDate: new Date(new Date().getFullYear(), 10, 25), // November 25th
+      endDate: new Date(new Date().getFullYear(), 10, 28), // November 28th
+      isActive: true,
+      categoryId: null, // All categories
+    },
+    {
+      name: "Christmas Sale",
+      description: "Special holiday discounts on selected items",
+      discountPercent: 15,
+      startDate: new Date(new Date().getFullYear(), 11, 1), // December 1st
+      endDate: new Date(new Date().getFullYear(), 11, 24), // December 24th
+      isActive: true,
+      categoryId: null, // All categories
+    },
+    {
+      name: "Summer Clearance",
+      description: "End of summer special deals on selected products",
+      discountPercent: 30,
+      startDate: new Date(new Date().getFullYear(), 7, 15), // August 15th
+      endDate: new Date(new Date().getFullYear(), 8, 15), // September 15th
+      isActive: true,
+      categoryId: null, // All categories
+    }
+  ];
+
+  // Delete existing offers first
+  await prisma.offers.deleteMany({
+    where: {
+      workspaceId: mainWorkspaceId,
+    },
+  });
+  console.log("Deleted existing offers");
+
+  // Create new offers
+  for (const offer of specialOffers) {
+    try {
+      await prisma.offers.create({
+        data: {
+          ...offer,
+          workspaceId: mainWorkspaceId,
+        },
+      });
+      console.log(`Offer created: ${offer.name} for workspace ${createdWorkspaces[0].name}`);
+    } catch (error) {
+      console.error(`Error creating offer ${offer.name}:`, error);
+    }
+  }
+
+  // Create offers for specific categories
+  // First get a couple of categories to use for category-specific offers
+  const categories = await prisma.categories.findMany({
+    where: {
+      workspaceId: mainWorkspaceId,
+    },
+    take: 2,
+  });
+
+  if (categories.length > 0) {
+    const categorySpecificOffers = [
+      {
+        name: "Pasta Week",
+        description: "Special discounts on all pasta products",
+        discountPercent: 20,
+        startDate: new Date(new Date().setDate(new Date().getDate() - 5)), // Started 5 days ago
+        endDate: new Date(new Date().setDate(new Date().getDate() + 5)), // Ends 5 days from now
+        isActive: true,
+        categoryId: categories[0].id,
+      },
+      {
+        name: "Wine Tasting Special",
+        description: "Premium wines at special prices",
+        discountPercent: 10,
+        startDate: new Date(new Date().setDate(new Date().getDate())), // Starts today
+        endDate: new Date(new Date().setDate(new Date().getDate() + 14)), // Ends in 14 days
+        isActive: true,
+        categoryId: categories.length > 1 ? categories[1].id : categories[0].id,
+      }
+    ];
+
+    for (const offer of categorySpecificOffers) {
+      try {
+        await prisma.offers.create({
+          data: {
+            ...offer,
+            workspaceId: mainWorkspaceId,
+          },
+        });
+        console.log(`Category-specific offer created: ${offer.name} for workspace ${createdWorkspaces[0].name}`);
+      } catch (error) {
+        console.error(`Error creating offer ${offer.name}:`, error);
       }
     }
   }
