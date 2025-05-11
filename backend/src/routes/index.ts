@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response, Router } from "express"
+import offerRoutes from '../controllers/offer.controller'
 import { CategoriesController } from "../interfaces/http/controllers/categories.controller"
 import { CustomersController } from "../interfaces/http/controllers/customers.controller"
 import { EventsController } from "../interfaces/http/controllers/events.controller"
@@ -42,20 +43,24 @@ const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
   next()
 }
 
+// Log router setup
+logger.info("Setting up API routes")
+
+// Create a router instance
 const router = Router()
 
 // Add logging middleware
 router.use(loggingMiddleware)
 
-// Log router setup
-logger.info("Setting up API routes")
+// Create controllers in advance
+const customersController = new CustomersController()
+const servicesController = new ServicesController()
+const eventsController = new EventsController()
+const categoriesController = new CategoriesController()
 
 // Public routes
 router.use("/auth", authRouter)
 router.use("/registration", registrationApiRoutes)
-
-// Create customer controller first to use before workspaces
-const customersController = new CustomersController()
 
 // Protected routes - the auth middleware is applied in each router
 router.use("/chat", chatRouter())
@@ -77,21 +82,21 @@ logger.info(
 )
 
 // Mount products router (contains workspaces/:workspaceId/products routes)
-router.use(productsRouter)
+router.use("/", productsRouter)
 logger.info("Registered products router with workspace routes")
 
+// Mount categories router
+router.use("/", categoriesRouter(categoriesController))
+logger.info("Registered categories router with workspace routes")
+
 // Mount services router only on the workspace-specific path
-router.use(
-  "/workspaces/:workspaceId/services",
-  servicesRouter(new ServicesController())
-)
+const servicesRouterInstance = servicesRouter(servicesController)
+router.use("/workspaces/:workspaceId/services", servicesRouterInstance)
 logger.info("Registered services router")
 
 // Mount events router only on the workspace-specific path
-router.use(
-  "/workspaces/:workspaceId/events",
-  eventsRouter(new EventsController())
-)
+const eventsRouterInstance = eventsRouter(eventsController)
+router.use("/workspaces/:workspaceId/events", eventsRouterInstance)
 logger.info("Registered events router")
 
 // Mount FAQ router only on the workspace-specific path
@@ -103,7 +108,7 @@ router.use("/prompts", promptsRoutes)
 router.use("/upload", uploadRoutes)
 router.use("/whatsapp-settings", whatsappSettingsRoutes)
 router.use("/languages", languagesRoutes)
-router.use(categoriesRouter(new CategoriesController()))
+router.use("/offers", offerRoutes)
 
 logger.info("API routes setup complete")
 

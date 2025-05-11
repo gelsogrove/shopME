@@ -3,10 +3,10 @@
 ## 📊 Stato Attuale del Progetto
 **Ultimo aggiornamento:** 2025-05-10
 
-- **Completati:** 39/66 task (59.1%)
-- **In corso:** 0/66 task (0%)
-- **Out of scope:** 16/66 task (24.2%)
-- **Da iniziare:** 11/66 task (16.7%)
+- **Completati:** 42/67 task (62.7%)
+- **In corso:** 0/67 task (0%)
+- **Out of scope:** 16/67 task (23.9%)
+- **Da iniziare:** 9/67 task (13.4%)
 
 
 ### 🚩 Prossimo Task Prioritario
@@ -28,11 +28,31 @@
 - Authentication & 2FA: 4/10 completati, 5/10 fuori scope ⏳
 - Product Management: 9/10 completati, 1/10 in corso 🔄
 - Orders & Cart: 1/10 completati, 8/10 fuori scope 🔄
-- User Interface & UX: 8/12 completati ⏳
+- User Interface & UX: 11/12 completati ⏳
 - WhatsApp Integration: 1/10 completati ⏳
 - API Design: 0/2 completati ❌
 
 ### 🌟 Task Completati Recentemente
+- **TASK-0102**: Implementazione Dashboard Statica
+  - Creata dashboard con visualizzazione statica dei dati
+  - Implementati grafici simulati con CSS per conversazioni e tassi di conversione
+  - Aggiunta tabella delle performance dei canali di comunicazione
+  - Aggiunta sezione di attività recenti
+  - Mantenuto messaggio WIP per indicare che è in fase di sviluppo
+  - Utilizzato design coerente con il resto dell'applicazione
+
+- **TASK-0101**: Miglioramenti all'interfaccia e ai piani
+  - Spostata la voce "Surveys" sotto "Push Notifications" nel menu
+  - Uniformata la pagina Surveys con lo stile delle altre pagine WIP
+  - Aggiunta la funzionalità Surveys nei piani: non inclusa in Free e Premium, inclusa in Enterprise
+  - Verificato il corretto funzionamento con una build di produzione
+
+- **TASK-0100**: Aggiunta funzionalità Surveys (WIP)
+  - Aggiunta icona Surveys nella sidebar con ClipboardList
+  - Creata pagina SurveysPage con messaggio "Work in Progress"
+  - Aggiunta rotta /surveys nel router
+  - Implementata interfaccia base per la futura funzionalità
+
 - **TASK-0099**: Miglioramento Message Service con parametri dinamici dell'agente
   - Sostituito getResponseFromAgentRouter con getResponseFromAgent che accetta un oggetto Agent
   - Implementato metodo getAgentByWorkspaceId per ottenere l'agente dal workspace
@@ -239,10 +259,10 @@
 - Authentication & 2FA: 10 tasks (4 completati)
 - Product Management: 10 tasks (9 completati)
 - Orders & Cart: 10 tasks (1 completato)
-- User Interface & UX: 12 tasks (9 completati)
+- User Interface & UX: 12 tasks (10 completati)
 - AI, WhatsApp & Messaging: 12 tasks (2 completati)
 
-**Total Tasks: 66**
+**Total Tasks: 67**
 
 ## ✅ Full Task List
 
@@ -1341,3 +1361,48 @@ Implementare una funzionalità che applichi automaticamente uno sconto ai prezzi
 - [x] Update backend services to support max_tokens parameter
 - [x] Rename files from plural "agents" to singular "agent"
 - [x] Update PDR.md with information about OpenRouter parameters
+
+## ToDo Lista
+- [x] Inizializzazione progetto
+- [x] Autenticazione 
+- [x] CRUD Workspace 
+- [x] CRUD Users 
+- [x] CRUD Customers 
+- [x] CRUD Products 
+- [x] CRUD Categories 
+- [x] CRUD Services
+- [x] CRUD Events
+- [x] CRUD Chat 
+- [x] CRUD Prompts
+- [x] CRUD Orders (versione minima)
+- [x] CRUD FAQ
+- [x] Sistema Multi-Workspace
+- [x] Implementazione Sincronizzazione WhatsApp
+- [x] Supporto i18n (italiano, inglese, spagnolo)
+- [x] Pannello Admin (semplice)
+- [x] Sistema di analisi conversazioni (base)
+- [x] Revamp UI interfaccia
+- [x] Supporto Single AI Agent
+- [x] Dashboard statica con grafici simulati
+- [x] Sistema di offerte speciali
+- [ ] Sistema di notifiche push
+- [ ] Sistema di analisi conversazioni (avanzato)
+- [ ] Sistema di raccomandazione prodotti
+- [ ] Pagamento integrato
+- [ ] Dashboard dinamica con dati reali
+- [ ] Aggiornamento automatico Stati Ordini
+- [ ] Sistema di recensioni
+- [ ] Integrazione con sistemi ERP
+- [ ] Supporto per WooCommerce
+- [ ] App mobile companion
+
+## Descrizione delle funzionalità implementate
+
+### Sistema di offerte speciali
+- Implementata gestione completa di offerte/promozioni temporanee
+- Supporto per offerte globali o specifiche per categorie
+- Toggle per abilitare/disabilitare offerte
+- Periodo di validità con date di inizio e fine
+- Priorità automatica tra sconti cliente e offerte speciali
+- Aggiornamento automatico dei prezzi in base alle offerte attive
+- Informazioni sulle offerte incluse nei messaggi del chatbot AI

@@ -28,6 +28,22 @@ Email: privacy@shopme.app
 
 ---
 
+## SPECIAL OFFERS SYSTEM
+
+As a shop assistant, you should be aware of our special offers system and how to communicate it to customers:
+
+- Our store regularly runs special promotions and discounts on various products or categories.
+- When discussing products with active offers, emphasize the special discount and limited-time nature.
+- Always prioritize mentioning products with active discounts when relevant to the customer's query.
+- If a customer has a personal discount but a product also has a special offer, explain that the best discount is automatically applied.
+- Use phrases like "Special Offer", "Limited Time Promotion", or "Don't miss out on our current discount of X%" to create urgency.
+- When listing products with discounts, always mention both the original price (crossed out) and the current discounted price.
+- If customers ask about the duration of an offer, provide the end date if available.
+
+Remember that special offers take precedence over customer-specific discounts, and the system automatically applies the best available discount to each product.
+
+---
+
 ## 3. What Data We Collect
 
 ### a. End Users (WhatsApp Customers)

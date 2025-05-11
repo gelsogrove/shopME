@@ -1,3 +1,4 @@
+import GdprPage from "@/pages/GdprPage"
 import SettingsPage from "@/pages/SettingsPage"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
@@ -17,6 +18,7 @@ import { LoginPage } from "./pages/LoginPage"
 import MessageTestPage from "./pages/MessageTestPage"
 import NotFoundPage from "./pages/not-found"
 import NotificationsPage from "./pages/NotificationsPage"
+import { OffersPage } from "./pages/OffersPage"
 import OrdersPage from "./pages/OrdersPage"
 import PlansPage from "./pages/PlansPage"
 import CategoriesPage from "./pages/products/CategoriesPage"
@@ -29,6 +31,7 @@ import { CategoriesPage as SettingsCategoriesPage } from "./pages/settings/Categ
 import { ChannelTypesPage } from "./pages/settings/ChannelTypesPage"
 import { LanguagesPage } from "./pages/settings/LanguagesPage"
 import { ProductsPage as SettingsProductsPage } from "./pages/settings/ProductsPage"
+import SurveysPage from "./pages/SurveysPage"
 import { VerifyOtpPage } from "./pages/VerifyOtpPage"
 import { WorkspacePage } from "./pages/WorkspacePage"
 import { WorkspaceSelectionPage } from "./pages/WorkspaceSelectionPage"
@@ -93,6 +96,9 @@ export function App() {
           <Route path="/events" element={<Layout />}>
             <Route index element={<EventsPage />} />
           </Route>
+          <Route path="/surveys" element={<Layout />}>
+            <Route index element={<SurveysPage />} />
+          </Route>
           <Route path="/notifications" element={<Layout />}>
             <Route index element={<NotificationsPage />} />
           </Route>
@@ -109,8 +115,16 @@ export function App() {
             <Route path="categories" element={<SettingsCategoriesPage />} />
             <Route path="products" element={<SettingsProductsPage />} />
           </Route>
+          <Route path="/gdpr" element={<Layout />}>
+            <Route index element={<GdprPage />} />
+          </Route>
           <Route path="/workspace" element={<Layout />}>
             <Route index element={<WorkspacePage />} />
+          </Route>
+          
+          {/* Modifico la route per offers per usare Layout e OffersPage */}
+          <Route path="/offers" element={<Layout />}>
+            <Route index element={<OffersPage />} />
           </Route>
         </Route>
 

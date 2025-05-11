@@ -17,6 +17,7 @@ import {
     LogOut,
     Phone,
     Settings,
+    ShieldCheck,
     User,
 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -171,6 +172,13 @@ export function Header() {
               >
                 <Settings className="mr-3 h-5 w-5" />
                 <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="p-4 text-lg cursor-pointer"
+                onClick={() => navigate("/gdpr")}
+              >
+                <ShieldCheck className="mr-3 h-5 w-5" />
+                <span>GDPR Policy</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="p-4 text-lg cursor-pointer"

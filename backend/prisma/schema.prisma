@@ -41,6 +41,7 @@ model Workspace {
   services            Services[]
   users               UserWorkspace[]
   whatsappSettings    WhatsappSettings?
+  offers              Offers[]
 }
 
 model Categories {
@@ -54,6 +55,7 @@ model Categories {
   slug        String
   workspace   Workspace  @relation(fields: [workspaceId], references: [id])
   products    Products[]
+  offers      Offers[]
 
   @@unique([slug, workspaceId])
   @@map("categories")
@@ -194,6 +196,7 @@ model Prompts {
   top_k         Int?      @default(40)
   model         String?   @default("GPT-4.1-mini")
   max_tokens    Int?      @default(1000)
+  isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
@@ -394,6 +397,24 @@ model FAQ {
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   @@map("faqs")
+}
+
+model Offers {
+  id              String      @id @default(cuid())
+  name            String
+  description     String?
+  discountPercent Float
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean     @default(true)
+  categoryId      String?
+  workspaceId     String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  category        Categories? @relation(fields: [categoryId], references: [id])
+  workspace       Workspace   @relation(fields: [workspaceId], references: [id])
+
+  @@map("offers")
 }
 
 enum UserStatus {

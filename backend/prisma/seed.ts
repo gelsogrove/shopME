@@ -1,11 +1,17 @@
 import { PrismaClient } from "@prisma/client"
 import * as bcrypt from "bcrypt"
+import dotenv from "dotenv"
 import fs from "fs"
 import path from "path"
 
+// Load environment variables
+dotenv.config()
+
 const prisma = new PrismaClient()
 
-let adminEmail = "admin@shopme.com" // Define a variable to store admin email
+// Use environment variables with fallbacks
+let adminEmail = process.env.ADMIN_EMAIL || ""
+let adminPassword = process.env.ADMIN_PASSWORD || "" // Default for backward compatibility
 
 // Define the default agent at the top level of the script
 const defaultAgent = {
@@ -26,11 +32,11 @@ const mainWorkspaceId = "cm9hjgq9v00014qk8fsdy4ujv"
 async function main() {
   // Check if the admin user already exists
   const existingAdmin = await prisma.user.findUnique({
-    where: { email: "admin@shopme.com" },
+    where: { email: adminEmail },
   })
 
   if (!existingAdmin) {
-    const hashedPassword = await bcrypt.hash("admin123", 10)
+    const hashedPassword = await bcrypt.hash(adminPassword, 10)
     const admin = await prisma.user.create({
       data: {
         email: adminEmail,
@@ -353,7 +359,7 @@ async function main() {
     },
   })
 
-  const existingLanguageCodes = existingLanguages.map((lang) => lang.code)
+  const existingLanguageCodes = existingLanguages.map((lang: { code: string }) => lang.code)
   const languagesToCreate = languageCodes.filter(
     (code) => !existingLanguageCodes.includes(code)
   )
@@ -464,7 +470,6 @@ async function main() {
         data: {
           name: agent.promptName,
           content: promptContent,
-          isActive: agent.isActive,
           isRouter: agent.isRouter,
           department: agent.department,
           temperature: 0.3,

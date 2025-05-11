@@ -1,44 +1,14 @@
- - non far partire i servizi backend frontend mcp che sono gia' attivi se li lanci abnbiamo un problema di porte
-- non inventarti nulla attieniti alle istruzioni
-- ritorna la lista delle cose fatte 
-- usa gli strumenti per verificare il corretto funzionamento
-- se hai dubbi chiedi e' imporante che siamo allineati
-- context @Backend @Frontend  
-- la build funziona ?
-- il test cd backend npm run test funziona?
-
-
-
-
-
-
-
-=============== TEST =============
-- agent
 - il flow  
 - PDR
 
 
-
-- non far partire i servizi backend frontend mcp che sono gia' attivi se li lanci abnbiamo un problema di porte
-- non inventarti nulla attieniti alle istruzioni
-- ritorna la lista delle cose fatte 
-- usa gli strumenti per verificare il corretto funzionamento
-- se hai dubbi chiedi e' imporante che siamo allineati
-- context @Backend @Frontend  
-- la build funziona ?
-- il test cd backend npm run test funziona?
-
-
-
-
-
-
-TASK 4
-- mi piacerebbe avere delle offerte mna non so come gestirle ne parliamo ? 
+TASK 1 
+mettere toast quandi si coneferma il save in tutte le pagine dove abbiamo una form di save, toast in alto a destra che duri 1 secondo.
+mettendo il testo es: GDRPR: Form has been saved, or Agents has been saved or Client has been saved
+ 
 
 TASK 5
-- quando un utente viene bloccato nella block list non deve comparire da nessuna parte ne nelle chatbot ne nei nuovi clienti ,deve sparire da tutte le parti avremo solo un numero di telefono dentro il campo blocklist del settings ha senso per te?
+- quando un utente viene bloccato nella block list non deve comparire da nessuna parte ne nelle chatbot ne nei nuovi clienti ,deve sparire da tutte le parti avremo solo un numero di telefono dentro il campo blocklist del settings ha senso per te? hai dubbi come lo fatesti ? hai un contesto ? se aggiorno
 
 
 
@@ -50,11 +20,15 @@ ma anche le altre pagine per esemepio se guardo la pagina di events lancia 3 vol
 5 volte l'endpoint me
 
 
-- offferts
-process.env.FRONTEND_URL 
+- possiamo implementare una struttura di forget password e di nuovo cliente ? 
+
+- attenzione che quando ci crea un worspace nuovo deve avere la tabella di settings, deve avere la tabella di agents bisogna getirla a dovere un nuovo user che fa 
 
 
   ========= LATER ==================
+
+- offferts
+process.env.FRONTEND_URL 
 
 - deve essere piu' simpatico discorsivo con faccine e piu ricco di testo e discorsiva cambia il prompt
 - view profile page (anche il prompt)

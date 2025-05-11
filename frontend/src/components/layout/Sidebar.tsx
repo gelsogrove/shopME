@@ -2,18 +2,20 @@ import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
 import { cn } from "@/lib/utils"
 import {
-    Bell,
-    Calendar,
-    HelpCircle,
-    LayoutGrid,
-    LucideIcon,
-    MessageSquare,
-    Package2,
-    ShoppingCart,
-    Tag,
-    Users,
-    Wrench
+  Bell,
+  Calendar,
+  ClipboardList,
+  HelpCircle,
+  LayoutGrid,
+  LucideIcon,
+  MessageSquare,
+  Package2,
+  ShoppingCart,
+  Tag,
+  Users,
+  Wrench
 } from "lucide-react"
+import { useState } from "react"
 import { NavLink } from "react-router-dom"
 
 interface SidebarLink {
@@ -22,6 +24,8 @@ interface SidebarLink {
   icon: LucideIcon
   badge?: number
   className?: string
+  children?: SidebarLink[]
+  isOpen?: boolean
 }
 
 export function Sidebar() {
@@ -31,6 +35,16 @@ export function Sidebar() {
     0
   )
   const { workspace } = useWorkspace()
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({
+    products: true // Inizialmente espanso
+  })
+
+  const toggleExpand = (key: string) => {
+    setExpandedItems(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }))
+  }
 
   const mainLinks: SidebarLink[] = [
     {
@@ -80,8 +94,13 @@ export function Sidebar() {
       icon: Bell,
     },
     {
+      href: "/surveys",
+      label: "Surveys (WIP)",
+      icon: ClipboardList,
+    },
+    {
       href: "/analytics",
-      label: "Analytics (WIP)",
+      label: "Dashboard (WIP)",
       icon: LayoutGrid,
     },
   ]
@@ -94,29 +113,88 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 px-4 space-y-2 py-6">
-          {mainLinks.map(({ href, label, icon: Icon, badge, className }) => (
-            <NavLink
-              key={href}
-              to={href}
-              end={href === "/products"}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors relative",
-                  isActive
-                    ? "bg-green-50 text-green-600"
-                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50",
-                  className
-                )
-              }
-            >
-              <Icon className="h-6 w-6" />
-              {label}
-              {badge !== undefined && (
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-medium text-white">
-                  {badge}
-                </span>
+          {mainLinks.map((link) => (
+            <div key={link.href}>
+              {link.children ? (
+                <div className="mb-1">
+                  <button
+                    onClick={() => toggleExpand('products')}
+                    className={cn(
+                      "flex w-full items-center justify-between gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors",
+                      expandedItems.products
+                        ? "bg-green-50 text-green-600"
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <link.icon className="h-6 w-6" />
+                      {link.label}
+                    </div>
+                    <svg
+                      className={`h-4 w-4 transition-transform ${
+                        expandedItems.products ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                  
+                  {expandedItems.products && (
+                    <div className="ml-6 mt-1 space-y-1">
+                      {link.children.map((child) => (
+                        <NavLink
+                          key={child.href}
+                          to={child.href}
+                          end={child.href === "/products"}
+                          className={({ isActive }) =>
+                            cn(
+                              "flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                              isActive
+                                ? "bg-green-50 text-green-600"
+                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                            )
+                          }
+                        >
+                          <child.icon className="h-5 w-5" />
+                          {child.label}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <NavLink
+                  key={link.href}
+                  to={link.href}
+                  end={link.href === "/"}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors relative",
+                      isActive
+                        ? "bg-green-50 text-green-600"
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50",
+                      link.className
+                    )
+                  }
+                >
+                  <link.icon className="h-6 w-6" />
+                  {link.label}
+                  {link.badge !== undefined && (
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-medium text-white">
+                      {link.badge}
+                    </span>
+                  )}
+                </NavLink>
               )}
-            </NavLink>
+            </div>
           ))}
         </nav>
       </div>

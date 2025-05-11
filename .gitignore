@@ -30,7 +30,7 @@ yarn-error.log*
 # Local files
 browser-tools-mcp/ 
 .specstory/
-.cursorrules
+.cursor/
 
 # Turbo
 .turbo

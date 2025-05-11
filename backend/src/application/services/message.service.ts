@@ -285,7 +285,7 @@ export class MessageService {
             .replace("{phone}", phoneNumber)
             .replace("{workspace}", workspaceId)
           if (!response.includes("http")) {
-            response += `\n\nRegister here: ${registrationUrl}`
+            response += `\n\n: ${registrationUrl}`
           }
           await this.messageRepository.createCustomer({
             name: "Unknown Customer",
@@ -401,7 +401,7 @@ export class MessageService {
           logger.warn(
             `Registration link not properly included in welcome message. Adding it explicitly.`
           )
-          response += `\n\nRegister here: ${registrationUrl}`
+          response += `\n\n ${registrationUrl}`
         }
 
         // Crea un record temporaneo del cliente se non esiste

@@ -1,4 +1,3 @@
-import { GdprSettingsTab } from "@/components/settings/GdprSettingsTab"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -19,7 +18,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import type { Language, Workspace } from "@/services/workspaceApi"
 import {
@@ -28,7 +26,7 @@ import {
   getLanguages,
   updateWorkspace,
 } from "@/services/workspaceApi"
-import { Loader2, Settings, ShieldCheck, Trash2, Video } from "lucide-react"
+import { Loader2, Save, Settings, Trash2, Video } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
@@ -63,7 +61,6 @@ export default function SettingsPage() {
     language: "en",
     currency: "EUR",
     challengeStatus: false,
-    wipMessage: "Work in progress. Please contact us later.",
   })
 
   const [selectedLanguage, setSelectedLanguage] = useState("en")
@@ -273,32 +270,18 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h2 className="text-2xl font-bold mb-6">Settings</h2>
+    <div className="container pl-0 pr-4 pt-4 pb-4">
+      <div className="grid grid-cols-12 gap-0">
+        <div className="col-span-11 col-start-1">
+          <div className="flex items-center gap-2 mb-6">
+            <Settings className="h-6 w-6 text-green-600" />
+            <h1 className="text-3xl font-bold text-green-600">Settings</h1>
+          </div>
 
-      <Tabs
-        defaultValue="general"
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-4"
-      >
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            <span>General Settings</span>
-          </TabsTrigger>
-          <TabsTrigger value="gdpr" className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4" />
-            <span>GDPR Policy</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="general" className="space-y-4">
           <Card>
             <CardContent className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-muted-foreground" />
                   <h3 className="text-xl font-medium">Channel Settings</h3>
                 </div>
                 <div className="flex items-center gap-2">
@@ -490,13 +473,11 @@ export default function SettingsPage() {
                   </p>
                 </div>
 
-                {/* URL Domain ora come campo finale */}
                 <div className="space-y-2">
                   <Label htmlFor="registration-url">URL Domain</Label>
                   <Input
                     id="registration-url"
                     type="url"
-                    placeholder="https://yourdomain.com"
                     value={workspace.url || ""}
                     onChange={(e) => handleFieldChange("url", e.target.value)}
                     className="mt-1"
@@ -514,7 +495,6 @@ export default function SettingsPage() {
                     }
                     className="mt-1"
                     rows={3}
-                    placeholder="Enter phone numbers to block, one per line. Format: +1234567890"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Enter phone numbers to block, one per line (e.g.,
@@ -523,7 +503,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="flex justify-between pt-4">
+              <div className="flex justify-end gap-2 pt-4">
                 <Button
                   variant="destructive"
                   onClick={() => setShowDeleteDialog(true)}
@@ -543,86 +523,81 @@ export default function SettingsPage() {
                       Saving...
                     </>
                   ) : (
-                    "Save Changes"
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
                   )}
                 </Button>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="gdpr">
-          <Card>
-            <CardContent className="p-6">
-              <GdprSettingsTab />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Workspace</DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone. This will permanently delete your
+                  workspace and all associated data.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Workspace</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. This will permanently delete your
-              workspace and all associated data.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showVideoDialog} onOpenChange={setShowVideoDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>How to Get Your WhatsApp API Key</DialogTitle>
-            <DialogDescription>
-              Follow these steps to obtain your WhatsApp Business API key.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <ol className="list-decimal pl-5 space-y-2">
-              <li>Log in to your Meta Business account.</li>
-              <li>Navigate to the Business Settings &gt; WhatsApp Accounts.</li>
-              <li>Select the phone number you want to use.</li>
-              <li>
-                Go to the API settings tab and generate a new API key (or use an
-                existing one).
-              </li>
-              <li>Copy the API key and paste it in the field above.</li>
-            </ol>
-            <p className="text-sm text-gray-500">
-              Note: You need a verified business account to use the WhatsApp
-              Business API.
-            </p>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setShowVideoDialog(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <Dialog open={showVideoDialog} onOpenChange={setShowVideoDialog}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>How to Get Your WhatsApp API Key</DialogTitle>
+                <DialogDescription>
+                  Follow these steps to obtain your WhatsApp Business API key.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <ol className="list-decimal pl-5 space-y-2">
+                  <li>Log in to your Meta Business account.</li>
+                  <li>Navigate to the Business Settings &gt; WhatsApp Accounts.</li>
+                  <li>Select the phone number you want to use.</li>
+                  <li>
+                    Go to the API settings tab and generate a new API key (or use an
+                    existing one).
+                  </li>
+                  <li>Copy the API key and paste it in the field above.</li>
+                </ol>
+                <p className="text-sm text-gray-500">
+                  Note: You need a verified business account to use the WhatsApp
+                  Business API.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button onClick={() => setShowVideoDialog(false)}>Close</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
     </div>
   )
 }

@@ -27,7 +27,9 @@ export default function GdprPage() {
           setGdprText(response.data.gdpr)
         } else {
           // If no GDPR policy exists yet, load the default from the file
-          await fetchDefaultGdpr()
+          const defaultResponse = await api.get('/gdpr/default')
+          setGdprText(defaultResponse.data.content)
+          setDefaultGdpr(defaultResponse.data.content)
         }
       } catch (error) {
         console.error("Failed to load GDPR data:", error)
@@ -38,17 +40,6 @@ export default function GdprPage() {
     }
     loadData()
   }, [])
-
-  const fetchDefaultGdpr = async () => {
-    try {
-      const defaultResponse = await api.get('/whatsapp-settings/default');
-      if (defaultResponse.data) {
-        setDefaultGdpr(defaultResponse.data);
-      }
-    } catch (error) {
-      console.error('Error fetching default GDPR:', error);
-    }
-  };
 
   const handleSave = async () => {
     setIsLoading(true)
@@ -79,48 +70,51 @@ export default function GdprPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="h-6 w-6 text-green-600" />
-          <h2 className="text-2xl font-bold text-green-600">Privacy & GDPR Policy</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-muted-foreground">
-            Edit your privacy policy and GDPR compliance statement
-          </p>
+    <div className="container pl-0 pr-4 pt-4 pb-4">
+      <div className="grid grid-cols-12 gap-0">
+        <div className="col-span-11 col-start-1">
+          <div className="flex items-center gap-2 mb-6">
+            <ShieldCheck className="h-6 w-6 text-green-600" />
+            <h1 className="text-3xl font-bold text-green-600">Privacy & GDPR Policy</h1>
+          </div>
+          
+          <Card>
+            <CardContent className="p-6 space-y-6">
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Edit your privacy policy and GDPR compliance statement that will be shown to your customers.
+                </p>
+                
+                <Textarea
+                  value={gdprText}
+                  onChange={(e) => setGdprText(e.target.value)}
+                  className="min-h-[400px] font-mono text-sm"
+                />
+                
+                <div className="flex justify-end mt-4">
+                  <Button 
+                    onClick={handleSave} 
+                    disabled={isLoading}
+                    className="flex items-center gap-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        Save Policy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
-      
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <Textarea
-            value={gdprText}
-            onChange={(e) => setGdprText(e.target.value)}
-            className="min-h-[500px] font-mono text-sm"
-          />
-          
-          <div className="flex justify-end mt-6">
-            <Button 
-              onClick={handleSave} 
-              disabled={isLoading}
-              className="flex items-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4" />
-                  Save Policy
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 } 

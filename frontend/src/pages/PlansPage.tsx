@@ -1,12 +1,12 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle
 } from "@/components/ui/card"
 import { Check, CreditCard } from "lucide-react"
 import { useState } from "react"
@@ -46,9 +46,9 @@ export default function PlansPage() {
         { text: "Order management", included: true },
         { text: "Priority support", included: true },
         { text: "API access", included: false },
-
         { text: "Advanced analytics", included: false },
         { text: "Push notifications", included: false },
+        { text: "Surveys", included: false },
       ],
       buttonText: "Get Started",
     },
@@ -67,10 +67,9 @@ export default function PlansPage() {
         { text: "Order management", included: true },
         { text: "Priority support", included: true },
         { text: "API access", included: true },
-
         { text: "Advanced analytics", included: true },
         { text: "Push notifications", included: false },
-
+        { text: "Surveys", included: false },
       ],
       buttonText: "Upgrade Now",
       recommended: true,
@@ -90,7 +89,8 @@ export default function PlansPage() {
         { text: "Priority support", included: true },
         { text: "API access", included: true },
         { text: "Advanced analytics", included: true },
-        { text: "Push notifications", included: true }
+        { text: "Push notifications", included: true },
+        { text: "Surveys", included: true },
       ],
       buttonText: "Contact Sales",
     },
