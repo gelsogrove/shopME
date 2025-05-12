@@ -55,7 +55,7 @@ export class EventsController {
       
       if (!workspaceId) {
         console.error("Workspace ID is missing");
-        return res.status(400).json({ message: "Workspace ID is required" });
+        return res.status(400).json({ message: "Workspace ID is required - 1" });
       }
       
       const { 
@@ -114,7 +114,7 @@ export class EventsController {
     } catch (error) {
       console.error("Error creating event:", error)
       if (error.message === "workspaceId is required") {
-        return res.status(400).json({ message: "Workspace ID is required" });
+        return res.status(400).json({ message: "Workspace ID is required -  Create" });
       }
       throw new AppError(500, "Failed to create event")
     }

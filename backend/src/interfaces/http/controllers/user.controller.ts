@@ -1,104 +1,184 @@
-import bcrypt from "bcrypt"
-import { Request, Response } from "express"
+import { NextFunction, Request, Response } from "express"
 import { UserService } from "../../../application/services/user.service"
 import logger from "../../../utils/logger"
-import { AppError } from "../middlewares/error.middleware"
 
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  private userService: UserService
 
-  async getProfile(req: Request, res: Response): Promise<void> {
-    const userId = req.user?.userId
+  constructor(userService?: UserService) {
+    this.userService = userService || new UserService()
+  }
 
-    if (!userId) {
-      throw new AppError(401, "Unauthorized")
-    }
-
-    const user = await this.userService.getUserById(userId)
-    if (!user) {
-      throw new AppError(404, "User not found")
-    }
-
-    res.status(200).json({
-      user: {
+  /**
+   * Get the currently authenticated user
+   */
+  getCurrentUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.id
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" })
+      }
+      
+      const user = await this.userService.getById(userId)
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" })
+      }
+      
+      // Don't return the password
+      const userWithoutPassword = {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        phoneNumber: user.phoneNumber,
+        name: user.name,
         role: user.role,
-      },
-    })
-  }
-
-  async updateProfile(req: Request, res: Response): Promise<void> {
-    const userId = req.user?.userId
-    const { firstName, lastName, email, phoneNumber } = req.body
-
-    if (!userId) {
-      throw new AppError(401, "Unauthorized")
-    }
-
-    // If email is changed, check if it's already in use
-    if (email) {
-      const existingUser = await this.userService.getUserByEmail(email)
-      if (existingUser && existingUser.id !== userId) {
-        throw new AppError(400, "Email already in use")
+        isVerified: user.isVerified,
+        workspaceId: user.workspaceId,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        lastLogin: user.lastLogin
       }
+      
+      return res.json(userWithoutPassword)
+    } catch (error) {
+      logger.error('Error fetching current user:', error)
+      return next(error)
     }
-
-    const updatedUser = await this.userService.updateUser(userId, {
-      firstName,
-      lastName,
-      email,
-      phoneNumber,
-    })
-
-    res.status(200).json({
-      user: {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        phoneNumber: updatedUser.phoneNumber,
-        role: updatedUser.role,
-      },
-    })
   }
 
-  async changePassword(req: Request, res: Response): Promise<void> {
-    const userId = req.user?.userId
-    const { currentPassword, newPassword } = req.body
-
-    if (!userId) {
-      throw new AppError(401, "Unauthorized")
-    }
-
-    if (!currentPassword || !newPassword) {
-      throw new AppError(400, "Current password and new password are required")
-    }
-
-    const user = await this.userService.getUserById(userId)
-    if (!user) {
-      throw new AppError(404, "User not found")
-    }
-
-    // Verify current password
-    const isValidPassword = await bcrypt.compare(
-      currentPassword,
-      user.passwordHash
-    )
-    if (!isValidPassword) {
-      throw new AppError(401, "Invalid current password")
-    }
-
-    // Update password
+  /**
+   * Get all users
+   */
+  getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.userService.updatePassword(userId, newPassword)
-      res.status(200).json({ message: "Password updated successfully" })
+      // Check if we need to filter by workspace
+      const workspaceId = req.query.workspaceId as string
+      
+      let users
+      if (workspaceId) {
+        users = await this.userService.getUsersByWorkspace(workspaceId)
+      } else {
+        users = await this.userService.getAllUsers()
+      }
+      
+      // Don't return passwords
+      const usersWithoutPasswords = users.map(user => ({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        isVerified: user.isVerified,
+        workspaceId: user.workspaceId,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        lastLogin: user.lastLogin
+      }))
+      
+      return res.json(usersWithoutPasswords)
     } catch (error) {
-      logger.error("Error changing password:", error)
-      throw new AppError(500, "Failed to update password")
+      logger.error('Error fetching users:', error)
+      return next(error)
+    }
+  }
+
+  /**
+   * Get a specific user by ID
+   */
+  getUserById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      
+      const user = await this.userService.getById(id)
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" })
+      }
+      
+      // Don't return the password
+      const userWithoutPassword = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        isVerified: user.isVerified,
+        workspaceId: user.workspaceId,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        lastLogin: user.lastLogin
+      }
+      
+      return res.json(userWithoutPassword)
+    } catch (error) {
+      logger.error(`Error fetching user ${req.params.id}:`, error)
+      return next(error)
+    }
+  }
+
+  /**
+   * Create a new user
+   */
+  createUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userData = req.body
+      
+      const user = await this.userService.create(userData)
+      
+      // Don't return the password
+      const userWithoutPassword = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        isVerified: user.isVerified,
+        workspaceId: user.workspaceId,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        lastLogin: user.lastLogin
+      }
+      
+      return res.status(201).json(userWithoutPassword)
+    } catch (error) {
+      logger.error('Error creating user:', error)
+      if (error instanceof Error && error.message.includes('already exists')) {
+        return res.status(409).json({ message: error.message })
+      }
+      return next(error)
+    }
+  }
+
+  /**
+   * Update a user
+   */
+  updateUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const userData = req.body
+      
+      const user = await this.userService.update(id, userData)
+      
+    } catch (error) {
+      logger.error(`Error updating user ${req.params.id}:`, error)
+      return next(error)
+    }
+  }
+
+  /**
+   * Delete a user
+   */
+  deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      
+      const result = await this.userService.delete(id)
+      
+      if (!result) {
+        return res.status(404).json({ message: "User not found" })
+      }
+      
+      return res.status(204).send()
+    } catch (error) {
+      logger.error(`Error deleting user ${req.params.id}:`, error)
+      return next(error)
     }
   }
 } 

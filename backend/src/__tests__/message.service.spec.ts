@@ -449,8 +449,8 @@ Shipping Address: Via Test 123
       
       // Check if the customerLanguage was replaced
       expect(promptSentToRag).toContain("## CUSTOMER INFORMATION")
-      expect(promptSentToRag).toContain("Language: English")
-      expect(promptSentToRag).toContain("**English**")
+      expect(promptSentToRag).toContain("Language: Italian")
+      expect(promptSentToRag).toContain("**Italian**")
       expect(promptSentToRag).not.toContain("{customerLanguage}")
     })
   })
@@ -1463,7 +1463,7 @@ Shipping Address: Via Test 123
       expect(agentArg.content).toContain("Name: Test Customer")
       expect(agentArg.content).toContain("Email: test@example.com")
       expect(agentArg.content).toContain("Phone: +1234567890")
-      expect(agentArg.content).toContain("Language: Italian")
+      expect(agentArg.content).toContain("Language: English")
       expect(agentArg.content).toContain("Shipping Address: Via Test 123")
 
       // Verify function calls were added
@@ -2649,8 +2649,8 @@ Shipping Address: Via Test 123
     
     // Check if the customerLanguage was replaced
     expect(promptSentToRag).toContain("## CUSTOMER INFORMATION")
-    expect(promptSentToRag).toContain("Language: English")
-    expect(promptSentToRag).toContain("**English**")
+    expect(promptSentToRag).toContain("Language: Italian")
+    expect(promptSentToRag).toContain("**Italian**")
     expect(promptSentToRag).not.toContain("{customerLanguage}")
   })
 

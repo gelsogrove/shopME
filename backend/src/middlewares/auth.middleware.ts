@@ -76,7 +76,16 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     };
 
     // Get workspaceId from query params or headers
-    const workspaceId = (req.query?.workspaceId as string) || (req.headers?.["x-workspace-id"] as string);
+    const workspaceId = (req.query?.workspaceId as string) || (req.headers?.["x-workspace-id"] as string) || req.params?.workspaceId;
+    
+    console.log('workspaceId extraction in auth middleware:', {
+      fromQuery: req.query?.workspaceId,
+      fromHeaders: req.headers?.["x-workspace-id"],
+      fromParams: req.params?.workspaceId,
+      result: workspaceId,
+      requestPath: req.path,
+      url: req.originalUrl
+    });
     
     // Store the workspaceId if present
     if (workspaceId) {

@@ -1,106 +1,157 @@
-import { Request, Response } from "express";
-import { servicesService } from "../../../services/services.service";
-import { AppError } from "../middlewares/error.middleware";
+import { Response } from "express";
+import ServiceService from "../../../application/services/service.service";
+import logger from "../../../utils/logger";
+import { WorkspaceRequest } from "../types/workspace-request";
 
+/**
+ * ServicesController class
+ * Handles HTTP requests related to services
+ */
 export class ServicesController {
-  async getServicesForWorkspace(req: Request, res: Response) {
-    try {
-      const { workspaceId } = req.params
-      console.log("Getting services for workspace:", workspaceId);
-
-      const services = await servicesService.getAllForWorkspace(workspaceId)
-      console.log("Services found:", services);
-
-      return res.status(200).json(services)
-    } catch (error) {
-      console.error("Error getting services:", error)
-      throw new AppError(500, "Failed to get services")
-    }
+  private serviceService: typeof ServiceService;
+  
+  constructor() {
+    this.serviceService = ServiceService;
   }
 
-  async getServiceById(req: Request, res: Response) {
+  /**
+   * Get all services for a workspace
+   */
+  async getServicesForWorkspace(req: WorkspaceRequest, res: Response): Promise<Response> {
     try {
-      const { id, workspaceId } = req.params
-
-      const service = await servicesService.getById(id, workspaceId)
-
-      if (!service) {
-        return res.status(404).json({ message: "Service not found" })
-      }
-
-      return res.status(200).json(service)
-    } catch (error) {
-      console.error("Error getting service:", error)
-      throw new AppError(500, "Failed to get service")
-    }
-  }
-
-  async createService(req: Request, res: Response) {
-    try {
-      const { workspaceId } = req.params
-      const { name, description, price, currency, isActive } = req.body
-
-      const result = await servicesService.create({
-        name,
-        description,
-        price: parseFloat(price),
-        workspaceId,
-        currency,
-        isActive
-      })
-
-      return res.status(201).json(result)
-    } catch (error) {
-      console.error("Error creating service:", error)
-      throw new AppError(500, "Failed to create service")
-    }
-  }
-
-  async updateService(req: Request, res: Response) {
-    try {
-      const { id, workspaceId } = req.params
-      const { name, description, price, currency, isActive } = req.body
-
-      const priceValue = price !== undefined ? parseFloat(price) : undefined
+      const { workspaceId } = req.workspaceContext;
       
-      const result = await servicesService.update(id, workspaceId, {
-        name,
-        description,
-        price: priceValue,
-        currency,
-        isActive
-      })
-
-      if (!result) {
-        return res.status(404).json({ message: "Service not found" })
-      }
-
-      return res.status(200).json(result)
+      logger.info(`Getting services for workspace: ${workspaceId}`);
+      const services = await this.serviceService.getAllForWorkspace(workspaceId);
+      return res.json(services);
     } catch (error) {
-      console.error("Error updating service:", error)
-      if (error.message === "Service not found") {
-        return res.status(404).json({ message: "Service not found" })
-      }
-      throw new AppError(500, "Failed to update service")
+      logger.error("Error getting services:", error);
+      return res.status(500).json({ error: 'Failed to get services' });
     }
   }
 
-  async deleteService(req: Request, res: Response) {
+  /**
+   * Get service by ID
+   */
+  async getServiceById(req: WorkspaceRequest, res: Response): Promise<Response> {
     try {
-      const { id, workspaceId } = req.params
-
-      const service = await servicesService.getById(id, workspaceId)
-
+      const { id } = req.params;
+      const { workspaceId } = req.workspaceContext;
+      
+      const service = await this.serviceService.getById(id, workspaceId);
+      
       if (!service) {
-        return res.status(404).json({ message: "Service not found" })
+        return res.status(404).json({ error: 'Service not found' });
       }
-
-      await servicesService.delete(id, workspaceId)
-
-      return res.status(204).send()
+      
+      return res.json(service);
     } catch (error) {
-      console.error("Error deleting service:", error)
-      throw new AppError(500, "Failed to delete service")
+      logger.error(`Error getting service ${req.params.id}:`, error);
+      return res.status(500).json({ error: 'Failed to get service' });
+    }
+  }
+
+  /**
+   * Create a new service
+   */
+  async createService(req: WorkspaceRequest, res: Response): Promise<Response> {
+    try {
+      const { workspaceId } = req.workspaceContext;
+      
+      const { name, description, price, currency, duration, isActive } = req.body;
+      const serviceData = { 
+        name, 
+        description, 
+        price: parseFloat(price),
+        duration: parseInt(duration || '60', 10),
+        currency,
+        isActive: isActive !== undefined ? isActive : true,
+        workspaceId 
+      };
+      
+      logger.info(`Creating service for workspace: ${workspaceId}`);
+      const service = await this.serviceService.create(serviceData);
+      return res.status(201).json(service);
+    } catch (error: any) {
+      logger.error("Error creating service:", error);
+      
+      if (error.message === 'Invalid service data') {
+        return res.status(400).json({ error: error.message });
+      }
+      
+      return res.status(500).json({ error: 'Failed to create service' });
+    }
+  }
+
+  /**
+   * Update a service
+   */
+  async updateService(req: WorkspaceRequest, res: Response): Promise<Response> {
+    try {
+      const { id } = req.params;
+      const { workspaceId } = req.workspaceContext;
+      
+      // Verify service belongs to the workspace
+      const existingService = await this.serviceService.getById(id, workspaceId);
+      if (!existingService) {
+        return res.status(404).json({ error: 'Service not found in specified workspace' });
+      }
+      
+      const { name, description, price, currency, duration, isActive } = req.body;
+      
+      // Process numeric fields
+      const updateData: any = { name, description, currency, isActive };
+      
+      if (price !== undefined) {
+        updateData.price = parseFloat(price);
+      }
+      
+      if (duration !== undefined) {
+        updateData.duration = parseInt(duration, 10);
+      }
+      
+      const service = await this.serviceService.update(id, updateData);
+      
+      return res.json(service);
+    } catch (error: any) {
+      logger.error(`Error updating service ${req.params.id}:`, error);
+      
+      if (error.message === 'Service not found') {
+        return res.status(404).json({ error: 'Service not found' });
+      }
+      
+      if (error.message === 'Invalid service data') {
+        return res.status(400).json({ error: error.message });
+      }
+      
+      return res.status(500).json({ error: 'Failed to update service' });
+    }
+  }
+
+  /**
+   * Delete a service
+   */
+  async deleteService(req: WorkspaceRequest, res: Response): Promise<Response> {
+    try {
+      const { id } = req.params;
+      const { workspaceId } = req.workspaceContext;
+      
+      // Verify service belongs to the workspace
+      const existingService = await this.serviceService.getById(id, workspaceId);
+      if (!existingService) {
+        return res.status(404).json({ error: 'Service not found in specified workspace' });
+      }
+      
+      await this.serviceService.delete(id);
+      return res.status(204).send();
+    } catch (error: any) {
+      logger.error(`Error deleting service ${req.params.id}:`, error);
+      
+      if (error.message === 'Service not found') {
+        return res.status(404).json({ error: 'Service not found' });
+      }
+      
+      return res.status(500).json({ error: 'Failed to delete service' });
     }
   }
 } 

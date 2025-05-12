@@ -1,79 +1,114 @@
-import { OfferRepository } from '../../infrastructure/repositories/offer.repository';
-import logger from '../../utils/logger';
+import { Offer } from "../../domain/entities/offer.entity";
+import { IOfferRepository } from "../../domain/repositories/offer.repository.interface";
+import { OfferRepository } from "../../infrastructure/repositories/offer.repository";
+import logger from "../../utils/logger";
 
-// Definizione dell'interfaccia Offer
-interface Offer {
-  id: string;
-  name: string;
-  description: string | null;
-  discountPercent: number;
-  startDate: Date;
-  endDate: Date;
-  isActive: boolean;
-  categoryId: string | null;
-  workspaceId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  categoryName?: string;
-}
-
+/**
+ * Service layer for Offers
+ * Handles business logic for offers
+ */
 export class OfferService {
-  private offerRepository: OfferRepository;
+  private offerRepository: IOfferRepository;
 
   constructor() {
     this.offerRepository = new OfferRepository();
   }
 
-  async getAllOffers(workspaceId: string) {
+  /**
+   * Get all offers for a workspace
+   */
+  async getAllOffers(workspaceId: string): Promise<Offer[]> {
     try {
-      return this.offerRepository.findAll(workspaceId);
+      return await this.offerRepository.findAll(workspaceId);
     } catch (error) {
-      logger.error('Error in getAllOffers service:', error);
+      logger.error("Error getting all offers:", error);
       throw error;
     }
   }
 
-  async getOfferById(id: string, workspaceId: string) {
+  /**
+   * Get active offers, optionally filtered by category
+   */
+  async getActiveOffers(workspaceId: string, categoryId?: string): Promise<Offer[]> {
     try {
-      return this.offerRepository.findById(id, workspaceId);
+      return await this.offerRepository.findActive(workspaceId, categoryId);
     } catch (error) {
-      logger.error(`Error in getOfferById service for offer ${id}:`, error);
+      logger.error("Error getting active offers:", error);
       throw error;
     }
   }
 
-  async createOffer(offer: any) {
+  /**
+   * Get offer by ID
+   */
+  async getOfferById(id: string, workspaceId: string): Promise<Offer | null> {
     try {
-      return this.offerRepository.create(offer);
+      return await this.offerRepository.findById(id, workspaceId);
     } catch (error) {
-      logger.error('Error in createOffer service:', error);
+      logger.error(`Error getting offer ${id}:`, error);
       throw error;
     }
   }
 
-  async updateOffer(id: string, offer: any) {
+  /**
+   * Create a new offer
+   */
+  async createOffer(data: any): Promise<Offer> {
     try {
-      return this.offerRepository.update(id, offer);
+      // Validate required fields
+      if (!data.name || !data.discountPercent || !data.startDate || !data.endDate) {
+        throw new Error("Missing required fields");
+      }
+      
+      // Create offer entity for validation
+      const offerToValidate = new Offer(data);
+      if (!offerToValidate.validate()) {
+        throw new Error("Invalid offer data");
+      }
+      
+      return await this.offerRepository.create(data);
     } catch (error) {
-      logger.error(`Error in updateOffer service for offer ${id}:`, error);
+      logger.error("Error creating offer:", error);
       throw error;
     }
   }
 
-  async deleteOffer(id: string) {
+  /**
+   * Update an offer
+   */
+  async updateOffer(id: string, data: any): Promise<Offer> {
     try {
-      return this.offerRepository.delete(id);
+      // Check if offer exists
+      const existingOffer = await this.offerRepository.findById(id, data.workspaceId);
+      if (!existingOffer) {
+        throw new Error("Offer not found");
+      }
+      
+      // Create merged offer for validation
+      const offerToUpdate = new Offer({
+        ...existingOffer,
+        ...data
+      });
+      
+      if (!offerToUpdate.validate()) {
+        throw new Error("Invalid offer data");
+      }
+      
+      return await this.offerRepository.update(id, data);
     } catch (error) {
-      logger.error(`Error in deleteOffer service for offer ${id}:`, error);
+      logger.error(`Error updating offer ${id}:`, error);
       throw error;
     }
   }
 
-  async getActiveOffers(workspaceId: string, categoryId?: string) {
+  /**
+   * Delete an offer
+   */
+  async deleteOffer(id: string): Promise<boolean> {
     try {
-      return this.offerRepository.getActiveOffers(workspaceId, categoryId) as Promise<Offer[]>;
+      return await this.offerRepository.delete(id);
     } catch (error) {
-      logger.error('Error in getActiveOffers service:', error);
+      logger.error(`Error deleting offer ${id}:`, error);
       throw error;
     }
   }

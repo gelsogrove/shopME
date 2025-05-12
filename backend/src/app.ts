@@ -40,18 +40,27 @@ app.use(helmet({
 app.use(express.json())
 app.use(cookieParser())
 
+// API versioning
+const apiVersions = {
+  v1: apiRouter,
+  // v2: apiRouterV2, // For future versions
+}
+
 // Swagger documentation
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   explorer: true,
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: ""
+  customSiteTitle: "ShopMe API Documentation"
 }))
 
 // Log that we're about to mount the API router
 logger.info("Mounting API router at /api prefix")
 
-// Routes
+// Default version route (current version)
 app.use("/api", apiRouter)
+
+// Versioned routes
+app.use("/api/v1", apiRouter)
 
 // Mount agent routes directly at root level for legacy support
 app.use("/workspaces/:workspaceId/agent", agentRoutes)
@@ -124,7 +133,12 @@ app.use(errorMiddleware)
 
 // Add diagnostics endpoint for direct access
 app.get("/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+  res.json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    version: "1.0.0",
+    apiVersion: "v1"
+  });
 });
 
 export default app

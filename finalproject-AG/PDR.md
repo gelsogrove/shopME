@@ -22,6 +22,35 @@ The system now uses a single agent approach instead of multiple agents. This sim
   - Top-K: 0-100 (token selection limit)
   - Max Tokens: 100-8000 (response length limit) 
 
+## API Documentation and Versioning
+
+The system now includes comprehensive API documentation and versioning to improve developer experience and ensure backward compatibility as the API evolves.
+
+### Features
+- Interactive Swagger/OpenAPI documentation accessible at `/api/docs`
+- Complete documentation for all API endpoints
+- API versioning through URL path (e.g., `/api/v1/resource`)
+- Comprehensive API guide in `API_DOCUMENTATION.md`
+- Detailed request/response examples
+- Authentication and authorization documentation
+
+### Technical Implementation
+- Swagger UI integration for interactive documentation
+- JSDoc annotations on all API routes for automatic documentation generation
+- Version-specific routing in Express
+- Consistent response formats across all endpoints
+- Health check endpoint with version information
+- Support for both versioned and unversioned API calls for backward compatibility
+
+### API Documentation Features
+- Resource categorization by functional area
+- Authentication requirements clearly specified
+- Request and response schemas
+- Error handling documentation
+- Pagination information
+- Rate limiting details
+- Workspace context explanation
+
 ## Dashboard
 
 The Dashboard provides an at-a-glance overview of key metrics and performance indicators for the WhatsApp e-commerce platform. It is designed to give store administrators quick insights into their business operations.

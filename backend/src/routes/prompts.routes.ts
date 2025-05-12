@@ -1,25 +1,22 @@
 import { Router } from "express"
-import { promptsController } from "../controllers/prompts.controller"
+import { PromptsController } from "../controllers/prompts.controller"
 import { authMiddleware } from "../middlewares/auth.middleware"
 import { wrapController } from "../utils/controller-wrapper"
 
-const router = Router()
+export const createPromptsRouter = (promptsController: PromptsController): Router => {
+  const router = Router()
 
-// Apply auth middleware to all routes
-router.use(wrapController(authMiddleware))
+  // Apply auth middleware to all routes
+  router.use(wrapController(authMiddleware))
 
-// Routes that require workspaceId
-router.get('/workspaces/:workspaceId/prompts', wrapController(promptsController.getAllForWorkspace))
-router.post('/workspaces/:workspaceId/prompts', wrapController(promptsController.create))
+  // Add your routes here using promptsController
+  router.get("/", wrapController(promptsController.getAllPrompts.bind(promptsController)))
+  router.post("/", wrapController(promptsController.createPrompt.bind(promptsController)))
+  router.get("/:id", wrapController(promptsController.getPromptById.bind(promptsController)))
+  router.put("/:id", wrapController(promptsController.updatePrompt.bind(promptsController)))
+  router.delete("/:id", wrapController(promptsController.deletePrompt.bind(promptsController)))
 
-// Get all prompts
-router.get("/", wrapController(promptsController.getAllForWorkspace))
+  return router
+}
 
-// Get a specific prompt
-router.get('/prompts/:id', wrapController(promptsController.getById))
-router.put('/prompts/:id', wrapController(promptsController.update))
-router.delete('/prompts/:id', wrapController(promptsController.delete))
-router.post('/prompts/:id/activate', wrapController(promptsController.activate))
-router.post('/prompts/:id/duplicate', wrapController(promptsController.duplicate))
-
-export default router 
+export default createPromptsRouter 

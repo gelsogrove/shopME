@@ -1,3 +1,6 @@
+import { ProductStatus } from '@prisma/client';
+import { Product } from '../../domain/entities/product.entity';
+import { IProductRepository, ProductFilters } from '../../domain/repositories/product.repository.interface';
 import { ProductRepository } from '../../infrastructure/repositories/product.repository';
 import logger from '../../utils/logger';
 
@@ -18,27 +21,129 @@ interface Offer {
 }
 
 export class ProductService {
-  private productRepository: ProductRepository;
+  private productRepository: IProductRepository;
 
-  constructor() {
-    this.productRepository = new ProductRepository();
+  constructor(productRepository?: IProductRepository) {
+    this.productRepository = productRepository || new ProductRepository();
   }
 
-  async getAllProducts(workspaceId: string) {
+  async getAllProducts(workspaceId: string, filters?: ProductFilters) {
     try {
-      return this.productRepository.findAll(workspaceId);
+      logger.info('ProductService.getAllProducts chiamato con:', { workspaceId, filters });
+      return await this.productRepository.findAll(workspaceId, filters);
     } catch (error) {
-      logger.error('Error in getAllProducts service:', error);
-      throw error;
+      logger.error('Error in product service getAllProducts:', error);
+      throw new Error(`Failed to get products: ${(error as Error).message}`);
     }
   }
 
-  async getProductById(id: string, workspaceId: string) {
+  async getProductById(id: string, workspaceId: string): Promise<Product | null> {
     try {
-      return this.productRepository.findById(id, workspaceId);
+      return await this.productRepository.findById(id, workspaceId);
     } catch (error) {
-      logger.error(`Error in getProductById service for product ${id}:`, error);
-      throw error;
+      logger.error(`Error in product service getProductById for product ${id}:`, error);
+      throw new Error(`Failed to get product: ${(error as Error).message}`);
+    }
+  }
+
+  async getProductsByCategory(categoryId: string, workspaceId: string): Promise<Product[]> {
+    try {
+      return await this.productRepository.findByCategory(categoryId, workspaceId);
+    } catch (error) {
+      logger.error(`Error in product service getProductsByCategory for category ${categoryId}:`, error);
+      throw new Error(`Failed to get products by category: ${(error as Error).message}`);
+    }
+  }
+
+  async createProduct(productData: Partial<Product>): Promise<Product> {
+    try {
+      if (!productData.name) {
+        throw new Error('Product name is required');
+      }
+
+      if (productData.price === undefined || productData.price < 0) {
+        throw new Error('Product price must be a non-negative number');
+      }
+
+      if (!productData.workspaceId) {
+        throw new Error('WorkspaceId is required');
+      }
+
+      // Generate slug if not provided
+      if (!productData.slug && productData.name) {
+        productData.slug = productData.name
+          .toLowerCase()
+          .replace(/[^\w\s]/gi, '')
+          .replace(/\s+/g, '-') + '-' + Date.now();
+      }
+
+      // Default values
+      productData.status = productData.status || ProductStatus.ACTIVE;
+      productData.isActive = productData.isActive ?? true;
+      productData.stock = productData.stock ?? 0;
+
+      // Create a proper domain entity
+      const product = new Product(productData);
+      
+      return await this.productRepository.create(product);
+    } catch (error) {
+      logger.error('Error in product service createProduct:', error);
+      throw new Error(`Failed to create product: ${(error as Error).message}`);
+    }
+  }
+
+  async updateProduct(id: string, productData: Partial<Product>, workspaceId: string): Promise<Product | null> {
+    try {
+      // Check if price is valid when provided
+      if (productData.price !== undefined && productData.price < 0) {
+        throw new Error('Product price must be a non-negative number');
+      }
+
+      // Update the product
+      return await this.productRepository.update(id, productData, workspaceId);
+    } catch (error) {
+      logger.error(`Error in product service updateProduct for product ${id}:`, error);
+      throw new Error(`Failed to update product: ${(error as Error).message}`);
+    }
+  }
+
+  async deleteProduct(id: string, workspaceId: string): Promise<void> {
+    try {
+      await this.productRepository.delete(id, workspaceId);
+    } catch (error) {
+      logger.error(`Error in product service deleteProduct for product ${id}:`, error);
+      throw new Error(`Failed to delete product: ${(error as Error).message}`);
+    }
+  }
+
+  async updateProductStock(id: string, stock: number, workspaceId: string): Promise<Product | null> {
+    try {
+      if (stock < 0) {
+        throw new Error('Stock cannot be negative');
+      }
+      
+      return await this.productRepository.updateStock(id, stock, workspaceId);
+    } catch (error) {
+      logger.error(`Error in product service updateProductStock for product ${id}:`, error);
+      throw new Error(`Failed to update product stock: ${(error as Error).message}`);
+    }
+  }
+
+  async updateProductStatus(id: string, status: ProductStatus, workspaceId: string): Promise<Product | null> {
+    try {
+      return await this.productRepository.updateStatus(id, status, workspaceId);
+    } catch (error) {
+      logger.error(`Error in product service updateProductStatus for product ${id}:`, error);
+      throw new Error(`Failed to update product status: ${(error as Error).message}`);
+    }
+  }
+
+  async getProductsWithDiscounts(workspaceId: string, customerDiscount?: number): Promise<Product[]> {
+    try {
+      return await this.productRepository.getProductsWithDiscounts(workspaceId, customerDiscount);
+    } catch (error) {
+      logger.error('Error in product service getProductsWithDiscounts:', error);
+      throw new Error(`Failed to get products with discounts: ${(error as Error).message}`);
     }
   }
 
@@ -54,7 +159,7 @@ export class ProductService {
       // Ottieni tutti i prodotti
       const products = await this.productRepository.findAll(workspaceId);
       
-      // Se non ci sono prodotti, ritorna un array vuoto
+      // @ts-ignore
       if (!products || products.length === 0) return [];
       
       // Non ci sono più offerte attive
@@ -65,6 +170,7 @@ export class ProductService {
       const customerDiscount = customer?.discount || 0;
       
       // Per ogni prodotto, verifica gli sconti applicabili
+      // @ts-ignore
       return products.map(product => {
         // Se non ci sono offerte attive né sconti cliente, restituisci il prodotto invariato
         if (!hasActiveOffers && !customerDiscount) return product;

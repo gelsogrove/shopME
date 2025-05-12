@@ -1,31 +1,36 @@
-import { Router } from "express"
-import { WorkspaceController } from "../controllers/workspace.controller"
-import { authMiddleware } from "../middlewares/auth.middleware"
-import {
-  validateCreateWorkspace,
-  validateUpdateWorkspace,
-} from "../middlewares/workspace.validation"
+import { Router } from 'express';
+import logger from '../../../utils/logger';
+import { WorkspaceController } from '../controllers/workspace.controller';
+import { asyncHandler } from '../middlewares/async.middleware';
+import { authMiddleware } from '../middlewares/auth.middleware';
 
-export const workspaceRouter = (controller: WorkspaceController): Router => {
-  const router = Router()
+export const workspaceRouter = (): Router => {
+  const router = Router();
+  const workspaceController = new WorkspaceController();
+  
+  logger.info('Setting up workspace routes');
 
-  // Public routes
-  router.get("/", controller.listWorkspaces.bind(controller))
-  router.get("/:id", controller.getWorkspace.bind(controller))
+  // Apply auth middleware to all routes
+  router.use(authMiddleware);
+  
+  // Get all workspaces
+  router.get('/', asyncHandler(workspaceController.getAllWorkspaces));
+  
+  // Get a specific workspace
+  router.get('/:id', asyncHandler(workspaceController.getWorkspaceById));
+  
+  // Create a new workspace
+  router.post('/', asyncHandler(workspaceController.createWorkspace));
+  
+  // Update a workspace
+  router.put('/:id', asyncHandler(workspaceController.updateWorkspace));
+  
+  // Delete a workspace
+  router.delete('/:id', asyncHandler(workspaceController.deleteWorkspace));
+  
+  logger.info('Workspace routes setup complete');
+  return router;
+};
 
-  // Protected routes
-  router.use(authMiddleware)
-  router.post(
-    "/",
-    validateCreateWorkspace,
-    controller.createWorkspace.bind(controller)
-  )
-  router.put(
-    "/:id",
-    validateUpdateWorkspace,
-    controller.updateWorkspace.bind(controller)
-  )
-  router.delete("/:id", controller.deleteWorkspace.bind(controller))
-
-  return router
-}
+// Exporting for compatibility with existing code
+export const workspaceRoutes = workspaceRouter();

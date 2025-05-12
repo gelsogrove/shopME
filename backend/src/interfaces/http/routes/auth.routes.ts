@@ -1,18 +1,8 @@
-import { PrismaClient } from "@prisma/client"
 import { Router } from "express"
 import rateLimit from "express-rate-limit"
-import { OtpService } from "../../../application/services/otp.service"
-import { PasswordResetService } from "../../../application/services/password-reset.service"
-import { UserService } from "../../../application/services/user.service"
 import { AuthController } from "../controllers/auth.controller"
 import { asyncHandler } from "../middlewares/async.middleware"
 import { authMiddleware } from "../middlewares/auth.middleware"
-import {
-    validateForgotPassword,
-    validateResetPassword,
-} from "../middlewares/validation.middleware"
-
-const router = Router()
 
 // Rate limiters
 const twoFactorLimiter = rateLimit({
@@ -33,51 +23,34 @@ const registerLimiter = rateLimit({
   legacyHeaders: false,
 })
 
-// Initialize services and controller
-const prisma = new PrismaClient()
-const userService = new UserService(prisma)
-const otpService = new OtpService(prisma)
-const passwordResetService = new PasswordResetService(prisma)
-const authController = new AuthController(
-  userService,
-  otpService,
-  passwordResetService
-)
+export const createAuthRouter = (authController: AuthController): Router => {
+  const router = Router()
 
-// Routes
-router.post("/login", asyncHandler(authController.login.bind(authController)))
-router.post("/logout", asyncHandler(authController.logout.bind(authController)))
-router.get("/me", authMiddleware, asyncHandler(authController.me.bind(authController)))
+  // Routes
+  router.post("/login", asyncHandler(authController.login.bind(authController)))
 
-router.post(
-  "/register",
-  registerLimiter,
-  asyncHandler(authController.register.bind(authController))
-)
+  router.get("/me", authMiddleware, asyncHandler(authController.me.bind(authController)))
 
-router.post(
-  "/forgot-password",
-  validateForgotPassword,
-  asyncHandler(authController.forgotPassword.bind(authController))
-)
+  router.post(
+    "/register",
+    registerLimiter,
+    asyncHandler(authController.register.bind(authController))
+  )
 
-router.post(
-  "/reset-password",
-  validateResetPassword,
-  asyncHandler(authController.resetPassword.bind(authController))
-)
+  // 2FA routes
+  router.get(
+    "/2fa/setup/:userId",
+    twoFactorLimiter,
+    asyncHandler(authController.setup2FA.bind(authController))
+  )
 
-// 2FA routes
-router.get(
-  "/2fa/setup/:userId",
-  twoFactorLimiter,
-  asyncHandler(authController.setup2FA.bind(authController))
-)
+  router.post(
+    "/2fa/verify",
+    twoFactorLimiter,
+    asyncHandler(authController.verify2FA.bind(authController))
+  )
 
-router.post(
-  "/2fa/verify",
-  twoFactorLimiter,
-  asyncHandler(authController.verify2FA.bind(authController))
-)
+  return router
+}
 
-export { router as authRouter }
+export { createAuthRouter as authRouter }

@@ -7,9 +7,8 @@ import { asyncHandler } from '../middlewares/async.middleware';
 // Load environment variables
 dotenv.config();
 
-export const messagesRouter = (): express.Router => {
+export const messagesRouter = (messageController: MessageController): express.Router => {
   const router = express.Router();
-  const messageController = new MessageController();
 
   /**
    * @route POST /api/messages

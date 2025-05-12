@@ -584,19 +584,6 @@ export class MessageService {
           // Add customer information and function calls to the agent context
           this.enrichAgentContext(selectedAgent, customer)
 
-          // Process agent prompt to replace variables like {customerLanguage}
-          if (selectedAgent.content && customer) {
-            // Replace customerLanguage placeholder with actual customer language
-            // Per utenti registrati usiamo la lingua salvata nel loro profilo
-            const customerLanguage = customer.language || "Enlglish"
-            logger.info(`Using customer language: ${customerLanguage}`)
-
-            selectedAgent.content = selectedAgent.content.replace(
-              /\{customerLanguage\}/g,
-              customerLanguage
-            )
-          }
-
           // 2. Generate the prompt enriched with product and service context
           const systemPrompt = await this.messageRepository.getResponseFromRag(
             selectedAgent,
@@ -696,7 +683,21 @@ export class MessageService {
     context += `Name: ${customer.name}\n`
     context += `Email: ${customer.email || "Not provided"}\n`
     context += `Phone: ${customer.phone || "Not provided"}\n`
-    context += `Language: ${customer.language || "Italian"}\n`
+    
+    // Converti il codice della lingua in un formato leggibile
+    let languageDisplay = "English"; // Default
+    if (customer.language) {
+      const langCode = customer.language.toUpperCase();
+      if (langCode === 'IT' || langCode === 'ITALIAN' || langCode === 'ITALIANO') {
+        languageDisplay = "Italian";
+      } else if (langCode === 'ESP' || langCode === 'SPANISH' || langCode === 'ESPAÑOL') {
+        languageDisplay = "Spanish";
+      } else if (langCode === 'PRT' || langCode === 'PORTUGUESE' || langCode === 'PORTUGUÊS') {
+        languageDisplay = "Portuguese";
+      }
+    }
+    
+    context += `Language: ${languageDisplay}\n`
     context += `Shipping Address: ${customer.address || "Not provided"}\n\n`
     return context
   }
@@ -712,9 +713,33 @@ export class MessageService {
 
   private enrichAgentContext(selectedAgent: any, customer: Customer): void {
     if (selectedAgent.content && customer) {
+      // Aggiungi informazioni cliente e funzioni disponibili
       selectedAgent.content = this.getCustomerInfo(customer) + 
                             this.getAvailableFunctions() + 
                             selectedAgent.content
+      
+      // Sostituisci il placeholder {customerLanguage} con il nome della lingua leggibile
+      if (customer.language) {
+        // Converti il codice della lingua in un formato leggibile
+        let languageDisplay = "English"; // Default
+        const langCode = customer.language.toUpperCase();
+        if (langCode === 'IT' || langCode === 'ITALIAN' || langCode === 'ITALIANO') {
+          languageDisplay = "Italian";
+        } else if (langCode === 'ESP' || langCode === 'SPANISH' || langCode === 'ESPAÑOL') {
+          languageDisplay = "Spanish";
+        } else if (langCode === 'PRT' || langCode === 'PORTUGUESE' || langCode === 'PORTUGUÊS') {
+          languageDisplay = "Portuguese";
+        }
+        
+        // Sostituisci il placeholder con il nome della lingua leggibile
+        selectedAgent.content = selectedAgent.content.replace(
+          /\{customerLanguage\}/g,
+          languageDisplay
+        )
+        
+        // Aggiungi anche la lingua alla risposta
+        selectedAgent.content += `\nYour response MUST be in **${languageDisplay}** language.`
+      }
     }
   }
 }

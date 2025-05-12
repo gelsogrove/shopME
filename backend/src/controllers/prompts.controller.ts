@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from "express"
 import { promptsService } from "../services/prompts.service"
 
-export const promptsController = {
+export class PromptsController {
   /**
    * Get all prompts for a workspace
    */
-  async getAllForWorkspace(req: Request, res: Response, next: NextFunction) {
+  async getAllPrompts(req: Request, res: Response, next: NextFunction) {
     try {
       const { workspaceId } = req.params
       const prompts = await promptsService.getAllForWorkspace(workspaceId)
@@ -13,12 +13,12 @@ export const promptsController = {
     } catch (error) {
       next(error)
     }
-  },
+  }
 
   /**
    * Get a specific prompt by ID
    */
-  async getById(req: Request, res: Response, next: NextFunction) {
+  async getPromptById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params
       const prompt = await promptsService.getById(id)
@@ -31,12 +31,12 @@ export const promptsController = {
     } catch (error) {
       next(error)
     }
-  },
+  }
 
   /**
    * Create a new prompt
    */
-  async create(req: Request, res: Response, next: NextFunction) {
+  async createPrompt(req: Request, res: Response, next: NextFunction) {
     try {
       const { workspaceId } = req.params
       const promptData = {
@@ -49,12 +49,12 @@ export const promptsController = {
     } catch (error) {
       next(error)
     }
-  },
+  }
 
   /**
    * Update an existing prompt
    */
-  async update(req: Request, res: Response, next: NextFunction) {
+  async updatePrompt(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params
       
@@ -84,12 +84,12 @@ export const promptsController = {
     } catch (error) {
       next(error)
     }
-  },
+  }
 
   /**
    * Delete a prompt
    */
-  async delete(req: Request, res: Response, next: NextFunction) {
+  async deletePrompt(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params
       
@@ -106,12 +106,12 @@ export const promptsController = {
     } catch (error) {
       next(error)
     }
-  },
+  }
 
   /**
    * Activate a prompt (and deactivate all others)
    */
-  async activate(req: Request, res: Response, next: NextFunction) {
+  async activatePrompt(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params
       const activatedPrompt = await promptsService.activate(id)
@@ -124,12 +124,12 @@ export const promptsController = {
     } catch (error) {
       next(error)
     }
-  },
+  }
 
   /**
    * Duplicate a prompt
    */
-  async duplicate(req: Request, res: Response, next: NextFunction) {
+  async duplicatePrompt(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params
       console.log(`Duplicate request received for prompt ${id}`)

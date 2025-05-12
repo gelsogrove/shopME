@@ -1,110 +1,126 @@
-import { PrismaClient, User, UserRole } from "@prisma/client"
-import bcrypt from "bcrypt"
-import { AppError } from "../../interfaces/http/middlewares/error.middleware"
-
-export interface CreateUserData {
-  email: string
-  password: string
-  firstName: string
-  lastName: string
-  role?: UserRole
-  gdprAccepted: Date
-}
+import { PrismaClient } from '@prisma/client';
+import { User, UserProps } from '../../domain/entities/user.entity';
+import { UserRepositoryInterface } from '../../domain/repositories/user.repository.interface';
+import { UserRepository } from '../../infrastructure/repositories/user.repository';
+import logger from '../../utils/logger';
+import { comparePassword, hashPassword } from '../../utils/password';
 
 export class UserService {
-  constructor(private readonly prisma: PrismaClient) {}
+  private repository: UserRepositoryInterface;
 
-  async getUserById(id: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
-      where: { id },
-    })
+  constructor(prisma?: PrismaClient) {
+    this.repository = new UserRepository(prisma);
   }
 
-  async verifyCredentials(
-    email: string,
-    password: string
-  ): Promise<User | null> {
-    const user = await this.prisma.user.findUnique({ where: { email } })
-
-    if (!user) {
-      return null
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash)
-
-    if (!isPasswordValid) {
-      return null
-    }
-
-    return user
+  /**
+   * Get a user by ID
+   */
+  async getById(id: string): Promise<User | null> {
+    logger.info(`Getting user by ID: ${id}`);
+    return this.repository.findById(id);
   }
 
-  async getUserWithWorkspaces(userId: string) {
-    return this.prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        workspaces: {
-          include: {
-            workspace: true,
-          },
-        },
-      },
-    })
+  /**
+   * Get a user by email
+   */
+  async getByEmail(email: string): Promise<User | null> {
+    logger.info(`Getting user by email: ${email}`);
+    return this.repository.findByEmail(email);
   }
 
-  async createUser(data: CreateUserData): Promise<User> {
-    const { email, password, firstName, lastName, gdprAccepted } = data
-
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email },
-    })
-
+  /**
+   * Create a new user
+   */
+  async create(data: UserProps): Promise<User> {
+    logger.info(`Creating new user with email: ${data.email}`);
+    
+    // Check if user already exists
+    const existingUser = await this.repository.findByEmail(data.email);
     if (existingUser) {
-      throw new AppError(400, "User already exists")
+      logger.error(`User with email ${data.email} already exists`);
+      throw new Error('User with this email already exists');
     }
 
-    const passwordHash = await bcrypt.hash(password, 10)
-
-    return this.prisma.user.create({
-      data: {
-        email,
-        passwordHash,
-        firstName,
-        lastName,
-        gdprAccepted,
-        role: data.role || UserRole.MEMBER,
-      },
-    })
-  }
-
-  async updatePassword(userId: string, newPassword: string): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    })
-
-    if (!user) {
-      throw new AppError(404, "User not found")
+    // Hash the password if provided
+    if (data.password) {
+      data.password = await hashPassword(data.password);
     }
 
-    const salt = await bcrypt.genSalt(10)
-    const passwordHash = await bcrypt.hash(newPassword, salt)
-
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { passwordHash },
-    })
+    // Create user entity
+    const user = User.create(data);
+    
+    // Save to repository
+    return this.repository.create(user);
   }
 
-  async getUserByEmail(email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
-      where: { email },
-    })
+  /**
+   * Update a user
+   */
+  async update(id: string, data: Partial<UserProps>): Promise<User | null> {
+    logger.info(`Updating user with ID: ${id}`);
+    
+    // Hash password if it's being updated
+    if (data.password) {
+      data.password = await hashPassword(data.password);
+    }
+    
+    return this.repository.update(id, data);
   }
 
-  async updateUser(id: string, data: Partial<User>): Promise<User> {
-    return this.prisma.user.update({
-      where: { id },
-      data,
-    })
+  /**
+   * Delete a user
+   */
+  async delete(id: string): Promise<boolean> {
+    logger.info(`Deleting user with ID: ${id}`);
+    return this.repository.delete(id);
+  }
+
+  /**
+   * Authenticate a user
+   */
+  async authenticate(email: string, password: string): Promise<User | null> {
+    logger.info(`Authenticating user with email: ${email}`);
+    
+    const user = await this.repository.findByEmail(email);
+    if (!user || !user.password) {
+      logger.debug(`Authentication failed for email: ${email} - User not found or no password`);
+      return null;
+    }
+
+    const passwordMatches = await comparePassword(password, user.password);
+    if (!passwordMatches) {
+      logger.debug(`Authentication failed for email: ${email} - Password doesn't match`);
+      return null;
+    }
+
+    // Update last login time
+    await this.repository.updateLastLogin(user.id);
+    
+    logger.info(`User ${email} authenticated successfully`);
+    return user;
+  }
+
+  /**
+   * Verify a user's email
+   */
+  async verifyEmail(userId: string): Promise<User | null> {
+    logger.info(`Verifying email for user ID: ${userId}`);
+    return this.repository.verifyEmail(userId);
+  }
+
+  /**
+   * Get all users for a workspace
+   */
+  async getUsersByWorkspace(workspaceId: string): Promise<User[]> {
+    logger.info(`Getting users for workspace: ${workspaceId}`);
+    return this.repository.findByWorkspace(workspaceId);
+  }
+
+  /**
+   * Get all users
+   */
+  async getAllUsers(): Promise<User[]> {
+    logger.info('Getting all users');
+    return this.repository.findAll();
   }
 }

@@ -1,27 +1,25 @@
 import { Request, Response } from "express";
-import { supplierService } from "../../../services/supplier.service";
+import { SupplierService } from "../../../application/services/supplier.service";
+import logger from "../../../utils/logger";
 import { AppError } from "../middlewares/error.middleware";
 
 export class SuppliersController {
+  private supplierService: SupplierService;
+  
+  constructor() {
+    this.supplierService = new SupplierService();
+  }
+
   async getSuppliersForWorkspace(req: Request, res: Response) {
     try {
       const { workspaceId } = req.params;
-      console.log("=== Suppliers Request ===");
-      console.log("WorkspaceId:", workspaceId);
-      console.log("Headers:", req.headers);
-      console.log("User:", req.user);
-      console.log("======================");
-
-      const suppliers = await supplierService.getAllForWorkspace(workspaceId);
-      console.log("=== Suppliers Response ===");
-      console.log("Suppliers found:", suppliers);
-      console.log("======================");
-
+      logger.info(`Getting suppliers for workspace: ${workspaceId}`);
+      
+      const suppliers = await this.supplierService.getAllForWorkspace(workspaceId);
+      
       return res.status(200).json(suppliers);
     } catch (error) {
-      console.error("=== Suppliers Error ===");
-      console.error("Error getting suppliers:", error);
-      console.error("======================");
+      logger.error("Error getting suppliers:", error);
       throw new AppError(500, "Failed to get suppliers");
     }
   }
@@ -30,11 +28,11 @@ export class SuppliersController {
     try {
       const { workspaceId } = req.params;
 
-      const suppliers = await supplierService.getActiveForWorkspace(workspaceId);
+      const suppliers = await this.supplierService.getActiveForWorkspace(workspaceId);
 
       return res.status(200).json(suppliers);
     } catch (error) {
-      console.error("Error getting active suppliers:", error);
+      logger.error("Error getting active suppliers:", error);
       throw new AppError(500, "Failed to get active suppliers");
     }
   }
@@ -43,7 +41,7 @@ export class SuppliersController {
     try {
       const { id, workspaceId } = req.params;
 
-      const supplier = await supplierService.getById(id, workspaceId);
+      const supplier = await this.supplierService.getById(id, workspaceId);
 
       if (!supplier) {
         return res.status(404).json({ message: "Supplier not found" });
@@ -51,7 +49,7 @@ export class SuppliersController {
 
       return res.status(200).json(supplier);
     } catch (error) {
-      console.error("Error getting supplier:", error);
+      logger.error("Error getting supplier:", error);
       throw new AppError(500, "Failed to get supplier");
     }
   }
@@ -71,7 +69,7 @@ export class SuppliersController {
         isActive 
       } = req.body;
 
-      const result = await supplierService.create({
+      const result = await this.supplierService.create({
         name,
         description,
         address,
@@ -85,8 +83,8 @@ export class SuppliersController {
       });
 
       return res.status(201).json(result);
-    } catch (error) {
-      console.error("Error creating supplier:", error);
+    } catch (error: any) {
+      logger.error("Error creating supplier:", error);
       if (error.message === 'A supplier with this name already exists') {
         return res.status(409).json({ message: error.message });
       }
@@ -109,7 +107,7 @@ export class SuppliersController {
         isActive 
       } = req.body;
       
-      const result = await supplierService.update(id, workspaceId, {
+      const result = await this.supplierService.update(id, workspaceId, {
         name,
         description,
         address,
@@ -126,8 +124,8 @@ export class SuppliersController {
       }
 
       return res.status(200).json(result);
-    } catch (error) {
-      console.error("Error updating supplier:", error);
+    } catch (error: any) {
+      logger.error("Error updating supplier:", error);
       if (error.message === 'Supplier not found') {
         return res.status(404).json({ message: "Supplier not found" });
       }
@@ -142,23 +140,20 @@ export class SuppliersController {
     try {
       const { id, workspaceId } = req.params;
 
-      const supplier = await supplierService.getById(id, workspaceId);
-
-      if (!supplier) {
-        return res.status(404).json({ message: "Supplier not found" });
-      }
-
       try {
-        await supplierService.delete(id, workspaceId);
+        await this.supplierService.delete(id, workspaceId);
         return res.status(204).send();
-      } catch (error) {
+      } catch (error: any) {
+        if (error.message === 'Supplier not found') {
+          return res.status(404).json({ message: "Supplier not found" });
+        }
         if (error.message === 'Cannot delete supplier that is used by products') {
           return res.status(409).json({ message: error.message });
         }
         throw error;
       }
     } catch (error) {
-      console.error("Error deleting supplier:", error);
+      logger.error("Error deleting supplier:", error);
       throw new AppError(500, "Failed to delete supplier");
     }
   }

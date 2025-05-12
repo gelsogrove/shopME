@@ -56,9 +56,8 @@ import { authMiddleware } from '../middlewares/auth.middleware';
  *           description: When the message was created
  */
 
-export const chatRouter = (): express.Router => {
+export const chatRouter = (chatController: ChatController): express.Router => {
   const router = express.Router();
-  const chatController = new ChatController();
 
   /**
    * @swagger

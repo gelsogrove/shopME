@@ -20,7 +20,7 @@ export const agentController = {
         console.log(`No workspaceId in params, using ${workspaceId} from user or default`);
       } catch (error) {
         console.error("Failed to get default workspace ID:", error);
-        return res.status(400).json({ message: "Workspace ID is required" });
+        return res.status(400).json({ message: "Workspace ID is required1" });
       }
     }
     
@@ -54,7 +54,7 @@ export const agentController = {
         console.log(`No workspaceId in params, using ${workspaceId} from user or default`);
       } catch (error) {
         console.error("Failed to get default workspace ID:", error);
-        return res.status(400).json({ message: "Workspace ID is required" });
+        return res.status(400).json({ message: "Workspace ID is required2" });
       }
     }
     
@@ -91,7 +91,7 @@ export const agentController = {
         console.log(`No workspaceId in params, using ${workspaceId} from user or default`);
       } catch (error) {
         console.error("Failed to get default workspace ID:", error);
-        return res.status(400).json({ message: "Workspace ID is required" });
+        return res.status(400).json({ message: "Workspace ID is required 3" });
       }
     }
     
@@ -131,7 +131,7 @@ export const agentController = {
           console.log(`No workspaceId in params, using ${workspaceId} from user or default`);
         } catch (error) {
           console.error("Failed to get default workspace ID:", error);
-          return res.status(400).json({ message: "Workspace ID is required" });
+          return res.status(400).json({ message: "Workspace ID is required 4" });
         }
       }
       
@@ -184,7 +184,7 @@ export const agentController = {
           console.log(`No workspaceId in params, using ${workspaceId} from user or default`);
         } catch (error) {
           console.error("Failed to get default workspace ID:", error);
-          return res.status(400).json({ message: "Workspace ID is required" });
+          return res.status(400).json({ message: "Workspace ID is required 5" });
         }
       }
       

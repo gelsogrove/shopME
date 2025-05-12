@@ -1,65 +1,120 @@
-import { Request, Response } from "express"
-import { CreateWorkspaceUseCase } from "../../../application/use-cases/workspace/create-workspace.use-case"
-import { DeleteWorkspaceUseCase } from "../../../application/use-cases/workspace/delete-workspace.use-case"
-import { GetWorkspaceUseCase } from "../../../application/use-cases/workspace/get-workspace.use-case"
-import { ListWorkspacesUseCase } from "../../../application/use-cases/workspace/list-workspaces.use-case"
-import { UpdateWorkspaceUseCase } from "../../../application/use-cases/workspace/update-workspace.use-case"
-import { AppError } from "../middlewares/error.middleware"
-
-interface WorkspaceControllerConfig {
-  createWorkspaceUseCase: CreateWorkspaceUseCase
-  getWorkspaceUseCase: GetWorkspaceUseCase
-  listWorkspacesUseCase: ListWorkspacesUseCase
-  updateWorkspaceUseCase: UpdateWorkspaceUseCase
-  deleteWorkspaceUseCase: DeleteWorkspaceUseCase
-}
+import { NextFunction, Request, Response } from "express"
+import { WorkspaceService } from "../../../application/services/workspace.service"
+import logger from "../../../utils/logger"
 
 export class WorkspaceController {
-  private createWorkspaceUseCase: CreateWorkspaceUseCase
-  private getWorkspaceUseCase: GetWorkspaceUseCase
-  private listWorkspacesUseCase: ListWorkspacesUseCase
-  private updateWorkspaceUseCase: UpdateWorkspaceUseCase
-  private deleteWorkspaceUseCase: DeleteWorkspaceUseCase
+  private workspaceService: WorkspaceService
 
-  constructor(config: WorkspaceControllerConfig) {
-    this.createWorkspaceUseCase = config.createWorkspaceUseCase
-    this.getWorkspaceUseCase = config.getWorkspaceUseCase
-    this.listWorkspacesUseCase = config.listWorkspacesUseCase
-    this.updateWorkspaceUseCase = config.updateWorkspaceUseCase
-    this.deleteWorkspaceUseCase = config.deleteWorkspaceUseCase
+  constructor() {
+    this.workspaceService = new WorkspaceService()
   }
 
-  async createWorkspace(req: Request, res: Response) {
-    const workspace = await this.createWorkspaceUseCase.execute(req.body)
-    res.status(201).json(workspace.toJSON())
-  }
-
-  async getWorkspace(req: Request, res: Response) {
-    const { id } = req.params
-    const workspace = await this.getWorkspaceUseCase.execute(id)
-    if (!workspace) {
-      throw new AppError(404, "Workspace not found")
+  /**
+   * Get all workspaces
+   */
+  getAllWorkspaces = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      logger.info("Getting all workspaces")
+      const workspaces = await this.workspaceService.getAll()
+      return res.json(workspaces)
+    } catch (error) {
+      logger.error("Error fetching workspaces:", error)
+      return next(error)
     }
-    res.json(workspace.toJSON())
   }
 
-  async listWorkspaces(_req: Request, res: Response) {
-    const workspaces = await this.listWorkspacesUseCase.execute()
-    res.json(workspaces.map(w => w.toJSON()))
-  }
+  /**
+   * Get a workspace by ID
+   */
+  getWorkspaceById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      logger.info(`Getting workspace ${id}`)
 
-  async updateWorkspace(req: Request, res: Response) {
-    const { id } = req.params
-    const workspace = await this.updateWorkspaceUseCase.execute(id, req.body)
-    if (!workspace) {
-      throw new AppError(404, "Workspace not found")
+      if (!id) {
+        return res.status(400).json({ error: "Workspace ID is required" });
+      }
+
+      try {
+        const workspace = await this.workspaceService.getById(id)
+        
+        if (!workspace) {
+          return res.status(404).json({ message: "Workspace not found" })
+        }
+        
+        return res.json(workspace)
+      } catch (serviceError) {
+        logger.error(`Service error fetching workspace ${id}:`, serviceError)
+        // Restituisci un errore più specifico basato sull'errore del servizio
+        return res.status(500).json({ 
+          error: "Failed to retrieve workspace", 
+          details: serviceError instanceof Error ? serviceError.message : 'Unknown error'
+        });
+      }
+    } catch (error) {
+      logger.error(`Error in workspace controller for ID ${req.params.id}:`, error)
+      return next(error)
     }
-    res.json(workspace.toJSON())
   }
 
-  async deleteWorkspace(req: Request, res: Response) {
-    const { id } = req.params
-    await this.deleteWorkspaceUseCase.execute(id)
-    res.status(204).send()
+  /**
+   * Create a new workspace
+   */
+  createWorkspace = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      logger.info("Creating new workspace")
+      const workspaceData = req.body
+      
+      const workspace = await this.workspaceService.create(workspaceData)
+      return res.status(201).json(workspace)
+    } catch (error) {
+      logger.error("Error creating workspace:", error)
+      return next(error)
+    }
+  }
+
+  /**
+   * Update a workspace
+   */
+  updateWorkspace = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const workspaceData = req.body
+      
+      logger.info(`Updating workspace ${id}`)
+      
+      const workspace = await this.workspaceService.update(id, workspaceData)
+      
+      if (!workspace) {
+        return res.status(404).json({ message: "Workspace not found" })
+      }
+      
+      return res.json(workspace)
+    } catch (error) {
+      logger.error(`Error updating workspace ${req.params.id}:`, error)
+      return next(error)
+    }
+  }
+
+  /**
+   * Delete a workspace
+   */
+  deleteWorkspace = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      
+      logger.info(`Deleting workspace ${id}`)
+      
+      const result = await this.workspaceService.delete(id)
+      
+      if (!result) {
+        return res.status(404).json({ message: "Workspace not found" })
+      }
+      
+      return res.status(204).send()
+    } catch (error) {
+      logger.error(`Error deleting workspace ${req.params.id}:`, error)
+      return next(error)
+    }
   }
 }

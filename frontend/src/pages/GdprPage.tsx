@@ -22,7 +22,7 @@ export default function GdprPage() {
         }
         const workspace = JSON.parse(workspaceStr)
         
-        const response = await api.get(`/whatsapp-settings/${workspace.id}/gdpr`)
+        const response = await api.get(`/settings/${workspace.id}/gdpr`)
         if (response.data && response.data.gdpr) {
           setGdprText(response.data.gdpr)
         } else {
@@ -50,7 +50,7 @@ export default function GdprPage() {
       }
       const workspace = JSON.parse(workspaceStr)
       
-      await api.put(`/whatsapp-settings/${workspace.id}/gdpr`, { gdpr: gdprText })
+      await api.put(`/settings/${workspace.id}/gdpr`, { gdpr: gdprText })
       setIsLoading(false)
       toast.success("GDPR policy saved successfully", { duration: 1000 })
     } catch (error) {

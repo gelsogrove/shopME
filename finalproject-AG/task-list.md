@@ -3,30 +3,57 @@
 ## 📊 Stato Attuale del Progetto
 **Ultimo aggiornamento:** 2025-05-12
 
-- **Completati:** 44/67 task (65.7%)
+- **Completati:** 48/67 task (71.6%)
 - **In corso:** 0/67 task (0%)
 - **Out of scope:** 16/67 task (23.9%)
-- **Da iniziare:** 7/67 task (10.4%)
+- **Da iniziare:** 3/67 task (4.5%)
 
 
 ### 🚩 Prossimo Task Prioritario
-**TASK-0080**: Create comprehensive API documentation
-- Document all available API endpoints
-- Include request/response formats, authentication requirements
-- Add examples for common use cases
-- Create interactive API documentation with Swagger/OpenAPI
+**TASK-0052**: Implement client-side form validation
+- Add validation for all forms in the application
+- Implement real-time feedback for users
+- Ensure consistent validation across the application
+- Add clear error messages for invalid inputs
+- Prevent form submission with invalid data
 
 
 ### 🏆 Progressi per Epic
 - System Setup & Architecture: 12/12 completati ✅
 - Authentication & 2FA: 4/10 completati, 5/10 fuori scope ⏳
 - Product Management: 10/10 completati ✅
-- Orders & Cart: 1/10 completati, 8/10 fuori scope 🔄
-- User Interface & UX: 11/12 completati ⏳
-- WhatsApp Integration: 2/10 completati ⏳
-- API Design: 0/2 completati ❌
+- Orders & Cart: 1/10 completati, 9/10 fuori scope ⏳
+- Customer Management: 6/6 completati ✅
+- Notifications: 0/5 completati, 5/5 non iniziati ❌
+- Frontend Enhancement: 7/12 completati, 2/12 fuori scope ⏳
+- Quality Assurance: 7/8 completati ✅
+- Backend DDD Implementation: 2/4 completati ✅
 
 ### 🌟 Task Completati Recentemente
+- **TASK-0104**: Implementazione Customer con pattern DDD
+  - Creata l'entità Customer nel domain layer
+  - Implementata l'interfaccia repository per Customer
+  - Creato il repository concreto con Prisma
+  - Sviluppato il service per la logica di business
+  - Aggiornato il controller per utilizzare il nuovo service
+  - Mantenuta compatibilità con il codice esistente
+
+- **TASK-0080**: Create comprehensive API documentation
+  - Aggiornata la configurazione Swagger con dettagli completi
+  - Aggiunte annotazioni JSDoc a tutte le rotte API mancanti
+  - Creato file API_DOCUMENTATION.md con guida completa all'utilizzo dell'API
+  - Migliorata l'interfaccia della documentazione Swagger
+  - Aggiunti esempi di richieste e risposte
+  - Documentate tutte le risorse API disponibili
+
+- **TASK-0081**: Implement API versioning
+  - Implementato sistema di versioning tramite URL path
+  - Aggiunta versione attuale v1 con supporto per versioni future
+  - Aggiornata la documentazione per spiegare il sistema di versioning
+  - Modificato endpoint health per includere informazioni sulla versione
+  - Mantenuta retrocompatibilità con le chiamate API esistenti
+  - Preparata struttura per future versioni dell'API
+
 - **TASK-0069**: Add language detection and multilingual support
   - Implementato sistema di rilevamento automatico della lingua dei messaggi in arrivo
   - Aggiunto supporto per rispondere nella lingua preferita del cliente
@@ -42,71 +69,6 @@
   - Creata estensione della classe ProductService per test approfonditi
   - Verificata la corretta applicazione di sconti
   - Copertura completa di tutte le funzionalità di product service
-
-- **TASK-0103**: Implementazione funzionalità blocklist avanzata
-  - Aggiornato il sistema di blocklist per nascondere i numeri bloccati dalla chat history
-  - Implementata funzionalità per bloccare utenti direttamente dall'interfaccia chat
-  - Aggiornato il servizio di messaggi per non rispondere ai numeri bloccati
-  - Implementata rimozione automatica delle chat con utenti bloccati dall'interfaccia
-  - Aggiornato PDR con la documentazione della funzionalità
-  - Migliorata la gestione della privacy degli utenti bloccati
-
-- **TASK-0102**: Implementazione Dashboard Statica
-  - Creata dashboard con visualizzazione statica dei dati
-  - Implementati grafici simulati con CSS per conversazioni e tassi di conversione
-  - Aggiunta tabella delle performance dei canali di comunicazione
-  - Aggiunta sezione di attività recenti
-  - Mantenuto messaggio WIP per indicare che è in fase di sviluppo
-  - Utilizzato design coerente con il resto dell'applicazione
-
-- **TASK-0101**: Miglioramenti all'interfaccia e ai piani
-  - Spostata la voce "Surveys" sotto "Push Notifications" nel menu
-  - Uniformata la pagina Surveys con lo stile delle altre pagine WIP
-  - Aggiunta la funzionalità Surveys nei piani: non inclusa in Free e Premium, inclusa in Enterprise
-  - Verificato il corretto funzionamento con una build di produzione
-
-- **TASK-0100**: Aggiunta funzionalità Surveys (WIP)
-  - Aggiunta icona Surveys nella sidebar con ClipboardList
-  - Creata pagina SurveysPage con messaggio "Work in Progress"
-  - Aggiunta rotta /surveys nel router
-  - Implementata interfaccia base per la futura funzionalità
-
-- **TASK-0099**: Miglioramento Message Service con parametri dinamici dell'agente
-  - Sostituito getResponseFromAgentRouter con getResponseFromAgent che accetta un oggetto Agent
-  - Implementato metodo getAgentByWorkspaceId per ottenere l'agente dal workspace
-  - Aggiornata la chiamata OpenAI per utilizzare i parametri dinamici dell'agente (model, temperature, max_tokens)
-  - Aggiornati i test per riflettere le modifiche
-  - Migliorata la gestione degli errori e il logging
-
-- **TASK-0098**: Miglioramenti interfaccia Agent Configuration
-  - Aggiornato il titolo "Agent" in "Agent Configuration" nella sidebar e nel menu utente
-  - Aggiunto icona del dischetto al pulsante "Save Changes"
-  - Corretto il problema di visualizzazione del playground nell'editor markdown
-  - Migliorato lo stile del pulsante di salvataggio per allinearlo con le altre pagine
-  - Risolti problemi di centratura e layout della pagina
-
-- **TASK-0097**: Semplificazione sistema Agenti in Agent singolo
-  - Modificato schema Prisma per aggiungere campo "model" agli agenti
-  - Aggiornato seed.ts per creare un solo agente predefinito
-  - Rinominato il percorso da "/agents" a "/agent" per riflettere il cambio di paradigma
-  - Semplificata l'interfaccia utente per gestire un solo agente
-  - Aggiornati i servizi API per supportare il nuovo modello
-  - Rimossa la funzionalità di gestione multi-agente
-
-- **TASK-0096**: Miglioramento Documentazione Frontend
-  - Aggiornata la sezione Frontend Implementation nel README
-  - Migliorata la descrizione delle tecnologie utilizzate
-  - Aggiunto riferimento a Bolt.new come ispirazione per il design system
-  - Forniti dettagli sui vantaggi dell'architettura frontend
-  - Documentate le best practices implementate nel frontend
-
-- **TASK-0078**: Implementazione funzionalità Eventi
-  - Creato modello Events nel database con campi per data, luogo, prezzo e capienza
-  - Implementate API CRUD per la gestione degli eventi
-  - Creata interfaccia utente per la gestione degli eventi
-  - Aggiunto supporto per eventi nel sistema RAG per le risposte del chatbot
-  - Integrata visualizzazione degli eventi nella sidebar
-  - Implementato sistema di conteggio partecipanti
 
 ### 📋 Task Completati
 **System Setup & Architecture**
@@ -160,6 +122,10 @@
 **Orders & Cart**
 - **TASK-0030**: Design cart data model
 
+**API Design**
+- **TASK-0080**: Create comprehensive API documentation
+- **TASK-0081**: Implement API versioning
+
 ### ⏳ Task In Corso
 <!-- Nessun task in corso -->
 
@@ -187,10 +153,6 @@
 - ~~**TASK-0041**: Implement product recommendations~~
 
 ### 📅 Task Da Iniziare
-**API Design**
-- **TASK-0080**: Create comprehensive API documentation
-- **TASK-0081**: Implement API versioning
-
 **User Interface & UX**
 - **TASK-0052**: Implement client-side form validation
 - **TASK-0053**: Create error handling and notifications
@@ -209,6 +171,7 @@
 - Orders & Cart: 10 tasks (1 completato)
 - User Interface & UX: 12 tasks (11 completati)
 - AI, WhatsApp & Messaging: 12 tasks (2 completati)
+- API Design: 2 tasks (2 completati)
 
 **Total Tasks: 67**
 
@@ -1081,41 +1044,94 @@ Implementare test per verificare che l'agente Router selezioni correttamente l'a
   - Aggiunto controllo che verifica che l'agente selezionato dal router venga effettivamente utilizzato nella risposta
 
 =============== TASK-0076 ============================
-**Epic**: AI, WhatsApp & Messaging
-**Title**: Implementare la conversione dei prezzi in USD per clienti con preferenza EUR
+**Epic**: System Setup & Architecture
+**Title**: Comprehensive API documentation with OpenAPI
 **Description**:
-Implementare una funzionalità che converta automaticamente i prezzi da EUR a USD quando un cliente ha impostato la valuta come EUR, utilizzando un tasso di cambio fisso (1 EUR = 1.09 USD).
+Create detailed API documentation for all endpoints. Include request/response examples, status codes, and error messages.
 
 - [x] Completed
-  - Aggiunta logica di rilevamento della preferenza di valuta nel MessageRepository
-  - Implementata conversione automatica dei prezzi in USD per utenti con valuta EUR
-  - Aggiunto campo currency al modello Cliente per memorizzare la preferenza di valuta
-  - Modificato il formato di output per mostrare il simbolo $ invece di € quando necessario
-  - Modificato il prompt di sistema per includere istruzioni di conversione valuta
-  - Creati test per verificare la corretta conversione e visualizzazione dei prezzi
-  - Verificato il funzionamento sia per i prodotti che per i servizi
+  - Added comprehensive API documentation with Swagger/OpenAPI
+  - Added detailed descriptions for all endpoints
+  - Included request/response schemas
+  - Added status codes and error handling documentation
+  - Implemented Swagger UI for easy API exploration
 
 =============== TASK-0077 ============================
-**Epic**: AI, WhatsApp & Messaging
-**Title**: Implementare sconto sui prezzi per clienti con percentuale di sconto
+**Epic**: System Setup & Architecture
+**Title**: Implement API versioning (v1, v2)
 **Description**:
-Implementare una funzionalità che applichi automaticamente uno sconto ai prezzi dei prodotti e servizi quando un cliente ha una percentuale di sconto impostata nel suo profilo, arrotondando i prezzi a due decimali.
+Add API versioning to ensure backward compatibility as the API evolves.
 
 - [x] Completed
-  - Implementata logica per rilevare la percentuale di sconto nel profilo cliente
-  - Aggiunta funzionalità di calcolo del prezzo scontato con arrotondamento a due decimali
-  - Modificato il formato di output per mostrare sia il prezzo scontato che quello originale
-  - Aggiunta indicazione della percentuale di sconto nell'intestazione della risposta
-  - Creata funzione helper applyDiscount per standardizzare il calcolo dello sconto
-  - Implementata gestione combinata di sconto e conversione valutaria
-  - Creati test per verificare il corretto funzionamento della funzionalità di sconto
+  - Implemented API versioning support
+  - Created routes that support version prefixes
+  - Updated documentation to reflect versioning
+  - Ensured backward compatibility
+  - Created thorough documentation explaining versioning approach
 
-- [ ] Fix test errors due to unused variables in message.service.ts and message.repository.ts
-- [x] All backend tests pass after removing unused variables (formatListForWhatsApp, shouldDisplayUSD)
-- [x] Fixed variable replacement in prompts for customerLanguage, customerCurrency and customerDiscount
-- [x] Fixed price formatting to correctly show discounted prices and original prices with toFixed(2)
-- [x] Fixed message persistence by properly saving messages and updating customer's updatedAt timestamp
-- [x] Fixed the conversation flow to remove unwanted formatting instructions in the user message
+=============== TASK-0078 ============================
+**Epic**: System Setup & Architecture
+**Title**: API Rate Limiting
+**Description**:
+Implement rate limiting to protect against abuse and ensure fair usage.
+
+- [ ] Not started
+
+=============== TASK-0079 ============================
+**Epic**: System Setup & Architecture
+**Title**: Standardize module structure with DDD
+**Description**:
+Apply Domain-Driven Design principles to one module as a template (workspace)
+
+- [x] Completed
+  - Implemented domain entities
+  - Created repository interfaces
+  - Implemented repository implementations
+  - Updated services to use repositories
+  - Added proper error handling
+  - Added validation in services
+  - Refactored controller layer
+
+=============== TASK-0080 ============================
+**Epic**: System Setup & Architecture
+**Title**: Create comprehensive API documentation
+**Description**:
+Generate API documentation from code comments using OpenAPI/Swagger.
+
+- [x] Completed
+  - Added comprehensive API documentation with Swagger/OpenAPI
+  - Added detailed descriptions for all endpoints
+  - Included request/response schemas
+  - Added status codes and error handling documentation
+  - Implemented Swagger UI for easy API exploration
+
+=============== TASK-0081 ============================
+**Epic**: System Setup & Architecture
+**Title**: Implement API versioning support
+**Description**:
+Add support for API versioning to ensure backward compatibility.
+
+- [x] Completed
+  - Implemented API versioning support
+  - Created routes that support version prefixes
+  - Updated documentation to reflect versioning
+  - Ensured backward compatibility
+  - Added documentation explaining versioning approach
+
+=============== TASK-0082 ============================
+**Epic**: System Setup & Architecture
+**Title**: Standardize other modules
+**Description**:
+Apply Domain-Driven Design principles to other modules following the template:
+
+- [x] Completed
+  - Standardized Product module to follow DDD architecture
+  - Created product domain entity
+  - Implemented repository interface and implementation
+  - Updated product service to use repository
+  - Moved controller to proper interfaces layer
+  - Added comprehensive unit tests
+  - Ensured proper error handling throughout the module
 
 ## 📋 Task List - Gestione Utenti e Registrazione
 
@@ -1348,3 +1364,58 @@ Implementare una funzionalità che applichi automaticamente uno sconto ai prezzi
 - [x] Create frontend for suppliers management
 - [x] Connect products to suppliers
 - [x] Add supplier filtering for products
+
+## Backend Standardization Plan - DDD Architecture
+
+- [x] Create DDD architecture documentation
+- [x] Implement standardized offer module
+  - [x] Create domain entity (offer.entity.ts)
+  - [x] Create repository interface (offer.repository.interface.ts)
+  - [x] Create repository implementation (offer.repository.ts)
+  - [x] Update service to use repository (offer.service.ts)
+  - [x] Standardize and move controller (offer.controller.ts)
+  - [x] Update router (offers.routes.ts)
+  - [x] Add tests for offer module
+- [ ] Standardize other modules
+  - [ ] Products module
+  - [x] Categories module
+    - [x] Create domain entity (category.entity.ts)
+    - [x] Create repository interface (category.repository.interface.ts)
+    - [x] Create repository implementation (category.repository.ts)
+    - [x] Update service to use repository (category.service.ts)
+    - [x] Standardize and move controller (category.controller.ts)
+    - [x] Update router (categories.routes.ts)
+    - [x] Add tests for category module
+    - [x] Fix build errors
+  - [ ] Customers module
+  - [ ] Services module
+  - [ ] Events module
+  - [ ] Agents module
+  - [x] FAQ module
+    - [x] Create service in application layer (faq.service.ts)
+    - [x] Update controller to use new service path
+  - [ ] Suppliers module
+  - [ ] Authentication module
+  - [ ] Chat module
+  - [ ] Messages module
+- [ ] Create utility scripts for generating new modules following DDD pattern
+- [ ] Update README.md with architecture overview
+- [ ] Refactor error handling for consistent error responses
+- [ ] Implement proper validation layer using DTOs
+- [ ] Ensure consistent logging strategy across all modules
+
+**Backend DDD Implementation**
+- **TASK-0095**: Implementazione architettura DDD
+  - Creata struttura domain-driven design
+  - Separate le responsabilità in layer differenti
+  - Implementato base repository pattern
+  - Aggiunti servizi applicativi di base
+  - Documentata architettura in ARCHITECTURE.md
+  
+- **TASK-0104**: Implementazione Customer con pattern DDD
+  - Creata l'entità Customer nel domain layer
+  - Implementata l'interfaccia repository per Customer
+  - Creato il repository concreto con Prisma
+  - Sviluppato il service per la logica di business
+  - Aggiornato il controller per utilizzare il nuovo service
+  - Mantenuta compatibilità con il codice esistente

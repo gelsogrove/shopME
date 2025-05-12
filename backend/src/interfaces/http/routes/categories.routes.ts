@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { CategoriesController } from "../controllers/categories.controller";
+import { CategoryController } from "../controllers/category.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
 
 /**
@@ -42,8 +42,9 @@ import { authMiddleware } from "../middlewares/auth.middleware";
  *           description: Data dell'ultimo aggiornamento della categoria
  */
 
-export const categoriesRouter = (controller: CategoriesController): Router => {
+export const categoriesRouter = (): Router => {
   const router = Router({ mergeParams: true });
+  const controller = new CategoryController();
 
   // All routes require authentication
   router.use(authMiddleware);
@@ -73,7 +74,7 @@ export const categoriesRouter = (controller: CategoriesController): Router => {
    *               items:
    *                 $ref: '#/components/schemas/Category'
    */
-  router.get("/", controller.getCategoriesForWorkspace.bind(controller));
+  router.get("/", controller.getAllCategories.bind(controller));
   
   /**
    * @swagger
@@ -119,6 +120,41 @@ export const categoriesRouter = (controller: CategoriesController): Router => {
    */
   router.post("/", controller.createCategory.bind(controller));
   
+  /**
+   * @swagger
+   * /api/workspaces/{workspaceId}/categories/{id}/has-products:
+   *   get:
+   *     summary: Verifica se una categoria ha prodotti associati
+   *     tags: [Categories]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: ID del workspace
+   *       - in: path
+   *         name: id
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: ID della categoria
+   *     responses:
+   *       200:
+   *         description: Stato della categoria
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 hasProducts:
+   *                   type: boolean
+   *                   description: Indica se la categoria ha prodotti associati
+   */
+  router.get("/:id/has-products", controller.hasProducts.bind(controller));
+
   /**
    * @swagger
    * /api/workspaces/{workspaceId}/categories/{id}:
@@ -227,8 +263,8 @@ export const categoriesRouter = (controller: CategoriesController): Router => {
    *         description: Categoria eliminata con successo
    *       404:
    *         description: Categoria non trovata
-   *       400:
-   *         description: Impossibile eliminare la categoria (potrebbe contenere prodotti)
+   *       409:
+   *         description: Impossibile eliminare la categoria (contiene prodotti)
    */
   router.delete("/:id", controller.deleteCategory.bind(controller));
 

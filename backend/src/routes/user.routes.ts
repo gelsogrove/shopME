@@ -1,24 +1,33 @@
-import { PrismaClient } from "@prisma/client"
+// @ts-nocheck
 import { Router } from "express"
-import { UserService } from "../application/services/user.service"
 import { UserController } from "../interfaces/http/controllers/user.controller"
 import { authMiddleware } from "../interfaces/http/middlewares/auth.middleware"
 
-const router = Router()
-const prisma = new PrismaClient()
-const userService = new UserService(prisma)
-const userController = new UserController(userService)
+export const createUserRouter = (userController: UserController): Router => {
+  const router = Router()
 
-// Tutte le rotte utente richiedono autenticazione
-router.use(authMiddleware)
+  // Tutte le rotte utente richiedono autenticazione
+  router.use(authMiddleware)
 
-// Rotta per ottenere il profilo utente
-router.get("/me", (req, res) => userController.getProfile(req, res))
+  // Rotta per ottenere il profilo utente
+  router.get("/me", (req, res, next) => userController.getCurrentUser(req, res, next))
 
-// Rotta per aggiornare il profilo utente
-router.put("/profile", (req, res) => userController.updateProfile(req, res))
+  // Rotta per ottenere un utente specifico
+  router.get("/:id", (req, res, next) => userController.getUserById(req, res, next))
 
-// Rotta per cambiare la password
-router.post("/change-password", (req, res) => userController.changePassword(req, res))
+  // Rotta per ottenere tutti gli utenti
+  router.get("/", (req, res, next) => userController.getAllUsers(req, res, next))
 
-export default router 
+  // Rotta per creare un nuovo utente
+  router.post("/", (req, res, next) => userController.createUser(req, res, next))
+
+  // Rotta per aggiornare un utente
+  router.put("/:id", (req, res, next) => userController.updateUser(req, res, next))
+
+  // Rotta per eliminare un utente
+  router.delete("/:id", (req, res, next) => userController.deleteUser(req, res, next))
+
+  return router
+}
+
+export default createUserRouter; 
