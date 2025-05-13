@@ -7,7 +7,7 @@ export interface UserProps {
   name?: string;
   firstName?: string;
   lastName?: string;
-  isVerified?: boolean;
+  status?: string;
   workspaceId?: string;
   role?: string;
   createdAt?: Date;
@@ -47,8 +47,8 @@ export class User extends Entity<UserProps> {
     return this.props.lastName;
   }
 
-  get isVerified(): boolean {
-    return this.props.isVerified ?? false;
+  get status(): string {
+    return this.props.status || 'ACTIVE';
   }
 
   get workspaceId(): string | undefined {
@@ -69,6 +69,10 @@ export class User extends Entity<UserProps> {
 
   get lastLogin(): Date | undefined {
     return this.props.lastLogin;
+  }
+
+  isVerified(): boolean {
+    return this.status === 'ACTIVE';
   }
 
   static create(props: UserProps): User {

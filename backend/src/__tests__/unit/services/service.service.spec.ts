@@ -16,6 +16,7 @@ jest.mock('../../../utils/logger', () => ({
 }));
 
 import { prisma } from '../../../lib/prisma';
+// @ts-ignore - Ignoring TS2615 circular reference error in Prisma types
 const mockPrisma = prisma as unknown as ReturnType<typeof mockDeep<PrismaClient>>;
 
 describe('ServiceService', () => {

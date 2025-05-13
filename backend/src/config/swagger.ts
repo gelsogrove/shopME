@@ -58,7 +58,13 @@ const options = {
     ],
     ...swaggerDocument,
   },
-  apis: ['./src/routes/*.ts', './src/routes/*.js', './src/interfaces/http/controllers/**/*.ts'],
+  apis: [
+    './src/routes/*.ts', 
+    './src/routes/*.js', 
+    './src/interfaces/http/controllers/**/*.ts',
+    './src/interfaces/http/routes/**/*.ts',
+    './src/interfaces/http/routes/**/*.js'
+  ],
 };
 
 export const swaggerSpec = process.env.NODE_ENV === 'test' 

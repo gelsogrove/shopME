@@ -3,7 +3,7 @@
  */
 
 import { jest } from '@jest/globals';
-import { Request, Response } from 'express';
+import { CookieOptions, Request, Response } from 'express';
 
 // Mock per Express Request
 export const createMockRequest = (overrides = {}) => {
@@ -15,7 +15,7 @@ export const createMockRequest = (overrides = {}) => {
     cookies: {},
     user: null,
     session: {
-      destroy: jest.fn((cb) => cb()),
+      destroy: jest.fn((cb) => cb ? cb() : undefined),
     },
     ...overrides
   } as unknown as Request;
@@ -25,17 +25,19 @@ export const createMockRequest = (overrides = {}) => {
 
 // Mock per Express Response
 export const createMockResponse = () => {
-  const res = {} as Response;
-  res.status = jest.fn().mockReturnValue(res);
-  res.json = jest.fn().mockReturnValue(res);
-  res.send = jest.fn().mockReturnValue(res);
-  res.cookie = jest.fn().mockReturnValue(res);
-  res.clearCookie = jest.fn().mockReturnValue(res);
+  const res = {} as unknown as Response;
+  
+  res.status = jest.fn(function(code: number) { return res; });
+  res.json = jest.fn(function(body: any) { return res; });
+  res.send = jest.fn(function(body: any) { return res; });
+  res.cookie = jest.fn(function(name: string, val: any, options?: CookieOptions) { return res; });
+  res.clearCookie = jest.fn(function(name: string, options?: CookieOptions) { return res; });
   res.redirect = jest.fn().mockReturnValue(res);
   res.render = jest.fn().mockReturnValue(res);
   res.end = jest.fn().mockReturnValue(res);
   res.set = jest.fn().mockReturnValue(res);
   res.type = jest.fn().mockReturnValue(res);
+  
   return res;
 };
 

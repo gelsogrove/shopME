@@ -28,7 +28,7 @@ export const mockUser = new User({
   role: 'ADMIN',
   createdAt: new Date(),
   updatedAt: new Date(),
-  isActive: true
+  status: 'ACTIVE'
 });
 
 // Category mock
@@ -48,7 +48,6 @@ export const mockProduct = new Product({
   name: 'Test Product',
   description: 'Test product description',
   price: 19.99,
-  currency: 'EUR',
   imageUrl: 'https://example.com/image.jpg',
   categoryId: 'category-test-id',
   workspaceId: 'workspace-test-id',
@@ -56,7 +55,7 @@ export const mockProduct = new Product({
   createdAt: new Date(),
   updatedAt: new Date(),
   isActive: true,
-  inStock: true
+  stock: 10
 });
 
 // Supplier mock
@@ -77,7 +76,7 @@ export const mockOffer = new Offer({
   id: 'offer-test-id',
   name: 'Test Offer',
   description: 'Test offer description',
-  discount: 10,
+  discountPercent: 10,
   startDate: new Date(),
   endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
   categoryId: 'category-test-id',

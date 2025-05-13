@@ -15,6 +15,30 @@ export class SettingsController {
 
   /**
    * Get GDPR content for a workspace
+   * @swagger
+   * /api/settings/gdpr/{workspaceId}:
+   *   get:
+   *     summary: Get GDPR content for a workspace
+   *     tags: [Settings]
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: ID of the workspace
+   *     responses:
+   *       200:
+   *         description: GDPR content
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 gdpr:
+   *                   type: string
+   *       500:
+   *         description: Failed to retrieve GDPR content
    */
   async getGdprContent(req: Request, res: Response, next: NextFunction) {
     try {
@@ -31,6 +55,33 @@ export class SettingsController {
 
   /**
    * Update GDPR content for a workspace
+   * @swagger
+   * /api/settings/gdpr/{workspaceId}:
+   *   put:
+   *     summary: Update GDPR content for a workspace
+   *     tags: [Settings]
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: ID of the workspace
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               gdpr:
+   *                 type: string
+   *                 description: GDPR content
+   *     responses:
+   *       200:
+   *         description: Updated settings
+   *       500:
+   *         description: Failed to update GDPR content
    */
   async updateGdprContent(req: Request, res: Response, next: NextFunction) {
     try {
@@ -48,6 +99,23 @@ export class SettingsController {
 
   /**
    * Get default GDPR content
+   * @swagger
+   * /api/settings/gdpr/default:
+   *   get:
+   *     summary: Get default GDPR content
+   *     tags: [Settings]
+   *     responses:
+   *       200:
+   *         description: Default GDPR content
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 content:
+   *                   type: string
+   *       500:
+   *         description: Failed to retrieve default GDPR content
    */
   async getDefaultGdprContent(_req: Request, res: Response, next: NextFunction) {
     try {
@@ -61,6 +129,25 @@ export class SettingsController {
 
   /**
    * Get settings for a workspace
+   * @swagger
+   * /api/settings/{workspaceId}:
+   *   get:
+   *     summary: Get settings for a workspace
+   *     tags: [Settings]
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: ID of the workspace
+   *     responses:
+   *       200:
+   *         description: Workspace settings
+   *       404:
+   *         description: Settings not found
+   *       500:
+   *         description: Failed to retrieve settings
    */
   async getSettings(req: Request, res: Response, next: NextFunction) {
     try {
@@ -81,6 +168,38 @@ export class SettingsController {
 
   /**
    * Update settings for a workspace
+   * @swagger
+   * /api/settings/{workspaceId}:
+   *   put:
+   *     summary: Update settings for a workspace
+   *     tags: [Settings]
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: ID of the workspace
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               phoneNumber:
+   *                 type: string
+   *               apiKey:
+   *                 type: string
+   *               webhookUrl:
+   *                 type: string
+   *               settings:
+   *                 type: object
+   *     responses:
+   *       200:
+   *         description: Updated settings
+   *       500:
+   *         description: Failed to update settings
    */
   async updateSettings(req: Request, res: Response, next: NextFunction) {
     try {
@@ -122,6 +241,25 @@ export class SettingsController {
 
   /**
    * Delete settings for a workspace
+   * @swagger
+   * /api/settings/{workspaceId}:
+   *   delete:
+   *     summary: Delete settings for a workspace
+   *     tags: [Settings]
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: ID of the workspace
+   *     responses:
+   *       204:
+   *         description: Settings deleted
+   *       404:
+   *         description: Settings not found
+   *       500:
+   *         description: Failed to delete settings
    */
   async deleteSettings(req: Request, res: Response, next: NextFunction) {
     try {

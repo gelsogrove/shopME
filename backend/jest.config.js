@@ -10,7 +10,7 @@ module.exports = {
     'src/__tests__/integration/services/supplier-product.spec.ts',
     'src/__tests__/integration/services/services.spec.ts',
     'src/__tests__/integration/endpoints/endpoints.spec.ts',
-    'src/__tests__/integration/auth.spec.ts',
+    'src/__tests__/integration/test-setup.ts',
     'src/__tests__/unit/mock/entity-mocks.ts',
     'src/__tests__/unit/mock/request-response-mocks.ts',
     'src/__tests__/unit/mock/service-mocks.ts',

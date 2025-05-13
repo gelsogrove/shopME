@@ -1,6 +1,6 @@
 import cookieParser from "cookie-parser"
 import cors from "cors"
-import express, { Request, Response } from "express"
+import express from "express"
 import helmet from "helmet"
 import OpenAI from 'openai'
 import swaggerUi from "swagger-ui-express"
@@ -38,7 +38,8 @@ app.use(helmet({
 }))
 
 app.use(express.json())
-app.use(cookieParser() as express.RequestHandler)
+// @ts-ignore
+app.use(cookieParser())
 
 // API versioning
 const apiVersions = {
@@ -47,11 +48,16 @@ const apiVersions = {
 }
 
 // Swagger documentation
-app.use("/api/docs", swaggerUi.serve as express.RequestHandler[], swaggerUi.setup(swaggerSpec, {
+// @ts-ignore
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   explorer: true,
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: "ShopMe API Documentation"
-}) as express.RequestHandler)
+  customSiteTitle: "ShopMe API Documentation",
+  docExpansion: "list",
+  deepLinking: true,
+  displayOperationId: true,
+  filter: true
+}))
 
 // Log that we're about to mount the API router
 logger.info("Mounting API router at /api prefix")
@@ -67,7 +73,8 @@ app.use("/workspaces/:workspaceId/agent", agentRoutes)
 logger.info("Mounted agent routes directly at /workspaces/:workspaceId/agent for legacy support")
 
 // Endpoint di test per OpenAI
-app.get("/api/test/openai", async (req: Request, res: Response) => {
+// @ts-ignore
+app.get("/api/test/openai", async (req, res) => {
   try {
     // Check if OpenAI is properly configured
     const apiKey = process.env.OPENAI_API_KEY;
@@ -109,7 +116,7 @@ app.get("/api/test/openai", async (req: Request, res: Response) => {
       response: completion.choices[0]?.message?.content,
       apiKeyPrefix: apiKey ? apiKey.substring(0, 10) + "..." : "missing"
     });
-  } catch (error: any) {
+  } catch (error) {
     logger.error("OpenAI API connection error:", error);
     
     // Prepare detailed error response
@@ -131,7 +138,7 @@ app.get("/api/test/openai", async (req: Request, res: Response) => {
 app.use(errorMiddleware)
 
 // Add diagnostics endpoint for direct access
-app.get("/health", (req: Request, res: Response) => {
+app.get("/health", (req, res) => {
   res.json({ 
     status: "ok", 
     timestamp: new Date().toISOString(),

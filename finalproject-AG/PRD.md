@@ -543,6 +543,7 @@ The platform provides a comprehensive operator dashboard with the following capa
 - **API**: RESTful with OpenAPI specification
 - **Authentication**: JWT with HTTP-only cookies
 - **Monorepo Structure**: Managed with Turborepo
+- **Validation**: Joi for schema validation
 - **Testing**: Jest and Supertest
 
 ### Architecture Diagram

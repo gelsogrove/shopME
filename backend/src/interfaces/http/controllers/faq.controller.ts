@@ -15,6 +15,31 @@ export class FaqController {
 
   /**
    * Get all FAQs for a workspace
+   * @swagger
+   * /api/workspaces/{workspaceId}/faqs:
+   *   get:
+   *     summary: Get all FAQs for a workspace
+   *     tags: [FAQs]
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: ID of the workspace
+   *     responses:
+   *       200:
+   *         description: List of FAQs
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/FAQ'
+   *       400:
+   *         description: Workspace ID is required
+   *       500:
+   *         description: Failed to get FAQs
    */
   async getAllFaqs(req: Request, res: Response): Promise<Response> {
     try {
@@ -34,6 +59,35 @@ export class FaqController {
 
   /**
    * Get FAQ by ID
+   * @swagger
+   * /api/workspaces/{workspaceId}/faqs/{id}:
+   *   get:
+   *     summary: Get FAQ by ID
+   *     tags: [FAQs]
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: ID of the workspace
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: FAQ ID
+   *     responses:
+   *       200:
+   *         description: FAQ details
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/FAQ'
+   *       404:
+   *         description: FAQ not found
+   *       500:
+   *         description: Failed to get FAQ
    */
   async getFaqById(req: Request, res: Response): Promise<Response> {
     try {
@@ -54,6 +108,35 @@ export class FaqController {
 
   /**
    * Create a new FAQ
+   * @swagger
+   * /api/workspaces/{workspaceId}/faqs:
+   *   post:
+   *     summary: Create a new FAQ
+   *     tags: [FAQs]
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: ID of the workspace
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/CreateFAQRequest'
+   *     responses:
+   *       201:
+   *         description: FAQ created
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/FAQ'
+   *       400:
+   *         description: Invalid FAQ data or missing required fields
+   *       500:
+   *         description: Failed to create FAQ
    */
   async createFaq(req: Request, res: Response): Promise<Response> {
     try {
@@ -86,6 +169,43 @@ export class FaqController {
 
   /**
    * Update a FAQ
+   * @swagger
+   * /api/workspaces/{workspaceId}/faqs/{id}:
+   *   put:
+   *     summary: Update a FAQ
+   *     tags: [FAQs]
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: ID of the workspace
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: FAQ ID
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UpdateFAQRequest'
+   *     responses:
+   *       200:
+   *         description: FAQ updated
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/FAQ'
+   *       400:
+   *         description: Invalid FAQ data
+   *       404:
+   *         description: FAQ not found
+   *       500:
+   *         description: Failed to update FAQ
    */
   async updateFaq(req: Request, res: Response): Promise<Response> {
     try {
@@ -116,6 +236,31 @@ export class FaqController {
 
   /**
    * Delete a FAQ
+   * @swagger
+   * /api/workspaces/{workspaceId}/faqs/{id}:
+   *   delete:
+   *     summary: Delete a FAQ
+   *     tags: [FAQs]
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: ID of the workspace
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: FAQ ID
+   *     responses:
+   *       204:
+   *         description: FAQ deleted
+   *       404:
+   *         description: FAQ not found
+   *       500:
+   *         description: Failed to delete FAQ
    */
   async deleteFaq(req: Request, res: Response): Promise<Response> {
     try {

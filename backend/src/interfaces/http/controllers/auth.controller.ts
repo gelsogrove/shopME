@@ -162,6 +162,16 @@ export class AuthController {
         userId: user.id,
       })
     } catch (error) {
+      logger.error('Registration error:', error);
+      
+      // Gestione specifica degli errori conosciuti
+      if (error.message && error.message.includes('User with this email already exists')) {
+        return res.status(409).json({
+          error: "User with this email already exists"
+        });
+      }
+      
+      // Per altri errori, rilancia
       throw error
     }
   }

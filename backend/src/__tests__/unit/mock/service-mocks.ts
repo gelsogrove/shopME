@@ -62,7 +62,7 @@ export const mockProductService = {
     }
   ]),
   getProductsWithPagination: jest.fn().mockResolvedValue({
-    data: [
+    products: [
       {
         id: 'product-test-id',
         name: 'Test Product',
@@ -73,12 +73,9 @@ export const mockProductService = {
         isActive: true
       }
     ],
-    meta: {
-      total: 1,
-      page: 1,
-      limit: 10,
-      totalPages: 1
-    }
+    total: 1,
+    page: 1,
+    totalPages: 1
   } as PaginatedProducts),
   createProduct: jest.fn().mockResolvedValue({
     id: 'new-product-id',

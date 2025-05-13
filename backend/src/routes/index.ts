@@ -141,7 +141,7 @@ logger.info("Registered offers router with workspace routes")
 // Mount Swagger documentation
 router.get('/docs/swagger.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json')
-  res.send({}) // Placeholder empty swagger spec
+  res.send(require('../config/swagger').swaggerSpec)
 })
 
 // Health check

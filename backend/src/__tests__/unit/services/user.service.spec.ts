@@ -14,6 +14,7 @@ describe('UserService', () => {
   let userService: UserService;
 
   beforeEach(() => {
+    // @ts-ignore - Ignoring TS2615 circular reference error in Prisma types
     userService = new UserService(mockPrisma);
   });
 

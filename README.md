@@ -193,11 +193,14 @@ Il progetto utilizza Jest e Mocha per i test. Per eseguire i test:
 ```bash
 cd backend
 
-# Eseguire tutti i test
+# Eseguire tutti i test (unitari e di integrazione)
 npm run test
 
 # Eseguire solo i test unitari
 npm run test:unit
+
+# Eseguire solo i test di integrazione
+npm run test:integration
 
 # Eseguire i test con coverage
 npm run test:coverage
@@ -209,6 +212,7 @@ I test coprono:
 - Logica di business
 - Validazioni
 - Integrazione con il database
+- Flussi di lavoro end-to-end (integrazione)
 
 ## Swagger API Documentation
 

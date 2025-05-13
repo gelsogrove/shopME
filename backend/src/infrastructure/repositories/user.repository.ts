@@ -22,7 +22,7 @@ export class UserRepository implements UserRepositoryInterface {
       name: data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim(),
       firstName: data.firstName,
       lastName: data.lastName,
-      isVerified: data.isVerified ?? false,
+      status: data.status,
       workspaceId: data.workspaceId,
       role: data.role,
       createdAt: data.createdAt,
@@ -41,7 +41,7 @@ export class UserRepository implements UserRepositoryInterface {
       passwordHash: user.password,
       firstName: user.firstName,
       lastName: user.lastName,
-      isVerified: user.isVerified,
+      status: user.status || 'ACTIVE',
       workspaceId: user.workspaceId,
       role: user.role,
       lastLogin: user.lastLogin,
@@ -234,7 +234,7 @@ export class UserRepository implements UserRepositoryInterface {
       // @ts-ignore - Ignora errore su proprietà isVerified non esistente
       const updatedUser = await this.prisma.user.update({
         where: { id },
-        data: { isVerified: true },
+        data: { status: 'ACTIVE' },
       });
 
       logger.debug(`Email verified for user with ID ${id}`);
