@@ -1,6 +1,6 @@
 import cookieParser from "cookie-parser"
 import cors from "cors"
-import express from "express"
+import express, { Request, Response } from "express"
 import helmet from "helmet"
 import OpenAI from 'openai'
 import swaggerUi from "swagger-ui-express"
@@ -38,7 +38,7 @@ app.use(helmet({
 }))
 
 app.use(express.json())
-app.use(cookieParser())
+app.use(cookieParser() as express.RequestHandler)
 
 // API versioning
 const apiVersions = {
@@ -47,11 +47,11 @@ const apiVersions = {
 }
 
 // Swagger documentation
-app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+app.use("/api/docs", swaggerUi.serve as express.RequestHandler[], swaggerUi.setup(swaggerSpec, {
   explorer: true,
   customCss: '.swagger-ui .topbar { display: none }',
   customSiteTitle: "ShopMe API Documentation"
-}))
+}) as express.RequestHandler)
 
 // Log that we're about to mount the API router
 logger.info("Mounting API router at /api prefix")
@@ -67,8 +67,7 @@ app.use("/workspaces/:workspaceId/agent", agentRoutes)
 logger.info("Mounted agent routes directly at /workspaces/:workspaceId/agent for legacy support")
 
 // Endpoint di test per OpenAI
-// @ts-ignore
-app.get("/api/test/openai", async (req, res) => {
+app.get("/api/test/openai", async (req: Request, res: Response) => {
   try {
     // Check if OpenAI is properly configured
     const apiKey = process.env.OPENAI_API_KEY;
@@ -110,7 +109,7 @@ app.get("/api/test/openai", async (req, res) => {
       response: completion.choices[0]?.message?.content,
       apiKeyPrefix: apiKey ? apiKey.substring(0, 10) + "..." : "missing"
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error("OpenAI API connection error:", error);
     
     // Prepare detailed error response
@@ -132,7 +131,7 @@ app.get("/api/test/openai", async (req, res) => {
 app.use(errorMiddleware)
 
 // Add diagnostics endpoint for direct access
-app.get("/health", (req, res) => {
+app.get("/health", (req: Request, res: Response) => {
   res.json({ 
     status: "ok", 
     timestamp: new Date().toISOString(),
