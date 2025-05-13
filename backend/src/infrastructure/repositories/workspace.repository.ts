@@ -202,10 +202,17 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
         logger.debug(`Workspace with ID ${id} not found for update`)
         return null
       }
+      
+      // Ensure whatsappApiToken is mapped to whatsappApiKey for Prisma
+      const dbData: any = { ...data };
+      if (dbData.whatsappApiToken !== undefined) {
+        dbData.whatsappApiKey = dbData.whatsappApiToken;
+        delete dbData.whatsappApiToken;
+      }
 
       const updatedWorkspace = await this.prisma.workspace.update({
         where: { id },
-        data,
+        data: dbData,
       })
 
       logger.debug(`Updated workspace with ID ${id}`)

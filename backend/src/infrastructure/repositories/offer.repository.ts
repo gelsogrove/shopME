@@ -88,6 +88,18 @@ export class OfferRepository implements IOfferRepository {
       // Rimuovi i campi che potrebbero causare problemi con Prisma
       const { createdAt, updatedAt, ...updateData } = data;
       
+      // Assicurati che l'offerta esista e appartenga al workspace specificato
+      const existingOffer = await prisma.offers.findFirst({
+        where: { 
+          id,
+          workspaceId: updateData.workspaceId
+        }
+      });
+      
+      if (!existingOffer) {
+        throw new Error(`Offer with ID ${id} not found in workspace ${updateData.workspaceId}`);
+      }
+      
       const offer = await prisma.offers.update({
         where: { id },
         data: updateData

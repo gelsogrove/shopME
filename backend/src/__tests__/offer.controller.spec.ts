@@ -1,13 +1,35 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { WorkspaceContextDTO } from '../application/dtos/workspace-context.dto';
 import { OfferService } from '../application/services/offer.service';
 import { OffersController } from '../controllers/offer.controller';
+import { Offer } from '../domain/entities/offer.entity';
+import { WorkspaceRequest } from '../interfaces/http/types/workspace-request';
 
 // Mock OfferService
 jest.mock('../application/services/offer.service');
 
+// Helper per creare oggetti Offer validi
+const createTestOffer = (id: string, name: string, workspaceId: string, isActive = true): Offer => {
+  const now = new Date();
+  const future = new Date();
+  future.setDate(future.getDate() + 30);
+  
+  return new Offer({
+    id,
+    name,
+    workspaceId,
+    discountPercent: 10,
+    startDate: now,
+    endDate: future,
+    isActive,
+    createdAt: now,
+    updatedAt: now
+  });
+};
+
 describe('OffersController', () => {
   let offersController: OffersController;
-  let mockRequest: Partial<Request>;
+  let mockRequest: Partial<WorkspaceRequest>;
   let mockResponse: Partial<Response>;
   let mockOfferService: jest.Mocked<OfferService>;
   
@@ -18,10 +40,14 @@ describe('OffersController', () => {
     // Reset the instance of OfferService inside the controller
     (offersController as any).offerService = mockOfferService;
     
+    // Create the workspace context
+    const workspaceContext = new WorkspaceContextDTO('test-workspace-id');
+    
     mockRequest = {
       params: { workspaceId: 'test-workspace-id', id: 'test-id' },
       query: {},
-      body: {}
+      body: {},
+      workspaceContext
     };
     
     mockResponse = {
@@ -38,13 +64,13 @@ describe('OffersController', () => {
     it('should return all offers', async () => {
       // Arrange
       const offers = [
-        { id: '1', name: 'Offer 1', workspaceId: 'test-workspace-id' },
-        { id: '2', name: 'Offer 2', workspaceId: 'test-workspace-id' }
+        createTestOffer('1', 'Offer 1', 'test-workspace-id'),
+        createTestOffer('2', 'Offer 2', 'test-workspace-id')
       ];
       mockOfferService.getAllOffers.mockResolvedValue(offers);
 
       // Act
-      await offersController.getAllOffers(mockRequest as Request, mockResponse as Response);
+      await offersController.getAllOffers(mockRequest as WorkspaceRequest, mockResponse as Response);
 
       // Assert
       expect(mockOfferService.getAllOffers).toHaveBeenCalledWith('test-workspace-id');
@@ -54,9 +80,10 @@ describe('OffersController', () => {
     it('should return 400 when workspaceId is missing', async () => {
       // Arrange
       mockRequest.params = {};
+      mockRequest.workspaceContext = undefined as any;
 
       // Act
-      await offersController.getAllOffers(mockRequest as Request, mockResponse as Response);
+      await offersController.getAllOffers(mockRequest as WorkspaceRequest, mockResponse as Response);
 
       // Assert
       expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -70,12 +97,12 @@ describe('OffersController', () => {
     it('should return active offers', async () => {
       // Arrange
       const activeOffers = [
-        { id: '1', name: 'Active Offer', workspaceId: 'test-workspace-id', isActive: true }
+        createTestOffer('1', 'Active Offer', 'test-workspace-id', true)
       ];
       mockOfferService.getActiveOffers.mockResolvedValue(activeOffers);
 
       // Act
-      await offersController.getActiveOffers(mockRequest as Request, mockResponse as Response);
+      await offersController.getActiveOffers(mockRequest as WorkspaceRequest, mockResponse as Response);
 
       // Assert
       expect(mockOfferService.getActiveOffers).toHaveBeenCalledWith('test-workspace-id', undefined);
@@ -87,12 +114,15 @@ describe('OffersController', () => {
       const categoryId = 'test-category';
       mockRequest.query = { categoryId };
       const activeOffers = [
-        { id: '1', name: 'Active Offer', workspaceId: 'test-workspace-id', categoryId, isActive: true }
+        createTestOffer('1', 'Active Offer', 'test-workspace-id', true)
       ];
+      // Aggiungi manualmente la proprietà categoryId
+      (activeOffers[0] as any).categoryId = categoryId;
+      
       mockOfferService.getActiveOffers.mockResolvedValue(activeOffers);
 
       // Act
-      await offersController.getActiveOffers(mockRequest as Request, mockResponse as Response);
+      await offersController.getActiveOffers(mockRequest as WorkspaceRequest, mockResponse as Response);
 
       // Assert
       expect(mockOfferService.getActiveOffers).toHaveBeenCalledWith('test-workspace-id', categoryId);
@@ -103,11 +133,11 @@ describe('OffersController', () => {
   describe('getOfferById', () => {
     it('should return an offer by id', async () => {
       // Arrange
-      const offer = { id: 'test-id', name: 'Test Offer', workspaceId: 'test-workspace-id' };
+      const offer = createTestOffer('test-id', 'Test Offer', 'test-workspace-id');
       mockOfferService.getOfferById.mockResolvedValue(offer);
 
       // Act
-      await offersController.getOfferById(mockRequest as Request, mockResponse as Response);
+      await offersController.getOfferById(mockRequest as WorkspaceRequest, mockResponse as Response);
 
       // Assert
       expect(mockOfferService.getOfferById).toHaveBeenCalledWith('test-id', 'test-workspace-id');
@@ -119,7 +149,7 @@ describe('OffersController', () => {
       mockOfferService.getOfferById.mockResolvedValue(null);
 
       // Act
-      await offersController.getOfferById(mockRequest as Request, mockResponse as Response);
+      await offersController.getOfferById(mockRequest as WorkspaceRequest, mockResponse as Response);
 
       // Assert
       expect(mockResponse.status).toHaveBeenCalledWith(404);
@@ -132,13 +162,31 @@ describe('OffersController', () => {
   describe('createOffer', () => {
     it('should create an offer', async () => {
       // Arrange
-      const offerData = { name: 'New Offer', discountPercent: 10 };
+      const now = new Date();
+      const future = new Date();
+      future.setDate(future.getDate() + 30);
+      
+      const offerData = { 
+        name: 'New Offer', 
+        discountPercent: 10,
+        startDate: now,
+        endDate: future
+      };
       mockRequest.body = offerData;
-      const createdOffer = { id: 'new-id', ...offerData, workspaceId: 'test-workspace-id' };
+      
+      const createdOffer = new Offer({
+        id: 'new-id',
+        ...offerData,
+        workspaceId: 'test-workspace-id',
+        isActive: true,
+        createdAt: now,
+        updatedAt: now
+      });
+      
       mockOfferService.createOffer.mockResolvedValue(createdOffer);
 
       // Act
-      await offersController.createOffer(mockRequest as Request, mockResponse as Response);
+      await offersController.createOffer(mockRequest as WorkspaceRequest, mockResponse as Response);
 
       // Assert
       expect(mockOfferService.createOffer).toHaveBeenCalledWith({
@@ -153,13 +201,31 @@ describe('OffersController', () => {
   describe('updateOffer', () => {
     it('should update an offer', async () => {
       // Arrange
-      const offerData = { name: 'Updated Offer' };
+      const now = new Date();
+      const future = new Date();
+      future.setDate(future.getDate() + 30);
+      
+      const offerData = { 
+        name: 'Updated Offer',
+        discountPercent: 15
+      };
       mockRequest.body = offerData;
-      const updatedOffer = { id: 'test-id', ...offerData, workspaceId: 'test-workspace-id' };
+      
+      const updatedOffer = new Offer({
+        id: 'test-id',
+        ...offerData,
+        workspaceId: 'test-workspace-id',
+        startDate: now,
+        endDate: future,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now
+      });
+      
       mockOfferService.updateOffer.mockResolvedValue(updatedOffer);
 
       // Act
-      await offersController.updateOffer(mockRequest as Request, mockResponse as Response);
+      await offersController.updateOffer(mockRequest as WorkspaceRequest, mockResponse as Response);
 
       // Assert
       expect(mockOfferService.updateOffer).toHaveBeenCalledWith('test-id', {
@@ -176,7 +242,7 @@ describe('OffersController', () => {
       mockOfferService.deleteOffer.mockResolvedValue(true);
 
       // Act
-      await offersController.deleteOffer(mockRequest as Request, mockResponse as Response);
+      await offersController.deleteOffer(mockRequest as WorkspaceRequest, mockResponse as Response);
 
       // Assert
       expect(mockOfferService.deleteOffer).toHaveBeenCalledWith('test-id');

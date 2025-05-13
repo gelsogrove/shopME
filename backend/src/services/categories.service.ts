@@ -25,9 +25,6 @@ type UpdateCategoryParams = {
 
 class CategoriesService {
   async getAllForWorkspace(workspaceId: string) {
-    console.log("=== Categories Query ===");
-    console.log("WorkspaceId:", workspaceId);
-    
     // Execute query
     const categories = await prisma.categories.findMany({
       where: {
@@ -38,10 +35,6 @@ class CategoriesService {
         name: 'asc',
       },
     });
-    
-    // Log results
-    console.log("Raw Database Response:", categories);
-    console.log("======================");
     
     return categories;
   }

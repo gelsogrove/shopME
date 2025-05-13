@@ -6,14 +6,11 @@ export class EventsController {
   async getEventsForWorkspace(req: Request, res: Response) {
     try {
       const { workspaceId } = req.params
-      console.log("Getting events for workspace:", workspaceId);
 
       const events = await eventsService.getAllForWorkspace(workspaceId)
-      console.log("Events found:", events);
 
       return res.status(200).json(events)
     } catch (error) {
-      console.error("Error getting events:", error)
       throw new AppError(500, "Failed to get events")
     }
   }
@@ -30,16 +27,12 @@ export class EventsController {
 
       return res.status(200).json(event)
     } catch (error) {
-      console.error("Error getting event:", error)
       throw new AppError(500, "Failed to get event")
     }
   }
 
   async createEvent(req: Request, res: Response) {
     try {
-      console.log("Creating event - Request params:", req.params);
-      console.log("Creating event - Request URL:", req.originalUrl);
-      
       // Estrai il workspaceId dall'URL se non è presente nei parametri
       let workspaceId = req.params.workspaceId;
       
@@ -49,13 +42,11 @@ export class EventsController {
         const workspaceIndex = urlParts.findIndex(part => part === 'workspaces');
         if (workspaceIndex !== -1 && workspaceIndex + 1 < urlParts.length) {
           workspaceId = urlParts[workspaceIndex + 1];
-          console.log("Extracted workspaceId from URL:", workspaceId);
         }
       }
       
       if (!workspaceId) {
-        console.error("Workspace ID is missing");
-        return res.status(400).json({ message: "Workspace ID is required - 1" });
+        throw new AppError(400, "Workspace ID is required - 1");
       }
       
       const { 
@@ -70,8 +61,6 @@ export class EventsController {
         maxAttendees 
       } = req.body
       
-      console.log("Request body:", req.body);
-      
       // Validazione dei campi obbligatori
       if (!name || !description || !startDate || !endDate || !location || price === undefined) {
         return res.status(400).json({ 
@@ -80,16 +69,12 @@ export class EventsController {
         });
       }
 
-      console.log("Creating event with dates:", { startDate, endDate });
-      console.log("Creating event for workspace:", workspaceId);
-
       // Ensure we're handling the date correctly whether it's a string or ISO format
       const parsedStartDate = new Date(startDate);
       const parsedEndDate = new Date(endDate);
 
       if (isNaN(parsedStartDate.getTime()) || isNaN(parsedEndDate.getTime())) {
-        console.error("Invalid date format:", { startDate, endDate });
-        return res.status(400).json({ message: "Invalid date format" });
+        throw new AppError(400, "Invalid date format");
       }
       
       // Verifica che la data di inizio sia precedente alla data di fine
@@ -112,7 +97,6 @@ export class EventsController {
 
       return res.status(201).json(result)
     } catch (error) {
-      console.error("Error creating event:", error)
       if (error.message === "workspaceId is required") {
         return res.status(400).json({ message: "Workspace ID is required -  Create" });
       }
@@ -136,24 +120,20 @@ export class EventsController {
         currentAttendees
       } = req.body
 
-      console.log("Updating event with dates:", { startDate, endDate });
-
       // Parse dates if they exist
       let parsedStartDate, parsedEndDate;
       
       if (startDate) {
         parsedStartDate = new Date(startDate);
         if (isNaN(parsedStartDate.getTime())) {
-          console.error("Invalid start date format:", startDate);
-          return res.status(400).json({ message: "Invalid start date format" });
+          throw new AppError(400, "Invalid start date format");
         }
       }
       
       if (endDate) {
         parsedEndDate = new Date(endDate);
         if (isNaN(parsedEndDate.getTime())) {
-          console.error("Invalid end date format:", endDate);
-          return res.status(400).json({ message: "Invalid end date format" });
+          throw new AppError(400, "Invalid end date format");
         }
       }
       
@@ -183,7 +163,6 @@ export class EventsController {
 
       return res.status(200).json(result)
     } catch (error) {
-      console.error("Error updating event:", error)
       if (error.message === "Event not found") {
         return res.status(404).json({ message: "Event not found" })
       }
@@ -205,7 +184,6 @@ export class EventsController {
 
       return res.status(204).send()
     } catch (error) {
-      console.error("Error deleting event:", error)
       throw new AppError(500, "Failed to delete event")
     }
   }

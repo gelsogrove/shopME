@@ -13,7 +13,7 @@ export interface ISupplierRepository {
   /**
    * Find active suppliers in a workspace
    */
-  findActive(workspaceId: string): Promise<Supplier[]>;
+  findActiveByWorkspaceId(workspaceId: string): Promise<Supplier[]>;
   
   /**
    * Find a single supplier by ID and workspace

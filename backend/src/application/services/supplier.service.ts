@@ -31,7 +31,7 @@ export class SupplierService {
    */
   async getActiveForWorkspace(workspaceId: string): Promise<Supplier[]> {
     try {
-      return await this.supplierRepository.findActive(workspaceId);
+      return await this.supplierRepository.findActiveByWorkspaceId(workspaceId);
     } catch (error) {
       logger.error("Error getting active suppliers:", error);
       throw error;

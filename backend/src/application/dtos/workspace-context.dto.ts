@@ -1,15 +1,24 @@
-import { IsUUID } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 /**
  * WorkspaceContextDTO
  * Standardized DTO for workspace identification across the application
  */
 export class WorkspaceContextDTO {
-  @IsUUID(4, { message: 'Workspace ID must be a valid UUID' })
+  @IsString()
+  @IsNotEmpty()
   workspaceId: string;
 
   constructor(workspaceId: string) {
     this.workspaceId = workspaceId;
+  }
+
+  /**
+   * Verifica se il workspaceId è valido 
+   * @returns true se il workspaceId è una stringa valida e non vuota
+   */
+  isValid(): boolean {
+    return typeof this.workspaceId === 'string' && this.workspaceId.trim() !== '';
   }
 
   /**
@@ -18,22 +27,17 @@ export class WorkspaceContextDTO {
    * @returns WorkspaceContextDTO or null if no workspaceId is found
    */
   static fromRequest(req: any): WorkspaceContextDTO | null {
+    // Try to get workspaceId from different sources
     const workspaceId = 
       req.params?.workspaceId || 
       req.query?.workspaceId as string || 
       req.body?.workspaceId || 
-      req.header?.('x-workspace-id');
-    
-    return workspaceId ? new WorkspaceContextDTO(workspaceId) : null;
-  }
+      (req.headers?.['x-workspace-id'] as string);
 
-  /**
-   * Validates if the workspace context is valid
-   * @returns true if valid, false otherwise
-   */
-  isValid(): boolean {
-    // Simple UUID v4 format validation
-    const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return uuidV4Regex.test(this.workspaceId);
+    if (!workspaceId) {
+      return null;
+    }
+
+    return new WorkspaceContextDTO(workspaceId);
   }
 } 

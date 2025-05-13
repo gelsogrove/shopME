@@ -60,7 +60,7 @@ export class SupplierRepository implements ISupplierRepository {
   /**
    * Find active suppliers in a workspace
    */
-  async findActive(workspaceId: string): Promise<Supplier[]> {
+  async findActiveByWorkspaceId(workspaceId: string): Promise<Supplier[]> {
     try {
       // @ts-ignore - Prisma types are not correctly generated
       const suppliers = await prisma.suppliers.findMany({

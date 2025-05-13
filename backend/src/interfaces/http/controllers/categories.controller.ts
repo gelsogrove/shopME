@@ -4,11 +4,6 @@ import { AppError } from "../middlewares/error.middleware";
 
 // Funzione di utilità per ottenere il workspaceId
 const getWorkspaceId = (req: Request): string | undefined => {
-  console.log("Params in getWorkspaceId:", req.params);
-  console.log("Query in getWorkspaceId:", req.query);
-  console.log("workspaceId from params:", req.params.workspaceId);
-  console.log("workspaceId from query:", req.query.workspaceId);
-  
   return req.params.workspaceId || req.query.workspaceId as string;
 };
 
@@ -17,14 +12,6 @@ export class CategoriesController {
     try {
       const workspaceId = getWorkspaceId(req);
       
-      console.log("=== Categories Request ===")
-      console.log("WorkspaceId:", workspaceId)
-      console.log("Params:", req.params)
-      console.log("Query:", req.query)
-      console.log("Headers:", req.headers)
-      console.log("User:", req.user)
-      console.log("======================")
-
       if (!workspaceId) {
         return res.status(400).json({ 
           message: 'WorkspaceId is required',
@@ -33,15 +20,9 @@ export class CategoriesController {
       }
 
       const categories = await categoriesService.getAllForWorkspace(workspaceId)
-      console.log("=== Categories Response ===")
-      console.log("Categories found:", categories)
-      console.log("======================")
 
       return res.status(200).json(categories)
     } catch (error) {
-      console.error("=== Categories Error ===")
-      console.error("Error getting categories:", error)
-      console.error("======================")
       throw new AppError(500, "Failed to get categories")
     }
   }
@@ -66,7 +47,6 @@ export class CategoriesController {
 
       return res.status(200).json(category)
     } catch (error) {
-      console.error("Error getting category:", error)
       throw new AppError(500, "Failed to get category")
     }
   }
@@ -92,7 +72,6 @@ export class CategoriesController {
 
       return res.status(201).json(result)
     } catch (error) {
-      console.error("Error creating category:", error)
       if (error.message === 'A category with this name already exists') {
         return res.status(409).json({ message: error.message })
       }
@@ -125,7 +104,6 @@ export class CategoriesController {
 
       return res.status(200).json(result)
     } catch (error) {
-      console.error("Error updating category:", error)
       if (error.message === 'Category not found') {
         return res.status(404).json({ message: "Category not found" })
       }
@@ -164,7 +142,6 @@ export class CategoriesController {
         throw error
       }
     } catch (error) {
-      console.error("Error deleting category:", error)
       throw new AppError(500, "Failed to delete category")
     }
   }

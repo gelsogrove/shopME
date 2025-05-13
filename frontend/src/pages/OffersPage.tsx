@@ -2,23 +2,22 @@ import { PageLayout } from "@/components/layout/PageLayout"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { StatusBadge } from "@/components/shared/StatusBadge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
 } from "@/components/ui/popover"
 import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
 } from "@/components/ui/sheet"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
@@ -178,24 +177,19 @@ export function OffersPage() {
         
         // @ts-ignore
         return (
-          <StatusBadge status={status as StatusType}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </StatusBadge>
+          <div className="flex items-center gap-2">
+            <StatusBadge status={status as StatusType}>
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+            </StatusBadge>
+            <Switch
+              checked={row.original.isActive}
+              onCheckedChange={(checked) => handleToggleActive(row.original, checked)}
+              className="ml-2"
+            />
+          </div>
         );
       },
-    },
-    {
-      header: "Enable/Disable",
-      id: "toggle",
-      cell: ({ row }: { row: { original: Offer } }) => {
-        return (
-          <Switch
-            checked={row.original.isActive}
-            onCheckedChange={(checked) => handleToggleActive(row.original, checked)}
-          />
-        );
-      },
-    },
+    }
   ]
 
   // Gestori degli eventi
@@ -525,14 +519,6 @@ export function OffersPage() {
 
   return (
     <PageLayout>
-      <Alert className="mb-6 bg-background border border-input text-foreground">
-        <Percent className="h-5 w-5 text-green-500" />
-        <AlertDescription className="ml-2 text-sm font-medium">
-          Create time-limited offers with automatic countdowns. Active offers
-          will be promoted to customers through WhatsApp.
-        </AlertDescription>
-      </Alert>
-
       <CrudPageContent
         title="Special Offers"
         titleIcon={<Percent className={commonStyles.headerIcon} />}

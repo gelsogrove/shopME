@@ -7,10 +7,10 @@
     "seed": "ts-node prisma/seed.ts"
   },
   "scripts": {
-    "dev": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"ts-node src/index.ts\"",
+    "dev": "dotenv -e .env.development -- tsnd --respawn src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "dotenv -e .env.test -- jest",
+    "test": "dotenv -e .env.test -- jest --detectOpenHandles --passWithNoTests",
     "seed": "ts-node prisma/seed.ts",
     "start:prod": "node dist/index.js",
     "start:dev": "ts-node-dev --respawn --transpile-only --notify false --clear --exit-child -r dotenv/config src/index.ts",
@@ -21,13 +21,16 @@
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate": "npx prisma migrate dev",
     "prisma:studio": "prisma studio",
     "clean": "rm -rf dist",
     "start:mcp": "cd frontend && npm run dev",
     "db:seed": "npx prisma db seed",
     "db:studio": "npx prisma studio",
-    "db:generate": "npx prisma generate"
+    "db:generate": "npx prisma generate",
+    "postinstall": "prisma generate",
+    "swagger": "tsoa spec",
+    "db:reset": "npx prisma migrate reset"
   },
   "keywords": [],
   "author": "",

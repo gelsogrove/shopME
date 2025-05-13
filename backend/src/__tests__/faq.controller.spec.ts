@@ -1,31 +1,45 @@
-import { Request, Response } from 'express';
-import FaqService from '../application/services/faq.service';
+import { Response } from 'express';
+import { WorkspaceContextDTO } from '../application/dtos/workspace-context.dto';
 import { FaqController } from '../interfaces/http/controllers/faq.controller';
+import { WorkspaceRequest } from '../interfaces/http/types/workspace-request';
 
-// Mock FaqService
-jest.mock('../application/services/faq.service', () => ({
-  __esModule: true,
-  default: {
-    getAllForWorkspace: jest.fn(),
-    getById: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn()
-  }
-}));
+// Definiamo direttamente i mock per le funzioni del service
+const mockGetAllForWorkspace = jest.fn();
+const mockGetById = jest.fn();
+const mockCreate = jest.fn();
+const mockUpdate = jest.fn();
+const mockDelete = jest.fn();
+
+// Mock per FaqService 
+jest.mock('../application/services/faq.service', () => {
+  return {
+    FaqService: jest.fn().mockImplementation(() => {
+      return {
+        getAllForWorkspace: mockGetAllForWorkspace,
+        getById: mockGetById,
+        create: mockCreate,
+        update: mockUpdate,
+        delete: mockDelete
+      };
+    })
+  };
+});
 
 describe('FaqController', () => {
   let faqController: FaqController;
-  let mockRequest: Partial<Request>;
+  let mockRequest: Partial<WorkspaceRequest>;
   let mockResponse: Partial<Response>;
-  const mockFaqService = FaqService as jest.Mocked<typeof FaqService>;
   
   beforeEach(() => {
     faqController = new FaqController();
     
+    // Create the workspace context
+    const workspaceContext = new WorkspaceContextDTO('test-workspace-id');
+    
     mockRequest = {
       params: { workspaceId: 'test-workspace-id', id: 'test-id' },
-      body: {}
+      body: {},
+      workspaceContext
     };
     
     mockResponse = {
@@ -45,22 +59,23 @@ describe('FaqController', () => {
         { id: '2', question: 'Question 2', answer: 'Answer 2' }
       ];
       
-      mockFaqService.getAllForWorkspace.mockResolvedValue(faqs as any);
+      mockGetAllForWorkspace.mockResolvedValue(faqs);
       
       // Act
-      await faqController.getAllFaqs(mockRequest as Request, mockResponse as Response);
+      await faqController.getAllFaqs(mockRequest as WorkspaceRequest, mockResponse as Response);
       
       // Assert
-      expect(mockFaqService.getAllForWorkspace).toHaveBeenCalledWith('test-workspace-id');
+      expect(mockGetAllForWorkspace).toHaveBeenCalledWith('test-workspace-id');
       expect(mockResponse.json).toHaveBeenCalledWith(faqs);
     });
     
     it('should return error if workspaceId is missing', async () => {
       // Arrange
       mockRequest.params = {};
+      mockRequest.workspaceContext = undefined as any;
       
       // Act
-      await faqController.getAllFaqs(mockRequest as Request, mockResponse as Response);
+      await faqController.getAllFaqs(mockRequest as WorkspaceRequest, mockResponse as Response);
       
       // Assert
       expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -71,10 +86,10 @@ describe('FaqController', () => {
     
     it('should handle service errors', async () => {
       // Arrange
-      mockFaqService.getAllForWorkspace.mockRejectedValue(new Error('Service error'));
+      mockGetAllForWorkspace.mockRejectedValue(new Error('Service error'));
       
       // Act
-      await faqController.getAllFaqs(mockRequest as Request, mockResponse as Response);
+      await faqController.getAllFaqs(mockRequest as WorkspaceRequest, mockResponse as Response);
       
       // Assert
       expect(mockResponse.status).toHaveBeenCalledWith(500);
@@ -88,22 +103,22 @@ describe('FaqController', () => {
     it('should return a FAQ by ID', async () => {
       // Arrange
       const faq = { id: 'test-id', question: 'Test Question', answer: 'Test Answer' };
-      mockFaqService.getById.mockResolvedValue(faq as any);
+      mockGetById.mockResolvedValue(faq);
       
       // Act
-      await faqController.getFaqById(mockRequest as Request, mockResponse as Response);
+      await faqController.getFaqById(mockRequest as WorkspaceRequest, mockResponse as Response);
       
       // Assert
-      expect(mockFaqService.getById).toHaveBeenCalledWith('test-id');
+      expect(mockGetById).toHaveBeenCalledWith('test-id');
       expect(mockResponse.json).toHaveBeenCalledWith(faq);
     });
     
     it('should return 404 if FAQ not found', async () => {
       // Arrange
-      mockFaqService.getById.mockResolvedValue(null);
+      mockGetById.mockResolvedValue(null);
       
       // Act
-      await faqController.getFaqById(mockRequest as Request, mockResponse as Response);
+      await faqController.getFaqById(mockRequest as WorkspaceRequest, mockResponse as Response);
       
       // Assert
       expect(mockResponse.status).toHaveBeenCalledWith(404);
@@ -128,13 +143,13 @@ describe('FaqController', () => {
         workspaceId: 'test-workspace-id'
       };
       
-      mockFaqService.create.mockResolvedValue(createdFaq as any);
+      mockCreate.mockResolvedValue(createdFaq);
       
       // Act
-      await faqController.createFaq(mockRequest as Request, mockResponse as Response);
+      await faqController.createFaq(mockRequest as WorkspaceRequest, mockResponse as Response);
       
       // Assert
-      expect(mockFaqService.create).toHaveBeenCalledWith(expect.objectContaining({
+      expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
         question: 'New Question',
         answer: 'New Answer',
         workspaceId: 'test-workspace-id'
@@ -145,10 +160,10 @@ describe('FaqController', () => {
     
     it('should handle missing required fields error', async () => {
       // Arrange
-      mockFaqService.create.mockRejectedValue(new Error('Missing required fields'));
+      mockCreate.mockRejectedValue(new Error('Missing required fields'));
       
       // Act
-      await faqController.createFaq(mockRequest as Request, mockResponse as Response);
+      await faqController.createFaq(mockRequest as WorkspaceRequest, mockResponse as Response);
       
       // Assert
       expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -173,13 +188,13 @@ describe('FaqController', () => {
         workspaceId: 'test-workspace-id'
       };
       
-      mockFaqService.update.mockResolvedValue(updatedFaq as any);
+      mockUpdate.mockResolvedValue(updatedFaq);
       
       // Act
-      await faqController.updateFaq(mockRequest as Request, mockResponse as Response);
+      await faqController.updateFaq(mockRequest as WorkspaceRequest, mockResponse as Response);
       
       // Assert
-      expect(mockFaqService.update).toHaveBeenCalledWith(
+      expect(mockUpdate).toHaveBeenCalledWith(
         'test-id',
         expect.objectContaining({
           question: 'Updated Question',
@@ -191,10 +206,10 @@ describe('FaqController', () => {
     
     it('should handle not found error', async () => {
       // Arrange
-      mockFaqService.update.mockRejectedValue(new Error('FAQ not found'));
+      mockUpdate.mockRejectedValue(new Error('FAQ not found'));
       
       // Act
-      await faqController.updateFaq(mockRequest as Request, mockResponse as Response);
+      await faqController.updateFaq(mockRequest as WorkspaceRequest, mockResponse as Response);
       
       // Assert
       expect(mockResponse.status).toHaveBeenCalledWith(404);
@@ -205,10 +220,10 @@ describe('FaqController', () => {
     
     it('should handle invalid data error', async () => {
       // Arrange
-      mockFaqService.update.mockRejectedValue(new Error('Invalid FAQ data'));
+      mockUpdate.mockRejectedValue(new Error('Invalid FAQ data'));
       
       // Act
-      await faqController.updateFaq(mockRequest as Request, mockResponse as Response);
+      await faqController.updateFaq(mockRequest as WorkspaceRequest, mockResponse as Response);
       
       // Assert
       expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -221,23 +236,23 @@ describe('FaqController', () => {
   describe('deleteFaq', () => {
     it('should delete a FAQ', async () => {
       // Arrange
-      mockFaqService.delete.mockResolvedValue(true);
+      mockDelete.mockResolvedValue(true);
       
       // Act
-      await faqController.deleteFaq(mockRequest as Request, mockResponse as Response);
+      await faqController.deleteFaq(mockRequest as WorkspaceRequest, mockResponse as Response);
       
       // Assert
-      expect(mockFaqService.delete).toHaveBeenCalledWith('test-id');
+      expect(mockDelete).toHaveBeenCalledWith('test-id');
       expect(mockResponse.status).toHaveBeenCalledWith(204);
       expect(mockResponse.send).toHaveBeenCalled();
     });
     
     it('should handle error when FAQ not found', async () => {
       // Arrange
-      mockFaqService.delete.mockRejectedValue(new Error('FAQ not found'));
+      mockDelete.mockRejectedValue(new Error('FAQ not found'));
       
       // Act
-      await faqController.deleteFaq(mockRequest as Request, mockResponse as Response);
+      await faqController.deleteFaq(mockRequest as WorkspaceRequest, mockResponse as Response);
       
       // Assert
       expect(mockResponse.status).toHaveBeenCalledWith(404);

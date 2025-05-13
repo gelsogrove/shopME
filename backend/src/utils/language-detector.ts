@@ -67,26 +67,21 @@ const specialPhrases: Record<SupportedLanguage, string[]> = {
 };
 
 /**
- * Simple greeting detector - checks if a message is a greeting
- * @param text Message text to check
- * @returns Language code if it's a greeting, null otherwise
+ * Detect a greeting and return its language
+ * @param text The text to analyze
+ * @returns The detected language code or null if not a greeting
  */
 export function detectGreeting(text: string): SupportedLanguage | null {
-  if (!text || text.trim() === '') return null;
+  if (!text || text.trim().length === 0) {
+    return null;
+  }
+
+  const lowerText = text.toLowerCase().trim();
   
-  const normalizedText = text.trim().toLowerCase();
-  
+  // Check each language's greetings
   for (const [lang, patterns] of Object.entries(languagePatterns)) {
-    // Check for exact matches first
-    if (patterns.greetings.includes(normalizedText)) {
-      return lang as SupportedLanguage;
-    }
-    
-    // Then check for starts with
     for (const greeting of patterns.greetings) {
-      if (normalizedText.startsWith(greeting + ' ') || 
-          normalizedText.includes(' ' + greeting + ' ') ||
-          normalizedText === greeting) {
+      if (lowerText === greeting || lowerText.startsWith(greeting + ' ')) {
         return lang as SupportedLanguage;
       }
     }
@@ -171,10 +166,6 @@ export function detectLanguage(text: string): SupportedLanguage {
     scores.pt += 10; // Force Portuguese for this specific phrase
   }
   
-  // Log scores for debugging (can be removed in production)
-  console.log(`Language scores for "${text.substring(0, 30)}...":`);
-  console.log(scores);
-  
   // Find language with highest score
   let detectedLanguage: SupportedLanguage = 'en';
   let highestScore = 0;
@@ -207,26 +198,19 @@ export function getLanguageDbCode(detectedCode: SupportedLanguage): string {
 }
 
 /**
- * Normalize database language code to supported language code
- * @param dbCode Database language code (ENG, IT, ESP, PRT)
- * @returns Normalized language code (en, it, es, pt)
+ * Convert a database language code to a standard language code
+ * @param dbCode Database language code (eg. ENG, IT, ESP, PRT)
+ * @returns Standard language code (eg. en, it, es, pt)
  */
-export function normalizeDatabaseLanguage(dbCode: string): SupportedLanguage {
-  const code = dbCode?.toUpperCase() || 'ENG';
+export function normalizeDatabaseLanguage(dbCode?: string): SupportedLanguage {
+  if (!dbCode) return 'en';
   
-  const mapping: Record<string, SupportedLanguage> = {
-    'ENG': 'en',
-    'IT': 'it',
-    'ESP': 'es',
-    'PRT': 'pt',
-    'ENGLISH': 'en',
-    'ITALIAN': 'it', 
-    'ITALIANO': 'it',
-    'SPANISH': 'es',
-    'ESPAÑOL': 'es',
-    'PORTUGUESE': 'pt',
-    'PORTUGUÊS': 'pt'
-  };
+  const code = dbCode.toUpperCase();
   
-  return mapping[code] || 'en';
+  if (code === 'ENG' || code === 'ENGLISH' || code === 'EN') return 'en';
+  if (code === 'IT' || code === 'ITA' || code === 'ITALIAN' || code === 'ITALIANO') return 'it';
+  if (code === 'ESP' || code === 'ES' || code === 'SPANISH' || code === 'ESPAÑOL') return 'es';
+  if (code === 'PRT' || code === 'PT' || code === 'PORTUGUESE' || code === 'PORTUGUÊS') return 'pt';
+  
+  return 'en'; // Default to English
 } 

@@ -1,7 +1,8 @@
-import { Router } from "express"
+import { NextFunction, Response, Router } from "express"
 import { ServicesController } from "../controllers/services.controller"
 import { authMiddleware } from "../middlewares/auth.middleware"
 import { workspaceContextMiddleware } from "../middlewares/workspace-context.middleware"
+import { WorkspaceRequest } from "../types/workspace-request"
 
 /**
  * @swagger
@@ -80,7 +81,10 @@ export const servicesRouter = (controller: ServicesController): Router => {
    *               items:
    *                 $ref: '#/components/schemas/Service'
    */
-  router.get("/", workspaceContextMiddleware, controller.getServicesForWorkspace.bind(controller))
+  // @ts-ignore
+  router.get("/", workspaceContextMiddleware, (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
+    controller.getServicesForWorkspace(req, res).catch(next);
+  })
   
   /**
    * @swagger
@@ -135,7 +139,10 @@ export const servicesRouter = (controller: ServicesController): Router => {
    *             schema:
    *               $ref: '#/components/schemas/Service'
    */
-  router.post("/", workspaceContextMiddleware, controller.createService.bind(controller))
+  // @ts-ignore
+  router.post("/", workspaceContextMiddleware, (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
+    controller.createService(req, res).catch(next);
+  })
 
   /**
    * @swagger
@@ -168,7 +175,10 @@ export const servicesRouter = (controller: ServicesController): Router => {
    *       404:
    *         description: Service not found
    */
-  router.get("/:id", workspaceContextMiddleware, controller.getServiceById.bind(controller))
+  // @ts-ignore
+  router.get("/:id", workspaceContextMiddleware, (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
+    controller.getServiceById(req, res).catch(next);
+  })
   
   /**
    * @swagger
@@ -226,7 +236,10 @@ export const servicesRouter = (controller: ServicesController): Router => {
    *       404:
    *         description: Service not found
    */
-  router.put("/:id", workspaceContextMiddleware, controller.updateService.bind(controller))
+  // @ts-ignore
+  router.put("/:id", workspaceContextMiddleware, (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
+    controller.updateService(req, res).catch(next);
+  })
   
   /**
    * @swagger
@@ -255,7 +268,10 @@ export const servicesRouter = (controller: ServicesController): Router => {
    *       404:
    *         description: Service not found
    */
-  router.delete("/:id", workspaceContextMiddleware, controller.deleteService.bind(controller))
+  // @ts-ignore
+  router.delete("/:id", workspaceContextMiddleware, (req: WorkspaceRequest, res: Response, next: NextFunction): void => {
+    controller.deleteService(req, res).catch(next);
+  })
 
   return router
 } 

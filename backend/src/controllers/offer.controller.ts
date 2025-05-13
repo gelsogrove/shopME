@@ -4,14 +4,6 @@ import logger from "../utils/logger";
 
 // Exactly the same utility function used in CategoriesController
 const getWorkspaceId = (req: Request): string | undefined => {
-  console.log("=== getWorkspaceId Debug ===");
-  console.log("Full request object keys:", Object.keys(req));
-  console.log("Full params object:", req.params);
-  console.log("Full query object:", req.query);
-  console.log("workspaceId from params:", req.params.workspaceId);
-  console.log("workspaceId from query:", req.query.workspaceId);
-  console.log("=========================");
-  
   return req.params.workspaceId || req.query.workspaceId as string;
 };
 
@@ -32,19 +24,7 @@ export class OffersController {
     try {
       const workspaceId = getWorkspaceId(req);
       
-      console.log("=== Detailed Offers Request Debug ===");
-      console.log("Request URL:", req.url);
-      console.log("Request method:", req.method);
-      console.log("Request path:", req.path);
-      console.log("Request baseUrl:", req.baseUrl);
-      console.log("WorkspaceId from function:", workspaceId);
-      console.log("Raw params:", JSON.stringify(req.params));
-      console.log("Raw query:", JSON.stringify(req.query));
-      console.log("Raw body:", JSON.stringify(req.body));
-      console.log("================================");
-
       if (!workspaceId) {
-        console.log("WorkspaceId is missing! Sending 400 response");
         return res.status(400).json({ 
           error: 'Workspace ID is required6.',
           message: 'Missing workspaceId parameter'

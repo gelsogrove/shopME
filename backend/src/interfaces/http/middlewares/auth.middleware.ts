@@ -23,17 +23,29 @@ declare global {
   }
 }
 
+// Funzioni di log condizionali per ridurre l'output durante i test
+const isTestEnvironment = process.env.NODE_ENV === 'test';
+const logInfo = (_message: string, ..._args: any[]) => {
+  // Function intentionally left empty to avoid logs
+};
+
+const logError = (message: string, ...args: any[]) => {
+  if (!isTestEnvironment) {
+    console.error(message, ...args);
+  }
+};
+
 export const authMiddleware = (
   req: Request,
   _res: Response,
   next: NextFunction
 ): void => {
-  console.log("Auth middleware invoked for path:", req.path);
-  console.log("Method:", req.method);
-  console.log("Query params:", req.query);
-  console.log("Cookies:", req.cookies);
-  console.log("Auth header:", req.headers.authorization);
-  console.log("Request URL:", req.originalUrl);
+  logInfo("Auth middleware invoked for path:", req.path);
+  logInfo("Method:", req.method);
+  logInfo("Query params:", req.query);
+  logInfo("Cookies:", req.cookies);
+  logInfo("Auth header:", req.headers.authorization);
+  logInfo("Request URL:", req.originalUrl);
   
   try {
     // Check for token in cookies
@@ -41,15 +53,15 @@ export const authMiddleware = (
     
     // Fallback to Authorization header for backward compatibility
     if (!token) {
-      console.log("No token in cookies, checking headers");
+      logInfo("No token in cookies, checking headers");
       const authHeader = req.headers.authorization;
       if (!authHeader) {
-        console.log("No authorization header");
+        logInfo("No authorization header");
         throw new AppError(401, "Authentication required");
       }
       
       if (!authHeader.startsWith("Bearer ")) {
-        console.log("Authorization header doesn't start with 'Bearer '");
+        logInfo("Authorization header doesn't start with 'Bearer '");
         throw new AppError(401, "Invalid authorization format");
       }
       
@@ -57,24 +69,24 @@ export const authMiddleware = (
       
       // Check if token is empty after 'Bearer '
       if (!token || token.trim() === '') {
-        console.log("Empty token in authorization header");
+        logInfo("Empty token in authorization header");
         throw new AppError(401, "Empty authorization token");
       }
     }
     
     if (!token) {
-      console.log("No token found in cookies or headers");
+      logInfo("No token found in cookies or headers");
       throw new AppError(401, "Authentication required");
     }
     
     try {
-      console.log("Using token:", token.substring(0, 20) + "...");
+      logInfo("Using token:", token.substring(0, 20) + "...");
       const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload;
-      console.log("Token decoded successfully:", decoded);
+      logInfo("Token decoded successfully:", decoded);
       
       // Make sure we have a userId
       if (!decoded.userId && !decoded.id) {
-        console.log("Token doesn't have userId or id field");
+        logInfo("Token doesn't have userId or id field");
         throw new AppError(401, "Invalid token format");
       }
       
@@ -86,11 +98,11 @@ export const authMiddleware = (
       req.user = decoded;
       return next();
     } catch (error) {
-      console.log("Token verification failed:", error);
+      logInfo("Token verification failed:", error);
       throw new AppError(401, "Invalid token");
     }
   } catch (error) {
-    console.error("Auth middleware error:", error);
+    logError("Auth middleware error:", error);
     if (error instanceof AppError) {
       throw error;
     }

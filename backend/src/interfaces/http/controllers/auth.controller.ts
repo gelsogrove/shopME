@@ -32,17 +32,12 @@ export class AuthController {
 
   // Set JWT token in cookies
   private setTokenCookie = (res: Response, token: string) => {
-    console.log("Setting auth_token cookie");
-    
-    // Set in HTTP-only cookie
     res.cookie("auth_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Only in HTTPS in production
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
-    
-    console.log("Auth token cookie set successfully");
   }
 
   async login(req: Request, res: Response): Promise<void> {
@@ -145,12 +140,10 @@ export class AuthController {
   }
 
   async register(req: Request, res: Response): Promise<void> {
-    console.log("Register request received:", req.body)
     const { email, password, firstName, lastName, gdprAccepted } = req.body
 
     // Validate GDPR acceptance
     if (!gdprAccepted) {
-      console.log("GDPR not accepted")
       throw new AppError(400, "GDPR acceptance is required")
     }
 
@@ -163,15 +156,12 @@ export class AuthController {
         gdprAccepted: new Date(), // Store the timestamp of GDPR acceptance
       })
 
-      console.log("User created successfully:", user.id)
-
       // Return success response with userId for 2FA setup
       res.status(201).json({
         message: "Registration successful",
         userId: user.id,
       })
     } catch (error) {
-      console.error("Error in register:", error)
       throw error
     }
   }

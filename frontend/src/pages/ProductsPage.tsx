@@ -34,6 +34,7 @@ export function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [categories, setCategories] = useState<Array<{ id: string, name: string }>>([])
+  const [suppliers, setSuppliers] = useState<Array<{ id: string, name: string }>>([])
   const [showAddSheet, setShowAddSheet] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<ProductDisplay | null>(
@@ -42,6 +43,7 @@ export function ProductsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [searchValue, setSearchValue] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedSupplier, setSelectedSupplier] = useState("all")
 
   // Fetch products when workspace changes
   useEffect(() => {
@@ -91,13 +93,41 @@ export function ProductsPage() {
     loadCategories()
   }, [workspace?.id])
 
-  // Filter products based on search value and selected category
+  // Fetch suppliers when workspace changes
+  useEffect(() => {
+    const loadSuppliers = async () => {
+      if (!workspace?.id) return
+
+      try {
+        // Assuming there's a suppliersApi with a getAllForWorkspace method
+        const response = await fetch(`/api/workspaces/${workspace.id}/suppliers`);
+        if (response.ok) {
+          const suppliersData = await response.json();
+          setSuppliers(suppliersData);
+        } else {
+          console.error("Failed to load suppliers:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Failed to load suppliers:", error)
+      }
+    }
+
+    loadSuppliers()
+  }, [workspace?.id])
+
+  // Filter products based on search value, selected category and selected supplier
   const filteredProducts = products.filter(
     (product) => 
       product.isActive && (
+        // Category filter
         (selectedCategory === "all" || 
          (selectedCategory === "none" && !product.categoryId) || 
          product.categoryId === selectedCategory) &&
+        // Supplier filter
+        (selectedSupplier === "all" || 
+         (selectedSupplier === "none" && !product.supplierId) || 
+         product.supplierId === selectedSupplier) &&
+        // Search filter
         (product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
          product.description.toLowerCase().includes(searchValue.toLowerCase()))
       )
@@ -285,24 +315,47 @@ export function ProductsPage() {
             {filteredProducts.length} items
           </div>
 
-          {/* Category filter */}
-          <div className="flex items-center mb-4 ml-1">
-            <Tag className="h-4 w-4 text-muted-foreground mr-2" />
-            <label className="mr-2 text-sm font-medium">Filter by category:</label>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="none">No Category</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-4 mb-4 ml-1">
+            {/* Category filter */}
+            <div className="flex items-center">
+              <Tag className="h-4 w-4 text-muted-foreground mr-2" />
+              <label className="mr-2 text-sm font-medium">Filter by category:</label>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="none">No Category</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Supplier filter */}
+            <div className="flex items-center">
+              <Tag className="h-4 w-4 text-muted-foreground mr-2" />
+              <label className="mr-2 text-sm font-medium">Filter by supplier:</label>
+              <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select supplier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Suppliers</SelectItem>
+                  <SelectItem value="none">No Supplier</SelectItem>
+                  {suppliers.map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="mt-6 w-full">
@@ -320,6 +373,11 @@ export function ProductsPage() {
                         alt={product.name}
                         className="object-cover w-full h-full"
                       />
+                    </div>
+                  )}
+                  {!product.image && (
+                    <div className="mb-3 aspect-video relative overflow-hidden rounded-md bg-gray-100 flex items-center justify-center">
+                      <Package2 className="h-12 w-12 text-gray-300" />
                     </div>
                   )}
 
@@ -346,6 +404,15 @@ export function ProductsPage() {
                       )}
                     </div>
                   </div>
+
+                  {/* Supplier */}
+                  {product.supplier && (
+                    <div className="mb-2 flex items-center">
+                      <div className="flex-1">
+                        <span className="text-xs text-gray-500">Supplier: {product.supplier.name}</span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Description */}
                   <p className="text-sm text-gray-600 line-clamp-2 mb-3">

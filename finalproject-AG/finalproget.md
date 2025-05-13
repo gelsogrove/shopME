@@ -13,11 +13,27 @@
 
 ## 0. Ficha del proyecto
 
-### **0.1. Tu nombre completo:**
+### **0.1. Andrea Gelsomino:**
 
-### **0.2. Nombre del proyecto:**
+### **0.2. ShopMe**
 
 ### **0.3. Descripción breve del proyecto:**
+
+<b>ShopMe</a> è una piattaforma SaaS che trasforma WhatsApp in un canale e-commerce completo, abilitando transazioni commerciali direttamente tramite chat. Utilizzando intelligenza artificiale generativa e l'API WhatsApp Business, ShopMe permette alle aziende di offrire:
+
+- Supporto 24/7 automatizzato con chatbot intelligenti
+
+- Acquisti conversazionali senza uscire dall'app (carrello, pagamenti, tracking ordini)
+
+- Personalizzazione basata su preferenze cliente e cronologia acquisti
+
+- Integrazione immediata per PMI, senza competenze tecniche
+
+- Risolve le principali sfide del commercio digitale: frammentazione dell'attenzione, costi operativi elevati e complessità tecnologica. Pensata per prodotti italiani di qualità, la piattaforma supporta multilingua e multicurrency, con architettura sicura multi-tenant e protezione dati GDPR-ready.
+
+- Il modello conversazionale aumenta del 30% i tassi di conversione (dati pilota) riducendo i tempi di risposta da ore a secondi. Estendibile in futuro a prenotazioni, servizi e loyalty program.
+
+
 
 ### **0.4. URL del proyecto:**
 

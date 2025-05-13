@@ -10,15 +10,12 @@ export class ProductService {
     page?: number;
     limit?: number;
   }): Promise<{ products: Products[]; total: number; page: number; totalPages: number }> {
-    console.log('ProductService.getAllProducts chiamato con:', { workspaceId, options });
-    
     // Iniziamo con un filtro vuoto
     const where: Prisma.ProductsWhereInput = {};
 
     // Aggiungiamo solo il workspaceId come filtro obbligatorio
     if (workspaceId) {
       where.workspaceId = workspaceId;
-      console.log('Filtro per workspaceId:', workspaceId);
     }
 
     // Aggiungiamo la ricerca per nome, se presente
@@ -63,19 +60,11 @@ export class ProductService {
     const limit = options?.limit || 50;
     const skip = (page - 1) * limit;
 
-    console.log('Query Prisma products con:', { 
-      where, 
-      skip, 
-      take: limit 
-    });
-
     try {
       const totalInDatabase = await prisma.products.count({});
-      console.log('Totale prodotti nel database (senza filtri):', totalInDatabase);
       
       // Se non ci sono prodotti nel database, non facciamo ulteriori query
       if (totalInDatabase === 0) {
-        console.log('Nessun prodotto nel database');
         return {
           products: [],
           total: 0,
@@ -89,11 +78,8 @@ export class ProductService {
         await prisma.products.count({ where: { workspaceId } }) : 
         totalInDatabase;
       
-      console.log('Totale prodotti nel workspace:', totalInWorkspace);
-      
       // Se non ci sono prodotti nel workspace, non facciamo ulteriori query
       if (totalInWorkspace === 0) {
-        console.log('Nessun prodotto nel workspace');
         return {
           products: [],
           total: 0,
@@ -104,7 +90,6 @@ export class ProductService {
       
       // Ora contiamo con tutti i filtri
       const total = await prisma.products.count({ where });
-      console.log('Total prodotti trovati con tutti i filtri:', total);
       
       const totalPages = Math.ceil(total / limit);
 
@@ -122,39 +107,6 @@ export class ProductService {
         take: limit
       });
 
-      console.log(`Ritorno ${products.length} prodotti di ${total} totali`);
-      
-      if (products.length > 0) {
-        console.log('Esempio prodotto:', {
-          id: products[0].id,
-          name: products[0].name,
-          workspaceId: products[0].workspaceId,
-          isActive: products[0].isActive,
-          status: products[0].status
-        });
-      } else {
-        console.log('Nessun prodotto trovato che corrisponde ai criteri di ricerca');
-        
-        if (workspaceId) {
-          const allWorkspaceProducts = await prisma.products.findMany({
-            where: { workspaceId },
-            take: 5
-          });
-          
-          console.log(`Prodotti nel workspace senza filtri: ${allWorkspaceProducts.length}`);
-          if (allWorkspaceProducts.length > 0) {
-            console.log('Esempi di prodotti nel workspace (primi 5):', 
-              allWorkspaceProducts.map(p => ({ 
-                id: p.id, 
-                name: p.name, 
-                isActive: p.isActive, 
-                status: p.status 
-              }))
-            );
-          }
-        }
-      }
-
       return {
         products,
         total,
@@ -162,7 +114,6 @@ export class ProductService {
         totalPages
       };
     } catch (error) {
-      console.error('Errore nel recupero prodotti:', error);
       return {
         products: [],
         total: 0,
@@ -173,8 +124,6 @@ export class ProductService {
   }
 
   async getProductById(id: string, workspaceId?: string): Promise<Products | null> {
-    console.log('getProductById chiamato con:', { id, workspaceId });
-    
     const where: Prisma.ProductsWhereInput = {
       id
     };
@@ -192,10 +141,8 @@ export class ProductService {
         }
       });
       
-      console.log('Prodotto trovato:', product ? 'sì' : 'no');
       return product;
     } catch (error) {
-      console.error('Errore nel recupero prodotto:', error);
       return null;
     }
   }

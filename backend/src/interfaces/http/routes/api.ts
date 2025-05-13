@@ -3,10 +3,6 @@
 router.get('/test/openai', async (req, res) => {
   try {
     const apiKey = process.env.OPENAI_API_KEY || '';
-    console.log(`API key test - key present: ${!!apiKey}, key length: ${apiKey ? apiKey.length : 0}`);
-    if (apiKey) {
-      console.log(`API key prefix: ${apiKey.substring(0, 10)}...`);
-    }
 
     // Check if OpenAI is properly configured
     if (!apiKey || apiKey.length < 10 || apiKey === 'your-api-key-here') {

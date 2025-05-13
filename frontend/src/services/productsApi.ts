@@ -19,11 +19,28 @@ export interface Product {
   isActive: boolean
   workspaceId: string
   categoryId: string | null
+  category?: {
+    id: string
+    name: string
+    workspaceId: string
+    slug: string
+    isActive: boolean
+    createdAt: string
+    updatedAt: string
+  } | null
+  supplierId?: string | null
+  supplier?: {
+    id: string
+    name: string
+    workspaceId: string
+    isActive: boolean
+    createdAt: string
+    updatedAt: string
+  } | null
   slug: string
   status: 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK'
   createdAt: string
   updatedAt: string
-  category?: Category | null
 }
 
 export interface CreateProductData {
