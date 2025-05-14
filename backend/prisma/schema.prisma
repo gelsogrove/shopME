@@ -361,6 +361,7 @@ model Services {
   description String
   price       Float
   currency    String    @default("EUR")
+  duration    Int       @default(60)
   isActive    Boolean   @default(true)
   workspaceId String
   createdAt   DateTime  @default(now())

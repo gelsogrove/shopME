@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { mockDeep, mockReset } from 'jest-mock-extended';
-import ServiceService from '../../../application/services/service.service';
+import { Service } from '../../../domain/entities/service.entity';
+import { ServiceRepository } from '../../../repositories/service.repository';
 
 // Mock Prisma Client
 jest.mock('../../../lib/prisma', () => ({
@@ -15,47 +16,31 @@ jest.mock('../../../utils/logger', () => ({
   debug: jest.fn()
 }));
 
-// Mock del service.update per risolvere il problema del test fallito
-jest.mock('../../../application/services/service.service', () => {
-  const originalModule = jest.requireActual('../../../application/services/service.service');
-  return {
-    ...originalModule,
-    default: {
-      ...originalModule.default,
-      update: jest.fn().mockImplementation((id, data) => {
-        // Se il prezzo è negativo, lancia un errore
-        if (data.price && data.price < 0) {
-          throw new Error('Invalid service data');
-        }
-        // Altrimenti ritorna un mock
-        return Promise.resolve({
-          id,
-          ...data
-        });
-      })
-    }
-  };
-});
-
+// Import dopo i mock
 import { prisma } from '../../../lib/prisma';
-// @ts-ignore - Ignoring TS2615 circular reference error in Prisma types
+// Cast del mock per poterlo utilizzare nei test
 const mockPrisma = prisma as unknown as ReturnType<typeof mockDeep<PrismaClient>>;
 
+// Mock del repository
+jest.mock('../../../repositories/service.repository');
+
+// Import ServiceService dopo aver mockato le dipendenze
+import ServiceService from '../../../application/services/service.service';
+
 describe('ServiceService', () => {
-  let serviceService: typeof ServiceService;
-  let mockPrisma: any;
   let workspaceId: string;
   let id: string;
   
   beforeEach(() => {
     mockReset(mockPrisma);
-    serviceService = new (ServiceService.constructor as any)();
+    jest.clearAllMocks();
+    workspaceId = 'test-workspace-id';
+    id = 'test-service-id';
   });
 
-  describe.skip('getAllForWorkspace', () => {
+  describe('getAllForWorkspace', () => {
     it('should return all services for a workspace', async () => {
       // Arrange
-      const workspaceId = 'test-workspace-id';
       const expectedServices = [
         { 
           id: '1', 
@@ -83,56 +68,44 @@ describe('ServiceService', () => {
         }
       ];
       
-      mockPrisma.services.findMany.mockResolvedValue(expectedServices as any);
+      // Mock del metodo findAll
+      const mockFindAll = jest.spyOn(ServiceRepository.prototype, 'findAll')
+        .mockResolvedValue(expectedServices.map(s => new Service(s)));
       
       // Act
-      const result = await serviceService.getAllForWorkspace(workspaceId);
+      const result = await ServiceService.getAllForWorkspace(workspaceId);
       
       // Assert
       expect(result).toHaveLength(2);
-      expect(mockPrisma.services.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { workspaceId }
-        })
-      );
+      expect(mockFindAll).toHaveBeenCalledWith(workspaceId);
     });
     
     it('should filter services by active status if implemented internally', async () => {
       // Arrange
-      const workspaceId = 'test-workspace-id';
-      
-      // Usando mockResolvedValue invece di mockImplementation che causa problemi
-      mockPrisma.services.findMany.mockResolvedValue([]);
+      const mockFindAll = jest.spyOn(ServiceRepository.prototype, 'findAll')
+        .mockResolvedValue([]);
       
       // Act
-      await serviceService.getAllForWorkspace(workspaceId);
+      await ServiceService.getAllForWorkspace(workspaceId);
       
-      // Assert - verifichiamo solo che sia stato chiamato con workspaceId
-      expect(mockPrisma.services.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({ 
-            workspaceId
-          })
-        })
-      );
+      // Assert
+      expect(mockFindAll).toHaveBeenCalledWith(workspaceId);
     });
     
     it('should handle errors and log them', async () => {
       // Arrange
-      const workspaceId = 'test-workspace-id';
       const error = new Error('Database error');
-      mockPrisma.services.findMany.mockRejectedValue(error);
+      jest.spyOn(ServiceRepository.prototype, 'findAll')
+        .mockRejectedValue(error);
       
       // Act & Assert
-      await expect(serviceService.getAllForWorkspace(workspaceId)).rejects.toThrow('Database error');
+      await expect(ServiceService.getAllForWorkspace(workspaceId)).rejects.toThrow('Database error');
     });
   });
 
-  describe.skip('getById', () => {
+  describe('getById', () => {
     it('should return a service by id', async () => {
       // Arrange
-      const id = 'service-id';
-      const workspaceId = 'test-workspace-id'; // Aggiungiamo il workspaceId
       const expectedService = { 
         id, 
         name: 'Service', 
@@ -140,16 +113,18 @@ describe('ServiceService', () => {
         price: 100,
         currency: 'EUR',
         duration: 60,
-        workspaceId: 'test-workspace-id',
+        workspaceId,
         createdAt: new Date(),
         updatedAt: new Date(),
         isActive: true
       };
       
-      mockPrisma.services.findUnique.mockResolvedValue(expectedService as any);
+      // Mock del metodo findById
+      jest.spyOn(ServiceRepository.prototype, 'findById')
+        .mockResolvedValue(new Service(expectedService));
       
       // Act
-      const result = await serviceService.getById(id, workspaceId); // Aggiungiamo workspaceId
+      const result = await ServiceService.getById(id, workspaceId);
       
       // Assert
       expect(result).toEqual(expect.objectContaining({
@@ -157,25 +132,22 @@ describe('ServiceService', () => {
         name: 'Service',
         price: 100
       }));
-      expect(mockPrisma.services.findUnique).toHaveBeenCalledWith({
-        where: { id }
-      });
     });
     
     it('should return null if service not found', async () => {
       // Arrange
-      const workspaceId = 'test-workspace-id'; // Aggiungiamo workspaceId
-      mockPrisma.services.findUnique.mockResolvedValue(null);
+      jest.spyOn(ServiceRepository.prototype, 'findById')
+        .mockResolvedValue(null);
       
       // Act
-      const result = await serviceService.getById('non-existent', workspaceId); // Aggiungiamo workspaceId
+      const result = await ServiceService.getById('non-existent', workspaceId);
       
       // Assert
       expect(result).toBeNull();
     });
   });
 
-  describe.skip('create', () => {
+  describe('create', () => {
     it('should create a new service', async () => {
       // Arrange
       const serviceData = {
@@ -184,7 +156,7 @@ describe('ServiceService', () => {
         price: 200,
         currency: 'EUR',
         duration: 120,
-        workspaceId: 'test-workspace-id',
+        workspaceId,
         isActive: true
       };
       
@@ -195,10 +167,12 @@ describe('ServiceService', () => {
         updatedAt: new Date()
       };
       
-      mockPrisma.services.create.mockResolvedValue(expectedService as any);
+      // Mock del metodo create
+      jest.spyOn(ServiceRepository.prototype, 'create')
+        .mockResolvedValue(new Service(expectedService));
       
       // Act
-      const result = await serviceService.create(serviceData);
+      const result = await ServiceService.create(serviceData);
       
       // Assert
       expect(result).toEqual(expect.objectContaining({
@@ -206,7 +180,6 @@ describe('ServiceService', () => {
         price: 200,
         duration: 120
       }));
-      expect(mockPrisma.services.create).toHaveBeenCalled();
     });
     
     it('should set default values if not provided', async () => {
@@ -215,7 +188,7 @@ describe('ServiceService', () => {
         name: 'New Service',
         price: 200,
         duration: 60,
-        workspaceId: 'test-workspace-id'
+        workspaceId
       };
       
       const expectedService = {
@@ -225,15 +198,17 @@ describe('ServiceService', () => {
         currency: 'EUR',
         duration: 60,
         isActive: true,
-        workspaceId: 'test-workspace-id',
+        workspaceId,
         createdAt: new Date(),
         updatedAt: new Date()
       };
       
-      mockPrisma.services.create.mockResolvedValue(expectedService as any);
+      // Mock del metodo create
+      jest.spyOn(ServiceRepository.prototype, 'create')
+        .mockResolvedValue(new Service(expectedService));
       
       // Act
-      const result = await serviceService.create(serviceData);
+      const result = await ServiceService.create(serviceData);
       
       // Assert
       expect(result.currency).toBe('EUR');
@@ -245,131 +220,135 @@ describe('ServiceService', () => {
       const invalidData = {
         description: 'No name provided',
         price: -100,
-        workspaceId: 'test-workspace-id'
+        workspaceId
       };
       
       // Act & Assert
-      await expect(serviceService.create(invalidData as any)).rejects.toThrow('Invalid service data');
+      await expect(ServiceService.create(invalidData as any)).rejects.toThrow('Invalid service data');
     });
   });
 
-  describe.skip('update', () => {
+  describe('update', () => {
     it('should update an existing service', async () => {
       // Arrange
-      const id = 'service-id';
-      const updateData = {
-        name: 'Updated Service',
-        price: 250
-      };
-      
       const existingService = {
         id,
-        name: 'Original Service',
-        description: 'Original Description',
-        price: 200,
+        name: 'Existing Service',
+        description: 'Existing Description',
+        price: 100,
         currency: 'EUR',
         duration: 60,
-        workspaceId: 'test-workspace-id',
+        workspaceId,
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
+      };
+      
+      const updateData = {
+        name: 'Updated Service',
+        price: 150
       };
       
       const updatedService = {
         ...existingService,
-        name: updateData.name,
-        price: updateData.price
+        ...updateData,
+        updatedAt: new Date()
       };
       
-      mockPrisma.services.findUnique.mockResolvedValue(existingService as any);
-      mockPrisma.services.update.mockResolvedValue(updatedService as any);
+      // Mock del metodo findById
+      jest.spyOn(ServiceRepository.prototype, 'findById')
+        .mockResolvedValue(new Service(existingService));
+      
+      // Mock del metodo update
+      jest.spyOn(ServiceRepository.prototype, 'update')
+        .mockResolvedValue(new Service(updatedService));
       
       // Act
-      const result = await serviceService.update(id, updateData);
+      const result = await ServiceService.update(id, updateData);
       
       // Assert
       expect(result).toEqual(expect.objectContaining({
+        id,
         name: 'Updated Service',
-        price: 250
+        price: 150
       }));
-      expect(mockPrisma.services.update).toHaveBeenCalledWith({
-        where: { id },
-        data: updateData
-      });
     });
     
     it('should throw error if service not found', async () => {
       // Arrange
-      mockPrisma.services.findUnique.mockResolvedValue(null);
+      jest.spyOn(ServiceRepository.prototype, 'findById')
+        .mockResolvedValue(null);
       
       // Act & Assert
-      await expect(serviceService.update('non-existent', {})).rejects.toThrow('Service not found');
+      await expect(ServiceService.update('non-existent', {})).rejects.toThrow('Service not found');
     });
     
     it('should throw error if update data is invalid', async () => {
       // Arrange
-      const id = 'service-id';
-      const updateData = {
-        price: -50
-      };
-      
       const existingService = {
         id,
-        name: 'Original Service',
-        description: 'Original Description',
-        price: 200,
+        name: 'Existing Service',
+        description: 'Existing Description',
+        price: 100,
         currency: 'EUR',
         duration: 60,
-        workspaceId: 'test-workspace-id',
+        workspaceId,
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
       };
       
-      mockPrisma.services.findUnique.mockResolvedValue(existingService as any);
+      const updateData = {
+        price: -50 // Prezzo negativo non valido
+      };
       
-      // Act & Assert - Questo utilizzerà il mock sovrascritto sopra che lancia un errore per prezzi negativi
-      await expect(serviceService.update(id, updateData)).rejects.toThrow('Invalid service data');
+      // Mock del metodo findById
+      jest.spyOn(ServiceRepository.prototype, 'findById')
+        .mockResolvedValue(new Service(existingService));
+      
+      // Act & Assert
+      await expect(ServiceService.update(id, updateData)).rejects.toThrow('Invalid service data');
     });
   });
 
-  describe.skip('delete', () => {
+  describe('delete', () => {
     it('should delete a service', async () => {
       // Arrange
-      const id = 'service-id';
-      
-      const service = {
+      const existingService = {
         id,
         name: 'Service to Delete',
-        description: 'To be deleted',
-        price: 200,
+        description: 'Will be deleted',
+        price: 100,
         currency: 'EUR',
         duration: 60,
-        workspaceId: 'test-workspace-id',
+        workspaceId,
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
       };
       
-      mockPrisma.services.findUnique.mockResolvedValue(service as any);
-      mockPrisma.services.delete.mockResolvedValue({} as any);
+      // Mock del metodo findById
+      jest.spyOn(ServiceRepository.prototype, 'findById')
+        .mockResolvedValue(new Service(existingService));
+      
+      // Mock del metodo delete
+      jest.spyOn(ServiceRepository.prototype, 'delete')
+        .mockResolvedValue(true);
       
       // Act
-      const result = await serviceService.delete(id);
+      const result = await ServiceService.delete(id);
       
       // Assert
       expect(result).toBe(true);
-      expect(mockPrisma.services.delete).toHaveBeenCalledWith({
-        where: { id }
-      });
     });
     
     it('should throw error if service not found', async () => {
       // Arrange
-      mockPrisma.services.findUnique.mockResolvedValue(null);
+      jest.spyOn(ServiceRepository.prototype, 'findById')
+        .mockResolvedValue(null);
       
       // Act & Assert
-      await expect(serviceService.delete('non-existent')).rejects.toThrow('Service not found');
+      await expect(ServiceService.delete('non-existent')).rejects.toThrow('Service not found');
     });
   });
 }); 
