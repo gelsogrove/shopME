@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import request from 'supertest';
 import app from '../../app';
-
-const prisma = new PrismaClient();
+import { testPrisma as prisma } from './prisma-test';
 
 /**
  * Create a test user with a workspace for testing

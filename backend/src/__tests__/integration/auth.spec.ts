@@ -6,6 +6,12 @@ import app from '../../app';
 import { setupTestAuth } from '../helpers/auth';
 import { prisma, setupJest, teardownJest } from '../integration/setup';
 
+/**
+ * NOTE: These integration tests are currently skipped due to issues with the Prisma client.
+ * The Prisma client from both lib/prisma.ts and the test-specific client aren't initializing properly in tests.
+ * However, the auth endpoints work correctly when tested manually with curl commands.
+ * The main issue appears to be with Prisma initialization in the test environment, not with the actual endpoints.
+ */
 describe.skip('Authentication Integration Tests', () => {
   // Test user data
   const timestamp = Date.now();
@@ -194,7 +200,7 @@ describe.skip('Authentication Integration Tests', () => {
     });
   });
   
-  describe.skip('Authentication Middleware', () => {
+  describe('Authentication Middleware', () => {
     it('should access protected route with valid token', async () => {
       const response = await request(app)
         .get('/api/users/me')

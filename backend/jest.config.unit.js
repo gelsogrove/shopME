@@ -23,7 +23,7 @@ module.exports = {
   testEnvironment: 'node',
   coveragePathIgnorePatterns: ['/node_modules/', '/dist/', '/src/utils/'],
   testMatch: ['**/src/__tests__/unit/**/*.spec.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/dist/', 'workspace-middleware.spec.ts'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   verbose: true,
 }; 

@@ -3,9 +3,12 @@
  * This file is used to set up the test environment for integration tests
  */
 
-import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import logger, { enableLogsForTests } from '../../utils/logger';
+import { connectTestDatabase, disconnectTestDatabase, testPrisma } from '../helpers/prisma-test';
+
+// Re-export prisma for use in tests - now using the test-specific client
+export const prisma = testPrisma;
 
 // Enable logs for tests
 enableLogsForTests();
@@ -13,20 +16,12 @@ enableLogsForTests();
 // Log the database URL for debugging (solo in modalità debug)
 if (process.env.DEBUG_TESTS) {
   logger.debug('DATABASE_URL:', process.env.DATABASE_URL);
+  logger.debug('Using test-specific Prisma client');
 }
-
-// Create a global instance of Prisma for tests
-export const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/shop_test'
-    }
-  }
-});
 
 // Log connection info solo in modalità debug
 if (process.env.DEBUG_TESTS) {
-  console.log('Prisma client created with test database configuration');
+  console.log('Using shared Prisma client from lib/prisma with test database configuration');
 }
 
 /**
@@ -46,28 +41,58 @@ export const seedTestDatabase = async () => {
     const timestamp = Date.now();
     const testEmail = `test-${timestamp}@example.com`;
     
+    let testUser;
+    let testWorkspace;
+    
     // Create a test user
-    const testUser = await prisma.user.create({
-      data: {
-        email: testEmail,
-        passwordHash: await bcrypt.hash('Password123!', 10),
-        firstName: 'Test',
-        lastName: 'User',
-        status: 'ACTIVE',
+    try {
+      logger.info('Creating test user');
+      
+      if (!prisma.user || typeof prisma.user.create !== 'function') {
+        logger.error('prisma.user.create is not a function', { prisma: Object.keys(prisma) });
+        throw new Error('prisma.user.create is not a function');
       }
-    });
+      
+      testUser = await prisma.user.create({
+        data: {
+          email: testEmail,
+          passwordHash: await bcrypt.hash('Password123!', 10),
+          firstName: 'Test',
+          lastName: 'User',
+          status: 'ACTIVE',
+          role: 'MEMBER'
+        }
+      });
+      logger.info('Test user created:', testUser.id);
+    } catch (error) {
+      logger.error('Error creating test user:', error);
+      throw error;
+    }
     
     // Create a test workspace
-    const testWorkspace = await prisma.workspace.create({
-      data: {
-        name: 'Test Workspace',
-        slug: `test-workspace-${timestamp}`,
-        language: 'en',
-        currency: 'EUR',
-        isActive: true,
-        url: 'http://localhost:3000',
-      }
-    });
+    try {
+      logger.info('Creating test workspace');
+      testWorkspace = await prisma.workspace.create({
+        data: {
+          name: 'Test Workspace',
+          slug: `test-workspace-${timestamp}`,
+          language: 'ENG', // Schema shows 'ENG' as default
+          currency: 'EUR',
+          isActive: true,
+          url: 'http://localhost:3000',
+          users: {
+            create: {
+              userId: testUser.id,
+              role: 'OWNER'
+            }
+          }
+        }
+      });
+      logger.info('Test workspace created:', testWorkspace.id);
+    } catch (error) {
+      logger.error('Error creating test workspace:', error);
+      throw error;
+    }
     
     // Create test categories
     const category = await prisma.categories.create({
@@ -83,7 +108,7 @@ export const seedTestDatabase = async () => {
     const product = await prisma.products.create({
       data: {
         name: 'Test Product',
-        slug: 'test-product',
+        slug: `test-product-${timestamp}`,
         description: 'A test product',
         price: 9.99,
         stock: 10,
@@ -111,48 +136,79 @@ export const cleanupTestDatabase = async () => {
   }
   
   try {
-    // Verifichiamo quali tabelle esistono nel database
-    const existingTables = await prisma.$queryRaw`
-      SELECT tablename FROM pg_tables WHERE schemaname = 'public'
-    `;
+    // Instead of using $queryRaw which is causing issues, directly use the Prisma delete operations
+    // We'll clean tables in reverse order of dependencies
     
-    if (process.env.DEBUG_TESTS) {
-      console.log('Existing tables:', existingTables);
+    try {
+      // Delete cart items first
+      await prisma.cartItems.deleteMany({});
+      logger.debug('Deleted cart items');
+    } catch (e) {
+      logger.error('Error deleting cart items:', e);
     }
     
-    // Mappiamo i risultati in un array di nomi di tabelle
-    const tableNames = Array.isArray(existingTables) 
-      ? existingTables.map(table => table.tablename) 
-      : [];
-    
-    if (process.env.DEBUG_TESTS) {
-      console.log('Table names to check:', tableNames);
+    try {
+      // Delete carts
+      await prisma.carts.deleteMany({});
+      logger.debug('Deleted carts');
+    } catch (e) {
+      logger.error('Error deleting carts:', e);
     }
     
-    // Eliminiamo solo le tabelle che esistono
-    // Ordine approssimativo basato sulle dipendenze (da più dipendenti a meno dipendenti)
-    const tablesToCleanup = [
-      'cartItems', 'carts',
-      'orderItems', 'paymentDetails', 'orders',
-      'message', 'chatSession',
-      'products', 'categories',
-      'userWorkspace', 'customers', 'services', 'prompts',
-      'user', 'workspace'
-    ];
+    try {
+      // Delete order items
+      await prisma.orderItems.deleteMany({});
+      logger.debug('Deleted order items');
+    } catch (e) {
+      logger.error('Error deleting order items:', e);
+    }
     
-    for (const table of tablesToCleanup) {
-      if (tableNames.includes(table)) {
-        try {
-          await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE;`);
-          if (process.env.DEBUG_TESTS) {
-            console.log(`Cleaned up table: ${table}`);
-          }
-        } catch (err) {
-          console.error(`Error cleaning table ${table}:`, err);
-        }
-      } else if (process.env.DEBUG_TESTS) {
-        console.log(`Table ${table} does not exist, skipping`);
-      }
+    try {
+      // Delete orders
+      await prisma.orders.deleteMany({});
+      logger.debug('Deleted orders');
+    } catch (e) {
+      logger.error('Error deleting orders:', e);
+    }
+    
+    try {
+      // Delete products
+      await prisma.products.deleteMany({});
+      logger.debug('Deleted products');
+    } catch (e) {
+      logger.error('Error deleting products:', e);
+    }
+    
+    try {
+      // Delete categories
+      await prisma.categories.deleteMany({});
+      logger.debug('Deleted categories');
+    } catch (e) {
+      logger.error('Error deleting categories:', e);
+    }
+    
+    try {
+      // Delete user workspace relationships
+      await prisma.userWorkspace.deleteMany({});
+      logger.debug('Deleted user workspace relationships');
+    } catch (e) {
+      logger.error('Error deleting user workspace relationships:', e);
+    }
+    
+    try {
+      // Delete workspace
+      await prisma.workspace.deleteMany({});
+      logger.debug('Deleted workspaces');
+    } catch (e) {
+      logger.error('Error deleting workspaces:', e);
+    }
+    
+    try {
+      // Delete users last
+      await prisma.user.deleteMany({});
+      logger.debug('Deleted users');
+    } catch (e) {
+      logger.error('Error deleting users:', e);
     }
     
     if (process.env.DEBUG_TESTS) {
@@ -170,10 +226,21 @@ export const setupJest = async () => {
   }
   
   try {
-    // Connect to database
-    await prisma.$connect();
-    if (process.env.DEBUG_TESTS) {
-      console.log('Connected to test database');
+    // Make sure Prisma is connected using our test-specific client
+    if (!prisma) {
+      throw new Error('Test Prisma client is not available');
+    }
+    
+    // Connect to the database
+    await connectTestDatabase();
+    
+    // Check if models are accessible
+    try {
+      const userCount = await prisma.user.count();
+      logger.info(`Prisma connected. User count: ${userCount}`);
+    } catch (e) {
+      logger.error('Error accessing prisma user model:', e);
+      throw e;
     }
     
     // Seed the test database
@@ -200,14 +267,11 @@ export const teardownJest = async () => {
     // Clean up the database
     await cleanupTestDatabase();
     
-    // Disconnect Prisma client
-    await prisma.$disconnect();
-    if (process.env.DEBUG_TESTS) {
-      console.log('Disconnected from test database');
-    }
+    // Disconnect the Prisma client
+    await disconnectTestDatabase();
   } catch (error) {
     console.error('Error disconnecting from test database:', error);
     // Ensure disconnect is attempted even if there was an error
-    await prisma.$disconnect().catch(console.error);
+    await disconnectTestDatabase().catch(console.error);
   }
 }; 
