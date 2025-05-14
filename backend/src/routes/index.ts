@@ -14,6 +14,7 @@ import { ProductController } from "../interfaces/http/controllers/product.contro
 import { ServicesController } from "../interfaces/http/controllers/services.controller"
 import { SuppliersController } from "../interfaces/http/controllers/suppliers.controller"
 import { UserController } from "../interfaces/http/controllers/user.controller"
+import { WhatsAppController } from "../interfaces/http/controllers/whatsapp.controller"
 import { createAgentRouter } from "../interfaces/http/routes/agent.routes"
 import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
@@ -29,13 +30,13 @@ import createRegistrationRouter from "../interfaces/http/routes/registration.rou
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import createSettingsRouter from "../interfaces/http/routes/settings.routes"
 import { suppliersRouter } from "../interfaces/http/routes/suppliers.routes"
-import { createUploadRouter } from "../interfaces/http/routes/upload.routes"
-import { createUserRouter } from "../interfaces/http/routes/user.routes"
+import { whatsappRouter } from "../interfaces/http/routes/whatsapp.routes"
 import { workspaceRoutes } from "../interfaces/http/routes/workspace.routes"
 import logger from "../utils/logger"
 // Add these imports for backward compatibility during migration
 import { PromptsController } from "../controllers/prompts.controller"
 import createPromptsRouter from "./prompts.routes"
+import { createUserRouter } from "./user.routes"
 
 // Simple logging middleware
 const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -87,13 +88,14 @@ const userController = new UserController(userService)
 const authController = new AuthController(userService, otpService, passwordResetService)
 const promptsController = new PromptsController()
 const faqController = new FaqController()
+const whatsappController = new WhatsAppController()
 
 // Public routes
 router.use("/auth", authRouter(authController))
 router.use("/registration", createRegistrationRouter())
 router.use("/chat", chatRouter(chatController))
 router.use("/messages", messagesRouter(messageController))
-router.use("/users", createUserRouter())
+router.use("/users", createUserRouter(userController))
 router.use("/workspaces", customersRouter(customersController))
 router.use("/workspaces", workspaceRoutes)
 router.use("/agent", createAgentRouter())
@@ -127,7 +129,6 @@ router.use("/workspaces/:workspaceId/faqs", faqsRouterInstance);
 router.use("/faqs", faqsRouterInstance);
 logger.info("Registered FAQs router with workspace routes");
 
-router.use("/upload", createUploadRouter())
 router.use("/settings", createSettingsRouter())
 router.use("/languages", createLanguagesRouter())
 router.use("/", suppliersRouter(suppliersController))
@@ -137,6 +138,12 @@ const offersRouterInstance = offersRouter()
 router.use("/workspaces/:workspaceId/offers", offersRouterInstance)
 router.use("/offers", offersRouterInstance)
 logger.info("Registered offers router with workspace routes")
+
+// Mount WhatsApp router
+const whatsappInstance = whatsappRouter(whatsappController);
+// Mount all whatsapp routes (webhook routes are now defined in app.ts)
+router.use("/whatsapp", whatsappInstance);
+logger.info("Registered WhatsApp router with auth-protected endpoints")
 
 // Mount Swagger documentation
 router.get('/docs/swagger.json', (req, res) => {

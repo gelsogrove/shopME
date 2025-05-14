@@ -1,6 +1,7 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { SettingsService } from "../../../application/services/settings.service";
 import logger from "../../../utils/logger";
+import { AppResponse } from "../../../utils/response";
 
 /**
  * SettingsController class
@@ -40,16 +41,23 @@ export class SettingsController {
    *       500:
    *         description: Failed to retrieve GDPR content
    */
-  async getGdprContent(req: Request, res: Response, next: NextFunction) {
+  async getGdprContent(req: Request, res: Response): Promise<void> {
     try {
       const { workspaceId } = req.params;
-      
+
+      if (!workspaceId) {
+        AppResponse.badRequest(res, "Workspace ID is required");
+        return;
+      }
+
       const gdprContent = await this.settingsService.getGdprContent(workspaceId);
       
-      res.json({ gdpr: gdprContent });
+      // Always return a success, even if content doesn't exist
+      // The service will return a default in that case
+      AppResponse.success(res, { content: gdprContent || '' });
     } catch (error) {
-      logger.error(`Error getting GDPR content for workspace ${req.params.workspaceId}:`, error);
-      next(error);
+      logger.error("Error getting GDPR content:", error);
+      AppResponse.serverError(res, "Failed to get GDPR content");
     }
   }
 
@@ -83,17 +91,26 @@ export class SettingsController {
    *       500:
    *         description: Failed to update GDPR content
    */
-  async updateGdprContent(req: Request, res: Response, next: NextFunction) {
+  async updateGdprContent(req: Request, res: Response): Promise<void> {
     try {
       const { workspaceId } = req.params;
       const { gdpr } = req.body;
-      
-      const settings = await this.settingsService.updateGdprContent(workspaceId, gdpr);
-      
-      res.json(settings);
+
+      if (!workspaceId) {
+        AppResponse.badRequest(res, "Workspace ID is required");
+        return;
+      }
+
+      if (!gdpr) {
+        AppResponse.badRequest(res, "GDPR content is required");
+        return;
+      }
+
+      const updatedSettings = await this.settingsService.updateGdprContent(workspaceId, gdpr);
+      AppResponse.success(res, updatedSettings);
     } catch (error) {
-      logger.error(`Error updating GDPR content for workspace ${req.params.workspaceId}:`, error);
-      next(error);
+      logger.error("Error updating GDPR content:", error);
+      AppResponse.serverError(res, "Failed to update GDPR content");
     }
   }
 
@@ -117,13 +134,13 @@ export class SettingsController {
    *       500:
    *         description: Failed to retrieve default GDPR content
    */
-  async getDefaultGdprContent(_req: Request, res: Response, next: NextFunction) {
+  async getDefaultGdprContent(req: Request, res: Response): Promise<void> {
     try {
-      const content = await this.settingsService.getDefaultGdprContent();
-      res.json({ content });
+      const defaultGdprContent = await this.settingsService.getDefaultGdprContent();
+      AppResponse.success(res, { content: defaultGdprContent });
     } catch (error) {
       logger.error("Error getting default GDPR content:", error);
-      next(error);
+      AppResponse.serverError(res, "Failed to get default GDPR content");
     }
   }
 
@@ -149,20 +166,24 @@ export class SettingsController {
    *       500:
    *         description: Failed to retrieve settings
    */
-  async getSettings(req: Request, res: Response, next: NextFunction) {
+  async getSettings(req: Request, res: Response): Promise<void> {
     try {
       const { workspaceId } = req.params;
-      
-      const settings = await this.settingsService.getByWorkspaceId(workspaceId);
-      
-      if (!settings) {
-        return res.status(404).json({ message: "Settings not found" });
+      logger.info(`Getting settings for workspace ${workspaceId}`);
+
+      if (!workspaceId) {
+        AppResponse.badRequest(res, "Workspace ID is required");
+        return;
       }
+
+      const settings = await this.settingsService.getSettings(workspaceId);
       
-      res.json(settings);
+      // Always return success, even if settings don't exist
+      // The service will return an appropriate default object
+      AppResponse.success(res, settings || {});
     } catch (error) {
-      logger.error(`Error getting settings for workspace ${req.params.workspaceId}:`, error);
-      next(error);
+      logger.error("Error getting settings:", error);
+      AppResponse.serverError(res, "Failed to get settings");
     }
   }
 
@@ -201,41 +222,28 @@ export class SettingsController {
    *       500:
    *         description: Failed to update settings
    */
-  async updateSettings(req: Request, res: Response, next: NextFunction) {
+  async updateSettings(req: Request, res: Response): Promise<void> {
     try {
       const { workspaceId } = req.params;
-      const { phoneNumber, apiKey, webhookUrl, settings } = req.body;
-      
-      // Create update data
-      const updateData: any = {};
-      if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
-      if (apiKey !== undefined) updateData.apiKey = apiKey;
-      if (webhookUrl !== undefined) updateData.webhookUrl = webhookUrl;
-      if (settings !== undefined) updateData.settings = settings;
-      
-      let updatedSettings;
-      
-      try {
-        updatedSettings = await this.settingsService.update(workspaceId, updateData);
-      } catch (error: any) {
-        if (error.message === "Settings not found") {
-          // Settings don't exist yet, create them
-          updatedSettings = await this.settingsService.create({
-            phoneNumber: phoneNumber || "",
-            apiKey: apiKey || "",
-            webhookUrl,
-            settings,
-            workspaceId
-          });
-        } else {
-          throw error;
-        }
+      const settingsData = req.body;
+
+      logger.info(`Updating settings for workspace ${workspaceId}`);
+
+      if (!workspaceId) {
+        AppResponse.badRequest(res, "Workspace ID is required");
+        return;
       }
-      
-      res.json(updatedSettings);
+
+      if (!settingsData) {
+        AppResponse.badRequest(res, "Settings data is required");
+        return;
+      }
+
+      const updatedSettings = await this.settingsService.updateSettings(workspaceId, settingsData);
+      AppResponse.success(res, updatedSettings);
     } catch (error) {
-      logger.error(`Error updating settings for workspace ${req.params.workspaceId}:`, error);
-      next(error);
+      logger.error("Error updating settings:", error);
+      AppResponse.serverError(res, "Failed to update settings");
     }
   }
 
@@ -254,31 +262,32 @@ export class SettingsController {
    *           type: string
    *         description: ID of the workspace
    *     responses:
-   *       204:
-   *         description: Settings deleted
+   *       200:
+   *         description: Settings deleted successfully
    *       404:
    *         description: Settings not found
    *       500:
    *         description: Failed to delete settings
    */
-  async deleteSettings(req: Request, res: Response, next: NextFunction) {
+  async deleteSettings(req: Request, res: Response): Promise<void> {
     try {
       const { workspaceId } = req.params;
-      
-      const success = await this.settingsService.delete(workspaceId);
-      
-      if (!success) {
-        return res.status(404).json({ message: "Settings not found" });
+
+      if (!workspaceId) {
+        AppResponse.badRequest(res, "Workspace ID is required");
+        return;
       }
+
+      const success = await this.settingsService.deleteSettings(workspaceId);
       
-      res.status(204).send();
-    } catch (error: any) {
-      if (error.message === "Settings not found") {
-        return res.status(404).json({ message: "Settings not found" });
+      if (success) {
+        AppResponse.success(res, { message: "Settings deleted successfully" });
+      } else {
+        AppResponse.notFound(res, "Settings not found or could not be deleted");
       }
-      
-      logger.error(`Error deleting settings for workspace ${req.params.workspaceId}:`, error);
-      next(error);
+    } catch (error) {
+      logger.error("Error deleting settings:", error);
+      AppResponse.serverError(res, "Failed to delete settings");
     }
   }
 } 

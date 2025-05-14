@@ -1,6 +1,6 @@
 import { Supplier, SupplierProps } from "../../domain/entities/supplier.entity";
 import { ISupplierRepository } from "../../domain/repositories/supplier.repository.interface";
-import { SupplierRepository } from "../../infrastructure/repositories/supplier.repository";
+import { SupplierRepository } from "../../repositories/supplier.repository";
 import logger from "../../utils/logger";
 
 /**

@@ -5,6 +5,7 @@ import helmet from "helmet"
 import OpenAI from 'openai'
 import swaggerUi from "swagger-ui-express"
 import { swaggerSpec } from "./config/swagger"
+import { WhatsAppController } from './interfaces/http/controllers/whatsapp.controller'
 import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware"
 import { loggingMiddleware } from "./middlewares/logging.middleware"
 import apiRouter from "./routes"
@@ -40,6 +41,12 @@ app.use(helmet({
 app.use(express.json())
 // @ts-ignore
 app.use(cookieParser())
+
+// Public WhatsApp webhook routes (must be before authentication)
+logger.info("Mounting public WhatsApp webhook routes");
+const whatsappController = new WhatsAppController();
+app.post('/api/whatsapp/webhook', (req, res, next) => whatsappController.handleWebhook(req, res).catch(next));
+app.get('/api/whatsapp/webhook', (req, res, next) => whatsappController.handleWebhook(req, res).catch(next));
 
 // API versioning
 const apiVersions = {

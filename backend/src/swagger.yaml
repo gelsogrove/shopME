@@ -1228,3 +1228,173 @@ paths:
           description: Unauthorized
         '500':
           description: Internal server error
+
+  /registration/token/{token}:
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Validate registration token
+      description: Validates a registration token to ensure it is valid and not expired
+      responses:
+        "200":
+          description: Token is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  phoneNumber:
+                    type: string
+                  workspaceId:
+                    type: string
+                  expiresAt:
+                    type: string
+                    format: date-time
+        "400":
+          description: Token is missing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /registration/register:
+    post:
+      summary: Register a new customer
+      description: Registers a new customer with the provided information and sends welcome and after-registration messages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - first_name
+                - last_name
+                - company
+                - phone
+                - workspace_id
+                - gdpr_consent
+              properties:
+                token:
+                  type: string
+                  description: Registration token received previously
+                first_name:
+                  type: string
+                  description: Customer's first name
+                last_name:
+                  type: string
+                  description: Customer's last name
+                company:
+                  type: string
+                  description: Customer's company name
+                phone:
+                  type: string
+                  description: Customer's phone number
+                workspace_id:
+                  type: string
+                  description: ID of the workspace the customer is registering for
+                language:
+                  type: string
+                  description: Customer's preferred language (e.g., 'English', 'Italian')
+                currency:
+                  type: string
+                  description: Customer's preferred currency (e.g., 'EUR', 'USD')
+                gdpr_consent:
+                  type: boolean
+                  description: Whether the customer has provided GDPR consent
+                push_notifications_consent:
+                  type: boolean
+                  description: Whether the customer has consented to push notifications
+      responses:
+        "200":
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  customer:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      phone:
+                        type: string
+                  message:
+                    type: string
+        "400":
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or expired registration token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Workspace not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /registration/data-protection:
+    get:
+      summary: Get data protection information
+      description: Retrieves information about data protection in the specified language
+      parameters:
+        - name: lang
+          in: query
+          required: false
+          schema:
+            type: string
+            default: en
+            enum: [en, it]
+          description: Language for the data protection information
+      responses:
+        "200":
+          description: Data protection information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                  content:
+                    type: string
+                  sections:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                        content:
+                          type: string
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"

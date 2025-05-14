@@ -1,6 +1,6 @@
 import { Customer, CustomerProps } from "../../domain/entities/customer.entity";
 import { ICustomerRepository } from "../../domain/repositories/customer.repository.interface";
-import { CustomerRepository } from "../../infrastructure/repositories/customer.repository";
+import { CustomerRepository } from "../../repositories/customer.repository";
 import logger from "../../utils/logger";
 
 /**

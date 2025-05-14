@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { RegistrationService } from '../../../application/services/registration.service';
 import { TokenService } from '../../../application/services/token.service';
 import { WelcomeService } from '../../../application/services/welcome.service';
 import { prisma } from '../../../lib/prisma';
@@ -11,10 +12,12 @@ import logger from '../../../utils/logger';
 export class RegistrationController {
   private tokenService: TokenService;
   private welcomeService: WelcomeService;
+  private registrationService: RegistrationService;
   
   constructor() {
     this.tokenService = new TokenService();
     this.welcomeService = new WelcomeService();
+    this.registrationService = new RegistrationService();
   }
   
   /**
@@ -149,6 +152,19 @@ export class RegistrationController {
         })
         .catch(error => {
           logger.error('Error sending welcome message:', error);
+        });
+      
+      // Send after-registration message asynchronously
+      this.registrationService.sendAfterRegistrationMessage(customer.id)
+        .then(success => {
+          if (success) {
+            logger.info(`After-registration message sent successfully to customer ${customer.id}`);
+          } else {
+            logger.error(`Failed to send after-registration message to customer ${customer.id}`);
+          }
+        })
+        .catch(error => {
+          logger.error('Error sending after-registration message:', error);
         });
       
       res.status(200).json({

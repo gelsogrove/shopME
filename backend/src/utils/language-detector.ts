@@ -75,7 +75,7 @@ export function detectGreeting(text: string): SupportedLanguage | null {
   if (!text || text.trim().length === 0) {
     return null;
   }
-
+  
   const lowerText = text.toLowerCase().trim();
   
   // Check each language's greetings

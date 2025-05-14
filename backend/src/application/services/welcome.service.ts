@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { MessageRepository } from '../../infrastructure/repositories/message.repository';
+import { MessageRepository } from '../../repositories/message.repository';
 import logger from '../../utils/logger';
 
 /**

@@ -1,6 +1,6 @@
 import { Category } from "../../domain/entities/category.entity";
 import { ICategoryRepository } from "../../domain/repositories/category.repository.interface";
-import { CategoryRepository } from "../../infrastructure/repositories/category.repository";
+import { CategoryRepository } from "../../repositories/category.repository";
 import logger from "../../utils/logger";
 
 /**

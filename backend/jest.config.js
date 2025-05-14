@@ -2,20 +2,16 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  coveragePathIgnorePatterns: ['/node_modules/', '/dist/', '/src/utils/'],
+  testMatch: ['**/*.spec.ts'],
+  transform: {
+    '^.+\\.ts$': ['ts-jest', {
+      tsconfig: 'tsconfig.json'
+    }]
+  },
   testPathIgnorePatterns: [
-    '/node_modules/', 
-    '/dist/', 
-    'workspace-middleware.spec.ts',
-    'src/__tests__/integration/services/supplier-product.spec.ts',
-    'src/__tests__/integration/services/services.spec.ts',
-    'src/__tests__/integration/endpoints/endpoints.spec.ts',
-    'src/__tests__/integration/test-setup.ts',
-    'src/__tests__/unit/mock/entity-mocks.ts',
-    'src/__tests__/unit/mock/request-response-mocks.ts',
-    'src/__tests__/unit/mock/service-mocks.ts',
-    'src/__tests__/unit/helpers/repository-mocks.ts',
-    'src/config/environments/test.ts'
+    '/node_modules/',
   ],
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  coveragePathIgnorePatterns: ['/node_modules/', '/dist/', '/src/utils/'],
+  setupFilesAfterEnv: ['./jest.setup.js'],
+  testTimeout: 15000
 }; 

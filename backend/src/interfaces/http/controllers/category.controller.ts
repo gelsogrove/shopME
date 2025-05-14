@@ -114,6 +114,11 @@ export class CategoryController {
       
       const { name, description, isActive } = req.body;
       
+      // Validate required fields for update
+      if (!name || name.trim() === '') {
+        return res.status(400).json({ error: 'Category name is required' });
+      }
+      
       const category = await this.categoryService.update(id, workspaceId, {
         name,
         description,
@@ -130,6 +135,10 @@ export class CategoryController {
       
       if (error.message === 'A category with this name already exists') {
         return res.status(409).json({ error: error.message });
+      }
+      
+      if (error.message === 'Missing required fields' || error.message === 'Invalid category data') {
+        return res.status(400).json({ error: error.message });
       }
       
       return res.status(500).json({ error: 'Failed to update category' });

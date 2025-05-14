@@ -1,6 +1,6 @@
 import { FAQ } from "../../domain/entities/faq.entity";
 import { IFaqRepository } from "../../domain/repositories/faq.repository.interface";
-import { FaqRepository } from "../../infrastructure/repositories/faq.repository";
+import { FaqRepository } from "../../repositories/faq.repository";
 import logger from "../../utils/logger";
 
 /**

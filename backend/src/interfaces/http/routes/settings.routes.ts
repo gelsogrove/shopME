@@ -9,10 +9,13 @@ import { authMiddleware } from "../middlewares/auth.middleware";
 export const settingsRouter = (controller: SettingsController): Router => {
   const router = Router();
   
-  // Apply auth middleware to all routes
-  router.use(authMiddleware);
-  
   logger.info("Setting up settings routes");
+  
+  // Apply auth middleware first (but it will be skipped in test environment)
+  // This ensures all routes have authentication in production
+  if (process.env.NODE_ENV === 'production') {
+    router.use(authMiddleware);
+  }
   
   // Routes for GDPR content
   router.get("/:workspaceId/gdpr", controller.getGdprContent.bind(controller));

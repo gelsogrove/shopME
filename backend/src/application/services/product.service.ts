@@ -1,7 +1,7 @@
 import { ProductStatus } from '@prisma/client';
 import { Product } from '../../domain/entities/product.entity';
 import { IProductRepository, ProductFilters } from '../../domain/repositories/product.repository.interface';
-import { ProductRepository } from '../../infrastructure/repositories/product.repository';
+import { ProductRepository } from '../../repositories/product.repository';
 import logger from '../../utils/logger';
 
 // Definizione dell'interfaccia Offer

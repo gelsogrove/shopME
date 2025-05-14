@@ -2016,3 +2016,31 @@ Several industry trends validate our approach:
 3. **AI in Retail**: 45% of retailers planning to implement AI-driven customer service by 2025
 4. **Specialty E-commerce**: Niche product categories showing higher growth than general retail
 5. **Direct-to-Consumer Shift**: Brands increasingly selling directly to consumers rather than through marketplaces 
+
+### Customer Registration Flow
+
+1. Customer receives a WhatsApp message with a registration link
+2. Customer clicks the link and is taken to a registration form
+3. Customer fills out the form and submits
+4. System validates the information and registers the customer
+5. System sends a welcome message to the customer
+6. System sends an after-registration message in the customer's preferred language to provide immediate assistance
+
+#### After-Registration Messages
+
+The system supports customizable after-registration messages with the following features:
+
+- Messages are stored in workspace settings as `afterRegistrationMessages`
+- Support for multiple languages (en, it, es, fr, de, pt)
+- Dynamic insertion of the customer's first name using the `[nome]` placeholder
+- Fallback to English if the customer's language is not supported
+- Default messages if no custom message is configured
+
+Example message format:
+```json
+{
+  "en": "Registration completed successfully. Hello [nome], how can I help you today?",
+  "it": "Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?",
+  "es": "Registro completado con éxito. Hola [nome], ¿en qué puedo ayudarte hoy?"
+}
+```

@@ -34,35 +34,35 @@ export function mockRepository() {
 // Funzione per mockare tutti i repository standard
 export function setupRepositoryMocks() {
   // Definiamo prima i mock di tutti i moduli principali
-  jest.mock('../../infrastructure/repositories/product.repository', () => ({
+  jest.mock('../../repositories/product.repository', () => ({
     ProductRepository: mockRepository()
   }));
 
-  jest.mock('../../infrastructure/repositories/category.repository', () => ({
+  jest.mock('../../repositories/category.repository', () => ({
     CategoryRepository: mockRepository()
   }));
 
-  jest.mock('../../infrastructure/repositories/service.repository', () => ({
+  jest.mock('../../repositories/service.repository', () => ({
     ServiceRepository: mockRepository()
   }));
 
-  jest.mock('../../infrastructure/repositories/faq.repository', () => ({
+  jest.mock('../../repositories/faq.repository', () => ({
     FaqRepository: mockRepository()
   }));
 
-  jest.mock('../../infrastructure/repositories/supplier.repository', () => ({
+  jest.mock('../../repositories/supplier.repository', () => ({
     SupplierRepository: mockRepository()
   }));
 
-  jest.mock('../../infrastructure/repositories/workspace.repository', () => ({
+  jest.mock('../../repositories/workspace.repository', () => ({
     WorkspaceRepository: mockRepository()
   }));
 
-  jest.mock('../../infrastructure/repositories/message.repository', () => ({
+  jest.mock('../../repositories/message.repository', () => ({
     MessageRepository: mockRepository()
   }));
   
-  jest.mock('../../infrastructure/repositories/offer.repository', () => ({
+  jest.mock('../../repositories/offer.repository', () => ({
     OfferRepository: mockRepository()
   }));
 } 

@@ -122,6 +122,12 @@ export class OfferController {
         return res.status(400).json({ error: 'Workspace ID is required' });
       }
       
+      // Check if the offer exists before updating it
+      const existingOffer = await this.offerService.getOfferById(id, workspaceId);
+      if (!existingOffer) {
+        return res.status(404).json({ error: 'Offer not found' });
+      }
+      
       // Ensure the request belongs to the workspace
       const offerData = { ...req.body, workspaceId };
       const offer = await this.offerService.updateOffer(id, offerData);
@@ -142,6 +148,12 @@ export class OfferController {
       
       if (!workspaceId) {
         return res.status(400).json({ error: 'Workspace ID is required' });
+      }
+      
+      // Check if the offer exists before deleting it
+      const offer = await this.offerService.getOfferById(id, workspaceId);
+      if (!offer) {
+        return res.status(404).json({ error: 'Offer not found' });
       }
       
       const result = await this.offerService.deleteOffer(id);

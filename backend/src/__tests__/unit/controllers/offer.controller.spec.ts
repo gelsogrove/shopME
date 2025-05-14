@@ -211,6 +211,18 @@ describe('OffersController', () => {
       };
       mockRequest.body = offerData;
       
+      const existingOffer = new Offer({
+        id: 'test-id',
+        name: 'Original Offer',
+        discountPercent: 10,
+        workspaceId: 'test-workspace-id',
+        startDate: now,
+        endDate: future,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now
+      });
+      
       const updatedOffer = new Offer({
         id: 'test-id',
         ...offerData,
@@ -222,31 +234,65 @@ describe('OffersController', () => {
         updatedAt: now
       });
       
+      mockOfferService.getOfferById.mockResolvedValue(existingOffer);
       mockOfferService.updateOffer.mockResolvedValue(updatedOffer);
 
       // Act
       await offersController.updateOffer(mockRequest as WorkspaceRequest, mockResponse as Response);
 
       // Assert
+      expect(mockOfferService.getOfferById).toHaveBeenCalledWith('test-id', 'test-workspace-id');
       expect(mockOfferService.updateOffer).toHaveBeenCalledWith('test-id', {
         ...offerData,
         workspaceId: 'test-workspace-id'
       });
       expect(mockResponse.json).toHaveBeenCalledWith(updatedOffer);
     });
+    
+    it('should return 404 when offer to update does not exist', async () => {
+      // Arrange
+      const offerData = { name: 'Updated Offer' };
+      mockRequest.body = offerData;
+      
+      mockOfferService.getOfferById.mockResolvedValue(null);
+
+      // Act
+      await offersController.updateOffer(mockRequest as WorkspaceRequest, mockResponse as Response);
+
+      // Assert
+      expect(mockOfferService.getOfferById).toHaveBeenCalledWith('test-id', 'test-workspace-id');
+      expect(mockResponse.status).toHaveBeenCalledWith(404);
+      expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Offer not found' });
+    });
   });
 
   describe('deleteOffer', () => {
     it('should delete an offer', async () => {
       // Arrange
+      const existingOffer = createTestOffer('test-id', 'Test Offer', 'test-workspace-id');
+      mockOfferService.getOfferById.mockResolvedValue(existingOffer);
       mockOfferService.deleteOffer.mockResolvedValue(true);
 
       // Act
       await offersController.deleteOffer(mockRequest as WorkspaceRequest, mockResponse as Response);
 
       // Assert
+      expect(mockOfferService.getOfferById).toHaveBeenCalledWith('test-id', 'test-workspace-id');
       expect(mockOfferService.deleteOffer).toHaveBeenCalledWith('test-id');
       expect(mockResponse.json).toHaveBeenCalledWith({ success: true });
+    });
+    
+    it('should return 404 when offer to delete does not exist', async () => {
+      // Arrange
+      mockOfferService.getOfferById.mockResolvedValue(null);
+
+      // Act
+      await offersController.deleteOffer(mockRequest as WorkspaceRequest, mockResponse as Response);
+
+      // Assert
+      expect(mockOfferService.getOfferById).toHaveBeenCalledWith('test-id', 'test-workspace-id');
+      expect(mockResponse.status).toHaveBeenCalledWith(404);
+      expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Offer not found' });
     });
   });
 }); 

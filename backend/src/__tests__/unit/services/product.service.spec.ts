@@ -4,10 +4,10 @@ import { Category } from '../../../domain/entities/category.entity';
 import { Product } from '../../../domain/entities/product.entity';
 import { Supplier } from '../../../domain/entities/supplier.entity';
 import { PaginatedProducts } from '../../../domain/repositories/product.repository.interface';
-import { ProductRepository } from '../../../infrastructure/repositories/product.repository';
+import { ProductRepository } from '../../../repositories/product.repository';
 
 // Mock del ProductRepository
-jest.mock('../../../infrastructure/repositories/product.repository');
+jest.mock('../../../repositories/product.repository');
 
 // Creiamo un tipo ProductWithDiscounts per rappresentare il prodotto con le possibili proprietà aggiunte
 type ProductWithDiscounts = Product & {

@@ -164,6 +164,22 @@ export class ProductController {
       }
       
       const productData = req.body;
+      
+      // Validate required fields for update
+      if (!productData.name || productData.name.trim() === '') {
+        return res.status(400).json({ 
+          message: 'Product name is required',
+          error: 'Missing required field: name' 
+        });
+      }
+      
+      if (productData.price === undefined || productData.price === null || isNaN(productData.price) || productData.price < 0) {
+        return res.status(400).json({ 
+          message: 'Valid product price is required',
+          error: 'Missing or invalid field: price' 
+        });
+      }
+      
       const updatedProduct = await this.productService.updateProduct(id, productData, workspaceId);
       
       if (!updatedProduct) {
@@ -192,6 +208,12 @@ export class ProductController {
           message: 'WorkspaceId is required',
           error: 'Missing workspaceId parameter' 
         });
+      }
+      
+      // Check if the product exists before deleting it
+      const existingProduct = await this.productService.getProductById(id, workspaceId);
+      if (!existingProduct) {
+        return res.status(404).json({ message: 'Product not found' });
       }
       
       await this.productService.deleteProduct(id, workspaceId);

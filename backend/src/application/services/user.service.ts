@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { User, UserProps } from '../../domain/entities/user.entity';
 import { UserRepositoryInterface } from '../../domain/repositories/user.repository.interface';
-import { UserRepository } from '../../infrastructure/repositories/user.repository';
+import { UserRepository } from '../../repositories/user.repository';
 import logger from '../../utils/logger';
 import { comparePassword, hashPassword } from '../../utils/password';
 

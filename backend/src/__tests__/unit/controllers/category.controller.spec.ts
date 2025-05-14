@@ -186,6 +186,7 @@ describe('CategoryController', () => {
     
     it('should handle not found error', async () => {
       // Arrange
+      mockRequest.body = { name: 'Valid Name' }; // Aggiungiamo un nome valido per passare la validazione
       mockCategoryService.update.mockRejectedValue(new Error('Category not found'));
       
       // Act

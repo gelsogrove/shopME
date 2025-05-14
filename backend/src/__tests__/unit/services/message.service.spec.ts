@@ -1,12 +1,17 @@
 import "@jest/globals"
 import { beforeEach, describe, expect, it, jest } from "@jest/globals"
 import { MessageService } from "../../../application/services/message.service"
-import { MessageRepository } from "../../../infrastructure/repositories/message.repository"
+import { MessageRepository } from "../../../repositories/message.repository"
 
 // Mock dependencies
-jest.mock("../../../infrastructure/repositories/message.repository")
+jest.mock("../../../repositories/message.repository")
 jest.mock("../../../utils/logger")
 
+/**
+ * Note: These tests assume environment variables are properly set in .env.test
+ * Make sure FRONTEND_URL="https://laltroitalia.shop" is added to .env.test
+ * Do not set environment variables directly in the test code.
+ */
 describe("MessageService", () => {
   let messageService: MessageService
   let mockMessageRepository: jest.Mocked<MessageRepository>
@@ -476,8 +481,7 @@ Shipping Address: Via Test 123
         unregisteredCustomer
       )
 
-      // Set the frontend URL for the registration link
-      process.env.FRONTEND_URL = "https://laltroitalia.shop"
+      // Note: FRONTEND_URL should be set in .env.test file, not here
       
       // Mock il token service per generare il link di registrazione
       messageService["tokenService"] = {
@@ -537,8 +541,7 @@ Shipping Address: Via Test 123
         unregisteredCustomer
       )
 
-      // Set the frontend URL for the registration link
-      process.env.FRONTEND_URL = "https://laltroitalia.shop"
+      // FRONTEND_URL is already set in beforeEach - no need to set it here
       
       // Mock il token service per generare il link di registrazione
       messageService["tokenService"] = {
@@ -2370,7 +2373,7 @@ Shipping Address: Via Test 123
     } as any
     
     // Imposta l'URL del frontend
-    process.env.FRONTEND_URL = "https://laltroitalia.shop"
+    // process.env.FRONTEND_URL = "https://laltroitalia.shop"
     
     // Simula che il primo messaggio sia "Ciao"
     const result = await messageService.processMessage(
@@ -2414,7 +2417,7 @@ Shipping Address: Via Test 123
     } as any
     
     // Imposta l'URL del frontend
-    process.env.FRONTEND_URL = "https://laltroitalia.shop"
+    // process.env.FRONTEND_URL = "https://laltroitalia.shop"
     
     // Esegui il test
     await messageService.processMessage(
@@ -2454,7 +2457,7 @@ Shipping Address: Via Test 123
     } as any
     
     // Imposta l'URL del frontend
-    process.env.FRONTEND_URL = "https://laltroitalia.shop"
+    // process.env.FRONTEND_URL = "https://laltroitalia.shop"
     
     // Esegui il test
     await messageService.processMessage(
@@ -2494,7 +2497,7 @@ Shipping Address: Via Test 123
     } as any
     
     // Imposta l'URL del frontend
-    process.env.FRONTEND_URL = "https://laltroitalia.shop"
+    // process.env.FRONTEND_URL = "https://laltroitalia.shop"
     
     // Esegui il test
     await messageService.processMessage(
@@ -2675,7 +2678,7 @@ Shipping Address: Via Test 123
     } as any
     
     // Imposta l'URL del frontend
-    process.env.FRONTEND_URL = "https://laltroitalia.shop"
+    // process.env.FRONTEND_URL = "https://laltroitalia.shop"
     
     // Primo messaggio NON saluto
     await messageService.processMessage(
@@ -2712,7 +2715,7 @@ Shipping Address: Via Test 123
     } as any
     
     // Imposta l'URL del frontend
-    process.env.FRONTEND_URL = "https://laltroitalia.shop"
+    // process.env.FRONTEND_URL = "https://laltroitalia.shop"
     
     // Saluto riconosciuto ("Olá"), ma lingua non presente
     await messageService.processMessage(
@@ -2750,7 +2753,7 @@ Shipping Address: Via Test 123
     } as any
     
     // Imposta l'URL del frontend
-    process.env.FRONTEND_URL = "https://laltroitalia.shop"
+    // process.env.FRONTEND_URL = "https://laltroitalia.shop"
     
     await messageService.processMessage(
       "Ciao",
@@ -2790,7 +2793,7 @@ Shipping Address: Via Test 123
     } as any
     
     // Imposta l'URL del frontend
-    process.env.FRONTEND_URL = "https://laltroitalia.shop"
+    // process.env.FRONTEND_URL = "https://laltroitalia.shop"
     
     // Saluto riconosciuto ("Olá"), ma lingua non presente
     await messageService.processMessage(
@@ -2830,7 +2833,7 @@ Shipping Address: Via Test 123
     } as any
     
     // Imposta l'URL del frontend
-    process.env.FRONTEND_URL = "https://laltroitalia.shop"
+    // process.env.FRONTEND_URL = "https://laltroitalia.shop"
     
     // Simula che il primo messaggio sia "Ciao" (saluto, non registrato)
     await messageService.processMessage(
@@ -2943,7 +2946,7 @@ Shipping Address: Via Test 123
     } as any
 
     // Imposta l'URL del frontend
-    process.env.FRONTEND_URL = "https://laltroitalia.shop"
+    // process.env.FRONTEND_URL = "https://laltroitalia.shop"
 
     // Invia un messaggio di saluto
     const result = await messageService.processMessage(

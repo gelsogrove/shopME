@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { Workspace, WorkspaceProps } from '../../domain/entities/workspace.entity';
 import { WorkspaceRepositoryInterface } from '../../domain/repositories/workspace.repository.interface';
-import { WorkspaceRepository } from '../../infrastructure/repositories/workspace.repository';
+import { WorkspaceRepository } from '../../repositories/workspace.repository';
 import logger from '../../utils/logger';
 
 export class WorkspaceService {

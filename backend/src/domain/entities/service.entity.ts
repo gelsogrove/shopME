@@ -34,7 +34,15 @@ export class Service {
       return false;
     }
     
-    if (typeof this.duration !== 'number' || this.duration < 0) {
+    // Description is required in the schema but might be missing in partial updates
+    if (this.description === undefined || this.description === null) {
+      this.description = ''; // Provide default empty string
+    }
+    
+    // Duration is optional with a default value of 60
+    if (this.duration === undefined || this.duration === null) {
+      this.duration = 60;
+    } else if (typeof this.duration !== 'number' || this.duration < 0) {
       return false;
     }
     

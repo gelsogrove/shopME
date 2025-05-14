@@ -17,6 +17,8 @@ export const workspaceController = {
       if (!workspace) {
         return res.status(404).json({ message: "Workspace not found" })
       }
+
+      // The workspace exists, including if isDelete = true
       res.json(workspace)
     } catch (error) {
       next(error)

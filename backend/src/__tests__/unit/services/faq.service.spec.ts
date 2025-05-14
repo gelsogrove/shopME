@@ -44,7 +44,7 @@ const mockFaqRepository = {
 };
 
 // Mock per la classe del repository - definiamo questo dopo la definizione di mockFaqRepository
-jest.mock('../../../infrastructure/repositories/faq.repository', () => ({
+jest.mock('../../../repositories/faq.repository', () => ({
   FaqRepository: jest.fn().mockImplementation(() => mockFaqRepository)
 }));
 

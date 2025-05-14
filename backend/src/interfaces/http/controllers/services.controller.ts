@@ -58,12 +58,48 @@ export class ServicesController {
     try {
       const { workspaceId } = req.workspaceContext;
       
-      const { name, description, price, currency, duration, isActive } = req.body;
+      const { name, description = '', price, currency = 'EUR', duration, isActive } = req.body;
+      
+      // Validate required fields
+      if (!name) {
+        return res.status(400).json({ error: 'Name is required' });
+      }
+      
+      // Make sure price is a number
+      let numericPrice: number;
+      if (price === undefined || price === null) {
+        return res.status(400).json({ error: 'Price is required' });
+      } else if (typeof price === 'string') {
+        numericPrice = parseFloat(price);
+        if (isNaN(numericPrice)) {
+          return res.status(400).json({ error: 'Price must be a valid number' });
+        }
+      } else if (typeof price === 'number') {
+        numericPrice = price;
+      } else {
+        return res.status(400).json({ error: 'Price is required and must be a valid number' });
+      }
+      
+      // Parse duration if provided, or use default
+      let numericDuration: number = 60; // Default duration
+      if (duration !== undefined && duration !== null) {
+        if (typeof duration === 'string') {
+          numericDuration = parseInt(duration, 10);
+          if (isNaN(numericDuration)) {
+            return res.status(400).json({ error: 'Duration must be a valid number' });
+          }
+        } else if (typeof duration === 'number') {
+          numericDuration = duration;
+        } else {
+          return res.status(400).json({ error: 'Duration must be a valid number' });
+        }
+      }
+      
       const serviceData = { 
         name, 
         description, 
-        price: parseFloat(price),
-        duration: parseInt(duration || '60', 10),
+        price: numericPrice,
+        duration: numericDuration,
         currency,
         isActive: isActive !== undefined ? isActive : true,
         workspaceId 
@@ -99,15 +135,48 @@ export class ServicesController {
       
       const { name, description, price, currency, duration, isActive } = req.body;
       
-      // Process numeric fields
-      const updateData: any = { name, description, currency, isActive };
+      // Process numeric fields and validate data
+      const updateData: any = {};
       
+      // Add fields only if they are provided to avoid null overwrites
+      if (name !== undefined) updateData.name = name;
+      if (description !== undefined) updateData.description = description;
+      if (currency !== undefined) updateData.currency = currency;
+      if (isActive !== undefined) updateData.isActive = isActive;
+      
+      // Handle price conversion properly
       if (price !== undefined) {
-        updateData.price = parseFloat(price);
+        if (typeof price === 'string') {
+          const numericPrice = parseFloat(price);
+          if (isNaN(numericPrice)) {
+            return res.status(400).json({ error: 'Price must be a valid number' });
+          }
+          updateData.price = numericPrice;
+        } else if (typeof price === 'number') {
+          updateData.price = price;
+        } else {
+          return res.status(400).json({ error: 'Price must be a valid number' });
+        }
       }
       
+      // Handle duration conversion properly
       if (duration !== undefined) {
-        updateData.duration = parseInt(duration, 10);
+        if (typeof duration === 'string') {
+          const numericDuration = parseInt(duration, 10);
+          if (isNaN(numericDuration)) {
+            return res.status(400).json({ error: 'Duration must be a valid integer' });
+          }
+          updateData.duration = numericDuration;
+        } else if (typeof duration === 'number') {
+          updateData.duration = Math.floor(duration); // Ensure it's an integer
+        } else if (duration !== null) {
+          return res.status(400).json({ error: 'Duration must be a valid integer' });
+        }
+      }
+      
+      // Basic validation checks
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ error: 'No valid fields provided for update' });
       }
       
       const service = await this.serviceService.update(id, updateData);

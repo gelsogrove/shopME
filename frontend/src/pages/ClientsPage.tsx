@@ -6,10 +6,10 @@ import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
@@ -178,39 +178,10 @@ export default function ClientsPage(): JSX.Element {
   )
 
   // Handle sheet submission for new client
-  const handleCreateClient = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const handleCreateClient = async (customerData: any) => {
     if (!workspace?.id) return
 
     try {
-      const formData = new FormData(e.currentTarget)
-
-      // Prepare shipping address data as a string (JSON)
-      const shippingAddress: ShippingAddress = {
-        street: formData.get("street") as string,
-        city: formData.get("city") as string,
-        zip: formData.get("zip") as string,
-        country: formData.get("country") as string,
-      }
-
-      // Prepare client data for customers API
-      const customerData = {
-        name: formData.get("name") as string,
-        email: formData.get("email") as string,
-        company: formData.get("company") as string,
-        phone: formData.get("phone") as string,
-        language: formData.get("language") as string,
-        discount: parseFloat(formData.get("discount") as string) || 0,
-        notes: formData.get("notes") as string,
-        // Convert address to string for API
-        address: stringifyAddress(shippingAddress),
-        last_privacy_version_accepted: formData.get(
-          "last_privacy_version_accepted"
-        ) as string,
-        push_notifications_consent:
-          formData.get("push_notifications_consent") === "on",
-      }
-
       // Create client in API
       const response = await api.post(
         `/workspaces/${workspace.id}/customers`,
@@ -232,47 +203,32 @@ export default function ClientsPage(): JSX.Element {
     }
   }
 
+  // Handle client form submission (create or update)
+  const handleClientSubmit = (customerData: any, clientId?: string) => {
+    if (clientId) {
+      // Edit existing client
+      handleUpdateClient(customerData, clientId)
+    } else {
+      // Create new client
+      handleCreateClient(customerData)
+    }
+  }
+
   // Handle update client
-  const handleUpdateClient = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!workspace?.id || !selectedClient?.id) return
+  const handleUpdateClient = async (
+    customerData: any,
+    clientId: string
+  ) => {
+    if (!workspace?.id) return
 
     try {
-      const formData = new FormData(e.currentTarget)
-
-      // Prepare shipping address data as string
-      const shippingAddress: ShippingAddress = {
-        street: formData.get("street") as string,
-        city: formData.get("city") as string,
-        zip: formData.get("zip") as string,
-        country: formData.get("country") as string,
-      }
-
-      // Prepare client data for customers API - includendo tutti i campi
-      const customerData = {
-        name: formData.get("name") as string,
-        email: formData.get("email") as string,
-        company: formData.get("company") as string,
-        phone: formData.get("phone") as string,
-        language: formData.get("language") as string,
-        discount: parseFloat(formData.get("discount") as string) || 0,
-        notes: formData.get("notes") as string,
-        address: stringifyAddress(shippingAddress),
-        isActive: true,
-        last_privacy_version_accepted: formData.get(
-          "last_privacy_version_accepted"
-        ) as string,
-        push_notifications_consent:
-          formData.get("push_notifications_consent") === "on",
-      }
-
       console.log("Updating customer with data:", customerData)
-      console.log("Customer ID:", selectedClient.id)
+      console.log("Customer ID:", clientId)
       console.log("Workspace ID:", workspace.id)
 
       // Update client in API
       const response = await api.put(
-        `/workspaces/${workspace.id}/customers/${selectedClient.id}`,
+        `/workspaces/${workspace.id}/customers/${clientId}`,
         customerData
       )
       const updatedCustomer = response.data
@@ -299,15 +255,6 @@ export default function ClientsPage(): JSX.Element {
         error instanceof Error ? error.message : "Failed to update client",
         { duration: 1000 }
       )
-    }
-  }
-
-  // Handle client form submission (create or update)
-  const handleClientSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    if (selectedClient?.id) {
-      handleUpdateClient(e)
-    } else {
-      handleCreateClient(e)
     }
   }
 

@@ -1,60 +1,98 @@
-// Add a route to test OpenAI connection
-// @ts-ignore
-router.get('/test/openai', async (req, res) => {
-  try {
-    const apiKey = process.env.OPENAI_API_KEY || '';
+import express, { Router } from 'express';
+import { AuthController } from '../controllers/auth.controller';
+import { createAuthRouter } from './auth.routes';
+import { categoriesRouter } from './categories.routes';
+import { chatRouter } from './chat.routes';
+import { customersRouter } from './customers.routes';
+import { eventsRouter } from './events.routes';
+import { faqsRouter } from './faqs.routes';
+import { messagesRouter } from './messages.routes';
+import { offersRouter } from './offers.routes';
+import { createOpenAIRouter } from './openai.routes';
+import productsRouter from './products.routes';
+import { servicesRouter } from './services.routes';
+import { settingsRouter } from './settings.routes';
+import { suppliersRouter } from './suppliers.routes';
+import { createUserRouter } from './user.routes';
+import { whatsappRouter } from './whatsapp.routes';
+import { workspaceRouter } from './workspace.routes';
 
-    // Check if OpenAI is properly configured
-    if (!apiKey || apiKey.length < 10 || apiKey === 'your-api-key-here') {
-      return res.status(500).json({ 
-        status: "error", 
-        message: "OpenAI API key not properly configured" 
-      });
-    }
+import { CategoriesController } from '../controllers/categories.controller';
+import { ChatController } from '../controllers/chat.controller';
+import { CustomersController } from '../controllers/customers.controller';
+import { EventsController } from '../controllers/events.controller';
+import { FaqController } from '../controllers/faq.controller';
+import { MessageController } from '../controllers/message.controller';
+import { OfferController } from '../controllers/offer.controller';
+import { OpenAIController } from '../controllers/openai.controller';
+import { ProductController } from '../controllers/product.controller';
+import { ServicesController } from '../controllers/services.controller';
+import { SettingsController } from '../controllers/settings.controller';
+import { SuppliersController } from '../controllers/suppliers.controller';
+import { UserController } from '../controllers/user.controller';
+import { WhatsAppController } from '../controllers/whatsapp.controller';
+import { WorkspaceController } from '../controllers/workspace.controller';
 
-    // Initialize OpenAI client
-    const OpenAI = require('openai');
-    const openai = new OpenAI({
-      apiKey: apiKey,
-      baseURL: "https://openrouter.ai/api/v1",
-      defaultHeaders: {
-        "HTTP-Referer": "https://laltroitalia.shop",
-        "X-Title": "L'Altra Italia Shop"
-      }
-    });
+import { CustomerService } from '../../../application/services/customer.service';
+import { FaqService } from '../../../application/services/faq.service';
+import { MessageService } from '../../../application/services/message.service';
+import { OtpService } from '../../../application/services/otp.service';
+import { PasswordResetService } from '../../../application/services/password-reset.service';
+import { ProductService } from '../../../application/services/product.service';
+import ServiceService from '../../../application/services/service.service';
+import { SupplierService } from '../../../application/services/supplier.service';
+import { UserService } from '../../../application/services/user.service';
+import { WorkspaceService } from '../../../application/services/workspace.service';
+import { prisma } from '../../../lib/prisma';
 
-    // Make a simple request to test the connection
-    const completion = await openai.chat.completions.create({
-      model: "openai/gpt-4o-mini",
-      messages: [{ role: "user", content: "Hello! This is a test message." }],
-      max_tokens: 5
-    });
+// Initialize services
+const productService = new ProductService();
+const serviceService = ServiceService;
+const userService = new UserService();
+const workspaceService = new WorkspaceService();
+const customerService = new CustomerService();
+const messageService = new MessageService();
+const supplierService = new SupplierService();
+const faqService = new FaqService();
 
-    // Return success response with completion info
-    return res.status(200).json({ 
-      status: "ok", 
-      message: "OpenAI API connection successful",
-      config: {
-        apiKeyPrefix: apiKey.substring(0, 10) + "...",
-        baseURL: "https://openrouter.ai/api/v1"
-      },
-      model: completion.model,
-      response: completion.choices[0]?.message?.content
-    });
-  } catch (error) {
-    console.error("OpenAI API connection error:", error);
-    
-    // Prepare detailed error response
-    const errorResponse = {
-      status: "error",
-      message: "Failed to connect to OpenAI API",
-      error: {
-        name: error.name,
-        message: error.message,
-        status: error.status || "unknown"
-      }
-    };
-    
-    return res.status(500).json(errorResponse);
-  }
-}); 
+// Initialize controllers
+const productController = new ProductController();
+const servicesController = new ServicesController();
+const userController = new UserController(userService);
+const categoriesController = new CategoriesController();
+const workspaceController = new WorkspaceController();
+const chatController = new ChatController();
+const customersController = new CustomersController();
+const messageController = new MessageController();
+const suppliersController = new SuppliersController();
+const settingsController = new SettingsController();
+const whatsappController = new WhatsAppController();
+const authController = new AuthController(userService, new OtpService(prisma), new PasswordResetService(prisma));
+const eventsController = new EventsController();
+const offerController = new OfferController();
+const faqController = new FaqController();
+const openaiController = new OpenAIController();
+
+export const apiRouter = (): Router => {
+  const router = express.Router();
+
+  // Map routes
+  router.use('/auth', createAuthRouter(authController));
+  router.use('/users', createUserRouter());
+  router.use('/products', productsRouter());
+  router.use('/services', servicesRouter(servicesController));
+  router.use('/categories', categoriesRouter());
+  router.use('/workspace', workspaceRouter());
+  router.use('/chat', chatRouter(chatController));
+  router.use('/messages', messagesRouter(messageController));
+  router.use('/settings', settingsRouter(settingsController));
+  router.use('/suppliers', suppliersRouter(suppliersController));
+  router.use('/events', eventsRouter(eventsController));
+  router.use('/offers', offersRouter());
+  router.use('/customers', customersRouter(customersController));
+  router.use('/faqs', faqsRouter());
+  router.use('/whatsapp', whatsappRouter(whatsappController));
+  router.use('/openai', createOpenAIRouter(openaiController));
+
+  return router;
+}; 

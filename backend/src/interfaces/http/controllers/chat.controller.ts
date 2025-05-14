@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
-import { MessageRepository } from '../../../infrastructure/repositories/message.repository';
+import { MessageRepository } from '../../../repositories/message.repository';
 import logger from '../../../utils/logger';
 
 export class ChatController {

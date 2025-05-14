@@ -107,6 +107,20 @@ export class CustomersController {
         activeChatbot
       } = req.body;
       
+      // Validate required fields if attempting to update them
+      if (name !== undefined && (!name || name.trim() === '')) {
+        return res.status(400).json({ message: 'Name is required' });
+      }
+      
+      if (email !== undefined && (!email || email.trim() === '')) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+      
+      // If no valid update fields are provided, return 400
+      if (Object.keys(req.body).length === 0) {
+        return res.status(400).json({ message: 'No valid update data provided' });
+      }
+      
       // Prepare update data with only defined values
       const customerData: any = {};
       

@@ -11,6 +11,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "dotenv -e .env.test -- cross-env NODE_ENV=test INTEGRATION_TEST=true jest --runInBand",
+    "test-full": "dotenv -e .env.test -- cross-env NODE_ENV=test INTEGRATION_TEST=true jest --runInBand",
+    "test:no-services": "dotenv -e .env.test -- cross-env NODE_ENV=test INTEGRATION_TEST=true SKIP_SERVICES=true jest --runInBand",
     "seed": "ts-node prisma/seed.ts",
     "start:prod": "node dist/index.js",
     "start:dev": "ts-node-dev --respawn --transpile-only --notify false --clear --exit-child -r dotenv/config src/index.ts",

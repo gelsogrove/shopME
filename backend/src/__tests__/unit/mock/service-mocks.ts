@@ -182,4 +182,62 @@ export const mockOfferService = {
     isActive: true
   }),
   deleteOffer: jest.fn().mockResolvedValue(true)
+};
+
+// WorkspaceService mock
+export const mockWorkspaceService = {
+  getAll: jest.fn().mockResolvedValue([
+    {
+      id: 'workspace-test-id',
+      name: 'Test Workspace',
+      slug: 'test-workspace',
+      description: 'Test workspace description',
+      isActive: true,
+      isDelete: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      currency: 'EUR',
+      language: 'en'
+    }
+  ]),
+  getById: jest.fn().mockResolvedValue({
+    id: 'workspace-test-id',
+    name: 'Test Workspace',
+    slug: 'test-workspace',
+    description: 'Test workspace description',
+    isActive: true,
+    isDelete: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    currency: 'EUR',
+    language: 'en'
+  }),
+  create: jest.fn().mockResolvedValue({
+    id: 'new-workspace-id',
+    name: 'New Workspace',
+    slug: 'new-workspace',
+    description: 'New workspace description',
+    isActive: true,
+    isDelete: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    currency: 'USD',
+    language: 'en'
+  }),
+  update: jest.fn().mockResolvedValue({
+    id: 'workspace-test-id',
+    name: 'Updated Workspace',
+    slug: 'updated-workspace',
+    description: 'Updated workspace description',
+    isActive: true,
+    isDelete: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    currency: 'EUR',
+    language: 'en'
+  }),
+  delete: jest.fn().mockResolvedValue({
+    id: 'workspace-test-id',
+    isDelete: true
+  })
 }; 

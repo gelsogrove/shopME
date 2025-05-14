@@ -1,6 +1,6 @@
 import { Offer } from "../../domain/entities/offer.entity";
 import { IOfferRepository } from "../../domain/repositories/offer.repository.interface";
-import { OfferRepository } from "../../infrastructure/repositories/offer.repository";
+import { OfferRepository } from "../../repositories/offer.repository";
 import logger from "../../utils/logger";
 
 /**
@@ -66,7 +66,17 @@ export class OfferService {
         throw new Error("Invalid offer data");
       }
       
-      return await this.offerRepository.create(data);
+      // Handle categoryIds field
+      const { categoryIds, ...offerData } = data;
+      
+      // If categoryIds is null, we don't set categoryId
+      // If categoryIds is an array with one element, we set that as categoryId
+      if (categoryIds && Array.isArray(categoryIds) && categoryIds.length === 1) {
+        offerData.categoryId = categoryIds[0];
+      }
+      
+      logger.debug("Creating offer with data:", offerData);
+      return await this.offerRepository.create(offerData);
     } catch (error) {
       logger.error("Error creating offer:", error);
       throw error;
@@ -84,17 +94,30 @@ export class OfferService {
         throw new Error("Offer not found");
       }
       
+      // Handle categoryIds field
+      const { categoryIds, ...updateData } = data;
+      
+      // If categoryIds is null, we don't change categoryId
+      // If categoryIds is an array with one element, we set that as categoryId
+      if (categoryIds && Array.isArray(categoryIds) && categoryIds.length === 1) {
+        updateData.categoryId = categoryIds[0];
+      } else if (categoryIds === null) {
+        // Leave categoryId unchanged or set to null if needed
+        updateData.categoryId = null;
+      }
+      
       // Create merged offer for validation
       const offerToUpdate = new Offer({
         ...existingOffer,
-        ...data
+        ...updateData
       });
       
       if (!offerToUpdate.validate()) {
         throw new Error("Invalid offer data");
       }
       
-      return await this.offerRepository.update(id, data);
+      logger.debug("Updating offer with data:", updateData);
+      return await this.offerRepository.update(id, updateData);
     } catch (error) {
       logger.error(`Error updating offer ${id}:`, error);
       throw error;

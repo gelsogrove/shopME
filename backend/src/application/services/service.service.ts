@@ -1,13 +1,12 @@
 import { Service } from "../../domain/entities/service.entity";
 import { IServiceRepository } from "../../domain/repositories/service.repository.interface";
-import { ServiceRepository } from "../../infrastructure/repositories/service.repository";
+import { ServiceRepository } from "../../repositories/service.repository";
 import logger from "../../utils/logger";
 
 /**
- * Service layer for Service
- * Handles business logic for services
+ * Service for managing services
  */
-export class ServiceService {
+class ServiceService {
   private serviceRepository: IServiceRepository;
   
   constructor() {
@@ -17,25 +16,29 @@ export class ServiceService {
   /**
    * Get all services for a workspace
    */
-  async getAllForWorkspace(workspaceId: string, active?: boolean): Promise<Service[]> {
+  async getAllForWorkspace(workspaceId: string): Promise<Service[]> {
     try {
-      return await this.serviceRepository.findAll(workspaceId, active);
+      return await this.serviceRepository.findAll(workspaceId);
     } catch (error) {
-      logger.error("Error getting all services:", error);
+      logger.error(`Error getting services for workspace ${workspaceId}:`, error);
       throw error;
     }
   }
   
   /**
-   * Get service by ID
+   * Get a service by ID
    */
-  async getById(id: string, workspaceId?: string): Promise<Service | null> {
+  async getById(id: string, workspaceId: string): Promise<Service | null> {
     try {
       const service = await this.serviceRepository.findById(id);
       
-      // If workspaceId provided, verify the service belongs to the workspace
-      if (workspaceId && service && service.workspaceId !== workspaceId) {
-        logger.warn(`Unauthorized attempt to access service ${id} from workspace ${workspaceId}`);
+      if (!service) {
+        return null;
+      }
+      
+      // Verify the service belongs to the specified workspace
+      if (service.workspaceId !== workspaceId) {
+        logger.warn(`Service ${id} does not belong to workspace ${workspaceId}`);
         return null;
       }
       
@@ -63,27 +66,20 @@ export class ServiceService {
    */
   async create(data: Partial<Service>): Promise<Service> {
     try {
-      // Set default values
-      if (data.isActive === undefined) {
-        data.isActive = true;
+      // Ensure required fields are present
+      if (!data.name || !data.workspaceId) {
+        throw new Error('Invalid service data');
       }
       
-      if (!data.currency) {
-        data.currency = 'EUR';
+      // Create a service entity to validate the data
+      const service = new Service(data);
+      if (!service.validate()) {
+        throw new Error('Invalid service data');
       }
       
-      // Create a service entity for validation
-      const serviceToCreate = new Service(data);
-      
-      // Validate the service
-      if (!serviceToCreate.validate()) {
-        throw new Error("Invalid service data");
-      }
-      
-      // Create the service
-      return await this.serviceRepository.create(serviceToCreate);
+      return await this.serviceRepository.create(service);
     } catch (error) {
-      logger.error("Error creating service:", error);
+      logger.error('Error creating service:', error);
       throw error;
     }
   }
@@ -91,27 +87,34 @@ export class ServiceService {
   /**
    * Update a service
    */
-  async update(id: string, data: Partial<Service>): Promise<Service | null> {
+  async update(id: string, data: Partial<Service>): Promise<Service> {
     try {
       // Check if service exists
       const existingService = await this.serviceRepository.findById(id);
       if (!existingService) {
-        throw new Error("Service not found");
+        throw new Error('Service not found');
       }
       
-      // Create merged service for validation
-      const serviceToUpdate = new Service({
+      // Create a merged service entity to validate the updated data
+      const mergedData = {
         ...existingService,
         ...data
-      });
+      };
       
-      // Validate the service
-      if (!serviceToUpdate.validate()) {
-        throw new Error("Invalid service data");
+      // Create a service entity with the merged data to run validation
+      const updatedService = new Service(mergedData);
+      
+      // Validate the updated service
+      if (!updatedService.validate()) {
+        throw new Error('Invalid service data');
       }
       
-      // Update the service
-      return await this.serviceRepository.update(id, data);
+      const updated = await this.serviceRepository.update(id, data);
+      if (!updated) {
+        throw new Error('Service not found');
+      }
+      
+      return updated;
     } catch (error) {
       logger.error(`Error updating service ${id}:`, error);
       throw error;
@@ -123,13 +126,12 @@ export class ServiceService {
    */
   async delete(id: string): Promise<boolean> {
     try {
-      // Check if service exists
-      const service = await this.serviceRepository.findById(id);
-      if (!service) {
-        throw new Error("Service not found");
+      // Check if service exists first
+      const existingService = await this.serviceRepository.findById(id);
+      if (!existingService) {
+        throw new Error('Service not found');
       }
       
-      // Delete the service
       return await this.serviceRepository.delete(id);
     } catch (error) {
       logger.error(`Error deleting service ${id}:`, error);

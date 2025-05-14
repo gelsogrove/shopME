@@ -35,7 +35,7 @@ export function ImageUpload({ onImageSelected, defaultImageUrl }: ImageUploadPro
   };
 
   const handleFileSelected = (file: File) => {
-    // Create preview URL
+    // Create preview URL locally (no server upload)
     const reader = new FileReader();
     reader.onload = () => {
       setPreview(reader.result as string);

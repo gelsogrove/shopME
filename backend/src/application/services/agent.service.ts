@@ -1,6 +1,6 @@
 import { Agent, AgentProps } from '../../domain/entities/agent.entity';
 import { AgentRepositoryInterface } from '../../domain/repositories/agent.repository.interface';
-import { AgentRepository } from '../../infrastructure/repositories/agent.repository';
+import { AgentRepository } from '../../repositories/agent.repository';
 import logger from '../../utils/logger';
 import { getDefaultWorkspaceId } from '../../utils/workspace';
 

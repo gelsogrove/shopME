@@ -202,25 +202,17 @@ export function ClientSheet({
       language,
       discount: parseFloat(discount),
       notes,
-      address: street || "", // Use street as a simple address if no full shipping address
-      // Only include shippingAddress if fields have values
-      ...(street || city || zip || country
-        ? {
-            shippingAddress: {
-              street,
-              city,
-              zip,
-              country,
-            },
-          }
-        : {}),
+      address: JSON.stringify({
+        street,
+        city,
+        zip,
+        country,
+      }),
     }
 
     console.log("Submitting customer data:", customerData)
-    onSubmit(
-      customerData,
-      typeof client === "string" ? client : fetchedClient?.id
-    )
+    const clientId = typeof client === "string" ? client : fetchedClient?.id
+    onSubmit(customerData, clientId)
   }
 
   // Make sure to render even if not open
