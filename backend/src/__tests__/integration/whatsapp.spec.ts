@@ -4,7 +4,7 @@ import app from '../../app';
 import { createTestUser, getAuthToken } from '../helpers/auth';
 import { setupJest, teardownJest } from './setup';
 
-describe.skip('WhatsApp API', () => {
+describe('WhatsApp API', () => {
   let workspaceId: string;
   let token: string;
   let testUser: any;

@@ -74,13 +74,16 @@ export class OfferRepository implements IOfferRepository {
       // Remove fields that don't exist in Prisma schema
       const { categoryIds, ...prismaData } = data;
       
+      logger.debug("Creating offer in repository with data:", prismaData);
+      
       const offer = await prisma.offers.create({
         data: prismaData
       });
       
+      logger.debug("Successfully created offer in repository:", offer);
       return new Offer(offer);
     } catch (error) {
-      logger.error(`Error creating offer:`, error);
+      logger.error(`Error creating offer in repository:`, error);
       throw new Error(`Failed to create offer: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }

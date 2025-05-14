@@ -9,7 +9,7 @@ import { mockAdminUser, timestamp } from './mock/mockUsers';
 import { mockWorkspace, mockWorkspaceWithUser } from './mock/mockWorkspaces';
 import { prisma, setupJest, teardownJest } from './setup';
 
-describe.skip('Settings API Integration Tests', () => {
+describe('Settings API Integration Tests', () => {
   // Test data
   const testUser = {
     ...mockAdminUser,

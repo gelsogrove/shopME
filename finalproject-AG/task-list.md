@@ -20,6 +20,9 @@ This file contains a list of tasks for the project. Tasks are organized by statu
 - [x] Cart functionality
 - [x] User profile management
 - [x] After-registration message system with multi-language support
+- [x] Fixed JSON parsing issues in authentication endpoints
+- [x] Enabled Workspace API integration tests
+- [x] Enabled Offer Service category handling unit tests
 
 ## In Progress Tasks
 

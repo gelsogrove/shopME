@@ -251,6 +251,14 @@ export const cleanupTestDatabase = async () => {
     }
     
     try {
+      // Delete offers
+      await prisma.offers.deleteMany({});
+      logger.debug('Deleted offers');
+    } catch (e) {
+      logger.error('Error deleting offers:', e);
+    }
+    
+    try {
       // Delete categories
       await prisma.categories.deleteMany({});
       logger.debug('Deleted categories');

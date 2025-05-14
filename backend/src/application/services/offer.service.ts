@@ -57,12 +57,14 @@ export class OfferService {
     try {
       // Validate required fields
       if (!data.name || !data.discountPercent || !data.startDate || !data.endDate) {
+        logger.error("Missing required fields in offer data:", data);
         throw new Error("Missing required fields");
       }
       
       // Create offer entity for validation
       const offerToValidate = new Offer(data);
       if (!offerToValidate.validate()) {
+        logger.error("Invalid offer data:", data);
         throw new Error("Invalid offer data");
       }
       
@@ -76,7 +78,15 @@ export class OfferService {
       }
       
       logger.debug("Creating offer with data:", offerData);
-      return await this.offerRepository.create(offerData);
+      
+      try {
+        const result = await this.offerRepository.create(offerData);
+        logger.debug("Successfully created offer:", result);
+        return result;
+      } catch (createError) {
+        logger.error("Error in repository during offer creation:", createError);
+        throw createError;
+      }
     } catch (error) {
       logger.error("Error creating offer:", error);
       throw error;

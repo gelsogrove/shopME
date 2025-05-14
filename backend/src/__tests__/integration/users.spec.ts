@@ -6,7 +6,7 @@ import { generateTestUser, mockAdminUser } from './mock/mockUsers';
 import { mockWorkspaceWithUser } from './mock/mockWorkspaces';
 import { prisma, setupJest, teardownJest } from './setup';
 
-describe.skip('Users API Integration Tests', () => {
+describe('Users API Integration Tests', () => {
   // Test data
   const testUser = {
     ...mockAdminUser,
