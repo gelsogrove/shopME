@@ -7,17 +7,17 @@ import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover"
 import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
@@ -29,7 +29,7 @@ import { Calendar as CalendarIcon, Percent } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-// Aggiungo il tipo StatusType all'inizio del file, subito dopo gli import
+// Tipo per i badge di stato
 type StatusType =
   | "active"
   | "inactive"
@@ -50,7 +50,7 @@ interface Offer {
   startDate: Date
   endDate: Date
   isActive: boolean
-  categoryId: string | null
+  categoryId: string | null  // Currently the backend supports only one category per offer
   workspaceId: string
   createdAt: Date
   updatedAt: Date
@@ -261,17 +261,17 @@ export function OffersPage() {
       // Se "All Categories" è selezionato, impostiamo categoryId a null
       let categoryIds = null;
       
-      // Altrimenti raccogliamo tutte le categorie selezionate
+      // Altrimenti raccogliamo la categoria selezionata
       if (!allCategoriesChecked) {
-        categoryIds = categories
-          .filter(cat => formData.get(`category-${cat.id}`) === "on")
-          .map(cat => cat.id);
+        const selectedCategoryId = formData.get("category") as string;
         
         // Se nessuna categoria è selezionata, mostriamo un errore
-        if (categoryIds.length === 0) {
-          toast.error("Please select at least one category or choose 'All Categories'", { duration: 1000 });
+        if (!selectedCategoryId) {
+          toast.error("Please select a category or choose 'All Categories'", { duration: 1000 });
           return;
         }
+        
+        categoryIds = [selectedCategoryId];
       }
       
       const newOffer = {
@@ -321,17 +321,17 @@ export function OffersPage() {
       // Se "All Categories" è selezionato, impostiamo categoryId a null
       let categoryIds = null;
       
-      // Altrimenti raccogliamo tutte le categorie selezionate
+      // Altrimenti raccogliamo la categoria selezionata
       if (!allCategoriesChecked) {
-        categoryIds = categories
-          .filter(cat => formData.get(`category-${cat.id}`) === "on")
-          .map(cat => cat.id);
+        const selectedCategoryId = formData.get("category") as string;
         
         // Se nessuna categoria è selezionata, mostriamo un errore
-        if (categoryIds.length === 0) {
-          toast.error("Please select at least one category or choose 'All Categories'", { duration: 1000 });
+        if (!selectedCategoryId) {
+          toast.error("Please select a category or choose 'All Categories'", { duration: 1000 });
           return;
         }
+        
+        categoryIds = [selectedCategoryId];
       }
       
       const updatedOffer = {
@@ -428,14 +428,17 @@ export function OffersPage() {
           </div>
           
           <div className="pt-2 border-t mt-2">
-            <p className="text-sm text-gray-500 mb-2">Or select specific categories:</p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500 mb-2">Or select a category:</p>
+              <p className="text-xs text-amber-600">Note: Currently only one category can be applied</p>
+            </div>
             <div className="grid grid-cols-1 gap-2 max-h-[150px] overflow-y-auto">
               {categories.map((category) => (
                 <div key={category.id} className="flex items-center space-x-2">
                   <input
-                    type="checkbox"
+                    type="radio"
                     id={`category-${category.id}`}
-                    name={`category-${category.id}`}
+                    name="category"
                     value={category.id}
                     defaultChecked={isEdit && currentOffer ? currentOffer.categoryId === category.id : false}
                     className="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-600"
