@@ -552,12 +552,13 @@ export class MessageService {
       // Process message for existing customer
       logger.info("Processing existing customer message")
       try {
-        const routerAgentPrompt = await this.messageRepository.getRouterAgent()
-        const products = await this.messageRepository.getProducts()
-        const services = await this.messageRepository.getServices()
+        const routerAgentPrompt = await this.messageRepository.getRouterAgent(workspaceId)
+        const products = await this.messageRepository.getProducts(workspaceId)
+        const services = await this.messageRepository.getServices(workspaceId)
         const chatHistory = await this.messageRepository.getLatesttMessages(
           phoneNumber,
-          30
+          30,
+          workspaceId
         )
 
         try {

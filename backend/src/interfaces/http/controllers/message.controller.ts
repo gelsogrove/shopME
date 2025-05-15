@@ -64,7 +64,7 @@ export class MessageController {
       
       // Get the last message which should include the metadata
       const messageRepository = this.messageService.getMessageRepository();
-      const recentMessages = await messageRepository.getLatesttMessages(phoneNumber, 1);
+      const recentMessages = await messageRepository.getLatesttMessages(phoneNumber, 1, workspaceId);
       const lastMessage = recentMessages[0];
       const metadata = lastMessage?.metadata || {};
       

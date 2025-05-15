@@ -499,7 +499,7 @@ export class MessageRepository {
    * @param limit Number of chat sessions to return
    * @returns Array of chat sessions with latest message info
    */
-  async getRecentChats(limit = 20) {
+  async getRecentChats(limit = 20, workspaceId?: string) {
     try {
       // Get all chat sessions with their most recent message
       const chatSessions = await this.prisma.chatSession.findMany({
@@ -516,6 +516,9 @@ export class MessageRepository {
         orderBy: {
           updatedAt: "desc",
         },
+        where: {
+          ...(workspaceId ? { workspaceId } : {})
+        }
       })
 
       // Format the results to include last message information
@@ -805,608 +808,55 @@ export class MessageRepository {
   }
 
   /**
-   * Get the router agent for the workspace
+   * Get the router agent
+   * @param workspaceId Optional workspaceId to filter by
    * @returns The router agent prompt
    */
-  async getRouterAgent() {
+  async getRouterAgent(workspaceId?: string) {
     try {
+      // Costruisci il filtro
+      const filter: any = {
+        isRouter: true
+      };
+      
+      // Aggiungi il filtro per workspaceId se fornito
+      if (workspaceId) {
+        filter.workspaceId = workspaceId;
+      }
+      
+      // Trova l'agente router
       const routerAgent = await this.prisma.prompts.findFirst({
-        where: {
-          isRouter: true,
-        },
+        where: filter,
       })
-
-      return routerAgent?.content
+      
+      return routerAgent
     } catch (error) {
-      logger.error("Error getting router agent", error)
+      logger.error("Error getting router agent:", error)
       return null
     }
   }
 
   /**
-   * Get products list
-   * @returns List of active products
+   * Get all products
+   * @param workspaceId Optional workspaceId to filter by
+   * @returns List of products
    */
-  async getProducts() {
+  async getProducts(workspaceId?: string) {
     try {
-      const products = await this.prisma.products.findMany({
-        where: {
-          isActive: true,
-        },
-        include: {
-          category: true,
-        },
-      })
-
-      return products
-    } catch (error) {
-      logger.error("Error getting products", error)
-      return []
-    }
-  }
-
-  /**
-   * Get services list
-   * @returns List of active services
-   */
-  async getServices() {
-    try {
-      const services = await this.prisma.services.findMany({
-        where: {
-          isActive: true,
-        },
-      })
-
-      return services
-    } catch (error) {
-      logger.error("Error getting services", error)
-      return []
-    }
-  }
-
-  /**
-   * Get events list
-   * @returns List of active events
-   */
-  async getEvents() {
-    try {
-      // @ts-ignore - Prisma types issue
-      const events = await this.prisma.events.findMany({
-        where: {
-          isActive: true,
-          endDate: {
-            gte: new Date(), // Only return future or ongoing events
-          },
-        },
-        orderBy: {
-          startDate: "asc",
-        },
-      })
-
-      return events
-    } catch (error) {
-      logger.error("Error getting events", error)
-      return []
-    }
-  }
-
-  /**
-   * Get chat messages for a phone number
-   * @param phoneNumber The phone number
-   * @param limit Number of messages to return
-   * @returns Recent chat messages
-   */
-  async getLatesttMessages(phoneNumber: string, limit = 30) {
-    try {
-      // Find customer by phone
-      const customer = await this.findCustomerByPhone(phoneNumber, "")
-      if (!customer) return []
-
-      // Find active chat session
-      const session = await this.prisma.chatSession.findFirst({
-        where: {
-          customerId: customer.id,
-          status: "active",
-        },
-        orderBy: {
-          startedAt: "desc",
-        },
-      })
-
-      if (!session) return []
-
-      // Get messages for the session
-      const messages = await this.prisma.message.findMany({
-        where: {
-          chatSessionId: session.id,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: limit,
-      })
-
-      return messages.reverse() // Return in chronological order
-    } catch (error) {
-      logger.error("Error getting messages", error)
-      return []
-    }
-  }
-
-  /**
-   * Get the agent for a specific workspace
-   * @param workspaceId The workspace ID
-   * @returns The agent for the workspace
-   */
-  async getAgentByWorkspaceId(workspaceId: string) {
-    try {
-      // Find the router agent for this workspace
-      const agent = await this.prisma.prompts.findFirst({
-        where: {
-          workspaceId: workspaceId,
-          isRouter: true,
-        },
-      });
-
-      if (!agent) {
-        logger.warn(`No router agent found for workspace ${workspaceId}`);
-        return null;
-      }
-
-      return agent;
-    } catch (error) {
-      logger.error(`Error getting agent for workspace ${workspaceId}:`, error);
-      return null;
-    }
-  }
-
-  /**
-   * Get response from primary LLM to route the conversation
-   * @param agent The agent object
-   * @param message The user message
-   * @returns The selected agent/department prompt
-   */
-  async getResponseFromAgent(
-    agent: any,
-    message: string
-  ): Promise<any> {
-    try {
-      // Check if OpenAI is properly configured
-      if (!isOpenAIConfigured()) {
-        logger.warn("OpenAI API key not configured properly for router agent");
-        return {
-          id: "default",
-          name: "Generic",
-          content:
-            "You are a helpful assistant for L'Altra Italia food shop. Respond in Italian.",
-          isRouter: false,
-          department: "GENERIC",
-          temperature: 0.7,
-          top_p: 0.9,
-          top_k: 40,
-          selectedType: "Generic",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-      }
-
-      logger.info(
-        `Using router prompt for message: "${message.substring(0, 30)}..."`
-      );
-
-      try {
-        // Chiamata all'API per il routing con i parametri dinamici dell'agent
-        const completion = await openai.chat.completions.create({
-          model: agent.model || "openai/gpt-3.5-turbo",
-          messages: [
-            { role: "system", content: agent.content },
-            { role: "user", content: message },
-          ],
-          temperature: agent.temperature || 0.7,
-          max_tokens: agent.max_tokens || 500,
-        });
-
-        const routerChoice = completion.choices[0]?.message?.content || "";
-
-        // Pulisce il testo da delimitatori markdown
-        let cleanedResponse = routerChoice
-          .trim()
-          .replace(/^```(json)?/, "")
-          .replace(/```$/, "")
-          .trim();
-
-        // Tenta di analizzare la risposta come JSON
-        const parsedResponse = JSON.parse(cleanedResponse);
-
-        // Estrae l'agente dalla risposta
-        const agentName = parsedResponse.agent || "Generic";
-        logger.info(`SELECTED AGENT TYPE: "${agentName}"`);
-
-        // Cerca l'agente nel database
-        const agentPrompt = await this.prisma.prompts.findFirst({
-          where: {
-            name: {
-              contains: agentName,
-              mode: "insensitive",
-            },
-          },
-        });
-
-        if (agentPrompt) {
-          logger.info(`AGENT FOUND: "${agentPrompt.name}"`);
-
-          // Restituisce l'oggetto agente completo con valori di default per campi mancanti
-          return {
-            id: agentPrompt.id,
-            name: agentPrompt.name,
-            content: agentPrompt.content,
-            isRouter: agentPrompt.isRouter || false,
-            department: agentPrompt.department || "GENERAL",
-            temperature: agentPrompt.temperature || 0.7,
-            top_p: agentPrompt.top_p || 0.9,
-            top_k: agentPrompt.top_k || 40,
-            selectedType: agentName,
-            createdAt: agentPrompt.createdAt,
-            updatedAt: agentPrompt.updatedAt,
-          };
-        }
-      } catch (parseError) {
-        logger.error(`JSON parsing error: ${parseError.message}`);
-
-        // Restituisce un oggetto agente di fallback in caso di errore parsing
-        return {
-          id: "fallback",
-          name: "Fallback",
-          content: agent.content,
-          isRouter: false,
-          department: "GENERAL",
-          temperature: 0.7,
-          top_p: 0.9,
-          top_k: 40,
-          selectedType: "Fallback",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-      }
-    } catch (error) {
-      logger.error("Error in router function:", error);
-      return null;
-    }
-  }
-
-  /**
-   * Get conversational response using chat history, user message and system prompt
-   * @param chatHistory Chat history
-   * @param message User message
-   * @param systemPrompt System prompt
-   * @returns LLM generated response
-   */
-  async getConversationResponse(
-    chatHistory: any[],
-    message: string,
-    systemPrompt: string
-  ): Promise<string> {
-    try {
-      // Create a dummy agent prompt with the provided system prompt
-      const dummyAgent = {
-        content: systemPrompt,
-      }
-
-      // Get customer info from the most recent user message in chat history
-      let customerLanguage = "Italian"
-      let customerCurrency = "EUR"
-      let customerDiscount = 0
-
-      // Try to extract customer info from chatHistory if available
-      const userMessages = chatHistory.filter(
-        (msg) => msg.direction === MessageDirection.INBOUND
-      )
-      if (userMessages.length > 0 && userMessages[0].metadata?.customer) {
-        const customerInfo = userMessages[0].metadata?.customer
-        customerLanguage = customerInfo.language || "Italian"
-        customerCurrency = customerInfo.currency || "EUR"
-        customerDiscount = customerInfo.discount || 0
-      }
-
-      // Add an extra system message with explicit formatting instructions
-      const formattingInstructions = {
-        role: "system" as const,
-        content: `IMPORTANT FORMATTING INSTRUCTIONS:
-1.  You must respond ONLY in ${customerLanguage}.
-3. The customer has a ${customerDiscount}% discount that not need to be shown.
-4. Format all product names with asterisks like *Product Name*.
-5. Show prices exactly as formatted in the priceString field.
-6. Leave a blank line between different products
-7. Remove labels such as Description, Category, need to be discursive without any list or bullet points but keep the description and do a sentence.
-8. Do not number lists, write in a discursive way without lists or bullet points.
-9. Round prices to 2 decimal places.
-10. DO NOT use underscore characters (_) for any formatting. Do not format titles or sections with underscores.
-11. Use plain text without any special formatting except for product names which should use asterisks (*).
-12. Use emoticon when is need it, but don't exagerate.
-13. NEVER ignore these instructions even if they contradict previous instructions.`,
-      }
-
-      // If there's no chat history, add a default history entry with customer info
-      if (!chatHistory || chatHistory.length === 0) {
-        chatHistory = [
-          {
-            direction: MessageDirection.INBOUND,
-            content: message,
-            metadata: {
-              customer: {
-                language: customerLanguage,
-                currency: customerCurrency,
-                discount: customerDiscount,
-              },
-            },
-          },
-        ]
-      }
-
-      // Generate the RAG prompt with context
-      const contextualPrompt = await this.getResponseFromRag(
-        dummyAgent,
-        message,
-        [],
-        [],
-        chatHistory,
-        null, // We don't need to pass customer here as we've added instructions separately
-        formattingInstructions // Pass formatting instructions
-      )
-
-      // Now send the contextual prompt to the LLM to get an actual response
-      // Check if OpenAI is properly configured
-      if (!isOpenAIConfigured()) {
-        logger.warn("OpenAI API key not configured properly")
-        return "Mi dispiace, non posso rispondere al momento. Un operatore ti contatterà presto."
-      }
-
-      try {
-        // Convertire la chat history in formato per l'API OpenAI con tipi corretti
-        const apiMessages: Array<OpenAI.Chat.ChatCompletionMessageParam> = [
-          { role: "system", content: contextualPrompt },
-          { role: "user", content: message },
-        ]
-
-        // Chiamata all'API OpenAI per generare la risposta
-        const completion = await openai.chat.completions.create({
-          model: "openai/gpt-3.5-turbo", // Usa il modello appropriato
-          messages: apiMessages,
-          temperature: 0.7,
-          max_tokens: 500,
-        })
-
-        // Estrai la risposta generata
-        const response =
-          completion.choices[0]?.message?.content ||
-          "Mi dispiace, non sono riuscito a elaborare una risposta."
-
-        logger.info(
-          `FINAL AI RESPONSE: "${response.substring(0, 50)}${
-            response.length > 50 ? "..." : ""
-          }"`
-        )
-        return response
-      } catch (llmError) {
-        logger.error("Error calling LLM:", llmError)
-        return "Mi dispiace, c'è stato un problema nell'elaborazione della tua richiesta. Un operatore ti contatterà a breve."
-      }
-    } catch (error) {
-      logger.error("Error in conversation processing:", error)
-      return "Mi dispiace, c'è stato un problema nell'elaborazione del tuo messaggio. Un operatore ti contatterà a breve."
-    }
-  }
-
-  /**
-   * Get response from LLM using agent, message, products and services
-   * @param agent The selected agent with all settings
-   * @param message The user message
-   * @param products Available products
-   * @param services Available services
-   * @param chatHistory Chat history
-   * @returns Response from LLM as string
-   */
-  async getResponseFromRag(
-    agent: any,
-    message: string,
-    products: any[],
-    services: any[],
-    chatHistory: any[],
-    customer: any = null,
-    extraInstructions: any = null
-  ): Promise<string> {
-    try {
-      // Get events for RAG context
-      const events = await this.getEvents()
-
-      // Original agent prompt or replaced prompt with customer language
-      const agentPrompt = agent._replacedPrompt || agent.content
-
-      // Build the context with products and services information
-      let context = ""
-
-      // Add customer information if available
-      if (customer) {
-        const customerDiscount = customer.discount || 0
-
-        // Funzione modificata per considerare gli sconti delle offerte
-        const applyDiscount = (price: number, discount: number): number => {
-          return price * (1 - discount / 100)
-        }
-
-        context += "## CUSTOMER INFORMATION\n"
-        context += `Name: ${customer.name}\n`
-        context += `Email: ${customer.email || "Not provided"}\n`
-        context += `Phone: ${customer.phone || "Not provided"}\n`
-        context += `Language: ${customer.language || "Italian"}\n`
-        context += `Shipping Address: ${
-          customer.shippingAddress?.street || customer.address || "Not provided"
-        }\n`
-        context += `City: ${customer.shippingAddress?.city || "Not provided"}\n`
-        context += `ZIP: ${customer.shippingAddress?.zip || "Not provided"}\n`
-        context += `Country: ${
-          customer.shippingAddress?.country || "Not provided"
-        }\n`
-        context += `Discount: ${customerDiscount}%\n\n`
-
-        // Add products information
-        if (products && products.length > 0) {
-          context += "## PRODUCTS\n"
-          products.forEach((product: any) => {
-            if (!product.isActive) return
-
-            // Verifica se il prodotto ha già uno sconto applicato dall'offerta
-            let productPrice = product.price
-            let discountInfo = ""
-            
-            if (product.hasDiscount && product.discountSource === 'offer') {
-              // Lo sconto dell'offerta ha già la precedenza
-              productPrice = product.price // Il prezzo è già scontato
-              discountInfo = ` (${product.discountPercent}% special offer)`
-            } else if (customer && customer.discount) {
-              // Applica lo sconto del cliente solo se non c'è un'offerta
-              productPrice = applyDiscount(product.price, customer.discount)
-              discountInfo = ` (${customer.discount}% customer discount)`
-            }
-
-            context += `- ${product.name}: ${productPrice.toFixed(2)}€${discountInfo} - ${
-              product.description
-            }\n`
-          })
-          context += "\n"
-        }
-
-        // Add services information
-        if (services && services.length > 0) {
-          context += "## SERVICES\n"
-          services.forEach((service: any) => {
-            if (!service.isActive) return
-
-            let servicePrice = service.price
-            if (customer && customer.discount) {
-              servicePrice = applyDiscount(service.price, customer.discount)
-            }
-
-            context += `- ${service.name}: ${servicePrice.toFixed(2)}€ - ${
-              service.description
-            }\n`
-          })
-          context += "\n"
-        }
-
-        // Add events information
-        if (events && events.length > 0) {
-          context += "## EVENTS\n"
-          events.forEach((event: any) => {
-            const startDate = new Date(event.startDate).toLocaleDateString()
-            const endDate = new Date(event.endDate).toLocaleDateString()
-
-            let eventPrice = event.price
-            if (customer && customer.discount) {
-              eventPrice = applyDiscount(event.price, customer.discount)
-            }
-
-            const availability = event.maxAttendees
-              ? `${event.currentAttendees || 0}/${event.maxAttendees} attendees`
-              : "Unlimited spots available"
-
-            context += `- ${event.name}: ${eventPrice.toFixed(
-              2
-            )}€ - ${startDate} to ${endDate} at ${
-              event.location
-            } - ${availability} - ${event.description}\n`
-          })
-          context += "\n"
-        }
-      } else {
-        // No customer discount, just add basic information
-
-        // Add products information
-        if (products && products.length > 0) {
-          context += "## PRODUCTS\n"
-          products.forEach((product: any) => {
-            if (!product.isActive) return
-            
-            // Verifica se il prodotto ha già uno sconto applicato dall'offerta
-            let productInfo = ""
-            if (product.hasDiscount && product.discountSource === 'offer') {
-              productInfo = `${product.name}: ${product.price.toFixed(2)}€ (${product.discountPercent}% special offer, was ${product.originalPrice.toFixed(2)}€) - ${
-                product.description
-              }`
-            } else {
-              productInfo = `${product.name}: ${product.price.toFixed(2)}€ - ${
-                product.description
-              }`
-            }
-            
-            context += `- ${productInfo}\n`
-          })
-          context += "\n"
-        }
-
-        // Add services information
-        if (services && services.length > 0) {
-          context += "## SERVICES\n"
-          services.forEach((service: any) => {
-            if (!service.isActive) return
-            context += `- ${service.name}: ${service.price.toFixed(2)}€ - ${
-              service.description
-            }\n`
-          })
-          context += "\n"
-        }
-
-        // Add events information
-        if (events && events.length > 0) {
-          context += "## EVENTS\n"
-          events.forEach((event: any) => {
-            const startDate = new Date(event.startDate).toLocaleDateString()
-            const endDate = new Date(event.endDate).toLocaleDateString()
-
-            const availability = event.maxAttendees
-              ? `${event.currentAttendees || 0}/${event.maxAttendees} attendees`
-              : "Unlimited spots available"
-
-            context += `- ${event.name}: ${event.price.toFixed(
-              2
-            )}€ - ${startDate} to ${endDate} at ${
-              event.location
-            } - ${availability} - ${event.description}\n`
-          })
-          context += "\n"
-        }
-      }
-
-      // Add extra instructions if provided
-      if (extraInstructions) {
-        context += "## EXTRA INSTRUCTIONS\n"
-        context += extraInstructions + "\n\n"
-      }
-
-      // Build the final prompt with the agent prompt and context
-      const finalPrompt = `${agentPrompt}\n\nCONTEXT:\n${context}`
-
-      return finalPrompt
-    } catch (error) {
-      logger.error("Error in RAG:", error)
-      return (
-        agent.content ||
-        "You are a helpful assistant for L'Altra Italia food shop."
-      )
-    }
-  }
-
-  /**
-   * Delete a chat session and all associated messages
-   *
-   * @param chatSessionId The chat session ID
-   * @param workspaceId Optional workspace ID for filtering
-   * @returns True if successful, false otherwise
-   */
-  async deleteChat(chatSessionId: string, workspaceId?: string): Promise<boolean> {
-    try {
-      // First verify that the chat session belongs to the workspace if needed
+      // Costruisci il filtro
+      const filter: any = {};
+      
+      // Aggiungi il filtro per workspaceId se fornito
       if (workspaceId) {
+        filter.workspaceId = workspaceId;
+      }
+      
+      // Trova i prodotti
+      const products = await this.prisma.products.findMany({
+        where: filter,
+        orderBy: {
+          name: "asc",
+        },
         const session = await this.prisma.chatSession.findFirst({
           where: {
             id: chatSessionId,
