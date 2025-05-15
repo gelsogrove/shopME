@@ -809,24 +809,16 @@ export class MessageRepository {
 
   /**
    * Get the router agent
-   * @param workspaceId Optional workspaceId to filter by
+   * @param workspaceId Workspace ID to filter by
    * @returns The router agent prompt
    */
   async getRouterAgent(workspaceId?: string) {
     try {
-      // Costruisci il filtro
-      const filter: any = {
-        isRouter: true
-      };
-      
-      // Aggiungi il filtro per workspaceId se fornito
-      if (workspaceId) {
-        filter.workspaceId = workspaceId;
-      }
-      
-      // Trova l'agente router
       const routerAgent = await this.prisma.prompts.findFirst({
-        where: filter,
+        where: {
+          isRouter: true,
+          ...(workspaceId ? { workspaceId } : {})
+        },
       })
       
       return routerAgent
@@ -838,58 +830,61 @@ export class MessageRepository {
 
   /**
    * Get all products
-   * @param workspaceId Optional workspaceId to filter by
+   * @param workspaceId Workspace ID to filter by
    * @returns List of products
    */
   async getProducts(workspaceId?: string) {
     try {
-      // Costruisci il filtro
-      const filter: any = {};
-      
-      // Aggiungi il filtro per workspaceId se fornito
-      if (workspaceId) {
-        filter.workspaceId = workspaceId;
-      }
-      
-      // Trova i prodotti
       const products = await this.prisma.products.findMany({
-        where: filter,
+        where: workspaceId ? { workspaceId } : {},
         orderBy: {
           name: "asc",
         },
-        const session = await this.prisma.chatSession.findFirst({
-          where: {
-            id: chatSessionId,
-            workspaceId
-          },
-          select: { id: true }
-        });
-        
-        if (!session) {
-          logger.warn(`deleteChat: Chat session ${chatSessionId} not found in workspace ${workspaceId}`);
-          return false;
-        }
-      }
-
-      // Delete all messages in the chat session
-      await this.prisma.message.deleteMany({
-        where: {
-          chatSessionId,
-        },
       })
-
-      // Then delete the chat session itself
-      await this.prisma.chatSession.delete({
-        where: {
-          id: chatSessionId,
-        },
-      })
-
-      logger.info(`Deleted chat session: ${chatSessionId}`)
-      return true
+      return products
     } catch (error) {
-      logger.error(`Error deleting chat session ${chatSessionId}:`, error)
-      return false
+      logger.error("Error getting products:", error)
+      return []
+    }
+  }
+
+  /**
+   * Get all services
+   * @param workspaceId Workspace ID to filter by
+   * @returns List of services
+   */
+  async getServices(workspaceId?: string) {
+    try {
+      const services = await this.prisma.services.findMany({
+        where: workspaceId ? { workspaceId } : {},
+        orderBy: {
+          name: "asc",
+        },
+      })
+      return services
+    } catch (error) {
+      logger.error("Error getting services:", error)
+      return []
+    }
+  }
+
+  /**
+   * Get all events
+   * @param workspaceId Workspace ID to filter by
+   * @returns List of events
+   */
+  async getEvents(workspaceId?: string) {
+    try {
+      const events = await this.prisma.events.findMany({
+        where: workspaceId ? { workspaceId } : {},
+        orderBy: {
+          startDate: "asc",
+        },
+      })
+      return events
+    } catch (error) {
+      logger.error("Error getting events:", error)
+      return []
     }
   }
 
@@ -1267,6 +1262,190 @@ export class MessageRepository {
           arguments: {},
         },
       }
+    }
+  }
+
+  /**
+   * Delete a chat session and all its messages
+   *
+   * @param chatSessionId The chat session ID
+   * @param workspaceId Optional workspace ID for filtering
+   * @returns True if successful, false otherwise
+   */
+  async deleteChat(chatSessionId: string, workspaceId?: string): Promise<boolean> {
+    try {
+      // First verify that the chat session belongs to the workspace if needed
+      if (workspaceId) {
+        const session = await this.prisma.chatSession.findFirst({
+          where: {
+            id: chatSessionId,
+            workspaceId
+          },
+          select: { id: true }
+        });
+        
+        if (!session) {
+          logger.warn(`deleteChat: Chat session ${chatSessionId} not found in workspace ${workspaceId}`);
+          return false;
+        }
+      }
+
+      // Delete all messages in the chat session
+      await this.prisma.message.deleteMany({
+        where: {
+          chatSessionId,
+        },
+      })
+
+      // Then delete the chat session itself
+      await this.prisma.chatSession.delete({
+        where: {
+          id: chatSessionId,
+        },
+      })
+
+      logger.info(`Deleted chat session: ${chatSessionId}`)
+      return true
+    } catch (error) {
+      logger.error(`Error deleting chat session ${chatSessionId}:`, error)
+      return false
+    }
+  }
+
+  /**
+   * Get latest messages for a phone number
+   * @param phoneNumber The phone number
+   * @param limit Number of messages to return
+   * @param workspaceId Workspace ID to filter by
+   * @returns Recent chat messages
+   */
+  async getLatesttMessages(phoneNumber: string, limit = 30, workspaceId?: string) {
+    try {
+      // Find customer by phone - use workspaceId if provided, otherwise use empty string
+      const customer = await this.findCustomerByPhone(phoneNumber, workspaceId || "")
+      
+      if (!customer) return []
+
+      // Find active chat session
+      const session = await this.prisma.chatSession.findFirst({
+        where: {
+          customerId: customer.id,
+          status: "active",
+          ...(workspaceId ? { workspaceId } : {})
+        },
+      })
+      
+      if (!session) {
+        return []
+      }
+
+      // Find messages for this session
+      const messages = await this.prisma.message.findMany({
+        where: {
+          chatSessionId: session.id
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: limit,
+      })
+
+      return messages
+    } catch (error) {
+      logger.error("Error getting latest messages:", error)
+      return []
+    }
+  }
+
+  /**
+   * Get agent by workspace ID
+   * @param workspaceId Workspace ID
+   * @returns Agent for the workspace
+   */
+  async getAgentByWorkspaceId(workspaceId: string) {
+    try {
+      const agent = await this.prisma.prompts.findFirst({
+        where: {
+          workspaceId
+        }
+      })
+      return agent
+    } catch (error) {
+      logger.error(`Error getting agent for workspace ${workspaceId}:`, error)
+      return null
+    }
+  }
+
+  /**
+   * Get response from an agent
+   * @param agent The agent to use
+   * @param message The message to process
+   * @returns The agent response
+   */
+  async getResponseFromAgent(agent: any, message: string) {
+    try {
+      // In a real implementation, this would call an LLM API
+      // For now, we'll just return a mock response based on the message content
+      const response = {
+        name: agent.name || "Unknown",
+        content: agent.content || "",
+        department: agent.department || null
+      }
+      
+      return response
+    } catch (error) {
+      logger.error("Error getting response from agent:", error)
+      return { name: "Error", content: "Failed to get agent response" }
+    }
+  }
+  
+  /**
+   * Get response from RAG system
+   * @param agent The agent to use
+   * @param message The user message
+   * @param products List of products
+   * @param services List of services
+   * @param chatHistory Previous chat messages
+   * @param customer Customer information
+   * @returns RAG-enhanced prompt
+   */
+  async getResponseFromRag(
+    agent: any,
+    message: string,
+    products: any[],
+    services: any[],
+    chatHistory: any[],
+    customer: any
+  ) {
+    try {
+      // In a real implementation, this would process the message with RAG
+      // For now, we'll just return the agent content as the prompt
+      return agent.content || "Default prompt"
+    } catch (error) {
+      logger.error("Error getting response from RAG:", error)
+      return "Failed to get RAG response"
+    }
+  }
+  
+  /**
+   * Get conversation response from LLM
+   * @param chatHistory Previous messages
+   * @param message Current user message
+   * @param systemPrompt System prompt for the LLM
+   * @returns LLM response
+   */
+  async getConversationResponse(
+    chatHistory: any[],
+    message: string,
+    systemPrompt: string
+  ) {
+    try {
+      // In a real implementation, this would call an LLM API
+      // For now, we'll just return a mock response
+      return "This is a mock response from the LLM"
+    } catch (error) {
+      logger.error("Error getting conversation response:", error)
+      return "Failed to generate response"
     }
   }
 }

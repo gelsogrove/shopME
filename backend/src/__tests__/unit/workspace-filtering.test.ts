@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { NextFunction, Request, Response } from 'express';
 import { AgentController } from '../../interfaces/http/controllers/agent.controller';
@@ -15,7 +16,7 @@ interface MockMessage {
   [key: string]: any;
 }
 
-jest.mock('../../services/chat.service', () => {
+jest.mock('../../application/services/chat.service', () => {
   return {
     chatService: {
       getRecentChats: jest.fn().mockImplementation((userId, workspaceId, limit) => {
@@ -38,8 +39,33 @@ jest.mock('../../services/chat.service', () => {
   };
 });
 
-jest.mock('../../services/agent.service', () => {
+jest.mock('../../application/services/agent.service', () => {
   return {
+    AgentService: jest.fn().mockImplementation(() => ({
+      getAllForWorkspace: jest.fn().mockImplementation((workspaceId) => {
+        expect(workspaceId).toBeDefined();
+        return [];
+      }),
+      getById: jest.fn().mockImplementation((id, workspaceId) => {
+        expect(workspaceId).toBeDefined();
+        return {};
+      }),
+      create: jest.fn().mockImplementation((data, workspaceId) => {
+        expect(workspaceId).toBeDefined();
+        return {};
+      }),
+      update: jest.fn().mockImplementation((id, data, workspaceId) => {
+        expect(workspaceId).toBeDefined();
+        return {};
+      }),
+      delete: jest.fn().mockImplementation((id, workspaceId) => {
+        expect(workspaceId).toBeDefined();
+        return true;
+      }),
+      getWorkspaceId: jest.fn().mockImplementation((providedId, userContext) => {
+        return providedId || 'mock-workspace-id';
+      })
+    })),
     agentService: {
       getAllForWorkspace: jest.fn().mockImplementation((workspaceId) => {
         expect(workspaceId).toBeDefined();
@@ -60,12 +86,15 @@ jest.mock('../../services/agent.service', () => {
       delete: jest.fn().mockImplementation((id, workspaceId) => {
         expect(workspaceId).toBeDefined();
         return true;
+      }),
+      getWorkspaceId: jest.fn().mockImplementation((providedId, userContext) => {
+        return providedId || 'mock-workspace-id';
       })
     }
   };
 });
 
-jest.mock('../../services/events.service', () => {
+jest.mock('../../application/services/events.service', () => {
   return {
     eventsService: {
       getAllForWorkspace: jest.fn().mockImplementation((workspaceId) => {

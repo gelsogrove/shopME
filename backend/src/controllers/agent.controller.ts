@@ -110,6 +110,14 @@ export const agentController = {
       res.status(201).json(agent)
     } catch (error) {
       console.error(`Error creating agent for workspace ${workspaceId}:`, error);
+      
+      // Check if this is a conflict error (duplicate router agent)
+      if (error.message && error.message.includes("router agent already exists")) {
+        return res.status(409).json({ 
+          message: "A router agent already exists for this workspace" 
+        });
+      }
+      
       next(error)
     }
   },
@@ -163,6 +171,14 @@ export const agentController = {
       res.json(updatedAgent)
     } catch (error) {
       console.error(`Error updating agent:`, error);
+      
+      // Check if this is a conflict error (duplicate router agent)
+      if (error.message && error.message.includes("router agent already exists")) {
+        return res.status(409).json({ 
+          message: "A router agent already exists for this workspace" 
+        });
+      }
+      
       next(error)
     }
   },
@@ -196,7 +212,7 @@ export const agentController = {
         res.status(204).send()
       } catch (error: any) {
         // Check if error is because the agent wasn't found
-        if (error.code === 'P2025') {
+        if (error.code === 'P2025' || error.message === 'Agent not found') {
           console.log(`Agent ${id} not found for deletion`);
           return res.status(404).json({ message: "Agent not found" })
         }

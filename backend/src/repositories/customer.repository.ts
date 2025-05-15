@@ -168,43 +168,31 @@ export class CustomerRepository implements ICustomerRepository {
   }
   
   /**
-   * Update an existing customer
+   * Update a customer record
+   * @param id Customer ID
+   * @param workspaceId Workspace ID
+   * @param data Customer data to update
+   * @returns Updated customer record
    */
-  async update(id: string, workspaceId: string, data: Partial<CustomerProps>): Promise<Customer> {
+  async update(id: string, workspaceId: string, data: Partial<CustomerProps>): Promise<Customer | null> {
     try {
-      const customerData: any = {};
-      
-      // Only include defined properties
-      if (data.name !== undefined) customerData.name = data.name;
-      if (data.email !== undefined) customerData.email = data.email;
-      if (data.phone !== undefined) customerData.phone = data.phone;
-      if (data.address !== undefined) customerData.address = data.address;
-      if (data.company !== undefined) customerData.company = data.company;
-      if (data.discount !== undefined) customerData.discount = data.discount;
-      if (data.language !== undefined) customerData.language = data.language;
-      if (data.currency !== undefined) customerData.currency = data.currency;
-      if (data.notes !== undefined) customerData.notes = data.notes;
-      if (data.serviceIds !== undefined) customerData.serviceIds = data.serviceIds;
-      if (data.isBlacklisted !== undefined) customerData.isBlacklisted = data.isBlacklisted;
-      if (data.isActive !== undefined) customerData.isActive = data.isActive;
-      if (data.last_privacy_version_accepted !== undefined) customerData.last_privacy_version_accepted = data.last_privacy_version_accepted;
-      if (data.privacy_accepted_at !== undefined) customerData.privacy_accepted_at = data.privacy_accepted_at;
-      if (data.push_notifications_consent !== undefined) customerData.push_notifications_consent = data.push_notifications_consent;
-      if (data.push_notifications_consent_at !== undefined) customerData.push_notifications_consent_at = data.push_notifications_consent_at;
-      if (data.activeChatbot !== undefined) customerData.activeChatbot = data.activeChatbot;
-      
-      const customer = await prisma.customers.update({
-        where: {
-          id,
-          workspaceId
-        },
-        data: customerData
+      // Verify customer belongs to this workspace
+      const existing = await this.findById(id, workspaceId);
+      if (!existing) {
+        return null;
+      }
+
+      // Update the customer record
+      const updatedCustomer = await prisma.customers.update({
+        where: { id },
+        data
       });
       
-      return this.toDomainEntity(customer);
+      // Convert to domain entity
+      return this.toDomainEntity(updatedCustomer);
     } catch (error) {
       logger.error(`Error updating customer ${id}:`, error);
-      throw error;
+      return null;
     }
   }
   

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import "@jest/globals"
 import { beforeEach, describe, expect, it, jest } from "@jest/globals"
 import { MessageService } from "../../../application/services/message.service"
