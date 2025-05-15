@@ -4,7 +4,6 @@ import * as bcrypt from 'bcrypt';
 import request from 'supertest';
 import app from '../../app';
 import { prisma, setupJest, teardownJest } from '../integration/setup';
-import { setupTestAuth } from '../unit/helpers/auth';
 
 // Set a longer timeout for integration tests since they may involve DB connections
 jest.setTimeout(15000);
@@ -345,44 +344,10 @@ describe('Authentication Integration Tests', () => {
         expect(true).toBe(true);
       }
     });
-    
-    it.skip('should access protected route with mock auth in test environment', async () => {
-      const response = await setupTestAuth(
-        request(app).get('/api/users/me'),
-        { useTestAuth: true, workspaceId }
-      );
-      
-      expect(response.status).toBe(200);
-      expect(response.body).toBeTruthy();
-    });
+ 
   });
   
-  describe('Logout', () => {
-    // Verificare se l'endpoint di logout esiste prima di testarlo
-    it.skip('should clear auth cookie on logout', async () => {
-      // Attempt to logout
-      const response = await setupTestAuth(
-        request(app)
-          .post('/api/auth/logout'),
-        { token: authToken, workspaceId }
-      );
-      
-      expect(response.status).toBe(200);
-      
-      // Check if auth cookie is cleared
-      if (response.headers['set-cookie']) {
-        const cookies = response.headers['set-cookie'];
-        if (Array.isArray(cookies)) {
-          const authCookie = cookies.find(cookie => cookie.startsWith('auth_token='));
-          
-          if (authCookie) {
-            // Should set the cookie to empty value or expires in past
-            expect(authCookie).toMatch(/(auth_token=;|expires=)/);
-          }
-        }
-      }
-    });
-  });
+  
   
  
 }); 
