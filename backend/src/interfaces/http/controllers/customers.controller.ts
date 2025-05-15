@@ -206,7 +206,19 @@ export class CustomersController {
     try {
       const { id, workspaceId } = req.params;
       
-      logger.info('Blocking customer:', { id, workspaceId });
+      // Rileva se si tratta dell'endpoint alternativo con 'bloc'
+      const isAlternativeEndpoint = req.originalUrl.includes('/bloc') && !req.originalUrl.includes('/block');
+      
+      logger.info('⛔ Blocking customer API call received:', { 
+        id, 
+        workspaceId, 
+        originalUrl: req.originalUrl, 
+        method: req.method, 
+        path: req.path,
+        params: req.params,
+        route: req.route,
+        isAlternativeEndpoint
+      });
 
       try {
         const customer = await this.customerService.blockCustomer(id, workspaceId);

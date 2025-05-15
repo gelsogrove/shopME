@@ -19,7 +19,7 @@ import { createAgentRouter } from "../interfaces/http/routes/agent.routes"
 import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
 import { chatRouter } from "../interfaces/http/routes/chat.routes"
-import { customersRouter } from "../interfaces/http/routes/customers.routes"
+import { customersRouter, workspaceCustomersRouter } from "../interfaces/http/routes/customers.routes"
 import { eventsRouter } from "../interfaces/http/routes/events.routes"
 import { faqsRouter } from "../interfaces/http/routes/faqs.routes"
 import { createLanguagesRouter } from "../interfaces/http/routes/languages.routes"
@@ -101,7 +101,10 @@ router.use("/registration", createRegistrationRouter())
 router.use("/chat", chatRouter(chatController))
 router.use("/messages", messagesRouter(messageController))
 router.use("/users", createUserRouter(userController))
+// Mount customer routes on both legacy and workspace paths to ensure backward compatibility
 router.use("/", customersRouter(customersController))
+// Utilizziamo il router specifico per workspaces 
+router.use("/workspaces", workspaceCustomersRouter(customersController))
 router.use("/workspaces", workspaceRoutes)
 router.use("/agent", createAgentRouter())
 router.use("/workspaces/:workspaceId/agent", createAgentRouter())

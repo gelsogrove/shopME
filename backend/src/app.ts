@@ -115,6 +115,36 @@ app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 // Log that we're about to mount the API router
 logger.info("Mounting API router at /api prefix")
 
+// Hotfix solo per gli ambienti non di test
+if (process.env.NODE_ENV !== 'test') {
+  // Endpoint di catch-all specifico per bloccare clienti
+  // HOTFIX: Risolve il problema del 404 su block customer
+  app.post('/api/workspaces/:workspaceId/customers/:id/block', (req, res) => {
+    const { id, workspaceId } = req.params;
+    logger.info(`🔥 HOTFIX: Block customer catch-all endpoint chiamato per workspace ${workspaceId}, customer ${id}`);
+    logger.info(`⚠️ Questo è un hotfix temporaneo per risolvere il problema del 404 su questo endpoint.`);
+    
+    // Import customerService on-demand
+    const { default: customerService } = require('./application/services/customer.service');
+    
+    // Try to block the customer
+    customerService.blockCustomer(id, workspaceId)
+      .then(customer => {
+        return res.status(200).json({
+          message: 'Customer blocked successfully via HOTFIX',
+          customer
+        });
+      })
+      .catch(error => {
+        logger.error('Error in HOTFIX route:', error);
+        return res.status(404).json({ 
+          message: error.message || 'Failed to block customer',
+          error: true
+        });
+      });
+  });
+}
+
 // Default version route (current version)
 app.use("/api", apiRouter)
 
@@ -199,5 +229,31 @@ app.get("/health", (req, res) => {
     apiVersion: "v1"
   });
 });
+
+// Debug: Print all registered routes at startup
+if (process.env.NODE_ENV !== 'test') {
+  logger.info('🔍 DEBUG: Printing all registered routes:');
+  
+  function printRoutes(stack, basePath = '') {
+    stack.forEach(middleware => {
+      if (middleware.route) {
+        // Route
+        const methods = Object.keys(middleware.route.methods)
+          .filter(method => middleware.route.methods[method])
+          .join(', ');
+        logger.info(`🛣️  ${methods.toUpperCase()} ${basePath}${middleware.route.path}`);
+      } else if (middleware.name === 'router') {
+        // Router middleware
+        const newBase = basePath + (middleware.regexp ? 
+          middleware.regexp.toString().replace('/^', '').replace('/(?=\\/|$)/i', '') : 
+          '');
+        printRoutes(middleware.handle.stack, newBase);
+      }
+    });
+  }
+  
+  // Print main app routes
+  printRoutes(app._router.stack);
+}
 
 export default app

@@ -31,6 +31,8 @@ export const createAuthRouter = (authController: AuthController): Router => {
 
   router.get("/me", authMiddleware, asyncHandler(authController.me.bind(authController)))
 
+  router.post("/logout", authMiddleware, asyncHandler(authController.logout.bind(authController)))
+
   router.post(
     "/register",
     registerLimiter,

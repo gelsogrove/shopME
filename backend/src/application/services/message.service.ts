@@ -297,7 +297,7 @@ export class MessageService {
             .replace("{phone}", phoneNumber)
             .replace("{workspace}", workspaceId)
           if (!response.includes("http")) {
-            response += `\n\n: ${registrationUrl}`
+            response += `\n\n${registrationUrl}`
           }
           
           // Create customer with detected language
@@ -674,7 +674,7 @@ export class MessageService {
 
     // Verifica che il link sia stato correttamente sostituito
     if (!result.includes("http")) {
-      return `${result}\n\n ${registrationUrl}`
+      return `${result}\n\n${registrationUrl}`
     }
 
     return result

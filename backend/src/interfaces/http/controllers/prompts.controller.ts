@@ -62,7 +62,7 @@ export class PromptsController {
       
       logger.info(`Creating new prompt for workspace ${workspaceId}`)
       
-      const prompt = await this.agentService.create(promptData)
+      const prompt = await this.agentService.create(promptData, workspaceId)
       res.status(201).json(prompt)
     } catch (error) {
       logger.error('Error creating prompt:', error)
@@ -157,7 +157,7 @@ export class PromptsController {
       logger.info(`Creating duplicate of prompt ${id}`)
       
       // Create the copy
-      const duplicatedPrompt = await this.agentService.create(copyData)
+      const duplicatedPrompt = await this.agentService.create(copyData, workspaceId)
       res.status(201).json(duplicatedPrompt)
     } catch (error) {
       logger.error(`Error duplicating prompt ${req.params.id}:`, error)
