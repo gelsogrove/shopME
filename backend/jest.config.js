@@ -2,7 +2,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testMatch: ['**/*.spec.ts'],
+  testMatch: ['**/*.spec.ts', '**/*.test.ts'],
   transform: {
     '^.+\\.ts$': ['ts-jest', {
       tsconfig: 'tsconfig.json'
@@ -10,8 +10,16 @@ module.exports = {
   },
   testPathIgnorePatterns: [
     '/node_modules/',
+    '/dist/',
   ],
   coveragePathIgnorePatterns: ['/node_modules/', '/dist/', '/src/utils/'],
   setupFilesAfterEnv: ['./jest.setup.js'],
-  testTimeout: 15000
+  testTimeout: 15000,
+  modulePathIgnorePatterns: ['/dist/'],
+  // Resolve the Haste module naming collision
+  haste: {
+    forceNodeFilesystemAPI: true,
+    hasteMapModulePath: null,
+    enableSymlinks: false, 
+  }
 }; 

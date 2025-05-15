@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import request from 'supertest';
 import app from '../../app';
-import { testPrisma as prisma } from './prisma-test';
+import { testPrisma as prisma } from '../test/prisma-test';
 
 /**
  * Create a test user with a workspace for testing

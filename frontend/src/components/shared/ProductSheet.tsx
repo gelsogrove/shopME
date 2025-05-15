@@ -4,12 +4,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
@@ -24,6 +24,7 @@ interface Product {
   stock: number
   categoryId?: string | null
   image?: string | null
+  imageUrl?: string | null
   [key: string]: any;
 }
 
@@ -61,6 +62,24 @@ export function ProductSheet({
   const [imageUrl, setImageUrl] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  // Funzione per assicurarsi che l'URL sia completo
+  const getCompleteImageUrl = (url: string | null): string | null => {
+    if (!url) return null;
+    
+    // Se l'URL è già completo (inizia con http:// o https://)
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // Se è un URL relativo, lo trasformiamo in assoluto
+    if (url.startsWith('/')) {
+      return `${window.location.origin}${url}`;
+    }
+    
+    // In caso contrario, assumiamo sia un percorso relativo
+    return `${window.location.origin}/${url}`;
+  };
+
   // Ottieni il simbolo della valuta dal workspace
   const currencySymbol = getCurrencySymbol(workspace?.currency)
 
@@ -73,9 +92,12 @@ export function ProductSheet({
       setStock(product.stock?.toString() || "0");
       setCategoryId(product.categoryId || "");
       
-      if (product.image) {
-        setImageUrl(product.image);
-        setImagePreview(product.image);
+      // Utilizza imageUrl se disponibile, altrimenti image
+      const imageToUse = product.imageUrl || product.image || "";
+      
+      if (imageToUse) {
+        setImageUrl(imageToUse);
+        setImagePreview(getCompleteImageUrl(imageToUse));
       } else {
         setImageUrl("");
         setImagePreview(null);
@@ -106,9 +128,10 @@ export function ProductSheet({
       formData.append("categoryId", categoryId);
     }
     
-    // Handle image URL
+    // Handle image URL - assegna sia a image che a imageUrl per compatibilità
     if (imageUrl) {
       formData.append("image", imageUrl);
+      formData.append("imageUrl", imageUrl);
     }
     
     onSubmit(formData);
@@ -121,7 +144,7 @@ export function ProductSheet({
     setImageUrl(url);
     
     if (url) {
-      setImagePreview(url);
+      setImagePreview(getCompleteImageUrl(url));
     } else {
       setImagePreview(null);
     }
@@ -244,7 +267,10 @@ export function ProductSheet({
                           src={imagePreview}
                           alt="Product preview" 
                           className="w-full h-full object-cover"
-                          onError={() => setImagePreview(null)}
+                          onError={() => {
+                            console.error(`Failed to load image preview:`, imageUrl);
+                            setImagePreview(null);
+                          }}
                         />
                       </div>
                     </Card>

@@ -18,6 +18,7 @@ export class Offer {
   createdAt: Date;
   updatedAt: Date;
   categoryName?: string;
+  categoryIds?: string[];
 
   constructor(props: Partial<Offer>) {
     Object.assign(this, props);

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import request from 'supertest';
 import app from '../../app';
-import { createTestUser, getAuthToken } from '../helpers/auth';
+import { createTestUser, getAuthToken } from '../unit/helpers/auth';
 import { setupJest, teardownJest } from './setup';
 
 describe('WhatsApp API', () => {

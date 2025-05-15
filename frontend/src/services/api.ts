@@ -7,16 +7,39 @@ export const api = axios.create({
   withCredentials: true, // Importante: invia i cookie con le richieste
 })
 
+// Helper function to get current workspace ID from session storage
+const getCurrentWorkspaceId = (): string | null => {
+  const workspaceData = sessionStorage.getItem("currentWorkspace");
+  if (workspaceData) {
+    try {
+      const workspace = JSON.parse(workspaceData);
+      return workspace.id;
+    } catch (e) {
+      console.error("Error parsing workspace data:", e);
+    }
+  }
+  return null;
+};
+
 // Add a request interceptor to handle authentication
 api.interceptors.request.use(
   (config) => {
     console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`, config.data || {});
-    // Non aggiungere token manualmente - il server usa cookie HTTP-only
-    return config
+    
+    // Add x-workspace-id header if not already present and we have a workspace ID
+    if (!config.headers["x-workspace-id"]) {
+      const workspaceId = getCurrentWorkspaceId();
+      if (workspaceId) {
+        console.log(`Adding x-workspace-id header: ${workspaceId}`);
+        config.headers["x-workspace-id"] = workspaceId;
+      }
+    }
+    
+    return config;
   },
   (error) => {
     console.error("API Request Error:", error);
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
 )
 
@@ -24,7 +47,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     console.log(`API Response: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
-    return response
+    return response;
   },
   (error) => {
     console.error("API Response Error:", error.response || error);
@@ -57,7 +80,7 @@ api.interceptors.response.use(
       }
     }
     
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
 )
 

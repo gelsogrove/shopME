@@ -3,7 +3,7 @@ import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import request from 'supertest';
 import app from '../../app';
-import { setupTestAuth } from '../helpers/auth';
+import { setupTestAuth } from '../unit/helpers/auth';
 import { prisma, setupJest, teardownJest } from '../integration/setup';
 import { generateTestUser } from './mock/mockUsers';
 import { generateTestWorkspace, mockWorkspace } from './mock/mockWorkspaces';

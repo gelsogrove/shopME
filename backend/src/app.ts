@@ -4,6 +4,7 @@ import cors from "cors"
 import express from "express"
 import helmet from "helmet"
 import OpenAI from 'openai'
+import path from "path"
 import swaggerUi from "swagger-ui-express"
 import { swaggerSpec } from "./config/swagger"
 import { WhatsAppController } from './interfaces/http/controllers/whatsapp.controller'
@@ -39,6 +40,11 @@ app.options('*', cors())
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }))
+
+// Serve static files from uploads directory
+const uploadsPath = path.join(__dirname, '../uploads');
+app.use('/uploads', express.static(uploadsPath));
+logger.info(`Serving static files from: ${uploadsPath}`);
 
 // Custom JSON parser middleware to handle potentially escaped JSON
 app.use(express.json({

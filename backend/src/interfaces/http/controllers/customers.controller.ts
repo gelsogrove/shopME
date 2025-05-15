@@ -200,6 +200,35 @@ export class CustomersController {
   }
 
   /**
+   * Block a customer
+   */
+  async blockCustomer(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id, workspaceId } = req.params;
+      
+      logger.info('Blocking customer:', { id, workspaceId });
+
+      try {
+        const customer = await this.customerService.blockCustomer(id, workspaceId);
+        
+        logger.info('Customer blocked successfully');
+        return res.status(200).json({
+          message: 'Customer blocked successfully',
+          customer
+        });
+      } catch (error: any) {
+        if (error.message === 'Customer not found') {
+          return res.status(404).json({ message: 'Customer not found' });
+        }
+        throw error;
+      }
+    } catch (error) {
+      logger.error('Error blocking customer:', error);
+      next(error);
+    }
+  }
+
+  /**
    * Count all "Unknown Customer" records in a workspace
    */
   async countUnknownCustomers(req: Request, res: Response, next: NextFunction) {

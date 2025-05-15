@@ -132,11 +132,13 @@ export function SuppliersPage() {
         title: "Success",
         description: "Supplier deleted successfully",
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting supplier:", error)
+      // Display the actual error message from the server if available
+      const errorMessage = error.response?.data?.message || "Failed to delete supplier. It may be in use by products."
       toast({
         title: "Error",
-        description: "Failed to delete supplier. It may be in use by products.",
+        description: errorMessage,
         variant: "destructive",
       })
     }
@@ -169,13 +171,15 @@ export function SuppliersPage() {
       header: "Status",
       size: 100,
       cell: ({ row }) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          row.original.isActive 
-            ? "bg-green-100 text-green-800"
-            : "bg-gray-100 text-gray-800"
-        }`}>
-          {row.original.isActive ? "Active" : "Inactive"}
-        </span>
+        <div className="flex justify-center items-center">
+          <span className={`px-2 py-1 rounded-full text-xs ${
+            row.original.isActive 
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}>
+            {row.original.isActive ? "Active" : "Inactive"}
+          </span>
+        </div>
       ),
     }
   ]

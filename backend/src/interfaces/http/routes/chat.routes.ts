@@ -2,6 +2,7 @@ import express from 'express';
 import { ChatController } from '../controllers/chat.controller';
 import { asyncHandler } from '../middlewares/async.middleware';
 import { authMiddleware } from '../middlewares/auth.middleware';
+import { workspaceValidationMiddleware } from '../middlewares/workspace-validation.middleware';
 
 /**
  * @swagger
@@ -86,6 +87,9 @@ export const chatRouter = (chatController: ChatController): express.Router => {
 
   // Apply auth middleware to all remaining chat routes
   router.use(authMiddleware);
+  
+  // Apply workspace validation middleware to all routes
+  router.use(workspaceValidationMiddleware);
 
   /**
    * @swagger
@@ -101,6 +105,12 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *         schema:
    *           type: integer
    *         description: Maximum number of chats to return (default 20)
+   *       - in: header
+   *         name: x-workspace-id
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: ID of the workspace
    *     responses:
    *       200:
    *         description: List of recent chat sessions with unread counts
@@ -135,6 +145,12 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *           type: string
    *         required: true
    *         description: ID of the chat session
+   *       - in: header
+   *         name: x-workspace-id
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: ID of the workspace
    *     responses:
    *       200:
    *         description: Chat session details
@@ -169,6 +185,12 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *           type: string
    *         required: true
    *         description: ID of the chat session
+   *       - in: header
+   *         name: x-workspace-id
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: ID of the workspace
    *     responses:
    *       200:
    *         description: List of chat messages
@@ -205,6 +227,12 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *           type: string
    *         required: true
    *         description: ID of the chat session
+   *       - in: header
+   *         name: x-workspace-id
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: ID of the workspace
    *     responses:
    *       200:
    *         description: Messages marked as read
@@ -243,6 +271,12 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *           type: string
    *         required: true
    *         description: ID of the chat session
+   *       - in: header
+   *         name: x-workspace-id
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: ID of the workspace
    *     responses:
    *       200:
    *         description: Chat session deleted successfully
@@ -253,11 +287,9 @@ export const chatRouter = (chatController: ChatController): express.Router => {
    *               properties:
    *                 success:
    *                   type: boolean
-   *                 data:
-   *                   type: object
-   *                   properties:
-   *                     deleted:
-   *                       type: boolean
+   *                 message:
+   *                   type: string
+   *                   description: Success message
    *       400:
    *         description: Session ID is required
    *       500:

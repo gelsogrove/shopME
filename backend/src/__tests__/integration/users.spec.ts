@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import request from 'supertest';
 import app from '../../app';
-import { setupTestAuth } from '../helpers/auth';
+import { setupTestAuth } from '../unit/helpers/auth';
 import { generateTestUser, mockAdminUser } from './mock/mockUsers';
 import { mockWorkspaceWithUser } from './mock/mockWorkspaces';
 import { prisma, setupJest, teardownJest } from './setup';

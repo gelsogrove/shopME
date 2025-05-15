@@ -122,6 +122,8 @@ export class OfferController {
         return res.status(400).json({ error: 'Workspace ID is required' });
       }
       
+      logger.info(`Updating offer ${id} in controller. Request body:`, JSON.stringify(req.body));
+      
       // Check if the offer exists before updating it
       const existingOffer = await this.offerService.getOfferById(id, workspaceId);
       if (!existingOffer) {
@@ -130,8 +132,18 @@ export class OfferController {
       
       // Ensure the request belongs to the workspace
       const offerData = { ...req.body, workspaceId };
-      const offer = await this.offerService.updateOffer(id, offerData);
-      return res.json(offer);
+      
+      try {
+        const offer = await this.offerService.updateOffer(id, offerData);
+        logger.info(`Offer ${id} successfully updated in controller`);
+        return res.json(offer);
+      } catch (serviceError) {
+        logger.error(`Service error updating offer ${id}:`, serviceError);
+        return res.status(500).json({ 
+          error: 'Failed to update offer',
+          message: serviceError instanceof Error ? serviceError.message : 'Unknown error'
+        });
+      }
     } catch (error) {
       logger.error(`Error updating offer ${req.params.id}:`, error);
       return res.status(500).json({ error: 'Failed to update offer' });

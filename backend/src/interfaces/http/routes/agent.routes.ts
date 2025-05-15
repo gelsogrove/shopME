@@ -3,6 +3,7 @@ import logger from '../../../utils/logger';
 import { AgentController } from '../controllers/agent.controller';
 import { asyncHandler } from '../middlewares/async.middleware';
 import { authMiddleware } from '../middlewares/auth.middleware';
+import { workspaceValidationMiddleware } from '../middlewares/workspace-validation.middleware';
 
 /**
  * @swagger
@@ -54,6 +55,9 @@ export const createAgentRouter = (): Router => {
 
   // Apply auth middleware to all routes
   router.use(authMiddleware);
+  
+  // Apply workspace validation middleware to all routes
+  router.use(workspaceValidationMiddleware);
 
   /**
    * @swagger
@@ -248,5 +252,6 @@ export const createAgentRouter = (): Router => {
   router.delete('/:id', asyncHandler(agentController.delete));
   
   logger.info('Agent routes setup complete');
+  
   return router;
 }; 

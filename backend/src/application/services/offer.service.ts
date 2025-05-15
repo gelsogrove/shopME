@@ -68,13 +68,13 @@ export class OfferService {
         throw new Error("Invalid offer data");
       }
       
-      // Handle categoryIds field
+      // Handle categoryId field (from possible categoryIds in request)
       const { categoryIds, ...offerData } = data;
       
-      // If categoryIds is null, we don't set categoryId
-      // If categoryIds is an array with one element, we set that as categoryId
-      if (categoryIds && Array.isArray(categoryIds) && categoryIds.length === 1) {
+      // If categoryIds is an array with elements, we set the first one as categoryId
+      if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
         offerData.categoryId = categoryIds[0];
+        logger.debug(`Using category ID (${categoryIds[0]}) from request`);
       }
       
       logger.debug("Creating offer with data:", offerData);
@@ -104,16 +104,22 @@ export class OfferService {
         throw new Error("Offer not found");
       }
       
-      // Handle categoryIds field
+      logger.info(`Updating offer ${id} with data:`, JSON.stringify(data));
+      
+      // Handle categoryId field
       const { categoryIds, ...updateData } = data;
       
-      // If categoryIds is null, we don't change categoryId
-      // If categoryIds is an array with one element, we set that as categoryId
-      if (categoryIds && Array.isArray(categoryIds) && categoryIds.length === 1) {
-        updateData.categoryId = categoryIds[0];
-      } else if (categoryIds === null) {
-        // Leave categoryId unchanged or set to null if needed
+      // If categoryIds is null, we set categoryId to null
+      // If categoryIds is an array with elements, we set the first one as categoryId
+      if (categoryIds === null) {
         updateData.categoryId = null;
+        logger.debug(`Setting categoryId to null (categoryIds is null)`);
+      } else if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
+        updateData.categoryId = categoryIds[0];
+        logger.debug(`Setting categoryId to ${updateData.categoryId} from categoryIds[0]`);
+      } else if (categoryIds && Array.isArray(categoryIds) && categoryIds.length === 0) {
+        updateData.categoryId = null;
+        logger.debug(`Setting categoryId to null (empty categoryIds array)`);
       }
       
       // Create merged offer for validation
@@ -123,11 +129,20 @@ export class OfferService {
       });
       
       if (!offerToUpdate.validate()) {
+        logger.error(`Invalid offer data for update:`, updateData);
         throw new Error("Invalid offer data");
       }
       
-      logger.debug("Updating offer with data:", updateData);
-      return await this.offerRepository.update(id, updateData);
+      logger.debug(`Final update data being sent to repository:`, JSON.stringify(updateData));
+      
+      try {
+        const result = await this.offerRepository.update(id, updateData);
+        logger.info(`Successfully updated offer ${id}`);
+        return result;
+      } catch (repoError) {
+        logger.error(`Repository error updating offer ${id}:`, repoError);
+        throw repoError;
+      }
     } catch (error) {
       logger.error(`Error updating offer ${id}:`, error);
       throw error;

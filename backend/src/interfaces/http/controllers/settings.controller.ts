@@ -45,7 +45,7 @@ export class SettingsController {
     try {
       const { workspaceId } = req.params;
 
-      if (!workspaceId) {
+      if (!workspaceId || workspaceId.trim() === '') {
         AppResponse.badRequest(res, "Workspace ID is required");
         return;
       }

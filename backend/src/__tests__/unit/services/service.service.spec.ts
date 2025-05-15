@@ -1,12 +1,21 @@
-import { PrismaClient } from '@prisma/client';
-import { mockDeep, mockReset } from 'jest-mock-extended';
 import { Service } from '../../../domain/entities/service.entity';
-import { ServiceRepository } from '../../../repositories/service.repository';
 
-// Mock Prisma Client
-jest.mock('../../../lib/prisma', () => ({
-  prisma: mockDeep<PrismaClient>(),
-}));
+// Mock prisma before import
+jest.doMock('../../../lib/prisma', () => {
+  const mockServices = {
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  };
+  
+  return {
+    prisma: {
+      services: mockServices
+    }
+  };
+});
 
 // Mock logger
 jest.mock('../../../utils/logger', () => ({
@@ -16,23 +25,23 @@ jest.mock('../../../utils/logger', () => ({
   debug: jest.fn()
 }));
 
-// Import dopo i mock
-import { prisma } from '../../../lib/prisma';
-// Cast del mock per poterlo utilizzare nei test
-const mockPrisma = prisma as unknown as ReturnType<typeof mockDeep<PrismaClient>>;
-
-// Mock del repository
+// Mock the repository
 jest.mock('../../../repositories/service.repository');
 
-// Import ServiceService dopo aver mockato le dipendenze
+// Import after mocking
 import ServiceService from '../../../application/services/service.service';
+import { prisma } from '../../../lib/prisma';
+import { ServiceRepository } from '../../../repositories/service.repository';
+
+// Get reference to mocked prisma client
+const mockPrismaClient = prisma as jest.Mocked<typeof prisma>;
 
 describe('ServiceService', () => {
   let workspaceId: string;
   let id: string;
   
   beforeEach(() => {
-    mockReset(mockPrisma);
+    // Reset all mocks
     jest.clearAllMocks();
     workspaceId = 'test-workspace-id';
     id = 'test-service-id';

@@ -1,4 +1,4 @@
-import { api } from './api'
+import { api } from '@/services/api'
 
 export interface Category {
   id: string
@@ -16,6 +16,7 @@ export interface Product {
   stock: number
   sku: string | null
   image: string | null
+  imageUrl?: string | null
   isActive: boolean
   workspaceId: string
   categoryId: string | null
@@ -65,6 +66,45 @@ export interface UpdateProductData {
   isActive?: boolean
   status?: 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK'
 }
+
+// Helper to ensure image URLs are properly handled
+const processProductData = (product: any) => {
+  // Log per il debug
+  console.log('Processing product data:', product);
+  
+  if (product) {
+    // Gestione della proprietà imageUrl -> image per retrocompatibilità
+    if (product.imageUrl && !product.image) {
+      product.image = product.imageUrl;
+    }
+    
+    // Gestione della proprietà image -> imageUrl per nuove API
+    if (product.image && !product.imageUrl) {
+      product.imageUrl = product.image;
+    }
+    
+    if (product.image) {
+      // Assicuriamoci che l'URL dell'immagine sia completo
+      if (!product.image.startsWith('http')) {
+        if (product.image.startsWith('/')) {
+          product.image = `${window.location.origin}${product.image}`;
+        } else {
+          product.image = `${window.location.origin}/${product.image}`;
+        }
+      }
+      
+      // Log dell'URL dell'immagine processato
+      console.log(`Processed image URL for ${product.name}:`, product.image);
+    }
+  }
+  
+  return product;
+};
+
+// Helper per processare array di prodotti
+const processProductsArray = (products: any[]) => {
+  return products.map(product => processProductData(product));
+};
 
 /**
  * Get all products for a workspace with optional filters and pagination
@@ -144,7 +184,7 @@ export const getAllForWorkspace = async (
     if (Array.isArray(response.data)) {
       const products = response.data;
       return {
-        products,
+        products: processProductsArray(products),
         total: products.length,
         page: options?.page || 1,
         totalPages: Math.ceil(products.length / (options?.limit || 10))
@@ -153,7 +193,10 @@ export const getAllForWorkspace = async (
     
     // Per retrocompatibilità, supportiamo ancora il formato vecchio
     if (response.data.products) {
-      return response.data;
+      return {
+        ...response.data,
+        products: processProductsArray(response.data.products)
+      };
     }
     
     // Se non è né un array né ha il nodo products, ritorniamo vuoto
@@ -182,7 +225,7 @@ export const getAllForWorkspace = async (
 export const getById = async (id: string, workspaceId: string): Promise<Product> => {
   try {
     const response = await api.get(`/workspaces/${workspaceId}/products/${id}`)
-    return response.data
+    return processProductData(response.data)
   } catch (error) {
     console.error('Error getting product:', error)
     throw error
@@ -207,8 +250,11 @@ export const getByCategory = async (categoryId: string, workspaceId: string): Pr
  */
 export const create = async (workspaceId: string, data: CreateProductData): Promise<Product> => {
   try {
+    // Log dei dati che stiamo inviando
+    console.log('Creating product with data:', data);
+    
     const response = await api.post(`/workspaces/${workspaceId}/products`, data)
-    return response.data
+    return processProductData(response.data)
   } catch (error) {
     console.error('Error creating product:', error)
     throw error
@@ -220,8 +266,11 @@ export const create = async (workspaceId: string, data: CreateProductData): Prom
  */
 export const update = async (id: string, workspaceId: string, data: UpdateProductData): Promise<Product> => {
   try {
+    // Log dei dati che stiamo inviando
+    console.log('Updating product with data:', data);
+    
     const response = await api.put(`/workspaces/${workspaceId}/products/${id}`, data)
-    return response.data
+    return processProductData(response.data)
   } catch (error) {
     console.error('Error updating product:', error)
     throw error

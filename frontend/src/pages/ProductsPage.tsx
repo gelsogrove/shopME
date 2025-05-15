@@ -5,10 +5,10 @@ import { ProductSheet } from "@/components/shared/ProductSheet"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { categoriesApi } from "@/services/categoriesApi"
@@ -44,6 +44,105 @@ export function ProductsPage() {
   const [searchValue, setSearchValue] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedSupplier, setSelectedSupplier] = useState("all")
+  const [failedImages, setFailedImages] = useState<{[key: string]: boolean}>({})
+  
+  // Mappe a immagini statiche per categorie o nomi di prodotti
+  const staticImages: {[key: string]: string} = {
+    'pasta': '/images/products/pasta.svg',
+    'Pasta': '/images/products/pasta.svg',
+    'beverages': '/images/products/beverages.svg',
+    'Beverages': '/images/products/beverages.svg',
+    'cheese': '/images/products/cheese.svg',
+    'Cheese': '/images/products/cheese.svg',
+    'default': '/images/products/placeholder.svg'
+  };
+  
+  // Test immagini predefinite in ordine di priorità
+  const testImages = [
+    '/uploads/products/placeholder.svg',
+    '/uploads/products/test-placeholder.txt',
+  ];
+  
+  // Funzione per assegnare immagini di test ai prodotti senza immagini
+  const assignTestImagesToProducts = (prods) => {
+    return prods.map(product => {
+      // Se il prodotto non ha un'immagine, proviamo a trovare un'immagine statica basata sulla categoria
+      if (!product.image) {
+        // Prima cerchiamo una corrispondenza per categoria
+        if (product.category && staticImages[product.category.name]) {
+          return {
+            ...product,
+            image: staticImages[product.category.name]
+          };
+        }
+        
+        // Cerchiamo una corrispondenza per nome prodotto (parziale)
+        const matchingKey = Object.keys(staticImages).find(key => 
+          product.name.toLowerCase().includes(key.toLowerCase()));
+        
+        if (matchingKey) {
+          return {
+            ...product,
+            image: staticImages[matchingKey]
+          };
+        }
+        
+        // Se non troviamo corrispondenze, usiamo un'immagine casuale dal pool predefinito
+        return {
+          ...product,
+          image: testImages[Math.floor(Math.random() * testImages.length)]
+        };
+      }
+      return product;
+    });
+  };
+  
+  // Funzione per assicurarsi che l'URL sia completo
+  const getCompleteImageUrl = (url: string | null): string | null => {
+    if (!url) return null;
+    
+    // Se l'URL è già completo (inizia con http:// o https://)
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // Se è un URL relativo, lo trasformiamo in assoluto
+    if (url.startsWith('/')) {
+      return `${window.location.origin}${url}`;
+    }
+    
+    // In caso contrario, assumiamo sia un percorso relativo
+    return `${window.location.origin}/${url}`;
+  };
+  
+  // Funzione per ottenere l'immagine corretta considerando anche fallback e stati
+  const getProductImage = (product: Product) => {
+    // Verifica prima imageUrl (nuovo campo API)
+    if (product.imageUrl && !failedImages[product.id]) {
+      return getCompleteImageUrl(product.imageUrl);
+    }
+    
+    // Poi verifica image (campo legacy)
+    if (product.image && !failedImages[product.id]) {
+      return getCompleteImageUrl(product.image);
+    }
+    
+    // Se l'immagine è fallita o non esiste, cerca un'immagine statica per categoria
+    if (product.category && staticImages[product.category.name]) {
+      return staticImages[product.category.name];
+    }
+    
+    // Cerca un'immagine statica in base al nome del prodotto
+    const matchingKey = Object.keys(staticImages).find(key => 
+      product.name.toLowerCase().includes(key.toLowerCase()));
+    
+    if (matchingKey) {
+      return staticImages[matchingKey];
+    }
+    
+    // Fallback all'immagine di default
+    return staticImages.default;
+  };
 
   // Fetch products when workspace changes
   useEffect(() => {
@@ -58,7 +157,10 @@ export function ProductsPage() {
         // La risposta ora è un oggetto che contiene direttamente l'array dei prodotti
         if (response && Array.isArray(response.products)) {
           console.log('Product sample with category:', response.products[0])
-          setProducts(response.products)
+          
+          // Per test: assegna immagini di test a prodotti senza immagine
+          const productsWithImages = assignTestImagesToProducts(response.products);
+          setProducts(productsWithImages);
         } else {
           console.error('Formato risposta API non valido:', response)
           setProducts([])
@@ -114,6 +216,19 @@ export function ProductsPage() {
 
     loadSuppliers()
   }, [workspace?.id])
+
+  // Aggiungere un log per vedere quali immagini stanno venendo caricate
+  useEffect(() => {
+    if (products.length > 0) {
+      console.log('Prodotti con immagini:', products.map(p => ({
+        id: p.id,
+        name: p.name,
+        imageUrl: p.image,
+        completeImageUrl: getCompleteImageUrl(p.image),
+        productImage: getProductImage(p)
+      })));
+    }
+  }, [products, failedImages]);
 
   // Filter products based on search value, selected category and selected supplier
   const filteredProducts = products.filter(
@@ -366,20 +481,17 @@ export function ProductsPage() {
                   className="relative bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
                 >
                   {/* Product Image */}
-                  {product.image && (
-                    <div className="mb-3 aspect-video relative overflow-hidden rounded-md bg-gray-100">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                  )}
-                  {!product.image && (
-                    <div className="mb-3 aspect-video relative overflow-hidden rounded-md bg-gray-100 flex items-center justify-center">
-                      <Package2 className="h-12 w-12 text-gray-300" />
-                    </div>
-                  )}
+                  <div className="mb-3 aspect-video relative overflow-hidden rounded-md bg-gray-100">
+                    <img
+                      src={getProductImage(product)}
+                      alt={product.name}
+                      className="object-cover w-full h-full"
+                      onError={() => {
+                        console.error(`Failed to load image for ${product.name}:`, product.image);
+                        setFailedImages(prev => ({...prev, [product.id]: true}));
+                      }}
+                    />
+                  </div>
 
                   {/* Header con nome e prezzo */}
                   <div className="flex items-center justify-between mb-2">

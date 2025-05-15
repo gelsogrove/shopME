@@ -3,12 +3,19 @@
  * This file is used to set up the test environment for integration tests
  */
 
+import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import logger, { enableLogsForTests } from '../../utils/logger';
-import { connectTestDatabase, disconnectTestDatabase, testPrisma } from '../helpers/prisma-test';
+import { connectTestDatabase, disconnectTestDatabase } from '../unit/helpers/prisma-test';
 
-// Re-export prisma for use in tests - now using the test-specific client
-export const prisma = testPrisma;
+// Create a direct Prisma client instance for integration tests
+export const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL || 'file:./dev.db'
+    }
+  }
+});
 
 // Enable logs for tests
 enableLogsForTests();
@@ -16,7 +23,7 @@ enableLogsForTests();
 // Log the database URL for debugging (solo in modalità debug)
 if (process.env.DEBUG_TESTS) {
   logger.debug('DATABASE_URL:', process.env.DATABASE_URL);
-  logger.debug('Using test-specific Prisma client');
+  logger.debug('Using direct Prisma client for integration tests');
 }
 
 // Log connection info solo in modalità debug

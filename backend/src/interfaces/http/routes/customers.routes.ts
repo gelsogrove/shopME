@@ -18,12 +18,13 @@ export const customersRouter = (controller: CustomersController): Router => {
   
   logger.info("Setting up customers routes");
 
-  // Routes for customers - remove "/workspaces" prefix since we're already mounted on that path
+  // Routes for customers - adjust paths to work with the router mounting
   router.get("/:workspaceId/customers", controller.getCustomersForWorkspace.bind(controller));
   router.post("/:workspaceId/customers", controller.createCustomer.bind(controller));
   router.get("/:workspaceId/customers/:id", controller.getCustomerById.bind(controller));
   router.put("/:workspaceId/customers/:id", controller.updateCustomer.bind(controller));
   router.delete("/:workspaceId/customers/:id", controller.deleteCustomer.bind(controller));
+  router.post("/:workspaceId/customers/:id/block", controller.blockCustomer.bind(controller));
   
   // Route for counting unknown customers - explicitly defined with extra logging
   router.get("/:workspaceId/unknown-customers/count", (req, res, next) => {
@@ -43,6 +44,7 @@ export const customersRouter = (controller: CustomersController): Router => {
   logger.info("Registered route: GET /:workspaceId/unknown-customers/count");
   logger.info("Registered route: GET /:workspaceId/unknown-customers/count-debug");
   logger.info("Registered route: GET /:workspaceId/unknown-customers/debug-no-auth (no auth required)");
+  logger.info("Registered route: POST /:workspaceId/customers/:id/block");
 
   logger.info("Customers routes setup complete");
   return router;

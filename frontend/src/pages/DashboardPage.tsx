@@ -1,22 +1,17 @@
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Card, CardContent } from "@/components/ui/card"
+import { useWorkspace } from "@/hooks/use-workspace"
 import {
-    AlertCircle,
-    ArrowDownRight,
-    ArrowUpRight,
-    BarChart3,
-    Bell,
-    Info,
-    LineChart,
-    MessageSquare,
-    ShoppingCart,
-    TrendingUp,
-    Users
+  AlertCircle,
+  MessageSquare,
+  ShoppingCart,
+  TrendingUp,
+  Users
 } from "lucide-react"
 
 export default function DashboardPage() {
-  // Mock data for the dashboard
+  const { workspace } = useWorkspace()
+
+  // Dati di esempio per la dashboard
   const metrics = [
     {
       title: "Total Revenue",
@@ -52,205 +47,80 @@ export default function DashboardPage() {
     },
   ]
 
-  const channelPerformance = [
-    { channel: "WhatsApp", conversations: 2345, conversionRate: 3.2 },
-    { channel: "Website Chat", conversations: 1123, conversionRate: 2.8 },
-    { channel: "Facebook Messenger", conversations: 876, conversionRate: 2.1 },
+  // Nuovi dati di esempio per le metriche aggiuntive
+  const newCustomers = [
+    { id: 1, name: "Maria Rossi", date: "Today, 10:23 AM", avatar: "MR", email: "maria@example.com" },
+    { id: 2, name: "Luca Bianchi", date: "Today, 09:15 AM", avatar: "LB", email: "luca@example.com" },
+    { id: 3, name: "Sofia Verdi", date: "Yesterday, 17:42 PM", avatar: "SV", email: "sofia@example.com" },
+    { id: 4, name: "Marco Neri", date: "Yesterday, 14:30 PM", avatar: "MN", email: "marco@example.com" },
+  ]
+
+  const recentOrders = [
+    { id: "#ORD-7895", customer: "Maria Rossi", date: "Today, 10:45 AM", total: "€124.00", status: "Completed" },
+    { id: "#ORD-7894", customer: "Luca Bianchi", date: "Today, 09:30 AM", total: "€67.50", status: "Processing" },
+    { id: "#ORD-7893", customer: "Sofia Verdi", date: "Yesterday", total: "€240.99", status: "Processing" },
+    { id: "#ORD-7892", customer: "Marco Neri", date: "Yesterday", total: "€89.99", status: "Pending" },
+  ]
+
+  const ordersInProgress = [
+    { id: "#ORD-7894", customer: "Luca Bianchi", placed: "Today, 09:30 AM", total: "€67.50", stage: "Payment Confirmed", eta: "Est. delivery: Tomorrow" },
+    { id: "#ORD-7893", customer: "Sofia Verdi", placed: "Yesterday, 16:42 PM", total: "€240.99", stage: "Packaging", eta: "Est. delivery: Tomorrow" },
+    { id: "#ORD-7888", customer: "Giulia Rosa", placed: "Yesterday, 15:10 PM", total: "€120.00", stage: "Shipped", eta: "Est. delivery: Tomorrow" },
+  ]
+
+  const consumptionStats = [
+    { category: "API Calls", used: 12345, limit: 20000, percentage: "61%" },
+    { category: "Messages", used: 345, limit: 500, percentage: "69%" },
+    { category: "Storage", used: "1.2 GB", limit: "5 GB", percentage: "24%" },
+    { category: "Function Calls", used: 890, limit: 1000, percentage: "89%" },
+  ]
+
+  const monthlyRevenue = [
+    { month: "Jan", current: 4200, previous: 3800 },
+    { month: "Feb", current: 4800, previous: 4100 },
+    { month: "Mar", current: 5200, previous: 4400 },
+    { month: "Apr", current: 4900, previous: 4750 },
+    { month: "May", current: 6100, previous: 5200 },
+    { month: "Jun", current: 7200, previous: 5800 },
+    { month: "Jul", current: 7800, previous: 6400 },
+    { month: "Aug", current: 8200, previous: 7100 },
   ]
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* WIP Banner */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center gap-3 mb-6">
-        <AlertCircle className="h-5 w-5 text-amber-500" />
-        <div>
-          <p className="text-amber-800 font-medium">
-            🚧 This dashboard is a work in progress
-          </p>
-          <p className="text-amber-600 text-sm">
-            The data shown is for demonstration purposes only.
+    <div className="container mx-auto py-6">
+      {/* Work in Progress Banner */}
+      <div className="bg-amber-100 border-2 border-amber-300 rounded-lg p-6 flex flex-col md:flex-row items-center gap-4 mb-6">
+        <div className="bg-amber-200 p-3 rounded-full">
+          <AlertCircle className="h-8 w-8 text-amber-600" />
+        </div>
+        <div className="text-center md:text-left">
+          <h2 className="text-xl font-bold text-amber-800">
+            🚧 Work in Progress - Dashboard 🚧
+          </h2>
+          <p className="text-amber-700">
+            This dashboard is currently under development. All data shown is for demonstration purposes only.
           </p>
         </div>
       </div>
 
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((metric, index) => (
-          <Card key={index} className="overflow-hidden">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-sm font-medium text-gray-500">
-                    {metric.title}
-                  </CardTitle>
-                  <p className="text-2xl font-bold mt-1">{metric.value}</p>
-                </div>
-                <div className="p-2 rounded-lg bg-gray-50">{metric.icon}</div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center">
-                {metric.changeType === "increase" ? (
-                  <ArrowUpRight className="h-4 w-4 text-green-500 mr-1" />
-                ) : (
-                  <ArrowDownRight className="h-4 w-4 text-red-500 mr-1" />
-                )}
-                <span className={metric.changeType === "increase" ? "text-green-500" : "text-red-500"}>
-                  {metric.change}%
-                </span>
-                <span className="text-gray-500 text-sm ml-2">{metric.description}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Conversations Over Time Chart */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Conversations Over Time</CardTitle>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-gray-400" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Number of conversations per day over the last 30 days</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <CardDescription>Daily conversation volume</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full relative">
-              {/* Mock Line Chart using CSS */}
-              <div className="absolute bottom-0 left-0 right-0 h-[250px] flex items-end">
-                {Array.from({ length: 30 }).map((_, i) => {
-                  const height = 30 + Math.random() * 170;
-                  return (
-                    <div 
-                      key={i} 
-                      className="flex-1 mx-[1px] bg-gradient-to-t from-blue-500/80 to-blue-500/20"
-                      style={{ height: `${height}px` }}
-                    />
-                  )
-                })}
-              </div>
-              <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center text-gray-400">
-                <LineChart className="h-12 w-12 opacity-10" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Conversion Rate Chart */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Conversion Rates</CardTitle>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-gray-400" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Percentage of conversations that led to orders</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <CardDescription>By channel</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full relative">
-              {/* Mock Bar Chart using CSS */}
-              <div className="absolute bottom-0 left-0 right-0 h-[250px] flex items-end justify-around px-12">
-                {channelPerformance.map((channel, i) => {
-                  const height = 50 + channel.conversionRate * 40;
-                  return (
-                    <div key={i} className="flex flex-col items-center gap-2 w-24">
-                      <div 
-                        className="w-16 bg-gradient-to-t from-green-500/90 to-green-500/40"
-                        style={{ height: `${height}px` }}
-                      />
-                      <span className="text-xs text-gray-500 font-medium">{channel.channel}</span>
-                      <span className="text-xs font-bold">{channel.conversionRate}%</span>
-                    </div>
-                  )
-                })}
-              </div>
-              <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center text-gray-400">
-                <BarChart3 className="h-12 w-12 opacity-10" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Channel Performance Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>Channel Performance</CardTitle>
-          <CardDescription>Overview of all communication channels</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-medium text-gray-500">Channel</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500">Conversations</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500">Conversion Rate</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {channelPerformance.map((channel, i) => (
-                  <tr key={i} className="border-b">
-                    <td className="py-3 px-4">{channel.channel}</td>
-                    <td className="py-3 px-4">{channel.conversations.toLocaleString()}</td>
-                    <td className="py-3 px-4">{channel.conversionRate}%</td>
-                    <td className="py-3 px-4">
-                      <Badge variant={i === 0 ? "default" : i === 1 ? "secondary" : "outline"}>
-                        {i === 0 ? "Active" : i === 1 ? "Active" : "Inactive"}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>Latest system events and notifications</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[
-              { message: "New customer registered via WhatsApp", time: "5 minutes ago", icon: <Bell className="h-4 w-4 text-blue-500" /> },
-              { message: "Conversation #3245 converted to order", time: "1 hour ago", icon: <ShoppingCart className="h-4 w-4 text-green-500" /> },
-              { message: "System detected high traffic on WhatsApp channel", time: "3 hours ago", icon: <AlertCircle className="h-4 w-4 text-amber-500" /> },
-              { message: "Daily analytics report generated", time: "12 hours ago", icon: <BarChart3 className="h-4 w-4 text-purple-500" /> },
-            ].map((activity, i) => (
-              <div key={i} className="flex items-start gap-3 pb-3 border-b last:border-0">
-                <div className="p-1.5 rounded-full bg-gray-50">
-                  {activity.icon}
-                </div>
-                <div>
-                  <p className="text-sm font-medium">{activity.message}</p>
-                  <p className="text-xs text-gray-500">{activity.time}</p>
-                </div>
-              </div>
-            ))}
+        <CardContent className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Dashboard Coming Soon
+          </h1>
+          <p className="text-gray-500 mb-6">
+            We're building a powerful dashboard to help you monitor and analyze your business performance.
+            Check back soon for updates.
+          </p>
+          <div className="max-w-2xl mx-auto bg-blue-50 p-6 rounded-lg border border-blue-200">
+            <h3 className="font-semibold text-blue-800 mb-2">What you'll be able to do:</h3>
+            <ul className="text-blue-700 space-y-2 text-left">
+              <li>• Real-time analytics of your business performance</li>
+              <li>• Customer engagement metrics and trends</li>
+              <li>• Order tracking and revenue analytics</li>
+              <li>• Conversation insights from customer interactions</li>
+              <li>• Resource usage monitoring for your workspace</li>
+            </ul>
           </div>
         </CardContent>
       </Card>

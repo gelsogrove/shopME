@@ -187,6 +187,25 @@ export class CustomerService {
   }
 
   /**
+   * Block a customer by setting isBlacklisted to true
+   */
+  async blockCustomer(id: string, workspaceId: string): Promise<Customer> {
+    try {
+      // Check if customer exists
+      const customer = await this.customerRepository.findById(id, workspaceId);
+      if (!customer) {
+        throw new Error("Customer not found");
+      }
+      
+      // Set isBlacklisted to true
+      return await this.customerRepository.update(id, workspaceId, { isBlacklisted: true });
+    } catch (error) {
+      logger.error(`Error blocking customer with id ${id}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Count unknown customers in a workspace
    */
   async countUnknownCustomers(workspaceId: string): Promise<number> {

@@ -110,7 +110,8 @@ describe('OfferService', () => {
         }))
       ));
       expect(mockPrisma.offers.findMany).toHaveBeenCalledWith({
-        where: { workspaceId }
+        where: { workspaceId },
+        include: { category: true }
       });
     });
   });
@@ -143,7 +144,8 @@ describe('OfferService', () => {
           isActive: true,
           startDate: { lte: expect.any(Date) },
           endDate: { gte: expect.any(Date) }
-        }
+        },
+        include: { category: true }
       });
     });
   });
@@ -164,7 +166,8 @@ describe('OfferService', () => {
         name: expectedOffer.name
       }));
       expect(mockPrisma.offers.findFirst).toHaveBeenCalledWith({
-        where: { id, workspaceId }
+        where: { id, workspaceId },
+        include: { category: true }
       });
     });
   });
@@ -193,7 +196,8 @@ describe('OfferService', () => {
         workspaceId: offerData.workspaceId
       }));
       expect(mockPrisma.offers.create).toHaveBeenCalledWith({
-        data: offerData
+        data: offerData,
+        include: { category: true }
       });
     });
   });
@@ -217,7 +221,8 @@ describe('OfferService', () => {
       }));
       expect(mockPrisma.offers.update).toHaveBeenCalledWith({
         where: { id },
-        data: offerData
+        data: offerData,
+        include: { category: true }
       });
     });
   });

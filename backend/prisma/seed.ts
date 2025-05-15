@@ -563,7 +563,7 @@ async function main() {
       price: 14.99,
       stock: 30,
       image:
-        "https://www.gustorotondo.it/wp-content/uploads/2018/08/aceto-balsamico-di-modena.jpg",
+        "https://www.lacasadelconigliobianco.com/wp-content/uploads/2016/07/Misticanza-al-parmigiano-BLOG-EVIDENZA.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "aceto-balsamico-di-modena-igp",

@@ -1,30 +1,30 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import type { Language, Workspace } from "@/services/workspaceApi"
 import {
-    deleteWorkspace,
-    getCurrentWorkspace,
-    getLanguages,
-    updateWorkspace,
+  deleteWorkspace,
+  getCurrentWorkspace,
+  getLanguages,
+  updateWorkspace,
 } from "@/services/workspaceApi"
 import { Loader2, Save, Settings, Trash2, Video } from "lucide-react"
 import { useEffect, useState } from "react"

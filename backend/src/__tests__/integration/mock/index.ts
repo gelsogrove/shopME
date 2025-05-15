@@ -3,6 +3,7 @@
  * This file exports all mock data that can be reused across integration tests
  */
 
+export * from './mockAgents';
 export * from './mockCategories';
 export * from './mockClients';
 export * from './mockOffers';

@@ -3,6 +3,11 @@ import { IOfferRepository } from "../domain/repositories/offer.repository.interf
 import { prisma } from "../lib/prisma";
 import logger from '../utils/logger';
 
+// Interface for extended offer data with categoryIds
+interface ExtendedOfferData extends Record<string, any> {
+  categoryIds?: string[];
+}
+
 /**
  * Implementation of Offer Repository using Prisma
  */
@@ -12,10 +17,19 @@ export class OfferRepository implements IOfferRepository {
    */
   async findAll(workspaceId: string): Promise<Offer[]> {
     const offers = await prisma.offers.findMany({
-      where: { workspaceId }
+      where: { workspaceId },
+      include: { category: true }
     });
     
-    return offers.map(offer => new Offer(offer));
+    return offers.map(offer => {
+      // Create a new object instead of modifying the prisma result directly
+      const offerData: ExtendedOfferData = {
+        ...offer,
+        categoryIds: offer.categoryId ? [offer.categoryId] : []
+      };
+      
+      return new Offer(offerData);
+    });
   }
   
   /**
@@ -37,10 +51,19 @@ export class OfferRepository implements IOfferRepository {
     
     try {
       const offers = await prisma.offers.findMany({
-        where
+        where,
+        include: { category: true }
       });
       
-      return offers.map(offer => new Offer(offer));
+      return offers.map(offer => {
+        // Create a new object instead of modifying the prisma result directly
+        const offerData: ExtendedOfferData = {
+          ...offer,
+          categoryIds: offer.categoryId ? [offer.categoryId] : []
+        };
+        
+        return new Offer(offerData);
+      });
     } catch (error) {
       logger.error("Error finding active offers:", error);
       throw error;
@@ -60,10 +83,19 @@ export class OfferRepository implements IOfferRepository {
    */
   async findById(id: string, workspaceId: string): Promise<Offer | null> {
     const offer = await prisma.offers.findFirst({
-      where: { id, workspaceId }
+      where: { id, workspaceId },
+      include: { category: true }
     });
     
-    return offer ? new Offer(offer) : null;
+    if (!offer) return null;
+    
+    // Create a new object instead of modifying the prisma result directly
+    const offerData: ExtendedOfferData = {
+      ...offer,
+      categoryIds: offer.categoryId ? [offer.categoryId] : []
+    };
+    
+    return new Offer(offerData);
   }
   
   /**
@@ -71,17 +103,24 @@ export class OfferRepository implements IOfferRepository {
    */
   async create(data: any): Promise<Offer> {
     try {
-      // Remove fields that don't exist in Prisma schema
+      // Extract categoryIds but don't include it in the prisma operation
       const { categoryIds, ...prismaData } = data;
       
       logger.debug("Creating offer in repository with data:", prismaData);
       
       const offer = await prisma.offers.create({
-        data: prismaData
+        data: prismaData,
+        include: { category: true }
       });
       
+      // Create a new object with both the prisma result and additional data
+      const offerData: ExtendedOfferData = {
+        ...offer,
+        categoryIds: categoryIds || (offer.categoryId ? [offer.categoryId] : [])
+      };
+      
       logger.debug("Successfully created offer in repository:", offer);
-      return new Offer(offer);
+      return new Offer(offerData);
     } catch (error) {
       logger.error(`Error creating offer in repository:`, error);
       throw new Error(`Failed to create offer: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -94,12 +133,14 @@ export class OfferRepository implements IOfferRepository {
   async update(id: string, data: any): Promise<Offer> {
     try {
       logger.info(`Updating offer with ID: ${id}`);
-      logger.debug(`Update data:`, data);
+      logger.debug(`Original update data:`, data);
       
-      // Rimuovi i campi che potrebbero causare problemi con Prisma
+      // Extract fields that shouldn't be sent to Prisma
       const { createdAt, updatedAt, categoryIds, ...updateData } = data;
       
-      // Assicurati che l'offerta esista e appartenga al workspace specificato
+      logger.debug(`Processed update data (without categoryIds):`, updateData);
+      
+      // Ensure the offer exists and belongs to the specified workspace
       const existingOffer = await prisma.offers.findFirst({
         where: { 
           id,
@@ -110,14 +151,36 @@ export class OfferRepository implements IOfferRepository {
       if (!existingOffer) {
         throw new Error(`Offer with ID ${id} not found in workspace ${updateData.workspaceId}`);
       }
-      
-      const offer = await prisma.offers.update({
-        where: { id },
-        data: updateData
-      });
-      
-      logger.info(`Successfully updated offer with ID: ${id}`);
-      return new Offer(offer);
+
+      // Process categoryId field from categoryIds
+      if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
+        updateData.categoryId = categoryIds[0];
+        logger.debug(`Setting categoryId to ${updateData.categoryId} from categoryIds`);
+      } else if (categoryIds && Array.isArray(categoryIds) && categoryIds.length === 0) {
+        // If empty array is provided, set to null
+        updateData.categoryId = null;
+        logger.debug(`Setting categoryId to null (empty categoryIds array)`);
+      }
+
+      try {
+        const offer = await prisma.offers.update({
+          where: { id },
+          data: updateData,
+          include: { category: true }
+        });
+        
+        // Create a new object with both the prisma result and additional data
+        const offerData: ExtendedOfferData = {
+          ...offer,
+          categoryIds: categoryIds || (offer.categoryId ? [offer.categoryId] : [])
+        };
+        
+        logger.info(`Successfully updated offer with ID: ${id}`);
+        return new Offer(offerData);
+      } catch (prismaError) {
+        logger.error(`Prisma error updating offer with ID ${id}:`, prismaError);
+        throw prismaError;
+      }
     } catch (error) {
       logger.error(`Error updating offer with ID ${id}:`, error);
       throw new Error(`Failed to update offer: ${error instanceof Error ? error.message : 'Unknown error'}`);

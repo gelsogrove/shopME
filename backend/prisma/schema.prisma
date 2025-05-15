@@ -418,6 +418,7 @@ model Offers {
   updatedAt       DateTime    @updatedAt
   category        Categories? @relation(fields: [categoryId], references: [id])
   workspace       Workspace   @relation(fields: [workspaceId], references: [id])
+  categories      Categories[]
 
   @@map("offers")
 }

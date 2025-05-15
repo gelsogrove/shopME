@@ -35,6 +35,8 @@ import { workspaceRoutes } from "../interfaces/http/routes/workspace.routes"
 import logger from "../utils/logger"
 // Add these imports for backward compatibility during migration
 import { PromptsController } from "../controllers/prompts.controller"
+import { SettingsController } from "../interfaces/http/controllers/settings.controller"
+import { authMiddleware } from "../interfaces/http/middlewares/auth.middleware"
 import createPromptsRouter from "./prompts.routes"
 import { createUserRouter } from "./user.routes"
 
@@ -90,13 +92,16 @@ const promptsController = new PromptsController()
 const faqController = new FaqController()
 const whatsappController = new WhatsAppController()
 
+// Initialize Settings controller for GDPR routes
+const settingsController = new SettingsController()
+
 // Public routes
 router.use("/auth", authRouter(authController))
 router.use("/registration", createRegistrationRouter())
 router.use("/chat", chatRouter(chatController))
 router.use("/messages", messagesRouter(messageController))
 router.use("/users", createUserRouter(userController))
-router.use("/workspaces", customersRouter(customersController))
+router.use("/", customersRouter(customersController))
 router.use("/workspaces", workspaceRoutes)
 router.use("/agent", createAgentRouter())
 router.use("/workspaces/:workspaceId/agent", createAgentRouter())
@@ -144,6 +149,10 @@ const whatsappInstance = whatsappRouter(whatsappController);
 // Mount all whatsapp routes (webhook routes are now defined in app.ts)
 router.use("/whatsapp", whatsappInstance);
 logger.info("Registered WhatsApp router with auth-protected endpoints")
+
+// Add special route for GDPR default content (to handle frontend request to /gdpr/default)
+router.get("/gdpr/default", authMiddleware, settingsController.getDefaultGdprContent.bind(settingsController))
+logger.info("Registered /gdpr/default route for backward compatibility")
 
 // Mount Swagger documentation
 router.get('/docs/swagger.json', (req, res) => {

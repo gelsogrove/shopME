@@ -3,7 +3,7 @@
  * This creates a direct PrismaClient specifically for tests
  */
 import { PrismaClient } from '@prisma/client';
-import logger from '../../utils/logger';
+import logger from '../../../utils/logger';
 
 // Create a test-specific PrismaClient
 export const testPrisma = new PrismaClient({

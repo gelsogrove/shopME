@@ -59,6 +59,7 @@ interface Offer {
     name: string
   } | null
   categoryName?: string
+  categoryIds?: string[]  // Added to support multiple categories
 }
 
 // Tipo per le categorie
@@ -138,11 +139,29 @@ export function OffersPage() {
     {
       header: "Category",
       accessorKey: "category" as keyof Offer,
-      cell: ({ row }: { row: { original: Offer } }) => (
-        <span>
-          {row.original.category?.name || row.original.categoryName || "All Categories"}
-        </span>
-      ),
+      cell: ({ row }: { row: { original: Offer } }) => {
+        if (row.original.categoryIds && row.original.categoryIds.length > 0) {
+          // Get category names for all selected category IDs
+          const selectedCategories = categories.filter(
+            cat => row.original.categoryIds?.includes(cat.id)
+          );
+          
+          if (selectedCategories.length > 0) {
+            return (
+              <span>
+                {selectedCategories.map(cat => cat.name).join(", ")}
+              </span>
+            );
+          }
+        }
+        
+        // Fallback to original behavior
+        return (
+          <span>
+            {row.original.category?.name || row.original.categoryName || "All Categories"}
+          </span>
+        );
+      },
     },
     {
       header: "Start Date",
@@ -258,20 +277,22 @@ export function OffersPage() {
     try {
       const allCategoriesChecked = formData.get("allCategories") === "on";
       
-      // Se "All Categories" è selezionato, impostiamo categoryId a null
+      // Se "All Categories" è selezionato, impostiamo categoryIds a null
       let categoryIds = null;
       
-      // Altrimenti raccogliamo la categoria selezionata
+      // Altrimenti raccogliamo tutte le categorie selezionate
       if (!allCategoriesChecked) {
-        const selectedCategoryId = formData.get("category") as string;
+        // Get all selected category checkboxes
+        const selectedCategories = Array.from(e.currentTarget.querySelectorAll('input[name="category"]:checked'))
+          .map((input) => (input as HTMLInputElement).value);
         
         // Se nessuna categoria è selezionata, mostriamo un errore
-        if (!selectedCategoryId) {
-          toast.error("Please select a category or choose 'All Categories'", { duration: 1000 });
+        if (selectedCategories.length === 0) {
+          toast.error("Please select at least one category or choose 'All Categories'", { duration: 1000 });
           return;
         }
         
-        categoryIds = [selectedCategoryId];
+        categoryIds = selectedCategories;
       }
       
       const newOffer = {
@@ -318,20 +339,22 @@ export function OffersPage() {
     try {
       const allCategoriesChecked = formData.get("allCategories") === "on";
       
-      // Se "All Categories" è selezionato, impostiamo categoryId a null
+      // Se "All Categories" è selezionato, impostiamo categoryIds a null
       let categoryIds = null;
       
-      // Altrimenti raccogliamo la categoria selezionata
+      // Altrimenti raccogliamo tutte le categorie selezionate
       if (!allCategoriesChecked) {
-        const selectedCategoryId = formData.get("category") as string;
+        // Get all selected category checkboxes
+        const selectedCategories = Array.from(e.currentTarget.querySelectorAll('input[name="category"]:checked'))
+          .map((input) => (input as HTMLInputElement).value);
         
         // Se nessuna categoria è selezionata, mostriamo un errore
-        if (!selectedCategoryId) {
-          toast.error("Please select a category or choose 'All Categories'", { duration: 1000 });
+        if (selectedCategories.length === 0) {
+          toast.error("Please select at least one category or choose 'All Categories'", { duration: 1000 });
           return;
         }
         
-        categoryIds = [selectedCategoryId];
+        categoryIds = selectedCategories;
       }
       
       const updatedOffer = {
@@ -393,7 +416,8 @@ export function OffersPage() {
           name="description"
           placeholder="Special discounts for summer season"
           defaultValue={isEdit && currentOffer ? currentOffer.description || "" : ""}
-          className="min-h-[120px]"
+          className="min-h-[80px]"
+          rows={2}
         />
       </div>
 
@@ -428,19 +452,21 @@ export function OffersPage() {
           </div>
           
           <div className="pt-2 border-t mt-2">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-500 mb-2">Or select a category:</p>
-              <p className="text-xs text-amber-600">Note: Currently only one category can be applied</p>
-            </div>
+            <p className="text-sm text-gray-500 mb-2">Or select categories:</p>
             <div className="grid grid-cols-1 gap-2 max-h-[150px] overflow-y-auto">
               {categories.map((category) => (
                 <div key={category.id} className="flex items-center space-x-2">
                   <input
-                    type="radio"
+                    type="checkbox"
                     id={`category-${category.id}`}
                     name="category"
                     value={category.id}
-                    defaultChecked={isEdit && currentOffer ? currentOffer.categoryId === category.id : false}
+                    defaultChecked={
+                      isEdit && 
+                      currentOffer?.categoryIds ? 
+                      currentOffer.categoryIds.includes(category.id) : 
+                      currentOffer?.categoryId === category.id
+                    }
                     className="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-600"
                   />
                   <Label htmlFor={`category-${category.id}`} className="text-sm font-normal cursor-pointer">

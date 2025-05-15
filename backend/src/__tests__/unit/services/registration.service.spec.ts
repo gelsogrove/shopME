@@ -1,18 +1,12 @@
 import "@jest/globals"
 import { beforeEach, describe, expect, it, jest } from "@jest/globals"
-import { PrismaClient } from "@prisma/client"
 import { RegistrationService } from "../../../application/services/registration.service"
 import { MessageRepository } from "../../../repositories/message.repository"
 
 // Mock dependencies
 jest.mock("@prisma/client", () => {
-  const mockFindUnique = jest.fn()
   return {
-    PrismaClient: jest.fn().mockImplementation(() => ({
-      customers: {
-        findUnique: mockFindUnique,
-      },
-    })),
+    PrismaClient: jest.fn(),
   }
 })
 
@@ -20,7 +14,7 @@ jest.mock("../../../repositories/message.repository")
 
 describe("RegistrationService", () => {
   let registrationService: RegistrationService
-  let mockPrismaClient: jest.Mocked<PrismaClient>
+  let mockPrismaClient: any
   let mockMessageRepository: jest.Mocked<MessageRepository>
   
   beforeEach(() => {
@@ -30,8 +24,12 @@ describe("RegistrationService", () => {
     // Create service instance
     registrationService = new RegistrationService()
     
-    // Get mock instances
-    mockPrismaClient = new PrismaClient() as jest.Mocked<PrismaClient>
+    // Create mock objects
+    mockPrismaClient = {
+      customers: {
+        findUnique: jest.fn()
+      }
+    }
     mockMessageRepository = new MessageRepository() as jest.Mocked<MessageRepository>
     
     // Assign mocks to the service instance
@@ -68,7 +66,7 @@ describe("RegistrationService", () => {
       // Setup mocks
       mockPrismaClient.customers.findUnique.mockResolvedValue(mockCustomer as any)
       mockMessageRepository.getWorkspaceSettings.mockResolvedValue(mockWorkspaceSettings as any)
-      mockMessageRepository.saveMessage.mockResolvedValue(undefined)
+      mockMessageRepository.saveMessage.mockResolvedValue(null)
       
       // Call the method
       const result = await registrationService.sendAfterRegistrationMessage("customer-123")
@@ -121,7 +119,7 @@ describe("RegistrationService", () => {
       // Setup mocks
       mockPrismaClient.customers.findUnique.mockResolvedValue(mockCustomer as any)
       mockMessageRepository.getWorkspaceSettings.mockResolvedValue(mockWorkspaceSettings as any)
-      mockMessageRepository.saveMessage.mockResolvedValue(undefined)
+      mockMessageRepository.saveMessage.mockResolvedValue(null)
       
       // Call the method
       const result = await registrationService.sendAfterRegistrationMessage("customer-123")
@@ -159,7 +157,7 @@ describe("RegistrationService", () => {
       // Setup mocks
       mockPrismaClient.customers.findUnique.mockResolvedValue(mockCustomer as any)
       mockMessageRepository.getWorkspaceSettings.mockResolvedValue(mockWorkspaceSettings as any)
-      mockMessageRepository.saveMessage.mockResolvedValue(undefined)
+      mockMessageRepository.saveMessage.mockResolvedValue(null)
       
       // Call the method
       const result = await registrationService.sendAfterRegistrationMessage("customer-123")

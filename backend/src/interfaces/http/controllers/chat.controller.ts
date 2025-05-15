@@ -19,8 +19,19 @@ export class ChatController {
   async getRecentChats(req: Request, res: Response): Promise<void> {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
+      const workspaceId = (req as any).workspaceId;
       
-      const chats = await this.messageRepository.getChatSessionsWithUnreadCounts(limit);
+      if (!workspaceId) {
+        res.status(400).json({
+          success: false,
+          error: 'Workspace ID is required'
+        });
+        return;
+      }
+      
+      logger.info(`Getting recent chats for workspace ${workspaceId}`);
+      
+      const chats = await this.messageRepository.getChatSessionsWithUnreadCounts(limit, workspaceId);
       
       res.status(200).json({
         success: true,
@@ -41,8 +52,9 @@ export class ChatController {
   async getChatSession(req: Request, res: Response): Promise<void> {
     try {
       const { sessionId } = req.params;
+      const workspaceId = (req as any).workspaceId;
       
-      logger.info(`Getting chat session details for sessionId: ${sessionId}`);
+      logger.info(`Getting chat session details for sessionId: ${sessionId}, workspaceId: ${workspaceId}`);
       
       if (!sessionId) {
         logger.warn('Session ID is missing in request');
@@ -54,8 +66,11 @@ export class ChatController {
       }
       
       // Get chat session details including workspace information
-      const chatSession = await this.prisma.chatSession.findUnique({
-        where: { id: sessionId },
+      const chatSession = await this.prisma.chatSession.findFirst({
+        where: { 
+          id: sessionId,
+          ...(workspaceId ? { workspaceId } : {})
+        },
         include: {
           customer: true,
           workspace: {
@@ -103,6 +118,7 @@ export class ChatController {
   async getChatMessages(req: Request, res: Response): Promise<void> {
     try {
       const { sessionId } = req.params;
+      const workspaceId = (req as any).workspaceId;
       
       if (!sessionId) {
         res.status(400).json({
@@ -112,7 +128,17 @@ export class ChatController {
         return;
       }
       
-      const messages = await this.messageRepository.getChatSessionMessages(sessionId);
+      // Pass the workspaceId to the repository method for proper filtering
+      const messages = await this.messageRepository.getChatSessionMessages(sessionId, workspaceId);
+      
+      if (messages.length === 0 && workspaceId) {
+        // If no messages found and workspace ID was provided, it could mean the chat session doesn't belong to this workspace
+        res.status(404).json({
+          success: false,
+          error: 'Chat session not found in this workspace or no messages available'
+        });
+        return;
+      }
       
       // Mark messages as read when they are viewed
       await this.messageRepository.markMessagesAsRead(sessionId);
@@ -136,6 +162,7 @@ export class ChatController {
   async markAsRead(req: Request, res: Response): Promise<void> {
     try {
       const { sessionId } = req.params;
+      const workspaceId = (req as any).workspaceId;
       
       if (!sessionId) {
         res.status(400).json({
@@ -145,7 +172,16 @@ export class ChatController {
         return;
       }
       
-      const success = await this.messageRepository.markMessagesAsRead(sessionId);
+      // Pass the workspaceId to ensure we only mark messages for the right workspace
+      const success = await this.messageRepository.markMessagesAsRead(sessionId, workspaceId);
+      
+      if (!success && workspaceId) {
+        res.status(404).json({
+          success: false,
+          error: 'Chat session not found in this workspace'
+        });
+        return;
+      }
       
       res.status(200).json({
         success,
@@ -161,11 +197,12 @@ export class ChatController {
   }
 
   /**
-   * Delete a chat session and all associated messages
+   * Delete a chat session and all its messages
    */
   async deleteChat(req: Request, res: Response): Promise<void> {
     try {
       const { sessionId } = req.params;
+      const workspaceId = (req as any).workspaceId;
       
       if (!sessionId) {
         res.status(400).json({
@@ -175,22 +212,23 @@ export class ChatController {
         return;
       }
       
-      // Delete the chat session and all its messages
-      const success = await this.messageRepository.deleteChat(sessionId);
+      // Pass workspaceId to ensure we only delete the right chat session
+      const success = await this.messageRepository.deleteChat(sessionId, workspaceId);
       
-      if (success) {
-        res.status(200).json({
-          success: true,
-          message: 'Chat deleted successfully'
-        });
-      } else {
-        res.status(500).json({
+      if (!success && workspaceId) {
+        res.status(404).json({
           success: false,
-          error: 'Failed to delete chat'
+          error: 'Chat session not found in this workspace'
         });
+        return;
       }
+      
+      res.status(success ? 200 : 500).json({
+        success,
+        message: success ? 'Chat deleted successfully' : 'Failed to delete chat'
+      });
     } catch (error) {
-      logger.error(`Error deleting chat session ${req.params.sessionId}:`, error);
+      logger.error('Error deleting chat:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to delete chat'

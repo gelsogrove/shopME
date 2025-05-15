@@ -1,6 +1,7 @@
 import { Router } from "express"
 import { EventsController } from "../controllers/events.controller"
 import { authMiddleware } from "../middlewares/auth.middleware"
+import { workspaceValidationMiddleware } from "../middlewares/workspace-validation.middleware"
 
 /**
  * @swagger
@@ -68,6 +69,9 @@ export const eventsRouter = (controller: EventsController): Router => {
 
   // All routes require authentication
   router.use(authMiddleware)
+  
+  // All routes require workspace validation
+  router.use(workspaceValidationMiddleware)
 
   /**
    * @swagger
@@ -262,7 +266,7 @@ export const eventsRouter = (controller: EventsController): Router => {
    *                 description: Current number of attendees
    *     responses:
    *       200:
-   *         description: Event updated successfully
+   *         description: Updated event
    *         content:
    *           application/json:
    *             schema:

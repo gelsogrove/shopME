@@ -2,27 +2,27 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerHeader,
-    DrawerTitle,
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
 } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { formatDate } from "@/lib/utils"
 import "@/styles/sheet.css"
 import { formatPrice, getCurrencySymbol } from "@/utils/format"
-import { X } from "lucide-react"
+import { AlertCircle, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 interface Order {
@@ -326,7 +326,7 @@ function OrderEditSheet({
   const [items, setItems] = useState<Order["items"]>([])
   const [newItem, setNewItem] = useState({ name: "", price: 0, quantity: 1 })
 
-  // Initialize items when order changes
+  // Inizializza gli elementi quando l'ordine cambia
   useEffect(() => {
     if (order) {
       setItems(order.items)
@@ -356,7 +356,7 @@ function OrderEditSheet({
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
 
-    // Get updated items from form data
+    // Ottieni gli elementi aggiornati dal form data
     const updatedItems = items.map((item) => ({
       ...item,
       quantity:
@@ -366,7 +366,7 @@ function OrderEditSheet({
         parseFloat(formData.get(`price-${item.id}`) as string) || item.price,
     }))
 
-    // Calculate new total
+    // Calcola il nuovo totale
     const newTotal = updatedItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -476,7 +476,7 @@ function OrderEditSheet({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Add new item form */}
+                  {/* Modulo per aggiungere un nuovo elemento */}
                   <div className="flex items-end gap-4 pb-4 border-b">
                     <div className="flex-1">
                       <Label htmlFor="newItemName">Item Name</Label>
@@ -532,7 +532,7 @@ function OrderEditSheet({
                     </Button>
                   </div>
 
-                  {/* Items table */}
+                  {/* Tabella degli elementi */}
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
@@ -619,14 +619,40 @@ function OrderEditSheet({
 export default function OrdersPage() {
   return (
     <div className="container mx-auto py-6">
+      {/* Work in Progress Banner */}
+      <div className="bg-amber-100 border-2 border-amber-300 rounded-lg p-6 flex flex-col md:flex-row items-center gap-4 mb-6">
+        <div className="bg-amber-200 p-3 rounded-full">
+          <AlertCircle className="h-8 w-8 text-amber-600" />
+        </div>
+        <div className="text-center md:text-left">
+          <h2 className="text-xl font-bold text-amber-800">
+            🚧 Work in Progress - Orders 🚧
+          </h2>
+          <p className="text-amber-700">
+            The order management system is currently under development. All data shown is for demonstration purposes only.
+          </p>
+        </div>
+      </div>
+
       <Card>
         <CardContent className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            🚧 Work in Progress
+            Order Management Coming Soon
           </h1>
-          <p className="text-gray-500">
-            This feature is currently under development.
+          <p className="text-gray-500 mb-6">
+            We're building a comprehensive order management system to help you track and process customer orders efficiently.
+            Check back soon for updates.
           </p>
+          <div className="max-w-2xl mx-auto bg-blue-50 p-6 rounded-lg border border-blue-200">
+            <h3 className="font-semibold text-blue-800 mb-2">What you'll be able to do:</h3>
+            <ul className="text-blue-700 space-y-2 text-left">
+              <li>• Process and manage all customer orders in one place</li>
+              <li>• Track order statuses from placement to delivery</li>
+              <li>• View detailed order information and customer data</li>
+              <li>• Generate and download invoices automatically</li>
+              <li>• Access order history and analytics for better business insights</li>
+            </ul>
+          </div>
         </CardContent>
       </Card>
     </div>

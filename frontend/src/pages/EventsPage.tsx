@@ -121,9 +121,12 @@ export function EventsPage() {
     {
       header: "Start - End",
       accessorKey: "startDate" as keyof Event,
-      size: 200,
+      size: 250,
       cell: ({ row }: { row: { original: Event } }) => (
-        <span>{formatDate(row.original.startDate)} - {formatDate(row.original.endDate)}</span>
+        <div className="flex flex-col space-y-1">
+          <div><strong>Start:</strong> {formatDate(row.original.startDate)}</div>
+          <div><strong>End:</strong> {formatDate(row.original.endDate)}</div>
+        </div>
       ),
     },
     {
@@ -275,20 +278,20 @@ export function EventsPage() {
           <textarea
             id="description"
             name="description"
-            className="w-full min-h-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full min-h-[70px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             placeholder="Event description - Provide detailed information about the event, including what it includes, schedule, and any special requirements"
             defaultValue={event?.description}
             required
           />
-          <p className="text-xs text-gray-500">Enter a detailed description of the event. You can include schedule, benefits, and any important information attendees should know.</p>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
+          </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-2 col-span-2">
             <Label htmlFor="startDate">Start Date</Label>
             <Input
               id="startDate"
               name="startDate"
               type="date"
+              className="w-full"
               defaultValue={startDate}
               required
             />
@@ -304,13 +307,14 @@ export function EventsPage() {
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-2 col-span-2">
             <Label htmlFor="endDate">End Date</Label>
             <Input
               id="endDate"
               name="endDate"
               type="date"
+              className="w-full"
               defaultValue={endDate}
               required
             />
