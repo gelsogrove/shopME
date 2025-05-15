@@ -31,8 +31,6 @@
   - [Basic Monitoring](#1-basic-monitoring-included)
   - [Advanced Monitoring](#2-advanced-monitoring-premium)
   - [Enterprise Monitoring](#3-enterprise-monitoring-enterprise)
-- [Development Roadmap](#development-roadmap)
-- [Technical Architecture](#technical-architecture)
 - [Conversation Examples](#conversation-examples)
   - [Product Discovery and Purchase](#product-discovery-and-purchase)
   - [Order Status and Invoice Request](#order-status-and-invoice-request)
@@ -234,49 +232,6 @@ By blending commerce capabilities with conversational AI within the world's most
   - Conversation state management
   - High-availability messaging infrastructure
 
-### Message Processing Flow
-
-```mermaid
-flowchart TD
-    Start([Incoming WhatsApp Message]) --> WorkspaceCheck{Workspace Active?}
-    
-    WorkspaceCheck -->|No| ErrorMsg[Return Error]
-    WorkspaceCheck -->|Yes| BlockCheck{User Blocked?}
-    
-    BlockCheck -->|Yes| IgnoreMsg[Ignore Message]
-    BlockCheck -->|No| CustomerCheck{User Registered?}
-    
-    CustomerCheck -->|No| SendRegistration[Send Registration Link]
-    SendRegistration --> GDPRCheck{GDPR Approval?}
-    
-    GDPRCheck -->|No| RequestConsent[Request GDPR Consent]
-    GDPRCheck -->|Yes| ProcessMessage[Process Message]
-    
-    CustomerCheck -->|Yes| ProcessMessage
-    
-    ProcessMessage --> RAG[Retrieval Augmented Generation]
-    RAG --> LLM[Large Language Model]
-    LLM --> FunctionCalls{Need Function Call?}
-    
-    FunctionCalls -->|Yes| CallFunction[Execute Function]
-    CallFunction --> FormatResponse[Format Response]
-    
-    FunctionCalls -->|No| FormatResponse
-    
-    FormatResponse --> SendResponse[Send WhatsApp Response]
-    SendResponse --> End([End])
-    
-    classDef process fill:#66BB6A,stroke:#388E3C,color:white
-    classDef decision fill:#42A5F5,stroke:#1976D2,color:white
-    classDef action fill:#AB47BC,stroke:#7B1FA2,color:white
-    classDef start fill:#FF7043,stroke:#E64A19,color:white
-    
-    class Start,End start
-    class WorkspaceCheck,BlockCheck,CustomerCheck,GDPRCheck,FunctionCalls decision
-    class ProcessMessage,RAG,LLM,CallFunction,FormatResponse process
-    class ErrorMsg,IgnoreMsg,SendRegistration,RequestConsent,SendResponse action
-```
-
 ### 7. GDPR Compliance (Priority: Must-have)
 - **Purpose**: Ensure regulatory compliance and protect user data
 - **Capabilities**:
@@ -295,8 +250,6 @@ flowchart TD
   - Secure data storage
   - Data anonymization capabilities
   - Audit trail for compliance actions
-
-### Meta WhatsApp Business API Integration
 
 ## OUT OF SCOPE FEATURES (WIP)
 
@@ -433,6 +386,8 @@ Additional function calls planned for the MMP phase:
 
 ## MONITORING PLANS
 
+The platform offers three monitoring plans to ensure optimal performance and security:
+
 ### 1. Basic Monitoring (Included)
 - Standard usage metrics
 - Basic incident reporting
@@ -457,319 +412,11 @@ Additional function calls planned for the MMP phase:
 - Priority incident response
 - Comprehensive security monitoring
 - Advanced threat detection
-- Custom metrics and KPIs
-- Business impact analysis
-- 24/7 monitoring team
-- Monthly executive reports
-- Predictive analytics for resource planning
+  - Pattern recognition for similar spam content
+  - Sharing of spam signatures across workspaces (opt-in)
+  - Automatic suggestion of blocking rules
 
-## DEVELOPMENT ROADMAP
-
-### Phase 1: Core Platform (Months 1-2)
-- Multi-tenant workspace setup 
-- Basic WhatsApp integration
-- Customer management
-- Simple product catalog
-- Order processing MVP
-- Basic analytics dashboard
-
-### Phase 2: Enhanced Commerce (Months 3-4)
-- Advanced product management
-- Cart abandonment recovery
-- Enhanced checkout process
-- Payment gateway integrations
-- Customer segmentation
-- Basic AI chat capabilities
-- Initial verticalization options
-
-### Phase 3: AI and Personalization (Months 5-6)
-- Advanced AI conversation flows
-- Personalized recommendations
-- Full verticalization support
-- Advanced analytics
-- Campaign management
-- Integration marketplace
-- Mobile application
-
-### Phase 4: Ecosystem Expansion (Months 7-8)
-- Third-party integrations
-- API developer platform
-- Advanced verticalization options
-- Enterprise features
-- Self-service customization tools
-- Performance optimization
-
-### Long-term Vision (Beyond Month 8)
-- Multi-channel expansion beyond WhatsApp
-- Predictive analytics for inventory and customer behavior
-- AR/VR shopping experiences
-- Voice commerce integration
-- International expansion support
-- Machine learning for automated optimization
-
-## TECHNICAL ARCHITECTURE
-
-### Architecture Diagram
-
-```mermaid
-flowchart TB
-    User["Customer via WhatsApp"]
-    Operator["Business Operator"]
-    
-    subgraph "Frontend"
-        React["React + TypeScript\n(Tailwind CSS)"]
-    end
-    
-    subgraph "Backend"
-        NodeJS["Node.js Express\nApplication"]
-        API["REST API"]
-    end
-    
-    subgraph "Data Layer"
-        Prisma["Prisma ORM"]
-        DB["PostgreSQL Database"]
-        Redis["Redis Cache"]
-    end
-    
-    subgraph "External Services"
-        WhatsApp["WhatsApp Business API"]
-        OpenAI["OpenAI / LLM Services"]
-        Payment["Payment Gateway"]
-    end
-    
-    User <--> WhatsApp
-    WhatsApp <--> NodeJS
-    Operator --> React
-    React --> API
-    API --> NodeJS
-    NodeJS --> Prisma
-    Prisma --> DB
-    NodeJS <--> Redis
-    NodeJS <--> OpenAI
-    NodeJS <--> Payment
-    
-    classDef frontend fill:#42A5F5,stroke:#1976D2,color:white
-    classDef backend fill:#66BB6A,stroke:#388E3C,color:white
-    classDef database fill:#AB47BC,stroke:#7B1FA2,color:white
-    classDef external fill:#FF7043,stroke:#E64A19,color:white
-    classDef user fill:#78909C,stroke:#455A64,color:white
-    
-    class React frontend
-    class NodeJS,API backend
-    class Prisma,DB,Redis database
-    class WhatsApp,OpenAI,Payment external
-    class User,Operator user
-```
-
-#### Architecture Pattern and Rationale
-
-ShopMe uses a Domain-Driven Design (DDD) architecture with clean separation of concerns across multiple layers. This architecture was chosen for several reasons:
-
-**Benefits:**
-
-1. **Business Focus**: Places core business concepts at the center of the application, making it easier to align with stakeholder goals
-2. **Scalability**: Clear layer separation allows independent scaling of different components
-3. **Maintainability**: Well-defined boundaries between layers make the codebase easier to maintain
-4. **Testability**: Each layer can be tested in isolation without dependencies on other layers
-5. **Flexibility**: External services can be swapped without affecting the core domain logic
-6. **Multi-tenant Design**: Supports clean isolation between different businesses on the platform
-7. **Security**: Layered approach helps implement security controls at appropriate levels
-
-**Trade-offs:**
-
-1. **Initial Complexity**: More boilerplate and indirection compared to simpler architectures
-2. **Learning Curve**: Team members need to understand DDD concepts
-3. **Development Speed**: May slow initial development compared to more rapid approaches
-4. **Performance Overhead**: Additional abstraction layers can introduce minor performance costs
-5. **Decision Overhead**: Requires more architectural decisions during development
-
-The architecture's strengths in maintainability, scalability, and business alignment outweigh these trade-offs for a complex, multi-tenant application like ShopMe that handles sensitive customer data and complex business processes.
-
-### Database
-- **Primary Database**: PostgreSQL
-- **ORM**: Prisma for type-safe database access
-- **Cache Layer**: Redis for performance optimization
-- **Migrations**: Prisma Migration for version control
-- **Backup Strategy**: Automated daily backups with point-in-time recovery
-
-### Authentication and Token Management
-
-The application implements a secure JWT (JSON Web Token) based authentication system:
-
-- **Token Structure**:
-  - Access tokens with 1-hour expiration
-  - Refresh tokens with 7-day expiration
-  - Tokens stored in HTTP-only cookies for XSS protection
-  - CSRF protection implemented for security
-
-- **Token Flow**:
-  - Initial authentication generates both access and refresh tokens
-  - Access token used for API authorization
-  - Refresh token used to obtain new access tokens without re-authentication
-  - Token revocation on logout
-
-- **Security Measures**:
-  - Secret keys rotated regularly
-  - Token signing with HS256 algorithm
-  - Token payload minimization (only essential claims)
-  - Validation of token source through HTTP headers
-  - Rate limiting on token endpoints
-
-- **Permission Model**:
-  - Role-based access control (Admin, Manager, Agent)
-  - Resource-level permission checking
-  - Workspace-scoped authorization
-  - Audit logging of authentication events
-
-- **Secure Link Generation**:
-  - One-hour temporary security tokens for sensitive operations
-  - Encrypted payload containing operation type, resource ID, and timestamp
-  - URL-safe token format for easy sharing via messaging
-  - Single-use tokens for critical operations (payments, document access)
-  - IP-based validation for additional security layer
-  - Automatic invalidation after use or expiration
-  - Token verification prior to any sensitive data access
-
-### Domain-Driven Design Architecture
-
-The backend follows a Domain-Driven Design (DDD) architecture as specified in the project's ARCHITECTURE.md:
-
-- **Layer Separation**:
-  - **Domain Layer**: Core business entities and rules
-  - **Application Layer**: Use cases and application services
-  - **Infrastructure Layer**: Technical implementations and external services
-  - **Interfaces Layer**: API controllers and routes
-
-- **Key Design Principles**:
-  - Business domain at the center of design
-  - Clear boundaries between layers
-  - Repository pattern for data access
-  - Dependency inversion principle
-
-- **Data Flows**:
-  - External requests enter through Interfaces layer
-  - Controllers delegate to Application services
-  - Application services orchestrate Domain entities
-  - Infrastructure layer handles persistence and external communications
-
-- **Testing Approach**:
-  - Unit tests for domain logic
-  - Integration tests for application services
-  - End-to-end tests for API endpoints
-
-### Project Structure
-
-The project is organized as a monorepo using Turborepo for efficient management of multiple packages:
-
-#### Backend Structure
-
-```
-/backend
-  /src
-    /domain                # Core business logic
-      /entities            # Business models
-      /repositories        # Data access interfaces
-      /value-objects       # Immutable value objects
-    /application           # Application logic
-      /services            # Business orchestration
-      /use-cases           # Specific features
-      /dto                 # Data transfer objects
-    /infrastructure        # Technical implementations
-      /repositories        # Database access
-      /persistence         # ORM configurations
-      /external-services   # 3rd party integrations
-    /interfaces            # External interfaces
-      /http
-        /controllers       # Request handlers
-        /routes            # API routes
-      /websockets          # WebSocket handlers
-    /config                # Configuration settings
-    /utils                 # Utility functions
-  /tests
-    /unit                  # Unit tests
-    /integration           # Integration tests
-    /e2e                   # End-to-end tests
-  /prisma                  # Prisma schema and migrations
-  /scripts                 # Build and deployment scripts
-```
-
-#### Frontend Structure
-
-```
-/frontend
-  /src
-    /components
-      /shared              # Reusable components
-      /layout              # Layout components
-      /forms               # Form components
-      /ui                  # UI primitives
-    /hooks                 # Custom React hooks
-    /pages                 # Page components
-    /contexts              # React contexts
-    /services              # API services
-    /utils                 # Utility functions
-    /types                 # TypeScript type definitions
-    /styles                # Global styles
-    /assets                # Images, fonts, etc.
-  /public                  # Static assets
-  /tests                   # Frontend tests
-```
-
-### Database Seeding and Migrations
-
-The platform includes a robust database initialization and seeding strategy:
-
-- **Migration Strategy**:
-  - Prisma Migration for schema version control
-  - Separate migration files for each schema change
-  - Sequential migration versioning with timestamps
-  - Environment-specific migrations when needed
-
-- **Data Seeding**:
-  - Development environment seeding for testing
-  - Sample data generation for demo workspaces
-  - Seed data categorized by entity types
-  - Multi-tenant seed data with workspace isolation
-  - Customizable seed data volume
-
-- **Seed Data Categories**:
-  - Administrative users with predefined roles
-  - Sample product catalog with categories
-  - Customer profiles with diverse characteristics
-  - Sample chat history and message content
-  - Predefined AI prompts and configurations
-  - Demo orders with various statuses
-
-### Additional Technical Considerations
-
-- **Error Handling**:
-  - Centralized error handling middleware
-  - Standardized API error responses
-  - Custom error classes for domain-specific errors
-  - Client-friendly error messages with internal logging
-
-- **Logging**:
-  - Structured logging with Winston
-  - Log levels (debug, info, warn, error)
-  - Request ID tracking across services
-  - Redaction of sensitive information
-
-- **Performance Optimization**:
-  - Response caching strategies
-  - Database query optimization
-  - Connection pooling
-  - Asset compression and delivery
-
-- **Deployment Pipeline**:
-  - CI/CD integration with GitHub Actions
-  - Automated testing before deployment
-  - Staged deployment environments
-  - Blue-green deployment for zero downtime
-  - Rollback capabilities for failed deployments
-
-### WhatsApp Messaging Flow
-
-The platform implements a sophisticated messaging flow to handle customer interactions via WhatsApp. This flow ensures proper handling of messages based on context, customer status, and business rules.
+This multi-layered approach gives operators complete control over unwanted communications while maintaining detailed records for compliance and security purposes.
 
 ## CONVERSATION EXAMPLES
 
@@ -1045,4 +692,716 @@ All API endpoints are protected by intelligent rate limiting mechanisms to ensur
   - **Body**: Fields to update
   - **Returns**: Updated product
 
-- `
+- `DELETE /api/products/:id`
+
+  - **Description**: Deletes a product
+  - **Parameters**: `id` (required): Product ID
+  - **Returns**: Deletion confirmation
+
+- `POST /api/products/bulk`
+
+  - **Description**: Bulk import of products
+  - **Body**: `workspace_id`, array of products
+  - **Returns**: Import summary
+
+### Category Management
+
+- `GET /api/categories`
+
+  - **Description**: Retrieves product categories
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: List of categories with product count
+
+- `POST /api/categories`
+
+  - **Description**: Creates a new category
+  - **Body**: `name`, `description`, `workspace_id`
+  - **Returns**: Created category details
+
+- `GET /api/categories/:id`
+
+  - **Description**: Gets details of a category
+  - **Parameters**: `id` (required): Category ID
+  - **Returns**: Complete category details
+
+- `PUT /api/categories/:id`
+
+  - **Description**: Updates a category
+  - **Parameters**: `id` (required): Category ID
+  - **Body**: Fields to update
+  - **Returns**: Updated category
+
+- `DELETE /api/categories/:id`
+
+  - **Description**: Deletes a category
+  - **Parameters**: `id` (required): Category ID
+  - **Returns**: Deletion confirmation
+
+- `GET /api/categories/:id/products`
+
+  - **Description**: Lists products in a category
+  - **Parameters**: `id` (required): Category ID
+  - **Returns**: Products in the category
+
+### Prompt Management
+
+- `GET /api/prompts`
+
+  - **Description**: Retrieves all prompts in the workspace
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: List of prompts with active/inactive status
+
+- `POST /api/prompts`
+
+  - **Description**: Creates a new prompt
+  - **Body**: `name`, `content`, `workspace_id`, configuration options
+  - **Returns**: Created prompt details
+
+- `GET /api/prompts/:id`
+
+  - **Description**: Gets details of a prompt
+  - **Parameters**: `id` (required): Prompt ID
+  - **Returns**: Prompt content and configuration
+
+- `PUT /api/prompts/:id`
+
+  - **Description**: Updates a prompt
+  - **Parameters**: `id` (required): Prompt ID
+  - **Body**: Fields to update
+  - **Returns**: Updated prompt
+
+- `DELETE /api/prompts/:id`
+
+  - **Description**: Deletes a prompt
+  - **Parameters**: `id` (required): Prompt ID
+  - **Returns**: Deletion confirmation
+
+- `POST /api/prompts/:id/test`
+
+  - **Description**: Tests a prompt with a test message
+  - **Parameters**: `id` (required): Prompt ID
+  - **Body**: `test_message`
+  - **Returns**: Generated AI response
+
+- `PUT /api/prompts/:id/activate`
+
+  - **Description**: Sets prompt as active (deactivates others)
+  - **Parameters**: `id` (required): Prompt ID
+  - **Returns**: Update status
+
+### WhatsApp Integration
+
+- `POST /api/whatsapp/webhook`
+
+  - **Description**: Webhook for incoming messages from WhatsApp
+  - **Body**: Message data from Meta API
+  - **Returns**: Acknowledgement
+
+- `GET /api/whatsapp/settings`
+
+  - **Description**: Gets WhatsApp settings
+  - **Parameters**: `workspace_id` (required): Workspace ID
+  - **Returns**: Current WhatsApp configuration
+
+- `PUT /api/whatsapp/settings`
+
+  - **Description**: Updates WhatsApp settings
+  - **Parameters**: `workspace_id` (required): Workspace ID
+  - **Body**: New settings
+  - **Returns**: Updated configuration
+
+- `POST /api/whatsapp/send`
+
+  - **Description**: Sends WhatsApp message
+  - **Body**: `customer_id`, `message`
+  - **Returns**: Send confirmation
+
+- `GET /api/whatsapp/status`
+
+  - **Description**: Checks WhatsApp connection status
+  - **Parameters**: `workspace_id` (required): Workspace ID
+  - **Returns**: Connection status with Meta API
+
+### Chat Management
+
+- `GET /api/chats`
+
+  - **Description**: Lists all chats
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace ID
+    - `filters` (optional): Search filters
+  - **Returns**: Paginated list of chats
+
+- `GET /api/chats/:id`
+
+  - **Description**: Gets chat details and messages
+  - **Parameters**: `id` (required): Chat ID
+  - **Returns**: Chat details and recent messages
+
+- `GET /api/chats/:id/messages`
+
+  - **Description**: Gets messages of a chat
+  - **Parameters**: 
+    - `id` (required): Chat ID
+    - `page`, `limit` (optional): Pagination parameters
+  - **Returns**: Paginated messages
+
+- `PUT /api/chats/:id/block`
+
+  - **Description**: Blocks customer in the chat
+  - **Parameters**: `id` (required): Chat ID
+  - **Returns**: Operation status
+
+- `PUT /api/chats/:id/unblock`
+
+  - **Description**: Unblocks customer in the chat
+  - **Parameters**: `id` (required): Chat ID
+  - **Returns**: Operation status
+
+### Customer Management
+
+- `GET /api/customers`
+
+  - **Description**: Lists all customers
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace ID
+    - `filters` (optional): Search filters
+  - **Returns**: Paginated list of customers
+
+- `GET /api/customers/:id`
+
+  - **Description**: Gets customer details
+  - **Parameters**: `id` (required): Customer ID
+  - **Returns**: Complete customer profile
+
+- `PUT /api/customers/:id`
+
+  - **Description**: Updates customer information
+  - **Parameters**: `id` (required): Customer ID
+  - **Body**: Fields to update
+  - **Returns**: Updated customer
+
+- `GET /api/customers/blocked`
+
+  - **Description**: Lists blocked customers
+  - **Parameters**: `workspace_id` (required): Workspace ID
+  - **Returns**: List of blocked customers with reason
+
+### Service Management
+
+- `GET /api/services`
+
+  - **Description**: Retrieves list of available services
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: List of services
+
+- `POST /api/services`
+
+  - **Description**: Creates new service
+  - **Body**: `name`, `description`, `price`, `duration`
+  - **Returns**: Created service details
+
+- `PUT /api/services/:id`
+
+  - **Description**: Updates a service
+  - **Parameters**: `id` (required): Service ID
+  - **Body**: Service details to update
+  - **Returns**: Updated service
+
+- `DELETE /api/services/:id`
+
+  - **Description**: Deletes a service
+  - **Parameters**: `id` (required): Service ID
+  - **Returns**: Success message
+
+## DATA MODEL
+
+```mermaid
+erDiagram
+    Workspace {
+        string id PK
+        string name
+        string slug
+        string whatsappPhoneNumber
+        string whatsappApiKey
+        string notificationEmail
+        string webhookUrl
+        boolean isActive
+        string language
+        datetime createdAt
+        datetime updatedAt
+        boolean isDelete
+        string currency
+        boolean challengeStatus
+        json wipMessages
+        string description
+        int messageLimit
+        string blocklist
+        string url
+        json welcomeMessages
+        json afterRegistrationMessages
+    }
+    
+    User {
+        string id PK
+        string email
+        string passwordHash
+        string firstName
+        string lastName
+        string status
+        datetime lastLogin
+        datetime createdAt
+        datetime updatedAt
+        string role
+    }
+    
+    UserWorkspace {
+        string id PK
+        string userId FK
+        string workspaceId FK
+        string role
+    }
+    
+    Products {
+        string id PK
+        string name
+        string description
+        float price
+        int stock
+        string sku
+        string categoryId FK
+        string supplierId FK
+        string slug
+        string status
+        string image
+        boolean isActive
+        string workspaceId FK
+    }
+    
+    Categories {
+        string id PK
+        string name
+        string description
+        string workspaceId FK
+        string slug
+        boolean isActive
+    }
+    
+    Customers {
+        string id PK
+        string phone
+        string name
+        string email
+        string address
+        string company
+        float discount
+        string language
+        string currency
+        string notes
+        boolean isBlacklisted
+        boolean activeChatbot
+        boolean push_notifications_consent
+        datetime push_notifications_consent_at
+        string last_privacy_version_accepted
+        datetime privacy_accepted_at
+        string workspaceId FK
+    }
+    
+    ChatSession {
+        string id PK
+        string customerId FK
+        string workspaceId FK
+        string status
+        json context
+        datetime startedAt
+        datetime endedAt
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Message {
+        string id PK
+        string chatSessionId FK
+        string content
+        string direction
+        string type
+        string status
+        boolean aiGenerated
+        json metadata
+        boolean read
+        string promptId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Prompts {
+        string id PK
+        string name
+        string content
+        string workspaceId FK
+        boolean isActive
+        boolean isRouter
+        string department
+        float temperature
+        float top_p
+        int top_k
+        string model
+        int max_tokens
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    Orders {
+        string id PK
+        string status
+        float total
+        string customerId FK
+        string workspaceId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    OrderItems {
+        string id PK
+        int quantity
+        float price
+        string orderId FK
+        string productId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    Carts {
+        string id PK
+        string customerId FK
+        string workspaceId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    CartItems {
+        string id PK
+        int quantity
+        string cartId FK
+        string productId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    WhatsappSettings {
+        string id PK
+        string phoneNumber
+        string apiKey
+        string webhookUrl
+        json settings
+        string workspaceId FK
+        string gdpr
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    PaymentDetails {
+        string id PK
+        string provider
+        string status
+        float amount
+        string currency
+        json providerResponse
+        string orderId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    Services {
+        string id PK
+        string name
+        string description
+        float price
+        string currency
+        int duration
+        boolean isActive
+        string workspaceId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    Events {
+        string id PK
+        string name
+        string description
+        datetime startDate
+        datetime endDate
+        string location
+        float price
+        string currency
+        boolean isActive
+        int maxAttendees
+        int currentAttendees
+        string workspaceId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    FAQ {
+        string id PK
+        string question
+        string answer
+        boolean isActive
+        string workspaceId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    Offers {
+        string id PK
+        string name
+        string description
+        float discountPercent
+        datetime startDate
+        datetime endDate
+        boolean isActive
+        string categoryId FK
+        string workspaceId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    Suppliers {
+        string id PK
+        string name
+        string description
+        string address
+        string website
+        string phone
+        string email
+        string contactPerson
+        string notes
+        boolean isActive
+        string slug
+        string workspaceId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Workspace ||--o{ UserWorkspace : "has"
+    User ||--o{ UserWorkspace : "belongs to"
+    Workspace ||--o{ Products : "contains"
+    Workspace ||--o{ Categories : "contains"
+    Workspace ||--o{ Customers : "has"
+    Workspace ||--o{ ChatSession : "contains"
+    Workspace ||--o{ Prompts : "has"
+    Workspace ||--o{ Orders : "has"
+    Workspace ||--o{ Services : "has"
+    Workspace ||--o{ Events : "has"
+    Workspace ||--o{ FAQ : "has"
+    Workspace ||--o{ Offers : "has"
+    Workspace ||--o{ Suppliers : "has"
+    Workspace ||--o{ Carts : "contains"
+    Workspace ||--|| WhatsappSettings : "configures"
+    Categories ||--o{ Products : "contains"
+    Customers ||--o{ ChatSession : "participates"
+    Customers ||--o{ Orders : "places"
+    Customers ||--|| Carts : "has"
+    ChatSession ||--o{ Message : "contains"
+    Prompts ||--o{ Message : "generates"
+    Orders ||--o{ OrderItems : "contains"
+    Products ||--o{ OrderItems : "included in"
+    Carts ||--o{ CartItems : "contains"
+    Products ||--o{ CartItems : "added to"
+    Orders ||--|| PaymentDetails : "processed with"
+    Categories ||--o{ Offers : "has"
+    Suppliers ||--o{ Products : "provides"
+```
+
+## SECURITY
+
+### Anti-Abuse System
+To prevent system abuse and ensure fair resource allocation, the platform implements an automatic rate-limiting mechanism:
+
+- If a user sends more than 8 messages in a 60-second window, their profile status is automatically changed to "blocked"
+- The system responds with a message: "Your number has been blocked due to misuse. Please contact the administrator to unblock it."
+- Administrators can view blocked users in the dashboard and manually unblock legitimate users
+- The system maintains logs of blocking events for security analysis
+
+Additionally, administrators can manually block problematic users directly from the chat interface:
+
+- A block button in the chat header allows for immediate blocking of the current user
+- When manually blocked, users receive a notification about their blocked status
+- Administrators can view and manage all blocked users from a centralized section in the dashboard
+- Block/unblock actions are logged for audit purposes
+
+### Rate Limiting Controls
+To ensure system stability and prevent abuse, the platform implements configurable rate limiting:
+
+- **Message Rate Limiting**:
+  - Maximum 30 messages per user per hour
+  - Configurable daily message limits per workspace
+  - Automatic "Please try again later" response when limits are reached
+  - Grace period configuration to prevent immediate cut-offs
+
+- **API Rate Limiting**:
+  - Configurable daily API call limits for the entire workspace
+  - Monitoring dashboard for tracking usage patterns
+  - Automatic throttling when approaching limits
+  - Priority queuing for critical operations
+
+- **Configuration Options**:
+  - All rate limiting thresholds configurable in workspace settings
+  - Custom messages for limit notifications
+  - Whitelist functionality for trusted users/systems
+  - Alert notifications for administrators when limits are consistently approached
+  - Usage analytics to help optimize limit settings
+
+### Data Encryption
+- All data is encrypted at rest using AES-256 encryption
+- Transport Layer Security (TLS) for all data in transit
+- Sensitive fields like API keys and passwords are encrypted with specialized algorithms
+- Database-level encryption for sensitive tables
+- Key rotation policies implement industry best practices
+- Personal data is pseudonymized when processed by external AI services
+- Encryption key management follows security best practices
+
+### Secure Data Handling with Tokenization
+- **Link-Based Sensitive Data Handling**: All sensitive operations are handled via secure links rather than directly in WhatsApp conversations
+- **Payment Processing**: When a payment is required, the system generates and sends a secure link to a dedicated payment platform
+- **Document Access**: Sensitive documents (invoices, receipts, contracts) are accessed via secure, time-limited download links
+- **Temporary Security Tokens**: All sensitive operations use one-hour security tokens to control access
+- **Token Expiration**: After one hour, tokens automatically expire requiring regeneration for security purposes
+- **No Sensitive Data in Chat**: Payment details, personal documents, and other sensitive information are never exchanged directly in WhatsApp conversations
+- **Audit Trail**: All link generation and access events are logged for security monitoring
+
+### Secure Data Processing Workflow
+- **Clear Separation of Concerns**: WhatsApp is used only for communication and product discovery, while all sensitive data processing occurs exclusively on the secure web platform
+- **Order Processing**: 
+  - Orders are confirmed via WhatsApp but processed in the secure web platform
+  - A secure time-limited link is sent to the customer to complete their order
+  - Order details and confirmation are sent via email for record-keeping
+  - WhatsApp receives only non-sensitive order confirmations
+- **Invoice Handling**:
+  - Invoices are never sent directly through WhatsApp
+  - When a customer requests an invoice, the system sends a secure link to download it
+  - Alternatively, invoices can be sent via email per customer preference
+  - All invoice documents are password-protected PDFs for additional security
+- **Payment Processing**:
+  - All payments are processed exclusively through the secure web platform
+  - Payment links sent via WhatsApp expire after one hour
+  - Credit card and banking information is never requested or processed through WhatsApp
+  - The system complies with PCI DSS requirements for payment handling
+- **Data Isolation**:
+  - The WhatsApp conversation system has no direct access to sensitive customer data
+  - All sensitive data resides in isolated, encrypted database segments
+  - Cross-system communication uses tokenized references rather than actual sensitive data
+
+This strict separation ensures that sensitive customer information is never exposed in WhatsApp conversations, maintaining compliance with data protection regulations while still providing a seamless customer experience.
+
+## COMPLIANCE AND PRIVACY
+
+### GDPR Compliance
+- **Data Minimization**: Only collecting necessary information for service operation
+- **Lawful Processing**: Clear consent mechanisms for all data processing
+- **Data Subject Rights**: Implementation of access, rectification, deletion, and portability rights
+- **Records of Processing**: Maintaining documentation of all data processing activities
+- **Privacy Notices**: Clear and accessible privacy information
+- **Data Protection Impact Assessment**: Performed for high-risk processing activities
+- **Data Breach Procedures**: Clear protocols for detecting, reporting, and handling breaches
+
+### User Preference and Account Deletion
+The platform provides complete self-service options for users to manage their accounts:
+
+#### Preference Management
+- Users can request a preference management link via WhatsApp
+- Secure time-limited token (valid for 24 hours) for accessing preferences
+- Users can modify personal details, language preference, currency preference, and notification settings
+
+#### Account Deletion Process
+- Clear "Delete My Account" option in the preferences page
+- Two-step verification process including WhatsApp confirmation message
+- Immediate deletion of personal identifiable information, chat history, and consent records
+- Anonymized retention of order records and transaction history for legal and financial purposes
+- 30-day grace period for account recovery
+
+## COMPETITIVE ANALYSIS
+
+### Market Overview
+The conversational commerce market is growing rapidly, with several players offering different approaches to WhatsApp-based shopping experiences. ShopMe distinguishes itself through its specialized focus on e-commerce functionality with advanced AI capabilities.
+
+### Direct Competitor Comparison
+
+| Feature | ShopMe | WhatsApp Business API | Twilio Conversations | ManyChat | Yellow.ai |
+|---------|--------|----------------------|---------------------|----------|-----------|
+| **Primary Focus** | E-commerce platform | Basic business messaging | Multi-channel messaging | Marketing automation | General chatbots |
+| **AI Capabilities** | Advanced RAG with product knowledge | None | Basic | Basic | Moderate |
+| **E-commerce Features** | Comprehensive | Very limited | Limited | Moderate | Limited |
+| **Multi-language** | Built-in translation | Manual | Manual | Limited | Yes |
+| **Setup Complexity** | Low | High | High | Medium | Medium |
+| **Pricing Model** | SaaS subscription | API usage | Usage-based | Tiered subscription | Enterprise pricing |
+| **Target Market** | SMBs with specialty products | All businesses | Enterprise | SMB marketers | Large enterprises |
+
+### Key Differentiators
+
+1. **WhatsApp Business API**
+   - **Their Strength**: Official Meta solution with direct integration
+   - **Their Weakness**: Requires significant technical expertise to implement
+   - **Our Advantage**: Complete SaaS solution requiring no technical knowledge
+
+2. **Twilio Conversations**
+   - **Their Strength**: Multi-channel capabilities beyond WhatsApp
+   - **Their Weakness**: Generic messaging platform without e-commerce optimization
+   - **Our Advantage**: Purpose-built for e-commerce with product catalog management
+
+3. **ManyChat**
+   - **Their Strength**: Easy-to-use marketing automation tools
+   - **Their Weakness**: Limited AI capabilities and product management
+   - **Our Advantage**: Advanced AI with RAG for better conversational shopping
+
+4. **Yellow.ai**
+   - **Their Strength**: Enterprise-grade automation and analytics
+   - **Their Weakness**: High cost and complex implementation
+   - **Our Advantage**: Affordable solution specifically optimized for specialty retail
+
+### Market Gap Addressed
+ShopMe addresses a significant gap in the market for small to medium businesses specializing in specialty products who need:
+
+1. A turn-key solution for WhatsApp commerce without technical expertise
+2. Advanced AI capabilities without enterprise-level budgets
+3. Purpose-built e-commerce features optimized for conversational interfaces
+4. Multi-language support for serving international customers
+
+### Supporting Industry Trends
+Several industry trends validate our approach:
+
+1. **Conversational Commerce Growth**: Projected 25% CAGR through 2028
+2. **WhatsApp Penetration**: Over 2 billion users globally with high engagement rates
+3. **AI in Retail**: 45% of retailers planning to implement AI-driven customer service by 2025
+4. **Specialty E-commerce**: Niche product categories showing higher growth than general retail
+5. **Direct-to-Consumer Shift**: Brands increasingly selling directly to consumers rather than through marketplaces 
+
+### Customer Registration Flow
+
+1. Customer receives a WhatsApp message with a registration link
+2. Customer clicks the link and is taken to a registration form
+3. Customer fills out the form and submits
+4. System validates the information and registers the customer
+5. System sends a welcome message to the customer
+6. System sends an after-registration message in the customer's preferred language to provide immediate assistance
+
+#### After-Registration Messages
+
+The system supports customizable after-registration messages with the following features:
+
+- Messages are stored in workspace settings as `afterRegistrationMessages`
+- Support for multiple languages (en, it, es, fr, de, pt)
+- Dynamic insertion of the customer's first name using the `[nome]` placeholder
+- Fallback to English if the customer's language is not supported
+- Default messages if no custom message is configured
+
+Example message format:
+```json
+{
+  "en": "Registration completed successfully. Hello [nome], how can I help you today?",
+  "it": "Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?",
+  "es": "Registro completado con éxito. Hola [nome], ¿en qué puedo ayudarte hoy?"
+}
+```
+
+
