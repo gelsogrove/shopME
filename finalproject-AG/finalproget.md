@@ -290,6 +290,11 @@ erDiagram
         string language
         boolean isActive
         string currency
+        string description
+        json welcomeMessages
+        json afterRegistrationMessages
+        DateTime createdAt
+        DateTime updatedAt
     }
     
     User {
@@ -300,6 +305,8 @@ erDiagram
         string lastName
         UserRole role
         UserStatus status
+        DateTime createdAt
+        DateTime updatedAt
     }
     
     UserWorkspace {
@@ -307,6 +314,8 @@ erDiagram
         string userId FK
         string workspaceId FK
         UserRole role
+        DateTime createdAt
+        DateTime updatedAt
     }
     
     Categories {
@@ -316,6 +325,8 @@ erDiagram
         string workspaceId FK
         string slug
         boolean isActive
+        DateTime createdAt
+        DateTime updatedAt
     }
     
     Products {
@@ -324,11 +335,15 @@ erDiagram
         string description
         float price
         int stock
+        string sku
         string workspaceId FK
         string categoryId FK
+        string supplierId FK
         string slug
         ProductStatus status
         string image
+        DateTime createdAt
+        DateTime updatedAt
     }
     
     Customers {
@@ -336,9 +351,14 @@ erDiagram
         string name
         string email
         string phone
-        string workspaceId FK
+        string address
         string language
+        string currency
         boolean isActive
+        boolean activeChatbot
+        string workspaceId FK
+        DateTime createdAt
+        DateTime updatedAt
     }
     
     Orders {
@@ -347,6 +367,8 @@ erDiagram
         float total
         string customerId FK
         string workspaceId FK
+        DateTime createdAt
+        DateTime updatedAt
     }
     
     Prompts {
@@ -354,23 +376,16 @@ erDiagram
         string name
         string content
         string workspaceId FK
+        boolean isRouter
+        string department
         float temperature
         float top_p
-        int max_tokens
-        boolean isActive
-    }
-    
-    AgentConfiguration {
-        string id PK
-        string name
-        string workspaceId FK
+        int top_k
         string model
-        float temperature
-        float top_p
-        float top_k
         int max_tokens
         boolean isActive
-        string description
+        DateTime createdAt
+        DateTime updatedAt
     }
     
     Offers {
@@ -382,6 +397,8 @@ erDiagram
         datetime endDate
         string workspaceId FK
         string categoryId FK
+        DateTime createdAt
+        DateTime updatedAt
     }
     
     ChatSession {
@@ -390,6 +407,8 @@ erDiagram
         json context
         string workspaceId FK
         string customerId FK
+        DateTime createdAt
+        DateTime updatedAt
     }
     
     Message {
@@ -400,6 +419,29 @@ erDiagram
         boolean aiGenerated
         string chatSessionId FK
         string promptId FK
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    
+    OrderItems {
+        string id PK
+        int quantity
+        float price
+        string orderId FK
+        string productId FK
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    
+    Suppliers {
+        string id PK
+        string name
+        string email
+        string phone
+        string address
+        string workspaceId FK
+        DateTime createdAt
+        DateTime updatedAt
     }
 
     Workspace ||--o{ UserWorkspace : "has"
@@ -410,7 +452,7 @@ erDiagram
     Workspace ||--o{ Prompts : "has"
     Workspace ||--o{ Offers : "has"
     Workspace ||--o{ ChatSession : "has"
-    Workspace ||--o{ AgentConfiguration : "has"
+    Workspace ||--o{ Suppliers : "has"
     
     User ||--o{ UserWorkspace : "belongs to"
     Categories ||--o{ Products : "contains"
@@ -421,6 +463,7 @@ erDiagram
     Orders ||--o{ OrderItems : "contains"
     ChatSession ||--o{ Message : "contains"
     Prompts ||--o{ Message : "generates"
+    Suppliers ||--o{ Products : "provides"
 ```
 
 ### **3.2. Description of main entities:**
@@ -432,11 +475,12 @@ erDiagram
 - **Products**: Items available for sale
 - **Customers**: End users who interact through WhatsApp 
 - **Orders**: Purchase records with items and payment status
-- **Prompts**: Pre-defined AI instruction templates for specific business scenarios (FAQ, support, sales)
-- **AgentConfiguration**: AI behavior settings including model selection, response parameters and operational settings
+- **Prompts**: AI configurations including instruction templates and parameters (temperature, top_p, max_tokens, etc.)
 - **Offers**: Time-limited discounts and promotions
 - **ChatSession**: Conversation contexts between customers and the system
 - **Message**: Individual messages within conversations
+- **OrderItems**: Individual items within an order with quantity and price
+- **Suppliers**: Product suppliers with contact information
 
 ---
 
@@ -494,20 +538,7 @@ Below are three of the most important endpoints of the ShopMe platform:
 **Query Parameters**:
 - `token`: Authentication token (required)
 
-**Request Body**:
-```json
-{
-  "name": "Sales Agent",
-  "content": "You are a helpful sales assistant...",
-  "isRouter": false,
-  "department": "sales",
-  "temperature": 0.7,
-  "top_p": 0.9,
-  "top_k": 40,
-  "model": "GPT-4.1-mini",
-  "max_tokens": 1000
-}
-```
+ 
 
 **Status Codes**:
 - `201 Created`: New agent created successfully
@@ -718,11 +749,6 @@ Provide businesses with a robust and user-friendly system to create, read, updat
 - Database schema finalized
 - File storage system for product images
 
-**Additional resources**:
-- [Product Data Model Diagram](/diagrams/product-model.png)
-- [UI Mockups for Product Management](/designs/product-management-ui.fig)
-- [API Documentation Standards](/docs/api-standards.md)
-
 ### **Ticket 3 (Agents): Agent Management System Development**
 
 **Title**: Create Agent Management and Performance Tracking System
@@ -770,11 +796,7 @@ Build a robust system that enables businesses to efficiently manage their suppor
 **Dependencies**:
 - Authentication and user management system
 - Basic conversation data models
-
-**Additional resources**:
-- [Agent Management Workflow Diagram](/diagrams/agent-workflow.png)
-- [Performance Metrics Definitions](/docs/agent-performance-metrics.md)
-- [Agent Interface Mockups](/designs/agent-interface.fig)
+ 
 
 ### **Ticket 5 (AI Configuration): AI Agent Configuration System**
 
@@ -827,10 +849,7 @@ Provide businesses with a flexible framework to configure and fine-tune their AI
 - Workspace management system
 - Language detection system
 
-**Additional resources**:
-- [AI Configuration Best Practices](/docs/ai-configuration.md)
-- [Prompt Engineering Guidelines](/docs/prompt-engineering.md)
-- [Configuration UI Mockups](/designs/ai-config-ui.fig)
+
 
 ### **Ticket 4 (Chat): Chat Integration System**
 
@@ -882,10 +901,6 @@ Build a flexible chat system that provides customers with a seamless shopping ex
 - Product management system
 - Agent management system
 
-**Additional resources**:
-- [Chat System Architecture Diagram](/diagrams/chat-architecture.png)
-- [Conversation Flow Examples](/docs/conversation-flows.md)
-- [Chat Interface Mockups](/designs/chat-interface.fig)
 
 ---
 
