@@ -427,13 +427,13 @@ erDiagram
 
 - **Workspace**: Represents a business tenant with unique settings and data isolation
 - **User**: Admin users who manage workspaces
-- **UserWorkspace**: Links users to workspaces with specific roles
+- **UserWorkspace**: Junction entity that connects users to workspaces with specific role permissions (admin, agent, viewer)
 - **Categories**: Product organization structure
 - **Products**: Items available for sale
 - **Customers**: End users who interact through WhatsApp 
 - **Orders**: Purchase records with items and payment status
-- **Prompts**: AI instruction templates for different conversation scenarios
-- **AgentConfiguration**: AI agent settings including model, temperature and token parameters
+- **Prompts**: Pre-defined AI instruction templates for specific business scenarios (FAQ, support, sales)
+- **AgentConfiguration**: AI behavior settings including model selection, response parameters and operational settings
 - **Offers**: Time-limited discounts and promotions
 - **ChatSession**: Conversation contexts between customers and the system
 - **Message**: Individual messages within conversations
@@ -496,6 +496,9 @@ Below are three of the most important endpoints of the ShopMe platform:
 - `agentId`: Agent ID (required)
 - `prompt`: Base prompt template
 - `max_token`: Response length limit
+- `temperature`: Controls response randomness (0.0-1.0)
+- `top_p`: Controls diversity via nucleus sampling (0.0-1.0)
+- `top_k`: Limits token selection pool (10-100)
 - `token`: Authentication token (required)
 
 **Status Codes**:

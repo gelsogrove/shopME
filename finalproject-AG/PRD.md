@@ -2176,5 +2176,3 @@ Business owners can adjust these limits in their workspace settings, with option
 
 
 The platform is designed to be adaptable to various vertical markets with minimal customization requirements. Each vertical adaptation includes:
-The platform is designed to be adaptable to various vertical markets with minimal customization requirements. Each vertical adaptation includes:
-The platform is designed to be adaptable to various vertical markets with minimal customization requirements. Each vertical adaptation includes:
