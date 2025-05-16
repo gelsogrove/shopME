@@ -17,7 +17,7 @@
 ### **0.2. ShopMe**
 
 ### **0.3. Brief project description:**
-ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that turns WhatsApp into a complete sales channel. Customers can create smart chatbots, manage products, receive orders, and send invoices to their clients without any technical skills. Our AI technology automates customer-care responses, manages push notifications, and offers a 24/7 conversational shopping experience, all directly in the world's most popular messaging app.
+ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that turns WhatsApp into a complete sales channel. Customers can create smart chatbots, manage products, receive orders, and send invoices to their clients without any technical skills. Our AI technology automates customer-care responses, manages push notifications, and offers a 24/7 conversational shopping experience, all directly to Whatsapp  the world's most popular messaging app
 
 ### **0.4. Project URL:**
 *Not available*
@@ -41,57 +41,17 @@ Rather than solving a specific problem, ShopMe significantly enhances the qualit
 
 ### **1.2. Key features and functionalities:**
 
-ShopMe offers several key features designed to transform WhatsApp into a complete sales and customer service channel:
+ShopMe transforms WhatsApp into a complete sales and customer service channel with these core capabilities:
 
-1. **Multi-tenant Business Platform**
-   - Support for multiple businesses within a single platform
-   - Separate workspaces with isolated data and configurations
-   - Role-based access control with customizable permissions
-   - White-label options for enterprise clients
+The platform operates as a **multi-tenant system** where multiple businesses can create isolated workspaces with customized branding and role-based access controls. Each business manages their own **product catalog** with support for variants, multiple images, inventory tracking, and custom attributes.
 
-2. **Product Management**
-   - Complete product catalog creation and management
-   - Product variants and attributes support
-   - Rich media product displays with multiple images
-   - Inventory tracking and stock alerts
-   - Custom fields for vertical-specific product information
+Products are organized in **hierarchical categories** with specific filters and visual representations, while **special offers** can be created with various discount types, time limitations, and targeting options.
 
-3. **Category Organization**
-   - Hierarchical category structure for intuitive product navigation
-   - Category-specific attributes and filters
-   - Visual category representation with custom images
-   - Flexible sorting and arrangement options
+The system keeps customers engaged through **smart notifications** for order updates, personalized recommendations, abandoned cart reminders, and delivery tracking. All customer interactions are handled through an **AI-powered conversational interface** that makes contextual responses and executes function calls for complex operations.
 
-4. **Special Offers & Promotions**
-   - Time-limited discount campaigns
-   - Multiple discount types (percentage, fixed amount, buy-x-get-y)
-   - Promo codes with usage limitations
-   - Product and category-specific promotions
-   - Minimum purchase thresholds and usage limits
+Business owners can customize their workspace through **comprehensive settings** including branding options, multilingual support (Italian, English, Spanish), business hours, and AI behavior configuration (adjusting model parameters like temperature and token limits).
 
-5. **Push Notifications & Customer Engagement**
-   - Automated order status notifications
-   - Personalized product recommendations based on browsing history
-   - Cart abandonment reminders
-   - Special offer announcements
-   - Customer segmentation for targeted campaigns
-   - Delivery and shipment tracking updates
-   - Customizable notification templates for different business scenarios
-
-6. **System Settings & Configuration**
-   - Brand customization options
-   - Multilingual support (Italian, English, Spanish)
-   - Business hours and availability settings
-   - Notification preferences and templates
-   - AI response behavior customization
-   - AI agent configuration (model, temperature, top_P, top_K, max tokens)
-
-7. **WhatsApp & AI Integration**
-   - Seamless WhatsApp Business API integration
-   - AI-powered conversational shopping experience
-   - Function calls for complex operations (invoices, orders, product searches)
-   - Context-aware responses based on customer history
-   - Secure handling of sensitive operations through temporary links
+For security, all sensitive operations (payments, registrations, personal data access) are handled through **temporary secure links** rather than within chat conversations.
 
 ### **1.3. Design and user experience:**
 
