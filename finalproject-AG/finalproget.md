@@ -296,6 +296,52 @@ The testing strategy for ShopMe is currently in development (Work In Progress) a
 
 Each test type will be implemented to ensure code quality, reliability, and to prevent regressions during development.
 
+### **2.5.1 Authentication Token Generation**
+
+The system uses JWT (JSON Web Token) for secure authentication across all APIs:
+
+1. **Token Generation**: When a user logs in, the system generates a signed JWT with:
+   - A unique user identifier
+   - The user's roles and permissions
+   - Workspace access information
+   - An expiration time (1 hour for access tokens)
+
+2. **Token Structure**: Each token consists of three parts:
+   - Header: Algorithm information (HS256)
+   - Payload: User data and claims
+   - Signature: Ensures token integrity
+
+3. **Token Usage**: Include the token in all API requests in the Authorization header:
+   `Authorization: Bearer [token]`
+
+4. **Token Renewal**: When tokens approach expiration, use the refresh endpoint to obtain a new token without re-authentication.
+
+### **2.5.2 AI Parameter Definitions**
+
+The system enables fine-tuning of AI agent behavior through several key parameters:
+
+1. **prompt**: The base text instructions that guide the AI's behavior and responses. Defines the AI's personality, knowledge boundaries, and response format. Example: "You are a helpful customer service agent for an Italian restaurant. Answer questions about our menu, opening hours, and reservations in a friendly tone."
+
+2. **max_token**: Limits the length of the AI's response. Each token represents approximately 4 characters or 0.75 words.
+   - Lower values (50-150): Short, concise responses
+   - Medium values (150-500): Detailed explanations
+   - Higher values (500-1000): Comprehensive answers
+   
+3. **temperature**: Controls randomness in responses, ranging from 0.0 to 1.0.
+   - Low (0.1-0.3): Consistent, deterministic, focused responses
+   - Medium (0.4-0.7): Balanced creativity and focus
+   - High (0.8-1.0): More diverse, creative, and unpredictable responses
+   
+4. **top_P**: Controls response diversity using nucleus sampling, ranging from 0.0 to 1.0.
+   - Lower values: Consider only the most probable tokens
+   - Higher values: Consider a wider range of possible tokens
+   
+5. **top_K**: Restricts token selection to the K most likely tokens at each step.
+   - Lower values (10-20): More focused on common word choices
+   - Higher values (40-100): More varied vocabulary options
+
+These parameters allow businesses to customize their AI agents for different scenarios, from factual customer support to creative product recommendations.
+
 ---
 
 ## 3. Data model
@@ -515,6 +561,7 @@ Below are three of the most important endpoints of the ShopMe platform:
 
 **Query Parameters**:
 - `workspaceId`: Workspace ID (required)
+- `agentId`: Agent ID (required)
 - `prompt`: Base prompt template
 - `max_token`: Response length limit
 - `token`: Authentication token (required)
