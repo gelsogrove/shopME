@@ -44,7 +44,7 @@ Rather than solving a specific problem, ShopMe significantly enhances the qualit
 
 ShopMe transforms WhatsApp into a complete sales and customer service channel with these core capabilities:
 
-The platform operates as a **multi-tenant system** where multiple businesses can create isolated workspaces with customized branding and role-based access controls. Each business manages their own **product catalog** with support for variants, multiple images, inventory tracking, and custom attributes.
+The platform operates can create isolated workspaces with customized branding and role-based access controls. Each business manages their own **product catalog** with support for variants, multiple images, inventory tracking, and custom attributes.
 
 Products are organized in **hierarchical categories** with specific filters and visual representations, while **special offers** can be created with various discount types, time limitations, and targeting options.
 
@@ -487,27 +487,33 @@ Below are three of the most important endpoints of the ShopMe platform:
 
 ### 3. Agent Settings API
 
-**Endpoint**: `POST /api/agents/settings`
+**Endpoint**: `POST /api/workspaces/{workspaceId}/agents`
 
-**Description**: This endpoint allows creating or updating settings for a specific agent, including AI parameters for customizing responses.
+**Description**: This endpoint allows creating or updating agent settings, including AI parameters for customizing responses based on the implemented backend.
 
 **Query Parameters**:
-- `workspaceId`: Workspace ID (required)
-- `agentId`: Agent ID (required)
-- `prompt`: Base prompt template
-- `max_token`: Response length limit
-- `temperature`: Controls response randomness (0.0-1.0)
-- `top_p`: Controls diversity via nucleus sampling (0.0-1.0)
-- `top_k`: Limits token selection pool (10-100)
 - `token`: Authentication token (required)
 
+**Request Body**:
+```json
+{
+  "name": "Sales Agent",
+  "content": "You are a helpful sales assistant...",
+  "isRouter": false,
+  "department": "sales",
+  "temperature": 0.7,
+  "top_p": 0.9,
+  "top_k": 40,
+  "model": "GPT-4.1-mini",
+  "max_tokens": 1000
+}
+```
+
 **Status Codes**:
-- `200 OK`: Settings updated successfully
-- `201 Created`: New settings created successfully
+- `201 Created`: New agent created successfully
 - `400 Bad Request`: Incorrect parameters
 - `401 Unauthorized`: Invalid credentials
 - `403 Forbidden`: Insufficient permissions
-- `404 Not Found`: Agent not found
 - `429 Too Many Requests`: Rate limit exceeded
 
 ---
@@ -658,11 +664,7 @@ Create a robust authentication and authorization system that ensures secure acce
 - User and channel data models defined
 - Frontend UI components for authentication
 - Database connectivity established
-
-**Additional resources**:
-- [JWT Authentication Best Practices](https://auth0.com/blog/jwt-authentication-best-practices/)
-- [OWASP Authentication Guidelines](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
-- [User Authentication Flow Diagram](/diagrams/auth-flow.png)
+ 
 
 ### **Ticket 2 (Products): Product Management CRUD Implementation**
 
@@ -902,33 +904,29 @@ Implement secure user authentication and workspace creation functionality.
 - Workspace creation and configuration
 - Role-based access control (admin, agent, viewer)
 - WhatsApp channel integration
-- Multi-factor authentication for enhanced security
 
 **Deliverables**:
 - Secure authentication API endpoints
 - User dashboard for workspace management
 - WhatsApp connectivity configuration interface
-- Role permission management system
 
 ### **Task 2: Product & Category Management**
 
 **Description**:  
-Create a comprehensive product catalog system with categories and variants.
+Create a comprehensive product catalog system with categories.
 
 **Key Features**:
 - Full CRUD operations for products and categories
 - Hierarchical category organization
-- Product variant management (size, color, etc.)
 - Multi-image support for product displays
-- Inventory and stock management
-- Bulk import/export capabilities
+- Inventory management
+- Product search functionality
 
 **Deliverables**:
 - Product management dashboard
-- Category tree editor
-- Image upload and optimization system
+- Category management interface
+- Image upload system
 - Inventory tracking interface
-- Product search and filtering functionality
 
 ### **Task 3: AI Agent Configuration**
 
@@ -936,18 +934,16 @@ Create a comprehensive product catalog system with categories and variants.
 Develop a system for configuring and fine-tuning AI agents for customer interactions.
 
 **Key Features**:
-- Customizable AI parameters (temperature, tokens, etc.)
-- Prompt template creation and management
-- Conversation context handling
-- Multi-language support (Italian, English, Spanish)
-- Conversation analytics and performance metrics
+- Customizable AI parameters (temperature, top_p, top_k, max_tokens)
+- Agent creation and management
+- Multi-language support
+- Different agent types (router, department-specific)
 
 **Deliverables**:
 - Agent configuration interface
-- Prompt template editor with variables
-- Testing console for prompt evaluation
-- Conversation performance dashboard
-- Parameter adjustment controls with guidance
+- Agent creation and editing functionality
+- Parameter adjustment controls
+- Agent listing and management dashboard
 
 ---
 
