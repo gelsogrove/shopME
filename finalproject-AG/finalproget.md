@@ -209,7 +209,6 @@ The project is organized with separate backend and frontend folders:
   /tests
     /unit                  # Unit tests
     /integration           # Integration tests
-    /e2e                   # End-to-end tests
   /prisma                  # Prisma schema and migrations
   /scripts                 # Build and deployment scripts
 ```
@@ -294,7 +293,6 @@ The testing strategy for ShopMe is currently in development (Work In Progress) a
 
 1. **Unit Tests**: Testing individual components and functions in isolation
 2. **Integration Tests**: Verifying interactions between different components and services
-3. **End-to-End Tests**: Using Cypress to simulate real user interactions and validate complete workflows
 
 Each test type will be implemented to ensure code quality, reliability, and to prevent regressions during development.
 
@@ -478,10 +476,8 @@ Below are three of the most important endpoints of the ShopMe platform:
 - `workspaceId`: Workspace ID (required)
 - `channel`: Message channel type (required)
 - `messageId`: Unique message identifier
-
-
-**Response**:
-- AI response from the Openrouter model
+- `debug`: Enable debug mode
+- `token`: Authentication token (required)
 
 **Status Codes**:
 - `200 OK`: Message received and processed successfully
@@ -501,9 +497,7 @@ Below are three of the most important endpoints of the ShopMe platform:
 - `workspaceId`: Workspace ID (required)
 - `limit`: Maximum number of messages (default: 50)
 - `before`: Timestamp for pagination
-
-**Response**:
-- List of chats 
+- `token`: Authentication token (required)
 
 **Status Codes**:
 - `200 OK`: History retrieved successfully
@@ -521,12 +515,9 @@ Below are three of the most important endpoints of the ShopMe platform:
 
 **Query Parameters**:
 - `workspaceId`: Workspace ID (required)
-- `agentId`: Agent ID (required)
-- `prompt`: 
-- `model`: 
-- `max_token`: 
-- `top_p`
-- `top_k`  
+- `prompt`: Base prompt template
+- `max_token`: Response length limit
+- `token`: Authentication token (required)
 
 **Status Codes**:
 - `200 OK`: Settings updated successfully

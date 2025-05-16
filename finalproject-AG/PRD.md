@@ -780,6 +780,42 @@ All plans include:
 - Regular platform updates
 - Knowledge base access
 
+### AI Configuration Options
+
+Under each plan, businesses can customize their AI agent with the following parameters:
+
+| Parameter | Description | Default Value | Available Options |
+|-----------|-------------|--------------|-------------------|
+| **Model Selection** | AI model used for responses | GPT-3.5-turbo | GPT-4, Claude, Mistral, Llama |
+| **Temperature** | Response creativity level | 0.7 | 0.1-1.0 in 0.1 increments |
+| **Max Tokens** | Maximum response length | 250 | 50-1000 |
+| **Top-P** | Nucleus sampling threshold | 0.95 | 0.5-1.0 |
+| **Top-K** | Number of highest probability tokens to consider | 40 | 10-100 |
+| **System Prompt** | Base instructions for AI | Basic retail template | Custom templates available |
+| **Memory Context** | Number of previous messages to include | 10 | 1-20 |
+| **Response Speed** | Balance between quality and speed | Balanced | Fast, Balanced, Quality |
+
+Professional and Enterprise plans allow for A/B testing of different AI configurations and provide tools to analyze which settings deliver the best customer experience and conversion rates.
+
+### 1. Basic Monitoring (Included)
+- Standard usage metrics
+- Basic incident reporting
+- Daily status reports
+- Error logging
+- Performance alerts
+- Monthly summary reports
+- Online support portal
+
+### 2. Advanced Monitoring (Premium)
+- Real-time dashboard
+- Custom alert thresholds
+- 24/7 incident response
+- Detailed performance analytics
+- SLA guarantees
+- Weekly executive reports
+- Dedicated support manager
+
+### 3. Enterprise Monitoring (Enterprise)
 - High-availability monitoring
 - Custom metrics integration
 - Priority incident response
@@ -805,7 +841,7 @@ The following features are currently marked as "Work in Progress" and are outsid
 - Shipping integration and tracking
 - Returns and refund processing
 
-### Dashboard
+### Analytics
 - Real-time analytics dashboard
 - Custom report generation
 - Data visualization tools
