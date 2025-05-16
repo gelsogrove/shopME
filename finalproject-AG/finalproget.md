@@ -186,25 +186,12 @@ The system uses JWT (JSON Web Token) for authentication:
 
 ### **2.5.2 AI Parameters**
 
-The system allows customizing AI behavior with these parameters:
-
-1. **content**: Base prompt that guides the AI's responses.
-
-2. **max_tokens**: Controls response length.
-   - Lower values: Short responses
-   - Higher values: Detailed answers
-   
-3. **temperature**: Controls randomness (0.0 to 1.0).
-   - Low: Consistent, focused responses
-   - High: More creative, varied responses
-   
-4. **top_p**: Controls response diversity.
-   - Lower values: Focus on likely responses
-   - Higher values: Consider more possibilities
-   
-5. **top_k**: Restricts token selection.
-   - Lower values: Common word choices
-   - Higher values: More varied vocabulary
+- **content**: Base instructions that guide the AI's behavior
+- **max_tokens**: Controls response length (500-1000 for detailed answers)
+- **temperature**: Randomness control (0-1); lower = more focused
+- **top_p**: Response diversity; higher values consider more options
+- **top_k**: Token selection restriction; affects vocabulary variety
+- **model**: AI model selection (e.g., GPT-4.1-mini)
 
 ---
 
@@ -407,7 +394,7 @@ erDiagram
 - **Products**: Items available for sale
 - **Customers**: End users who interact through WhatsApp 
 - **Orders**: Purchase records with items and payment status
-- **Prompts**: AI configurations including instruction templates and parameters
+- **Prompts**: AI agent configurations with model settings and parameters
 - **Offers**: Time-limited discounts and promotions
 - **ChatSession**: Conversation contexts between customers and the system
 - **Message**: Individual messages within conversations
@@ -479,17 +466,20 @@ Below are the most important endpoints of the ShopMe platform:
 **I want** to log in and create my sales channel,  
 **So that** I can connect with customers.
 
-**Key features:**
-1. Registration and login with email and password
-2. Create workspace with business information
-3. Connect WhatsApp number
-4. Configure welcome messages
-5. Invite team members with different roles
+**Acceptance criteria:**
+1. Successful registration with email validation
+2. Secure login with password protection
+3. Workspace creation with unique identifiers
+4. WhatsApp number connection and verification
+5. Team member invitation with appropriate role assignments
 
 **Technical aspects:**
-- JWT authentication
+- JWT authentication with expiry mechanism
 - Role-based access control
 - Secure password handling
+
+**Complexity**: Medium
+**Estimate**: 8 story points
 
 ### **User Story 2: Product Management**
 
@@ -497,16 +487,20 @@ Below are the most important endpoints of the ShopMe platform:
 **I want** to manage my product catalog,  
 **So that** I can showcase products to customers.
 
-**Key features:**
-1. Add products with details and images
-2. Organize products into categories
-3. Update inventory levels
-4. Activate/deactivate products
+**Acceptance criteria:**
+1. Products can be created with all required fields
+2. Products can be edited and deleted when needed
+3. Categories system organizes products effectively
+4. Images can be uploaded and associated with products
+5. Inventory levels are tracked and displayed correctly
 
 **Technical aspects:**
-- Image handling
-- Database optimization for searches
-- Inventory tracking
+- Image handling and optimization
+- Database queries optimization
+- Inventory tracking logic
+
+**Complexity**: Medium
+**Estimate**: 8 story points
 
 ### **User Story 3: AI Agent Configuration**
 
@@ -514,16 +508,20 @@ Below are the most important endpoints of the ShopMe platform:
 **I want** to configure AI behavior,  
 **So that** automated responses match my business needs.
 
-**Key features:**
-1. Create and edit AI prompts
-2. Adjust AI parameters (temperature, max tokens)
-3. Set up specialized agents for different tasks
-4. Monitor conversation quality
+**Acceptance criteria:**
+1. AI parameters can be adjusted (temperature, tokens, etc.)
+2. Different agent types can be created (router, department)
+3. Changes to AI configuration immediately affect responses
+4. Multiple languages are supported in configurations
+5. Configuration history is maintained
 
 **Technical aspects:**
-- Integration with language models
-- Context management for conversations
-- Parameter tuning interface
+- Language model integration
+- Parameter validation and limits
+- Configuration persistence
+
+**Complexity**: High
+**Estimate**: 10 story points
 
 ---
 
@@ -544,10 +542,17 @@ Create a secure authentication system with user and workspace management.
 5. WhatsApp connection setup
 
 **Acceptance criteria**:
-- Users can register and log in securely
-- Workspaces are properly isolated
-- Role permissions are enforced
-- WhatsApp connection works correctly
+- Users can register with valid email and password
+- JWT tokens are issued with appropriate expiration
+- Users can log in with valid credentials
+- Refresh tokens extend sessions securely
+- Workspaces are isolated with proper access controls
+- Role permissions are correctly enforced
+- WhatsApp connection process completes successfully
+
+**Complexity**: Medium  
+**Estimate**: 8 story points (approx. 5 days)  
+**Priority**: Critical
 
 ### **Ticket 2: Product Management**
 
@@ -564,10 +569,17 @@ Create product catalog management with categories and inventory.
 5. Search functionality
 
 **Acceptance criteria**:
-- Products can be created, updated, and deleted
-- Categories organize products effectively
-- Images are properly handled
-- Inventory is tracked accurately
+- CRUD operations work for products and categories
+- Images can be uploaded, stored, and retrieved
+- Categories organize products in logical structure
+- Inventory is accurately tracked with updates
+- Search returns relevant products efficiently
+- Data validation prevents invalid entries
+- UI components render product information correctly
+
+**Complexity**: Medium  
+**Estimate**: 10 story points (approx. 7 days)  
+**Priority**: High
 
 ### **Ticket 3: Agent Configuration**
 
@@ -584,10 +596,18 @@ Build a system for configuring AI agents for customer interactions.
 5. Configuration testing system
 
 **Acceptance criteria**:
-- Businesses can create and edit AI configurations
-- Parameters can be adjusted for different scenarios
-- AI responds according to configuration settings
-- Multiple languages are supported
+- AI parameters can be saved and retrieved
+- Interface allows adjustment of all key parameters
+- Model selection works with available options
+- Department-specific agents can be created
+- Router configuration directs to appropriate agents
+- Changes apply immediately to new conversations
+- Multi-language support works correctly
+- Error handling prevents invalid configurations
+
+**Complexity**: High  
+**Estimate**: 13 story points (approx. 8 days)  
+**Priority**: High
 
 ---
 

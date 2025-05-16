@@ -241,13 +241,6 @@ La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo
 - Fallback response management
 - Custom function configuration
 
-### Workspaces and Multi-tenant Architecture
-- Secure business isolation
-- Customizable branding per workspace
-- Role-based access control
-- Resource allocation management
-- Analytics segmentation by workspace
-
 ## TECHNICAL ARCHITECTURE
 
 ### Architecture Diagram
@@ -302,7 +295,7 @@ flowchart TB
 
 ### Frontend Architecture
 
-The ShopMe frontend is built with a modern React architecture that maximizes performance, maintainability, and user experience:
+The ShopMe frontend is built with a modern React architecture:
 
 - **Core Technologies**:
   - React 18+ with functional components and hooks
@@ -317,7 +310,6 @@ The ShopMe frontend is built with a modern React architecture that maximizes per
   - Context API for state management
   - React Query for data fetching and caching
   - Form handling with React Hook Form
-  - Client-side validation with Yup/Zod
 
 - **User Interface Features**:
   - Dark/light mode support
@@ -327,16 +319,9 @@ The ShopMe frontend is built with a modern React architecture that maximizes per
   - Custom animations and transitions
   - Interactive data visualizations
 
-- **Build and Optimization**:
-  - Module bundling with Webpack
-  - Code splitting for optimized loading
-  - Static analysis and linting
-  - Automated testing with Jest and React Testing Library
-  - Storybook for component documentation
+### Backend Architecture
 
-### Backend and Domain-Driven Design Architecture
-
-The backend is structured around DDD principles with a clear separation of concerns:
+The backend follows a Domain-Driven Design (DDD) architecture:
 
 - **Core Technologies**:
   - Node.js with Express framework
@@ -344,13 +329,6 @@ The backend is structured around DDD principles with a clear separation of conce
   - Prisma ORM for database access
   - PostgreSQL for data persistence
   - Redis for caching and session management
-
-- **API Design**:
-  - REST API with standardized endpoints
-  - GraphQL support for complex data requirements
-  - API versioning strategy
-  - OpenAPI/Swagger documentation
-  - Rate limiting and request throttling
 
 - **Layer Separation**:
   - **Domain Layer**: Core business entities and rules
@@ -364,11 +342,13 @@ The backend is structured around DDD principles with a clear separation of conce
   - Repository pattern for data access
   - Dependency inversion principle
 
-- **Data Flows**:
-  - External requests enter through Interfaces layer
-  - Controllers delegate to Application services
-  - Application services orchestrate Domain entities
-  - Infrastructure layer handles persistence and external communications
+- **Backend Services**:
+  - Authentication service with JWT
+  - Media handling and storage service
+  - Notification service
+  - Analytics service
+  - External integrations service (WhatsApp, payment providers)
+  - Background job processing
 
 ### Database and Prisma ORM
 
@@ -376,11 +356,6 @@ The backend is structured around DDD principles with a clear separation of conce
 - **ORM**: Prisma for type-safe database access
 - **Migrations**: Prisma Migration for version control
 - **Backup Strategy**: Automated daily backups with point-in-time recovery
-- **Data Seeding**:
-  - Development environment seeding for testing
-  - Sample data generation for demo workspaces
-  - Multi-tenant seed data with workspace isolation
-  - Customizable seed data volume
 
 ### AI and Function Call Documentation
 
@@ -424,303 +399,156 @@ The system implements several AI function calls to handle specific operations:
 
 Our system uses JWT (JSON Web Token) authentication to keep user accounts secure:
 
-#### Token Types and Security Features
+- **Token Types**:
+  - Access Token (1 hour validity, HTTP-only cookie)
+  - Refresh Token (7 days validity, HTTP-only cookie)
 
-| Token Type | Duration | Storage | Purpose |
-|------------|----------|---------|---------|
-| Access Token | 1 hour | HTTP-only cookie | Authorizes API calls |
-| Refresh Token | 7 days | HTTP-only cookie | Gets new access tokens |
+- **Security Measures**:
+  - Regular secret key rotation
+  - HS256 algorithm for token signing
+  - Minimal payload information
+  - HTTP header validation
+  - Rate limiting on auth endpoints
 
-#### How Our System Protects Your Account
-
-- Secret key rotation for enhanced security
-- HS256 algorithm for token signing and verification
-- Minimal payload information for better security
-- HTTP header validation for token sources
-- Rate limiting on authentication endpoints
-
-#### Permission System
-
-| Role | Access Level | Example Permissions |
-|------|--------------|---------------------|
-| Admin | Full access | Manage all workspaces, users, and settings |
-| Manager | Workspace management | Manage products, orders, and team members |
-| Agent | Customer service | Handle customer chats and process orders |
-
-#### Secure Operations with Temporary Links
-
-For sensitive operations like payments, we create secure, time-limited links with encrypted information about the operation type, resources involved, and expiration time.
+- **Role-Based Access Control**:
+  - Admin: Full system access
+  - Manager: Workspace management capabilities
+  - Agent: Customer service operations
+  - Workspace-scoped permissions
 
 ### API Rate Limiting Implementation
 
 We protect all API endpoints with smart rate limiting:
 
-| Feature | Description | Benefit |
-|---------|-------------|---------|
-| **User Limits** | 30 requests per minute per user | Prevents any single user from overloading the system |
-| **Workspace Quotas** | Customizable daily limits per business | Allows businesses to manage their API usage |
-| **Smart Throttling** | Different limits for different endpoints | Prioritizes critical operations over less important ones |
+- 30 requests per minute per user
+- Customizable daily limits per workspace
+- Different limits for different endpoint priorities
+- Response headers with limit information
+- Graceful handling of rate limit exceeded scenarios
 
-Our API includes helpful response headers about usage limits and provides clear feedback when limits are reached.
+### API Endpoints
+
+Key API groups include:
+
+- **Authentication**: Login, logout, token refresh
+- **Products Management**: CRUD operations for products and variants
+- **Categories Management**: Hierarchical category structure
+- **Customer Management**: User profiles and preferences
+- **Offers Management**: Promotions, discounts, and special deals
+- **Agent Settings**: AI behavior configuration
+- **Channel Settings**: WhatsApp integration configuration
 
 ### Project Folder Structure
 
-#### Backend Structure
-
-```
-/backend
-  /src
-    /domain                # Core business logic
-      /entities            # Business models
-      /repositories        # Data access interfaces
-      /value-objects       # Immutable value objects
-    /application           # Application logic
-      /services            # Business orchestration
-      /use-cases           # Specific features
-      /dto                 # Data transfer objects
-    /infrastructure        # Technical implementations
-      /repositories        # Database access
-      /persistence         # ORM configurations
-      /external-services   # 3rd party integrations
-    /interfaces            # External interfaces
-      /http
-        /controllers       # Request handlers
-        /routes            # API routes
-      /websockets          # WebSocket handlers
-    /config                # Configuration settings
-    /utils                 # Utility functions
-  /tests
-    /unit                  # Unit tests
-    /integration           # Integration tests
-    /e2e                   # End-to-end tests
-  /prisma                  # Prisma schema and migrations
-  /scripts                 # Build and deployment scripts
-```
-
-#### Frontend Structure
-
-```
-/frontend
-  /src
-    /components
-      /shared              # Reusable components
-      /layout              # Layout components
-      /forms               # Form components
-      /ui                  # UI primitives
-    /hooks                 # Custom React hooks
-    /pages                 # Page components
-    /contexts              # React contexts
-    /services              # API services
-    /utils                 # Utility functions
-    /types                 # TypeScript type definitions
-    /styles                # Global styles
-    /assets                # Images, fonts, etc.
-  /public                  # Static assets
-  /tests                   # Frontend tests
-```
+Clean organization following DDD principles with clear separation of:
+- Domain layer (core business entities)
+- Application layer (use cases)
+- Infrastructure layer (external implementations)
+- Interface layer (API endpoints)
 
 ### AI Configuration Options
 
-Under each plan, businesses can customize their AI agent with the following parameters:
-
-| Parameter | Description | Default Value | Available Options |
-|-----------|-------------|--------------|-------------------|
-| **Model Selection** | AI model used for responses | GPT-3.5-turbo | GPT-4, Claude, Mistral, Llama |
-| **Temperature** | Response creativity level | 0.7 | 0.1-1.0 in 0.1 increments |
-| **Max Tokens** | Maximum response length | 250 | 50-1000 |
-| **Top-P** | Nucleus sampling threshold | 0.95 | 0.5-1.0 |
-| **Top-K** | Number of highest probability tokens to consider | 40 | 10-100 |
-| **System Prompt** | Base instructions for AI | Basic retail template | Custom templates available |
-| **Memory Context** | Number of previous messages to include | 10 | 1-20 |
-| **Response Speed** | Balance between quality and speed | Balanced | Fast, Balanced, Quality |
+Customizable AI parameters:
+- Model selection (GPT-3.5-turbo, GPT-4, Claude, etc.)
+- Temperature (0.1-1.0)
+- Response length limits
+- Memory context size
+- System prompts and instructions
+- Response style and tone
 
 ### Security Implementation (OWASP)
 
-The platform is developed following OWASP security best practices:
-
-- Regular automated security scans
-- Input validation on all endpoints
-- Protection against XSS, CSRF, and SQL injection attacks
+The platform follows OWASP security guidelines:
+- Input validation and sanitization
+- Protection against XSS, CSRF, SQLi
 - Secure authentication and authorization
-- Sensitive data encryption
-- Regular security audits and penetration testing
-- Security headers implementation
+- Data encryption in transit and at rest
+- Regular security audits
 
 ### Testing Strategy
 
-- **Unit tests** for domain logic and components
-- **Integration tests** for application services
-- **End-to-end tests** for API endpoints and user flows
-- **Performance tests** for critical operations
-- **Security tests** for vulnerability detection
-- **Automated CI/CD** testing pipeline
-- **Snapshot testing** for UI components
-
-### Additional Technical Considerations
-
-- **Error Handling**:
-  - Centralized error handling middleware
-  - Standardized API error responses
-  - Custom error classes for domain-specific errors
-  - Client-friendly error messages with internal logging
-
-- **Logging**:
-  - Structured logging with Winston
-  - Log levels (debug, info, warn, error)
-  - Request ID tracking across services
-  - Redaction of sensitive information
-
-- **Performance Optimization**:
-  - Response caching strategies
-  - Database query optimization
-  - Connection pooling
-  - Asset compression and delivery
-
-- **Deployment Pipeline**:
-  - CI/CD integration with GitHub Actions
-  - Automated testing before deployment
-  - Staged deployment environments
-  - Blue-green deployment for zero downtime
-  - Rollback capabilities for failed deployments
-
-### Data Model
-
-[MERMAID DIAGRAM OF PRIMARY DATABASE TABLES]
+Comprehensive testing approach:
+- Unit tests for domain logic
+- Integration tests for services
+- End-to-end tests for key flows
+- Performance and load testing
+- Security and penetration testing
 
 ## SUBSCRIPTION PLANS
 
 ### Subscription Plans & Pricing
 
 #### 1. Basic Plan (€49/month)
-- **Features**:
-  - Single WhatsApp number connection
-  - Up to 1,000 AI-powered messages/month
-  - Maximum 5 products/services
-  - Standard response time (24h)
-  - Basic analytics dashboard
-  - Email support
-- **Best For**: Small businesses just starting with conversational commerce
+- Single WhatsApp number connection
+- Up to 1,000 AI-powered messages/month
+- Maximum 5 products/services
+- Standard response time (24h)
+- Basic analytics dashboard
+- Email support
 
 #### 2. Professional Plan (€149/month)
-- **Features**:
-  - Up to 3 WhatsApp number connections
-  - Up to 5,000 AI-powered messages/month
-  - Maximum 100 products/services
-  - Priority response time (12h)
-  - Advanced analytics and reporting
-  - Phone and email support
-  - Custom AI training
-- **Best For**: Growing businesses with established product catalogs
+- Up to 3 WhatsApp number connections
+- Up to 5,000 AI-powered messages/month
+- Maximum 100 products/services
+- Priority response time (12h)
+- Advanced analytics and reporting
+- Phone and email support
+- Custom AI training
 
 #### 3. Enterprise Plan (Custom pricing)
-- **Features**:
-  - Unlimited WhatsApp number connections
-  - Custom AI message volume
-  - Unlimited products/services
-  - Dedicated response team (4h SLA)
-  - Full API access
-  - White-label options
-  - Dedicated account manager
-  - Custom integrations
-  - On-premises deployment option
-- **Best For**: Large organizations with complex needs and high volume requirements
-
-All plans include:
-- GDPR compliance tools
-- Security monitoring
-- Regular platform updates
-- Knowledge base access
-
-### Monitoring Options
-
-#### 1. Basic Monitoring (Included)
-- Standard usage metrics
-- Basic incident reporting
-- Daily status reports
-- Error logging
-- Performance alerts
-- Monthly summary reports
-- Online support portal
-
-#### 2. Advanced Monitoring (Premium)
-- Real-time dashboard
-- Custom alert thresholds
-- 24/7 incident response
-- Detailed performance analytics
-- SLA guarantees
-- Weekly executive reports
-- Dedicated support manager
-
-#### 3. Enterprise Monitoring (Enterprise)
-- High-availability monitoring
-- Custom metrics integration
-- Priority incident response
-- Comprehensive security monitoring
-- Advanced threat detection
-- Custom metrics and KPIs
-- Business impact analysis
-- 24/7 monitoring team
-- Monthly executive reports
-- Predictive analytics for resource planning
+- Unlimited WhatsApp number connections
+- Custom AI message volume
+- Unlimited products/services
+- Dedicated response team (4h SLA)
+- Full API access
+- White-label options
+- Dedicated account manager
+- Custom integrations
+- On-premises deployment option
 
 ## DEVELOPMENT ROADMAP
 
 ### Phase 1: Core Data Management (Months 1-2)
-- Complete CRUD functionality for all core entities:
-  - Products and services catalog
-  - Categories and subcategories
-  - Languages and localization
-  - AI agents configuration
-  - Offers and promotions
-  - Chat history and logs
-  - GDPR compliance tools
+- Complete CRUD functionality for all core entities
 - Multi-tenant workspace architecture
 - User role management and permissions
 - Basic admin interface
 
 ### Phase 2: Communication Platform (Months 3-4)
-- WhatsApp API integration and playground
-- Chat flow builder and conversation design tools
-- Administrative dashboard with basic analytics
-- Customer survey and feedback system
-- Conversation templates library
-- Conversation testing environment
-- Basic RAG implementation for knowledge retrieval
-- AI model selection and configuration
+- WhatsApp API integration
+- Chat flow builder
+- Administrative dashboard
+- Customer survey tools
+- Conversation templates
+- Basic RAG implementation
 
 ### Phase 3: Monetization & Notifications (Months 5-6)
 - Payment gateway integration
 - Invoice generation system
 - Push notification infrastructure
-- Notification templates and scheduling
-- Initial deployment with limited customer base
-- Beta testing program with select businesses
+- Beta testing program
 - Performance optimization
 - Security hardening
 
 ### Phase 4: Marketing & MMP Enhancements (Months 7-8)
 - Marketing automation tools
-- Enhanced analytics dashboard
-- Customer segmentation capabilities
+- Enhanced analytics
+- Customer segmentation
 - Campaign management tools
-- Minimum Marketable Product (MMP) feature set
 - Enhanced AI capabilities
-- Initial vertical market adaptations
-- Integration marketplace
+- Vertical market adaptations
 
 ### Phase 5: Full Deployment & Quality Assurance (Months 9-10)
-- Comprehensive end-to-end testing
+- Comprehensive testing
 - Performance benchmarking
-- Security audits and penetration testing
-- Scalability improvements
+- Security audits
 - Documentation completion
 - Support system implementation
-- Staff training programs
 - Full public launch
 
 ## OUT OF SCOPE FEATURES (MVP)
 
-The following features are currently marked as "Work in Progress" and are outside the scope of the initial MVP release:
+The following features are outside the scope of the initial MVP release:
 
 ### Orders Management
 - Order processing and tracking
@@ -752,7 +580,7 @@ The following features are currently marked as "Work in Progress" and are outsid
 
 ## MINIMUM MARKETABLE PRODUCT (MMP)
 
-The following features are planned for the MMP phase, after the initial MVP release:
+Features planned for the MMP phase, after the initial MVP release:
 
 ### Enhanced Orders Management
 - Complete order lifecycle management
