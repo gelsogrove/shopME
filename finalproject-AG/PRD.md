@@ -1,77 +1,85 @@
 # ShopMe - WhatsApp E-commerce Platform PRD
 
-## Table of Contents
-- [Introduction](#introduction)
-  - [Short Description](#short-description)
-  - [Key Advantages](#key-advantages)
-  - [Push Notifications](#push-notifications)
-- [Key Differentiators and Unique Selling Points](#key-differentiators-and-unique-selling-points)
-  - [Unified Commerce and Customer Care Platform](#unified-commerce-and-customer-care-platform)
-- [Core Functionality](#core-functionality)
-  - [Multi-tenant Business Platform](#1-multi-tenant-business-platform-priority-must-have)
-  - [Products Management](#2-products-management-priority-must-have)
-  - [Categories Management](#3-categories-management-priority-must-have)
-  - [Offers Management](#4-offers-management-priority-should-have)
-  - [Settings Management](#5-settings-management-priority-must-have)
-  - [WhatsApp AI Integration](#6-whatsapp-ai-integration-priority-must-have)
-  - [GDPR Compliance](#7-gdpr-compliance-priority-must-have)
-- [Out of Scope Features](#out-of-scope-features-wip)
-  - [Orders Management](#orders-management)
-  - [Analytics](#analytics)
-  - [Advanced Push Notifications](#advanced-push-notifications)
-  - [Payment Integration](#payment-integration)
-- [Minimum Marketable Product](#minimum-marketable-product-mmp)
-  - [Enhanced Orders Management](#enhanced-orders-management)
-  - [Advanced Analytics Dashboard](#advanced-analytics-dashboard)
-  - [Full Payment Integration](#full-payment-integration)
-  - [Multi-Agent Collaboration](#multi-agent-collaboration)
-  - [Enhanced AI Capabilities](#enhanced-ai-capabilities)
-  - [Function Call Documentation](#function-call-documentation)
-- [Monitoring Plans](#monitoring-plans)
-  - [Basic Monitoring](#1-basic-monitoring-included)
-  - [Advanced Monitoring](#2-advanced-monitoring-premium)
-  - [Enterprise Monitoring](#3-enterprise-monitoring-enterprise)
-- [Development Roadmap](#development-roadmap)
-- [Technical Architecture](#technical-architecture)
-- [Conversation Examples](#conversation-examples)
-  - [Product Discovery and Purchase](#product-discovery-and-purchase)
-  - [Order Status and Invoice Request](#order-status-and-invoice-request)
-  - [Multi-language Support Example](#multi-language-support-example)
-- [Vertical Market Adaptability](#vertical-market-adaptability)
-  - [Implementation Requirements](#implementation-requirements)
-- [API Endpoints](#api-endpoints)
-  - [API Rate Limiting Implementation](#api-rate-limiting-implementation)
-  - [Authentication](#authentication)
-  - [Workspace Management](#workspace-management)
-  - [Product Management](#product-management)
-  - [Category Management](#category-management)
-  - [Prompt Management](#prompt-management)
-  - [WhatsApp Integration](#whatsapp-integration)
-  - [Chat Management](#chat-management)
-  - [Customer Management](#customer-management)
-  - [Service Management](#service-management)
-- [Data Model](#data-model)
-- [Security](#security)
-  - [Anti-Abuse System](#anti-abuse-system)
-  - [Rate Limiting Controls](#rate-limiting-controls)
-  - [Data Encryption](#data-encryption)
-  - [Secure Data Handling with Tokenization](#secure-data-handling-with-tokenization)
-  - [Secure Data Processing Workflow](#secure-data-processing-workflow)
-- [Compliance and Privacy](#compliance-and-privacy)
-  - [GDPR Compliance](#gdpr-compliance)
-  - [User Preference and Account Deletion](#user-preference-and-account-deletion)
-- [Competitive Analysis](#competitive-analysis)
-  - [Market Overview](#market-overview)
-  - [Direct Competitor Comparison](#direct-competitor-comparison)
-  - [Key Differentiators](#key-differentiators)
-  - [Market Gap Addressed](#market-gap-addressed)
-  - [Supporting Industry Trends](#supporting-industry-trends)
-  - [Customer Registration Flow](#customer-registration-flow)
+## Contents
+- [About ShopMe](#introduction)
+  - [What is ShopMe](#short-description)
+  - [Main Benefits](#key-advantages)
+  - [Customer Notifications](#push-notifications)
+  - [Business Tools](#dashboard-and-surveys)
+- [Why Choose ShopMe](#key-differentiators-and-unique-selling-points)
+  - [All-in-One Platform](#unified-commerce-and-customer-care-platform)
+- [Main Features](#core-functionality)
+  - [Multi-Business Support](#1-multi-tenant-business-platform-priority-must-have)
+  - [Product Management](#2-products-management-priority-must-have)
+  - [Category Organization](#3-categories-management-priority-must-have)
+  - [Special Offers](#4-offers-management-priority-should-have)
+  - [System Settings](#5-settings-management-priority-must-have)
+  - [WhatsApp & AI](#6-whatsapp-ai-integration-priority-must-have)
+    - [Data Protection](#7-gdpr-compliance-priority-must-have)
+    - [WhatsApp Setup](#whatsapp-business-api-integration)
+- [Future Features](#out-of-scope-features-wip)
+  - [Order Processing](#orders-management)
+  - [Business Insights](#analytics)
+  - [Advanced Notifications](#advanced-push-notifications)
+  - [Payment Options](#payment-integration)
+- [Coming Soon](#minimum-marketable-product-mmp)
+  - [Better Order Management](#enhanced-orders-management)
+  - [Advanced Business Reports](#advanced-analytics-dashboard)
+  - [Complete Payment System](#full-payment-integration)
+  - [Team Support](#multi-agent-collaboration)
+  - [Smarter AI](#enhanced-ai-capabilities)
+  - [System Functions](#function-call-documentation)
+- [Support Plans](#monitoring-plans)
+  - [Pricing Options](#subscription-plans--pricing)
+  - [AI Configuration](#ai-configuration-options)
+  - [Basic Support](#1-basic-monitoring-included)
+  - [Premium Support](#2-advanced-monitoring-premium)
+  - [Enterprise Support](#3-enterprise-monitoring-enterprise)
+- [Development Timeline](#development-roadmap)
+- [How It Works](#technical-architecture)
+- [Example Conversations](#ejemplos-de-conversación)
+  - [User Registration](#registro-de-nuevo-usuario)
+  - [Product Discovery](#descubrimiento-y-compra-de-productos)
+  - [Invoice Requests](#solicitud-de-factura)
+  - [Order Tracking](#estado-del-pedido-y-seguimiento)
+- [Industry Solutions](#vertical-market-adaptability)
+  - [Setup Requirements](#implementation-requirements)
+- [System Connections](#api-endpoints)
+  - [Access Limits](#api-rate-limiting-implementation)
+  - [Login System](#authentication)
+  - [Business Areas](#workspace-management)
+  - [Product Tools](#product-management)
+  - [Category Tools](#category-management)
+  - [Customer Tools](#customer-management)
+  - [Promotion Tools](#offers-management)
+  - [AI Settings](#prompt-management)
+  - [WhatsApp Setup](#whatsapp-business-api-integration)
+  - [Chat Tools](#chat-management)
+  - [Service Tools](#service-management)
+- [Data Structure](#data-model)
+- [Security Features](#security)
+  - [Preventing Misuse](#anti-abuse-system)
+  - [Access Control](#rate-limiting-controls)
+  - [Data Protection](#data-encryption)
+  - [Secure Customer Data](#secure-data-handling-with-tokenization)
+  - [Safe Data Handling](#secure-data-processing-workflow)
+- [Privacy Compliance](#compliance-and-privacy)
+  - [Data Protection Laws](#gdpr-compliance)
+  - [Customer Privacy Options](#user-preference-and-account-deletion)
+- [Market Analysis](#competitive-analysis)
+  - [Industry Overview](#market-overview)
+  - [Competitor Comparison](#direct-competitor-comparison)
+  - [Our Advantages](#key-differentiators)
+  - [Market Needs](#market-gap-addressed)
+  - [Industry Trends](#supporting-industry-trends)
+  - [Customer Sign-Up](#customer-registration-flow)
 
 ## INTRODUCTION
 
 ### Short Description
-ShopMe transforms e-commerce by integrating shopping experiences directly into WhatsApp. Customers can browse products, receive personalized recommendations, and complete purchases through natural conversations, without needing to navigate websites or download apps. Our AI-powered platform delivers 24/7 customer service with remarkably human-like interactions.
+ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that turns WhatsApp into a complete sales channel. Cutomers can create smart chatbots, manage products, receive orders, and send invoices to theri clients without any technical skills. Our AI technology automates customer-care responses, manages push notifications, and offers a 24/7 conversational shopping experience, all directly in the world's most popular messaging app.
+
+All sensitive operations are handled securely through temporary links with security tokens. These links direct customers to our secure website for registration forms, payments, invoices, and accessing personal data. This keeps all sensitive information outside of chat conversations, ensuring data protection while maintaining a smooth customer experience.
 
 ### Key Advantages
 - **24/7 Customer Service**: AI-powered chatbots provide immediate responses anytime, ensuring customer inquiries never go unanswered and sales opportunities are never missed
@@ -89,6 +97,24 @@ The platform includes a comprehensive push notification system that enables busi
 - Announce limited-time offers and discounts
 - Update customers on loyalty points, rewards, and milestones
 - Inform customers about upcoming events or new services
+
+### Dashboard & Surveys
+The platform features a comprehensive administrative dashboard that provides businesses with:
+- **Real-time Analytics**: Monitor conversations, sales performance, and customer engagement metrics
+- **Customer Management**: View and edit customer profiles, preferences, and interaction history
+- **Product Performance**: Track best-selling items, view inventory levels, and manage product listings
+- **Order Management**: Process orders, manage fulfillment, and track delivery status
+- **Integrated Surveys**: Create and distribute customer surveys directly via WhatsApp to collect feedback
+- **Custom Reports**: Generate bespoke reports on any aspect of business performance
+- **Conversation Insights**: Analyze common questions, sentiment trends, and AI performance metrics
+
+The survey functionality allows businesses to:
+- Design customized feedback forms with multiple question types
+- Schedule automated survey distribution based on purchase events or time intervals
+- Analyze responses with AI-powered sentiment analysis
+- Track Net Promoter Score (NPS) and customer satisfaction metrics over time
+- Automatically tag and categorize customer feedback for actionable insights
+- Create targeted marketing campaigns based on survey responses
 
 ## KEY DIFFERENTIATORS AND UNIQUE SELLING POINTS
 
@@ -254,8 +280,8 @@ flowchart TD
     
     CustomerCheck -->|Yes| ProcessMessage
     
-    ProcessMessage --> RAG[Retrieval Augmented Generation]
-    RAG --> LLM[Large Language Model]
+    ProcessMessage --> RAG[RAG]
+    RAG --> LLM[LLM]
     LLM --> FunctionCalls{Need Function Call?}
     
     FunctionCalls -->|Yes| CallFunction[Execute Function]
@@ -297,6 +323,31 @@ flowchart TD
   - Audit trail for compliance actions
 
 ### Meta WhatsApp Business API Integration
+
+#### WhatsApp Business Channel Setup
+- **Purpose**: Allow businesses to connect their own WhatsApp Business API accounts
+- **Setup Process**:
+  - OAuth-based authorization with Meta Business Manager
+  - WhatsApp Business Account verification guidance
+  - Phone number registration and approval workflow
+  - Webhook endpoint configuration
+  - Message template approval process
+- **Requirements**:
+  - Valid Meta Business Manager account
+  - Approved WhatsApp Business Account (WABA)
+  - Verified business identity
+  - Compliant privacy policy
+- **Technical Components**:
+  - API credentials management
+  - Secure token storage
+  - Connection health monitoring
+  - Automatic reconnection on failure
+  - Rate limit compliance enforcement
+- **Implementation Options**:
+  - Direct Meta API integration
+  - Third-party provider connection (Twilio, MessageBird, etc.)
+  - WhatsApp Cloud API connection
+  - On-premises deployment for enterprise clients
 
 ## OUT OF SCOPE FEATURES (WIP)
 
@@ -433,6 +484,65 @@ Additional function calls planned for the MMP phase:
 
 ## MONITORING PLANS
 
+### Subscription Plans & Pricing
+
+#### 1. Basic Plan (€49/month)
+- **Features**:
+  - Single WhatsApp number connection
+  - Up to 1,000 AI-powered messages/month
+  - Maximum 5 products/services
+  - Standard response time (24h)
+  - Basic analytics dashboard
+  - Email support
+- **Best For**: Small businesses just starting with conversational commerce
+
+#### 2. Professional Plan (€149/month)
+- **Features**:
+  - Up to 3 WhatsApp number connections
+  - Up to 5,000 AI-powered messages/month
+  - Maximum 100 products/services
+  - Priority response time (12h)
+  - Advanced analytics and reporting
+  - Phone and email support
+  - Custom AI training
+- **Best For**: Growing businesses with established product catalogs
+
+#### 3. Enterprise Plan (Custom pricing)
+- **Features**:
+  - Unlimited WhatsApp number connections
+  - Custom AI message volume
+  - Unlimited products/services
+  - Dedicated response team (4h SLA)
+  - Full API access
+  - White-label options
+  - Dedicated account manager
+  - Custom integrations
+  - On-premises deployment option
+- **Best For**: Large organizations with complex needs and high volume requirements
+
+All plans include:
+- GDPR compliance tools
+- Security monitoring
+- Regular platform updates
+- Knowledge base access
+
+### AI Configuration Options
+
+Under each plan, businesses can customize their AI agent with the following parameters:
+
+| Parameter | Description | Default Value | Available Options |
+|-----------|-------------|--------------|-------------------|
+| **Model Selection** | AI model used for responses | GPT-3.5-turbo | GPT-4, Claude, Mistral, Llama |
+| **Temperature** | Response creativity level | 0.7 | 0.1-1.0 in 0.1 increments |
+| **Max Tokens** | Maximum response length | 250 | 50-1000 |
+| **Top-P** | Nucleus sampling threshold | 0.95 | 0.5-1.0 |
+| **Top-K** | Number of highest probability tokens to consider | 40 | 10-100 |
+| **System Prompt** | Base instructions for AI | Basic retail template | Custom templates available |
+| **Memory Context** | Number of previous messages to include | 10 | 1-20 |
+| **Response Speed** | Balance between quality and speed | Balanced | Fast, Balanced, Quality |
+
+Professional and Enterprise plans allow for A/B testing of different AI configurations and provide tools to analyze which settings deliver the best customer experience and conversion rates.
+
 ### 1. Basic Monitoring (Included)
 - Standard usage metrics
 - Basic incident reporting
@@ -465,47 +575,58 @@ Additional function calls planned for the MMP phase:
 
 ## DEVELOPMENT ROADMAP
 
-### Phase 1: Core Platform (Months 1-2)
-- Multi-tenant workspace setup 
-- Basic WhatsApp integration
-- Customer management
-- Simple product catalog
-- Order processing MVP
-- Basic analytics dashboard
+### Phase 1: Core Data Management (Months 1-2)
+- Complete CRUD functionality for all core entities:
+  - Products and services catalog
+  - Categories and subcategories
+  - Languages and localization
+  - AI agents configuration
+  - Offers and promotions
+  - Chat history and logs
+  - GDPR compliance tools
+- Multi-tenant workspace architecture
+- User role management and permissions
+- Basic admin interface
 
-### Phase 2: Enhanced Commerce (Months 3-4)
-- Advanced product management
-- Cart abandonment recovery
-- Enhanced checkout process
-- Payment gateway integrations
-- Customer segmentation
-- Basic AI chat capabilities
-- Initial verticalization options
+### Phase 2: Communication Platform (Months 3-4)
+- WhatsApp API integration and playground
+- Chat flow builder and conversation design tools
+- Administrative dashboard with basic analytics
+- Customer survey and feedback system
+- Conversation templates library
+- Conversation testing environment
+- Basic RAG implementation for knowledge retrieval
+- AI model selection and configuration
 
-### Phase 3: AI and Personalization (Months 5-6)
-- Advanced AI conversation flows
-- Personalized recommendations
-- Full verticalization support
-- Advanced analytics
-- Campaign management
-- Integration marketplace
-- Mobile application
-
-### Phase 4: Ecosystem Expansion (Months 7-8)
-- Third-party integrations
-- API developer platform
-- Advanced verticalization options
-- Enterprise features
-- Self-service customization tools
+### Phase 3: Monetization & Notifications (Months 5-6)
+- Payment gateway integration
+- Invoice generation system
+- Push notification infrastructure
+- Notification templates and scheduling
+- Initial deployment with limited customer base
+- Beta testing program with select businesses
 - Performance optimization
+- Security hardening
 
-### Long-term Vision (Beyond Month 8)
-- Multi-channel expansion beyond WhatsApp
-- Predictive analytics for inventory and customer behavior
-- AR/VR shopping experiences
-- Voice commerce integration
-- International expansion support
-- Machine learning for automated optimization
+### Phase 4: Marketing & MMP Enhancements (Months 7-8)
+- Marketing automation tools
+- Enhanced analytics dashboard
+- Customer segmentation capabilities
+- Campaign management tools
+- Minimum Marketable Product (MMP) feature set
+- Enhanced AI capabilities
+- Initial vertical market adaptations
+- Integration marketplace
+
+### Phase 5: Full Deployment & Quality Assurance (Months 9-10)
+- Comprehensive end-to-end testing
+- Performance benchmarking
+- Security audits and penetration testing
+- Scalability improvements
+- Documentation completion
+- Support system implementation
+- Staff training programs
+- Full public launch
 
 ## TECHNICAL ARCHITECTURE
 
@@ -513,8 +634,8 @@ Additional function calls planned for the MMP phase:
 
 ```mermaid
 flowchart TB
-    User["Customer via WhatsApp"]
-    Operator["Business Operator"]
+        User["Customer via WhatsApp"] 
+        Operator["Business Operator"]
     
     subgraph "Frontend"
         React["React + TypeScript\n(Tailwind CSS)"]
@@ -528,7 +649,6 @@ flowchart TB
     subgraph "Data Layer"
         Prisma["Prisma ORM"]
         DB["PostgreSQL Database"]
-        Redis["Redis Cache"]
     end
     
     subgraph "External Services"
@@ -544,7 +664,6 @@ flowchart TB
     API --> NodeJS
     NodeJS --> Prisma
     Prisma --> DB
-    NodeJS <--> Redis
     NodeJS <--> OpenAI
     NodeJS <--> Payment
     
@@ -553,10 +672,10 @@ flowchart TB
     classDef database fill:#AB47BC,stroke:#7B1FA2,color:white
     classDef external fill:#FF7043,stroke:#E64A19,color:white
     classDef user fill:#78909C,stroke:#455A64,color:white
-    
+
     class React frontend
     class NodeJS,API backend
-    class Prisma,DB,Redis database
+    class Prisma,DB database
     class WhatsApp,OpenAI,Payment external
     class User,Operator user
 ```
@@ -588,47 +707,56 @@ The architecture's strengths in maintainability, scalability, and business align
 ### Database
 - **Primary Database**: PostgreSQL
 - **ORM**: Prisma for type-safe database access
-- **Cache Layer**: Redis for performance optimization
 - **Migrations**: Prisma Migration for version control
 - **Backup Strategy**: Automated daily backups with point-in-time recovery
 
 ### Authentication and Token Management
 
-The application implements a secure JWT (JSON Web Token) based authentication system:
+Our system uses JWT (JSON Web Token) authentication to keep user accounts secure. Here's how it works:
 
-- **Token Structure**:
-  - Access tokens with 1-hour expiration
-  - Refresh tokens with 7-day expiration
-  - Tokens stored in HTTP-only cookies for XSS protection
-  - CSRF protection implemented for security
+#### Token Types and Security Features
 
-- **Token Flow**:
-  - Initial authentication generates both access and refresh tokens
-  - Access token used for API authorization
-  - Refresh token used to obtain new access tokens without re-authentication
-  - Token revocation on logout
+| Token Type | Duration | Storage | Purpose |
+|------------|----------|---------|---------|
+| Access Token | 1 hour | HTTP-only cookie | Authorizes API calls |
+| Refresh Token | 7 days | HTTP-only cookie | Gets new access tokens |
 
-- **Security Measures**:
-  - Secret keys rotated regularly
-  - Token signing with HS256 algorithm
-  - Token payload minimization (only essential claims)
-  - Validation of token source through HTTP headers
-  - Rate limiting on token endpoints
+#### How Our System Protects Your Account
 
-- **Permission Model**:
-  - Role-based access control (Admin, Manager, Agent)
-  - Resource-level permission checking
-  - Workspace-scoped authorization
-  - Audit logging of authentication events
+We implement multiple security layers to protect user accounts:
+- We rotate secret keys regularly to prevent compromise
+- We sign tokens with HS256 algorithm for integrity verification
+- We include only essential information in token payloads
+- We validate token sources through HTTP headers
+- We enforce rate limits on all token-related endpoints
 
-- **Secure Link Generation**:
-  - One-hour temporary security tokens for sensitive operations
-  - Encrypted payload containing operation type, resource ID, and timestamp
-  - URL-safe token format for easy sharing via messaging
-  - Single-use tokens for critical operations (payments, document access)
-  - IP-based validation for additional security layer
-  - Automatic invalidation after use or expiration
-  - Token verification prior to any sensitive data access
+#### Permission System
+
+Our role-based access control system includes:
+
+| Role | Access Level | Example Permissions |
+|------|--------------|---------------------|
+| Admin | Full access | Manage all workspaces, users, and settings |
+| Manager | Workspace management | Manage products, orders, and team members |
+| Agent | Customer service | Handle customer chats and process orders |
+
+We scope all permissions to specific workspaces, ensuring data isolation between different businesses.
+
+#### Secure Operations with Temporary Links
+
+For sensitive operations like payments, we create secure, time-limited links:
+
+```
+Example Flow:
+1. Customer wants to complete purchase in WhatsApp chat
+2. System generates unique temporary token: "pay_ord_b1f493a2" (valid for 1 hour)
+3. System sends link: "https://pay.shopme.com/checkout/pay_ord_b1f493a2"
+4. Customer clicks link and is taken to secure payment page
+5. After payment, system verifies token, processes payment, and invalidates token
+6. System confirms successful payment in WhatsApp chat
+```
+
+These tokens contain encrypted information about the operation type, resources involved, and expiration time. We verify tokens before allowing any access to sensitive data or operations.
 
 ### Domain-Driven Design Architecture
 
@@ -767,154 +895,146 @@ The platform includes a robust database initialization and seeding strategy:
   - Blue-green deployment for zero downtime
   - Rollback capabilities for failed deployments
 
-### WhatsApp Messaging Flow
 
-The platform implements a sophisticated messaging flow to handle customer interactions via WhatsApp. This flow ensures proper handling of messages based on context, customer status, and business rules.
+## EJEMPLOS DE CONVERSACIÓN
 
-## CONVERSATION EXAMPLES
+### Registro de Nuevo Usuario
 
-### Product Discovery and Purchase
+**Cliente**: "Hola, me gustaría comprar algunos productos."
 
-**Customer**: "Hi, I'm looking for a new laptop for my university studies."
+**ShopMe**: "¡Hola! Estaré encantado de ayudarle con su compra. Para ofrecerle la mejor experiencia y poder procesar sus pedidos, necesitamos que se registre primero. 
 
-**ShopMe**: "Hello! I'd be happy to help you find a suitable laptop for university. To help narrow down the options, could you tell me:
+He creado un enlace de registro seguro para usted: [https://shopme.com/registro/token_u7d9f3a1b5]
 
-1. What's your budget range?
-2. What will you primarily use it for (e.g., note-taking, programming, design work)?
-3. Do you have any preferences regarding screen size or weight?"
+Este enlace es personal y caduca en 24 horas por motivos de seguridad."
 
-**Customer**: "My budget is around €800. I'll use it mainly for writing papers, research, and some light photo editing. I'd prefer something light since I'll carry it around campus."
+**Cliente**: "¿Es seguro? ¿Qué pasa con mis datos?"
 
-**ShopMe**: "Based on your requirements, here are three options that would work well:
+**ShopMe**: "Entiendo su preocupación por la privacidad. Su seguridad es nuestra prioridad:
 
-1. **Acer Swift 3** (€779)
-   - 14" Full HD display
-   - Intel Core i5-1135G7
-   - 8GB RAM, 512GB SSD
-   - Weight: 1.2kg
-   - Battery: Up to 16 hours
+1. El enlace utiliza un token único y temporal para proteger su proceso de registro
+2. Todos sus datos se almacenan de forma segura en nuestros servidores encriptados
+3. No compartimos sus datos personales con ningún modelo de IA externo
+4. Cumplimos totalmente con la normativa GDPR de protección de datos
 
-2. **ASUS VivoBook 15** (€749)
-   - 15.6" Full HD display
-   - AMD Ryzen 5 5500U
-   - 8GB RAM, 512GB SSD
-   - Weight: 1.8kg
-   - Battery: Up to 8 hours
+Una vez registrado, podrá realizar compras, seguir sus pedidos y recibir facturas electrónicas fácilmente."
 
-3. **Lenovo IdeaPad 5** (€799)
-   - 14" Full HD IPS display
-   - AMD Ryzen 7 5700U
-   - 8GB RAM, 512GB SSD
-   - Weight: 1.4kg
-   - Battery: Up to 15 hours
+**Cliente**: *[Completa el registro a través del enlace]*
 
-Would you like more details about any of these models?"
+**ShopMe**: "¡Gracias por registrarse! Su cuenta ha sido creada correctamente. 
 
-**Customer**: "The Lenovo IdeaPad sounds good. Does it have a backlit keyboard?"
+Nos complace informarle que valoramos su privacidad y seguridad. Todos sus datos se guardan exclusivamente en nuestra base de datos segura y no se comparten con modelos de IA externos.
 
-**ShopMe**: "Yes, the Lenovo IdeaPad 5 comes with a backlit keyboard. It also features:
-- Rapid Charge technology (80% in 1 hour)
-- Fingerprint reader for quick login
-- Noise-canceling microphones for better video calls
-- Physical privacy shutter for the webcam
-- WiFi 6 for faster internet connections
+¿En qué puedo ayudarle hoy? Puedo mostrarle nuestros productos destacados, ayudarle a encontrar algo específico o responder cualquier pregunta sobre nuestros servicios."
 
-Would you like to proceed with this model or explore other options?"
+### Descubrimiento y Compra de Productos
 
-**Customer**: "I'll take the Lenovo. Can I get it delivered by next Monday?"
+**Cliente**: "Hola, estoy buscando productos típicos sicilianos para regalar."
 
-**ShopMe**: "Great choice! Yes, we can deliver the Lenovo IdeaPad 5 by next Monday. The item is in stock and qualifies for free express shipping.
+**ShopMe**: "¡Buenos días! Estaré encantado de ayudarle a encontrar productos típicos sicilianos para un regalo. Para sugerirle las mejores opciones, ¿podría saber:
 
-Would you like to proceed to checkout? I can create your order and send a secure payment link."
+1. ¿Tiene un presupuesto en mente?
+2. ¿Prefiere productos dulces, salados o un surtido?
+3. ¿La persona que recibirá el regalo tiene alergias o intolerancias alimentarias?"
 
-**Customer**: "Yes, please."
+**Cliente**: "Mi presupuesto es de unos 50€. Preferiría un surtido de dulces y salados. No hay alergias a considerar."
 
-**ShopMe**: "I've created your order for the Lenovo IdeaPad 5 (€799). Here's your secure payment link: [Payment Link]
+**ShopMe**: "Según sus preferencias, aquí tiene tres packs de regalo que podrían interesarle:
 
-After completing payment, you'll receive:
-1. An order confirmation email with tracking information
-2. Delivery updates via WhatsApp
-3. Your electronic invoice
+1. **Box Sicilia Clásica** (45€)
+   - 1 botella de passito de Pantelleria (375ml)
+   - 250g de pistachos de Bronte
+   - 200g de pasta de almendras
+   - 100g de caponata artesanal
+   - Caja de regalo con lazo
 
-Your estimated delivery date is Monday, June 5th. Is there anything else you need assistance with?"
+2. **Degustación Siciliana** (55€)
+   - 1 crema de pistacho para untar (200g)
+   - 1 pesto de pistacho (180g)
+   - 250g de cantucci de almendras
+   - 200g de chocolate de Módica a la naranja
+   - 1 mermelada de higos chumbos (240g)
+   - Caja artesanal de madera
 
-**Customer**: "That's all, thanks!"
+3. **Sabores de la Isla** (48€)
+   - 500g de pasta extruida en bronce
+   - 1 botella de aceite de oliva virgen extra (250ml)
+   - 1 tarro de pesto trapanés (180g)
+   - 100g de sal marina con hierbas sicilianas
+   - 150g de crujiente de sésamo
+   - Envoltorio de regalo con papel personalizado
 
-**ShopMe**: "Thank you for your purchase! We appreciate your business. Your order is being processed and you'll receive tracking information shortly. If you have any questions about your order or need technical support after receiving your laptop, just message us here. Have a great day!"
+¿Cuál de estas opciones le interesa más?"
 
-### Order Status and Invoice Request
+**Cliente**: "La Degustación Siciliana parece excelente. ¿Cómo se puede utilizar la crema de pistacho?"
 
-**Customer**: "Hi, I ordered a laptop last week. Order #LP78901. When will it be delivered?"
+**ShopMe**: "La crema de pistacho es un producto versátil y delicioso. Puede utilizarse de varias formas:
+- Untada en rebanadas de pan o croissants para un desayuno goloso
+- Como relleno para tartas, galletas o pasteles
+- Añadida al helado de vainilla para darle un toque de sabor
+- Para preparar tiramisú o tarta de queso de pistacho
+- Simplemente disfrutada a cucharadas como postre
 
-**ShopMe**: "Hello! Let me check the status of your order #LP78901. One moment please... 
+Está elaborada con pistachos de Bronte DOP (40%), azúcar moreno y aceite de girasol. No contiene conservantes ni colorantes.
 
-Your Lenovo IdeaPad 5 has been shipped and is currently in transit. According to the tracking information, it's estimated to be delivered tomorrow (June 7th) between 10:00 AM and 2:00 PM. 
+¿Desea proceder con la compra de la Degustación Siciliana o preferiría ver otras opciones?"
 
-The package requires a signature upon delivery. Would you like me to send you the detailed tracking link so you can monitor its progress?"
+**Cliente**: "Me llevo la Degustación Siciliana. ¿Puede entregarse antes del próximo viernes?"
 
-**Customer**: "Yes, please. And can I also get my invoice sent again? I can't find the email."
+**ShopMe**: "¡Excelente elección! Sí, podemos garantizar la entrega antes del próximo viernes. El artículo está disponible en almacén y califica para envío exprés gratuito.
 
-**ShopMe**: "I've just sent the tracking link to your phone number.
+¿Quiere proceder con el pedido? Puedo crear el pedido y enviarle un enlace de pago seguro."
 
-Regarding your invoice, I've resent it to your registered email address (j.smith@example.com). You should receive it within the next few minutes. 
+**Cliente**: "Sí, gracias."
 
-Would you also like me to send a PDF copy of the invoice via WhatsApp for your immediate reference?"
+**ShopMe**: "He creado su pedido para la Degustación Siciliana (55€). Aquí tiene el enlace de pago seguro: [Enlace de Pago]
 
-**Customer**: "Yes, that would be helpful."
+Una vez completado el pago, recibirá:
+1. Un email de confirmación del pedido con la información de seguimiento
+2. Actualizaciones sobre la entrega vía WhatsApp
+3. Su factura electrónica
 
-**ShopMe**: "Here's your invoice for order #LP78901. [Invoice PDF]
+La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo más?"
 
-Is there anything else you need assistance with regarding your order?"
+**Cliente**: "Eso es todo, ¡gracias!"
 
-**Customer**: "No, that's all I needed. Thanks for your help!"
+**ShopMe**: "¡Gracias por su compra! Apreciamos su confianza. Su pedido está siendo procesado y recibirá en breve la información de seguimiento. Si tiene preguntas sobre su pedido o productos, no dude en contactarnos aquí. ¡Le deseo un buen día!"
 
-**ShopMe**: "You're welcome! If you have any questions once you receive your laptop tomorrow, feel free to message us anytime. We're here to help with any setup questions or technical support you might need. Have a great day!"
+### Solicitud de Factura
 
-### Multi-language Support Example
+**Cliente**: "Necesito la factura de mi pedido #FS45678 para mi contabilidad."
 
-**Customer**: "Buongiorno, vorrei informazioni sui vostri prodotti."
+**ShopMe**: "Por supuesto, puedo ayudarle con eso. He generado un enlace seguro donde puede descargar su factura: [https://shopme.com/facturas/token_f8e2c7d9a6]
 
-**ShopMe**: "Buongiorno! Sono lieto di aiutarla con informazioni sui nostri prodotti. In quale categoria di prodotti è interessato? Abbiamo elettronica, abbigliamento, articoli per la casa e molto altro."
+Este enlace es válido durante 48 horas por motivos de seguridad. La factura está en formato PDF y contiene todos los detalles necesarios para su contabilidad. 
 
-**Customer**: "Cerco un nuovo smartphone con una buona fotocamera."
+También he enviado una copia a su correo electrónico registrado. ¿Necesita que cambie algún dato en la factura, como la dirección fiscal o el NIF?"
 
-**ShopMe**: "Perfetto! Ecco alcuni dei nostri smartphone più popolari con eccellenti fotocamere:
+**Cliente**: "No, está todo bien. ¿Puedo acceder a mis facturas anteriores también?"
 
-1. **Samsung Galaxy S23** (€899)
-   - Fotocamera tripla da 50MP + 12MP + 10MP
-   - Zoom ottico 3x, zoom digitale 30x
-   - Registrazione video 8K
+**ShopMe**: "Sí, desde su área personal puede acceder a todas sus facturas anteriores. He creado un enlace seguro a su historial de facturas: [https://shopme.com/mi-cuenta/facturas/token_h7j9k2l5m8]
 
-2. **iPhone 14 Pro** (€1099)
-   - Sistema fotocamera Pro da 48MP
-   - Modalità cinema e stili fotografici
-   - Modalità notte migliorata
+Este enlace le llevará directamente a la sección de facturas de su cuenta tras verificar su identidad con el token incluido. Desde allí podrá descargar, imprimir o reenviar por email cualquier factura de pedidos anteriores."
 
-3. **Google Pixel 7 Pro** (€849)
-   - Fotocamera principale da 50MP con elaborazione computazionale
-   - Teleobiettivo da 48MP con zoom ottico 5x
-   - Modalità notturna eccezionale
+### Estado del Pedido y Seguimiento
 
-Quale di questi le interessa maggiormente?"
+**Cliente**: "¿Dónde está mi pedido #FS92345? Ya debería haber llegado."
 
-**Customer**: "Il Pixel 7 Pro sembra interessante. È disponibile in verde?"
+**ShopMe**: "Disculpe las molestias. Déjeme verificar inmediatamente el estado de su pedido #FS92345.
 
-**ShopMe**: "Sì, il Google Pixel 7 Pro è disponibile nella colorazione 'Hazel', che è una elegante tonalità di verde. Attualmente è in stock e può essere consegnato entro 2-3 giorni lavorativi. 
+He comprobado y veo que su paquete está actualmente en reparto. Para que pueda seguirlo en tiempo real, he generado un enlace de seguimiento seguro: [https://shopme.com/seguimiento/token_t6r8e2k4i9]
 
-Desidera procedere con l'acquisto o ha altre domande sulle specifiche tecniche?"
+Este enlace le mostrará la ubicación exacta de su paquete, la hora estimada de entrega, y la opción de contactar directamente con el repartidor si fuera necesario. El enlace se actualiza cada 5 minutos con la información más reciente.
 
-**Customer**: "What about the warranty? Sorry for switching to English."
+¿Hay alguna instrucción especial que quiera añadir para la entrega?"
 
-**ShopMe**: "No problem at all! Happy to continue in English.
+**Cliente**: "No puedo estar en casa. ¿Pueden dejarlo con mi vecino?"
 
-The Google Pixel 7 Pro comes with a 2-year manufacturer warranty that covers any hardware defects. Additionally, we offer our own extended protection plan for €99 that gives you:
+**ShopMe**: "He actualizado las instrucciones de entrega para que dejen el paquete con su vecino. También he creado un enlace donde puede autorizar esta entrega alternativa: [https://shopme.com/autorizar-entrega/token_a7d9c3b5]
 
-- Coverage for accidental damage (including water damage and screen breaks)
-- 24/7 priority technical support
-- One-time free replacement if repair isn't possible
-- Extended coverage for a total of 3 years
+Una vez que haga clic en el enlace y confirme la autorización, el repartidor recibirá la nueva instrucción inmediatamente. Esta autorización queda registrada en nuestro sistema por motivos de seguridad.
 
-Would you like to add this protection plan to your purchase?"
+Le notificaremos por WhatsApp en cuanto se realice la entrega, con el nombre de la persona que recibió el paquete."
 
 ## VERTICAL MARKET ADAPTABILITY
 
@@ -934,27 +1054,30 @@ The platform's modular architecture ensures these adaptations can be implemented
 
 ### API Rate Limiting Implementation
 
-All API endpoints are protected by intelligent rate limiting mechanisms to ensure system stability and prevent abuse:
+We protect all API endpoints with smart rate limiting to keep the system stable and prevent misuse:
 
-- **Default Limits**:
-  - 30 requests per minute per user
-  - Configurable daily quota per workspace
-  - Adaptive limits based on endpoint criticality
+| Feature | Description | Benefit |
+|---------|-------------|---------|
+| **User Limits** | 30 requests per minute per user | Prevents any single user from overloading the system |
+| **Workspace Quotas** | Customizable daily limits per business | Allows businesses to manage their API usage |
+| **Smart Throttling** | Different limits for different endpoints | Prioritizes critical operations over less important ones |
 
-- **Response Headers**:
-  - `X-RateLimit-Limit`: Maximum requests allowed in the current period
-  - `X-RateLimit-Remaining`: Requests remaining in the current period
-  - `X-RateLimit-Reset`: Time (in seconds) when the rate limit resets
+#### How You'll Know About Limits
 
-- **Rate Limit Exceeded Responses**:
-  - Status code `429 Too Many Requests`
-  - JSON payload with error details and retry suggestion
-  - `Retry-After` header indicating when to retry
+Our API includes helpful response headers that tell you about your usage:
 
-- **Configuration**:
-  - Rate limits configurable in workspace settings
-  - Different limits for different endpoint categories
-  - Temporary rate limit adjustments for maintenance periods
+| Header | What It Shows | Example |
+|--------|---------------|---------|
+| `X-RateLimit-Limit` | Maximum allowed requests | `X-RateLimit-Limit: 30` |
+| `X-RateLimit-Remaining` | Requests left in current period | `X-RateLimit-Remaining: 28` |
+| `X-RateLimit-Reset` | Seconds until limit resets | `X-RateLimit-Reset: 45` |
+
+When you reach a limit, our system:
+1. Returns a `429 Too Many Requests` status code
+2. Sends a JSON response explaining the issue
+3. Includes a `Retry-After` header telling you when to try again
+
+Business owners can adjust these limits in their workspace settings, with options to set different limits for various API operations or temporarily increase limits during high-traffic periods.
 
 ### Authentication
 
@@ -969,12 +1092,6 @@ All API endpoints are protected by intelligent rate limiting mechanisms to ensur
   - **Description**: Logs out the current user
   - **Headers**: `Authorization` with JWT token
   - **Returns**: Success message
-
-- `POST /api/auth/refresh`
-
-  - **Description**: Refreshes the JWT token
-  - **Headers**: `Authorization` with current JWT token
-  - **Returns**: New JWT token
 
 - `GET /api/auth/me`
 
@@ -1018,31 +1135,192 @@ All API endpoints are protected by intelligent rate limiting mechanisms to ensur
 ### Product Management
 
 - `GET /api/products`
-
-  - **Description**: Retrieves product list
+  - **Description**: Retrieves product list with filtering options
   - **Parameters**: 
     - `workspace_id` (required): Workspace identifier
     - `category_id` (optional): Filter by category
     - `page`, `limit` (optional): Pagination parameters
-  - **Returns**: Paginated list of products
+    - `search` (optional): Search by product name or description
+    - `sort` (optional): Sort by price, name, created_at, etc.
+    - `order` (optional): asc or desc
+  - **Returns**: Paginated list of products with metadata
 
 - `POST /api/products`
-
   - **Description**: Creates a new product
-  - **Body**: `name`, `description`, `price`, `category_id`, `images`, `stock`
+  - **Body**: `name`, `description`, `price`, `category_id`, `images`, `stock`, `attributes`, `tax_rate`, `sku`, `barcode`
   - **Returns**: Created product details
 
 - `GET /api/products/:id`
-
   - **Description**: Gets details of a specific product
   - **Parameters**: `id` (required): Product ID
-  - **Returns**: Complete product details
+  - **Returns**: Complete product details including variants and related products
 
 - `PUT /api/products/:id`
-
   - **Description**: Updates a product
   - **Parameters**: `id` (required): Product ID
   - **Body**: Fields to update
   - **Returns**: Updated product
 
-- `
+- `DELETE /api/products/:id`
+  - **Description**: Deletes a product
+  - **Parameters**: `id` (required): Product ID
+  - **Returns**: Deletion confirmation
+
+- `POST /api/products/:id/images`
+  - **Description**: Uploads product images
+  - **Parameters**: `id` (required): Product ID
+  - **Body**: Image files (multipart/form-data)
+  - **Returns**: Updated product with image URLs
+
+- `DELETE /api/products/:id/images/:image_id`
+  - **Description**: Removes a product image
+  - **Parameters**: 
+    - `id` (required): Product ID
+    - `image_id` (required): Image ID to delete
+  - **Returns**: Updated product images
+
+### Category Management
+
+- `GET /api/categories`
+  - **Description**: Retrieves category list
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `parent_id` (optional): Filter by parent category
+    - `include_products` (optional): Include product count
+  - **Returns**: List of categories with hierarchical structure
+
+- `POST /api/categories`
+  - **Description**: Creates a new category
+  - **Body**: `name`, `description`, `parent_id`, `image`, `display_order`
+  - **Returns**: Created category details
+
+- `GET /api/categories/:id`
+  - **Description**: Gets details of a specific category
+  - **Parameters**: `id` (required): Category ID
+  - **Returns**: Category details with optional child categories
+
+- `PUT /api/categories/:id`
+  - **Description**: Updates a category
+  - **Parameters**: `id` (required): Category ID
+  - **Body**: Fields to update
+  - **Returns**: Updated category
+
+- `DELETE /api/categories/:id`
+  - **Description**: Deletes a category
+  - **Parameters**: `id` (required): Category ID
+  - **Returns**: Deletion confirmation
+
+- `GET /api/categories/:id/products`
+  - **Description**: Gets all products in a category
+  - **Parameters**: 
+    - `id` (required): Category ID
+    - `include_subcategories` (optional): Include products from subcategories
+    - `page`, `limit` (optional): Pagination parameters
+  - **Returns**: Products in the category
+
+### Customer Management
+
+- `GET /api/customers`
+  - **Description**: Retrieves customer list
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `page`, `limit` (optional): Pagination parameters
+    - `search` (optional): Search by name, email, or phone
+    - `sort` (optional): Sort by created_at, name, etc.
+  - **Returns**: Paginated list of customers
+
+- `POST /api/customers`
+  - **Description**: Creates a new customer
+  - **Body**: `name`, `email`, `phone`, `whatsapp_id`, `address`, `notes`, `custom_fields`
+  - **Returns**: Created customer details
+
+- `GET /api/customers/:id`
+  - **Description**: Gets details of a specific customer
+  - **Parameters**: `id` (required): Customer ID
+  - **Returns**: Complete customer details including order history
+
+- `PUT /api/customers/:id`
+  - **Description**: Updates a customer
+  - **Parameters**: `id` (required): Customer ID
+  - **Body**: Fields to update
+  - **Returns**: Updated customer
+
+- `DELETE /api/customers/:id`
+  - **Description**: Deletes a customer
+  - **Parameters**: `id` (required): Customer ID
+  - **Returns**: Deletion confirmation
+
+- `GET /api/customers/:id/orders`
+  - **Description**: Gets customer's order history
+  - **Parameters**: 
+    - `id` (required): Customer ID
+    - `status` (optional): Filter by order status
+    - `page`, `limit` (optional): Pagination parameters
+  - **Returns**: Customer's orders
+
+- `GET /api/customers/:id/conversations`
+  - **Description**: Gets customer's conversation history
+  - **Parameters**: 
+    - `id` (required): Customer ID
+    - `page`, `limit` (optional): Pagination parameters
+  - **Returns**: Customer's WhatsApp conversations
+
+### Offers Management
+
+- `GET /api/offers`
+  - **Description**: Retrieves offers and promotions list
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `status` (optional): Filter by active, upcoming, or expired
+    - `page`, `limit` (optional): Pagination parameters
+  - **Returns**: List of offers with details
+
+- `POST /api/offers`
+  - **Description**: Creates a new offer
+  - **Body**: 
+    - `name`: Offer name
+    - `description`: Offer description 
+    - `offer_type`: Discount type (percentage, fixed, buy_x_get_y)
+    - `discount_value`: Value of discount
+    - `products`: List of applicable product IDs
+    - `categories`: List of applicable category IDs
+    - `start_date`: Offer start date
+    - `end_date`: Offer end date
+    - `min_purchase`: Minimum purchase requirement
+    - `usage_limit`: Maximum redemptions allowed
+    - `code`: Promo code (optional)
+  - **Returns**: Created offer details
+
+- `GET /api/offers/:id`
+  - **Description**: Gets details of a specific offer
+  - **Parameters**: `id` (required): Offer ID
+  - **Returns**: Complete offer details including usage statistics
+
+- `PUT /api/offers/:id`
+  - **Description**: Updates an offer
+  - **Parameters**: `id` (required): Offer ID
+  - **Body**: Fields to update
+  - **Returns**: Updated offer
+
+- `DELETE /api/offers/:id`
+  - **Description**: Deletes an offer
+  - **Parameters**: `id` (required): Offer ID
+  - **Returns**: Deletion confirmation
+
+- `POST /api/offers/:id/activate`
+  - **Description**: Activates an offer
+  - **Parameters**: `id` (required): Offer ID
+  - **Returns**: Activated offer status
+
+- `POST /api/offers/:id/deactivate`
+  - **Description**: Deactivates an offer
+  - **Parameters**: `id` (required): Offer ID
+  - **Returns**: Deactivated offer status
+
+- `GET /api/offers/validate/:code`
+  - **Description**: Validates a promo code
+  - **Parameters**: 
+    - `code` (required): Promo code to validate
+    - `customer_id` (optional): Customer trying to use code
+    - `cart_value` (optional): Current cart value
+  - **Returns**: Offer validity and applicable discount
