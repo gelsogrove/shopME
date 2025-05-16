@@ -84,6 +84,7 @@ ShopMe offers several key features designed to transform WhatsApp into a complet
    - Business hours and availability settings
    - Notification preferences and templates
    - AI response behavior customization
+   - AI agent configuration (model, temperature, top_P, top_K, max tokens)
 
 7. **WhatsApp & AI Integration**
    - Seamless WhatsApp Business API integration
@@ -383,6 +384,19 @@ erDiagram
         boolean isActive
     }
     
+    AgentConfiguration {
+        string id PK
+        string name
+        string workspaceId FK
+        string model
+        float temperature
+        float top_p
+        float top_k
+        int max_tokens
+        boolean isActive
+        string description
+    }
+    
     Offers {
         string id PK
         string name
@@ -420,6 +434,7 @@ erDiagram
     Workspace ||--o{ Prompts : "has"
     Workspace ||--o{ Offers : "has"
     Workspace ||--o{ ChatSession : "has"
+    Workspace ||--o{ AgentConfiguration : "has"
     
     User ||--o{ UserWorkspace : "belongs to"
     Categories ||--o{ Products : "contains"
@@ -442,6 +457,7 @@ erDiagram
 - **Customers**: End users who interact through WhatsApp 
 - **Orders**: Purchase records with items and payment status
 - **Prompts**: AI instruction templates for different conversation scenarios
+- **AgentConfiguration**: AI agent settings including model, temperature and token parameters
 - **Offers**: Time-limited discounts and promotions
 - **ChatSession**: Conversation contexts between customers and the system
 - **Message**: Individual messages within conversations
@@ -459,14 +475,13 @@ Below are three of the most important endpoints of the ShopMe platform:
 **Description**: This endpoint receives incoming WhatsApp messages and processes them using the AI system to generate appropriate responses.
 
 **Query Parameters**:
-- `workspaceId`: Unique workspace identifier (required)
-- `channel`: Message channel, typically "whatsapp" (required)
-- `signature`: WhatsApp signature for verification (required)
-- `verifyToken`: Token to verify webhook (required for initial setup)
-- `messageId`: Unique message identifier for deduplication
-- `priority`: Message priority level (default: "normal")
-- `traceId`: ID for tracking the processing flow through systems
-- `debug`: Set to "true" to include debug information in response
+- `workspaceId`: Workspace ID (required)
+- `channel`: Message channel type (required)
+- `messageId`: Unique message identifier
+
+
+**Response**:
+- AI response from the Openrouter model
 
 **Status Codes**:
 - `200 OK`: Message received and processed successfully
@@ -483,12 +498,13 @@ Below are three of the most important endpoints of the ShopMe platform:
 **Description**: Retrieves the conversation history with a specific customer, allowing you to see the context of previous interactions.
 
 **Query Parameters**:
-- `customerId`: Unique customer ID
 - `workspaceId`: Workspace ID (required)
-- `limit`: Maximum number of messages to retrieve (default: 50)
-- `before`: Timestamp to get messages before a date
-- `includeAiContext`: Include context used by the AI (default: false)
- 
+- `limit`: Maximum number of messages (default: 50)
+- `before`: Timestamp for pagination
+
+**Response**:
+- List of chats 
+
 **Status Codes**:
 - `200 OK`: History retrieved successfully
 - `400 Bad Request`: Incorrect parameters
@@ -506,11 +522,11 @@ Below are three of the most important endpoints of the ShopMe platform:
 **Query Parameters**:
 - `workspaceId`: Workspace ID (required)
 - `agentId`: Agent ID (required)
-- `prompt`: Custom prompt template for the agent
-- `max_token`: Maximum tokens for AI response generation
-- `temperature`: Control randomness in AI responses (0.0-1.0)
-- `top_P`: Nucleus sampling parameter (0.0-1.0)
-- `top_Q`: Quality vs speed trade-off parameter
+- `prompt`: 
+- `model`: 
+- `max_token`: 
+- `top_p`
+- `top_k`  
 
 **Status Codes**:
 - `200 OK`: Settings updated successfully
@@ -784,6 +800,62 @@ Build a robust system that enables businesses to efficiently manage their suppor
 - [Agent Management Workflow Diagram](/diagrams/agent-workflow.png)
 - [Performance Metrics Definitions](/docs/agent-performance-metrics.md)
 - [Agent Interface Mockups](/designs/agent-interface.fig)
+
+### **Ticket 5 (AI Configuration): AI Agent Configuration System**
+
+**Title**: Implement AI Agent Configuration and Prompt Management
+
+**Description**:  
+Develop a system for configuring AI agents with customizable parameters and prompt templates to optimize the customer service experience across different business scenarios.
+
+**Objective**:  
+Provide businesses with a flexible framework to configure and fine-tune their AI assistant's behavior, personality, and capabilities according to their specific needs and customer expectations.
+
+**Tasks**:
+1. Design and implement AI configuration data models:
+   - AI model selection (GPT-4, GPT-3.5, etc.)
+   - Parameter settings (temperature, top_P, top_K, max_tokens)
+   - Prompt template management
+   - Business context integration
+   - Conversation memory settings
+2. Develop backend API endpoints for AI configuration management
+3. Create frontend configuration interface with:
+   - Visual parameter adjustment sliders
+   - Prompt template editor with variables
+   - Testing console for prompt evaluation
+   - Version history and comparison
+4. Implement prompt template library with categorized examples
+5. Build conversation context management system
+6. Add analytics for prompt performance tracking
+7. Create A/B testing framework for comparing prompt effectiveness
+8. Develop secure integration with LLM providers
+9. Implement error handling and fallback mechanisms
+10. Add support for multi-language prompt templates
+
+**Acceptance criteria**:
+- Businesses can create, edit, and manage multiple AI configurations
+- Parameters can be adjusted with real-time feedback
+- Prompt templates can include variables for dynamic content
+- Templates support multiple languages (Italian, English, Spanish)
+- Configuration changes apply immediately to customer interactions
+- Performance metrics show impact of different configurations
+- A/B testing allows for data-driven optimization
+- Configuration history maintains previous versions for rollback
+- System handles LLM errors gracefully with fallback options
+
+**Estimation**: 8 story points (approximately 5-6 days of development)
+
+**Priority**: High
+
+**Dependencies**:
+- WhatsApp messaging system
+- Workspace management system
+- Language detection system
+
+**Additional resources**:
+- [AI Configuration Best Practices](/docs/ai-configuration.md)
+- [Prompt Engineering Guidelines](/docs/prompt-engineering.md)
+- [Configuration UI Mockups](/designs/ai-config-ui.fig)
 
 ### **Ticket 4 (Chat): Chat Integration System**
 

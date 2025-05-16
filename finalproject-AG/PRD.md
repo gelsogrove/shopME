@@ -1,77 +1,4 @@
 # ShopMe - WhatsApp E-commerce Platform PRD
- 
-- [About ShopMe](#introduction)
-  - [What is ShopMe](#short-description)
-  - [Main Benefits](#key-advantages)
-  - [Customer Notifications](#push-notifications)
-  - [Business Tools](#dashboard-and-surveys)
-- [Why Choose ShopMe](#key-differentiators-and-unique-selling-points)
-  - [All-in-One Platform](#unified-commerce-and-customer-care-platform)
-- [Main Features](#core-functionality)
-  - [Multi-Business Support](#1-multi-tenant-business-platform-priority-must-have)
-  - [Product Management](#2-products-management-priority-must-have)
-  - [Category Organization](#3-categories-management-priority-must-have)
-  - [Special Offers](#4-offers-management-priority-should-have)
-  - [System Settings](#5-settings-management-priority-must-have)
-  - [WhatsApp & AI](#6-whatsapp-ai-integration-priority-must-have)
-    - [Data Protection](#7-gdpr-compliance-priority-must-have)
-    - [WhatsApp Setup](#whatsapp-business-api-integration)
-- [Future Features](#out-of-scope-features-wip)
-  - [Order Processing](#orders-management)
-  - [Business Insights](#analytics)
-  - [Advanced Notifications](#advanced-push-notifications)
-  - [Payment Options](#payment-integration)
-- [Coming Soon](#minimum-marketable-product-mmp)
-  - [Better Order Management](#enhanced-orders-management)
-  - [Advanced Business Reports](#advanced-analytics-dashboard)
-  - [Complete Payment System](#full-payment-integration)
-  - [Team Support](#multi-agent-collaboration)
-  - [Smarter AI](#enhanced-ai-capabilities)
-  - [System Functions](#function-call-documentation)
-- [Support Plans](#monitoring-plans)
-  - [Pricing Options](#subscription-plans--pricing)
-  - [AI Configuration](#ai-configuration-options)
-  - [Basic Support](#1-basic-monitoring-included)
-  - [Premium Support](#2-advanced-monitoring-premium)
-  - [Enterprise Support](#3-enterprise-monitoring-enterprise)
-- [Development Timeline](#development-roadmap)
-- [How It Works](#technical-architecture)
-- [Example Conversations](#ejemplos-de-conversación)
-  - [User Registration](#registro-de-nuevo-usuario)
-  - [Product Discovery](#descubrimiento-y-compra-de-productos)
-  - [Invoice Requests](#solicitud-de-factura)
-  - [Order Tracking](#estado-del-pedido-y-seguimiento)
-- [Industry Solutions](#vertical-market-adaptability)
-  - [Setup Requirements](#implementation-requirements)
-- [System Connections](#api-endpoints)
-  - [Access Limits](#api-rate-limiting-implementation)
-  - [Login System](#authentication)
-  - [Business Areas](#workspace-management)
-  - [Product Tools](#product-management)
-  - [Category Tools](#category-management)
-  - [Customer Tools](#customer-management)
-  - [Promotion Tools](#offers-management)
-  - [AI Settings](#prompt-management)
-  - [WhatsApp Setup](#whatsapp-business-api-integration)
-  - [Chat Tools](#chat-management)
-  - [Service Tools](#service-management)
-- [Data Structure](#data-model)
-- [Security Features](#security)
-  - [Preventing Misuse](#anti-abuse-system)
-  - [Access Control](#rate-limiting-controls)
-  - [Data Protection](#data-encryption)
-  - [Secure Customer Data](#secure-data-handling-with-tokenization)
-  - [Safe Data Handling](#secure-data-processing-workflow)
-- [Privacy Compliance](#compliance-and-privacy)
-  - [Data Protection Laws](#gdpr-compliance)
-  - [Customer Privacy Options](#user-preference-and-account-deletion)
-- [Market Analysis](#competitive-analysis)
-  - [Industry Overview](#market-overview)
-  - [Competitor Comparison](#direct-competitor-comparison)
-  - [Our Advantages](#key-differentiators)
-  - [Market Needs](#market-gap-addressed)
-  - [Industry Trends](#supporting-industry-trends)
-  - [Customer Sign-Up](#customer-registration-flow)
 
 ## INTRODUCTION
 
@@ -80,7 +7,7 @@ ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that turns Wh
 
 All sensitive operations are handled securely through temporary links with security tokens. These links direct customers to our secure website for registration forms, payments, invoices, and accessing personal data. This keeps all sensitive information outside of chat conversations, ensuring data protection while maintaining a smooth customer experience.
 
-### Business Model
+### Loan Business Model
 
 ```
 +-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+
@@ -352,6 +279,82 @@ ShopMe uses a Domain-Driven Design (DDD) architecture with clean separation of c
 
 The architecture's strengths in maintainability, scalability, and business alignment outweigh these trade-offs for a complex, multi-tenant application like ShopMe that handles sensitive customer data and complex business processes.
 
+### Frontend and Backend Technology Stack
+
+#### Frontend Architecture
+
+The ShopMe frontend is built with a modern React architecture that maximizes performance, maintainability, and user experience:
+
+- **Core Technologies**:
+  - React 18+ with functional components and hooks
+  - TypeScript for type safety and improved developer experience
+  - Tailwind CSS for utility-first styling approach
+  - Next.js for server-side rendering and optimized performance
+
+- **Key Frontend Components**:
+  - Component library with atomic design principles
+  - Responsive layouts for all device types
+  - Custom hooks for business logic reuse
+  - Context API for state management
+  - React Query for data fetching and caching
+  - Form handling with React Hook Form
+  - Client-side validation with Yup/Zod
+
+- **User Interface Features**:
+  - Dark/light mode support
+  - Internationalization (i18n) for multiple languages
+  - Accessibility compliance (WCAG 2.1 AA)
+  - Progressive loading and skeleton screens
+  - Custom animations and transitions
+  - Interactive data visualizations
+
+- **Build and Optimization**:
+  - Module bundling with Webpack
+  - Code splitting for optimized loading
+  - Static analysis and linting
+  - Automated testing with Jest and React Testing Library
+  - Storybook for component documentation
+
+#### Backend Architecture
+
+The backend is structured around DDD principles with a clear separation of concerns:
+
+- **Core Technologies**:
+  - Node.js with Express framework
+  - TypeScript for type safety across the stack
+  - Prisma ORM for database access
+  - PostgreSQL for data persistence
+  - Redis for caching and session management
+
+- **API Design**:
+  - REST API with standardized endpoints
+  - GraphQL support for complex data requirements
+  - API versioning strategy
+  - OpenAPI/Swagger documentation
+  - Rate limiting and request throttling
+
+- **Backend Services**:
+  - Authentication service with JWT
+  - Media handling and storage service
+  - Notification service
+  - Analytics service
+  - External integrations service (WhatsApp, payment providers)
+  - Background job processing
+
+- **Performance and Scaling**:
+  - Horizontal scaling with containerization
+  - Microservices communication patterns
+  - Caching strategies at multiple levels
+  - Database query optimization
+  - Connection pooling and resource management
+
+- **Security Measures**:
+  - Input validation and sanitization
+  - CSRF/XSS protection
+  - SQL injection prevention
+  - Rate limiting and brute force protection
+  - Data encryption in transit and at rest
+
 ### Database
 - **Primary Database**: PostgreSQL
 - **ORM**: Prisma for type-safe database access
@@ -516,308 +519,63 @@ The platform includes a robust database initialization and seeding strategy:
   - Predefined AI prompts and configurations
   - Demo orders with various statuses
 
-### Additional Technical Considerations
-
-- **Error Handling**:
-  - Centralized error handling middleware
-  - Standardized API error responses
-  - Custom error classes for domain-specific errors
-  - Client-friendly error messages with internal logging
-
-- **Logging**:
-  - Structured logging with Winston
-  - Log levels (debug, info, warn, error)
-  - Request ID tracking across services
-  - Redaction of sensitive information
-
-- **Performance Optimization**:
-  - Response caching strategies
-  - Database query optimization
-  - Connection pooling
-  - Asset compression and delivery
-
-- **Deployment Pipeline**:
-  - CI/CD integration with GitHub Actions
-  - Automated testing before deployment
-  - Staged deployment environments
-  - Blue-green deployment for zero downtime
-  - Rollback capabilities for failed deployments
-
-## API ENDPOINTS
-
-### API Rate Limiting Implementation
-
-We protect all API endpoints with smart rate limiting to keep the system stable and prevent misuse:
-
-| Feature | Description | Benefit |
-|---------|-------------|---------|
-| **User Limits** | 30 requests per minute per user | Prevents any single user from overloading the system |
-| **Workspace Quotas** | Customizable daily limits per business | Allows businesses to manage their API usage |
-| **Smart Throttling** | Different limits for different endpoints | Prioritizes critical operations over less important ones |
-
-#### How You'll Know About Limits
-
-Our API includes helpful response headers that tell you about your usage:
-
-| Header | What It Shows | Example |
-|--------|---------------|---------|
-| `X-RateLimit-Limit` | Maximum allowed requests | `X-RateLimit-Limit: 30` |
-| `X-RateLimit-Remaining` | Requests left in current period | `X-RateLimit-Remaining: 28` |
-| `X-RateLimit-Reset` | Seconds until limit resets | `X-RateLimit-Reset: 45` |
-
-When you reach a limit, our system:
-1. Returns a `429 Too Many Requests` status code
-2. Sends a JSON response explaining the issue
-3. Includes a `Retry-After` header telling you when to try again
-
-Business owners can adjust these limits in their workspace settings, with options to set different limits for various API operations or temporarily increase limits during high-traffic periods.
-
-### Authentication
-
-- `POST /api/auth/login`
-
-  - **Description**: Authenticates a user and returns a JWT token
-  - **Body**: `email`, `password`
-  - **Returns**: JWT token, user information
-
-- `POST /api/auth/logout`
-
-  - **Description**: Logs out the current user
-  - **Headers**: `Authorization` with JWT token
-  - **Returns**: Success message
-
-- `GET /api/auth/me`
-
-  - **Description**: Gets the authenticated user's information
-  - **Headers**: `Authorization` with JWT token
-  - **Returns**: User profile information
-
-### Workspace Management
-
-- `GET /api/workspaces`
-
-  - **Description**: Retrieves all workspaces accessible to the user
-  - **Headers**: `Authorization` with JWT token
-  - **Returns**: List of workspaces with access
-
-- `POST /api/workspaces`
-
-  - **Description**: Creates a new workspace
-  - **Body**: `name`, `description`, `settings`
-  - **Returns**: Created workspace details
-
-- `GET /api/workspaces/:id`
-
-  - **Description**: Gets details of a specific workspace
-  - **Parameters**: `id` (required): Workspace identifier
-  - **Returns**: Complete workspace details
-
-- `PUT /api/workspaces/:id`
-
-  - **Description**: Updates a workspace's information
-  - **Parameters**: `id` (required): Workspace identifier
-  - **Body**: Fields to update
-  - **Returns**: Updated workspace
-
-- `DELETE /api/workspaces/:id`
-
-  - **Description**: Deletes a workspace
-  - **Parameters**: `id` (required): Workspace identifier
-  - **Returns**: Deletion confirmation
-
-### Product Management
-
-- `GET /api/products`
-  - **Description**: Retrieves product list with filtering options
-  - **Parameters**: 
-    - `workspace_id` (required): Workspace identifier
-    - `category_id` (optional): Filter by category
-    - `page`, `limit` (optional): Pagination parameters
-    - `search` (optional): Search by product name or description
-    - `sort` (optional): Sort by price, name, created_at, etc.
-    - `order` (optional): asc or desc
-  - **Returns**: Paginated list of products with metadata
-
-- `POST /api/products`
-  - **Description**: Creates a new product
-  - **Body**: `name`, `description`, `price`, `category_id`, `images`, `stock`, `attributes`, `tax_rate`, `sku`, `barcode`
-  - **Returns**: Created product details
-
-- `GET /api/products/:id`
-  - **Description**: Gets details of a specific product
-  - **Parameters**: `id` (required): Product ID
-  - **Returns**: Complete product details including variants and related products
-
-- `PUT /api/products/:id`
-  - **Description**: Updates a product
-  - **Parameters**: `id` (required): Product ID
-  - **Body**: Fields to update
-  - **Returns**: Updated product
-
-- `DELETE /api/products/:id`
-  - **Description**: Deletes a product
-  - **Parameters**: `id` (required): Product ID
-  - **Returns**: Deletion confirmation
-
-- `POST /api/products/:id/images`
-  - **Description**: Uploads product images
-  - **Parameters**: `id` (required): Product ID
-  - **Body**: Image files (multipart/form-data)
-  - **Returns**: Updated product with image URLs
-
-- `DELETE /api/products/:id/images/:image_id`
-  - **Description**: Removes a product image
-  - **Parameters**: 
-    - `id` (required): Product ID
-    - `image_id` (required): Image ID to delete
-  - **Returns**: Updated product images
-
-### Category Management
-
-- `GET /api/categories`
-  - **Description**: Retrieves category list
-  - **Parameters**: 
-    - `workspace_id` (required): Workspace identifier
-    - `parent_id` (optional): Filter by parent category
-    - `include_products` (optional): Include product count
-  - **Returns**: List of categories with hierarchical structure
-
-- `POST /api/categories`
-  - **Description**: Creates a new category
-  - **Body**: `name`, `description`, `parent_id`, `image`, `display_order`
-  - **Returns**: Created category details
-
-- `GET /api/categories/:id`
-  - **Description**: Gets details of a specific category
-  - **Parameters**: `id` (required): Category ID
-  - **Returns**: Category details with optional child categories
-
-- `PUT /api/categories/:id`
-  - **Description**: Updates a category
-  - **Parameters**: `id` (required): Category ID
-  - **Body**: Fields to update
-  - **Returns**: Updated category
-
-- `DELETE /api/categories/:id`
-  - **Description**: Deletes a category
-  - **Parameters**: `id` (required): Category ID
-  - **Returns**: Deletion confirmation
-
-- `GET /api/categories/:id/products`
-  - **Description**: Gets all products in a category
-  - **Parameters**: 
-    - `id` (required): Category ID
-    - `include_subcategories` (optional): Include products from subcategories
-    - `page`, `limit` (optional): Pagination parameters
-  - **Returns**: Products in the category
-
-### Customer Management
-
-- `GET /api/customers`
-  - **Description**: Retrieves customer list
-  - **Parameters**: 
-    - `workspace_id` (required): Workspace identifier
-    - `page`, `limit` (optional): Pagination parameters
-    - `search` (optional): Search by name, email, or phone
-    - `sort` (optional): Sort by created_at, name, etc.
-  - **Returns**: Paginated list of customers
-
-- `POST /api/customers`
-  - **Description**: Creates a new customer
-  - **Body**: `name`, `email`, `phone`, `whatsapp_id`, `address`, `notes`, `custom_fields`
-  - **Returns**: Created customer details
-
-- `GET /api/customers/:id`
-  - **Description**: Gets details of a specific customer
-  - **Parameters**: `id` (required): Customer ID
-  - **Returns**: Complete customer details including order history
-
-- `PUT /api/customers/:id`
-  - **Description**: Updates a customer
-  - **Parameters**: `id` (required): Customer ID
-  - **Body**: Fields to update
-  - **Returns**: Updated customer
-
-- `DELETE /api/customers/:id`
-  - **Description**: Deletes a customer
-  - **Parameters**: `id` (required): Customer ID
-  - **Returns**: Deletion confirmation
-
-- `GET /api/customers/:id/orders`
-  - **Description**: Gets customer's order history
-  - **Parameters**: 
-    - `id` (required): Customer ID
-    - `status` (optional): Filter by order status
-    - `page`, `limit` (optional): Pagination parameters
-  - **Returns**: Customer's orders
-
-- `GET /api/customers/:id/conversations`
-  - **Description**: Gets customer's conversation history
-  - **Parameters**: 
-    - `id` (required): Customer ID
-    - `page`, `limit` (optional): Pagination parameters
-  - **Returns**: Customer's WhatsApp conversations
-
-### Offers Management
-
-- `GET /api/offers`
-  - **Description**: Retrieves offers and promotions list
-  - **Parameters**: 
-    - `workspace_id` (required): Workspace identifier
-    - `status` (optional): Filter by active, upcoming, or expired
-    - `page`, `limit` (optional): Pagination parameters
-  - **Returns**: List of offers with details
-
-- `POST /api/offers`
-  - **Description**: Creates a new offer
-  - **Body**: 
-    - `name`: Offer name
-    - `description`: Offer description 
-    - `offer_type`: Discount type (percentage, fixed, buy_x_get_y)
-    - `discount_value`: Value of discount
-    - `products`: List of applicable product IDs
-    - `categories`: List of applicable category IDs
-    - `start_date`: Offer start date
-    - `end_date`: Offer end date
-    - `min_purchase`: Minimum purchase requirement
-    - `usage_limit`: Maximum redemptions allowed
-    - `code`: Promo code (optional)
-  - **Returns**: Created offer details
-
-- `GET /api/offers/:id`
-  - **Description**: Gets details of a specific offer
-  - **Parameters**: `id` (required): Offer ID
-  - **Returns**: Complete offer details including usage statistics
-
-- `PUT /api/offers/:id`
-  - **Description**: Updates an offer
-  - **Parameters**: `id` (required): Offer ID
-  - **Body**: Fields to update
-  - **Returns**: Updated offer
-
-- `DELETE /api/offers/:id`
-  - **Description**: Deletes an offer
-  - **Parameters**: `id` (required): Offer ID
-  - **Returns**: Deletion confirmation
-
-- `POST /api/offers/:id/activate`
-  - **Description**: Activates an offer
-  - **Parameters**: `id` (required): Offer ID
-  - **Returns**: Activated offer status
-
-- `POST /api/offers/:id/deactivate`
-  - **Description**: Deactivates an offer
-  - **Parameters**: `id` (required): Offer ID
-  - **Returns**: Deactivated offer status
-
-- `GET /api/offers/validate/:code`
-  - **Description**: Validates a promo code
-  - **Parameters**: 
-    - `code` (required): Promo code to validate
-    - `customer_id` (optional): Customer trying to use code
-    - `cart_value` (optional): Current cart value
-  - **Returns**: Offer validity and applicable discount
-
+### AI Configuration Options
+
+Under each plan, businesses can customize their AI agent with the following parameters:
+
+| Parameter | Description | Default Value | Available Options |
+|-----------|-------------|--------------|-------------------|
+| **Model Selection** | AI model used for responses | GPT-3.5-turbo | GPT-4, Claude, Mistral, Llama |
+| **Temperature** | Response creativity level | 0.7 | 0.1-1.0 in 0.1 increments |
+| **Max Tokens** | Maximum response length | 250 | 50-1000 |
+| **Top-P** | Nucleus sampling threshold | 0.95 | 0.5-1.0 |
+| **Top-K** | Number of highest probability tokens to consider | 40 | 10-100 |
+| **System Prompt** | Base instructions for AI | Basic retail template | Custom templates available |
+| **Memory Context** | Number of previous messages to include | 10 | 1-20 |
+| **Response Speed** | Balance between quality and speed | Balanced | Fast, Balanced, Quality |
+
+Professional and Enterprise plans allow for A/B testing of different AI configurations and provide tools to analyze which settings deliver the best customer experience and conversion rates.
+
+### Implementation Requirements
+
+1. **Specialized Vocabulary**: Industry-specific terminology training for the AI
+2. **Custom Product Attributes**: Specialized fields for each vertical (e.g., nutrients for food, sizes for apparel)
+3. **Vertical-Specific Functions**: Custom function calls for industry processes
+4. **Integration Points**: Connections to industry-standard software
+5. **Visual Elements**: Industry-appropriate templates for rich media cards and responses
+
+The platform's modular architecture ensures these adaptations can be implemented quickly, typically within 2-4 weeks for a new vertical market launch.
+
+
+The following features are currently marked as "Work in Progress" and are outside the scope of the initial release:
+
+### Orders Management
+- Order processing and tracking
+- Order status management
+- Invoice generation and management
+- Shipping integration and tracking
+- Returns and refund processing
+
+### Analytics
+- Real-time analytics dashboard
+- Custom report generation
+- Data visualization tools
+- Export capabilities
+- Performance metrics and KPIs
+
+### Advanced Push Notifications
+- A/B testing for notification content
+- Advanced segmentation based on behavior
+- Rich media notifications
+- Location-based targeting
+- Frequency optimization
+
+### Payment Integration
+- Integrated payment processing
+- Payment plan implementation
+- Subscription management
+- Payment gateway integration
+- Fraud prevention tools
 
 The following features are planned for the MMP phase, after the initial MVP release:
 
@@ -1022,42 +780,6 @@ All plans include:
 - Regular platform updates
 - Knowledge base access
 
-### AI Configuration Options
-
-Under each plan, businesses can customize their AI agent with the following parameters:
-
-| Parameter | Description | Default Value | Available Options |
-|-----------|-------------|--------------|-------------------|
-| **Model Selection** | AI model used for responses | GPT-3.5-turbo | GPT-4, Claude, Mistral, Llama |
-| **Temperature** | Response creativity level | 0.7 | 0.1-1.0 in 0.1 increments |
-| **Max Tokens** | Maximum response length | 250 | 50-1000 |
-| **Top-P** | Nucleus sampling threshold | 0.95 | 0.5-1.0 |
-| **Top-K** | Number of highest probability tokens to consider | 40 | 10-100 |
-| **System Prompt** | Base instructions for AI | Basic retail template | Custom templates available |
-| **Memory Context** | Number of previous messages to include | 10 | 1-20 |
-| **Response Speed** | Balance between quality and speed | Balanced | Fast, Balanced, Quality |
-
-Professional and Enterprise plans allow for A/B testing of different AI configurations and provide tools to analyze which settings deliver the best customer experience and conversion rates.
-
-### 1. Basic Monitoring (Included)
-- Standard usage metrics
-- Basic incident reporting
-- Daily status reports
-- Error logging
-- Performance alerts
-- Monthly summary reports
-- Online support portal
-
-### 2. Advanced Monitoring (Premium)
-- Real-time dashboard
-- Custom alert thresholds
-- 24/7 incident response
-- Detailed performance analytics
-- SLA guarantees
-- Weekly executive reports
-- Dedicated support manager
-
-### 3. Enterprise Monitoring (Enterprise)
 - High-availability monitoring
 - Custom metrics integration
 - Priority incident response
@@ -1083,7 +805,7 @@ The following features are currently marked as "Work in Progress" and are outsid
 - Shipping integration and tracking
 - Returns and refund processing
 
-### Analytics
+### Dashboard
 - Real-time analytics dashboard
 - Custom report generation
 - Data visualization tools
@@ -1444,32 +1166,148 @@ The platform includes a robust database initialization and seeding strategy:
   - Predefined AI prompts and configurations
   - Demo orders with various statuses
 
-### AI Configuration Options
+### Additional Technical Considerations
 
-Under each plan, businesses can customize their AI agent with the following parameters:
+- **Error Handling**:
+  - Centralized error handling middleware
+  - Standardized API error responses
+  - Custom error classes for domain-specific errors
+  - Client-friendly error messages with internal logging
 
-| Parameter | Description | Default Value | Available Options |
-|-----------|-------------|--------------|-------------------|
-| **Model Selection** | AI model used for responses | GPT-3.5-turbo | GPT-4, Claude, Mistral, Llama |
-| **Temperature** | Response creativity level | 0.7 | 0.1-1.0 in 0.1 increments |
-| **Max Tokens** | Maximum response length | 250 | 50-1000 |
-| **Top-P** | Nucleus sampling threshold | 0.95 | 0.5-1.0 |
-| **Top-K** | Number of highest probability tokens to consider | 40 | 10-100 |
-| **System Prompt** | Base instructions for AI | Basic retail template | Custom templates available |
-| **Memory Context** | Number of previous messages to include | 10 | 1-20 |
-| **Response Speed** | Balance between quality and speed | Balanced | Fast, Balanced, Quality |
+- **Logging**:
+  - Structured logging with Winston
+  - Log levels (debug, info, warn, error)
+  - Request ID tracking across services
+  - Redaction of sensitive information
 
-Professional and Enterprise plans allow for A/B testing of different AI configurations and provide tools to analyze which settings deliver the best customer experience and conversion rates.
+- **Performance Optimization**:
+  - Response caching strategies
+  - Database query optimization
+  - Connection pooling
+  - Asset compression and delivery
 
-### Implementation Requirements
+- **Deployment Pipeline**:
+  - CI/CD integration with GitHub Actions
+  - Automated testing before deployment
+  - Staged deployment environments
+  - Blue-green deployment for zero downtime
+  - Rollback capabilities for failed deployments
 
-1. **Specialized Vocabulary**: Industry-specific terminology training for the AI
-2. **Custom Product Attributes**: Specialized fields for each vertical (e.g., nutrients for food, sizes for apparel)
-3. **Vertical-Specific Functions**: Custom function calls for industry processes
-4. **Integration Points**: Connections to industry-standard software
-5. **Visual Elements**: Industry-appropriate templates for rich media cards and responses
 
-The platform's modular architecture ensures these adaptations can be implemented quickly, typically within 2-4 weeks for a new vertical market launch.
+
+
+
+
+
+
+### Authentication and Token Management
+
+Our system uses JWT (JSON Web Token) authentication to keep user accounts secure. Here's how it works:
+
+#### Token Types and Security Features
+
+| Token Type | Duration | Storage | Purpose |
+|------------|----------|---------|---------|
+| Access Token | 1 hour | HTTP-only cookie | Authorizes API calls |
+| Refresh Token | 7 days | HTTP-only cookie | Gets new access tokens |
+
+#### How Our System Protects Your Account
+
+We implement multiple security layers to protect user accounts:
+- We rotate secret keys regularly to prevent compromise
+- We sign tokens with HS256 algorithm for integrity verification
+- We include only essential information in token payloads
+- We validate token sources through HTTP headers
+- We enforce rate limits on all token-related endpoints
+
+#### Permission System
+
+Our role-based access control system includes:
+
+| Role | Access Level | Example Permissions |
+|------|--------------|---------------------|
+| Admin | Full access | Manage all workspaces, users, and settings |
+| Manager | Workspace management | Manage products, orders, and team members |
+| Agent | Customer service | Handle customer chats and process orders |
+
+We scope all permissions to specific workspaces, ensuring data isolation between different businesses.
+
+#### Secure Operations with Temporary Links
+
+For sensitive operations like payments, we create secure, time-limited links:
+
+```
+Example Flow:
+1. Customer wants to complete purchase in WhatsApp chat
+2. System generates unique temporary token: "pay_ord_b1f493a2" (valid for 1 hour)
+3. System sends link: "https://pay.shopme.com/checkout/pay_ord_b1f493a2"
+4. Customer clicks link and is taken to secure payment page
+5. After payment, system verifies token, processes payment, and invalidates token
+6. System confirms successful payment in WhatsApp chat
+```
+
+These tokens contain encrypted information about the operation type, resources involved, and expiration time. We verify tokens before allowing any access to sensitive data or operations.
+
+ 
+
+
+- `GET /api/offers`
+  - **Description**: Retrieves offers and promotions list
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `status` (optional): Filter by active, upcoming, or expired
+    - `page`, `limit` (optional): Pagination parameters
+  - **Returns**: List of offers with details
+
+- `POST /api/offers`
+  - **Description**: Creates a new offer
+  - **Body**: 
+    - `name`: Offer name
+    - `description`: Offer description 
+    - `offer_type`: Discount type (percentage, fixed, buy_x_get_y)
+    - `discount_value`: Value of discount
+    - `products`: List of applicable product IDs
+    - `categories`: List of applicable category IDs
+    - `start_date`: Offer start date
+    - `end_date`: Offer end date
+    - `min_purchase`: Minimum purchase requirement
+    - `usage_limit`: Maximum redemptions allowed
+    - `code`: Promo code (optional)
+  - **Returns**: Created offer details
+
+- `GET /api/offers/:id`
+  - **Description**: Gets details of a specific offer
+  - **Parameters**: `id` (required): Offer ID
+  - **Returns**: Complete offer details including usage statistics
+
+- `PUT /api/offers/:id`
+  - **Description**: Updates an offer
+  - **Parameters**: `id` (required): Offer ID
+  - **Body**: Fields to update
+  - **Returns**: Updated offer
+
+- `DELETE /api/offers/:id`
+  - **Description**: Deletes an offer
+  - **Parameters**: `id` (required): Offer ID
+  - **Returns**: Deletion confirmation
+
+- `POST /api/offers/:id/activate`
+  - **Description**: Activates an offer
+  - **Parameters**: `id` (required): Offer ID
+  - **Returns**: Activated offer status
+
+- `POST /api/offers/:id/deactivate`
+  - **Description**: Deactivates an offer
+  - **Parameters**: `id` (required): Offer ID
+  - **Returns**: Deactivated offer status
+
+- `GET /api/offers/validate/:code`
+  - **Description**: Validates a promo code
+  - **Parameters**: 
+    - `code` (required): Promo code to validate
+    - `customer_id` (optional): Customer trying to use code
+    - `cart_value` (optional): Current cart value
+  - **Returns**: Offer validity and applicable discount
 
 
 The following features are currently marked as "Work in Progress" and are outside the scope of the initial release:
@@ -1501,6 +1339,7 @@ The following features are currently marked as "Work in Progress" and are outsid
 - Subscription management
 - Payment gateway integration
 - Fraud prevention tools
+
 
 The following features are planned for the MMP phase, after the initial MVP release:
 
@@ -1601,7 +1440,7 @@ Additional function calls planned for the MMP phase:
 +-------------------------+--------------------------------------+----------------+
 ```
 
- 
+
 ### Architecture Diagram
 
 ```mermaid
@@ -2300,4 +2139,6 @@ When you reach a limit, our system:
 Business owners can adjust these limits in their workspace settings, with options to set different limits for various API operations or temporarily increase limits during high-traffic periods.
 
 
+The platform is designed to be adaptable to various vertical markets with minimal customization requirements. Each vertical adaptation includes:
+The platform is designed to be adaptable to various vertical markets with minimal customization requirements. Each vertical adaptation includes:
 The platform is designed to be adaptable to various vertical markets with minimal customization requirements. Each vertical adaptation includes:
