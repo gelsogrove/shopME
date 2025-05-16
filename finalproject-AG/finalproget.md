@@ -7,6 +7,7 @@
 4. [API specification](#4-api-specification)
 5. [User stories](#5-user-stories)
 6. [Work tickets](#6-work-tickets)
+7. [Core Development Tasks](#7-core-development-tasks)
 
 ---
 
@@ -140,60 +141,31 @@ flowchart TB
 
 ### **2.3. High-level project description and file structure**
 
-The project is organized with separate backend and frontend folders:
+The project follows a clean Domain-Driven Design architecture, dividing functionality into clear conceptual areas:
 
-#### Backend Structure
+**Backend Architecture**
+The backend is structured around a hexagonal architecture pattern that separates core business logic from external concerns:
 
-```
-/backend
-  /src
-    /domain                # Core business logic
-      /entities            # Business models
-      /repositories        # Data access interfaces
-      /value-objects       # Immutable value objects
-    /application           # Application logic
-      /services            # Business orchestration
-      /use-cases           # Specific features
-      /dto                 # Data transfer objects
-    /infrastructure        # Technical implementations
-      /repositories        # Database access
-      /persistence         # ORM configurations
-      /external-services   # 3rd party integrations
-    /interfaces            # External interfaces
-      /http
-        /controllers       # Request handlers
-        /routes            # API routes
-      /websockets          # WebSocket handlers
-    /config                # Configuration settings
-    /utils                 # Utility functions
-  /tests
-    /unit                  # Unit tests
-    /integration           # Integration tests
-  /prisma                  # Prisma schema and migrations
-  /scripts                 # Build and deployment scripts
-```
+- **Domain Layer**: Contains business entities, repositories interfaces, and value objects that represent the core model
+- **Application Layer**: Orchestrates use cases and business operations without external dependencies
+- **Infrastructure Layer**: Implements technical details like database access and external service integrations
+- **Interface Layer**: Provides REST endpoints, controllers, and WebSocket handlers for client communication
+- **Support Modules**: Configuration, utilities, and cross-cutting concerns like logging
 
-#### Frontend Structure
+**Frontend Architecture**
+The React frontend follows a component-based architecture focused on reusability and maintainability:
 
-```
-/frontend
-  /src
-    /components
-      /shared              # Reusable components
-      /layout              # Layout components
-      /forms               # Form components
-      /ui                  # UI primitives
-    /hooks                 # Custom React hooks
-    /pages                 # Page components
-    /contexts              # React contexts
-    /services              # API services
-    /utils                 # Utility functions
-    /types                 # TypeScript type definitions
-    /styles                # Global styles
-    /assets                # Images, fonts, etc.
-  /public                  # Static assets
-  /tests                   # Frontend tests
-```
+- **Component Library**: Organized by function with shared UI elements, forms, and layouts
+- **State Management**: Uses React contexts and custom hooks for efficient data flow
+- **API Integration**: Service modules that handle backend communication
+- **Page Structure**: Feature-based organization with routing
+
+**Persistence**
+Database management uses Prisma ORM with PostgreSQL as the primary database, providing:
+- Type-safe database access
+- Migration management
+- Schema definition with relationships
+- Efficient query optimization
 
 ### **2.4. Infrastructure and deployment**
 
@@ -909,6 +881,70 @@ Build a flexible chat system that provides customers with a seamless shopping ex
 - [Chat System Architecture Diagram](/diagrams/chat-architecture.png)
 - [Conversation Flow Examples](/docs/conversation-flows.md)
 - [Chat Interface Mockups](/designs/chat-interface.fig)
+
+---
+
+## 7. Core Development Tasks
+
+Based on the user stories and requirements, these are the three core development tasks for ShopMe:
+
+### **Task 1: Authentication & Workspace Setup**
+
+**Description**:  
+Implement secure user authentication and workspace creation functionality.
+
+**Key Features**:
+- JWT-based authentication with refresh token mechanism
+- User registration and login system
+- Workspace creation and configuration
+- Role-based access control (admin, agent, viewer)
+- WhatsApp channel integration
+- Multi-factor authentication for enhanced security
+
+**Deliverables**:
+- Secure authentication API endpoints
+- User dashboard for workspace management
+- WhatsApp connectivity configuration interface
+- Role permission management system
+
+### **Task 2: Product & Category Management**
+
+**Description**:  
+Create a comprehensive product catalog system with categories and variants.
+
+**Key Features**:
+- Full CRUD operations for products and categories
+- Hierarchical category organization
+- Product variant management (size, color, etc.)
+- Multi-image support for product displays
+- Inventory and stock management
+- Bulk import/export capabilities
+
+**Deliverables**:
+- Product management dashboard
+- Category tree editor
+- Image upload and optimization system
+- Inventory tracking interface
+- Product search and filtering functionality
+
+### **Task 3: AI Agent Configuration**
+
+**Description**:  
+Develop a system for configuring and fine-tuning AI agents for customer interactions.
+
+**Key Features**:
+- Customizable AI parameters (temperature, tokens, etc.)
+- Prompt template creation and management
+- Conversation context handling
+- Multi-language support (Italian, English, Spanish)
+- Conversation analytics and performance metrics
+
+**Deliverables**:
+- Agent configuration interface
+- Prompt template editor with variables
+- Testing console for prompt evaluation
+- Conversation performance dashboard
+- Parameter adjustment controls with guidance
 
 ---
 
