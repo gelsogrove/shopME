@@ -98,6 +98,14 @@ The application interface is currently in active development (Work In Progress).
 
 User interaction with the system is primarily through WhatsApp. When a user sends a message to the business's WhatsApp number, they receive a registration link. After completing the registration process, they can interact with the AI-powered assistant directly through normal WhatsApp conversations, asking questions, placing orders, and managing their account without needing to download additional apps or visit external websites for most operations.
 
+The platform also includes a SaaS admin panel, accessible with login credentials. This dashboard allows business owners to manage:
+- AI Prompts and Agent settings
+- Products and inventory
+- Categories and organization
+- Special offers and discounts
+- Customer data and conversations
+- Performance analytics
+
 ### **1.4. Installation instructions:**
 
 Currently in development (Work In Progress).
@@ -171,7 +179,7 @@ flowchart TB
 
 ### **2.3. High-level project description and file structure**
 
-The project is organized as a monorepo using Turborepo for efficient management of multiple packages:
+The project is organized with separate backend and frontend folders:
 
 #### Backend Structure
 
@@ -295,11 +303,148 @@ Each test type will be implemented to ensure code quality, reliability, and to p
 
 ### **3.1. Data model diagram:**
 
-*Work In Progress*
+```mermaid
+erDiagram
+    Workspace {
+        string id PK
+        string name
+        string slug
+        string whatsappPhoneNumber
+        string language
+        boolean isActive
+        string currency
+    }
+    
+    User {
+        string id PK
+        string email
+        string passwordHash
+        string firstName
+        string lastName
+        UserRole role
+        UserStatus status
+    }
+    
+    UserWorkspace {
+        string id PK
+        string userId FK
+        string workspaceId FK
+        UserRole role
+    }
+    
+    Categories {
+        string id PK
+        string name
+        string description
+        string workspaceId FK
+        string slug
+        boolean isActive
+    }
+    
+    Products {
+        string id PK
+        string name
+        string description
+        float price
+        int stock
+        string workspaceId FK
+        string categoryId FK
+        string slug
+        ProductStatus status
+        string image
+    }
+    
+    Customers {
+        string id PK
+        string name
+        string email
+        string phone
+        string workspaceId FK
+        string language
+        boolean isActive
+    }
+    
+    Orders {
+        string id PK
+        string status
+        float total
+        string customerId FK
+        string workspaceId FK
+    }
+    
+    Prompts {
+        string id PK
+        string name
+        string content
+        string workspaceId FK
+        float temperature
+        float top_p
+        int max_tokens
+        boolean isActive
+    }
+    
+    Offers {
+        string id PK
+        string name
+        string description
+        float discountPercent
+        datetime startDate
+        datetime endDate
+        string workspaceId FK
+        string categoryId FK
+    }
+    
+    ChatSession {
+        string id PK
+        string status
+        json context
+        string workspaceId FK
+        string customerId FK
+    }
+    
+    Message {
+        string id PK
+        MessageDirection direction
+        string content
+        MessageType type
+        boolean aiGenerated
+        string chatSessionId FK
+        string promptId FK
+    }
+
+    Workspace ||--o{ UserWorkspace : "has"
+    Workspace ||--o{ Products : "has"
+    Workspace ||--o{ Categories : "has"
+    Workspace ||--o{ Customers : "has"
+    Workspace ||--o{ Orders : "has"
+    Workspace ||--o{ Prompts : "has"
+    Workspace ||--o{ Offers : "has"
+    Workspace ||--o{ ChatSession : "has"
+    
+    User ||--o{ UserWorkspace : "belongs to"
+    Categories ||--o{ Products : "contains"
+    Categories ||--o{ Offers : "has"
+    Customers ||--o{ Orders : "places"
+    Customers ||--o{ ChatSession : "has"
+    Products ||--o{ OrderItems : "included in"
+    Orders ||--o{ OrderItems : "contains"
+    ChatSession ||--o{ Message : "contains"
+    Prompts ||--o{ Message : "generates"
+```
 
 ### **3.2. Description of main entities:**
 
-*Work In Progress*
+- **Workspace**: Represents a business tenant with unique settings and data isolation
+- **User**: Admin users who manage workspaces
+- **UserWorkspace**: Links users to workspaces with specific roles
+- **Categories**: Product organization structure
+- **Products**: Items available for sale
+- **Customers**: End users who interact through WhatsApp 
+- **Orders**: Purchase records with items and payment status
+- **Prompts**: AI instruction templates for different conversation scenarios
+- **Offers**: Time-limited discounts and promotions
+- **ChatSession**: Conversation contexts between customers and the system
+- **Message**: Individual messages within conversations
 
 ---
 
