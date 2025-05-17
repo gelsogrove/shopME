@@ -35,20 +35,20 @@ ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that turns Wh
 ShopMe helps businesses manage customer interactions through WhatsApp. The AI chatbot executes function calls during conversations to handle customer requests. When a customer asks about an invoice, the system finds it and sends a download link, while also answering questions about products, orders, and other information.
 
 The platform helps businesses:
-- Provide 24/7 customer service without more staff
-- Handle routine questions automatically
+- Provide 24/7 customer service and handle routine questions automatically without additional staff
 - Offer service directly through WhatsApp
+- Send push notifications with special offers and promotions
 - Build customer loyalty through fast responses
 
 ### **1.2. Key features and functionalities:**
 
 ShopMe transforms WhatsApp into a sales and service channel with these key features:
 
-The platform supports multiple businesses with isolated workspaces, custom branding, and role-based access. Each business manages their product catalog with images, inventory tracking, and organized categories.
+The platform supports multiple businesses with isolated workspaces. Each business manages their product catalog, offers,services, Faq.
 
-The system sends smart notifications for order updates and keeps customers engaged through an AI-powered chat interface that provides contextual responses.
+The system sends scheduled notifications for new offers  keeping customers engaged.
 
-Business owners can customize settings including branding, language support (Italian, English, Spanish), and AI behavior parameters (temperature, token limits).
+Business owners can customize settings including branding, language support (Italian, English, Spanish), and AI behavior parameters (temperature, token limits,etc).
 
 All sensitive operations use secure temporary links rather than being handled in chat conversations.
 
@@ -83,7 +83,7 @@ flowchart TB
     end
     
     subgraph "Backend"
-        NodeJS["Node.js Express\nApplication"]
+        NodeJS["Node.js Express"]
         API["REST API"]
     end
     
@@ -151,8 +151,6 @@ The project follows a Domain-Driven Design architecture with clear separation of
 
 **Database**
 - PostgreSQL with Prisma ORM
-- Type-safe database access
-- Migration management
 
 ### **2.4. Security**
 
@@ -169,7 +167,6 @@ ShopMe implements these security measures:
 
 3. **Data Protection**:
    - HTTPS for all communications
-   - Role-based access controls
    - Workspace isolation for multi-tenant security
 
 ### **2.5.1 Authentication Token**
@@ -411,11 +408,10 @@ Below are the most important endpoints of the ShopMe platform:
 
 **Endpoint**: `POST /api/messages/receive`
 
-**Description**: Receives incoming WhatsApp messages and processes them using AI.
+**Description**: Webhook endpoint that receives incoming WhatsApp messages from WhatsApp Business API and processes them using AI.
 
 **Query Parameters**:
 - `workspaceId`: Workspace ID (required)
-- `channel`: Message channel type (required)
 - `messageId`: Unique message identifier
 - `token`: Authentication token (required)
 
@@ -475,11 +471,10 @@ Below are the most important endpoints of the ShopMe platform:
 
 **Technical aspects:**
 - JWT authentication with expiry mechanism
-- Role-based access control
+- Access control based on workspace membership
 - Secure password handling
 
 **Complexity**: Medium
-**Estimate**: 8 story points
 
 ### **User Story 2: Product Management**
 
@@ -500,7 +495,6 @@ Below are the most important endpoints of the ShopMe platform:
 - Inventory tracking logic
 
 **Complexity**: Medium
-**Estimate**: 8 story points
 
 ### **User Story 3: AI Agent Configuration**
 
@@ -521,7 +515,6 @@ Below are the most important endpoints of the ShopMe platform:
 - Configuration persistence
 
 **Complexity**: High
-**Estimate**: 10 story points
 
 ---
 
