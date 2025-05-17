@@ -123,15 +123,15 @@ flowchart TB
 
 ### **2.2. Description of main components:**
 
-- **Frontend**: React with TypeScript and Tailwind CSS for the admin interface where businesses manage products and monitor customer interactions.
+- **Frontend**: React with TypeScript and Tailwind CSS for the admin interface where businesses manage products,offers,services,faq and monitor customer interactions.
 
 - **Backend**: Node.js Express application using Domain-Driven Design architecture to handle business logic and API routes.
 
-- **Data Layer**: Prisma ORM with PostgreSQL database for data storage and retrieval.
+- **Data Layer**: Prisma ORM with PostgreSQL database.
 
 - **External Services**:
   - **WhatsApp Business API**: For customer communication
-  - **OpenAI / LLM Services**: Powers the AI chatbot
+  - **OpenrRouter / LLM Services**: Powers the AI chatbot
   - **Payment Gateway**: Handles secure payments
 
 ### **2.3. High-level project description**
@@ -168,6 +168,7 @@ ShopMe implements these security measures:
 3. **Data Protection**:
    - HTTPS for all communications
    - Workspace isolation for multi-tenant security
+   - Two-factor authentication for enhanced account security
 
 ### **2.5.1 Authentication Token**
 
@@ -183,12 +184,14 @@ The system uses JWT (JSON Web Token) for authentication:
 
 ### **2.5.2 AI Parameters**
 
-- **content**: Base instructions that guide the AI's behavior
+- **prompt**: Base instructions that guide the AI's behavior
 - **max_tokens**: Controls response length (500-1000 for detailed answers)
 - **temperature**: Randomness control (0-1); lower = more focused
 - **top_p**: Response diversity; higher values consider more options
 - **top_k**: Token selection restriction; affects vocabulary variety
 - **model**: AI model selection (e.g., GPT-4.1-mini)
+
+All these parameters are configurable directly through the application interface, allowing businesses to fine-tune their AI responses without technical knowledge.
 
 ---
 
@@ -384,19 +387,17 @@ erDiagram
 
 ### **3.2. Description of main entities:**
 
-- **Workspace**: Business tenant with unique settings
 - **User**: Admin users who manage workspaces
-- **UserWorkspace**: Links users to workspaces with specific role permissions
-- **Categories**: Product organization structure
-- **Products**: Items available for sale
-- **Customers**: End users who interact through WhatsApp 
-- **Orders**: Purchase records with items and payment status
-- **Prompts**: AI agent configurations with model settings and parameters
-- **Offers**: Time-limited discounts and promotions
+- **Workspace**: Business tenant with unique settings and configurations
+- **Categories**: Product organization structure for logical grouping
+- **Products**: Items available for sale with prices and inventory
+- **Suppliers**: Product suppliers with contact information and addresses
+- **Offers**: Time-limited discounts and promotions for products
+- **Customers**: End users who interact through WhatsApp messaging
+- **Orders**: Purchase records with payment status and customer information
+- **Agent Configuration**: AI agent settings with model parameters and behavior controls
 - **ChatSession**: Conversation contexts between customers and the system
-- **Message**: Individual messages within conversations
-- **OrderItems**: Individual items within an order
-- **Suppliers**: Product suppliers with contact information
+- **Message receive**: Webhook endpoint that receives incoming WhatsApp messages from WhatsApp Business API
 
 ---
 
@@ -410,10 +411,23 @@ Below are the most important endpoints of the ShopMe platform:
 
 **Description**: Webhook endpoint that receives incoming WhatsApp messages from WhatsApp Business API and processes them using AI.
 
-**Query Parameters**:
-- `workspaceId`: Workspace ID (required)
-- `messageId`: Unique message identifier
-- `token`: Authentication token (required)
+**Request Headers**:
+- `Authorization`: Bearer token for authentication (required)
+- `X-Workspace-Id`: Identifies which workspace should process the message (required)
+
+**Request Body**:
+```json
+{
+  "messageId": "unique-message-id-123",
+  "from": "customer-phone-number",
+  "text": "Message content from the customer",
+  "timestamp": "2023-05-15T14:30:00Z",
+  "media": {
+    "type": "image",
+    "url": "https://example.com/image.jpg"
+  }
+}
+```
 
 **Status Codes**:
 - `200 OK`: Message processed successfully
