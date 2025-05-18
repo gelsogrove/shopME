@@ -62,9 +62,11 @@ The platform includes an admin panel where business owners can manage:
 - Performance metrics
 
 
-![Chat History](./img/chatHistory.png)
+![Chabnel](./img/channel.png)
 ![Products](./img/products.png)
 ![Agent configuration](./img/agentConfiguration.png)
+![Chat History](./img/chatHistory.png)
+
 
 
 ### **1.4. Installation instructions:**
