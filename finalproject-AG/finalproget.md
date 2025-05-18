@@ -54,14 +54,18 @@ All sensitive operations use secure temporary links rather than being handled in
 
 ### **1.3. Design and user experience:**
 
-User interaction happens through WhatsApp. Customers message a business number, receive a registration link, and then interact with the AI assistant to ask questions, place orders, and manage their account.
-
 The platform includes an admin panel where business owners can manage:
 - AI Prompts and settings
 - Products and categories
 - Special offers
 - Customer data
 - Performance metrics
+
+
+![Chat History ](./chatHistory.png)
+![Products ](./products.png)
+![Agent configuration ](./agentConfiguration.png)
+
 
 ### **1.4. Installation instructions:**
 
@@ -418,14 +422,26 @@ Below are the most important endpoints of the ShopMe platform:
 **Request Body**:
 ```json
 {
-  "messageId": "unique-message-id-123",
-  "from": "customer-phone-number",
-  "text": "Message content from the customer",
-  "timestamp": "2023-05-15T14:30:00Z",
-  "media": {
-    "type": "image",
-    "url": "https://example.com/image.jpg"
-  }
+  "object": "whatsapp_business_account",
+  "entry": [{
+    "id": "WHATSAPP_BUSINESS_ID",
+    "changes": [{
+      "value": {
+        "messages": [{
+          "from": "PHONE_NUMBER",
+          "id": "wamid.ID",
+          "timestamp": "TIMESTAMP",
+          "text": { "body": "Hola, puedo repitir el ultimo orden echo?" },
+          "type": "text"
+        }],
+        "contacts": [{
+          "profile": { "name": "Mario Rossi" },
+          "wa_id": "PHONE_NUMBER"
+        }]
+      },
+      "field": "messages"
+    }]
+  }]
 }
 ```
 
@@ -443,7 +459,6 @@ Below are the most important endpoints of the ShopMe platform:
 
 **Query Parameters**:
 - `workspaceId`: Workspace ID (required)
-- `limit`: Maximum messages to retrieve
 - `token`: Authentication token (required)
 
 **Status Codes**:
@@ -618,7 +633,7 @@ Build a system for configuring AI agents for customer interactions.
 
 ---
 
-## 7. Core Development Tasks
+## 7. Core Development 
 
 Based on the requirements, these are the main tasks:
 
