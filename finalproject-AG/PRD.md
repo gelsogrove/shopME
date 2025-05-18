@@ -41,28 +41,28 @@ ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that turns Wh
 
 All sensitive operations are handled securely through temporary links with security tokens. These links direct customers to our secure website for registration forms, payments, invoices, and accessing personal data. This keeps all sensitive information outside of chat conversations, ensuring data protection while maintaining a smooth customer experience.
 
-### Business Model
+### Load Business Model
 
 ```
 +-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+
 | 1. PROBLEM              | 2. SOLUTION             | 3. UNIQUE VALUE         | 4. UNFAIR ADVANTAGE     | 5. CUSTOMER SEGMENTS    |
 |                         |                         |    PROPOSITION          |                         |                         |
 +-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+
-| • E-commerce and        | • WhatsApp-based        | • Unified commerce and  | • 2.7+ billion active   | • Small businesses      |
-|   customer service      |   chatbot platform      |   customer care in      |   WhatsApp users       |   without technical     |
-|   are separate systems  |   with AI integration   |   one platform          | • 98% message open      |   expertise             |
-|                         |                         |                         |   rate vs 20% email     |                         |
-| • Technical barriers    | • No-code product and   | • Single conversation   | • Rich media product    | • Mid-sized retailers   |
-|   for WhatsApp          |   catalog management    |   thread for discovery, |   catalog support in a  |   seeking omnichannel   |
-|   commerce integration  |                         |   purchase & support    |   familiar interface    |   solutions             |
+| • E-commerce and        | • WhatsApp-based        | • Unified commerce and  | • 98% message open      | • Small businesses      |
+|   customer service      |   chatbot platform      |   customer care in      |   rate vs 20% email     |   without technical     |
+|   are separate systems  |   with AI integration   |   one platform          | • 53% cart abandonment  |   expertise             |
+|                         |                         |                         |   reduction             |                         |
+| • Technical barriers    | • No-code product and   | • Secure token-based    | • Cross-industry        | • Mid-sized retailers   |
+|   for WhatsApp          |   catalog management    |   system for sensitive  |   versatility without   |   seeking omnichannel   |
+|   commerce integration  |                         |   operations            |   reconfiguration       |   solutions             |
 |                         |                         |                         |                         |                         |
-| • Limited personalization| • Secure token-based   | • 42% higher conversion | • Contextual memory of  | • Food/grocery          |
-|   in traditional        |   handling of sensitive |   rate vs traditional   |   past interactions     |   businesses with       |
-|   e-commerce            |   operations            |   websites              |   for personalization   |   perishable inventory  |
+| • Limited personalization| • Multi-industry       | • 42% higher conversion | • Unified platform vs   | • Food/grocery          |
+|   in traditional        |   adaptability without  |   rate vs traditional   |   competitors' fragmented|  businesses with       |
+|   e-commerce            |   reconfiguration       |   websites              |   solutions             |   perishable inventory  |
 |                         |                         |                         |                         |                         |
-| • Lost sales from       | • Multi-language        | • 67% faster response   | • Persistent customer   | • Service businesses    |
-|   abandoned carts and   |   support (IT/EN/ES)    |   inquiries             |   outlasts web visits   |   requiring booking     |
-|   unanswered queries    |   with AI automation    |   inquiries             |   outlasts web visits   |   and follow-up         |
+| • Lost sales from       | • AI-powered            | • 67% faster response   | • Customizable platform | • Service businesses    |
+|   abandoned carts and   |   conversation and      |   time and 3.2x higher  |   for industry-specific |   requiring booking     |
+|   unanswered queries    |   engagement            |   customer retention    |   compliance needs      |   and follow-up         |
 +-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+
 | 6. KEY METRICS                                    | 7. CHANNELS                                                                |
 |                                                   |                                                                            |
@@ -132,11 +132,6 @@ flowchart TD
     class ErrorMsg,IgnoreMsg,SendRegistration,RequestConsent,CreateSecureLink,SendWhatsApp action
 ```
 
-## UI SCREENSHOTS
-
-[SCREENSHOT 1: Dashboard Overview]
-[SCREENSHOT 2: Product Management Interface]
-[SCREENSHOT 3: Customer Interaction Panel]
 
 ## DIALOG EXAMPLES
 
@@ -150,38 +145,20 @@ He creado un enlace de registro seguro para usted: [https://shopme.com/registro/
 
 Este enlace es personal y caduca en 24 horas por motivos de seguridad."
 
-**Cliente**: "¿Es seguro? ¿Qué pasa con mis datos?"
-
-**ShopMe**: "Entiendo su preocupación por la privacidad. Su seguridad es nuestra prioridad:
-
-1. El enlace utiliza un token único y temporal para proteger su proceso de registro
-2. Todos sus datos se almacenan de forma segura en nuestros servidores encriptados
-3. No compartimos sus datos personales con ningún modelo de IA externo
-4. Cumplimos totalmente con la normativa GDPR de protección de datos
-
-Una vez registrado, podrá realizar compras, seguir sus pedidos y recibir facturas electrónicas fácilmente."
-
-**Cliente**: *[Completa el registro a través del enlace]*
 
 **ShopMe**: "¡Gracias por registrarse! Su cuenta ha sido creada correctamente. 
 
 Nos complace informarle que valoramos su privacidad y seguridad. Todos sus datos se guardan exclusivamente en nuestra base de datos segura y no se comparten con modelos de IA externos.
 
-¿En qué puedo ayudarle hoy? Puedo mostrarle nuestros productos destacados, ayudarle a encontrar algo específico o responder cualquier pregunta sobre nuestros servicios."
+¿En qué puedo ayudarle hoy?"
 
 ### Descubrimiento y Compra de Productos
 
 **Cliente**: "Hola, estoy buscando productos típicos sicilianos para regalar."
 
-**ShopMe**: "¡Buenos días! Estaré encantado de ayudarle a encontrar productos típicos sicilianos para un regalo. Para sugerirle las mejores opciones, ¿podría saber:
+**ShopMe**: "¡Ben regresado Andrea! Estaré encantado de ayudarle a encontrar productos típicos sicilianos para un regalo. Para sugerirle las mejores opciones, ¿podría saber:
 
-1. ¿Tiene un presupuesto en mente?
-2. ¿Prefiere productos dulces, salados o un surtido?
-3. ¿La persona que recibirá el regalo tiene alergias o intolerancias alimentarias?"
-
-**Cliente**: "Mi presupuesto es de unos 50€. Preferiría un surtido de dulces y salados. No hay alergias a considerar."
-
-**ShopMe**: "Según sus preferencias, aquí tiene tres packs de regalo que podrían interesarle:
+**ShopMe**: "Según sus preferencias, aquí tiene dos packs de regalo que podrían interesarle:
 
 1. **Box Sicilia Clásica** (45€)
    - 1 botella de passito de Pantelleria (375ml)
@@ -198,17 +175,9 @@ Nos complace informarle que valoramos su privacidad y seguridad. Todos sus datos
    - 1 mermelada de higos chumbos (240g)
    - Caja artesanal de madera
 
-3. **Sabores de la Isla** (48€)
-   - 500g de pasta extruida en bronce
-   - 1 botella de aceite de oliva virgen extra (250ml)
-   - 1 tarro de pesto trapanés (180g)
-   - 100g de sal marina con hierbas sicilianas
-   - 150g de crujiente de sésamo
-   - Envoltorio de regalo con papel personalizado
-
 ¿Cuál de estas opciones le interesa más?"
 
-**Cliente**: "La Degustación Siciliana parece excelente. ¿Cómo se puede utilizar la crema de pistacho?"
+
 
 **ShopMe**: "La crema de pistacho es un producto versátil y delicioso. Puede utilizarse de varias formas:
 - Untada en rebanadas de pan o croissants para un desayuno goloso
@@ -274,6 +243,25 @@ La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo
 - Conversation flow design
 - Fallback response management
 - Custom function configuration
+
+
+## UI SCREENSHOTS
+
+The platform includes an admin panel where business owners can manage:
+- AI Prompts and settings
+- Products and categories
+- Special offers
+- Customer data
+- Performance metrics
+
+
+![Chabnel](./img/channel.png)
+![Products](./img/products.png)
+![Agent configuration](./img/agentConfiguration.png)
+![Chat History](./img/chatHistory.png)
+
+
+
 
 ## TECHNICAL ARCHITECTURE
 
@@ -900,6 +888,152 @@ We protect all API endpoints with smart rate limiting:
   - **Parameters**: `id` (required): Offer ID
   - **Returns**: Complete offer details including usage statistics
 
+#### Orders API
+
+- `GET /api/orders`
+  - **Description**: Lists orders
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `customer_id` (optional): Filter by customer
+    - `status` (optional): Filter by order status
+    - `date_from`, `date_to` (optional): Date range filters
+    - `page`, `limit` (optional): Pagination parameters
+  - **Returns**: Paginated order list with basic details
+
+- `POST /api/orders`
+  - **Description**: Creates a new order
+  - **Body**: 
+    - `customer_id`: Customer making the order
+    - `items`: Array of product IDs with quantities
+    - `payment_method`: Payment method to use
+    - `shipping_address`: Shipping details (if applicable)
+    - `notes`: Additional order notes
+  - **Returns**: Created order with payment link
+
+- `GET /api/orders/:id`
+  - **Description**: Gets detailed information about an order
+  - **Parameters**: `id` (required): Order ID
+  - `Returns**: Complete order information including items, payment status, and history
+
+- `PUT /api/orders/:id/status`
+  - **Description**: Updates order status
+  - **Body**: `status`: New order status
+  - **Returns**: Updated order with current status
+
+- `POST /api/orders/:id/refund`
+  - **Description**: Initiates a refund for an order
+  - **Body**: `amount`: Amount to refund, `reason`: Refund reason
+  - **Returns**: Refund confirmation
+
+#### Conversations API
+
+- `GET /api/conversations`
+  - **Description**: Lists customer conversations
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `customer_id` (optional): Filter by customer
+    - `status` (optional): Filter by conversation status
+    - `date_from`, `date_to` (optional): Date range filters
+    - `page`, `limit` (optional): Pagination parameters
+  - **Returns**: Paginated conversation list
+
+- `GET /api/conversations/:id`
+  - **Description**: Gets details of a specific conversation
+  - **Parameters**: `id` (required): Conversation ID
+  - **Returns**: Conversation with messages
+
+- `PUT /api/conversations/:id/status`
+  - **Description**: Updates conversation status (e.g., open, closed)
+  - **Body**: `status`: New conversation status
+  - **Returns**: Updated conversation status
+
+- `GET /api/conversations/:id/messages`
+  - **Description**: Gets messages from a conversation
+  - **Parameters**: 
+    - `id` (required): Conversation ID
+    - `page`, `limit` (optional): Pagination parameters
+  - **Returns**: Paginated message list
+
+- `POST /api/conversations/:id/messages`
+  - **Description**: Adds a message to a conversation
+  - **Body**: `content`: Message content, `role`: Sender role
+  - **Returns**: Created message
+
+#### Analytics API
+
+- `GET /api/analytics/overview`
+  - **Description**: Gets high-level analytics for a workspace
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `period` (optional): Time period (daily, weekly, monthly)
+  - **Returns**: Key metrics summary
+
+- `GET /api/analytics/sales`
+  - **Description**: Gets sales analytics
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `period` (optional): Time period
+    - `group_by` (optional): Grouping (product, category)
+  - **Returns**: Sales data for the requested period
+
+- `GET /api/analytics/customers`
+  - **Description**: Gets customer analytics
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `period` (optional): Time period
+  - **Returns**: Customer metrics (new, returning, average spend)
+
+- `GET /api/analytics/conversations`
+  - **Description**: Gets conversation analytics
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `period` (optional): Time period
+  - **Returns**: Conversation metrics (volume, response time, satisfaction)
+
+#### Settings API
+
+- `GET /api/settings`
+  - **Description**: Gets workspace settings
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: All workspace settings
+
+- `PUT /api/settings`
+  - **Description**: Updates workspace settings
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Body**: Object containing settings to update
+  - **Returns**: Updated settings
+
+- `GET /api/settings/templates`
+  - **Description**: Gets message templates
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: Available message templates
+
+- `POST /api/settings/templates`
+  - **Description**: Creates a message template
+  - **Body**: Template details and content
+  - **Returns**: Created template
+
+#### Media API
+
+- `POST /api/media/upload`
+  - **Description**: Uploads a media file
+  - **Body**: Multipart form with file
+  - **Parameters**: `workspace_id` (required): Workspace identifier
+  - **Returns**: Uploaded file details with URL
+
+- `GET /api/media`
+  - **Description**: Lists media files
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `type` (optional): Filter by media type
+    - `page`, `limit` (optional): Pagination parameters
+  - **Returns**: Paginated media list
+
+- `DELETE /api/media/:id`
+  - **Description**: Deletes a media file
+  - **Parameters**: `id` (required): Media ID
+  - **Returns**: Deletion confirmation
+
 #### Agent Configuration API
 
 - `GET /api/agent-config`
@@ -932,6 +1066,7 @@ The platform follows OWASP security guidelines:
 - Secure authentication and authorization
 - Data encryption in transit and at rest
 - Regular security audits
+- 
 
 ### Testing Strategy
 
@@ -977,74 +1112,336 @@ Comprehensive testing approach:
 ## DEVELOPMENT ROADMAP
 
 ### Phase 1: Core Data Management (Months 1-2)
-- Complete CRUD functionality for all core entities
-- Multi-tenant workspace architecture
-- User role management and permissions
-- Basic admin interface
+- M1.1 (Settimana 1-2): Setup dell'infrastruttura e ambiente di sviluppo
+  - Configurazione repository e CI/CD
+  - Setup database e schema Prisma
+  - Implementazione autenticazione JWT
+- M1.2 (Settimana 3-4): Implementazione CRUD base entità
+  - API per workspace management
+  - API per user management
+  - Base UI dashboard amministrativa
+- M1.3 (Settimana 5-6): Gestione prodotti e categorie
+  - API completa per prodotti/categorie
+  - UI per gestione catalogo prodotti
+  - Sistema di upload immagini e media
+- M1.4 (Settimana 7-8): Multi-tenancy e ruoli
+  - Implementazione completa multi-workspace
+  - Sistema di permessi e ruoli
+  - Test di carico e performance
 
 ### Phase 2: Communication Platform (Months 3-4)
-- WhatsApp API integration
-- Chat flow builder
-- Administrative dashboard
-- Customer survey tools
-- Conversation templates
-- Basic RAG implementation
+- M2.1 (Settimana 1-2): Integrazione WhatsApp API
+  - Setup connessione API WhatsApp
+  - Gestione webhook e notifiche
+  - Autenticazione e validazione messaggi
+- M2.2 (Settimana 3-4): Implementazione RAG e LLM
+  - Integrazione OpenAI/LLM
+  - Sistema RAG per knowledge base
+  - Testing prompt e risposte
+- M2.3 (Settimana 5-6): Builder flussi conversazione
+  - UI per creazione flow conversazionali
+  - Salvataggio e gestione template
+  - Test A/B per efficacia risposte
+- M2.4 (Settimana 7-8): Dashboard comunicazione
+  - Interfaccia gestione conversazioni
+  - Statistiche e metriche di performance
+  - Sistema survey customer satisfaction
 
 ### Phase 3: Monetization & Notifications (Months 5-6)
-- Payment gateway integration
-- Invoice generation system
-- Push notification infrastructure
-- Beta testing program
-- Performance optimization
-- Security hardening
+- M3.1 (Settimana 1-2): Integrazione pagamenti
+  - Implementazione gateway pagamento
+  - Gestione trasazioni e fatturazione
+  - UI per tracking pagamenti
+- M3.2 (Settimana 3-4): Sistema push notifications
+  - Architettura notifiche push
+  - Template notifiche personalizzabili
+  - Scheduler e automazione invii
+- M3.3 (Settimana 5-6): Beta testing
+  - Onboarding clienti beta
+  - Raccolta feedback strutturato
+  - Analisi e prioritizzazione miglioramenti
+- M3.4 (Settimana 7-8): Ottimizzazione
+  - Performance tuning backend/frontend
+  - Implementazione caching strategico
+  - Hardening sicurezza e penetration testing
 
 ### Phase 4: Marketing & MMP Enhancements (Months 7-8)
-- Marketing automation tools
-- Enhanced analytics
-- Customer segmentation
-- Campaign management tools
-- Enhanced AI capabilities
-- Vertical market adaptations
+- M4.1 (Settimana 1-2): Strumenti marketing
+  - Implementazione campagne automatizzate
+  - Segmentazione clienti avanzata
+  - A/B testing e ottimizzazione
+- M4.2 (Settimana 3-4): Analytics avanzate
+  - Dashboard analytics completa
+  - Reportistica personalizzabile
+  - Export dati e integrazione BI tools
+- M4.3 (Settimana 5-6): Adattamenti verticali di mercato
+  - Template specifici per settori (retail, hotel, ristoranti)
+  - Funzioni customizzate per industry
+  - Showcase e casi d'uso settoriali
+- M4.4 (Settimana 7-8): AI capabilities avanzate
+  - Miglioramento modelli di sentiment analysis
+  - Sistema predittivo per comportamento cliente
+  - Implementazione raccomandazioni prodotto intelligenti
 
 ### Phase 5: Full Deployment & Quality Assurance (Months 9-10)
-- Comprehensive testing
-- Performance benchmarking
-- Security audits
-- Documentation completion
-- Support system implementation
-- Full public launch
+- M5.1 (Settimana 1-2): Test completi
+  - Test end-to-end su tutti i flussi
+  - Test di carico e stress in produzione
+  - Verifica accessibilità e compliance
+- M5.2 (Settimana 3-4): Benchmark performance
+  - Ottimizzazione finale database
+  - Fine-tuning API e latenza frontend
+  - Revisione utilizzo risorse cloud
+- M5.3 (Settimana 5-6): Sicurezza e audit
+  - Security audit completo
+  - Implementazione miglioramenti sicurezza
+  - Verifica GDPR e compliance normativa
+- M5.4 (Settimana 7-8): Go-to-market
+  - Finalizzazione documentazione
+  - Setup sistema supporto clienti
+  - Lancio pubblico e piano marketing
 
-## OUT OF SCOPE FEATURES (MVP)
+### Validation Metrics per Phase
+- **Phase 1**: Coverage test >90%, Tempo caricamento UI <1s
+- **Phase 2**: 95% accuratezza risposte AI, Latenza risposta <1.5s
+- **Phase 3**: Tasso conversione pagamenti >80%, Deliverability notifiche >99%
+- **Phase 4**: Incremento engagement +40%, CTR campagne >30%
+- **Phase 5**: Uptime servizio 99.95%, Risoluzione ticket <12h
 
-The following features are outside the scope of the initial MVP release:
+### Features Out of Scope for MVP
 
-### Orders Management
+Le seguenti funzionalità sono escluse dal rilascio MVP iniziale e pianificate per le fasi successive:
+
+#### Orders Management
 - Order processing and tracking
 - Order status management
 - Invoice generation and management
 - Shipping integration and tracking
 - Returns and refund processing
 
-### Analytics
+#### Analytics
 - Real-time analytics dashboard
 - Custom report generation
 - Data visualization tools
 - Export capabilities
 - Performance metrics and KPIs
 
-### Advanced Push Notifications
+#### Advanced Push Notifications
 - A/B testing for notification content
 - Advanced segmentation based on behavior
 - Rich media notifications
 - Location-based targeting
 - Frequency optimization
 
-### Payment Integration
+#### Payment Integration
 - Integrated payment processing
 - Payment plan implementation
 - Subscription management
 - Payment gateway integration
 - Fraud prevention tools
+
+## COMPETITIVE ANALYSIS
+
+### Market Overview
+
+The WhatsApp commerce software market is rapidly growing, with several players offering varying degrees of functionality. This analysis compares ShopMe with key competitors to highlight our unique value proposition and competitive advantages.
+
+### Key Competitors
+
+| Platform | Focus | Target Market | Core Strengths |
+|----------|-------|---------------|----------------|
+| **WATI** | Conversational automation | SMBs | Chatbot automation, CRM integration |
+| **Zoko** | WhatsApp catalogs | E-commerce | Shopify integration, catalog browsing |
+| **Charles** | Customer retention | Enterprise, Retail | Journey automation, marketing campaigns |
+| **Yalo** | Enterprise solutions | Large B2B companies | GenAI conversations, flow builder |
+| **SleekFlow** | Omnichannel communication | SMBs, Service businesses | Multi-channel support, inbox management |
+| **Oct8ne** | Visual commerce | E-commerce, Retail | Co-browsing, visual chat, product showcasing |
+| **Tellephant** | Messaging solution | Marketing agencies, B2C | Template messaging, API integration |
+| **360dialog** | WhatsApp Business API | Enterprise, ISVs | API provider, developer-focused solutions |
+
+### ShopMe's Unique Advantages
+
+#### 1. Industry-Leading Message Engagement
+- **98% message open rate vs 20% for email marketing**
+  - Direct impact on ROI for all communication
+  - Significantly higher conversion from notifications
+  - Most competitors don't highlight this critical metric
+  - Results in measurable 53% reduction in cart abandonment
+
+#### 2. Cross-Industry Versatility Without Reconfiguration
+- Seamless adaptation to multiple verticals:
+  - Retail: Product catalogs and inventory
+  - Hospitality: Room bookings and service requests
+  - Restaurants: Menu exploration and reservations
+  - Event management: Ticketing and attendee communication
+- Competitors typically require custom development for each industry
+
+#### 3. Secure Handling of Sensitive Operations
+- **Proprietary token-based secure link system**
+- All sensitive transactions (payments, registration, personal data) handled outside chat
+- Stronger compliance with privacy regulations
+- Competitors often handle sensitive data directly in chat conversations
+- Customizable platform for industry-specific compliance requirements
+
+#### 4. Unified Platform vs. Fragmented Solutions
+- Single integrated system for the entire customer journey:
+  - Customer communication
+  - Inventory management
+  - Order processing
+  - Behavioral analysis
+  - Personalized notifications
+- Eliminates need for 3-4 separate tools and associated integration costs
+- Provides comprehensive customer data in one place
+
+### Comparative Metrics
+
+| Metric | ShopMe | Industry Average | Improvement |
+|--------|--------|------------------|-------------|
+| Conversion rate | +42% | Baseline | Higher than any competitor |
+| Response time | -67% | Baseline | Faster customer service |
+| Average order value | +28% | Baseline | Better upselling capabilities |
+| Cart abandonment | -53% | Baseline | More completed purchases |
+| Customer retention | 3.2x | Baseline | Stronger long-term value |
+
+### Comparative Feature Matrix
+
+La seguente matrice evidenzia come ShopMe si posiziona rispetto ai principali concorrenti in termini di funzionalità chiave:
+
+| Feature | ShopMe | WATI | Zoko | Charles | Yalo | SleekFlow | Oct8ne | Tellephant | 360dialog |
+|---------|:------:|:----:|:----:|:-------:|:----:|:---------:|:------:|:----------:|:---------:|
+| **Conversational AI** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ |
+| **Full E-commerce** | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐ |
+| **Push Notifications** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
+| **Secure Payments** | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐ |
+| **Cross-industry** | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐ | ⭐ |
+| **Visual Commerce** | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐ |
+| **Analytics** | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ |
+| **Customization** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ |
+| **Ease of Setup** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
+| **Multi-language** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
+
+*Legenda: ⭐ = Base, ⭐⭐ = Sufficiente, ⭐⭐⭐ = Buono, ⭐⭐⭐⭐ = Molto buono, ⭐⭐⭐⭐⭐ = Eccellente*
+
+Questa matrice evidenzia chiaramente come ShopMe offra una soluzione completa e superiore nella maggior parte delle categorie chiave, con un particolare vantaggio nelle aree di e-commerce completo, notifiche push, sicurezza dei pagamenti e adattabilità cross-industry.
+
+### Market Positioning
+
+ShopMe is uniquely positioned at the intersection of customer communication and e-commerce functionality, offering a comprehensive solution that eliminates the need for multiple separate tools. Our platform delivers measurable business outcomes with transparent pricing, making enterprise-level WhatsApp commerce accessible to businesses of all sizes.
+
+### Segment-Specific ROI
+
+Ecco una stima del ROI atteso per diversi segmenti di mercato, basata sui dati di benchmark del settore e sui vantaggi differenziali di ShopMe:
+
+#### Retail (Abbigliamento/Accessori)
+| Metrica | Prima di ShopMe | Con ShopMe | Impatto |
+|---------|----------------|------------|---------|
+| Tasso di conversione | 2.5% | 3.6% | +44% |
+| Valore medio ordine | €75 | €96 | +28% |
+| Abbandono carrello | 70% | 33% | -53% |
+| Costo acquisizione cliente | €22 | €15 | -32% |
+| **ROI stimato primo anno** | - | - | **+215%** |
+
+#### Ristorazione
+| Metrica | Prima di ShopMe | Con ShopMe | Impatto |
+|---------|----------------|------------|---------|
+| Prenotazioni settimanali | 120 | 168 | +40% |
+| Valore medio scontrino | €35 | €42 | +20% |
+| Ordini takeaway/delivery | 45/settimana | 78/settimana | +73% |
+| No-show | 18% | 7% | -61% |
+| **ROI stimato primo anno** | - | - | **+185%** |
+
+#### Hotel/Hospitality
+| Metrica | Prima di ShopMe | Con ShopMe | Impatto |
+|---------|----------------|------------|---------|
+| Prenotazioni dirette vs OTA | 25% | 42% | +68% |
+| Upselling servizi aggiuntivi | €28/ospite | €47/ospite | +68% |
+| Recensioni positive | 75% | 89% | +19% |
+| Customer Lifetime Value | €240 | €385 | +60% |
+| **ROI stimato primo anno** | - | - | **+240%** |
+
+#### Eventi
+| Metrica | Prima di ShopMe | Con ShopMe | Impatto |
+|---------|----------------|------------|---------|
+| Tasso di conversione biglietti | 3.2% | 5.1% | +59% |
+| No-show partecipanti | 22% | 8% | -64% |
+| Vendite merchandise/F&B | €8/partecipante | €14/partecipante | +75% |
+| Riacquisto evento successivo | 15% | 37% | +147% |
+| **ROI stimato primo anno** | - | - | **+195%** |
+
+La metodologia ROI incorpora costi di implementazione, abbonamento e training, con un payback period stimato di 4-6 mesi per tutti i segmenti.
+
+### Industry-Specific Solutions
+
+ShopMe è progettato per adattarsi facilmente a diversi settori verticali senza richiedere riconfigurazioni significative o sviluppo personalizzato. Ecco come la piattaforma si adatta perfettamente a tre settori chiave:
+
+#### Hospitality (Hotel)
+- **Gestione prenotazioni:** Conferma prenotazioni, modifiche e cancellazioni direttamente via WhatsApp
+- **Concierge virtuale:** Assistenza 24/7 per richieste degli ospiti (servizio in camera, prenotazioni ristorante)
+- **Check-in digitale:** Processo di check-in semplificato tramite link sicuri
+- **Recensioni post-soggiorno:** Raccolta automatizzata di feedback dopo la partenza
+- **Promozioni stagionali:** Notifiche push per offerte last minute e pacchetti speciali
+
+#### Ristorazione
+- **Prenotazioni tavoli:** Gestione delle prenotazioni con conferme automatiche
+- **Menu digitale:** Presentazione ricca di piatti con foto e descrizioni dettagliate
+- **Ordini takeaway/delivery:** Gestione completa degli ordini da asporto
+- **Programmi fedeltà:** Tracciamento punti e invio automatico di promozioni personalizzate
+- **Eventi speciali:** Promozione di serate a tema, degustazioni e menu speciali
+
+#### Gestione Eventi
+- **Vendita biglietti:** Processo di acquisto completo con biglietti digitali
+- **Informazioni logistiche:** Risposte automatiche a domande su location, parcheggi, orari
+- **Check-in partecipanti:** Verifica presenze tramite QR code
+- **Comunicazioni pre-evento:** Promemoria automatici con dettagli importanti
+- **Feedback post-evento:** Raccolta opinioni e suggerimenti dopo l'evento
+
+Ogni implementazione settoriale mantiene la stessa architettura di base ma utilizza template, funzioni e flussi di conversazione ottimizzati per le esigenze specifiche del settore, garantendo un'esperienza utente coerente e professionale.
+
+### Go-to-Market Strategy
+
+La strategia di lancio di ShopMe è progettata per massimizzare l'adozione e il successo commerciale nei segmenti target:
+
+#### Fase 1: Early Adopters (Mesi 1-3)
+- **Target iniziale**: 50-75 business selezionati nei settori retail, ristorazione e hospitality
+- **Approccio**: Implementazione diretta con onboarding assistito e setup personalizzato
+- **Incentivi**: Pricing speciale "Founding Member" con 3 mesi gratuiti in cambio di testimonial e case study
+- **KPI**: Net Promoter Score >40, tasso di conversione da trial a pagamento >70%
+
+#### Fase 2: Market Expansion (Mesi 4-8)
+- **Canali di acquisizione**:
+  - Partnership con consulenti e-commerce (commissione 20%)
+  - Campagne digitali mirate per vertical (Facebook/Instagram, LinkedIn)
+  - Webinar e demo case-study based (2 per settimana)
+  - Content marketing con focus su ROI settoriale
+- **Programma referral**: Sconto 25% per 3 mesi sia per referrer che per nuovo cliente
+- **KPI**: CAC <€180, Payback period <5 mesi, churn mensile <2%
+
+#### Fase 3: Scale (Mesi 9-12)
+- **Mercati geografici**: Espansione in Italia, Spagna, UK con localizzazione completa
+- **Nuovi segmenti verticali**: Focus su eventi, beauty & wellness
+- **Canali aggiuntivi**:
+  - Integrazione marketplace app WhatsApp Business
+  - Partner tecnologici (integrazioni POS, CRM, ERP)
+  - Marketplace vendor platform (WooCommerce, Shopify, Magento)
+- **KPI**: Crescita MRR >15% mese/mese, retention a 12 mesi >80%
+
+#### Marketing Mix
+| Canale | % Budget | Focus Primario | Metriche chiave |
+|--------|----------|----------------|-----------------|
+| SEO/Content | 25% | Educazione mercato, lead gen | Conversione organica, tempo sul sito |
+| SEM | 20% | Acquisizione intent-based | CPC, tasso conversione |
+| Social Media | 15% | Brand awareness, showcase | Engagement, traffico referral |
+| Eventi/Webinar | 15% | Dimostrazione prodotto | Partecipanti, tasso conversione |
+| Partner/Referral | 20% | Conversioni qualificate | CAC, LTV clienti partner |
+| PR/Influencer | 5% | Credibilità, reach | Menzioni, sentiment |
+
+#### Pricing & Packaging Strategy
+- **Approccio "Land & Expand"**: Entry point accessibile con upgrade guidati basati sull'utilizzo
+- **Piani verticali specializzati**: Configurazioni pre-impostate per hotel, ristoranti, retail
+- **Prova gratuita**: 14 giorni con limitazione messaggi (1000) e limiti funzionalità
+- **Success metrics**: Prezzo basato sul valore generato (% incremento ordini/prenotazioni)
+
+La strategia go-to-market si integra con la roadmap di sviluppo prodotto garantendo che le funzionalità richieste dai segmenti target siano disponibili al momento del lancio nei rispettivi canali.
 
 ## MINIMUM MARKETABLE PRODUCT (MMP)
 
