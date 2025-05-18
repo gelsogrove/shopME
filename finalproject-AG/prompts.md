@@ -1,8 +1,6 @@
-# SHOPME WHATSAPP E-COMMERCE PLATFORM - COMPREHENSIVE METAPROMPT
+# PROMPT 1
 
-## MASTER PROMPT
-
-Hey there! We're about to embark on creating something really exciting - a complete Product Requirements Document for "ShopMe". This isn't just another e-commerce platform; it's a game-changer that transforms WhatsApp into a powerful sales channel.
+ We're about to start on creating something really exciting - a complete Product Requirements Document for "ShopMe". This isn't just another e-commerce platform; it's a game-changer that transforms WhatsApp into a powerful sales channel.
 
 Think about it - WhatsApp has billions of users worldwide, and messages there get a staggering 98% open rate (compared to just 20% for emails)! Wouldn't it be amazing to harness that engagement for businesses?
 
