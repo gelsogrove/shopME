@@ -1,5 +1,39 @@
 # ShopMe - WhatsApp E-commerce Platform PRD
 
+## Table of Contents
+- [Introduction](#introduction)
+  - [Short Description](#short-description)
+  - [Business Model](#business-model)
+  - [Message Processing Flow](#message-processing-flow)
+- [UI Screenshots](#ui-screenshots)
+- [Dialog Examples](#dialog-examples)
+  - [User Registration](#registro-de-nuevo-usuario)
+  - [Product Discovery and Purchase](#descubrimiento-y-compra-de-productos)
+- [Main Features](#main-features)
+  - [Dashboard Overview](#dashboard-overview)
+  - [Push Notification System](#push-notification-system)
+  - [Products Catalog Management](#products-catalog-management)
+  - [Agent Configuration Tools](#agent-configuration-tools)
+- [Technical Architecture](#technical-architecture)
+  - [Architecture Diagram](#architecture-diagram)
+  - [C4 Model](#c4-model)
+  - [Frontend Architecture](#frontend-architecture)
+  - [Backend Architecture](#backend-architecture)
+  - [Database and Prisma ORM](#database-and-prisma-orm)
+  - [Data Model](#data-model)
+  - [Folder Structure](#folder-structure)
+  - [AI and Function Call Documentation](#ai-and-function-call-documentation)
+  - [AI Configuration Options](#ai-configuration-options)
+  - [Authentication and Token Management](#authentication-and-token-management)
+  - [API Rate Limiting Implementation](#api-rate-limiting-implementation)
+  - [API Endpoints](#api-endpoints)
+  - [Security Implementation (OWASP)](#security-implementation-owasp)
+  - [Testing Strategy](#testing-strategy)
+- [Subscription Plans](#subscription-plans)
+- [Development Roadmap](#development-roadmap)
+- [Out of Scope Features (MVP)](#out-of-scope-features-mvp)
+- [Minimum Marketable Product (MMP)](#minimum-marketable-product-mmp)
+
 ## INTRODUCTION
 
 ### Short Description
@@ -7,7 +41,7 @@ ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that turns Wh
 
 All sensitive operations are handled securely through temporary links with security tokens. These links direct customers to our secure website for registration forms, payments, invoices, and accessing personal data. This keeps all sensitive information outside of chat conversations, ensuring data protection while maintaining a smooth customer experience.
 
-### Lean Business Model
+### Business Model
 
 ```
 +-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+
@@ -27,7 +61,7 @@ All sensitive operations are handled securely through temporary links with secur
 |   e-commerce            |   operations            |   websites              |   for personalization   |   perishable inventory  |
 |                         |                         |                         |                         |                         |
 | • Lost sales from       | • Multi-language        | • 67% faster response   | • Persistent customer   | • Service businesses    |
-|   abandoned carts and   |   support (IT/EN/ES)    |   time for customer     |   connection that       |   requiring booking     |
+|   abandoned carts and   |   support (IT/EN/ES)    |   inquiries             |   outlasts web visits   |   requiring booking     |
 |   unanswered queries    |   with AI automation    |   inquiries             |   outlasts web visits   |   and follow-up         |
 +-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+
 | 6. KEY METRICS                                    | 7. CHANNELS                                                                |
@@ -293,6 +327,87 @@ flowchart TB
     class User,Operator user
 ```
 
+### C4 Model
+
+#### System Context Diagram
+
+```mermaid
+C4Context
+    title System Context Diagram for ShopMe Platform
+
+    Person(customer, "Customer", "A person who wants to purchase products via WhatsApp")
+    Person(businessOwner, "Business Owner", "Owner of the business using ShopMe")
+    Person(businessStaff, "Staff Member", "Staff handling customer inquiries")
+    
+    System(shopMe, "ShopMe Platform", "Enables businesses to sell products and provide customer service via WhatsApp")
+    
+    System_Ext(whatsApp, "WhatsApp", "Messaging platform used for customer communication")
+    System_Ext(paymentGateway, "Payment Gateway", "Processes customer payments")
+    System_Ext(aiServices, "AI Services", "Provides natural language processing and generation")
+    
+    Rel(customer, whatsApp, "Sends messages, browses products, makes purchases")
+    Rel(whatsApp, shopMe, "Forwards customer messages")
+    Rel(shopMe, whatsApp, "Sends responses, product info, payment links")
+    Rel(shopMe, paymentGateway, "Processes payments")
+    Rel(shopMe, aiServices, "Uses for message processing")
+    Rel(businessOwner, shopMe, "Configures business, manages products")
+    Rel(businessStaff, shopMe, "Monitors conversations, handles escalations")
+    
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+```
+
+#### Container Diagram
+
+```mermaid
+C4Container
+    title Container Diagram for ShopMe Platform
+    
+    Person(customer, "Customer", "Uses WhatsApp to browse and purchase products")
+    Person(businessUser, "Business User", "Manages products, orders, and customer interactions")
+    
+    System_Boundary(shopMe, "ShopMe Platform") {
+        Container(webApp, "Web Application", "React, Next.js", "Provides admin dashboard and management interface")
+        Container(apiGateway, "API Gateway", "Express.js", "Handles API requests and orchestrates responses")
+        Container(authService, "Auth Service", "Node.js, JWT", "Handles authentication and authorization")
+        Container(chatService, "Chat Service", "Node.js", "Processes WhatsApp messages and responses")
+        Container(productService, "Product Service", "Node.js", "Manages product catalog and inventory")
+        Container(orderService, "Order Service", "Node.js", "Processes orders and payments")
+        Container(analyticsService, "Analytics Service", "Node.js", "Tracks customer behavior and business performance")
+        ContainerDb(database, "Database", "PostgreSQL", "Stores all persistent data")
+        Container(cacheService, "Cache Service", "Redis", "Provides caching for improved performance")
+    }
+    
+    System_Ext(whatsApp, "WhatsApp API", "Messaging platform integration")
+    System_Ext(aiService, "AI Service", "OpenAI/LLM", "Provides natural language processing")
+    System_Ext(paymentGateway, "Payment Gateway", "Processes payments")
+    
+    Rel(customer, whatsApp, "Interacts using")
+    Rel(businessUser, webApp, "Uses")
+    
+    Rel(whatsApp, chatService, "Forwards messages to")
+    Rel(chatService, apiGateway, "Requests data from")
+    Rel(webApp, apiGateway, "Makes API calls to")
+    
+    Rel(apiGateway, authService, "Validates requests with")
+    Rel(apiGateway, productService, "Manages products via")
+    Rel(apiGateway, orderService, "Processes orders via")
+    Rel(apiGateway, analyticsService, "Records events via")
+    
+    Rel(authService, database, "Reads/writes user data to")
+    Rel(chatService, database, "Reads/writes chat data to")
+    Rel(productService, database, "Reads/writes product data to")
+    Rel(orderService, database, "Reads/writes order data to")
+    Rel(analyticsService, database, "Reads/writes analytics data to")
+    
+    Rel(chatService, aiService, "Uses for natural language processing")
+    Rel(orderService, paymentGateway, "Processes payments via")
+    
+    Rel(apiGateway, cacheService, "Caches responses in")
+    Rel(chatService, cacheService, "Caches conversation context in")
+    
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+```
+
 ### Frontend Architecture
 
 The ShopMe frontend is built with a modern React architecture:
@@ -357,6 +472,224 @@ The backend follows a Domain-Driven Design (DDD) architecture:
 - **Migrations**: Prisma Migration for version control
 - **Backup Strategy**: Automated daily backups with point-in-time recovery
 
+### Data Model
+
+```mermaid
+erDiagram
+    Workspace {
+        id UUID PK
+        name String
+        domain String
+        status WorkspaceStatus
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    User {
+        id UUID PK
+        email String
+        name String
+        password String
+        role UserRole
+        workspaceId UUID FK
+        status UserStatus
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    Customer {
+        id UUID PK
+        phone String
+        name String
+        email String
+        workspaceId UUID FK
+        isBlocked Boolean
+        gdprAccepted Boolean
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    Product {
+        id UUID PK
+        name String
+        description String
+        price Decimal
+        images String[]
+        sku String
+        inventory Int
+        workspaceId UUID FK
+        categoryId UUID FK
+        status ProductStatus
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    Category {
+        id UUID PK
+        name String
+        description String
+        workspaceId UUID FK
+        parentId UUID FK
+        status CategoryStatus
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    Order {
+        id UUID PK
+        customerId UUID FK
+        workspaceId UUID FK
+        status OrderStatus
+        totalAmount Decimal
+        paymentStatus PaymentStatus
+        paymentMethod PaymentMethod
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    OrderItem {
+        id UUID PK
+        orderId UUID FK
+        productId UUID FK
+        quantity Int
+        price Decimal
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    Conversation {
+        id UUID PK
+        customerId UUID FK
+        workspaceId UUID FK
+        status ConversationStatus
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    Message {
+        id UUID PK
+        conversationId UUID FK
+        content String
+        role MessageRole
+        createdAt DateTime
+    }
+    
+    Setting {
+        id UUID PK
+        key String
+        value JSON
+        workspaceId UUID FK
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    AgentConfig {
+        id UUID PK
+        workspaceId UUID FK
+        model String
+        temperature Float
+        maxTokens Int
+        topP Float
+        topK Int
+        systemPrompt String
+        memoryContext Int
+        responseSpeed String
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    Offer {
+        id UUID PK
+        name String
+        description String
+        offerType OfferType
+        discountValue Decimal
+        startDate DateTime
+        endDate DateTime
+        workspaceId UUID FK
+        status OfferStatus
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    Workspace ||--o{ User : "has"
+    Workspace ||--o{ Customer : "has"
+    Workspace ||--o{ Product : "has"
+    Workspace ||--o{ Category : "has"
+    Workspace ||--o{ Order : "has"
+    Workspace ||--o{ Conversation : "has"
+    Workspace ||--o{ Setting : "has"
+    Workspace ||--o{ AgentConfig : "has"
+    Workspace ||--o{ Offer : "has"
+    
+    Category ||--o{ Product : "contains"
+    Category ||--o{ Category : "has children"
+    
+    Customer ||--o{ Order : "places"
+    Customer ||--o{ Conversation : "has"
+    
+    Order ||--o{ OrderItem : "contains"
+    OrderItem ||--|| Product : "references"
+    
+    Conversation ||--o{ Message : "contains"
+```
+
+### Folder Structure
+
+#### Backend Structure
+
+```
+/backend
+  /src
+    /domain                # Core business logic
+      /entities            # Business models
+      /repositories        # Data access interfaces
+      /value-objects       # Immutable value objects
+    /application           # Application logic
+      /services            # Business orchestration
+      /use-cases           # Specific features
+      /dto                 # Data transfer objects
+    /infrastructure        # Technical implementations
+      /repositories        # Database access
+      /persistence         # ORM configurations
+      /external-services   # 3rd party integrations
+    /interfaces            # External interfaces
+      /http
+        /controllers       # Request handlers
+        /routes            # API routes
+      /websockets          # WebSocket handlers
+    /config                # Configuration settings
+    /utils                 # Utility functions
+  /tests
+    /unit                  # Unit tests
+    /integration           # Integration tests
+    /e2e                   # End-to-end tests
+  /prisma                  # Prisma schema and migrations
+  /scripts                 # Build and deployment scripts
+```
+
+#### Frontend Structure
+
+```
+/frontend
+  /src
+    /components
+      /shared              # Reusable components
+      /layout              # Layout components
+      /forms               # Form components
+      /ui                  # UI primitives
+    /hooks                 # Custom React hooks
+    /pages                 # Page components
+    /contexts              # React contexts
+    /services              # API services
+    /utils                 # Utility functions
+    /types                 # TypeScript type definitions
+    /styles                # Global styles
+    /assets                # Images, fonts, etc.
+  /public                  # Static assets
+  /tests                   # Frontend tests
+```
+
 ### AI and Function Call Documentation
 
 The system implements several AI function calls to handle specific operations:
@@ -395,6 +728,21 @@ The system implements several AI function calls to handle specific operations:
 +-------------------------+--------------------------------------+----------------+
 ```
 
+### AI Configuration Options
+
+Under each plan, businesses can customize their AI agent with the following parameters:
+
+| Parameter | Description | Default Value | Available Options |
+|-----------|-------------|--------------|-------------------|
+| **Model Selection** | AI model used for responses | GPT-3.5-turbo | GPT-4, Claude, Mistral, Llama |
+| **Temperature** | Response creativity level | 0.7 | 0.1-1.0 in 0.1 increments |
+| **Max Tokens** | Maximum response length | 250 | 50-1000 |
+| **Top-P** | Nucleus sampling threshold | 0.95 | 0.5-1.0 |
+| **Top-K** | Number of highest probability tokens to consider | 40 | 10-100 |
+| **System Prompt** | Base instructions for AI | Basic retail template | Custom templates available |
+| **Memory Context** | Number of previous messages to include | 10 | 1-20 |
+| **Response Speed** | Balance between quality and speed | Balanced | Fast, Balanced, Quality |
+
 ### Authentication and Token Management
 
 Our system uses JWT (JSON Web Token) authentication to keep user accounts secure:
@@ -428,33 +776,153 @@ We protect all API endpoints with smart rate limiting:
 
 ### API Endpoints
 
-Key API groups include:
+#### Authentication API
 
-- **Authentication**: Login, logout, token refresh
-- **Products Management**: CRUD operations for products and variants
-- **Categories Management**: Hierarchical category structure
-- **Customer Management**: User profiles and preferences
-- **Offers Management**: Promotions, discounts, and special deals
-- **Agent Settings**: AI behavior configuration
-- **Channel Settings**: WhatsApp integration configuration
+- `POST /api/auth/login`
+  - **Description**: Authenticates a user and returns tokens
+  - **Body**: `{ email, password }`
+  - **Returns**: Access token and refresh token
 
-### Project Folder Structure
+- `POST /api/auth/refresh`
+  - **Description**: Refreshes an expired access token
+  - **Body**: (Uses refresh token from HTTP-only cookie)
+  - **Returns**: New access token
 
-Clean organization following DDD principles with clear separation of:
-- Domain layer (core business entities)
-- Application layer (use cases)
-- Infrastructure layer (external implementations)
-- Interface layer (API endpoints)
+- `POST /api/auth/logout`
+  - **Description**: Invalidates user tokens
+  - **Returns**: Success confirmation
 
-### AI Configuration Options
+#### Workspace API
 
-Customizable AI parameters:
-- Model selection (GPT-3.5-turbo, GPT-4, Claude, etc.)
-- Temperature (0.1-1.0)
-- Response length limits
-- Memory context size
-- System prompts and instructions
-- Response style and tone
+- `GET /api/workspaces`
+  - **Description**: Lists workspaces accessible to the user
+  - **Parameters**: `page`, `limit`, `status`
+  - **Returns**: Paginated workspace list
+
+- `POST /api/workspaces`
+  - **Description**: Creates a new workspace
+  - **Body**: Workspace details
+  - **Returns**: Created workspace details
+
+- `GET /api/workspaces/:id`
+  - **Description**: Gets details of a specific workspace
+  - **Returns**: Complete workspace information
+
+#### Products API
+
+- `GET /api/products`
+  - **Description**: Lists products
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - Various filters: `category`, `status`, `price_min`, `price_max`
+    - Pagination: `page`, `limit`
+    - Sorting: `sort_by`, `sort_dir`
+  - **Returns**: Paginated product list
+
+- `POST /api/products`
+  - **Description**: Creates a new product
+  - **Body**: Product details with category and workspace information
+  - **Returns**: Created product
+
+- `GET /api/products/:id`
+  - **Description**: Gets details of a specific product
+  - **Returns**: Complete product information including variants and images
+
+- `PUT /api/products/:id`
+  - **Description**: Updates a product
+  - **Body**: Fields to update
+  - **Returns**: Updated product
+
+- `DELETE /api/products/:id`
+  - **Description**: Deletes a product
+  - **Returns**: Deletion confirmation
+
+#### Categories API
+
+- `GET /api/categories`
+  - **Description**: Lists categories
+  - **Parameters**: `workspace_id`, `parent_id`, `status`, `page`, `limit`
+  - **Returns**: Paginated category list
+
+- `POST /api/categories`
+  - **Description**: Creates a new category
+  - **Body**: Category details with parent info
+  - **Returns**: Created category
+
+- `GET /api/categories/:id`
+  - **Description**: Gets details of a specific category
+  - **Returns**: Category information including subcategories and products
+
+#### Customers API
+
+- `GET /api/customers`
+  - **Description**: Lists customers
+  - **Parameters**: `workspace_id`, various filters, pagination
+  - **Returns**: Paginated customer list
+
+- `GET /api/customers/:id`
+  - **Description**: Gets customer profile
+  - **Returns**: Customer details with order history
+
+- `PUT /api/customers/:id`
+  - **Description**: Updates customer information
+  - **Body**: Fields to update
+  - **Returns**: Updated customer profile
+
+#### Offers API
+
+- `GET /api/offers`
+  - **Description**: Retrieves offers and promotions list
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `status` (optional): Filter by active, upcoming, or expired
+    - `page`, `limit` (optional): Pagination parameters
+  - **Returns**: List of offers with details
+
+- `POST /api/offers`
+  - **Description**: Creates a new offer
+  - **Body**: 
+    - `name`: Offer name
+    - `description`: Offer description 
+    - `offer_type`: Discount type (percentage, fixed, buy_x_get_y)
+    - `discount_value`: Value of discount
+    - `products`: List of applicable product IDs
+    - `categories`: List of applicable category IDs
+    - `start_date`: Offer start date
+    - `end_date`: Offer end date
+    - `min_purchase`: Minimum purchase requirement
+    - `usage_limit`: Maximum redemptions allowed
+    - `code`: Promo code (optional)
+  - **Returns**: Created offer details
+
+- `GET /api/offers/:id`
+  - **Description**: Gets details of a specific offer
+  - **Parameters**: `id` (required): Offer ID
+  - **Returns**: Complete offer details including usage statistics
+
+#### Agent Configuration API
+
+- `GET /api/agent-config`
+  - **Description**: Gets AI agent configuration
+  - **Parameters**: `workspace_id`
+  - **Returns**: Current AI configuration
+
+- `PUT /api/agent-config`
+  - **Description**: Updates AI agent configuration
+  - **Body**: Configuration parameters to update
+  - **Returns**: Updated configuration
+
+#### WhatsApp Integration API
+
+- `POST /api/whatsapp/webhook`
+  - **Description**: Webhook for incoming WhatsApp messages
+  - **Body**: Message payload from WhatsApp Business API
+  - **Returns**: Acknowledgment of receipt
+
+- `POST /api/whatsapp/send`
+  - **Description**: Sends message to a customer via WhatsApp
+  - **Body**: Message content, recipient, and options
+  - **Returns**: Delivery status
 
 ### Security Implementation (OWASP)
 
