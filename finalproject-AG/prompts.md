@@ -1,15 +1,84 @@
-## PROMPT 1:  
+# SHOPME WHATSAPP E-COMMERCE PLATFORM - COMPREHENSIVE METAPROMPT
 
-This is a metaprompt to generate a complete PRD document for a WhatsApp-based e-commerce platform called "ShopMe". The document should describe the phases of market research, business model definition, technical architecture, feature specification, and go-to-market strategy.
+## MASTER PROMPT
 
-Please generate a comprehensive Product Requirements Document (PRD) in markdown format for a WhatsApp-based e-commerce platform following the phases of market research, business model definition, technical architecture, feature specification, and go-to-market strategy.
+Hey there! We're about to embark on creating something really exciting - a complete Product Requirements Document for "ShopMe". This isn't just another e-commerce platform; it's a game-changer that transforms WhatsApp into a powerful sales channel.
 
-Nothing has been created yet except the name "ShopMe" so we need to define those key functionalities that will make ShopMe shine above competitors: providing a seamless shopping experience through WhatsApp, secure handling of sensitive operations, cross-industry adaptability, AI-powered conversations, and push notifications that drive engagement and sales.
+Think about it - WhatsApp has billions of users worldwide, and messages there get a staggering 98% open rate (compared to just 20% for emails)! Wouldn't it be amazing to harness that engagement for businesses?
 
-For all diagrams and tables, use Mermaid syntax when possible or ASCII tables. Maintain a professional tone throughout the document. The document should be detailed, technically accurate, and written in professional business language. Include metrics and KPIs throughout to demonstrate business impact.
+Before we dive in, I'd love to understand your thoughts on a few things:
+- What's your vision for how ShopMe could transform commerce via WhatsApp?
+- Are there any technical limitations we should be mindful of?
+- Which industry sectors should we prioritize first?
+- Which competitors worry you the most, and why?
+- What unique capabilities should we absolutely highlight?
 
+Once we've aligned on these fundamentals, we'll craft a comprehensive PRD that covers:
 
-## PROMPT 2:
+### The Soul of ShopMe
+Let's paint a vivid picture of how ShopMe turns ordinary WhatsApp conversations into sales opportunities. We'll explore real-world scenarios showing how a customer discovers products, makes purchases, and gets support - all within the familiar WhatsApp interface they already use daily.
+
+What's really special is how ShopMe adapts across industries. A boutique clothing store, a boutique hotel, a fine restaurant, and an event venue can all use essentially the same platform with minimal reconfiguration. We should showcase how this works for each vertical.
+
+### Under the Hood
+The technical architecture needs to be robust yet flexible. We'll design a system using Node.js, React, TypeScript, and PostgreSQL that scales beautifully. The backend will follow Domain-Driven Design principles to ensure business logic stays clean and maintainable.
+
+One of our killer features is the secure token-based system for handling sensitive operations. Rather than asking for credit card details in a chat (yikes!), we'll generate secure, temporary links that direct customers to protected web interfaces. Smart, right?
+
+### Standing Out from the Crowd
+The WhatsApp commerce space is heating up with players like WATI and Charles making moves. We need to clearly articulate why ShopMe is different and better. Our subscription tiers should be straightforward but powerful, with clear ROI justification that makes the decision to adopt ShopMe a no-brainer.
+
+Our push notification system deserves special attention - it's proven to reduce cart abandonment by 53%! Let's detail exactly how it achieves this and why competitors can't match it.
+
+### The Special Sauce
+The AI configuration system is where we really shine. Let's show how business owners with zero technical skills can fine-tune their AI assistant's personality, response style, and behavior. The security framework needs to be comprehensive yet understandable - compliance shouldn't be a headache.
+
+Throughout the document, we'll use Mermaid diagrams to visualize concepts clearly, maintain professional language that executives will appreciate, and include concrete metrics that demonstrate real business impact. The final PRD should serve both as a technical blueprint for developers and a strategic guide for business stakeholders.
+
+Sound good? Let's create something remarkable!
+
+---
+
+## PROMPT 1: GETTING STARTED  
+
+Hey there! We're going to create a fantastic PRD for ShopMe, a WhatsApp-based e-commerce platform that's going to change how businesses sell online.
+
+I want to understand your vision first. ShopMe is currently just a name and a concept - a platform that turns WhatsApp into a complete sales channel. But I'd love to hear your thoughts on what makes it special.
+
+What market problems do you think ShopMe should solve? Are businesses struggling with traditional e-commerce platforms? Are customers frustrated with downloading yet another app? How could WhatsApp's massive reach and engagement transform the shopping experience?
+
+I'm particularly interested in:
+- The seamless shopping experience we could create through WhatsApp
+- How we might handle sensitive operations securely
+- The cross-industry adaptability that would make ShopMe versatile
+- The AI-powered conversations that could feel natural yet effective
+- Push notification strategies that could dramatically boost engagement and sales
+
+When we create diagrams and tables, we'll use Mermaid syntax where possible to keep everything looking professional and consistent. The language throughout will be polished and business-appropriate, with plenty of concrete metrics to show the real-world impact.
+
+But before we start drafting anything, I'd love to hear if you have questions or concerns. Is there anything specific about the concept that you're unsure about? Any particular aspects you'd like to explore more deeply? Let's make sure we're aligned before diving in!
+
+## PROMPT 2: PRODUCT VISION
+
+Hi there! I'm wearing my Product Manager hat now (15+ years in e-commerce platforms), and I'm excited to help shape the core vision for ShopMe.
+
+Let's start with the fundamentals. What exactly is ShopMe in a nutshell? Is it "WhatsApp commerce made simple" or perhaps "The ultimate conversational shopping platform"? Finding that perfect elevator pitch will help guide everything else.
+
+The business model is where things get really interesting. What problems are businesses facing today that ShopMe solves? I'm thinking:
+- High cart abandonment rates on traditional websites
+- Poor customer engagement with marketing emails (that 20% open rate is painful!)
+- The complexity and cost of running multiple systems for commerce and customer service
+- The technical barriers preventing small businesses from leveraging WhatsApp for sales
+
+How does ShopMe solve these? That's the million-dollar question! Is it through that incredible 98% message open rate? The cross-industry adaptability that means one solution works for retail, restaurants, and hotels? Or maybe it's the unified platform approach that prevents the typical fragmentation we see with competitors?
+
+For subscription plans, we need to find that sweet spot. What would make a small business owner say "that's a no-brainer" for the Basic Plan at €49/month? What additional features in the Professional Plan at €149 would make growing businesses upgrade without hesitation? And for the Enterprise tier, what customization options would justify the premium price?
+
+The development roadmap needs to be ambitious but realistic. What features are absolute must-haves for launch? What can wait for Phase 2? How do we balance quick time-to-market with sufficient functionality?
+
+I'd love to hear your thoughts on these aspects - they'll shape the foundation of our entire product!
+
+## PROMPT 3:
 
 ROLE: Senior Product Manager with 15+ years of experience in e-commerce platforms
 
@@ -22,10 +91,10 @@ Your task is to define:
 
 Focus on these key differentiators:
 - 98% WhatsApp message open rate vs 20% for email marketing
-- Cross-industry versatility without reconfiguration
+- Cross-industry versatility 
 - Unified platform vs competitors' fragmented solutions
 
-## PROMPT 3:
+## PROMPT 4:
 
 ROLE: Solution Architect specialized in scalable and cloud-native architectures
 
@@ -46,7 +115,7 @@ Technical implementation specifications:
 - Database: PostgreSQL with Prisma ORM
 - Security: JWT authentication, API rate limiting, OWASP compliance
 
-## PROMPT 4:
+## PROMPT 5:
 
 ROLE: UX Designer expert in conversational interfaces and WhatsApp commerce
 
@@ -62,7 +131,7 @@ Your task is to create:
 
 Focus on creating intuitive, conversational experiences that feel natural within WhatsApp.
 
-## PROMPT 5:
+## PROMPT 6:
 
 ROLE: Business Analyst with expertise in market analysis and ROI forecasting
 
@@ -75,7 +144,7 @@ Your task is to develop:
 
 Include specific metrics for each industry vertical showing the expected impact on conversion, retention, and revenue. Provide detailed financial projections with payback periods and cost-benefit analyses.
 
-## PROMPT 6
+## PROMPT 7:
 
 ROLE: AI Engineer specialized in NLP and conversational models
 
@@ -93,7 +162,7 @@ Technical specifications:
 - Response generation and quality control measures
 - Performance metrics and optimization strategy
 
-## PROMPT 7
+## PROMPT 8:
 
 ROLE: Security and Compliance Officer
 
@@ -112,7 +181,7 @@ Specifically address:
 - User consent management
 - Security incident response plan
 
-## PROMPT 8
+## PROMPT 9:
 
 ROLE: Project Manager for PRD finalization
 
@@ -135,7 +204,7 @@ Format the final document using professional Markdown with:
 - Mermaid diagrams for all technical and business flows
 - Consistent style throughout
 
-## PROMPT 9
+## PROMPT 10:
 
 ROLE: Competitive Intelligence Analyst
 
@@ -167,7 +236,7 @@ Your task is to perform a detailed competitive analysis of the WhatsApp commerce
 
 Focus specifically on WATI, Zoko, Charles, Yalo, SleekFlow, Oct8ne, Tellephant, and 360dialog, with additional analysis of emerging players and potential market entrants.
 
-## PROMPT 10
+## PROMPT 11:
 
 ROLE: Subscription and Pricing Strategist
 
@@ -198,7 +267,7 @@ Your task is to develop a comprehensive subscription model for ShopMe:
 
 Include detailed ROI calculators for each tier to help prospects evaluate the business case for adopting ShopMe at different levels.
 
-## PROMPT 11
+## PROMPT 12:
 
 ROLE: Push Notification System Architect
 
@@ -232,7 +301,7 @@ Your task is to design a comprehensive push notification system for ShopMe:
 
 Include examples of notification templates and best practices for different industries (retail, hospitality, restaurants, events) with specific recommendations for each context.
 
-## PROMPT 12
+## PROMPT 13:
 
 ROLE: AI Agent Configuration Specialist
 
@@ -264,4 +333,4 @@ Your task is to design the agent configuration system for ShopMe's conversationa
    - Feedback loop processing
    - Automated improvement suggestions
 
-Provide specific examples of agent configurations for different use cases (product discovery, customer service, order management) and how businesses can easily customize the AI behavior without technical knowledge.
+ 

@@ -1112,133 +1112,101 @@ Comprehensive testing approach:
 ## DEVELOPMENT ROADMAP
 
 ### Phase 1: Core Data Management (Months 1-2)
-- M1.1 (Settimana 1-2): Setup dell'infrastruttura e ambiente di sviluppo
-  - Configurazione repository e CI/CD
-  - Setup database e schema Prisma
-  - Implementazione autenticazione JWT
-- M1.2 (Settimana 3-4): Implementazione CRUD base entità
-  - API per workspace management
-  - API per user management
-  - Base UI dashboard amministrativa
-- M1.3 (Settimana 5-6): Gestione prodotti e categorie
-  - API completa per prodotti/categorie
-  - UI per gestione catalogo prodotti
-  - Sistema di upload immagini e media
-- M1.4 (Settimana 7-8): Multi-tenancy e ruoli
-  - Implementazione completa multi-workspace
-  - Sistema di permessi e ruoli
-  - Test di carico e performance
+- M1.1 (Week 1-2): Infrastructure and development environment setup
+  - Repository and CI/CD configuration
+  - Database and Prisma schema setup
+  - JWT authentication implementation
+- M1.2 (Week 3-4): Base entity CRUD implementation
+  - Workspace management API
+  - User management API
+  - Administrative dashboard UI foundation
+- M1.3 (Week 5-6): Products and categories management
+  - Complete products/categories API
+  - Product catalog management UI
+  - Images and media upload system
+- M1.4 (Week 7-8): Multi-tenancy and roles
+  - Complete multi-workspace implementation
+  - Permissions and roles system
+  - Load and performance testing
 
 ### Phase 2: Communication Platform (Months 3-4)
-- M2.1 (Settimana 1-2): Integrazione WhatsApp API
-  - Setup connessione API WhatsApp
-  - Gestione webhook e notifiche
-  - Autenticazione e validazione messaggi
-- M2.2 (Settimana 3-4): Implementazione RAG e LLM
-  - Integrazione OpenAI/LLM
-  - Sistema RAG per knowledge base
-  - Testing prompt e risposte
-- M2.3 (Settimana 5-6): Builder flussi conversazione
-  - UI per creazione flow conversazionali
-  - Salvataggio e gestione template
-  - Test A/B per efficacia risposte
-- M2.4 (Settimana 7-8): Dashboard comunicazione
-  - Interfaccia gestione conversazioni
-  - Statistiche e metriche di performance
-  - Sistema survey customer satisfaction
+- M2.1 (Week 1-2): WhatsApp API integration
+  - WhatsApp API connection setup
+  - Webhook and notifications management
+  - Message authentication and validation
+- M2.2 (Week 3-4): RAG and LLM implementation
+  - OpenAI/LLM integration
+  - RAG system for knowledge base
+  - Prompt and response testing
+- M2.3 (Week 5-6): Conversation flow builder
+  - UI for conversational flow creation
+  - Template saving and management
+  - A/B testing for response effectiveness
+- M2.4 (Week 7-8): Communication dashboard
+  - Conversation management interface
+  - Performance statistics and metrics
+  - Customer satisfaction survey system
 
 ### Phase 3: Monetization & Notifications (Months 5-6)
-- M3.1 (Settimana 1-2): Integrazione pagamenti
-  - Implementazione gateway pagamento
-  - Gestione trasazioni e fatturazione
-  - UI per tracking pagamenti
-- M3.2 (Settimana 3-4): Sistema push notifications
-  - Architettura notifiche push
-  - Template notifiche personalizzabili
-  - Scheduler e automazione invii
-- M3.3 (Settimana 5-6): Beta testing
-  - Onboarding clienti beta
-  - Raccolta feedback strutturato
-  - Analisi e prioritizzazione miglioramenti
-- M3.4 (Settimana 7-8): Ottimizzazione
-  - Performance tuning backend/frontend
-  - Implementazione caching strategico
-  - Hardening sicurezza e penetration testing
+- M3.1 (Week 1-2): Payment integration
+  - Payment gateway implementation
+  - Transaction and billing management
+  - Payment tracking UI
+- M3.2 (Week 3-4): Push notifications system
+  - Push notification architecture
+  - Customizable notification templates
+  - Scheduler and automation sends
+- M3.3 (Week 5-6): Beta testing
+  - Beta client onboarding
+  - Structured feedback collection
+  - Analysis and improvement prioritization
+- M3.4 (Week 7-8): Optimization
+  - Backend/frontend performance tuning
+  - Strategic caching implementation
+  - Security hardening and penetration testing
 
 ### Phase 4: Marketing & MMP Enhancements (Months 7-8)
-- M4.1 (Settimana 1-2): Strumenti marketing
-  - Implementazione campagne automatizzate
-  - Segmentazione clienti avanzata
-  - A/B testing e ottimizzazione
-- M4.2 (Settimana 3-4): Analytics avanzate
-  - Dashboard analytics completa
-  - Reportistica personalizzabile
-  - Export dati e integrazione BI tools
-- M4.3 (Settimana 5-6): Adattamenti verticali di mercato
-  - Template specifici per settori (retail, hotel, ristoranti)
-  - Funzioni customizzate per industry
-  - Showcase e casi d'uso settoriali
-- M4.4 (Settimana 7-8): AI capabilities avanzate
-  - Miglioramento modelli di sentiment analysis
-  - Sistema predittivo per comportamento cliente
-  - Implementazione raccomandazioni prodotto intelligenti
+- M4.1 (Week 1-2): Marketing tools
+  - Automated campaign implementation
+  - Advanced customer segmentation
+  - A/B testing and optimization
+- M4.2 (Week 3-4): Advanced analytics
+  - Complete analytics dashboard
+  - Customizable reporting
+  - Data export and BI tools integration
+- M4.3 (Week 5-6): Vertical market adaptations
+  - Sector-specific templates (retail, hotel, restaurants)
+  - Industry-customized functions
+  - Showcase and sector use cases
+- M4.4 (Week 7-8): Advanced AI capabilities
+  - Sentiment analysis model improvement
+  - Predictive system for customer behavior
+  - Intelligent product recommendation implementation
 
 ### Phase 5: Full Deployment & Quality Assurance (Months 9-10)
-- M5.1 (Settimana 1-2): Test completi
-  - Test end-to-end su tutti i flussi
-  - Test di carico e stress in produzione
-  - Verifica accessibilità e compliance
-- M5.2 (Settimana 3-4): Benchmark performance
-  - Ottimizzazione finale database
-  - Fine-tuning API e latenza frontend
-  - Revisione utilizzo risorse cloud
-- M5.3 (Settimana 5-6): Sicurezza e audit
-  - Security audit completo
-  - Implementazione miglioramenti sicurezza
-  - Verifica GDPR e compliance normativa
-- M5.4 (Settimana 7-8): Go-to-market
-  - Finalizzazione documentazione
-  - Setup sistema supporto clienti
-  - Lancio pubblico e piano marketing
+- M5.1 (Week 1-2): Complete testing
+  - End-to-end testing on all flows
+  - Load and stress testing in production
+  - Accessibility and compliance verification
+- M5.2 (Week 3-4): Performance benchmarking
+  - Final database optimization
+  - API and frontend latency fine-tuning
+  - Cloud resource usage review
+- M5.3 (Week 5-6): Security and audit
+  - Complete security audit
+  - Security improvements implementation
+  - GDPR and regulatory compliance verification
+- M5.4 (Week 7-8): Go-to-market
+  - Documentation finalization
+  - Customer support system setup
+  - Public launch and marketing plan
 
 ### Validation Metrics per Phase
-- **Phase 1**: Coverage test >90%, Tempo caricamento UI <1s
-- **Phase 2**: 95% accuratezza risposte AI, Latenza risposta <1.5s
-- **Phase 3**: Tasso conversione pagamenti >80%, Deliverability notifiche >99%
-- **Phase 4**: Incremento engagement +40%, CTR campagne >30%
-- **Phase 5**: Uptime servizio 99.95%, Risoluzione ticket <12h
-
-### Features Out of Scope for MVP
-
-Le seguenti funzionalità sono escluse dal rilascio MVP iniziale e pianificate per le fasi successive:
-
-#### Orders Management
-- Order processing and tracking
-- Order status management
-- Invoice generation and management
-- Shipping integration and tracking
-- Returns and refund processing
-
-#### Analytics
-- Real-time analytics dashboard
-- Custom report generation
-- Data visualization tools
-- Export capabilities
-- Performance metrics and KPIs
-
-#### Advanced Push Notifications
-- A/B testing for notification content
-- Advanced segmentation based on behavior
-- Rich media notifications
-- Location-based targeting
-- Frequency optimization
-
-#### Payment Integration
-- Integrated payment processing
-- Payment plan implementation
-- Subscription management
-- Payment gateway integration
-- Fraud prevention tools
+- **Phase 1**: Test coverage >90%, UI loading time <1s
+- **Phase 2**: AI response accuracy 95%, Response latency <1.5s
+- **Phase 3**: Payment conversion rate >80%, Notification deliverability >99%
+- **Phase 4**: Engagement increase +40%, Campaign CTR >30%
+- **Phase 5**: Service uptime 99.95%, Ticket resolution <12h
 
 ## COMPETITIVE ANALYSIS
 
@@ -1305,7 +1273,7 @@ The WhatsApp commerce software market is rapidly growing, with several players o
 
 ### Comparative Feature Matrix
 
-La seguente matrice evidenzia come ShopMe si posiziona rispetto ai principali concorrenti in termini di funzionalità chiave:
+The following matrix highlights how ShopMe positions itself against key competitors in terms of core functionality:
 
 | Feature | ShopMe | WATI | Zoko | Charles | Yalo | SleekFlow | Oct8ne | Tellephant | 360dialog |
 |---------|:------:|:----:|:----:|:-------:|:----:|:---------:|:------:|:----------:|:---------:|
@@ -1320,9 +1288,9 @@ La seguente matrice evidenzia come ShopMe si posiziona rispetto ai principali co
 | **Ease of Setup** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
 | **Multi-language** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
 
-*Legenda: ⭐ = Base, ⭐⭐ = Sufficiente, ⭐⭐⭐ = Buono, ⭐⭐⭐⭐ = Molto buono, ⭐⭐⭐⭐⭐ = Eccellente*
+*Legend: ⭐ = Basic, ⭐⭐ = Adequate, ⭐⭐⭐ = Good, ⭐⭐⭐⭐ = Very Good, ⭐⭐⭐⭐⭐ = Excellent*
 
-Questa matrice evidenzia chiaramente come ShopMe offra una soluzione completa e superiore nella maggior parte delle categorie chiave, con un particolare vantaggio nelle aree di e-commerce completo, notifiche push, sicurezza dei pagamenti e adattabilità cross-industry.
+This matrix clearly demonstrates how ShopMe offers a complete and superior solution in most key categories, with particular advantages in full e-commerce, push notifications, secure payments, and cross-industry adaptability.
 
 ### Market Positioning
 
@@ -1330,118 +1298,118 @@ ShopMe is uniquely positioned at the intersection of customer communication and 
 
 ### Segment-Specific ROI
 
-Ecco una stima del ROI atteso per diversi segmenti di mercato, basata sui dati di benchmark del settore e sui vantaggi differenziali di ShopMe:
+Here's an estimate of the expected ROI for different market segments, based on industry benchmark data and ShopMe's differential advantages:
 
-#### Retail (Abbigliamento/Accessori)
-| Metrica | Prima di ShopMe | Con ShopMe | Impatto |
+#### Retail (Clothing/Accessories)
+| Metric | Before ShopMe | With ShopMe | Impact |
 |---------|----------------|------------|---------|
-| Tasso di conversione | 2.5% | 3.6% | +44% |
-| Valore medio ordine | €75 | €96 | +28% |
-| Abbandono carrello | 70% | 33% | -53% |
-| Costo acquisizione cliente | €22 | €15 | -32% |
-| **ROI stimato primo anno** | - | - | **+215%** |
+| Conversion rate | 2.5% | 3.6% | +44% |
+| Average order value | €75 | €96 | +28% |
+| Cart abandonment | 70% | 33% | -53% |
+| Customer acquisition cost | €22 | €15 | -32% |
+| **Estimated first year ROI** | - | - | **+215%** |
 
-#### Ristorazione
-| Metrica | Prima di ShopMe | Con ShopMe | Impatto |
+#### Restaurants
+| Metric | Before ShopMe | With ShopMe | Impact |
 |---------|----------------|------------|---------|
-| Prenotazioni settimanali | 120 | 168 | +40% |
-| Valore medio scontrino | €35 | €42 | +20% |
-| Ordini takeaway/delivery | 45/settimana | 78/settimana | +73% |
-| No-show | 18% | 7% | -61% |
-| **ROI stimato primo anno** | - | - | **+185%** |
+| Weekly reservations | 120 | 168 | +40% |
+| Average check value | €35 | €42 | +20% |
+| Takeaway/delivery orders | 45/week | 78/week | +73% |
+| No-show rate | 18% | 7% | -61% |
+| **Estimated first year ROI** | - | - | **+185%** |
 
 #### Hotel/Hospitality
-| Metrica | Prima di ShopMe | Con ShopMe | Impatto |
+| Metric | Before ShopMe | With ShopMe | Impact |
 |---------|----------------|------------|---------|
-| Prenotazioni dirette vs OTA | 25% | 42% | +68% |
-| Upselling servizi aggiuntivi | €28/ospite | €47/ospite | +68% |
-| Recensioni positive | 75% | 89% | +19% |
+| Direct bookings vs OTA | 25% | 42% | +68% |
+| Additional services upselling | €28/guest | €47/guest | +68% |
+| Positive reviews | 75% | 89% | +19% |
 | Customer Lifetime Value | €240 | €385 | +60% |
-| **ROI stimato primo anno** | - | - | **+240%** |
+| **Estimated first year ROI** | - | - | **+240%** |
 
-#### Eventi
-| Metrica | Prima di ShopMe | Con ShopMe | Impatto |
+#### Events
+| Metric | Before ShopMe | With ShopMe | Impact |
 |---------|----------------|------------|---------|
-| Tasso di conversione biglietti | 3.2% | 5.1% | +59% |
-| No-show partecipanti | 22% | 8% | -64% |
-| Vendite merchandise/F&B | €8/partecipante | €14/partecipante | +75% |
-| Riacquisto evento successivo | 15% | 37% | +147% |
-| **ROI stimato primo anno** | - | - | **+195%** |
+| Ticket conversion rate | 3.2% | 5.1% | +59% |
+| Participant no-show rate | 22% | 8% | -64% |
+| Merchandise/F&B sales | €8/participant | €14/participant | +75% |
+| Repeat event purchase | 15% | 37% | +147% |
+| **Estimated first year ROI** | - | - | **+195%** |
 
-La metodologia ROI incorpora costi di implementazione, abbonamento e training, con un payback period stimato di 4-6 mesi per tutti i segmenti.
+The ROI methodology incorporates implementation costs, subscription fees, and training, with an estimated payback period of 4-6 months for all segments.
 
 ### Industry-Specific Solutions
 
-ShopMe è progettato per adattarsi facilmente a diversi settori verticali senza richiedere riconfigurazioni significative o sviluppo personalizzato. Ecco come la piattaforma si adatta perfettamente a tre settori chiave:
+ShopMe is designed to easily adapt to different industry verticals without requiring significant reconfiguration or custom development. Here's how the platform perfectly adapts to three key sectors:
 
-#### Hospitality (Hotel)
-- **Gestione prenotazioni:** Conferma prenotazioni, modifiche e cancellazioni direttamente via WhatsApp
-- **Concierge virtuale:** Assistenza 24/7 per richieste degli ospiti (servizio in camera, prenotazioni ristorante)
-- **Check-in digitale:** Processo di check-in semplificato tramite link sicuri
-- **Recensioni post-soggiorno:** Raccolta automatizzata di feedback dopo la partenza
-- **Promozioni stagionali:** Notifiche push per offerte last minute e pacchetti speciali
+#### Hospitality (Hotels)
+- **Reservation management:** Confirmation, modifications, and cancellations directly via WhatsApp
+- **Virtual concierge:** 24/7 assistance for guest requests (room service, restaurant reservations)
+- **Digital check-in:** Simplified check-in process via secure links
+- **Post-stay reviews:** Automated feedback collection after departure
+- **Seasonal promotions:** Push notifications for last-minute offers and special packages
 
-#### Ristorazione
-- **Prenotazioni tavoli:** Gestione delle prenotazioni con conferme automatiche
-- **Menu digitale:** Presentazione ricca di piatti con foto e descrizioni dettagliate
-- **Ordini takeaway/delivery:** Gestione completa degli ordini da asporto
-- **Programmi fedeltà:** Tracciamento punti e invio automatico di promozioni personalizzate
-- **Eventi speciali:** Promozione di serate a tema, degustazioni e menu speciali
+#### Restaurants
+- **Table reservations:** Reservation management with automatic confirmations
+- **Digital menu:** Rich presentation of dishes with photos and detailed descriptions
+- **Takeaway/delivery orders:** Complete management of take-out orders
+- **Loyalty programs:** Points tracking and automatic sending of personalized promotions
+- **Special events:** Promotion of themed evenings, tastings, and special menus
 
-#### Gestione Eventi
-- **Vendita biglietti:** Processo di acquisto completo con biglietti digitali
-- **Informazioni logistiche:** Risposte automatiche a domande su location, parcheggi, orari
-- **Check-in partecipanti:** Verifica presenze tramite QR code
-- **Comunicazioni pre-evento:** Promemoria automatici con dettagli importanti
-- **Feedback post-evento:** Raccolta opinioni e suggerimenti dopo l'evento
+#### Event Management
+- **Ticket sales:** Complete purchase process with digital tickets
+- **Logistical information:** Automated answers to questions about location, parking, schedules
+- **Participant check-in:** Attendance verification via QR codes
+- **Pre-event communications:** Automatic reminders with important details
+- **Post-event feedback:** Collection of opinions and suggestions after the event
 
-Ogni implementazione settoriale mantiene la stessa architettura di base ma utilizza template, funzioni e flussi di conversazione ottimizzati per le esigenze specifiche del settore, garantendo un'esperienza utente coerente e professionale.
+Each industry implementation maintains the same basic architecture but uses templates, functions, and conversation flows optimized for the specific needs of the sector, ensuring a consistent and professional user experience.
 
 ### Go-to-Market Strategy
 
-La strategia di lancio di ShopMe è progettata per massimizzare l'adozione e il successo commerciale nei segmenti target:
+ShopMe's launch strategy is designed to maximize adoption and commercial success in target segments:
 
-#### Fase 1: Early Adopters (Mesi 1-3)
-- **Target iniziale**: 50-75 business selezionati nei settori retail, ristorazione e hospitality
-- **Approccio**: Implementazione diretta con onboarding assistito e setup personalizzato
-- **Incentivi**: Pricing speciale "Founding Member" con 3 mesi gratuiti in cambio di testimonial e case study
-- **KPI**: Net Promoter Score >40, tasso di conversione da trial a pagamento >70%
+#### Phase 1: Early Adopters (Months 1-3)
+- **Initial target**: 50-75 selected businesses in retail, restaurant, and hospitality sectors
+- **Approach**: Direct implementation with assisted onboarding and personalized setup
+- **Incentives**: Special "Founding Member" pricing with 3 free months in exchange for testimonials and case studies
+- **KPIs**: Net Promoter Score >40, trial-to-paid conversion rate >70%
 
-#### Fase 2: Market Expansion (Mesi 4-8)
-- **Canali di acquisizione**:
-  - Partnership con consulenti e-commerce (commissione 20%)
-  - Campagne digitali mirate per vertical (Facebook/Instagram, LinkedIn)
-  - Webinar e demo case-study based (2 per settimana)
-  - Content marketing con focus su ROI settoriale
-- **Programma referral**: Sconto 25% per 3 mesi sia per referrer che per nuovo cliente
-- **KPI**: CAC <€180, Payback period <5 mesi, churn mensile <2%
+#### Phase 2: Market Expansion (Months 4-8)
+- **Acquisition channels**:
+  - Partnerships with e-commerce consultants (20% commission)
+  - Targeted digital campaigns for verticals (Facebook/Instagram, LinkedIn)
+  - Case study-based webinars and demos (2 per week)
+  - Content marketing focused on sector-specific ROI
+- **Referral program**: 25% discount for 3 months for both referrer and new customer
+- **KPIs**: CAC <€180, Payback period <5 months, monthly churn <2%
 
-#### Fase 3: Scale (Mesi 9-12)
-- **Mercati geografici**: Espansione in Italia, Spagna, UK con localizzazione completa
-- **Nuovi segmenti verticali**: Focus su eventi, beauty & wellness
-- **Canali aggiuntivi**:
-  - Integrazione marketplace app WhatsApp Business
-  - Partner tecnologici (integrazioni POS, CRM, ERP)
-  - Marketplace vendor platform (WooCommerce, Shopify, Magento)
-- **KPI**: Crescita MRR >15% mese/mese, retention a 12 mesi >80%
+#### Phase 3: Scale (Months 9-12)
+- **Geographic markets**: Expansion to Italy, Spain, UK with complete localization
+- **New vertical segments**: Focus on events, beauty & wellness
+- **Additional channels**:
+  - WhatsApp Business app marketplace integration
+  - Technology partners (POS, CRM, ERP integrations)
+  - Vendor platform marketplace (WooCommerce, Shopify, Magento)
+- **KPIs**: MRR growth >15% month/month, 12-month retention >80%
 
 #### Marketing Mix
-| Canale | % Budget | Focus Primario | Metriche chiave |
+| Channel | % Budget | Primary Focus | Key Metrics |
 |--------|----------|----------------|-----------------|
 | SEO/Content | 25% | Educazione mercato, lead gen | Conversione organica, tempo sul sito |
-| SEM | 20% | Acquisizione intent-based | CPC, tasso conversione |
+| SEM | 20% | Intent-based acquisition | CPC, tasso conversione |
 | Social Media | 15% | Brand awareness, showcase | Engagement, traffico referral |
-| Eventi/Webinar | 15% | Dimostrazione prodotto | Partecipanti, tasso conversione |
-| Partner/Referral | 20% | Conversioni qualificate | CAC, LTV clienti partner |
-| PR/Influencer | 5% | Credibilità, reach | Menzioni, sentiment |
+| Events/Webinars | 15% | Product demonstration | Participants, conversion rate |
+| Partners/Referrals | 20% | Qualified conversions | CAC, Partner customer LTV |
+| PR/Influencers | 5% | Credibility, reach | Menzioni, sentiment |
 
 #### Pricing & Packaging Strategy
-- **Approccio "Land & Expand"**: Entry point accessibile con upgrade guidati basati sull'utilizzo
-- **Piani verticali specializzati**: Configurazioni pre-impostate per hotel, ristoranti, retail
-- **Prova gratuita**: 14 giorni con limitazione messaggi (1000) e limiti funzionalità
-- **Success metrics**: Prezzo basato sul valore generato (% incremento ordini/prenotazioni)
+- **"Land & Expand" approach**: Accessible entry point with usage-based guided upgrades
+- **Specialized vertical plans**: Pre-configured setups for hotels, restaurants, retail
+- **Free trial**: 14 days with message limitation (1000) and feature limits
+- **Success metrics**: Value-based pricing (% increase in orders/bookings)
 
-La strategia go-to-market si integra con la roadmap di sviluppo prodotto garantendo che le funzionalità richieste dai segmenti target siano disponibili al momento del lancio nei rispettivi canali.
+The go-to-market strategy integrates with the product development roadmap, ensuring that features required by target segments are available at launch in their respective channels.
 
 ## MINIMUM MARKETABLE PRODUCT (MMP)
 
