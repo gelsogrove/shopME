@@ -7,7 +7,8 @@
 4. [API specification](#4-api-specification)
 5. [User stories](#5-user-stories)
 6. [Work tickets](#6-work-tickets)
-7. [Core Development Tasks](#7-core-development-tasks)
+7. [Security](#7-security)
+8. [CI/CD & Deployment](#8-cicd--deployment)
 
 ---
 
@@ -18,7 +19,7 @@
 ### **0.2. ShopMe**
 
 ### **0.3. Brief project description:**
-ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that turns WhatsApp into a sales channel. Businesses can create chatbots, manage products, receive orders, and send invoices without technical skills. Our AI automates customer support, manages notifications, and offers 24/7 shopping through WhatsApp.
+ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that transforms WhatsApp into a complete sales and customer service channel. Businesses can deploy AI-powered chatbots that handle customer inquiries, manage orders, provide product information, and send digital documents like invoices - all through WhatsApp without requiring technical knowledge. The system automates routine support tasks, delivers targeted promotional notifications, and offers 24/7 availability to enhance customer engagement and satisfaction.
 
 ### **0.4. Project URL:**
 *Not available*
@@ -44,15 +45,17 @@ The platform helps businesses:
 
 ShopMe transforms WhatsApp into a sales and service channel with these key features:
 
-The platform supports multiple businesses with isolated workspaces. Each business manages their product catalog, offers,services, Faq.
+The platform supports multiple businesses with isolated workspaces. Each business manages their product catalog, offers, services, Faq.
 
-The system sends scheduled notifications for new offers  keeping customers engaged.
+The system sends scheduled notifications for new offers keeping customers engaged.
 
-Business owners can customize settings including branding, language support (Italian, English, Spanish), and AI behavior parameters (temperature, token limits,etc).
+Business owners can customize settings including branding, language support (Italian, English, Spanish), and AI behavior parameters (temperature, token limits, etc).
 
 All sensitive operations use secure temporary links rather than being handled in chat conversations.
 
 ### **1.3. Design and user experience:**
+
+User interaction happens through WhatsApp. Customers message a business number, receive a registration link, and then interact with the AI assistant to ask questions, place orders, and manage their account.
 
 The platform includes an admin panel where business owners can manage:
 - AI Prompts and settings
@@ -62,9 +65,9 @@ The platform includes an admin panel where business owners can manage:
 - Performance metrics
 
 
-![Chat History ](./chatHistory.png)
-![Products ](./products.png)
-![Agent configuration ](./agentConfiguration.png)
+![Chat History](./chatHistory.png)
+![Products](./products.png)
+![Agent configuration](./agentConfiguration.png)
 
 
 ### **1.4. Installation instructions:**
@@ -77,57 +80,37 @@ Currently in development.
 
 ### **2.1. Architecture diagram:**
 
-```mermaid
-flowchart TB
-        User["Customer via WhatsApp"] 
-        Operator["Business Operator"]
-    
-    subgraph "Frontend"
-        React["React + TypeScript\n(Tailwind CSS)"]
-    end
-    
-    subgraph "Backend"
-        NodeJS["Node.js Express"]
-        API["REST API"]
-    end
-    
-    subgraph "Data Layer"
-        Prisma["Prisma ORM"]
-        DB["PostgreSQL Database"]
-    end
-    
-    subgraph "External Services"
-        WhatsApp["WhatsApp Business API"]
-        OpenAI["OpenAI / LLM Services"]
-        Payment["Payment Gateway"]
-    end
-    
-    User <--> WhatsApp
-    WhatsApp <--> NodeJS
-    Operator --> React
-    React --> API
-    API --> NodeJS
-    NodeJS --> Prisma
-    Prisma --> DB
-    NodeJS <--> OpenAI
-    NodeJS <--> Payment
-    
-    classDef frontend fill:#42A5F5,stroke:#1976D2,color:white
-    classDef backend fill:#66BB6A,stroke:#388E3C,color:white
-    classDef database fill:#AB47BC,stroke:#7B1FA2,color:white
-    classDef external fill:#FF7043,stroke:#E64A19,color:white
-    classDef user fill:#78909C,stroke:#455A64,color:white
-
-    class React frontend
-    class NodeJS,API backend
-    class Prisma,DB database
-    class WhatsApp,OpenAI,Payment external
-    class User,Operator user
+```
++------------------------+        +------------------------+
+|                        |        |                        |
+|   React + TypeScript   |<------>|   Node.js Express      |
+|   TailwindCSS          |  REST  |   Domain-Driven Design |
+|                        |  API   |                        |
++------------------------+        +------------------------+
+            |                               |
+            v                               v
++------------------------+        +------------------------+
+|                        |        |                        |
+|   WhatsApp Business    |        |   PostgreSQL + Prisma  |
+|   API                  |        |   Database             |
+|                        |        |                        |
++------------------------+        +------------------------+
+            ^                               ^
+            |                               |
+            +---------------+---------------+
+                            |
+                            v
+                  +--------------------+
+                  |                    |
+                  |    OpenRouter      |
+                  |    LLM Service     |
+                  |                    |
+                  +--------------------+
 ```
 
 ### **2.2. Description of main components:**
 
-- **Frontend**: React with TypeScript and Tailwind CSS for the admin interface where businesses manage products,offers,services,faq and monitor customer interactions.
+- **Frontend**: React with TypeScript and Tailwind CSS for the admin interface where businesses manage products, offers, services, faq and monitor customer interactions.
 
 - **Backend**: Node.js Express application using Domain-Driven Design architecture to handle business logic and API routes.
 
@@ -203,205 +186,75 @@ All these parameters are configurable directly through the application interface
 
 ### **3.1. Data model diagram:**
 
-```mermaid
-erDiagram
-    Workspace {
-        string id PK
-        string name
-        string slug
-        string whatsappPhoneNumber
-        string language
-        boolean isActive
-        string currency
-        string description
-        json welcomeMessages
-        json afterRegistrationMessages
-        DateTime createdAt
-        DateTime updatedAt
-    }
-    
-    User {
-        string id PK
-        string email
-        string passwordHash
-        string firstName
-        string lastName
-        UserRole role
-        UserStatus status
-        DateTime createdAt
-        DateTime updatedAt
-    }
-    
-    UserWorkspace {
-        string id PK
-        string userId FK
-        string workspaceId FK
-        UserRole role
-        DateTime createdAt
-        DateTime updatedAt
-    }
-    
-    Categories {
-        string id PK
-        string name
-        string description
-        string workspaceId FK
-        string slug
-        boolean isActive
-        DateTime createdAt
-        DateTime updatedAt
-    }
-    
-    Products {
-        string id PK
-        string name
-        string description
-        float price
-        int stock
-        string sku
-        string workspaceId FK
-        string categoryId FK
-        string supplierId FK
-        string slug
-        ProductStatus status
-        string image
-        DateTime createdAt
-        DateTime updatedAt
-    }
-    
-    Customers {
-        string id PK
-        string name
-        string email
-        string phone
-        string address
-        string language
-        string currency
-        boolean isActive
-        boolean activeChatbot
-        string workspaceId FK
-        DateTime createdAt
-        DateTime updatedAt
-    }
-    
-    Orders {
-        string id PK
-        string status
-        float total
-        string customerId FK
-        string workspaceId FK
-        DateTime createdAt
-        DateTime updatedAt
-    }
-    
-    Prompts {
-        string id PK
-        string name
-        string content
-        string workspaceId FK
-        boolean isRouter
-        string department
-        float temperature
-        float top_p
-        int top_k
-        string model
-        int max_tokens
-        boolean isActive
-        DateTime createdAt
-        DateTime updatedAt
-    }
-    
-    Offers {
-        string id PK
-        string name
-        string description
-        float discountPercent
-        datetime startDate
-        datetime endDate
-        string workspaceId FK
-        string categoryId FK
-        DateTime createdAt
-        DateTime updatedAt
-    }
-    
-    ChatSession {
-        string id PK
-        string status
-        json context
-        string workspaceId FK
-        string customerId FK
-        DateTime createdAt
-        DateTime updatedAt
-    }
-    
-    Message {
-        string id PK
-        MessageDirection direction
-        string content
-        MessageType type
-        boolean aiGenerated
-        string chatSessionId FK
-        string promptId FK
-        DateTime createdAt
-        DateTime updatedAt
-    }
-    
-    OrderItems {
-        string id PK
-        int quantity
-        float price
-        string orderId FK
-        string productId FK
-        DateTime createdAt
-        DateTime updatedAt
-    }
-    
-    Suppliers {
-        string id PK
-        string name
-        string email
-        string phone
-        string address
-        string workspaceId FK
-        DateTime createdAt
-        DateTime updatedAt
-    }
+```
++-------------------+       +-------------------+       +-------------------+
+| Workspace         |       | User              |       | UserWorkspace     |
++-------------------+       +-------------------+       +-------------------+
+| id                |       | id                |       | id                |
+| name              |       | email             |       | userId            |
+| slug              |       | passwordHash      |       | workspaceId       |
+| whatsappPhoneNum  |       | firstName         |       | role              |
+| language          |       | lastName          |       | createdAt         |
+| currency          |       | status            |       | updatedAt         |
+| welcomeMessages   |       | createdAt         |       +-------------------+
+| description       |       | updatedAt         |
+| createdAt         |       +-------------------+
+| updatedAt         |
++--------+----------+
+         |
+         |
+         v
++-------------------+       +-------------------+       +-------------------+
+| Products          |       | Categories        |       | Customers         |
++-------------------+       +-------------------+       +-------------------+
+| id                |       | id                |       | id                |
+| name              |       | name              |       | name              |
+| description       |       | description       |       | email             |
+| price             |       | workspaceId       |       | phone             |
+| stock             |       | slug              |       | language          |
+| sku               |       | isActive          |       | currency          |
+| workspaceId       |       | createdAt         |       | activeChatbot     |
+| categoryId        |       | updatedAt         |       | workspaceId       |
+| slug              |       +-------------------+       | createdAt         |
+| status            |                                   | updatedAt         |
+| createdAt         |                                   +-------------------+
+| updatedAt         |
++-------------------+
 
-    Workspace ||--o{ UserWorkspace : "has"
-    Workspace ||--o{ Products : "has"
-    Workspace ||--o{ Categories : "has"
-    Workspace ||--o{ Customers : "has"
-    Workspace ||--o{ Orders : "has"
-    Workspace ||--o{ Prompts : "has"
-    Workspace ||--o{ Offers : "has"
-    Workspace ||--o{ ChatSession : "has"
-    Workspace ||--o{ Suppliers : "has"
-    
-    User ||--o{ UserWorkspace : "belongs to"
-    Categories ||--o{ Products : "contains"
-    Categories ||--o{ Offers : "has"
-    Customers ||--o{ Orders : "places"
-    Customers ||--o{ ChatSession : "has"
-    Products ||--o{ OrderItems : "included in"
-    Orders ||--o{ OrderItems : "contains"
-    ChatSession ||--o{ Message : "contains"
-    Prompts ||--o{ Message : "generates"
-    Suppliers ||--o{ Products : "provides"
++-------------------+       +-------------------+       +-------------------+
+| Orders            |       | OrderItems        |       | Prompts           |
++-------------------+       +-------------------+       +-------------------+
+| id                |       | id                |       | id                |
+| status            |       | quantity          |       | name              |
+| total             |       | price             |       | workspaceId       |
+| customerId        |       | orderId           |       | isRouter          |
+| workspaceId       |       | productId         |       | createdAt         |
+| createdAt         |       | createdAt         |       | temperature       |
+| updatedAt         |       | updatedAt         |       | top_p             |
++-------------------+       +-------------------+       | top_k             |
+                                                        | model             |
+                                                        | max_tokens        |
+                                                        | isActive          |
+                                                        | createdAt         |
+                                                        | updatedAt         |
+                                                        +-------------------+
 ```
 
 ### **3.2. Description of main entities:**
 
 - **User**: Admin users who manage workspaces
 - **Workspace**: Business tenant with unique settings and configurations
+- **UserWorkspace**: Junction entity connecting users to workspaces with permissions
 - **Categories**: Product organization structure for logical grouping
 - **Products**: Items available for sale with prices and inventory
 - **Suppliers**: Product suppliers with contact information and addresses
 - **Offers**: Time-limited discounts and promotions for products
 - **Customers**: End users who interact through WhatsApp messaging
 - **Orders**: Purchase records with payment status and customer information
+- **OrderItems**: Individual items within an order with quantity and price
 - **Agent Configuration**: AI agent settings with model parameters and behavior controls
 - **ChatSession**: Conversation contexts between customers and the system
-- **Message receive**: Webhook endpoint that receives incoming WhatsApp messages from WhatsApp Business API
+- **Message**: Individual messages within conversations with content and direction
 
 ---
 
@@ -485,23 +338,35 @@ Below are the most important endpoints of the ShopMe platform:
 
 ## 5. User stories
 
-### **User Story 1: Platform Access**
+### **User Story 1: Create your first WhatsApp channel**
 
 **As** a business owner,  
-**I want** to log in and create my sales channel,  
-**So that** I can connect with customers.
+**I want** to create and configure my first WhatsApp business channel,  
+**So that** I can start engaging with customers through automated AI conversations.
 
 **Acceptance criteria:**
-1. Successful registration with email validation
-2. Secure login with password protection
-3. Workspace creation with unique identifiers
-4. WhatsApp number connection and verification
-5. Team member invitation with appropriate role assignments
+
+- **Given that** I am registered on the platform  
+  **When** I access the channel creation section  
+  **Then** I am able to start the WhatsApp channel configuration process
+
+- **Given that** I am configuring a new channel  
+  **When** I enter my WhatsApp Business number  
+  **Then** the system verifies my ownership through an authentication process
+
+- **Given that** I have a verified WhatsApp number  
+  **When** I create welcome messages for new customers  
+  **Then** they are saved in multiple languages as configured
+
+- **Given that** my channel is configured  
+  **When** I test the connection  
+  **Then** I receive confirmation that the setup is successful
 
 **Technical aspects:**
-- JWT authentication with expiry mechanism
-- Access control based on workspace membership
-- Secure password handling
+- WhatsApp Business API integration
+- Secure phone number verification
+- Configuration persistence in workspace settings
+- Multi-language welcome message support
 
 **Complexity**: Medium
 
@@ -512,11 +377,22 @@ Below are the most important endpoints of the ShopMe platform:
 **So that** I can showcase products to customers.
 
 **Acceptance criteria:**
-1. Products can be created with all required fields
-2. Products can be edited and deleted when needed
-3. Categories system organizes products effectively
-4. Images can be uploaded and associated with products
-5. Inventory levels are tracked and displayed correctly
+
+- **Given that** I am logged into the admin panel  
+  **When** I navigate to the product section  
+  **Then** I can see all my existing products and options to add new ones
+
+- **Given that** I am in the product management section  
+  **When** I create a new product with required information  
+  **Then** the system saves it to my catalog
+
+- **Given that** I am viewing my products  
+  **When** I organize them into categories  
+  **Then** the structure is maintained for future display to customers
+
+- **Given that** I have products in my catalog  
+  **When** I update inventory levels  
+  **Then** these changes are immediately reflected
 
 **Technical aspects:**
 - Image handling and optimization
@@ -532,11 +408,22 @@ Below are the most important endpoints of the ShopMe platform:
 **So that** automated responses match my business needs.
 
 **Acceptance criteria:**
-1. AI parameters can be adjusted (temperature, tokens, etc.)
-2. Different agent types can be created (router, department)
-3. Changes to AI configuration immediately affect responses
-4. Multiple languages are supported in configurations
-5. Configuration history is maintained
+
+- **Given that** I am in the agent configuration section  
+  **When** I adjust parameters like temperature and token limits  
+  **Then** the system saves these preferences
+
+- **Given that** I have different business departments  
+  **When** I create specialized agents for each area  
+  **Then** they handle different types of customer inquiries appropriately
+
+- **Given that** I have configured an agent  
+  **When** a customer initiates a conversation  
+  **Then** the AI responds according to my configuration settings
+
+- **Given that** I support multiple languages  
+  **When** I set up agent configurations  
+  **Then** each language variant is properly handled
 
 **Technical aspects:**
 - Language model integration
@@ -556,12 +443,22 @@ Below are the most important endpoints of the ShopMe platform:
 **Description**:  
 Create a secure authentication system with user and workspace management.
 
-**Key Tasks**:
-1. JWT token implementation with refresh mechanism
-2. User registration and login endpoints
-3. Workspace creation process
-4. Role-based permissions
-5. WhatsApp connection setup
+**Requirements**:
+1. Implement JWT token-based authentication with refresh mechanism
+2. Create secure user registration and login endpoints
+3. Develop role-based access control
+4. Set up workspace isolation for multi-tenancy
+5. Implement WhatsApp connection and verification process
+
+**Tasks**:
+- Create User and UserWorkspace data models
+- Develop JWT token generation and validation services
+- Build authentication middleware for API protection
+- Implement password hashing and verification
+- Create endpoints for login, registration, token refresh
+- Develop workspace creation and configuration flow
+- Build WhatsApp verification process
+- Write unit and integration tests for auth flows
 
 **Acceptance criteria**:
 - Users can register with valid email and password
@@ -583,12 +480,22 @@ Create a secure authentication system with user and workspace management.
 **Description**:  
 Create product catalog management with categories and inventory.
 
-**Key Tasks**:
-1. Product data models and API endpoints
-2. Category management system
-3. Image upload handling
-4. Inventory tracking
-5. Search functionality
+**Requirements**:
+1. Build complete CRUD operations for products
+2. Implement category management with hierarchy
+3. Create image upload and storage system
+4. Develop inventory tracking functionality
+5. Implement search and filtering capabilities
+
+**Tasks**:
+- Create Products and Categories data models
+- Develop API endpoints for product CRUD operations
+- Build image upload service with optimization
+- Implement category management system
+- Create inventory tracking mechanisms
+- Build search functionality with filters
+- Develop frontend components for product management
+- Write tests for all product operations
 
 **Acceptance criteria**:
 - CRUD operations work for products and categories
@@ -610,12 +517,22 @@ Create product catalog management with categories and inventory.
 **Description**:  
 Build a system for configuring AI agents for customer interactions.
 
-**Key Tasks**:
-1. AI configuration data models
-2. Parameter adjustment interface
-3. Conversation context handling
-4. Multi-language support
-5. Configuration testing system
+**Requirements**:
+1. Create AI agent configuration data models
+2. Implement parameter adjustment interface
+3. Develop conversation context handling
+4. Support multiple languages in configurations
+5. Implement agent testing mechanisms
+
+**Tasks**:
+- Create Prompts data model with necessary fields
+- Develop API endpoints for agent CRUD operations
+- Build parameter validation service
+- Implement multi-language support for agent responses
+- Create agent type system (router, department-specific)
+- Develop agent testing interface
+- Build frontend components for configuration
+- Write tests for agent configuration and behavior
 
 **Acceptance criteria**:
 - AI parameters can be saved and retrieved
@@ -633,60 +550,114 @@ Build a system for configuring AI agents for customer interactions.
 
 ---
 
-## 7. Core Development 
+## 7. Security
 
-Based on the requirements, these are the main tasks:
+### 7.1 Authentication & Authorization
 
-### **Task 1: Authentication & Workspace**
+- **JWT Implementation**: Secure token-based authentication with short-lived access tokens (60 minutes) and HTTP-only cookie refresh tokens (7 days)
+- **Password Security**: Bcrypt hashing with appropriate salt rounds (12+), password strength requirements enforced
+- **Two-Factor Authentication**: Optional 2FA using Time-based One-Time Password (TOTP) for admin accounts
+- **Role-Based Access Control**: Granular permissions based on user roles within workspaces
+- **Session Management**: Proper invalidation of sessions, secure token storage, and cross-device session tracking
 
-**Description**:  
-Implement user authentication and workspace creation.
+### 7.2 Data Protection
 
-**Key Features**:
-- JWT authentication
-- User registration and login
-- Workspace configuration
-- Role-based access control
-- WhatsApp integration
+- **Transport Security**: HTTPS encryption for all communications with proper certificate management
+- **Data Encryption**: Sensitive data encrypted at rest in the database
+- **GDPR Compliance**: Consent management, data minimization, and right-to-erasure mechanisms
+- **Data Backups**: Encrypted automated backups with retention policies
+- **Audit Logging**: Comprehensive logging of security-relevant events with tamper protection
 
-**Deliverables**:
-- Authentication API endpoints
-- Workspace management interface
-- User role system
+### 7.3 Application Security
 
-### **Task 2: Product Management**
+- **Input Validation**: Server-side validation of all input with appropriate sanitization
+- **API Security**: Rate limiting, request validation, and proper error handling that doesn't expose internals
+- **CORS Configuration**: Restrictive Cross-Origin Resource Sharing policies to prevent unauthorized access
+- **Content Security Policy**: Restrictive CSP headers to mitigate XSS attacks
+- **Dependency Management**: Regular security audits of dependencies and prompt patching
 
-**Description**:  
-Build product catalog system with categories.
+### 7.4 WhatsApp Integration Security
 
-**Key Features**:
-- Product CRUD operations
-- Category organization
-- Image handling
-- Inventory tracking
-- Search functionality
-
-**Deliverables**:
-- Product management interface
-- Category system
-- Image upload functionality
-- Inventory controls
-
-### **Task 3: AI Configuration**
-
-**Description**:  
-Create system for AI agent settings.
-
-**Key Features**:
-- AI parameter customization
-- Agent creation and management
-- Multi-language support
-- Agent types and specializations
-
-**Deliverables**:
-- Agent management interface
-- Parameter controls
-- Agent listing dashboard
+- **Webhook Verification**: Signature verification for incoming WhatsApp webhook requests
+- **Temporary Secure Links**: Time-limited secure links for sensitive operations
+- **Message Validation**: Validation of incoming message structures before processing
+- **Rate Limiting**: Protection against message flooding from single sources
+- **Data Minimization**: Processing only necessary WhatsApp data and prompt deletion of sensitive information
 
 ---
 
+## 8. CI/CD & Deployment
+
+### 8.1 Development Workflow
+
+```
+  +-------------------+              +-------------------+
+  |                   |    commit    |                   |
+  |   Local Dev       +------------->+   GitHub          |
+  |   Environment     |    push      |   Repository      |
+  |                   |              |                   |
+  +-------------------+              +--------+---------+
+                                              |
+                                              | trigger
+                                              v
+  +-------------------+              +--------+---------+
+  |                   |    deploy    |                   |
+  |   Production      +<-------------+   GitHub Actions  |
+  |   Environment     |    release   |   CI/CD Pipeline  |
+  |                   |              |                   |
+  +-------------------+              +--------+----------+
+                                              |
+                                              | run
+                                              v
+                                     +--------+----------+
+                                     |                   |
+                                     |   Automated       |
+                                     |   Tests           |
+                                     |                   |
+                                     +-------------------+
+```
+
+### 8.2 CI/CD Pipeline
+
+Our continuous integration and continuous deployment pipeline consists of the following stages:
+
+1. **Code Validation**
+   - Linting (ESLint, Prettier)
+   - Type checking (TypeScript)
+   - Code quality analysis (SonarQube)
+
+2. **Testing**
+   - Unit tests (Jest)
+   - Integration tests
+   - End-to-end tests (when applicable)
+
+3. **Build**
+   - Frontend build (React)
+   - Backend build (Node.js)
+   - Docker image creation
+
+4. **Security Scanning**
+   - Dependency vulnerability scan
+   - Docker image scan
+   - Code security analysis
+
+5. **Deployment**
+   - Staging deployment (on PR approval)
+   - Production deployment (on main branch merge)
+   - Database migrations
+
+### 8.3 Environments
+
+- **Development**: Local developer environments with hot reload
+- **Staging**: Pre-production environment for testing and verification
+- **Production**: Live environment with high availability
+
+### 8.4 Monitoring & Operations
+
+- **Logging**: Centralized logging system with log retention
+- **Metrics**: System and application metrics monitoring
+- **Alerts**: Automated alerting for critical issues
+- **Backups**: Automated database backups with testing
+- **Disaster Recovery**: Documented recovery procedures with regular drills
+
+--- 
