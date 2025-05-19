@@ -5,14 +5,16 @@ import { useNavigate } from "react-router-dom"
 import { PageHeader } from "../components/shared/PageHeader"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../components/ui/dialog"
 import { Input } from "../components/ui/input"
+import { Label } from "../components/ui/label"
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "../components/ui/table"
 
 interface Customer {
@@ -27,6 +29,7 @@ interface Customer {
   gdprConsent: boolean
   pushNotificationsConsent: boolean
   activeChatbot: boolean
+  discount: number
 }
 
 const mockCustomers: Customer[] = [
@@ -42,6 +45,7 @@ const mockCustomers: Customer[] = [
     gdprConsent: true,
     pushNotificationsConsent: true,
     activeChatbot: true,
+    discount: 0,
   },
   {
     id: "2",
@@ -55,6 +59,7 @@ const mockCustomers: Customer[] = [
     gdprConsent: true,
     pushNotificationsConsent: true,
     activeChatbot: true,
+    discount: 0,
   },
   {
     id: "3",
@@ -68,18 +73,27 @@ const mockCustomers: Customer[] = [
     gdprConsent: false,
     pushNotificationsConsent: false,
     activeChatbot: false,
+    discount: 0,
   },
 ]
 
 export default function CustomersPage() {
-  const [customers] = useState<Customer[]>(mockCustomers)
+  const [customers, setCustomers] = useState<Customer[]>(mockCustomers)
   const [searchValue, setSearchValue] = useState("")
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "active" | "inactive"
-  >("all")
-  const [selectedCustomerId, setSelectedCustomerId] = useState("")
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all")
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [formState, setFormState] = useState<Omit<Customer, "id" | "totalOrders" | "totalSpent" | "lastActive"> & { id?: string }>({
+    name: "",
+    phone: "",
+    email: "",
+    status: "active",
+    gdprConsent: false,
+    pushNotificationsConsent: false,
+    activeChatbot: true,
+    discount: 0,
+  })
   const navigate = useNavigate()
 
   const filteredCustomers = customers.filter((customer) => {
@@ -94,7 +108,80 @@ export default function CustomersPage() {
 
   const handleEdit = (customerId: string) => {
     setSelectedCustomerId(customerId)
+    const customer = customers.find((c) => c.id === customerId)
+    if (customer) {
+      setFormState({
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email,
+        status: customer.status,
+        gdprConsent: customer.gdprConsent,
+        pushNotificationsConsent: customer.pushNotificationsConsent,
+        activeChatbot: customer.activeChatbot,
+        discount: customer.discount ?? 0,
+      })
+    }
     setShowEditDialog(true)
+  }
+
+  const handleAdd = () => {
+    setSelectedCustomerId(null)
+    setFormState({
+      name: "",
+      phone: "",
+      email: "",
+      status: "active",
+      gdprConsent: false,
+      pushNotificationsConsent: false,
+      activeChatbot: true,
+      discount: 0,
+    })
+    setShowEditDialog(true)
+  }
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target
+    if (type === "checkbox") {
+      setFormState((prev) => ({
+        ...prev,
+        [name]: (e.target as HTMLInputElement).checked,
+      }))
+    } else {
+      setFormState((prev) => ({
+        ...prev,
+        [name]: name === "discount" ? Number(value) : value,
+      }))
+    }
+  }
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formState.name || !formState.email || !formState.phone || formState.discount === undefined || formState.discount === null) return
+    if (formState.discount < 0) return
+    if (selectedCustomerId) {
+      // Edit
+      setCustomers((prev) =>
+        prev.map((c) =>
+          c.id === selectedCustomerId
+            ? { ...c, ...formState, id: selectedCustomerId }
+            : c
+        )
+      )
+    } else {
+      // New
+      setCustomers((prev) => [
+        ...prev,
+        {
+          ...formState,
+          id: (Math.random() * 100000).toFixed(0),
+          totalOrders: 0,
+          totalSpent: 0,
+          lastActive: new Date().toISOString(),
+        },
+      ])
+    }
+    setShowEditDialog(false)
   }
 
   const handleDelete = (customerId: string) => {
@@ -110,11 +197,11 @@ export default function CustomersPage() {
     <div className="container mx-auto py-6">
       <PageHeader
         title="Customers"
-        titleIcon={<Users className={commonStyles.icon} />}
+        titleIcon={<Users className={commonStyles.headerIcon} />}
         searchValue={searchValue}
         onSearch={setSearchValue}
         searchPlaceholder="Search customers..."
-        onAdd={() => console.log("Add customer")}
+        onAdd={handleAdd}
         addButtonText="Add Customer"
         itemCount={filteredCustomers.length}
       />
@@ -247,6 +334,55 @@ export default function CustomersPage() {
           </TableBody>
         </Table>
       </Card>
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedCustomerId ? "Edit Customer" : "Add Customer"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleFormSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name">Name</Label>
+                <Input id="name" name="name" value={formState.name} onChange={handleFormChange} required />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" name="email" type="email" value={formState.email} onChange={handleFormChange} required />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone</Label>
+                <Input id="phone" name="phone" value={formState.phone} onChange={handleFormChange} required />
+              </div>
+              <div>
+                <Label htmlFor="discount">Discount (%)</Label>
+                <Input id="discount" name="discount" type="number" min={0} value={formState.discount} onChange={handleFormChange} required />
+              </div>
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <select id="status" name="status" value={formState.status} onChange={handleFormChange} className="w-full border rounded-md px-2 py-2">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2 mt-6">
+                <input id="gdprConsent" name="gdprConsent" type="checkbox" checked={formState.gdprConsent} onChange={handleFormChange} />
+                <Label htmlFor="gdprConsent">GDPR Consent</Label>
+              </div>
+              <div className="flex items-center gap-2 mt-6">
+                <input id="pushNotificationsConsent" name="pushNotificationsConsent" type="checkbox" checked={formState.pushNotificationsConsent} onChange={handleFormChange} />
+                <Label htmlFor="pushNotificationsConsent">Push Notifications</Label>
+              </div>
+              <div className="flex items-center gap-2 mt-6">
+                <input id="activeChatbot" name="activeChatbot" type="checkbox" checked={formState.activeChatbot} onChange={handleFormChange} />
+                <Label htmlFor="activeChatbot">Active Chatbot</Label>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit">{selectedCustomerId ? "Save Changes" : "Add Customer"}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
