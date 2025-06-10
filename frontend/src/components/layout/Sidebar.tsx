@@ -2,20 +2,17 @@ import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
 import { cn } from "@/lib/utils"
 import {
-    Bell,
-    Calendar,
-    ClipboardList,
-    HelpCircle,
-    LayoutGrid,
-    LucideIcon,
-    MessageSquare,
-    Package2,
-    Percent,
-    ShoppingCart,
-    Tag,
-    Truck,
-    Users,
-    Wrench
+  Calendar,
+  HelpCircle,
+  LucideIcon,
+  MessageSquare,
+  Package2,
+  Percent,
+  ShoppingCart,
+  Tag,
+  Truck,
+  Users,
+  Wrench
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
@@ -118,24 +115,9 @@ export function Sidebar() {
     },
     {
       href: "/orders",
-      label: "Orders (WIP)",
+      label: "Orders",
       icon: ShoppingCart,
-    },
-    {
-      href: "/notifications",
-      label: "Push Notifications (WIP)",
-      icon: Bell,
-    },
-    {
-      href: "/surveys",
-      label: "Surveys (WIP)",
-      icon: ClipboardList,
-    },
-    {
-      href: "/analytics",
-      label: "Dashboard (WIP)",
-      icon: LayoutGrid,
-    },
+    } 
   ]
 
   return (

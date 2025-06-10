@@ -3,6 +3,7 @@
  */
 
 import { prisma } from "../lib/prisma";
+import logger from "../utils/logger";
 
 // Import event types
 
@@ -30,8 +31,10 @@ export const eventsService = {
    */
   async getAllForWorkspace(workspaceId: string) {
     try {
+      logger.info(`[EVENTS] Getting events for workspace: ${workspaceId}`);
+      
       // @ts-ignore - Prisma types issue
-      return await prisma.events.findMany({
+      const events = await prisma.events.findMany({
         where: {
           workspaceId,
         },
@@ -39,7 +42,15 @@ export const eventsService = {
           startDate: 'asc',
         },
       });
+      
+      logger.info(`[EVENTS] Found ${events.length} events for workspace ${workspaceId}`);
+      events.forEach(event => {
+        logger.info(`[EVENTS] Event: ${event.name} (ID: ${event.id}) - WorkspaceId: ${event.workspaceId}`);
+      });
+      
+      return events;
     } catch (error) {
+      logger.error(`[EVENTS] Error getting events for workspace ${workspaceId}:`, error);
       return [];
     }
   },
@@ -48,13 +59,23 @@ export const eventsService = {
    * Get an event by id
    */
   async getById(id: string, workspaceId: string) {
+    logger.info(`[EVENTS] Getting event ${id} for workspace ${workspaceId}`);
+    
     // @ts-ignore - Prisma types issue
-    return prisma.events.findFirst({
+    const event = await prisma.events.findFirst({
       where: { 
         id,
         workspaceId 
       }
     });
+    
+    if (event) {
+      logger.info(`[EVENTS] Found event: ${event.name} - WorkspaceId: ${event.workspaceId}`);
+    } else {
+      logger.warn(`[EVENTS] Event ${id} not found in workspace ${workspaceId}`);
+    }
+    
+    return event;
   },
 
   /**
@@ -65,8 +86,10 @@ export const eventsService = {
       throw new Error('workspaceId is required');
     }
     
+    logger.info(`[EVENTS] Creating event "${data.name}" for workspace ${data.workspaceId}`);
+    
     // @ts-ignore - Prisma types issue
-    return prisma.events.create({
+    const event = await prisma.events.create({
       data: {
         name: data.name,
         description: data.description,
@@ -81,12 +104,17 @@ export const eventsService = {
         currentAttendees: 0,
       }
     });
+    
+    logger.info(`[EVENTS] Created event ${event.id} for workspace ${event.workspaceId}`);
+    return event;
   },
 
   /**
    * Update an event
    */
   async update(id: string, workspaceId: string, data: UpdateEventData) {
+    logger.info(`[EVENTS] Updating event ${id} for workspace ${workspaceId}`);
+    
     // First check if event exists
     // @ts-ignore - Prisma types issue
     const existingEvent = await prisma.events.findFirst({
@@ -97,6 +125,7 @@ export const eventsService = {
     });
 
     if (!existingEvent) {
+      logger.warn(`[EVENTS] Event ${id} not found in workspace ${workspaceId} for update`);
       return null;
     }
 
@@ -114,7 +143,7 @@ export const eventsService = {
     } = data;
     
     // @ts-ignore - Prisma types issue
-    return prisma.events.update({
+    const updatedEvent = await prisma.events.update({
       where: { id },
       data: {
         ...(name && { name }),
@@ -129,12 +158,17 @@ export const eventsService = {
         ...(currentAttendees !== undefined && { currentAttendees })
       }
     });
+    
+    logger.info(`[EVENTS] Updated event ${id} for workspace ${workspaceId}`);
+    return updatedEvent;
   },
 
   /**
    * Delete an event
    */
   async delete(id: string, workspaceId: string) {
+    logger.info(`[EVENTS] Deleting event ${id} for workspace ${workspaceId}`);
+    
     // First check if event exists
     // @ts-ignore - Prisma types issue
     const existingEvent = await prisma.events.findFirst({
@@ -145,15 +179,19 @@ export const eventsService = {
     });
 
     if (!existingEvent) {
+      logger.warn(`[EVENTS] Event ${id} not found in workspace ${workspaceId} for deletion`);
       return null;
     }
 
     // @ts-ignore - Prisma types issue
-    return prisma.events.deleteMany({
+    const result = await prisma.events.deleteMany({
       where: { 
         id,
         workspaceId 
       }
     });
+    
+    logger.info(`[EVENTS] Deleted event ${id} from workspace ${workspaceId}`);
+    return result;
   }
 }; 

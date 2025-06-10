@@ -1,26 +1,31 @@
 import { NextFunction, Request, Response } from "express";
 import { agentService } from "../services/agent.service";
-import { getDefaultWorkspaceId } from "../utils/workspace";
 
 export const agentController = {
   /**
    * Get all agents for a workspace
    */
   async getAllForWorkspace(req: Request, res: Response, next: NextFunction) {
-    // Get workspaceId from params or use default if not provided
+    // Get workspaceId from params or user context
     let workspaceId = req.params.workspaceId;
     
     // If workspaceId is not provided in the params (direct /agent route)
     if (!workspaceId) {
       try {
-        // Try to get from user context or use a default
+        // Try to get from user context
         const user = req.user as any;
-        workspaceId = user?.workspaceId || getDefaultWorkspaceId();
+        workspaceId = user?.workspaceId;
         
-        console.log(`No workspaceId in params, using ${workspaceId} from user or default`);
+        // If still no workspace ID, return error instead of using fallback
+        if (!workspaceId) {
+          console.log("No workspaceId found in params or user context");
+          return res.status(400).json({ message: "Workspace ID is required" });
+        }
+        
+        console.log(`No workspaceId in params, using ${workspaceId} from user context`);
       } catch (error) {
-        console.error("Failed to get default workspace ID:", error);
-        return res.status(400).json({ message: "Workspace ID is required1" });
+        console.error("Failed to get workspace ID:", error);
+        return res.status(400).json({ message: "Workspace ID is required" });
       }
     }
     
@@ -48,13 +53,20 @@ export const agentController = {
     // If workspaceId is not provided in the params (direct /agent/:id route)
     if (!workspaceId) {
       try {
-        // Try to get from user context or use a default
+        // Try to get from user context
         const user = req.user as any;
-        workspaceId = user?.workspaceId || getDefaultWorkspaceId();
-        console.log(`No workspaceId in params, using ${workspaceId} from user or default`);
+        workspaceId = user?.workspaceId;
+        
+        // If still no workspace ID, return error instead of using fallback
+        if (!workspaceId) {
+          console.log("No workspaceId found in params or user context");
+          return res.status(400).json({ message: "Workspace ID is required" });
+        }
+        
+        console.log(`No workspaceId in params, using ${workspaceId} from user context`);
       } catch (error) {
-        console.error("Failed to get default workspace ID:", error);
-        return res.status(400).json({ message: "Workspace ID is required2" });
+        console.error("Failed to get workspace ID:", error);
+        return res.status(400).json({ message: "Workspace ID is required" });
       }
     }
     
@@ -85,13 +97,20 @@ export const agentController = {
     // If workspaceId is not provided in the params (direct /agent route)
     if (!workspaceId) {
       try {
-        // Try to get from user context or use a default
+        // Try to get from user context
         const user = req.user as any;
-        workspaceId = user?.workspaceId || getDefaultWorkspaceId();
-        console.log(`No workspaceId in params, using ${workspaceId} from user or default`);
+        workspaceId = user?.workspaceId;
+        
+        // If still no workspace ID, return error instead of using fallback
+        if (!workspaceId) {
+          console.log("No workspaceId found in params or user context");
+          return res.status(400).json({ message: "Workspace ID is required" });
+        }
+        
+        console.log(`No workspaceId in params, using ${workspaceId} from user context`);
       } catch (error) {
-        console.error("Failed to get default workspace ID:", error);
-        return res.status(400).json({ message: "Workspace ID is required 3" });
+        console.error("Failed to get workspace ID:", error);
+        return res.status(400).json({ message: "Workspace ID is required" });
       }
     }
     
@@ -133,13 +152,20 @@ export const agentController = {
       // If workspaceId is not provided in the params (direct /agent/:id route)
       if (!workspaceId) {
         try {
-          // Try to get from user context or use a default
+          // Try to get from user context
           const user = req.user as any;
-          workspaceId = user?.workspaceId || getDefaultWorkspaceId();
-          console.log(`No workspaceId in params, using ${workspaceId} from user or default`);
+          workspaceId = user?.workspaceId;
+          
+          // If still no workspace ID, return error instead of using fallback
+          if (!workspaceId) {
+            console.log("No workspaceId found in params or user context");
+            return res.status(400).json({ message: "Workspace ID is required" });
+          }
+          
+          console.log(`No workspaceId in params, using ${workspaceId} from user context`);
         } catch (error) {
-          console.error("Failed to get default workspace ID:", error);
-          return res.status(400).json({ message: "Workspace ID is required 4" });
+          console.error("Failed to get workspace ID:", error);
+          return res.status(400).json({ message: "Workspace ID is required" });
         }
       }
       
@@ -194,32 +220,41 @@ export const agentController = {
       // If workspaceId is not provided in the params (direct /agent/:id route)
       if (!workspaceId) {
         try {
-          // Try to get from user context or use a default
+          // Try to get from user context
           const user = req.user as any;
-          workspaceId = user?.workspaceId || getDefaultWorkspaceId();
-          console.log(`No workspaceId in params, using ${workspaceId} from user or default`);
+          workspaceId = user?.workspaceId;
+          
+          // If still no workspace ID, return error instead of using fallback
+          if (!workspaceId) {
+            console.log("No workspaceId found in params or user context");
+            return res.status(400).json({ message: "Workspace ID is required" });
+          }
+          
+          console.log(`No workspaceId in params, using ${workspaceId} from user context`);
         } catch (error) {
-          console.error("Failed to get default workspace ID:", error);
-          return res.status(400).json({ message: "Workspace ID is required 5" });
+          console.error("Failed to get workspace ID:", error);
+          return res.status(400).json({ message: "Workspace ID is required" });
         }
       }
       
       console.log(`Deleting agent ${id} from workspace ${workspaceId}`);
       
       try {
-        await agentService.delete(id, workspaceId)
-        console.log(`Agent ${id} deleted successfully`);
-        res.status(204).send()
-      } catch (error: any) {
-        // Check if error is because the agent wasn't found
-        if (error.code === 'P2025' || error.message === 'Agent not found') {
+        const deleted = await agentService.delete(id, workspaceId)
+        
+        if (!deleted) {
           console.log(`Agent ${id} not found for deletion`);
           return res.status(404).json({ message: "Agent not found" })
         }
-        throw error
+        
+        console.log(`Agent ${id} deleted successfully`);
+        res.status(204).send()
+      } catch (error) {
+        console.error(`Error deleting agent ${id}:`, error);
+        next(error)
       }
     } catch (error) {
-      console.error(`Error deleting agent:`, error);
+      console.error("Error in delete agent controller:", error);
       next(error)
     }
   }

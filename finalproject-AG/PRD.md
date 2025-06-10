@@ -230,11 +230,13 @@ La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo
 
 ### Products Catalog Management
 - Multi-category organization
-- Rich media product cards
+- Text-based product descriptions (WhatsApp optimized)
 - Variant management (size, color, etc.)
 - Inventory tracking
 - Discount and promotion configuration
 - Bulk import/export functionality
+
+**Note**: Product images have been removed from the system to optimize for WhatsApp's text-based interface. The platform now focuses on detailed product descriptions and text-based shopping experiences, which align better with conversational commerce patterns.
 
 ### Agent Configuration Tools
 - AI behavior customization

@@ -498,8 +498,6 @@ async function main() {
         "Traditional spaghetti from Gragnano, made with selected durum wheat semolina. Bronze drawn for the perfect texture.",
       price: 4.99,
       stock: 120,
-      image:
-        "https://images.unsplash.com/photo-1551462147-ff29053bfc14?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "gragnano-igp-pasta-spaghetti",
@@ -511,8 +509,6 @@ async function main() {
         "Freshly made egg tagliatelle, perfect for rich meat sauces and ragù.",
       price: 6.99,
       stock: 45,
-      image:
-        "https://images.unsplash.com/photo-1598866594230-a7c12756260f?q=80&w=800&auto=format&fit=crop",
       isActive: true,
       status: "ACTIVE",
       slug: "homemade-tagliatelle",
@@ -524,8 +520,6 @@ async function main() {
         "Authentic Parmigiano Reggiano DOP aged 24 months. Intense flavor with a granular texture.",
       price: 29.99,
       stock: 25,
-      image:
-        "https://www.emiliaitalianfood.com/pimages/PARMIGIANO-REGGIANO-DOP-MIN-24-MESI1-0-kg-ca-extra-big-9.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "parmigiano-reggiano-dop-24-months",
@@ -537,7 +531,6 @@ async function main() {
         "Fresh buffalo mozzarella DOP from Campania. Soft texture and delicate milk flavor.",
       price: 9.99,
       stock: 40,
-      image: "https://www.eliasseleccio.com/foto/902/bufala.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "mozzarella-di-bufala-campana-dop",
@@ -549,8 +542,6 @@ async function main() {
         "Premium extra virgin olive oil from Tuscany with balanced flavor and fruity notes.",
       price: 19.99,
       stock: 48,
-      image:
-        "https://www.menu.it//media/prodotti/olio-extravergine-di-oliva-119597/conversions/EK5-main.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "tuscan-igp-extra-virgin-olive-oil",
@@ -562,8 +553,6 @@ async function main() {
         "Traditional balsamic vinegar of Modena IGP with a perfect balance of sweet and sour.",
       price: 14.99,
       stock: 30,
-      image:
-        "https://www.lacasadelconigliobianco.com/wp-content/uploads/2016/07/Misticanza-al-parmigiano-BLOG-EVIDENZA.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "aceto-balsamico-di-modena-igp",
@@ -575,8 +564,6 @@ async function main() {
         "Fine Parma ham aged for 24 months. Sweet flavor and delicate aroma.",
       price: 24.99,
       stock: 15,
-      image:
-        "https://grancaffelaquila.com/cdn/shop/products/PROSCIUTTODIPARMA_648x.jpg?v=1595543925",
       isActive: true,
       status: "ACTIVE",
       slug: "prosciutto-di-parma-dop-24-months",
@@ -589,8 +576,6 @@ async function main() {
         "Vibrant green pistachios from Bronte, Sicily. Intensely flavored with sweet and slightly resinous notes.",
       price: 18.99,
       stock: 35,
-      image:
-        "https://www.qualivita.it/wp-content/uploads/2020/04/Galleria_Pistacchio-Verde-di-Bronte_13.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "pistacchi-di-bronte-dop",
@@ -604,8 +589,6 @@ async function main() {
         "Autentica pizza napoletana con impasto a lunga lievitazione (24h), pomodoro San Marzano DOP, mozzarella di bufala campana e basilico fresco. Cotta in forno a legna a 485°C per 60-90 secondi secondo la tradizione. Certificata Specialità Tradizionale Garantita (STG).",
       price: 12.9,
       stock: 25,
-      image:
-        "https://www.lapassionefalochef.it/wp-content/uploads/2024/05/pizza-in-padella.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "pizza-napoletana-artigianale",
@@ -617,8 +600,6 @@ async function main() {
         "Autentica pasta all'uovo tagliata a mano (8mm di larghezza) secondo la ricetta depositata alla Camera di Commercio di Bologna. Accompagnata dal tradizionale ragù bolognese preparato con carne di manzo e maiale, soffritto, pomodoro e vino, cotto lentamente per almeno 4 ore.",
       price: 14.5,
       stock: 20,
-      image:
-        "https://b3067249.smushcdn.com/3067249/wp-content/uploads/2022/03/ragu-authenric-taglietelle.jpg?lossy=0&strip=1&webp=1",
       isActive: true,
       status: "ACTIVE",
       slug: "tagliatelle-al-ragu-bolognese",
@@ -630,8 +611,6 @@ async function main() {
         "Trofie fresche artigianali servite con autentico pesto genovese preparato secondo la ricetta tradizionale ligure con basilico DOP di Prà, pinoli italiani, formaggio Parmigiano Reggiano e Pecorino, aglio e olio extravergine d'oliva della Riviera Ligure.",
       price: 13.9,
       stock: 18,
-      image:
-        "https://www.ilgiornaledelcibo.it/wp-content/uploads/2008/05/trofie-al-pesto-li-per-li.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "trofie-al-pesto-genovese",
@@ -643,8 +622,6 @@ async function main() {
         "Autentico dolce italiano preparato secondo la ricetta tradizionale veneta. Strati di savoiardi inzuppati in caffè espresso, alternati a crema al mascarpone e cacao amaro in polvere. Ogni porzione è preparata a mano e conservata a temperatura controllata.",
       price: 8.9,
       stock: 30,
-      image:
-        "https://primochef.it/wp-content/uploads/2019/06/SH_tiramisu.jpg.webp",
       isActive: true,
       status: "ACTIVE",
       slug: "tiramisu-tradizionale",
@@ -656,8 +633,6 @@ async function main() {
         "Autentica lasagna italiana con sfoglie di pasta all'uovo fatte a mano, stratificate con ragù di carne selezionata, besciamella cremosa e Parmigiano Reggiano DOP. Cotta lentamente al forno per ottenere la perfetta consistenza e il caratteristico bordo croccante.",
       price: 15.9,
       stock: 15,
-      image:
-        "https://www.donnamoderna.com/content/uploads/2002/08/Lasagne-alla-bolognese-ricetta-tradizionale-830x625.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "lasagna-al-forno-tradizionale",
@@ -669,8 +644,6 @@ async function main() {
         "Pasta linguine di grano duro servita con un ricco sugo di mare che include cozze, vongole, gamberetti e calamari freschi. Preparata con pomodorini freschi, aglio, prezzemolo e un tocco di peperoncino. Un classico piatto della cucina costiera italiana.",
       price: 16.9,
       stock: 12,
-      image:
-        "https://www.giallozafferano.it/images/231-23195/Spaghetti-allo-scoglio_450x300.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "linguine-allo-scoglio",
@@ -682,8 +655,6 @@ async function main() {
         "Autentico cannolo siciliano con croccante scorza di cialda fritta a mano, ripiena di ricotta di pecora fresca setacciata e dolcificata con zucchero. Arricchito con gocce di cioccolato fondente e guarnito con pistacchi di Bronte DOP e scorze di arancia candita.",
       price: 7.5,
       stock: 35,
-      image:
-        "https://barpompi.it/wp-content/uploads/2021/05/cannolo-grande.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "cannolo-siciliano-artigianale",
@@ -695,8 +666,6 @@ async function main() {
         "Autentica porchetta di Ariccia IGP, specialità laziale preparata con maiale intero disossato, arrotolato e aromatizzato con una miscela di erbe aromatiche (rosmarino, finocchietto selvatico, aglio e pepe nero). Cotta lentamente in forno a legna per 8 ore, presenta una crosta croccante e una carne interna tenera e succosa.",
       price: 18.9,
       stock: 10,
-      image:
-        "https://www.spesa-on-line.com/wp-content/uploads/2020/03/porchetta-di-ariccia-igp.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "porchetta-di-ariccia-igp",
@@ -708,8 +677,6 @@ async function main() {
         "Autentica Mozzarella di Bufala Campana DOP, prodotta esclusivamente con latte di bufala secondo la tradizione secolare della Campania. Caratterizzata da una superficie liscia e una consistenza elastica, presenta un colore bianco perlaceo e un sapore dolce e delicato con note di latte fresco. Confezionata nel suo siero di conservazione per mantenerne intatte le caratteristiche organolettiche.",
       price: 12.5,
       stock: 30,
-      image:
-        "https://cdn.prod.website-files.com/623059a72a9a6a29b378c3f0/62bad55960405ac8eb5ee589_mozzarella-campana-dop.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "mozzarella-di-bufala",
@@ -721,8 +688,6 @@ async function main() {
         "Autentico Parmigiano Reggiano DOP, un formaggio a pasta dura prodotto con latte vaccino crudo parzialmente scremato. Stagionato per almeno 12 mesi, si distingue per il suo sapore ricco, complesso e persistente con note di frutta secca e brodo. La sua consistenza è granulosa e friabile, con una crosta spessa di colore giallo paglierino. Considerato il 'Re dei formaggi', è ideale sia da tavola che da grattugia.",
       price: 24.9,
       stock: 35,
-      image:
-        "https://media-assets.lacucinaitaliana.it/photos/61fa636c1c2d9d41fae8d0ed/16:9/w_2240,c_limit/iStock_000011027617_Medium.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "parmigiano-reggiano",
@@ -734,7 +699,6 @@ async function main() {
         "Autentici pomodori pelati San Marzano DOP, coltivati nell'area vesuviana della Campania secondo tradizione. Raccolti a piena maturazione e lavorati entro 24 ore, conservano tutto il sapore, la dolcezza e il basso livello di acidità tipici della varietà. Confezionati in succo di pomodoro naturale senza conservanti aggiunti, sono l'ingrediente ideale per salse, sughi e pizze della tradizione italiana.",
       price: 3.9,
       stock: 60,
-      image: "https://megadolciaria.it/wp-content/uploads/2020/08/PELATI.jpeg",
       isActive: true,
       status: "ACTIVE",
       slug: "pomodori-pelati-san-marzano",
@@ -746,8 +710,6 @@ async function main() {
         "Autentico pesto genovese preparato secondo la ricetta tradizionale ligure con basilico DOP di Prà, pinoli italiani, aglio, sale marino, Parmigiano Reggiano DOP invecchiato 24 mesi, Pecorino Sardo e olio extravergine d'oliva della Riviera Ligure. Lavorato a crudo nel mortaio di marmo per preservare tutti gli aromi.",
       price: 8.9,
       stock: 40,
-      image:
-        "https://discovernorthernitaly.com/wp-content/uploads/2024/08/Liguria-3.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "pesto-alla-genovese-dop",
@@ -759,8 +721,6 @@ async function main() {
         "Un cornicione leggero e soffice, pomodori dolci, mozzarella e qualche foglia di basilico profumato. Questo è tutto ciò di cui hai bisogno per una classica pizza margherita, il punto di partenza perfetto per il tuo viaggio nella preparazione della pizza fatta in casa, nonché una ricetta collaudata per quando vuoi...",
       price: 8.9,
       stock: 40,
-      image:
-        "https://cdn.shopify.com/s/files/1/0274/9503/9079/files/20220211142754-margherita-9920_5a73220e-4a1a-4d33-b38f-26e98e3cd986.jpg?v=1723650067?w=1024",
       isActive: true,
       status: "ACTIVE",
       slug: "pesto-alla-genovese-dop",
@@ -772,8 +732,6 @@ async function main() {
         "Limoncello di Capri, prodotto secondo la ricetta tradizionale italiana, è un liquore dolce e leggero, caratterizzato da un sapore intenso e fruttato. È preparato con limoni freschi di Capri, zucchero e acqua, e viene fermentato per ottenere un'alchocolizzazione naturale.",
       price: 8.9,
       stock: 40,
-      image:
-        "https://www.bodeboca.com/sites/default/files/product-gallery/2022-06/galeria-limoncellodicapri-01.jpg",
       isActive: true,
       status: "ACTIVE",
       slug: "pesto-alla-genovese-dop",
@@ -1090,7 +1048,6 @@ async function main() {
             description: product.description,
             price: product.price,
             stock: product.stock,
-            image: product.image,
             isActive: true,
             status: "ACTIVE" as any, // Casting to any per evitare errori di tipo
             slug: `${product.slug}-${Date.now()}`, // Generiamo slug unici
@@ -1111,7 +1068,6 @@ async function main() {
             description: product.description,
             price: product.price,
             stock: product.stock,
-            image: product.image,
             isActive: true,
             categoryId: category.id,
             supplierId: supplierId,

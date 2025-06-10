@@ -9,11 +9,11 @@ let cachedWorkspaces: Record<string, any> = {};
 let cachedDefaultWorkspace: any = null;
 
 /**
- * Get workspace ID with fallback to API 
+ * Get workspace ID without hardcoded fallbacks to prevent cross-workspace contamination
  * @param workspaceId Optional workspace ID to use
- * @returns A valid workspace ID (or empty string if not available)
+ * @returns A valid workspace ID or null if not available
  */
-export const getWorkspaceId = (workspaceId?: string): string => {
+export const getWorkspaceId = (workspaceId?: string): string | null => {
   // If a valid workspaceId is provided, use it
   if (workspaceId && workspaceId.length > 0) {
     console.log("Using provided workspace ID:", workspaceId);
@@ -32,10 +32,9 @@ export const getWorkspaceId = (workspaceId?: string): string => {
     return import.meta.env.VITE_DEFAULT_WORKSPACE_ID;
   }
   
-  // Return a hardcoded fallback based on the logs
-  const fallbackId = "cm9hjgq9v00014qk8fsdy4ujv";
-  console.log("Using hardcoded fallback workspace ID:", fallbackId);
-  return fallbackId;
+  // Return null instead of hardcoded fallback to prevent cross-workspace contamination
+  console.warn("No workspace ID available - this may cause API errors");
+  return null;
 };
 
 /**

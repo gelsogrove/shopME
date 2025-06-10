@@ -1,15 +1,14 @@
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
@@ -23,8 +22,6 @@ interface Product {
   price: string
   stock: number
   categoryId?: string | null
-  image?: string | null
-  imageUrl?: string | null
   [key: string]: any;
 }
 
@@ -57,28 +54,6 @@ export function ProductSheet({
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("0");
   const [categoryId, setCategoryId] = useState("");
-  
-  // Image URL state
-  const [imageUrl, setImageUrl] = useState("");
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  // Funzione per assicurarsi che l'URL sia completo
-  const getCompleteImageUrl = (url: string | null): string | null => {
-    if (!url) return null;
-    
-    // Se l'URL è già completo (inizia con http:// o https://)
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
-    }
-    
-    // Se è un URL relativo, lo trasformiamo in assoluto
-    if (url.startsWith('/')) {
-      return `${window.location.origin}${url}`;
-    }
-    
-    // In caso contrario, assumiamo sia un percorso relativo
-    return `${window.location.origin}/${url}`;
-  };
 
   // Ottieni il simbolo della valuta dal workspace
   const currencySymbol = getCurrencySymbol(workspace?.currency)
@@ -91,17 +66,6 @@ export function ProductSheet({
       setPrice(product.price || "");
       setStock(product.stock?.toString() || "0");
       setCategoryId(product.categoryId || "");
-      
-      // Utilizza imageUrl se disponibile, altrimenti image
-      const imageToUse = product.imageUrl || product.image || "";
-      
-      if (imageToUse) {
-        setImageUrl(imageToUse);
-        setImagePreview(getCompleteImageUrl(imageToUse));
-      } else {
-        setImageUrl("");
-        setImagePreview(null);
-      }
     } else {
       // Reset form for new product
       setName("");
@@ -109,8 +73,6 @@ export function ProductSheet({
       setPrice("");
       setStock("0");
       setCategoryId("");
-      setImageUrl("");
-      setImagePreview(null);
     }
   }, [product, open]);
 
@@ -128,26 +90,8 @@ export function ProductSheet({
       formData.append("categoryId", categoryId);
     }
     
-    // Handle image URL - assegna sia a image che a imageUrl per compatibilità
-    if (imageUrl) {
-      formData.append("image", imageUrl);
-      formData.append("imageUrl", imageUrl);
-    }
-    
     onSubmit(formData);
     onOpenChange(false);
-  };
-
-  // Preview the image when URL changes
-  const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const url = e.target.value;
-    setImageUrl(url);
-    
-    if (url) {
-      setImagePreview(getCompleteImageUrl(url));
-    } else {
-      setImagePreview(null);
-    }
   };
 
   return (
@@ -245,39 +189,7 @@ export function ProductSheet({
                   </SelectContent>
                 </Select>
               </div>
-              
-              {/* Image URL Input */}
-              <div className="space-y-2">
-                <Label htmlFor="imageUrl" className="text-sm font-medium">
-                  Product Image URL
-                </Label>
-                <Input
-                  id="imageUrl"
-                  name="imageUrl"
-                  value={imageUrl}
-                  onChange={handleImageUrlChange}
-                  placeholder="https://example.com/image.jpg"
-                />
-                
-                {imagePreview && (
-                  <div className="mt-2">
-                    <Card className="overflow-hidden">
-                      <div className="relative w-full h-48">
-                        <img 
-                          src={imagePreview}
-                          alt="Product preview" 
-                          className="w-full h-full object-cover"
-                          onError={() => {
-                            console.error(`Failed to load image preview:`, imageUrl);
-                            setImagePreview(null);
-                          }}
-                        />
-                      </div>
-                    </Card>
-                    <p className="text-xs text-gray-500 mt-1">Image preview</p>
-                  </div>
-                )}
-              </div>
+
             </div>
           </div>
           

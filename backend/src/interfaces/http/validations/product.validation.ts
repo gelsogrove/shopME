@@ -10,7 +10,6 @@ export const createProductSchema = Joi.object({
   supplierId: Joi.string().allow(null, ""),
   slug: Joi.string().pattern(/^[a-z0-9-]+$/).required()
     .messages({ 'string.pattern.base': 'Slug must contain only lowercase letters, numbers, and hyphens' }),
-  image: Joi.string().uri().allow(null, ""),
   isActive: Joi.boolean().default(true),
   status: Joi.string().valid('ACTIVE', 'DRAFT', 'ARCHIVED', 'OUT_OF_STOCK').default('ACTIVE')
 })
@@ -24,7 +23,6 @@ export const updateProductSchema = Joi.object({
   categoryId: Joi.string().allow(null, ""),
   supplierId: Joi.string().allow(null, ""),
   slug: Joi.string().pattern(/^[a-z0-9-]+$/),
-  image: Joi.string().uri().allow(null, ""),
   isActive: Joi.boolean(),
   status: Joi.string().valid('ACTIVE', 'DRAFT', 'ARCHIVED', 'OUT_OF_STOCK')
 }).min(1)

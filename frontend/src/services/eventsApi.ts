@@ -42,68 +42,23 @@ export interface UpdateEventData {
   currentAttendees?: number
 }
 
-// Mock data for events when API fails
-const mockEvents: Event[] = [
-  {
-    id: 'mock-event-1',
-    name: 'Wine Tasting Workshop',
-    description: 'Join us for a delightful evening of wine tasting featuring premium Italian wines from various regions. Learn about wine production, tasting techniques, and food pairings.',
-    startDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(), // 3 hours after start
-    location: 'L\'Altra Italia Main Store, Via Roma 42, Milan',
-    price: 49.99,
-    currency: '€',
-    isActive: true,
-    maxAttendees: 20,
-    currentAttendees: 12,
-    workspaceId: 'mock-workspace',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: 'mock-event-2',
-    name: 'Pasta Making Class',
-    description: 'Learn the art of making authentic Italian pasta from scratch with our expert chef. You\'ll create different pasta shapes and prepare delicious sauces to complement your creations.',
-    startDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
-    endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(), // 4 hours after start
-    location: 'L\'Altra Italia Cooking School, Via Dante 15, Milan',
-    price: 75,
-    currency: '€',
-    isActive: true,
-    maxAttendees: 15,
-    currentAttendees: 8,
-    workspaceId: 'mock-workspace',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: 'mock-event-3',
-    name: 'Italian Cheese and Cured Meats Tasting',
-    description: 'Discover the rich flavors of Italian cheeses and cured meats in this guided tasting session. Learn about traditional production methods and regional specialties.',
-    startDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(), // 21 days from now
-    endDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(), // 2 hours after start
-    location: 'L\'Altra Italia Deli, Via Mercato 8, Milan',
-    price: 39.99,
-    currency: '€',
-    isActive: true,
-    maxAttendees: 25,
-    currentAttendees: 15,
-    workspaceId: 'mock-workspace',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  }
-];
-
 /**
  * Get all events for a workspace
  */
 export const getEvents = async (workspaceId: string): Promise<Event[]> => {
   try {
+    console.log('[EVENTS API] Getting events for workspace:', workspaceId);
     const response = await api.get(`/workspaces/${workspaceId}/events`)
-    return response.data
+    console.log('[EVENTS API] Response received:', {
+      status: response.status,
+      eventsCount: response.data?.length || 0,
+      events: response.data?.map((e: Event) => ({ id: e.id, name: e.name, workspaceId: e.workspaceId })) || []
+    });
+    return response.data || []
   } catch (error) {
-    console.error('Error getting events:', error)
-    return mockEvents // Return mock data if the API call fails
+    console.error('[EVENTS API] Error getting events for workspace', workspaceId, ':', error)
+    // Don't return mock data - let the error propagate so we can see what's wrong
+    throw error
   }
 }
 
@@ -112,12 +67,12 @@ export const getEvents = async (workspaceId: string): Promise<Event[]> => {
  */
 export const getEventById = async (workspaceId: string, id: string): Promise<Event> => {
   try {
+    console.log('[EVENTS API] Getting event', id, 'for workspace:', workspaceId);
     const response = await api.get(`/workspaces/${workspaceId}/events/${id}`)
+    console.log('[EVENTS API] Event response:', { id: response.data.id, name: response.data.name, workspaceId: response.data.workspaceId });
     return response.data
   } catch (error) {
-    console.error('Error getting event:', error)
-    const mockEvent = mockEvents.find(event => event.id === id)
-    if (mockEvent) return mockEvent
+    console.error('[EVENTS API] Error getting event:', error)
     throw error
   }
 }
@@ -127,10 +82,12 @@ export const getEventById = async (workspaceId: string, id: string): Promise<Eve
  */
 export const createEvent = async (workspaceId: string, data: CreateEventData): Promise<Event> => {
   try {
+    console.log('[EVENTS API] Creating event for workspace:', workspaceId, 'with data:', data);
     const response = await api.post(`/workspaces/${workspaceId}/events`, data)
+    console.log('[EVENTS API] Event created:', { id: response.data.id, name: response.data.name, workspaceId: response.data.workspaceId });
     return response.data
   } catch (error) {
-    console.error('Error creating event:', error)
+    console.error('[EVENTS API] Error creating event:', error)
     throw error
   }
 }
@@ -144,10 +101,12 @@ export const updateEvent = async (
   data: UpdateEventData
 ): Promise<Event> => {
   try {
+    console.log('[EVENTS API] Updating event', id, 'for workspace:', workspaceId);
     const response = await api.put(`/workspaces/${workspaceId}/events/${id}`, data)
+    console.log('[EVENTS API] Event updated:', { id: response.data.id, name: response.data.name, workspaceId: response.data.workspaceId });
     return response.data
   } catch (error) {
-    console.error('Error updating event:', error)
+    console.error('[EVENTS API] Error updating event:', error)
     throw error
   }
 }
@@ -157,9 +116,11 @@ export const updateEvent = async (
  */
 export const deleteEvent = async (workspaceId: string, id: string): Promise<void> => {
   try {
+    console.log('[EVENTS API] Deleting event', id, 'for workspace:', workspaceId);
     await api.delete(`/workspaces/${workspaceId}/events/${id}`)
+    console.log('[EVENTS API] Event deleted successfully');
   } catch (error) {
-    console.error('Error deleting event:', error)
+    console.error('[EVENTS API] Error deleting event:', error)
     throw error
   }
 }

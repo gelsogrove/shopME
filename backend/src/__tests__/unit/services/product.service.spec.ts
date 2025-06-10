@@ -152,7 +152,6 @@ describe('ProductService', () => {
     description: 'Test Description',
     price: 100,
     stock: 10,
-    imageUrl: 'product.jpg',
     status: ProductStatus.ACTIVE,
     isActive: true,
     slug: 'test-product',
@@ -381,16 +380,21 @@ describe('ProductService', () => {
   describe('updateProduct', () => {
     it('should update a product with valid data', async () => {
       const productId = 'valid-id';
-      const updateData = {
+      const updateData: Partial<Product> = {
         name: 'Updated Product',
-        price: 150
+        description: 'Updated Description', 
+        price: 20.00,
+        stock: 15,
+        categoryId: 'updated-category-id',
+        isActive: false,
+        workspaceId: workspaceId
       };
       
       const result = await testProductService.updateProduct(productId, updateData, workspaceId);
       
       expect(result).toBeDefined();
       expect(result.name).toBe('Updated Product');
-      expect(result.price).toBe(150);
+      expect(result.price).toBe(20.00);
     });
     
     it('should reject product update with negative price', async () => {

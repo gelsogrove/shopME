@@ -25,9 +25,7 @@ import { authMiddleware } from '../middlewares/auth.middleware';
  *         stock:
  *           type: integer
  *           description: The available stock
- *         image:
- *           type: string
- *           description: URL to the product image
+
  *         status:
  *           type: string
  *           enum: [ACTIVE, INACTIVE, DRAFT]

@@ -8,7 +8,6 @@ export class Product {
   description: string | null;
   price: number;
   stock: number;
-  imageUrl: string | null;
   status: ProductStatus;
   isActive: boolean;
   slug: string;
@@ -30,7 +29,6 @@ export class Product {
     this.description = data.description || null;
     this.price = data.price || 0;
     this.stock = data.stock || 0;
-    this.imageUrl = data.imageUrl || null;
     this.status = data.status || ProductStatus.ACTIVE;
     this.isActive = data.isActive ?? true;
     this.slug = data.slug || '';

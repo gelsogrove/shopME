@@ -50,51 +50,24 @@ jest.mock('../../application/services/agent.service', () => {
         expect(workspaceId).toBeDefined();
         return {};
       }),
-      create: jest.fn().mockImplementation((data, workspaceId) => {
-        expect(workspaceId).toBeDefined();
+      create: jest.fn().mockImplementation((data) => {
+        // @ts-ignore
+        expect(data.workspaceId).toBeDefined();
         return {};
       }),
-      update: jest.fn().mockImplementation((id, data, workspaceId) => {
-        expect(workspaceId).toBeDefined();
-        return {};
-      }),
-      delete: jest.fn().mockImplementation((id, workspaceId) => {
-        expect(workspaceId).toBeDefined();
-        return true;
-      }),
-      getWorkspaceId: jest.fn().mockImplementation((providedId, userContext) => {
-        return providedId || 'mock-workspace-id';
-      })
-    })),
-    agentService: {
-      getAllForWorkspace: jest.fn().mockImplementation((workspaceId) => {
-        expect(workspaceId).toBeDefined();
-        return [];
-      }),
-      getById: jest.fn().mockImplementation((id, workspaceId) => {
-        expect(workspaceId).toBeDefined();
-        return {};
-      }),
-      create: jest.fn().mockImplementation((data, workspaceId) => {
-        expect(workspaceId).toBeDefined();
-        return {};
-      }),
-      update: jest.fn().mockImplementation((id, data, workspaceId) => {
+      update: jest.fn().mockImplementation((id, workspaceId, data) => {
         expect(workspaceId).toBeDefined();
         return {};
       }),
       delete: jest.fn().mockImplementation((id, workspaceId) => {
         expect(workspaceId).toBeDefined();
         return true;
-      }),
-      getWorkspaceId: jest.fn().mockImplementation((providedId, userContext) => {
-        return providedId || 'mock-workspace-id';
       })
-    }
+    }))
   };
 });
 
-jest.mock('../../application/services/events.service', () => {
+jest.mock('../../services/events.service', () => {
   return {
     eventsService: {
       getAllForWorkspace: jest.fn().mockImplementation((workspaceId) => {

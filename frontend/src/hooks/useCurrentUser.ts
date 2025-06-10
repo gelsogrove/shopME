@@ -16,6 +16,8 @@ export function useCurrentUser() {
             cachedUser = JSON.parse(userStr)
           } catch (e) {
             console.error('Error parsing user data from localStorage')
+            // Clear invalid cached data
+            localStorage.removeItem('user')
           }
         }
         
@@ -27,6 +29,13 @@ export function useCurrentUser() {
         }
         throw new Error('User not found')
       } catch (error) {
+        // Clear invalid cached data on authentication errors
+        if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 404)) {
+          console.warn('Authentication failed, clearing cached data')
+          localStorage.removeItem('user')
+          sessionStorage.removeItem('currentWorkspace')
+        }
+        
         // Se siamo nella pagina settings, non propagare errori di autenticazione
         // per evitare redirect indesiderati
         if (window.location.pathname.includes('/settings')) {
@@ -39,6 +48,7 @@ export function useCurrentUser() {
               return JSON.parse(userStr)
             } catch (e) {
               console.error('Error parsing user data from localStorage')
+              localStorage.removeItem('user')
             }
           }
         }
@@ -55,10 +65,12 @@ export function useCurrentUser() {
     // Cache successful responses for 10 minutes (using gcTime instead of deprecated cacheTime)
     gcTime: 10 * 60 * 1000,
     retry: (failureCount, error: any) => {
-      // Non riprovare in caso di errori 401 (non autorizzato)
-      if (axios.isAxiosError(error) && error.response?.status === 401) return false
-      // Riprova al massimo 2 volte per altri errori
-      return failureCount < 2
+      // Non riprovare in caso di errori 401 o 404 (non autorizzato o utente non trovato)
+      if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 404)) {
+        return false
+      }
+      // Riprova al massimo 1 volta per altri errori
+      return failureCount < 1
     }
   })
 } 

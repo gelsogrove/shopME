@@ -57,7 +57,8 @@ model Categories {
   slug        String
   workspace   Workspace  @relation(fields: [workspaceId], references: [id])
   products    Products[]
-  offers      Offers[]
+  offers      Offers[]   @relation("OfferCategory")
+  offerCategories Offers[] @relation("OfferCategories")
 
   @@unique([slug, workspaceId])
   @@map("categories")
@@ -92,7 +93,6 @@ model Products {
   supplierId  String?
   slug        String        @unique
   status      ProductStatus @default(ACTIVE)
-  image       String?
   cartItems   CartItems[]
   orderItems  OrderItems[]
   category    Categories?   @relation(fields: [categoryId], references: [id])
@@ -416,9 +416,9 @@ model Offers {
   workspaceId     String
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
-  category        Categories? @relation(fields: [categoryId], references: [id])
+  category        Categories? @relation("OfferCategory", fields: [categoryId], references: [id])
   workspace       Workspace   @relation(fields: [workspaceId], references: [id])
-  categories      Categories[]
+  categories      Categories[] @relation("OfferCategories")
 
   @@map("offers")
 }

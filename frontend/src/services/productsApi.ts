@@ -15,8 +15,6 @@ export interface Product {
   price: number
   stock: number
   sku: string | null
-  image: string | null
-  imageUrl?: string | null
   isActive: boolean
   workspaceId: string
   categoryId: string | null
@@ -50,7 +48,6 @@ export interface CreateProductData {
   price: number
   stock?: number
   sku?: string
-  image?: string
   categoryId?: string
   isActive?: boolean
 }
@@ -61,41 +58,20 @@ export interface UpdateProductData {
   price?: number
   stock?: number
   sku?: string
-  image?: string
   categoryId?: string
   isActive?: boolean
   status?: 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK'
 }
 
-// Helper to ensure image URLs are properly handled
+// Helper to process product data
 const processProductData = (product: any) => {
   // Log per il debug
   console.log('Processing product data:', product);
   
+  // Remove any image-related properties that might come from the API
   if (product) {
-    // Gestione della proprietà imageUrl -> image per retrocompatibilità
-    if (product.imageUrl && !product.image) {
-      product.image = product.imageUrl;
-    }
-    
-    // Gestione della proprietà image -> imageUrl per nuove API
-    if (product.image && !product.imageUrl) {
-      product.imageUrl = product.image;
-    }
-    
-    if (product.image) {
-      // Assicuriamoci che l'URL dell'immagine sia completo
-      if (!product.image.startsWith('http')) {
-        if (product.image.startsWith('/')) {
-          product.image = `${window.location.origin}${product.image}`;
-        } else {
-          product.image = `${window.location.origin}/${product.image}`;
-        }
-      }
-      
-      // Log dell'URL dell'immagine processato
-      console.log(`Processed image URL for ${product.name}:`, product.image);
-    }
+    delete product.image;
+    delete product.imageUrl;
   }
   
   return product;

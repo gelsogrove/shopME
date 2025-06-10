@@ -48,7 +48,6 @@ export const mockProduct = new Product({
   name: 'Test Product',
   description: 'Test product description',
   price: 19.99,
-  imageUrl: 'https://example.com/image.jpg',
   categoryId: 'category-test-id',
   workspaceId: 'workspace-test-id',
   supplierId: 'supplier-test-id',

@@ -12,7 +12,7 @@ import { commonStyles } from "@/styles/common"
 import { formatDate, formatPrice, getCurrencySymbol } from "@/utils/format"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Calendar } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 export function EventsPage() {
@@ -24,19 +24,43 @@ export function EventsPage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const queryClient = useQueryClient()
 
+  // Debug logging for workspace changes
+  useEffect(() => {
+    console.log('[EVENTS PAGE] Workspace changed:', {
+      workspaceId: workspace?.id,
+      workspaceName: workspace?.name,
+      isLoading: isLoadingWorkspace
+    });
+  }, [workspace?.id, workspace?.name, isLoadingWorkspace]);
+
   // Fetch events using React Query for caching
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['events', workspace?.id],
-    queryFn: () => workspace?.id ? eventsApi.getEvents(workspace.id) : Promise.resolve([]),
+    queryFn: () => {
+      console.log('[EVENTS PAGE] Fetching events for workspace:', workspace?.id);
+      return workspace?.id ? eventsApi.getEvents(workspace.id) : Promise.resolve([]);
+    },
     enabled: !!workspace?.id && !isLoadingWorkspace,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnWindowFocus: false
   })
 
+  // Debug logging for events data
+  useEffect(() => {
+    console.log('[EVENTS PAGE] Events data updated:', {
+      eventsCount: events.length,
+      workspaceId: workspace?.id,
+      events: events.map(e => ({ id: e.id, name: e.name, workspaceId: e.workspaceId }))
+    });
+  }, [events, workspace?.id]);
+
   // Create event mutation
   const createEventMutation = useMutation({
-    mutationFn: (data: any) => eventsApi.createEvent(workspace!.id, data),
+    mutationFn: (data: any) => {
+      console.log('[EVENTS PAGE] Creating event for workspace:', workspace!.id);
+      return eventsApi.createEvent(workspace!.id, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events', workspace?.id] })
       setShowAddSheet(false)
@@ -50,8 +74,10 @@ export function EventsPage() {
 
   // Update event mutation
   const updateEventMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string, data: any }) => 
-      eventsApi.updateEvent(workspace!.id, id, data),
+    mutationFn: ({ id, data }: { id: string, data: any }) => {
+      console.log('[EVENTS PAGE] Updating event for workspace:', workspace!.id);
+      return eventsApi.updateEvent(workspace!.id, id, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events', workspace?.id] })
       setShowEditSheet(false)
@@ -66,7 +92,10 @@ export function EventsPage() {
 
   // Delete event mutation
   const deleteEventMutation = useMutation({
-    mutationFn: (id: string) => eventsApi.deleteEvent(workspace!.id, id),
+    mutationFn: (id: string) => {
+      console.log('[EVENTS PAGE] Deleting event for workspace:', workspace!.id);
+      return eventsApi.deleteEvent(workspace!.id, id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events', workspace?.id] })
       setShowDeleteDialog(false)
