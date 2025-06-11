@@ -20,20 +20,37 @@ export interface Agent {
  * Get all agents for a workspace
  */
 export async function getAgents(workspaceId: string): Promise<Agent[]> {
+  console.log(`=== GET AGENTS DEBUG ===`)
   console.log(`Fetching agents for workspace ${workspaceId}`)
   
   try {
-    const response = await fetch(`${API_URL}/workspaces/${workspaceId}/agent`, {
+    const url = `${API_URL}/workspaces/${workspaceId}/agent`
+    console.log(`GET request URL: ${url}`)
+    
+    const response = await fetch(url, {
       method: "GET",
       credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "x-workspace-id": workspaceId
+      }
     })
+
+    console.log(`Response status: ${response.status}`)
+    console.log(`Response ok: ${response.ok}`)
 
     if (!response.ok) {
       console.error(`Failed to fetch agents: ${response.statusText}`)
+      const errorText = await response.text()
+      console.error(`Error response:`, errorText)
       return []
     }
 
-    return response.json()
+    const data = await response.json()
+    console.log(`Agents received:`, data)
+    console.log(`Number of agents: ${data?.length || 0}`)
+    
+    return data
   } catch (error) {
     console.error("Error fetching agents:", error)
     return []
@@ -44,20 +61,27 @@ export async function getAgents(workspaceId: string): Promise<Agent[]> {
  * Get a specific agent by ID
  */
 export async function getAgent(workspaceId: string, agentId?: string): Promise<Agent> {
+  console.log(`=== GET AGENT DEBUG ===`)
   console.log(`Getting agent for workspace ${workspaceId}, agentId: ${agentId || 'none'}`)
   
   try {
     // If no agentId is provided, get the first agent (for single agent setup)
     if (!agentId) {
+      console.log("No agentId provided, getting all agents first...")
       const agents = await getAgents(workspaceId)
+      console.log(`Found ${agents.length} agents`)
+      
       if (agents.length > 0) {
-        console.log(`Found ${agents.length} agents, using first one:`, agents[0])
+        console.log(`Using first agent:`, agents[0])
+        console.log(`First agent ID: ${agents[0].id}`)
+        console.log(`First agent name: ${agents[0].name}`)
+        console.log(`First agent content length: ${agents[0].content?.length}`)
         return agents[0]
       }
       
       // If no agents exist, create a default one
       console.log("No agents found, creating default agent")
-      return createAgent(workspaceId, {
+      const defaultAgent = await createAgent(workspaceId, {
         name: "Default Agent",
         content: "# Default Agent Instructions\n\nI am a helpful AI assistant for your business.",
         temperature: 0.7,
@@ -66,19 +90,34 @@ export async function getAgent(workspaceId: string, agentId?: string): Promise<A
         model: "openai/gpt-4.1-mini",
         max_tokens: 1000
       })
+      console.log("Default agent created:", defaultAgent)
+      return defaultAgent
     }
 
     // Get specific agent by ID
-    const response = await fetch(`${API_URL}/workspaces/${workspaceId}/agent/${agentId}`, {
+    const url = `${API_URL}/workspaces/${workspaceId}/agent/${agentId}`
+    console.log(`GET specific agent URL: ${url}`)
+    
+    const response = await fetch(url, {
       method: "GET",
       credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "x-workspace-id": workspaceId
+      }
     })
 
+    console.log(`Specific agent response status: ${response.status}`)
+    
     if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`Error response:`, errorText)
       throw new Error(`Failed to fetch agent: ${response.statusText}`)
     }
 
-    return response.json()
+    const agentData = await response.json()
+    console.log("Specific agent data:", agentData)
+    return agentData
   } catch (error) {
     console.error("Error in getAgent:", error)
     throw error
@@ -95,12 +134,15 @@ export async function createAgent(workspaceId: string, data: Partial<Agent>): Pr
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "x-workspace-id": workspaceId
     },
     credentials: "include",
     body: JSON.stringify(data),
   })
 
   if (!response.ok) {
+    const errorText = await response.text()
+    console.error(`Error response:`, errorText)
     throw new Error(`Failed to create agent: ${response.statusText}`)
   }
 
@@ -121,12 +163,15 @@ export async function updateAgent(
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
+      "x-workspace-id": workspaceId
     },
     credentials: "include",
     body: JSON.stringify(data),
   })
 
   if (!response.ok) {
+    const errorText = await response.text()
+    console.error(`Error response:`, errorText)
     throw new Error(`Failed to update agent: ${response.statusText}`)
   }
 
@@ -141,10 +186,16 @@ export async function deleteAgent(workspaceId: string, agentId: string): Promise
   
   const response = await fetch(`${API_URL}/workspaces/${workspaceId}/agent/${agentId}`, {
     method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "x-workspace-id": workspaceId
+    },
     credentials: "include",
   })
 
   if (!response.ok) {
+    const errorText = await response.text()
+    console.error(`Error response:`, errorText)
     throw new Error(`Failed to delete agent: ${response.statusText}`)
   }
 } 

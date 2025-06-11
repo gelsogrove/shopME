@@ -27,7 +27,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   verbose: true,
   transformIgnorePatterns: [
-    'node_modules/(?!(@xenova/transformers)/)'
+    'node_modules/'
   ],
   extensionsToTreatAsEsm: ['.ts'],
   globals: {

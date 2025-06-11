@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import { PDFExtract } from 'pdf.js-extract';
-import { huggingFaceService } from './huggingFaceService';
 
 const prisma = new PrismaClient();
 
@@ -127,11 +126,28 @@ export class DocumentService {
   }
 
   /**
-   * Generate embedding for text using OpenAI
+   * Generate embedding for text using OpenRouter
    */
   async generateEmbedding(text: string): Promise<number[]> {
     try {
-      return await huggingFaceService.generateEmbedding(text);
+      const response = await fetch(this.OPENROUTER_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'text-embedding-3-small',
+          input: text,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenRouter API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.data[0].embedding;
     } catch (error) {
       console.error('Error generating embedding:', error);
       throw new Error('Failed to generate embedding');
@@ -431,9 +447,17 @@ export class DocumentService {
           // Prepare all chunk texts for batch processing
           const chunkTexts = chunks.map(chunk => chunk.content);
 
-          // Generate embeddings in batch using Hugging Face
+          // Generate embeddings in batch using OpenRouter
           console.log(`Generating embeddings for ${chunks.length} chunks...`);
-          const embeddings = await huggingFaceService.generateEmbeddings(chunkTexts);
+          const embeddings: number[][] = [];
+          
+          // Process chunks in batches to avoid rate limits
+          for (const chunkText of chunkTexts) {
+            const embedding = await this.generateEmbedding(chunkText);
+            embeddings.push(embedding);
+            // Small delay to avoid rate limiting
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
 
           // Delete existing chunks for this document
           await prisma.documentChunks.deleteMany({

@@ -24,3 +24,6 @@ do not touch , it works fine , ask permission in case!
 
 PROFILE   AND API
 do not touch , it works fine , ask permission in case!
+
+GDPR AND API
+do not touch , it works fine , ask permission in case!

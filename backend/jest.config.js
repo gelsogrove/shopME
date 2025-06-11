@@ -23,6 +23,6 @@ module.exports = {
     enableSymlinks: false, 
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(@xenova/transformers)/)'
+    'node_modules/'
   ]
 }; 

@@ -3,26 +3,17 @@ import path from 'path';
 import { prisma } from '../../../lib/prisma';
 import { DocumentService } from '../../../services/documentService';
 
-// Mock the HuggingFace service for integration tests
-jest.mock('../../../services/huggingFaceService', () => ({
-  HuggingFaceService: jest.fn().mockImplementation(() => ({
-    generateEmbedding: jest.fn().mockResolvedValue(
-      Array(384).fill(0).map(() => Math.random() * 2 - 1)
-    ),
-    generateEmbeddings: jest.fn().mockImplementation((texts: string[]) => 
-      Promise.resolve(
-        texts.map(() => Array(384).fill(0).map(() => Math.random() * 2 - 1))
-      )
-    ),
-    getModelInfo: jest.fn().mockReturnValue({
-      name: 'Xenova/all-MiniLM-L6-v2',
-      type: 'Local Transformer Model (Sentence Transformers)',
-      local: true,
-      dimensions: 384
-    }),
-    isReady: jest.fn().mockResolvedValue(true)
-  }))
-}));
+// Mock fetch for OpenRouter API calls in integration tests
+global.fetch = jest.fn().mockImplementation(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({
+      data: [{
+        embedding: Array(1536).fill(0).map(() => Math.random() * 2 - 1)
+      }]
+    })
+  })
+) as jest.Mock;
 
 describe('DocumentService Integration Tests', () => {
   let documentService: DocumentService;
