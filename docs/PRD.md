@@ -85,54 +85,376 @@ All sensitive operations are handled securely through temporary links with secur
 +---------------------------------------------------+----------------------------------------------------------------------------+
 ```
 
-### Message Processing Flow
+### WhatsApp Chatbot Flow - Complete Documentation
+
+The ShopMe platform implements an intelligent conversational flow that handles new and registered users with comprehensive security controls, blacklist management, and RAG (Retrieval-Augmented Generation) integration for contextual responses based on uploaded documents.
+
+#### Complete Message Processing Flow
 
 ```mermaid
 flowchart TD
-    Start([Incoming WhatsApp Message]) --> WorkspaceCheck{Workspace Active?}
+    Start([📱 Incoming WhatsApp Message]) --> SpamCheck{🚨 Spam Detection<br/>10 msgs in 30s?}
     
-    WorkspaceCheck -->|No| ErrorMsg[Return Error]
-    WorkspaceCheck -->|Yes| BlockCheck{User Blocked?}
+    SpamCheck -->|Yes| AutoBlock[🚫 Auto-blacklist<br/>Add to blocklist]
+    SpamCheck -->|No| BlacklistCheck{🚫 User Blacklisted?}
     
-    BlockCheck -->|Yes| IgnoreMsg[Ignore Message]
-    BlockCheck -->|No| CustomerCheck{User Registered?}
+    BlacklistCheck -->|Yes| Block[❌ Block conversation - No response]
+    BlacklistCheck -->|No| WipCheck{🚧 Channel in WIP?}
     
-    CustomerCheck -->|No| SendRegistration[Send Registration Link]
-    SendRegistration --> GDPRCheck{GDPR Approval?}
+    WipCheck -->|Yes| WipMsg[⚠️ Send WIP message<br/>in appropriate language]
+    WipCheck -->|No| UserCheck{👤 New user?}
     
-    GDPRCheck -->|No| RequestConsent[Request GDPR Consent]
-    GDPRCheck -->|Yes| ProcessMessage[Process Message]
+    UserCheck -->|Yes| GreetingCheck{👋 Is greeting?<br/>Ciao/Hello/Hola/Olá}
+    UserCheck -->|No| TimeCheck{⏰ More than 2 hours<br/>since last chat?}
     
-    CustomerCheck -->|Yes| ProcessMessage
+    GreetingCheck -->|No| NoResponse[🔇 No response<br/>for non-greetings]
+    GreetingCheck -->|Yes| WelcomeMsg[🎉 Send Welcome Message<br/>with registration link + token]
     
-    ProcessMessage --> RAG[RAG]
-    RAG --> LLM[LLM]
-    LLM --> FunctionCalls{Need Function Call?}
+    TimeCheck -->|Yes| WelcomeBack[👋 Welcome back {NAME}]
+    TimeCheck -->|No| ProcessMsg[🤖 Process message]
     
-    FunctionCalls -->|Yes| CallFunction[Execute Function]
-    CallFunction --> FormatResponse[Format Response]
+    WelcomeMsg --> TokenGen[🔐 Generate secure token<br/>valid 1 hour]
+    TokenGen --> RegLink[🔗 Create registration link<br/>with token]
+    RegLink --> SaveTemp[💾 Save temporary message]
     
-    FunctionCalls -->|No| FormatResponse
+    WelcomeBack --> ProcessMsg
+    ProcessMsg --> FunctionRouter[🎯 Function Router<br/>Determine target function]
     
-    FormatResponse --> SensitiveCheck{Contains Sensitive Data?}
+    FunctionRouter --> RAGSearch{📚 Document search<br/>needed?}
+    RAGSearch -->|Yes| DocumentSearch[🔍 Semantic search<br/>in documents]
+    RAGSearch -->|No| DirectFunction[⚙️ Execute direct function]
     
-    SensitiveCheck -->|Yes| CreateSecureLink[Generate Secure Link]
-    CreateSecureLink --> SendWhatsApp[Send WhatsApp Response]
+    DocumentSearch --> ContextEnrich[📝 Enrich context<br/>with RAG results]
+    DirectFunction --> ContextEnrich
     
-    SensitiveCheck -->|No| SendWhatsApp
+    ContextEnrich --> LLMProcess[🧠 LLM Processing<br/>with enriched context]
+    LLMProcess --> ResponseFormat[📄 Format final response]
     
-    SendWhatsApp --> End([End])
+    ResponseFormat --> SensitiveCheck{🔒 Contains sensitive data?}
+    SensitiveCheck -->|Yes| SecureLink[🔐 Generate secure link<br/>for sensitive data]
+    SensitiveCheck -->|No| SendResponse[📤 Send WhatsApp response]
     
-    classDef process fill:#66BB6A,stroke:#388E3C,color:white
-    classDef decision fill:#42A5F5,stroke:#1976D2,color:white
-    classDef action fill:#AB47BC,stroke:#7B1FA2,color:white
-    classDef start fill:#FF7043,stroke:#E64A19,color:white
+    SecureLink --> SendResponse
+    SendResponse --> SaveHistory[💾 Save to chat history]
+    SaveHistory --> End([✅ Process complete])
     
-    class Start,End start
-    class WorkspaceCheck,BlockCheck,CustomerCheck,GDPRCheck,FunctionCalls,SensitiveCheck decision
-    class ProcessMessage,RAG,LLM,CallFunction,FormatResponse process
-    class ErrorMsg,IgnoreMsg,SendRegistration,RequestConsent,CreateSecureLink,SendWhatsApp action
+    AutoBlock --> End
+    Block --> End
+    WipMsg --> End
+    NoResponse --> End
+    
+    classDef startEnd fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef process fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef security fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    classDef rag fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    
+    class Start,End startEnd
+    class BlacklistCheck,WipCheck,UserCheck,GreetingCheck,TimeCheck,RAGSearch,SensitiveCheck decision
+    class ProcessMsg,FunctionRouter,LLMProcess,ResponseFormat,SendResponse,SaveHistory process
+    class TokenGen,RegLink,SecureLink security
+    class DocumentSearch,ContextEnrich rag
 ```
+
+#### System Architecture Components
+
+**1. WhatsApp Webhook Handler** (`whatsapp.controller.ts`)
+- Receives messages from Meta API
+- Validates webhook with verification token
+- Handles both GET (verification) and POST (messages)
+
+**2. Message Service** (`message.service.ts`)
+- Main flow orchestrator
+- Manages business logic for messages
+- Integrates all security controls
+
+**3. Function Handler Service** (`function-handler.service.ts`)
+- Intelligent function router
+- Handles specific function calls
+- RAG integration for document search
+
+**4. Token Service** (`token.service.ts`)
+- Secure registration token management
+- Token validation and expiration
+- Prevents token reuse
+
+**5. Document Service** (`documentService.ts`)
+- PDF upload and processing management
+- Embedding generation for RAG
+- Semantic search in documents
+
+#### Security Controls
+
+**1. Blacklist Management**
+```typescript
+// Check in customer.isBlacklisted and workspace.blocklist
+const isBlacklisted = await this.messageRepository.isCustomerBlacklisted(
+  phoneNumber, 
+  workspaceId
+)
+```
+
+**Implementation:**
+- `isBlacklisted` field in Customer model
+- `blocklist` list in Workspace model (newline-separated numbers)
+- Dual control: customer-level and workspace-level
+
+**2. Registration Tokens**
+```typescript
+// Generate secure token with expiration
+const token = await this.tokenService.createRegistrationToken(
+  phoneNumber, 
+  workspaceId
+)
+```
+
+**Features:**
+- Cryptographically secure tokens (crypto.randomBytes)
+- 1-hour expiration
+- Single use (marked as used after registration)
+- Phone + workspace validation
+
+**3. Channel WIP Status**
+```typescript
+if (!workspaceSettings.isActive) {
+  return wipMessages[userLang] || wipMessages["en"]
+}
+```
+
+**4. Auto-Blacklist for Spam Detection**
+```typescript
+// Spam check: 10 messages in 30 seconds
+const spamCheck = await this.checkSpamBehavior(phoneNumber, workspaceId)
+if (spamCheck.isSpam) {
+  await this.addToBlacklist(phoneNumber, workspaceId, 'AUTO_SPAM')
+  return null // Block immediately
+}
+```
+
+**Spam Detection Implementation:**
+- **Threshold**: 10 messages in 30 seconds
+- **Action**: Automatic addition to workspace blacklist
+- **Duration**: Unlimited (manual admin unlock)
+- **Logging**: Tracking for audit and review
+
+#### Multilingual Management
+
+**Language Detection**
+```typescript
+const greetingLang = this.detectGreeting(message)
+// Supports: it, en, es, pt
+```
+
+**Configurable Messages**
+- **Welcome Messages**: Configured per workspace in 4 languages
+- **WIP Messages**: Multilingual maintenance messages
+- **Fallback**: English as default language
+
+#### RAG Integration (Retrieval-Augmented Generation)
+
+**1. Document Processing Pipeline**
+```typescript
+// Upload → Extract Text → Chunk → Generate Embeddings
+await documentService.processDocument(documentId)
+```
+
+**Phases:**
+1. **Upload**: PDF saved to `/uploads/documents/`
+2. **Text Extraction**: Text extraction with pdf-parse
+3. **Chunking**: Division into 1000-character chunks (100 overlap)
+4. **Embeddings**: Generation with text-embedding-ada-002 (OpenRouter)
+5. **Storage**: Embedding storage in PostgreSQL (JSONB)
+
+**2. Semantic Search**
+```typescript
+const searchResults = await documentService.searchDocuments(
+  query, 
+  workspaceId, 
+  limit
+)
+```
+
+**Algorithm:**
+- User query embedding generation
+- Cosine similarity calculation with existing chunks
+- Relevance sorting
+- Top-K results return
+
+**3. Context Enrichment**
+```typescript
+// Context enrichment for LLM
+const enrichedContext = {
+  userMessage: message,
+  documentContext: searchResults,
+  chatHistory: previousMessages
+}
+```
+
+#### Function Calling System
+
+**Intelligent Router**
+The system uses an LLM to determine which function to call:
+
+```markdown
+# Available Functions:
+1. get_product_info(product_name)
+2. get_service_info(service_name) 
+3. welcome_user()
+4. create_order()
+5. get_cart_info()
+6. add_to_cart(product_name, quantity)
+7. search_documents(query) # RAG Integration
+```
+
+**Two-Phase Workflow**
+1. **First LLM**: Determines target function
+2. **Second LLM**: Formats final response with context
+
+#### User State Management
+
+**New User**
+```typescript
+if (!customer) {
+  if (!greetingLang) {
+    return null // Don't respond to non-greetings
+  }
+  // Send welcome message with registration link
+}
+```
+
+**Registered User**
+```typescript
+if (customer) {
+  // Check last activity
+  if (lastActivity > 2hours) {
+    sendWelcomeBack(customer.name)
+  }
+  // Process message normally
+}
+```
+
+#### Database Schema
+
+**Main Tables**
+```sql
+-- Customers
+CREATE TABLE customers (
+  id TEXT PRIMARY KEY,
+  phone TEXT,
+  name TEXT,
+  isBlacklisted BOOLEAN DEFAULT false,
+  workspaceId TEXT,
+  language TEXT,
+  -- ... other fields
+);
+
+-- Registration Tokens
+CREATE TABLE registration_tokens (
+  token TEXT PRIMARY KEY,
+  phoneNumber TEXT,
+  workspaceId TEXT,
+  expiresAt TIMESTAMP,
+  usedAt TIMESTAMP
+);
+
+-- Documents & Chunks for RAG
+CREATE TABLE documents (
+  id TEXT PRIMARY KEY,
+  filename TEXT,
+  status DocumentStatus,
+  workspaceId TEXT
+);
+
+CREATE TABLE document_chunks (
+  id TEXT PRIMARY KEY,
+  documentId TEXT,
+  content TEXT,
+  embedding JSONB -- Number array for similarity search
+);
+```
+
+#### Environment Configuration
+
+**Required Variables**
+```env
+# WhatsApp
+WHATSAPP_VERIFY_TOKEN=your-verify-token
+WHATSAPP_ACCESS_TOKEN=your-access-token
+
+# OpenRouter for embeddings
+OPENROUTER_API_KEY=your-openrouter-key
+
+# Database
+DATABASE_URL=postgresql://...
+
+# Frontend for registration links
+FRONTEND_URL=https://your-domain.com
+```
+
+#### Confirmed Specifications
+
+**1. Blacklist Management**
+- ✅ **Population**: `blocklist` field in workspace Settings (manual) + auto-blacklist for spam
+- ✅ **Auto-blacklist**: 10 messages in 30 seconds → automatic block
+- ✅ **Timeout**: Unlimited until manual admin unlock
+
+**2. User Registration**
+- ✅ **Minimum data**: Existing registration form (first name, last name, company, phone)
+- ✅ **Email verification**: Not implemented (phone only)
+- ✅ **GDPR**: Checkbox with text from `http://localhost:3000/gdpr`
+
+**3. RAG and Knowledge Base**
+- ✅ **Supported formats**: PDF only
+- ✅ **Maximum size**: 5 MB
+- ✅ **Embedding updates**: Manual via "Generate Embeddings" button in admin
+- ✅ **Query cache**: Not implemented
+
+**4. Performance and Scalability**
+- ✅ **Rate limiting**: 100 calls every 10 minutes (anti-attack protection)
+- ✅ **Queue system**: Not necessary
+- ✅ **CDN**: Not implemented
+- ✅ **Database sharding**: Not necessary
+
+**5. Security**
+- ✅ **E2E encryption**: Not priority (management via external links)
+- ✅ **Audit log**: Not implemented
+- ✅ **2FA**: Planned for future releases (not priority)
+
+**6. Business Logic**
+- ✅ **Payments**: Planned for future releases
+- ✅ **Multi-step orders**: Not priority
+- ✅ **Proactive notifications**: Not priority
+- ✅ **Analytics**: Existing chat history sufficient
+
+**7. UX and Conversational Design**
+- ✅ **Media support**: Not implemented
+- ✅ **Quick replies**: Not implemented
+- ✅ **Operator handoff**: ✅ **IMPLEMENTED** - Toggle in chat for operator control
+- ✅ **Sentiment analysis**: Not priority
+
+#### Development Roadmap
+
+**🚀 Immediate Priority (To Implement)**
+1. **Auto-Blacklist Spam Detection**: 10 messages in 30 seconds → automatic block
+2. **API Rate Limiting**: 100 calls every 10 minutes for anti-attack protection
+3. **GDPR Integration**: Dynamic link to `/gdpr` in registration form
+
+**🎯 High Priority (Future Releases)**
+1. **Payment Integration**: Complete checkout via WhatsApp
+2. **2FA Security**: Two-factor authentication for critical operations
+3. **Enhanced Document Management**: PDF management improvements (5MB limit)
+
+**📈 Medium Priority (Extended Roadmap)**
+1. **Multi-channel**: Extension to Telegram, Facebook Messenger
+2. **Voice Support**: Voice message handling
+3. **AI Training**: Fine-tuning models on specific conversations
+4. **Media Support**: Images and audio in chat
+
+**🔮 Low Priority (Future Vision)**
+1. **Chatbot Builder**: Drag-and-drop interface for flows
+2. **A/B Testing**: Automatic testing of message variants
+3. **Integration Hub**: Connectors for external CRM/ERP
+4. **Mobile App**: Dedicated app for chatbot management
 
 
 ## DIALOG EXAMPLES
@@ -249,15 +571,58 @@ La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo
 - Custom function configuration
 
 ### Documents Management
-- PDF document upload and storage
+- PDF document upload and storage (5MB maximum size)
 - Automatic text extraction from uploaded documents
-- AI-powered document chunking for optimal processing
-- Vector embedding generation for semantic search
+- AI-powered document chunking for optimal processing (1000 characters per chunk)
+- Vector embedding generation for semantic search using OpenRouter API
 - Real-time document search through chatbot conversations
 - Document status tracking (uploaded, processing, ready, error)
 - Secure document storage with workspace isolation
 - Document management interface with drag-and-drop upload
 - Integration with RAG (Retrieval-Augmented Generation) system
+
+#### RAG Knowledge Base Integration
+
+The system implements a comprehensive RAG (Retrieval-Augmented Generation) pipeline that searches across three main content types:
+
+**1. Documents (PDF Files)**
+- Upload and processing of PDF documents up to 5MB
+- Automatic text extraction and chunking (1000 characters per chunk with 100 character overlap)
+- Vector embeddings generated using OpenRouter's `text-embedding-3-small` model
+- Storage in `document_chunks` table with embedding vectors
+
+**2. FAQ (Frequently Asked Questions)**
+- FAQ content stored in `faqs` table
+- Each FAQ (question + answer) generates embeddings for semantic search
+- Active FAQs only are included in RAG search
+- Storage in `faq_chunks` table with embedding vectors
+
+**3. Services Catalog**
+- Service descriptions and details stored in `services` table
+- Service information (name + description + details) generates embeddings
+- Active services only are included in RAG search
+- Storage in `service_chunks` table with embedding vectors
+
+#### Embedding Generation Process
+
+**Manual Embedding Generation**: Each content type (Documents, FAQs, Services) includes a "Generate Embeddings" button in the admin interface that:
+
+1. **Identifies Content to Process**: Finds all active, non-embedded content
+2. **Text Preparation**: Combines relevant fields (question+answer for FAQs, name+description for Services)
+3. **Chunk Creation**: Splits content into optimal chunks for embedding
+4. **API Processing**: Calls OpenRouter API to generate vector embeddings
+5. **Database Storage**: Saves chunks with embeddings to respective `*_chunks` tables
+6. **Status Updates**: Updates content status to indicate embedding completion
+
+**RAG Search Flow**: When a user asks a question via WhatsApp:
+
+1. **Query Embedding**: User question is converted to vector embedding
+2. **Similarity Search**: Cosine similarity calculated against all chunk embeddings
+3. **Multi-Source Results**: Top relevant chunks retrieved from documents, FAQs, and services
+4. **Context Assembly**: Most relevant chunks combined as context for LLM
+5. **Response Generation**: LLM generates response using retrieved context + user query
+
+This multi-source RAG approach ensures comprehensive knowledge coverage, allowing the chatbot to answer questions using information from uploaded documents, configured FAQs, and service catalog details.
 
 
 ## UI SCREENSHOTS

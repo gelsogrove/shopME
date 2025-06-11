@@ -122,6 +122,14 @@ export function ChatPage() {
   const [isBlocking, setIsBlocking] = useState(false)
   const navigate = useNavigate()
 
+  // Redirect to workspace selection if user has no workspace
+  useEffect(() => {
+    if (!isWorkspaceLoading && !workspace) {
+      console.log("No workspace found, redirecting to workspace selection")
+      navigate("/clients")
+    }
+  }, [isWorkspaceLoading, workspace, navigate])
+
   const {
     data: allChats = [],
     isLoading: isLoadingChats,

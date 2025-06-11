@@ -15,10 +15,12 @@ import {
 } from "@/services/agentApi"
 import { Bot, HelpCircle, Loader2, Save } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 export function AgentPage() {
   const { workspace } = useWorkspace()
+  const navigate = useNavigate()
   const [agent, setAgent] = useState<Agent | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -26,6 +28,14 @@ export function AgentPage() {
   const [modelValue, setModelValue] = useState("openai/gpt-4.1-mini")
   const [maxTokensValue, setMaxTokensValue] = useState(1000)
   const [error, setError] = useState<string | null>(null)
+
+  // Redirect to workspace selection if user has no workspace
+  useEffect(() => {
+    if (!workspace) {
+      console.log("No workspace found in AgentPage, redirecting to workspace selection")
+      navigate("/clients")
+    }
+  }, [workspace, navigate])
 
   // Debug workspace changes
   useEffect(() => {

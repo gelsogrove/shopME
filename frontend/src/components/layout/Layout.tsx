@@ -1,6 +1,7 @@
 import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { Button } from "@/components/ui/button"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { useWorkspace } from "@/hooks/use-workspace"
 import { Chat } from "@/types/chat"
 // Importiamo l'icona WhatsAppIcon che creiamo internamente
 import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
@@ -14,6 +15,7 @@ const MemoizedHeader = memo(Header)
 const MemoizedSidebar = memo(Sidebar)
 
 export function Layout() {
+  const { workspace } = useWorkspace()
   const [showPlaygroundDialog, setShowPlaygroundDialog] = useState(false)
   const [savedChat, setSavedChat] = useState<Chat | null>(null)
 
@@ -103,6 +105,7 @@ export function Layout() {
           isOpen={showPlaygroundDialog}
           onClose={handleClosePlayground}
           channelName="WhatsApp Chat"
+          workspaceId={workspace?.id}
           selectedChat={savedChat}
         />
       </div>

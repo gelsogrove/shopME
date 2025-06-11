@@ -6,10 +6,10 @@ import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
@@ -562,6 +562,7 @@ export default function ClientsPage(): JSX.Element {
         onClose={() => setShowPlayground(false)}
         channelName="WhatsApp Chat"
         phoneNumber={""}
+        workspaceId={workspace?.id}
         selectedChat={null}
       />
 

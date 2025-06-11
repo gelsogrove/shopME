@@ -1,4 +1,5 @@
 import { Button, ButtonProps } from "@/components/ui/button"
+import { useWorkspace } from "@/hooks/use-workspace"
 import { Chat } from "@/types/chat"
 import { useState } from "react"
 import { WhatsAppChatModal } from "./WhatsAppChatModal"
@@ -14,6 +15,7 @@ export function WhatsAppButton({
   selectedChat,
   ...props
 }: WhatsAppButtonProps) {
+  const { workspace } = useWorkspace()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
@@ -40,6 +42,7 @@ export function WhatsAppButton({
       <WhatsAppChatModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        workspaceId={workspace?.id}
         selectedChat={selectedChat}
       />
     </>

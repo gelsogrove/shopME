@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -69,14 +69,24 @@ export function WhatsAppChatModal({
   const [isLoading, setIsLoading] = useState(false)
   const [localSelectedChat, setLocalSelectedChat] = useState<Chat | null>(null)
   // Use the global session ID if available
-  const [sessionId, setSessionId] = useState<string | null>(globalSessionId)
+  const [sessionId, setSessionId] = useState<string | null>(null)
 
-  // Log when component receives new props (for debugging)
+  // Check if we have a valid workspace ID
+  const currentWorkspaceId = getWorkspaceId(workspaceId)
+  const hasValidWorkspace = currentWorkspaceId !== null
+
   console.log("WhatsAppChatModal props:", {
     isOpen,
-    selectedChat,
+    channelName,
     phoneNumber,
-    sessionId,
+    workspaceId,
+    selectedChat,
+  })
+
+  console.log("Workspace check:", {
+    currentWorkspaceId,
+    hasValidWorkspace,
+    providedWorkspaceId: workspaceId
   })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -242,6 +252,12 @@ export function WhatsAppChatModal({
     if (!isValidPhoneNumber(userPhoneNumber)) return
     if (!initialMessage.trim()) return
 
+    // Check if we have a valid workspace
+    if (!hasValidWorkspace) {
+      alert("No workspace available. Please select a workspace first.")
+      return
+    }
+
     setChatStarted(true)
 
     // Add the initial message
@@ -347,6 +363,12 @@ export function WhatsAppChatModal({
 
   const sendMessage = async () => {
     if (!currentMessage.trim() || isLoading) return
+
+    // Check if we have a valid workspace
+    if (!hasValidWorkspace) {
+      alert("No workspace available. Please select a workspace first.")
+      return
+    }
 
     // Add user message
     const userMessage: Message = {
@@ -514,6 +536,15 @@ export function WhatsAppChatModal({
             <h3 className="text-lg font-semibold mb-4">
               Enter details to start a chat
             </h3>
+            
+            {!hasValidWorkspace && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ No workspace available. Please select a workspace first to send messages.
+                </p>
+              </div>
+            )}
+            
             <div className="space-y-6">
               <div>
                 <Label htmlFor="phone-number">Phone Number</Label>
@@ -551,12 +582,13 @@ export function WhatsAppChatModal({
                 className="w-full bg-green-500 hover:bg-green-600"
                 onClick={startChat}
                 disabled={
+                  !hasValidWorkspace ||
                   !isValidPhoneNumber(userPhoneNumber) ||
                   !initialMessage.trim() ||
                   isLoading
                 }
               >
-                {isLoading ? "Processing..." : "Start Chat"}
+                {isLoading ? "Processing..." : !hasValidWorkspace ? "No Workspace Available" : "Start Chat"}
               </Button>
             </div>
           </div>
@@ -653,30 +685,42 @@ export function WhatsAppChatModal({
 
             {/* Input improved */}
             <div className="flex items-center p-3 border-t bg-white">
-              <Textarea
-                ref={inputRef}
-                placeholder={isLoading ? "Please wait..." : "Type a message"}
-                value={currentMessage}
-                onChange={(e) => setCurrentMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className={`flex-1 rounded-full border border-gray-300 px-4 py-2 mr-2 min-h-[40px] resize-none text-xs ${
-                  isLoading ? "opacity-70" : ""
-                }`}
-                rows={2}
-                disabled={isLoading}
-              />
-              <Button
-                type="button"
-                size="icon"
-                onClick={sendMessage}
-                disabled={!currentMessage.trim() || isLoading}
-                className={`bg-green-500 hover:bg-green-600 text-white rounded-full p-3 shadow transition h-10 w-10 flex items-center justify-center ${
-                  isLoading ? "bg-gray-400" : ""
-                }`}
-                aria-label="Send message"
-              >
-                <Send size={20} />
-              </Button>
+              {!hasValidWorkspace && (
+                <div className="flex-1 p-3 bg-yellow-50 border border-yellow-200 rounded-md mr-2">
+                  <p className="text-sm text-yellow-800">
+                    No workspace available. Please select a workspace to send messages.
+                  </p>
+                </div>
+              )}
+              
+              {hasValidWorkspace && (
+                <>
+                  <Textarea
+                    ref={inputRef}
+                    placeholder={isLoading ? "Please wait..." : "Type a message"}
+                    value={currentMessage}
+                    onChange={(e) => setCurrentMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className={`flex-1 rounded-full border border-gray-300 px-4 py-2 mr-2 min-h-[40px] resize-none text-xs ${
+                      isLoading ? "opacity-70" : ""
+                    }`}
+                    rows={2}
+                    disabled={isLoading}
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    onClick={sendMessage}
+                    disabled={!currentMessage.trim() || isLoading}
+                    className={`bg-green-500 hover:bg-green-600 text-white rounded-full p-3 shadow transition h-10 w-10 flex items-center justify-center ${
+                      isLoading ? "bg-gray-400" : ""
+                    }`}
+                    aria-label="Send message"
+                  >
+                    <Send size={20} />
+                  </Button>
+                </>
+              )}
             </div>
           </>
         )}

@@ -28,7 +28,23 @@ export function useRecentChats() {
         });
         
         if (response.data.success) {
-          return response.data.data;
+          // Transform the backend data to match frontend expectations
+          const transformedChats = response.data.data.map((chat: any) => ({
+            id: chat.id,
+            sessionId: chat.id, // Map id to sessionId for frontend compatibility
+            customerId: chat.customerId,
+            customerName: chat.customer?.name || 'Unknown Customer',
+            customerPhone: chat.customer?.phone || '',
+            companyName: chat.customer?.company || '',
+            lastMessage: chat.lastMessage || '',
+            lastMessageTime: chat.updatedAt || chat.createdAt,
+            unreadCount: chat.unreadCount || 0,
+            isActive: true,
+            isFavorite: false,
+          }));
+          
+          console.log('Transformed chats:', transformedChats);
+          return transformedChats;
         }
         
         throw new Error('Error loading chats');

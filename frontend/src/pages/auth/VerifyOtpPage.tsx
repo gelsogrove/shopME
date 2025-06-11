@@ -2,24 +2,24 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AuthLogo } from "@/components/ui/auth-logo"
 import { Button } from "@/components/ui/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card"
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { QRCodeDisplay } from "@/components/ui/qr-code"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -83,8 +83,35 @@ export default function VerifyOtpPage() {
         description: "OTP verified successfully.",
       })
 
-              // Redirect to chat
-        navigate("/chat")
+      // Check if user has workspaces before redirecting
+      try {
+        const workspacesResponse = await fetch("/api/workspaces", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          credentials: "include"
+        })
+
+        if (workspacesResponse.ok) {
+          const workspaces = await workspacesResponse.json()
+          
+          if (workspaces && workspaces.length > 0) {
+            // User has workspaces, redirect to chat
+            navigate("/chat")
+          } else {
+            // New user with no workspaces, redirect to workspace selection
+            navigate("/clients")
+          }
+        } else {
+          // If we can't fetch workspaces, default to workspace selection for safety
+          navigate("/clients")
+        }
+      } catch (workspaceError) {
+        console.warn("Could not fetch workspaces, redirecting to workspace selection:", workspaceError)
+        // If there's an error fetching workspaces, redirect to workspace selection
+        navigate("/clients")
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {

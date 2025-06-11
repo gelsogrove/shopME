@@ -1,5 +1,6 @@
 import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { Button } from "@/components/ui/button"
+import { useWorkspace } from "@/hooks/use-workspace"
 import { Chat } from "@/types/chat"
 import { MessageCircle } from "lucide-react"
 import { ReactNode, useState } from "react"
@@ -14,6 +15,7 @@ interface PageLayoutProps {
  * Ensures consistent page structure and spacing
  */
 export function PageLayout({ children, selectedChat }: PageLayoutProps) {
+  const { workspace } = useWorkspace()
   const [showPlaygroundDialog, setShowPlaygroundDialog] =
     useState<boolean>(false)
 
@@ -50,6 +52,7 @@ export function PageLayout({ children, selectedChat }: PageLayoutProps) {
         onClose={handleClosePlayground}
         channelName="WhatsApp Chat"
         phoneNumber={selectedChat?.customerPhone || ""}
+        workspaceId={workspace?.id}
         selectedChat={selectedChat}
       />
     </div>

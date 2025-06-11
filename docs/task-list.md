@@ -1,118 +1,303 @@
-# Task List - ShopMe Platform
+# 📋 ShopMe Platform - Task List
 
-## ✅ **COMPLETED - Events Functionality Removal**
+## 🎯 Overview
+This task list is based on the comprehensive PRD analysis and identifies what has been implemented versus what still needs to be developed for the ShopMe WhatsApp e-commerce platform.
 
-### 2024-12-19 - Complete Events System Removal
-**Objective**: Remove all events functionality from the system, keeping only Shop, Hotel, and Restaurant business types.
+---
 
-**✅ FRONTEND CHANGES**:
-- ✅ Updated `WorkspaceSelectionPage.tsx` - Changed from 4 to 3 business types (removed "Event")
-- ✅ Updated `Sidebar.tsx` - Removed Events navigation link
-- ✅ Updated `App.tsx` - Removed Events routing
-- ✅ Deleted `EventsPage.tsx` - Complete events page component
-- ✅ Deleted `eventsApi.ts` - Events API service
+## 🟢 COMPLETED FEATURES
 
-**✅ BACKEND CHANGES**:
-- ✅ Updated `api.ts` - Removed events router and controller imports
-- ✅ Deleted `events.routes.ts` - Events API routes
-- ✅ Deleted `events.controller.ts` - Events controller
-- ✅ Deleted `events.service.ts` - Events business logic service
-- ✅ Updated Prisma schema - Removed Events model and workspace relation
-- ✅ Created migration `20250610163513_remove_events_table` - Dropped events table
-- ✅ Deleted `events.controller.spec.ts` - Events controller tests
+### ✅ Core WhatsApp Integration
+- WhatsApp webhook handler and message processing
+- Multi-language support (IT, EN, ES, PT)
+- Customer registration with secure tokens
+- Blacklist management (customer-level and workspace-level)
+- WIP channel status handling
+- Greeting detection and welcome messages
 
-**✅ DOCUMENTATION UPDATES**:
-- ✅ Updated `PRD.md` - Removed all event references from business model
-- ✅ Updated business segments to focus on Shop, Hotel, Restaurant only
-- ✅ Removed event-specific metrics and ROI calculations
-- ✅ Updated marketing channels to remove Events/Webinars
+### ✅ Document Management & RAG
+- PDF document upload and processing (5MB limit)
+- Text extraction and chunking (1000 chars with 100 overlap)
+- Vector embedding generation using OpenRouter
+- Document search and RAG integration
+- Generate Embeddings button for documents
 
-**✅ VERIFICATION**:
-- ✅ Database migration applied successfully
-- ✅ All event-related files removed from codebase
-- ✅ Navigation updated to show only 3 business types
-- ✅ No remaining references to events in the system
+### ✅ Core Business Logic
+- Product catalog management with plan limits
+- Service management with plan limits
+- FAQ management system
+- Customer management with blacklist support
+- Order processing and cart functionality
+- Workspace and plan management
 
-## ✅ Completed Tasks
+### ✅ Security & Authentication
+- JWT authentication with refresh tokens
+- Registration token system with expiration
+- Basic rate limiting on auth endpoints
+- GDPR compliance integration
 
-### 2024-12-19 - Product Images Removal for WhatsApp Optimization
-**Objective**: Remove all image references from the products system to optimize for WhatsApp's text-based interface.
+---
 
-**Backend Changes**:
-- ✅ Updated Prisma schema: Removed `image` field from Products model
-- ✅ Updated Product entity: Removed `imageUrl` property
-- ✅ Updated ProductRepository: Removed image field handling in create/update/mapping
-- ✅ Updated Product validations: Removed image field from Joi schemas
-- ✅ Updated Swagger documentation: Removed image field from Product schema
-- ✅ Updated unit tests: Removed image references from product mocks
-- ✅ Updated seed file: Removed all image URLs from product data
-- ✅ Fixed Prisma schema relations: Corrected Offers/Categories ambiguous relations
+## 🔴 MISSING FEATURES (TO IMPLEMENT)
 
-**Frontend Changes**:
-- ✅ Updated Product interfaces: Removed image and imageUrl fields
-- ✅ Updated ProductSheet component: Removed image input and preview functionality
-- ✅ Updated ProductsPage: Removed all image-related logic and components
-- ✅ Updated products API service: Removed image processing functions
-- ✅ Deleted ImageUpload component (no longer needed)
+### 1. **Spam Detection & Auto-Blacklist System**
+**Priority**: 🚨 **HIGH**
+**Description**: Implement automatic spam detection that blocks users sending 10+ messages in 30 seconds
+**Acceptance Criteria**:
+- [ ] Create `checkSpamBehavior()` method in MessageService
+- [ ] Implement message frequency tracking per user
+- [ ] Auto-add to workspace blacklist when threshold exceeded
+- [ ] Add logging for spam detection events
+- [ ] Duration: Unlimited (manual admin unlock only)
 
-**Testing & Validation**:
-- ✅ Frontend compilation successful
-- ✅ Backend TypeScript compilation successful
-- ✅ All image references removed from codebase
-- ✅ Products API now handles text-only product descriptions
+### 2. **FAQ Embedding System**
+**Priority**: 🚨 **HIGH**
+**Description**: Implement embedding generation for FAQ content to include in RAG search
+**Acceptance Criteria**:
+- [ ] Create `faq_chunks` table in database schema
+- [ ] Implement FAQ text chunking (question + answer)
+- [ ] Add "Generate Embeddings" button to FAQ page
+- [ ] Create FAQ embedding service similar to documents
+- [ ] Only process active FAQs e FAQs not processed yet 
+- quando finito che venga fuori un toast che dice che e' andata a buon fine
+- la parte di UI deve essere uguale a docuements non inventare nulla
+- 
 
-**Documentation Updates**:
-- ✅ Updated PRD.md to reflect WhatsApp-optimized text-based product approach
+### 3. **Services Embedding System**
+**Priority**: 🚨 **HIGH**
+**Description**: Implement embedding generation for Services content to include in RAG search
+**Acceptance Criteria**:
+- [ ] Create `service_chunks` table in database schema
+- [ ] Implement Service text chunking (name + description + details)
+- [ ] Add "Generate Embeddings" button to Services page
+- [ ] Create Service embedding service similar to documents
+- [ ] Integrate Service chunks in RAG search pipeline
+- [ ] Only process active Services
 
-**Files Modified**:
-- `backend/prisma/schema.prisma`
-- `backend/src/domain/entities/product.entity.ts`
-- `backend/src/repositories/product.repository.ts`
-- `backend/src/interfaces/http/validations/product.validation.ts`
-- `backend/src/interfaces/http/routes/products.routes.ts`
-- `backend/src/__tests__/unit/mock/entity-mocks.ts`
-- `backend/prisma/seed.ts`
-- `frontend/src/services/productsApi.ts`
-- `frontend/src/components/shared/ProductSheet.tsx`
-- `frontend/src/pages/ProductsPage.tsx`
-- `frontend/src/components/shared/ImageUpload.tsx` (deleted)
-- `finalproject-AG/PRD.md`
+### 4. **API Rate Limiting System**
+**Priority**: 🚨 **HIGH**
+**Description**: Implement comprehensive rate limiting (100 calls per 10 minutes) for anti-attack protection
+**Acceptance Criteria**:
+- [ ] Create global rate limiting middleware
+- [ ] Implement 100 calls per 10 minutes limit
+- [ ] Add rate limit headers to responses
+- [ ] Create rate limit bypass for admin users
+- [ ] Log rate limit violations
+- [ ] Return appropriate error messages when limit exceeded
 
-## 🔄 In Progress Tasks
+### 5. **Enhanced Multi-Source RAG Integration**
+**Priority**: 🔥 **MEDIUM**
+**Description**: Integrate all three content sources (Documents, FAQs, Services) in unified RAG search
+**Acceptance Criteria**:
+- [ ] Modify RAG search to query all three chunk tables
+- [ ] Implement weighted scoring across content types
+- [ ] Combine results from documents, FAQs, and services
+- [ ] Optimize similarity search performance
+- [ ] Add content source identification in responses
 
-*No tasks currently in progress*
+### 6. **Database Schema Updates**
+**Priority**: 🔥 **MEDIUM**
+**Description**: Add missing database tables and fields for new features
+**Acceptance Criteria**:
+- [ ] Create migration for `faq_chunks` table
+- [ ] Create migration for `service_chunks` table
+- [ ] Add spam tracking fields to customer/message tables
+- [ ] Add rate limiting tracking table
+- [ ] Update Prisma schema accordingly
 
-## 📋 Next Steps
+### 7. **Admin Interface Enhancements**
+**Priority**: 🔥 **MEDIUM**
+**Description**: Add missing UI components for new features
+**Acceptance Criteria**:
+- [ ] Add "Generate Embeddings" button to FAQ page (top-right)
+- [ ] Add "Generate Embeddings" button to Services page (top-right)
+- [ ] Add spam detection status in customer management
+- [ ] Add rate limiting monitoring dashboard
+- [ ] Add blacklist management interface improvements
 
-1. **Test the system** to ensure events functionality is completely removed
-2. **Verify all business types** (Shop, Hotel, Restaurant) work correctly
-3. **Update any remaining documentation** if needed
+### 8. **Testing Coverage**
+**Priority**: 🔥 **MEDIUM**
+**Description**: Add comprehensive tests for new features
+**Acceptance Criteria**:
+- [ ] Unit tests for spam detection logic
+- [ ] Integration tests for FAQ embedding system
+- [ ] Integration tests for Services embedding system
+- [ ] API tests for rate limiting
+- [ ] E2E tests for multi-source RAG search
 
-## 📋 Pending Tasks
+### 9. **Performance Optimizations**
+**Priority**: 🟡 **LOW**
+**Description**: Optimize system performance for production use
+**Acceptance Criteria**:
+- [ ] Optimize embedding generation batch processing
+- [ ] Add caching for frequent RAG queries
+- [ ] Optimize database queries for large datasets
+- [ ] Add monitoring and alerting for system health
 
-### General Platform
-- Complete OWASP security audit
-- Optimize database queries for large datasets
-- Implement comprehensive logging system
+### 10. **Chat History Management Interface**
+**Priority**: 🚨 **HIGH**
+**Description**: Implement comprehensive chat history management with operator controls
+**Acceptance Criteria**:
+- [ ] Add "View Orders" button/link in chat history interface
+- [ ] Add "Block User" functionality directly from chat history
+- [ ] Add "Disable Chatbot" toggle for operator manual control
+- [ ] Update chat interface to show chatbot status (active/disabled)
+- [ ] Add visual indicators for operator-controlled chats
+- [ ] Implement real-time status updates
 
-## 🚫 Blocked Tasks
+### 11. **Chatbot Disable Flow Integration**
+**Priority**: 🚨 **HIGH**
+**Description**: Integrate chatbot disable functionality into WhatsApp message flow
+**Acceptance Criteria**:
+- [ ] Modify message processing flow to check `activeChatbot` flag
+- [ ] When `activeChatbot=false`, agent should not respond automatically
+- [ ] Add operator notification when chatbot is disabled for a customer
+- [ ] Implement toggle mechanism for operators to enable/disable chatbot
+- [ ] Update flow diagram to include chatbot disable check
+- [ ] Add logging for chatbot enable/disable events
 
-None currently.
+### 12. **Two-Factor Authentication (2FA)**
+**Priority**: 🔥 **MEDIUM**
+**Description**: Implement 2FA for enhanced security on critical operations
+**Acceptance Criteria**:
+- [ ] Add 2FA setup interface for admin users
+- [ ] Implement TOTP (Time-based One-Time Password) support
+- [ ] Add 2FA verification for sensitive operations (user blocking, settings changes)
+- [ ] Create backup codes for 2FA recovery
+- [ ] Add 2FA status indicators in user interface
+- [ ] Implement 2FA enforcement policies per workspace
+
+### 13. **Order Management System**
+**Priority**: 🚨 **HIGH**
+**Description**: Complete order management with full CRUD operations and status tracking
+**Acceptance Criteria**:
+- [ ] Create comprehensive order management interface
+- [ ] Add order status tracking (pending, confirmed, processing, shipped, delivered)
+- [ ] Implement order editing capabilities for operators
+- [ ] Add order search and filtering functionality
+- [ ] Create order details view with customer information
+- [ ] Add order cancellation and refund management
+- [ ] Implement order export functionality (CSV, PDF)
+
+### 14. **Order Notification System**
+**Priority**: 🚨 **HIGH**
+**Description**: Automated order notifications to customers via WhatsApp
+**Acceptance Criteria**:
+- [ ] Send order confirmation message when order is placed
+- [ ] Send order status update notifications (processing, shipped, delivered)
+- [ ] Add customizable notification templates per workspace
+- [ ] Implement notification scheduling and retry logic
+- [ ] Add tracking number inclusion in shipping notifications
+- [ ] Create notification history and delivery status tracking
+- [ ] Add opt-out mechanism for customers
+
+### 15. **Operator Alert Email System**
+**Priority**: 🔥 **MEDIUM**
+**Description**: Email notifications when customers request human operator assistance
+**Acceptance Criteria**:
+- [ ] Detect customer requests for human operator (keywords: "operator", "human", "help")
+- [ ] Send immediate email alert to workspace operators
+- [ ] Include customer information and conversation context in email
+- [ ] Add email template customization for different languages
+- [ ] Implement email delivery confirmation and retry logic
+- [ ] Add operator response time tracking
+- [ ] Create escalation rules for unresponded operator requests
+
+### 16. **Documentation Updates**
+**Priority**: 🟡 **LOW**
+**Description**: Update documentation to reflect new features
+**Acceptance Criteria**:
+- [ ] Update API documentation (Swagger)
+- [ ] Update README with new features
+- [ ] Update deployment guides
+- [ ] Create admin user guides for new features
+
+---
+
+## 📊 Implementation Priority Matrix
+
+| Task | Priority | Effort | Impact | Dependencies |
+|------|----------|--------|--------|--------------|
+| Spam Detection | 🚨 HIGH | Medium | High | None |
+| FAQ Embeddings | 🚨 HIGH | Medium | High | Database Schema |
+| Services Embeddings | 🚨 HIGH | Medium | High | Database Schema |
+| API Rate Limiting | 🚨 HIGH | Low | High | None |
+| Chat History Management | 🚨 HIGH | Medium | High | Order Management |
+| Chatbot Disable Flow | 🚨 HIGH | Low | High | None |
+| Order Management | 🚨 HIGH | High | High | Database Schema |
+| Order Notifications | 🚨 HIGH | Medium | High | Order Management |
+| Multi-Source RAG | 🔥 MEDIUM | High | High | FAQ + Services Embeddings |
+| Database Schema | 🔥 MEDIUM | Low | High | None |
+| Admin UI Updates | 🔥 MEDIUM | Medium | Medium | Backend APIs |
+| 2FA System | 🔥 MEDIUM | Medium | Medium | None |
+| Operator Email Alerts | 🔥 MEDIUM | Low | Medium | Email Service |
+| Testing Coverage | 🔥 MEDIUM | High | Medium | All Features |
+| Performance Opts | 🟡 LOW | High | Medium | Core Features |
+| Documentation | 🟡 LOW | Medium | Low | All Features |
+
+---
+
+## 🎯 Sprint Recommendations
+
+### **Sprint 1** (Week 1-2): Core Security & Infrastructure
+1. Implement Spam Detection & Auto-Blacklist
+2. Add API Rate Limiting System
+3. Create Database Schema Updates
+4. Implement Chatbot Disable Flow Integration
+
+### **Sprint 2** (Week 3-4): RAG Enhancement & Order Management
+1. Implement FAQ Embedding System
+2. Implement Services Embedding System
+3. Add Generate Embeddings buttons to UI
+4. Create Order Management System
+
+### **Sprint 3** (Week 5-6): Chat Management & Notifications
+1. Implement Chat History Management Interface
+2. Add Order Notification System
+3. Create Operator Alert Email System
+4. Integrate Multi-Source RAG Search
+
+### **Sprint 4** (Week 7-8): Security & Testing
+1. Implement 2FA System
+2. Add comprehensive testing coverage
+3. Update admin interfaces
+4. Performance optimizations
+
+### **Sprint 5** (Week 9-10): Polish & Documentation
+1. Final testing and bug fixes
+2. Documentation updates
+3. User acceptance testing
+4. Production deployment preparation
+
+---
 
 ## 📝 Notes
 
-- **IMPORTANT**: The real problem was mock data sharing, not backend filtering
-- The backend service was already correctly filtering by workspace
-- Frontend now properly handles API failures without showing shared data
-- All events are guaranteed to be isolated by workspace
-- The architecture follows DDD principles with proper separation of concerns
+- **Database Migrations**: All schema changes should be implemented as Prisma migrations
+- **Backward Compatibility**: Ensure all changes maintain backward compatibility
+- **Testing**: Each feature should include unit, integration, and API tests
+- **Documentation**: Update Swagger documentation for all new endpoints
+- **Performance**: Monitor system performance during implementation
+- **Security**: All new features should follow OWASP security guidelines
 
-## 🧪 Test Coverage
+---
 
-### Event Workspace Isolation Tests
-- ✅ `getAllForWorkspace` filters correctly by workspace
-- ✅ `getById` requires both event ID and workspace ID
-- ✅ `create` enforces workspace ID requirement
-- ✅ `update` only works within the same workspace
-- ✅ `delete` only works within the same workspace
-- ✅ Cross-workspace isolation is guaranteed 
+**Last Updated**: December 2024
+**Status**: Ready for Implementation  
+**Next Review**: After Sprint 1 completion
+
+---
+
+## 🔥 **CRITICAL FLOW UPDATE NEEDED**
+
+⚠️ **IMPORTANTE**: Il task **"Chatbot Disable Flow Integration"** richiede un aggiornamento del flow WhatsApp nel PRD per includere il controllo `activeChatbot`:
+
+```typescript
+// Nel message processing flow, aggiungere dopo blacklist check:
+if (customer && !customer.activeChatbot) {
+  // Operator has taken manual control - no automatic response
+  return null; // Agent non risponde più
+}
+```
+
+Questo controllo deve essere integrato nel diagramma Mermaid del PRD per mostrare che quando un operatore prende il controllo, l'agente AI si disattiva automaticamente. 
