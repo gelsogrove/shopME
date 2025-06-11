@@ -23,8 +23,13 @@ export default function GdprPage() {
         const workspace = JSON.parse(workspaceStr)
         
         const response = await api.get(`/settings/${workspace.id}/gdpr`)
-        if (response.data && response.data.gdpr) {
-          setGdprText(response.data.gdpr)
+        console.log('GDPR GET response:', response.data)
+        
+        // Check for data in the new response structure
+        if (response.data && response.data.data && response.data.data.gdpr) {
+          setGdprText(response.data.data.gdpr)
+        } else if (response.data && response.data.content) {
+          setGdprText(response.data.content)
         } else {
           // If no GDPR policy exists yet, load the default from the file
           const defaultResponse = await api.get('/gdpr/default')

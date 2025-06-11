@@ -54,7 +54,11 @@ export class SettingsController {
       
       // Always return a success, even if content doesn't exist
       // The service will return a default in that case
-      AppResponse.success(res, { content: gdprContent || '' });
+      AppResponse.success(res, { 
+        success: true,
+        content: gdprContent || '',
+        data: { gdpr: gdprContent || '' }
+      });
     } catch (error) {
       logger.error("Error getting GDPR content:", error);
       AppResponse.serverError(res, "Failed to get GDPR content");
@@ -106,7 +110,7 @@ export class SettingsController {
         return;
       }
 
-      if (!gdpr) {
+      if (gdpr === undefined || gdpr === null) {
         logger.error("[GDPR UPDATE] Missing GDPR content");
         AppResponse.badRequest(res, "GDPR content is required");
         return;
@@ -121,7 +125,11 @@ export class SettingsController {
         logger.info(`[GDPR UPDATE] Updated GDPR content length: ${updatedSettings.gdpr ? updatedSettings.gdpr.length : 'undefined'}`);
       }
       
-      AppResponse.success(res, updatedSettings);
+      // Return the response structure expected by frontend and tests
+      AppResponse.success(res, {
+        success: true,
+        data: updatedSettings
+      });
     } catch (error) {
       logger.error("Error updating GDPR content:", error);
       AppResponse.serverError(res, "Failed to update GDPR content");
