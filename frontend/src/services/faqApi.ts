@@ -22,13 +22,13 @@ export interface UpdateFAQData {
   isActive?: boolean
 }
 
-// Mock data per le FAQ quando l'API fallisce
+// Mock data for FAQs when API fails
 const mockFAQs: FAQ[] = [
   {
     id: "mock-faq-1",
-    question: "Come posso modificare il mio ordine?",
+    question: "How can I modify my order?",
     answer:
-      'Puoi modificare il tuo ordine accedendo alla sezione "I miei ordini" nel tuo account, selezionando l\'ordine che desideri modificare e cliccando su "Modifica ordine".',
+      'You can modify your order by accessing the "My Orders" section in your account, selecting the order you want to modify and clicking on "Edit Order".',
     isActive: true,
     workspaceId: "mock-workspace",
     createdAt: new Date().toISOString(),
@@ -36,9 +36,9 @@ const mockFAQs: FAQ[] = [
   },
   {
     id: "mock-faq-2",
-    question: "Quali metodi di pagamento accettate?",
+    question: "What payment methods do you accept?",
     answer:
-      "Accettiamo pagamenti tramite carte di credito (Visa, Mastercard, American Express), PayPal e bonifico bancario. I dettagli del pagamento sono visibili alla cassa.",
+      "We accept payments via credit cards (Visa, Mastercard, American Express), PayPal and bank transfer. Payment details are visible at checkout.",
     isActive: true,
     workspaceId: "mock-workspace",
     createdAt: new Date().toISOString(),
@@ -46,9 +46,9 @@ const mockFAQs: FAQ[] = [
   },
   {
     id: "mock-faq-3",
-    question: "Quanto tempo richiede la consegna?",
+    question: "How long does delivery take?",
     answer:
-      "I tempi di consegna variano da 2 a 5 giorni lavorativi, a seconda della tua posizione. I dettagli esatti sono forniti al momento del checkout.",
+      "Delivery times vary from 2 to 5 business days, depending on your location. Exact details are provided at checkout.",
     isActive: false,
     workspaceId: "mock-workspace",
     createdAt: new Date().toISOString(),
@@ -57,7 +57,7 @@ const mockFAQs: FAQ[] = [
 ]
 
 /**
- * Ottiene tutte le FAQ per un workspace
+ * Gets all FAQs for a workspace
  */
 export const getFAQs = async (workspaceId: string): Promise<FAQ[]> => {
   try {
@@ -65,14 +65,14 @@ export const getFAQs = async (workspaceId: string): Promise<FAQ[]> => {
     return response.data
   } catch (error) {
     console.error("Error getting FAQs:", error)
-    // Per sviluppo/testing, ritorna le FAQ mock
+    // For development/testing, return mock FAQs
     console.warn("Returning mock FAQs data")
     return mockFAQs
   }
 }
 
 /**
- * Ottiene una FAQ specifica per ID
+ * Gets a specific FAQ by ID
  */
 export const getFAQById = async (
   workspaceId: string,
@@ -90,7 +90,7 @@ export const getFAQById = async (
 }
 
 /**
- * Crea una nuova FAQ
+ * Creates a new FAQ
  */
 export const createFAQ = async (
   workspaceId: string,
@@ -101,7 +101,7 @@ export const createFAQ = async (
     return response.data
   } catch (error) {
     console.error("Error creating FAQ:", error)
-    // Per sviluppo/testing, ritorna una FAQ mock
+    // For development/testing, return a mock FAQ
     console.warn("Returning mock created FAQ data")
     const newFaq: FAQ = {
       id: `mock-faq-${Date.now()}`,
@@ -118,7 +118,7 @@ export const createFAQ = async (
 }
 
 /**
- * Aggiorna una FAQ esistente
+ * Updates an existing FAQ
  */
 export const updateFAQ = async (
   workspaceId: string,
@@ -133,7 +133,7 @@ export const updateFAQ = async (
     return response.data
   } catch (error) {
     console.error("Error updating FAQ:", error)
-    // Per sviluppo/testing, aggiorna una FAQ mock
+    // For development/testing, update a mock FAQ
     console.warn("Updating mock FAQ data")
     const index = mockFAQs.findIndex((faq) => faq.id === id)
     if (index !== -1) {
@@ -149,7 +149,7 @@ export const updateFAQ = async (
 }
 
 /**
- * Elimina una FAQ
+ * Deletes a FAQ
  */
 export const deleteFAQ = async (
   workspaceId: string,
@@ -159,7 +159,7 @@ export const deleteFAQ = async (
     await api.delete(`/workspaces/${workspaceId}/faqs/${id}`)
   } catch (error) {
     console.error("Error deleting FAQ:", error)
-    // Per sviluppo/testing, elimina una FAQ mock
+    // For development/testing, delete a mock FAQ
     console.warn("Deleting mock FAQ data")
     const index = mockFAQs.findIndex((faq) => faq.id === id)
     if (index !== -1) {

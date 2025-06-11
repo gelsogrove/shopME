@@ -7,12 +7,12 @@ import { AuthController } from "../interfaces/http/controllers/auth.controller"
 import { CategoryController } from "../interfaces/http/controllers/category.controller"
 import { ChatController } from "../interfaces/http/controllers/chat.controller"
 import { CustomersController } from "../interfaces/http/controllers/customers.controller"
-import { EventsController } from "../interfaces/http/controllers/events.controller"
+
 import { FaqController } from "../interfaces/http/controllers/faq.controller"
 import { MessageController } from "../interfaces/http/controllers/message.controller"
 import { ProductController } from "../interfaces/http/controllers/product.controller"
 import { ServicesController } from "../interfaces/http/controllers/services.controller"
-import { SuppliersController } from "../interfaces/http/controllers/suppliers.controller"
+
 import { UserController } from "../interfaces/http/controllers/user.controller"
 import { WhatsAppController } from "../interfaces/http/controllers/whatsapp.controller"
 import { createAgentRouter } from "../interfaces/http/routes/agent.routes"
@@ -20,7 +20,7 @@ import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
 import { chatRouter } from "../interfaces/http/routes/chat.routes"
 import { customersRouter, workspaceCustomersRouter } from "../interfaces/http/routes/customers.routes"
-import { eventsRouter } from "../interfaces/http/routes/events.routes"
+
 import { faqsRouter } from "../interfaces/http/routes/faqs.routes"
 import { createLanguagesRouter } from "../interfaces/http/routes/languages.routes"
 import { messagesRouter } from "../interfaces/http/routes/messages.routes"
@@ -29,7 +29,7 @@ import setupProductRoutes from "../interfaces/http/routes/products.routes"
 import createRegistrationRouter from "../interfaces/http/routes/registration.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import createSettingsRouter from "../interfaces/http/routes/settings.routes"
-import { suppliersRouter } from "../interfaces/http/routes/suppliers.routes"
+
 import { whatsappRouter } from "../interfaces/http/routes/whatsapp.routes"
 import { workspaceRoutes } from "../interfaces/http/routes/workspace.routes"
 import logger from "../utils/logger"
@@ -37,8 +37,10 @@ import logger from "../utils/logger"
 import { PromptsController } from "../controllers/prompts.controller"
 import { SettingsController } from "../interfaces/http/controllers/settings.controller"
 import { authMiddleware } from "../interfaces/http/middlewares/auth.middleware"
+import { createUserRouter } from "../interfaces/http/routes/user.routes"
 import createPromptsRouter from "./prompts.routes"
-import { createUserRouter } from "./user.routes"
+// Import document routes
+import documentRoutes from "./documentRoutes"
 
 // Simple logging middleware
 const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -80,9 +82,9 @@ const passwordResetService = new PasswordResetService(prisma)
 // Create controllers in advance
 const customersController = new CustomersController()
 const servicesController = new ServicesController()
-const eventsController = new EventsController()
+
 const categoryController = new CategoryController()
-const suppliersController = new SuppliersController()
+
 const chatController = new ChatController()
 const messageController = new MessageController()
 const productController = new ProductController()
@@ -100,14 +102,32 @@ router.use("/auth", authRouter(authController))
 router.use("/registration", createRegistrationRouter())
 router.use("/chat", chatRouter(chatController))
 router.use("/messages", messagesRouter(messageController))
-router.use("/users", createUserRouter(userController))
+router.use("/users", createUserRouter())
 // Mount customer routes on both legacy and workspace paths to ensure backward compatibility
 router.use("/", customersRouter(customersController))
 // Utilizziamo il router specifico per workspaces 
 router.use("/workspaces", workspaceCustomersRouter(customersController))
 router.use("/workspaces", workspaceRoutes)
 router.use("/agent", createAgentRouter())
-router.use("/workspaces/:workspaceId/agent", createAgentRouter())
+// Mount agent routes with workspace parameter properly configured
+router.use("/workspaces/:workspaceId/agent", (req, res, next) => {
+  // Ensure workspaceId is available in params
+  if (req.params.workspaceId) {
+    logger.debug(`Agent route: workspaceId from params: ${req.params.workspaceId}`);
+  }
+  next();
+}, createAgentRouter())
+
+// Add a simple test route to debug workspace ID extraction
+router.get("/workspaces/:workspaceId/test", authMiddleware, (req, res) => {
+  res.json({
+    success: true,
+    workspaceId: req.params.workspaceId,
+    originalUrl: req.originalUrl,
+    params: req.params,
+    user: req.user ? { userId: (req.user as any).userId } : null
+  });
+});
 
 // For backward compatibility during migration
 router.use("/prompts", createPromptsRouter(promptsController))
@@ -129,7 +149,7 @@ router.use("/workspaces/:workspaceId/services", servicesRouterInstance)
 router.use("/services", servicesRouterInstance)
 logger.info("Registered services router with workspace routes")
 
-router.use("/workspaces/:workspaceId/events", eventsRouter(eventsController))
+
 
 // Mount FAQs router
 const faqsRouterInstance = faqsRouter();
@@ -139,7 +159,7 @@ logger.info("Registered FAQs router with workspace routes");
 
 router.use("/settings", createSettingsRouter())
 router.use("/languages", createLanguagesRouter())
-router.use("/", suppliersRouter(suppliersController))
+
 
 // Mount offers routes
 const offersRouterInstance = offersRouter()
@@ -153,6 +173,11 @@ const whatsappInstance = whatsappRouter(whatsappController);
 router.use("/whatsapp", whatsappInstance);
 logger.info("Registered WhatsApp router with auth-protected endpoints")
 
+// Mount document routes
+router.use("/workspaces/:workspaceId/documents", documentRoutes);
+router.use("/documents", documentRoutes);
+logger.info("Registered document router with workspace and upload endpoints")
+
 // Add special route for GDPR default content (to handle frontend request to /gdpr/default)
 router.get("/gdpr/default", authMiddleware, settingsController.getDefaultGdprContent.bind(settingsController))
 logger.info("Registered /gdpr/default route for backward compatibility")
@@ -165,8 +190,19 @@ router.get('/docs/swagger.json', (req, res) => {
 
 // Health check
 router.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok" })
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString(), version: "1.0.0", apiVersion: "v1" })
 })
+
+// Simple test route for workspace agent debugging
+router.get("/workspaces/:workspaceId/agent-test", (req, res) => {
+  res.json({
+    success: true,
+    message: "Test route working",
+    workspaceId: req.params.workspaceId,
+    originalUrl: req.originalUrl,
+    params: req.params
+  });
+});
 
 logger.info("API routes setup complete")
 

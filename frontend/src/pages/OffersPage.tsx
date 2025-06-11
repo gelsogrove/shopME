@@ -1,23 +1,22 @@
 import { PageLayout } from "@/components/layout/PageLayout"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { CrudPageContent } from "@/components/shared/CrudPageContent"
-import { StatusBadge } from "@/components/shared/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
 } from "@/components/ui/popover"
 import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
 } from "@/components/ui/sheet"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
@@ -140,8 +139,8 @@ export function OffersPage() {
       header: "Category",
       accessorKey: "category" as keyof Offer,
       cell: ({ row }: { row: { original: Offer } }) => {
+        // Check if we have categoryIds (multiple categories)
         if (row.original.categoryIds && row.original.categoryIds.length > 0) {
-          // Get category names for all selected category IDs
           const selectedCategories = categories.filter(
             cat => row.original.categoryIds?.includes(cat.id)
           );
@@ -155,10 +154,19 @@ export function OffersPage() {
           }
         }
         
-        // Fallback to original behavior
+        // Check if we have a single categoryId
+        if (row.original.categoryId) {
+          return (
+            <span>
+              {row.original.category?.name || row.original.categoryName || "Unknown Category"}
+            </span>
+          );
+        }
+        
+        // No categories selected means all categories
         return (
-          <span>
-            {row.original.category?.name || row.original.categoryName || "All Categories"}
+          <span className="text-gray-500 italic">
+            All Categories
           </span>
         );
       },
@@ -183,29 +191,29 @@ export function OffersPage() {
       cell: ({ row }: { row: { original: Offer } }) => {
         const now = new Date();
         let status = "inactive";
+        let statusText = "Inactive";
+        let className = "bg-gray-100 text-gray-800";
         
         if (row.original.isActive) {
           if (row.original.startDate <= now && row.original.endDate >= now) {
             status = "active";
+            statusText = "Active";
+            className = "bg-green-100 text-green-800";
           } else if (row.original.startDate > now) {
             status = "scheduled";
+            statusText = "Scheduled";
+            className = "bg-blue-100 text-blue-800";
           } else if (row.original.endDate < now) {
             status = "expired";
+            statusText = "Expired";
+            className = "bg-red-100 text-red-800";
           }
         }
         
-        // @ts-ignore
         return (
-          <div className="flex items-center gap-2">
-            <StatusBadge status={status as StatusType}>
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </StatusBadge>
-            <Switch
-              checked={row.original.isActive}
-              onCheckedChange={(checked) => handleToggleActive(row.original, checked)}
-              className="ml-2"
-            />
-          </div>
+          <span className={`px-2 py-1 rounded-full text-xs ${className}`}>
+            {statusText}
+          </span>
         );
       },
     }
@@ -239,61 +247,21 @@ export function OffersPage() {
     }
   }
 
-  const handleToggleActive = async (offer: Offer, isActive: boolean) => {
-    if (!workspace) return;
-    
-    try {
-      const response = await api.put(
-        `/workspaces/${workspace.id}/offers/${offer.id}`,
-        { isActive }
-      );
-      
-      // Aggiorna lo stato locale
-      setOffers(
-        offers.map((o) =>
-          o.id === offer.id ? { ...o, isActive } : o
-        )
-      );
-      
-      toast.success(`Offer ${isActive ? 'enabled' : 'disabled'} successfully`, { duration: 1000 });
-    } catch (error) {
-      console.error("Failed to update offer status:", error);
-      toast.error("Failed to update offer status", { duration: 1000 });
-    }
-  }
+
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!workspace) return;
-    
+
     const formData = new FormData(e.currentTarget);
 
-    // Validazione
-    if (!startDate || !endDate) {
-      toast.error("Please select start and end dates", { duration: 1000 });
-      return;
-    }
-
     try {
-      const allCategoriesChecked = formData.get("allCategories") === "on";
+      // Get all selected category checkboxes
+      const selectedCategories = Array.from(e.currentTarget.querySelectorAll('input[name="category"]:checked'))
+        .map((input) => (input as HTMLInputElement).value);
       
-      // Se "All Categories" è selezionato, impostiamo categoryIds a null
-      let categoryIds = null;
-      
-      // Altrimenti raccogliamo tutte le categorie selezionate
-      if (!allCategoriesChecked) {
-        // Get all selected category checkboxes
-        const selectedCategories = Array.from(e.currentTarget.querySelectorAll('input[name="category"]:checked'))
-          .map((input) => (input as HTMLInputElement).value);
-        
-        // Se nessuna categoria è selezionata, mostriamo un errore
-        if (selectedCategories.length === 0) {
-          toast.error("Please select at least one category or choose 'All Categories'", { duration: 1000 });
-          return;
-        }
-        
-        categoryIds = selectedCategories;
-      }
+      // Se nessuna categoria è selezionata, impostiamo categoryIds a null (tutte le categorie)
+      const categoryIds = selectedCategories.length > 0 ? selectedCategories : null;
       
       const newOffer = {
         name: formData.get("name") as string,
@@ -302,7 +270,7 @@ export function OffersPage() {
         startDate,
         endDate,
         isActive: formData.get("isActive") === "on",
-        categoryIds: allCategoriesChecked ? null : categoryIds,
+        categoryIds: categoryIds,
         workspaceId: workspace.id,
       };
 
@@ -337,25 +305,12 @@ export function OffersPage() {
     const formData = new FormData(e.currentTarget);
 
     try {
-      const allCategoriesChecked = formData.get("allCategories") === "on";
+      // Get all selected category checkboxes
+      const selectedCategories = Array.from(e.currentTarget.querySelectorAll('input[name="category"]:checked'))
+        .map((input) => (input as HTMLInputElement).value);
       
-      // Se "All Categories" è selezionato, impostiamo categoryIds a null
-      let categoryIds = null;
-      
-      // Altrimenti raccogliamo tutte le categorie selezionate
-      if (!allCategoriesChecked) {
-        // Get all selected category checkboxes
-        const selectedCategories = Array.from(e.currentTarget.querySelectorAll('input[name="category"]:checked'))
-          .map((input) => (input as HTMLInputElement).value);
-        
-        // Se nessuna categoria è selezionata, mostriamo un errore
-        if (selectedCategories.length === 0) {
-          toast.error("Please select at least one category or choose 'All Categories'", { duration: 1000 });
-          return;
-        }
-        
-        categoryIds = selectedCategories;
-      }
+      // Se nessuna categoria è selezionata, impostiamo categoryIds a null (tutte le categorie)
+      const categoryIds = selectedCategories.length > 0 ? selectedCategories : null;
       
       const updatedOffer = {
         name: formData.get("name") as string,
@@ -364,7 +319,7 @@ export function OffersPage() {
         startDate,
         endDate,
         isActive: formData.get("isActive") === "on",
-        categoryIds: allCategoriesChecked ? null : categoryIds,
+        categoryIds: categoryIds,
       };
 
       const response = await api.put(
@@ -436,45 +391,30 @@ export function OffersPage() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="categoryId">Apply to Category</Label>
+        <Label htmlFor="categoryId">Apply to Categories</Label>
         <div className="border rounded-md p-4 space-y-2">
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="all-categories"
-              name="allCategories"
-              defaultChecked={isEdit && currentOffer ? !currentOffer.categoryId : true}
-              className="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-600"
-            />
-            <Label htmlFor="all-categories" className="text-sm font-normal cursor-pointer">
-              All Categories
-            </Label>
-          </div>
-          
-          <div className="pt-2 border-t mt-2">
-            <p className="text-sm text-gray-500 mb-2">Or select categories:</p>
-            <div className="grid grid-cols-1 gap-2 max-h-[150px] overflow-y-auto">
-              {categories.map((category) => (
-                <div key={category.id} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id={`category-${category.id}`}
-                    name="category"
-                    value={category.id}
-                    defaultChecked={
-                      isEdit && 
-                      currentOffer?.categoryIds ? 
-                      currentOffer.categoryIds.includes(category.id) : 
-                      currentOffer?.categoryId === category.id
-                    }
-                    className="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-600"
-                  />
-                  <Label htmlFor={`category-${category.id}`} className="text-sm font-normal cursor-pointer">
-                    {category.name}
-                  </Label>
-                </div>
-              ))}
-            </div>
+          <p className="text-sm text-gray-500 mb-2">Select categories (leave empty for all categories):</p>
+          <div className="grid grid-cols-1 gap-2 max-h-[150px] overflow-y-auto">
+            {categories.map((category) => (
+              <div key={category.id} className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id={`category-${category.id}`}
+                  name="category"
+                  value={category.id}
+                  defaultChecked={
+                    isEdit && 
+                    currentOffer?.categoryIds ? 
+                    currentOffer.categoryIds.includes(category.id) : 
+                    currentOffer?.categoryId === category.id
+                  }
+                  className="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-600"
+                />
+                <Label htmlFor={`category-${category.id}`} className="text-sm font-normal cursor-pointer">
+                  {category.name}
+                </Label>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -560,7 +500,7 @@ export function OffersPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
         isLoading={isLoading}
-        addButtonText="Add New Offer"
+        addButtonText="Add"
       />
 
       {/* Add Offer Sheet */}

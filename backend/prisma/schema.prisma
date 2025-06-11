@@ -8,57 +8,58 @@ datasource db {
 }
 
 model Workspace {
-  id                  String            @id @default(cuid())
-  name                String
-  slug                String            @unique
-  whatsappPhoneNumber String?
-  whatsappApiKey      String?
-  notificationEmail   String?
-  webhookUrl          String?
-  isActive            Boolean           @default(true)
-  language            String            @default("ENG")
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  isDelete            Boolean           @default(false)
-  currency            String            @default("EUR")
-  challengeStatus     Boolean           @default(false)
-  wipMessages         Json?             @default("{\"it\": \"Lavori in corso. Contattaci più tardi.\", \"en\": \"Work in progress. Please contact us later.\", \"es\": \"Trabajos en curso. Por favor, contáctenos más tarde.\", \"pt\": \"Em manutenção. Por favor, contacte-nos mais tarde.\"}")
-  description         String?
-  messageLimit        Int               @default(50)
-  blocklist           String?           @default("")
-  url                 String?
-  welcomeMessages     Json?             @default("{\"it\": \"Benvenuto!\", \"en\": \"Welcome!\", \"es\": \"¡Bienvenido!\"}")
-  afterRegistrationMessages Json?       @default("{\"it\": \"Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?\", \"en\": \"Registration completed successfully. Hello [nome], how can I help you today?\", \"es\": \"Registro completado con éxito. Hola [nome], ¿en qué puedo ayudarte hoy?\", \"fr\": \"Enregistrement effectué avec succès. Bonjour [nome], en quoi puis-je vous aider aujourd'hui ?\", \"de\": \"Registrierung erfolgreich abgeschlossen. Hallo [nome], wie kann ich Ihnen heute helfen?\", \"pt\": \"Registro concluído com sucesso. Olá [nome], em que posso ajudá-lo hoje?\"}")
-  carts               Carts[]
-  categories          Categories[]
-  chatSessions        ChatSession[]
-  customers           Customers[]
-  events              Events[]
-  faqs                FAQ[]
-  languages           Languages[]
-  orders              Orders[]
-  products            Products[]
-  prompts             Prompts[]
-  services            Services[]
-  users               UserWorkspace[]
-  whatsappSettings    WhatsappSettings?
-  offers              Offers[]
-  suppliers           Suppliers[]
+  id                        String            @id @default(cuid())
+  name                      String
+  slug                      String            @unique
+  whatsappPhoneNumber       String?
+  whatsappApiKey            String?
+  notificationEmail         String?
+  webhookUrl                String?
+  isActive                  Boolean           @default(true)
+  language                  String            @default("ENG")
+  createdAt                 DateTime          @default(now())
+  updatedAt                 DateTime          @updatedAt
+  isDelete                  Boolean           @default(false)
+  currency                  String            @default("EUR")
+  challengeStatus           Boolean           @default(false)
+  description               String?
+  messageLimit              Int               @default(50)
+  blocklist                 String?           @default("")
+  url                       String?
+  plan                      PlanType          @default(FREE)
+  welcomeMessages           Json?             @default("{\"en\": \"Welcome!\", \"es\": \"¡Bienvenido!\", \"it\": \"Benvenuto!\"}")
+  wipMessages               Json?             @default("{\"en\": \"Work in progress. Please contact us later.\", \"es\": \"Trabajos en curso. Por favor, contáctenos más tarde.\", \"it\": \"Lavori in corso. Contattaci più tardi.\", \"pt\": \"Em manutenção. Por favor, contacte-nos mais tarde.\"}")
+  afterRegistrationMessages Json?             @default("{\"de\": \"Registrierung erfolgreich abgeschlossen. Hallo [nome], wie kann ich Ihnen heute helfen?\", \"en\": \"Registration completed successfully. Hello [nome], how can I help you today?\", \"es\": \"Registro completado con éxito. Hola [nome], ¿en qué puedo ayudarte hoy?\", \"fr\": \"Enregistrement effectué avec succès. Bonjour [nome], en quoi puis-je vous aider aujourd'hui ?\", \"it\": \"Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?\", \"pt\": \"Registro concluído com sucesso. Olá [nome], em que posso ajudá-lo hoje?\"}")
+  prompts                   Prompts[]
+  carts                     Carts[]
+  categories                Categories[]
+  chatSessions              ChatSession[]
+  customers                 Customers[]
+  documents                 Documents[]
+  faqs                      FAQ[]
+  languages                 Languages[]
+  offers                    Offers[]
+  orders                    Orders[]
+  products                  Products[]
+  services                  Services[]
+
+  users                     UserWorkspace[]
+  whatsappSettings          WhatsappSettings?
 }
 
 model Categories {
-  id          String     @id @default(uuid())
-  name        String
-  description String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  isActive    Boolean    @default(true)
-  workspaceId String
-  slug        String
-  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
-  products    Products[]
-  offers      Offers[]   @relation("OfferCategory")
-  offerCategories Offers[] @relation("OfferCategories")
+  id              String     @id @default(uuid())
+  name            String
+  description     String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  isActive        Boolean    @default(true)
+  workspaceId     String
+  slug            String
+  workspace       Workspace  @relation(fields: [workspaceId], references: [id])
+  offers          Offers[]   @relation("OfferCategory")
+  products        Products[]
+  offerCategories Offers[]   @relation("OfferCategories")
 
   @@unique([slug, workspaceId])
   @@map("categories")
@@ -66,8 +67,8 @@ model Categories {
 
 model Languages {
   id          String    @id @default(uuid())
-  name        String    // e.g. 'Italiano', 'Español', 'English', 'Português'
-  code        String    // 'IT', 'ESP', 'ENG', 'PRT'
+  name        String
+  code        String
   isDefault   Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -90,44 +91,42 @@ model Products {
   isActive    Boolean       @default(true)
   workspaceId String
   categoryId  String?
-  supplierId  String?
   slug        String        @unique
   status      ProductStatus @default(ACTIVE)
   cartItems   CartItems[]
   orderItems  OrderItems[]
   category    Categories?   @relation(fields: [categoryId], references: [id])
-  supplier    Suppliers?    @relation(fields: [supplierId], references: [id])
   workspace   Workspace     @relation(fields: [workspaceId], references: [id])
 
   @@map("products")
 }
 
 model Customers {
-  id                         String        @id @default(uuid())
-  name                       String
-  email                      String
-  phone                      String?
-  address                    String?
-  company                    String?
-  discount                   Float?        @default(0)
-  language                   String?       @default("ENG")
-  currency                   String?       @default("EUR")
-  notes                      String?
-  serviceIds                 String[]      @default([])
-  isBlacklisted              Boolean       @default(false)
-  createdAt                  DateTime      @default(now())
-  updatedAt                  DateTime      @updatedAt
-  isActive                   Boolean       @default(true)
-  workspaceId                String
+  id                            String        @id @default(uuid())
+  name                          String
+  email                         String
+  phone                         String?
+  address                       String?
+  company                       String?
+  discount                      Float?        @default(0)
+  language                      String?       @default("ENG")
+  currency                      String?       @default("EUR")
+  notes                         String?
+  serviceIds                    String[]      @default([])
+  isBlacklisted                 Boolean       @default(false)
+  createdAt                     DateTime      @default(now())
+  updatedAt                     DateTime      @updatedAt
+  isActive                      Boolean       @default(true)
+  workspaceId                   String
   last_privacy_version_accepted String?
-  privacy_accepted_at        DateTime?
-  push_notifications_consent Boolean       @default(false)
+  privacy_accepted_at           DateTime?
+  push_notifications_consent    Boolean       @default(false)
   push_notifications_consent_at DateTime?
-  cart                       Carts?
-  chatSessions               ChatSession[]
-  workspace                  Workspace     @relation(fields: [workspaceId], references: [id])
-  orders                     Orders[]
-  activeChatbot              Boolean       @default(true)
+  activeChatbot                 Boolean       @default(true)
+  cart                          Carts?
+  chatSessions                  ChatSession[]
+  workspace                     Workspace     @relation(fields: [workspaceId], references: [id])
+  orders                        Orders[]
 
   @@map("customers")
 }
@@ -189,22 +188,22 @@ model CartItems {
 }
 
 model Prompts {
-  id            String    @id @default(uuid())
-  name          String
-  content       String    @db.Text
-  workspaceId   String
-  isRouter      Boolean   @default(false)
-  department    String?
-  temperature   Float?    @default(0.7)
-  top_p         Float?    @default(0.9)
-  top_k         Int?      @default(40)
-  model         String?   @default("GPT-4.1-mini")
-  max_tokens    Int?      @default(1000)
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  messages      Message[]
+  id          String    @id @default(uuid())
+  name        String
+  content     String
+  workspaceId String
+  isRouter    Boolean   @default(false)
+  department  String?
+  temperature Float?    @default(0.7)
+  top_p       Float?    @default(0.9)
+  top_k       Int?      @default(40)
+  model       String?   @default("GPT-4.1-mini")
+  max_tokens  Int?      @default(1000)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  isActive    Boolean   @default(true)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  messages    Message[]
 
   @@index([workspaceId])
 }
@@ -253,8 +252,8 @@ model WhatsappSettings {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   workspaceId String    @unique
+  gdpr        String?
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
-  gdpr        String?   @db.Text
 
   @@map("whatsapp_settings")
 }
@@ -335,22 +334,22 @@ model OtpToken {
 }
 
 model RegistrationToken {
-  id            String    @id @default(uuid())
-  token         String    @unique
-  phoneNumber   String
-  workspaceId   String
-  expiresAt     DateTime
-  usedAt        DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String    @id @default(uuid())
+  token       String    @unique
+  phoneNumber String
+  workspaceId String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@map("registration_tokens")
 }
 
 model Language {
   id        String   @id @default(cuid())
-  code      String   @unique // 'IT', 'ESP', 'ENG', 'PRT'
-  name      String   // 'Italiano', 'Español', 'English', 'Português'
+  code      String   @unique
+  name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -361,40 +360,20 @@ model Services {
   description String
   price       Float
   currency    String    @default("EUR")
-  duration    Int       @default(60)
   isActive    Boolean   @default(true)
   workspaceId String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  duration    Int       @default(60)
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   @@map("services")
 }
 
-model Events {
-  id          String    @id @default(cuid())
-  name        String
-  description String
-  startDate   DateTime
-  endDate     DateTime
-  location    String
-  price       Float
-  currency    String    @default("EUR")
-  isActive    Boolean   @default(true)
-  maxAttendees Int?
-  currentAttendees Int? @default(0)
-  workspaceId String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-
-  @@map("events")
-}
-
 model FAQ {
   id          String    @id @default(cuid())
   question    String
-  answer      String    @db.Text
+  answer      String
   isActive    Boolean   @default(true)
   workspaceId String
   createdAt   DateTime  @default(now())
@@ -405,44 +384,57 @@ model FAQ {
 }
 
 model Offers {
-  id              String      @id @default(cuid())
+  id              String       @id @default(cuid())
   name            String
   description     String?
   discountPercent Float
   startDate       DateTime
   endDate         DateTime
-  isActive        Boolean     @default(true)
+  isActive        Boolean      @default(true)
   categoryId      String?
   workspaceId     String
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  category        Categories? @relation("OfferCategory", fields: [categoryId], references: [id])
-  workspace       Workspace   @relation(fields: [workspaceId], references: [id])
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  category        Categories?  @relation("OfferCategory", fields: [categoryId], references: [id])
+  workspace       Workspace    @relation(fields: [workspaceId], references: [id])
   categories      Categories[] @relation("OfferCategories")
 
   @@map("offers")
 }
 
-model Suppliers {
-  id          String    @id @default(uuid())
-  name        String
-  description String?
-  address     String?
-  website     String?
-  phone       String?
-  email       String?
-  contactPerson String?
-  notes       String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  workspaceId String
-  slug        String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-  products    Products[]
+model Documents {
+  id           String           @id @default(uuid())
+  filename     String
+  originalName String
+  filePath     String
+  fileSize     Int
+  mimeType     String
+  status       DocumentStatus   @default(UPLOADED)
+  workspaceId  String
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  isActive     Boolean          @default(true)
+  chunks       DocumentChunks[]
+  workspace    Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  @@unique([slug, workspaceId])
-  @@map("suppliers")
+  @@index([workspaceId])
+  @@index([status])
+  @@index([isActive])
+  @@map("documents")
+}
+
+model DocumentChunks {
+  id         String    @id @default(uuid())
+  documentId String
+  content    String
+  chunkIndex Int
+  embedding  Json?
+  createdAt  DateTime  @default(now())
+  document   Documents @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([chunkIndex])
+  @@map("document_chunks")
 }
 
 enum UserStatus {
@@ -461,6 +453,13 @@ enum ProductStatus {
   INACTIVE
   DRAFT
   OUT_OF_STOCK
+}
+
+enum DocumentStatus {
+  UPLOADED
+  PROCESSING
+  PROCESSED
+  ERROR
 }
 
 enum OrderStatus {
@@ -504,4 +503,10 @@ enum UserRole {
   ADMIN
   OWNER
   MEMBER
+}
+
+enum PlanType {
+  FREE
+  BASIC
+  PROFESSIONAL
 }

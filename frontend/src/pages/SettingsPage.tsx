@@ -1,30 +1,30 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import { useWorkspace } from "@/hooks/use-workspace"
 import type { Language, Workspace } from "@/services/workspaceApi"
 import {
-  deleteWorkspace,
-  getCurrentWorkspace,
-  getLanguages,
-  updateWorkspace,
+    getCurrentWorkspace,
+    getLanguages,
+    updateWorkspace,
 } from "@/services/workspaceApi"
 import { Loader2, Save, Settings, Trash2, Video } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -40,6 +40,7 @@ const CURRENCY_OPTIONS = [
 
 export default function SettingsPage() {
   const navigate = useNavigate()
+  const { deleteWorkspace } = useWorkspace()
   const [isLoading, setIsLoading] = useState(false)
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [languages, setLanguages] = useState<Language[]>([])
@@ -247,10 +248,10 @@ export default function SettingsPage() {
   const handleDelete = async () => {
     setIsLoading(true)
     try {
-      await deleteWorkspace(workspace.id)
-      sessionStorage.removeItem("currentWorkspace")
+      deleteWorkspace(workspace.id)
+      // The useWorkspace hook will handle session cleanup and cache invalidation
       toast.success("Workspace deleted successfully", { duration: 1000 })
-      navigate("/auth/login")
+      navigate("/workspace-selection")
     } catch (error) {
       console.error("Error deleting workspace:", error)
       toast.error("Failed to delete workspace", { duration: 1000 })

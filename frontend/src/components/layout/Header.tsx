@@ -8,6 +8,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useWorkspace } from "@/hooks/use-workspace"
 import { useCurrentUser } from "@/hooks/useCurrentUser"
 import { api } from "@/services/api"
 import {
@@ -26,6 +27,7 @@ import { useNavigate } from "react-router-dom"
 
 export function Header() {
   const navigate = useNavigate()
+  const { workspace } = useWorkspace()
   const [phoneNumber, setPhoneNumber] = useState<string>("")
   const [workspaceType, setWorkspaceType] = useState<string>("")
   const [channelName, setChannelName] = useState<string>("")
@@ -34,10 +36,26 @@ export function Header() {
   const [userInitials, setUserInitials] = useState<string>("")
   const { data: userData, isLoading, isError } = useCurrentUser()
 
+  // Get plan display info
+  const getPlanDisplayInfo = (plan?: string) => {
+    switch (plan) {
+      case 'FREE':
+        return { label: 'FREE', color: 'bg-gray-50 text-gray-600 border-gray-300' }
+      case 'BASIC':
+        return { label: 'BASIC', color: 'bg-green-50 text-green-600 border-green-300' }
+      case 'PROFESSIONAL':
+        return { label: 'PRO', color: 'bg-purple-50 text-purple-600 border-purple-300' }
+      default:
+        return { label: 'FREE', color: 'bg-gray-50 text-gray-600 border-gray-300' }
+    }
+  }
+
+  const planInfo = getPlanDisplayInfo(workspace?.plan)
+
   useEffect(() => {
     // Recupera le informazioni del workspace dai sessionStorage
     const currentPhone =
-      sessionStorage.getItem("currentWorkspacePhone") || "+39 XXX XXX XXXX"
+      sessionStorage.getItem("currentWorkspacePhone") || "No phone configured"
     const currentType = sessionStorage.getItem("currentWorkspaceType") || "Shop"
     const currentChannel =
       sessionStorage.getItem("currentWorkspaceName") || "Shop"
@@ -136,8 +154,8 @@ export function Header() {
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-50 px-3 py-1 rounded text-blue-600 font-semibold text-xs whitespace-nowrap border border-blue-300">
-                  FREE
+                <div className={`absolute -bottom-4 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded font-semibold text-xs whitespace-nowrap border ${planInfo.color}`}>
+                  {planInfo.label}
                 </div>
               </Button>
             </DropdownMenuTrigger>

@@ -7,9 +7,9 @@ export function Breadcrumb() {
   const paths = location.pathname.split("/").filter(Boolean)
 
   const getBreadcrumbItems = () => {
-    if (paths.length === 0) return [{ label: "Dashboard", href: "/dashboard" }]
+      if (paths.length === 0) return [{ label: "Chat", href: "/chat" }]
 
-    const items = [{ label: "Dashboard", href: "/dashboard" }]
+  const items = [{ label: "Chat", href: "/chat" }]
 
     if (paths[0] === "settings") {
       items[0] = { label: "Settings", href: "/settings/users" }

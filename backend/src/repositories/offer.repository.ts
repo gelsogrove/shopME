@@ -18,14 +18,19 @@ export class OfferRepository implements IOfferRepository {
   async findAll(workspaceId: string): Promise<Offer[]> {
     const offers = await prisma.offers.findMany({
       where: { workspaceId },
-      include: { category: true }
+      include: { 
+        category: true,
+        categories: true
+      }
     });
     
     return offers.map(offer => {
       // Create a new object instead of modifying the prisma result directly
       const offerData: ExtendedOfferData = {
         ...offer,
-        categoryIds: offer.categoryId ? [offer.categoryId] : []
+        categoryIds: offer.categories.length > 0 
+          ? offer.categories.map(cat => cat.id)
+          : (offer.categoryId ? [offer.categoryId] : [])
       };
       
       return new Offer(offerData);
@@ -46,20 +51,28 @@ export class OfferRepository implements IOfferRepository {
     };
     
     if (categoryId) {
-      where.categoryId = categoryId;
+      where.OR = [
+        { categoryId: categoryId },
+        { categories: { some: { id: categoryId } } }
+      ];
     }
     
     try {
       const offers = await prisma.offers.findMany({
         where,
-        include: { category: true }
+        include: { 
+          category: true,
+          categories: true
+        }
       });
       
       return offers.map(offer => {
         // Create a new object instead of modifying the prisma result directly
         const offerData: ExtendedOfferData = {
           ...offer,
-          categoryIds: offer.categoryId ? [offer.categoryId] : []
+          categoryIds: offer.categories.length > 0 
+            ? offer.categories.map(cat => cat.id)
+            : (offer.categoryId ? [offer.categoryId] : [])
         };
         
         return new Offer(offerData);
@@ -84,7 +97,10 @@ export class OfferRepository implements IOfferRepository {
   async findById(id: string, workspaceId: string): Promise<Offer | null> {
     const offer = await prisma.offers.findFirst({
       where: { id, workspaceId },
-      include: { category: true }
+      include: { 
+        category: true,
+        categories: true
+      }
     });
     
     if (!offer) return null;
@@ -92,7 +108,9 @@ export class OfferRepository implements IOfferRepository {
     // Create a new object instead of modifying the prisma result directly
     const offerData: ExtendedOfferData = {
       ...offer,
-      categoryIds: offer.categoryId ? [offer.categoryId] : []
+      categoryIds: offer.categories.length > 0 
+        ? offer.categories.map(cat => cat.id)
+        : (offer.categoryId ? [offer.categoryId] : [])
     };
     
     return new Offer(offerData);
@@ -107,16 +125,42 @@ export class OfferRepository implements IOfferRepository {
       const { categoryIds, ...prismaData } = data;
       
       logger.debug("Creating offer in repository with data:", prismaData);
+      logger.debug("CategoryIds:", categoryIds);
+      
+      // Prepare the create data with category connections
+      const createData: any = {
+        ...prismaData,
+        include: { 
+          category: true,
+          categories: true
+        }
+      };
+      
+      // Handle category relationships
+      if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
+        // Use many-to-many relationship for multiple categories
+        createData.categories = {
+          connect: categoryIds.map(id => ({ id }))
+        };
+        
+        // Also set the first category as the primary category for backward compatibility
+        createData.categoryId = categoryIds[0];
+      }
       
       const offer = await prisma.offers.create({
-        data: prismaData,
-        include: { category: true }
+        data: createData,
+        include: { 
+          category: true,
+          categories: true
+        }
       });
       
       // Create a new object with both the prisma result and additional data
       const offerData: ExtendedOfferData = {
         ...offer,
-        categoryIds: categoryIds || (offer.categoryId ? [offer.categoryId] : [])
+        categoryIds: offer.categories.length > 0 
+          ? offer.categories.map(cat => cat.id)
+          : (offer.categoryId ? [offer.categoryId] : [])
       };
       
       logger.debug("Successfully created offer in repository:", offer);
@@ -139,12 +183,17 @@ export class OfferRepository implements IOfferRepository {
       const { createdAt, updatedAt, categoryIds, ...updateData } = data;
       
       logger.debug(`Processed update data (without categoryIds):`, updateData);
+      logger.debug(`CategoryIds to update:`, categoryIds);
       
       // Ensure the offer exists and belongs to the specified workspace
       const existingOffer = await prisma.offers.findFirst({
         where: { 
           id,
           workspaceId: updateData.workspaceId
+        },
+        include: { 
+          category: true,
+          categories: true
         }
       });
       
@@ -152,27 +201,43 @@ export class OfferRepository implements IOfferRepository {
         throw new Error(`Offer with ID ${id} not found in workspace ${updateData.workspaceId}`);
       }
 
-      // Process categoryId field from categoryIds
-      if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
-        updateData.categoryId = categoryIds[0];
-        logger.debug(`Setting categoryId to ${updateData.categoryId} from categoryIds`);
-      } else if (categoryIds && Array.isArray(categoryIds) && categoryIds.length === 0) {
-        // If empty array is provided, set to null
-        updateData.categoryId = null;
-        logger.debug(`Setting categoryId to null (empty categoryIds array)`);
+      // Handle category relationships
+      if (categoryIds !== undefined) {
+        if (categoryIds === null || (Array.isArray(categoryIds) && categoryIds.length === 0)) {
+          // Clear all category relationships
+          updateData.categoryId = null;
+          updateData.categories = {
+            set: [] // This will disconnect all categories
+          };
+          logger.debug(`Clearing all category relationships`);
+        } else if (Array.isArray(categoryIds) && categoryIds.length > 0) {
+          // Set new category relationships
+          updateData.categories = {
+            set: categoryIds.map(id => ({ id }))
+          };
+          
+          // Also set the first category as the primary category for backward compatibility
+          updateData.categoryId = categoryIds[0];
+          logger.debug(`Setting categories to ${categoryIds.join(', ')} and primary categoryId to ${updateData.categoryId}`);
+        }
       }
 
       try {
         const offer = await prisma.offers.update({
           where: { id },
           data: updateData,
-          include: { category: true }
+          include: { 
+            category: true,
+            categories: true
+          }
         });
         
         // Create a new object with both the prisma result and additional data
         const offerData: ExtendedOfferData = {
           ...offer,
-          categoryIds: categoryIds || (offer.categoryId ? [offer.categoryId] : [])
+          categoryIds: offer.categories.length > 0 
+            ? offer.categories.map(cat => cat.id)
+            : (offer.categoryId ? [offer.categoryId] : [])
         };
         
         logger.info(`Successfully updated offer with ID: ${id}`);
@@ -195,10 +260,9 @@ export class OfferRepository implements IOfferRepository {
       await prisma.offers.delete({
         where: { id }
       });
-      
       return true;
     } catch (error) {
-      logger.error(`Error deleting offer ${id}:`, error);
+      logger.error(`Error deleting offer with ID ${id}:`, error);
       return false;
     }
   }

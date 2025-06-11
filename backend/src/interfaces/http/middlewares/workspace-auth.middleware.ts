@@ -47,7 +47,7 @@ export const workspaceAuthMiddleware = (
                      req.user.workspaces.some(ws => ws.id === workspaceId);
     
     if (!hasAccess) {
-      logger.debug(`User ${req.user.userId} attempted to access unauthorized workspace ${workspaceId}`);
+      logger.debug(`User ${req.user.id} attempted to access unauthorized workspace ${workspaceId}`);
       throw new AppError(403, "You don't have access to this workspace");
     }
     

@@ -21,5 +21,8 @@ module.exports = {
     forceNodeFilesystemAPI: true,
     hasteMapModulePath: null,
     enableSymlinks: false, 
-  }
+  },
+  transformIgnorePatterns: [
+    'node_modules/(?!(@xenova/transformers)/)'
+  ]
 }; 

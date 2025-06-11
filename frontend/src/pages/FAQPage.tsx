@@ -7,10 +7,10 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { FAQ, faqApi } from "@/services/faqApi"
@@ -37,7 +37,7 @@ export function FAQPage() {
         setFaqs(data)
       } catch (error) {
         console.error("Error loading FAQs:", error)
-        toast.error("Impossibile caricare le FAQ")
+        toast.error("Failed to load FAQs")
       } finally {
         setIsLoading(false)
       }
@@ -55,10 +55,9 @@ export function FAQPage() {
   )
 
   const columns = [
-    { header: "ID", accessorKey: "id" as keyof FAQ, size: 100 },
-    { header: "Domanda", accessorKey: "question" as keyof FAQ, size: 300 },
+    { header: "Question", accessorKey: "question" as keyof FAQ, size: 300 },
     {
-      header: "Risposta",
+      header: "Answer",
       accessorKey: "answer" as keyof FAQ,
       size: 400,
       cell: ({ row }: { row: { original: FAQ } }) => {
@@ -89,7 +88,7 @@ export function FAQPage() {
       },
     },
     {
-      header: "Stato",
+      header: "Status",
       accessorKey: "isActive" as keyof FAQ,
       size: 100,
       cell: ({ row }: { row: { original: FAQ } }) => (
@@ -100,7 +99,7 @@ export function FAQPage() {
               : "bg-gray-100 text-gray-800"
           }`}
         >
-          {row.original.isActive ? "Enable" : "Disable"}
+          {row.original.isActive ? "Active" : "Inactive"}
         </span>
       ),
     },
@@ -123,10 +122,10 @@ export function FAQPage() {
       const newFAQ = await faqApi.createFAQ(workspace.id, data)
       setFaqs([...faqs, newFAQ])
       setShowAddSheet(false)
-      toast.success("FAQ creata con successo")
+      toast.success("FAQ created successfully")
     } catch (error) {
       console.error("Error creating FAQ:", error)
-      toast.error("Impossibile creare la FAQ")
+      toast.error("Failed to create FAQ")
     }
   }
 
@@ -157,10 +156,10 @@ export function FAQPage() {
       setFaqs(faqs.map((f) => (f.id === selectedFAQ.id ? updatedFAQ : f)))
       setShowEditSheet(false)
       setSelectedFAQ(null)
-      toast.success("FAQ aggiornata con successo")
+      toast.success("FAQ updated successfully")
     } catch (error) {
       console.error("Error updating FAQ:", error)
-      toast.error("Impossibile aggiornare la FAQ")
+      toast.error("Failed to update FAQ")
     }
   }
 
@@ -177,45 +176,45 @@ export function FAQPage() {
       setFaqs(faqs.filter((f) => f.id !== selectedFAQ.id))
       setShowDeleteDialog(false)
       setSelectedFAQ(null)
-      toast.success("FAQ eliminata con successo")
+      toast.success("FAQ deleted successfully")
     } catch (error) {
       console.error("Error deleting FAQ:", error)
-      toast.error("Impossibile eliminare la FAQ")
+      toast.error("Failed to delete FAQ")
     }
   }
 
   if (isLoadingWorkspace || isLoading) {
-    return <div>Caricamento in corso...</div>
+    return <div>Loading...</div>
   }
 
   if (!workspace?.id) {
-    return <div>Nessun workspace selezionato</div>
+    return <div>No workspace selected</div>
   }
 
   const renderFormFields = (faq: FAQ | null) => (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="question">Domanda</Label>
+        <Label htmlFor="question">Question</Label>
         <Input
           id="question"
           name="question"
-          placeholder="Inserisci la domanda"
+          placeholder="Enter question"
           defaultValue={faq?.question}
           required
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="answer">Risposta</Label>
+        <Label htmlFor="answer">Answer</Label>
         <Textarea
           id="answer"
           name="answer"
           className="min-h-[150px]"
-          placeholder="Inserisci la risposta dettagliata"
+          placeholder="Enter detailed answer"
           defaultValue={faq?.answer}
           required
         />
         <p className="text-xs text-gray-500">
-          Fornisci una risposta chiara e dettagliata alla domanda.
+          Provide a clear and detailed answer to the question.
         </p>
       </div>
       <div className="flex items-center space-x-2">
@@ -224,9 +223,9 @@ export function FAQPage() {
           name="isActive"
           defaultChecked={faq ? faq.isActive : true}
         />
-        <Label htmlFor="isActive">Attiva</Label>
+        <Label htmlFor="isActive">Active</Label>
         <p className="text-xs text-gray-500 ml-2">
-          Solo le FAQ attive saranno visibili ai clienti
+          Only active FAQs will be visible to customers
         </p>
       </div>
     </div>
@@ -239,8 +238,9 @@ export function FAQPage() {
         titleIcon={<HelpCircle className={commonStyles.headerIcon} />}
         searchValue={searchValue}
         onSearch={setSearchValue}
-        searchPlaceholder="Cerca nelle FAQ..."
+        searchPlaceholder="Search FAQs..."
         onAdd={() => setShowAddSheet(true)}
+        addButtonText="Add"
         data={filteredFAQs}
         columns={columns}
         onEdit={handleEdit}
@@ -251,8 +251,8 @@ export function FAQPage() {
       <FormSheet
         open={showAddSheet}
         onOpenChange={setShowAddSheet}
-        title="Aggiungi FAQ"
-        description="Aggiungi una nuova domanda frequente"
+        title="Add FAQ"
+        description="Add a new frequently asked question"
         onSubmit={handleAdd}
       >
         {renderFormFields(null)}
@@ -261,8 +261,8 @@ export function FAQPage() {
       <FormSheet
         open={showEditSheet}
         onOpenChange={setShowEditSheet}
-        title="Modifica FAQ"
-        description="Modifica questa domanda frequente"
+        title="Edit FAQ"
+        description="Edit this frequently asked question"
         onSubmit={handleEditSubmit}
       >
         {selectedFAQ && renderFormFields(selectedFAQ)}
@@ -271,8 +271,8 @@ export function FAQPage() {
       <ConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        title="Elimina FAQ"
-        description={`Sei sicuro di voler eliminare la FAQ "${selectedFAQ?.question}"? Questa azione non può essere annullata.`}
+        title="Delete FAQ"
+        description={`Are you sure you want to delete the FAQ "${selectedFAQ?.question}"? This action cannot be undone.`}
         onConfirm={handleDeleteConfirm}
       />
     </PageLayout>

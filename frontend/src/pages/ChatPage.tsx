@@ -1,7 +1,7 @@
 import { PageLayout } from "@/components/layout/PageLayout"
 import { ClientSheet } from "@/components/shared/ClientSheet"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
-import { getWorkspaceId } from "@/config/workspace.config"
+import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
 import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
@@ -97,6 +97,7 @@ const formatDate = (dateString: string | null | undefined): string => {
 }
 
 export function ChatPage() {
+  const { workspace, loading: isWorkspaceLoading } = useWorkspace()
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [messageInput, setMessageInput] = useState("")
@@ -194,8 +195,8 @@ export function ChatPage() {
     }
   }, [chats, selectedChat, sessionId, clientSearchTerm])
 
-  // Calculate the workspaceId from the current route
-  const workspaceId = getWorkspaceId()
+  // Get workspaceId from workspace hook
+  const workspaceId = workspace?.id
 
   // Fetch available languages
   const { data: availableLanguages = [] } = useQuery<Language[]>({

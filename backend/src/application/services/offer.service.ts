@@ -68,19 +68,10 @@ export class OfferService {
         throw new Error("Invalid offer data");
       }
       
-      // Handle categoryId field (from possible categoryIds in request)
-      const { categoryIds, ...offerData } = data;
-      
-      // If categoryIds is an array with elements, we set the first one as categoryId
-      if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
-        offerData.categoryId = categoryIds[0];
-        logger.debug(`Using category ID (${categoryIds[0]}) from request`);
-      }
-      
-      logger.debug("Creating offer with data:", offerData);
+      logger.debug("Creating offer with data:", data);
       
       try {
-        const result = await this.offerRepository.create(offerData);
+        const result = await this.offerRepository.create(data);
         logger.debug("Successfully created offer:", result);
         return result;
       } catch (createError) {
@@ -106,37 +97,21 @@ export class OfferService {
       
       logger.info(`Updating offer ${id} with data:`, JSON.stringify(data));
       
-      // Handle categoryId field
-      const { categoryIds, ...updateData } = data;
-      
-      // If categoryIds is null, we set categoryId to null
-      // If categoryIds is an array with elements, we set the first one as categoryId
-      if (categoryIds === null) {
-        updateData.categoryId = null;
-        logger.debug(`Setting categoryId to null (categoryIds is null)`);
-      } else if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
-        updateData.categoryId = categoryIds[0];
-        logger.debug(`Setting categoryId to ${updateData.categoryId} from categoryIds[0]`);
-      } else if (categoryIds && Array.isArray(categoryIds) && categoryIds.length === 0) {
-        updateData.categoryId = null;
-        logger.debug(`Setting categoryId to null (empty categoryIds array)`);
-      }
-      
       // Create merged offer for validation
       const offerToUpdate = new Offer({
         ...existingOffer,
-        ...updateData
+        ...data
       });
       
       if (!offerToUpdate.validate()) {
-        logger.error(`Invalid offer data for update:`, updateData);
+        logger.error(`Invalid offer data for update:`, data);
         throw new Error("Invalid offer data");
       }
       
-      logger.debug(`Final update data being sent to repository:`, JSON.stringify(updateData));
+      logger.debug(`Final update data being sent to repository:`, JSON.stringify(data));
       
       try {
-        const result = await this.offerRepository.update(id, updateData);
+        const result = await this.offerRepository.update(id, data);
         logger.info(`Successfully updated offer ${id}`);
         return result;
       } catch (repoError) {

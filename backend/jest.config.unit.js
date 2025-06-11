@@ -26,4 +26,13 @@ module.exports = {
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   verbose: true,
+  transformIgnorePatterns: [
+    'node_modules/(?!(@xenova/transformers)/)'
+  ],
+  extensionsToTreatAsEsm: ['.ts'],
+  globals: {
+    'ts-jest': {
+      useESM: true
+    }
+  },
 }; 

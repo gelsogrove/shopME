@@ -1,7 +1,8 @@
 import { UserRole } from '@prisma/client';
-import { Request as ExpressRequest, NextFunction, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
+// Types are automatically loaded by TypeScript
 
 // Define our payload type to match what's generated in auth.controller.ts
 interface JwtPayload {
@@ -13,12 +14,6 @@ interface JwtPayload {
     id: string;
     role: UserRole;
   }>;
-}
-
-// Extend the Express Request type
-interface Request extends ExpressRequest {
-  user?: JwtPayload;
-  workspaceId?: string;
 }
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void | Response> => {
@@ -89,7 +84,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     
     // Store the workspaceId if present
     if (workspaceId) {
-      req.workspaceId = workspaceId;
+      (req as any).workspaceId = workspaceId;
     }
     
     // TODO: Implement workspace access verification if needed

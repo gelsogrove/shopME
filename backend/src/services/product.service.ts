@@ -5,7 +5,7 @@ export class ProductService {
   async getAllProducts(workspaceId?: string, options?: {
     search?: string;
     categoryId?: string;
-    supplierId?: string;
+  
     status?: string;
     page?: number;
     limit?: number;
@@ -32,9 +32,7 @@ export class ProductService {
     }
 
     // Aggiungiamo il filtro per fornitore, se presente
-    if (options?.supplierId) {
-      where.supplierId = options.supplierId;
-    }
+
 
     // Gestiamo lo status in maniera semplificata
     if (options?.status) {
@@ -97,8 +95,7 @@ export class ProductService {
       const products = await prisma.products.findMany({
         where,
         include: {
-          category: true,
-          supplier: true
+          category: true
         },
         orderBy: {
           updatedAt: 'desc'
@@ -136,8 +133,7 @@ export class ProductService {
       const product = await prisma.products.findFirst({
         where,
         include: {
-          category: true,
-          supplier: true
+          category: true
         }
       });
       

@@ -51,10 +51,7 @@ export class ProductRepository implements IProductRepository {
         where.categoryId = filters.categoryId;
       }
 
-      // Aggiungiamo il filtro per fornitore, se presente
-      if (filters?.supplierId) {
-        where.supplierId = filters.supplierId;
-      }
+
 
       // Gestiamo lo status in maniera semplificata
       if (filters?.status) {
@@ -97,8 +94,7 @@ export class ProductRepository implements IProductRepository {
       const productsData = await this.prisma.products.findMany({
         where,
         include: {
-          category: true,
-          supplier: true
+          category: true
         },
         orderBy: {
           updatedAt: 'desc'
@@ -136,7 +132,7 @@ export class ProductRepository implements IProductRepository {
         },
         include: {
           category: true,
-          supplier: true
+          
         }
       });
 
@@ -157,7 +153,7 @@ export class ProductRepository implements IProductRepository {
         },
         include: {
           category: true,
-          supplier: true
+          
         },
         orderBy: {
           updatedAt: 'desc'
@@ -183,12 +179,11 @@ export class ProductRepository implements IProductRepository {
           isActive: product.isActive,
           slug: product.slug,
           categoryId: product.categoryId,
-          supplierId: product.supplierId,
           workspaceId: product.workspaceId
         },
         include: {
           category: true,
-          supplier: true
+          
         }
       });
 
@@ -214,12 +209,11 @@ export class ProductRepository implements IProductRepository {
           status: product.status as ProductStatus,
           isActive: product.isActive,
           slug: product.slug,
-          categoryId: product.categoryId,
-          supplierId: product.supplierId
+          categoryId: product.categoryId
         },
         include: {
           category: true,
-          supplier: true
+          
         }
       });
 
@@ -256,7 +250,7 @@ export class ProductRepository implements IProductRepository {
         },
         include: {
           category: true,
-          supplier: true
+          
         }
       });
 
@@ -279,7 +273,7 @@ export class ProductRepository implements IProductRepository {
         },
         include: {
           category: true,
-          supplier: true
+          
         }
       });
 
@@ -300,7 +294,7 @@ export class ProductRepository implements IProductRepository {
         },
         include: {
           category: true,
-          supplier: true
+          
         }
       });
 
@@ -332,12 +326,10 @@ export class ProductRepository implements IProductRepository {
       isActive: data.isActive,
       slug: data.slug,
       categoryId: data.categoryId,
-      supplierId: data.supplierId,
       workspaceId: data.workspaceId,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
-      category: data.category,
-      supplier: data.supplier
+      category: data.category
     });
   }
 }

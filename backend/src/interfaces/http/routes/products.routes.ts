@@ -39,9 +39,7 @@ import { authMiddleware } from '../middlewares/auth.middleware';
  *         categoryId:
  *           type: string
  *           description: The ID of the product's category
- *         supplierId:
- *           type: string
- *           description: The ID of the product's supplier
+
  *         workspaceId:
  *           type: string
  *           description: The ID of the workspace this product belongs to
@@ -111,11 +109,7 @@ export default function setupProductRoutes(): Router {
    *         schema:
    *           type: string
    *         description: Filter by category ID
-   *       - in: query
-   *         name: supplierId
-   *         schema:
-   *           type: string
-   *         description: Filter by supplier ID
+   
    *       - in: query
    *         name: status
    *         schema:

@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { MessageRepository } from "../../repositories/message.repository"
+import { documentService } from "../../services/documentService"
 import logger from "../../utils/logger"
 import { TokenService } from "./token.service"
 
@@ -130,6 +131,12 @@ export class FunctionHandlerService {
             data: await this.getFaqInfo(params.question, workspaceId),
           }
 
+        case "search_documents":
+          return {
+            functionName,
+            data: await this.searchDocuments(params.query, workspaceId),
+          }
+
         case "get_generic_response":
           return {
             functionName,
@@ -224,35 +231,9 @@ export class FunctionHandlerService {
       const endOfDay = new Date(date)
       endOfDay.setHours(23, 59, 59, 999)
 
-      const events = await this.prisma.events.findMany({
-        where: {
-          workspaceId,
-          isActive: true,
-          startDate: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
-        },
-      })
-
-      if (!events || events.length === 0) {
-        return []
-      }
-
-      return events.map((event) => ({
-        nome: event.name,
-        data: event.startDate.toISOString().split("T")[0],
-        ora: event.startDate.toLocaleTimeString("it-IT", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        luogo: event.location,
-        posti_disponibili: event.maxAttendees
-          ? event.maxAttendees - (event.currentAttendees || 0)
-          : null,
-        prezzo: event.price,
-        descrizione: event.description,
-      }))
+      // Events functionality has been removed from the system
+      logger.info("Events functionality has been removed from the system");
+      return [];
     } catch (error) {
       logger.error("Error fetching events:", error)
       return []
@@ -881,6 +862,59 @@ export class FunctionHandlerService {
     } catch (error) {
       logger.error("Error fetching FAQ info:", error)
       return null
+    }
+  }
+
+  /**
+   * Cerca informazioni nei documenti caricati usando similarità semantica
+   */
+  private async searchDocuments(
+    query: string,
+    workspaceId: string
+  ): Promise<any> {
+    try {
+      logger.info(`Searching documents for query: "${query}" in workspace: ${workspaceId}`)
+
+      if (!query || query.trim().length === 0) {
+        return {
+          error: "Search query cannot be empty",
+          results: []
+        }
+      }
+
+      // Use the document service to search
+      const searchResults = await documentService.searchDocuments(query, workspaceId, 5)
+
+      if (!searchResults || searchResults.length === 0) {
+        return {
+          message: "No relevant information found in the uploaded documents",
+          query: query,
+          results: []
+        }
+      }
+
+      // Format results for the agent
+      const formattedResults = searchResults.map(result => ({
+        content: result.content,
+        document_name: result.documentName,
+        similarity_score: Math.round(result.similarity * 100) / 100, // Round to 2 decimal places
+        source: `Document: ${result.documentName}`
+      }))
+
+      return {
+        query: query,
+        found_results: formattedResults.length,
+        results: formattedResults,
+        message: `Found ${formattedResults.length} relevant sections in the documents`
+      }
+
+    } catch (error) {
+      logger.error(`Error searching documents:`, error)
+      return {
+        error: "Failed to search documents",
+        message: "There was an error searching through the documents. Please try again later.",
+        results: []
+      }
     }
   }
 

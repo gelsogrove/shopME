@@ -17,6 +17,7 @@ export interface Workspace {
   updatedAt: string
   currency?: string
   language?: string
+  plan?: 'FREE' | 'BASIC' | 'PROFESSIONAL'
   stats?: {
     products: number
     orders: number
@@ -134,6 +135,32 @@ export function useWorkspace() {
     }
   })
 
+  // Delete workspace mutation
+  const deleteWorkspaceMutation = useMutation({
+    mutationFn: async (workspaceId: string) => {
+      const response = await api.delete(`/workspaces/${workspaceId}`)
+      return response.data
+    },
+    onSuccess: () => {
+      // Clear current workspace if it was deleted
+      sessionStorage.removeItem("currentWorkspace")
+      setWorkspace(null)
+      // Invalidate workspaces cache to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['workspaces'] })
+      toast({
+        title: "Success",
+        description: "Workspace deleted successfully",
+      })
+    },
+    onError: (err: any) => {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to delete workspace",
+        variant: "destructive",
+      })
+    }
+  })
+
   // Add function to set current workspace
   const setCurrentWorkspace = (newWorkspace: Workspace) => {
     console.log("Setting current workspace:", newWorkspace)
@@ -164,6 +191,7 @@ export function useWorkspace() {
     servicesLoading,
     fetchWorkspace: () => queryClient.invalidateQueries({ queryKey: ['workspaces'] }),
     updateWorkspace: updateWorkspaceMutation.mutate,
+    deleteWorkspace: deleteWorkspaceMutation.mutate,
     getWorkspaceServices: () => queryClient.invalidateQueries({ queryKey: ['services', workspace?.id] }),
     setCurrentWorkspace,
   }

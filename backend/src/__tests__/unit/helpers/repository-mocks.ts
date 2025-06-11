@@ -50,9 +50,7 @@ export function setupRepositoryMocks() {
     FaqRepository: mockRepository()
   }));
 
-  jest.mock('../../repositories/supplier.repository', () => ({
-    SupplierRepository: mockRepository()
-  }));
+  
 
   jest.mock('../../repositories/workspace.repository', () => ({
     WorkspaceRepository: mockRepository()

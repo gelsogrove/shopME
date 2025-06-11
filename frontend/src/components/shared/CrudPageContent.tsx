@@ -11,6 +11,7 @@ interface CrudPageContentProps<T> {
   searchPlaceholder?: string
   onAdd?: () => void
   addButtonText?: string
+  extraButtons?: ReactNode
   data: T[]
   columns: ColumnDef<T>[]
   onEdit?: (item: T) => void
@@ -31,6 +32,7 @@ export function CrudPageContent<T>({
   searchPlaceholder,
   onAdd,
   addButtonText,
+  extraButtons,
   data,
   columns,
   onEdit,
@@ -54,6 +56,7 @@ export function CrudPageContent<T>({
         searchPlaceholder={searchPlaceholder}
         onAdd={onAdd}
         addButtonText={addButtonText}
+        extraButtons={extraButtons}
         itemCount={data.length}
       />
 

@@ -15,17 +15,26 @@ export class AgentController {
    */
   getAllForWorkspace = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      console.log('=== AGENT CONTROLLER getAllForWorkspace ===');
+      console.log('req.params:', req.params);
+      console.log('req.params.workspaceId:', req.params.workspaceId);
+      console.log('req.user:', req.user ? { userId: (req.user as any).userId } : null);
+      
       // Get workspaceId from params or headers
       let workspaceId = req.params.workspaceId;
+      console.log('Initial workspaceId from params:', workspaceId);
       
       // If not in params, try to determine from user context
       workspaceId = this.agentService.getWorkspaceId(workspaceId, req.user);
+      console.log('Final workspaceId after getWorkspaceId:', workspaceId);
       
       logger.info(`Getting all agents for workspace ${workspaceId}`);
       
       const agents = await this.agentService.getAllForWorkspace(workspaceId);
+      console.log('=== AGENT CONTROLLER SUCCESS ===');
       return res.json(agents);
     } catch (error) {
+      console.log('=== AGENT CONTROLLER ERROR ===', error);
       logger.error('Error fetching agents:', error);
       return next(error);
     }

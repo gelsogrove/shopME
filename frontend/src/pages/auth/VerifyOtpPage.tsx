@@ -83,8 +83,8 @@ export default function VerifyOtpPage() {
         description: "OTP verified successfully.",
       })
 
-      // Redirect to dashboard
-      navigate("/dashboard")
+              // Redirect to chat
+        navigate("/chat")
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {

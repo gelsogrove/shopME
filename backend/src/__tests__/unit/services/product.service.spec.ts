@@ -2,7 +2,7 @@ import { ProductStatus } from '@prisma/client';
 import { ProductService } from '../../../application/services/product.service';
 import { Category } from '../../../domain/entities/category.entity';
 import { Product } from '../../../domain/entities/product.entity';
-import { Supplier } from '../../../domain/entities/supplier.entity';
+
 import { PaginatedProducts } from '../../../domain/repositories/product.repository.interface';
 import { ProductRepository } from '../../../repositories/product.repository';
 
@@ -112,7 +112,6 @@ describe('ProductService', () => {
 
   const workspaceId = 'workspace-1';
   const categoryId = 'category-1';
-  const supplierId = 'supplier-1';
   const productId = 'product-1';
 
   // Creiamo un mock di Category che implementa i metodi richiesti
@@ -127,23 +126,7 @@ describe('ProductService', () => {
     updatedAt: new Date()
   });
 
-  // Creiamo un'istanza vera di Supplier anziché un mock
-  const mockSupplier = new Supplier({
-    id: supplierId,
-    name: 'Test Supplier',
-    description: 'Test Supplier Description',
-    address: 'Test Address',
-    website: 'http://testsupplier.com',
-    phone: '1234567890',
-    email: 'supplier@test.com',
-    contactPerson: 'John Doe',
-    notes: 'Test Notes',
-    isActive: true,
-    slug: 'test-supplier',
-    workspaceId: workspaceId,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  });
+
 
   // Create a properly typed Product for testing
   const mockProduct = new Product({
@@ -156,12 +139,10 @@ describe('ProductService', () => {
     isActive: true,
     slug: 'test-product',
     categoryId: categoryId,
-    supplierId: supplierId,
     workspaceId: workspaceId,
     createdAt: new Date(),
     updatedAt: new Date(),
-    category: mockCategory,
-    supplier: mockSupplier
+    category: mockCategory
   });
 
   // Create a mock for PaginatedProducts response
@@ -342,7 +323,7 @@ describe('ProductService', () => {
         isActive: true,
         workspaceId: workspaceId,
         categoryId: categoryId,
-        supplierId: supplierId,
+
         slug: 'test-product',
         status: ProductStatus.ACTIVE,
         image: 'product.jpg'

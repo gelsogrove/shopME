@@ -1,9 +1,13 @@
 // @ts-nocheck - Ignora errori di tipo in questo file
+import { PrismaClient } from "@prisma/client"
 import { NextFunction, Request, Response } from "express"
 import jwt from "jsonwebtoken"
 import { config } from "../../../config"
 import logger from "../../../utils/logger"
 import { AppError } from "../middlewares/error.middleware"
+import { asyncHandler } from "./async.middleware"
+
+const prisma = new PrismaClient()
 
 interface JwtPayload {
   id?: string     // Per token nuovi
@@ -31,12 +35,16 @@ const isIntegrationTest = process.env.INTEGRATION_TEST === 'true';
 /**
  * Middleware di autenticazione che verifica la presenza e validità del token JWT
  */
-export const authMiddleware = (
+const authMiddlewareAsync = async (
   req: Request,
   _res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   try {
+    console.log('=== AUTH MIDDLEWARE START ===');
+    console.log('Request URL:', req.originalUrl);
+    console.log('Request method:', req.method);
+    
     // In ambiente di test, verifichiamo la presenza di header speciali
     if (isTestEnvironment && isIntegrationTest) {
       // Headers speciali per i test
@@ -73,15 +81,15 @@ export const authMiddleware = (
     
     // Fallback to Authorization header for backward compatibility
     if (!token) {
-      logger.debug("No token in cookies, checking headers");
+      console.log("No token in cookies, checking headers");
       const authHeader = req.headers.authorization;
       if (!authHeader) {
-        logger.debug("No authorization header");
+        console.log("No authorization header");
         throw new AppError(401, "Authentication required");
       }
       
       if (!authHeader.startsWith("Bearer ")) {
-        logger.debug("Authorization header doesn't start with 'Bearer '");
+        console.log("Authorization header doesn't start with 'Bearer '");
         throw new AppError(401, "Invalid authorization format");
       }
       
@@ -89,23 +97,24 @@ export const authMiddleware = (
       
       // Check if token is empty after 'Bearer '
       if (!token || token.trim() === '') {
-        logger.debug("Empty token in authorization header");
+        console.log("Empty token in authorization header");
         throw new AppError(401, "Empty authorization token");
       }
     }
     
     if (!token) {
-      logger.debug("No token found in cookies or headers");
+      console.log("No token found in cookies or headers");
       throw new AppError(401, "Authentication required");
     }
     
     try {
-      logger.debug(`Verifying token: ${token.substring(0, 10)}...`);
+      console.log(`Verifying token: ${token.substring(0, 10)}...`);
       const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload;
+      console.log('Token decoded successfully:', { userId: decoded.userId, email: decoded.email });
       
       // Make sure we have a userId
       if (!decoded.userId && !decoded.id) {
-        logger.debug("Token doesn't have userId or id field");
+        console.log("Token doesn't have userId or id field");
         throw new AppError(401, "Invalid token format");
       }
       
@@ -113,18 +122,70 @@ export const authMiddleware = (
       if (!decoded.userId && decoded.id) {
         decoded.userId = decoded.id;
       }
+
+      // Verify user exists in database and load workspaces
+      try {
+        // First check if user exists
+        const user = await prisma.user.findUnique({
+          where: { id: decoded.userId },
+          select: { id: true, email: true }
+        });
+
+        if (!user) {
+          console.log(`User ${decoded.userId} not found in database`);
+          throw new AppError(401, "User not found");
+        }
+
+        console.log('User found in database:', user.email);
+
+        // Load user workspaces
+        const userWorkspaces = await prisma.userWorkspace.findMany({
+          where: { userId: decoded.userId },
+          include: {
+            workspace: {
+              select: {
+                id: true,
+                name: true,
+                slug: true
+              }
+            }
+          }
+        });
+
+        console.log(`Loaded ${userWorkspaces.length} workspaces for user`);
+
+        // Add workspaces to user object
+        decoded.workspaces = userWorkspaces.map(uw => ({
+          id: uw.workspace.id,
+          name: uw.workspace.name,
+          slug: uw.workspace.slug,
+          role: uw.role
+        }));
+
+        logger.debug(`Loaded ${userWorkspaces.length} workspaces for user ${decoded.userId}`);
+      } catch (dbError) {
+        logger.error('Error loading user or workspaces:', dbError);
+        if (dbError instanceof AppError) {
+          throw dbError;
+        }
+        throw new AppError(401, "Database error during authentication");
+      }
       
       req.user = decoded;
+      console.log('=== AUTH MIDDLEWARE SUCCESS ===');
       return next();
     } catch (error) {
-      logger.debug("Token verification failed");
+      console.log("Token verification failed:", error.message);
       throw new AppError(401, "Invalid token");
     }
   } catch (error) {
-    logger.error("Auth middleware error:", error);
+    console.log("Auth middleware error:", error.message);
     if (error instanceof AppError) {
       throw error;
     }
     throw new AppError(401, "Authentication failed");
   }
 }
+
+// Export the wrapped middleware
+export const authMiddleware = asyncHandler(authMiddlewareAsync);

@@ -10,9 +10,10 @@ import SignupPage from "./pages/auth/SignupPage"
 import { ChatPage } from "./pages/ChatPage"
 import ClientsPage from "./pages/ClientsPage"
 import CustomersPage from "./pages/CustomersPage"
-import DashboardPage from "./pages/DashboardPage"
+
 import DataProtectionPage from "./pages/data-protection"
-import { EventsPage } from "./pages/EventsPage"
+import DocumentsPage from "./pages/DocumentsPage"
+
 import { FAQPage } from "./pages/FAQPage"
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage"
 import { LoginPage } from "./pages/LoginPage"
@@ -32,7 +33,7 @@ import { CategoriesPage as SettingsCategoriesPage } from "./pages/settings/Categ
 import { ChannelTypesPage } from "./pages/settings/ChannelTypesPage"
 import { LanguagesPage } from "./pages/settings/LanguagesPage"
 import { ProductsPage as SettingsProductsPage } from "./pages/settings/ProductsPage"
-import { SuppliersPage } from "./pages/SuppliersPage"
+
 import SurveysPage from "./pages/SurveysPage"
 import { VerifyOtpPage } from "./pages/VerifyOtpPage"
 import { WorkspacePage } from "./pages/WorkspacePage"
@@ -63,14 +64,11 @@ export function App() {
           />
 
           {/* Layout con sidebar */}
-          <Route path="/dashboard" element={<Layout />}>
-            <Route index element={<DashboardPage />} />
+          <Route path="/chat" element={<Layout />}>
+            <Route index element={<ChatPage />} />
           </Route>
           <Route path="/analytics" element={<Layout />}>
             <Route index element={<AnalyticsPage />} />
-          </Route>
-          <Route path="/chat" element={<Layout />}>
-            <Route index element={<ChatPage />} />
           </Route>
           <Route path="/agent" element={<Layout />}>
             <Route index element={<AgentPage />} />
@@ -84,24 +82,23 @@ export function App() {
           <Route path="/orders" element={<Layout />}>
             <Route index element={<OrdersPage />} />
           </Route>
+          <Route path="/documents" element={<Layout />}>
+            <Route index element={<DocumentsPage />} />
+          </Route>
           <Route path="/products" element={<Layout />}>
             <Route index element={<ProductsPage />} />
           </Route>
           <Route path="/categories" element={<Layout />}>
             <Route index element={<CategoriesPage />} />
           </Route>
-          <Route path="/suppliers" element={<Layout />}>
-            <Route index element={<SuppliersPage />} />
-          </Route>
+
           <Route path="/services" element={<Layout />}>
             <Route index element={<ServicesPage />} />
           </Route>
           <Route path="/faq" element={<Layout />}>
             <Route index element={<FAQPage />} />
           </Route>
-          <Route path="/events" element={<Layout />}>
-            <Route index element={<EventsPage />} />
-          </Route>
+          
           <Route path="/surveys" element={<Layout />}>
             <Route index element={<SurveysPage />} />
           </Route>
@@ -134,8 +131,11 @@ export function App() {
           </Route>
         </Route>
 
-        {/* Redirect root to login */}
+        {/* Root redirect to login */}
         <Route path="/" element={<Navigate to="/auth/login" replace />} />
+        
+        {/* Legacy login redirect */}
+        <Route path="/login" element={<Navigate to="/auth/login" replace />} />
 
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/registration-success" element={<RegistrationSuccess />} />

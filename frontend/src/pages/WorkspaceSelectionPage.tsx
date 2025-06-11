@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom"
 import { createWorkspace, getWorkspaces, updateWorkspace } from "../services/workspaceApi"
 
 // Definizione dei tipi di attività supportati
-type BusinessType = "Shop" | "Hotel" | "Event" | "Restaurant"
+type BusinessType = "Shop" | "Hotel" | "Restaurant"
 
 export function WorkspaceSelectionPage() {
   const navigate = useNavigate()
@@ -243,7 +243,7 @@ export function WorkspaceSelectionPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <Button
                   type="button"
                   variant={selectedType === "Shop" ? "default" : "outline"}
@@ -263,14 +263,6 @@ export function WorkspaceSelectionPage() {
                   disabled
                 >
                   Hotel
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-24 text-lg opacity-50 cursor-not-allowed"
-                  disabled
-                >
-                  Events
                 </Button>
                 <Button
                   type="button"

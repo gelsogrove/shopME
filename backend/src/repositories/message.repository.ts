@@ -875,13 +875,9 @@ export class MessageRepository {
    */
   async getEvents(workspaceId?: string) {
     try {
-      const events = await this.prisma.events.findMany({
-        where: workspaceId ? { workspaceId } : {},
-        orderBy: {
-          startDate: "asc",
-        },
-      })
-      return events
+      // Events functionality has been removed from the system
+      logger.info("Events functionality has been removed from the system");
+      return [];
     } catch (error) {
       logger.error("Error getting events:", error)
       return []

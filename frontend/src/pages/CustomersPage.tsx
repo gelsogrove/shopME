@@ -1,7 +1,10 @@
+import { useWorkspace } from "@/hooks/use-workspace"
+import { clientsApi, type Client } from "@/services/clientsApi"
 import { commonStyles } from "@/styles/common"
-import { MessageSquare, Pencil, Plus, Search, Trash2, Users } from "lucide-react"
-import { useState } from "react"
+import { MessageSquare, Pencil, Trash2, Users } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 import { PageHeader } from "../components/shared/PageHeader"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
@@ -9,14 +12,15 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "../components/ui/table"
 
+// Map Client interface to Customer interface for compatibility
 interface Customer {
   id: string
   name: string
@@ -30,55 +34,30 @@ interface Customer {
   pushNotificationsConsent: boolean
   activeChatbot: boolean
   discount: number
+  company?: string
 }
 
-const mockCustomers: Customer[] = [
-  {
-    id: "1",
-    name: "John Doe",
-    phone: "+39123456789",
-    email: "john.doe@example.com",
-    totalOrders: 15,
-    totalSpent: 1250.5,
-    lastActive: "2024-04-01T10:30:00",
-    status: "active",
-    gdprConsent: true,
-    pushNotificationsConsent: true,
-    activeChatbot: true,
-    discount: 0,
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    phone: "+39987654321",
-    email: "jane.smith@example.com",
-    totalOrders: 8,
-    totalSpent: 750.25,
-    lastActive: "2024-03-30T15:45:00",
-    status: "active",
-    gdprConsent: true,
-    pushNotificationsConsent: true,
-    activeChatbot: true,
-    discount: 0,
-  },
-  {
-    id: "3",
-    name: "Mike Johnson",
-    phone: "+39456789123",
-    email: "mike.johnson@example.com",
-    totalOrders: 3,
-    totalSpent: 250.75,
-    lastActive: "2024-03-15T09:20:00",
-    status: "inactive",
-    gdprConsent: false,
-    pushNotificationsConsent: false,
-    activeChatbot: false,
-    discount: 0,
-  },
-]
+// Convert Client to Customer format
+const clientToCustomer = (client: Client): Customer => ({
+  id: client.id,
+  name: client.name,
+  phone: client.phone,
+  email: client.email,
+  totalOrders: 0, // This would come from orders API
+  totalSpent: 0, // This would come from orders API
+  lastActive: client.updatedAt,
+  status: "active", // Assuming all clients are active
+  gdprConsent: true, // Assuming GDPR consent for existing clients
+  pushNotificationsConsent: false, // Default value
+  activeChatbot: client.activeChatbot || false,
+  discount: client.discount,
+  company: client.company,
+})
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<Customer[]>(mockCustomers)
+  const { workspace, loading: isWorkspaceLoading } = useWorkspace()
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [searchValue, setSearchValue] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all")
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
@@ -93,8 +72,30 @@ export default function CustomersPage() {
     pushNotificationsConsent: false,
     activeChatbot: true,
     discount: 0,
+    company: "",
   })
   const navigate = useNavigate()
+
+  // Load customers when workspace changes
+  useEffect(() => {
+    const loadCustomers = async () => {
+      if (!workspace?.id) return
+
+      setIsLoading(true)
+      try {
+        const response = await clientsApi.getAllForWorkspace(workspace.id)
+        const customersData = response.clients.map(clientToCustomer)
+        setCustomers(customersData)
+      } catch (error) {
+        console.error("Failed to load customers:", error)
+        toast.error("Failed to load customers")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadCustomers()
+  }, [workspace?.id])
 
   const filteredCustomers = customers.filter((customer) => {
     const matchesSearch =
@@ -120,6 +121,7 @@ export default function CustomersPage() {
         pushNotificationsConsent: customer.pushNotificationsConsent,
         activeChatbot: customer.activeChatbot,
         discount: customer.discount ?? 0,
+        company: customer.company || "",
       })
     }
     setShowEditDialog(true)
@@ -136,6 +138,7 @@ export default function CustomersPage() {
       pushNotificationsConsent: false,
       activeChatbot: true,
       discount: 0,
+      company: "",
     })
     setShowEditDialog(true)
   }
@@ -155,33 +158,57 @@ export default function CustomersPage() {
     }
   }
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!workspace?.id) return
     if (!formState.name || !formState.email || !formState.phone || formState.discount === undefined || formState.discount === null) return
     if (formState.discount < 0) return
-    if (selectedCustomerId) {
-      // Edit
-      setCustomers((prev) =>
-        prev.map((c) =>
-          c.id === selectedCustomerId
-            ? { ...c, ...formState, id: selectedCustomerId }
-            : c
-        )
-      )
-    } else {
-      // New
-      setCustomers((prev) => [
-        ...prev,
-        {
-          ...formState,
-          id: (Math.random() * 100000).toFixed(0),
-          totalOrders: 0,
-          totalSpent: 0,
-          lastActive: new Date().toISOString(),
-        },
-      ])
+
+    try {
+      if (selectedCustomerId) {
+        // Edit existing customer
+        const clientData = {
+          name: formState.name,
+          email: formState.email,
+          phone: formState.phone,
+          company: formState.company || "",
+          discount: formState.discount,
+          language: "en", // Default language
+        }
+        
+        const updatedClient = await clientsApi.update(selectedCustomerId, clientData, workspace.id)
+        if (updatedClient) {
+          const updatedCustomer = clientToCustomer(updatedClient)
+          setCustomers((prev) =>
+            prev.map((c) =>
+              c.id === selectedCustomerId ? updatedCustomer : c
+            )
+          )
+          toast.success("Customer updated successfully")
+        }
+      } else {
+        // Create new customer
+        const clientData = {
+          name: formState.name,
+          email: formState.email,
+          phone: formState.phone,
+          company: formState.company || "",
+          discount: formState.discount,
+          language: "en", // Default language
+        }
+        
+        const newClient = await clientsApi.create(clientData, workspace.id)
+        if (newClient) {
+          const newCustomer = clientToCustomer(newClient)
+          setCustomers((prev) => [newCustomer, ...prev])
+          toast.success("Customer created successfully")
+        }
+      }
+      setShowEditDialog(false)
+    } catch (error) {
+      console.error("Failed to save customer:", error)
+      toast.error("Failed to save customer")
     }
-    setShowEditDialog(false)
   }
 
   const handleDelete = (customerId: string) => {
@@ -189,8 +216,31 @@ export default function CustomersPage() {
     setShowDeleteDialog(true)
   }
 
+  const handleDeleteConfirm = async () => {
+    if (!selectedCustomerId || !workspace?.id) return
+
+    try {
+      await clientsApi.delete(selectedCustomerId, workspace.id)
+      setCustomers((prev) => prev.filter((c) => c.id !== selectedCustomerId))
+      setShowDeleteDialog(false)
+      setSelectedCustomerId(null)
+      toast.success("Customer deleted successfully")
+    } catch (error) {
+      console.error("Failed to delete customer:", error)
+      toast.error("Failed to delete customer")
+    }
+  }
+
   const handleChat = (customerId: string) => {
     navigate(`/chat/${customerId}`)
+  }
+
+  if (isWorkspaceLoading || isLoading) {
+    return <div>Loading...</div>
+  }
+
+  if (!workspace?.id) {
+    return <div>No workspace selected</div>
   }
 
   return (
@@ -202,43 +252,26 @@ export default function CustomersPage() {
         onSearch={setSearchValue}
         searchPlaceholder="Search customers..."
         onAdd={handleAdd}
-        addButtonText="Add Customer"
+        addButtonText="Add"
         itemCount={filteredCustomers.length}
       />
 
       <Card className="p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <h1 className="text-2xl font-bold">Customers</h1>
-          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-            <div className="flex gap-4 w-full md:w-auto">
-              <div className="relative flex-1 md:w-72">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  type="search"
-                  placeholder="Search customers..."
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <select
-                value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(
-                    e.target.value as "all" | "active" | "inactive"
-                  )
-                }
-                className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <Button className="w-full md:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Customer
-            </Button>
+          <div className="flex gap-4">
+            <select
+              value={statusFilter}
+              onChange={(e) =>
+                setStatusFilter(
+                  e.target.value as "all" | "active" | "inactive"
+                )
+              }
+              className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
         </div>
 
@@ -247,12 +280,10 @@ export default function CustomersPage() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Contact</TableHead>
-              <TableHead>Orders</TableHead>
-              <TableHead>Total Spent</TableHead>
+              <TableHead>Company</TableHead>
+              <TableHead>Discount</TableHead>
               <TableHead>Last Active</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>GDPR</TableHead>
-              <TableHead>Push</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -266,8 +297,8 @@ export default function CustomersPage() {
                     <p className="text-sm text-gray-500">{customer.email}</p>
                   </div>
                 </TableCell>
-                <TableCell>{customer.totalOrders}</TableCell>
-                <TableCell>€{customer.totalSpent.toFixed(2)}</TableCell>
+                <TableCell>{customer.company || "N/A"}</TableCell>
+                <TableCell>{customer.discount}%</TableCell>
                 <TableCell>
                   {new Date(customer.lastActive).toLocaleDateString()}
                 </TableCell>
@@ -279,26 +310,7 @@ export default function CustomersPage() {
                         : "bg-gray-100 text-gray-800"
                     }`}
                   >
-                    {customer.status.charAt(0).toUpperCase() +
-                      customer.status.slice(1)}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    customer.gdprConsent
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}>
-                    {customer.gdprConsent ? "Accepted" : "Not Accepted"}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    customer.pushNotificationsConsent
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-800"
-                  }`}>
-                    {customer.pushNotificationsConsent ? "Enabled" : "Disabled"}
+                    {customer.status === "active" ? "Active" : "Inactive"}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -334,6 +346,7 @@ export default function CustomersPage() {
           </TableBody>
         </Table>
       </Card>
+      
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
@@ -354,6 +367,10 @@ export default function CustomersPage() {
                 <Input id="phone" name="phone" value={formState.phone} onChange={handleFormChange} required />
               </div>
               <div>
+                <Label htmlFor="company">Company</Label>
+                <Input id="company" name="company" value={formState.company || ""} onChange={handleFormChange} />
+              </div>
+              <div>
                 <Label htmlFor="discount">Discount (%)</Label>
                 <Input id="discount" name="discount" type="number" min={0} value={formState.discount} onChange={handleFormChange} required />
               </div>
@@ -364,23 +381,31 @@ export default function CustomersPage() {
                   <option value="inactive">Inactive</option>
                 </select>
               </div>
-              <div className="flex items-center gap-2 mt-6">
-                <input id="gdprConsent" name="gdprConsent" type="checkbox" checked={formState.gdprConsent} onChange={handleFormChange} />
-                <Label htmlFor="gdprConsent">GDPR Consent</Label>
-              </div>
-              <div className="flex items-center gap-2 mt-6">
-                <input id="pushNotificationsConsent" name="pushNotificationsConsent" type="checkbox" checked={formState.pushNotificationsConsent} onChange={handleFormChange} />
-                <Label htmlFor="pushNotificationsConsent">Push Notifications</Label>
-              </div>
-              <div className="flex items-center gap-2 mt-6">
-                <input id="activeChatbot" name="activeChatbot" type="checkbox" checked={formState.activeChatbot} onChange={handleFormChange} />
-                <Label htmlFor="activeChatbot">Active Chatbot</Label>
-              </div>
             </div>
             <DialogFooter>
               <Button type="submit">{selectedCustomerId ? "Save Changes" : "Add Customer"}</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Customer</DialogTitle>
+          </DialogHeader>
+          <p>Are you sure you want to delete this customer? This action cannot be undone.</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteConfirm}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

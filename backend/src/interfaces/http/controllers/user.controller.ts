@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express"
 import { UserService } from "../../../application/services/user.service"
+
 import logger from "../../../utils/logger"
 
 export class UserController {
@@ -31,6 +32,8 @@ export class UserController {
         id: user.id,
         email: user.email,
         name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
         isVerified: user.isVerified,
         workspaceId: user.workspaceId,
@@ -154,10 +157,117 @@ export class UserController {
       const { id } = req.params
       const userData = req.body
       
+      logger.info(`Updating user with ID: ${id}`)
+      
       const user = await this.userService.update(id, userData)
       
+      if (!user) {
+        return res.status(404).json({ message: "User not found" })
+      }
+      
+      // Don't return the password
+      const userWithoutPassword = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        isVerified: user.isVerified,
+        workspaceId: user.workspaceId,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        lastLogin: user.lastLogin
+      }
+      
+      return res.json(userWithoutPassword)
     } catch (error) {
       logger.error(`Error updating user ${req.params.id}:`, error)
+      return next(error)
+    }
+  }
+
+  /**
+   * Update current user's profile
+   */
+  updateProfile = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.id
+      const userData = req.body
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" })
+      }
+      
+      logger.info(`Updating profile for user ID: ${userId}`)
+      
+      const user = await this.userService.update(userId, userData)
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" })
+      }
+      
+      // Don't return the password
+      const userWithoutPassword = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        isVerified: user.isVerified,
+        workspaceId: user.workspaceId,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        lastLogin: user.lastLogin
+      }
+      
+      return res.json(userWithoutPassword)
+    } catch (error) {
+      logger.error(`Error updating profile for user ${req.user?.id}:`, error)
+      return next(error)
+    }
+  }
+
+  /**
+   * Change current user's password
+   */
+  changePassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.id
+      const { currentPassword, newPassword } = req.body
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" })
+      }
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: "Current password and new password are required" })
+      }
+      
+      logger.info(`Changing password for user ID: ${userId}`)
+      
+      // Get the current user to verify the current password
+      const user = await this.userService.getById(userId)
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" })
+      }
+      
+      // Verify current password
+      const { comparePassword } = await import('../../../utils/password')
+      if (!user.password || !(await comparePassword(currentPassword, user.password))) {
+        return res.status(400).json({ message: "Current password is incorrect" })
+      }
+      
+      // Update password
+      const updatedUser = await this.userService.update(userId, { password: newPassword })
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" })
+      }
+      
+      return res.json({ message: "Password changed successfully" })
+    } catch (error) {
+      logger.error(`Error changing password for user ${req.user?.id}:`, error)
       return next(error)
     }
   }

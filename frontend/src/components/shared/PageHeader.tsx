@@ -15,6 +15,7 @@ interface PageHeaderProps {
   itemCount?: number
   addButtonText?: string
   addButtonIcon?: ReactNode
+  extraButtons?: ReactNode
 }
 
 export function PageHeader({
@@ -28,6 +29,7 @@ export function PageHeader({
   itemCount,
   addButtonText = "Add",
   addButtonIcon,
+  extraButtons,
 }: PageHeaderProps) {
   const titleContent = typeof title === 'string' ? <span className={commonStyles.primary}>{title}</span> : title;
   const wrappedTitleIcon = titleIcon ? <div className={commonStyles.primary}>{titleIcon}</div> : null;
@@ -49,6 +51,7 @@ export function PageHeader({
               className="max-w-[180px]"
             />
           )}
+          {extraButtons}
           {onAdd && (
             <Button
               onClick={onAdd}

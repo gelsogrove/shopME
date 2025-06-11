@@ -96,17 +96,31 @@ export class SettingsController {
       const { workspaceId } = req.params;
       const { gdpr } = req.body;
 
+      logger.info(`[GDPR UPDATE] Starting update for workspace: ${workspaceId}`);
+      logger.info(`[GDPR UPDATE] Request body keys: ${Object.keys(req.body)}`);
+      logger.info(`[GDPR UPDATE] GDPR content length: ${gdpr ? gdpr.length : 'undefined'}`);
+
       if (!workspaceId) {
+        logger.error("[GDPR UPDATE] Missing workspaceId");
         AppResponse.badRequest(res, "Workspace ID is required");
         return;
       }
 
       if (!gdpr) {
+        logger.error("[GDPR UPDATE] Missing GDPR content");
         AppResponse.badRequest(res, "GDPR content is required");
         return;
       }
 
+      logger.info(`[GDPR UPDATE] Calling service to update GDPR for workspace: ${workspaceId}`);
       const updatedSettings = await this.settingsService.updateGdprContent(workspaceId, gdpr);
+      
+      logger.info(`[GDPR UPDATE] Service returned: ${updatedSettings ? 'success' : 'null'}`);
+      if (updatedSettings) {
+        logger.info(`[GDPR UPDATE] Updated settings ID: ${updatedSettings.id}`);
+        logger.info(`[GDPR UPDATE] Updated GDPR content length: ${updatedSettings.gdpr ? updatedSettings.gdpr.length : 'undefined'}`);
+      }
+      
       AppResponse.success(res, updatedSettings);
     } catch (error) {
       logger.error("Error updating GDPR content:", error);

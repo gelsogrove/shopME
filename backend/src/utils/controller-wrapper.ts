@@ -1,5 +1,10 @@
-import { RequestHandler } from 'express';
-import { ControllerFunction } from '../types/express';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
+
+export type ControllerFunction = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => Promise<any> | void;
 
 /**
  * Wrapper per convertire una funzione controller in un RequestHandler

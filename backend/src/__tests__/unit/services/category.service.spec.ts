@@ -357,7 +357,6 @@ describe('CategoryService', () => {
         workspaceId,
         categoryId: id,
         brandId: null,
-        supplierId: null,
         image: null
       }];
       
@@ -388,7 +387,6 @@ describe('CategoryService', () => {
         workspaceId,
         categoryId: id,
         brandId: null,
-        supplierId: null,
         image: null
       }];
       

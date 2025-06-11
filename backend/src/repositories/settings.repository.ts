@@ -218,23 +218,34 @@ export class SettingsRepository implements ISettingsRepository {
    */
   async updateGdprContent(workspaceId: string, gdprContent: string): Promise<Settings> {
     try {
+      logger.info(`[GDPR REPO] Starting updateGdprContent for workspace: ${workspaceId}`);
+      logger.info(`[GDPR REPO] GDPR content length: ${gdprContent.length}`);
+      
       // Check if settings already exist
       const existingSettings = await prisma.whatsappSettings.findFirst({
         where: { workspaceId }
       });
       
+      logger.info(`[GDPR REPO] Existing settings found: ${existingSettings ? 'yes' : 'no'}`);
+      if (existingSettings) {
+        logger.info(`[GDPR REPO] Existing settings ID: ${existingSettings.id}`);
+      }
+      
       let settings;
       
       if (existingSettings) {
         // Update existing settings
+        logger.info(`[GDPR REPO] Updating existing settings with ID: ${existingSettings.id}`);
         settings = await prisma.whatsappSettings.update({
           where: { id: existingSettings.id },
           data: { gdpr: gdprContent }
         });
+        logger.info(`[GDPR REPO] Update completed successfully`);
       } else {
         // Generate a unique phone number for the new settings
         const phoneNumber = `gdpr-${workspaceId.substring(0, 8)}`;
         
+        logger.info(`[GDPR REPO] Creating new settings with phone: ${phoneNumber}`);
         // Create new settings with generated phone number
         settings = await prisma.whatsappSettings.create({
           data: {
@@ -244,11 +255,15 @@ export class SettingsRepository implements ISettingsRepository {
             apiKey: ""
           }
         });
+        logger.info(`[GDPR REPO] Create completed successfully`);
       }
+      
+      logger.info(`[GDPR REPO] Final settings ID: ${settings.id}`);
+      logger.info(`[GDPR REPO] Final GDPR content length: ${settings.gdpr ? settings.gdpr.length : 'undefined'}`);
       
       return this.toDomainEntity(settings);
     } catch (error) {
-      logger.error(`Error updating GDPR content for workspace ${workspaceId}:`, error);
+      logger.error(`[GDPR REPO] Error updating GDPR content for workspace ${workspaceId}:`, error);
       
       // Create a mock settings object instead of throwing
       const mockSettings = new Settings({

@@ -64,6 +64,21 @@ export const formatDate = (dateString: string): string => {
 };
 
 /**
+ * Format file size in bytes to human readable format
+ * @param bytes The file size in bytes
+ * @returns Formatted file size (e.g., "1.5 MB", "256 KB")
+ */
+export const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+/**
  * Format a price with the workspace currency symbol - React hook version
  * This hook is preferable in React components where you have access to the context
  */

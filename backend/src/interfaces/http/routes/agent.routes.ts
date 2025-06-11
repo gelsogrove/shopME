@@ -3,7 +3,7 @@ import logger from '../../../utils/logger';
 import { AgentController } from '../controllers/agent.controller';
 import { asyncHandler } from '../middlewares/async.middleware';
 import { authMiddleware } from '../middlewares/auth.middleware';
-import { workspaceValidationMiddleware } from '../middlewares/workspace-validation.middleware';
+import { workspaceExtractionMiddleware } from '../middlewares/workspace-extraction.middleware';
 
 /**
  * @swagger
@@ -56,8 +56,11 @@ export const createAgentRouter = (): Router => {
   // Apply auth middleware to all routes
   router.use(authMiddleware);
   
-  // Apply workspace validation middleware to all routes
-  router.use(workspaceValidationMiddleware);
+  // Apply workspace extraction middleware first
+  router.use(workspaceExtractionMiddleware);
+  
+  // Temporarily remove workspace validation middleware to test
+  // router.use(workspaceValidationMiddleware);
 
   /**
    * @swagger

@@ -211,3 +211,17 @@ frontend/
 - **Test files**: `*.spec.ts` (unit), `*.integration.spec.ts` (integration), `*.cy.js` (E2E)
 - system has to be sync , swagger, seed code, test BE FE Readme prompts folder when you finish a job ask me do you need to update this section too ? 
 - when i say PRD you have to consider this file `/prompts/02_PRD.md`
+- write code comments always in English
+- non aprire troppi terminal, se non richiesto
+- when you are in a terminal, always check the context of the terminal, if you are in the wrong terminal, ask me to switch to the correct terminal
+- when you are in the correct terminal, always check the context of the terminal, if you are in the wrong terminal, ask me to switch to the correct terminal
+- when you are in the correct terminal, always check the context of the terminal, if you are in the wrong terminal, ask me to switch to the correct terminal
+- Rifletti ragione confronta leggi in ordine PRD test prima di effettuare un'azione se scrivo qualcosa che non e' in linea blocca l'utente
+- chiediti sempre se devi aggiornare il seed
+- e' inportante che non cambi quello che funziona che e' presente nella lista
+/Users/gelso/workspace/AI/shop/do-not-touch.md se lo tocchi e' molto grave
+se lo vuoi toccare, chiedi prima per sicurezza
+- non modificare mai li file do-not-touch.md
+- gli script devono essere sempre in /scripts/
+- test di BE vanno sotto /Users/gelso/workspace/AI/shop/backend/src/__tests__  dentro unit o integration
+- i server si riavviano da soli non c'e' bisogno di aprire mille terminali usa sempre lo stesso terminal

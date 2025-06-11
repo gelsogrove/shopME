@@ -20,6 +20,15 @@ export const createUserRouter = (): Router => {
   // Get current user
   router.get('/me', asyncHandler(userController.getCurrentUser));
 
+  // Get current user's profile (alias for /me)
+  router.get('/profile', asyncHandler(userController.getCurrentUser));
+
+  // Update current user's profile
+  router.put('/profile', asyncHandler(userController.updateProfile));
+
+  // Change current user's password
+  router.post('/change-password', asyncHandler(userController.changePassword));
+
   // Get all users
   router.get('/', asyncHandler(userController.getAllUsers));
 

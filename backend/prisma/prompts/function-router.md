@@ -95,7 +95,13 @@ You can select from the following functions:
     - Parameters:
       - `question` (string)
 
-14. `get_generic_response`
+14. `search_documents`
+
+    - Description: Searches through uploaded documents using semantic similarity to find relevant information
+    - Parameters:
+      - `query` (string) - The search query to find relevant document content
+
+15. `get_generic_response`
     - Description: Handles general conversation, greetings, or unclear requests
     - Parameters: none
 
@@ -267,6 +273,34 @@ Function Call:
     "name": "get_faq_info",
     "arguments": {
       "question": "fare un reso"
+    }
+  }
+}
+```
+
+User: "Cosa dicono i documenti sulla spedizione internazionale?"
+Function Call:
+
+```
+{
+  "function_call": {
+    "name": "search_documents",
+    "arguments": {
+      "query": "spedizione internazionale"
+    }
+  }
+}
+```
+
+User: "Cerca informazioni sui termini di garanzia"
+Function Call:
+
+```
+{
+  "function_call": {
+    "name": "search_documents",
+    "arguments": {
+      "query": "termini di garanzia"
     }
   }
 }

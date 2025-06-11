@@ -1,6 +1,5 @@
 import { ProductStatus } from '@prisma/client';
 import { Category } from './category.entity';
-import { Supplier } from './supplier.entity';
 
 export class Product {
   id: string;
@@ -12,12 +11,10 @@ export class Product {
   isActive: boolean;
   slug: string;
   categoryId: string | null;
-  supplierId: string | null;
   workspaceId: string;
   createdAt: Date;
   updatedAt: Date;
   category?: Category;
-  supplier?: Supplier;
   originalPrice?: number;
   hasDiscount?: boolean;
   discountPercent?: number;
@@ -33,12 +30,10 @@ export class Product {
     this.isActive = data.isActive ?? true;
     this.slug = data.slug || '';
     this.categoryId = data.categoryId || null;
-    this.supplierId = data.supplierId || null;
     this.workspaceId = data.workspaceId || '';
     this.createdAt = data.createdAt || new Date();
     this.updatedAt = data.updatedAt || new Date();
     this.category = data.category;
-    this.supplier = data.supplier;
     this.originalPrice = data.originalPrice;
     this.hasDiscount = data.hasDiscount;
     this.discountPercent = data.discountPercent;

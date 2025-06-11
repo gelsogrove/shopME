@@ -2,17 +2,16 @@ import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
 import { cn } from "@/lib/utils"
 import {
-  Calendar,
-  HelpCircle,
-  LucideIcon,
-  MessageSquare,
-  Package2,
-  Percent,
-  ShoppingCart,
-  Tag,
-  Truck,
-  Users,
-  Wrench
+    FileText,
+    HelpCircle,
+    LucideIcon,
+    MessageSquare,
+    Package2,
+    Percent,
+    ShoppingCart,
+    Tag,
+    Users,
+    Wrench
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
@@ -42,7 +41,7 @@ export function Sidebar() {
 
   // Controlla se siamo in una pagina che fa parte del sottomenu Products
   useEffect(() => {
-    const productPages = ["/products", "/categories", "/suppliers", "/offers"]
+    const productPages = ["/products", "/categories", "/offers"]
     if (productPages.some(page => location.pathname.startsWith(page))) {
       setExpandedItems(prev => ({
         ...prev,
@@ -86,11 +85,7 @@ export function Sidebar() {
           label: "Categories",
           icon: Tag,
         },
-        {
-          href: "/suppliers",
-          label: "Suppliers",
-          icon: Truck,
-        },
+
         {
           href: "/offers",
           label: "Offers",
@@ -103,15 +98,16 @@ export function Sidebar() {
       label: "Services",
       icon: Wrench,
     },
-    {
-      href: "/events",
-      label: "Events",
-      icon: Calendar,
-    },
+
     {
       href: "/faq",
       label: "FAQ",
       icon: HelpCircle,
+    },
+    {
+      href: "/documents",
+      label: "Documents",
+      icon: FileText,
     },
     {
       href: "/orders",

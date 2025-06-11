@@ -4,7 +4,7 @@ import { Product } from '../entities/product.entity';
 export type ProductFilters = {
   search?: string;
   categoryId?: string;
-  supplierId?: string;
+
   status?: string;
   page?: number;
   limit?: number;

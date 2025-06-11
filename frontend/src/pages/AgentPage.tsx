@@ -2,16 +2,16 @@ import { PageLayout } from "@/components/layout/PageLayout"
 import { PageHeader } from "@/components/shared/PageHeader"
 import MarkdownEditor from "@/components/ui/markdown-editor"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import {
-  Agent,
-  getAgent,
-  updateAgent,
+    Agent,
+    getAgent,
+    updateAgent,
 } from "@/services/agentApi"
 import { Bot, HelpCircle, Loader2, Save } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -23,8 +23,6 @@ export function AgentPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [tempValue, setTempValue] = useState(0.7)
-  const [topPValue, setTopPValue] = useState(0.9)
-  const [topKValue, setTopKValue] = useState(40)
   const [modelValue, setModelValue] = useState("openai/gpt-4.1-mini")
   const [maxTokensValue, setMaxTokensValue] = useState(1000)
   const [error, setError] = useState<string | null>(null)
@@ -45,8 +43,6 @@ export function AgentPage() {
         
         // Set form values from agent data
         setTempValue(agentData.temperature || 0.7)
-        setTopPValue(agentData.top_p || 0.9)
-        setTopKValue(agentData.top_k || 40)
         setModelValue(agentData.model || "openai/gpt-4.1-mini")
         setMaxTokensValue(agentData.max_tokens || 1000)
       } catch (error) {
@@ -88,8 +84,6 @@ export function AgentPage() {
         name: agent.name,
         content,
         temperature: tempValue,
-        top_p: topPValue,
-        top_k: topKValue,
         model,
         max_tokens: maxTokensValue
       })
@@ -98,8 +92,6 @@ export function AgentPage() {
         name: agent.name, // Keep the existing name
         content,
         temperature: tempValue,
-        top_p: topPValue,
-        top_k: topKValue,
         model: model || "openai/gpt-4.1-mini",
         max_tokens: maxTokensValue
       })
@@ -143,7 +135,7 @@ export function AgentPage() {
         ) : (
           <div className="bg-background rounded-lg border p-4 shadow-sm">
             <form id="editAgentForm" onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <label
@@ -184,93 +176,6 @@ export function AgentPage() {
                   />
                   <p className="text-xs text-muted-foreground">
                     Controls randomness (0-2)
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <label
-                      htmlFor="top_p"
-                      className="text-sm font-medium leading-none flex items-center"
-                    >
-                      Top P: <span className="font-bold ml-1">{topPValue}</span>
-                      <TooltipProvider delayDuration={0}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="h-4 w-4 ml-1 text-muted-foreground cursor-pointer" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs p-4 bg-white shadow-lg rounded-lg border z-50">
-                            <div className="space-y-2">
-                              <h4 className="font-semibold text-sm">Top P / Nucleus Sampling (0-1)</h4>
-                              <p>Controls diversity by considering only the tokens comprising the top P probability mass:</p>
-                              <ul className="list-disc pl-5 space-y-1">
-                                <li><span className="font-medium">Low (0-0.5):</span> More focused on highly likely tokens, more conservative responses</li>
-                                <li><span className="font-medium">High (0.5-1):</span> Considers more diverse options, potentially more creative</li>
-                              </ul>
-                              <p className="text-xs italic mt-2">Works together with Top K for fine-tuned control over text generation.</p>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </label>
-                  </div>
-                  <input
-                    type="range"
-                    id="top_p"
-                    name="top_p"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={topPValue}
-                    onChange={(e) => setTopPValue(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Nucleus sampling (0-1)
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <label
-                      htmlFor="top_k"
-                      className="text-sm font-medium leading-none flex items-center"
-                    >
-                      Top K: <span className="font-bold ml-1">{topKValue}</span>
-                      <TooltipProvider delayDuration={0}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="h-4 w-4 ml-1 text-muted-foreground cursor-pointer" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs p-4 bg-white shadow-lg rounded-lg border z-50">
-                            <div className="space-y-2">
-                              <h4 className="font-semibold text-sm">Top K (0-100)</h4>
-                              <p>Limits token selection to only the top K options at each step:</p>
-                              <ul className="list-disc pl-5 space-y-1">
-                                <li><span className="font-medium">Low (1-20):</span> Very constrained vocabulary, more predictable outputs</li>
-                                <li><span className="font-medium">Medium (20-50):</span> Balanced between creativity and coherence</li>
-                                <li><span className="font-medium">High (50-100):</span> Wider vocabulary selection, potentially more diverse responses</li>
-                              </ul>
-                              <p className="text-xs italic mt-2">Setting to 0 disables Top K filtering.</p>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </label>
-                  </div>
-                  <input
-                    type="range"
-                    id="top_k"
-                    name="top_k"
-                    min="0"
-                    max="100"
-                    step="1"
-                    value={topKValue}
-                    onChange={(e) => setTopKValue(parseInt(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Limits word selection (0-100)
                   </p>
                 </div>
 

@@ -1,0 +1,16 @@
+
+  it.skip('should make real API calls and handle compatible VINs', async () => {
+    const vin = 'BAUCARGEZ22020801';
+
+    const result = await audiThemesService.isVehicleCompatible(vin);
+
+    expect(typeof result).toBe('boolean');
+  });
+
+  it('should make real API calls and handle potentially incompatible VINs', async () => {
+    const vin = 'INVALID_VIN';
+
+    const result = await audiThemesService.isVehicleCompatible(vin);
+
+    expect(typeof result).toBe('boolean');
+  });

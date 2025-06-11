@@ -5,7 +5,7 @@ import { Category } from '../../../domain/entities/category.entity';
 import { Offer } from '../../../domain/entities/offer.entity';
 import { Product } from '../../../domain/entities/product.entity';
 import { Service } from '../../../domain/entities/service.entity';
-import { Supplier } from '../../../domain/entities/supplier.entity';
+
 import { User } from '../../../domain/entities/user.entity';
 import { Workspace } from '../../../domain/entities/workspace.entity';
 
@@ -50,24 +50,10 @@ export const mockProduct = new Product({
   price: 19.99,
   categoryId: 'category-test-id',
   workspaceId: 'workspace-test-id',
-  supplierId: 'supplier-test-id',
   createdAt: new Date(),
   updatedAt: new Date(),
   isActive: true,
   stock: 10
-});
-
-// Supplier mock
-export const mockSupplier = new Supplier({
-  id: 'supplier-test-id',
-  name: 'Test Supplier',
-  email: 'supplier@example.com',
-  phone: '+1234567890',
-  address: 'Test Address',
-  workspaceId: 'workspace-test-id',
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  isActive: true
 });
 
 // Offer mock

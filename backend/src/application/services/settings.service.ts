@@ -1,4 +1,3 @@
-import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
 import { Settings } from "../../domain/entities/settings.entity";
@@ -12,11 +11,9 @@ import logger from "../../utils/logger";
  */
 export class SettingsService implements ISettingsService {
   private repository: SettingsRepository;
-  private prisma: PrismaClient;
   
   constructor() {
     this.repository = new SettingsRepository();
-    this.prisma = new PrismaClient();
   }
   
   /**
@@ -133,7 +130,18 @@ export class SettingsService implements ISettingsService {
    */
   async updateGdprContent(workspaceId: string, content: string): Promise<Settings | null> {
     try {
-      return await this.repository.updateGdprContent(workspaceId, content);
+      logger.info(`[GDPR SERVICE] Starting updateGdprContent for workspace: ${workspaceId}`);
+      logger.info(`[GDPR SERVICE] Content length: ${content.length}`);
+      
+      const result = await this.repository.updateGdprContent(workspaceId, content);
+      
+      logger.info(`[GDPR SERVICE] Repository returned: ${result ? 'success' : 'null'}`);
+      if (result) {
+        logger.info(`[GDPR SERVICE] Result ID: ${result.id}, WorkspaceId: ${result.workspaceId}`);
+        logger.info(`[GDPR SERVICE] Result GDPR length: ${result.gdpr ? result.gdpr.length : 'undefined'}`);
+      }
+      
+      return result;
     } catch (error) {
       logger.error(`Error in updateGdprContent: ${error.message}`);
       

@@ -17,7 +17,14 @@ export const workspaceValidationMiddleware = async (
       req.params.workspaceId || 
       req.headers['x-workspace-id'] as string || 
       (req.user as any)?.workspaceId;
-    
+
+    logger.debug('Workspace validation - checking ID:', {
+      fromParams: req.params.workspaceId,
+      fromHeaders: req.headers['x-workspace-id'],
+      fromUser: (req.user as any)?.workspaceId,
+      finalWorkspaceId: workspaceId
+    });
+
     // If no workspace ID found, return error
     if (!workspaceId) {
       logger.warn('Workspace ID missing in request');

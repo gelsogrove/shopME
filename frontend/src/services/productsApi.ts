@@ -27,15 +27,7 @@ export interface Product {
     createdAt: string
     updatedAt: string
   } | null
-  supplierId?: string | null
-  supplier?: {
-    id: string
-    name: string
-    workspaceId: string
-    isActive: boolean
-    createdAt: string
-    updatedAt: string
-  } | null
+
   slug: string
   status: 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK'
   createdAt: string
@@ -227,12 +219,16 @@ export const getByCategory = async (categoryId: string, workspaceId: string): Pr
 export const create = async (workspaceId: string, data: CreateProductData): Promise<Product> => {
   try {
     // Log dei dati che stiamo inviando
-    console.log('Creating product with data:', data);
+    console.log('Marco - Creating product with data:', data);
+    console.log('Marco - Workspace ID:', workspaceId);
+    console.log('Marco - API URL will be:', `/workspaces/${workspaceId}/products`);
     
     const response = await api.post(`/workspaces/${workspaceId}/products`, data)
+    console.log('Marco - API response:', response);
     return processProductData(response.data)
   } catch (error) {
-    console.error('Error creating product:', error)
+    console.error('Marco - Error creating product:', error)
+    console.error('Marco - Error details:', error.response?.data || error.message)
     throw error
   }
 }

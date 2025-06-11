@@ -29,6 +29,71 @@ let createdWorkspaces: any[] = []
 // Definiamo un ID fisso per il nostro workspace unico
 const mainWorkspaceId = "cm9hjgq9v00014qk8fsdy4ujv"
 
+// Function to seed default document
+async function seedDefaultDocument() {
+  console.log("Seeding default document...")
+  
+  try {
+    // Check if document already exists
+    const existingDocument = await prisma.documents.findFirst({
+      where: {
+        workspaceId: mainWorkspaceId,
+        originalName: "international-transportation-law.pdf"
+      }
+    })
+
+    if (existingDocument) {
+      console.log("Default document already exists, skipping...")
+      return
+    }
+
+    // Copy PDF from samples to uploads directory
+    const sourcePath = path.join(__dirname, "samples", "international-transportation-law.pdf")
+    const targetDir = path.join(__dirname, "..", "uploads", "documents")
+    const filename = `${Date.now()}-international-transportation-law.pdf`
+    const targetPath = path.join(targetDir, filename)
+
+    // Ensure uploads directory exists
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true })
+    }
+
+    // Check if source file exists
+    if (!fs.existsSync(sourcePath)) {
+      console.error(`Source PDF file not found: ${sourcePath}`)
+      return
+    }
+
+    // Copy the file
+    fs.copyFileSync(sourcePath, targetPath)
+    const stats = fs.statSync(targetPath)
+
+    console.log(`PDF copied to: ${targetPath}`)
+
+    // Create document record
+    const document = await prisma.documents.create({
+      data: {
+        filename: filename,
+        originalName: "international-transportation-law.pdf",
+        filePath: targetPath, // Use absolute path for processing
+        fileSize: stats.size,
+        mimeType: "application/pdf",
+        status: "UPLOADED",
+        workspaceId: mainWorkspaceId
+      }
+    })
+
+    console.log(`Document created with ID: ${document.id}`)
+
+    // Note: Embedding generation is skipped in seed due to memory constraints
+    // The document will be in UPLOADED status and can be processed manually via API
+    console.log("Document created successfully - embeddings can be generated via API")
+
+  } catch (error) {
+    console.error("Error seeding default document:", error)
+  }
+}
+
 async function main() {
   // Check if the admin user already exists
   const existingAdmin = await prisma.user.findUnique({
@@ -167,6 +232,7 @@ async function main() {
         language: "es",
         currency: "EUR",
         url: "http://localhost:3000",
+        plan: "FREE",
         wipMessages: {
           en: "Work in progress. Please contact us later.",
           it: "Lavori in corso. Contattaci più tardi.",
@@ -194,6 +260,7 @@ async function main() {
         language: "es",
         currency: "EUR",
         url: "http://localhost:3000",
+        plan: "FREE",
         wipMessages: {
           en: "Work in progress. Please contact us later.",
           it: "Lavori in corso. Contattaci più tardi.",
@@ -801,212 +868,9 @@ async function main() {
     }
   }
 
-  // Define suppliers
-  const suppliers = [
-    {
-      name: "Pastificio di Gragnano",
-      description: "Traditional pasta makers from Gragnano, Italy",
-      address: "Via Roma 123, Gragnano, Italy",
-      website: "https://www.pastificiogragnano.it",
-      phone: "+39 081 123456",
-      email: "info@pastificiogragnano.it",
-      contactPerson: "Marco Rossi",
-      notes: "Specializing in bronze-drawn pasta",
-      isActive: true,
-      slug: "pastificio-di-gragnano",
-      products: ["Gragnano IGP Pasta - Spaghetti", "Homemade Tagliatelle"]
-    },
-    {
-      name: "Caseificio Campania",
-      description: "Authentic cheese producers from Campania region",
-      address: "Via Napoli 45, Naples, Italy",
-      website: "https://www.caseificiocampania.it",
-      phone: "+39 081 987654",
-      email: "info@caseificiocampania.it",
-      contactPerson: "Giuseppe Esposito",
-      notes: "Specializing in buffalo mozzarella and fresh cheeses",
-      isActive: true,
-      slug: "caseificio-campania",
-      products: ["Mozzarella di Bufala Campana DOP"]
-    },
-    {
-      name: "Parmigiano Reggiano Consortium",
-      description: "Official consortium of Parmigiano Reggiano producers",
-      address: "Via Emilia 103, Parma, Italy",
-      website: "https://www.parmigianoreggiano.it",
-      phone: "+39 0521 292700",
-      email: "info@parmigianoreggiano.it",
-      contactPerson: "Antonio Bianchi",
-      notes: "Only authentic Parmigiano Reggiano DOP",
-      isActive: true,
-      slug: "parmigiano-reggiano-consortium",
-      products: ["Parmigiano Reggiano DOP 24 months"]
-    },
-    {
-      name: "Olio Toscano",
-      description: "Premium olive oil producers from Tuscany",
-      address: "Via Siena 78, Florence, Italy",
-      website: "https://www.oliotoscano.it",
-      phone: "+39 055 123456",
-      email: "info@oliotoscano.it",
-      contactPerson: "Francesca Ricci",
-      notes: "Family-owned olive groves since 1890",
-      isActive: true,
-      slug: "olio-toscano",
-      products: ["Tuscan IGP Extra Virgin Olive Oil"]
-    },
-    {
-      name: "Acetaia Modena",
-      description: "Traditional balsamic vinegar producers",
-      address: "Via Emilia Est 46, Modena, Italy",
-      website: "https://www.acetaiamodena.it",
-      phone: "+39 059 123456",
-      email: "info@acetaiamodena.it",
-      contactPerson: "Luigi Ferrari",
-      notes: "Using traditional methods passed down for generations",
-      isActive: true,
-      slug: "acetaia-modena",
-      products: ["Aceto Balsamico di Modena IGP"]
-    },
-    {
-      name: "Salumificio Parma",
-      description: "Premium ham and cured meat producers",
-      address: "Via Parma 34, Parma, Italy",
-      website: "https://www.salumificioparma.it",
-      phone: "+39 0521 123456",
-      email: "info@salumificioparma.it",
-      contactPerson: "Paolo Verdi",
-      notes: "Traditional curing methods for authentic flavor",
-      isActive: true,
-      slug: "salumificio-parma",
-      products: ["Prosciutto di Parma DOP 24 months"]
-    },
-    {
-      name: "Sicilia Delizie",
-      description: "Sicilian specialty food producers",
-      address: "Via Etna 56, Catania, Sicily, Italy",
-      website: "https://www.siciliadelizie.it",
-      phone: "+39 095 123456",
-      email: "info@siciliadelizie.it",
-      contactPerson: "Salvatore Russo",
-      notes: "Specializing in Sicilian nuts and sweets",
-      isActive: true,
-      slug: "sicilia-delizie",
-      products: ["Pistacchi di Bronte DOP", "Cannolo Siciliano Artigianale"]
-    },
-    {
-      name: "Trattoria Napoletana",
-      description: "Authentic Neapolitan cuisine",
-      address: "Via Tribunali 123, Naples, Italy",
-      website: "https://www.trattorianapoletana.it",
-      phone: "+39 081 123789",
-      email: "info@trattorianapoletana.it",
-      contactPerson: "Antonio Esposito",
-      notes: "Specializing in pizza and pasta",
-      isActive: true,
-      slug: "trattoria-napoletana",
-      products: ["Pizza Napoletana Artigianale"]
-    },
-    {
-      name: "Cucina Bolognese",
-      description: "Traditional Bolognese recipes",
-      address: "Via Indipendenza 45, Bologna, Italy",
-      website: "https://www.cucinabolognese.it",
-      phone: "+39 051 123456",
-      email: "info@cucinabolognese.it",
-      contactPerson: "Maria Rossi",
-      notes: "Specializing in ragù and fresh pasta",
-      isActive: true,
-      slug: "cucina-bolognese",
-      products: ["Tagliatelle al Ragù Bolognese", "Lasagna al Forno Tradizionale"]
-    },
-    {
-      name: "Liguria Sapori",
-      description: "Authentic Ligurian specialties",
-      address: "Via Garibaldi 67, Genoa, Italy",
-      website: "https://www.liguriasapori.it",
-      phone: "+39 010 123456",
-      email: "info@liguriasapori.it",
-      contactPerson: "Giovanni Bianchi",
-      notes: "Specializing in pesto and seafood dishes",
-      isActive: true,
-      slug: "liguria-sapori",
-      products: ["Trofie al Pesto Genovese"]
-    },
-    {
-      name: "Dolci Veneziani",
-      description: "Traditional Venetian desserts",
-      address: "Via Venezia 89, Venice, Italy",
-      website: "https://www.dolciveneziani.it",
-      phone: "+39 041 123456",
-      email: "info@dolciveneziani.it",
-      contactPerson: "Laura Neri",
-      notes: "Specializing in tiramisu and traditional sweets",
-      isActive: true,
-      slug: "dolci-veneziani",
-      products: ["Tiramisù Tradizionale"]
-    },
-    {
-      name: "Pescato Fresco",
-      description: "Fresh seafood supplier",
-      address: "Via del Mare 12, Bari, Italy",
-      website: "https://www.pescatofresco.it",
-      phone: "+39 080 123456",
-      email: "info@pescatofresco.it",
-      contactPerson: "Roberto Marino",
-      notes: "Daily fresh catch from the Adriatic Sea",
-      isActive: true,
-      slug: "pescato-fresco",
-      products: ["Linguine allo Scoglio"]
-    }
-  ];
 
-  // Create or update suppliers for the main workspace
-  const supplierMap = new Map(); // To store supplier id by name
-  
-  for (const supplier of suppliers) {
-    try {
-      const existingSupplier = await prisma.suppliers.findFirst({
-        where: {
-          name: supplier.name,
-          workspaceId: mainWorkspaceId,
-        },
-      });
 
-      let supplierId;
-      
-      if (!existingSupplier) {
-        const { products: productNames, ...supplierData } = supplier;
-        const createdSupplier = await prisma.suppliers.create({
-          data: {
-            ...supplierData,
-            workspaceId: mainWorkspaceId,
-          },
-        });
-        console.log(`Supplier created: ${supplier.name} for workspace ${createdWorkspaces[0].name}`);
-        supplierId = createdSupplier.id;
-      } else {
-        // Update existing supplier
-        const { products: productNames, ...supplierData } = supplier;
-        await prisma.suppliers.update({
-          where: { id: existingSupplier.id },
-          data: {
-            ...supplierData,
-            workspaceId: mainWorkspaceId,
-          },
-        });
-        console.log(`Supplier updated: ${supplier.name} for workspace ${createdWorkspaces[0].name}`);
-        supplierId = existingSupplier.id;
-      }
-      
-      // Store the supplier id in the map
-      supplierMap.set(supplier.name, supplierId);
-    } catch (error) {
-      console.error(`Error creating/updating supplier ${supplier.name}:`, error);
-    }
-  }
-
-  // Create or update products with their categories and suppliers
+  // Create or update products with their categories
   for (const product of products) {
     // Find the category by name for this workspace
     const category = await prisma.categories.findFirst({
@@ -1023,14 +887,7 @@ async function main() {
       continue
     }
 
-    // Find the supplier for this product
-    let supplierId = null;
-    for (const supplier of suppliers) {
-      if (supplier.products.includes(product.name)) {
-        supplierId = supplierMap.get(supplier.name);
-        break;
-      }
-    }
+
 
     // Create a product with proper type for Prisma
     try {
@@ -1053,7 +910,6 @@ async function main() {
             slug: `${product.slug}-${Date.now()}`, // Generiamo slug unici
             workspaceId: mainWorkspaceId,
             categoryId: category.id,
-            supplierId: supplierId,
           },
         })
         console.log(
@@ -1070,7 +926,6 @@ async function main() {
             stock: product.stock,
             isActive: true,
             categoryId: category.id,
-            supplierId: supplierId,
           },
         })
         console.log(
@@ -1252,12 +1107,96 @@ async function main() {
     }
   }
 
+  // Create FAQ data for the workspace
+  console.log("Creating FAQ data...")
+
+  // Delete existing FAQs first
+  await prisma.fAQ.deleteMany({
+    where: {
+      workspaceId: mainWorkspaceId,
+    },
+  });
+  console.log("Deleted existing FAQs");
+
+  // Define sample FAQs
+  const faqsData = [
+    {
+      question: "¿Cuáles son los horarios de atención?",
+      answer: "Nuestro horario de atención es de lunes a viernes de 9:00 a 18:00 horas, y sábados de 9:00 a 14:00 horas. Los domingos permanecemos cerrados.",
+      isActive: true,
+    },
+    {
+      question: "¿Cómo puedo realizar un pedido?",
+      answer: "Puedes realizar tu pedido directamente a través de este chat de WhatsApp. Solo dime qué productos te interesan y te ayudo con todo el proceso de compra.",
+      isActive: true,
+    },
+    {
+      question: "¿Cuáles son las formas de pago disponibles?",
+      answer: "Aceptamos pagos con tarjeta de crédito/débito, transferencia bancaria, PayPal y efectivo contra entrega (según disponibilidad en tu zona).",
+      isActive: true,
+    },
+    {
+      question: "¿Realizan envíos a toda España?",
+      answer: "Sí, realizamos envíos a toda España peninsular. Para Islas Baleares, Canarias, Ceuta y Melilla consulta condiciones especiales de envío.",
+      isActive: true,
+    },
+    {
+      question: "¿Cuánto tiempo tarda en llegar mi pedido?",
+      answer: "Los pedidos suelen llegar entre 24-48 horas en España peninsular. Para otros destinos el tiempo puede variar entre 3-5 días laborables.",
+      isActive: true,
+    },
+    {
+      question: "¿Los productos son auténticos productos italianos?",
+      answer: "Sí, todos nuestros productos son auténticos productos italianos importados directamente desde Italia. Trabajamos con productores certificados y de confianza.",
+      isActive: true,
+    },
+    {
+      question: "¿Puedo devolver un producto si no me gusta?",
+      answer: "Sí, tienes 14 días desde la recepción del pedido para devolverlo. El producto debe estar en perfectas condiciones y en su envase original.",
+      isActive: true,
+    },
+    {
+      question: "¿Ofrecen descuentos por compras grandes?",
+      answer: "Sí, ofrecemos descuentos especiales para pedidos grandes. Contacta con nosotros para conocer nuestras ofertas especiales para empresas y grandes pedidos.",
+      isActive: true,
+    },
+    {
+      question: "¿Los productos tienen fecha de caducidad larga?",
+      answer: "Todos nuestros productos tienen una fecha de caducidad mínima de 6 meses desde el envío. Los productos frescos se envían con fechas de caducidad apropiadas.",
+      isActive: true,
+    },
+    {
+      question: "¿Cómo conservar los productos una vez recibidos?",
+      answer: "Cada producto incluye instrucciones de conservación. En general, productos secos en lugar fresco y seco, productos refrigerados en nevera, y congelados en congelador.",
+      isActive: true,
+    },
+  ];
+
+  // Create new FAQs
+  for (const faq of faqsData) {
+    try {
+      await prisma.fAQ.create({
+        data: {
+          ...faq,
+          workspaceId: mainWorkspaceId,
+        },
+      });
+      console.log(`FAQ created: ${faq.question.substring(0, 50)}...`);
+    } catch (error) {
+      console.error(`Error creating FAQ ${faq.question}:`, error);
+    }
+  }
+
+  // Seed default document
+  await seedDefaultDocument()
+
   console.log(`Seed completato con successo!`)
   console.log(`- Admin user creato: ${adminEmail}`)
   console.log(`- Workspace creato/aggiornato: ${createdWorkspaces[0].name}`)
   console.log(`- Categorie create/esistenti: ${foodCategories.length}`)
   console.log(`- Prodotti creati/aggiornati: ${products.length}`)
   console.log(`- Services creati/aggiornati: ${services.length}`)
+  console.log(`- FAQs create: ${faqsData.length}`)
 }
 
 main()
