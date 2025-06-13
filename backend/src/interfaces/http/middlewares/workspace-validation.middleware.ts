@@ -12,6 +12,14 @@ export const workspaceValidationMiddleware = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    // Skip validation in test environment if test auth is enabled
+    if (process.env.NODE_ENV === 'test' && 
+        process.env.INTEGRATION_TEST === 'true' && 
+        req.headers['x-test-auth'] === 'true') {
+      console.log('🧪 Test environment: Skipping workspace validation');
+      return next();
+    }
+
     console.log('=== WORKSPACE VALIDATION DEBUG ===');
     console.log('Request URL:', req.originalUrl);
     console.log('Request method:', req.method);

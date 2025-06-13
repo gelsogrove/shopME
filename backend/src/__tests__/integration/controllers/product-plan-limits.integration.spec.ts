@@ -1,5 +1,6 @@
+import * as bcrypt from 'bcrypt';
 import request from 'supertest';
-import { app } from '../../../index';
+import app from '../../../app';
 import { prisma } from '../../../lib/prisma';
 import { PlanType } from '../../../utils/planLimits';
 
@@ -13,9 +14,11 @@ describe('Product Controller Plan Limits Integration', () => {
     const user = await prisma.user.create({
       data: {
         email: 'test-plan-limits@example.com',
-        password: 'hashedpassword',
-        name: 'Test User',
-        isActive: true
+        passwordHash: await bcrypt.hash('testpassword', 10),
+        firstName: 'Test',
+        lastName: 'User',
+        status: 'ACTIVE',
+        role: 'MEMBER'
       }
     });
     userId = user.id;
@@ -25,7 +28,10 @@ describe('Product Controller Plan Limits Integration', () => {
       data: {
         name: 'Test Workspace',
         slug: 'test-workspace-plan-limits',
-        plan: PlanType.FREE
+        plan: PlanType.FREE,
+        language: 'ENG',
+        currency: 'EUR',
+        isActive: true
       }
     });
     workspaceId = workspace.id;
