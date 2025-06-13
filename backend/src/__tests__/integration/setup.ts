@@ -12,7 +12,7 @@ import { connectTestDatabase, disconnectTestDatabase } from '../unit/helpers/pri
 export const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL || 'file:./dev.db'
+      url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5434/shop_db'
     }
   }
 });

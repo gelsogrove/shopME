@@ -6,9 +6,9 @@ export default {
   port: process.env.PORT || 3002,
   nodeEnv: 'test',
   
-  // Database configuration
+  // Database configuration - using same database as development
   database: {
-    url: process.env.DATABASE_URL_TEST || 'postgresql://postgres:postgres@localhost:5433/shop_test'
+    url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5434/shop_db'
   },
   
   // Auth configuration

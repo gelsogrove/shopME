@@ -2,7 +2,6 @@
 // Issues: passwordHash vs password, missing twoFactorSecret/gdprAccepted/phoneNumber in UserProps
 // Requires architectural decision on mapping layer between Prisma and Domain
 import { User } from "@prisma/client"
-import * as bcrypt from "bcrypt"
 import { Request, Response } from "express"
 import * as jwt from "jsonwebtoken"
 import { SignOptions } from "jsonwebtoken"
@@ -51,19 +50,9 @@ export class AuthController {
       throw new AppError(400, "Email and password are required")
     }
 
-    const user = await this.userService.getByEmail(email)
+    // Use the authenticate method from userService which handles password verification
+    const user = await this.userService.authenticate(email, password)
     if (!user) {
-      throw new AppError(401, "Invalid credentials")
-    }
-
-    // Verifica che user.password esista prima di confrontarlo
-    if (!user.password) {
-      logger.error(`User found but password hash is missing for user: ${user.id}`);
-      throw new AppError(401, "Invalid credentials")
-    }
-
-    const isValidPassword = await bcrypt.compare(password, user.password)
-    if (!isValidPassword) {
       throw new AppError(401, "Invalid credentials")
     }
 
