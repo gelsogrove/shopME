@@ -1,6 +1,23 @@
 // @ts-nocheck - Disable TypeScript checking for this test file since we're mocking complex objects
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
+// Mock Prisma with $transaction
+const mockTransaction = jest.fn();
+const mockWhatsappSettingsCreate = jest.fn();
+const mockPromptsCreate = jest.fn();
+
+jest.mock('../../../lib/prisma', () => ({
+  prisma: {
+    $transaction: mockTransaction,
+    whatsappSettings: {
+      create: mockWhatsappSettingsCreate
+    },
+    prompts: {
+      create: mockPromptsCreate
+    }
+  }
+}));
+
 // Mock WorkspaceRepository before importing
 const mockFindAll = jest.fn();
 const mockFindById = jest.fn();
@@ -68,7 +85,23 @@ describe('Workspace Service', () => {
     // Reset mocks before each test
     jest.clearAllMocks();
     
-    workspaceService = new WorkspaceService();
+    // Setup transaction mock to execute the callback immediately
+    mockTransaction.mockImplementation(async (callback) => {
+      const mockTx = {
+        whatsappSettings: { create: mockWhatsappSettingsCreate },
+        prompts: { create: mockPromptsCreate }
+      };
+      return await callback(mockTx);
+    });
+    
+    // Create mock Prisma instance
+    const mockPrisma = {
+      $transaction: mockTransaction,
+      whatsappSettings: { create: mockWhatsappSettingsCreate },
+      prompts: { create: mockPromptsCreate }
+    } as any;
+    
+    workspaceService = new WorkspaceService(mockPrisma);
   });
 
   describe('getAll', () => {

@@ -35,8 +35,14 @@ browser-tools-mcp/
 .specstory/
 .cursor/
 
+# Uploaded files
+/backend/uploads/documents/
+/backend/uploads/products/
+
 # Turbo
 .turbo
 
 # SpecStory explanation file
 .specstory/.what-is-this.md
+
+

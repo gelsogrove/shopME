@@ -82,8 +82,17 @@ async function seedDefaultDocument() {
       return
     }
 
-    // Copy the file
-    fs.copyFileSync(sourcePath, targetPath)
+    // Copy the file using streams for better handling of large binary files
+    const sourceStream = fs.createReadStream(sourcePath)
+    const targetStream = fs.createWriteStream(targetPath)
+    
+    await new Promise<void>((resolve, reject) => {
+      sourceStream.pipe(targetStream)
+      targetStream.on('finish', () => resolve())
+      targetStream.on('error', reject)
+      sourceStream.on('error', reject)
+    })
+    
     const stats = fs.statSync(targetPath)
 
     console.log(`PDF copied to: ${targetPath}`)
@@ -146,10 +155,52 @@ async function main() {
 
     // PULIZIA COMPLETA: Elimina tutti i dati del workspace principale
     console.log(
-      "Pulizia COMPLETA: eliminazione di tutti i dati del workspace..."
+      "🧹 PULIZIA COMPLETA: eliminazione di tutti i dati del workspace..."
     )
 
-    // 1. Prima eliminiamo gli elementi con dipendenze
+    // 1. Prima eliminiamo gli elementi con dipendenze (chunks e relazioni)
+    console.log("🗑️ Eliminazione chunks e dipendenze...")
+    
+    // Elimina tutti i chunks (usando i nomi corretti dal schema)
+    try {
+      await prisma.documentChunks.deleteMany({
+        where: {
+          document: {
+            workspaceId: mainWorkspaceId,
+          },
+        },
+      })
+      console.log("Eliminati document chunks")
+    } catch (error) {
+      console.log("Errore eliminazione document chunks:", error.message)
+    }
+    
+    try {
+      await prisma.fAQChunks.deleteMany({
+        where: {
+          faq: {
+            workspaceId: mainWorkspaceId,
+          },
+        },
+      })
+      console.log("Eliminati FAQ chunks")
+    } catch (error) {
+      console.log("Errore eliminazione FAQ chunks:", error.message)
+    }
+    
+    try {
+      await prisma.serviceChunks.deleteMany({
+        where: {
+          service: {
+            workspaceId: mainWorkspaceId,
+          },
+        },
+      })
+      console.log("Eliminati service chunks")
+    } catch (error) {
+      console.log("Errore eliminazione service chunks:", error.message)
+    }
+
     // Elimina tutti gli ordini e gli items
     await prisma.orderItems.deleteMany({
       where: {
@@ -200,6 +251,24 @@ async function main() {
     })
 
     // 2. Poi eliminiamo le entità principali
+    console.log("🗑️ Eliminazione entità principali...")
+    
+    // Elimina tutti i documenti
+    await prisma.documents.deleteMany({
+      where: {
+        workspaceId: mainWorkspaceId,
+      },
+    })
+    console.log("Eliminati tutti i documenti dal workspace principale")
+
+    // Elimina tutte le FAQ
+    await prisma.fAQ.deleteMany({
+      where: {
+        workspaceId: mainWorkspaceId,
+      },
+    })
+    console.log("Eliminate tutte le FAQ dal workspace principale")
+
     // Elimina tutti i prodotti
     await prisma.products.deleteMany({
       where: {
@@ -232,6 +301,14 @@ async function main() {
     })
     console.log("Eliminati tutti i servizi dal workspace principale")
 
+    // Elimina tutte le configurazioni agenti
+    await prisma.agentConfig.deleteMany({
+      where: {
+        workspaceId: mainWorkspaceId,
+      },
+    })
+    console.log("Eliminate tutte le configurazioni agenti dal workspace principale")
+
     // Elimina tutti i prompt e agenti
     const deletedPrompts = await prisma.prompts.deleteMany({
       where: {
@@ -241,6 +318,8 @@ async function main() {
     console.log(
       `Eliminati ${deletedPrompts.count} prompt dal workspace principale`
     )
+
+    console.log("✅ Pulizia completa terminata!")
 
     // Aggiorniamo il workspace con i dati richiesti, ma manteniamo lo slug originale
     const updatedWorkspace = await prisma.workspace.update({
