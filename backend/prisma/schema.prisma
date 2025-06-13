@@ -42,6 +42,7 @@ model Workspace {
   orders                    Orders[]
   products                  Products[]
   services                  Services[]
+  agentConfigs              AgentConfig[]
 
   users                     UserWorkspace[]
   whatsappSettings          WhatsappSettings?
@@ -230,17 +231,14 @@ model User {
 }
 
 model UserWorkspace {
-  id          String    @id @default(uuid())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
   userId      String
   workspaceId String
-  role        UserRole  @default(MEMBER)
+  role        String
+
   user        User      @relation(fields: [userId], references: [id])
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
-  @@unique([userId, workspaceId])
-  @@map("user_workspaces")
+  @@id([userId, workspaceId])
 }
 
 model WhatsappSettings {
@@ -355,17 +353,18 @@ model Language {
 }
 
 model Services {
-  id          String    @id @default(cuid())
+  id          String         @id @default(cuid())
   name        String
   description String
   price       Float
-  currency    String    @default("EUR")
-  isActive    Boolean   @default(true)
+  currency    String         @default("EUR")
+  isActive    Boolean        @default(true)
   workspaceId String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  duration    Int       @default(60)
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  duration    Int            @default(60)
+  workspace   Workspace      @relation(fields: [workspaceId], references: [id])
+  chunks      ServiceChunks[]
 
   @@map("services")
 }
@@ -379,6 +378,7 @@ model FAQ {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  chunks      FAQChunks[]
 
   @@map("faqs")
 }
@@ -435,6 +435,57 @@ model DocumentChunks {
   @@index([documentId])
   @@index([chunkIndex])
   @@map("document_chunks")
+}
+
+model FAQChunks {
+  id         String   @id @default(uuid())
+  faqId      String
+  content    String
+  chunkIndex Int
+  embedding  Json?
+  createdAt  DateTime @default(now())
+  faq        FAQ      @relation(fields: [faqId], references: [id], onDelete: Cascade)
+
+  @@index([faqId])
+  @@index([chunkIndex])
+  @@map("faq_chunks")
+}
+
+model ServiceChunks {
+  id         String   @id @default(uuid())
+  serviceId  String
+  content    String
+  chunkIndex Int
+  embedding  Json?
+  createdAt  DateTime @default(now())
+  service    Services @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId])
+  @@index([chunkIndex])
+  @@map("service_chunks")
+}
+
+model AgentConfig {
+  id          String    @id @default(uuid())
+  name        String
+  content     String?
+  isActive    Boolean   @default(true)
+  isRouter    Boolean   @default(false)
+  department  String?
+  workspaceId String
+  temperature Float?    @default(0.7)
+  top_p       Float?    @default(0.9)
+  top_k       Int?      @default(40)
+  model       String?   @default("openai/gpt-4o-mini")
+  max_tokens  Int?      @default(1000)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([isActive])
+  @@index([isRouter])
+  @@map("agent_configs")
 }
 
 enum UserStatus {

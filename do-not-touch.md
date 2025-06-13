@@ -7,8 +7,6 @@ do not touch , it works fine ,ask permission in case!
 CATEGORIES UI e API 
 do not touch , it works fine ,ask permission in case!
 
-FAQ UI e API 
-do not touch , it works fine ,ask permission in case!
 
 OFFERS UI e API 
 do not touch , it works fine ,ask permission in case!

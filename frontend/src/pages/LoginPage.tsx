@@ -1,18 +1,20 @@
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card"
 import { useState } from "react"
-import { toast } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 import { auth } from "../services/api"
 
 export function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  // Prefill credentials only in development
+  const isDev = import.meta.env.MODE === "development"
+  const [email, setEmail] = useState(isDev ? "admin@shopme.com" : "")
+  const [password, setPassword] = useState(isDev ? "venezia44" : "")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()

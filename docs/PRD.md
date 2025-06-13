@@ -178,10 +178,11 @@ flowchart TD
 - Token validation and expiration
 - Prevents token reuse
 
-**5. Document Service** (`documentService.ts`)
-- PDF upload and processing management
-- Embedding generation for RAG
-- Semantic search in documents
+**5. Document Management Services**
+- **`embeddingService.ts`**: Shared service for chunking, embedding generation, and similarity calculation
+- **`documentService.ts`**: PDF upload and processing management (uses shared EmbeddingService)
+- **`searchService.ts`**: Unified multi-source RAG search across Documents, FAQs, and Services
+- Integration with OpenRouter for embedding generation
 
 #### Security Controls
 
@@ -603,24 +604,73 @@ The system implements a comprehensive RAG (Retrieval-Augmented Generation) pipel
 - Active services only are included in RAG search
 - Storage in `service_chunks` table with embedding vectors
 
+#### Service Architecture
+
+The RAG system is built on a modular, scalable architecture:
+
+```typescript
+EmbeddingService (shared)
+├── splitTextIntoChunks()
+├── generateEmbedding()  
+└── cosineSimilarity()
+
+DocumentService (refactored)
+├── PDF processing
+├── Uses EmbeddingService for chunking/embeddings
+└── Database operations
+
+SearchService (unified)
+├── searchAll() - multi-source search
+├── searchDocuments() - documents only
+├── searchFAQs() - FAQs only
+└── UnifiedSearchResult interface
+
+FAQ Controller
+└── Uses EmbeddingService for FAQ embeddings
+```
+
+**Benefits**:
+- **DRY Principle**: No code duplication across services
+- **Scalability**: Easy to add new content types
+- **Consistency**: Same embedding algorithms for all content
+- **Maintainability**: Changes in one place affect all services
+
 #### Embedding Generation Process
 
 **Manual Embedding Generation**: Each content type (Documents, FAQs, Services) includes a "Generate Embeddings" button in the admin interface that:
 
 1. **Identifies Content to Process**: Finds all active, non-embedded content
 2. **Text Preparation**: Combines relevant fields (question+answer for FAQs, name+description for Services)
-3. **Chunk Creation**: Splits content into optimal chunks for embedding
-4. **API Processing**: Calls OpenRouter API to generate vector embeddings
+3. **Chunk Creation**: Splits content into optimal chunks for embedding using shared `EmbeddingService`
+4. **API Processing**: Calls OpenRouter API to generate vector embeddings via shared service
 5. **Database Storage**: Saves chunks with embeddings to respective `*_chunks` tables
 6. **Status Updates**: Updates content status to indicate embedding completion
 
+**Automatic Setup Instructions**: After running the database seed (`npm run seed`), the system automatically displays instructions for generating embeddings:
+
+```bash
+📝 EMBEDDING GENERATION INSTRUCTIONS:
+   🔧 FAQ Embeddings: POST /api/faqs/generate-embeddings
+   📄 Document Embeddings: POST /api/documents/generate-embeddings
+   Or use the admin interface buttons on the respective pages.
+```
+
+This ensures developers and administrators know exactly how to activate the RAG system after initial setup.
+
 **RAG Search Flow**: When a user asks a question via WhatsApp:
 
-1. **Query Embedding**: User question is converted to vector embedding
-2. **Similarity Search**: Cosine similarity calculated against all chunk embeddings
-3. **Multi-Source Results**: Top relevant chunks retrieved from documents, FAQs, and services
-4. **Context Assembly**: Most relevant chunks combined as context for LLM
-5. **Response Generation**: LLM generates response using retrieved context + user query
+1. **Query Embedding**: User question is converted to vector embedding using shared `EmbeddingService`
+2. **Unified Search**: `SearchService` orchestrates search across all content types
+3. **Similarity Search**: Cosine similarity calculated against all chunk embeddings using shared algorithms
+4. **Multi-Source Results**: Top relevant chunks retrieved from documents, FAQs, and services in unified format
+5. **Context Assembly**: Most relevant chunks combined as context for LLM
+6. **Response Generation**: LLM generates response using retrieved context + user query
+
+**Technical Implementation**:
+- **Shared EmbeddingService**: Centralizes chunking, embedding generation, and similarity calculation
+- **Unified SearchService**: Provides consistent API for multi-source search with `UnifiedSearchResult` interface
+- **Refactored DocumentService**: Uses shared embedding service, eliminating code duplication
+- **Scalable Architecture**: Easy to add new content types (Services, etc.) using same embedding pipeline
 
 This multi-source RAG approach ensures comprehensive knowledge coverage, allowing the chatbot to answer questions using information from uploaded documents, configured FAQs, and service catalog details.
 
@@ -1158,6 +1208,126 @@ Our system uses JWT (JSON Web Token) authentication to keep user accounts secure
   - Manager: Workspace management capabilities
   - Agent: Customer service operations
   - Workspace-scoped permissions
+
+### New User Registration and Workspace Management
+
+The platform implements a comprehensive onboarding flow for new users that ensures proper workspace assignment and prevents access errors:
+
+#### New User Registration Flow
+
+**1. Initial Registration**
+- Users register through the standard registration form
+- Required fields: first name, last name, company, phone number
+- GDPR consent checkbox with dynamic text from `/gdpr` endpoint
+- Email verification is not required (phone-based registration)
+
+**2. Post-Registration Redirect Logic**
+```typescript
+// After successful OTP verification
+const userWorkspaces = await fetchUserWorkspaces(userId)
+
+if (userWorkspaces.length === 0) {
+  // New user with no workspaces - redirect to workspace selection
+  navigate('/workspace-selection')
+} else {
+  // Existing user - redirect to main application
+  navigate('/chat')
+}
+```
+
+**3. Workspace Selection Page**
+- New users are automatically redirected to `/workspace-selection`
+- Users can either:
+  - Create a new workspace (becomes workspace owner)
+  - Join an existing workspace (requires invitation)
+- Workspace creation includes:
+  - Workspace name
+  - Business type selection
+  - Initial configuration setup
+
+#### Workspace-Dependent Features Protection
+
+**Problem Prevention**
+The system prevents the "Workspace ID is required and must be a string" error by implementing workspace validation at multiple levels:
+
+**1. Frontend Route Protection**
+```typescript
+// In workspace-dependent pages (ChatPage, AgentPage, etc.)
+const { workspace, loading } = useWorkspace()
+
+useEffect(() => {
+  if (!loading && !workspace?.id) {
+    navigate('/workspace-selection')
+  }
+}, [workspace, loading, navigate])
+```
+
+**2. Component-Level Validation**
+```typescript
+// In WhatsAppChatModal and similar components
+const currentWorkspaceId = getWorkspaceId(workspaceId)
+const hasValidWorkspace = currentWorkspaceId !== null
+
+// Disable functionality if no workspace
+if (!hasValidWorkspace) {
+  // Show warning message
+  // Disable message sending
+  // Redirect to workspace selection
+}
+```
+
+**3. API Request Validation**
+```typescript
+// All workspace-dependent API calls include workspace validation
+headers: {
+  "Content-Type": "application/json",
+  "x-workspace-id": workspaceId // Required for workspace-scoped operations
+}
+```
+
+#### Workspace Context Management
+
+**1. Workspace Hook (`useWorkspace`)**
+- Centralized workspace state management
+- Automatic workspace loading on app initialization
+- Session storage for workspace persistence
+- React Query integration for caching
+
+**2. Workspace Configuration (`workspace.config.ts`)**
+```typescript
+export const getWorkspaceId = (workspaceId?: string): string | null => {
+  // Priority order:
+  // 1. Provided workspace ID
+  // 2. Cached default workspace
+  // 3. Environment variable
+  // 4. Return null (no hardcoded fallbacks)
+}
+```
+
+**3. Error Handling**
+- Clear error messages when workspace is missing
+- Visual indicators in UI (yellow warning boxes)
+- Graceful degradation of features
+- Automatic redirect to workspace selection
+
+#### User Experience Flow
+
+**New User Journey**
+1. User registers → OTP verification → Workspace selection page
+2. User creates/joins workspace → Redirected to main application
+3. All features now work with proper workspace context
+
+**Existing User Journey**
+1. User logs in → Automatic workspace loading → Direct access to application
+2. If workspace becomes invalid → Automatic redirect to workspace selection
+
+**Error Prevention**
+- No API calls made without valid workspace ID
+- UI components show appropriate warnings
+- Buttons disabled when workspace unavailable
+- Clear messaging about workspace requirement
+
+This comprehensive approach ensures that new users have a smooth onboarding experience while preventing technical errors related to missing workspace context.
 
 ### API Rate Limiting Implementation
 
@@ -1880,3 +2050,47 @@ Features planned for the MMP phase, after the initial MVP release:
 - Personalized product recommendations based on preferences
 - Automated follow-up sequences for abandoned carts
 - A/B testing of different AI prompts and approaches
+
+## DATA MANAGEMENT AND DELETION POLICIES
+
+### Hard Delete Implementation
+ShopMe implements a comprehensive **hard delete system** for workspace management to ensure complete data removal and compliance with data protection regulations.
+
+#### Workspace Hard Delete Features
+- **Complete cascade deletion**: When a workspace is deleted, ALL related data is permanently removed
+- **Transaction-based safety**: Uses database transactions to ensure data integrity during deletion
+- **No recovery option**: Hard delete is irreversible - ensures true data removal for privacy compliance
+- **Comprehensive scope**: Deletes all related entities including:
+  - Products and categories
+  - Customers and chat sessions  
+  - Services and offers
+  - Documents and FAQ chunks
+  - Agent configurations and prompts
+  - User-workspace relationships
+  - WhatsApp settings
+
+#### Implementation Details
+```typescript
+// Hard delete in cascading order to avoid foreign key constraints
+await prisma.$transaction(async (tx) => {
+  // 1. Delete dependent data first (chunks, items, etc.)
+  // 2. Delete main entities (documents, products, customers)
+  // 3. Delete workspace relationships
+  // 4. Finally delete workspace itself
+})
+```
+
+#### Data Protection Compliance
+- **GDPR Article 17 (Right to erasure)**: Complete data removal ensures compliance with right to be forgotten
+- **Audit trail**: Deletion operations are logged for compliance reporting
+- **No soft delete fallbacks**: Prevents accidental data retention
+- **Secure token cleanup**: Associated security tokens are also purged
+
+#### Business Justification
+- **Storage optimization**: Prevents accumulation of unused data
+- **Performance improvement**: Reduces database size and query complexity
+- **Cost efficiency**: Lower storage and backup costs
+- **Regulatory compliance**: Meets strict data protection requirements
+- **User trust**: Demonstrates commitment to data privacy
+
+This implementation ensures that when users delete their workspace, their data is completely and permanently removed from our systems, providing peace of mind and regulatory compliance.

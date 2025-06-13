@@ -64,15 +64,36 @@ class DocumentsApi {
    * Get all documents for a workspace
    */
   async list(workspaceId: string): Promise<Document[]> {
-    const response = await api.get(`/workspaces/${workspaceId}/documents?workspaceId=${workspaceId}`)
-    return response.data.data || response.data
+    console.log("=== DOCUMENTS API LIST DEBUG ===")
+    console.log("Called with workspaceId:", workspaceId)
+    
+    if (!workspaceId) {
+      console.error("No workspaceId provided to documentsApi.list")
+      throw new Error("WorkspaceId is required")
+    }
+    
+    const url = `/workspaces/${workspaceId}/documents`
+    console.log("Making API call to:", url)
+    
+    try {
+      const response = await api.get(url)
+      console.log("API response status:", response.status)
+      console.log("API response data:", response.data)
+      
+      const documents = response.data.data || response.data
+      console.log("Returning documents:", documents)
+      return documents
+    } catch (error) {
+      console.error("API call failed:", error)
+      throw error
+    }
   }
 
   /**
    * Process a document to generate embeddings
    */
-  async process(documentId: string): Promise<void> {
-    await api.post(`/documents/${documentId}/process`)
+  async process(workspaceId: string, documentId: string): Promise<void> {
+    await api.post(`/workspaces/${workspaceId}/documents/${documentId}/process`)
   }
 
   /**
@@ -89,23 +110,23 @@ class DocumentsApi {
   /**
    * Delete a document
    */
-  async delete(documentId: string): Promise<void> {
-    await api.delete(`/documents/${documentId}`)
+  async delete(workspaceId: string, documentId: string): Promise<void> {
+    await api.delete(`/workspaces/${workspaceId}/documents/${documentId}`)
   }
 
   /**
    * Get document details by ID
    */
-  async getById(documentId: string): Promise<Document> {
-    const response = await api.get(`/documents/${documentId}`)
+  async getById(workspaceId: string, documentId: string): Promise<Document> {
+    const response = await api.get(`/workspaces/${workspaceId}/documents/${documentId}`)
     return response.data.data || response.data
   }
 
   /**
    * Download a document file
    */
-  async download(documentId: string): Promise<Blob> {
-    const response = await api.get(`/documents/${documentId}/download`, {
+  async download(workspaceId: string, documentId: string): Promise<Blob> {
+    const response = await api.get(`/workspaces/${workspaceId}/documents/${documentId}/download`, {
       responseType: 'blob',
     })
     return response.data
@@ -114,8 +135,8 @@ class DocumentsApi {
   /**
    * Update document metadata
    */
-  async update(documentId: string, data: { originalName?: string; isActive?: boolean }): Promise<Document> {
-    const response = await api.put(`/documents/${documentId}`, data)
+  async update(workspaceId: string, documentId: string, data: { originalName?: string; isActive?: boolean }): Promise<Document> {
+    const response = await api.put(`/workspaces/${workspaceId}/documents/${documentId}`, data)
     return response.data.data || response.data
   }
 

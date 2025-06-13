@@ -26,11 +26,44 @@ export default function DocumentsPage() {
   const [editName, setEditName] = useState('')
   const [editIsActive, setEditIsActive] = useState(false)
 
+  // Debug workspace state
+  useEffect(() => {
+    console.log("=== DOCUMENTS PAGE WORKSPACE DEBUG ===")
+    console.log("Workspace from hook:", workspace)
+    console.log("Workspace ID:", workspace?.id)
+    console.log("Is loading:", isLoading)
+    
+    // Check sessionStorage directly
+    const sessionWorkspace = sessionStorage.getItem("currentWorkspace")
+    console.log("SessionStorage workspace:", sessionWorkspace)
+    
+    // Check localStorage as fallback
+    const localWorkspace = localStorage.getItem("currentWorkspace")
+    console.log("LocalStorage workspace:", localWorkspace)
+    
+    if (sessionWorkspace) {
+      try {
+        const parsed = JSON.parse(sessionWorkspace)
+        console.log("Parsed sessionStorage workspace:", parsed)
+      } catch (e) {
+        console.error("Error parsing sessionStorage workspace:", e)
+      }
+    }
+  }, [workspace, isLoading])
+
   const loadDocuments = useCallback(async () => {
-    if (!workspace?.id) return
+    console.log("=== LOAD DOCUMENTS DEBUG ===")
+    console.log("Workspace ID for loading:", workspace?.id)
+    
+    if (!workspace?.id) {
+      console.warn("No workspace ID available for loading documents")
+      return
+    }
     
     try {
+      console.log("Calling documentsApi.list with workspaceId:", workspace.id)
       const docs = await documentsApi.list(workspace.id)
+      console.log("Documents loaded:", docs)
       setDocuments(docs)
     } catch (error) {
       console.error('Failed to load documents:', error)
@@ -47,8 +80,13 @@ export default function DocumentsPage() {
   )
 
   const handleDownload = async (doc: Document) => {
+    if (!workspace?.id) {
+      toast.error('Workspace ID is required')
+      return
+    }
+    
     try {
-      const blob = await documentsApi.download(doc.id)
+      const blob = await documentsApi.download(workspace.id, doc.id)
       
       // Create download link
       const url = window.URL.createObjectURL(blob)
@@ -111,10 +149,10 @@ export default function DocumentsPage() {
   }
 
   const handleEditSubmit = async () => {
-    if (!editingDocument) return
+    if (!editingDocument || !workspace?.id) return
 
     try {
-      await documentsApi.update(editingDocument.id, {
+      await documentsApi.update(workspace.id, editingDocument.id, {
         originalName: editName,
         isActive: editIsActive,
       })
@@ -138,7 +176,7 @@ export default function DocumentsPage() {
     if (!selectedDocument || !workspace?.id) return
 
     try {
-      await documentsApi.delete(selectedDocument.id)
+      await documentsApi.delete(workspace.id, selectedDocument.id)
       setDocuments(documents.filter(doc => doc.id !== selectedDocument.id))
       setShowDeleteDialog(false)
       setSelectedDocument(null)

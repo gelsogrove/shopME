@@ -237,7 +237,9 @@ export function ChatPage() {
 
     try {
       setLoadingChat(true)
-      const response = await api.get(`/chat/${chat.sessionId}/messages`)
+      const sessionIdToUse = chat.sessionId || chat.id
+      console.log("Fetching messages for chat with sessionId:", sessionIdToUse)
+      const response = await api.get(`/chat/${sessionIdToUse}/messages`)
       if (response.data.success) {
         // Transform backend messages to frontend format
         const transformedMessages = response.data.data.map((message: any) => ({
@@ -331,9 +333,10 @@ export function ChatPage() {
   // Function to select a chat
   const selectChat = (chat: Chat) => {
     setSelectedChat(chat)
-    // Update URL to include sessionId
+    // Update URL to include sessionId - use sessionId or fallback to id
+    const sessionIdToUse = chat.sessionId || chat.id
     const newParams = new URLSearchParams(searchParams)
-    newParams.set("sessionId", chat.sessionId)
+    newParams.set("sessionId", sessionIdToUse)
     // Preserve client search term if present
     if (clientSearchTerm) {
       newParams.set("client", clientSearchTerm)
@@ -350,13 +353,13 @@ export function ChatPage() {
       // Update unread count in the local state
       setChats((prevChats) =>
         prevChats.map((c) =>
-          c.sessionId === chat.sessionId ? { ...c, unreadCount: 0 } : c
+          (c.sessionId || c.id) === sessionIdToUse ? { ...c, unreadCount: 0 } : c
         )
       )
 
       // Call API to mark messages as read
       api
-        .post(`/chat/${chat.sessionId}/read`)
+        .post(`/chat/${sessionIdToUse}/read`)
         .then((response) => {
           if (!response.data.success) {
             console.error("Failed to mark messages as read")
@@ -378,15 +381,25 @@ export function ChatPage() {
   const handleDeleteConfirm = async () => {
     if (!selectedChat) return
 
+    // Validate that we have a valid sessionId
+    const sessionIdToDelete = selectedChat.sessionId || selectedChat.id
+    if (!sessionIdToDelete) {
+      console.error("No valid session ID found for chat deletion:", selectedChat)
+      toast.error("Cannot delete chat: Invalid session ID", { duration: 1000 })
+      setShowDeleteDialog(false)
+      return
+    }
+
     try {
       setLoading(true)
-      const response = await api.delete(`/chat/${selectedChat.sessionId}`)
+      console.log("Deleting chat with sessionId:", sessionIdToDelete)
+      const response = await api.delete(`/chat/${sessionIdToDelete}`)
 
       if (response.data.success) {
         toast.success("Chat deleted successfully", { duration: 1000 })
         // Remove deleted chat from state
         setChats((prev) =>
-          prev.filter((chat) => chat.sessionId !== selectedChat.sessionId)
+          prev.filter((chat) => (chat.sessionId || chat.id) !== sessionIdToDelete)
         )
         setSelectedChat(null)
         // Remove sessionId from URL
@@ -532,7 +545,8 @@ export function ChatPage() {
       setMessageInput("") // Clear input field
 
       // Send message to API
-      const response = await api.post(`/chat/${selectedChat.sessionId}/send`, {
+      const sessionIdToUse = selectedChat.sessionId || selectedChat.id
+      const response = await api.post(`/chat/${sessionIdToUse}/send`, {
         content: messageInput,
         sender: "user",
       })

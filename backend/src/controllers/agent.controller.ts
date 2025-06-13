@@ -6,8 +6,21 @@ export const agentController = {
    * Get all agents for a workspace
    */
   async getAllForWorkspace(req: Request, res: Response, next: NextFunction) {
+    console.log('=== OLD AGENT CONTROLLER getAllForWorkspace ===');
+    console.log('Request URL:', req.originalUrl);
+    console.log('Request method:', req.method);
+    console.log('Request params:', req.params);
+    console.log('Request query:', req.query);
+    console.log('Request headers workspace-related:', {
+      'x-workspace-id': req.headers['x-workspace-id'],
+      'workspace-id': req.headers['workspace-id']
+    });
+
     // Get workspaceId from params or user context
     let workspaceId = req.params.workspaceId;
+    
+    console.log('workspaceId from params:', workspaceId);
+    console.log('req.user:', req.user);
     
     // If workspaceId is not provided in the params (direct /agent route)
     if (!workspaceId) {
@@ -16,20 +29,57 @@ export const agentController = {
         const user = req.user as any;
         workspaceId = user?.workspaceId;
         
+        console.log('workspaceId from user context:', workspaceId);
+        
         // If still no workspace ID, return error instead of using fallback
         if (!workspaceId) {
-          console.log("No workspaceId found in params or user context");
-          return res.status(400).json({ message: "Workspace ID is required" });
+          console.log("❌ No workspaceId found in params or user context");
+          
+          // Create comprehensive debug response
+          const debugResponse = {
+            message: "Workspace ID is required",
+            debug: {
+              url: req.originalUrl,
+              method: req.method,
+              params: req.params,
+              query: req.query,
+              headers: {
+                'x-workspace-id': req.headers['x-workspace-id'],
+                'workspace-id': req.headers['workspace-id']
+              },
+              user: req.user ? { userId: (req.user as any).userId, workspaceId: (req.user as any).workspaceId } : null,
+              workspaceIdSources: {
+                fromParams: req.params.workspaceId,
+                fromUser: user?.workspaceId,
+                fromHeaders: req.headers['x-workspace-id']
+              }
+            },
+            sqlQuery: "No SQL query executed - workspace ID missing"
+          };
+          
+          return res.status(400).json(debugResponse);
         }
         
-        console.log(`No workspaceId in params, using ${workspaceId} from user context`);
+        console.log(`✅ No workspaceId in params, using ${workspaceId} from user context`);
       } catch (error) {
         console.error("Failed to get workspace ID:", error);
-        return res.status(400).json({ message: "Workspace ID is required" });
+        
+        const debugResponse = {
+          message: "Workspace ID is required",
+          debug: {
+            error: error.message,
+            stack: error.stack,
+            url: req.originalUrl,
+            method: req.method
+          },
+          sqlQuery: "Error occurred before SQL execution"
+        };
+        
+        return res.status(400).json(debugResponse);
       }
     }
     
-    console.log(`Getting all agents for workspace ${workspaceId}`);
+    console.log(`✅ Getting all agents for workspace ${workspaceId}`);
     console.log("Request params:", req.params);
     console.log("Request headers:", req.headers);
     

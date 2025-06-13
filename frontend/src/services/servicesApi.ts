@@ -6,10 +6,19 @@ export interface Service {
   description: string
   price: number
   currency: string
+  duration: number
   isActive: boolean
   workspaceId: string
   createdAt: string
   updatedAt: string
+}
+
+export interface SearchResult {
+  id: string
+  content: string
+  similarity: number
+  sourceName: string
+  sourceType: string
 }
 
 export interface CreateServiceData {
@@ -36,6 +45,7 @@ const mockServices: Service[] = [
     description: 'Professional website design with responsive layout, optimized for mobile and desktop. Includes up to 5 pages and basic SEO optimization.',
     price: 999,
     currency: '€',
+    duration: 0,
     isActive: true,
     workspaceId: 'mock-workspace',
     createdAt: new Date().toISOString(),
@@ -47,6 +57,7 @@ const mockServices: Service[] = [
     description: 'Complete e-commerce solution with product catalog, shopping cart, and payment gateway integration. Includes product setup for up to 20 items.',
     price: 1499,
     currency: '€',
+    duration: 0,
     isActive: true,
     workspaceId: 'mock-workspace',
     createdAt: new Date().toISOString(),
@@ -58,6 +69,7 @@ const mockServices: Service[] = [
     description: 'Comprehensive SEO service to improve search engine rankings. Includes keyword research, on-page optimization, and monthly reporting.',
     price: 699,
     currency: '€',
+    duration: 0,
     isActive: true,
     workspaceId: 'mock-workspace',
     createdAt: new Date().toISOString(),
@@ -133,10 +145,30 @@ export const deleteService = async (workspaceId: string, id: string): Promise<vo
   }
 }
 
+/**
+ * Search services using semantic search
+ */
+export const search = async (workspaceId: string, query: string): Promise<SearchResult[]> => {
+  const response = await api.post(`/workspaces/${workspaceId}/services/search`, {
+    query,
+    workspaceId,
+  })
+  return response.data.data?.results || response.data
+}
+
+/**
+ * Generate embeddings for all active services in a workspace
+ */
+export const generateEmbeddings = async (workspaceId: string): Promise<void> => {
+  await api.post(`/workspaces/${workspaceId}/services/generate-embeddings`)
+}
+
 export const servicesApi = {
   getServices,
   getServiceById,
   createService,
   updateService,
-  deleteService
+  deleteService,
+  search,
+  generateEmbeddings
 } 

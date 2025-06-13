@@ -40,6 +40,7 @@ import { authMiddleware } from "../interfaces/http/middlewares/auth.middleware"
 import { createUserRouter } from "../interfaces/http/routes/user.routes"
 import createPromptsRouter from "./prompts.routes"
 // Import document routes
+import { workspaceExtractionMiddleware } from "../interfaces/http/middlewares/workspace-extraction.middleware"
 import documentRoutes from "./documentRoutes"
 
 // Simple logging middleware
@@ -108,7 +109,7 @@ router.use("/", customersRouter(customersController))
 // Utilizziamo il router specifico per workspaces 
 router.use("/workspaces", workspaceCustomersRouter(customersController))
 router.use("/workspaces", workspaceRoutes)
-router.use("/agent", createAgentRouter())
+router.use("/agent", workspaceExtractionMiddleware, createAgentRouter())
 // Mount agent routes with workspace parameter properly configured
 router.use("/workspaces/:workspaceId/agent", (req, res, next) => {
   // Ensure workspaceId is available in params
@@ -146,7 +147,7 @@ logger.info("Registered categories router with workspace routes")
 // Mount services routes
 const servicesRouterInstance = servicesRouter(servicesController)
 router.use("/workspaces/:workspaceId/services", servicesRouterInstance)
-router.use("/services", servicesRouterInstance)
+// router.use("/services", servicesRouterInstance) // REMOVED: legacy route, now only workspace scoped
 logger.info("Registered services router with workspace routes")
 
 
@@ -173,9 +174,15 @@ const whatsappInstance = whatsappRouter(whatsappController);
 router.use("/whatsapp", whatsappInstance);
 logger.info("Registered WhatsApp router with auth-protected endpoints")
 
-// Mount document routes
-router.use("/workspaces/:workspaceId/documents", documentRoutes);
-router.use("/documents", documentRoutes);
+// Mount document routes with debug middleware
+router.use("/workspaces/:workspaceId/documents", (req, res, next) => {
+  console.log('=== DOCUMENT ROUTES DEBUG ===');
+  console.log('URL:', req.originalUrl);
+  console.log('Method:', req.method);
+  console.log('Params:', req.params);
+  console.log('WorkspaceId:', req.params.workspaceId);
+  next();
+}, documentRoutes);
 logger.info("Registered document router with workspace and upload endpoints")
 
 // Add special route for GDPR default content (to handle frontend request to /gdpr/default)

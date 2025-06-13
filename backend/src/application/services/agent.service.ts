@@ -21,6 +21,7 @@ export class AgentService {
   async getAllForWorkspace(workspaceId: string) {
     try {
       logger.info(`Getting all agents for workspace ${workspaceId}`);
+      console.log('DEBUG AGENT SERVICE: workspaceId:', workspaceId);
       
       // Ensure workspaceId is not undefined
       if (!workspaceId) {
@@ -28,12 +29,29 @@ export class AgentService {
         return [];
       }
       
-      const agents = await this.prisma.prompts.findMany({
-        where: { 
-          workspaceId 
+      let agents = [];
+      try {
+        agents = await this.prisma.prompts.findMany({
+          where: { 
+            workspaceId 
+          }
+        });
+        console.log('DEBUG AGENT SERVICE: Prisma result:', agents);
+      } catch (prismaError) {
+        console.log('DEBUG AGENT SERVICE: Prisma query error:', prismaError);
+      }
+      if (!agents || agents.length === 0) {
+        try {
+          const rawAgents = await this.prisma.$queryRawUnsafe(
+            `SELECT * FROM "Prompts" WHERE "workspaceId" = $1`,
+            workspaceId
+          );
+          console.log('DEBUG AGENT SERVICE: RAW SQL result:', rawAgents);
+          return rawAgents;
+        } catch (rawError) {
+          console.log('DEBUG AGENT SERVICE: RAW SQL error:', rawError);
         }
-      });
-      
+      }
       logger.info(`Found ${agents.length} agents for workspace ${workspaceId}`);
       return agents || [];
     } catch (error) {

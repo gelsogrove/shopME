@@ -229,5 +229,54 @@ export const faqsRouter = (): Router => {
    */
   router.delete("/:id", controller.deleteFaq.bind(controller));
 
+  /**
+   * @swagger
+   * /api/workspaces/{workspaceId}/faqs/generate-embeddings:
+   *   post:
+   *     summary: Generate embeddings for all active FAQs in a workspace
+   *     tags: [FAQs]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: ID of the workspace
+   *     responses:
+   *       200:
+   *         description: FAQ embedding generation completed
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 message:
+   *                   type: string
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     workspaceId:
+   *                       type: string
+   *                     processed:
+   *                       type: number
+   *                     errors:
+   *                       type: array
+   *                       items:
+   *                         type: string
+   *                     hasErrors:
+   *                       type: boolean
+   *       400:
+   *         description: Workspace ID is required
+   *       500:
+   *         description: Failed to generate FAQ embeddings
+   */
+  router.post("/generate-embeddings", controller.generateEmbeddings.bind(controller));
+
+
+
   return router;
 }; 

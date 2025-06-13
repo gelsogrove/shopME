@@ -10,54 +10,130 @@ export const workspaceValidationMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
-    // Check for workspace ID in different locations
-    const workspaceId = 
-      req.params.workspaceId || 
-      req.headers['x-workspace-id'] as string || 
-      (req.user as any)?.workspaceId;
-
-    logger.debug('Workspace validation - checking ID:', {
-      fromParams: req.params.workspaceId,
-      fromHeaders: req.headers['x-workspace-id'],
-      fromUser: (req.user as any)?.workspaceId,
-      finalWorkspaceId: workspaceId
+    console.log('=== WORKSPACE VALIDATION DEBUG ===');
+    console.log('Request URL:', req.originalUrl);
+    console.log('Request method:', req.method);
+    console.log('Request params:', req.params);
+    console.log('Request query:', req.query);
+    console.log('Request headers workspace-related:', {
+      'x-workspace-id': req.headers['x-workspace-id'],
+      'workspace-id': req.headers['workspace-id']
     });
 
-    // If no workspace ID found, return error
-    if (!workspaceId) {
-      logger.warn('Workspace ID missing in request');
-      return res.status(400).json({
-        success: false,
-        error: 'Workspace ID is required'
-      });
-    }
-
-    // Validate that the workspace exists
-    const workspaceExists = await validateWorkspaceId(workspaceId);
+    // Extract workspace ID from various sources
+    const workspaceIdFromParams = req.params.workspaceId;
+    const workspaceIdFromQuery = req.query.workspaceId as string;
+    const workspaceIdFromHeaders = req.headers['x-workspace-id'] as string;
     
-    if (!workspaceExists) {
-      logger.warn(`Invalid workspace ID: ${workspaceId}`);
-      return res.status(404).json({
-        success: false,
-        error: 'Workspace not found'
-      });
+    console.log('Workspace ID sources:', {
+      fromParams: workspaceIdFromParams,
+      fromQuery: workspaceIdFromQuery,
+      fromHeaders: workspaceIdFromHeaders
+    });
+
+    const workspaceId = workspaceIdFromParams || workspaceIdFromQuery || workspaceIdFromHeaders;
+    
+    console.log('Final workspaceId:', workspaceId);
+
+    if (!workspaceId || workspaceId.trim() === '') {
+      console.log('❌ Workspace ID is missing or empty');
+      
+      // Create debug response with all the information
+      const debugResponse = {
+        message: "Workspace ID is required",
+        debug: {
+          url: req.originalUrl,
+          method: req.method,
+          params: req.params,
+          query: req.query,
+          headers: {
+            'x-workspace-id': req.headers['x-workspace-id'],
+            'workspace-id': req.headers['workspace-id']
+          },
+          workspaceIdSources: {
+            fromParams: workspaceIdFromParams,
+            fromQuery: workspaceIdFromQuery,
+            fromHeaders: workspaceIdFromHeaders
+          },
+          finalWorkspaceId: workspaceId
+        },
+        sqlQuery: "No SQL query executed - workspace ID missing"
+      };
+      
+      return res.status(400).json(debugResponse);
     }
 
-    // Add workspace ID to request for downstream handlers
+    console.log('✅ Workspace ID found:', workspaceId);
+
+    // Check if workspace exists in database
+    console.log('Checking workspace in database...');
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      select: { id: true, name: true, isActive: true, isDelete: true }
+    });
+
+    const sqlQuery = `SELECT id, name, isActive, isDelete FROM workspace WHERE id = '${workspaceId}'`;
+    console.log('SQL Query executed:', sqlQuery);
+    console.log('Workspace found:', workspace);
+
+    if (!workspace) {
+      console.log('❌ Workspace not found in database');
+      
+      const debugResponse = {
+        message: "Workspace not found",
+        debug: {
+          workspaceId,
+          url: req.originalUrl,
+          method: req.method
+        },
+        sqlQuery
+      };
+      
+      return res.status(404).json(debugResponse);
+    }
+
+    if (workspace.isDelete || !workspace.isActive) {
+      console.log('❌ Workspace is deleted or inactive');
+      
+      const debugResponse = {
+        message: "Workspace is not available",
+        debug: {
+          workspaceId,
+          workspace,
+          url: req.originalUrl,
+          method: req.method
+        },
+        sqlQuery
+      };
+      
+      return res.status(403).json(debugResponse);
+    }
+
+    console.log('✅ Workspace validation passed');
+    
+    // Store workspace info in request
+    (req as any).workspace = workspace;
     (req as any).workspaceId = workspaceId;
-    
-    // Log successful validation
-    logger.debug(`Workspace validated: ${workspaceId}`);
     
     next();
   } catch (error) {
-    logger.error('Error validating workspace:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Error validating workspace'
-    });
+    console.error('Workspace validation error:', error);
+    logger.error('Workspace validation middleware error:', error);
+    
+    const debugResponse = {
+      message: "Workspace validation failed",
+      debug: {
+        error: error.message,
+        stack: error.stack,
+        url: req.originalUrl,
+        method: req.method
+      },
+      sqlQuery: "Error occurred before SQL execution"
+    };
+    
+    return res.status(500).json(debugResponse);
   }
 };
 

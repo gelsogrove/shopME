@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import { PDFExtract } from 'pdf.js-extract';
+import { embeddingService } from './embeddingService';
 
 const prisma = new PrismaClient();
 
@@ -28,10 +29,6 @@ export interface SearchResult {
 }
 
 export class DocumentService {
-  private readonly CHUNK_SIZE = 1000;
-  private readonly CHUNK_OVERLAP = 100;
-  private readonly OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/embeddings';
-
   /**
    * Create a new document record in database
    */
@@ -97,64 +94,6 @@ export class DocumentService {
   }
 
   /**
-   * Split text into chunks with overlap
-   */
-  splitTextIntoChunks(text: string): DocumentChunk[] {
-    const chunks: DocumentChunk[] = [];
-    let startIndex = 0;
-    let chunkIndex = 0;
-
-    while (startIndex < text.length) {
-      const endIndex = Math.min(startIndex + this.CHUNK_SIZE, text.length);
-      const chunk = text.substring(startIndex, endIndex);
-      
-      chunks.push({
-        content: chunk.trim(),
-        chunkIndex: chunkIndex++
-      });
-
-      // Move start index with overlap
-      startIndex = endIndex - this.CHUNK_OVERLAP;
-      
-      // Avoid infinite loop if chunk is too small
-      if (startIndex >= endIndex) {
-        break;
-      }
-    }
-
-    return chunks;
-  }
-
-  /**
-   * Generate embedding for text using OpenRouter
-   */
-  async generateEmbedding(text: string): Promise<number[]> {
-    try {
-      const response = await fetch(this.OPENROUTER_API_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'text-embedding-3-small',
-          input: text,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`OpenRouter API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.data[0].embedding;
-    } catch (error) {
-      console.error('Error generating embedding:', error);
-      throw new Error('Failed to generate embedding');
-    }
-  }
-
-  /**
    * Process document: extract text, create chunks, generate embeddings
    */
   async processDocument(documentId: string): Promise<void> {
@@ -181,14 +120,14 @@ export class DocumentService {
         throw new Error('No text content found in document');
       }
 
-      // Split into chunks
-      const chunks = this.splitTextIntoChunks(text);
+      // Split into chunks using shared service
+      const chunks = embeddingService.splitTextIntoChunks(text);
 
       // Process each chunk and generate embeddings
       for (const chunk of chunks) {
         try {
-          // Generate embedding for chunk
-          const embedding = await this.generateEmbedding(chunk.content);
+          // Generate embedding for chunk using shared service
+          const embedding = await embeddingService.generateEmbedding(chunk.content);
           
           // Save chunk with embedding to database
           await prisma.documentChunks.create({
@@ -225,40 +164,12 @@ export class DocumentService {
   }
 
   /**
-   * Calculate cosine similarity between two vectors
-   */
-  private cosineSimilarity(vecA: number[], vecB: number[]): number {
-    if (vecA.length !== vecB.length) {
-      throw new Error('Vectors must have the same length');
-    }
-
-    let dotProduct = 0;
-    let normA = 0;
-    let normB = 0;
-
-    for (let i = 0; i < vecA.length; i++) {
-      dotProduct += vecA[i] * vecB[i];
-      normA += vecA[i] * vecA[i];
-      normB += vecB[i] * vecB[i];
-    }
-
-    normA = Math.sqrt(normA);
-    normB = Math.sqrt(normB);
-
-    if (normA === 0 || normB === 0) {
-      return 0;
-    }
-
-    return dotProduct / (normA * normB);
-  }
-
-  /**
    * Search documents using semantic similarity
    */
   async searchDocuments(query: string, workspaceId: string, limit: number = 5): Promise<SearchResult[]> {
     try {
-      // Generate embedding for search query
-      const queryEmbedding = await this.generateEmbedding(query);
+      // Generate embedding for search query using shared service
+      const queryEmbedding = await embeddingService.generateEmbedding(query);
 
       // Get all document chunks for the workspace
       const chunks = await prisma.documentChunks.findMany({
@@ -278,13 +189,13 @@ export class DocumentService {
         }
       });
 
-      // Calculate similarity for each chunk
+      // Calculate similarity for each chunk using shared service
       const results: SearchResult[] = [];
       
       for (const chunk of chunks) {
         if (chunk.embedding && Array.isArray(chunk.embedding)) {
           try {
-            const similarity = this.cosineSimilarity(queryEmbedding, chunk.embedding as number[]);
+            const similarity = embeddingService.cosineSimilarity(queryEmbedding, chunk.embedding as number[]);
             
             results.push({
               documentId: chunk.document.id,
@@ -442,18 +353,18 @@ export class DocumentService {
           }
 
           // Split into chunks
-          const chunks = this.splitTextIntoChunks(text);
+          const chunks = embeddingService.splitTextIntoChunks(text);
 
           // Prepare all chunk texts for batch processing
           const chunkTexts = chunks.map(chunk => chunk.content);
 
-          // Generate embeddings in batch using OpenRouter
+          // Generate embeddings in batch using shared service
           console.log(`Generating embeddings for ${chunks.length} chunks...`);
           const embeddings: number[][] = [];
           
           // Process chunks in batches to avoid rate limits
           for (const chunkText of chunkTexts) {
-            const embedding = await this.generateEmbedding(chunkText);
+            const embedding = await embeddingService.generateEmbedding(chunkText);
             embeddings.push(embedding);
             // Small delay to avoid rate limiting
             await new Promise(resolve => setTimeout(resolve, 100));

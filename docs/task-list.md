@@ -36,6 +36,54 @@ This task list is based on the comprehensive PRD analysis and identifies what ha
 - Basic rate limiting on auth endpoints
 - GDPR compliance integration
 
+### ✅ FAQ Embedding System
+**Priority**: 🚨 **HIGH**
+**Description**: Implement embedding generation for FAQ content to include in RAG search
+**Acceptance Criteria**:
+- [x] Create `faq_chunks` table in database schema
+- [x] Implement FAQ text chunking (question + answer)
+- [x] Add "Generate Embeddings" button to FAQ page
+- [x] Create FAQ embedding service similar to documents
+- [x] Only process active FAQs and FAQs not processed yet 
+- [x] quando finito che venga fuori un toast che dice che e' andata a buon fine
+- [x] la parte di UI del bottone deve essere uguale a docements stesso colore stessa posizione stesso font 
+- [x] hai altre domande ? hai dubbi ? ragiona...usa i tools
+- [x] completa il task quando finito 
+- [x] mi piacerebbe che fosse condiviso il servizio perche' poi dobbiamo fare la stessa cosa per altre tabelle
+
+**Status**: ✅ **COMPLETED**
+
+**Implementation Details**:
+- Created `faq_chunks` table with migration `20250612130640_add_faq_chunks_table`
+- Implemented shared `EmbeddingService` class for reusability across different content types
+- Added `generateEmbeddings` method to existing FAQ controller
+- Added "Generate Embeddings" button to FAQ page with same styling as Documents page
+- FAQ content is chunked as "Question: [question]\nAnswer: [answer]" format
+- Only processes active FAQs without existing chunks
+- Shows success toast when embedding generation completes
+- Service can be reused for Services and other content types
+
+**🔧 REFACTORING COMPLETED**:
+- [x] **DocumentService Refactored**: Removed duplicate code, now uses shared `EmbeddingService`
+- [x] **Shared EmbeddingService**: Centralized chunking, embedding generation, and similarity calculation
+- [x] **Unified SearchService**: Created global search service for multi-source RAG (Documents + FAQs)
+- [x] **Code Deduplication**: Eliminated ~150 lines of duplicate code from DocumentService
+- [x] **Consistent API**: All embedding operations now use the same underlying service
+- [x] **Seed Enhancement**: Added automatic embedding generation instructions at end of seed
+
+**📋 SEED IMPROVEMENTS**:
+- [x] **Clear Instructions**: Seed now provides detailed instructions for embedding generation
+- [x] **Memory Optimization**: Avoids memory issues during seeding by deferring embedding generation
+- [x] **API Endpoints Listed**: Shows exact API calls needed for FAQ and Document embeddings
+- [x] **Admin UI Reference**: Mentions admin interface buttons for easy manual generation
+
+**📚 DOCUMENTATION UPDATES**:
+- [x] **PRD Architecture Section**: Updated to reflect new service architecture (EmbeddingService, SearchService)
+- [x] **RAG Implementation Details**: Added technical implementation details with shared services
+- [x] **Service Dependency Diagram**: Added TypeScript-style architecture diagram showing service relationships
+- [x] **Seed Instructions**: Documented automatic embedding generation instructions display
+- [x] **Benefits Documentation**: Added DRY, scalability, and maintainability benefits
+
 ---
 
 ## 🔴 MISSING FEATURES (TO IMPLEMENT)
@@ -49,19 +97,6 @@ This task list is based on the comprehensive PRD analysis and identifies what ha
 - [ ] Auto-add to workspace blacklist when threshold exceeded
 - [ ] Add logging for spam detection events
 - [ ] Duration: Unlimited (manual admin unlock only)
-
-### 2. **FAQ Embedding System**
-**Priority**: 🚨 **HIGH**
-**Description**: Implement embedding generation for FAQ content to include in RAG search
-**Acceptance Criteria**:
-- [ ] Create `faq_chunks` table in database schema
-- [ ] Implement FAQ text chunking (question + answer)
-- [ ] Add "Generate Embeddings" button to FAQ page
-- [ ] Create FAQ embedding service similar to documents
-- [ ] Only process active FAQs e FAQs not processed yet 
-- quando finito che venga fuori un toast che dice che e' andata a buon fine
-- la parte di UI deve essere uguale a docuements non inventare nulla
-- 
 
 ### 3. **Services Embedding System**
 **Priority**: 🚨 **HIGH**

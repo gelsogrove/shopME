@@ -89,7 +89,7 @@ describe('ServiceService', () => {
       expect(mockFindAll).toHaveBeenCalledWith(workspaceId);
     });
     
-    it('should filter services by active status if implemented internally', async () => {
+    it('should call repository findAll method correctly', async () => {
       // Arrange
       const mockFindAll = jest.spyOn(ServiceRepository.prototype, 'findAll')
         .mockResolvedValue([]);

@@ -16,7 +16,7 @@ export function WorkspacePage() {
       const phoneWithPlus = formattedPhone.startsWith("+")
         ? formattedPhone
         : `+${formattedPhone}`
-      navigate(`/dashboard/${phoneWithPlus}`)
+      navigate(`/login/${phoneWithPlus}`)
     }
   }
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { documentController, upload } from '../controllers/documentController';
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 /**
  * @swagger
@@ -145,9 +145,45 @@ router.post('/:id/process', documentController.processDocument.bind(documentCont
 
 /**
  * @swagger
+ * /api/workspaces/{workspaceId}/documents:
+ *   get:
+ *     summary: Get all documents for a workspace (from URL params)
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: path
+ *         name: workspaceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workspace identifier
+ *     responses:
+ *       200:
+ *         description: Documents retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Document'
+ *       400:
+ *         description: Bad request - missing workspaceId
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/', documentController.getDocumentsByWorkspace.bind(documentController));
+
+/**
+ * @swagger
  * /api/documents:
  *   get:
- *     summary: Get all documents for a workspace
+ *     summary: Get all documents for a workspace (legacy - from query params)
  *     tags: [Documents]
  *     parameters:
  *       - in: query
@@ -177,7 +213,7 @@ router.post('/:id/process', documentController.processDocument.bind(documentCont
  *       500:
  *         description: Internal server error
  */
-router.get('/', documentController.getDocuments.bind(documentController));
+router.get('/legacy', documentController.getDocuments.bind(documentController));
 
 /**
  * @swagger

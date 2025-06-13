@@ -122,7 +122,7 @@ class ServiceService {
   }
   
   /**
-   * Delete a service
+   * Hard delete a service
    */
   async delete(id: string): Promise<boolean> {
     try {

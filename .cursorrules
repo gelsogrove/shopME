@@ -210,7 +210,7 @@ frontend/
 - **React components**: PascalCase (`UserProfile.tsx`, `DocumentList.tsx`)
 - **Test files**: `*.spec.ts` (unit), `*.integration.spec.ts` (integration), `*.cy.js` (E2E)
 - system has to be sync , swagger, seed code, test BE FE Readme prompts folder when you finish a job ask me do you need to update this section too ? 
-- when i say PRD you have to consider this file `/prompts/02_PRD.md`
+- when i say PRD you have to consider this file `/docs/PRD.md`
 - write code comments always in English
 - non aprire troppi terminal, se non richiesto
 - when you are in a terminal, always check the context of the terminal, if you are in the wrong terminal, ask me to switch to the correct terminal

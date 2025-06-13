@@ -125,7 +125,47 @@ export class DocumentController {
   }
 
   /**
-   * Get all documents for a workspace
+   * Get all documents for a workspace (from URL params)
+   * GET /api/workspaces/:workspaceId/documents
+   */
+  async getDocumentsByWorkspace(req: Request, res: Response) {
+    try {
+      console.log('=== DEBUGGING getDocumentsByWorkspace ===');
+      console.log('req.params:', req.params);
+      console.log('req.originalUrl:', req.originalUrl);
+      
+      const { workspaceId } = req.params;
+
+      if (!workspaceId) {
+        console.log('ERROR: workspaceId is missing from req.params');
+        return res.status(400).json({
+          success: false,
+          message: 'Workspace ID is required'
+        });
+      }
+
+      console.log(`Getting documents for workspace: ${workspaceId}`);
+      
+      const documents = await documentService.getDocuments(workspaceId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Documents retrieved successfully',
+        data: documents
+      });
+
+    } catch (error) {
+      console.error('Error getting documents by workspace:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get documents',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  /**
+   * Get all documents for a workspace (legacy - from query params)
    * GET /api/documents?workspaceId=xxx
    */
   async getDocuments(req: Request, res: Response) {
@@ -398,9 +438,16 @@ export class DocumentController {
    */
   async generateEmbeddings(req: Request, res: Response) {
     try {
+      console.log('=== DEBUGGING generateEmbeddings ===');
+      console.log('req.params:', req.params);
+      console.log('req.originalUrl:', req.originalUrl);
+      console.log('req.url:', req.url);
+      console.log('req.baseUrl:', req.baseUrl);
+      
       const { workspaceId } = req.params;
 
       if (!workspaceId) {
+        console.log('ERROR: workspaceId is missing from req.params');
         return res.status(400).json({
           success: false,
           message: 'Workspace ID is required'

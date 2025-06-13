@@ -11,9 +11,13 @@ export const workspaceExtractionMiddleware = (
   next: NextFunction
 ): void => {
   try {
+    console.log('🔥🔥🔥 WORKSPACE EXTRACTION MIDDLEWARE CALLED 🔥🔥🔥');
+    console.log('=== WORKSPACE EXTRACTION MIDDLEWARE ===');
+    console.log('Prima estrazione:', req.params.workspaceId, (req as any).workspaceId, req.originalUrl);
     // If workspaceId is already in params, we're good
     if (req.params.workspaceId) {
       logger.debug(`Workspace ID already in params: ${req.params.workspaceId}`);
+      console.log('WorkspaceId già presente in params:', req.params.workspaceId);
       return next();
     }
 
@@ -24,14 +28,11 @@ export const workspaceExtractionMiddleware = (
     if (match && match[1]) {
       const workspaceId = match[1];
       logger.debug(`Extracted workspace ID from URL: ${workspaceId}`);
-      
-      // Add it to params for downstream handlers
       req.params.workspaceId = workspaceId;
-      
-      // Also add it as a custom property for backward compatibility
       (req as any).workspaceId = workspaceId;
+      console.log('Estratto workspaceId:', workspaceId);
     }
-    
+    console.log('Dopo estrazione:', req.params.workspaceId, (req as any).workspaceId);
     next();
   } catch (error) {
     logger.error('Error in workspace extraction middleware:', error);

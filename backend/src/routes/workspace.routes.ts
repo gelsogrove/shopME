@@ -228,7 +228,19 @@ router.put("/:id", wrapController(workspaceController.update))
  * @swagger
  * /workspaces/{id}:
  *   delete:
- *     summary: Delete a workspace
+ *     summary: Hard delete a workspace and all related data
+ *     description: |
+ *       Permanently deletes a workspace and ALL related data including:
+ *       - Products and categories
+ *       - Customers and chat sessions  
+ *       - Services and offers
+ *       - Documents and FAQ chunks
+ *       - Agent configurations and prompts
+ *       - User-workspace relationships
+ *       - WhatsApp settings
+ *       
+ *       **WARNING**: This operation is irreversible and complies with GDPR Article 17 (Right to erasure).
+ *       All data will be permanently removed with no recovery option.
  *     tags: [Workspaces]
  *     parameters:
  *       - in: path
@@ -236,10 +248,14 @@ router.put("/:id", wrapController(workspaceController.update))
  *         schema:
  *           type: string
  *         required: true
- *         description: The workspace ID
+ *         description: The workspace ID to delete
  *     responses:
  *       204:
- *         description: Workspace deleted successfully
+ *         description: Workspace and all related data successfully deleted
+ *       404:
+ *         description: Workspace not found
+ *       500:
+ *         description: Error during deletion process
  */
 router.delete("/:id", wrapController(workspaceController.delete))
 

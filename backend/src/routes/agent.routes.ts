@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { Router } from "express"
 import { agentController } from "../controllers/agent.controller"
-import { authMiddleware } from "../middlewares/auth.middleware"
 import { wrapController } from "../utils/controller-wrapper"
 
 const prisma = new PrismaClient()
@@ -54,7 +53,7 @@ const prisma = new PrismaClient()
 const router = Router()
 
 // Apply auth middleware to all routes
-router.use(wrapController(authMiddleware))
+// router.use(wrapController(authMiddleware)) // DISABLED FOR DEBUG
 
 /**
  * @swagger

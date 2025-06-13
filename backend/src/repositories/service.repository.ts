@@ -10,16 +10,10 @@ export class ServiceRepository implements IServiceRepository {
   /**
    * Find all services in a workspace
    */
-  async findAll(workspaceId: string, active?: boolean): Promise<Service[]> {
+  async findAll(workspaceId: string): Promise<Service[]> {
     try {
-      const whereCondition: any = { workspaceId };
-      
-      if (active !== undefined) {
-        whereCondition.isActive = active;
-      }
-      
       const services = await prisma.services.findMany({
-        where: whereCondition,
+        where: { workspaceId },
         orderBy: {
           name: 'asc'
         }
@@ -102,7 +96,7 @@ export class ServiceRepository implements IServiceRepository {
   }
   
   /**
-   * Delete a service
+   * Hard delete a service
    */
   async delete(id: string): Promise<boolean> {
     try {

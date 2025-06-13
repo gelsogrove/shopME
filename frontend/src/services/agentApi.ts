@@ -60,17 +60,15 @@ export async function getAgents(workspaceId: string): Promise<Agent[]> {
 /**
  * Get a specific agent by ID
  */
-export async function getAgent(workspaceId: string, agentId?: string): Promise<Agent> {
+export async function getAgent(workspaceId: string, agentId?: string): Promise<Agent | null> {
   console.log(`=== GET AGENT DEBUG ===`)
   console.log(`Getting agent for workspace ${workspaceId}, agentId: ${agentId || 'none'}`)
-  
   try {
     // If no agentId is provided, get the first agent (for single agent setup)
     if (!agentId) {
       console.log("No agentId provided, getting all agents first...")
       const agents = await getAgents(workspaceId)
       console.log(`Found ${agents.length} agents`)
-      
       if (agents.length > 0) {
         console.log(`Using first agent:`, agents[0])
         console.log(`First agent ID: ${agents[0].id}`)
@@ -78,26 +76,12 @@ export async function getAgent(workspaceId: string, agentId?: string): Promise<A
         console.log(`First agent content length: ${agents[0].content?.length}`)
         return agents[0]
       }
-      
-      // If no agents exist, create a default one
-      console.log("No agents found, creating default agent")
-      const defaultAgent = await createAgent(workspaceId, {
-        name: "Default Agent",
-        content: "# Default Agent Instructions\n\nI am a helpful AI assistant for your business.",
-        temperature: 0.7,
-        top_p: 0.9,
-        top_k: 40,
-        model: "openai/gpt-4.1-mini",
-        max_tokens: 1000
-      })
-      console.log("Default agent created:", defaultAgent)
-      return defaultAgent
+      // No agents found, return null (do NOT create one)
+      return null
     }
-
     // Get specific agent by ID
     const url = `${API_URL}/workspaces/${workspaceId}/agent/${agentId}`
     console.log(`GET specific agent URL: ${url}`)
-    
     const response = await fetch(url, {
       method: "GET",
       credentials: "include",
@@ -106,15 +90,12 @@ export async function getAgent(workspaceId: string, agentId?: string): Promise<A
         "x-workspace-id": workspaceId
       }
     })
-
     console.log(`Specific agent response status: ${response.status}`)
-    
     if (!response.ok) {
       const errorText = await response.text()
       console.error(`Error response:`, errorText)
       throw new Error(`Failed to fetch agent: ${response.statusText}`)
     }
-
     const agentData = await response.json()
     console.log("Specific agent data:", agentData)
     return agentData

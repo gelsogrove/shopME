@@ -82,6 +82,11 @@ export function AgentPage() {
         const agentData = await getAgent(workspace.id)
         console.log("=== AGENT DATA RECEIVED ===")
         console.log("Agent data loaded:", agentData)
+        if (!agentData) {
+          setAgent(null)
+          setIsLoading(false)
+          return
+        }
         console.log("Agent ID:", agentData?.id)
         console.log("Agent name:", agentData?.name)
         console.log("Agent content length:", agentData?.content?.length)
@@ -205,6 +210,10 @@ export function AgentPage() {
         ) : !workspace?.id ? (
           <div className="flex justify-center items-center h-64">
             <p className="text-red-500">No workspace selected. Please select a workspace first.</p>
+          </div>
+        ) : !agent ? (
+          <div className="flex justify-center items-center h-64">
+            <p className="text-gray-500">No agent found for this workspace.</p>
           </div>
         ) : (
           <div className="bg-background rounded-lg border p-4 shadow-sm">

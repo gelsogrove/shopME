@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { AgentService, agentService as applicationAgentService } from '../../../application/services/agent.service';
+import { WorkspaceService } from '../../../application/services/workspace.service';
 import { AgentProps } from '../../../domain/entities/agent.entity';
+import { prisma } from '../../../lib/prisma';
 import logger from '../../../utils/logger';
 
 export class AgentController {
@@ -18,16 +20,68 @@ export class AgentController {
       console.log('=== AGENT CONTROLLER getAllForWorkspace ===');
       console.log('req.params:', req.params);
       console.log('req.params.workspaceId:', req.params.workspaceId);
+      console.log('req.headers["x-workspace-id"]:', req.headers['x-workspace-id']);
+      console.log('(req as any).workspaceId:', (req as any).workspaceId);
       console.log('req.user:', req.user ? { userId: (req.user as any).userId } : null);
       
-      // Get workspaceId from params or headers
-      let workspaceId = req.params.workspaceId;
-      console.log('Initial workspaceId from params:', workspaceId);
+      // DEBUG: Collect all possible workspaceId sources
+      const paramId = req.params.workspaceId;
+      const headerId = req.headers['x-workspace-id'];
+      const customId = (req as any).workspaceId;
+      const userId = req.user && (req.user as any).workspaceId;
+      let workspaceId = paramId || customId || headerId || userId;
+      console.log('DEBUG workspaceId sources:', { paramId, customId, headerId, userId, final: workspaceId });
       
-      // If not in params, try to determine from user context
-      workspaceId = this.agentService.getWorkspaceId(workspaceId, req.user);
-      console.log('Final workspaceId after getWorkspaceId:', workspaceId);
+      // Always include SQL query for debugging
+      const sqlQuery = `SELECT "id" FROM "Workspace" WHERE "id" = '${workspaceId}' LIMIT 1;`;
       
+      // FORCE DEBUG RESPONSE TO SEE WHAT'S HAPPENING
+      console.log('FORCING DEBUG RESPONSE - workspaceId:', workspaceId);
+      console.log('workspaceId type:', typeof workspaceId);
+      console.log('workspaceId length:', workspaceId ? workspaceId.length : 'null/undefined');
+      console.log('workspaceId truthy:', !!workspaceId);
+      console.log('workspaceId trim:', workspaceId ? workspaceId.trim() : 'null/undefined');
+      
+      return res.status(400).json({
+        message: 'FORCED DEBUG RESPONSE',
+        debug: { 
+          paramId, 
+          customId, 
+          headerId, 
+          userId, 
+          final: workspaceId,
+          type: typeof workspaceId,
+          length: workspaceId ? workspaceId.length : null,
+          truthy: !!workspaceId,
+          trimmed: workspaceId ? workspaceId.trim() : null,
+          originalUrl: req.originalUrl,
+          method: req.method,
+          params: req.params,
+          headers: {
+            'x-workspace-id': req.headers['x-workspace-id'],
+            'workspace-id': req.headers['workspace-id']
+          }
+        },
+        sqlQuery
+      });
+      
+      if (!workspaceId) {
+        return res.status(400).json({
+          message: 'Workspace ID is required',
+          debug: { paramId, customId, headerId, userId, final: workspaceId },
+          sqlQuery
+        });
+      }
+      // Check if workspace exists using WorkspaceService
+      const workspaceService = new WorkspaceService(prisma);
+      const workspace = await workspaceService.getById(workspaceId);
+      if (!workspace) {
+        return res.status(404).json({
+          message: 'Workspace not found',
+          workspaceId,
+          sqlQuery
+        });
+      }
       logger.info(`Getting all agents for workspace ${workspaceId}`);
       
       const agents = await this.agentService.getAllForWorkspace(workspaceId);

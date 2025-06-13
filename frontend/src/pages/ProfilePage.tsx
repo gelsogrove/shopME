@@ -14,7 +14,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { UserProfile, changePassword, updateUserProfile } from "@/services/userApi"
 import { Loader2, User } from "lucide-react"
 import { useEffect, useState } from "react"
-import { toast } from "react-hot-toast"
+import { toast } from "sonner"
 
 export default function ProfilePage() {
   const { data: userData, isLoading: userLoading, isError: userError } = useCurrentUser();

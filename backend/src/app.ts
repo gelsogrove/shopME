@@ -12,7 +12,6 @@ import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware"
 import { jsonFixMiddleware } from "./interfaces/http/middlewares/json-fix.middleware"
 import { loggingMiddleware } from "./middlewares/logging.middleware"
 import apiRouter from "./routes"
-import agentRoutes from "./routes/agent.routes"
 import logger from "./utils/logger"
 
 // Initialize Express app
@@ -145,15 +144,217 @@ if (process.env.NODE_ENV !== 'test') {
   });
 }
 
-// Default version route (current version)
-app.use("/api", apiRouter)
+// Mount agent routes directly at root level for legacy support - MUST BE BEFORE API ROUTES
+// Create direct route handlers for all agent operations
+
+// GET all agents for workspace
+app.get("/workspaces/:workspaceId/agent", async (req, res) => {
+  console.log('🔥🔥🔥 DIRECT AGENT GET ROUTE CALLED 🔥🔥🔥');
+  console.log('Original URL:', req.originalUrl);
+  console.log('Params:', req.params);
+  console.log('WorkspaceId from params:', req.params.workspaceId);
+  
+  try {
+    const workspaceId = req.params.workspaceId;
+    
+    if (!workspaceId) {
+      return res.status(400).json({
+        message: "Workspace ID is required",
+        debug: {
+          url: req.originalUrl,
+          method: req.method,
+          params: req.params,
+          query: req.query
+        }
+      });
+    }
+
+    // Import the agent service directly
+    const { AgentService } = require('./application/services/agent.service');
+    const agentService = new AgentService();
+    
+    // Get all agents for the workspace
+    const agents = await agentService.getAllForWorkspace(workspaceId);
+    
+    console.log('✅ Successfully retrieved agents:', agents.length);
+    return res.json(agents);
+    
+  } catch (error) {
+    console.error('❌ Error in direct agent route:', error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+})
+
+// GET single agent by ID
+app.get("/workspaces/:workspaceId/agent/:id", async (req, res) => {
+  console.log('🔥🔥🔥 DIRECT AGENT GET BY ID ROUTE CALLED 🔥🔥🔥');
+  console.log('Original URL:', req.originalUrl);
+  console.log('Params:', req.params);
+  
+  try {
+    const { workspaceId, id } = req.params;
+    
+    if (!workspaceId || !id) {
+      return res.status(400).json({
+        message: "Workspace ID and Agent ID are required",
+        debug: {
+          url: req.originalUrl,
+          method: req.method,
+          params: req.params
+        }
+      });
+    }
+
+    // Import the agent service directly
+    const { AgentService } = require('./application/services/agent.service');
+    const agentService = new AgentService();
+    
+    // Get agent by ID
+    const agent = await agentService.getById(id, workspaceId);
+    
+    console.log('✅ Successfully retrieved agent:', agent?.id);
+    return res.json(agent);
+    
+  } catch (error) {
+    console.error('❌ Error in direct agent get by ID route:', error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+})
+
+// PUT update agent by ID
+app.put("/workspaces/:workspaceId/agent/:id", async (req, res) => {
+  console.log('🔥🔥🔥 DIRECT AGENT PUT ROUTE CALLED 🔥🔥🔥');
+  console.log('Original URL:', req.originalUrl);
+  console.log('Params:', req.params);
+  console.log('Body:', req.body);
+  
+  try {
+    const { workspaceId, id } = req.params;
+    const updateData = req.body;
+    
+    if (!workspaceId || !id) {
+      return res.status(400).json({
+        message: "Workspace ID and Agent ID are required",
+        debug: {
+          url: req.originalUrl,
+          method: req.method,
+          params: req.params
+        }
+      });
+    }
+
+    // Import the agent service directly
+    const { AgentService } = require('./application/services/agent.service');
+    const agentService = new AgentService();
+    
+    // Update agent
+    const updatedAgent = await agentService.update(id, updateData, workspaceId);
+    
+    console.log('✅ Successfully updated agent:', updatedAgent?.id);
+    return res.json(updatedAgent);
+    
+  } catch (error) {
+    console.error('❌ Error in direct agent PUT route:', error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+})
+
+// POST create new agent
+app.post("/workspaces/:workspaceId/agent", async (req, res) => {
+  console.log('🔥🔥🔥 DIRECT AGENT POST ROUTE CALLED 🔥🔥🔥');
+  console.log('Original URL:', req.originalUrl);
+  console.log('Params:', req.params);
+  console.log('Body:', req.body);
+  
+  try {
+    const { workspaceId } = req.params;
+    const agentData = req.body;
+    
+    if (!workspaceId) {
+      return res.status(400).json({
+        message: "Workspace ID is required",
+        debug: {
+          url: req.originalUrl,
+          method: req.method,
+          params: req.params
+        }
+      });
+    }
+
+    // Import the agent service directly
+    const { AgentService } = require('./application/services/agent.service');
+    const agentService = new AgentService();
+    
+    // Create agent
+    const newAgent = await agentService.create({ ...agentData, workspaceId });
+    
+    console.log('✅ Successfully created agent:', newAgent?.id);
+    return res.status(201).json(newAgent);
+    
+  } catch (error) {
+    console.error('❌ Error in direct agent POST route:', error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+})
+
+// DELETE agent by ID
+app.delete("/workspaces/:workspaceId/agent/:id", async (req, res) => {
+  console.log('🔥🔥🔥 DIRECT AGENT DELETE ROUTE CALLED 🔥🔥🔥');
+  console.log('Original URL:', req.originalUrl);
+  console.log('Params:', req.params);
+  
+  try {
+    const { workspaceId, id } = req.params;
+    
+    if (!workspaceId || !id) {
+      return res.status(400).json({
+        message: "Workspace ID and Agent ID are required",
+        debug: {
+          url: req.originalUrl,
+          method: req.method,
+          params: req.params
+        }
+      });
+    }
+
+    // Import the agent service directly
+    const { AgentService } = require('./application/services/agent.service');
+    const agentService = new AgentService();
+    
+    // Delete agent
+    await agentService.delete(id, workspaceId);
+    
+    console.log('✅ Successfully deleted agent:', id);
+    return res.status(204).send();
+    
+  } catch (error) {
+    console.error('❌ Error in direct agent DELETE route:', error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+})
+
+logger.info("Mounted direct agent routes at /workspaces/:workspaceId/agent")
 
 // Versioned routes
 app.use("/api/v1", apiRouter)
 
-// Mount agent routes directly at root level for legacy support
-app.use("/workspaces/:workspaceId/agent", agentRoutes)
-logger.info("Mounted agent routes directly at /workspaces/:workspaceId/agent for legacy support")
+// Default version route (current version)
+app.use("/api", apiRouter)
 
 // Endpoint di test per OpenAI
 // @ts-ignore
