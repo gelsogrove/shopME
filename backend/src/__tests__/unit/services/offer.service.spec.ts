@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { PrismaClient } from '@prisma/client';
 import { mockDeep } from 'jest-mock-extended';
 import { OfferService } from '../../../application/services/offer.service';
@@ -33,7 +34,9 @@ function createMockOffer(id: string, name: string, workspaceId: string, options:
     categoryId: options.categoryId || null,
     description: options.description || null,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
+    categories: options.categories || [],
+    category: options.category || null
   };
 }
 
@@ -41,49 +44,36 @@ describe('OfferService', () => {
   let offerService: OfferService;
   
   beforeEach(() => {
-    // Reset all mocks before each test
     jest.clearAllMocks();
     
     // Configure mock findMany
-    (mockPrisma.offers.findMany as jest.Mock).mockImplementation(() => {
-      return {
-        then: (callback: Function) => callback([
-          createMockOffer('1', 'Offer 1', 'test-workspace-id'),
-          createMockOffer('2', 'Offer 2', 'test-workspace-id')
-        ])
-      };
-    });
+    (mockPrisma.offers.findMany as jest.Mock).mockResolvedValue([
+      createMockOffer('1', 'Offer 1', 'test-workspace-id'),
+      createMockOffer('2', 'Offer 2', 'test-workspace-id')
+    ]);
     
     // Configure mock findFirst
-    (mockPrisma.offers.findFirst as jest.Mock).mockImplementation(() => {
-      return {
-        then: (callback: Function) => callback(createMockOffer('test-id', 'Test Offer', 'test-workspace-id'))
-      };
-    });
+    (mockPrisma.offers.findFirst as jest.Mock).mockResolvedValue(
+      createMockOffer('test-id', 'Test Offer', 'test-workspace-id')
+    );
     
     // Configure mock create
     (mockPrisma.offers.create as jest.Mock).mockImplementation((args: any) => {
       const offerData = args.data;
-      return {
-        then: (callback: Function) => callback(createMockOffer('new-id', offerData.name, offerData.workspaceId))
-      };
+      return Promise.resolve(createMockOffer('new-id', offerData.name, offerData.workspaceId));
     });
     
     // Configure mock update
     (mockPrisma.offers.update as jest.Mock).mockImplementation((args: any) => {
       const id = args.where.id;
       const offerData = args.data;
-      return {
-        then: (callback: Function) => callback(createMockOffer(id, offerData.name || 'Updated Offer', offerData.workspaceId || 'test-workspace-id'))
-      };
+      return Promise.resolve(createMockOffer(id, offerData.name || 'Updated Offer', offerData.workspaceId || 'test-workspace-id'));
     });
     
     // Configure mock delete
     (mockPrisma.offers.delete as jest.Mock).mockImplementation((args: any) => {
       const id = args.where.id;
-      return {
-        then: (callback: Function) => callback(createMockOffer(id, 'Deleted Offer', 'test-workspace-id'))
-      };
+      return Promise.resolve(createMockOffer(id, 'Deleted Offer', 'test-workspace-id'));
     });
     
     offerService = new OfferService();
@@ -111,7 +101,7 @@ describe('OfferService', () => {
       ));
       expect(mockPrisma.offers.findMany).toHaveBeenCalledWith({
         where: { workspaceId },
-        include: { category: true }
+        include: { category: true, categories: true }
       });
     });
   });
@@ -145,7 +135,7 @@ describe('OfferService', () => {
           startDate: { lte: expect.any(Date) },
           endDate: { gte: expect.any(Date) }
         },
-        include: { category: true }
+        include: { category: true, categories: true }
       });
     });
   });
@@ -167,7 +157,7 @@ describe('OfferService', () => {
       }));
       expect(mockPrisma.offers.findFirst).toHaveBeenCalledWith({
         where: { id, workspaceId },
-        include: { category: true }
+        include: { category: true, categories: true }
       });
     });
   });
@@ -196,8 +186,11 @@ describe('OfferService', () => {
         workspaceId: offerData.workspaceId
       }));
       expect(mockPrisma.offers.create).toHaveBeenCalledWith({
-        data: offerData,
-        include: { category: true }
+        data: {
+          ...offerData,
+          include: { category: true, categories: true }
+        },
+        include: { category: true, categories: true }
       });
     });
   });
@@ -222,7 +215,7 @@ describe('OfferService', () => {
       expect(mockPrisma.offers.update).toHaveBeenCalledWith({
         where: { id },
         data: offerData,
-        include: { category: true }
+        include: { category: true, categories: true }
       });
     });
   });

@@ -225,3 +225,4 @@ se lo vuoi toccare, chiedi prima per sicurezza
 - gli script devono essere sempre in /scripts/
 - test di BE vanno sotto /Users/gelso/workspace/AI/shop/backend/src/__tests__  dentro unit o integration
 - i server si riavviano da soli non c'e' bisogno di aprire mille terminali usa sempre lo stesso terminal
+- Ricordati che PRD ha la verita assoluta poi passano los test

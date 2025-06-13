@@ -1,10 +1,23 @@
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { Response } from 'express';
 import { WorkspaceContextDTO } from '../../../application/dtos/workspace-context.dto';
 import { Service } from '../../../domain/entities/service.entity';
 import { ServicesController } from '../../../interfaces/http/controllers/services.controller';
 import { WorkspaceRequest } from '../../../interfaces/http/types/workspace-request';
 
-// Mock completo di ServiceService includendo l'inizializzazione
+// Mock Prisma
+jest.mock('../../../lib/prisma', () => ({
+  prisma: {
+    workspace: {
+      findUnique: jest.fn()
+    },
+    services: {
+      count: jest.fn()
+    }
+  }
+}));
+
+// Mock the service
 jest.mock('../../../application/services/service.service', () => {
   return {
     __esModule: true,
@@ -18,8 +31,9 @@ jest.mock('../../../application/services/service.service', () => {
   };
 });
 
-// Import the mocked service
+// Import the mocked service and prisma
 import ServiceService from '../../../application/services/service.service';
+import { prisma } from '../../../lib/prisma';
 
 // Get the mocked functions
 const mockGetAllForWorkspace = ServiceService.getAllForWorkspace as jest.Mock;
@@ -157,6 +171,13 @@ describe('ServicesController', () => {
         currency: 'EUR',
         duration: '120'
       };
+      
+      // Mock workspace plan check
+      const mockWorkspace = { plan: 'BASIC' };
+      (prisma.workspace.findUnique as jest.Mock).mockResolvedValue(mockWorkspace);
+      
+      // Mock service count check
+      (prisma.services.count as jest.Mock).mockResolvedValue(0);
       
       const createdService = createTestService('new-id', 'New Service', 200);
       createdService.description = 'New Description';

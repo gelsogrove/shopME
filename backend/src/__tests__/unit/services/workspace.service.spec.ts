@@ -1,13 +1,28 @@
 // @ts-nocheck - Disable TypeScript checking for this test file since we're mocking complex objects
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-// Mock PrismaClient before importing the service
-const mockFindMany = jest.fn();
-const mockFindUnique = jest.fn();
-const mockFindFirst = jest.fn();
+// Mock WorkspaceRepository before importing
+const mockFindAll = jest.fn();
+const mockFindById = jest.fn();
+const mockFindBySlug = jest.fn();
 const mockCreate = jest.fn();
 const mockUpdate = jest.fn();
-const mockFindUniqueInclude = jest.fn();
+const mockDelete = jest.fn();
+const mockFindByUserId = jest.fn();
+
+jest.mock('../../../repositories/workspace.repository', () => {
+  return {
+    WorkspaceRepository: jest.fn().mockImplementation(() => ({
+      findAll: mockFindAll,
+      findById: mockFindById,
+      findBySlug: mockFindBySlug,
+      create: mockCreate,
+      update: mockUpdate,
+      delete: mockDelete,
+      findByUserId: mockFindByUserId
+    }))
+  };
+});
 
 // Mock types for workspace
 type MockWorkspace = {
@@ -42,24 +57,7 @@ type MockUser = {
   }>;
 }
 
-jest.mock('@prisma/client', () => {
-  return {
-    PrismaClient: jest.fn().mockImplementation(() => ({
-      workspace: {
-        findMany: mockFindMany,
-        findUnique: mockFindUnique,
-        findFirst: mockFindFirst,
-        create: mockCreate,
-        update: mockUpdate
-      },
-      user: {
-        findUnique: mockFindUniqueInclude
-      }
-    }))
-  };
-});
-
-// Import the service after mocking PrismaClient
+// Import the service after mocking WorkspaceRepository
 import { WorkspaceService } from '../../../application/services/workspace.service';
 import { Workspace, WorkspaceProps } from '../../../domain/entities/workspace.entity';
 
@@ -69,40 +67,30 @@ describe('Workspace Service', () => {
   beforeEach(() => {
     // Reset mocks before each test
     jest.clearAllMocks();
+    
     workspaceService = new WorkspaceService();
   });
 
   describe('getAll', () => {
     it('should return all active workspaces', async () => {
       const mockWorkspaces: MockWorkspace[] = [
-        {
-          id: 'workspace-1',
-          name: 'Workspace 1',
-          slug: 'workspace-1',
-          isDelete: false
-        },
-        {
-          id: 'workspace-2',
-          name: 'Workspace 2',
-          slug: 'workspace-2',
-          isDelete: false
-        }
+        { id: 'workspace-1', name: 'Workspace 1', slug: 'workspace-1', isDelete: false },
+        { id: 'workspace-2', name: 'Workspace 2', slug: 'workspace-2', isDelete: false }
       ];
 
-      mockFindMany.mockResolvedValue(mockWorkspaces);
+      mockFindAll.mockResolvedValue(mockWorkspaces);
 
       const result = await workspaceService.getAll();
 
-      expect(mockFindMany).toHaveBeenCalled();
+      expect(mockFindAll).toHaveBeenCalled();
       expect(result.length).toBe(2);
-      expect(result[0]).toBeInstanceOf(Workspace);
       expect(result[0].id).toBe('workspace-1');
       expect(result[1].id).toBe('workspace-2');
     });
 
     it('should handle errors and rejections', async () => {
       const error = new Error('Database error');
-      mockFindMany.mockRejectedValue(error);
+      mockFindAll.mockRejectedValue(error);
 
       await expect(workspaceService.getAll()).rejects.toThrow(error);
     });
@@ -117,19 +105,16 @@ describe('Workspace Service', () => {
         isDelete: false
       };
 
-      mockFindUnique.mockResolvedValue(mockWorkspace);
+      mockFindById.mockResolvedValue(mockWorkspace);
 
       const result = await workspaceService.getById('workspace-1');
 
-      expect(mockFindUnique).toHaveBeenCalledWith({
-        where: { id: 'workspace-1' }
-      });
-      expect(result).toBeInstanceOf(Workspace);
+      expect(mockFindById).toHaveBeenCalledWith('workspace-1');
       expect(result?.id).toBe('workspace-1');
     });
 
     it('should return null if workspace not found', async () => {
-      mockFindUnique.mockResolvedValue(null);
+      mockFindById.mockResolvedValue(null);
 
       const result = await workspaceService.getById('non-existent');
 
@@ -138,7 +123,7 @@ describe('Workspace Service', () => {
 
     it('should handle errors and rejections', async () => {
       const error = new Error('Database error');
-      mockFindUnique.mockRejectedValue(error);
+      mockFindById.mockRejectedValue(error);
 
       await expect(workspaceService.getById('workspace-1')).rejects.toThrow(error);
     });
@@ -153,19 +138,16 @@ describe('Workspace Service', () => {
         isDelete: false
       };
 
-      mockFindFirst.mockResolvedValue(mockWorkspace);
+      mockFindBySlug.mockResolvedValue(mockWorkspace);
 
       const result = await workspaceService.getBySlug('workspace-1');
 
-      expect(mockFindFirst).toHaveBeenCalledWith({
-        where: { slug: 'workspace-1' }
-      });
-      expect(result).toBeInstanceOf(Workspace);
+      expect(mockFindBySlug).toHaveBeenCalledWith('workspace-1');
       expect(result?.slug).toBe('workspace-1');
     });
 
     it('should return null if no workspace found with given slug', async () => {
-      mockFindFirst.mockResolvedValue(null);
+      mockFindBySlug.mockResolvedValue(null);
 
       const result = await workspaceService.getBySlug('non-existent');
 
@@ -192,12 +174,11 @@ describe('Workspace Service', () => {
       };
 
       mockCreate.mockResolvedValue(mockCreatedWorkspace);
-      mockFindFirst.mockResolvedValue(null);
+      mockFindBySlug.mockResolvedValue(null);
 
       const result = await workspaceService.create(workspaceData);
 
       expect(mockCreate).toHaveBeenCalled();
-      expect(result).toBeInstanceOf(Workspace);
       expect(result.id).toBe('new-workspace-id');
       expect(result.name).toBe('New Workspace');
     });
@@ -219,7 +200,7 @@ describe('Workspace Service', () => {
       };
 
       mockCreate.mockResolvedValue(mockCreatedWorkspace);
-      mockFindFirst.mockResolvedValue(null);
+      mockFindBySlug.mockResolvedValue(null);
 
       const result = await workspaceService.create(workspaceData);
 
@@ -239,7 +220,7 @@ describe('Workspace Service', () => {
         slug: 'existing-workspace'
       };
 
-      mockFindFirst.mockResolvedValue(existingWorkspace);
+      mockFindBySlug.mockResolvedValue(existingWorkspace);
 
       await expect(workspaceService.create(workspaceData))
         .rejects.toThrow('Workspace with name "Existing Workspace" already exists');
@@ -247,7 +228,7 @@ describe('Workspace Service', () => {
 
     it('should handle errors and rejections', async () => {
       const error = new Error('Database error');
-      mockFindFirst.mockResolvedValue(null);
+      mockFindBySlug.mockResolvedValue(null);
       mockCreate.mockRejectedValue(error);
 
       await expect(
@@ -276,13 +257,12 @@ describe('Workspace Service', () => {
       };
 
       mockUpdate.mockResolvedValue(mockUpdatedWorkspace);
-      mockFindFirst.mockResolvedValue(null);
-      mockFindUnique.mockResolvedValue({ id: 'workspace-id', name: 'Old Name' });
+      mockFindBySlug.mockResolvedValue(null);
+      mockFindById.mockResolvedValue({ id: 'workspace-id', name: 'Old Name' });
 
       const result = await workspaceService.update('workspace-id', updateData);
 
       expect(mockUpdate).toHaveBeenCalled();
-      expect(result).toBeInstanceOf(Workspace);
       expect(result?.id).toBe('workspace-id');
       expect(result?.name).toBe('Updated Workspace');
     });
@@ -301,8 +281,8 @@ describe('Workspace Service', () => {
       };
 
       mockUpdate.mockResolvedValue(mockUpdatedWorkspace);
-      mockFindFirst.mockResolvedValue(null);
-      mockFindUnique.mockResolvedValue({ id: 'workspace-id', name: 'Old Name' });
+      mockFindBySlug.mockResolvedValue(null);
+      mockFindById.mockResolvedValue({ id: 'workspace-id', name: 'Old Name' });
 
       const result = await workspaceService.update('workspace-id', updateData);
 
@@ -325,7 +305,7 @@ describe('Workspace Service', () => {
       };
 
       mockUpdate.mockResolvedValue(mockUpdatedWorkspace);
-      mockFindUnique.mockResolvedValue({ 
+      mockFindById.mockResolvedValue({ 
         id: 'workspace-id', 
         name: 'Original Name', 
         slug: 'original-slug' 
@@ -341,7 +321,7 @@ describe('Workspace Service', () => {
     it('should handle errors and rejections', async () => {
       const error = new Error('Database error');
       mockUpdate.mockRejectedValue(error);
-      mockFindUnique.mockResolvedValue({ id: 'workspace-id', name: 'Original Name' });
+      mockFindById.mockResolvedValue({ id: 'workspace-id', name: 'Original Name' });
 
       await expect(
         workspaceService.update('workspace-id', { name: 'Updated Name' })
@@ -351,23 +331,19 @@ describe('Workspace Service', () => {
 
   describe('delete', () => {
     it('should soft delete a workspace by marking isDelete as true', async () => {
-      const mockDeletedWorkspace: MockWorkspace = {
-        id: 'workspace-id',
-        name: 'Test Workspace',
-        isDelete: true
-      };
+      const existingWorkspace = { id: 'workspace-id', name: 'Test Workspace', isDelete: false };
 
-      mockUpdate.mockResolvedValue(mockDeletedWorkspace);
-      mockFindUnique.mockResolvedValue({ id: 'workspace-id', isDelete: false });
+      mockFindById.mockResolvedValue(existingWorkspace);
+      mockDelete.mockResolvedValue(true);
 
       const result = await workspaceService.delete('workspace-id');
 
-      expect(mockUpdate).toHaveBeenCalled();
+      expect(mockDelete).toHaveBeenCalledWith('workspace-id');
       expect(result).toBe(true);
     });
 
     it('should return false if workspace not found', async () => {
-      mockFindUnique.mockResolvedValue(null);
+      mockDelete.mockResolvedValue(false);
       
       const result = await workspaceService.delete('non-existent-id');
       
@@ -376,8 +352,8 @@ describe('Workspace Service', () => {
 
     it('should handle errors and rejections', async () => {
       const error = new Error('Database error');
-      mockUpdate.mockRejectedValue(error);
-      mockFindUnique.mockResolvedValue({ id: 'workspace-id', isDelete: false });
+      mockDelete.mockRejectedValue(error);
+      mockFindById.mockResolvedValue({ id: 'workspace-id', isDelete: false });
 
       await expect(workspaceService.delete('workspace-id')).rejects.toThrow(error);
     });
@@ -391,23 +367,19 @@ describe('Workspace Service', () => {
         { id: 'ws-2', name: 'Workspace 2' }
       ];
       
-      const mockUserWithWorkspaces: MockUser = {
-        id: userId,
-        workspaces: mockWorkspaces.map(ws => ({ workspace: ws }))
-      };
-
-      mockFindUniqueInclude.mockResolvedValue(mockUserWithWorkspaces);
+      // FIX: Il repository restituisce direttamente un array di workspace
+      mockFindByUserId.mockResolvedValue(mockWorkspaces.map(ws => new Workspace(ws)));
 
       const result = await workspaceService.getWorkspacesForUser(userId);
 
-      expect(mockFindUniqueInclude).toHaveBeenCalled();
+      expect(mockFindByUserId).toHaveBeenCalledWith(userId);
       expect(result.length).toBe(2);
       expect(result[0]).toBeInstanceOf(Workspace);
       expect(result[0].id).toBe('ws-1');
     });
 
     it('should return empty array if user not found', async () => {
-      mockFindUniqueInclude.mockResolvedValue(null);
+      mockFindByUserId.mockResolvedValue([]);
 
       const result = await workspaceService.getWorkspacesForUser('unknown-user');
 

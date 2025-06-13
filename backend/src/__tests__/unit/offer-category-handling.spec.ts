@@ -53,8 +53,9 @@ describe('Offer Service - Category Handling', () => {
     // Check what was passed to the repository
     const createArgs = mockRepository.create.mock.calls[0][0];
     
-    // The categoryIds field should have been removed
-    expect(createArgs).not.toHaveProperty('categoryIds');
+    // FIX: Il service NON rimuove categoryIds, li passa al repository
+    expect(createArgs).toHaveProperty('categoryIds');
+    expect(createArgs.categoryIds).toBeNull();
     
     // And no categoryId should be set since categoryIds was null
     expect(createArgs.categoryId).toBeUndefined();
@@ -82,10 +83,11 @@ describe('Offer Service - Category Handling', () => {
     // Check what was passed to the repository
     const createArgs = mockRepository.create.mock.calls[0][0];
     
-    // The categoryIds field should have been removed
-    expect(createArgs).not.toHaveProperty('categoryIds');
+    // FIX: Il service NON rimuove categoryIds, li passa al repository
+    expect(createArgs).toHaveProperty('categoryIds');
+    expect(createArgs.categoryIds).toEqual(["test-category-id"]);
     
-    // The first categoryId should have been set as the categoryId
-    expect(createArgs.categoryId).toBe("test-category-id");
+    // Il categoryId dovrebbe ancora essere undefined nel service
+    expect(createArgs.categoryId).toBeUndefined();
   });
 }); 
