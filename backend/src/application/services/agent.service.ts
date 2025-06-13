@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { PrismaClient } from "@prisma/client";
 import logger from "../../utils/logger";
 
@@ -117,7 +116,7 @@ export class AgentService {
         });
         
         if (existingRouter) {
-          const error = new Error('A router agent already exists for this workspace');
+          const error = new Error('A router agent already exists for this workspace') as any;
           error.statusCode = 409;
           throw error;
         }
@@ -183,7 +182,7 @@ export class AgentService {
         });
         
         if (existingRouter) {
-          const error = new Error('A router agent already exists for this workspace');
+          const error = new Error('A router agent already exists for this workspace') as any;
           error.statusCode = 409;
           throw error;
         }

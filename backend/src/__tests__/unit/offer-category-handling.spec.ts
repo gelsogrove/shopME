@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-nocheck - Jest mock typing issues, needs proper mock setup
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { OfferService } from '../../application/services/offer.service';
 import { OfferRepository } from '../../repositories/offer.repository';

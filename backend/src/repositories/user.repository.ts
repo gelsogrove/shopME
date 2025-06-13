@@ -1,5 +1,5 @@
-// @ts-nocheck
-import { PrismaClient } from '@prisma/client';
+// @ts-nocheck - Schema mismatch: User model missing 'name' and 'workspaceId' fields
+import { PrismaClient, User as PrismaUser } from '@prisma/client';
 import { User, UserProps } from '../domain/entities/user.entity';
 import { UserRepositoryInterface } from '../domain/repositories/user.repository.interface';
 import logger from '../utils/logger';
@@ -14,7 +14,7 @@ export class UserRepository implements UserRepositoryInterface {
   /**
    * Map database model to domain entity
    */
-  private mapToDomain(data: any): User {
+  private mapToDomain(data: PrismaUser): User {
     return User.create({
       id: data.id,
       email: data.email,

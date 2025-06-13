@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-nocheck - Events service no longer exists, test needs updating
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 // Mock Prisma - define before jest.mock

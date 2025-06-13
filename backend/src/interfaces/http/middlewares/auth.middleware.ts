@@ -1,7 +1,6 @@
-// @ts-nocheck - Ignora errori di tipo in questo file
 import { PrismaClient } from "@prisma/client"
 import { NextFunction, Request, Response } from "express"
-import jwt from "jsonwebtoken"
+import * as jwt from "jsonwebtoken"
 import { config } from "../../../config"
 import logger from "../../../utils/logger"
 import { AppError } from "../middlewares/error.middleware"
@@ -19,7 +18,6 @@ interface JwtPayload {
   workspaces?: any // Per supportare i token esistenti
 }
 
-// @ts-ignore - Adattamento all'interfaccia JwtPayload
 declare global {
   namespace Express {
     interface Request {

@@ -40,7 +40,6 @@ import { authMiddleware } from "../interfaces/http/middlewares/auth.middleware"
 import { createUserRouter } from "../interfaces/http/routes/user.routes"
 import createPromptsRouter from "./prompts.routes"
 // Import document routes
-import { workspaceExtractionMiddleware } from "../interfaces/http/middlewares/workspace-extraction.middleware"
 import documentRoutes from "./documentRoutes"
 
 // Simple logging middleware
@@ -71,6 +70,8 @@ const router = Router()
 
 // Add logging middleware
 router.use(loggingMiddleware)
+
+// Debug middleware removed - TypeScript errors fixed
 
 // Initialize Prisma client
 const prisma = new PrismaClient()
@@ -109,7 +110,6 @@ router.use("/", customersRouter(customersController))
 // Utilizziamo il router specifico per workspaces 
 router.use("/workspaces", workspaceCustomersRouter(customersController))
 router.use("/workspaces", workspaceRoutes)
-router.use("/agent", workspaceExtractionMiddleware, createAgentRouter())
 // Mount agent routes with workspace parameter properly configured
 router.use("/workspaces/:workspaceId/agent", (req, res, next) => {
   // Ensure workspaceId is available in params
@@ -118,6 +118,7 @@ router.use("/workspaces/:workspaceId/agent", (req, res, next) => {
   }
   next();
 }, createAgentRouter())
+logger.info("Registered agent router with workspace routes only")
 
 // Add a simple test route to debug workspace ID extraction
 router.get("/workspaces/:workspaceId/test", authMiddleware, (req, res) => {

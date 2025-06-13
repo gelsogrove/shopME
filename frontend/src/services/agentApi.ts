@@ -1,4 +1,4 @@
-import { API_URL } from "../config"
+import { api } from "./api"
 
 export interface Agent {
   id: string
@@ -24,33 +24,23 @@ export async function getAgents(workspaceId: string): Promise<Agent[]> {
   console.log(`Fetching agents for workspace ${workspaceId}`)
   
   try {
-    const url = `${API_URL}/workspaces/${workspaceId}/agent`
+    const url = `/workspaces/${workspaceId}/agent`
     console.log(`GET request URL: ${url}`)
     
-    const response = await fetch(url, {
-      method: "GET",
-      credentials: "include",
+    const response = await api.get(url, {
       headers: {
-        "Content-Type": "application/json",
         "x-workspace-id": workspaceId
       }
     })
 
     console.log(`Response status: ${response.status}`)
-    console.log(`Response ok: ${response.ok}`)
+    console.log(`Response data:`, response.data)
 
-    if (!response.ok) {
-      console.error(`Failed to fetch agents: ${response.statusText}`)
-      const errorText = await response.text()
-      console.error(`Error response:`, errorText)
-      return []
-    }
-
-    const data = await response.json()
+    const data = response.data
     console.log(`Agents received:`, data)
     console.log(`Number of agents: ${data?.length || 0}`)
     
-    return data
+    return data || []
   } catch (error) {
     console.error("Error fetching agents:", error)
     return []
@@ -80,23 +70,17 @@ export async function getAgent(workspaceId: string, agentId?: string): Promise<A
       return null
     }
     // Get specific agent by ID
-    const url = `${API_URL}/workspaces/${workspaceId}/agent/${agentId}`
+    const url = `/workspaces/${workspaceId}/agent/${agentId}`
     console.log(`GET specific agent URL: ${url}`)
-    const response = await fetch(url, {
-      method: "GET",
-      credentials: "include",
+    
+    const response = await api.get(url, {
       headers: {
-        "Content-Type": "application/json",
         "x-workspace-id": workspaceId
       }
     })
+    
     console.log(`Specific agent response status: ${response.status}`)
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error(`Error response:`, errorText)
-      throw new Error(`Failed to fetch agent: ${response.statusText}`)
-    }
-    const agentData = await response.json()
+    const agentData = response.data
     console.log("Specific agent data:", agentData)
     return agentData
   } catch (error) {
@@ -111,23 +95,13 @@ export async function getAgent(workspaceId: string, agentId?: string): Promise<A
 export async function createAgent(workspaceId: string, data: Partial<Agent>): Promise<Agent> {
   console.log(`Creating agent for workspace ${workspaceId}`, data)
   
-  const response = await fetch(`${API_URL}/workspaces/${workspaceId}/agent`, {
-    method: "POST",
+  const response = await api.post(`/workspaces/${workspaceId}/agent`, data, {
     headers: {
-      "Content-Type": "application/json",
       "x-workspace-id": workspaceId
-    },
-    credentials: "include",
-    body: JSON.stringify(data),
+    }
   })
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    console.error(`Error response:`, errorText)
-    throw new Error(`Failed to create agent: ${response.statusText}`)
-  }
-
-  return response.json()
+  return response.data
 }
 
 /**
@@ -140,23 +114,13 @@ export async function updateAgent(
 ): Promise<Agent> {
   console.log(`Updating agent ${agentId} for workspace ${workspaceId}`, data)
   
-  const response = await fetch(`${API_URL}/workspaces/${workspaceId}/agent/${agentId}`, {
-    method: "PUT",
+  const response = await api.put(`/workspaces/${workspaceId}/agent/${agentId}`, data, {
     headers: {
-      "Content-Type": "application/json",
       "x-workspace-id": workspaceId
-    },
-    credentials: "include",
-    body: JSON.stringify(data),
+    }
   })
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    console.error(`Error response:`, errorText)
-    throw new Error(`Failed to update agent: ${response.statusText}`)
-  }
-
-  return response.json()
+  return response.data
 }
 
 /**
@@ -165,18 +129,9 @@ export async function updateAgent(
 export async function deleteAgent(workspaceId: string, agentId: string): Promise<void> {
   console.log(`Deleting agent ${agentId} for workspace ${workspaceId}`)
   
-  const response = await fetch(`${API_URL}/workspaces/${workspaceId}/agent/${agentId}`, {
-    method: "DELETE",
+  await api.delete(`/workspaces/${workspaceId}/agent/${agentId}`, {
     headers: {
-      "Content-Type": "application/json",
       "x-workspace-id": workspaceId
-    },
-    credentials: "include",
+    }
   })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    console.error(`Error response:`, errorText)
-    throw new Error(`Failed to delete agent: ${response.statusText}`)
-  }
 } 

@@ -1,8 +1,11 @@
-// @ts-nocheck
+// @ts-nocheck - Complex schema mismatch: Prisma User vs Domain interfaces (UserProps/UserEntity)
+// Issues: passwordHash vs password, missing twoFactorSecret/gdprAccepted/phoneNumber in UserProps
+// Requires architectural decision on mapping layer between Prisma and Domain
 import { User } from "@prisma/client"
-import bcrypt from "bcrypt"
+import * as bcrypt from "bcrypt"
 import { Request, Response } from "express"
-import jwt, { SignOptions } from "jsonwebtoken"
+import * as jwt from "jsonwebtoken"
+import { SignOptions } from "jsonwebtoken"
 import { OtpService } from "../../../application/services/otp.service"
 import { PasswordResetService } from "../../../application/services/password-reset.service"
 import { UserService } from "../../../application/services/user.service"

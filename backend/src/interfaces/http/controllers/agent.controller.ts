@@ -17,53 +17,19 @@ export class AgentController {
    */
   getAllForWorkspace = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log('=== AGENT CONTROLLER getAllForWorkspace ===');
-      console.log('req.params:', req.params);
-      console.log('req.params.workspaceId:', req.params.workspaceId);
-      console.log('req.headers["x-workspace-id"]:', req.headers['x-workspace-id']);
-      console.log('(req as any).workspaceId:', (req as any).workspaceId);
-      console.log('req.user:', req.user ? { userId: (req.user as any).userId } : null);
-      
-      // DEBUG: Collect all possible workspaceId sources
       const paramId = req.params.workspaceId;
-      const headerId = req.headers['x-workspace-id'];
       const customId = (req as any).workspaceId;
-      const userId = req.user && (req.user as any).workspaceId;
-      let workspaceId = paramId || customId || headerId || userId;
-      console.log('DEBUG workspaceId sources:', { paramId, customId, headerId, userId, final: workspaceId });
+      const headerId = req.headers['x-workspace-id'] as string;
+      const userId = req.user ? (req.user as any).id : null;
+      
+      // Try to get workspaceId from multiple sources
+      let workspaceId = paramId || customId || headerId;
       
       // Always include SQL query for debugging
       const sqlQuery = `SELECT "id" FROM "Workspace" WHERE "id" = '${workspaceId}' LIMIT 1;`;
       
-      // FORCE DEBUG RESPONSE TO SEE WHAT'S HAPPENING
-      console.log('FORCING DEBUG RESPONSE - workspaceId:', workspaceId);
-      console.log('workspaceId type:', typeof workspaceId);
-      console.log('workspaceId length:', workspaceId ? workspaceId.length : 'null/undefined');
-      console.log('workspaceId truthy:', !!workspaceId);
-      console.log('workspaceId trim:', workspaceId ? workspaceId.trim() : 'null/undefined');
-      
-      return res.status(400).json({
-        message: 'FORCED DEBUG RESPONSE',
-        debug: { 
-          paramId, 
-          customId, 
-          headerId, 
-          userId, 
-          final: workspaceId,
-          type: typeof workspaceId,
-          length: workspaceId ? workspaceId.length : null,
-          truthy: !!workspaceId,
-          trimmed: workspaceId ? workspaceId.trim() : null,
-          originalUrl: req.originalUrl,
-          method: req.method,
-          params: req.params,
-          headers: {
-            'x-workspace-id': req.headers['x-workspace-id'],
-            'workspace-id': req.headers['workspace-id']
-          }
-        },
-        sqlQuery
-      });
+      console.log('Agent controller - workspaceId:', workspaceId);
+      console.log('Agent controller - sources:', { paramId, customId, headerId, userId });
       
       if (!workspaceId) {
         return res.status(400).json({
@@ -72,6 +38,7 @@ export class AgentController {
           sqlQuery
         });
       }
+      
       // Check if workspace exists using WorkspaceService
       const workspaceService = new WorkspaceService(prisma);
       const workspace = await workspaceService.getById(workspaceId);
@@ -82,10 +49,12 @@ export class AgentController {
           sqlQuery
         });
       }
+      
       logger.info(`Getting all agents for workspace ${workspaceId}`);
       
       const agents = await this.agentService.getAllForWorkspace(workspaceId);
       console.log('=== AGENT CONTROLLER SUCCESS ===');
+      console.log(`Found ${Array.isArray(agents) ? agents.length : 0} agents for workspace ${workspaceId}`);
       return res.json(agents);
     } catch (error) {
       console.log('=== AGENT CONTROLLER ERROR ===', error);
@@ -158,10 +127,24 @@ export class AgentController {
   update = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      let workspaceId = req.params.workspaceId;
       
-      // If not in params, try to determine from user context
-      workspaceId = this.agentService.getWorkspaceId(workspaceId, req.user);
+      // Extract workspaceId the same way as getAllForWorkspace
+      const paramId = req.params.workspaceId;
+      const customId = (req as any).workspaceId;
+      const headerId = req.headers['x-workspace-id'] as string;
+      
+      // Try to get workspaceId from multiple sources
+      let workspaceId = paramId || customId || headerId;
+      
+      console.log('Agent update - workspaceId:', workspaceId);
+      console.log('Agent update - sources:', { paramId, customId, headerId });
+      
+      if (!workspaceId) {
+        return res.status(400).json({
+          message: 'Workspace ID is required for update',
+          debug: { paramId, customId, headerId }
+        });
+      }
       
       logger.info(`Updating agent ${id} for workspace ${workspaceId}`);
       

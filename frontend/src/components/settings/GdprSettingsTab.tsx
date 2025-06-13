@@ -25,10 +25,8 @@ export function GdprSettingsTab() {
         if (response.data && response.data.gdpr) {
           setGdprText(response.data.gdpr)
         } else {
-          // If no GDPR policy exists yet, load the default from the file
-          const defaultResponse = await api.get('/gdpr/default')
-          setGdprText(defaultResponse.data.content)
-          setDefaultGdpr(defaultResponse.data.content)
+          // If no GDPR policy exists yet, start with empty text
+          setGdprText("")
         }
       } catch (error) {
         console.error("Failed to load GDPR data:", error)
@@ -59,16 +57,7 @@ export function GdprSettingsTab() {
     }
   }
 
-  const fetchDefaultGdpr = async () => {
-    try {
-      const defaultResponse = await api.get('/gdpr/default');
-      if (defaultResponse.data) {
-        setDefaultGdpr(defaultResponse.data);
-      }
-    } catch (error) {
-      console.error('Error fetching default GDPR:', error);
-    }
-  };
+
 
   if (isPageLoading) {
     return (

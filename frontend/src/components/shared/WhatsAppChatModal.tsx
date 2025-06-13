@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -182,6 +182,13 @@ export function WhatsAppChatModal({
       console.error(
         "No chat or sessionId provided to fetchMessagesForSelectedChat"
       )
+      return
+    }
+
+    // Get workspaceId for API call
+    const currentWorkspaceId = getWorkspaceId(workspaceId)
+    if (!currentWorkspaceId) {
+      console.error("No workspace ID available for fetching messages")
       return
     }
 

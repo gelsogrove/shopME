@@ -62,7 +62,8 @@ export const workspaceValidationMiddleware = async (
         sqlQuery: "No SQL query executed - workspace ID missing"
       };
       
-      return res.status(400).json(debugResponse);
+      res.status(400).json(debugResponse);
+      return;
     }
 
     console.log('✅ Workspace ID found:', workspaceId);
@@ -91,7 +92,8 @@ export const workspaceValidationMiddleware = async (
         sqlQuery
       };
       
-      return res.status(404).json(debugResponse);
+      res.status(404).json(debugResponse);
+      return;
     }
 
     if (workspace.isDelete || !workspace.isActive) {
@@ -108,7 +110,8 @@ export const workspaceValidationMiddleware = async (
         sqlQuery
       };
       
-      return res.status(403).json(debugResponse);
+      res.status(403).json(debugResponse);
+      return;
     }
 
     console.log('✅ Workspace validation passed');
@@ -125,15 +128,16 @@ export const workspaceValidationMiddleware = async (
     const debugResponse = {
       message: "Workspace validation failed",
       debug: {
-        error: error.message,
-        stack: error.stack,
+        error: (error as Error).message,
+        stack: (error as Error).stack,
         url: req.originalUrl,
         method: req.method
       },
       sqlQuery: "Error occurred before SQL execution"
     };
     
-    return res.status(500).json(debugResponse);
+    res.status(500).json(debugResponse);
+    return;
   }
 };
 

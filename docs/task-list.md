@@ -98,18 +98,7 @@ This task list is based on the comprehensive PRD analysis and identifies what ha
 - [ ] Add logging for spam detection events
 - [ ] Duration: Unlimited (manual admin unlock only)
 
-### 3. **Services Embedding System**
-**Priority**: 🚨 **HIGH**
-**Description**: Implement embedding generation for Services content to include in RAG search
-**Acceptance Criteria**:
-- [ ] Create `service_chunks` table in database schema
-- [ ] Implement Service text chunking (name + description + details)
-- [ ] Add "Generate Embeddings" button to Services page
-- [ ] Create Service embedding service similar to documents
-- [ ] Integrate Service chunks in RAG search pipeline
-- [ ] Only process active Services
-
-### 4. **API Rate Limiting System**
+### 2. **API Rate Limiting System**
 **Priority**: 🚨 **HIGH**
 **Description**: Implement comprehensive rate limiting (100 calls per 10 minutes) for anti-attack protection
 **Acceptance Criteria**:
@@ -119,6 +108,28 @@ This task list is based on the comprehensive PRD analysis and identifies what ha
 - [ ] Create rate limit bypass for admin users
 - [ ] Log rate limit violations
 - [ ] Return appropriate error messages when limit exceeded
+
+### 3. **Workspace-Specific GDPR Management**
+**Priority**: 🔥 **MEDIUM**
+**Description**: Implement workspace-specific GDPR text management with proper endpoint structure
+**Acceptance Criteria**:
+- [ ] Update existing `/api/gdpr/default` endpoint to handle workspaceId parameter
+- [ ] Create GDPR text management in workspace settings
+- [ ] Modify registration flow to use workspace-specific GDPR text
+- [ ] Add GDPR text editor in admin interface
+- [ ] Support multi-language GDPR texts per workspace
+- [ ] Update PRD to clarify workspace-specific GDPR requirement
+
+### 4. **Services Embedding System**
+**Priority**: 🚨 **HIGH**
+**Description**: Implement embedding generation for Services content to include in RAG search
+**Acceptance Criteria**:
+- [ ] Create `service_chunks` table in database schema
+- [ ] Implement Service text chunking (name + description + details)
+- [ ] Add "Generate Embeddings" button to Services page
+- [ ] Create Service embedding service similar to documents
+- [ ] Integrate Service chunks in RAG search pipeline
+- [ ] Only process active Services
 
 ### 5. **Enhanced Multi-Source RAG Integration**
 **Priority**: 🔥 **MEDIUM**
@@ -247,6 +258,17 @@ This task list is based on the comprehensive PRD analysis and identifies what ha
 - [ ] Update deployment guides
 - [ ] Create admin user guides for new features
 
+### 17. **RAG Implementation Analysis & Optimization**
+**Priority**: 🔥 **MEDIUM**
+**Description**: Analyze and optimize RAG implementation for embeddings (local vs OpenRouter)
+**Acceptance Criteria**:
+- [ ] Test current local embedding implementation performance
+- [ ] Compare with OpenRouter embedding performance and costs
+- [ ] Make embedding service configurable (local/OpenRouter)
+- [ ] Document performance metrics and recommendations
+- [ ] Update PRD if implementation differs from specification
+- [ ] Ensure embedding quality and search accuracy
+
 ---
 
 ## 📊 Implementation Priority Matrix
@@ -254,14 +276,15 @@ This task list is based on the comprehensive PRD analysis and identifies what ha
 | Task | Priority | Effort | Impact | Dependencies |
 |------|----------|--------|--------|--------------|
 | Spam Detection | 🚨 HIGH | Medium | High | None |
-| FAQ Embeddings | 🚨 HIGH | Medium | High | Database Schema |
-| Services Embeddings | 🚨 HIGH | Medium | High | Database Schema |
 | API Rate Limiting | 🚨 HIGH | Low | High | None |
+| Services Embeddings | 🚨 HIGH | Medium | High | Database Schema |
 | Chat History Management | 🚨 HIGH | Medium | High | Order Management |
 | Chatbot Disable Flow | 🚨 HIGH | Low | High | None |
 | Order Management | 🚨 HIGH | High | High | Database Schema |
 | Order Notifications | 🚨 HIGH | Medium | High | Order Management |
-| Multi-Source RAG | 🔥 MEDIUM | High | High | FAQ + Services Embeddings |
+| Workspace GDPR Management | 🔥 MEDIUM | Low | Medium | None |
+| RAG Analysis & Optimization | 🔥 MEDIUM | Medium | Medium | None |
+| Multi-Source RAG | 🔥 MEDIUM | High | High | Services Embeddings |
 | Database Schema | 🔥 MEDIUM | Low | High | None |
 | Admin UI Updates | 🔥 MEDIUM | Medium | Medium | Backend APIs |
 | 2FA System | 🔥 MEDIUM | Medium | Medium | None |

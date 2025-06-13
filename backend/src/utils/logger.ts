@@ -1,4 +1,4 @@
-import winston from 'winston';
+import * as winston from 'winston';
 
 // Determiniamo se dobbiamo abilitare i log in test in base alla variabile di ambiente
 const enableTestLogs = process.env.TEST_LOGS === 'true';

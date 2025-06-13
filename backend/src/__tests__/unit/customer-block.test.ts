@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-nocheck - Jest types not configured in TypeScript, needs @types/jest setup
 import { CustomerService } from '../../application/services/customer.service';
 import { CustomerRepository } from '../../repositories/customer.repository';
 

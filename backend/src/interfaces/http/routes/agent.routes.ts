@@ -2,8 +2,8 @@ import { Router } from 'express';
 import logger from '../../../utils/logger';
 import { AgentController } from '../controllers/agent.controller';
 import { asyncHandler } from '../middlewares/async.middleware';
+import { authMiddleware } from '../middlewares/auth.middleware';
 import { workspaceExtractionMiddleware } from '../middlewares/workspace-extraction.middleware';
-// import { authMiddleware } from '../middlewares/auth.middleware'; // DISABLED FOR DEBUG
 
 /**
  * @swagger
@@ -55,7 +55,7 @@ export const createAgentRouter = (): Router => {
 
   // Apply workspace extraction middleware first
   router.use(workspaceExtractionMiddleware);
-  // router.use(authMiddleware); // DISABLED FOR DEBUG
+  router.use(authMiddleware); // ENABLED FOR PROPER AUTHENTICATION
   
   // Temporarily remove workspace validation middleware to test
   // router.use(workspaceValidationMiddleware);

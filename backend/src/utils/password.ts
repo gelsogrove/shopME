@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import logger from './logger';
 
 const SALT_ROUNDS = 10;

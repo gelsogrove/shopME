@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Router } from "express"
 import { UserController } from "../interfaces/http/controllers/user.controller"
 import { authMiddleware } from "../interfaces/http/middlewares/auth.middleware"

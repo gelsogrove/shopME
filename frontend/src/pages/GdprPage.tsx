@@ -31,10 +31,8 @@ export default function GdprPage() {
         } else if (response.data && response.data.content) {
           setGdprText(response.data.content)
         } else {
-          // If no GDPR policy exists yet, load the default from the file
-          const defaultResponse = await api.get('/gdpr/default')
-          setGdprText(defaultResponse.data.content)
-          setDefaultGdpr(defaultResponse.data.content)
+          // If no GDPR policy exists yet, start with empty text
+          setGdprText("")
         }
       } catch (error) {
         console.error("Error loading GDPR policy:", error)

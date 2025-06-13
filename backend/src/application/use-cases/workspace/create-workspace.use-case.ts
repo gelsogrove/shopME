@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { randomUUID } from "crypto";
 import { Workspace } from "../../../domain/entities/workspace.entity";
 import { CreateWorkspaceDTO } from "../../dtos/workspace.dto";
@@ -29,10 +28,6 @@ export class CreateWorkspaceUseCase {
       whatsappPhoneNumber: dto.whatsappPhoneNumber,
       whatsappApiToken: dto.whatsappApiToken,
       whatsappWebhookUrl: dto.whatsappWebhookUrl,
-      webhookUrl: dto.webhookUrl,
-      notificationEmail: dto.notificationEmail,
-      language: dto.language || 'ENG',
-      currency: dto.currency || 'EUR',
       isActive: dto.isActive !== undefined ? dto.isActive : true
     })
 
