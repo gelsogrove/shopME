@@ -5,8 +5,12 @@
 
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import logger, { enableLogsForTests } from '../../utils/logger';
 import { connectTestDatabase, disconnectTestDatabase } from '../unit/helpers/prisma-test';
+
+const execAsync = promisify(exec);
 
 // Create a direct Prisma client instance for integration tests
 export const prisma = new PrismaClient({
@@ -354,4 +358,41 @@ export const teardownJest = async () => {
     // Ensure disconnect is attempted even if there was an error
     await disconnectTestDatabase().catch(console.error);
   }
+};
+
+/**
+ * Runs the complete seed script after integration tests
+ * This ensures clean state and proper admin user setup
+ */
+export const runCompleteSeeds = async () => {
+  console.log('🌱 Running complete database seed after integration test...');
+  
+  try {
+    // Change to backend directory and run seed
+    const { stdout, stderr } = await execAsync('cd backend && npm run seed', {
+      cwd: process.cwd().includes('backend') ? '..' : '.',
+      timeout: 60000 // 60 seconds timeout
+    });
+    
+    if (stderr && !stderr.includes('warn')) {
+      console.error('Seed stderr:', stderr);
+    }
+    
+    console.log('✅ Complete seed executed successfully');
+    
+    // Give some time for the seed to complete
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+  } catch (error) {
+    console.error('❌ Error running complete seed:', error);
+    // Don't throw - let tests continue even if seed fails
+  }
+};
+
+/**
+ * Setup function to run after each integration test
+ * Ensures clean database state for subsequent tests
+ */
+export const afterEachIntegrationTest = async () => {
+  await runCompleteSeeds();
 }; 

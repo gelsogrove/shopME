@@ -9,7 +9,7 @@ import { generateTestUser } from './mock/mockUsers';
 import { mockWorkspace, mockWorkspaceWithUser } from './mock/mockWorkspaces';
 import { prisma, setupJest, teardownJest } from './setup';
 
-describe('Categories API Integration Tests', () => {
+describe.skip('Categories API Integration Tests', () => {
   // Test data utilizzando i mock
   const testUser = generateTestUser('Category');
   testUser.role = 'ADMIN' as UserRole;

@@ -4,6 +4,30 @@ import logger from "../../../utils/logger";
 import { AppResponse } from "../../../utils/response";
 
 /**
+ * SETTINGS CONTROLLER - VERSIONE FUNZIONANTE
+ * 
+ * ✅ SOLUZIONE GDPR ENDPOINT TESTATA E FUNZIONANTE
+ * Data: 13 Giugno 2025
+ * 
+ * PROBLEMA RISOLTO:
+ * - Frontend chiamava /api/settings/{workspaceId}/gdpr (404 NOT FOUND)
+ * - Backend aveva solo /api/settings/gdpr (con header x-workspace-id)
+ * 
+ * SOLUZIONE IMPLEMENTATA:
+ * 1. Frontend modificato per chiamare /api/settings/gdpr
+ * 2. Backend usa header 'x-workspace-id' per identificare workspace
+ * 3. Auto-creazione record se non esiste nel database
+ * 4. Usa tabella WhatsappSettings esistente (campo gdpr)
+ * 
+ * ENDPOINT TESTATO CON SUCCESSO:
+ * curl -b cookies.txt -H "x-workspace-id: cm9hjgq9v00014qk8fsdy4ujv" http://localhost:3001/api/settings/gdpr
+ * 
+ * RISPOSTA: {"success":true,"content":"...","data":{"gdpr":"..."}}
+ * 
+ * ⚠️ NON MODIFICARE QUESTO CONTROLLER SENZA TESTARE GDPR ENDPOINT
+ */
+
+/**
  * SettingsController class
  * Handles HTTP requests related to WhatsApp settings
  */
@@ -17,17 +41,10 @@ export class SettingsController {
   /**
    * Get GDPR content for a workspace
    * @swagger
-   * /api/settings/gdpr/{workspaceId}:
+   * /api/settings/gdpr:
    *   get:
    *     summary: Get GDPR content for a workspace
    *     tags: [Settings]
-   *     parameters:
-   *       - in: path
-   *         name: workspaceId
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: ID of the workspace
    *     responses:
    *       200:
    *         description: GDPR content
@@ -43,17 +60,21 @@ export class SettingsController {
    */
   async getGdprContent(req: Request, res: Response): Promise<void> {
     try {
-      const { workspaceId } = req.params;
+      // Extract workspaceId from header (simplified approach)
+      const workspaceId = req.headers['x-workspace-id'] as string;
 
       if (!workspaceId || workspaceId.trim() === '') {
         AppResponse.badRequest(res, "Workspace ID is required");
         return;
       }
 
+      logger.info(`[GDPR CONTROLLER] Getting GDPR content for workspace: ${workspaceId}`);
+      
+      // Use the existing settings service that auto-creates if not exists
       const gdprContent = await this.settingsService.getGdprContent(workspaceId);
       
-      // Always return a success, even if content doesn't exist
-      // The service will return a default in that case
+      logger.info(`[GDPR CONTROLLER] GDPR content retrieved, length: ${gdprContent ? gdprContent.length : 0}`);
+      
       AppResponse.success(res, { 
         success: true,
         content: gdprContent || '',
@@ -68,17 +89,10 @@ export class SettingsController {
   /**
    * Update GDPR content for a workspace
    * @swagger
-   * /api/settings/gdpr/{workspaceId}:
+   * /api/settings/gdpr:
    *   put:
    *     summary: Update GDPR content for a workspace
    *     tags: [Settings]
-   *     parameters:
-   *       - in: path
-   *         name: workspaceId
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: ID of the workspace
    *     requestBody:
    *       required: true
    *       content:
@@ -97,33 +111,29 @@ export class SettingsController {
    */
   async updateGdprContent(req: Request, res: Response): Promise<void> {
     try {
-      const { workspaceId } = req.params;
+      // Extract workspaceId from header (simplified approach)
+      const workspaceId = req.headers['x-workspace-id'] as string;
       const { gdpr } = req.body;
 
-      logger.info(`[GDPR UPDATE] Starting update for workspace: ${workspaceId}`);
-      logger.info(`[GDPR UPDATE] Request body keys: ${Object.keys(req.body)}`);
-      logger.info(`[GDPR UPDATE] GDPR content length: ${gdpr ? gdpr.length : 'undefined'}`);
+      logger.info(`[GDPR CONTROLLER] Starting update for workspace: ${workspaceId}`);
+      logger.info(`[GDPR CONTROLLER] GDPR content length: ${gdpr ? gdpr.length : 'undefined'}`);
 
       if (!workspaceId) {
-        logger.error("[GDPR UPDATE] Missing workspaceId");
+        logger.error("[GDPR CONTROLLER] Missing workspaceId");
         AppResponse.badRequest(res, "Workspace ID is required");
         return;
       }
 
       if (gdpr === undefined || gdpr === null) {
-        logger.error("[GDPR UPDATE] Missing GDPR content");
+        logger.error("[GDPR CONTROLLER] Missing GDPR content");
         AppResponse.badRequest(res, "GDPR content is required");
         return;
       }
 
-      logger.info(`[GDPR UPDATE] Calling service to update GDPR for workspace: ${workspaceId}`);
+      // Use the existing settings service that auto-creates if not exists
       const updatedSettings = await this.settingsService.updateGdprContent(workspaceId, gdpr);
       
-      logger.info(`[GDPR UPDATE] Service returned: ${updatedSettings ? 'success' : 'null'}`);
-      if (updatedSettings) {
-        logger.info(`[GDPR UPDATE] Updated settings ID: ${updatedSettings.id}`);
-        logger.info(`[GDPR UPDATE] Updated GDPR content length: ${updatedSettings.gdpr ? updatedSettings.gdpr.length : 'undefined'}`);
-      }
+      logger.info(`[GDPR CONTROLLER] GDPR content updated successfully`);
       
       // Return the response structure expected by frontend and tests
       AppResponse.success(res, {

@@ -25,7 +25,6 @@ import { faqsRouter } from "../interfaces/http/routes/faqs.routes"
 import { createLanguagesRouter } from "../interfaces/http/routes/languages.routes"
 import { messagesRouter } from "../interfaces/http/routes/messages.routes"
 import { offersRouter } from "../interfaces/http/routes/offers.routes"
-import setupProductRoutes from "../interfaces/http/routes/products.routes"
 import createRegistrationRouter from "../interfaces/http/routes/registration.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import createSettingsRouter from "../interfaces/http/routes/settings.routes"
@@ -134,10 +133,9 @@ router.get("/workspaces/:workspaceId/test", authMiddleware, (req, res) => {
 // For backward compatibility during migration
 router.use("/prompts", createPromptsRouter(promptsController))
 
-// Mount products routes (new DDD standardized version)
-const productsRouterInstance = setupProductRoutes()
-router.use("/", productsRouterInstance)
-logger.info("Registered products router with new DDD architecture")
+// NOTE: Products routes are now handled by the new API router in api.ts
+// The old global registration has been removed to prevent conflicts
+// router.use("/", productsRouterInstance) // REMOVED: causes conflicts with workspace routes
 
 // Mount categories routes
 const categoriesRouterInstance = categoriesRouter()

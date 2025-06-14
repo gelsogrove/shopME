@@ -1,3 +1,22 @@
+/**
+ * GDPR SETTINGS TAB - VERSIONE FUNZIONANTE
+ * 
+ * ✅ SOLUZIONE TESTATA E FUNZIONANTE
+ * Data: 13 Giugno 2025
+ * 
+ * PROBLEMA RISOLTO:
+ * - Chiamava endpoint sbagliato: /api/settings/{workspaceId}/gdpr (404)
+ * - Ora chiama endpoint corretto: /api/settings/gdpr (200 OK)
+ * 
+ * MODIFICHE APPLICATE:
+ * 1. GET: api.get('/settings/gdpr') invece di api.get(`/settings/${workspace.id}/gdpr`)
+ * 2. PUT: api.put('/settings/gdpr', { gdpr: gdprText }) invece di workspace-specific
+ * 3. Rimosso controllo sessionStorage per workspace (non necessario)
+ * 4. Backend usa header x-workspace-id automaticamente
+ * 
+ * ⚠️ NON MODIFICARE QUESTI ENDPOINT SENZA TESTARE
+ */
+
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/services/api"
@@ -15,22 +34,11 @@ export function GdprSettingsTab() {
     const loadData = async () => {
       setIsPageLoading(true)
       try {
-        const workspaceStr = sessionStorage.getItem("currentWorkspace")
-        if (!workspaceStr) {
-          throw new Error("No workspace selected")
-        }
-        const workspace = JSON.parse(workspaceStr)
-        
-        const response = await api.get(`/settings/${workspace.id}/gdpr`)
-        if (response.data && response.data.gdpr) {
-          setGdprText(response.data.gdpr)
-        } else {
-          // If no GDPR policy exists yet, start with empty text
-          setGdprText("")
-        }
+        const response = await api.get(`/settings/gdpr`)
+        setGdprText(response.data.data?.gdpr || response.data.content || '')
       } catch (error) {
-        console.error("Failed to load GDPR data:", error)
-        toast.error("Failed to load GDPR policy")
+        console.error('Error loading GDPR content:', error)
+        toast.error('Failed to load GDPR content')
       } finally {
         setIsPageLoading(false)
       }
@@ -41,17 +49,12 @@ export function GdprSettingsTab() {
   const handleSave = async () => {
     setIsLoading(true)
     try {
-      const workspaceStr = sessionStorage.getItem("currentWorkspace")
-      if (!workspaceStr) {
-        throw new Error("No workspace selected")
-      }
-      const workspace = JSON.parse(workspaceStr)
+      await api.put(`/settings/gdpr`, { gdpr: gdprText })
       
-      await api.put(`/settings/${workspace.id}/gdpr`, { gdpr: gdprText })
-      toast.success("GDPR policy saved successfully")
+      toast.success('GDPR policy saved successfully')
     } catch (error) {
-      console.error("Failed to save GDPR data:", error)
-      toast.error("Failed to save GDPR policy")
+      console.error('Error saving GDPR policy:', error)
+      toast.error('Failed to save GDPR policy')
     } finally {
       setIsLoading(false)
     }

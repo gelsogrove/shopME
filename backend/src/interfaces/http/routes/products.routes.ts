@@ -2,6 +2,7 @@ import { Router } from 'express';
 import logger from '../../../utils/logger';
 import { ProductController } from '../controllers/product.controller';
 import { authMiddleware } from '../middlewares/auth.middleware';
+import { workspaceValidationMiddleware } from '../middlewares/workspace-validation.middleware';
 
 /**
  * @swagger
@@ -76,13 +77,16 @@ import { authMiddleware } from '../middlewares/auth.middleware';
  */
 
 export default function setupProductRoutes(): Router {
-  const router = Router();
+  const router = Router({ mergeParams: true });  // Enable mergeParams to inherit workspaceId
   const productController = new ProductController();
   
   logger.info('Setting up product routes');
 
   // All routes require authentication
   router.use(authMiddleware);
+  
+  // All routes require workspace validation
+  router.use(workspaceValidationMiddleware);
 
   /**
    * @swagger
@@ -158,7 +162,7 @@ export default function setupProductRoutes(): Router {
    *         description: Unauthorized
    */
   // @ts-ignore
-  router.get('/workspaces/:workspaceId/products', productController.getAllProducts);
+  router.get('/', productController.getAllProducts);
 
   /**
    * @swagger
@@ -196,7 +200,7 @@ export default function setupProductRoutes(): Router {
    *         description: Product not found
    */
   // @ts-ignore
-  router.get('/workspaces/:workspaceId/products/:id', productController.getProductById);
+  router.get('/:id', productController.getProductById);
 
   /**
    * @swagger
@@ -234,7 +238,7 @@ export default function setupProductRoutes(): Router {
    *         description: Unauthorized
    */
   // @ts-ignore
-  router.get('/workspaces/:workspaceId/categories/:categoryId/products', productController.getProductsByCategory);
+  router.get('/categories/:categoryId/products', productController.getProductsByCategory);
 
   /**
    * @swagger
@@ -270,7 +274,7 @@ export default function setupProductRoutes(): Router {
    *         description: Unauthorized
    */
   // @ts-ignore
-  router.post('/workspaces/:workspaceId/products', productController.createProduct);
+  router.post('/', productController.createProduct);
 
   /**
    * @swagger
@@ -314,7 +318,7 @@ export default function setupProductRoutes(): Router {
    *         description: Product not found
    */
   // @ts-ignore
-  router.put('/workspaces/:workspaceId/products/:id', productController.updateProduct);
+  router.put('/:id', productController.updateProduct);
 
   /**
    * @swagger
@@ -346,7 +350,7 @@ export default function setupProductRoutes(): Router {
    *         description: Unauthorized
    */
   // @ts-ignore
-  router.delete('/workspaces/:workspaceId/products/:id', productController.deleteProduct);
+  router.delete('/:id', productController.deleteProduct);
 
   /**
    * @swagger
@@ -393,11 +397,9 @@ export default function setupProductRoutes(): Router {
    *         description: Invalid input or missing required parameters
    *       401:
    *         description: Unauthorized
-   *       404:
-   *         description: Product not found
    */
   // @ts-ignore
-  router.patch('/workspaces/:workspaceId/products/:id/stock', productController.updateProductStock);
+  router.patch('/:id/stock', productController.updateProductStock);
 
   /**
    * @swagger
@@ -448,7 +450,7 @@ export default function setupProductRoutes(): Router {
    *         description: Product not found
    */
   // @ts-ignore
-  router.patch('/workspaces/:workspaceId/products/:id/status', productController.updateProductStatus);
+  router.patch('/:id/status', productController.updateProductStatus);
 
   /**
    * @swagger

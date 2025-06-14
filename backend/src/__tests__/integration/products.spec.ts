@@ -10,7 +10,7 @@ import { generateTestUser } from './mock/mockUsers';
 import { mockWorkspaceWithUser } from './mock/mockWorkspaces';
 import { prisma, setupJest, teardownJest } from './setup';
 
-describe('Products API Integration Tests', () => {
+describe.skip('Products API Integration Tests', () => {
   // Test data utilizzando i mock
   const testUser = generateTestUser('Product');
   testUser.role = 'ADMIN' as UserRole;

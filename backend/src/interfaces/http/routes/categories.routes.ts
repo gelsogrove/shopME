@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { CategoryController } from "../controllers/category.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
+import { workspaceValidationMiddleware } from "../middlewares/workspace-validation.middleware";
 
 /**
  * @swagger
@@ -48,6 +49,9 @@ export const categoriesRouter = (): Router => {
 
   // All routes require authentication
   router.use(authMiddleware);
+  
+  // All routes require workspace validation
+  router.use(workspaceValidationMiddleware);
 
   /**
    * @swagger

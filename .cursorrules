@@ -1,5 +1,28 @@
 # Cursor Rules for AI4Devs Final Project
 
+## 🚨 REGOLE CRITICHE - PRIORITÀ ASSOLUTA - SEMPRE RISPETTARE
+⚠️ **QUESTE REGOLE HANNO PRECEDENZA SU TUTTO IL RESTO:**
+
+1. **CHIAMAMI SEMPRE ANDREA** - Mai dimenticare il nome
+2. **BACKUP .ENV OBBLIGATORIO** - Prima di qualsiasi interazione con .env: `cp .env .env.backup.$(date +%Y%m%d_%H%M%S)`
+3. **MAI TOCCARE IL PDF** - `backend/prisma/temp/international-transportation-law.pdf` è SACRO
+4. **ZERO HARDCODE** - Tutto dal database, mai fallback statici
+5. **SWAGGER SEMPRE AGGIORNATO** - Dopo ogni modifica API, aggiorna swagger.json IMMEDIATAMENTE
+6. **TEST PRIMA DI "FATTO"** - Mai dire completato senza verificare che funzioni
+7. **WORKSPACE ISOLATION** - Sempre filtrare per workspaceId in ogni query
+
+## ✅ CHECKLIST OBBLIGATORIA PRIMA DI COMPLETARE QUALSIASI TASK:
+- [ ] Ho chiamato Andrea per nome?
+- [ ] Swagger è aggiornato dopo modifiche API?
+- [ ] Test passano tutti?
+- [ ] Nessun hardcode aggiunto?
+- [ ] Database seed aggiornato se necessario?
+- [ ] WorkspaceId filtering presente in tutte le query?
+- [ ] Layout/grafica non modificati senza permesso?
+- [ ] Non ti inventare nulla , chiedi sempre prima, se non e' in PRD o in task list, chiedi prima
+- [ ] Prima il PRD poi i test poi il codice (scala della veritá)
+
+
 ## 🧠 Core Development Rules
 
  - Address me **by name (Andrea)** in chats and discussions (e.g., "Hello Andrea", "Andrea, what do you think?")
@@ -93,7 +116,8 @@ The user's input is processed through a two-stage LLM workflow:
 - Keep track of progress and document changes properly
 - Get always the full context from @backend @frontend and @final
 - Get the context from the test unit, integration, integration for having a better understanding 
-- Keep swagger configuration always updated
+- **DOPO OGNI MODIFICA API: aggiorna immediatamente swagger.json**
+- **PRIMA DI DIRE "FATTO": verifica che swagger sia aggiornato e funzionante**
 
 ## 📚 Documentation References
 
@@ -185,7 +209,7 @@ frontend/
 │   │   └── 📄 *.{test,spec}.{js,ts,tsx} # Unit test files
 │   └── 📁 e2e/                     # End-to-end tests
 │       ├── 📁 support/             # Cypress support files
-│       │   ├── 📄 commands.js      # Custom Cypress commands
+│       │   ├── �� commands.js      # Custom Cypress commands
 │       │   └── 📄 e2e.js           # Cypress setup file
 │       └── 📄 *.cy.{js,ts,tsx}     # E2E test files
 ├── 📄 package.json                 # Dependencies and scripts
@@ -226,3 +250,13 @@ se lo vuoi toccare, chiedi prima per sicurezza
 - test di BE vanno sotto /Users/gelso/workspace/AI/shop/backend/src/__tests__  dentro unit o integration
 - i server si riavviano da soli non c'e' bisogno di aprire mille terminali usa sempre lo stesso terminal
 - Ricordati che PRD ha la verita assoluta poi passano los test
+- **SWAGGER: aggiorna SEMPRE dopo ogni modifica API - è OBBLIGATORIO**
+
+## 🔄 VERIFICA FINALE OBBLIGATORIA
+**PRIMA DI DIRE "FATTO" O "COMPLETATO", VERIFICA:**
+1. ✅ Swagger aggiornato se ho modificato API
+2. ✅ Test eseguiti e passanti
+3. ✅ Nessun hardcode introdotto
+4. ✅ WorkspaceId filtering presente
+5. ✅ Andrea chiamato per nome
+6. ✅ Layout non modificato senza permesso

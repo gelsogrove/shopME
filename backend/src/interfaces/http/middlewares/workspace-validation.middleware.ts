@@ -12,14 +12,6 @@ export const workspaceValidationMiddleware = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Skip validation in test environment if test auth is enabled
-    if (process.env.NODE_ENV === 'test' && 
-        process.env.INTEGRATION_TEST === 'true' && 
-        req.headers['x-test-auth'] === 'true') {
-      console.log('🧪 Test environment: Skipping workspace validation');
-      return next();
-    }
-
     console.log('=== WORKSPACE VALIDATION DEBUG ===');
     console.log('Request URL:', req.originalUrl);
     console.log('Request method:', req.method);
@@ -31,9 +23,30 @@ export const workspaceValidationMiddleware = async (
     });
 
     // Extract workspace ID from various sources
-    const workspaceIdFromParams = req.params.workspaceId;
+    let workspaceIdFromParams = req.params.workspaceId;
     const workspaceIdFromQuery = req.query.workspaceId as string;
     const workspaceIdFromHeaders = req.headers['x-workspace-id'] as string;
+    
+    // CRITICAL FIX: If workspaceId is not in params, extract it from URL manually
+    if (!workspaceIdFromParams) {
+      // Try to match /workspaces/{workspaceId} pattern
+      let urlMatch = req.originalUrl.match(/\/workspaces\/([^\/\?]+)/);
+      if (urlMatch && urlMatch[1]) {
+        workspaceIdFromParams = urlMatch[1];
+        console.log('🔧 EXTRACTED workspaceId from /workspaces/ pattern:', workspaceIdFromParams);
+        // Also set it in params for downstream middleware
+        req.params.workspaceId = workspaceIdFromParams;
+      } else {
+        // Try to match /settings/{workspaceId}/gdpr pattern (frontend uses this)
+        urlMatch = req.originalUrl.match(/\/settings\/([^\/\?]+)\/gdpr/);
+        if (urlMatch && urlMatch[1]) {
+          workspaceIdFromParams = urlMatch[1];
+          console.log('🔧 EXTRACTED workspaceId from /settings/{workspaceId}/gdpr pattern:', workspaceIdFromParams);
+          // Also set it in params for downstream middleware
+          req.params.workspaceId = workspaceIdFromParams;
+        }
+      }
+    }
     
     console.log('Workspace ID sources:', {
       fromParams: workspaceIdFromParams,

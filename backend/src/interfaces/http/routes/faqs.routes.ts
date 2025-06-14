@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { FaqController } from "../controllers/faq.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
+import { workspaceValidationMiddleware } from "../middlewares/workspace-validation.middleware";
 
 /**
  * @swagger
@@ -45,6 +46,9 @@ export const faqsRouter = (): Router => {
 
   // All routes require authentication
   router.use(authMiddleware);
+  
+  // All routes require workspace validation
+  router.use(workspaceValidationMiddleware);
 
   /**
    * @swagger

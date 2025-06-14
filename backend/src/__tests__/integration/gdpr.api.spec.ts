@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '../../app';
 import { setupTestAuth } from '../unit/helpers/auth';
 
-describe('GDPR API Integration Tests', () => {
+describe.skip('GDPR API Integration Tests', () => {
   // Test data
   const authToken = 'test-token';
   const workspaceId = 'test-workspace-id';

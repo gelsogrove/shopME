@@ -1,3 +1,26 @@
+/**
+ * DATABASE SEED SCRIPT - VERSIONE FUNZIONANTE
+ * 
+ * ✅ CREDENZIALI ADMIN TESTATE E FUNZIONANTI
+ * Data: 13 Giugno 2025
+ * 
+ * CREDENZIALI ADMIN:
+ * - Email: admin@shopme.com
+ * - Password: venezia44 (dal file .env ADMIN_PASSWORD)
+ * 
+ * LOGIN TESTATO CON SUCCESSO:
+ * curl -X POST http://localhost:3001/api/auth/login \
+ *   -H "Content-Type: application/json" \
+ *   -d '{"email":"admin@shopme.com","password":"venezia44"}'
+ * 
+ * WORKSPACE PRINCIPALE:
+ * - ID: cm9hjgq9v00014qk8fsdy4ujv
+ * - Nome: L'Altra Italia(ESP)
+ * - Admin associato come OWNER
+ * 
+ * ⚠️ NON MODIFICARE CREDENZIALI SENZA AGGIORNARE .env
+ */
+
 import { PrismaClient } from "@prisma/client"
 import * as bcrypt from "bcrypt"
 import dotenv from "dotenv"
@@ -11,7 +34,16 @@ const prisma = new PrismaClient()
 
 // Use environment variables with fallbacks
 let adminEmail = process.env.ADMIN_EMAIL || ""
-let adminPassword = process.env.ADMIN_PASSWORD || "" // Default for backward compatibility
+let adminPassword = process.env.ADMIN_PASSWORD || "admin123" // Default password for development
+
+// Validate required environment variables
+if (!adminEmail) {
+  adminEmail = "admin@shopme.com" // Default email for development
+}
+
+if (!adminPassword) {
+  adminPassword = "admin123" // Fallback password
+}
 
 // Define the default agent at the top level of the script
 const defaultAgent = {
@@ -122,7 +154,71 @@ async function seedDefaultDocument() {
 }
 
 async function main() {
-  // Check if the admin user already exists
+  console.log("🚀 STARTING COMPLETE DATABASE SEED")
+  console.log("=" .repeat(50))
+  
+  // 🔥 PULIZIA COMPLETA DEL DATABASE 
+  console.log("🧹 COMPLETE DATABASE CLEANUP - Removing all data from all tables...")
+  
+  try {
+    // Elimina tutti i chunks prima (foreign keys)
+    await prisma.documentChunks.deleteMany({})
+    console.log("✅ Deleted all document chunks")
+    
+    await prisma.fAQChunks.deleteMany({})
+    console.log("✅ Deleted all FAQ chunks")
+    
+    await prisma.serviceChunks.deleteMany({})
+    console.log("✅ Deleted all service chunks")
+    
+    // Elimina ordini e carrelli
+    await prisma.orderItems.deleteMany({})
+    await prisma.paymentDetails.deleteMany({})
+    await prisma.orders.deleteMany({})
+    await prisma.cartItems.deleteMany({})
+    await prisma.carts.deleteMany({})
+    console.log("✅ Deleted all orders and carts")
+    
+    // Elimina chat e messaggi
+    await prisma.message.deleteMany({})
+    await prisma.chatSession.deleteMany({})
+    console.log("✅ Deleted all chat sessions and messages")
+    
+    // Elimina documenti, FAQ, prodotti, categorie, servizi
+    await prisma.documents.deleteMany({})
+    await prisma.fAQ.deleteMany({})
+    await prisma.products.deleteMany({})
+    await prisma.categories.deleteMany({})
+    await prisma.services.deleteMany({})
+    await prisma.offers.deleteMany({})
+    console.log("✅ Deleted all content entities")
+    
+    // Elimina customers e configurazioni
+    await prisma.customers.deleteMany({})
+    await prisma.agentConfig.deleteMany({})
+    await prisma.prompts.deleteMany({})
+    await prisma.languages.deleteMany({})
+    await prisma.whatsappSettings.deleteMany({})
+    console.log("✅ Deleted all customers and configurations")
+    
+    // Elimina associazioni user-workspace
+    await prisma.userWorkspace.deleteMany({})
+    console.log("✅ Deleted all user-workspace associations")
+    
+    // Elimina workspace e utenti
+    await prisma.workspace.deleteMany({})
+    await prisma.user.deleteMany({})
+    console.log("✅ Deleted all workspaces and users")
+    
+    console.log("🎉 COMPLETE DATABASE CLEANUP FINISHED!")
+    console.log("=" .repeat(50))
+    
+  } catch (error) {
+    console.error("❌ Error during database cleanup:", error)
+    throw error
+  }
+
+  // Check if the admin user already exists (dovrebbe essere vuoto dopo la pulizia)
   const existingAdmin = await prisma.user.findUnique({
     where: { email: adminEmail },
   })
@@ -139,10 +235,10 @@ async function main() {
         status: "ACTIVE",
       },
     })
-    console.log(`Admin user creato: ${adminUser.email}`)
+    console.log(`✅ Admin user created: ${adminUser.email} (ID: ${adminUser.id})`)
   } else {
     adminUser = existingAdmin;
-    console.log("Admin user già esistente.")
+    console.log("ℹ️ Admin user already exists.")
   }
 
   // Check if the main workspace exists
@@ -346,23 +442,43 @@ async function main() {
     createdWorkspaces.push(updatedWorkspace)
 
     // Ensure admin user has access to this workspace (FORZATO)
-    await prisma.userWorkspace.upsert({
-      where: {
-        userId_workspaceId: {
+    try {
+      await prisma.userWorkspace.upsert({
+        where: {
+          userId_workspaceId: {
+            userId: adminUser.id,
+            workspaceId: mainWorkspaceId
+          }
+        },
+        update: {
+          role: "OWNER"
+        },
+        create: {
           userId: adminUser.id,
-          workspaceId: mainWorkspaceId
+          workspaceId: mainWorkspaceId,
+          role: "OWNER"
         }
-      },
-      update: {
-        role: "OWNER"
-      },
-      create: {
-        userId: adminUser.id,
-        workspaceId: mainWorkspaceId,
-        role: "OWNER"
+      });
+      console.log(`✅ Admin user forzatamente associato al workspace come OWNER (upsert) - UserID: ${adminUser.id}`);
+      
+      // Verifica che l'associazione sia stata creata
+      const verification = await prisma.userWorkspace.findUnique({
+        where: {
+          userId_workspaceId: {
+            userId: adminUser.id,
+            workspaceId: mainWorkspaceId
+          }
+        }
+      });
+      if (verification) {
+        console.log(`✅ Verifica: associazione UserWorkspace creata correttamente`);
+      } else {
+        console.error(`❌ ERRORE: associazione UserWorkspace NON trovata dopo la creazione!`);
       }
-    });
-    console.log(`Admin user forzatamente associato al workspace come OWNER (upsert)`);
+    } catch (error) {
+      console.error(`❌ ERRORE nella creazione UserWorkspace:`, error);
+      throw error;
+    }
 
     // AGGIUNTA: CREA AgentConfig DI DEFAULT SE NON ESISTE
     const existingAgentConfig = await prisma.agentConfig.findFirst({
@@ -451,23 +567,43 @@ async function main() {
     createdWorkspaces.push(mainWorkspace)
 
     // Associate admin user with the new workspace (FORZATO)
-    await prisma.userWorkspace.upsert({
-      where: {
-        userId_workspaceId: {
+    try {
+      await prisma.userWorkspace.upsert({
+        where: {
+          userId_workspaceId: {
+            userId: adminUser.id,
+            workspaceId: mainWorkspaceId
+          }
+        },
+        update: {
+          role: "OWNER"
+        },
+        create: {
           userId: adminUser.id,
-          workspaceId: mainWorkspaceId
+          workspaceId: mainWorkspaceId,
+          role: "OWNER"
         }
-      },
-      update: {
-        role: "OWNER"
-      },
-      create: {
-        userId: adminUser.id,
-        workspaceId: mainWorkspaceId,
-        role: "OWNER"
+      });
+      console.log(`✅ Admin user forzatamente associato al nuovo workspace come OWNER (upsert) - UserID: ${adminUser.id}`);
+      
+      // Verifica che l'associazione sia stata creata
+      const verification = await prisma.userWorkspace.findUnique({
+        where: {
+          userId_workspaceId: {
+            userId: adminUser.id,
+            workspaceId: mainWorkspaceId
+          }
+        }
+      });
+      if (verification) {
+        console.log(`✅ Verifica: associazione UserWorkspace creata correttamente`);
+      } else {
+        console.error(`❌ ERRORE: associazione UserWorkspace NON trovata dopo la creazione!`);
       }
-    });
-    console.log(`Admin user forzatamente associato al nuovo workspace come OWNER (upsert)`);
+    } catch (error) {
+      console.error(`❌ ERRORE nella creazione UserWorkspace:`, error);
+      throw error;
+    }
 
     // AGGIUNTA: CREA AgentConfig DI DEFAULT SE NON ESISTE
     const existingAgentConfig = await prisma.agentConfig.findFirst({

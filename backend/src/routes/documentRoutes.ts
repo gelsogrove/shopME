@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import { documentController, upload } from '../controllers/documentController';
+import { workspaceValidationMiddleware } from '../interfaces/http/middlewares/workspace-validation.middleware';
 
 const router = Router({ mergeParams: true });
+
+// Apply workspace validation middleware to all routes that have workspaceId in path
+router.use(workspaceValidationMiddleware);
 
 /**
  * @swagger

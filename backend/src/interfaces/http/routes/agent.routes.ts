@@ -3,7 +3,7 @@ import logger from '../../../utils/logger';
 import { AgentController } from '../controllers/agent.controller';
 import { asyncHandler } from '../middlewares/async.middleware';
 import { authMiddleware } from '../middlewares/auth.middleware';
-import { workspaceExtractionMiddleware } from '../middlewares/workspace-extraction.middleware';
+import { workspaceValidationMiddleware } from '../middlewares/workspace-validation.middleware';
 
 /**
  * @swagger
@@ -48,17 +48,16 @@ import { workspaceExtractionMiddleware } from '../middlewares/workspace-extracti
  */
 
 export const createAgentRouter = (): Router => {
-  const router = Router();
+  const router = Router({ mergeParams: true }); // Enable mergeParams to inherit workspaceId
   const agentController = new AgentController();
   
   logger.info('Setting up agent routes');
 
-  // Apply workspace extraction middleware first
-  router.use(workspaceExtractionMiddleware);
+  // Apply auth middleware first
   router.use(authMiddleware); // ENABLED FOR PROPER AUTHENTICATION
   
-  // Temporarily remove workspace validation middleware to test
-  // router.use(workspaceValidationMiddleware);
+  // Enable workspace validation middleware (this will extract workspaceId from params)
+  router.use(workspaceValidationMiddleware);
 
   /**
    * @swagger

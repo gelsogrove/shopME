@@ -76,10 +76,10 @@ All sensitive operations are handled securely through temporary links with secur
 | 8. COST STRUCTURE                                 | 9. REVENUE STREAMS                                                         |
 |                                                   |                                                                            |
 | • Development team                                | • Tiered subscription model:                                               |
-| • AI/ML model costs                               |   - Free Plan (€0/month): Single WhatsApp line, 100 AI messages, 3 products|
-| • WhatsApp Business API fees                      |   - Basic Plan (€49/month): Single WhatsApp line, 1000 AI messages         |
-| • Cloud infrastructure                            |   - Professional Plan (€149/month): 3 numbers, 5000 AI messages            |
-| • Customer success team                           |   - Enterprise Plan (custom): Unlimited connections, white-label           |
+| • AI/ML model costs                               |   - Free Trial (€0 for 14 days): Single WhatsApp line, unlimited products |
+| • WhatsApp Business API fees                      |   - Basic Plan (€49/month): Single WhatsApp line, unlimited products       |
+| • Cloud infrastructure                            |   - Professional Plan (€149/month): 3 numbers, unlimited products          |
+| • Customer success team                           |   - Enterprise Plan (custom): Unlimited connections                        |
 | • Sales & marketing                               | • Implementation and customization services                                |
 |                                                   | • API access fees for third-party integrations                             |
 +---------------------------------------------------+----------------------------------------------------------------------------+
@@ -91,70 +91,73 @@ The ShopMe platform implements an intelligent conversational flow that handles n
 
 #### Complete Message Processing Flow
 
-```mermaid
-flowchart TD
-    Start([📱 Incoming WhatsApp Message]) --> SpamCheck{🚨 Spam Detection<br/>10 msgs in 30s?}
-    
-    SpamCheck -->|Yes| AutoBlock[🚫 Auto-blacklist<br/>Add to blocklist]
-    SpamCheck -->|No| BlacklistCheck{🚫 User Blacklisted?}
-    
-    BlacklistCheck -->|Yes| Block[❌ Block conversation - No response]
-    BlacklistCheck -->|No| WipCheck{🚧 Channel in WIP?}
-    
-    WipCheck -->|Yes| WipMsg[⚠️ Send WIP message<br/>in appropriate language]
-    WipCheck -->|No| UserCheck{👤 New user?}
-    
-    UserCheck -->|Yes| GreetingCheck{👋 Is greeting?<br/>Ciao/Hello/Hola/Olá}
-    UserCheck -->|No| TimeCheck{⏰ More than 2 hours<br/>since last chat?}
-    
-    GreetingCheck -->|No| NoResponse[🔇 No response<br/>for non-greetings]
-    GreetingCheck -->|Yes| WelcomeMsg[🎉 Send Welcome Message<br/>with registration link + token]
-    
-    TimeCheck -->|Yes| WelcomeBack[👋 Welcome back {NAME}]
-    TimeCheck -->|No| ProcessMsg[🤖 Process message]
-    
-    WelcomeMsg --> TokenGen[🔐 Generate secure token<br/>valid 1 hour]
-    TokenGen --> RegLink[🔗 Create registration link<br/>with token]
-    RegLink --> SaveTemp[💾 Save temporary message]
-    
-    WelcomeBack --> ProcessMsg
-    ProcessMsg --> FunctionRouter[🎯 Function Router<br/>Determine target function]
-    
-    FunctionRouter --> RAGSearch{📚 Document search<br/>needed?}
-    RAGSearch -->|Yes| DocumentSearch[🔍 Semantic search<br/>in documents]
-    RAGSearch -->|No| DirectFunction[⚙️ Execute direct function]
-    
-    DocumentSearch --> ContextEnrich[📝 Enrich context<br/>with RAG results]
-    DirectFunction --> ContextEnrich
-    
-    ContextEnrich --> LLMProcess[🧠 LLM Processing<br/>with enriched context]
-    LLMProcess --> ResponseFormat[📄 Format final response]
-    
-    ResponseFormat --> SensitiveCheck{🔒 Contains sensitive data?}
-    SensitiveCheck -->|Yes| SecureLink[🔐 Generate secure link<br/>for sensitive data]
-    SensitiveCheck -->|No| SendResponse[📤 Send WhatsApp response]
-    
-    SecureLink --> SendResponse
-    SendResponse --> SaveHistory[💾 Save to chat history]
-    SaveHistory --> End([✅ Process complete])
-    
-    AutoBlock --> End
-    Block --> End
-    WipMsg --> End
-    NoResponse --> End
-    
-    classDef startEnd fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
-    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
-    classDef process fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef security fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
-    classDef rag fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
-    
-    class Start,End startEnd
-    class BlacklistCheck,WipCheck,UserCheck,GreetingCheck,TimeCheck,RAGSearch,SensitiveCheck decision
-    class ProcessMsg,FunctionRouter,LLMProcess,ResponseFormat,SendResponse,SaveHistory process
-    class TokenGen,RegLink,SecureLink security
-    class DocumentSearch,ContextEnrich rag
+## 📊 SCHEMA ASCII DEL FLOW
+
 ```
+📱 MESSAGGIO WHATSAPP
+         |
+         v
+    ┌─────────────────┐
+    │ CANALE ATTIVO?  │ ──NO──> ❌ STOP DIALOGO
+    │ (isActive)      │
+    └─────────────────┘
+         |YES
+         v
+    ┌─────────────────┐
+    │ CHATBOT ATTIVO? │ ──NO──> 👨‍💼 CONTROLLO OPERATORE
+    │ (activeChatbot) │         (salva msg, no AI response)
+    └─────────────────┘
+         |YES
+         v
+    ┌─────────────────┐
+    │ USER BLACKLIST? │ ──YES─> ❌ BLOCCA CONVERSAZIONE
+    └─────────────────┘
+         |NO
+         v
+    ┌─────────────────┐
+    │ CANALE IN WIP?  │ ──YES─> ⚠️ MESSAGGIO WIP
+    └─────────────────┘
+         |NO
+         v
+    ┌─────────────────┐
+    │ NUOVO UTENTE?   │
+    └─────────────────┘
+         |              |
+       YES|              |NO
+         v              v
+    ┌─────────────┐  ┌─────────────────┐
+    │ SALUTO?     │  │ >2 ORE ULTIMA   │ ──YES─> 👋 BENTORNATO {NOME}
+    │ Ciao/Hello  │  │ CONVERSAZIONE?  │
+    └─────────────┘  └─────────────────┘
+         |YES              |NO
+         v                 v
+    ┌─────────────┐  ┌─────────────────┐
+    │ 🎉 WELCOME  │  │ 🤖 CHAT LIBERA  │
+    │ + REG LINK  │  │ UTENTE + RAG    │
+    └─────────────┘  └─────────────────┘
+         |                 
+         v                 
+    ┌─────────────┐   
+    │ 🔗 TOKEN +  │   
+    │ REGISTRA    │          
+    └─────────────┘   
+         |                 
+         v                 
+    ┌─────────────┐   
+    │ 🤖 CHAT     │   
+    │ LIBERA RAG  │  
+    └─────────────┘   
+```
+
+## 🔑 LEGENDA
+- ❌ = STOP/BLOCCO
+- 👨‍💼 = CONTROLLO OPERATORE
+- ⚠️ = MESSAGGIO AUTOMATICO
+- 🎉 = MESSAGGIO BENVENUTO
+- 🤖 = ELABORAZIONE AI/RAG
+- 🔗 = LINK CON TOKEN
+- 🛒 = FINALIZZAZIONE ORDINE/CHECKOUT
+- 💬 = CONVERSAZIONE NORMALE
 
 #### System Architecture Components
 
@@ -237,6 +240,29 @@ if (spamCheck.isSpam) {
 - **Action**: Automatic addition to workspace blacklist
 - **Duration**: Unlimited (manual admin unlock)
 - **Logging**: Tracking for audit and review
+
+**5. Operator Manual Control (activeChatbot)**
+```typescript
+// Check if operator has taken manual control
+if (customer && !customer.activeChatbot) {
+  // Save message but don't generate bot response
+  await this.messageRepository.saveMessage({
+    workspaceId,
+    phoneNumber,
+    message,
+    response: "",
+    agentSelected: "Manual Operator Control",
+  })
+  return "" // No bot response
+}
+```
+
+**Manual Control Implementation:**
+- **Field**: `activeChatbot` boolean in Customer model (default: true)
+- **Control**: Operators can disable chatbot via Chat History interface
+- **Behavior**: When disabled, bot saves messages but doesn't respond
+- **UI Indicator**: Bot icon changes color (green=auto, gray=manual)
+- **Toggle**: Real-time switch in chat interface with confirmation dialog
 
 #### Multilingual Management
 
@@ -457,6 +483,221 @@ FRONTEND_URL=https://your-domain.com
 3. **Integration Hub**: Connectors for external CRM/ERP
 4. **Mobile App**: Dedicated app for chatbot management
 
+**🚀 Immediate Priority (Critical Security & Core Features)**
+1. **Security Audit & Vulnerability Assessment**: Comprehensive OWASP compliance, JWT enhancement, audit logging
+2. **WhatsApp Message Templates & Rich Media**: Advanced messaging with templates, media support, bulk messaging
+3. **Temporary Token System**: Secure links for payments, invoices, cart access with comprehensive token management
+4. **Ticketing System with Plan-Based Access**: Customer support tickets with operator assignment (Professional+ only)
+5. **Plan-Based AI Prompt System**: Dynamic prompts based on subscription tier with upgrade messaging
+6. **Auto-Blacklist Spam Detection**: 10 messages in 30 seconds → automatic block
+7. **API Rate Limiting**: 100 calls every 10 minutes for anti-attack protection
+
+**🎯 High Priority (Business Features)**
+1. **Product Pricing with Discounts**: Customer vs product discount calculation system
+2. **Customer Chat History Seeding**: Realistic demo data with conversation flows
+3. **Block User Integration**: Add blocked users to workspace phone number blocklist
+4. **Landing Page Multi-Language**: Professional homepage with EN/IT/ES support
+5. **Enhanced Document Management**: PDF management improvements (5MB limit)
+
+**📈 Medium Priority (Extended Features)**
+1. **Database Schema Updates**: Support for new security and ticketing features
+2. **Workspace-Specific GDPR**: Per-workspace GDPR text management
+3. **Pay-Per-Use Billing System**: Usage-based billing with Stripe integration
+4. **Professional Plan Contact Sales**: Lead management and operator assignment
+
+**🔮 Low Priority (Future Vision)**
+1. **Multi-Channel WhatsApp**: Multiple WhatsApp numbers per workspace
+2. **Performance Optimization**: Monitoring, caching, and scalability improvements
+3. **Chatbot Builder**: Drag-and-drop interface for flows
+4. **Integration Hub**: Connectors for external CRM/ERP
+
+### Security Implementation (OWASP)
+
+**Current Security Status**:
+- ✅ **JWT Authentication**: Implemented with workspace integration
+- ✅ **Basic Rate Limiting**: Auth endpoints protected
+- ✅ **Input Validation**: Basic Prisma validation
+- ✅ **HTTPS Enforcement**: Production environment
+- ❌ **Comprehensive Security Audit**: Needed
+- ❌ **Advanced Token Management**: Missing refresh tokens, blacklisting
+- ❌ **Security Monitoring**: No audit logging or intrusion detection
+
+**Planned Security Enhancements**:
+
+#### 🔐 **Authentication & Authorization**
+- **JWT Token Security**: Token rotation, blacklisting, secure storage
+- **Session Management**: Timeout controls, concurrent session limits
+- **2FA Enhancement**: Backup codes, recovery options
+- **Account Lockout**: Progressive delays for failed attempts
+- **Password Security**: Strong policies, history tracking
+
+#### 🛡️ **Data Protection**
+- **Input Validation**: Comprehensive validation for all inputs
+- **SQL Injection Prevention**: Parameterized queries, sanitization
+- **XSS Protection**: Content Security Policy, output encoding
+- **CSRF Protection**: Anti-CSRF tokens for state changes
+- **File Upload Security**: Virus scanning, type validation
+
+#### 🔍 **Security Monitoring**
+- **Audit Logging**: All security events (login, data access, changes)
+- **Intrusion Detection**: Suspicious pattern monitoring
+- **Security Headers**: OWASP recommended headers
+- **Vulnerability Scanning**: Regular automated scans
+- **Penetration Testing**: External security assessments
+
+#### 📊 **Compliance**
+- **GDPR Compliance**: Data processing documentation, consent management
+- **Security Policies**: Incident response procedures
+- **Risk Assessment**: Security risk documentation
+- **Security Training**: Developer awareness programs
+
+### WhatsApp Advanced Messaging System
+
+**Current Messaging Capabilities**:
+- ✅ **Basic Message Sending**: Text messages via webhook
+- ✅ **Welcome Messages**: Multi-language registration links
+- ✅ **WIP Messages**: Maintenance mode notifications
+- ❌ **Message Templates**: No template system
+- ❌ **Rich Media**: No image/document support
+- ❌ **Bulk Messaging**: No broadcast capabilities
+
+**Planned Messaging Enhancements**:
+
+#### 📝 **Template System**
+- **Template Library**: Pre-built scenarios (welcome, order confirmation, support)
+- **Custom Templates**: Workspace-specific template creation
+- **Variable Substitution**: Dynamic content (customer name, order details)
+- **Multi-language Templates**: All supported languages (IT, EN, ES, PT)
+- **Template Categories**: Marketing, transactional, support organization
+
+#### 🎨 **Rich Message Features**
+- **Media Support**: Images, documents, audio via WhatsApp
+- **Interactive Buttons**: Quick reply buttons for actions
+- **List Messages**: Structured product catalogs, menus
+- **Location Sharing**: Business locations, delivery addresses
+- **Contact Cards**: Business contact information sharing
+
+#### 📤 **Bulk Messaging**
+- **Customer Segmentation**: Targeted group messaging
+- **Broadcast Lists**: Marketing campaign management
+- **Message Scheduling**: Optimal delivery timing
+- **Delivery Tracking**: Status and read receipt monitoring
+- **Opt-out Management**: Automatic unsubscribe handling
+
+### Temporary Token Security System
+
+**Current Token Implementation**:
+- ✅ **Registration Tokens**: 1-hour expiration, single-use
+- ✅ **Token Validation**: Database verification
+- ❌ **Multiple Token Types**: Only registration supported
+- ❌ **Advanced Security**: No encryption or IP validation
+- ❌ **Token Management**: No revocation or cleanup
+
+**Enhanced Token System**:
+
+#### 🔐 **Token Types**
+- **Registration Tokens**: Customer registration (enhanced)
+- **Payment Tokens**: Secure payment processing
+- **Invoice Tokens**: Invoice access and download
+- **Cart Tokens**: Guest user cart access
+- **Password Reset Tokens**: Account recovery
+- **Email Verification Tokens**: Address verification
+
+#### 🛡️ **Security Features**
+- **Token Encryption**: Encrypted payloads for sensitive data
+- **IP Validation**: Optional IP address verification
+- **Device Fingerprinting**: Fraud prevention tracking
+- **Rate Limiting**: Token generation abuse prevention
+- **Audit Logging**: Complete token lifecycle tracking
+
+#### ⏰ **Lifecycle Management**
+- **Configurable Expiration**: Different times per token type
+- **Single-Use Tokens**: Automatic invalidation after use
+- **Token Rotation**: Extended session support
+- **Manual Revocation**: Administrative token invalidation
+- **Automatic Cleanup**: Expired token removal
+
+### Ticketing System with Plan-Based Access
+
+**Current Support System**:
+- ✅ **Operator Manual Control**: activeChatbot flag for operator takeover
+- ✅ **Chat History**: Message storage and retrieval
+- ❌ **Formal Ticketing**: No ticket creation or management
+- ❌ **Plan-Based Access**: No subscription tier restrictions
+- ❌ **Operator Assignment**: No systematic operator management
+
+**Planned Ticketing System**:
+
+#### 🎫 **Ticket Management**
+- **Automatic Creation**: Detect customer requests for human support
+- **Ticket Categories**: Support, Sales, Technical, Billing
+- **Priority Levels**: Low, Medium, High, Urgent
+- **Status Tracking**: New, Assigned, In Progress, Waiting, Resolved, Closed
+- **SLA Management**: Response time tracking and escalation
+
+#### 📋 **Plan-Based Access**
+- **Free Plan**: No ticketing - upgrade messaging only
+- **Basic Plan**: No ticketing - upgrade to Professional required
+- **Professional Plan**: Full ticketing system access
+- **Enterprise Plan**: Priority support with dedicated operators
+- **Plan Validation**: Automatic subscription tier checking
+
+#### 👥 **Operator Management**
+- **Operator Profiles**: Skill-based operator accounts
+- **Workload Balancing**: Even ticket distribution
+- **Availability Status**: Online, Busy, Away, Offline
+- **Performance Metrics**: Response time, satisfaction scores
+- **Escalation Rules**: Automatic ticket escalation
+
+### Plan-Based AI Prompt System
+
+**Current AI Configuration**:
+- ✅ **Single Prompt System**: One prompt per workspace
+- ✅ **Agent Configuration**: Temperature, tokens, model settings
+- ❌ **Plan-Based Prompts**: No subscription tier differentiation
+- ❌ **Upgrade Messaging**: No plan upgrade suggestions
+- ❌ **Dynamic Loading**: Static prompt configuration
+
+**Enhanced Prompt System**:
+
+#### 🤖 **Plan-Specific Prompts**
+
+**Free Plan Features**:
+- Basic product information only
+- Frequent upgrade messaging
+- No human support access
+- Limited order processing
+
+**Basic Plan Features**:
+- Full product catalog access
+- Standard order processing
+- Moderate upgrade messaging
+- No human support (upgrade required)
+
+**Professional Plan Features**:
+- Advanced AI capabilities
+- Human support integration
+- Priority response handling
+- Advanced analytics mentions
+
+**Enterprise Plan Features**:
+- Custom AI personality
+- Immediate priority support
+- Advanced integrations
+- White-label messaging options
+
+#### 🔄 **Dynamic Implementation**
+- **Plan Detection**: Automatic workspace plan identification
+- **Prompt Loading**: Database-driven prompt selection
+- **Real-time Updates**: Immediate prompt changes on plan upgrades
+- **Fallback System**: Default prompts for missing configurations
+- **Performance Caching**: Optimized prompt loading
+
+#### 📊 **Analytics & Optimization**
+- **Conversion Tracking**: Plan upgrades from AI interactions
+- **Prompt Performance**: Response quality by plan tier
+- **A/B Testing**: Different prompt strategy comparison
+- **User Satisfaction**: Plan-based satisfaction tracking
 
 ## DIALOG EXAMPLES
 
@@ -464,11 +705,11 @@ FRONTEND_URL=https://your-domain.com
 
 **Cliente**: "Hola, me gustaría comprar algunos productos."
 
-**ShopMe**: "¡Hola! Estaré encantado de ayudarle con su compra. Para ofrecerle la mejor experiencia y poder procesar sus pedidos, necesitamos que se registre primero. 
+**ShopMe**: "¡Hola! Estaré encantado de ayudarle con sus productos. Para ofrecerle la mejor experiencia y poder procesar sus pedidos, necesitamos que se registre primero. 
 
 He creado un enlace de registro seguro para usted: [https://shopme.com/registro/token_u7d9f3a1b5]
 
-Este enlace es personal y caduca en 24 horas por motivos de seguridad."
+Este enlace es personal y caduca en 1 hora por motivos de seguridad."
 
 
 **ShopMe**: "¡Gracias por registrarse! Su cuenta ha sido creada correctamente. 
@@ -513,7 +754,7 @@ Nos complace informarle que valoramos su privacidad y seguridad. Todos sus datos
 
 Está elaborada con pistachos de Bronte DOP (40%), azúcar moreno y aceite de girasol. No contiene conservantes ni colorantes.
 
-¿Desea proceder con la compra de la Degustación Siciliana o preferiría ver otras opciones?"
+¿Desea proceder con la finalización del pedido de la Degustación Siciliana o preferiría ver otras opciones?"
 
 **Cliente**: "Me llevo la Degustación Siciliana. ¿Puede entregarse antes del próximo viernes?"
 
@@ -534,7 +775,7 @@ La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo
 
 **Cliente**: "Eso es todo, ¡gracias!"
 
-**ShopMe**: "¡Gracias por su compra! Apreciamos su confianza. Su pedido está siendo procesado y recibirá en breve la información de seguimiento. Si tiene preguntas sobre su pedido o productos, no dude en contactarnos aquí. ¡Le deseo un buen día!"
+**ShopMe**: "¡Gracias por finalizar su pedido! Apreciamos su confianza. Su orden está siendo procesada y recibirá en breve la información de seguimiento. Si tiene preguntas sobre su pedido o productos, no dude en contactarnos aquí. ¡Le deseo un buen día!"
 
 ## MAIN FEATURES
 
@@ -890,6 +1131,54 @@ The backend follows a Domain-Driven Design (DDD) architecture:
 - **Migrations**: Prisma Migration for version control
 - **Backup Strategy**: Automated daily backups with point-in-time recovery
 
+#### Database Management and Seeding Strategy
+
+**Complete Database Reset Policy**
+- When running `npm run seed`, the script performs a complete database reset
+- All existing data is deleted before seeding to avoid conflicts and ensure clean state
+- This includes: users, workspaces, user-workspace associations, content, and all related data
+
+**Admin User and Workspace Association Requirements**
+- Admin user MUST always have a UserWorkspace association
+- The admin user should be associated with the main workspace as OWNER
+- UserWorkspace table manages the many-to-many relationship between users and workspaces
+- Each association includes a role field (OWNER, ADMIN, MEMBER)
+
+**Integration Test Management**
+- All integration tests are currently skipped using `describe.skip()` to prevent database conflicts
+- After each integration test completion, a complete seed is automatically executed
+- This ensures clean state and proper admin user setup for subsequent operations
+- Integration tests should only be enabled when the testing infrastructure is fully stable
+
+**Database Schema Key Requirements:**
+```typescript
+// UserWorkspace Association (MANDATORY for admin)
+model UserWorkspace {
+  userId      String
+  workspaceId String
+  role        String  // OWNER, ADMIN, MEMBER
+
+  user        User      @relation(fields: [userId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@id([userId, workspaceId])
+}
+```
+
+**Seed Script Behavior:**
+1. **Complete Database Cleanup**: Removes ALL data from ALL tables
+2. **Admin User Creation**: Creates admin user with credentials from .env
+3. **Main Workspace Creation**: Creates the primary workspace with fixed ID
+4. **UserWorkspace Association**: MANDATORY association between admin user and main workspace
+5. **Content Seeding**: Categories, products, services, FAQs, documents
+6. **Verification**: Confirms all associations are properly created
+
+**Error Handling in Seed:**
+- Enhanced error logging for UserWorkspace creation
+- Verification step to confirm association was created
+- Detailed logging of user IDs and workspace IDs
+- Proper transaction handling to prevent partial states
+
 ### Data Model
 
 ```mermaid
@@ -941,6 +1230,14 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
+    
+    // PRICING CALCULATION RULES:
+    // When displaying product prices to customers, the system must:
+    // 1. Check if customer has a personal discount (Customer.discountValue)
+    // 2. Check if product has an active offer discount (Offer.discountValue)
+    // 3. Apply the HIGHER of the two discounts (customer wins if equal)
+    // 4. Final price = Product.price - (Product.price * max_discount / 100)
+    // 5. Never show original price if discount is applied
     
     Category {
         id UUID PK
@@ -1202,6 +1499,34 @@ Our system uses JWT (JSON Web Token) authentication to keep user accounts secure
   - Minimal payload information
   - HTTP header validation
   - Rate limiting on auth endpoints
+
+#### JWT Implementation Status & Security Requirements
+
+**Backend Security (✅ IMPLEMENTED)**:
+- JWT middleware active on ALL protected routes
+- Token verification includes workspace loading
+- Cookie-based authentication with `withCredentials: true`
+- User workspace permissions loaded automatically
+- Database user validation on each request
+
+**Frontend Security (🚨 CRITICAL IMPLEMENTATION NEEDED)**:
+- **MISSING**: Authorization Bearer headers in API calls
+- **CURRENT**: Only cookie-based auth (works but incomplete)
+- **REQUIRED**: `Authorization: Bearer <token>` header for all API requests
+- **REQUIRED**: Token refresh mechanism before expiration
+- **REQUIRED**: Automatic re-authentication on 401 responses
+
+**Security Flow**:
+```
+1. User Login → JWT Token Generated (Backend) ✅
+2. Token stored in HTTP-only cookie ✅
+3. Frontend API calls include Authorization header ❌ MISSING
+4. Backend validates token + loads user workspaces ✅
+5. Token refresh before expiration ❌ MISSING
+6. Secure logout clears all tokens ❌ PARTIAL
+```
+
+**Critical Security Gap**: The frontend currently relies only on cookies for authentication. While functional, this creates inconsistent security patterns and potential vulnerabilities. ALL API calls MUST include `Authorization: Bearer <token>` headers for complete security compliance.
 
 - **Role-Based Access Control**:
   - Admin: Full system access
@@ -1617,6 +1942,10 @@ We protect all API endpoints with smart rate limiting:
   - **Parameters**: `workspace_id` (required): Workspace identifier
   - **Body**: Object containing settings to update
   - **Returns**: Updated settings
+  - **Special Fields**:
+    - `blocklist`: Phone Number Blocklist (newline-separated phone numbers)
+    - When user clicks "Block User" in chat, phone number is automatically added to this field
+    - Blocked users cannot send messages and are filtered out from conversations
 
 - `GET /api/settings/templates`
   - **Description**: Gets message templates
@@ -1694,43 +2023,223 @@ Comprehensive testing approach:
 
 ## SUBSCRIPTION PLANS
 
-### Subscription Plans & Pricing
+### Subscription Plans & Pricing (REVISED)
 
-#### 1. Free Plan (€0/month)
-- Single WhatsApp number connection
-- Up to 100 AI-powered messages/month
-- Maximum 3 products/services
-- Standard response time (48h)
-- Basic analytics dashboard
-- Community support only
+#### 1. **Free Plan** (€0/month) - **STARTER**
+**Target**: Piccole attività che vogliono testare il sistema
+- ✅ **1 WhatsApp channel**
+- ✅ **Up to 100 AI messages/month**
+- ✅ **Maximum 5 Products**
+- ✅ **Maximum 3 Services**
+- ✅ **Basic analytics dashboard**
+- ❌ API access (disabled)
+- ❌ Advanced analytics (disabled)
+- ❌ Push notifications (disabled)
+- ❌ Priority support (disabled)
+- ❌ Custom AI training (disabled)
+- **Support**: Community forum only
+- **Response time**: Best effort (no SLA)
 
-#### 2. Basic Plan (€49/month)
-- Single WhatsApp number connection
-- Up to 1,000 AI-powered messages/month
-- Maximum 5 products/services
-- Standard response time (24h)
-- Basic analytics dashboard
-- Email support
+#### 2. **Basic Plan** (€59/month + €0.005/message) - **BUSINESS**
+**Target**: Piccole/medie imprese con esigenze standard
+- ✅ **1 WhatsApp channel**
+- ✅ **Up to 1,000 AI messages/month included**
+- ✅ **€0.005 per additional message** (0.5 cents per message over limit)
+- ✅ **Up to 50 Products** (not unlimited!)
+- ✅ **Up to 20 Services**
+- ✅ **Basic analytics dashboard**
+- ✅ **API access** (limited to 1,000 calls/month)
+- ✅ **Real-time billing dashboard**
+- ✅ **Monthly usage reports**
+- ❌ Advanced analytics (disabled)
+- ❌ Push notifications (disabled)
+- ❌ Custom AI training (disabled)
+- **Support**: Email support
+- **Response time**: 48h SLA
+- **Billing**: Monthly subscription + pay-per-use overage
 
-#### 3. Professional Plan (€149/month)
-- Up to 3 WhatsApp number connections
-- Up to 5,000 AI-powered messages/month
-- Maximum 100 products/services
-- Priority response time (12h)
-- Advanced analytics and reporting
-- Phone and email support
-- Custom AI training
+#### 3. **Professional Plan** (€149/month) - **ENTERPRISE**
+**Target**: Aziende in crescita con esigenze avanzate
+**Upgrade Process**: **Contact Sales Form** - Direct operator contact required
+- ✅ **Up to 3 WhatsApp channels**
+- ✅ **Up to 5,000 AI messages/month**
+- ✅ **Unlimited Products and Services**
+- ✅ **Advanced analytics and reporting**
+- ✅ **Full API access** (unlimited calls)
+- ✅ **Push notifications**
+- ✅ **Custom AI training**
+- ✅ **Priority response time (12h SLA)**
+- ✅ **Phone and email support**
+- ✅ **White-label options**
+- ✅ **Dedicated onboarding session**
+- ✅ **Custom configuration setup**
+- **Support**: Dedicated support team
+- **Sales Process**: Personal consultation with technical specialist
 
-#### 4. Enterprise Plan (Custom pricing)
-- Unlimited WhatsApp number connections
-- Custom AI message volume
-- Unlimited products/services
-- Dedicated response team (4h SLA)
-- Full API access
-- White-label options
-- Dedicated account manager
-- Custom integrations
-- On-premises deployment option
+#### 4. **Enterprise Plan** (Custom pricing) - **CORPORATE**
+**Target**: Grandi aziende con esigenze specifiche
+- ✅ **Unlimited WhatsApp channels**
+- ✅ **Custom AI message volume**
+- ✅ **Unlimited products/services**
+- ✅ **Dedicated response team (4h SLA)**
+- ✅ **Full API access with custom limits**
+- ✅ **White-label options**
+- ✅ **Dedicated account manager**
+- ✅ **Custom integrations**
+- ✅ **On-premises deployment option**
+- ✅ **Custom AI model training**
+- **Support**: 24/7 dedicated support
+
+### Plan Comparison Matrix
+
+| Feature | Free | Basic (€59 + overage) | Professional (€149) | Enterprise (Custom) |
+|---------|------|-------------|-------------------|-------------------|
+| **WhatsApp Channels** | 1 | 1 | 3 | Unlimited |
+| **AI Messages/Month** | 100 (hard limit) | 1,000 included + €0.005/extra | 5,000 | Custom |
+| **Overage Billing** | ❌ | ✅ Pay-per-use | ❌ (unlimited) | Custom |
+| **Products** | 5 | 50 | Unlimited | Unlimited |
+| **Services** | 3 | 20 | Unlimited | Unlimited |
+| **Analytics** | Basic | Basic + Billing | Advanced | Custom |
+| **API Access** | ❌ | Limited | Full | Custom |
+| **Billing Dashboard** | ❌ | ✅ Real-time | ✅ Advanced | ✅ Custom |
+| **Payment Methods** | ❌ | Credit Card | Multiple | Enterprise |
+| **Push Notifications** | ❌ | ❌ | ✅ | ✅ |
+| **Custom AI Training** | ❌ | ❌ | ✅ | ✅ |
+| **Support** | Community | Email (48h) | Phone+Email (12h) | 24/7 Dedicated |
+| **White-label** | ❌ | ❌ | ✅ | ✅ |
+
+### Monetization Strategy
+
+#### Revenue Drivers:
+1. **Message Volume**: Primary limitation for scaling
+2. **Channel Count**: Multiple WhatsApp numbers for different departments
+3. **Product/Service Limits**: Catalog size restrictions
+4. **Advanced Features**: Analytics, API, Custom AI
+5. **Support Level**: Response time and channel quality
+
+#### Upgrade Triggers:
+- **Free → Basic**: When hitting 100 messages/month or need more than 5 products (Self-service upgrade)
+- **Basic → Professional**: When overage costs exceed €90/month consistently (Contact Sales Form)
+- **Professional → Enterprise**: When need custom integrations or 24/7 support (Enterprise Sales Process)
+
+### Professional Plan Sales Process
+
+#### Contact Sales Form Requirements:
+When users click "Upgrade to Professional" they are directed to a contact form instead of immediate upgrade:
+
+**Form Fields Required**:
+- Company name and size (employees)
+- Current monthly message volume
+- Specific needs (multiple channels, API access, custom training)
+- Preferred contact method (phone/email)
+- Urgency level (immediate, within week, within month)
+- Additional requirements or questions
+
+**Sales Response Process**:
+- **Immediate**: Automated confirmation email sent
+- **Within 2 hours**: Sales operator contacts prospect
+- **Within 24 hours**: Technical consultation scheduled
+- **Custom proposal**: Tailored pricing and feature package
+- **Onboarding**: Dedicated setup and configuration session
+
+**Benefits of Sales-Assisted Upgrade**:
+- Personalized feature configuration
+- Custom onboarding and training
+- Optimized setup for specific business needs
+- Direct relationship with account manager
+- Potential custom pricing for high-volume users
+
+### Pay-Per-Use Billing System
+
+#### Billing Model Overview:
+**Basic Plan**: €59/month base + €0.005 per message over 1,000 monthly limit
+
+#### Real-Time Billing Architecture:
+
+**1. Message Counting System**
+- Every AI response increments workspace message counter
+- Real-time tracking with Redis for performance
+- Daily aggregation to PostgreSQL for billing
+- Monthly reset on billing cycle date
+
+**2. Overage Calculation**
+```typescript
+// Example billing calculation
+const basePrice = 59.00; // €59 monthly subscription
+const includedMessages = 1000;
+const overageRate = 0.005; // €0.005 per message
+const actualMessages = 1547;
+
+const overageMessages = Math.max(0, actualMessages - includedMessages);
+const overageCost = overageMessages * overageRate;
+const totalMonthlyBill = basePrice + overageCost;
+
+// Result: €59 + (547 * €0.005) = €59 + €2.735 = €61.74
+```
+
+**3. Billing Dashboard Components**
+- **Current Month Usage**: Real-time message count and cost
+- **Projected Bill**: Estimated monthly cost based on current usage
+- **Usage History**: 12-month usage and billing history
+- **Cost Alerts**: Notifications at €10, €25, €50 overage thresholds
+- **Usage Analytics**: Peak usage times, message trends
+
+**4. Payment Processing Integration**
+- **Stripe Integration**: For credit card processing
+- **Monthly Billing Cycle**: Subscription + overage charges
+- **Automatic Payment**: Credit card on file
+- **Invoice Generation**: PDF invoices with usage breakdown
+- **Failed Payment Handling**: Grace period + service suspension
+
+**5. Cost Control Features**
+- **Spending Limits**: Set maximum monthly overage (e.g., €50 max)
+- **Usage Alerts**: Email/SMS at 80%, 100%, 150% of included messages
+- **Auto-Upgrade**: Automatic upgrade to Professional when overage > €90/month
+- **Billing Notifications**: Real-time cost updates in dashboard
+
+### Plan Limits Enforcement System
+
+#### Where Limits Are Applied:
+
+**1. WhatsApp Message Processing (`/src/services/whatsapp.service.ts`)**
+- Check monthly message count before sending AI response
+- Block response if limit exceeded, show upgrade message instead
+- Track message count per workspace per month
+
+**2. Product Management (`/src/controllers/products.controller.ts`)**
+- Validate product count before creating new product
+- Show upgrade popup when limit reached
+- Prevent product creation beyond plan limit
+
+**3. Service Management (`/src/controllers/services.controller.ts`)**
+- Validate service count before creating new service
+- Show upgrade popup when limit reached
+- Prevent service creation beyond plan limit
+
+**4. API Endpoints (`/src/middleware/plan-limits.middleware.ts`)**
+- Rate limiting based on plan (1,000 calls for Basic, unlimited for Professional)
+- Return 429 error with upgrade message when API limit exceeded
+- Track API usage per workspace
+
+**5. Frontend Components**
+- Products page: Show usage indicator "47/50 products used"
+- Services page: Show usage indicator "18/20 services used"
+- Dashboard: Show monthly message usage "847/1,000 messages used"
+- Settings: Show current plan and usage statistics
+
+#### Popup Trigger Locations:
+
+**Frontend Popup Triggers:**
+- **Products Page**: When clicking "Add Product" at limit
+- **Services Page**: When clicking "Add Service" at limit
+- **Chat Interface**: When monthly message limit reached
+- **API Documentation**: When API calls limit reached
+- **Dashboard**: Proactive warnings at 80% usage
+
+**Backend Response Modifications:**
+- **WhatsApp Webhook**: Return upgrade message instead of AI response
+- **API Endpoints**: Return 402 Payment Required with upgrade link
+- **CRUD Operations**: Return limit exceeded errors with upgrade CTA
 
 ## DEVELOPMENT ROADMAP
 

@@ -345,7 +345,7 @@ describe('Workspace ID Parameter Validation - API Integration Tests', () => {
   describe('Settings API - Workspace ID Validation', () => {
     it('should accept workspace ID from URL params for GDPR settings', async () => {
       const response = await request(app)
-        .get(`/api/settings/${testWorkspaceId}/gdpr`)
+        .get(`/api/workspaces/${testWorkspaceId}/settings/gdpr`)
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
@@ -354,7 +354,7 @@ describe('Workspace ID Parameter Validation - API Integration Tests', () => {
 
     it('should reject GDPR settings update with invalid workspace ID', async () => {
       const response = await request(app)
-        .put(`/api/settings/${invalidWorkspaceId}/gdpr`)
+        .put(`/api/workspaces/${invalidWorkspaceId}/settings/gdpr`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           gdprText: 'Updated GDPR text',

@@ -197,7 +197,7 @@ Function Call:
 }
 ```
 
-User: "Voglio comprare una camicia bianca"
+User: "Voglio finalizzare l'ordine per una camicia bianca"
 Function Call:
 
 ```

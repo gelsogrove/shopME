@@ -1,14 +1,14 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card"
-import { Check, CreditCard } from "lucide-react"
+import { Check, Clock, CreditCard } from "lucide-react"
 import { useState } from "react"
 
 interface PlanFeature {
@@ -26,6 +26,7 @@ interface Plan {
   features: PlanFeature[]
   buttonText: string
   recommended?: boolean
+  trialInfo?: string
 }
 
 export default function PlansPage() {
@@ -34,23 +35,22 @@ export default function PlansPage() {
   const plans: Plan[] = [
     {
       id: "free",
-      name: "Free",
-      description: "Perfect for getting started with basic features",
+      name: "Free Trial",
+      description: "Full features for 14 days - same as Basic plan",
       price: "€0",
-      period: "per month",
+      period: "for 14 days",
+      trialInfo: "After 14 days, upgrade to continue using the service",
       features: [
         { text: "1 WhatsApp channel", included: true },
-        { text: "Up to 100 AI messages/month", included: true },
-        { text: "Maximum 3 Products", included: true },
-        { text: "Maximum 3 Services", included: true },
+        { text: "Unlimited Products and Services", included: true },
         { text: "Basic analytics dashboard", included: true },
-        { text: "Community support", included: true },
+        { text: "14-day trial period", included: true },
         { text: "API access", included: false },
         { text: "Advanced analytics", included: false },
         { text: "Push notifications", included: false },
-        { text: "Priority support", included: false },
+        { text: "Custom AI training", included: false },
       ],
-      buttonText: "Get Started",
+      buttonText: "Start Free Trial",
     },
     {
       id: "basic",
@@ -60,11 +60,9 @@ export default function PlansPage() {
       period: "per month",
       features: [
         { text: "1 WhatsApp channel", included: true },
-        { text: "Up to 1,000 AI messages/month", included: true },
-        { text: "Maximum 5 Products/Services", included: true },
-        { text: "Standard response time (24h)", included: true },
+        { text: "Unlimited Products and Services", included: true },
         { text: "Basic analytics dashboard", included: true },
-        { text: "Email support", included: true },
+        { text: "No time limits", included: true },
         { text: "API access", included: false },
         { text: "Advanced analytics", included: false },
         { text: "Push notifications", included: false },
@@ -81,15 +79,12 @@ export default function PlansPage() {
       badge: "Popular",
       features: [
         { text: "Up to 3 WhatsApp channels", included: true },
-        { text: "Up to 5,000 AI messages/month", included: true },
-        { text: "Maximum 100 Products/Services", included: true },
+        { text: "Unlimited Products and Services", included: true },
         { text: "Priority response time (12h)", included: true },
         { text: "Advanced analytics and reporting", included: true },
-        { text: "Phone and email support", included: true },
         { text: "API access", included: true },
         { text: "Custom AI training", included: true },
         { text: "Push notifications", included: true },
-        { text: "White-label options", included: true },
       ],
       buttonText: "Upgrade Now",
       recommended: true,
@@ -108,7 +103,7 @@ export default function PlansPage() {
           <h1 className="text-3xl font-bold">Choose Your Plan</h1>
         </div>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Select the plan that best fits your business needs. All plans come with a 14-day free trial.
+          Start with our 14-day free trial with full Basic features. After the trial, choose the plan that best fits your business needs.
         </p>
       </div>
 
@@ -131,9 +126,17 @@ export default function PlansPage() {
               </Badge>
             )}
             
-            <CardHeader className={plan.recommended ? "bg-primary/5" : ""}>
-              <CardTitle className="text-xl">{plan.name}</CardTitle>
+            <CardHeader className={plan.recommended ? "bg-primary/5" : plan.id === "free" ? "bg-green-50" : ""}>
+              <CardTitle className="text-xl flex items-center gap-2">
+                {plan.id === "free" && <Clock className="h-5 w-5 text-green-600" />}
+                {plan.name}
+              </CardTitle>
               <CardDescription className="min-h-[50px]">{plan.description}</CardDescription>
+              {plan.trialInfo && (
+                <div className="text-sm text-orange-600 bg-orange-50 p-2 rounded-md mt-2">
+                  ⚠️ {plan.trialInfo}
+                </div>
+              )}
             </CardHeader>
             
             <CardContent className="pt-6">
@@ -162,7 +165,15 @@ export default function PlansPage() {
               <Button 
                 onClick={() => handleSelectPlan(plan.id)} 
                 variant={selectedPlan === plan.id ? "default" : "outline"}
-                className={`w-full ${selectedPlan === plan.id ? "bg-green-600 hover:bg-green-700 text-white" : "border-green-600 text-green-600 hover:bg-green-50"}`}
+                className={`w-full ${
+                  selectedPlan === plan.id 
+                    ? plan.id === "free" 
+                      ? "bg-green-600 hover:bg-green-700 text-white" 
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                    : plan.id === "free"
+                      ? "border-green-600 text-green-600 hover:bg-green-50"
+                      : "border-blue-600 text-blue-600 hover:bg-blue-50"
+                }`}
               >
                 {plan.buttonText}
               </Button>

@@ -2,6 +2,7 @@ import { NextFunction, Response, Router } from "express"
 import { ServicesController } from "../controllers/services.controller"
 import { authMiddleware } from "../middlewares/auth.middleware"
 import { workspaceContextMiddleware } from "../middlewares/workspace-context.middleware"
+import { workspaceValidationMiddleware } from "../middlewares/workspace-validation.middleware"
 import { WorkspaceRequest } from "../types/workspace-request"
 
 /**
@@ -55,6 +56,9 @@ export const servicesRouter = (controller: ServicesController): Router => {
 
   // All routes require authentication
   router.use(authMiddleware)
+  
+  // All routes require workspace validation
+  router.use(workspaceValidationMiddleware)
   
   /**
    * @swagger
