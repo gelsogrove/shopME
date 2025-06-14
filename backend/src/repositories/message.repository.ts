@@ -1444,4 +1444,120 @@ export class MessageRepository {
       return "Failed to generate response"
     }
   }
+
+  /**
+   * Count recent messages from a phone number within a time window
+   * @param phoneNumber Customer phone number
+   * @param workspaceId Workspace ID
+   * @param since Date to count messages from
+   * @returns Number of messages
+   */
+  async countRecentMessages(phoneNumber: string, workspaceId: string, since: Date): Promise<number> {
+    try {
+      // Find customer by phone
+      const customer = await this.findCustomerByPhone(phoneNumber, workspaceId);
+      if (!customer) {
+        return 0;
+      }
+
+      // Find active chat session
+      const session = await this.prisma.chatSession.findFirst({
+        where: {
+          customerId: customer.id,
+          workspaceId,
+          status: "active",
+        },
+      });
+
+      if (!session) {
+        return 0;
+      }
+
+      // Count INBOUND messages (from user) since the specified time
+      const messageCount = await this.prisma.message.count({
+        where: {
+          chatSessionId: session.id,
+          direction: MessageDirection.INBOUND,
+          createdAt: {
+            gte: since,
+          },
+        },
+      });
+
+      return messageCount;
+    } catch (error) {
+      logger.error("Error counting recent messages:", error);
+      return 0;
+    }
+  }
+
+  /**
+   * Update customer blacklist status
+   * @param customerId Customer ID
+   * @param workspaceId Workspace ID
+   * @param isBlacklisted Blacklist status
+   */
+  async updateCustomerBlacklist(customerId: string, workspaceId: string, isBlacklisted: boolean): Promise<void> {
+    try {
+      await this.prisma.customers.update({
+        where: {
+          id: customerId,
+          workspaceId,
+        },
+        data: {
+          isBlacklisted,
+        },
+      });
+      
+      logger.info(`Customer ${customerId} blacklist status updated to: ${isBlacklisted}`);
+    } catch (error) {
+      logger.error("Error updating customer blacklist status:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add phone number to workspace blocklist
+   * @param phoneNumber Phone number to add
+   * @param workspaceId Workspace ID
+   */
+  async addToWorkspaceBlocklist(phoneNumber: string, workspaceId: string): Promise<void> {
+    try {
+      // Get current workspace
+      const workspace = await this.prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        select: { blocklist: true },
+      });
+
+      if (!workspace) {
+        throw new Error(`Workspace ${workspaceId} not found`);
+      }
+
+      // Parse current blocklist
+      const currentBlocklist = workspace.blocklist || "";
+      const blockedNumbers = currentBlocklist
+        .split(/[\n,]/)
+        .map(num => num.trim())
+        .filter(num => num.length > 0);
+
+      // Add phone number if not already present
+      if (!blockedNumbers.includes(phoneNumber)) {
+        blockedNumbers.push(phoneNumber);
+        
+        // Update workspace blocklist
+        const newBlocklist = blockedNumbers.join('\n');
+        await this.prisma.workspace.update({
+          where: { id: workspaceId },
+          data: { blocklist: newBlocklist },
+        });
+
+        logger.info(`Phone ${phoneNumber} added to workspace ${workspaceId} blocklist`);
+      } else {
+        logger.info(`Phone ${phoneNumber} already in workspace ${workspaceId} blocklist`);
+      }
+    } catch (error) {
+      logger.error("Error adding to workspace blocklist:", error);
+      throw error;
+    }
+  }
 }

@@ -1052,7 +1052,21 @@ paths:
       tags:
         - Customers
       summary: Block a customer
-      description: Block a customer by setting isBlacklisted to true
+      description: |
+        Block a customer by setting isBlacklisted to true.
+        
+        **Automatic Spam Detection:**
+        The system automatically detects and blocks spam behavior:
+        - **Threshold**: 10 messages in 30 seconds
+        - **Action**: Automatic blacklisting (customer.isBlacklisted = true + phone added to workspace.blocklist)
+        - **Duration**: Unlimited (manual admin unlock required)
+        - **Scope**: Both customer-level and workspace-level blocking
+        
+        When spam is detected:
+        1. Customer is marked as blacklisted (if customer record exists)
+        2. Phone number is added to workspace blocklist
+        3. All future messages from that number are silently ignored
+        4. Event is logged for audit purposes
       parameters:
         - name: workspaceId
           in: path

@@ -63,6 +63,52 @@ This task list is based on the comprehensive PRD analysis and identifies what ha
 **Description**: Integrate chatbot disable functionality into WhatsApp message flow
 **Status**: ✅ **COMPLETED**
 
+### ✅ Spam Detection & Auto-Blacklist System
+**Priority**: 🚨 **HIGH**
+**Description**: Implement automatic spam detection that blocks users sending 10+ messages in 30 seconds
+**Status**: ✅ **COMPLETED**
+
+**Implementation Details**:
+- [x] Created `checkSpamBehavior()` method in MessageService that checks for 10+ messages in 30 seconds
+- [x] Implemented `countRecentMessages()` in MessageRepository to track message frequency per user
+- [x] Added `addToAutoBlacklist()` method that marks customer as blacklisted AND adds phone to workspace blocklist
+- [x] Integrated spam detection BEFORE existing blacklist check in message processing flow
+- [x] Added comprehensive logging for spam detection events with phone number and workspace ID
+- [x] Duration: Unlimited (manual admin unlock only) - no automatic unblocking
+- [x] Added `updateCustomerBlacklist()` and `addToWorkspaceBlocklist()` methods in MessageRepository
+- [x] Created comprehensive unit tests covering all spam detection scenarios
+- [x] Updated Swagger documentation with detailed spam detection behavior
+- [x] System handles both existing customers and new users (workspace-level blocking)
+
+**Technical Implementation**:
+- **Threshold**: Exactly 10 messages in 30-second sliding window
+- **Detection**: Counts INBOUND messages only (user messages, not bot responses)
+- **Action**: Dual blocking (customer.isBlacklisted = true + phone added to workspace.blocklist)
+- **Response**: Returns `null` immediately when spam detected (no response sent)
+- **Error Handling**: Graceful degradation if spam detection fails
+- **Logging**: Detailed audit trail for compliance and debugging
+
+**Test Coverage**:
+- ✅ Spam detection when threshold exceeded (10+ messages)
+- ✅ Normal processing when below threshold (<10 messages)
+- ✅ Error handling when spam detection fails
+- ✅ Auto-blacklist without existing customer record
+- ✅ Exact 30-second time window verification
+
+**Documentation Updates**:
+- ✅ Updated PRD with dedicated Spam Detection Service section
+- ✅ Updated flow.md with spam detection integration in message flow
+- ✅ Updated Swagger documentation with detailed spam behavior
+- ✅ Added spam detection scenario to flow examples
+- ✅ Updated task list with completion status
+
+**Future Service Architecture**:
+- 📋 **Planned**: Dedicated `SpamDetectionService` class for better separation of concerns
+- 📋 **Planned**: Configurable thresholds per workspace
+- 📋 **Planned**: Advanced pattern recognition beyond simple frequency
+- 📋 **Planned**: Analytics dashboard for spam detection statistics
+- 📋 **Planned**: Appeal process for false positives
+
 **Implementation Details**:
 - Created `faq_chunks` table with migration `20250612130640_add_faq_chunks_table`
 - Implemented shared `EmbeddingService` class for reusability across different content types
@@ -183,17 +229,7 @@ This task list is based on the comprehensive PRD analysis and identifies what ha
 - [ ] Implement simplified registration flow (Welcome → Token → Registration → Chat RAG)
 - [ ] Remove "2 hours last conversation" check for existing users - go directly to free chat with RAG
 
-### 3. **Spam Detection & Auto-Blacklist System**
-**Priority**: 🚨 **HIGH**
-**Description**: Implement automatic spam detection that blocks users sending 10+ messages in 30 seconds
-**Acceptance Criteria**:
-- [ ] Create `checkSpamBehavior()` method in MessageService
-- [ ] Implement message frequency tracking per user
-- [ ] Auto-add to workspace blacklist when threshold exceeded
-- [ ] Add logging for spam detection events
-- [ ] Duration: Unlimited (manual admin unlock only)
-
-### 4. **Seed Database with Customer Chat History**
+### 3. **Seed Database with Customer Chat History**
 **Priority**: 🚨 **HIGH**
 **Description**: Add a customer record with chat history to the seed script for testing and demo purposes
 **Acceptance Criteria**:

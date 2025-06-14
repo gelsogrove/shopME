@@ -225,21 +225,57 @@ if (!workspaceSettings.isActive) {
 }
 ```
 
-**4. Auto-Blacklist for Spam Detection**
+**4. Spam Detection Service**
+
+**Overview**
+The system implements a dedicated spam detection service that automatically identifies and blocks abusive behavior patterns. This service operates as a separate layer in the message processing pipeline to ensure system stability and prevent resource abuse.
+
+**Service Architecture**
+```typescript
+// Future implementation: Dedicated SpamDetectionService
+class SpamDetectionService {
+  async checkSpamBehavior(phoneNumber: string, workspaceId: string): Promise<SpamCheckResult>
+  async addToAutoBlacklist(phoneNumber: string, workspaceId: string, reason: string): Promise<void>
+  async getSpamStatistics(workspaceId: string): Promise<SpamStats>
+  async removeFromBlacklist(phoneNumber: string, workspaceId: string): Promise<void>
+}
+```
+
+**Current Implementation (MessageService Integration)**
 ```typescript
 // Spam check: 10 messages in 30 seconds
 const spamCheck = await this.checkSpamBehavior(phoneNumber, workspaceId)
 if (spamCheck.isSpam) {
-  await this.addToBlacklist(phoneNumber, workspaceId, 'AUTO_SPAM')
+  await this.addToAutoBlacklist(phoneNumber, workspaceId, 'AUTO_SPAM')
   return null // Block immediately
 }
 ```
 
-**Spam Detection Implementation:**
-- **Threshold**: 10 messages in 30 seconds
-- **Action**: Automatic addition to workspace blacklist
-- **Duration**: Unlimited (manual admin unlock)
-- **Logging**: Tracking for audit and review
+**Detection Algorithm:**
+- **Threshold**: 10 messages in 30-second sliding window
+- **Scope**: Per phone number per workspace
+- **Message Type**: Only INBOUND messages (user messages, not bot responses)
+- **Time Window**: Sliding 30-second window (not fixed intervals)
+
+**Auto-Blacklist Implementation:**
+- **Dual Blocking**: Customer-level (`isBlacklisted = true`) + Workspace-level (`blocklist` field)
+- **Immediate Effect**: No response sent when spam detected
+- **Duration**: Unlimited (manual admin unlock only)
+- **Audit Trail**: Comprehensive logging for compliance and debugging
+
+**Future Service Enhancements:**
+- **Rate Limiting**: API call limits per workspace
+- **Pattern Recognition**: Advanced spam pattern detection
+- **Whitelist Management**: Trusted phone number management
+- **Analytics Dashboard**: Spam detection statistics and trends
+- **Configurable Thresholds**: Per-workspace spam detection settings
+- **Appeal Process**: Customer appeal and review workflow
+
+**Integration Points:**
+- **Message Flow**: Integrated before blacklist check in message processing
+- **Admin Interface**: Manual blacklist management in customer admin panel
+- **Monitoring**: Real-time spam detection alerts and notifications
+- **Reporting**: Spam detection reports for workspace administrators
 
 **5. Operator Manual Control (activeChatbot)**
 ```typescript

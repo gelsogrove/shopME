@@ -7,8 +7,11 @@ MODELLO ARRIVANO DALLA TABELLA AGENT CONFIGURATION e' dimanimoc !
 
 
 
-API LIMIT HAS BEEN RECHEAD?
+API LIMIT e  Spam Detection HAS BEEN REACHED?
 arriva un messaggio 
+
+🚨 SPAM DETECTION: 10+ messaggi in 30 secondi? → AUTO-BLACKLIST + STOP DIALOGO
+
 IL canale non e' attivo stop dialogo
 l'utente ha activeChatbot flag a false? , se non è true stop dialogo, l'operatore puo' scrivere all'utente viene salvato nell'history ma non l'AI non risponde fino che l'operatore non rilascia il controllo all'AI
 
@@ -39,6 +42,12 @@ IL CANALE E' IN WIP? messaggio di wip in inglese e blocca il dialogo
 ```
 📱 MESSAGGIO WHATSAPP
          |
+         v
+    ┌─────────────────┐
+    │ 🚨 SPAM CHECK   │ ──YES─> 🚫 AUTO-BLACKLIST + STOP
+    │ 10+ msg/30sec?  │         (customer + workspace)
+    └─────────────────┘
+         |NO
          v
     ┌─────────────────┐
     │ CANALE ATTIVO?  │ ──NO──> ❌ STOP DIALOGO
@@ -93,6 +102,8 @@ IL CANALE E' IN WIP? messaggio di wip in inglese e blocca il dialogo
 ```
 
 ## 🔑 LEGENDA
+- 🚨 = SPAM DETECTION
+- 🚫 = AUTO-BLACKLIST
 - ❌ = STOP/BLOCCO
 - 👨‍💼 = CONTROLLO OPERATORE
 - ⚠️ = MESSAGGIO AUTOMATICO
@@ -190,7 +201,25 @@ Il link è sicuro e scade tra 1 ora."
 
 ---
 
-### 📱 SCENARIO 5: UTENTE IN BLACKLIST
+### 📱 SCENARIO 5: SPAM DETECTION - AUTO-BLACKLIST
+
+**👤 Cliente (spammer)**: Invia 10 messaggi in 30 secondi:
+"Ciao" "Hello" "Hola" "Info" "Prezzi" "Vini" "Ordine" "Help" "Aiuto" "Prodotti"
+
+**🤖 Sistema**:
+- ✅ API Limit OK
+- 🚨 **SPAM DETECTED**: 10 messaggi in 30 secondi
+- 🚫 **AUTO-BLACKLIST**: 
+  - Customer.isBlacklisted = true
+  - Phone aggiunto a workspace.blocklist
+- ❌ **STOP DIALOGO**: Nessuna risposta inviata
+- 📝 **AUDIT LOG**: "AUTO-BLACKLIST: +1234567890 in workspace-123 - Reason: AUTO_SPAM"
+
+**🤖 ShopMe**: *(Nessuna risposta - utente bloccato silenziosamente)*
+
+---
+
+### 📱 SCENARIO 6: UTENTE IN BLACKLIST
 
 **👤 Cliente (blacklisted)**: "Ciao"
 

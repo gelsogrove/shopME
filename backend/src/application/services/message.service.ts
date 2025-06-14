@@ -1,11 +1,11 @@
 // @ts-nocheck
 import { MessageRepository } from "../../repositories/message.repository";
 import {
-  detectGreeting as detectGreetingLang,
-  detectLanguage,
-  getLanguageDbCode,
-  normalizeDatabaseLanguage,
-  SupportedLanguage
+    detectGreeting as detectGreetingLang,
+    detectLanguage,
+    getLanguageDbCode,
+    normalizeDatabaseLanguage,
+    SupportedLanguage
 } from "../../utils/language-detector";
 import logger from "../../utils/logger";
 import { TokenService } from "./token.service";
@@ -218,6 +218,14 @@ export class MessageService {
             ? wipMessages[userLang]
             : wipMessages["en"] || "WhatsApp channel is inactive"
         return msg
+      }
+
+      // Check for spam behavior BEFORE blacklist check
+      const spamCheck = await this.checkSpamBehavior(phoneNumber, workspaceId)
+      if (spamCheck.isSpam) {
+        logger.warn(`Spam detected from ${phoneNumber} in workspace ${workspaceId}. Auto-blacklisting user.`)
+        await this.addToAutoBlacklist(phoneNumber, workspaceId, 'AUTO_SPAM')
+        return null // Block immediately
       }
 
       // Check if customer is in blacklist
@@ -765,5 +773,63 @@ export class MessageService {
     }
     
     return baseUrl;
+  }
+
+  /**
+   * Check for spam behavior: 10 messages in 30 seconds
+   * @param phoneNumber Customer phone number
+   * @param workspaceId Workspace ID
+   * @returns Object with isSpam flag and message count
+   */
+  private async checkSpamBehavior(phoneNumber: string, workspaceId: string): Promise<{isSpam: boolean, messageCount: number}> {
+    try {
+      const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
+      
+      // Count messages from this phone number in the last 30 seconds
+      const messageCount = await this.messageRepository.countRecentMessages(
+        phoneNumber, 
+        workspaceId, 
+        thirtySecondsAgo
+      );
+      
+      const isSpam = messageCount >= 10;
+      
+      if (isSpam) {
+        logger.warn(`Spam detected: ${messageCount} messages from ${phoneNumber} in last 30 seconds`);
+      }
+      
+      return { isSpam, messageCount };
+    } catch (error) {
+      logger.error("Error checking spam behavior:", error);
+      return { isSpam: false, messageCount: 0 };
+    }
+  }
+
+  /**
+   * Add phone number to workspace auto-blacklist
+   * @param phoneNumber Customer phone number
+   * @param workspaceId Workspace ID
+   * @param reason Reason for blacklisting (e.g., 'AUTO_SPAM')
+   */
+  private async addToAutoBlacklist(phoneNumber: string, workspaceId: string, reason: string): Promise<void> {
+    try {
+      // 1. Mark customer as blacklisted (if customer exists)
+      const customer = await this.messageRepository.findCustomerByPhone(phoneNumber, workspaceId);
+      if (customer) {
+        await this.messageRepository.updateCustomerBlacklist(customer.id, workspaceId, true);
+        logger.info(`Customer ${customer.id} marked as blacklisted for reason: ${reason}`);
+      }
+
+      // 2. Add phone to workspace blocklist
+      await this.messageRepository.addToWorkspaceBlocklist(phoneNumber, workspaceId);
+      logger.info(`Phone ${phoneNumber} added to workspace ${workspaceId} blocklist for reason: ${reason}`);
+
+      // 3. Log the auto-blacklist event for audit
+      logger.warn(`AUTO-BLACKLIST: ${phoneNumber} in workspace ${workspaceId} - Reason: ${reason}`);
+      
+    } catch (error) {
+      logger.error("Error adding to auto-blacklist:", error);
+      throw error;
+    }
   }
 }
