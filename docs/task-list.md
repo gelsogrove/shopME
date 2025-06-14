@@ -212,22 +212,35 @@ This task list is based on the comprehensive PRD analysis and identifies what ha
 
 **Business Impact**: **CRITICAL** - This is the core monetization mechanism. Without trial expiration, users have no incentive to upgrade from FREE plan.
 
-### 2. **WhatsApp Message Flow Implementation with Channel Active Control**
+### 2. **WhatsApp Message Flow Implementation - EPICA COMPLETA**
 **Priority**: 🚨 **CRITICAL**
-**Description**: Implement complete WhatsApp message flow with proper channel active status and chatbot control separation
-**Acceptance Criteria**:
-- [ ] Implement API limit check at the beginning of the flow
-- [ ] Implement channel active check (isActive flag) - if false, stop dialog completely
-- [ ] Implement chatbot active check (activeChatbot flag) - if false, operator manual control
-- [ ] Ensure operator can write to user when chatbot is disabled (save to history, no AI response)
-- [ ] Implement operator control release mechanism to re-enable AI responses
-- [ ] Update message flow to follow exact sequence: API Limit → Channel Active → Chatbot Active → Blacklist → WIP → User Flow
-- [ ] Add proper logging for each flow decision point
-- [ ] Test complete flow with all combinations of flags
-- [ ] Follow the updated ASCII flow schema in docs/flow.md and docs/PRD.md
-- [ ] Ensure WIP message doesn't stop dialog but continues to user flow
-- [ ] Implement simplified registration flow (Welcome → Token → Registration → Chat RAG)
-- [ ] Remove "2 hours last conversation" check for existing users - go directly to free chat with RAG
+**Description**: Implementazione completa del WhatsApp Message Flow con LangChain Calling Functions System
+**Acceptance Criteria**: **Vedere task list dedicata in `docs/whatsapp-flow-tasks.md`**
+
+#### EPICA SUDDIVISA IN TASK DETTAGLIATI:
+- **Task 0**: LangChain Calling Functions System (PREREQUISITO CRITICO)
+- **Task 1**: API Limit Check Implementation  
+- **Task 2**: Chatbot Active Check Integration
+- **Task 3**: Operator Control Release Mechanism
+- **Task 4**: "2 Ore Ultima Conversazione" Check
+- **Task 5**: Checkout Link Generation
+- **Task 6**: Flow Sequence Enforcement
+- **Task 7**: WIP Message Fix
+- **Task 8**: Comprehensive Flow Testing
+- **Task 9**: Performance Optimization
+- **Task 10**: Documentation & Monitoring
+
+#### SEQUENZA FLOW OBBLIGATORIA:
+```
+API Limit → Spam Detection → Channel Active → Chatbot Active → Blacklist → WIP → User Flow
+```
+
+#### FASI DI IMPLEMENTAZIONE:
+- **FASE 1 - CORE FLOW**: Task 0, 1, 2, 6 (Settimana 1)
+- **FASE 2 - FEATURES**: Task 4, 5, 3 (Settimana 2)  
+- **FASE 3 - QUALITY**: Task 7, 8, 9, 10 (Settimana 3)
+
+**📋 TASK LIST COMPLETA**: Tutti i dettagli, acceptance criteria, test requirements e file da creare/modificare sono documentati in `docs/whatsapp-flow-tasks.md`
 
 ### 3. **Seed Database with Customer Chat History**
 **Priority**: 🚨 **HIGH**
@@ -262,6 +275,8 @@ This task list is based on the comprehensive PRD analysis and identifies what ha
 - [ ] Ensure blocked users cannot send messages (integrate with existing blacklist check)
 - [ ] Add confirmation dialog when blocking a user
 - [ ] Show visual indicator when a user is blocked in chat history
+
+**Note**: Blacklist system integration è incluso nell'epica WhatsApp Message Flow
 
 ### 7. **JWT Security Enhancement & Token Management**
 **Priority**: 🚨 **HIGH**
@@ -325,106 +340,9 @@ This task list is based on the comprehensive PRD analysis and identifies what ha
 - [ ] Log rate limit violations
 - [ ] Return appropriate error messages when limit exceeded
 
-### 9. **LangChain Calling Functions System**
-**Priority**: 🚨 **HIGH**
-**Description**: Implement a structured calling functions system with LangChain for intelligent function routing and execution
-**Acceptance Criteria**:
+**Note**: API Limit Check per WhatsApp Flow è incluso nel Task 1 dell'epica WhatsApp Message Flow
 
-#### Backend Structure Requirements:
-- [ ] Create `/backend/src/calling-functions/` directory with organized structure
-- [ ] Implement `main.ts` for global flow orchestration
-- [ ] Create individual function files (e.g., `getProductInfo.ts`, `createOrder.ts`, etc.)
-- [ ] Install and configure LangChain dependencies
-- [ ] Create comprehensive README.md documenting the entire flow
-
-#### LangChain Integration:
-- [ ] Install LangChain packages (`@langchain/core`, `@langchain/openai`, etc.)
-- [ ] Configure LangChain with OpenRouter API integration
-- [ ] Implement two-phase LLM workflow:
-  - **Phase 1**: Function selection LLM (determines which function to call)
-  - **Phase 2**: Response formatting LLM (formats final user response)
-- [ ] Create function schemas for LangChain function calling
-- [ ] Implement error handling and fallback mechanisms
-
-#### Function System Architecture:
-```
-/backend/src/calling-functions/
-├── README.md                    # Complete flow documentation
-├── main.ts                      # Global orchestration flow
-├── types/                       # TypeScript interfaces
-│   ├── FunctionCall.ts         # Function call types
-│   └── LangChainTypes.ts       # LangChain specific types
-├── functions/                   # Individual function implementations
-│   ├── getProductInfo.ts       # Product information retrieval
-│   ├── getServiceInfo.ts       # Service information retrieval
-│   ├── createOrder.ts          # Order creation
-│   ├── addToCart.ts           # Cart management
-│   ├── searchDocuments.ts     # RAG integration
-│   ├── welcomeUser.ts         # User greeting
-│   └── getCartInfo.ts         # Cart information
-├── prompts/                    # LangChain prompts
-│   ├── functionSelector.ts    # Function selection prompt
-│   └── responseFormatter.ts   # Response formatting prompt
-├── utils/                      # Utility functions
-│   ├── langchainConfig.ts     # LangChain configuration
-│   └── functionRegistry.ts   # Function registration system
-└── tests/                      # Function tests
-    ├── unit/                  # Unit tests for individual functions
-    └── integration/           # Integration tests for flow
-```
-
-#### Core Functions to Implement:
-- [ ] `getProductInfo(product_name)` - Retrieve product details
-- [ ] `getServiceInfo(service_name)` - Retrieve service information
-- [ ] `welcomeUser()` - User greeting and onboarding
-- [ ] `createOrder()` - Order creation workflow
-- [ ] `getCartInfo()` - Cart status and contents
-- [ ] `addToCart(product_name, quantity)` - Add items to cart
-- [ ] `searchDocuments(query)` - RAG document search integration
-- [ ] `blockUser(phone_number)` - User blocking functionality
-- [ ] `getOffers()` - Active offers and promotions
-
-#### LangChain Configuration:
-- [ ] Configure OpenRouter integration for LLM calls
-- [ ] Set up function calling schemas with proper validation
-- [ ] Implement streaming responses for better UX
-- [ ] Add conversation memory management
-- [ ] Configure temperature and model parameters per function type
-
-#### Flow Documentation (README.md):
-- [ ] Document complete calling function flow
-- [ ] Explain two-phase LLM workflow
-- [ ] Provide function implementation examples
-- [ ] Document LangChain configuration
-- [ ] Include testing strategies and examples
-- [ ] Add troubleshooting guide
-
-#### Integration Requirements:
-- [ ] Integrate with existing WhatsApp message processing
-- [ ] Connect to existing RAG system (documents, FAQs, services)
-- [ ] Integrate with workspace-specific data filtering
-- [ ] Connect to existing customer and order management
-- [ ] Ensure proper error handling and logging
-
-#### Testing & Validation:
-- [ ] Unit tests for each individual function
-- [ ] Integration tests for complete flow
-- [ ] LangChain function calling validation
-- [ ] Performance testing for response times
-- [ ] Error scenario testing (invalid functions, API failures)
-
-#### Documentation Requirements:
-- [ ] Complete README.md with flow diagrams
-- [ ] Function implementation guidelines
-- [ ] LangChain configuration documentation
-- [ ] API integration examples
-- [ ] Deployment and maintenance guide
-
-**Current Status**: 
-- ✅ Basic function calling concept documented in PRD
-- ❌ No LangChain implementation
-
-### 10. **Temporary Token System for Secure Links**
+### 9. **Temporary Token System for Secure Links**
 **Priority**: 🚨 **HIGH**
 **Description**: Implement comprehensive temporary token system for secure registration and checkout links with 1-hour expiration
 **Acceptance Criteria**:
