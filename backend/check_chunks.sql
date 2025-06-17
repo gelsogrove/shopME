@@ -1,1 +1,0 @@
-SELECT 'product_chunks' as table_name, COUNT(*) as count FROM product_chunks UNION ALL SELECT 'service_chunks' as table_name, COUNT(*) as count FROM service_chunks UNION ALL SELECT 'faq_chunks' as table_name, COUNT(*) as count FROM faq_chunks UNION ALL SELECT 'document_chunks' as table_name, COUNT(*) as count FROM document_chunks ORDER BY table_name;

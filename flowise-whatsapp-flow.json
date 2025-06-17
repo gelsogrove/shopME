@@ -1,0 +1,196 @@
+{
+  "name": "WhatsApp Message Processing Flow",
+  "description": "Visual flow for processing WhatsApp messages with complete business logic",
+  "flowData": {
+    "nodes": [
+      {
+        "id": "chatInput",
+        "position": { "x": 100, "y": 100 },
+        "type": "chatInput",
+        "data": {
+          "label": "📱 WhatsApp Input",
+          "name": "chatInput",
+          "type": "ChatInput",
+          "inputs": {},
+          "outputs": {
+            "output": "ChatInput"
+          }
+        }
+      },
+      {
+        "id": "apiLimitCheck",
+        "position": { "x": 300, "y": 100 },
+        "type": "javascriptFunction",
+        "data": {
+          "label": "🚨 API Limit Check",
+          "name": "apiLimitCheck",
+          "type": "JavaScriptFunction",
+          "inputs": {
+            "functionName": "checkApiLimit",
+            "code": "// Check if workspace has exceeded API limits\nconst { workspaceId } = $vars;\nconst apiLimit = await checkApiLimit(workspaceId);\nif (apiLimit.exceeded) {\n  return { action: 'BLOCKED', reason: 'API_LIMIT_EXCEEDED' };\n}\nreturn { action: 'CONTINUE' };"
+          }
+        }
+      },
+      {
+        "id": "spamDetection",
+        "position": { "x": 500, "y": 100 },
+        "type": "javascriptFunction",
+        "data": {
+          "label": "🚨 Spam Detection",
+          "name": "spamDetection",
+          "type": "JavaScriptFunction",
+          "inputs": {
+            "code": "// Check for spam behavior (10+ messages in 30 seconds)\nconst { phoneNumber, workspaceId } = $vars;\nconst spamCheck = await checkSpamBehavior(phoneNumber, workspaceId);\nif (spamCheck.isSpam) {\n  await addToAutoBlacklist(phoneNumber, workspaceId, 'AUTO_SPAM');\n  return { action: 'BLOCKED', reason: 'SPAM_DETECTED' };\n}\nreturn { action: 'CONTINUE' };"
+          }
+        }
+      },
+      {
+        "id": "channelActiveCheck",
+        "position": { "x": 700, "y": 100 },
+        "type": "ifElse",
+        "data": {
+          "label": "✅ Channel Active Check",
+          "name": "channelActiveCheck",
+          "type": "IfElse",
+          "inputs": {
+            "condition": "$vars.workspaceSettings.isActive === true"
+          }
+        }
+      },
+      {
+        "id": "chatbotActiveCheck",
+        "position": { "x": 900, "y": 100 },
+        "type": "ifElse",
+        "data": {
+          "label": "🤖 Chatbot Active Check",
+          "name": "chatbotActiveCheck",
+          "type": "IfElse",
+          "inputs": {
+            "condition": "$vars.workspaceSettings.activeChatbot === true"
+          }
+        }
+      },
+      {
+        "id": "blacklistCheck",
+        "position": { "x": 1100, "y": 100 },
+        "type": "javascriptFunction",
+        "data": {
+          "label": "🚫 Blacklist Check",
+          "name": "blacklistCheck",
+          "type": "JavaScriptFunction",
+          "inputs": {
+            "code": "// Check if user is blacklisted\nconst { phoneNumber, workspaceId } = $vars;\nconst isBlacklisted = await checkBlacklist(phoneNumber, workspaceId);\nif (isBlacklisted) {\n  return { action: 'BLOCKED', reason: 'BLACKLISTED' };\n}\nreturn { action: 'CONTINUE' };"
+          }
+        }
+      },
+      {
+        "id": "userFlowDetection",
+        "position": { "x": 300, "y": 300 },
+        "type": "javascriptFunction",
+        "data": {
+          "label": "👤 User Flow Detection",
+          "name": "userFlowDetection",
+          "type": "JavaScriptFunction",
+          "inputs": {
+            "code": "// Detect if new user or existing user\nconst { phoneNumber, workspaceId, message } = $vars;\nconst customer = await getCustomer(phoneNumber, workspaceId);\n\nif (!customer) {\n  // New user - check for greeting\n  const greetings = ['ciao', 'hello', 'hi', 'hola', 'buongiorno', 'good morning'];\n  const isGreeting = greetings.some(g => message.toLowerCase().includes(g));\n  \n  if (isGreeting) {\n    return { action: 'WELCOME_NEW', customer: null };\n  } else {\n    return { action: 'WELCOME_NEW', customer: null };\n  }\n} else {\n  // Existing user - check last conversation time\n  const lastMessage = await getLastMessage(phoneNumber, workspaceId);\n  const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);\n  \n  if (!lastMessage || new Date(lastMessage.createdAt) < twoHoursAgo) {\n    return { action: 'WELCOME_BACK', customer };\n  } else {\n    return { action: 'CONTINUE_CHAT', customer };\n  }\n}"
+          }
+        }
+      },
+      {
+        "id": "ragSearch",
+        "position": { "x": 700, "y": 500 },
+        "type": "retrieverTool",
+        "data": {
+          "label": "🔍 Unified RAG Search",
+          "name": "ragSearch",
+          "type": "RetrieverTool",
+          "inputs": {
+            "description": "Search across products, FAQs, services, and documents",
+            "retriever": "vectorStoreRetriever"
+          }
+        }
+      },
+      {
+        "id": "llmFormatter",
+        "position": { "x": 900, "y": 500 },
+        "type": "chatOpenAI",
+        "data": {
+          "label": "🎨 LLM Response Formatter",
+          "name": "llmFormatter",
+          "type": "ChatOpenAI",
+          "inputs": {
+            "modelName": "gpt-4",
+            "temperature": 0.7,
+            "systemMessage": "You are a helpful customer service assistant. Format responses in a conversational, friendly manner. Include product details, prices, and availability when relevant."
+          }
+        }
+      },
+      {
+        "id": "chatOutput",
+        "position": { "x": 1100, "y": 500 },
+        "type": "chatOutput",
+        "data": {
+          "label": "💬 Final Response",
+          "name": "chatOutput",
+          "type": "ChatOutput"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "source": "chatInput",
+        "sourceHandle": "output",
+        "target": "apiLimitCheck",
+        "targetHandle": "input"
+      },
+      {
+        "source": "apiLimitCheck",
+        "sourceHandle": "output",
+        "target": "spamDetection",
+        "targetHandle": "input"
+      },
+      {
+        "source": "spamDetection",
+        "sourceHandle": "output",
+        "target": "channelActiveCheck",
+        "targetHandle": "input"
+      },
+      {
+        "source": "channelActiveCheck",
+        "sourceHandle": "true",
+        "target": "chatbotActiveCheck",
+        "targetHandle": "input"
+      },
+      {
+        "source": "chatbotActiveCheck",
+        "sourceHandle": "true",
+        "target": "blacklistCheck",
+        "targetHandle": "input"
+      },
+      {
+        "source": "blacklistCheck",
+        "sourceHandle": "output",
+        "target": "userFlowDetection",
+        "targetHandle": "input"
+      },
+      {
+        "source": "userFlowDetection",
+        "sourceHandle": "output",
+        "target": "ragSearch",
+        "targetHandle": "input"
+      },
+      {
+        "source": "ragSearch",
+        "sourceHandle": "output",
+        "target": "llmFormatter",
+        "targetHandle": "input"
+      },
+      {
+        "source": "llmFormatter",
+        "sourceHandle": "output",
+        "target": "chatOutput",
+        "targetHandle": "input"
+      }
+    ]
+  }
+}

@@ -10,8 +10,13 @@ import {
 import logger from "../../utils/logger";
 import { ApiLimitService } from "./api-limit.service";
 
+import { PrismaClient } from '@prisma/client';
+import { flowMetrics } from '../../monitoring/flow-metrics';
 import { CheckoutService } from "./checkout.service";
+import { FlowiseInput, FlowiseIntegrationService } from './flowise-integration.service';
 import { TokenService } from "./token.service";
+
+const prisma = new PrismaClient();
 
 // Customer interface che include activeChatbot
 interface Customer {
@@ -52,6 +57,7 @@ export class MessageService {
   private tokenService: TokenService
   private checkoutService: CheckoutService
   private apiLimitService: ApiLimitService
+  private flowiseService: FlowiseIntegrationService
 
   /**
    * 🎯 DEPENDENCY INJECTION CONSTRUCTOR
@@ -68,6 +74,7 @@ export class MessageService {
     this.tokenService = tokenService || new TokenService()
     this.checkoutService = checkoutService || new CheckoutService()
     this.apiLimitService = apiLimitService || new ApiLimitService()
+    this.flowiseService = new FlowiseIntegrationService()
   }
 
   /**
@@ -492,6 +499,293 @@ export class MessageService {
       }
 
       return null
+    }
+  }
+
+  /**
+   * 🎯 NEW: Process WhatsApp message using Flowise visual flow
+   * 
+   * This replaces the complex if/else logic with visual flow management
+   */
+  async processMessageWithFlowise(
+    message: string,
+    phoneNumber: string,
+    workspaceId: string
+  ): Promise<string | null> {
+    const startTime = Date.now();
+    let detectedLanguage = 'en';
+
+    try {
+      logger.info(`[FLOWISE] Starting visual flow processing: "${message}" from ${phoneNumber}`);
+
+      // Detect language
+      detectedLanguage = detectLanguage(message);
+      logger.info(`[FLOWISE] Detected language: ${detectedLanguage}`);
+
+      // Check if Flowise is available
+      const isFlowiseHealthy = await this.flowiseService.healthCheck();
+      if (!isFlowiseHealthy) {
+        logger.warn(`[FLOWISE] Service unavailable, falling back to traditional flow`);
+        return this.processMessage(message, phoneNumber, workspaceId);
+      }
+
+      // Gather context data for Flowise
+      const [customerData, workspaceSettings, chatHistory] = await Promise.all([
+        this.getCustomerData(phoneNumber, workspaceId),
+        this.getWorkspaceSettings(workspaceId),
+        this.getChatHistory(phoneNumber, workspaceId, 10)
+      ]);
+
+      // Prepare Flowise input
+      const flowiseInput: FlowiseInput = {
+        message,
+        phoneNumber,
+        workspaceId,
+        customerData,
+        workspaceSettings,
+        chatHistory
+      };
+
+      // Process through Flowise visual flow
+      const flowiseResult = await this.flowiseService.processWhatsAppMessage(flowiseInput);
+      
+      // Record metrics
+      const totalTime = Date.now() - startTime;
+      flowMetrics.recordFlowExecution(
+        {
+          apiLimit: 0,
+          spamDetection: 0,
+          workspaceActive: 0,
+          chatbotActive: 0,
+          blacklistCheck: 0,
+          wipCheck: 0,
+          welcomeBackCheck: 0,
+          userFlow: 0,
+          checkoutIntent: 0,
+          aiProcessing: totalTime
+        },
+        flowiseResult.action === 'BLOCKED' ? 'BLOCKED' : 'SUCCESS',
+        workspaceId,
+        phoneNumber,
+        message.length
+      );
+
+      // Handle different flow outcomes
+      switch (flowiseResult.action) {
+        case 'BLOCKED':
+          logger.info(`[FLOWISE] Message blocked: ${flowiseResult.metadata?.blockedReason}`);
+          return null;
+
+        case 'OPERATOR_CONTROL':
+          logger.info(`[FLOWISE] Passing control to operator`);
+          await this.saveMessageForOperator(message, phoneNumber, workspaceId);
+          return null;
+
+        case 'WIP':
+          logger.info(`[FLOWISE] Sending WIP notification`);
+          return flowiseResult.response;
+
+        case 'WELCOME':
+          logger.info(`[FLOWISE] Sending welcome message`);
+          if (flowiseResult.metadata?.registrationLink) {
+            return flowiseResult.response?.replace('{link}', flowiseResult.metadata.registrationLink);
+          }
+          return flowiseResult.response;
+
+        case 'CHECKOUT':
+          logger.info(`[FLOWISE] Processing checkout intent`);
+          if (flowiseResult.metadata?.checkoutLink) {
+            return `${flowiseResult.response}\n\n${flowiseResult.metadata.checkoutLink}`;
+          }
+          return flowiseResult.response;
+
+        case 'RAG_SEARCH':
+        default:
+          logger.info(`[FLOWISE] Returning RAG search response`);
+          
+          // Save the conversation
+          await this.saveConversation(message, flowiseResult.response || '', phoneNumber, workspaceId, detectedLanguage);
+          
+          return flowiseResult.response;
+      }
+
+    } catch (error) {
+      logger.error(`[FLOWISE] Error in visual flow processing:`, error);
+      
+      // Fallback to traditional processing
+      logger.info(`[FLOWISE] Falling back to traditional message processing`);
+      return this.processMessage(message, phoneNumber, workspaceId);
+    }
+  }
+
+  /**
+   * 📊 Helper: Get customer data for Flowise context
+   */
+  private async getCustomerData(phoneNumber: string, workspaceId: string) {
+    try {
+      const customer = await prisma.customers.findFirst({
+        where: {
+          phoneNumber,
+          workspaceId,
+          isDelete: false
+        },
+        include: {
+          chatSessions: {
+            take: 1,
+            orderBy: { createdAt: 'desc' },
+            include: {
+              messages: {
+                take: 5,
+                orderBy: { createdAt: 'desc' }
+              }
+            }
+          }
+        }
+      });
+
+      return customer;
+    } catch (error) {
+      logger.error(`[FLOWISE] Error fetching customer data:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * 📊 Helper: Get workspace settings for Flowise context
+   */
+  private async getWorkspaceSettings(workspaceId: string) {
+    try {
+      const workspace = await prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        include: {
+          agentConfig: true
+        }
+      });
+
+      return workspace;
+    } catch (error) {
+      logger.error(`[FLOWISE] Error fetching workspace settings:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * 📊 Helper: Get chat history for Flowise context
+   */
+  private async getChatHistory(phoneNumber: string, workspaceId: string, limit: number = 10) {
+    try {
+      const messages = await prisma.message.findMany({
+        where: {
+          chatSession: {
+            customerPhoneNumber: phoneNumber,
+            workspaceId
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        select: {
+          content: true,
+          role: true,
+          createdAt: true
+        }
+      });
+
+      return messages.reverse(); // Return in chronological order
+    } catch (error) {
+      logger.error(`[FLOWISE] Error fetching chat history:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * 💾 Helper: Save message for operator review
+   */
+  private async saveMessageForOperator(message: string, phoneNumber: string, workspaceId: string) {
+    try {
+      // Find or create chat session
+      let chatSession = await prisma.chatSession.findFirst({
+        where: {
+          customerPhoneNumber: phoneNumber,
+          workspaceId
+        }
+      });
+
+      if (!chatSession) {
+        chatSession = await prisma.chatSession.create({
+          data: {
+            customerPhoneNumber: phoneNumber,
+            workspaceId,
+            language: detectLanguage(message),
+            isActive: true
+          }
+        });
+      }
+
+      // Save the message for operator review
+      await prisma.message.create({
+        data: {
+          content: message,
+          role: 'user',
+          chatSessionId: chatSession.id,
+          needsOperatorReview: true
+        }
+      });
+
+      logger.info(`[FLOWISE] Message saved for operator review: ${phoneNumber}`);
+    } catch (error) {
+      logger.error(`[FLOWISE] Error saving message for operator:`, error);
+    }
+  }
+
+  /**
+   * 💾 Helper: Save conversation to database
+   */
+  private async saveConversation(
+    userMessage: string,
+    aiResponse: string,
+    phoneNumber: string,
+    workspaceId: string,
+    language: string
+  ) {
+    try {
+      // Find or create chat session
+      let chatSession = await prisma.chatSession.findFirst({
+        where: {
+          customerPhoneNumber: phoneNumber,
+          workspaceId
+        }
+      });
+
+      if (!chatSession) {
+        chatSession = await prisma.chatSession.create({
+          data: {
+            customerPhoneNumber: phoneNumber,
+            workspaceId,
+            language,
+            isActive: true
+          }
+        });
+      }
+
+      // Save user message and AI response
+      await prisma.message.createMany({
+        data: [
+          {
+            content: userMessage,
+            role: 'user',
+            chatSessionId: chatSession.id
+          },
+          {
+            content: aiResponse,
+            role: 'assistant',
+            chatSessionId: chatSession.id
+          }
+        ]
+      });
+
+      logger.info(`[FLOWISE] Conversation saved for ${phoneNumber}`);
+    } catch (error) {
+      logger.error(`[FLOWISE] Error saving conversation:`, error);
     }
   }
 
