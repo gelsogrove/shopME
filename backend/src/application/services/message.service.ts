@@ -8,6 +8,9 @@ import {
     SupportedLanguage
 } from "../../utils/language-detector";
 import logger from "../../utils/logger";
+import { ApiLimitService } from "./api-limit.service";
+
+import { CheckoutService } from "./checkout.service";
 import { TokenService } from "./token.service";
 
 // Customer interface che include activeChatbot
@@ -37,15 +40,34 @@ interface MessageMetadata {
 }
 
 /**
- * Service for processing messages
+ * 🏗️ VERO DDD - Service for processing messages
+ * 
+ * ✅ DEPENDENCY INJECTION: Tutte le dipendenze vengono iniettate
+ * ✅ TESTABLE: Facilmente mockabile per i test
+ * ✅ SINGLE RESPONSIBILITY: Si occupa solo di processare messaggi
+ * ✅ DOMAIN LOGIC: Contiene la logica di business del messaging
  */
 export class MessageService {
   private messageRepository: MessageRepository
   private tokenService: TokenService
+  private checkoutService: CheckoutService
+  private apiLimitService: ApiLimitService
 
-  constructor() {
-    this.messageRepository = new MessageRepository()
-    this.tokenService = new TokenService()
+  /**
+   * 🎯 DEPENDENCY INJECTION CONSTRUCTOR
+   * Andrea, ora tutte le dipendenze sono iniettate = VERO DDD!
+   */
+  constructor(
+    messageRepository?: MessageRepository,
+    tokenService?: TokenService,
+    checkoutService?: CheckoutService,
+    apiLimitService?: ApiLimitService
+  ) {
+    // Dependency injection con fallback per compatibilità
+    this.messageRepository = messageRepository || new MessageRepository()
+    this.tokenService = tokenService || new TokenService()
+    this.checkoutService = checkoutService || new CheckoutService()
+    this.apiLimitService = apiLimitService || new ApiLimitService()
   }
 
   /**
@@ -162,530 +184,349 @@ export class MessageService {
   }
 
   /**
-   * Process a message and return a response
-   *
-   * @param message The message to process
-   * @param phoneNumber The phone number of the sender
-   * @param workspaceId The ID of the workspace
-   * @returns The processed message
+   * 🤖 CORE AI PROCESSING ENGINE - MessageService.processMessage()
+   * 
+   * Questo è il CUORE del sistema AI che processa ogni messaggio WhatsApp.
+   * Viene chiamato da WhatsAppService.processWebhook() dopo la ricezione.
+   * 
+   * 🔄 FLOW SEQUENCE (SEQUENZA ESATTA - NON MODIFICARE L'ORDINE):
+   * 
+   * 1. 🚦 API Limit Check - Verifica limiti chiamate API per workspace
+   * 2. 🚫 Spam Detection - Rileva comportamenti spam (10+ msg in 30s)
+   * 3. 🏢 Workspace Active Check - Verifica se workspace è attivo
+   * 4. 👤 Chatbot Active Check - Verifica controllo operatore manuale
+   * 5. ⛔ Blacklist Check - Verifica se customer è in blacklist
+   * 6. 🚧 WIP Check - Controlli work-in-progress (futuro)
+   * 6.5. 👋 Welcome Back Check - "Bentornato" dopo 2+ ore inattività
+   * 7. 🎯 User Flow - Gestione nuovo/esistente utente
+   * 7.5. 🛒 Checkout Intent - Rilevamento intent acquisto
+   * 8. 🧠 AI Processing - RAG + LLM per risposta finale
+   * 
+   * 📤 RETURN VALUES:
+   * - string: Risposta da inviare al customer
+   * - null: Messaggio bloccato (spam/blacklist) - NO response
+   * - "": Controllo operatore - NO AI response
+   * 
+   * @param message Il messaggio del customer
+   * @param phoneNumber Il numero di telefono del customer  
+   * @param workspaceId L'ID del workspace
+   * @returns Promise<string | null> La risposta da inviare o null se bloccato
    */
   async processMessage(
     message: string,
     phoneNumber: string,
     workspaceId: string
-  ): Promise<string> {
-    let response = ""
-    let agentSelected = "" // Variable to track the selected agent
-    let messageSaved = false // Flag to track if the message has been saved
-    let detectedLanguage: SupportedLanguage = 'en' // Default language
+  ): Promise<string | null> {
+    const startTime = Date.now()
+    let response: string | null = ""
+    let agentSelected = "" 
+    let messageSaved = false 
+    let detectedLanguage: SupportedLanguage = 'en'
+    let stepTimes: Record<string, number> = {}
 
     try {
-      logger.info(
-        `Processing message: "${message}" from ${phoneNumber} for workspace ${workspaceId}`
-      )
+      logger.info(`[FLOW] Starting message processing: "${message}" from ${phoneNumber} for workspace ${workspaceId}`)
 
       // Detect language of the incoming message
       detectedLanguage = detectLanguage(message)
-      logger.info(`Detected language for message: ${detectedLanguage}`)
+      logger.info(`[FLOW] Detected language: ${detectedLanguage}`)
 
-      // Check if workspace exists and is active
-      const workspaceSettings =
-        await this.messageRepository.getWorkspaceSettings(workspaceId)
-
-      if (!workspaceSettings) {
-        logger.error(`Workspace with ID ${workspaceId} not found in database`)
-        return "Workspace not found. Please contact support."
+      // STEP 1: API Limit Check
+      const step1Start = Date.now()
+      logger.info(`[FLOW] STEP 1: API Limit Check - Starting`)
+      
+      const apiLimitResult = await this.apiLimitService.checkApiLimit(workspaceId)
+      if (apiLimitResult.exceeded) {
+        logger.warn(`[FLOW] STEP 1: API Limit Check - EXCEEDED: ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`)
+        return null
       }
+      
+      stepTimes.apiLimit = Date.now() - step1Start
+      logger.info(`[FLOW] STEP 1: API Limit Check - PASSED (${stepTimes.apiLimit}ms): ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`)
 
-      if (!workspaceSettings.isActive) {
-        logger.warn(`Workspace ${workspaceId} exists but is inactive`)
-        // Multilingua: prendi la lingua dal customer se esiste
-        let userLang = undefined
-        let customer = await this.messageRepository.findCustomerByPhone(
-          phoneNumber,
-          workspaceId
-        )
-        if (customer && customer.language) {
-          userLang = normalizeDatabaseLanguage(customer.language)
-        } else if (detectedLanguage) {
-          // If customer has no language preference set, use detected language
-          userLang = detectedLanguage
-        }
-        
-        let wipMessages = workspaceSettings.wipMessages || {}
-        let msg =
-          userLang && wipMessages[userLang]
-            ? wipMessages[userLang]
-            : wipMessages["en"] || "WhatsApp channel is inactive"
-        return msg
-      }
-
-      // Check for spam behavior BEFORE blacklist check
+      // STEP 2: Spam Detection - 🚨 10+ messaggi in 30 secondi? → AUTO-BLACKLIST + STOP DIALOGO
+      const step2Start = Date.now()
+      logger.info(`[FLOW] STEP 2: Spam Detection - Starting`)
+      
       const spamCheck = await this.checkSpamBehavior(phoneNumber, workspaceId)
       if (spamCheck.isSpam) {
-        logger.warn(`Spam detected from ${phoneNumber} in workspace ${workspaceId}. Auto-blacklisting user.`)
+        logger.warn(`[FLOW] STEP 2: Spam Detection - DETECTED: ${spamCheck.messageCount} messages. Auto-blacklisting user.`)
         await this.addToAutoBlacklist(phoneNumber, workspaceId, 'AUTO_SPAM')
-        return null // Block immediately
+        return null // STOP DIALOGO
+      }
+      
+      stepTimes.spamDetection = Date.now() - step2Start
+      logger.info(`[FLOW] STEP 2: Spam Detection - PASSED (${stepTimes.spamDetection}ms): ${spamCheck.messageCount} messages`)
+
+      // STEP 3: Canale Attivo Check - IL canale non è attivo stop dialogo
+      const step3Start = Date.now()
+      logger.info(`[FLOW] STEP 3: Canale Attivo Check - Starting`)
+      
+      const workspaceSettings = await this.messageRepository.getWorkspaceSettings(workspaceId)
+
+      if (!workspaceSettings || !workspaceSettings.isActive) {
+        logger.warn(`[FLOW] STEP 3: Canale Attivo Check - FAILED: Workspace ${workspaceId} is not active - STOP DIALOGO`)
+        return null // STOP DIALOGO
+      }
+      
+      stepTimes.workspaceActive = Date.now() - step3Start
+      logger.info(`[FLOW] STEP 3: Canale Attivo Check - PASSED (${stepTimes.workspaceActive}ms)`)
+
+      // STEP 4: Chatbot Active Check - l'utente ha activeChatbot flag a false? stop dialogo, controllo operatore
+      const step4Start = Date.now()
+      logger.info(`[FLOW] STEP 4: Chatbot Active Check - Starting`)
+      
+      let customer = await this.messageRepository.findCustomerByPhone(phoneNumber, workspaceId)
+
+      if (customer && !customer.activeChatbot) {
+        logger.info(`[FLOW] STEP 4: Chatbot Active Check - OPERATOR_CONTROL: customer-${customer.id} in workspace-${workspaceId}`)
+        
+        // Save message for operator but don't send AI response - STOP DIALOGO AI
+        agentSelected = "Manual Operator Control"
+        await this.saveMessage(message, phoneNumber, workspaceId, "", agentSelected)
+        
+        stepTimes.chatbotActive = Date.now() - step4Start
+        logger.info(`[FLOW] STEP 4: Chatbot Active Check - OPERATOR_CONTROL (${stepTimes.chatbotActive}ms)`)
+        
+        return "" // STOP DIALOGO AI - operatore può scrivere
+      }
+      
+      stepTimes.chatbotActive = Date.now() - step4Start
+      logger.info(`[FLOW] STEP 4: Chatbot Active Check - PASSED (${stepTimes.chatbotActive}ms)`)
+
+      // STEP 5: Blacklist Check - È un utente in blacklist? non rispondere blocca il dialogo
+      const step5Start = Date.now()
+      logger.info(`[FLOW] STEP 5: Blacklist Check - Starting`)
+      
+      if (!customer) {
+        customer = await this.messageRepository.findCustomerByPhone(phoneNumber, workspaceId)
       }
 
-      // Check if customer is in blacklist
-      const isBlacklisted = await this.messageRepository.isCustomerBlacklisted(
-        phoneNumber,
-        workspaceId
-      )
+      const isBlacklisted = await this.messageRepository.isCustomerBlacklisted(phoneNumber, workspaceId)
+
       if (isBlacklisted) {
-        // Non fare nulla, non salvare nei log, ritornare null
-        // L'utente bloccato scriverà a vuoto senza ricevere risposte
-        return null
+        logger.warn(`[FLOW] STEP 5: Blacklist Check - BLOCKED: ${phoneNumber} is blacklisted - NO ANSWER`)
+        return null // NO ANSWER - blocca il dialogo
       }
+      
+      stepTimes.blacklistCheck = Date.now() - step5Start
+      logger.info(`[FLOW] STEP 5: Blacklist Check - PASSED (${stepTimes.blacklistCheck}ms)`)
 
-      // Check if customer exists - simplified binary check
-      let customer = await this.messageRepository.findCustomerByPhone(
-        phoneNumber,
-        workspaceId
-      )
+      // STEP 6: WIP Check - IL CANALE È IN WIP? messaggio di wip e blocca il dialogo
+      const step6Start = Date.now()
+      logger.info(`[FLOW] STEP 6: WIP Check - Starting`)
+      
+      if (workspaceSettings.challengeStatus) {
+        logger.warn(`[FLOW] STEP 6: WIP Check - ACTIVE: Sending WIP message and blocking dialog`)
+        
+        // Get WIP message from database (NO HARDCODE)
+        const wipMessage = await this.messageRepository.getWipMessage(workspaceId, detectedLanguage)
+        agentSelected = "WIP Notification"
+        
+        await this.saveMessage(message, phoneNumber, workspaceId, wipMessage, agentSelected)
+      
+      stepTimes.wipCheck = Date.now() - step6Start
+        logger.info(`[FLOW] STEP 6: WIP Check - SENT_AND_BLOCKED (${stepTimes.wipCheck}ms)`)
+          
+        // Increment API usage
+          await this.apiLimitService.incrementApiUsage(workspaceId, 'whatsapp_message')
+          
+        return wipMessage // BLOCCA IL DIALOGO dopo aver inviato WIP
+      }
+      
+      stepTimes.wipCheck = Date.now() - step6Start
+      logger.info(`[FLOW] STEP 6: WIP Check - PASSED (${stepTimes.wipCheck}ms)`)
 
-      // Se è un saluto, controlliamo se dobbiamo inviare un messaggio di benvenuto
+      // STEP 7: User Flow - È un nuovo utente?
+      const step7Start = Date.now()
+      logger.info(`[FLOW] STEP 7: User Flow - Starting`)
+      
       const greetingLang = this.detectGreeting(message)
 
-      // Update customer language preference if we have a customer
-      if (customer) {
-        // Only update if language preference is different from detected language
-        const currentLang = normalizeDatabaseLanguage(customer.language || "ENG")
-        if (currentLang !== detectedLanguage) {
-          logger.info(`Updating customer language from ${currentLang} to ${detectedLanguage}`)
-          
-          // Convert detected language to database format
-          const dbLanguageCode = getLanguageDbCode(detectedLanguage)
-          
-          // Update the customer's language preference
-          await this.messageRepository.updateCustomerLanguage(
-            customer.id, 
-            dbLanguageCode
-          )
-          
-          // Update the local customer object with new language
-          customer.language = dbLanguageCode
-        }
-      }
-
-      // Se il customer NON esiste (nuovo utente)
+      // NUOVO UTENTE
       if (!customer) {
-        // Se il messaggio NON è un saluto, non rispondere
-        if (!greetingLang) {
-          logger.info(
-            `New user detected with non-greeting message - not responding`
-          )
-          return null
-        }
-        // Se è un saluto, invia il messaggio di benvenuto/registrazione
-        if (workspaceSettings.welcomeMessages && greetingLang) {
-          const welcomeMessages = workspaceSettings.welcomeMessages as Record<string, string>
-          const token = await this.tokenService.createRegistrationToken(phoneNumber, workspaceId)
-          let baseUrl;
-          if (process.env.NODE_ENV === 'test') {
-            baseUrl = "https://laltroitalia.shop";
-          } else {
-            baseUrl = workspaceSettings.url || process.env.FRONTEND_URL || "https://example.com";
-          }
-          if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
-            baseUrl = "https://" + baseUrl;
-          }
-          const registrationUrl = `${baseUrl}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}&token=${token}`
-          
-          // Use detected language for new users
-          const langForWelcome = greetingLang || detectedLanguage
-          
-          let welcomeMessage = welcomeMessages[langForWelcome] || welcomeMessages["en"]
-          if (!welcomeMessage) {
-            welcomeMessage = "Welcome! Please register here: {link}"
-          }
-          response = welcomeMessage
-            .replace("{link}", registrationUrl)
-            .replace("{phone}", phoneNumber)
-            .replace("{workspace}", workspaceId)
-          if (!response.includes("http")) {
-            response += `\n\n${registrationUrl}`
-          }
-          
-          // Create customer with detected language
-          await this.messageRepository.createCustomer({
-            name: "Unknown Customer",
-            email: `customer-${Date.now()}@example.com`,
-            phone: phoneNumber,
-            workspaceId,
-            language: greetingLang ? getLanguageDbCode(greetingLang as SupportedLanguage) : getLanguageDbCode(detectedLanguage)
-          })
-          
-          agentSelected = "Welcome"
-          await this.messageRepository.saveMessage({
-            workspaceId,
-            phoneNumber,
-            message,
-            response,
-            agentSelected,
-          })
-          messageSaved = true
-
-          return response
-        }
-      }
-
-      // Check if the chatbot is active for this customer
-      if (customer && (customer as Customer).activeChatbot === false) {
-        logger.info(
-          `Operator manual control active for ${phoneNumber} (${customer.name}). Chatbot response skipped.`
-        )
-        // Save the message without response (only store the user message)
-        await this.messageRepository.saveMessage({
-          workspaceId,
-          phoneNumber,
-          message,
-          response: "",
-          agentSelected: "Manual Operator Control",
-        })
-        messageSaved = true // Mark message as saved
-        // Return empty string to indicate no bot response should be sent
-        return ""
-      }
-
-      // Se è un saluto e c'è già stato un messaggio di benvenuto recente, non rispondere
-      if (
-        greetingLang &&
-        (await this.hasRecentWelcomeMessage(phoneNumber, workspaceId))
-      ) {
-        logger.info(
-          `Repeated greeting detected from ${phoneNumber}, not sending welcome message again`
-        )
-        // Impostiamo direttamente la risposta vuota e l'agente NoResponse
-        // e salviamo il messaggio immediatamente
-        await this.messageRepository.saveMessage({
-          workspaceId,
-          phoneNumber,
-          message,
-          response: "",
-          agentSelected: "NoResponse", // Indichiamo che abbiamo scelto di non rispondere
-        })
-        messageSaved = true // Mark message as saved
-
-        logger.debug(`Saved repeated greeting with agentSelected: NoResponse`)
-
-        // Impostare response a una stringa vuota e saltare il resto della funzione
-        return ""
-      }
-
-      // Se ci sono messaggi di benvenuto configurati, rispondi con un messaggio di benvenuto
-      // solo per saluti riconosciuti
-      if (workspaceSettings.welcomeMessages && greetingLang) {
-        const welcomeMessages = workspaceSettings.welcomeMessages as Record<
-          string,
-          string
-        >
-
-        // Debug log
-        console.log("TEST DEBUG greetingLang:", greetingLang);
-        console.log("TEST DEBUG welcomeMessages:", JSON.stringify(welcomeMessages));
-
-        // Genera un token per la registrazione
-        const token = await this.tokenService.createRegistrationToken(
-          phoneNumber,
-          workspaceId
-        )
-
-        // Get base URL using the helper method
-        const baseUrl = this.getBaseUrl(workspaceSettings);
-
-        // Costruisci l'URL di registrazione completo
-        const registrationUrl = `${baseUrl}/register?phone=${encodeURIComponent(
-          phoneNumber
-        )}&workspace=${workspaceId}&token=${token}`
-
-        console.log("TEST DEBUG registrationUrl:", registrationUrl);
-
-        // Per i saluti, usa la lingua del saluto, altrimenti fallback a inglese
-        let welcomeMessage = welcomeMessages[greetingLang]
+        logger.info(`[FLOW] STEP 7: NUOVO UTENTE detected`)
         
-        console.log("TEST DEBUG welcomeMessage for language", greetingLang, ":", welcomeMessage);
-
-        // Se non esiste un messaggio nella lingua del saluto, usa l'inglese come fallback
-        if (!welcomeMessage && welcomeMessages["en"]) {
-          welcomeMessage = welcomeMessages["en"]
-          console.log("TEST DEBUG fallback to English welcomeMessage:", welcomeMessage);
-          logger.info(`No welcome message found for language ${greetingLang}, falling back to English`)
-        } else if (!welcomeMessage) {
-          // Se non esiste neanche un messaggio in inglese, usa un messaggio predefinito
-          welcomeMessage = "Welcome! Please register here: {registration_url}"
-          console.log("TEST DEBUG using default welcomeMessage:", welcomeMessage);
-          logger.warn(`No welcome messages found for any language, using default message`)
+        // Ha scritto Hola? Ciao? Hello/Hi?
+        if (!greetingLang) {
+          logger.info(`[FLOW] STEP 7: Nuovo utente with non-greeting message - NO ANSWER`)
+          return null // NO ANSWER se non è un saluto
         }
+        
+        // Rispondi CON IL WELCOME MESSAGE + LINK DI REGISTRAZIONE CON TOKEN
+        logger.info(`[FLOW] STEP 7: Sending welcome message + registration link to new user`)
+        
+        // Get welcome message from database (NO HARDCODE)
+        const welcomeMessage = await this.messageRepository.getWelcomeMessage(workspaceId, greetingLang)
+        const token = await this.tokenService.createRegistrationToken(phoneNumber, workspaceId)
+        const baseUrl = await this.messageRepository.getWorkspaceUrl(workspaceId)
+        const registrationUrl = `${baseUrl}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}&token=${token}`
 
-        // Log per debug
-        logger.debug(`Registration URL: ${registrationUrl}`)
+        const fullWelcomeMessage = `${welcomeMessage}\n\n🔗 ${registrationUrl}`
+        agentSelected = "Welcome New User"
 
-        // Sostituisci i placeholder
-        response = welcomeMessage
-          .replace("{link}", registrationUrl)
-          .replace("{registration_url}", registrationUrl)
-          .replace("{phone}", phoneNumber)
-          .replace("{workspace}", workspaceId)
-
-        console.log("TEST DEBUG final response:", response);
-
-        // Crea un record temporaneo del cliente se non esiste
-        if (!customer) {
-          await this.messageRepository.createCustomer({
-            name: "Unknown Customer",
-            email: `customer-${Date.now()}@example.com`,
-            phone: phoneNumber,
-            workspaceId,
-            // Set the language based on the greeting language
-            language: greetingLang ? getLanguageDbCode(greetingLang as SupportedLanguage) : getLanguageDbCode(detectedLanguage)
-          })
-        }
-
-        agentSelected = "Welcome"
-
-        await this.messageRepository.saveMessage({
-          workspaceId,
-          phoneNumber,
-          message,
-          response,
-          agentSelected,
-        })
-        messageSaved = true // Mark message as saved
-
-        console.log("DEBUG final response after saveMessage:", response);
-        console.log("DEBUG includesItalian:", response.includes("Benvenuto! (IT)"));
-        console.log("DEBUG includesRegisterURL:", response.includes("https://laltroitalia.shop/register"));
-
-        return response
+        await this.saveMessage(message, phoneNumber, workspaceId, fullWelcomeMessage, agentSelected)
+        
+        stepTimes.userFlow = Date.now() - step7Start
+        logger.info(`[FLOW] STEP 7: Welcome + Registration - SENT (${stepTimes.userFlow}ms)`)
+        
+        await this.apiLimitService.incrementApiUsage(workspaceId, 'whatsapp_message')
+        return fullWelcomeMessage
       }
 
-      // If customer doesn't exist and didn't send a standard greeting, return null
-      if (!customer && !greetingLang) {
-        logger.info(
-          "New user detected with non-standard greeting - not responding"
+      // UTENTE ESISTENTE
+      logger.info(`[FLOW] STEP 7: UTENTE ESISTENTE - customer-${customer.id}`)
+
+      // Update customer language if different
+      const currentLang = normalizeDatabaseLanguage(customer.language || "ENG")
+      if (currentLang !== detectedLanguage) {
+        logger.info(`[FLOW] STEP 7: Updating customer language from ${currentLang} to ${detectedLanguage}`)
+        const dbLanguageCode = getLanguageDbCode(detectedLanguage)
+        await this.messageRepository.updateCustomerLanguage(customer.id, dbLanguageCode)
+        customer.language = dbLanguageCode
+      }
+
+      // È passato più di 2 ore dall'ultima chat? Prepara welcome back per LLM formatter
+      const hasRecentActivity = await this.messageRepository.hasRecentActivity(customer.id, 2, workspaceId)
+      let welcomeBackContext = ""
+      if (!hasRecentActivity) {
+        logger.info(`[FLOW] STEP 7: Customer ${customer.id} has no activity in last 2 hours - preparing welcome back context`)
+        
+        // Get welcome back message from database (NO HARDCODE) - ma non inviarlo ancora
+        welcomeBackContext = await this.messageRepository.getWelcomeBackMessage(
+          workspaceId,
+          customer.name || 'Customer', 
+          customer.language || 'en'
         )
+        
+        logger.info(`[FLOW] STEP 7: Welcome back context prepared - CONTINUING to RAG search`)
+      }
+
+      stepTimes.userFlow = Date.now() - step7Start
+      logger.info(`[FLOW] STEP 7: User Flow - PASSED (${stepTimes.userFlow}ms) - Proceeding to chat`)
+
+      // STEP 8: Checkout Intent Detection - QUANDO L'UTENTE CHIEDE DI FINALIZZARE L'ORDINE
+      const step8Start = Date.now()
+      logger.info(`[FLOW] STEP 8: Checkout Intent Detection - Starting`)
+      
+      const hasCheckoutIntent = this.checkoutService.detectCheckoutIntent(message, customer.language || detectedLanguage)
+      if (hasCheckoutIntent) {
+        logger.info(`[FLOW] STEP 8: Checkout Intent DETECTED - Generating checkout link`)
+        
+        const checkoutResult = await this.checkoutService.createCheckoutLink(customer.id, workspaceId)
+        if (checkoutResult.success) {
+          const checkoutMessage = this.checkoutService.getCheckoutMessage(
+            checkoutResult.checkoutUrl!,
+            customer.name || 'Customer',
+            customer.language || detectedLanguage
+          )
+          
+          agentSelected = "Checkout Intent"
+          await this.saveMessage(message, phoneNumber, workspaceId, checkoutMessage, agentSelected)
+          
+          stepTimes.checkoutIntent = Date.now() - step8Start
+          logger.info(`[FLOW] STEP 8: Checkout Intent - SENT (${stepTimes.checkoutIntent}ms)`)
+          
+          await this.apiLimitService.incrementApiUsage(workspaceId, 'whatsapp_message')
+          return checkoutMessage
+        }
+      }
+      
+      stepTimes.checkoutIntent = Date.now() - step8Start
+      logger.info(`[FLOW] STEP 8: Checkout Intent Detection - PASSED (${stepTimes.checkoutIntent}ms)`)
+
+      // STEP 9: Chat Libera RAG - Unified Search
+      const step9Start = Date.now()
+      logger.info(`[FLOW] STEP 9: Chat Libera RAG - Starting`)
+
+      // Get agent configuration from database (NO HARDCODE)
+      const agentConfig = await this.messageRepository.getAgentConfig(workspaceId)
+      if (!agentConfig) {
+        logger.error(`[FLOW] STEP 9: No agent config found for workspace ${workspaceId}`)
         return null
       }
 
-      // If customer doesn't exist, send registration link with secure token
-      if (!customer) {
-        logger.info(
-          "New user detected - sending registration link with secure token"
-        )
-
-        // Generate secure registration token
-        const token = await this.tokenService.createRegistrationToken(
-          phoneNumber,
-          workspaceId
-        )
-
-        // Get base URL using the helper method
-        const baseUrl = this.getBaseUrl(workspaceSettings);
-
-        // Costruisci l'URL di registrazione completo
-        const registrationUrl = `${baseUrl}/register?phone=${encodeURIComponent(
-          phoneNumber
-        )}&workspace=${workspaceId}&token=${token}`
-
-        // Get workspace name for personalized message if available
-        let workspaceName = "our service"
-        if (workspaceSettings.name) {
-          workspaceName = workspaceSettings.name
-        }
-
-        // Ottieni la lingua dal saluto o usa l'inglese come fallback
-        const language = greetingLang || "en"
-
-        // Usa il metodo getWelcomeMessage per generare un messaggio di benvenuto multilingua
-        if (workspaceSettings.welcomeMessages) {
-          response = this.getWelcomeMessage(
-            workspaceSettings.welcomeMessages,
-            language,
-            registrationUrl,
-            phoneNumber,
-            workspaceId
-          )
-        } else {
-          // Fallback al messaggio di benvenuto standard
-          response = `Welcome to ${workspaceName}! To continue with our service, please complete your registration here: ${registrationUrl}`
-        }
-
-        // Create temporary customer record
-        let tempCustomer = await this.messageRepository.findCustomerByPhone(
-          phoneNumber,
-          workspaceId
-        )
-        if (!tempCustomer) {
-          tempCustomer = await this.messageRepository.createCustomer({
-            name: "Unknown Customer",
-            email: `customer-${Date.now()}@example.com`,
-            phone: phoneNumber,
-            workspaceId,
-          })
-          logger.info(`Created temporary customer record: ${tempCustomer.id}`)
-        }
-
-        agentSelected = "Registration" // Set the agent used as "Registration"
-        return response
-      }
-
-      // Check if customer is registered (has completed registration)
-      // Consider customer unregistered if name is "Unknown Customer" - this is the default name for new customers
-      if (customer.name === "Unknown Customer") {
-        logger.info(
-          `User with phone ${phoneNumber} is still unregistered - showing registration link again`
-        )
-
-        // Generate secure registration token
-        const token = await this.tokenService.createRegistrationToken(
-          phoneNumber,
-          workspaceId
-        )
-
-        // Get base URL using the helper method
-        const baseUrl = this.getBaseUrl(workspaceSettings);
-
-        // Costruisci l'URL di registrazione completo
-        const registrationUrl = `${baseUrl}/register?phone=${encodeURIComponent(
-          phoneNumber
-        )}&workspace=${workspaceId}&token=${token}`
-
-        // Create reminder message
-        response = `Per favore completa la registrazione prima di continuare: ${registrationUrl}`
-
-        agentSelected = "Registration" // Set the agent used as "Registration"
-        return response
-      }
-
-      // Process message for existing customer
-      logger.info("Processing existing customer message")
-      try {
-        const routerAgentPrompt = await this.messageRepository.getRouterAgent(workspaceId)
-        const products = await this.messageRepository.getProducts(workspaceId)
-        const services = await this.messageRepository.getServices(workspaceId)
-        const chatHistory = await this.messageRepository.getLatesttMessages(
-          phoneNumber,
-          30,
-          workspaceId
-        )
-
-        try {
-          logger.info(`=== MESSAGE PROCESSING START ===`)
-          logger.info(`USER MESSAGE: "${message}"`)
-
-          // Get the agent for this workspace
-          const agent = await this.messageRepository.getAgentByWorkspaceId(workspaceId)
-          if (!agent) {
-            throw new Error(`No agent found for workspace ${workspaceId}`)
-          }
-
-          // 1. Select the appropriate agent with the router
-          const selectedAgent = await this.messageRepository.getResponseFromAgent(
-            agent,
-            message
-          )
-          logger.info(`AGENT SELECTED: "${selectedAgent.name}"`)
-
-          // Save the name of the selected agent
-          agentSelected = selectedAgent.name || "Unknown"
-
-          // Add customer information and function calls to the agent context
-          this.enrichAgentContext(selectedAgent, customer)
-
-          // 2. Generate the prompt enriched with product and service context
-          const systemPrompt = await this.messageRepository.getResponseFromRag(
-            selectedAgent,
+      // Get RAG response with dynamic configuration + welcome back context
+      const ragResponse = await this.messageRepository.getResponseFromRag(
+        customer,
             message,
-            products,
-            services,
-            chatHistory,
-            customer
-          )
-          logger.info(`SYSTEM PROMPT: "${systemPrompt}"`)
+        agentConfig.prompt,
+        agentConfig.model,
+        agentConfig.temperature,
+        agentConfig.maxTokens,
+        workspaceId,
+        welcomeBackContext // Passa il welcome back context al RAG
+      )
 
-          // 3. Convert systemPrompt to conversation prompt
-          response = await this.messageRepository.getConversationResponse(
-            chatHistory,
-            message,
-            systemPrompt
-          )
-          logger.info(`FINAL PROMPT: "${response}"`)
-
-          // The agent info will be added by the frontend which will read the agentSelected field from the database
-        } catch (apiError) {
-          agentSelected = "Error"
-          response = apiError.toString()
-        }
-        return response
-      } catch (processingError) {
-        agentSelected = "Error"
-        return "Error processing customer message:" + processingError
+      if (!ragResponse) {
+        logger.error(`[FLOW] STEP 9: No RAG response generated`)
+        return null
       }
+
+      agentSelected = "RAG Chat"
+      await this.saveMessage(message, phoneNumber, workspaceId, ragResponse, agentSelected)
+
+      stepTimes.ragChat = Date.now() - step9Start
+      logger.info(`[FLOW] STEP 9: Chat Libera RAG - COMPLETED (${stepTimes.ragChat}ms)`)
+          
+          // Increment API usage after successful processing
+          await this.apiLimitService.incrementApiUsage(workspaceId, 'whatsapp_message')
+
+      const totalTime = Date.now() - startTime
+      logger.info(`[FLOW] COMPLETED in ${totalTime}ms - Steps: ${JSON.stringify(stepTimes)}`)
+        
+      return ragResponse
+
     } catch (error) {
-      logger.error("Error processing message:", error)
-      agentSelected = "System"
-      return "Sorry, there was an error processing your message. Please try again later."
-    } finally {
-      // Save both the user message and our response in one call
-      // Ma solo se non è già stato salvato in uno dei percorsi precedenti
+      logger.error(`[FLOW] ERROR in processMessage:`, error)
+
+      // Save error message if not already saved
       if (!messageSaved) {
         try {
-          await this.messageRepository.saveMessage({
-            workspaceId,
-            phoneNumber,
-            message,
-            response,
-            agentSelected, // Pass the selected agent to the repository
-          })
-          logger.info("Message saved successfully")
+          agentSelected = "Error Handler"
+          const errorMessage = await this.messageRepository.getErrorMessage(workspaceId, detectedLanguage)
+          await this.saveMessage(message, phoneNumber, workspaceId, errorMessage, agentSelected)
         } catch (saveError) {
-          logger.error("Error saving message:", saveError)
+          logger.error(`[FLOW] ERROR saving error message:`, saveError)
         }
       }
+
+      return null
     }
   }
 
   /**
-   * Genera un messaggio di benvenuto multilingua
-   * @param welcomeMessages Oggetto con i messaggi di benvenuto in diverse lingue
-   * @param language Lingua preferita
-   * @param registrationUrl URL per la registrazione
-   * @returns Il messaggio di benvenuto nella lingua richiesta o in inglese
+   * Ottiene il messaggio WIP appropriato per la lingua
    */
-  private getWelcomeMessage(
-    welcomeMessages: any,
-    language: string,
-    registrationUrl: string,
+  private getWipMessage(wipMessages: any, language: string): string {
+    if (!wipMessages) {
+      return "Our service is temporarily unavailable. We will be back soon!"
+    }
+    
+    return wipMessages[language] || wipMessages['en'] || "Our service is temporarily unavailable. We will be back soon!"
+  }
+
+  /**
+   * Salva un messaggio nel database
+   */
+  private async saveMessage(
+    incomingMessage: string,
     phoneNumber: string,
-    workspaceId: string
-  ): string {
-    if (!welcomeMessages) {
-      // Se mancano i messaggi di benvenuto, usa un messaggio predefinito
-      return `Welcome! Please register here: ${registrationUrl}`
+    workspaceId: string,
+    response: string,
+    agentSelected: string
+  ): Promise<void> {
+    try {
+      await this.messageRepository.saveMessage({
+        workspaceId,
+        phoneNumber,
+        message: incomingMessage,
+        response,
+        agentSelected,
+      })
+    } catch (error) {
+      logger.error(`[saveMessage] Error saving message: ${error}`)
     }
-
-    // Prova a usare il messaggio nella lingua rilevata
-    let welcomeMsg = welcomeMessages[language] || welcomeMessages["en"]
-
-    // Se non c'è un messaggio valido, usa un predefinito
-    if (!welcomeMsg) {
-      welcomeMsg = `Welcome! Please register here: {link}`
-    }
-
-    // Sostituisci il placeholder del link con l'URL di registrazione
-    const result = welcomeMsg
-      .replace("{link}", registrationUrl)
-      .replace("{phone}", phoneNumber)
-      .replace("{workspace}", workspaceId)
-
-    // Verifica che il link sia stato correttamente sostituito
-    if (!result.includes("http")) {
-      return `${result}\n\n${registrationUrl}`
-    }
-
-    return result
   }
 
   private getCustomerInfo(customer: Customer): string {
@@ -813,23 +654,20 @@ export class MessageService {
    */
   private async addToAutoBlacklist(phoneNumber: string, workspaceId: string, reason: string): Promise<void> {
     try {
-      // 1. Mark customer as blacklisted (if customer exists)
-      const customer = await this.messageRepository.findCustomerByPhone(phoneNumber, workspaceId);
-      if (customer) {
-        await this.messageRepository.updateCustomerBlacklist(customer.id, workspaceId, true);
-        logger.info(`Customer ${customer.id} marked as blacklisted for reason: ${reason}`);
-      }
-
-      // 2. Add phone to workspace blocklist
-      await this.messageRepository.addToWorkspaceBlocklist(phoneNumber, workspaceId);
-      logger.info(`Phone ${phoneNumber} added to workspace ${workspaceId} blocklist for reason: ${reason}`);
-
-      // 3. Log the auto-blacklist event for audit
-      logger.warn(`AUTO-BLACKLIST: ${phoneNumber} in workspace ${workspaceId} - Reason: ${reason}`);
+      logger.warn(`[AUTO-BLACKLIST] Adding ${phoneNumber} to blacklist for workspace ${workspaceId}. Reason: ${reason}`)
       
+      // Find customer
+      const customer = await this.messageRepository.findCustomerByPhone(phoneNumber, workspaceId)
+      if (customer) {
+        await this.messageRepository.updateCustomerBlacklist(customer.id, workspaceId, true)
+        logger.info(`[AUTO-BLACKLIST] Customer ${customer.id} blacklisted successfully`)
+      } else {
+        // Add to workspace blocklist if customer not found
+        await this.messageRepository.addToWorkspaceBlocklist(phoneNumber, workspaceId)
+        logger.info(`[AUTO-BLACKLIST] Phone ${phoneNumber} added to workspace blocklist`)
+      }
     } catch (error) {
-      logger.error("Error adding to auto-blacklist:", error);
-      throw error;
+      logger.error(`[AUTO-BLACKLIST] Error adding ${phoneNumber} to blacklist:`, error)
     }
   }
 }

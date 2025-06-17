@@ -13,5 +13,42 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # 🤖 Flowise 3.0 - Visual Flow Engine
+  flowise:
+    image: flowiseai/flowise:latest
+    container_name: shopme_flowise
+    restart: always
+    environment:
+      - PORT=3003
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:3001
+      - IFRAME_ORIGINS=http://localhost:3000,http://localhost:3001
+      - FLOWISE_USERNAME=admin
+      - FLOWISE_PASSWORD=shopme2024
+      - DATABASE_PATH=/root/.flowise
+      - APIKEY_PATH=/root/.flowise
+      - SECRETKEY_PATH=/root/.flowise
+      - LOG_LEVEL=info
+      - LOG_PATH=/root/.flowise/logs
+      # Integrazione con il nostro database PostgreSQL
+      - DATABASE_TYPE=postgres
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=postgres
+      - DATABASE_NAME=shop_db
+    ports:
+      - "3003:3003"
+    volumes:
+      - flowise_data:/root/.flowise
+    depends_on:
+      - postgres
+    networks:
+      - shopme_network
+
+networks:
+  shopme_network:
+    driver: bridge
+
 volumes:
   postgres_data:
+  flowise_data:

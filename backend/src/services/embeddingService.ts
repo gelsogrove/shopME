@@ -8,7 +8,7 @@ export interface EmbeddingSearchResult {
   content: string;
   similarity: number;
   sourceName: string;
-  sourceType: 'document' | 'faq' | 'service';
+  sourceType: 'document' | 'faq' | 'service' | 'product';
 }
 
 export interface TextChunk {
@@ -17,8 +17,8 @@ export interface TextChunk {
 }
 
 export class EmbeddingService {
-  private readonly OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/embeddings';
-  private readonly MODEL = 'text-embedding-3-small';
+  // Using local embeddings instead of OpenRouter (which doesn't support embeddings)
+  private readonly LOCAL_MODEL = 'Xenova/all-MiniLM-L6-v2';
   private readonly MAX_CHUNK_SIZE = 2000;
   private readonly CHUNK_OVERLAP = 200;
 
@@ -85,43 +85,23 @@ export class EmbeddingService {
   }
 
   /**
-   * Generate embedding for a text using OpenRouter API
+   * Generate embedding for a text using local transformers
    */
   async generateEmbedding(text: string): Promise<number[]> {
     try {
-      const apiKey = process.env.OPENROUTER_API_KEY;
-      if (!apiKey) {
-        throw new Error('OPENROUTER_API_KEY not found in environment variables');
-      }
-
-      const response = await fetch(this.OPENROUTER_API_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://laltroitalia.shop',
-          'X-Title': "L'Altra Italia Shop"
-        },
-        body: JSON.stringify({
-          model: this.MODEL,
-          input: text
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
+      // Import transformers dynamically to avoid loading issues
+      const { pipeline } = await import('@xenova/transformers');
       
-      if (!data.data || !data.data[0] || !data.data[0].embedding) {
-        throw new Error('Invalid response format from OpenRouter API');
-      }
-
-      return data.data[0].embedding;
+      // Create embedding pipeline with local model
+      const embedder = await pipeline('feature-extraction', this.LOCAL_MODEL);
+      
+      // Generate embedding
+      const embedding = await embedder(text, { pooling: 'mean', normalize: true });
+      
+      // Convert to array format
+      return Array.from(embedding.data);
     } catch (error) {
-      console.error('Error generating embedding:', error);
+      console.error('Error generating local embedding:', error);
       throw error;
     }
   }
@@ -289,8 +269,10 @@ export class EmbeddingService {
         }
       }
 
-      // Sort by similarity (highest first) and limit results
+      // Filter by minimum similarity threshold and sort by similarity (highest first)
+      const MINIMUM_SIMILARITY = 0.1; // Lower threshold for FAQs due to language differences
       return results
+        .filter(result => result.similarity >= MINIMUM_SIMILARITY)
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, limit);
 
@@ -438,8 +420,10 @@ export class EmbeddingService {
         }
       }
 
-      // Sort by similarity (highest first) and limit results
+      // Filter by minimum similarity threshold and sort by similarity (highest first)
+      const MINIMUM_SIMILARITY = 0.5; // Only return results with similarity >= 0.5
       return results
+        .filter(result => result.similarity >= MINIMUM_SIMILARITY)
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, limit);
 
@@ -447,6 +431,262 @@ export class EmbeddingService {
       console.error('Error searching Services:', error);
       throw new Error('Failed to search services');
     }
+  }
+
+  /**
+   * Generate embeddings for Product content - using the EXACT same approach as FAQ/Service
+   */
+  async generateProductEmbeddings(workspaceId: string): Promise<{ processed: number; errors: string[] }> {
+    try {
+      // Get all active Products for workspace
+      const activeProducts = await prisma.products.findMany({
+        where: {
+          workspaceId: workspaceId,
+          isActive: true
+        },
+        include: {
+          category: true
+        }
+      });
+
+      if (activeProducts.length === 0) {
+        return { processed: 0, errors: ['No active products found to process'] };
+      }
+
+      // Check which Products already have chunks
+      const productsToProcess = [];
+      for (const product of activeProducts) {
+        const existingChunks = await prisma.productChunks.findMany({
+          where: { productId: product.id }
+        });
+        
+        if (existingChunks.length === 0) {
+          productsToProcess.push(product);
+        }
+      }
+
+      if (productsToProcess.length === 0) {
+        return { processed: 0, errors: ['No active products found to process'] };
+      }
+
+      let processed = 0;
+      const errors: string[] = [];
+
+      // Process each Product
+      for (const product of productsToProcess) {
+        try {
+          console.log(`Processing Product: ${product.name}`);
+          
+          // Create rich content for embedding with multilingual keywords
+          const productContent = `
+Product: ${product.name}
+Description: ${product.description || ''}
+Category: ${product.category?.name || 'General'}
+Price: €${product.price}
+Stock: ${product.stock} units
+SKU: ${product.sku || ''}
+
+Keywords and Synonyms:
+${this.generateProductKeywords(product.name, product.category?.name)}
+
+Multilingual Terms:
+${this.generateMultilingualTerms(product.name, product.category?.name)}
+          `.trim();
+          
+          // Split into chunks
+          const chunks = this.splitTextIntoChunks(productContent);
+
+          // Generate embeddings for each chunk
+          for (let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            
+            try {
+              const embedding = await this.generateEmbedding(chunk.content);
+              
+              // Save chunk with embedding to database
+              await prisma.productChunks.create({
+                data: {
+                  productId: product.id,
+                  content: chunk.content,
+                  chunkIndex: chunk.chunkIndex,
+                  embedding: embedding,
+                  workspaceId: workspaceId,
+                  language: 'multi' // Multi-language content
+                }
+              });
+              
+              // Small delay to avoid rate limiting
+              await new Promise(resolve => setTimeout(resolve, 100));
+              
+            } catch (chunkError) {
+              console.error(`Error processing chunk ${chunk.chunkIndex} for Product ${product.id}:`, chunkError);
+              errors.push(`Product "${product.name}" chunk ${chunk.chunkIndex}: ${chunkError instanceof Error ? chunkError.message : 'Unknown error'}`);
+            }
+          }
+
+          processed++;
+          console.log(`Successfully processed Product: ${product.name}`);
+
+        } catch (error) {
+          console.error(`Error processing Product ${product.name}:`, error);
+          errors.push(`Product "${product.name}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      return { processed, errors };
+
+    } catch (error) {
+      console.error('Error in generateProductEmbeddings:', error);
+      throw new Error('Failed to generate product embeddings');
+    }
+  }
+
+  /**
+   * Search across Product chunks using semantic similarity with availability check
+   */
+  async searchProducts(query: string, workspaceId: string, limit: number = 5): Promise<EmbeddingSearchResult[]> {
+    try {
+      // Generate embedding for search query
+      console.log(`[EMBEDDING] Generating embedding for query: "${query}"`);
+      const queryEmbedding = await this.generateEmbedding(query);
+      console.log(`[EMBEDDING] Query embedding generated: ${queryEmbedding.length} dimensions`);
+
+      // Get all Product chunks for the workspace
+      console.log(`[EMBEDDING] Searching in product chunks for workspace: ${workspaceId}`);
+      const chunks = await prisma.productChunks.findMany({
+        where: {
+          workspaceId: workspaceId,
+          product: {
+            isActive: true,
+            stock: {
+              gt: 0 // ONLY products with stock > 0
+            }
+          }
+        },
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              stock: true,
+              category: {
+                select: {
+                  name: true
+                }
+              }
+            }
+          }
+        }
+      });
+      console.log(`[EMBEDDING] Found ${chunks.length} product chunks to search`);
+
+      // Calculate similarity for each chunk
+      const results: EmbeddingSearchResult[] = [];
+      
+      for (const chunk of chunks) {
+        if (chunk.embedding && Array.isArray(chunk.embedding)) {
+          try {
+            const similarity = this.cosineSimilarity(queryEmbedding, chunk.embedding as number[]);
+            
+            results.push({
+              id: chunk.product.id,
+              chunkId: chunk.id,
+              content: chunk.content,
+              similarity: similarity,
+              sourceName: chunk.product.name,
+              sourceType: 'product'
+            });
+          } catch (similarityError) {
+            console.error('Error calculating similarity for Product chunk:', chunk.id, similarityError);
+          }
+        }
+      }
+
+      // Filter by minimum similarity threshold and sort by similarity (highest first)
+      const MINIMUM_SIMILARITY = 0.5; // Only return results with similarity >= 0.5
+      const filteredResults = results
+        .filter(result => result.similarity >= MINIMUM_SIMILARITY)
+        .sort((a, b) => b.similarity - a.similarity)
+        .slice(0, limit);
+      
+      console.log(`[EMBEDDING] Found ${results.length} total results, ${filteredResults.length} above threshold ${MINIMUM_SIMILARITY}`);
+      if (filteredResults.length > 0) {
+        console.log(`[EMBEDDING] Top result: "${filteredResults[0].sourceName}" with similarity ${filteredResults[0].similarity.toFixed(3)}`);
+      }
+      
+      return filteredResults;
+
+    } catch (error) {
+      console.error('Error searching Products:', error);
+      throw new Error('Failed to search products');
+    }
+  }
+
+  /**
+   * Generate product-specific keywords for better semantic search
+   */
+  private generateProductKeywords(productName: string, categoryName?: string): string {
+    const name = productName.toLowerCase();
+    const category = categoryName?.toLowerCase() || '';
+    
+    const keywords: string[] = [];
+    
+    // Food-specific keywords based on product name
+    if (name.includes('mozzarella')) {
+      keywords.push('cheese', 'formaggio', 'queso', 'fromage', 'käse', 'fresh cheese', 'dairy', 'latticini', 'lácteos');
+      if (name.includes('bufala')) {
+        keywords.push('buffalo', 'bufala', 'búfala', 'bufflonne', 'büffel');
+      }
+    }
+    
+    if (name.includes('parmigiano') || name.includes('parmesan')) {
+      keywords.push('hard cheese', 'aged cheese', 'grated cheese', 'formaggio stagionato', 'queso curado');
+    }
+    
+    if (name.includes('pasta') || name.includes('spaghetti') || name.includes('tagliatelle')) {
+      keywords.push('pasta', 'noodles', 'spaghetti', 'tagliatelle', 'linguine', 'penne', 'fusilli');
+    }
+    
+    if (name.includes('prosciutto')) {
+      keywords.push('ham', 'cured meat', 'salumi', 'jamón', 'jambon', 'schinken');
+    }
+    
+    if (name.includes('pizza')) {
+      keywords.push('pizza', 'margherita', 'napoletana', 'italian pizza');
+    }
+    
+    if (name.includes('olio') || name.includes('oil')) {
+      keywords.push('olive oil', 'extra virgin', 'olio extravergine', 'aceite de oliva');
+    }
+    
+    // Category-based keywords
+    if (category.includes('cheese')) {
+      keywords.push('dairy products', 'cheese', 'formaggio', 'queso', 'fromage');
+    }
+    
+    return keywords.join(', ');
+  }
+
+  /**
+   * Generate multilingual terms for better international search
+   */
+  private generateMultilingualTerms(productName: string, categoryName?: string): string {
+    const terms: string[] = [];
+    
+    // Italian terms
+    terms.push('prodotto italiano', 'made in italy', 'autentico', 'tradizionale', 'artigianale');
+    
+    // Spanish terms  
+    terms.push('producto italiano', 'hecho en italia', 'auténtico', 'tradicional', 'artesanal');
+    
+    // English terms
+    terms.push('italian product', 'authentic', 'traditional', 'artisanal', 'gourmet');
+    
+    // French terms
+    terms.push('produit italien', 'authentique', 'traditionnel', 'artisanal');
+    
+    return terms.join(', ');
   }
 }
 

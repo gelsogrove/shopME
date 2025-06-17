@@ -1395,33 +1395,7 @@ export class MessageRepository {
     }
   }
   
-  /**
-   * Get response from RAG system
-   * @param agent The agent to use
-   * @param message The user message
-   * @param products List of products
-   * @param services List of services
-   * @param chatHistory Previous chat messages
-   * @param customer Customer information
-   * @returns RAG-enhanced prompt
-   */
-  async getResponseFromRag(
-    agent: any,
-    message: string,
-    products: any[],
-    services: any[],
-    chatHistory: any[],
-    customer: any
-  ) {
-    try {
-      // In a real implementation, this would process the message with RAG
-      // For now, we'll just return the agent content as the prompt
-      return agent.content || "Default prompt"
-    } catch (error) {
-      logger.error("Error getting response from RAG:", error)
-      return "Failed to get RAG response"
-    }
-  }
+
   
   /**
    * Get conversation response from LLM
@@ -1454,40 +1428,25 @@ export class MessageRepository {
    */
   async countRecentMessages(phoneNumber: string, workspaceId: string, since: Date): Promise<number> {
     try {
-      // Find customer by phone
-      const customer = await this.findCustomerByPhone(phoneNumber, workspaceId);
-      if (!customer) {
-        return 0;
-      }
-
-      // Find active chat session
-      const session = await this.prisma.chatSession.findFirst({
+      const count = await this.prisma.message.count({
         where: {
-          customerId: customer.id,
-          workspaceId,
-          status: "active",
-        },
-      });
-
-      if (!session) {
-        return 0;
-      }
-
-      // Count INBOUND messages (from user) since the specified time
-      const messageCount = await this.prisma.message.count({
-        where: {
-          chatSessionId: session.id,
+          chatSession: {
+            workspaceId: workspaceId,
+            customer: {
+              phone: phoneNumber
+            }
+          },
           direction: MessageDirection.INBOUND,
           createdAt: {
-            gte: since,
-          },
-        },
+            gte: since
+          }
+        }
       });
-
-      return messageCount;
+      
+      return count;
     } catch (error) {
-      logger.error("Error counting recent messages:", error);
-      return 0;
+      logger.error('Error counting recent messages:', error);
+      return 0; // Return 0 on error to avoid false positives
     }
   }
 
@@ -1558,6 +1517,626 @@ export class MessageRepository {
     } catch (error) {
       logger.error("Error adding to workspace blocklist:", error);
       throw error;
+    }
+  }
+
+  /**
+   * TASK 4: Check if customer has recent activity within specified hours
+   * Used for "Bentornato {NOME}" functionality
+   * 
+   * @param customerId The customer ID
+   * @param hours Number of hours to check back (default: 2)
+   * @param workspaceId The workspace ID for filtering
+   * @returns true if customer has recent activity, false otherwise
+   */
+  async hasRecentActivity(customerId: string, hours: number = 2, workspaceId?: string): Promise<boolean> {
+    try {
+      const hoursAgo = new Date();
+      hoursAgo.setHours(hoursAgo.getHours() - hours);
+
+      const recentMessage = await this.prisma.message.findFirst({
+        where: {
+          chatSession: {
+            customerId: customerId,
+            ...(workspaceId && { workspaceId: workspaceId })
+          },
+          direction: MessageDirection.INBOUND, // Only check incoming messages from customer
+          createdAt: {
+            gte: hoursAgo
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      const hasActivity = !!recentMessage;
+      
+      logger.info(`[TASK4] hasRecentActivity for customer ${customerId}: ${hasActivity} (within ${hours} hours)`);
+      
+      return hasActivity;
+    } catch (error) {
+      logger.error(`[TASK4] Error checking recent activity for customer ${customerId}:`, error);
+      return false; // Return false on error to trigger welcome back message (safer)
+    }
+  }
+
+
+
+  /**
+   * Get WIP message from database - NO HARDCODE
+   * @param workspaceId Workspace ID
+   * @param language Customer language
+   * @returns WIP message from database
+   */
+  async getWipMessage(workspaceId: string, language: string): Promise<string> {
+    try {
+      const workspace = await this.prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        select: { wipMessages: true }
+      });
+
+      if (!workspace?.wipMessages) {
+        logger.warn(`No WIP messages found for workspace ${workspaceId}`);
+        return "Service temporarily unavailable. We will be back soon!";
+      }
+
+      const wipMessages = workspace.wipMessages as Record<string, string>;
+      return wipMessages[language] || wipMessages['en'] || "Service temporarily unavailable. We will be back soon!";
+    } catch (error) {
+      logger.error(`Error getting WIP message for workspace ${workspaceId}:`, error);
+      return "Service temporarily unavailable. We will be back soon!";
+    }
+  }
+
+  /**
+   * Get welcome message from database - NO HARDCODE
+   * @param workspaceId Workspace ID
+   * @param language Customer language
+   * @returns Welcome message from database
+   */
+  async getWelcomeMessage(workspaceId: string, language: string): Promise<string> {
+    try {
+      const workspace = await this.prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        select: { welcomeMessages: true }
+      });
+
+      if (!workspace?.welcomeMessages) {
+        logger.warn(`No welcome messages found for workspace ${workspaceId}`);
+        return "Welcome! Please register to continue:";
+      }
+
+      const welcomeMessages = workspace.welcomeMessages as Record<string, string>;
+      return welcomeMessages[language] || welcomeMessages['en'] || "Welcome! Please register to continue:";
+    } catch (error) {
+      logger.error(`Error getting welcome message for workspace ${workspaceId}:`, error);
+      return "Welcome! Please register to continue:";
+    }
+  }
+
+  /**
+   * Get welcome back message from database - NO HARDCODE
+   * Uses afterRegistrationMessages as welcome back messages
+   * @param workspaceId Workspace ID
+   * @param customerName Customer name
+   * @param language Customer language
+   * @returns Welcome back message from database
+   */
+  async getWelcomeBackMessage(workspaceId: string, customerName: string, language: string): Promise<string> {
+    try {
+      const workspace = await this.prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        select: { afterRegistrationMessages: true }
+      });
+
+      if (!workspace?.afterRegistrationMessages) {
+        logger.warn(`No after registration messages found for workspace ${workspaceId}`);
+        return `Welcome back, ${customerName}! How can I help you today?`;
+      }
+
+      const afterRegMessages = workspace.afterRegistrationMessages as Record<string, string>;
+      const template = afterRegMessages[language] || afterRegMessages['en'] || `Welcome back, {name}! How can I help you today?`;
+      
+      return template.replace('{name}', customerName).replace('{customerName}', customerName).replace('[nome]', customerName);
+    } catch (error) {
+      logger.error(`Error getting welcome back message for workspace ${workspaceId}:`, error);
+      return `Welcome back, ${customerName}! How can I help you today?`;
+    }
+  }
+
+  /**
+   * Get error message from database - NO HARDCODE
+   * Uses wipMessages as fallback for error messages
+   * @param workspaceId Workspace ID
+   * @param language Customer language
+   * @returns Error message from database
+   */
+  async getErrorMessage(workspaceId: string, language: string): Promise<string> {
+    try {
+      const workspace = await this.prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        select: { wipMessages: true }
+      });
+
+      if (!workspace?.wipMessages) {
+        logger.warn(`No error messages found for workspace ${workspaceId}`);
+        return "Sorry, I'm having technical difficulties. Please try again later.";
+      }
+
+      // Use WIP messages as error messages fallback
+      const wipMessages = workspace.wipMessages as Record<string, string>;
+      return wipMessages[language] || wipMessages['en'] || "Sorry, I'm having technical difficulties. Please try again later.";
+    } catch (error) {
+      logger.error(`Error getting error message for workspace ${workspaceId}:`, error);
+      return "Sorry, I'm having technical difficulties. Please try again later.";
+    }
+  }
+
+  /**
+   * Get agent configuration from database - NO HARDCODE
+   * @param workspaceId Workspace ID
+   * @returns Agent configuration from database
+   */
+  async getAgentConfig(workspaceId: string): Promise<{
+    prompt: string;
+    model: string;
+    temperature: number;
+    maxTokens: number;
+  } | null> {
+    try {
+      const agentConfig = await this.prisma.agentConfig.findFirst({
+        where: {
+          workspaceId: workspaceId,
+          isActive: true
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      if (!agentConfig) {
+        return null
+      }
+
+      return {
+        prompt: agentConfig.prompt || "",
+        model: agentConfig.model || "openai/gpt-4o-mini",
+        temperature: agentConfig.temperature || 0.7,
+        maxTokens: agentConfig.maxTokens || 1000
+      }
+    } catch (error) {
+      logger.error(`Error getting agent config for workspace ${workspaceId}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Get workspace URL for registration links
+   */
+  async getWorkspaceUrl(workspaceId: string): Promise<string> {
+    try {
+      const workspace = await this.prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        select: { url: true }
+      });
+      
+      if (!workspace?.url) {
+        logger.warn(`No URL found for workspace ${workspaceId}, using default`);
+        return 'http://localhost:3000';
+      }
+      
+      return workspace.url;
+    } catch (error) {
+      logger.error('Error getting workspace URL:', error);
+      return 'http://localhost:3000';
+    }
+  }
+
+  /**
+   * Get prompt by name from database
+   */
+  async getPromptByName(workspaceId: string, promptName: string): Promise<{
+    id: string;
+    name: string;
+    content: string;
+    model: string;
+    temperature: number;
+    maxTokens: number;
+  } | null> {
+    try {
+      const prompt = await this.prisma.prompts.findFirst({
+        where: {
+          workspaceId,
+          name: promptName,
+          isActive: true
+        },
+        select: {
+          id: true,
+          name: true,
+          content: true,
+          model: true,
+          temperature: true,
+          max_tokens: true
+        }
+      });
+      
+      if (!prompt) {
+        logger.warn(`Prompt "${promptName}" not found for workspace ${workspaceId}`);
+        return null;
+      }
+      
+      return {
+        id: prompt.id,
+        name: prompt.name,
+        content: prompt.content,
+        model: prompt.model || 'openai/gpt-4o-mini',
+        temperature: prompt.temperature || 0.7,
+        maxTokens: prompt.max_tokens || 1000
+      };
+    } catch (error) {
+      logger.error(`Error getting prompt "${promptName}":`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Get RAG response with dynamic configuration - NO HARDCODE
+   * @param customer Customer object
+   * @param message User message
+   * @param prompt Agent prompt from database
+   * @param model Model from database
+   * @param temperature Temperature from database
+   * @param maxTokens Max tokens from database
+   * @param workspaceId Workspace ID
+   * @returns RAG response
+   */
+  async getResponseFromRag(
+    customer: any,
+    message: string,
+    prompt: string,
+    model: string,
+    temperature: number,
+    maxTokens: number,
+    workspaceId: string,
+    welcomeBackContext?: string
+  ): Promise<string | null> {
+    try {
+      // Import embedding service for semantic search
+      const { embeddingService } = await import('../services/embeddingService');
+      
+      // STEP 1: SEMANTIC SEARCH ACROSS ALL CHUNKS
+      logger.info(`[RAG] Searching all content types for: "${message}"`);
+      
+      // Search all content types in parallel using semantic search
+      const [productResults, faqResults, serviceResults, documentResults] = await Promise.all([
+        embeddingService.searchProducts(message, workspaceId, 5),
+        embeddingService.searchFAQs(message, workspaceId, 5), 
+        embeddingService.searchServices(message, workspaceId, 5),
+        Promise.resolve([]) // Documents search not implemented yet
+      ]);
+
+      logger.info(`[RAG] Found: ${productResults.length} products, ${faqResults.length} FAQs, ${serviceResults.length} services, ${documentResults.length} documents`);
+
+      // STEP 2: GET FULL PRODUCT DETAILS WITH STOCK VERIFICATION
+      const productIds = productResults.map(r => r.id);
+      const fullProducts = productIds.length > 0 ? await this.prisma.products.findMany({
+        where: {
+          id: { in: productIds },
+          workspaceId: workspaceId,
+          isActive: true,
+          stock: { gt: 0 } // VERIFY AVAILABILITY
+        },
+        include: {
+          category: true
+        }
+      }) : [];
+
+      // STEP 3: GET FULL FAQ DETAILS
+      const faqIds = faqResults.map(r => r.id);
+      const fullFAQs = faqIds.length > 0 ? await this.prisma.fAQ.findMany({
+        where: {
+          id: { in: faqIds },
+          workspaceId: workspaceId,
+          isActive: true
+        }
+      }) : [];
+
+      // STEP 4: GET FULL SERVICE DETAILS  
+      const serviceIds = serviceResults.map(r => r.id);
+      const fullServices = serviceIds.length > 0 ? await this.prisma.services.findMany({
+        where: {
+          id: { in: serviceIds },
+          workspaceId: workspaceId,
+          isActive: true
+        }
+      }) : [];
+
+      // STEP 5: GET CHAT HISTORY
+      const chatHistory = await this.getLatesttMessages(customer.phone, 5, workspaceId);
+
+      // STEP 6: BUILD UNIFIED CONTEXT FOR LLM FORMATTER
+      const unifiedContext = {
+        customer: {
+          name: customer.name,
+          language: customer.language,
+          discount: customer.discount
+        },
+        welcomeBack: welcomeBackContext || null,
+        searchResults: {
+          products: productResults.map(r => ({
+            similarity: r.similarity,
+            content: r.content,
+            product: fullProducts.find(p => p.id === r.id)
+          })).filter(r => r.product), // Only include available products
+          faqs: faqResults.map(r => ({
+            similarity: r.similarity,
+            content: r.content,
+            faq: fullFAQs.find(f => f.id === r.id)
+          })).filter(r => r.faq),
+          services: serviceResults.map(r => ({
+            similarity: r.similarity,
+            content: r.content,
+            service: fullServices.find(s => s.id === r.id)
+          })).filter(r => r.service),
+          documents: documentResults
+        },
+        chatHistory: chatHistory.slice(0, 5)
+      };
+
+      // STEP 7: BUILD COMPREHENSIVE PROMPT FOR LLM FORMATTER
+      const finalPrompt = `${prompt}
+
+CUSTOMER CONTEXT:
+- Name: ${unifiedContext.customer.name}
+- Language: ${unifiedContext.customer.language}
+- Discount: ${unifiedContext.customer.discount}%
+
+${unifiedContext.welcomeBack ? `WELCOME BACK MESSAGE: ${unifiedContext.welcomeBack}` : ''}
+
+SEMANTIC SEARCH RESULTS:
+
+PRODUCTS FOUND (with availability):
+${unifiedContext.searchResults.products.map(r => 
+  `- ${r.product?.name} (Similarity: ${r.similarity.toFixed(3)})
+    Price: €${r.product?.price}
+    Stock: ${r.product?.stock} units available
+    Category: ${r.product?.category?.name || 'General'}
+    Match: ${r.content}`
+).join('\n\n')}
+
+FAQS FOUND:
+${unifiedContext.searchResults.faqs.map(r => 
+  `- ${r.faq?.question} (Similarity: ${r.similarity.toFixed(3)})
+    Answer: ${r.faq?.answer}
+    Match: ${r.content}`
+).join('\n\n')}
+
+SERVICES FOUND:
+${unifiedContext.searchResults.services.map(r => 
+  `- ${r.service?.name} (Similarity: ${r.similarity.toFixed(3)})
+    Description: ${r.service?.description}
+    Price: €${r.service?.price}
+    Duration: ${r.service?.duration || 'N/A'}
+    Match: ${r.content}`
+).join('\n\n')}
+
+DOCUMENTS FOUND:
+${unifiedContext.searchResults.documents.map(r => 
+  `- Document: ${r.sourceName} (Similarity: ${r.similarity.toFixed(3)})
+    Content: ${r.content}`
+).join('\n\n')}
+
+RECENT CHAT HISTORY:
+${unifiedContext.chatHistory.map(h => `${h.direction === MessageDirection.INBOUND ? 'Customer' : 'Bot'}: ${h.content}`).join('\n')}
+
+CUSTOMER MESSAGE: ${message}
+
+INSTRUCTIONS FOR LLM FORMATTER:
+- Combine ALL relevant information into a single, coherent response
+- Include welcome back message if provided
+- Show product availability and prices
+- Include FAQ answers if relevant
+- Mention services if applicable
+- Reference document information if found
+- Respond in ${unifiedContext.customer.language}
+- Be helpful and comprehensive but concise`;
+
+      logger.info(`[RAG] Sending unified context to LLM formatter (${model})`);
+
+      // STEP 8: CALL LLM FORMATTER WITH UNIFIED CONTEXT
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            {
+              role: 'user',
+              content: finalPrompt
+            }
+          ],
+          temperature: temperature,
+          max_tokens: maxTokens
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenRouter API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const formattedResponse = data.choices?.[0]?.message?.content || null;
+      
+      logger.info(`[RAG] LLM formatter response generated successfully`);
+      return formattedResponse;
+
+    } catch (error) {
+      logger.error('Error in getResponseFromRag:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get Prisma client for direct database access (public method for services)
+   */
+  public getPrismaClient(): PrismaClient {
+    return this.prisma
+  }
+
+  /**
+   * Find services with filtering (public method for LangChain)
+   */
+  public async findServices(workspaceId: string, options?: {
+    category?: string
+    limit?: number
+    isActive?: boolean
+  }) {
+    try {
+      const whereClause: any = {
+        workspaceId,
+        isActive: options?.isActive ?? true
+      }
+
+      if (options?.category) {
+        whereClause.category = options.category
+      }
+
+      return await this.prisma.services.findMany({
+        where: whereClause,
+        take: options?.limit || 10,
+        orderBy: { name: 'asc' }
+      })
+    } catch (error) {
+      logger.error('Error finding services:', error)
+      return []
+    }
+  }
+
+  /**
+   * Find products with filtering (public method for LangChain)
+   */
+  public async findProducts(workspaceId: string, options?: {
+    category?: string
+    productIds?: string[]
+    limit?: number
+    isActive?: boolean
+  }) {
+    try {
+      const whereClause: any = {
+        workspaceId,
+        isActive: options?.isActive ?? true
+      }
+
+      if (options?.category) {
+        whereClause.category = { name: options.category }
+      }
+
+      if (options?.productIds && options.productIds.length > 0) {
+        whereClause.id = { in: options.productIds }
+      }
+
+      return await this.prisma.products.findMany({
+        where: whereClause,
+        include: { category: true },
+        take: options?.limit || 10,
+        orderBy: { name: 'asc' }
+      })
+    } catch (error) {
+      logger.error('Error finding products:', error)
+      return []
+    }
+  }
+
+  /**
+   * Find FAQs with filtering (public method for LangChain)
+   */
+  public async findFAQs(workspaceId: string, options?: {
+    topic?: string
+    limit?: number
+    isActive?: boolean
+  }) {
+    try {
+      const whereClause: any = {
+        workspaceId,
+        isActive: options?.isActive ?? true
+      }
+
+      if (options?.topic) {
+        whereClause.OR = [
+          { question: { contains: options.topic, mode: 'insensitive' } },
+          { answer: { contains: options.topic, mode: 'insensitive' } }
+        ]
+      }
+
+      return await this.prisma.fAQ.findMany({
+        where: whereClause,
+        take: options?.limit || 5,
+        orderBy: { createdAt: 'desc' }
+      })
+    } catch (error) {
+      logger.error('Error finding FAQs:', error)
+      return []
+    }
+  }
+
+  /**
+   * Find offers with filtering (public method for LangChain)
+   */
+  public async findOffers(workspaceId: string, options?: {
+    category?: string
+    limit?: number
+    isActive?: boolean
+  }) {
+    try {
+      const now = new Date()
+      const whereClause: any = {
+        workspaceId,
+        isActive: options?.isActive ?? true,
+        startDate: { lte: now },
+        endDate: { gte: now }
+      }
+
+      if (options?.category) {
+        whereClause.category = { name: options.category }
+      }
+
+      return await this.prisma.offers.findMany({
+        where: whereClause,
+        include: { category: true },
+        take: options?.limit || 10,
+        orderBy: { discountPercent: 'desc' }
+      })
+    } catch (error) {
+      logger.error('Error finding offers:', error)
+      return []
+    }
+  }
+
+  /**
+   * Create order (public method for LangChain)
+   */
+  public async createOrder(data: {
+    customerId: string
+    workspaceId: string
+    status?: string
+    total?: number
+  }) {
+    try {
+      return await this.prisma.orders.create({
+        data: {
+          customerId: data.customerId,
+          workspaceId: data.workspaceId,
+          status: data.status || 'PENDING',
+          total: data.total || 0
+        }
+      })
+    } catch (error) {
+      logger.error('Error creating order:', error)
+      throw new Error('Failed to create order')
     }
   }
 }

@@ -251,7 +251,97 @@ export class CustomersController {
       
       res.json({ count });
     } catch (error) {
-      logger.error('Error counting unknown customers:', error);
+      logger.error("Error counting unknown customers:", error);
+      next(error);
+    }
+  }
+
+  /**
+   * TASK 3: Operator Control Release Mechanism
+   * 
+   * Endpoint specifico per gestire il controllo del chatbot.
+   * Permette agli operatori di rilasciare/riprendere il controllo AI.
+   * 
+   * PUT /api/workspaces/:workspaceId/customers/:customerId/chatbot-control
+   * Body: { activeChatbot: boolean, reason?: string }
+   */
+  async updateChatbotControl(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { customerId, workspaceId } = req.params;
+      const { activeChatbot, reason } = req.body;
+      
+      // Validazione input
+      if (typeof activeChatbot !== 'boolean') {
+        return res.status(400).json({ 
+          message: 'activeChatbot must be a boolean value' 
+        });
+      }
+
+      logger.info(`[TASK3] CHATBOT_CONTROL_CHANGE_REQUEST: customer-${customerId} activeChatbot=${activeChatbot} in workspace-${workspaceId}`, {
+        customerId,
+        workspaceId,
+        activeChatbot,
+        reason: reason || 'No reason provided',
+        requestedBy: req.user?.id || 'unknown' // Assumendo che req.user sia disponibile dal middleware auth
+      });
+
+      // Verifica che il customer esista
+      const existingCustomer = await this.customerService.getById(customerId, workspaceId);
+      if (!existingCustomer) {
+        logger.warn(`[TASK3] CHATBOT_CONTROL_CHANGE_FAILED: customer-${customerId} not found in workspace-${workspaceId}`);
+        return res.status(404).json({ message: 'Customer not found' });
+      }
+
+      // Aggiorna solo il campo activeChatbot
+      const updateData = {
+        activeChatbot,
+        // Aggiungiamo metadata per tracking
+        chatbotControlChangedAt: new Date(),
+        chatbotControlChangedBy: req.user?.id || 'unknown',
+        chatbotControlChangeReason: reason || null
+      };
+
+      const updatedCustomer = await this.customerService.update(customerId, workspaceId, updateData);
+
+      // Logging dettagliato per audit
+      logger.info(`[TASK3] CHATBOT_CONTROL_CHANGED: customer-${customerId} activeChatbot=${activeChatbot} by user-${req.user?.id || 'unknown'}`, {
+        customerId,
+        workspaceId,
+        previousState: existingCustomer.activeChatbot,
+        newState: activeChatbot,
+        reason: reason || 'No reason provided',
+        changedBy: req.user?.id || 'unknown',
+        timestamp: new Date().toISOString()
+      });
+
+      // Risposta con informazioni utili
+      res.json({
+        success: true,
+        customer: {
+          id: updatedCustomer.id,
+          name: updatedCustomer.name,
+          phone: updatedCustomer.phone,
+          activeChatbot: updatedCustomer.activeChatbot
+        },
+        change: {
+          previousState: existingCustomer.activeChatbot,
+          newState: activeChatbot,
+          reason: reason || null,
+          changedAt: new Date().toISOString(),
+          changedBy: req.user?.id || 'unknown'
+        },
+        message: activeChatbot 
+          ? 'Chatbot control activated - AI will handle messages'
+          : 'Chatbot control deactivated - Manual operator control active'
+      });
+
+    } catch (error: any) {
+      logger.error(`[TASK3] CHATBOT_CONTROL_CHANGE_ERROR: customer-${req.params.customerId}:`, error);
+      
+      if (error.message === 'Customer not found') {
+        return res.status(404).json({ message: 'Customer not found' });
+      }
+      
       next(error);
     }
   }

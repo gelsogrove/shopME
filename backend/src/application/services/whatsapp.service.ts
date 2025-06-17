@@ -1,5 +1,11 @@
 import { MessageDirection, PrismaClient } from '@prisma/client';
+import { MessageRepository } from '../../repositories/message.repository';
 import logger from '../../utils/logger';
+import { ApiLimitService } from './api-limit.service';
+import { CheckoutService } from './checkout.service';
+import { LangChainMessageService } from './langchain-message.service';
+import { MessageService } from './message.service';
+import { TokenService } from './token.service';
 
 /**
  * Interface for WhatsApp message properties
@@ -21,61 +27,114 @@ interface WhatsAppMessageProps {
  */
 export class WhatsAppService {
   private prisma: PrismaClient;
+  private messageService: MessageService;
+  private langChainMessageService: LangChainMessageService;
 
   constructor() {
     this.prisma = new PrismaClient();
+    this.messageService = new MessageService();
+    
+    // Initialize LangChain service with dependencies
+    const messageRepository = new MessageRepository();
+    const tokenService = new TokenService();
+    const checkoutService = new CheckoutService();
+    const apiLimitService = new ApiLimitService(this.prisma);
+    
+    this.langChainMessageService = new LangChainMessageService(
+      messageRepository,
+      tokenService,
+      checkoutService,
+      apiLimitService
+    );
   }
 
   /**
-   * Process incoming webhook data from Meta API
-   * @param data The webhook payload
+   * 🎯 ORCHESTRAZIONE PRINCIPALE DEL FLOW WHATSAPP CON LANGCHAIN
+   * 
+   * Questo metodo è il PUNTO DI INGRESSO per tutti i messaggi WhatsApp.
+   * Gestisce l'intero ciclo di vita del messaggio con architettura dual-LLM:
+   * 
+   * 1. 📥 RICEZIONE: Riceve webhook da Meta API
+   * 2. 🔍 VALIDAZIONE: Verifica formato e workspace
+   * 3. 👤 CUSTOMER: Trova/crea customer e chat session
+   * 4. 💾 STORAGE: Salva messaggio INBOUND nel database
+   * 5. 🧠 LANGCHAIN: Chiama LangChainMessageService.processMessage() 
+   * 6. 📤 RESPONSE: Gestisce risposta bot (invio + storage)
+   * 7. ⚠️ ERROR HANDLING: Gestisce errori con fallback
+   * 
+   * @param data The webhook payload from Meta API
    */
   async processWebhook(data: any): Promise<void> {
     try {
-      // Extract the relevant information from webhook data
+      console.log(`[WEBHOOK] 🎯 ORCHESTRAZIONE INIZIATA - Processing webhook data with LangChain`);
+      logger.info(`[WEBHOOK] 🎯 ORCHESTRAZIONE INIZIATA - Processing webhook data with LangChain`);
+      
+      // 📥 STEP 1: RICEZIONE - Extract webhook data
       const entry = data.entry?.[0];
       const changes = entry?.changes?.[0];
       const value = changes?.value;
       const messages = value?.messages;
 
+      console.log(`[WEBHOOK] Raw data:`, JSON.stringify(data, null, 2));
+
       if (!messages || messages.length === 0) {
-        logger.info('No messages in webhook');
+        console.log('[WEBHOOK] 📥 RICEZIONE - No messages in webhook');
+        logger.info('[WEBHOOK] 📥 RICEZIONE - No messages in webhook');
         return;
       }
 
+      console.log(`[WEBHOOK] Found ${messages.length} messages to process`);
+
       // Process each message
       for (const message of messages) {
-        const from = message.from; // Phone number that sent the message
+        const from = message.from; // Phone number that sent the message (CUSTOMER)
+        const to = value?.metadata?.phone_number_id || value?.metadata?.display_phone_number; // Business phone number
         const text = message.text?.body;
         const messageId = message.id;
         const timestamp = message.timestamp;
 
+        console.log(`[WEBHOOK] Processing message from: ${from} TO business: ${to}, text: ${text}`);
+
+        // 🔍 STEP 2: VALIDAZIONE - Verify message format
         if (!from || !text) {
-          logger.warn('Invalid message format in webhook', { message });
+          console.log('[WEBHOOK] 🔍 VALIDAZIONE - Invalid message format', { message });
+          logger.warn('[WEBHOOK] 🔍 VALIDAZIONE - Invalid message format', { message });
           continue;
         }
 
-        // Find the workspace associated with this phone number
-        const whatsappSettings = await this.prisma.whatsappSettings.findFirst({
+        console.log(`[WEBHOOK] 🔍 VALIDAZIONE - Message received from ${from}: "${text.substring(0, 30)}..."`);
+        logger.info(`[WEBHOOK] 🔍 VALIDAZIONE - Message received from ${from}: "${text.substring(0, 30)}..."`);
+
+        // Find the workspace associated with this BUSINESS phone number (not customer)
+        let whatsappSettings = null;
+        
+        // Instead of looking for specific phone numbers, just get the first active workspace settings
+        // since any customer can write to the business
+        console.log(`[WEBHOOK] Looking for any active WhatsApp settings...`);
+        whatsappSettings = await this.prisma.whatsappSettings.findFirst({
           where: {
-            phoneNumber: {
-              contains: from
+            workspace: {
+              isActive: true,
+              isDelete: false
             }
           }
         });
 
+        console.log(`[WEBHOOK] WhatsApp settings found:`, whatsappSettings);
+
         if (!whatsappSettings) {
-          logger.warn('No workspace found for incoming message', { from });
+          console.log('[WEBHOOK] 🔍 VALIDAZIONE - No workspace found for incoming message', { from });
+          logger.warn('[WEBHOOK] 🔍 VALIDAZIONE - No workspace found for incoming message', { from });
           continue;
         }
 
-        logger.info('Processing incoming WhatsApp message', {
-          from,
-          text: text.substring(0, 20) + (text.length > 20 ? '...' : ''),
-          workspaceId: whatsappSettings.workspaceId
-        });
+        console.log(`[WEBHOOK] 🔍 VALIDAZIONE - Workspace found: ${whatsappSettings.workspaceId}`);
+        logger.info(`[WEBHOOK] 🔍 VALIDAZIONE - Workspace found: ${whatsappSettings.workspaceId}`);
 
-        // Find or create customer
+        // 👤 STEP 3: CUSTOMER - Find or create customer
+        console.log(`[WEBHOOK] 👤 CUSTOMER - Finding/creating customer for ${from}`);
+        logger.info(`[WEBHOOK] 👤 CUSTOMER - Finding/creating customer for ${from}`);
+        
         let customer = await this.prisma.customers.findFirst({
           where: {
             phone: from,
@@ -93,7 +152,11 @@ export class WhatsAppService {
               email: `${from.replace('+', '')}@whatsapp.customer`
             }
           });
-          logger.info('Created new customer from WhatsApp', { customerId: customer.id });
+          console.log(`[WEBHOOK] 👤 CUSTOMER - Created new customer: ${customer.id}`);
+          logger.info(`[WEBHOOK] 👤 CUSTOMER - Created new customer: ${customer.id}`);
+        } else {
+          console.log(`[WEBHOOK] 👤 CUSTOMER - Found existing customer: ${customer.id}`);
+          logger.info(`[WEBHOOK] 👤 CUSTOMER - Found existing customer: ${customer.id}`);
         }
 
         // Find or create chat session
@@ -112,10 +175,17 @@ export class WhatsAppService {
               status: 'active'
             }
           });
-          logger.info('Created new chat session', { sessionId: chatSession.id });
+          console.log(`[WEBHOOK] 👤 CUSTOMER - Created new chat session: ${chatSession.id}`);
+          logger.info(`[WEBHOOK] 👤 CUSTOMER - Created new chat session: ${chatSession.id}`);
+        } else {
+          console.log(`[WEBHOOK] 👤 CUSTOMER - Using existing chat session: ${chatSession.id}`);
+          logger.info(`[WEBHOOK] 👤 CUSTOMER - Using existing chat session: ${chatSession.id}`);
         }
 
-        // Save the incoming message
+        // 💾 STEP 4: STORAGE - Save incoming message
+        console.log(`[WEBHOOK] 💾 STORAGE - Saving INBOUND message to database`);
+        logger.info(`[WEBHOOK] 💾 STORAGE - Saving INBOUND message to database`);
+        
         await this.prisma.message.create({
           data: {
             chatSessionId: chatSession.id,
@@ -130,11 +200,100 @@ export class WhatsAppService {
           }
         });
 
-        // Process message through the bot if configured
-        // This would typically call the MessageService or similar
+        // 🧠 STEP 5: LANGCHAIN PROCESSING - Call LangChain dual-LLM service
+        console.log(`[WEBHOOK] 🧠 LANGCHAIN - Calling LangChainMessageService.processMessage()`);
+        console.log(`[WEBHOOK] 🧠 LANGCHAIN - Input: message="${text}", phone="${from}", workspace="${whatsappSettings.workspaceId}"`);
+        logger.info(`[WEBHOOK] 🧠 LANGCHAIN - Calling LangChainMessageService.processMessage()`);
+        logger.info(`[WEBHOOK] 🧠 LANGCHAIN - Input: message="${text}", phone="${from}", workspace="${whatsappSettings.workspaceId}"`);
+        
+        try {
+          // Use LangChain service instead of regular MessageService
+          const botResponse = await this.langChainMessageService.processMessage(
+            text,
+            from,
+            whatsappSettings.workspaceId
+          );
+
+          console.log(`[WEBHOOK] 🧠 LANGCHAIN - Response received: ${botResponse}`);
+
+          // 📤 STEP 6: RESPONSE - Handle bot response
+          if (botResponse && botResponse.trim() !== '') {
+            console.log(`[WEBHOOK] 📤 RESPONSE - LangChain generated response: "${botResponse.substring(0, 50)}..."`);
+            logger.info(`[WEBHOOK] 📤 RESPONSE - LangChain generated response: "${botResponse.substring(0, 50)}..."`);
+            
+            // TODO: Qui dovremmo chiamare l'API di WhatsApp per inviare la risposta
+            // Per ora logghiamo solo la risposta
+            console.log(`[WEBHOOK] 📤 RESPONSE - Would send WhatsApp message to ${from}`);
+            logger.info(`[WEBHOOK] 📤 RESPONSE - Would send WhatsApp message to ${from}`);
+            
+            // Salva la risposta del bot nel database
+            await this.prisma.message.create({
+              data: {
+                chatSessionId: chatSession.id,
+                content: botResponse,
+                direction: MessageDirection.OUTBOUND,
+                type: 'TEXT',
+                metadata: {
+                  source: 'langchain_bot',
+                  timestamp: new Date().toISOString()
+                }
+              }
+            });
+            
+            console.log(`[WEBHOOK] 📤 RESPONSE - OUTBOUND message saved to database`);
+            logger.info(`[WEBHOOK] 📤 RESPONSE - OUTBOUND message saved to database`);
+            
+          } else if (botResponse === null) {
+            console.log(`[WEBHOOK] 📤 RESPONSE - LangChain returned NULL (message blocked: spam/blacklist)`);
+            logger.info(`[WEBHOOK] 📤 RESPONSE - LangChain returned NULL (message blocked: spam/blacklist)`);
+          } else {
+            console.log(`[WEBHOOK] 📤 RESPONSE - LangChain returned EMPTY (operator control or no response needed)`);
+            logger.info(`[WEBHOOK] 📤 RESPONSE - LangChain returned EMPTY (operator control or no response needed)`);
+          }
+          
+        } catch (messageError) {
+          // ⚠️ STEP 7: ERROR HANDLING - Handle processing errors with fallback
+          console.error(`[WEBHOOK] ⚠️ ERROR HANDLING - LangChain error, falling back to regular MessageService:`, messageError);
+          logger.error(`[WEBHOOK] ⚠️ ERROR HANDLING - LangChain error, falling back to regular MessageService:`, messageError);
+          
+          // Fallback to regular MessageService if LangChain fails
+          try {
+            const fallbackResponse = await this.messageService.processMessage(
+              text,
+              from,
+              whatsappSettings.workspaceId
+            );
+            
+            if (fallbackResponse && fallbackResponse.trim() !== '') {
+              console.log(`[WEBHOOK] ⚠️ FALLBACK - Regular MessageService response: "${fallbackResponse.substring(0, 50)}..."`);
+              logger.info(`[WEBHOOK] ⚠️ FALLBACK - Regular MessageService response: "${fallbackResponse.substring(0, 50)}..."`);
+              
+          await this.prisma.message.create({
+            data: {
+              chatSessionId: chatSession.id,
+                  content: fallbackResponse,
+              direction: MessageDirection.OUTBOUND,
+              type: 'TEXT',
+              metadata: {
+                    source: 'fallback_bot',
+                    timestamp: new Date().toISOString()
+              }
+            }
+          });
+            }
+          } catch (fallbackError) {
+            console.error(`[WEBHOOK] ⚠️ FALLBACK ERROR - Both LangChain and regular MessageService failed:`, fallbackError);
+            logger.error(`[WEBHOOK] ⚠️ FALLBACK ERROR - Both LangChain and regular MessageService failed:`, fallbackError);
+        }
+        }
       }
+      
+      console.log(`[WEBHOOK] ✅ ORCHESTRAZIONE COMPLETATA - All messages processed`);
+      logger.info(`[WEBHOOK] ✅ ORCHESTRAZIONE COMPLETATA - All messages processed`);
+      
     } catch (error) {
-      logger.error('Error processing WhatsApp webhook', error);
+      console.error('[WEBHOOK] ❌ ORCHESTRAZIONE FALLITA - Critical error in webhook processing:', error);
+      logger.error('[WEBHOOK] ❌ ORCHESTRAZIONE FALLITA - Critical error in webhook processing:', error);
       throw error;
     }
   }

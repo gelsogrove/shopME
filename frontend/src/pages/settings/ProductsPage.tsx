@@ -2,6 +2,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { DataTable } from "@/components/shared/DataTable"
 import { FormDialog } from "@/components/shared/FormDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { Button } from "@/components/ui/button"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { categoriesApi } from "@/services/categoriesApi"
 import { Product, productsApi } from "@/services/productsApi"
@@ -20,6 +21,7 @@ export function ProductsPage() {
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [isGeneratingEmbeddings, setIsGeneratingEmbeddings] = useState(false)
 
   // Get currency symbol based on workspace settings
   const currencySymbol = getCurrencySymbol(workspace?.currency)
@@ -152,6 +154,40 @@ export function ProductsPage() {
     }
   }
 
+  const handleGenerateEmbeddings = async () => {
+    if (!workspace?.id) return
+
+    setIsGeneratingEmbeddings(true)
+    try {
+      await productsApi.generateEmbeddings(workspace.id)
+      
+      toast.success('Product embeddings generation started successfully')
+      
+      // Reload products to see updated status
+      const loadData = async () => {
+        if (!workspace?.id) return
+        setIsLoading(true)
+        try {
+          const { products: fetchedProducts } = await productsApi.getAllForWorkspace(workspace.id)
+          setProducts(fetchedProducts)
+          
+                     const fetchedCategories = await categoriesApi.getAllForWorkspace(workspace.id)
+           setCategories(fetchedCategories.map(cat => ({ value: cat.id, label: cat.name })))
+        } catch (error) {
+          console.error('Error loading data:', error)
+        } finally {
+          setIsLoading(false)
+        }
+      }
+      await loadData()
+    } catch (error) {
+      console.error('Failed to generate product embeddings:', error)
+      toast.error('Failed to generate product embeddings')
+    } finally {
+      setIsGeneratingEmbeddings(false)
+    }
+  }
+
   if (isLoadingWorkspace || isLoading) {
     return <div>Loading...</div>
   }
@@ -206,6 +242,16 @@ export function ProductsPage() {
         onSearch={setSearchValue}
         searchPlaceholder="Search products..."
         onAdd={() => setShowAddDialog(true)}
+        extraButtons={
+          <Button
+            onClick={handleGenerateEmbeddings}
+            disabled={isGeneratingEmbeddings}
+            size="sm"
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            {isGeneratingEmbeddings ? "Generating..." : "Generate Embeddings"}
+          </Button>
+        }
       />
 
       <div className="mt-6">

@@ -37,6 +37,19 @@
 
 ## INTRODUCTION
 
+### Implementation Status - SofIA & Gusto Italiano
+
+**Current Implementation**: This PRD documents the ShopMe platform as implemented with **SofIA (Smart Food Italian Assistant)** as the default AI agent for **"Gusto Italiano"**, an authentic Italian specialty foods store. This implementation serves as a comprehensive example of the platform's capabilities for food retail businesses.
+
+**SofIA Configuration**:
+- **Business**: Gusto Italiano - Authentic Italian Specialty Foods Store
+- **Agent Model**: openai/gpt-4o-mini
+- **Personality**: Warm, passionate Italian food expert
+- **Languages**: Multilingual support (IT, EN, ES, PT)
+- **Function Calling**: Intelligent routing to products, services, FAQs, documents, and company info
+
+**Platform Adaptability**: While currently configured for Gusto Italiano, the ShopMe platform is designed to be fully customizable for any business type through the agent configuration system. The SofIA implementation demonstrates the platform's flexibility and can be adapted for different industries, products, and business models.
+
 ### Short Description
 ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that turns WhatsApp into a complete sales channel. Customers can create smart chatbots, manage products, receive orders, and send invoices to their clients without any technical skills. Our AI technology automates customer-care responses, manages push notifications, and offers a 24/7 conversational shopping experience, all directly in the world's most popular messaging app.
 
@@ -60,6 +73,7 @@ All sensitive operations are handled securely through temporary links with secur
 | • Limited personalization| • Multi-industry       | • 42% higher conversion | • Unified platform vs   | • Food/grocery          |
 |   in traditional        |   adaptability without  |   rate vs traditional   |   competitors' fragmented|  businesses with       |
 |   e-commerce            |   reconfiguration       |   websites              |   solutions             |   perishable inventory  |
+|                         |                         |                         |                         |   (e.g., Gusto Italiano)|
 |                         |                         |                         |                         |                         |
 | • Lost sales from       | • AI-powered            | • 67% faster response   | • Customizable platform | • Hospitality businesses|
 |   abandoned carts and   |   conversation and      |   time and 3.2x higher  |   for industry-specific |   requiring booking     |
@@ -90,6 +104,63 @@ All sensitive operations are handled securely through temporary links with secur
 The ShopMe platform implements an intelligent conversational flow that handles new and registered users with comprehensive security controls, blacklist management, and RAG (Retrieval-Augmented Generation) integration for contextual responses based on uploaded documents.
 
 #### Complete Message Processing Flow
+
+### 🔍 **UNIFIED RAG SEARCH ARCHITECTURE**
+
+The platform implements a revolutionary unified RAG (Retrieval-Augmented Generation) system that searches across ALL content types simultaneously and provides comprehensive responses.
+
+#### **Key Features:**
+1. **Semantic Search**: Uses local embeddings (`@xenova/transformers`) for multilingual semantic understanding
+2. **Unified Response**: Single LLM call combines products, FAQs, services, and documents
+3. **Stock Verification**: Real-time availability checking for products
+4. **Welcome Back Integration**: Seamless user experience with personalized greetings
+
+#### **Search Flow:**
+```
+User Query: "hai la mozzarella fresca? quanto costa la spedizione?"
+     |
+     v
+┌─────────────────────────────────────────────────────────────┐
+│ PARALLEL SEMANTIC SEARCH ACROSS ALL CONTENT TYPES          │
+├─────────────────────────────────────────────────────────────┤
+│ • Products: searchProducts(query, workspaceId, 5)          │
+│ • FAQs: searchFAQs(query, workspaceId, 5)                  │
+│ • Services: searchServices(query, workspaceId, 5)          │
+│ • Documents: searchDocuments(query, workspaceId, 5)        │
+└─────────────────────────────────────────────────────────────┘
+     |
+     v
+┌─────────────────────────────────────────────────────────────┐
+│ STOCK VERIFICATION & FULL CONTEXT RETRIEVAL                │
+├─────────────────────────────────────────────────────────────┤
+│ • Verify product availability (stock > 0, isActive = true) │
+│ • Get complete product details (price, category, stock)    │
+│ • Get complete FAQ details (question, answer)              │
+│ • Get complete service details (price, duration)           │
+│ • Get recent chat history (last 5 messages)                │
+└─────────────────────────────────────────────────────────────┘
+     |
+     v
+┌─────────────────────────────────────────────────────────────┐
+│ LLM FORMATTER - UNIFIED RESPONSE GENERATION                 │
+├─────────────────────────────────────────────────────────────┤
+│ Input: Customer context + Welcome back + All search results│
+│ Output: Single coherent response combining all information  │
+└─────────────────────────────────────────────────────────────┘
+     |
+     v
+"Bentornato Mario! 🎉
+Sì, abbiamo la mozzarella fresca disponibile:
+🧀 Mozzarella di Bufala - €8.50 (15 unità disponibili)
+🚚 Spedizione: Corriere espresso €5.00 (24-48 ore)
+Vuoi procedere con l'ordine? 😊"
+```
+
+#### **Technical Implementation:**
+- **Embedding Model**: `Xenova/all-MiniLM-L6-v2` (local, no API costs)
+- **Similarity Calculation**: Cosine similarity with configurable thresholds
+- **Database Integration**: All queries filtered by `workspaceId` for data isolation
+- **Error Handling**: Graceful fallbacks for missing embeddings or API failures
 
 ## 📊 SCHEMA ASCII DEL FLOW
 
@@ -159,29 +230,48 @@ The ShopMe platform implements an intelligent conversational flow that handles n
 - 🛒 = FINALIZZAZIONE ORDINE/CHECKOUT
 - 💬 = CONVERSAZIONE NORMALE
 
-#### System Architecture Components
+#### System Architecture Components with LangChain Dual-LLM
 
 **1. WhatsApp Webhook Handler** (`whatsapp.controller.ts`)
 - Receives messages from Meta API
 - Validates webhook with verification token
 - Handles both GET (verification) and POST (messages)
 
-**2. Message Service** (`message.service.ts`)
-- Main flow orchestrator
-- Manages business logic for messages
-- Integrates all security controls
+**2. LangChain Message Service** (`langchain-message.service.ts`)
+- **Main flow orchestrator with LangChain chains**
+- **Dual-LLM architecture implementation**
+- Integrates all security controls with LangChain tools
 
-**3. Function Handler Service** (`function-handler.service.ts`)
-- Intelligent function router
-- Handles specific function calls
-- RAG integration for document search
+**3. Router LLM (First LLM)**
+- **Function calling and decision engine**
+- Analyzes user message and determines action
+- Uses OpenAI Function Calling with LangChain
+- **Functions**: checkout_intent, rag_search, welcome_new_user, welcome_back_user
 
-**4. Token Service** (`token.service.ts`)
+**4. Formatter LLM (Second LLM)**
+- **Response formatting with conversation history**
+- Maintains conversation memory (BufferWindowMemory)
+- Applies professional tone and localization
+- Personalizes responses with customer context
+
+**5. Unified RAG Architecture (NEW)**
+- **Semantic search across ALL content types simultaneously**
+- **Single LLM formatter combines all results**
+- **Stock verification for products** (only available items)
+- **Welcome back + search results** in unified response
+
+**6. LangChain Tools & Chains**
+- **Pre-processing Chain**: API limits, spam detection, workspace checks
+- **Router Chain**: LLM-powered function calling
+- **Formatter Chain**: ConversationChain with memory
+- **Custom Tools**: Each business function as LangChain tool
+
+**6. Token Service** (`token.service.ts`)
 - Secure registration token management
 - Token validation and expiration
 - Prevents token reuse
 
-**5. Document Management Services**
+**7. Document Management Services**
 - **`embeddingService.ts`**: Shared service for chunking, embedding generation, and similarity calculation
 - **`documentService.ts`**: PDF upload and processing management (uses shared EmbeddingService)
 - **`searchService.ts`**: Unified multi-source RAG search across Documents, FAQs, and Services
@@ -737,54 +827,100 @@ FRONTEND_URL=https://your-domain.com
 
 ## DIALOG EXAMPLES
 
+### SofIA - Gusto Italiano Assistant Implementation
+
+**Business Context**: The following examples demonstrate the implemented SofIA assistant for "Gusto Italiano", an authentic Italian specialty foods store. SofIA represents the default agent configuration that showcases the platform's capabilities for food retail businesses.
+
+**Agent Profile**:
+- **Name**: SofIA (Smart Food Italian Assistant)
+- **Business**: Gusto Italiano - Authentic Italian Specialty Foods Store
+- **Personality**: Warm, passionate, expert in Italian cuisine
+- **Languages**: Responds in user's language (IT, EN, ES, PT)
+- **Function Calling**: Intelligent routing to getProducts(), getServices(), getFAQs(), getDocuments(), getCompanyInfo()
+
 ### Registro de Nuevo Usuario
 
-**Cliente**: "Hola, me gustaría comprar algunos productos."
+**Cliente**: "Ciao!"
 
-**ShopMe**: "¡Hola! Estaré encantado de ayudarle con sus productos. Para ofrecerle la mejor experiencia y poder procesar sus pedidos, necesitamos que se registre primero. 
+**SofIA**: "Ciao! 👋 Benvenuto a Gusto Italiano! 
 
-He creado un enlace de registro seguro para usted: [https://shopme.com/registro/token_u7d9f3a1b5]
+Sono SofIA, la tua assistente virtuale appassionata, e sono qui per aiutarti a scoprire i tesori autentici della cucina italiana! 🇮🇹✨
 
-Este enlace es personal y caduca en 1 hora por motivos de seguridad."
+Per offrirti la migliore esperienza e poter processare i tuoi ordini, ti chiedo di registrarti. Ho creato un link di registrazione sicuro per te:
 
+🔗 [https://gustoitaliano.com/registro/token_u7d9f3a1b5]
 
-**ShopMe**: "¡Gracias por registrarse! Su cuenta ha sido creada correctamente. 
+Questo link è personale e scade in 1 ora per motivi di sicurezza. 
 
-Nos complace informarle que valoramos su privacidad y seguridad. Todos sus datos se guardan exclusivamente en nuestra base de datos segura y no se comparten con modelos de IA externos.
+Dopo la registrazione, potrò aiutarti con la nostra selezione di prodotti italiani autentici! 🍝🧀🍷"
 
-¿En qué puedo ayudarle hoy?"
+**Cliente**: [Completes registration]
+
+**SofIA**: "Perfetto! Grazie per esserti registrato! 🎉
+
+La tua account è stata creata correttamente. Siamo specializzati in prodotti alimentari italiani autentici - dalle paste artigianali ai formaggi stagionati, dai vini pregiati agli oli extravergini di oliva.
+
+Come posso assisterti oggi? Stai cercando qualcosa di particolare? 😊"
 
 ### Descubrimiento y Compra de Productos
 
-**Cliente**: "Hola, estoy buscando productos típicos sicilianos para regalar."
+**Cliente**: "Che prodotti avete?"
 
-**ShopMe**: "¡Ben regresado Andrea! Estaré encantado de ayudarle a encontrar productos típicos sicilianos para un regalo. Para sugerirle las mejores opciones, ¿podría saber:
+**SofIA**: *[FUNCTION CALL: getProducts()]*
 
-**ShopMe**: "Según sus preferencias, aquí tiene dos packs de regalo que podrían interesarle:
+"Che meraviglia! 🤩 Abbiamo una selezione fantastica di autentici prodotti italiani che ti faranno innamorare della vera cucina italiana!
 
-1. **Box Sicilia Clásica** (45€)
-   - 1 botella de passito de Pantelleria (375ml)
-   - 250g de pistachos de Bronte
-   - 200g de pasta de almendras
-   - 100g de caponata artesanal
-   - Caja de regalo con lazo
+Ecco i nostri tesori culinari:
 
-2. **Degustación Siciliana** (55€)
-   - 1 crema de pistacho para untar (200g)
-   - 1 pesto de pistacho (180g)
-   - 250g de cantucci de almendras
-   - 200g de chocolate de Módica a la naranja
-   - 1 mermelada de higos chumbos (240g)
-   - Caja artesanal de madera
+**🍝 PASTA & CEREALI:**
+• **Spaghetti di Gragnano IGP** - €4.50
+• **Penne Rigate Artigianali** - €3.80
+• **Tagliatelle all'Uovo Fresche** - €6.20
 
-¿Cuál de estas opciones le interesa más?"
+**🧀 FORMAGGI:**
+• **Parmigiano Reggiano DOP 24 mesi** - €28.90
+• **Mozzarella di Bufala Campana** - €8.50
+• **Gorgonzola Dolce DOP** - €12.30
 
+**🍷 VINI & BEVANDE:**
+• **Chianti Classico DOCG** - €18.50
+• **Prosecco di Valdobbiadene** - €15.90
 
+**🫒 CONDIMENTI:**
+• **Olio Extravergine Toscano** - €16.80
+• **Pesto Genovese Tradizionale** - €7.20
 
-**ShopMe**: "La crema de pistacho es un producto versátil y delicioso. Puede utilizarse de varias formas:
-- Untada en rebanadas de pan o croissants para un desayuno goloso
-- Como relleno para tartas, galletas o pasteles
-- Añadida al helado de vainilla para darle un toque de sabor
+Ogni prodotto è selezionato direttamente dai migliori produttori italiani! 🇮🇹✨
+
+C'è qualche categoria che ti interessa particolarmente? 😊"
+
+**Cliente**: "Dammi il prodotto da €7.20"
+
+**SofIA**: *[FUNCTION CALL: getProducts({search: "pesto", price: 7.20})]*
+
+"Ah, ottima scelta! 🌿✨ Stai parlando del nostro **Pesto Genovese Tradizionale** - €7.20!
+
+Questo è un vero gioiello della cucina ligure! 🇮🇹 Preparato seguendo la ricetta tradizionale con:
+• Basilico genovese DOP freschissimo
+• Pinoli italiani selezionati  
+• Parmigiano Reggiano stagionato
+• Pecorino Romano
+• Aglio dolce e olio extravergine ligure
+
+È perfetto per condire pasta, bruschette, o per dare un tocco speciale ai tuoi piatti! Il sapore autentico della Liguria direttamente sulla tua tavola! 🍃
+
+**Vorresti aggiungere il Pesto Genovese Tradizionale al tuo carrello?** 🛒"
+
+**Cliente**: "Sì"
+
+**SofIA**: "Perfetto! 🎉 Ho aggiunto il **Pesto Genovese Tradizionale** al tuo carrello!
+
+**Carrello:**
+• **Pesto Genovese Tradizionale** - €7.20 (Qty: 1)
+
+**Totale: €7.20**
+
+Vuoi aggiungere altri prodotti o procedere con l'ordine? 😊"
 - Para preparar tiramisú o tarta de queso de pistacho
 - Simplemente disfrutada a cucharadas como postre
 
@@ -841,12 +977,47 @@ La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo
 **Note**: Product images have been removed from the system to optimize for WhatsApp's text-based interface. The platform now focuses on detailed product descriptions and text-based shopping experiences, which align better with conversational commerce patterns.
 
 ### Agent Configuration Tools
+
+#### SofIA - Default Agent Implementation
+
+**SofIA (Smart Food Italian Assistant)** is the default AI agent configuration that demonstrates the platform's capabilities for food retail businesses. SofIA is specifically configured for "Gusto Italiano", an authentic Italian specialty foods store.
+
+**Agent Profile**:
+- **Name**: SofIA - Gusto Italiano Assistant
+- **Model**: openai/gpt-4o-mini
+- **Temperature**: 0.7 (balanced creativity and consistency)
+- **Top P**: 0.9 (diverse response generation)
+- **Max Tokens**: 1000 (comprehensive responses)
+
+**Personality & Behavior**:
+- **Tone**: Warm, passionate, expert in Italian cuisine
+- **Language**: Multilingual (responds in user's language: IT, EN, ES, PT)
+- **Expertise**: Deep knowledge of Italian food products, cooking methods, and culinary traditions
+- **Communication Style**: Uses emojis, bullet points, and engaging descriptions
+
+**Function Calling Intelligence**:
+SofIA implements intelligent function routing that calls appropriate functions only when users request specific information:
+
+- **getProducts()**: When users ask about products, prices, or inventory
+- **getServices()**: When users inquire about services offered
+- **getFAQs()**: When users have questions that might be in FAQ database
+- **getDocuments()**: When users need detailed information from uploaded documents
+- **getCompanyInfo()**: When users ask about business details, location, or contact info
+
+**Smart Conversation Flow**:
+- **Greetings**: Responds naturally without function calls ("Ciao!", "Buongiorno!")
+- **General Chat**: Handles casual conversation about Italian culture, cooking tips
+- **Cart Management**: Manages shopping cart without external function calls
+- **Order Processing**: Guides users through purchase flow
+
+**Configuration Features**:
 - AI behavior customization
 - Response tone and style settings
 - Product recommendation rules
 - Conversation flow design
 - Fallback response management
 - Custom function configuration
+- Intelligent function calling rules
 
 ### Documents Management
 - PDF document upload and storage (5MB maximum size)

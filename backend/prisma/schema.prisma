@@ -46,6 +46,8 @@ model Workspace {
 
   users                     UserWorkspace[]
   whatsappSettings          WhatsappSettings?
+  secureTokens              SecureToken[]
+  gdprContent               GdprContent?
 }
 
 model Categories {
@@ -96,6 +98,7 @@ model Products {
   status      ProductStatus @default(ACTIVE)
   cartItems   CartItems[]
   orderItems  OrderItems[]
+  chunks      ProductChunks[]
   category    Categories?   @relation(fields: [categoryId], references: [id])
   workspace   Workspace     @relation(fields: [workspaceId], references: [id])
 
@@ -344,6 +347,27 @@ model RegistrationToken {
   @@map("registration_tokens")
 }
 
+model SecureToken {
+  id          String    @id @default(uuid())
+  token       String    @unique
+  type        String    // registration, checkout, invoice, cart, password_reset, email_verification
+  workspaceId String
+  userId      String?
+  phoneNumber String?
+  payload     Json?     // encrypted sensitive data
+  expiresAt   DateTime
+  usedAt      DateTime?
+  ipAddress   String?   // optional security
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@index([token])
+  @@index([expiresAt])
+  @@index([workspaceId])
+  @@map("secure_tokens")
+}
+
 model Language {
   id        String   @id @default(cuid())
   code      String   @unique
@@ -465,27 +489,50 @@ model ServiceChunks {
   @@map("service_chunks")
 }
 
+model ProductChunks {
+  id         String   @id @default(uuid())
+  productId  String
+  content    String
+  chunkIndex Int
+  embedding  Json?
+  workspaceId String
+  language   String   @default("en")
+  createdAt  DateTime @default(now())
+  product    Products @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([chunkIndex])
+  @@index([workspaceId])
+  @@index([language])
+  @@map("product_chunks")
+}
+
 model AgentConfig {
   id          String    @id @default(uuid())
-  name        String
-  content     String?
-  isActive    Boolean   @default(true)
-  isRouter    Boolean   @default(false)
-  department  String?
   workspaceId String
-  temperature Float?    @default(0.7)
-  top_p       Float?    @default(0.9)
-  top_k       Int?      @default(40)
-  model       String?   @default("openai/gpt-4o-mini")
-  max_tokens  Int?      @default(1000)
+  prompt      String    @default("You are a helpful assistant.")
+  model       String    @default("openai/gpt-4o-mini")
+  temperature Float     @default(0.7)
+  maxTokens   Int       @default(1000)
+  isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
-  @@index([workspaceId])
-  @@index([isActive])
-  @@index([isRouter])
   @@map("agent_configs")
+}
+
+model GdprContent {
+  id          String    @id @default(uuid())
+  workspaceId String    @unique
+  content     String
+  version     String    @default("1.0")
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@map("gdpr_content")
 }
 
 enum UserStatus {

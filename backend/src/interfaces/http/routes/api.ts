@@ -97,6 +97,9 @@ export const apiRouter = (): Router => {
   // Mount document routes
   router.use('/workspaces/:workspaceId/documents', documentRoutes);
   router.use('/documents', documentRoutes);
+  
+  // Mount products routes with workspace context
+  router.use('/workspaces/:workspaceId/products', productsRouter());
 
   return router;
 }; 

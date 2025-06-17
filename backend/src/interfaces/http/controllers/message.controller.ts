@@ -1,17 +1,34 @@
+import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
-import { MessageService } from '../../../application/services/message.service';
+import { ApiLimitService } from '../../../application/services/api-limit.service';
+import { CheckoutService } from '../../../application/services/checkout.service';
+import { LangChainMessageService } from '../../../application/services/langchain-message.service';
+import { TokenService } from '../../../application/services/token.service';
+import { MessageRepository } from '../../../repositories/message.repository';
 import { detectLanguage } from '../../../utils/language-detector';
 import logger from '../../../utils/logger';
 
 export class MessageController {
-  private messageService: MessageService;
+  private langChainMessageService: LangChainMessageService;
 
   constructor() {
-    this.messageService = new MessageService();
+    // Create dependencies for LangChainMessageService
+    const prisma = new PrismaClient();
+    const messageRepository = new MessageRepository();
+    const tokenService = new TokenService();
+    const checkoutService = new CheckoutService();
+    const apiLimitService = new ApiLimitService(prisma);
+    
+    this.langChainMessageService = new LangChainMessageService(
+      messageRepository,
+      tokenService,
+      checkoutService,
+      apiLimitService
+    );
   }
 
   /**
-   * Process a message and return a response
+   * Process a message and return a response using LangChain directly
    * @route POST /api/messages
    */
   async processMessage(req: Request, res: Response): Promise<void> {
@@ -47,48 +64,39 @@ export class MessageController {
       }
 
       // Log the request details
-      logger.info(`Processing message: ${message}`);
-      logger.info(`From phone number: ${phoneNumber}`);
-      logger.info(`For workspace: ${workspaceId}`);
+      logger.info(`[MESSAGES API] Processing message: ${message}`);
+      logger.info(`[MESSAGES API] From phone number: ${phoneNumber}`);
+      logger.info(`[MESSAGES API] For workspace: ${workspaceId}`);
       
       // Detect language of the incoming message
       const detectedLanguage = detectLanguage(message);
-      logger.info(`Detected language for message: ${detectedLanguage}`);
+      logger.info(`[MESSAGES API] Detected language for message: ${detectedLanguage}`);
       
-      // Process the message using the service
-      const response = await this.messageService.processMessage(
+      // Process the message directly with LangChain service
+      const response = await this.langChainMessageService.processMessage(
         message,
         phoneNumber,
         workspaceId
       );
-      
-      // Get the last message which should include the metadata
-      const messageRepository = this.messageService.getMessageRepository();
-      const recentMessages = await messageRepository.getLatesttMessages(phoneNumber, 1, workspaceId);
-      const lastMessage = recentMessages[0];
-      const metadata = lastMessage?.metadata || {};
-      
-      // Find the customer to get the updated language preference
-      const customer = await messageRepository.findCustomerByPhone(phoneNumber, workspaceId);
       
       // Return the processed message with metadata
       res.status(200).json({
         success: true,
         data: {
           originalMessage: message,
-          processedMessage: response,
+          processedMessage: response || "No response generated",
           phoneNumber: phoneNumber,
           workspaceId: workspaceId,
           timestamp: new Date().toISOString(),
-          metadata: metadata,
+          metadata: { agentName: "RAG Chat" },
           detectedLanguage: detectedLanguage,
-          sessionId: lastMessage?.chatSessionId || sessionId,
-          customerId: customer?.id,
-          customerLanguage: customer?.language
+          sessionId: sessionId,
+          customerId: `customer-${phoneNumber.replace('+', '')}`,
+          customerLanguage: detectedLanguage
         }
       });
     } catch (error) {
-      logger.error('Error processing message:', error);
+      logger.error('[MESSAGES API] Error processing message:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to process message'

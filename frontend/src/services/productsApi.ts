@@ -274,6 +274,15 @@ export const updateStock = async (id: string, workspaceId: string, stock: number
   }
 }
 
+export const generateEmbeddings = async (workspaceId: string): Promise<void> => {
+  try {
+    await api.post(`/workspaces/${workspaceId}/products/generate-embeddings`)
+  } catch (error) {
+    console.error('Error generating product embeddings:', error)
+    throw error
+  }
+}
+
 export const productsApi = {
   getAllForWorkspace,
   getById,
@@ -281,5 +290,6 @@ export const productsApi = {
   create,
   update,
   delete: delete_,
-  updateStock
+  updateStock,
+  generateEmbeddings,
 } 

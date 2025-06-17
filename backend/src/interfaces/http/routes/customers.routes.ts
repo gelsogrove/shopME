@@ -30,6 +30,9 @@ export const customersRouter = (controller: CustomersController): Router => {
   // Endpoint alternativo che supporta anche 'bloc' (senza 'k')
   router.post("/:workspaceId/customers/:id/bloc", controller.blockCustomer.bind(controller));
   
+  // TASK 3: Operator Control Release Mechanism
+  router.put("/:workspaceId/customers/:customerId/chatbot-control", controller.updateChatbotControl.bind(controller));
+  
   // Route for counting unknown customers - explicitly defined with extra logging
   router.get("/:workspaceId/unknown-customers/count", (req, res, next) => {
     logger.info(`💡 Processing request for unknown-customers count with workspace: ${req.params.workspaceId}`);
@@ -73,6 +76,9 @@ export const workspaceCustomersRouter = (controller: CustomersController): Route
   
   // Endpoint alternativo che supporta anche 'bloc' (senza 'k')
   router.post("/:workspaceId/customers/:id/bloc", controller.blockCustomer.bind(controller));
+  
+  // TASK 3: Operator Control Release Mechanism
+  router.put("/:workspaceId/customers/:customerId/chatbot-control", controller.updateChatbotControl.bind(controller));
   
   // Route for counting unknown customers (workspace specific)
   router.get("/:workspaceId/unknown-customers/count", controller.countUnknownCustomers.bind(controller));

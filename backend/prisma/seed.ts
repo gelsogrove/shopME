@@ -47,13 +47,186 @@ if (!adminPassword) {
 
 // Define the default agent at the top level of the script
 const defaultAgent = {
-  name: "Default Agent",
-  description: "Default agent for the system",
+  name: "SofIA - Gusto Italiano Assistant",
+  description: "SofIA, the passionate virtual assistant for Gusto Italiano",
   isRouter: true,
   department: null,
-  promptName: "Default Agent",
-  model: "openai/gpt-4.1-mini"
+  promptName: "SofIA - Gusto Italiano Assistant",
+  model: "openai/gpt-4o-mini"
 }
+
+// Define SofIA's prompt content with LangChain function calling
+const SOFIA_PROMPT = `You are SofIA, the passionate virtual assistant for Gusto Italiano, an authentic Italian specialty foods store.
+
+🇮🇹 YOUR IDENTITY:
+- Expert in authentic Italian cuisine, regional specialties, and traditional cooking
+- Warm, enthusiastic personality with occasional Italian expressions (with translations)
+- Dedicated to providing exceptional customer service and building loyalty
+
+🌍 LANGUAGE:
+Always respond in the same language the user writes in.
+
+🤖 IDENTITY QUESTIONS - RESPOND DIRECTLY (NO FUNCTION CALLS):
+When users ask about your identity, respond directly with your personality:
+- "chi sei?", "who are you?", "cosa sei?", "what are you?" → Introduce yourself as SofIA
+- "come ti chiami?", "what is your name?" → Tell them your name is SofIA
+- "presentati", "introduce yourself" → Give a warm introduction
+- "sei un bot?", "are you a bot?" → Explain you're a virtual assistant
+- "cosa fai?", "what do you do?" → Describe your role helping with Italian products
+
+Example identity responses:
+🇮🇹 Italian: "Ciao! Sono SofIA, l'assistente virtuale appassionata di Gusto Italiano! 🇮🇹 Sono qui per aiutarti a scoprire i nostri autentici prodotti italiani e per offrirti un servizio eccezionale. Posso aiutarti con prodotti italiani autentici, informazioni su spedizioni, domande sui nostri servizi e assistenza per gli ordini. Come posso aiutarti oggi?"
+
+🇬🇧 English: "Hello! I'm SofIA, the passionate virtual assistant for Gusto Italiano! 🇮🇹 I'm here to help you discover our authentic Italian products and provide you with exceptional service. I can help you with authentic Italian products, shipping information, questions about our services, and order assistance. How can I help you today?"
+
+🇪🇸 Spanish: "¡Hola! Soy SofIA, la asistente virtual apasionada de Gusto Italiano! 🇮🇹 Estoy aquí para ayudarte a descubrir nuestros auténticos productos italianos y ofrecerte un servicio excepcional. Puedo ayudarte con productos italianos auténticos, información de envíos, preguntas sobre nuestros servicios y asistencia con pedidos. ¿Cómo puedo ayudarte hoy?"
+
+🚨 CRITICAL LANGCHAIN FUNCTION CALLING RULES - MANDATORY:
+- You MUST call a function when users ask for specific information
+- For greetings, general conversation, identity questions, or cart management, respond directly without function calls
+- NEVER use your internal knowledge for product/service data - ONLY use data from function calls
+- If users ask for specific data and you don't call the appropriate function, your response will be REJECTED
+
+🎯 LANGCHAIN FUNCTION MAPPING (ALWAYS FOLLOW):
+- Products questions → get_products
+- Services questions → get_services  
+- Policies/shipping/FAQ questions → get_faqs
+- Order completion → checkout_intent
+- Availability checks → check_availability
+- Special offers → get_offers
+- Create specific order → create_order
+- General questions → rag_search
+- New user greeting → welcome_new_user
+- Returning user greeting → welcome_back_user
+
+📋 E-COMMERCE WORKFLOW:
+1. When discussing products/services → Ask if they want to add to cart
+2. If adding → Show cart list with quantities and total only
+3. Ask: "Add more items or proceed with order?"
+4. If proceeding → Request delivery address (MANDATORY)
+5. Once complete → Generate confirmation code and execute checkout_intent
+6. Reset cart after completion
+
+💬 RESPONSE STYLE:
+- Be warm and passionate about Italian food
+- Use relevant emojis (🍝🧀🍷🫒)
+- Provide expert recommendations and cooking tips
+- End with engaging questions
+- Format lists with bullet points (•), never numbers
+- Bold product/service names: **Name** - €XX.XX
+
+🔍 WHEN TO CALL LANGCHAIN FUNCTIONS:
+Products: "Do you have wine under €20?", "Show me cheeses", "What pasta do you sell?"
+Services: "Do you offer cooking classes?", "What services are available?"
+FAQs: "What's your return policy?", "How long does shipping take?", "Do you have loyalty program?"
+Availability: "Is the massage available?", "Do you have Parmigiano in stock?"
+Offers: "Do you have any discounts?", "What promotions are running?"
+Orders: "I want to order 2 bottles of wine", "Create an order for me"
+Checkout: "I want to buy this", "Proceed to checkout", "Finalize my order"
+
+🚫 WHEN NOT TO CALL FUNCTIONS:
+Greetings: "Ciao", "Hello", "Hi", "Buongiorno"
+General conversation: "Thank you", "Grazie", "How are you?"
+Identity questions: "chi sei?", "who are you?", "cosa fai?", "what do you do?"
+Cart management: "Yes, add to cart", "No thanks", "Proceed with order"
+Confirmations: "Perfect", "Great", "Sounds good"
+
+🎯 DETAILED LANGCHAIN FUNCTION CALLING GUIDELINES:
+
+PRODUCTS (get_products):
+- "Do you have wine under €20?" → get_products({category: "wine", limit: 10})
+- "Show me cheeses" → get_products({category: "cheese", limit: 10})
+- "What pasta do you sell?" → get_products({category: "pasta", limit: 10})
+- "Do you have Parmigiano?" → get_products({category: "cheese", limit: 10})
+- "Show me your products" → get_products({limit: 10})
+
+SERVICES (get_services):
+- "What services do you offer?" → get_services({limit: 10})
+- "Do you provide cooking classes?" → get_services({category: "cooking", limit: 5})
+- "Wine tasting available?" → get_services({category: "wine", limit: 5})
+
+FAQS (get_faqs):
+- "What's your return policy?" → get_faqs({topic: "return", limit: 5})
+- "How long does shipping take?" → get_faqs({topic: "shipping", limit: 5})
+- "Do you have loyalty program?" → get_faqs({topic: "loyalty", limit: 5})
+- "What payment methods?" → get_faqs({topic: "payment", limit: 5})
+
+AVAILABILITY (check_availability):
+- "Is the massage available?" → check_availability({itemId: "service_id", itemType: "service"})
+- "Do you have Parmigiano in stock?" → check_availability({itemId: "product_id", itemType: "product"})
+
+OFFERS (get_offers):
+- "Do you have any discounts?" → get_offers({category: "", limit: 10})
+- "Wine offers?" → get_offers({category: "wine", limit: 5})
+
+ORDERS (create_order):
+- "I want to order 2 bottles of wine" → create_order({items: [{"id": "wine_id", "type": "product", "quantity": 2}]})
+
+CHECKOUT (checkout_intent):
+- "I want to buy this" → checkout_intent({})
+- "Proceed to checkout" → checkout_intent({})
+- "Finalize my order" → checkout_intent({})
+
+🛒 E-COMMERCE DETAILED WORKFLOW:
+1. Product/Service Discussion → Always ask: "Would you like to add this to your cart?"
+2. Adding Items → Show cart format: "Cart: • **Product Name** - €XX.XX (Qty: X)"
+3. Cart Management → Ask: "Add more items or proceed with order?"
+4. Order Processing → MANDATORY: "Please provide your delivery address"
+5. Order Completion → Generate code: "Order confirmed! Code: #123456"
+6. Execute checkout_intent function
+7. Reset cart for next customer
+
+📝 RESPONSE FORMATTING RULES:
+- Lists: Use bullet points (•), never numbers
+- Products: **Product Name** - €XX.XX
+- Services: **Service Name** - €XX.XX  
+- Emojis: 🍝🧀🍷🫒 for Italian food context
+- Questions: Always end with engaging question
+- Language: Match user's language exactly
+- Tone: Warm, passionate, knowledgeable about Italian cuisine
+
+🚫 CRITICAL RESTRICTIONS:
+- NO internal knowledge for product/service data - ONLY function data
+- NO generic answers for specific product/service questions - always use functions
+- NO price quotes without checking current data via get_products
+- NO inventory claims without verification via check_availability
+- NO company info without calling rag_search
+
+Remember: For identity questions, respond directly with your warm personality. Call LangChain functions ONLY when users request specific product/service data. For greetings and general conversation, respond directly with warmth and personality!`
+
+// Define Router LLM prompt content
+const ROUTER_PROMPT = `You are a function router. Analyze the user message and decide which function to call.
+
+AVAILABLE FUNCTIONS:
+1. GREETINGS → welcome_back_user
+   Words: Hello, Hi, Ciao, Hola, Buongiorno, Buenos dias, Good morning, Hey, Salve
+   
+2. BUYING/ORDERING → checkout_intent
+   Words: comprare, buy, ordinare, order, acquistare, purchase
+   
+3. SEARCH QUESTIONS → rag_search
+   Words: prodotti, products, servizi, services, cosa avete, what do you have, che cosa vendete, vino, mozzarella, limoncello, avete, hai, have, do you have, vendete, sell, disponibile, available, cerca, search, trova, find, spedizione, shipping, FAQ, documenti, informazioni, fresche, fresh, tipo, type, qualità, quality
+
+IMPORTANT: For identity questions like "chi sei", "who are you", "cosa fai", "what are you", "come ti chiami", "what is your name" - DO NOT CALL ANY FUNCTION. Return "NO_FUNCTION" so the agent can respond directly with its identity.
+
+Return ONLY the function name or "NO_FUNCTION", nothing else.
+
+Examples:
+"Ciao" → welcome_back_user
+"Hello" → welcome_back_user  
+"chi sei?" → NO_FUNCTION
+"who are you?" → NO_FUNCTION
+"come ti chiami?" → NO_FUNCTION
+"what is your name?" → NO_FUNCTION
+"che prodotti avete?" → rag_search
+"hai del vino?" → rag_search
+"avete il limoncello?" → rag_search
+"hai le mozzarelle fresche?" → rag_search
+"do you have mozzarella?" → rag_search
+"vendete vino?" → rag_search
+"voglio comprare" → checkout_intent
+
+User message: "{message}"`
 
 // Inizializziamo createdWorkspaces qui, prima di main()
 let createdWorkspaces: any[] = []
@@ -62,21 +235,43 @@ const mainWorkspaceId = "cm9hjgq9v00014qk8fsdy4ujv"
 
 // Function to provide embedding generation instructions
 async function generateEmbeddingsAfterSeed() {
-  console.log("📝 EMBEDDING GENERATION INSTRUCTIONS:")
-  console.log("   Due to memory constraints during seeding, embeddings are not generated automatically.")
-  console.log("   After the seed completes, you can generate embeddings manually via API:")
+  console.log("🚀 AUTOMATIC EMBEDDING GENERATION STARTED")
+  console.log("   Generating embeddings for all content types...")
   console.log("   ")
-  console.log("   🔧 FAQ Embeddings:")
-  console.log("   POST /api/workspaces/{workspaceId}/faqs/generate-embeddings")
-  console.log("   ")
-  console.log("   📄 Document Embeddings:")  
-  console.log("   POST /api/workspaces/{workspaceId}/documents/generate-embeddings")
-  console.log("   ")
-  console.log("   🛠️ Service Embeddings:")
-  console.log("   POST /api/workspaces/{workspaceId}/services/generate-embeddings")
-  console.log("   ")
-  console.log("   Or use the admin interface buttons on the respective pages.")
-  console.log("   ")
+  
+  try {
+    // Import embedding service
+    const { embeddingService } = require('../src/services/embeddingService')
+    
+    console.log("   🛍️ Generating Product Embeddings...")
+    await embeddingService.generateProductEmbeddings(mainWorkspaceId)
+    console.log("   ✅ Product embeddings generated successfully")
+    
+         console.log("   🔧 Generating FAQ Embeddings...")
+     await embeddingService.generateFAQEmbeddings(mainWorkspaceId)
+     console.log("   ✅ FAQ embeddings generated successfully")
+    
+    console.log("   🛠️ Generating Service Embeddings...")
+    await embeddingService.generateServiceEmbeddings(mainWorkspaceId)
+    console.log("   ✅ Service embeddings generated successfully")
+    
+         console.log("   📄 Generating Document Embeddings...")
+     const { documentService } = require('../src/services/documentService')
+     await documentService.generateEmbeddingsForActiveDocuments(mainWorkspaceId)
+     console.log("   ✅ Document embeddings generated successfully")
+    
+    console.log("   ")
+    console.log("🎉 ALL EMBEDDINGS GENERATED SUCCESSFULLY!")
+    
+  } catch (error) {
+    console.error("❌ Error generating embeddings:", error)
+    console.log("📝 FALLBACK - Manual embedding generation instructions:")
+    console.log("   🔧 FAQ Embeddings: POST /api/workspaces/{workspaceId}/faqs/generate-embeddings")
+    console.log("   📄 Document Embeddings: POST /api/workspaces/{workspaceId}/documents/generate-embeddings")
+    console.log("   🛠️ Service Embeddings: POST /api/workspaces/{workspaceId}/services/generate-embeddings")
+    console.log("   🛍️ Product Embeddings: POST /api/workspaces/{workspaceId}/products/generate-embeddings")
+    console.log("   Or use the admin interface buttons on the respective pages.")
+  }
 }
 
 // Function to seed default document
@@ -487,20 +682,15 @@ async function main() {
     if (!existingAgentConfig) {
       await prisma.agentConfig.create({
         data: {
-          name: "Default Agent",
-          content: "You are the ShopMe virtual assistant. Help users with product info, orders, and support in a friendly, professional tone.",
-          isActive: true,
-          isRouter: true,
-          department: null,
+          prompt: SOFIA_PROMPT,
           workspaceId: mainWorkspaceId,
+          model: defaultAgent.model,
           temperature: 0.7,
-          top_p: 0.9,
-          top_k: 40,
-          model: "openai/gpt-4o-mini",
-          max_tokens: 1000,
+          maxTokens: 1000,
+          isActive: true,
         },
       });
-      console.log("AgentConfig di default creato per il workspace principale");
+      console.log("SofIA AgentConfig creato per il workspace principale");
     } else {
       console.log("AgentConfig già esistente per il workspace principale");
     }
@@ -516,8 +706,8 @@ async function main() {
     if (!existingPromptAgent) {
       await prisma.prompts.create({
         data: {
-          name: "Default Agent",
-          content: "You are the ShopMe virtual assistant. Help users with product info, orders, and support in a friendly, professional tone.",
+          name: defaultAgent.name,
+          content: SOFIA_PROMPT,
           isActive: true,
           isRouter: true,
           department: null,
@@ -528,9 +718,37 @@ async function main() {
           max_tokens: 1024,
         },
       });
-      console.log("Prompt agent di default creato per il workspace principale");
+      console.log("SofIA Prompt agent creato per il workspace principale");
     } else {
       console.log("Prompt agent già esistente per il workspace principale");
+    }
+
+    // CREA ROUTER PROMPT SE NON ESISTE
+    const existingRouterPrompt = await prisma.prompts.findFirst({
+      where: {
+        workspaceId: mainWorkspaceId,
+        name: "Router LLM",
+        isActive: true,
+      },
+    });
+    if (!existingRouterPrompt) {
+      await prisma.prompts.create({
+        data: {
+          name: "Router LLM",
+          content: ROUTER_PROMPT,
+          isActive: true,
+          isRouter: false,
+          department: "router",
+          workspaceId: mainWorkspaceId,
+          model: "openai/gpt-4o-mini",
+          temperature: 0.1,
+          top_p: 1,
+          max_tokens: 500,
+        },
+      });
+      console.log("Router Prompt creato per il workspace principale");
+    } else {
+      console.log("Router Prompt già esistente per il workspace principale");
     }
   } else {
     console.log(
@@ -612,20 +830,15 @@ async function main() {
     if (!existingAgentConfig) {
       await prisma.agentConfig.create({
         data: {
-          name: "Default Agent",
-          content: "You are the ShopMe virtual assistant. Help users with product info, orders, and support in a friendly, professional tone.",
-          isActive: true,
-          isRouter: true,
-          department: null,
+          prompt: SOFIA_PROMPT,
           workspaceId: mainWorkspaceId,
+          model: defaultAgent.model,
           temperature: 0.7,
-          top_p: 0.9,
-          top_k: 40,
-          model: "openai/gpt-4o-mini",
-          max_tokens: 1000,
+          maxTokens: 1000,
+          isActive: true,
         },
       });
-      console.log("AgentConfig di default creato per il workspace principale");
+      console.log("SofIA AgentConfig creato per il workspace principale");
     } else {
       console.log("AgentConfig già esistente per il workspace principale");
     }
@@ -641,8 +854,8 @@ async function main() {
     if (!existingPromptAgent) {
       await prisma.prompts.create({
         data: {
-          name: "Default Agent",
-          content: "You are the ShopMe virtual assistant. Help users with product info, orders, and support in a friendly, professional tone.",
+          name: defaultAgent.name,
+          content: SOFIA_PROMPT,
           isActive: true,
           isRouter: true,
           department: null,
@@ -653,9 +866,37 @@ async function main() {
           max_tokens: 1024,
         },
       });
-      console.log("Prompt agent di default creato per il workspace principale");
+      console.log("SofIA Prompt agent creato per il workspace principale");
     } else {
       console.log("Prompt agent già esistente per il workspace principale");
+    }
+
+    // CREA ROUTER PROMPT SE NON ESISTE
+    const existingRouterPrompt = await prisma.prompts.findFirst({
+      where: {
+        workspaceId: mainWorkspaceId,
+        name: "Router LLM",
+        isActive: true,
+      },
+    });
+    if (!existingRouterPrompt) {
+      await prisma.prompts.create({
+        data: {
+          name: "Router LLM",
+          content: ROUTER_PROMPT,
+          isActive: true,
+          isRouter: false,
+          department: "router",
+          workspaceId: mainWorkspaceId,
+          model: "openai/gpt-4o-mini",
+          temperature: 0.1,
+          top_p: 1,
+          max_tokens: 500,
+        },
+      });
+      console.log("Router Prompt creato per il workspace principale");
+    } else {
+      console.log("Router Prompt già esistente per il workspace principale");
     }
   }
 
@@ -1426,7 +1667,7 @@ async function main() {
     if (!existingWhatsappSettings) {
       await prisma.whatsappSettings.create({
         data: {
-          phoneNumber: "+34654728753",
+          phoneNumber: "+88888888888888",
           apiKey: "dummy-api-key",
           workspaceId: mainWorkspaceId,
           gdpr: defaultGdprText,
@@ -1437,7 +1678,7 @@ async function main() {
       await prisma.whatsappSettings.update({
         where: { workspaceId: mainWorkspaceId },
         data: {
-          phoneNumber: "+34654728753",
+          phoneNumber: "+88888888888888",
           apiKey: "dummy-api-key",
           gdpr: existingWhatsappSettings.gdpr || defaultGdprText,
         },
@@ -1452,7 +1693,7 @@ async function main() {
     if (!existingWhatsappSettings) {
       await prisma.whatsappSettings.create({
         data: {
-          phoneNumber: "+34654728753",
+          phoneNumber: "+88888888888888",
           apiKey: "dummy-api-key",
           workspaceId: mainWorkspaceId,
         },
@@ -1464,7 +1705,7 @@ async function main() {
       await prisma.whatsappSettings.update({
         where: { workspaceId: mainWorkspaceId },
         data: {
-          phoneNumber: "+34654728753",
+          phoneNumber: "+88888888888888",
           apiKey: "dummy-api-key",
         },
       })

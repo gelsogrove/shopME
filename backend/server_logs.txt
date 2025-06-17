@@ -1,0 +1,351 @@
+2025-06-16T14:47:22.901Z [[32minfo[39m]: OpenAI API key status: Missing 
+2025-06-16T14:47:22.998Z [[32minfo[39m]: [CACHE] CacheService initialized with automatic cleanup every 30s 
+2025-06-16T14:47:23.068Z [[32minfo[39m]: Setting up workspace routes 
+2025-06-16T14:47:23.069Z [[32minfo[39m]: Workspace routes setup complete 
+2025-06-16T14:47:23.097Z [[32minfo[39m]: Setting up API routes 
+2025-06-16T14:47:23.098Z [[32minfo[39m]: ChatController initialized 
+2025-06-16T14:47:23.101Z [[32minfo[39m]: Setting up registration routes 
+2025-06-16T14:47:23.101Z [[32minfo[39m]: Registration routes setup complete 
+2025-06-16T14:47:23.101Z [[32minfo[39m]: Setting up user routes 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: User routes setup complete 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Setting up customers routes 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Registered route: GET /:workspaceId/unknown-customers/count 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Registered route: GET /:workspaceId/unknown-customers/count-debug 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Registered route: GET /:workspaceId/unknown-customers/debug-no-auth (no auth required) 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Registered route: POST /:workspaceId/customers/:id/block 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Customers routes setup complete 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Setting up workspace customers routes 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Workspace customers routes setup complete 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Setting up agent routes 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Agent routes setup complete 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Registered agent router with workspace routes only 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Registered categories router with workspace routes 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Registered services router with workspace routes 
+2025-06-16T14:47:23.102Z [[32minfo[39m]: Registered FAQs router with workspace routes 
+2025-06-16T14:47:23.103Z [[32minfo[39m]: Setting up settings routes 
+2025-06-16T14:47:23.103Z [[32minfo[39m]: Settings routes setup complete 
+2025-06-16T14:47:23.103Z [[32minfo[39m]: Setting up languages routes 
+2025-06-16T14:47:23.103Z [[32minfo[39m]: Languages routes setup complete 
+2025-06-16T14:47:23.103Z [[32minfo[39m]: Registered offers router with workspace routes 
+2025-06-16T14:47:23.103Z [[32minfo[39m]: Registered WhatsApp router with auth-protected endpoints 
+2025-06-16T14:47:23.103Z [[32minfo[39m]: Registered document router with workspace and upload endpoints 
+2025-06-16T14:47:23.103Z [[32minfo[39m]: Registered /gdpr/default route for backward compatibility 
+2025-06-16T14:47:23.103Z [[32minfo[39m]: API routes setup complete 
+2025-06-16T14:47:23.104Z [[32minfo[39m]: Serving static files from: /Users/gelso/workspace/AI/shop/backend/dist/uploads 
+2025-06-16T14:47:23.104Z [[32minfo[39m]: Mounting public WhatsApp webhook routes 
+2025-06-16T14:47:23.106Z [[32minfo[39m]: Mounting API router at /api prefix 
+2025-06-16T14:47:23.106Z [[32minfo[39m]: 🔍 DEBUG: Printing all registered routes: 
+2025-06-16T14:47:23.106Z [[32minfo[39m]: 🛣️  OPTIONS * 
+2025-06-16T14:47:23.106Z [[32minfo[39m]: 🛣️  POST /api/test/json-parser 
+2025-06-16T14:47:23.106Z [[32minfo[39m]: 🛣️  POST /api/whatsapp/webhook 
+2025-06-16T14:47:23.106Z [[32minfo[39m]: 🛣️  GET /api/whatsapp/webhook 
+2025-06-16T14:47:23.106Z [[32minfo[39m]: 🛣️  POST /api/workspaces/:workspaceId/customers/:id/block 
+2025-06-16T14:47:23.106Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/auth\/?(?=\/|$)/i/login 
+2025-06-16T14:47:23.106Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/auth\/?(?=\/|$)/i/me 
+2025-06-16T14:47:23.106Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/auth\/?(?=\/|$)/i/logout 
+2025-06-16T14:47:23.106Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/auth\/?(?=\/|$)/i/register 
+2025-06-16T14:47:23.106Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/auth\/?(?=\/|$)/i/2fa/setup/:userId 
+2025-06-16T14:47:23.106Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/auth\/?(?=\/|$)/i/2fa/verify 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/registration\/?(?=\/|$)/i/token/:token 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/registration\/?(?=\/|$)/i/register 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/registration\/?(?=\/|$)/i/data-protection 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/debug/:sessionId 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/recent 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/:sessionId 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/:sessionId/messages 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/:sessionId/mark-read 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/:sessionId 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/test/:sessionId 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/messages\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/messages\/?(?=\/|$)/i/test 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/messages\/?(?=\/|$)/i/test/openai 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/me 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/profile 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/profile 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/change-password 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/unknown-customers/debug-no-auth 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers/:id/block 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers/:id/bloc 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers/:customerId/chatbot-control 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/unknown-customers/count 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/unknown-customers/count-debug 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers/:id/block 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers/:id/bloc 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers/:customerId/chatbot-control 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/unknown-customers/count 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/agent\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/agent\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/agent\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/agent\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/agent\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i/workspaces/:workspaceId/test 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/prompts\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/prompts\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/prompts\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/prompts\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/prompts\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/categories\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/categories\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/categories\/?(?=\/|$)/i/:id/has-products 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/categories\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/categories\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/categories\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/categories\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/categories\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/categories\/?(?=\/|$)/i/:id/has-products 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/categories\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/categories\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/categories\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/services\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/services\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/services\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/services\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/services\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/services\/?(?=\/|$)/i/generate-embeddings 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/faqs\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/faqs\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/faqs\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/faqs\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/faqs\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/faqs\/?(?=\/|$)/i/generate-embeddings 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/faqs\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/faqs\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/faqs\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/faqs\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/faqs\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/faqs\/?(?=\/|$)/i/generate-embeddings 
+2025-06-16T14:47:23.107Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/settings\/?(?=\/|$)/i/gdpr 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/settings\/?(?=\/|$)/i/gdpr 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/settings\/?(?=\/|$)/i/default-gdpr 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/settings\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/settings\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/settings\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/languages\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/offers\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/offers\/?(?=\/|$)/i/active 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/offers\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/offers\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/offers\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/offers\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/offers\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/offers\/?(?=\/|$)/i/active 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/offers\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/offers\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/offers\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/offers\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/whatsapp\/?(?=\/|$)/i/settings 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/whatsapp\/?(?=\/|$)/i/settings 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/whatsapp\/?(?=\/|$)/i/status 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/whatsapp\/?(?=\/|$)/i/send 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/upload 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/:id/process 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/legacy 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/search 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/test-embedding 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/generate-embeddings 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  DELETE \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/:id/download 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/v1\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i/gdpr/default 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i/docs/swagger.json 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i/health 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/v1\/?(?=\/|$)/i/workspaces/:workspaceId/agent-test 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/auth\/?(?=\/|$)/i/login 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/auth\/?(?=\/|$)/i/me 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/auth\/?(?=\/|$)/i/logout 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/auth\/?(?=\/|$)/i/register 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/auth\/?(?=\/|$)/i/2fa/setup/:userId 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/auth\/?(?=\/|$)/i/2fa/verify 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/registration\/?(?=\/|$)/i/token/:token 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/registration\/?(?=\/|$)/i/register 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/registration\/?(?=\/|$)/i/data-protection 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/debug/:sessionId 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/recent 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/:sessionId 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/:sessionId/messages 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/:sessionId/mark-read 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/:sessionId 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/chat\/?(?=\/|$)/i/test/:sessionId 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/messages\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/messages\/?(?=\/|$)/i/test 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/messages\/?(?=\/|$)/i/test/openai 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/me 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/profile 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/profile 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/change-password 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/users\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/unknown-customers/debug-no-auth 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers/:id/block 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers/:id/bloc 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/customers/:customerId/chatbot-control 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/unknown-customers/count 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/?(?=\/|$)/i/:workspaceId/unknown-customers/count-debug 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers/:id/block 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers/:id/bloc 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/customers/:customerId/chatbot-control 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:workspaceId/unknown-customers/count 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/workspaces\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/agent\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/agent\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/agent\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/agent\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/agent\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i/workspaces/:workspaceId/test 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/prompts\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/prompts\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.108Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/prompts\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/prompts\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/prompts\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/categories\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/categories\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/categories\/?(?=\/|$)/i/:id/has-products 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/categories\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/categories\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/categories\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/categories\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/categories\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/categories\/?(?=\/|$)/i/:id/has-products 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/categories\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/categories\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/categories\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/services\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/services\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/services\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/services\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/services\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/services\/?(?=\/|$)/i/generate-embeddings 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/faqs\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/faqs\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/faqs\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/faqs\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/faqs\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/faqs\/?(?=\/|$)/i/generate-embeddings 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/faqs\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/faqs\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/faqs\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/faqs\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/faqs\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/faqs\/?(?=\/|$)/i/generate-embeddings 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/settings\/?(?=\/|$)/i/gdpr 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/settings\/?(?=\/|$)/i/gdpr 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/settings\/?(?=\/|$)/i/default-gdpr 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/settings\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/settings\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.109Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/settings\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/languages\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/offers\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/offers\/?(?=\/|$)/i/active 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/offers\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/offers\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/offers\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/offers\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/offers\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/offers\/?(?=\/|$)/i/active 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/offers\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/offers\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/offers\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/offers\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/whatsapp\/?(?=\/|$)/i/settings 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/whatsapp\/?(?=\/|$)/i/settings 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/whatsapp\/?(?=\/|$)/i/status 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/whatsapp\/?(?=\/|$)/i/send 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/upload 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/:id/process 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/ 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/legacy 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/search 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/test-embedding 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  POST \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/generate-embeddings 
+2025-06-16T14:47:23.110Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.111Z [[32minfo[39m]: 🛣️  DELETE \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.111Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/:id/download 
+2025-06-16T14:47:23.111Z [[32minfo[39m]: 🛣️  PUT \/api\/?(?=\/|$)/i\/workspaces\/(?:([^\/]+?))\/documents\/?(?=\/|$)/i/:id 
+2025-06-16T14:47:23.111Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i/gdpr/default 
+2025-06-16T14:47:23.111Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i/docs/swagger.json 
+2025-06-16T14:47:23.111Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i/health 
+2025-06-16T14:47:23.111Z [[32minfo[39m]: 🛣️  GET \/api\/?(?=\/|$)/i/workspaces/:workspaceId/agent-test 
+2025-06-16T14:47:23.111Z [[32minfo[39m]: 🛣️  GET /api/test/openai 
+2025-06-16T14:47:23.111Z [[32minfo[39m]: 🛣️  GET /health 
+Connected to database
+Server is running on port 3001
+2025-06-16T14:47:32.617Z [[32minfo[39m]: Incoming GET request to /health 
+2025-06-16T14:47:32.620Z [[32minfo[39m]: Response for GET /health - Status: 200 
+2025-06-16T14:59:35.777Z [[32minfo[39m]: Incoming POST request to /api/auth/login 
+2025-06-16T14:59:35.789Z [[32minfo[39m]: Fixed JSON request body using rawBody 
+2025-06-16T14:59:35.789Z [[32minfo[39m]: Request: POST /api/auth/login 
+2025-06-16T14:59:35.790Z [[32minfo[39m]: Authenticating user with email: admin@shopme.com 
+2025-06-16T14:59:35.870Z [[31merror[39m]: Error: Invalid credentials {
+  "statusCode": 401,
+  "name": "AppError",
+  "stack": "AppError: Invalid credentials\n    at AuthController.<anonymous> (/Users/gelso/workspace/AI/shop/backend/dist/src/interfaces/http/controllers/auth.controller.js:142:23)\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/gelso/workspace/AI/shop/backend/dist/src/interfaces/http/controllers/auth.controller.js:66:58)"
+}
+2025-06-16T14:59:35.870Z [[32minfo[39m]: Response for POST /api/auth/login - Status: 401 
+2025-06-16T14:59:35.870Z [[32minfo[39m]: Response for POST /api/auth/login - Status: 401 
+2025-06-16T14:59:58.708Z [[32minfo[39m]: Incoming GET request to /health 
+2025-06-16T14:59:58.709Z [[32minfo[39m]: Response for GET /health - Status: 200 
+2025-06-16T15:06:22.989Z [[32minfo[39m]: Incoming POST request to /api/auth/login 
+2025-06-16T15:06:22.990Z [[32minfo[39m]: Fixed JSON request body using rawBody 
+2025-06-16T15:06:22.990Z [[32minfo[39m]: Request: POST /api/auth/login 
+2025-06-16T15:06:22.990Z [[32minfo[39m]: Authenticating user with email: admin@shopme.com 
+2025-06-16T15:06:23.072Z [[31merror[39m]: Error: Invalid credentials {
+  "statusCode": 401,
+  "name": "AppError",
+  "stack": "AppError: Invalid credentials\n    at AuthController.<anonymous> (/Users/gelso/workspace/AI/shop/backend/dist/src/interfaces/http/controllers/auth.controller.js:142:23)\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/gelso/workspace/AI/shop/backend/dist/src/interfaces/http/controllers/auth.controller.js:66:58)"
+}
+2025-06-16T15:06:23.072Z [[32minfo[39m]: Response for POST /api/auth/login - Status: 401 
+2025-06-16T15:06:23.072Z [[32minfo[39m]: Response for POST /api/auth/login - Status: 401 
+2025-06-16T15:06:57.636Z [[32minfo[39m]: Incoming POST request to /api/workspaces/cm9hjgq9v00014qk8fsdy4ujv/products/generate-embeddings 
+2025-06-16T15:06:57.636Z [[32minfo[39m]: Request: POST /api/workspaces/cm9hjgq9v00014qk8fsdy4ujv/products/generate-embeddings 
+=== AUTH MIDDLEWARE START ===
+Request URL: /api/workspaces/cm9hjgq9v00014qk8fsdy4ujv/products/generate-embeddings
+Request method: POST
+No token in cookies, checking headers
+No authorization header
+Auth middleware error: Authentication required
+2025-06-16T15:06:57.637Z [[31merror[39m]: Error: Authentication required {
+  "statusCode": 401,
+  "name": "AppError",
+  "stack": "AppError: Authentication required\n    at /Users/gelso/workspace/AI/shop/backend/dist/src/interfaces/http/middlewares/auth.middleware.js:103:23\n    at Generator.next (<anonymous>)\n    at /Users/gelso/workspace/AI/shop/backend/dist/src/interfaces/http/middlewares/auth.middleware.js:41:71\n    at new Promise (<anonymous>)\n    at __awaiter (/Users/gelso/workspace/AI/shop/backend/dist/src/interfaces/http/middlewares/auth.middleware.js:37:12)\n    at authMiddlewareAsync (/Users/gelso/workspace/AI/shop/backend/dist/src/interfaces/http/middlewares/auth.middleware.js:62:50)\n    at /Users/gelso/workspace/AI/shop/backend/dist/src/interfaces/http/middlewares/async.middleware.js:5:21\n    at Layer.handle [as handle_request] (/Users/gelso/workspace/AI/shop/backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/gelso/workspace/AI/shop/backend/node_modules/express/lib/router/index.js:328:13)\n    at /Users/gelso/workspace/AI/shop/backend/node_modules/express/lib/router/index.js:286:9"
+}
+2025-06-16T15:06:57.637Z [[32minfo[39m]: Response for POST /api/workspaces/cm9hjgq9v00014qk8fsdy4ujv/products/generate-embeddings - Status: 401 
+2025-06-16T15:06:57.637Z [[32minfo[39m]: Response for POST /api/workspaces/cm9hjgq9v00014qk8fsdy4ujv/products/generate-embeddings - Status: 401 

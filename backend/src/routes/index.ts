@@ -133,9 +133,11 @@ router.get("/workspaces/:workspaceId/test", authMiddleware, (req, res) => {
 // For backward compatibility during migration
 router.use("/prompts", createPromptsRouter(promptsController))
 
-// NOTE: Products routes are now handled by the new API router in api.ts
-// The old global registration has been removed to prevent conflicts
-// router.use("/", productsRouterInstance) // REMOVED: causes conflicts with workspace routes
+// Mount products routes with workspace context
+import productsRouter from "../interfaces/http/routes/products.routes"
+const productsRouterInstance = productsRouter()
+router.use("/workspaces/:workspaceId/products", productsRouterInstance)
+logger.info("Registered products router with workspace routes")
 
 // Mount categories routes
 const categoriesRouterInstance = categoriesRouter()
