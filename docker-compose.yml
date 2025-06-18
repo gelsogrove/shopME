@@ -29,13 +29,9 @@ services:
       - N8N_PROTOCOL=http
       - WEBHOOK_URL=http://localhost:5678/
       - GENERIC_TIMEZONE=Europe/Rome
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=postgres
-      - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=shop_db
-      - DB_POSTGRESDB_USER=postgres
-      - DB_POSTGRESDB_PASSWORD=postgres
-      - DB_POSTGRESDB_SCHEMA=n8n
+      # JSON file storage configuration
+      - N8N_USER_FOLDER=/home/node/.n8n
+      - N8N_WORKFLOWS_FOLDER=/home/node/.n8n/workflows
     ports:
       - "5678:5678"
     volumes:

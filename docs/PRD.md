@@ -168,6 +168,52 @@ Vuoi procedere con l'ordine? 😊"
 ### Overview
 The ShopMe platform integrates with **N8N** (n8nio.com) as a visual workflow automation platform to replace complex conditional business logic in WhatsApp message processing with intuitive drag-and-drop workflows. This hybrid architecture separates critical security controls (handled by ShopMe backend) from business logic (handled by N8N workflows).
 
+### 🎨 **Admin Interface Integration**
+
+#### **Settings Menu N8N Page**
+N8N is seamlessly integrated into the ShopMe admin interface as a dedicated settings page:
+
+- **Location**: `/settings/n8n` - Direct access from Settings sidebar menu
+- **Interface**: Embedded iframe with N8N workflow editor
+- **Authentication**: Single Sign-On using ShopMe admin credentials
+- **Access Control**: Restricted to admin users only (workspace role verification)
+
+#### **N8N Management Features**
+
+##### **🖥️ Embedded Interface Components:**
+```typescript
+// N8NPage.tsx - Main container with iframe integration
+<div className="flex flex-col h-full">
+  <N8NStatusHeader />
+  <iframe
+    src={`http://localhost:5678?auth=${getN8NToken()}`}
+    className="flex-1 w-full border-0 rounded-lg"
+    style={{ minHeight: '800px' }}
+    title="N8N Workflow Editor"
+    sandbox="allow-same-origin allow-scripts allow-forms"
+  />
+  <QuickActions />
+</div>
+```
+
+##### **📊 Real-time Monitoring:**
+- **WorkflowStatusCard**: Live workflow execution status
+- **WorkflowMetrics**: Performance analytics and success rates  
+- **Container Health**: N8N service availability monitoring
+- **Error Dashboard**: Real-time error tracking and logging
+
+##### **🔧 Quick Management Actions:**
+- **Import/Export Workflows**: Upload/download workflow JSON files
+- **Container Control**: Start/stop/restart N8N container
+- **Performance Dashboard**: Execution times, success rates, error rates
+- **Workflow Templates**: Pre-built templates for common business patterns
+
+##### **🛡️ Security Integration:**
+- **Role-Based Access**: Only workspace owners/admins can modify workflows
+- **Audit Logging**: Track all workflow modifications with user attribution
+- **Secure Token Passing**: JWT tokens for N8N authentication
+- **Read-Only Mode**: Limited access for non-admin users
+
 ### 🎯 **Hybrid Architecture: Backend + N8N**
 
 #### **🛡️ ShopMe Backend Security Layer (SEMPRE nel server):**
@@ -363,20 +409,58 @@ if (decoded.scope !== 'internal_api') {
 }
 ```
 
-### 🐳 **Docker Network Configuration**
+### 🐳 **Docker Configuration**
 
-#### **Container Communication:**
+#### **N8N JSON File Storage Setup:**
 ```yaml
-# docker-compose.yml
+# docker-compose.yml - N8N with JSON file storage
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: shopme_n8n
+    environment:
+      # Basic authentication
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=shopme2024
+      # JSON file storage configuration (NO DATABASE!)
+      - N8N_USER_FOLDER=/home/node/.n8n
+      - N8N_WORKFLOWS_FOLDER=/home/node/.n8n/workflows
+      - WEBHOOK_URL=http://localhost:5678/
+    volumes:
+      # Mixed persistence: Volume + Local files
+      - n8n_data:/home/node/.n8n                          # Container data
+      - ./n8n/workflows:/home/node/.n8n/workflows          # Local workflow files
+    ports:
+      - "5678:5678"
+    networks:
+      - shopme_network
+
 networks:
   shopme_network:
     driver: bridge
 
-services:
-  shopme_backend:
-    container_name: shopme_backend
-    networks:
-      - shopme_network
+volumes:
+  n8n_data:           # Container persistence
+  postgres_data:      # ShopMe database
+```
+
+#### **File Structure:**
+```bash
+./n8n/
+├── workflows/
+│   ├── shopme-whatsapp-flow.json      # Main WhatsApp workflow
+│   ├── backup-flows.json              # Backup workflows
+│   └── test-flows.json                # Test workflows
+├── credentials/                        # API credentials (in container)
+└── data/                              # N8N settings (in container)
+```
+
+#### **Persistence Strategy:**
+- **Workflows**: Local JSON files (./n8n/workflows/) → Git trackable
+- **Credentials**: Container volume (n8n_data) → Secure
+- **Executions**: Container volume (n8n_data) → Performance
+- **Settings**: Container volume (n8n_data) → Persistent
     
   shopme_n8n:
     container_name: shopme_n8n

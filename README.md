@@ -64,6 +64,34 @@ ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that enables 
 - **Hard Delete System**: GDPR-compliant complete data removal
 - **🚀 N8N Integration**: Visual workflow management for WhatsApp processing
 
+### 🚀 N8N Visual Workflow Management
+
+ShopMe integrates with **N8N** to provide visual workflow management for WhatsApp message processing, replacing complex conditional logic with intuitive drag-and-drop workflows.
+
+#### Key Features:
+- **📊 Visual Logic**: See your entire WhatsApp flow in a visual diagram
+- **🔧 No-Code Editing**: Modify business logic without touching code
+- **🎛️ Admin Interface**: Embedded N8N editor in Settings menu
+- **📁 JSON Storage**: Workflows stored as trackable JSON files
+- **⚡ Performance**: Optimized flow execution with internal APIs
+
+#### Setup N8N:
+```bash
+# Start N8N with ShopMe
+docker-compose up -d
+
+# Access N8N in ShopMe Admin
+http://localhost:3000/settings/n8n
+
+# Or direct N8N interface
+http://localhost:5678
+# Login: admin / shopme2024
+```
+
+#### Workflow Files:
+- `./n8n/workflows/shopme-whatsapp-flow.json` - Main WhatsApp processing workflow
+- Workflows are automatically saved and version-controlled with Git
+
 ### 🔄 Architecture
 
 ```
