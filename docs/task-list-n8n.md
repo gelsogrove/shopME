@@ -32,6 +32,7 @@
 
 ### 1. **N8N Container Setup & Configuration**
 **Priority**: 🚨 **HIGH**
+**Status**: ✅ **COMPLETED** 
 **Description**: Complete N8N container setup with PostgreSQL integration and security configuration
 **Acceptance Criteria**:
 
@@ -44,12 +45,12 @@
 - [x] ✅ **COMPLETED** - Network configuration for internal communication
 - [x] ✅ **COMPLETED** - Port 5678 exposed for admin interface access
 
-#### Database Settings & Configuration:
-- [ ] **Separate PostgreSQL Container** - Dedicated DB for N8N workflows
-- [ ] **Database Connection Settings** - N8N environment variables for DB connection
-- [ ] **Database User & Permissions** - Dedicated N8N database user
-- [ ] **Database Backup Strategy** - Backup/restore procedures for N8N workflows
-- [ ] **Performance Tuning** - PostgreSQL optimization for N8N workloads
+#### JSON File Storage Configuration (NO DATABASE):
+- [x] ✅ **COMPLETED** - JSON file storage configured (NO PostgreSQL for N8N)
+- [x] ✅ **COMPLETED** - Local file persistence with Git-trackable workflows
+- [x] ✅ **COMPLETED** - Volume mapping: `./n8n/workflows` → container workflows
+- [x] ✅ **COMPLETED** - No seed scripts needed - N8N saves directly to files
+- [x] ✅ **COMPLETED** - Workflow files automatically version controlled
 
 #### Security & Authentication:
 - [ ] Configure N8N basic authentication with environment variables
@@ -65,6 +66,7 @@
 
 ### 2. **Backend Internal API Development**
 **Priority**: 🚨 **HIGH**
+**Status**: ✅ **COMPLETED**
 **Description**: Create internal API endpoints for N8N workflow communication
 **Acceptance Criteria**:
 
@@ -199,11 +201,24 @@
 - [ ] Maintain security middleware (rate limiting, spam detection, blacklist)
 - [ ] Update error handling for new architecture
 
-#### Testing Updates:
-- [ ] Update unit tests for simplified MessageService
+#### 🚨 CRITICAL: Test Cleanup (Obsolete Tests):
+- [ ] **DELETE**: `langchain-message.service.spec.ts` - Service non più esistente
+- [ ] **UPDATE**: `message.service.spec.ts` - Solo security checks, no business logic
+- [ ] **DELETE**: `message-flow-scenarios.spec.ts` - Flow ora gestito da N8N
+- [ ] **DELETE**: `flow-test.integration.spec.ts` - Integration obsoleta
+- [ ] **DELETE**: `whatsapp-flow-complete.spec.ts` - Flow completo obsoleto
+- [ ] **DELETE**: `whatsapp-dialogue-simulation.spec.ts` - Simulazione obsoleta
+- [ ] **UPDATE**: `whatsapp.service.spec.ts` - Solo webhook e sicurezza
+- [ ] **DELETE**: Test LangChain dual-LLM architecture
+- [ ] **DELETE**: Test function calling (ora N8N internal APIs)
+- [ ] **DELETE**: Test RAG integration (ora endpoint /internal/rag-search)
+
+#### New N8N Integration Tests:
 - [ ] Create integration tests for internal API endpoints
-- [ ] Test N8N webhook integration
-- [ ] Performance testing and comparison
+- [ ] Test N8N webhook communication
+- [ ] Test JWT authentication for internal APIs
+- [ ] Performance testing N8N vs LangChain comparison
+- [ ] End-to-end N8N workflow testing
 
 ### 6. **Testing & Quality Assurance**
 **Priority**: 🟡 **MEDIUM**
