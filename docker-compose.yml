@@ -12,34 +12,35 @@ services:
       - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - shopme_network
 
-  # 🤖 Flowise 3.0 - Visual Flow Engine
-  flowise:
-    image: flowiseai/flowise:latest
-    container_name: shopme_flowise
+  # 🚀 N8N - Workflow Automation Platform
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: shopme_n8n
     restart: always
     environment:
-      - PORT=3003
-      - CORS_ORIGINS=http://localhost:3000,http://localhost:3001
-      - IFRAME_ORIGINS=http://localhost:3000,http://localhost:3001
-      - FLOWISE_USERNAME=admin
-      - FLOWISE_PASSWORD=shopme2024
-      - DATABASE_PATH=/root/.flowise
-      - APIKEY_PATH=/root/.flowise
-      - SECRETKEY_PATH=/root/.flowise
-      - LOG_LEVEL=info
-      - LOG_PATH=/root/.flowise/logs
-      # Integrazione con il nostro database PostgreSQL
-      - DATABASE_TYPE=postgres
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=postgres
-      - DATABASE_NAME=shop_db
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=shopme2024
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=Europe/Rome
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=shop_db
+      - DB_POSTGRESDB_USER=postgres
+      - DB_POSTGRESDB_PASSWORD=postgres
+      - DB_POSTGRESDB_SCHEMA=n8n
     ports:
-      - "3003:3003"
+      - "5678:5678"
     volumes:
-      - flowise_data:/root/.flowise
+      - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/home/node/.n8n/workflows
     depends_on:
       - postgres
     networks:
@@ -51,4 +52,4 @@ networks:
 
 volumes:
   postgres_data:
-  flowise_data:
+  n8n_data:

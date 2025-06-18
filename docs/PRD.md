@@ -5,6 +5,7 @@
   - [Short Description](#short-description)
   - [Business Model](#business-model)
   - [Message Processing Flow](#message-processing-flow)
+  - [N8N Visual Workflow Integration](#n8n-visual-workflow-integration)
 - [UI Screenshots](#ui-screenshots)
 - [Dialog Examples](#dialog-examples)
   - [User Registration](#registro-de-nuevo-usuario)
@@ -162,8 +163,350 @@ Vuoi procedere con l'ordine? 😊"
 - **Database Integration**: All queries filtered by `workspaceId` for data isolation
 - **Error Handling**: Graceful fallbacks for missing embeddings or API failures
 
-## 📊 SCHEMA ASCII DEL FLOW
+## 🚀 N8N Visual Workflow Integration
 
+### Overview
+The ShopMe platform integrates with **N8N** (n8nio.com) as a visual workflow automation platform to replace complex conditional business logic in WhatsApp message processing with intuitive drag-and-drop workflows. This hybrid architecture separates critical security controls (handled by ShopMe backend) from business logic (handled by N8N workflows).
+
+### 🎯 **Hybrid Architecture: Backend + N8N**
+
+#### **🛡️ ShopMe Backend Security Layer (SEMPRE nel server):**
+- ✅ **API Rate Limiting**: Controllo chiamate per workspace
+- ✅ **Spam Detection**: 10 messaggi in 30 secondi → auto-blacklist
+- ✅ **Blacklist Check**: Verifica customer.isBlacklisted e workspace.blocklist
+
+#### **🎨 N8N Visual Workflow Layer (Business Logic):**
+- 🔄 Channel Active Check
+- 👤 User Registration Flow
+- ⚠️ WIP Status Handling
+- 🧠 RAG Search & Content Retrieval
+- 🤖 LLM Processing & Response Generation
+- 💾 Message History Storage
+- 📤 Response Formatting
+
+### 🔄 **Message Processing Flow**
+
+#### **Step 1: Security Pre-Processing (ShopMe Backend)**
+```typescript
+// SEMPRE eseguito nel backend PRIMA di chiamare N8N
+const securityCheck = await this.messageService.performSecurityChecks({
+  phoneNumber: "+393451234567",
+  workspaceId: "123",
+  message: "Cerco mozzarella"
+});
+
+if (securityCheck.blocked) {
+  return securityCheck.response; // Blocca immediatamente
+}
+
+// Se passa i controlli, chiama N8N webhook
+const n8nInput = {
+  ...messageData,
+  securityPassed: true,
+  userConfig: securityCheck.userConfig
+};
+```
+
+#### **Step 2: N8N Webhook Trigger**
+```bash
+# Backend ShopMe chiama N8N con POST
+curl -X POST http://localhost:5678/webhook/whatsapp-flow \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Cerco mozzarella di bufala",
+    "phoneNumber": "+393451234567", 
+    "workspaceId": "123",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "securityPassed": true,
+    "userConfig": {
+      "isRegistered": true,
+      "isChannelActive": true,
+      "language": "it"
+    },
+    "agentConfig": {
+      "prompt": "Sei un assistente...",
+      "temperature": 0.7,
+      "model": "gpt-4"
+    }
+  }'
+```
+
+#### **Step 3: N8N Visual Workflow Execution**
+```
+🌐 N8N Webhook Input
+         |
+         v
+┌─────────────────────────────────────────────────────────┐
+│                N8N VISUAL WORKFLOW                      │
+├─────────────────────────────────────────────────────────┤
+│  ✅ Channel Active? → ⚠️ WIP Status? → 👤 User Type?    │
+│       ↓                    ↓              ↓             │
+│   ACTIVE               WIP MSG       NEW vs RETURNING    │
+│       ↓                    ↓              ↓             │
+│  🧠 RAG Search → 🤖 LLM Processing → 💾 Save Message   │
+│       ↓              ↓                   ↓             │
+│   PRODUCTS         RESPONSE            STORAGE          │
+│   FAQS            GENERATION                            │
+│   SERVICES                                              │
+│   DOCUMENTS                                             │
+└─────────────────────────────────────────────────────────┘
+         |
+         v
+📤 Formatted Response to ShopMe Backend
+```
+
+### 🔧 **N8N Workflow Nodes Configuration**
+
+#### **Node 1: Webhook Trigger**
+```json
+{
+  "type": "webhook",
+  "name": "WhatsApp Message Input", 
+  "settings": {
+    "path": "whatsapp-flow",
+    "method": "POST"
+  }
+}
+```
+
+#### **Node 2: Channel Active Check**
+```json
+{
+  "type": "http_request",
+  "name": "Check Channel Status",
+  "settings": {
+    "url": "http://shopme_backend:3000/api/internal/channel-status",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer {{$json.token}}"
+    },
+    "body": {
+      "workspaceId": "{{$json.workspaceId}}"
+    }
+  }
+}
+```
+
+#### **Node 3: IF Condition - Channel Active**
+```json
+{
+  "type": "if",
+  "name": "Is Channel Active?",
+  "settings": {
+    "condition": "{{$json.isActive}} === true"
+  }
+}
+```
+
+#### **Node 4: RAG Search**
+```json
+{
+  "type": "http_request", 
+  "name": "RAG Content Search",
+  "settings": {
+    "url": "http://shopme_backend:3000/api/internal/rag-search",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer {{$json.token}}"
+    },
+    "body": {
+      "query": "{{$json.message}}",
+      "workspaceId": "{{$json.workspaceId}}",
+      "language": "{{$json.userConfig.language}}",
+      "limit": 5
+    }
+  }
+}
+```
+
+#### **Node 5: LLM Processing**
+```json
+{
+  "type": "http_request",
+  "name": "Generate AI Response", 
+  "settings": {
+    "url": "http://shopme_backend:3000/api/internal/llm-process",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer {{$json.token}}"
+    },
+    "body": {
+      "prompt": "{{$json.agentConfig.prompt}}",
+      "userMessage": "{{$json.message}}",
+      "ragContext": "{{$json.ragResults}}",
+      "conversationHistory": "{{$json.history}}",
+      "temperature": "{{$json.agentConfig.temperature}}",
+      "model": "{{$json.agentConfig.model}}"
+    }
+  }
+}
+```
+
+### 🔐 **Security & Token Management**
+
+#### **Internal API Authentication:**
+Tutti i nodi N8N che chiamano API ShopMe usano JWT token:
+
+```typescript
+// Token contiene:
+{
+  "workspaceId": "123",
+  "iat": 1640995200,
+  "exp": 1640998800,
+  "scope": "internal_api"
+}
+
+// Validazione backend:
+const decoded = jwt.verify(token, process.env.INTERNAL_API_SECRET);
+if (decoded.scope !== 'internal_api') {
+  throw new UnauthorizedException('Invalid token scope');
+}
+```
+
+### 🐳 **Docker Network Configuration**
+
+#### **Container Communication:**
+```yaml
+# docker-compose.yml
+networks:
+  shopme_network:
+    driver: bridge
+
+services:
+  shopme_backend:
+    container_name: shopme_backend
+    networks:
+      - shopme_network
+    
+  shopme_n8n:
+    container_name: shopme_n8n
+    networks:
+      - shopme_network
+    environment:
+      - WEBHOOK_URL=http://shopme_backend:3000/webhook/n8n
+```
+
+#### **N8N HTTP Request URLs:**
+```bash
+# N8N chiama backend usando network interno:
+http://shopme_backend:3000/api/internal/channel-status
+http://shopme_backend:3000/api/internal/rag-search  
+http://shopme_backend:3000/api/internal/llm-process
+http://shopme_backend:3000/api/internal/save-message
+```
+
+### 📊 **API Endpoints per N8N**
+
+#### **Internal API Routes:**
+```typescript
+// backend/src/routes/internal.ts
+POST /api/internal/channel-status     // Verifica canale attivo
+POST /api/internal/user-check         // Controllo registrazione utente
+POST /api/internal/wip-status         // Stato WIP workspace
+POST /api/internal/rag-search         // Ricerca semantica unificata
+POST /api/internal/llm-process        // Generazione risposta AI
+POST /api/internal/save-message       // Salvataggio storico
+POST /api/internal/conversation-history // Recupero storico chat
+```
+
+#### **Example API Response:**
+```json
+// POST /api/internal/rag-search
+{
+  "success": true,
+  "results": {
+    "products": [
+      {"name": "Mozzarella di Bufala", "price": "€8.50", "stock": 15}
+    ],
+    "faqs": [
+      {"question": "Quanto costa la spedizione?", "answer": "€5.00 per ordini sotto €50"}
+    ],
+    "documents": [
+      {"content": "Spedizione gratuita per ordini sopra €50..."}
+    ]
+  },
+  "searchUsed": true,
+  "processingTime": 120
+}
+```
+
+### 📈 **Benefits della Separazione Backend/N8N**
+
+#### **Security Benefits:**
+- ✅ **Controlli critici** sempre nel backend (non modificabili via UI)
+- ✅ **Rate limiting** a livello infrastruttura 
+- ✅ **Spam detection** algoritmico robusto
+- ✅ **Blacklist management** centralizzato
+
+#### **Business Flexibility:**
+- ✅ **Business logic** modificabile visualmente
+- ✅ **No code deployment** per modifiche workflow
+- ✅ **A/B testing** di diversi flussi
+- ✅ **Debug visuale** del customer journey
+
+#### **Operational Benefits:**
+- ✅ **Separation of concerns** chiara
+- ✅ **Scaling indipendente** di security vs business logic
+- ✅ **Error isolation** tra security e business layer
+- ✅ **Performance monitoring** granulare
+
+## 📊 SCHEMA ASCII DEL FLOW - HYBRID ARCHITECTURE
+
+### **NEW: Backend Security + N8N Business Logic**
+
+```
+📱 MESSAGGIO WHATSAPP
+         |
+         v
+┌─────────────────────────────────────────────────────────┐
+│          🛡️ SHOPME BACKEND SECURITY LAYER              │
+│                    (SEMPRE NEL SERVER)                  │
+├─────────────────────────────────────────────────────────┤
+│  🚦 API RATE LIMIT → 🚫 SPAM DETECTION → 🚷 BLACKLIST │
+│       ↓                    ↓                ↓          │
+│   ≤100/10min           ≤10/30sec        BLOCKED?        │
+│       ↓                    ↓                ↓          │
+│    CONTINUE            AUTO-BLOCK        ❌ STOP       │
+└─────────────────────────────────────────────────────────┘
+         |
+         v (Security PASSED)
+┌─────────────────────────────────────────────────────────┐
+│             🚀 N8N WEBHOOK CALL                        │
+│   POST http://localhost:5678/webhook/whatsapp-flow     │
+│   { message, phoneNumber, workspaceId, token, ... }    │
+└─────────────────────────────────────────────────────────┘
+         |
+         v
+┌─────────────────────────────────────────────────────────┐
+│                🎨 N8N VISUAL WORKFLOW                  │
+│                 (BUSINESS LOGIC)                       │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ✅ Channel Active? → ⚠️ WIP Status? → 👤 User Type?   │
+│       ↓                    ↓              ↓            │
+│   API Call             API Call       API Call         │
+│   /channel-status      /wip-status    /user-check      │
+│       ↓                    ↓              ↓            │
+│   ACTIVE/STOP          WIP MSG       NEW/RETURNING     │
+│       ↓                    ↓              ↓            │
+│  🧠 RAG Search → 🤖 LLM Processing → 💾 Save Message  │
+│       ↓              ↓                   ↓            │
+│   API Call       API Call           API Call          │
+│   /rag-search    /llm-process       /save-message     │
+│       ↓              ↓                   ↓            │
+│   CONTENT        RESPONSE           STORAGE           │
+│   PRODUCTS       GENERATION                           │
+│   FAQS                                                │
+│   SERVICES                                            │
+│   DOCUMENTS                                           │
+│                                                       │
+└─────────────────────────────────────────────────────────┘
+         |
+         v
+📤 RESPONSE BACK TO SHOPME BACKEND → WhatsApp
+```
+
+### **Legacy Flow (for comparison)**
 ```
 📱 MESSAGGIO WHATSAPP
          |

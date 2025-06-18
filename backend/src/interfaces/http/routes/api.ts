@@ -15,7 +15,7 @@ import productsRouter from './products.routes';
 import { servicesRouter } from './services.routes';
 import { settingsRouter } from './settings.routes';
 
-import flowiseRoutes from './flowise.routes';
+
 import { createUserRouter } from './user.routes';
 import { whatsappRouter } from './whatsapp.routes';
 import { workspaceRouter } from './workspace.routes';
@@ -94,8 +94,7 @@ export const apiRouter = (): Router => {
   router.use('/whatsapp', whatsappRouter(whatsappController));
   router.use('/openai', createOpenAIRouter(openaiController));
   
-  // 🤖 Flowise Integration Routes
-  router.use('/flowise', flowiseRoutes);
+  
   
   // Mount document routes
   router.use('/workspaces/:workspaceId/documents', documentRoutes);

@@ -140,11 +140,241 @@ This task list is based on the comprehensive PRD analysis and identifies what ha
 - [x] **Seed Instructions**: Documented automatic embedding generation instructions display
 - [x] **Benefits Documentation**: Added DRY, scalability, and maintainability benefits
 
+### ✅ N8N Visual Workflow Integration Setup
+**Priority**: 🚨 **HIGH**
+**Description**: Setup N8N container integration with PostgreSQL database and basic workflow infrastructure
+**Status**: ✅ **COMPLETED**
+
+**Implementation Details**:
+- [x] Updated docker-compose.yml to include N8N container
+- [x] Configured N8N to use shared PostgreSQL database with separate schema
+- [x] Set up N8N basic authentication (admin/shopme2024)
+- [x] Configured N8N network connectivity with ShopMe backend
+- [x] Created n8n/workflows directory for local workflow storage
+- [x] Updated frontend package.json scripts for N8N management
+- [x] Tested N8N container startup and database connectivity
+- [x] Removed obsolete Flowise integration
+- [x] Updated PRD documentation with N8N architecture
+
+**N8N Configuration**:
+- **Container**: n8nio/n8n:latest
+- **Port**: 5678 (accessible via http://localhost:5678)
+- **Database**: PostgreSQL with n8n schema
+- **Authentication**: Basic auth enabled
+- **Network**: shopme_network for backend communication
+
+**Docker Configuration**:
+```yaml
+n8n:
+  image: n8nio/n8n:latest
+  container_name: shopme_n8n
+  environment:
+    - N8N_BASIC_AUTH_USER=admin
+    - N8N_BASIC_AUTH_PASSWORD=shopme2024
+    - DB_TYPE=postgresdb
+    - DB_POSTGRESDB_HOST=postgres
+    - DB_POSTGRESDB_DATABASE=shop_db
+    - DB_POSTGRESDB_SCHEMA=n8n
+  ports:
+    - "5678:5678"
+  networks:
+    - shopme_network
+```
+
+**Next Steps**: Ready for workflow creation and internal API development
+
 ---
 
 ## 🔴 MISSING FEATURES (TO IMPLEMENT)
 
-### 1. **14-Day Free Trial Expiration System**
+### 1. **Phase 1: LangChain Cleanup & Backup**
+**Priority**: 🚨 **CRITICAL**
+**Description**: Safely remove LangChain dependencies and backup current system before N8N migration
+**Acceptance Criteria**:
+
+#### Safety & Backup:
+- [ ] Create backup branch: `git checkout -b backup-langchain-system`
+- [ ] Commit current state: `git commit -am "Backup before N8N migration"`
+- [ ] Document all removed methods for potential rollback
+- [ ] Test that existing WhatsApp flow still works before changes
+
+#### LangChain Removal:
+- [ ] **DELETE FILE**: `backend/src/application/services/langchain-message.service.ts`
+- [ ] **DELETE FILE**: `backend/src/__tests__/unit/services/langchain-message.service.spec.ts`
+- [ ] Remove LangChain dependencies from `backend/package.json`:
+  - `langchain`
+  - `@langchain/core`
+  - `@langchain/openai`
+  - All related LangChain packages
+
+#### Controller Updates:
+- [ ] Update `whatsapp.service.ts` - remove LangChainMessageService imports
+- [ ] Update `message.controller.ts` - remove LangChainMessageService usage
+- [ ] Replace with simplified MessageService calls
+- [ ] Update all imports and dependency injections
+
+#### MessageService Cleanup:
+- [ ] **KEEP**: Security methods (checkApiLimit, checkSpamBehavior, isCustomerBlacklisted)
+- [ ] **KEEP**: RAG search methods (getUnifiedSearchResults, search*Content methods)
+- [ ] **REMOVE**: processMessage() method (replaced by N8N)
+- [ ] **REMOVE**: processMessageWithFlowise() method
+- [ ] **REMOVE**: detectGreeting() and hasRecentWelcomeMessage() (moved to N8N)
+- [ ] **REMOVE**: enrichAgentContext() and conversation memory handling
+
+#### Verification:
+- [ ] Ensure backend compiles without errors
+- [ ] Verify no broken imports remain
+- [ ] Test security methods still work (rate limit, spam, blacklist)
+- [ ] Document what functionality is temporarily broken (expected)
+
+### 2. **Phase 2: N8N Internal API Development**
+**Priority**: 🚨 **CRITICAL**
+**Description**: Create internal API endpoints for N8N workflow to call, maintaining exact RAG logic
+**Acceptance Criteria**:
+
+#### Backend API Infrastructure:
+- [ ] Create `/api/internal/` route group with JWT middleware
+- [ ] Implement `INTERNAL_API_SECRET` environment variable for token signing
+- [ ] Create internal API middleware for token validation with `internal_api` scope
+- [ ] Add internal routes to main API router
+
+#### Internal API Endpoints:
+- [ ] `POST /api/internal/channel-status` - Check if workspace channel is active
+- [ ] `POST /api/internal/user-check` - Verify user registration status and get user data
+- [ ] `POST /api/internal/wip-status` - Check workspace WIP status
+- [ ] `POST /api/internal/rag-search` - **SAME LOGIC**: embedding search across products/faqs/services/documents
+- [ ] `POST /api/internal/llm-process` - **SAME LOGIC**: OpenRouter LLM with prompt + RAG context + history
+- [ ] `POST /api/internal/save-message` - Save message to conversation history
+- [ ] `POST /api/internal/conversation-history` - Get recent conversation history for context
+
+#### RAG Logic Preservation:
+```typescript
+// IDENTICAL LOGIC as current system:
+// 1. Query → embedding (via embeddingService)
+// 2. Semantic search in products/faqs/services/documents
+// 3. Stock verification for products
+// 4. Combine results
+// 5. LLM formatting with conversation history
+```
+
+#### Security Implementation:
+- [ ] JWT tokens with workspaceId, expiration, and `internal_api` scope
+- [ ] Token generation method in existing TokenService
+- [ ] All internal APIs must filter data by workspaceId from token
+- [ ] Rate limiting on internal APIs (prevent abuse)
+
+#### API Response Format:
+```json
+{
+  "success": true,
+  "results": {
+    "products": [{"name": "Mozzarella", "price": "€8.50", "stock": 15}],
+    "faqs": [{"question": "Spedizione?", "answer": "€5.00"}],
+    "services": [...],
+    "documents": [...]
+  },
+  "searchUsed": true,
+  "processingTime": 120
+}
+```
+
+#### Testing:
+- [ ] Unit tests for all internal API endpoints
+- [ ] Integration tests for token validation
+- [ ] Test data isolation by workspaceId
+- [ ] Test RAG results identical to current system
+
+### 2. **N8N WhatsApp Workflow Creation**
+**Priority**: 🚨 **CRITICAL** 
+**Description**: Create visual N8N workflow to replace WhatsApp message processing logic
+**Acceptance Criteria**:
+
+#### Workflow Nodes Development:
+- [ ] **Webhook Node**: Receive message input from ShopMe backend
+- [ ] **Channel Active Check**: HTTP request to `/api/internal/channel-status`
+- [ ] **WIP Status Check**: HTTP request to `/api/internal/wip-status`
+- [ ] **User Registration Check**: HTTP request to `/api/internal/user-check`
+- [ ] **RAG Search Node**: HTTP request to `/api/internal/rag-search`
+- [ ] **LLM Processing Node**: HTTP request to `/api/internal/llm-process`
+- [ ] **Save Message Node**: HTTP request to `/api/internal/save-message`
+- [ ] **Response Formatting**: Format final response for WhatsApp
+
+#### Business Logic Implementation:
+- [ ] IF conditions for channel active/inactive flows
+- [ ] IF conditions for WIP status (return WIP message)
+- [ ] IF conditions for new vs returning users
+- [ ] Greeting detection for new users (welcome + registration link)
+- [ ] Welcome back message for returning users (>2 hours since last message)
+- [ ] Error handling for failed API calls
+
+#### Workflow Configuration:
+- [ ] Export workflow as JSON file to `n8n/workflows/whatsapp-message-flow.json`
+- [ ] Document workflow import instructions
+- [ ] Configure webhook URL path: `/webhook/whatsapp-flow`
+- [ ] Set up proper error handling and retry mechanisms
+
+#### Testing:
+- [ ] Test workflow with various message scenarios
+- [ ] Test error handling when APIs are unavailable
+- [ ] Test token authentication in all HTTP nodes
+- [ ] Performance testing for workflow execution time
+
+### 3. **Backend WhatsApp Integration with N8N**
+**Priority**: 🚨 **CRITICAL**
+**Description**: Modify WhatsApp webhook to use N8N workflow instead of direct processing
+**Acceptance Criteria**:
+
+#### Message Service Modification:
+- [ ] Create `performSecurityChecks()` method for rate limit, spam, blacklist
+- [ ] Add N8N webhook call method `callN8NWorkflow()`
+- [ ] Implement token generation for N8N API calls
+- [ ] Add feature flag to switch between N8N and legacy processing
+
+#### Security Pre-Processing:
+- [ ] Keep rate limiting check in backend (100 calls per 10 minutes)
+- [ ] Keep spam detection in backend (10 messages in 30 seconds)
+- [ ] Keep blacklist check in backend (customer + workspace level)
+- [ ] Only call N8N if all security checks pass
+
+#### N8N Integration:
+- [ ] HTTP client configuration for N8N webhook calls
+- [ ] Proper error handling when N8N is unavailable (fallback to legacy)
+- [ ] Timeout configuration for N8N calls (max 30 seconds)
+- [ ] Response parsing from N8N workflow output
+
+#### Migration Strategy:
+- [ ] Feature flag `USE_N8N_WORKFLOW` in environment variables
+- [ ] Parallel processing mode for testing
+- [ ] Performance comparison logging between N8N and legacy
+- [ ] Gradual rollout capability per workspace
+
+#### Monitoring:
+- [ ] Log N8N workflow execution times
+- [ ] Log N8N errors and fallbacks
+- [ ] Monitor N8N vs legacy processing performance
+- [ ] Alert system for N8N unavailability
+
+### 4. **🚀 N8N Visual Workflow Integration**
+**Priority**: 🚨 **HIGH**
+**Description**: Complete N8N integration for visual workflow management
+**Status**: 📋 **MOVED TO DEDICATED TASK LIST**
+
+**📄 See detailed task breakdown**: [`docs/task-list-n8n.md`](./task-list-n8n.md)
+
+**Summary**:
+- N8N container setup and admin interface integration
+- Internal API development for workflow communication  
+- Frontend Settings menu integration with embedded N8N interface
+- LangChain migration and performance optimization
+- Comprehensive testing and documentation updates
+
+**Key Deliverables**:
+- [ ] N8N embedded in ShopMe admin Settings menu
+- [ ] Complete workflow JSON with all business logic
+- [ ] Internal API endpoints for N8N communication
+- [ ] Performance monitoring and management tools
+
+### 5. **14-Day Free Trial Expiration System**
 **Priority**: 🚨 **CRITICAL**
 **Description**: Implement 14-day trial expiration system where FREE plan = BASIC plan but with time limit. After 14 days, chatbot stops responding until upgrade.
 **Acceptance Criteria**:

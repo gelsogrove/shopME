@@ -42,16 +42,13 @@ ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that enables 
    npm run dev
    ```
 
-5. **Setup Flowise (Optional - Visual Flow Management)**
-   ```bash
-   ./scripts/setup-flowise.sh
-   ```
+
 
 6. **Access the application**
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:3001
    - API Documentation: http://localhost:3001/api/docs
-   - Flowise (Visual Flows): http://localhost:3003
+
 
 ## 📋 Features
 
@@ -65,45 +62,7 @@ ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that enables 
 - **Document Upload**: PDF processing with RAG integration
 - **Security**: Token-based authentication and secure data handling
 - **Hard Delete System**: GDPR-compliant complete data removal
-- **🤖 Flowise Integration**: Visual flow management for WhatsApp processing
-
-### 🤖 Flowise Visual Flow Management
-
-ShopMe now integrates with **Flowise 3.0** to provide visual flow management for WhatsApp message processing. This revolutionary approach replaces complex if/else logic with intuitive visual flows.
-
-#### Benefits:
-- **📊 Visual Logic**: See your entire WhatsApp flow in a visual diagram
-- **🔧 No-Code Editing**: Modify business logic without touching code
-- **🐛 Visual Debugging**: Identify bottlenecks and issues instantly
-- **⚡ Performance**: Optimized flow execution
-- **🔄 Easy Maintenance**: Update flows without deployments
-
-#### Flow Components:
-```
-📱 WhatsApp Input → 🚨 API Limit Check → 🚨 Spam Detection → 
-✅ Channel Active → 🤖 Chatbot Active → 🚫 Blacklist Check → 
-👤 User Flow → 🔍 RAG Search → 🎨 LLM Formatter → 💬 Response
-```
-
-#### Setup Flowise:
-```bash
-# Automatic setup
-./scripts/setup-flowise.sh
-
-# Manual Docker setup
-docker-compose up -d flowise
-
-# Access Flowise UI
-open http://localhost:3003
-# Login: admin / shopme2024
-```
-
-#### API Endpoints:
-- `GET /api/flowise/health` - Check Flowise status
-- `GET /api/flowise/flows` - List available flows
-- `POST /api/flowise/setup` - Create WhatsApp flow
-- `POST /api/flowise/test` - Test message processing
-- `POST /api/flowise/compare` - Compare traditional vs visual flow
+- **🚀 N8N Integration**: Visual workflow management for WhatsApp processing
 
 ### 🔄 Architecture
 
