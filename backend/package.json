@@ -9,12 +9,12 @@
   "scripts": {
     "dev": "dotenv -e .env.development -- tsnd --respawn src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/src/index.js",
     "test": "dotenv -e .env -- cross-env NODE_ENV=test INTEGRATION_TEST=true jest --runInBand",
     "test-full": "dotenv -e .env -- cross-env NODE_ENV=test INTEGRATION_TEST=true jest --runInBand",
     "test:no-services": "dotenv -e .env -- cross-env NODE_ENV=test INTEGRATION_TEST=true SKIP_SERVICES=true jest --runInBand",
     "seed": "ts-node prisma/seed.ts",
-    "start:prod": "node dist/index.js",
+    "start:prod": "node dist/src/index.js",
     "start:dev": "ts-node-dev --respawn --transpile-only --notify false --clear --exit-child -r dotenv/config src/index.ts",
     "test:mocha": "mocha",
     "test:unit": "cross-env NODE_ENV=test jest --config jest.config.unit.js",
@@ -35,9 +35,7 @@
   "author": "Andrea Gelso",
   "license": "ISC",
   "dependencies": {
-    "@langchain/community": "^0.3.46",
-    "@langchain/core": "^0.3.58",
-    "@langchain/openai": "^0.5.13",
+
     "@prisma/client": "^5.22.0",
     "@xenova/transformers": "^2.17.2",
     "bcrypt": "^5.1.1",
@@ -51,7 +49,7 @@
     "helmet": "^7.1.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
-    "langchain": "^0.3.28",
+
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "node-cache": "^5.1.2",

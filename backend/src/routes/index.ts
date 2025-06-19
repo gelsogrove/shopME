@@ -40,6 +40,8 @@ import { createUserRouter } from "../interfaces/http/routes/user.routes"
 import createPromptsRouter from "./prompts.routes"
 // Import document routes
 import documentRoutes from "./documentRoutes"
+// Import internal API routes for N8N integration
+import { internalApiRoutes } from "../interfaces/http/routes/internal-api.routes"
 
 // Simple logging middleware
 const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -186,14 +188,24 @@ router.use("/workspaces/:workspaceId/documents", (req, res, next) => {
 }, documentRoutes);
 logger.info("Registered document router with workspace and upload endpoints")
 
+// Mount internal API routes for N8N integration
+router.use("/internal", internalApiRoutes);
+logger.info("Registered internal API routes for N8N integration")
+
 // Add special route for GDPR default content (to handle frontend request to /gdpr/default)
 router.get("/gdpr/default", authMiddleware, settingsController.getDefaultGdprContent.bind(settingsController))
 logger.info("Registered /gdpr/default route for backward compatibility")
 
 // Mount Swagger documentation
 router.get('/docs/swagger.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json')
-  res.send(require('../config/swagger').swaggerSpec)
+  try {
+    const { swaggerSpec } = require('../config/swagger');
+    res.setHeader('Content-Type', 'application/json');
+    res.json(swaggerSpec);
+  } catch (error) {
+    logger.error('Error serving swagger.json:', error);
+    res.status(500).json({ error: 'Failed to load swagger documentation' });
+  }
 })
 
 // Health check

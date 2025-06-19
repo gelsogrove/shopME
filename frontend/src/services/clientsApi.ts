@@ -11,180 +11,121 @@ export interface Client {
   id: string
   name: string
   email: string
-  company: string
-  discount: number
-  phone: string
-  language: string
+  phone?: string
+  address?: string | ShippingAddress
+  company?: string
+  discount?: number
+  language?: string
+  currency?: string
   notes?: string
-  shippingAddress: ShippingAddress
+  serviceIds?: string[]
+  isBlacklisted?: boolean
+  isActive?: boolean
   workspaceId: string
   createdAt: string
   updatedAt: string
-  activeChatbot?: boolean
 }
 
 export interface CreateClientData {
   name: string
   email: string
-  company: string
+  phone?: string
+  address?: string
+  company?: string
   discount?: number
-  phone: string
-  language: string
+  language?: string
+  currency?: string
   notes?: string
-  shippingAddress?: ShippingAddress
+  serviceIds?: string[]
+  isBlacklisted?: boolean
+  isActive?: boolean
+  workspaceId: string
 }
 
-export interface UpdateClientData extends Partial<CreateClientData> {}
+export interface UpdateClientData extends Partial<CreateClientData> {
+  id: string
+}
+
+export interface ClientsResponse {
+  success: boolean
+  data: Client[]
+  message?: string
+}
 
 /**
- * Get all clients for a workspace with optional filters and pagination
+ * Get all clients for a specific workspace
  */
-export const getAllForWorkspace = async (
-  workspaceId: string,
-  options?: {
-    search?: string;
-    page?: number;
-    limit?: number;
-  }
-): Promise<{ 
-  clients: Client[]; 
-  total: number; 
-  page: number; 
-  totalPages: number 
-}> => {
+export const getAllForWorkspace = async (workspaceId: string): Promise<Client[]> => {
   try {
-    console.log('Fetching clients for workspace:', workspaceId);
     if (!workspaceId) {
-      console.error('WorkspaceId missing in getAllForWorkspace');
-      return {
-        clients: [],
-        total: 0,
-        page: 1,
-        totalPages: 0
-      };
+      throw new Error("WorkspaceId is required for getAllForWorkspace")
     }
-    
-    // Construct query parameters
-    const queryParams = new URLSearchParams();
-    
-    if (options?.search) {
-      queryParams.append('search', options.search);
-    }
-    
-    if (options?.page) {
-      queryParams.append('page', options.page.toString());
-    }
-    
-    if (options?.limit) {
-      queryParams.append('limit', options.limit.toString());
-    }
-    
-    const queryString = queryParams.toString();
-    const requestUrl = `/workspaces/${workspaceId}/customers${queryString ? `?${queryString}` : ''}`;
-    console.log('Clients API request URL:', requestUrl);
-    
-    const response = await api.get(requestUrl);
-    console.log('Clients API response status:', response.status);
-    console.log('Clients API response data:', response.data);
+
+    const requestUrl = `/customers?workspaceId=${workspaceId}`
+    const response = await api.get<ClientsResponse>(requestUrl)
     
     if (!response.data) {
-      console.error('Empty API response');
-      return {
-        clients: [],
-        total: 0,
-        page: 1,
-        totalPages: 0
-      };
+      throw new Error("Empty API response")
     }
-    
-    // Handle both paginated and direct array responses
-    if (Array.isArray(response.data)) {
-      // Direct array response from backend
-      return {
-        clients: response.data,
-        total: response.data.length,
-        page: 1,
-        totalPages: 1
-      };
-    } else if (response.data.clients) {
-      // Paginated response
-      return response.data;
-    } else {
-      // Fallback
-      return {
-        clients: [],
-        total: 0,
-        page: 1,
-        totalPages: 0
-      };
-    }
+
+    return response.data.data || []
   } catch (error) {
-    console.error('Error fetching clients:', error);
-    return {
-      clients: [],
-      total: 0,
-      page: 1,
-      totalPages: 0
-    };
+    throw new Error(`Error fetching clients: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
-};
+}
 
 /**
- * Get a client by ID
+ * Get a single client by ID
  */
-export const getById = async (clientId: string, workspaceId: string): Promise<Client | null> => {
+export const getById = async (id: string): Promise<Client> => {
   try {
-    const response = await api.get(`/workspaces/${workspaceId}/customers/${clientId}`);
-    return response.data;
+    const response = await api.get<{ data: Client }>(`/customers/${id}`)
+    return response.data.data
   } catch (error) {
-    console.error('Error fetching client by ID:', error);
-    return null;
+    throw new Error(`Error fetching client by ID: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
-};
+}
 
 /**
  * Create a new client
  */
-export const create = async (clientData: CreateClientData, workspaceId: string): Promise<Client | null> => {
+export const create = async (clientData: CreateClientData): Promise<Client> => {
   try {
-    const response = await api.post(`/workspaces/${workspaceId}/customers`, clientData);
-    return response.data;
+    const response = await api.post<{ data: Client }>("/customers", clientData)
+    return response.data.data
   } catch (error) {
-    console.error('Error creating client:', error);
-    throw error;
+    throw new Error(`Error creating client: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
-};
+}
 
 /**
  * Update an existing client
  */
-export const update = async (clientId: string, clientData: UpdateClientData, workspaceId: string): Promise<Client | null> => {
+export const update = async (id: string, clientData: UpdateClientData): Promise<Client> => {
   try {
-    const response = await api.put(`/workspaces/${workspaceId}/customers/${clientId}`, clientData);
-    return response.data;
+    const response = await api.put<{ data: Client }>(`/customers/${id}`, clientData)
+    return response.data.data
   } catch (error) {
-    console.error('Error updating client:', error);
-    throw error;
+    throw new Error(`Error updating client: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
-};
+}
 
 /**
  * Delete a client
  */
-export const delete_ = async (clientId: string, workspaceId: string): Promise<boolean> => {
+export const deleteClient = async (id: string): Promise<void> => {
   try {
-    await api.delete(`/workspaces/${workspaceId}/customers/${clientId}`);
-    return true;
+    await api.delete(`/customers/${id}`)
   } catch (error) {
-    console.error('Error deleting client:', error);
-    throw error;
+    throw new Error(`Error deleting client: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
-};
+}
 
+// Export the clients API object
 export const clientsApi = {
   getAllForWorkspace,
   getById,
   create,
   update,
-  delete: delete_
+  delete: deleteClient
 } 

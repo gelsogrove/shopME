@@ -45,4 +45,10 @@ browser-tools-mcp/
 # SpecStory explanation file
 .specstory/.what-is-this.md
 
+# N8N configuration (keep structure, ignore runtime data)
+.n8n/data/database.sqlite
+.n8n/data/encryption_key
+.n8n/data/logs/
+.n8n/data/cache/
+
 

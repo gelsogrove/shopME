@@ -34,6 +34,13 @@ interface Message {
   sender: "user" | "customer"
   timestamp: string
   agentName?: string
+  metadata?: {
+    isOperatorMessage?: boolean
+    isOperatorControl?: boolean
+    agentSelected?: string
+    sentBy?: string
+    operatorId?: string
+  }
 }
 
 interface ShippingAddress {
@@ -704,6 +711,28 @@ export function ChatPage() {
         <Card className="col-span-8 p-4 flex flex-col">
           {selectedChat ? (
             <>
+              {/* 🚨 OPERATOR CONTROL BANNER */}
+              {!activeChatbot && (
+                <div className="bg-orange-100 border-l-4 border-orange-500 p-3 mb-2">
+                  <div className="flex items-center">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <Bot className="h-5 w-5 text-orange-500" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm text-orange-700 font-medium">
+                          👨‍💼 <strong>Manual Operator Control Active</strong>
+                        </p>
+                        <p className="text-xs text-orange-600 mt-1">
+                          AI chatbot is disabled. You are now manually handling this conversation. 
+                          <span className="font-medium"> Customer messages will be saved but won't trigger AI responses.</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Chat Header */}
               <div className="flex justify-between items-center pb-2 border-b h-[60px]">
                 <div>
@@ -781,6 +810,11 @@ export function ChatPage() {
                     // Using the sender field which is properly mapped from direction
                     const isAgentMessage = message.sender === "user"
                     const isCustomerMessage = message.sender === "customer"
+                    
+                    // 🚨 ANDREA'S OPERATOR CONTROL INDICATORS
+                    const isOperatorMessage = message.metadata?.isOperatorMessage === true
+                    const isOperatorControl = message.metadata?.isOperatorControl === true
+                    const isManualOperator = message.metadata?.agentSelected === 'MANUAL_OPERATOR' || message.metadata?.agentSelected === 'MANUAL_OPERATOR_CONTROL'
 
                     return (
                       <div
@@ -790,12 +824,29 @@ export function ChatPage() {
                         }`}
                       >
                         <div
-                          className={`p-3 rounded-lg max-w-[75%] ${
+                          className={`p-3 rounded-lg max-w-[75%] relative ${
                             isAgentMessage
-                              ? "bg-green-100 text-green-900"
-                              : "bg-gray-100 text-gray-800"
+                              ? isOperatorMessage 
+                                ? "bg-blue-100 text-blue-900 border-l-4 border-blue-500" // 👨‍💼 Operator message style
+                                : "bg-green-100 text-green-900" // 🤖 AI message style
+                              : isOperatorControl
+                                ? "bg-orange-50 text-orange-900 border-l-4 border-orange-400" // 📥 Customer message under operator control
+                                : "bg-gray-100 text-gray-800" // Normal customer message
                           }`}
                         >
+                          {/* 🚨 OPERATOR CONTROL BADGE */}
+                          {(isOperatorMessage || isOperatorControl || isManualOperator) && (
+                            <div className="absolute -top-2 -right-2">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-medium ${
+                                isOperatorMessage 
+                                  ? "bg-blue-500 text-white" 
+                                  : "bg-orange-500 text-white"
+                              }`}>
+                                👨‍💼 {isOperatorMessage ? "OPERATOR" : "MANUAL"}
+                              </span>
+                            </div>
+                          )}
+                          
                           <div className="text-sm break-words">
                             <ReactMarkdown
                               remarkPlugins={[remarkGfm]}
@@ -813,15 +864,34 @@ export function ChatPage() {
                               {message.content}
                             </ReactMarkdown>
                           </div>
+                          
                           <div className="flex justify-between items-center mt-1">
                             <span className="text-[10px] opacity-70">
                               {formatDate(message.timestamp)}
                             </span>
-                            {isAgentMessage && message.agentName && (
-                              <span className="text-[10px] font-medium bg-blue-100 text-blue-800 px-2 py-0.5 rounded ml-2">
-                                {message.agentName}
-                              </span>
-                            )}
+                            
+                            <div className="flex items-center gap-1">
+                              {/* 🤖 AI Agent Badge */}
+                              {isAgentMessage && message.agentName && !isOperatorMessage && (
+                                <span className="text-[10px] font-medium bg-green-200 text-green-800 px-2 py-0.5 rounded ml-2">
+                                  🤖 {message.agentName}
+                                </span>
+                              )}
+                              
+                              {/* 👨‍💼 Operator Badge */}
+                              {isOperatorMessage && (
+                                <span className="text-[10px] font-medium bg-blue-200 text-blue-800 px-2 py-0.5 rounded ml-2">
+                                  👨‍💼 Human Operator
+                                </span>
+                              )}
+                              
+                              {/* 📋 Manual Control Badge */}
+                              {isOperatorControl && (
+                                <span className="text-[10px] font-medium bg-orange-200 text-orange-800 px-2 py-0.5 rounded ml-2">
+                                  📋 Under Manual Control
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>

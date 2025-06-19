@@ -1,0 +1,57 @@
+{
+  "name": "shopmefy-monorepo",
+  "version": "1.0.0",
+  "description": "ShopMefy - AI-Powered Business Assistant Platform",
+  "scripts": {
+    "dev": "chmod +x scripts/start-all-simple.sh && ./scripts/start-all-simple.sh",
+    "start": "chmod +x scripts/start-all-simple.sh && ./scripts/start-all-simple.sh",
+    "logs": "chmod +x scripts/logs-only.sh && ./scripts/logs-only.sh",
+    "restart": "chmod +x scripts/restart-all.sh && ./scripts/restart-all.sh",
+    "stop": "chmod +x scripts/stop-all.sh && ./scripts/stop-all.sh",
+    "kill": "chmod +x scripts/stop-all.sh && ./scripts/stop-all.sh",
+    "restart:quick": "chmod +x scripts/restart-all.sh && ./scripts/restart-all.sh",
+    "docker:check": "docker info && echo '✅ Docker is ready!'",
+    "docker:up": "docker compose -f docker-compose.yml up -d && docker compose -f docker-compose-n8n.yml up -d",
+    "docker:down": "docker compose -f docker-compose.yml down && docker compose -f docker-compose-n8n.yml down",
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "backend:install": "cd backend && npm install",
+    "frontend:install": "cd frontend && npm install",
+    "install:all": "npm run backend:install && npm run frontend:install",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "test": "npm run test:backend && npm run test:frontend",
+    "seed": "cd backend && npm run seed",
+    "migrate": "cd backend && npm run migrate",
+    "health": "curl -f http://localhost:3001/health && curl -f http://localhost:3000 && curl -f http://localhost:5678"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "devDependencies": {
+    "kill-port": "^2.0.1",
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/shopmefy.git"
+  },
+  "keywords": [
+    "ai",
+    "chatbot",
+    "whatsapp",
+    "business",
+    "automation",
+    "n8n",
+    "postgres",
+    "react",
+    "nodejs"
+  ],
+  "author": "Andrea",
+  "license": "MIT"
+} 

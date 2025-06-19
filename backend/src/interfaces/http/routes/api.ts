@@ -15,7 +15,7 @@ import productsRouter from './products.routes';
 import { servicesRouter } from './services.routes';
 import { settingsRouter } from './settings.routes';
 
-import internalApiRoutes from './internal-api.routes';
+import { internalApiRoutes } from './internal-api.routes';
 import { createUserRouter } from './user.routes';
 import { whatsappRouter } from './whatsapp.routes';
 import { workspaceRouter } from './workspace.routes';

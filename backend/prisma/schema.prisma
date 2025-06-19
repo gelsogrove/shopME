@@ -27,6 +27,7 @@ model Workspace {
   blocklist                 String?           @default("")
   url                       String?
   plan                      PlanType          @default(FREE)
+  businessType              BusinessType      @default(ECOMMERCE)
   welcomeMessages           Json?             @default("{\"en\": \"Welcome!\", \"es\": \"¡Bienvenido!\", \"it\": \"Benvenuto!\"}")
   wipMessages               Json?             @default("{\"en\": \"Work in progress. Please contact us later.\", \"es\": \"Trabajos en curso. Por favor, contáctenos más tarde.\", \"it\": \"Lavori in corso. Contattaci più tardi.\", \"pt\": \"Em manutenção. Por favor, contacte-nos mais tarde.\"}")
   afterRegistrationMessages Json?             @default("{\"de\": \"Registrierung erfolgreich abgeschlossen. Hallo [nome], wie kann ich Ihnen heute helfen?\", \"en\": \"Registration completed successfully. Hello [nome], how can I help you today?\", \"es\": \"Registro completado con éxito. Hola [nome], ¿en qué puedo ayudarte hoy?\", \"fr\": \"Enregistrement effectué avec succès. Bonjour [nome], en quoi puis-je vous aider aujourd'hui ?\", \"it\": \"Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?\", \"pt\": \"Registro concluído com sucesso. Olá [nome], em que posso ajudá-lo hoje?\"}")
@@ -607,4 +608,13 @@ enum PlanType {
   FREE
   BASIC
   PROFESSIONAL
+}
+
+enum BusinessType {
+  ECOMMERCE     // Products/services shop (current ShopMe)
+  RESTAURANT    // Food delivery, reservations, menu
+  CLINIC        // Medical appointments, services
+  RETAIL        // Physical store with inventory
+  SERVICES      // Pure service business
+  GENERIC       // Fallback for undefined business types
 }

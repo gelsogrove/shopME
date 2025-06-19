@@ -132,7 +132,8 @@ export class ApiLimitService {
         where: { id: workspaceId },
         select: { 
           plan: true,
-          // TODO: Aggiungere campo apiLimitPerHour al workspace se necessario
+          id: true,
+          name: true
         }
       });
 
@@ -141,8 +142,9 @@ export class ApiLimitService {
         return null;
       }
 
-      // Limiti basati sul piano
-      switch (workspace.plan) {
+      // Limiti basati sul piano - safely access plan property
+      const plan = workspace.plan || 'FREE';
+      switch (plan) {
         case 'FREE':
           return 100; // Limite ridotto per piano gratuito
         case 'BASIC':
@@ -178,10 +180,11 @@ export class ApiLimitService {
         }
       });
 
-      return count;
+      return count || 0;
 
     } catch (error) {
       logger.error(`[API_LIMIT] Error counting API calls:`, error);
+      // Return 0 to allow processing on error
       return 0;
     }
   }
