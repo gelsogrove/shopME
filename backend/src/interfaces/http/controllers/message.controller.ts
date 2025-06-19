@@ -1,34 +1,17 @@
-import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
-import { ApiLimitService } from '../../../application/services/api-limit.service';
-import { CheckoutService } from '../../../application/services/checkout.service';
-import { LangChainMessageService } from '../../../application/services/langchain-message.service';
-import { TokenService } from '../../../application/services/token.service';
-import { MessageRepository } from '../../../repositories/message.repository';
+import { MessageService } from '../../../application/services/message.service';
 import { detectLanguage } from '../../../utils/language-detector';
 import logger from '../../../utils/logger';
 
 export class MessageController {
-  private langChainMessageService: LangChainMessageService;
+  private messageService: MessageService;
 
   constructor() {
-    // Create dependencies for LangChainMessageService
-    const prisma = new PrismaClient();
-    const messageRepository = new MessageRepository();
-    const tokenService = new TokenService();
-    const checkoutService = new CheckoutService();
-    const apiLimitService = new ApiLimitService(prisma);
-    
-    this.langChainMessageService = new LangChainMessageService(
-      messageRepository,
-      tokenService,
-      checkoutService,
-      apiLimitService
-    );
+    this.messageService = new MessageService();
   }
 
   /**
-   * Process a message and return a response using LangChain directly
+   * Process a message and return a response (N8N will handle the business logic)
    * @route POST /api/messages
    */
   async processMessage(req: Request, res: Response): Promise<void> {
@@ -72,8 +55,9 @@ export class MessageController {
       const detectedLanguage = detectLanguage(message);
       logger.info(`[MESSAGES API] Detected language for message: ${detectedLanguage}`);
       
-      // Process the message directly with LangChain service
-      const response = await this.langChainMessageService.processMessage(
+      // Process the message with base MessageService (security only)
+      // N8N will handle the business logic through webhooks
+      const response = await this.messageService.processMessage(
         message,
         phoneNumber,
         workspaceId
@@ -84,11 +68,11 @@ export class MessageController {
         success: true,
         data: {
           originalMessage: message,
-          processedMessage: response || "No response generated",
+          processedMessage: response || "Message processed - N8N workflow will handle response",
           phoneNumber: phoneNumber,
           workspaceId: workspaceId,
           timestamp: new Date().toISOString(),
-          metadata: { agentName: "RAG Chat" },
+          metadata: { agentName: "N8N Workflow" },
           detectedLanguage: detectedLanguage,
           sessionId: sessionId,
           customerId: `customer-${phoneNumber.replace('+', '')}`,

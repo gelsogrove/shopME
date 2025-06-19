@@ -107,6 +107,17 @@ const apiVersions = {
   // v2: apiRouterV2, // For future versions
 }
 
+// Swagger JSON endpoint (must be before Swagger UI)
+app.get('/api/docs/swagger.json', (req, res) => {
+  try {
+    res.setHeader('Content-Type', 'application/json');
+    res.json(swaggerSpec);
+  } catch (error) {
+    logger.error('Error serving swagger.json:', error);
+    res.status(500).json({ error: 'Failed to load swagger documentation' });
+  }
+});
+
 // Swagger documentation
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   explorer: true,
@@ -120,6 +131,11 @@ app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 
 // Log that we're about to mount the API router
 logger.info("Mounting API router at /api prefix")
+
+// Mount internal API routes directly to avoid middleware conflicts
+import { internalApiRoutes } from "./interfaces/http/routes/internal-api.routes"
+app.use("/api/internal", internalApiRoutes);
+logger.info("Mounted internal API routes directly at /api/internal");
 
 // Hotfix solo per gli ambienti non di test
 if (process.env.NODE_ENV !== 'test') {

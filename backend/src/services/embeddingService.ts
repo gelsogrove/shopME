@@ -22,6 +22,14 @@ export class EmbeddingService {
   private readonly MAX_CHUNK_SIZE = 2000;
   private readonly CHUNK_OVERLAP = 200;
 
+  // 🎯 CONFIGURABLE SIMILARITY THRESHOLDS (Andrea's Request)
+  private readonly SIMILARITY_THRESHOLDS = {
+    FAQ: 0.3,      // Increased from 0.1 - more selective for FAQs
+    PRODUCTS: 0.5, // Good balance for product search
+    SERVICES: 0.6, // Higher threshold for service precision  
+    DOCUMENTS: 0.4 // Future use
+  };
+
   /**
    * Split text into chunks for embedding processing
    */
@@ -270,7 +278,7 @@ export class EmbeddingService {
       }
 
       // Filter by minimum similarity threshold and sort by similarity (highest first)
-      const MINIMUM_SIMILARITY = 0.1; // Lower threshold for FAQs due to language differences
+      const MINIMUM_SIMILARITY = this.SIMILARITY_THRESHOLDS.FAQ;
       return results
         .filter(result => result.similarity >= MINIMUM_SIMILARITY)
         .sort((a, b) => b.similarity - a.similarity)
@@ -421,7 +429,7 @@ export class EmbeddingService {
       }
 
       // Filter by minimum similarity threshold and sort by similarity (highest first)
-      const MINIMUM_SIMILARITY = 0.5; // Only return results with similarity >= 0.5
+      const MINIMUM_SIMILARITY = this.SIMILARITY_THRESHOLDS.SERVICES;
       return results
         .filter(result => result.similarity >= MINIMUM_SIMILARITY)
         .sort((a, b) => b.similarity - a.similarity)
@@ -604,7 +612,7 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
       }
 
       // Filter by minimum similarity threshold and sort by similarity (highest first)
-      const MINIMUM_SIMILARITY = 0.5; // Only return results with similarity >= 0.5
+      const MINIMUM_SIMILARITY = this.SIMILARITY_THRESHOLDS.PRODUCTS;
       const filteredResults = results
         .filter(result => result.similarity >= MINIMUM_SIMILARITY)
         .sort((a, b) => b.similarity - a.similarity)

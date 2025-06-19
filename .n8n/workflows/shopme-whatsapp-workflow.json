@@ -1,0 +1,787 @@
+{
+  "name": "ShopMe WhatsApp Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-webhook",
+        "options": {}
+      },
+      "id": "webhook-start",
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300],
+      "webhookId": "whatsapp-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "api-limit-check",
+              "leftValue": "={{ $json.workspaceId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "api-limit-check",
+      "name": "API Limit Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/api/internal/channel-status/{{ $json.workspaceId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "channel-status-check",
+      "name": "Channel Status Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [600, 300],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "backend-auth",
+          "name": "ShopMe Backend Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "channel-active",
+              "leftValue": "={{ $json.isActive }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "channel-active-check",
+      "name": "Channel Active?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/api/internal/user-check/{{ $('WhatsApp Webhook').item.json.workspaceId }}/{{ $('WhatsApp Webhook').item.json.entry[0].changes[0].value.messages[0].from }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "user-check",
+      "name": "User Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 300],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "backend-auth",
+          "name": "ShopMe Backend Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "user-registered",
+              "leftValue": "={{ $json.isRegistered }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            },
+            {
+              "id": "not-blacklisted",
+              "leftValue": "={{ $json.customer && $json.customer.isBlacklisted }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "user-status-check",
+      "name": "User Registered & Not Blacklisted?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/api/internal/wip-status/{{ $('WhatsApp Webhook').item.json.workspaceId }}/{{ $('WhatsApp Webhook').item.json.entry[0].changes[0].value.messages[0].from }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "wip-status-check",
+      "name": "WIP Status Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1400, 300],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "backend-auth",
+          "name": "ShopMe Backend Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "not-wip",
+              "leftValue": "={{ $json.hasActiveWip }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "wip-check",
+      "name": "Not in WIP?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1600, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": {{ JSON.stringify($('Get Agent Config').item.json.model || 'anthropic/claude-3.5-sonnet') }},\n  \"messages\": [{\n    \"role\": \"system\",\n    \"content\": \"You are an intent classifier for an e-commerce chatbot. Analyze the user message and determine if it requires RAG search (product/service inquiry) or is just social conversation. Respond with JSON: {\\\"needsRAG\\\": boolean, \\\"intentType\\\": string, \\\"confidence\\\": number}\"\n  }, {\n    \"role\": \"user\",\n    \"content\": {{ JSON.stringify($('WhatsApp Webhook').item.json.entry[0].changes[0].value.messages[0].text.body) }}\n  }],\n  \"temperature\": {{ Number($('Get Agent Config').item.json.temperature) || 0.3 }},\n  \"max_tokens\": {{ Number($('Get Agent Config').item.json.maxTokens) || 100 }}\n}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "llm-router",
+      "name": "OpenRouter Intent Classifier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1900, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openrouter-auth",
+          "name": "OpenRouter API Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "needs-rag",
+              "leftValue": "={{ JSON.parse($json.choices[0].message.content).needsRAG }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "rag-decision",
+      "name": "Needs RAG Search?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2100, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/api/internal/rag-search",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": {{ JSON.stringify($('WhatsApp Webhook').item.json.entry[0].changes[0].value.messages[0].text.body) }},\n  \"workspaceId\": {{ JSON.stringify($('WhatsApp Webhook').item.json.workspaceId) }},\n  \"businessType\": {{ JSON.stringify($('Channel Status Check').item.json.businessType) }},\n  \"customerLanguage\": {{ JSON.stringify($('User Check').item.json.customer.language || 'en') }},\n  \"sessionToken\": {{ JSON.stringify($('WhatsApp Webhook').item.json.sessionToken) }},\n  \"customerId\": {{ JSON.stringify($('User Check').item.json.customer.id) }}\n}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "rag-search",
+      "name": "RAG Search (Data Retrieval)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 200],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "backend-auth",
+          "name": "ShopMe Backend Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/api/internal/agent-config/{{ $('WhatsApp Webhook').item.json.workspaceId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "agent-config",
+      "name": "Get Agent Config",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1700, 300],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "backend-auth",
+          "name": "ShopMe Backend Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/api/internal/conversation-history/{{ $('WhatsApp Webhook').item.json.workspaceId }}/{{ $('WhatsApp Webhook').item.json.entry[0].changes[0].value.messages[0].from }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "conversation-history",
+      "name": "Get Conversation History",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 600],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "backend-auth",
+          "name": "ShopMe Backend Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": {{ JSON.stringify($('Get Agent Config').item.json.model || 'anthropic/claude-3.5-sonnet') }},\n  \"messages\": [{\n    \"role\": \"system\",\n    \"content\": {{ JSON.stringify($('Get Agent Config').item.json.prompt || 'You are a helpful e-commerce assistant.') }}\n  }, {\n    \"role\": \"user\",\n    \"content\": \"User query: \" + {{ JSON.stringify($('WhatsApp Webhook').item.json.entry[0].changes[0].value.messages[0].text.body) }} + \"\\n\\nRAG Results: \" + {{ JSON.stringify($('RAG Search (Data Retrieval)').item.json || {}) }} + \"\\n\\nPlease provide a helpful response based on the RAG results.\"\n  }],\n  \"temperature\": {{ $('Get Agent Config').item.json.temperature || 0.7 }},\n  \"max_tokens\": {{ $('Get Agent Config').item.json.maxTokens || 500 }}\n}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "llm-formatter",
+      "name": "OpenRouter Response Generator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2600, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openrouter-auth",
+          "name": "OpenRouter API Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/api/internal/save-message",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"phoneNumber\": {{ JSON.stringify($('WhatsApp Webhook').item.json.entry[0].changes[0].value.messages[0].from) }},\n  \"message\": {{ JSON.stringify($('WhatsApp Webhook').item.json.entry[0].changes[0].value.messages[0].text.body) }},\n  \"direction\": \"INBOUND\",\n  \"workspaceId\": {{ JSON.stringify($('WhatsApp Webhook').item.json.workspaceId) }},\n  \"sessionToken\": {{ JSON.stringify($('WhatsApp Webhook').item.json.sessionToken) }}\n}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "save-inbound-message",
+      "name": "Save Inbound Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2800, 200],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "backend-auth",
+          "name": "ShopMe Backend Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/api/internal/send-whatsapp",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"phoneNumber\": {{ JSON.stringify($('WhatsApp Webhook').item.json.entry[0].changes[0].value.messages[0].from) }},\n  \"message\": {{ JSON.stringify($('OpenRouter Response Generator').item.json.choices[0].message.content) }},\n  \"workspaceId\": {{ JSON.stringify($('WhatsApp Webhook').item.json.workspaceId) }},\n  \"sessionToken\": {{ JSON.stringify($('WhatsApp Webhook').item.json.sessionToken) }}\n}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "send-whatsapp",
+      "name": "Send WhatsApp Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3000, 300],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "backend-auth",
+          "name": "ShopMe Backend Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/api/internal/save-message",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"phoneNumber\": {{ JSON.stringify($('WhatsApp Webhook').item.json.entry[0].changes[0].value.messages[0].from) }},\n  \"message\": {{ JSON.stringify($('LLM Formatter (Response Generation)').item.json.response) }},\n  \"direction\": \"OUTBOUND\",\n  \"workspaceId\": {{ JSON.stringify($('WhatsApp Webhook').item.json.workspaceId) }},\n  \"sessionToken\": {{ JSON.stringify($('WhatsApp Webhook').item.json.sessionToken) }},\n  \"metadata\": {\n    \"agentSelected\": {{ JSON.stringify($('Get Agent Config').item.json.model) }},\n    \"ragUsed\": {{ JSON.stringify($('Needs RAG Search?').item.json.needsRAG) }}\n  }\n}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "save-outbound-message",
+      "name": "Save Outbound Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3200, 300],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "backend-auth",
+          "name": "ShopMe Backend Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/api/internal/welcome-user",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"phoneNumber\": {{ JSON.stringify($('WhatsApp Webhook').item.json.entry[0].changes[0].value.messages[0].from) }},\n  \"workspaceId\": {{ JSON.stringify($('WhatsApp Webhook').item.json.workspaceId) }},\n  \"message\": {{ JSON.stringify($('WhatsApp Webhook').item.json.entry[0].changes[0].value.messages[0].text.body) }},\n  \"sessionToken\": {{ JSON.stringify($('WhatsApp Webhook').item.json.sessionToken) }}\n}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "welcome-new-user",
+      "name": "Welcome New User",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1400, 500],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "backend-auth",
+          "name": "ShopMe Backend Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// STOP WORKFLOW - API LIMIT REACHED\nreturn {\n  status: 'stopped',\n  reason: 'API limit reached',\n  action: 'no_response'\n};"
+      },
+      "id": "stop-api-limit",
+      "name": "Stop - API Limit",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// STOP WORKFLOW - CHANNEL INACTIVE\nreturn {\n  status: 'stopped',\n  reason: 'Channel inactive',\n  action: 'no_response'\n};"
+      },
+      "id": "stop-channel-inactive",
+      "name": "Stop - Channel Inactive",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// STOP WORKFLOW - USER BLACKLISTED OR NOT REGISTERED\nconst userData = $input.all()[0].json;\nif (userData.customer && userData.customer.isBlacklisted) {\n  return {\n    status: 'stopped',\n    reason: 'User blacklisted',\n    action: 'no_response'\n  };\n}\nreturn {\n  status: 'stopped',\n  reason: 'User not registered',\n  action: 'send_welcome'\n};"
+      },
+      "id": "stop-user-issues",
+      "name": "Stop - User Issues",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1400, 700]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3001/api/internal/send-whatsapp",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"phoneNumber\": {{ JSON.stringify($('WhatsApp Webhook').item.json.entry[0].changes[0].value.messages[0].from) }},\n  \"message\": {{ JSON.stringify($('WIP Status Check').item.json.wipData.message || 'We are currently updating our service. Please try again later. 🔧') }},\n  \"workspaceId\": {{ JSON.stringify($('WhatsApp Webhook').item.json.workspaceId) }}\n}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "send-wip-message",
+      "name": "Send WIP Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1800, 500],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "backend-auth",
+          "name": "ShopMe Backend Auth"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [
+        [
+          {
+            "node": "API Limit Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API Limit Check": {
+      "main": [
+        [
+          {
+            "node": "Channel Status Check",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop - API Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Channel Status Check": {
+      "main": [
+        [
+          {
+            "node": "Channel Active?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Channel Active?": {
+      "main": [
+        [
+          {
+            "node": "User Check",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop - Channel Inactive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Check": {
+      "main": [
+        [
+          {
+            "node": "User Registered & Not Blacklisted?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Registered & Not Blacklisted?": {
+      "main": [
+        [
+          {
+            "node": "WIP Status Check",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Welcome New User",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Stop - User Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WIP Status Check": {
+      "main": [
+        [
+          {
+            "node": "Not in WIP?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not in WIP?": {
+      "main": [
+        [
+          {
+            "node": "Get Agent Config",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send WIP Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Agent Config": {
+      "main": [
+        [
+          {
+            "node": "LLM Router (Intent Classification)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Router (Intent Classification)": {
+      "main": [
+        [
+          {
+            "node": "Needs RAG Search?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs RAG Search?": {
+      "main": [
+        [
+          {
+            "node": "RAG Search (Data Retrieval)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Conversation History",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Conversation History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG Search (Data Retrieval)": {
+      "main": [
+        [
+          {
+            "node": "LLM Formatter (Response Generation)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+
+    "Get Conversation History": {
+      "main": [
+        [
+          {
+            "node": "LLM Formatter (Response Generation)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Formatter (Response Generation)": {
+      "main": [
+        [
+          {
+            "node": "Save Inbound Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send WhatsApp Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp Response": {
+      "main": [
+        [
+          {
+            "node": "Save Outbound Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Welcome New User": {
+      "main": [
+        [
+          {}
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-06-19T08:20:00.000Z",
+  "versionId": "1",
+  "active": true
+} 

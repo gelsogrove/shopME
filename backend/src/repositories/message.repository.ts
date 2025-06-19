@@ -1,5 +1,5 @@
 import { MessageDirection, MessageType, PrismaClient } from "@prisma/client"
-import dotenv from "dotenv"
+import * as dotenv from "dotenv"
 import OpenAI from "openai"
 import logger from "../utils/logger"
 

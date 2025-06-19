@@ -16,11 +16,7 @@ const externalModules = [
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    react({
-      include: "**/*.{jsx,tsx}",
-    }),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -36,13 +32,10 @@ export default defineConfig({
         secure: false,
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
-            console.log('proxy error', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, _res) => {
-            console.log('Sending Request to the Target:', req.method, req.url);
-          });
-          proxy.on('proxyRes', (proxyRes, req, _res) => {
-            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+            // Production: Silent error handling
+            if (process.env.NODE_ENV === 'development') {
+              console.error('Proxy error:', err);
+            }
           });
         },
       }
@@ -50,21 +43,27 @@ export default defineConfig({
   },
   assetsInclude: ["**/*.svg"],
   build: {
-    // Ignora completamente gli errori TypeScript durante la build
     rollupOptions: {
       onwarn(warning, warn) {
-        // Ignora tutti gli errori TypeScript e di importazione
+        // Ignora warnings TypeScript e importazioni non risolte
         if (warning.code?.startsWith('TS') || warning.code === 'UNRESOLVED_IMPORT') {
           return;
         }
         warn(warning);
       },
-      external: externalModules
+      external: externalModules,
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          utils: ['clsx', 'tailwind-merge', 'class-variance-authority']
+        },
+      },
     },
-    // Non fallire in caso di errori
     minify: true,
     sourcemap: true,
     emptyOutDir: true,
-    reportCompressedSize: false
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 1000
   }
 })

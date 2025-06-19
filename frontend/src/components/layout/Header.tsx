@@ -16,10 +16,11 @@ import {
     Bot,
     CreditCard,
     LogOut,
+    Network,
     Phone,
     Settings,
     ShieldCheck,
-    User,
+    User
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -204,6 +205,13 @@ export function Header() {
               >
                 <Bot className="mr-3 h-5 w-5" />
                 <span>Agent Configuration</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="p-4 text-lg cursor-pointer"
+                onClick={() => window.open("http://localhost:5678", "_blank")}
+              >
+                <Network className="mr-3 h-5 w-5" />
+                <span>N8N Workflow</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

@@ -148,68 +148,33 @@ export class ProductService {
   }
 
   /**
-   * Recupera i prodotti con gli sconti applicati, considerando solo gli sconti cliente
-   * (rimosso supporto offerte)
+   * Recupera i prodotti con gli sconti applicati secondo la logica di Andrea
+   * NON-CUMULATIVO: lo sconto più alto vince
    * @param workspaceId ID del workspace
    * @param customer Cliente per cui calcolare gli sconti (opzionale)
    * @returns Prodotti con lo sconto migliore applicato
    */
   async getProductsWithOffersApplied(workspaceId: string, customer?: any) {
     try {
-      // Ottieni tutti i prodotti
-      const products = await this.productRepository.findAll(workspaceId);
+      const { PriceCalculationService } = await import('./price-calculation.service');
+      const { prisma } = await import('../../lib/prisma');
+      const priceService = new PriceCalculationService(prisma);
       
-      // @ts-ignore
-      if (!products || products.length === 0) return [];
-      
-      // Non ci sono più offerte attive
-      const activeOffers: Offer[] = [];
-      const hasActiveOffers = false;
-      
-      // Ottieni lo sconto cliente se disponibile
       const customerDiscount = customer?.discount || 0;
+      const result = await priceService.calculatePricesWithDiscounts(workspaceId, undefined, customerDiscount);
       
-      // Per ogni prodotto, verifica gli sconti applicabili
-      // @ts-ignore
-      return products.map(product => {
-        // Se non ci sono offerte attive né sconti cliente, restituisci il prodotto invariato
-        if (!hasActiveOffers && !customerDiscount) return product;
-        
-        // Le offerte sono state rimosse, quindi lo sconto migliore è sempre 0
-        let bestOfferDiscount = 0;
-        
-        // Confronta lo sconto delle offerte con lo sconto cliente
-        if (bestOfferDiscount > customerDiscount) {
-          // L'offerta ha uno sconto migliore
-          const originalPrice = product.price;
-          const discountedPrice = originalPrice * (1 - bestOfferDiscount / 100);
-          
-          return {
-            ...product,
-            originalPrice,
-            price: discountedPrice,
-            hasDiscount: true,
-            discountPercent: bestOfferDiscount,
-            discountSource: 'offer'
-          };
-        } else if (customerDiscount > 0) {
-          // Lo sconto cliente è migliore (o non ci sono offerte)
-          const originalPrice = product.price;
-          const discountedPrice = originalPrice * (1 - customerDiscount / 100);
-          
-          return {
-            ...product,
-            originalPrice,
-            price: discountedPrice,
-            hasDiscount: true,
-            discountPercent: customerDiscount,
-            discountSource: 'customer'
-          };
-        }
-        
-        // Nessuno sconto applicabile
-        return product;
-      });
+      // Map result to expected format
+      return result.products.map(product => ({
+        id: product.id,
+        name: product.name,
+        price: product.finalPrice || product.price,
+        originalPrice: product.originalPrice,
+        hasDiscount: (product.appliedDiscount || 0) > 0,
+        discountPercent: product.appliedDiscount || 0,
+        discountSource: product.discountSource || undefined,
+        discountName: product.discountName || undefined,
+        categoryId: product.categoryId
+      }));
     } catch (error) {
       logger.error('Error in getProductsWithOffersApplied service:', error);
       throw error;

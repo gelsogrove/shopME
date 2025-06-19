@@ -1,16 +1,22 @@
 
-  it.skip('should make real API calls and handle compatible VINs', async () => {
-    const vin = 'BAUCARGEZ22020801';
+-- Step 3: Populate existing records with initial updatedAt values
+-- For records that were never modified, set updatedAt = createdAt/claimedAt
+UPDATE "ChallengeHistory"
+SET "updatedAt" = "createdAt"
+WHERE "updatedAt" IS NULL OR "updatedAt" = "createdAt";
 
-    const result = await audiThemesService.isVehicleCompatible(vin);
+UPDATE "Points"
+SET "updatedAt" = "createdAt"
+WHERE "updatedAt" IS NULL OR "updatedAt" = "createdAt";
 
-    expect(typeof result).toBe('boolean');
-  });
+UPDATE "RewardHistory"
+SET "updatedAt" = "claimedAt"
+WHERE "updatedAt" IS NULL OR "updatedAt" = "claimedAt";
 
-  it('should make real API calls and handle potentially incompatible VINs', async () => {
-    const vin = 'INVALID_VIN';
+UPDATE "UserEvent"
+SET "updatedAt" = "createdAt"
+WHERE "updatedAt" IS NULL OR "updatedAt" = "createdAt";
 
-    const result = await audiThemesService.isVehicleCompatible(vin);
-
-    expect(typeof result).toBe('boolean');
-  });
+UPDATE "UserVinLevel"
+SET "updatedAt" = "createdAt"
+WHERE "updatedAt" IS NULL OR "updatedAt" = "createdAt";

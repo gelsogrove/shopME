@@ -201,7 +201,7 @@ describe('ProductService', () => {
 
       // Verify that the customer discount (10%) is applied
       expect(result.length).toBe(1);
-      const product = result[0] as ProductWithDiscounts;
+      const product = result[0] as unknown as ProductWithDiscounts;
       expect(product.hasDiscount).toBe(true);
       expect(product.discountPercent).toBe(10);
       expect(product.discountSource).toBe('customer');
@@ -230,7 +230,7 @@ describe('ProductService', () => {
 
       // Verify that no discount is applied
       expect(result.length).toBe(1);
-      const product = result[0] as ProductWithDiscounts;
+      const product = result[0] as unknown as ProductWithDiscounts;
       expect(product.hasDiscount).toBeUndefined();
       expect(product.discountPercent).toBeUndefined();
       expect(product.discountSource).toBeUndefined();

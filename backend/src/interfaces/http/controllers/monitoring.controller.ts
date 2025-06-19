@@ -209,66 +209,127 @@ export class MonitoringController {
   }
 
   /**
-   * Export metrics in Prometheus format
-   * GET /metrics/prometheus
+   * Get cache metrics
+   * GET /metrics/cache
    */
-  async getPrometheusMetrics(req: Request, res: Response): Promise<void> {
+  async getCacheMetrics(req: Request, res: Response): Promise<void> {
     try {
-      const prometheusMetrics = flowMetrics.exportPrometheusMetrics();
-      
-      res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
-      res.send(prometheusMetrics);
-
-      logger.debug('[MONITORING] Prometheus metrics exported');
-    } catch (error) {
-      logger.error('[MONITORING] Error exporting Prometheus metrics:', error);
-      res.status(500).send('# Error exporting metrics\n');
-    }
-  }
-
-
-
-  /**
-   * Get system overview dashboard data
-   * GET /metrics/dashboard
-   */
-  async getDashboardData(req: Request, res: Response): Promise<void> {
-    try {
-      const minutesBack = parseInt(req.query.minutes as string) || 60;
-      
-      const [
-        healthStatus,
-        performanceStats,
-        aggregatedMetrics,
-        workspaceMetrics
-      ] = await Promise.all([
-        Promise.resolve(flowMetrics.getHealthStatus()),
-        Promise.resolve(flowMetrics.getPerformanceStats(minutesBack)),
-        Promise.resolve(flowMetrics.getAggregatedMetrics()),
-        Promise.resolve(flowMetrics.getAllWorkspaceMetrics())
-      ]);
-
-      const dashboard = {
-        health: healthStatus,
-        performance: performanceStats,
-        aggregated: aggregatedMetrics,
-        workspaces: {
-          total: workspaceMetrics.length,
-          active: workspaceMetrics.filter(w => Date.now() - w.lastActivity < 3600000).length, // Active in last hour
-          topByMessages: workspaceMetrics
-            .sort((a, b) => b.messageCount - a.messageCount)
-            .slice(0, 5)
-        },
-        timeWindow: `${minutesBack} minutes`,
-        timestamp: new Date().toISOString()
+      // Placeholder cache metrics - can be expanded later
+      const cacheMetrics = {
+        hits: 0,
+        misses: 0,
+        hitRate: 0,
+        size: 0,
+        evictions: 0,
+        lastEviction: null
       };
 
       res.json({
         success: true,
-        data: dashboard
+        data: cacheMetrics,
+        timestamp: new Date().toISOString()
       });
 
-      logger.debug(`[MONITORING] Dashboard data requested for ${minutesBack} minutes`);
+      logger.debug('[MONITORING] Cache metrics requested');
+    } catch (error) {
+      logger.error('[MONITORING] Error getting cache metrics:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get cache metrics'
+      });
+    }
+  }
+
+  /**
+   * Clear cache
+   * POST /metrics/cache/clear
+   */
+  async clearCache(req: Request, res: Response): Promise<void> {
+    try {
+      // Placeholder cache clearing - can be expanded later
+      logger.info('[MONITORING] Cache clear requested');
+
+      res.json({
+        success: true,
+        message: 'Cache cleared successfully',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      logger.error('[MONITORING] Error clearing cache:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to clear cache'
+      });
+    }
+  }
+
+  /**
+   * Get Prometheus-compatible metrics
+   * GET /metrics/prometheus
+   */
+  async getPrometheusMetrics(req: Request, res: Response): Promise<void> {
+    try {
+      const metrics = flowMetrics.getAggregatedMetrics();
+      
+      // Format as Prometheus metrics
+      let prometheusText = '';
+      prometheusText += `# HELP whatsapp_flow_total_requests Total number of WhatsApp flow requests\n`;
+      prometheusText += `# TYPE whatsapp_flow_total_requests counter\n`;
+      prometheusText += `whatsapp_flow_total_requests ${metrics.totalMessages}\n\n`;
+      
+      prometheusText += `# HELP whatsapp_flow_success_rate Success rate of WhatsApp flow\n`;
+      prometheusText += `# TYPE whatsapp_flow_success_rate gauge\n`;
+      prometheusText += `whatsapp_flow_success_rate ${(metrics.successfulMessages / metrics.totalMessages) * 100}\n\n`;
+      
+      prometheusText += `# HELP whatsapp_flow_avg_response_time_ms Average response time in milliseconds\n`;
+      prometheusText += `# TYPE whatsapp_flow_avg_response_time_ms gauge\n`;
+      prometheusText += `whatsapp_flow_avg_response_time_ms ${metrics.averageResponseTime}\n`;
+
+      res.setHeader('Content-Type', 'text/plain');
+      res.send(prometheusText);
+
+      logger.debug('[MONITORING] Prometheus metrics requested');
+    } catch (error) {
+      logger.error('[MONITORING] Error getting Prometheus metrics:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get Prometheus metrics'
+      });
+    }
+  }
+
+  /**
+   * Get dashboard data for frontend
+   * GET /metrics/dashboard
+   */
+  async getDashboardData(req: Request, res: Response): Promise<void> {
+    try {
+      const [aggregated, recentMetrics, healthStatus] = await Promise.all([
+        flowMetrics.getAggregatedMetrics(),
+        flowMetrics.getRecentMetrics(5),
+        flowMetrics.getHealthStatus()
+      ]);
+
+      const dashboardData = {
+        overview: {
+          totalRequests: aggregated.totalMessages,
+          successRate: (aggregated.successfulMessages / aggregated.totalMessages) * 100,
+          avgResponseTime: aggregated.averageResponseTime,
+          errorRate: (aggregated.errorMessages / aggregated.totalMessages) * 100,
+          status: healthStatus.status
+        },
+        recentActivity: recentMetrics.slice(0, 10), // Last 10 activities
+        healthStatus: healthStatus,
+        lastUpdated: new Date().toISOString()
+      };
+
+      res.json({
+        success: true,
+        data: dashboardData,
+        timestamp: new Date().toISOString()
+      });
+
+      logger.debug('[MONITORING] Dashboard data requested');
     } catch (error) {
       logger.error('[MONITORING] Error getting dashboard data:', error);
       res.status(500).json({

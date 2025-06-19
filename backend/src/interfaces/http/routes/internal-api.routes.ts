@@ -4,57 +4,82 @@ import { InternalApiController } from '../controllers/internal-api.controller';
 import { n8nAuthMiddleware } from '../middlewares/n8n-auth.middleware';
 
 const router = Router();
-
-// Initialize dependencies
 const messageRepository = new MessageRepository();
 const internalApiController = new InternalApiController(messageRepository);
 
-// Apply N8N authentication middleware to all internal routes
+// 🧪 OPEN TEST ENDPOINT - No Auth Required (Andrea's Testing)
+// This endpoint is OUTSIDE the auth middleware for easy testing
+router.get('/test-rag-open', 
+  internalApiController.testRagOpen.bind(internalApiController));
+
+// Apply authentication middleware to all other internal API routes
 router.use(n8nAuthMiddleware);
 
 /**
- * Internal API Routes for N8N Integration
- * All routes require N8N authentication via INTERNAL_API_SECRET
+ * N8N Internal API Routes with Multi-Business Support
+ * Protected by INTERNAL_API_SECRET authentication
  */
 
-// Channel status check
-router.get('/channel-status/:workspaceId', (req, res) => 
-  internalApiController.getChannelStatus(req, res)
-);
+// Channel and workspace information
+router.get('/channel-status/:workspaceId', 
+  internalApiController.getChannelStatus.bind(internalApiController));
 
-// User registration check
-router.get('/user-check/:workspaceId/:phone', (req, res) => 
-  internalApiController.getUserCheck(req, res)
-);
+router.get('/business-type/:workspaceId', 
+  internalApiController.getBusinessType.bind(internalApiController));
 
-// WIP status check
-router.get('/wip-status/:workspaceId/:phone', (req, res) => 
-  internalApiController.getWipStatus(req, res)
-);
+// User management
+router.get('/user-check/:workspaceId/:phone', 
+  internalApiController.getUserCheck.bind(internalApiController));
 
-// RAG search across all content types
-router.post('/rag-search', (req, res) => 
-  internalApiController.ragSearch(req, res)
-);
+router.get('/wip-status/:workspaceId/:phone', 
+  internalApiController.getWipStatus.bind(internalApiController));
 
-// LLM processing with context
-router.post('/llm-process', (req, res) => 
-  internalApiController.llmProcess(req, res)
-);
+// Content and AI processing
+router.post('/rag-search', 
+  internalApiController.ragSearch.bind(internalApiController));
 
-// Save message and conversation
-router.post('/save-message', (req, res) => 
-  internalApiController.saveMessage(req, res)
-);
+// Agent configuration for N8N direct OpenRouter calls
+router.get('/agent-config/:workspaceId', 
+  internalApiController.getAgentConfig.bind(internalApiController));
 
-// Get conversation history
-router.get('/conversation-history/:workspaceId/:phone', (req, res) => 
-  internalApiController.getConversationHistory(req, res)
-);
+// ❌ DEPRECATED - Now handled directly by N8N with OpenRouter
+// router.post('/llm-process', 
+//   internalApiController.llmProcess.bind(internalApiController));
 
-// Welcome user and generate registration
-router.post('/welcome-user', (req, res) => 
-  internalApiController.welcomeUser(req, res)
-);
+// Message handling
+router.post('/save-message', 
+  internalApiController.saveMessage.bind(internalApiController));
 
-export default router; 
+router.get('/conversation-history/:workspaceId/:phone', 
+  internalApiController.getConversationHistory.bind(internalApiController));
+
+// User onboarding
+router.post('/welcome-user', 
+  internalApiController.welcomeUser.bind(internalApiController));
+
+// Registration link generation for new users
+router.post('/generate-registration-link', 
+  internalApiController.generateRegistrationLink.bind(internalApiController));
+
+ 
+// WhatsApp message sender (saves to DB + sends via API)
+router.post('/send-whatsapp', 
+  internalApiController.sendWhatsApp.bind(internalApiController));
+
+// 🧪 TEST ENDPOINT - Complete RAG + Pricing Test (Andrea's Testing)
+router.post('/test-rag-complete', 
+  internalApiController.testRagComplete.bind(internalApiController));
+
+// 🧪 SIMPLE TEST - Search Products (Andrea's Testing)
+router.post('/test-simple-search', 
+  internalApiController.testSimpleSearch.bind(internalApiController));
+
+// 🧪 MOCK TEST - Demo Results (Andrea's Testing)
+router.post('/test-mock-results', 
+  internalApiController.testMockResults.bind(internalApiController));
+
+// 🔍 GET ENDPOINT - Simple RAG Search with Query Parameter (Andrea's Request)
+router.get('/test-simple-search', 
+  internalApiController.testSimpleSearchGet.bind(internalApiController));
+
+export { router as internalApiRoutes };
