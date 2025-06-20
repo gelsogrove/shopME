@@ -18,6 +18,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "webhook-start",
+        "responseMode": "lastNode",
         "options": {}
       },
       "id": "257d0f64-c67a-4204-8e4f-f7d4212e1203",
@@ -29,18 +30,6 @@
         500
       ],
       "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        440,
-        600
-      ],
-      "id": "25ebdb89-dcb0-496f-ac45-b23083c15cec",
-      "name": "Wait1",
-      "webhookId": "59956c9f-d486-4e0c-b949-a3c634750e9b"
     },
     {
       "parameters": {
@@ -67,21 +56,10 @@
         20,
         500
       ],
-      "alwaysOutputData": false,
+      "alwaysOutputData": true,
       "executeOnce": true,
       "retryOnFail": false,
       "notesInFlow": true
-    },
-    {
-      "parameters": {},
-      "id": "3b8d8603-b7b4-4526-b9da-fc85bdb617cd",
-      "name": "Stop Workflow",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        240,
-        420
-      ]
     },
     {
       "parameters": {},
@@ -90,12 +68,75 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        240,
-        600
+        500,
+        620
       ],
       "alwaysOutputData": true,
       "executeOnce": true,
       "retryOnFail": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        620
+      ],
+      "id": "25ebdb89-dcb0-496f-ac45-b23083c15cec",
+      "name": "Wait3",
+      "webhookId": "59956c9f-d486-4e0c-b949-a3c634750e9b"
+    },
+    {
+      "parameters": {},
+      "id": "3b8d8603-b7b4-4526-b9da-fc85bdb617cd",
+      "name": "Stop",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        240,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.precompiledData.businessInfo.isActive }}",
+              "operation": "=equal",
+              "value2": "={{ true }}"
+            }
+          ]
+        },
+        "combineOperation": "any"
+      },
+      "id": "3961b6a0-08a0-44ac-b1af-9aceb6058f58",
+      "name": "IsChannelActive?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        220,
+        680
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": false,
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      data: 'OK'\n    }\n  }\n];\n"
+      },
+      "id": "21b2251f-5fcd-4f51-81ed-549248cc0371",
+      "name": "return",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        820,
+        620
+      ],
+      "alwaysOutputData": true
     }
   ],
   "pinData": {
@@ -168,11 +209,38 @@
       "main": [
         [
           {
-            "node": "Stop Workflow",
+            "node": "Stop",
             "type": "main",
             "index": 0
           }
         ],
+        [
+          {
+            "node": "IsChannelActive?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Continue": {
+      "main": [
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stop": {
+      "main": [
+        []
+      ]
+    },
+    "IsChannelActive?": {
+      "main": [
         [
           {
             "node": "Continue",
@@ -182,16 +250,11 @@
         ]
       ]
     },
-    "Stop Workflow": {
-      "main": [
-        []
-      ]
-    },
-    "Continue": {
+    "Wait3": {
       "main": [
         [
           {
-            "node": "Wait1",
+            "node": "return",
             "type": "main",
             "index": 0
           }
@@ -204,7 +267,7 @@
     "executionOrder": "v1",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "8df6ebe9-4575-409c-980c-72131c51327c",
+  "versionId": "0432a90a-df0e-4761-89ca-b5662b4f601b",
   "meta": {
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
   },

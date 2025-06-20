@@ -52,8 +52,8 @@ sleep 2
 echo "🧹 N8N Database Reset + Import SINCRONIZZATO..."
 echo "   Reset completo database N8N..."
 ./scripts/n8n_full-cleanup.sh > n8n-cleanup.log 2>&1
-echo "   Import workflow pulito..."
-./scripts/n8n_import-workflow-direct.sh > n8n-setup.log 2>&1
+echo "   Import di tutti i workflow dalla cartella n8n/..."
+./scripts/n8n_import-optimized-workflow.sh > n8n-setup.log 2>&1
 echo "✅ N8N setup definitivo completato!"
 
 echo ""
