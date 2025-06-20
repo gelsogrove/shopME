@@ -52,9 +52,19 @@ sleep 2
 echo "🧹 N8N Database Reset + Import SINCRONIZZATO..."
 echo "   Reset completo database N8N..."
 ./scripts/n8n_full-cleanup.sh > n8n-cleanup.log 2>&1
-echo "   Import di tutti i workflow dalla cartella n8n/..."
+
+echo "   Aspetto che N8N sia completamente pronto..."
+sleep 10
+
+echo "   Import di tutti i workflow dalla cartella n8n/ (FIXED VERSION)..."
 ./scripts/n8n_import-optimized-workflow.sh > n8n-setup.log 2>&1
-echo "✅ N8N setup definitivo completato!"
+
+if [ $? -eq 0 ]; then
+    echo "✅ N8N setup definitivo completato!"
+    echo "   📡 Webhook attivo: http://localhost:5678/webhook/webhook-start"
+else
+    echo "❌ Errore nell'import N8N! Controlla n8n-setup.log"
+fi
 
 echo ""
 echo "🎉 AVVIO SERVIZI CON LOG INTEGRATI!"

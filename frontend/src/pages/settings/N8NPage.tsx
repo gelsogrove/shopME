@@ -3,18 +3,20 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-    Activity,
-    AlertCircle,
-    CheckCircle,
-    Download,
-    Pause,
-    Play,
-    RefreshCw,
-    Settings,
-    Upload,
-    Workflow,
-    XCircle,
-    Zap
+  Activity,
+  AlertCircle,
+  CheckCircle,
+  Download,
+  ExternalLink,
+  Pause,
+  Play,
+  RefreshCw,
+  Settings,
+  Upload,
+  Workflow,
+  X,
+  XCircle,
+  Zap
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -178,6 +180,14 @@ export default function N8NPage() {
     toast.success("Workflow exported successfully")
   }
 
+  const handleOpenN8NInterface = () => {
+    setShowIframe(true)
+  }
+
+  const handleCloseIframe = () => {
+    setShowIframe(false)
+  }
+
   const getStatusColor = (status: typeof n8nStatus) => {
     switch (status) {
       case 'healthy': return 'text-green-600 bg-green-50 border-green-200'
@@ -323,12 +333,12 @@ export default function N8NPage() {
 
                 <Button 
                   variant="outline" 
-                  onClick={() => setShowIframe(!showIframe)}
+                  onClick={handleOpenN8NInterface}
                   disabled={n8nStatus !== 'healthy'}
                   className="flex items-center gap-2"
                 >
-                  <Workflow className="h-4 w-4" />
-                  {showIframe ? 'Hide' : 'Show'} N8N Interface
+                  <ExternalLink className="h-4 w-4" />
+                  Open N8N UI
                 </Button>
 
                 <Button 
@@ -343,8 +353,6 @@ export default function N8NPage() {
             </CardContent>
           </Card>
 
-
-
           {/* N8N Status Alert */}
           {n8nStatus !== 'healthy' && (
             <Alert className="mb-6">
@@ -356,34 +364,49 @@ export default function N8NPage() {
             </Alert>
           )}
 
-          {/* Embedded N8N Interface */}
-          {showIframe && n8nStatus === 'healthy' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Workflow className="h-5 w-5" />
-                  N8N Workflow Editor
-                </CardTitle>
-                <CardDescription>
-                  Embedded N8N interface for workflow management
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="border rounded-lg overflow-hidden">
-                  <iframe
-                    src="http://localhost:5678"
-                    width="100%"
-                    height="800"
-                    frameBorder="0"
-                    title="N8N Workflow Editor"
-                    className="w-full"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  If the interface doesn't load, ensure N8N is running and accessible.
-                </p>
-              </CardContent>
-            </Card>
+          {/* Iframe Modal */}
+          {showIframe && (
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+              <div className="relative w-[96%] h-[96%] bg-white rounded-lg shadow-xl">
+                <button
+                  onClick={handleCloseIframe}
+                  className="absolute top-2 right-2 p-2 bg-gray-200 rounded-full text-black hover:bg-gray-300 transition-colors"
+                  aria-label="Close N8N Interface"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+                <iframe
+                  src="http://localhost:5678"
+                  className="w-full h-full border-0 rounded-lg"
+                  title="N8N Workflow Interface"
+                ></iframe>
+              </div>
+            </div>
+          )}
+
+          {/* Actions Bar */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2">
+              <Button onClick={handleStartWorkflow} disabled={isLoading || workflowStatus.isActive}><Play className="mr-2 h-4 w-4" /> Start Workflow</Button>
+              <Button onClick={handleStopWorkflow} variant="secondary" disabled={isLoading || !workflowStatus.isActive}><Pause className="mr-2 h-4 w-4" /> Stop Workflow</Button>
+              <Button onClick={handleRestartN8N} variant="destructive" disabled={isLoading}><RefreshCw className="mr-2 h-4 w-4" /> Restart N8N</Button>
+              <Button onClick={handleImportWorkflow} variant="outline" disabled={isLoading}><Upload className="mr-2 h-4 w-4" /> Import</Button>
+              <Button onClick={handleExportWorkflow} variant="outline" disabled={isLoading}><Download className="mr-2 h-4 w-4" /> Export</Button>
+              <Button onClick={handleOpenN8NInterface} variant="default" className="bg-green-600 hover:bg-green-700"><ExternalLink className="mr-2 h-4 w-4" /> Open N8N UI</Button>
+            </CardContent>
+          </Card>
+
+          {/* Alerts and Notifications */}
+          {n8nStatus === 'unhealthy' && (
+            <Alert className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                N8N is currently unavailable. Please check that the N8N container is running and accessible at http://localhost:5678
+              </AlertDescription>
+            </Alert>
           )}
         </div>
       </div>

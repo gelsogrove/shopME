@@ -55,6 +55,7 @@ export default function SettingsPage() {
     name: "",
     whatsappPhoneNumber: "",
     whatsappApiKey: "",
+    n8nWorkflowUrl: "",
     createdAt: "",
     updatedAt: "",
     isActive: true,
@@ -483,6 +484,21 @@ export default function SettingsPage() {
                     onChange={(e) => handleFieldChange("url", e.target.value)}
                     className="mt-1"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="n8n-workflow-url">N8N Workflow URL</Label>
+                  <Input
+                    id="n8n-workflow-url"
+                    type="url"
+                    value={workspace.n8nWorkflowUrl || ""}
+                    onChange={(e) => handleFieldChange("n8nWorkflowUrl", e.target.value)}
+                    placeholder="http://localhost:5678/workflow/1XPQF919PP0MEdtH"
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    URL to open the N8N workflow editor when clicking "N8N Workflow" in the header menu.
+                  </p>
                 </div>
 
                 <div>

@@ -580,6 +580,7 @@ async function main() {
         language: "es",
         currency: "EUR",
         url: "http://localhost:3000",
+        n8nWorkflowUrl: "http://localhost:5678/workflow/1XPQF919PP0MEdtH",
         plan: "FREE",
         wipMessages: {
           en: "Work in progress. Please contact us later.",
@@ -723,6 +724,7 @@ async function main() {
         language: "es",
         currency: "EUR",
         url: "http://localhost:3000",
+        n8nWorkflowUrl: "http://localhost:5678/workflow/1XPQF919PP0MEdtH",
         plan: "FREE",
         wipMessages: {
           en: "Work in progress. Please contact us later.",
@@ -1629,6 +1631,7 @@ async function main() {
           apiKey: "dummy-api-key",
           workspaceId: mainWorkspaceId,
           gdpr: defaultGdprText,
+          n8nWebhook: "http://localhost:5678/webhook/webhook-start",
         },
       })
       console.log("Impostazioni WhatsApp create per il workspace principale")
@@ -1639,6 +1642,7 @@ async function main() {
           phoneNumber: "+88888888888888",
           apiKey: "dummy-api-key",
           gdpr: existingWhatsappSettings.gdpr || defaultGdprText,
+          n8nWebhook: existingWhatsappSettings.n8nWebhook || "http://localhost:5678/webhook/webhook-start",
         },
       })
       console.log(
@@ -1654,6 +1658,7 @@ async function main() {
           phoneNumber: "+88888888888888",
           apiKey: "dummy-api-key",
           workspaceId: mainWorkspaceId,
+          n8nWebhook: "http://localhost:5678/webhook/webhook-start",
         },
       })
       console.log(
@@ -1665,6 +1670,7 @@ async function main() {
         data: {
           phoneNumber: "+88888888888888",
           apiKey: "dummy-api-key",
+          n8nWebhook: existingWhatsappSettings.n8nWebhook || "http://localhost:5678/webhook/webhook-start",
         },
       })
       console.log(
