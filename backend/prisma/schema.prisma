@@ -26,6 +26,7 @@ model Workspace {
   messageLimit              Int               @default(50)
   blocklist                 String?           @default("")
   url                       String?
+  n8nWorkflowUrl            String?           @default("http://localhost:5678/workflow/1XPQF919PP0MEdtH")
   plan                      PlanType          @default(FREE)
   businessType              BusinessType      @default(ECOMMERCE)
   welcomeMessages           Json?             @default("{\"en\": \"Welcome!\", \"es\": \"¡Bienvenido!\", \"it\": \"Benvenuto!\"}")
@@ -250,6 +251,7 @@ model WhatsappSettings {
   phoneNumber String    @unique
   apiKey      String
   webhookUrl  String?
+  n8nWebhook  String?   @default("http://localhost:5678/webhook/webhook-start")
   settings    Json?     @default("{}")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

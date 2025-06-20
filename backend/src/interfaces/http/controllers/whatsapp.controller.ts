@@ -302,7 +302,7 @@ export class WhatsAppController {
    */
   private async forwardToN8N(webhookData: any, sessionToken: string, workspaceId: string): Promise<void> {
     try {
-      const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || 'http://localhost:5678/webhook/whatsapp-webhook';
+      const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || 'http://localhost:5678/webhook/webhook-start';
       
       // 📋 EXTRACT KEY DATA FOR OPTIMIZATION
       const phoneNumber = webhookData.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from;

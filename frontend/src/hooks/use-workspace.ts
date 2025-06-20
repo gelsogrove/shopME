@@ -12,6 +12,7 @@ export interface Workspace {
   whatsappPhoneNumber?: string
   whatsappApiToken?: string
   whatsappWebhookUrl?: string
+  n8nWorkflowUrl?: string
   isActive: boolean
   createdAt: string
   updatedAt: string

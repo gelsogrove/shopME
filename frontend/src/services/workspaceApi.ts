@@ -13,6 +13,8 @@ export interface Workspace {
   description?: string
   whatsappPhoneNumber?: string
   whatsappApiKey?: string
+  n8nWebhook?: string
+  n8nWorkflowUrl?: string
   createdAt: string
   updatedAt?: string
   isActive: boolean
@@ -54,6 +56,8 @@ export interface UpdateWorkspaceData {
   id: string
   name?: string
   whatsappPhoneNumber?: string
+  n8nWebhook?: string
+  n8nWorkflowUrl?: string
   language?: string
   isActive?: boolean
   isDelete?: boolean

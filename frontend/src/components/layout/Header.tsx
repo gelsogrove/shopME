@@ -8,6 +8,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { N8NWorkflowPopup } from "@/components/ui/n8n-workflow-popup"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useCurrentUser } from "@/hooks/useCurrentUser"
 import { api } from "@/services/api"
@@ -36,6 +37,7 @@ export function Header() {
   const [userEmail, setUserEmail] = useState<string>("")
   const [userInitials, setUserInitials] = useState<string>("")
   const { data: userData, isLoading, isError } = useCurrentUser()
+  const [isN8NPopupOpen, setIsN8NPopupOpen] = useState(false)
 
   // Get plan display info
   const getPlanDisplayInfo = (plan?: string) => {
@@ -208,7 +210,7 @@ export function Header() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="p-4 text-lg cursor-pointer"
-                onClick={() => window.open("http://localhost:5678", "_blank")}
+                onClick={() => setIsN8NPopupOpen(true)}
               >
                 <Network className="mr-3 h-5 w-5" />
                 <span>N8N Workflow</span>
@@ -225,6 +227,13 @@ export function Header() {
           </DropdownMenu>
         </div>
       </div>
+      
+      {/* N8N Workflow Popup */}
+      <N8NWorkflowPopup
+        isOpen={isN8NPopupOpen}
+        onClose={() => setIsN8NPopupOpen(false)}
+        workflowUrl={workspace?.n8nWorkflowUrl || "http://localhost:5678/workflow/1XPQF919PP0MEdtH"}
+      />
     </header>
   )
 }
