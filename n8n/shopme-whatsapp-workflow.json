@@ -1,0 +1,214 @@
+{
+  "name": "ShopMe WhatsApp Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "6bef461d-e62c-4ad1-bc61-107c74414093",
+      "name": "Continue Processing",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        280,
+        680
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  \"workspaceId\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n  \"phoneNumber\": \"393451234567\",\n  \"messageContent\": \"cerco mozzarella per la pizza\",\n  \"sessionToken\": \"dc3d1eb7b9b7c4e2f1a8d6c5b9e4f7a2\",\n  \"precompiledData\": {\n    \"agentConfig\": {\n      \"id\": \"agent-config-123\",\n      \"workspaceId\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n      \"model\": \"openai/gpt-4o-mini\",\n      \"temperature\": 0.7,\n      \"maxTokens\": 1000,\n      \"topP\": 0.9,\n      \"prompt\": \"Sei un assistente virtuale esperto per L'Altra Italia, un'azienda italiana specializzata in prodotti alimentari di alta qualità. Il tuo compito è aiutare i clienti a trovare i prodotti giusti, fornire informazioni sui prezzi, ingredienti e disponibilità. Rispondi sempre in modo professionale e cortese.\",\n      \"isActive\": true,\n      \"createdAt\": \"2024-06-19T10:00:00.000Z\",\n      \"updatedAt\": \"2024-06-19T15:30:00.000Z\"\n    },\n    \"customer\": {\n      \"id\": \"7a305200-993a-41d1-82c3-f1d148c3cf31\",\n      \"name\": \"Mario Rossi\",\n      \"email\": \"mario.rossi@email.com\",\n      \"phone\": \"393451234567\",\n      \"language\": \"it\",\n      \"isActive\": true,\n      \"isBlacklisted\": false,\n      \"activeChatbot\": true,\n      \"discount\": 0,\n      \"currency\": \"EUR\",\n      \"address\": \"Via Roma 123, Milano\",\n      \"company\": \"\",\n      \"createdAt\": \"2024-06-19T10:00:00.000Z\",\n      \"updatedAt\": \"2024-06-19T15:30:00.000Z\"\n    },\n    \"businessInfo\": {\n      \"id\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n      \"name\": \"L'Altra Italia(ESP)\",\n      \"businessType\": \"ECOMMERCE\",\n      \"plan\": \"PREMIUM\",\n      \"whatsappPhoneNumber\": \"+34654728753\",\n      \"whatsappApiKey\": \"your-whatsapp-api-key\",\n      \"language\": \"it\",\n      \"currency\": \"EUR\",\n      \"timezone\": \"Europe/Rome\",\n      \"isActive\": true,\n      \"createdAt\": \"2024-06-19T10:00:00.000Z\",\n      \"updatedAt\": \"2024-06-19T15:30:00.000Z\"\n    },\n    \"conversationHistory\": [\n      {\n        \"id\": \"msg-1\",\n        \"content\": \"Ciao! Come posso aiutarti oggi?\",\n        \"role\": \"assistant\",\n        \"timestamp\": \"2024-06-19T15:25:00.000Z\"\n      },\n      {\n        \"id\": \"msg-2\", \n        \"content\": \"Salve, sto cercando dei formaggi\",\n        \"role\": \"user\",\n        \"timestamp\": \"2024-06-19T15:26:00.000Z\"\n      },\n      {\n        \"id\": \"msg-3\",\n        \"content\": \"Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?\",\n        \"role\": \"assistant\", \n        \"timestamp\": \"2024-06-19T15:26:30.000Z\"\n      }\n    ]\n  },\n  \"metadata\": {\n    \"timestamp\": \"2024-06-19T15:36:10.004Z\",\n    \"source\": \"whatsapp\",\n    \"apiVersion\": \"v1.0\",\n    \"securityChecks\": {\n      \"apiLimitPassed\": true,\n      \"spamDetectionPassed\": true,\n      \"blacklistCheck\": false,\n      \"operatorControl\": false\n    },\n    \"performance\": {\n      \"securityGatewayTime\": \"5ms\",\n      \"precompilationTime\": \"12ms\",\n      \"totalProcessingTime\": \"17ms\"\n    }\n  }\n} "
+      },
+      "id": "7863482c-1fa9-40ee-a093-af8d698061cc",
+      "name": "Set Input Object",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook-start",
+        "options": {}
+      },
+      "id": "257d0f64-c67a-4204-8e4f-f7d4212e1203",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        500
+      ],
+      "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        500,
+        680
+      ],
+      "id": "25ebdb89-dcb0-496f-ac45-b23083c15cec",
+      "name": "Wait1",
+      "webhookId": "59956c9f-d486-4e0c-b949-a3c634750e9b"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.precompiledData.customer.isBlacklisted }}",
+              "operation": "=equal",
+              "value2": "={{ true }}"
+            },
+            {
+              "value1": "={{ $json.precompiledData.customer.activeChatbot }}",
+              "value2": "={{ false }}"
+            }
+          ]
+        },
+        "combineOperation": "any"
+      },
+      "id": "06adfcce-9896-446f-89a5-a0edac6db4d1",
+      "name": "Continue?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        20,
+        500
+      ],
+      "alwaysOutputData": false,
+      "executeOnce": true,
+      "retryOnFail": false,
+      "notesInFlow": true
+    },
+    {
+      "parameters": {},
+      "id": "3b8d8603-b7b4-4526-b9da-fc85bdb617cd",
+      "name": "Stop Workflow",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        320,
+        380
+      ]
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      },
+      {
+        "json": {
+          "name": "Second item",
+          "code": 2
+        }
+      }
+    ]
+  },
+  "connections": {
+    "LLM Router (Intent Classification)": {
+      "main": [
+        [
+          {
+            "node": "Needs RAG Search?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Formatter (Response Generation)": {
+      "main": [
+        [
+          {
+            "node": "Save Inbound Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send WhatsApp Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Input Object": {
+      "main": [
+        [
+          {
+            "node": "Continue?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set Input Object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Continue Processing": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Continue?": {
+      "main": [
+        [
+          {
+            "node": "Stop Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Continue Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stop Workflow": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1
+  },
+  "versionId": "8f028733-632c-4704-9725-67c0a49ef4c9",
+  "meta": {
+    "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
+  },
+  "id": "YMI7HF0uNZiza2fT",
+  "tags": []
+}
