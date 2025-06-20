@@ -1,0 +1,86 @@
+{
+  "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+  "phoneNumber": "393451234567",
+  "messageContent": "cerco mozzarella per la pizza",
+  "sessionToken": "dc3d1eb7b9b7c4e2f1a8d6c5b9e4f7a2",
+  "precompiledData": {
+    "agentConfig": {
+      "id": "agent-config-123",
+      "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+      "model": "openai/gpt-4o-mini",
+      "temperature": 0.7,
+      "maxTokens": 1000,
+      "topP": 0.9,
+      "prompt": "Sei un assistente virtuale esperto per L'Altra Italia, un'azienda italiana specializzata in prodotti alimentari di alta qualità. Il tuo compito è aiutare i clienti a trovare i prodotti giusti, fornire informazioni sui prezzi, ingredienti e disponibilità. Rispondi sempre in modo professionale e cortese.",
+      "isActive": true,
+      "createdAt": "2024-06-19T10:00:00.000Z",
+      "updatedAt": "2024-06-19T15:30:00.000Z"
+    },
+    "customer": {
+      "id": "7a305200-993a-41d1-82c3-f1d148c3cf31",
+      "name": "Mario Rossi",
+      "email": "mario.rossi@email.com",
+      "phone": "393451234567",
+      "language": "it",
+      "isActive": true,
+      "isBlacklisted": false,
+      "activeChatbot": true,
+      "discount": 0,
+      "currency": "EUR",
+      "address": "Via Roma 123, Milano",
+      "company": "",
+      "createdAt": "2024-06-19T10:00:00.000Z",
+      "updatedAt": "2024-06-19T15:30:00.000Z"
+    },
+    "businessInfo": {
+      "id": "cm9hjgq9v00014qk8fsdy4ujv",
+      "name": "L'Altra Italia(ESP)",
+      "businessType": "ECOMMERCE",
+      "plan": "PREMIUM",
+      "whatsappPhoneNumber": "+34654728753",
+      "whatsappApiKey": "your-whatsapp-api-key",
+      "language": "it",
+      "currency": "EUR",
+      "timezone": "Europe/Rome",
+      "isActive": true,
+      "createdAt": "2024-06-19T10:00:00.000Z",
+      "updatedAt": "2024-06-19T15:30:00.000Z"
+    },
+    "conversationHistory": [
+      {
+        "id": "msg-1",
+        "content": "Ciao! Come posso aiutarti oggi?",
+        "role": "assistant",
+        "timestamp": "2024-06-19T15:25:00.000Z"
+      },
+      {
+        "id": "msg-2", 
+        "content": "Salve, sto cercando dei formaggi",
+        "role": "user",
+        "timestamp": "2024-06-19T15:26:00.000Z"
+      },
+      {
+        "id": "msg-3",
+        "content": "Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?",
+        "role": "assistant", 
+        "timestamp": "2024-06-19T15:26:30.000Z"
+      }
+    ]
+  },
+  "metadata": {
+    "timestamp": "2024-06-19T15:36:10.004Z",
+    "source": "whatsapp",
+    "apiVersion": "v1.0",
+    "securityChecks": {
+      "apiLimitPassed": true,
+      "spamDetectionPassed": true,
+      "blacklistCheck": false,
+      "operatorControl": false
+    },
+    "performance": {
+      "securityGatewayTime": "5ms",
+      "precompilationTime": "12ms",
+      "totalProcessingTime": "17ms"
+    }
+  }
+} 
