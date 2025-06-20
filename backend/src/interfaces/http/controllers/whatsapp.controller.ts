@@ -394,10 +394,7 @@ export class WhatsAppController {
         
         // 3. Workspace Information (replaces /channel-status and /business-type calls)
         prisma.workspace.findUnique({
-          where: { id: workspaceId },
-          include: {
-            whatsappSettings: true
-          }
+          where: { id: workspaceId }
         }),
         
         // 4. Conversation History (replaces /conversation-history call)
@@ -446,12 +443,12 @@ export class WhatsAppController {
           description: workspace.description
         } : null,
         
-        // 📞 WHATSAPP SETTINGS
-        whatsappSettings: workspace?.whatsappSettings ? {
-          apiKey: workspace.whatsappSettings.apiKey,
-          webhookUrl: workspace.whatsappSettings.webhookUrl,
-          phoneNumber: workspace.whatsappSettings.phoneNumber,
-          gdpr: workspace.whatsappSettings.gdpr
+        // 📞 WHATSAPP SETTINGS (from workspace directly)
+        whatsappSettings: workspace ? {
+          apiKey: workspace.whatsappApiKey,
+          webhookUrl: workspace.webhookUrl,
+          phoneNumber: workspace.whatsappPhoneNumber,
+          notificationEmail: workspace.notificationEmail
         } : null,
         
         // 💬 CONVERSATION HISTORY (last 10 messages)
@@ -587,7 +584,7 @@ export class WhatsAppController {
    * 💾 SAVE OPERATOR OUTBOUND MESSAGE
    * Saves operator's outbound message with special flags for UI distinction
    */
-  private async saveOperatorOutboundMessage(phoneNumber: string, message: string, workspaceId: string, operatorId?: string): Promise<void> {
+  private async saveOperatorOutboundMessage(phoneNumber: string, message: string, workspaceId: string): Promise<void> {
     try {
       // Find customer by phone number
       const customer = await prisma.customers.findFirst({
@@ -631,7 +628,7 @@ export class WhatsAppController {
           metadata: {
             agentSelected: 'MANUAL_OPERATOR',
             isOperatorMessage: true,  // ✅ Flag for UI to show operator badge
-            operatorId: operatorId || 'unknown',
+            operatorId: 'manual_operator',
             sentBy: 'HUMAN_OPERATOR',
             timestamp: new Date().toISOString()
           }
