@@ -1,142 +1,147 @@
-import { Entity } from './entity';
+import { Entity } from "./entity"
 
 export interface WorkspaceProps {
-  id?: string;
-  name: string;
-  slug?: string;
-  description?: string | null;
-  whatsappPhoneNumber?: string | null;
-  whatsappApiToken?: string | null;
-  whatsappWebhookUrl?: string | null;
-  webhookUrl?: string | null;
-  notificationEmail?: string | null;
-  language?: string;
-  currency?: string;
-  messageLimit?: number;
-  blocklist?: string | null;
-  welcomeMessages?: Record<string, string> | null;
-  wipMessages?: Record<string, string> | null;
-  challengeStatus?: boolean;
-  isActive?: boolean;
-  isDelete?: boolean;
-  url?: string | null;
-  createdAt?: Date;
-  updatedAt?: Date;
+  id?: string
+  name: string
+  slug?: string
+  description?: string | null
+  whatsappPhoneNumber?: string | null
+  whatsappApiToken?: string | null
+  whatsappWebhookUrl?: string | null
+  webhookUrl?: string | null
+  n8nWorkflowUrl?: string | null
+  notificationEmail?: string | null
+  language?: string
+  currency?: string
+  messageLimit?: number
+  blocklist?: string | null
+  welcomeMessages?: Record<string, string> | null
+  wipMessages?: Record<string, string> | null
+  challengeStatus?: boolean
+  isActive?: boolean
+  isDelete?: boolean
+  url?: string | null
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export class Workspace extends Entity<WorkspaceProps> {
   get id(): string {
-    return this.props.id || '';
+    return this.props.id || ""
   }
 
   get name(): string {
-    return this.props.name;
+    return this.props.name
   }
 
   get slug(): string | undefined {
-    return this.props.slug;
+    return this.props.slug
   }
 
   get description(): string | null | undefined {
-    return this.props.description;
+    return this.props.description
   }
 
   get whatsappPhoneNumber(): string | null | undefined {
-    return this.props.whatsappPhoneNumber;
+    return this.props.whatsappPhoneNumber
   }
 
   get whatsappApiToken(): string | null | undefined {
-    return this.props.whatsappApiToken;
+    return this.props.whatsappApiToken
   }
 
   get whatsappWebhookUrl(): string | null | undefined {
-    return this.props.whatsappWebhookUrl;
+    return this.props.whatsappWebhookUrl
   }
 
   get webhookUrl(): string | null | undefined {
-    return this.props.webhookUrl;
+    return this.props.webhookUrl
+  }
+
+  get n8nWorkflowUrl(): string | null | undefined {
+    return this.props.n8nWorkflowUrl
   }
 
   get notificationEmail(): string | null | undefined {
-    return this.props.notificationEmail;
+    return this.props.notificationEmail
   }
 
   get language(): string {
-    return this.props.language ?? 'ENG';
+    return this.props.language ?? "ENG"
   }
 
   get currency(): string {
-    return this.props.currency ?? 'EUR';
+    return this.props.currency ?? "EUR"
   }
 
   get messageLimit(): number {
-    return this.props.messageLimit ?? 50;
+    return this.props.messageLimit ?? 50
   }
 
   get blocklist(): string | null | undefined {
-    return this.props.blocklist;
+    return this.props.blocklist
   }
 
   get welcomeMessages(): Record<string, string> | null | undefined {
-    return this.props.welcomeMessages;
+    return this.props.welcomeMessages
   }
 
   get wipMessages(): Record<string, string> | null | undefined {
-    return this.props.wipMessages;
+    return this.props.wipMessages
   }
 
   get challengeStatus(): boolean {
-    return this.props.challengeStatus ?? false;
+    return this.props.challengeStatus ?? false
   }
 
   get isActive(): boolean {
-    return this.props.isActive ?? true;
+    return this.props.isActive ?? true
   }
 
   get isDelete(): boolean {
-    return this.props.isDelete ?? false;
+    return this.props.isDelete ?? false
   }
 
   get url(): string | null | undefined {
-    return this.props.url;
+    return this.props.url
   }
 
   get createdAt(): Date | undefined {
-    return this.props.createdAt;
+    return this.props.createdAt
   }
 
   get updatedAt(): Date | undefined {
-    return this.props.updatedAt;
+    return this.props.updatedAt
   }
 
   static create(props: WorkspaceProps): Workspace {
     // Validations
     if (!props.name || props.name.trim().length === 0) {
-      throw new Error('Workspace name is required');
+      throw new Error("Workspace name is required")
     }
 
     // Set defaults
     return new Workspace({
       ...props,
-      language: props.language ?? 'ENG',
-      currency: props.currency ?? 'EUR',
+      language: props.language ?? "ENG",
+      currency: props.currency ?? "EUR",
       messageLimit: props.messageLimit ?? 50,
       isActive: props.isActive ?? true,
       isDelete: props.isDelete ?? false,
       challengeStatus: props.challengeStatus ?? false,
       createdAt: props.createdAt ?? new Date(),
-      updatedAt: props.updatedAt ?? new Date()
-    });
+      updatedAt: props.updatedAt ?? new Date(),
+    })
   }
 
   public updateName(name: string): void {
-    this.props.name = name;
-    this.props.updatedAt = new Date();
+    this.props.name = name
+    this.props.updatedAt = new Date()
   }
 
   public updateDescription(description: string | null): void {
-    this.props.description = description;
-    this.props.updatedAt = new Date();
+    this.props.description = description
+    this.props.updatedAt = new Date()
   }
 
   public updateWhatsappConfig(
@@ -144,25 +149,25 @@ export class Workspace extends Entity<WorkspaceProps> {
     apiToken: string | null,
     webhookUrl: string | null
   ): void {
-    this.props.whatsappPhoneNumber = phoneNumber;
-    this.props.whatsappApiToken = apiToken;
-    this.props.whatsappWebhookUrl = webhookUrl;
-    this.props.updatedAt = new Date();
+    this.props.whatsappPhoneNumber = phoneNumber
+    this.props.whatsappApiToken = apiToken
+    this.props.whatsappWebhookUrl = webhookUrl
+    this.props.updatedAt = new Date()
   }
 
   public activate(): void {
-    this.props.isActive = true;
-    this.props.updatedAt = new Date();
+    this.props.isActive = true
+    this.props.updatedAt = new Date()
   }
 
   public deactivate(): void {
-    this.props.isActive = false;
-    this.props.updatedAt = new Date();
+    this.props.isActive = false
+    this.props.updatedAt = new Date()
   }
 
   public markDeleted(): void {
-    this.props.isDelete = true;
-    this.props.updatedAt = new Date();
+    this.props.isDelete = true
+    this.props.updatedAt = new Date()
   }
 
   public toJSON() {
@@ -187,7 +192,7 @@ export class Workspace extends Entity<WorkspaceProps> {
       isDelete: this.isDelete,
       url: this.url,
       createdAt: this.createdAt,
-      updatedAt: this.updatedAt
-    };
+      updatedAt: this.updatedAt,
+    }
   }
 }

@@ -1,18 +1,18 @@
 // @ts-nocheck
-import { MessageRepository } from "../../repositories/message.repository";
+import { MessageRepository } from "../../repositories/message.repository"
 import {
-    detectGreeting as detectGreetingLang,
-    detectLanguage
-} from "../../utils/language-detector";
-import logger from "../../utils/logger";
-import { ApiLimitService } from "./api-limit.service";
+  detectGreeting as detectGreetingLang,
+  detectLanguage,
+} from "../../utils/language-detector"
+import logger from "../../utils/logger"
+import { ApiLimitService } from "./api-limit.service"
 
-import { PrismaClient } from '@prisma/client';
-import { CheckoutService } from "./checkout.service";
+import { PrismaClient } from "@prisma/client"
+import { CheckoutService } from "./checkout.service"
 // N8N integration will be used instead of Flowise
-import { TokenService } from "./token.service";
+import { TokenService } from "./token.service"
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 // Customer interface che include activeChatbot
 interface Customer {
@@ -42,7 +42,7 @@ interface MessageMetadata {
 
 /**
  * 🏗️ VERO DDD - Service for processing messages
- * 
+ *
  * ✅ DEPENDENCY INJECTION: Tutte le dipendenze vengono iniettate
  * ✅ TESTABLE: Facilmente mockabile per i test
  * ✅ SINGLE RESPONSIBILITY: Si occupa solo di processare messaggi
@@ -86,7 +86,7 @@ export class MessageService {
    */
   private detectGreeting(text: string): string | null {
     // Use the imported function from the language-detector utility
-    return detectGreetingLang(text);
+    return detectGreetingLang(text)
   }
 
   /**
@@ -104,7 +104,7 @@ export class MessageService {
       const recentMessages = await this.messageRepository.getLatesttMessages(
         phoneNumber,
         30,
-        workspaceId  // Pass workspace ID to filter messages
+        workspaceId // Pass workspace ID to filter messages
       )
 
       // Log dettagliato per debug
@@ -186,23 +186,23 @@ export class MessageService {
 
   /**
    * 🤖 ULTRA-SIMPLIFIED SECURITY GATEWAY (by Andrea)
-   * 
+   *
    * Backend fa SOLO controlli di sicurezza critici:
    * 1. 🚦 API Limit Check - Evita abuse del sistema
    * 2. 🚫 Spam Detection - Blocca comportamenti spam
-   * 
+   *
    * TUTTO IL RESTO → N8N:
    * - Workspace checks
-   * - Blacklist checks  
+   * - Blacklist checks
    * - WIP checks
    * - User flow
    * - Checkout intent
    * - RAG processing
    * - LLM calls
    * - Response generation
-   * 
+   *
    * @param message Il messaggio del customer
-   * @param phoneNumber Il numero di telefono del customer  
+   * @param phoneNumber Il numero di telefono del customer
    * @param workspaceId L'ID del workspace
    * @returns Promise<string | null> null = "Security OK, N8N proceed"
    */
@@ -214,44 +214,139 @@ export class MessageService {
     const startTime = Date.now()
 
     try {
-      logger.info(`[SECURITY-GATEWAY] 🚦 Andrea's Architecture: Starting security checks only`)
-      logger.info(`[SECURITY-GATEWAY] Message: "${message}" from ${phoneNumber} for workspace ${workspaceId}`)
+      logger.info(
+        `[SECURITY-GATEWAY] 🚦 Andrea's Architecture: Starting security checks only`
+      )
+      logger.info(
+        `[SECURITY-GATEWAY] Message: "${message}" from ${phoneNumber} for workspace ${workspaceId}`
+      )
 
       // STEP 1: API Limit Check
       const step1Start = Date.now()
       logger.info(`[SECURITY-GATEWAY] STEP 1: API Limit Check - Starting`)
-      
-      const apiLimitResult = await this.apiLimitService.checkApiLimit(workspaceId)
+
+      const apiLimitResult =
+        await this.apiLimitService.checkApiLimit(workspaceId)
       if (apiLimitResult.exceeded) {
-        logger.warn(`[SECURITY-GATEWAY] STEP 1: API Limit Check - EXCEEDED: ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`)
+        logger.warn(
+          `[SECURITY-GATEWAY] STEP 1: API Limit Check - EXCEEDED: ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`
+        )
         return null // BLOCKED - no further processing
       }
-      
+
       const step1Time = Date.now() - step1Start
-      logger.info(`[SECURITY-GATEWAY] STEP 1: API Limit Check - PASSED (${step1Time}ms): ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`)
+      logger.info(
+        `[SECURITY-GATEWAY] STEP 1: API Limit Check - PASSED (${step1Time}ms): ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`
+      )
 
       // STEP 2: Spam Detection - 🚨 10+ messaggi in 30 secondi? → AUTO-BLACKLIST + STOP
       const step2Start = Date.now()
       logger.info(`[SECURITY-GATEWAY] STEP 2: Spam Detection - Starting`)
-      
+
       const spamCheck = await this.checkSpamBehavior(phoneNumber, workspaceId)
       if (spamCheck.isSpam) {
-        logger.warn(`[SECURITY-GATEWAY] STEP 2: Spam Detection - DETECTED: ${spamCheck.messageCount} messages. Auto-blacklisting user.`)
-        await this.addToAutoBlacklist(phoneNumber, workspaceId, 'AUTO_SPAM')
+        logger.warn(
+          `[SECURITY-GATEWAY] STEP 2: Spam Detection - DETECTED: ${spamCheck.messageCount} messages. Auto-blacklisting user.`
+        )
+        await this.addToAutoBlacklist(phoneNumber, workspaceId, "AUTO_SPAM")
         return null // BLOCKED - no further processing
       }
-      
+
       const step2Time = Date.now() - step2Start
-      logger.info(`[SECURITY-GATEWAY] STEP 2: Spam Detection - PASSED (${step2Time}ms): ${spamCheck.messageCount} messages`)
+      logger.info(
+        `[SECURITY-GATEWAY] STEP 2: Spam Detection - PASSED (${step2Time}ms): ${spamCheck.messageCount} messages`
+      )
 
       // 🚀 SECURITY PASSED - N8N TAKES COMPLETE CONTROL
       const totalTime = Date.now() - startTime
-      logger.info(`[SECURITY-GATEWAY] ✅ SECURITY CHECKS PASSED in ${totalTime}ms`)
-      logger.info(`[SECURITY-GATEWAY] 🚀 N8N NOW HANDLES: workspace, blacklist, WIP, user flow, checkout, RAG, LLM, response, sending`)
-      
-      // Return null = "Security OK, N8N proceed with ALL business logic"
-      return null
+      logger.info(
+        `[SECURITY-GATEWAY] ✅ SECURITY CHECKS PASSED in ${totalTime}ms`
+      )
+      logger.info(
+        `[SECURITY-GATEWAY] 🚀 N8N NOW HANDLES: workspace, blacklist, WIP, user flow, checkout, RAG, LLM, response, sending`
+      )
 
+      // 🚨 DEBUG: Alert prima della chiamata a N8N
+      console.log("🚨 DEBUG: RUN POST N8N (from message service)")
+
+      // 🚀 NOW CALL N8N DIRECTLY
+      try {
+        const workspace = await prisma.workspace.findUnique({
+          where: { id: workspaceId },
+          select: { n8nWorkflowUrl: true },
+        })
+
+        if (!workspace || !workspace.n8nWorkflowUrl) {
+          logger.error(
+            `[N8N] ❌ N8N webhook URL not configured for workspace ${workspaceId}`
+          )
+          return "N8N webhook URL not configured"
+        }
+
+        const n8nWebhookUrl = workspace.n8nWorkflowUrl
+        console.log("🚨 N8N URL:", n8nWebhookUrl)
+
+        // Create webhook payload similar to WhatsApp format
+        const webhookPayload = {
+          entry: [
+            {
+              changes: [
+                {
+                  value: {
+                    messages: [
+                      {
+                        from: phoneNumber,
+                        text: {
+                          body: message,
+                        },
+                        type: "text",
+                        timestamp: Math.floor(Date.now() / 1000).toString(),
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
+          workspaceId: workspaceId,
+          source: "api_message",
+        }
+
+        console.log("🚨 N8N Payload:", JSON.stringify(webhookPayload, null, 2))
+
+        const response = await fetch(n8nWebhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(webhookPayload),
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.log("🚨 N8N ERROR:", errorText)
+          logger.error(
+            `[N8N] ❌ N8N webhook failed: ${response.status} - ${errorText}`
+          )
+          return `N8N webhook failed: ${response.status}`
+        }
+
+        const n8nResponse = await response.json()
+        console.log("🚨 N8N RESPONSE SUCCESS:", n8nResponse)
+        logger.info(
+          `[N8N] ✅ Successfully received response from N8N:`,
+          n8nResponse
+        )
+
+        // 🚨 DEBUG: Log quando viene salvato
+        console.log("🚨 SALVATO - N8N response processed")
+
+        return n8nResponse?.message || "Message processed successfully"
+      } catch (n8nError) {
+        console.log("🚨 N8N ERROR:", n8nError)
+        logger.error(`[N8N] ❌ Error calling N8N:`, n8nError)
+        return "Error processing message with N8N"
+      }
     } catch (error) {
       logger.error(`[SECURITY-GATEWAY] ❌ ERROR in security checks:`, error)
       return null // Block on any security error
@@ -264,15 +359,19 @@ export class MessageService {
   /**
    * 💾 Helper: Save message for operator review
    */
-  private async saveMessageForOperator(message: string, phoneNumber: string, workspaceId: string) {
+  private async saveMessageForOperator(
+    message: string,
+    phoneNumber: string,
+    workspaceId: string
+  ) {
     try {
       // Find or create chat session
       let chatSession = await prisma.chatSession.findFirst({
         where: {
           customerPhoneNumber: phoneNumber,
-          workspaceId
-        }
-      });
+          workspaceId,
+        },
+      })
 
       if (!chatSession) {
         chatSession = await prisma.chatSession.create({
@@ -280,24 +379,24 @@ export class MessageService {
             customerPhoneNumber: phoneNumber,
             workspaceId,
             language: detectLanguage(message),
-            isActive: true
-          }
-        });
+            isActive: true,
+          },
+        })
       }
 
       // Save the message for operator review
       await prisma.message.create({
         data: {
           content: message,
-          role: 'user',
+          role: "user",
           chatSessionId: chatSession.id,
-          needsOperatorReview: true
-        }
-      });
+          needsOperatorReview: true,
+        },
+      })
 
-      logger.info(`[FLOWISE] Message saved for operator review: ${phoneNumber}`);
+      logger.info(`[FLOWISE] Message saved for operator review: ${phoneNumber}`)
     } catch (error) {
-      logger.error(`[FLOWISE] Error saving message for operator:`, error);
+      logger.error(`[FLOWISE] Error saving message for operator:`, error)
     }
   }
 
@@ -316,9 +415,9 @@ export class MessageService {
       let chatSession = await prisma.chatSession.findFirst({
         where: {
           customerPhoneNumber: phoneNumber,
-          workspaceId
-        }
-      });
+          workspaceId,
+        },
+      })
 
       if (!chatSession) {
         chatSession = await prisma.chatSession.create({
@@ -326,9 +425,9 @@ export class MessageService {
             customerPhoneNumber: phoneNumber,
             workspaceId,
             language,
-            isActive: true
-          }
-        });
+            isActive: true,
+          },
+        })
       }
 
       // Save user message and AI response
@@ -336,20 +435,20 @@ export class MessageService {
         data: [
           {
             content: userMessage,
-            role: 'user',
-            chatSessionId: chatSession.id
+            role: "user",
+            chatSessionId: chatSession.id,
           },
           {
             content: aiResponse,
-            role: 'assistant',
-            chatSessionId: chatSession.id
-          }
-        ]
-      });
+            role: "assistant",
+            chatSessionId: chatSession.id,
+          },
+        ],
+      })
 
-      logger.info(`[FLOWISE] Conversation saved for ${phoneNumber}`);
+      logger.info(`[FLOWISE] Conversation saved for ${phoneNumber}`)
     } catch (error) {
-      logger.error(`[FLOWISE] Error saving conversation:`, error);
+      logger.error(`[FLOWISE] Error saving conversation:`, error)
     }
   }
 
@@ -360,8 +459,12 @@ export class MessageService {
     if (!wipMessages) {
       return "Our service is temporarily unavailable. We will be back soon!"
     }
-    
-    return wipMessages[language] || wipMessages['en'] || "Our service is temporarily unavailable. We will be back soon!"
+
+    return (
+      wipMessages[language] ||
+      wipMessages["en"] ||
+      "Our service is temporarily unavailable. We will be back soon!"
+    )
   }
 
   /**
@@ -392,20 +495,32 @@ export class MessageService {
     context += `Name: ${customer.name}\n`
     context += `Email: ${customer.email || "Not provided"}\n`
     context += `Phone: ${customer.phone || "Not provided"}\n`
-    
+
     // Converti il codice della lingua in un formato leggibile
-    let languageDisplay = "English"; // Default
+    let languageDisplay = "English" // Default
     if (customer.language) {
-      const langCode = customer.language.toUpperCase();
-      if (langCode === 'IT' || langCode === 'ITALIAN' || langCode === 'ITALIANO') {
-        languageDisplay = "Italian";
-      } else if (langCode === 'ESP' || langCode === 'SPANISH' || langCode === 'ESPAÑOL') {
-        languageDisplay = "Spanish";
-      } else if (langCode === 'PRT' || langCode === 'PORTUGUESE' || langCode === 'PORTUGUÊS') {
-        languageDisplay = "Portuguese";
+      const langCode = customer.language.toUpperCase()
+      if (
+        langCode === "IT" ||
+        langCode === "ITALIAN" ||
+        langCode === "ITALIANO"
+      ) {
+        languageDisplay = "Italian"
+      } else if (
+        langCode === "ESP" ||
+        langCode === "SPANISH" ||
+        langCode === "ESPAÑOL"
+      ) {
+        languageDisplay = "Spanish"
+      } else if (
+        langCode === "PRT" ||
+        langCode === "PORTUGUESE" ||
+        langCode === "PORTUGUÊS"
+      ) {
+        languageDisplay = "Portuguese"
       }
     }
-    
+
     context += `Language: ${languageDisplay}\n`
     context += `Shipping Address: ${customer.address || "Not provided"}\n\n`
     return context
@@ -423,29 +538,42 @@ export class MessageService {
   private enrichAgentContext(selectedAgent: any, customer: Customer): void {
     if (selectedAgent.content && customer) {
       // Aggiungi informazioni cliente e funzioni disponibili
-      selectedAgent.content = this.getCustomerInfo(customer) + 
-                            this.getAvailableFunctions() + 
-                            selectedAgent.content
-      
+      selectedAgent.content =
+        this.getCustomerInfo(customer) +
+        this.getAvailableFunctions() +
+        selectedAgent.content
+
       // Sostituisci il placeholder {customerLanguage} con il nome della lingua leggibile
       if (customer.language) {
         // Converti il codice della lingua in un formato leggibile
-        let languageDisplay = "English"; // Default
-        const langCode = customer.language.toUpperCase();
-        if (langCode === 'IT' || langCode === 'ITALIAN' || langCode === 'ITALIANO') {
-          languageDisplay = "Italian";
-        } else if (langCode === 'ESP' || langCode === 'SPANISH' || langCode === 'ESPAÑOL') {
-          languageDisplay = "Spanish";
-        } else if (langCode === 'PRT' || langCode === 'PORTUGUESE' || langCode === 'PORTUGUÊS') {
-          languageDisplay = "Portuguese";
+        let languageDisplay = "English" // Default
+        const langCode = customer.language.toUpperCase()
+        if (
+          langCode === "IT" ||
+          langCode === "ITALIAN" ||
+          langCode === "ITALIANO"
+        ) {
+          languageDisplay = "Italian"
+        } else if (
+          langCode === "ESP" ||
+          langCode === "SPANISH" ||
+          langCode === "ESPAÑOL"
+        ) {
+          languageDisplay = "Spanish"
+        } else if (
+          langCode === "PRT" ||
+          langCode === "PORTUGUESE" ||
+          langCode === "PORTUGUÊS"
+        ) {
+          languageDisplay = "Portuguese"
         }
-        
+
         // Sostituisci il placeholder con il nome della lingua leggibile
         selectedAgent.content = selectedAgent.content.replace(
           /\{customerLanguage\}/g,
           languageDisplay
         )
-        
+
         // Aggiungi anche la lingua alla risposta
         selectedAgent.content += `\nYour response MUST be in **${languageDisplay}** language.`
       }
@@ -457,21 +585,24 @@ export class MessageService {
    * In test environment, use the hardcoded URL that tests expect
    */
   private getBaseUrl(workspaceSettings: any): string {
-    let baseUrl;
-    
+    let baseUrl
+
     // In test environment, use a hardcoded value to match test expectations
-    if (process.env.NODE_ENV === 'test') {
-      baseUrl = "https://laltroitalia.shop";
+    if (process.env.NODE_ENV === "test") {
+      baseUrl = "https://laltroitalia.shop"
     } else {
-      baseUrl = workspaceSettings.url || process.env.FRONTEND_URL || "https://example.com";
+      baseUrl =
+        workspaceSettings.url ||
+        process.env.FRONTEND_URL ||
+        "https://example.com"
     }
 
     // Ensure URL has protocol
     if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
-      baseUrl = "https://" + baseUrl;
+      baseUrl = "https://" + baseUrl
     }
-    
-    return baseUrl;
+
+    return baseUrl
   }
 
   /**
@@ -480,27 +611,32 @@ export class MessageService {
    * @param workspaceId Workspace ID
    * @returns Object with isSpam flag and message count
    */
-  private async checkSpamBehavior(phoneNumber: string, workspaceId: string): Promise<{isSpam: boolean, messageCount: number}> {
+  private async checkSpamBehavior(
+    phoneNumber: string,
+    workspaceId: string
+  ): Promise<{ isSpam: boolean; messageCount: number }> {
     try {
-      const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
-      
+      const thirtySecondsAgo = new Date(Date.now() - 30 * 1000)
+
       // Count messages from this phone number in the last 30 seconds
       const messageCount = await this.messageRepository.countRecentMessages(
-        phoneNumber, 
-        workspaceId, 
+        phoneNumber,
+        workspaceId,
         thirtySecondsAgo
-      );
-      
-      const isSpam = messageCount >= 10;
-      
+      )
+
+      const isSpam = messageCount >= 10
+
       if (isSpam) {
-        logger.warn(`Spam detected: ${messageCount} messages from ${phoneNumber} in last 30 seconds`);
+        logger.warn(
+          `Spam detected: ${messageCount} messages from ${phoneNumber} in last 30 seconds`
+        )
       }
-      
-      return { isSpam, messageCount };
+
+      return { isSpam, messageCount }
     } catch (error) {
-      logger.error("Error checking spam behavior:", error);
-      return { isSpam: false, messageCount: 0 };
+      logger.error("Error checking spam behavior:", error)
+      return { isSpam: false, messageCount: 0 }
     }
   }
 
@@ -510,22 +646,45 @@ export class MessageService {
    * @param workspaceId Workspace ID
    * @param reason Reason for blacklisting (e.g., 'AUTO_SPAM')
    */
-  private async addToAutoBlacklist(phoneNumber: string, workspaceId: string, reason: string): Promise<void> {
+  private async addToAutoBlacklist(
+    phoneNumber: string,
+    workspaceId: string,
+    reason: string
+  ): Promise<void> {
     try {
-      logger.warn(`[AUTO-BLACKLIST] Adding ${phoneNumber} to blacklist for workspace ${workspaceId}. Reason: ${reason}`)
-      
+      logger.warn(
+        `[AUTO-BLACKLIST] Adding ${phoneNumber} to blacklist for workspace ${workspaceId}. Reason: ${reason}`
+      )
+
       // Find customer
-      const customer = await this.messageRepository.findCustomerByPhone(phoneNumber, workspaceId)
+      const customer = await this.messageRepository.findCustomerByPhone(
+        phoneNumber,
+        workspaceId
+      )
       if (customer) {
-        await this.messageRepository.updateCustomerBlacklist(customer.id, workspaceId, true)
-        logger.info(`[AUTO-BLACKLIST] Customer ${customer.id} blacklisted successfully`)
+        await this.messageRepository.updateCustomerBlacklist(
+          customer.id,
+          workspaceId,
+          true
+        )
+        logger.info(
+          `[AUTO-BLACKLIST] Customer ${customer.id} blacklisted successfully`
+        )
       } else {
         // Add to workspace blocklist if customer not found
-        await this.messageRepository.addToWorkspaceBlocklist(phoneNumber, workspaceId)
-        logger.info(`[AUTO-BLACKLIST] Phone ${phoneNumber} added to workspace blocklist`)
+        await this.messageRepository.addToWorkspaceBlocklist(
+          phoneNumber,
+          workspaceId
+        )
+        logger.info(
+          `[AUTO-BLACKLIST] Phone ${phoneNumber} added to workspace blocklist`
+        )
       }
     } catch (error) {
-      logger.error(`[AUTO-BLACKLIST] Error adding ${phoneNumber} to blacklist:`, error)
+      logger.error(
+        `[AUTO-BLACKLIST] Error adding ${phoneNumber} to blacklist:`,
+        error
+      )
     }
   }
 }

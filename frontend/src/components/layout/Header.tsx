@@ -1,27 +1,26 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { N8NWorkflowPopup } from "@/components/ui/n8n-workflow-popup"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useCurrentUser } from "@/hooks/useCurrentUser"
 import { api } from "@/services/api"
 import {
-    ArrowLeftRight,
-    Bot,
-    CreditCard,
-    LogOut,
-    Network,
-    Phone,
-    Settings,
-    ShieldCheck,
-    User
+  ArrowLeftRight,
+  Bot,
+  CreditCard,
+  LogOut,
+  Network,
+  Phone,
+  Settings,
+  ShieldCheck,
+  User,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -37,19 +36,30 @@ export function Header() {
   const [userEmail, setUserEmail] = useState<string>("")
   const [userInitials, setUserInitials] = useState<string>("")
   const { data: userData, isLoading, isError } = useCurrentUser()
-  const [isN8NPopupOpen, setIsN8NPopupOpen] = useState(false)
 
   // Get plan display info
   const getPlanDisplayInfo = (plan?: string) => {
     switch (plan) {
-      case 'FREE':
-        return { label: 'FREE', color: 'bg-gray-50 text-gray-600 border-gray-300' }
-      case 'BASIC':
-        return { label: 'BASIC', color: 'bg-green-50 text-green-600 border-green-300' }
-      case 'PROFESSIONAL':
-        return { label: 'PRO', color: 'bg-purple-50 text-purple-600 border-purple-300' }
+      case "FREE":
+        return {
+          label: "FREE",
+          color: "bg-gray-50 text-gray-600 border-gray-300",
+        }
+      case "BASIC":
+        return {
+          label: "BASIC",
+          color: "bg-green-50 text-green-600 border-green-300",
+        }
+      case "PROFESSIONAL":
+        return {
+          label: "PRO",
+          color: "bg-purple-50 text-purple-600 border-purple-300",
+        }
       default:
-        return { label: 'FREE', color: 'bg-gray-50 text-gray-600 border-gray-300' }
+        return {
+          label: "FREE",
+          color: "bg-gray-50 text-gray-600 border-gray-300",
+        }
     }
   }
 
@@ -157,7 +167,9 @@ export function Header() {
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
-                <div className={`absolute -bottom-4 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded font-semibold text-xs whitespace-nowrap border ${planInfo.color}`}>
+                <div
+                  className={`absolute -bottom-4 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded font-semibold text-xs whitespace-nowrap border ${planInfo.color}`}
+                >
                   {planInfo.label}
                 </div>
               </Button>
@@ -210,7 +222,12 @@ export function Header() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="p-4 text-lg cursor-pointer"
-                onClick={() => setIsN8NPopupOpen(true)}
+                onClick={() => {
+                  const workflowUrl =
+                    workspace?.n8nWorkflowUrl ||
+                    "http://localhost:5678/workflow/1XPQF919PP0MEdtH"
+                  window.open(workflowUrl, "_blank")
+                }}
               >
                 <Network className="mr-3 h-5 w-5" />
                 <span>N8N Workflow</span>
@@ -227,13 +244,6 @@ export function Header() {
           </DropdownMenu>
         </div>
       </div>
-      
-      {/* N8N Workflow Popup */}
-      <N8NWorkflowPopup
-        isOpen={isN8NPopupOpen}
-        onClose={() => setIsN8NPopupOpen(false)}
-        workflowUrl={workspace?.n8nWorkflowUrl || "http://localhost:5678/workflow/1XPQF919PP0MEdtH"}
-      />
     </header>
   )
 }
