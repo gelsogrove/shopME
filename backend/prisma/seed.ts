@@ -1,23 +1,23 @@
 /**
  * DATABASE SEED SCRIPT - VERSIONE FUNZIONANTE
- * 
+ *
  * ✅ CREDENZIALI ADMIN TESTATE E FUNZIONANTI
  * Data: 13 Giugno 2025
- * 
+ *
  * CREDENZIALI ADMIN:
  * - Email: admin@shopme.com
  * - Password: venezia44 (dal file .env ADMIN_PASSWORD)
- * 
+ *
  * LOGIN TESTATO CON SUCCESSO:
  * curl -X POST http://localhost:3001/api/auth/login \
  *   -H "Content-Type: application/json" \
  *   -d '{"email":"admin@shopme.com","password":"venezia44"}'
- * 
+ *
  * WORKSPACE PRINCIPALE:
  * - ID: cm9hjgq9v00014qk8fsdy4ujv
  * - Nome: L'Altra Italia(ESP)
  * - Admin associato come OWNER
- * 
+ *
  * ⚠️ NON MODIFICARE CREDENZIALI SENZA AGGIORNARE .env
  */
 
@@ -52,7 +52,7 @@ const defaultAgent = {
   isRouter: true,
   department: null,
   promptName: "SofIA - Gusto Italiano Assistant",
-  model: "openai/gpt-4o-mini"
+  model: "openai/gpt-4o-mini",
 }
 
 // Andrea's Two-LLM Architecture - LLM 1 RAG Processor Prompt (Agent Settings)
@@ -192,53 +192,62 @@ async function generateEmbeddingsAfterSeed() {
   console.log("🚀 AUTOMATIC EMBEDDING GENERATION STARTED")
   console.log("   Generating embeddings for all content types...")
   console.log("   ")
-  
+
   try {
     // Import embedding service
-    const { embeddingService } = require('../src/services/embeddingService')
-    
+    const { embeddingService } = require("../src/services/embeddingService")
+
     console.log("   🛍️ Generating Product Embeddings...")
     await embeddingService.generateProductEmbeddings(mainWorkspaceId)
     console.log("   ✅ Product embeddings generated successfully")
-    
-         console.log("   🔧 Generating FAQ Embeddings...")
-     await embeddingService.generateFAQEmbeddings(mainWorkspaceId)
-     console.log("   ✅ FAQ embeddings generated successfully")
-    
+
+    console.log("   🔧 Generating FAQ Embeddings...")
+    await embeddingService.generateFAQEmbeddings(mainWorkspaceId)
+    console.log("   ✅ FAQ embeddings generated successfully")
+
     console.log("   🛠️ Generating Service Embeddings...")
     await embeddingService.generateServiceEmbeddings(mainWorkspaceId)
     console.log("   ✅ Service embeddings generated successfully")
-    
-         console.log("   📄 Generating Document Embeddings...")
-     const { documentService } = require('../src/services/documentService')
-     await documentService.generateEmbeddingsForActiveDocuments(mainWorkspaceId)
-     console.log("   ✅ Document embeddings generated successfully")
-    
+
+    console.log("   📄 Generating Document Embeddings...")
+    const { documentService } = require("../src/services/documentService")
+    await documentService.generateEmbeddingsForActiveDocuments(mainWorkspaceId)
+    console.log("   ✅ Document embeddings generated successfully")
+
     console.log("   ")
     console.log("🎉 ALL EMBEDDINGS GENERATED SUCCESSFULLY!")
-    
   } catch (error) {
     console.error("❌ Error generating embeddings:", error)
     console.log("📝 FALLBACK - Manual embedding generation instructions:")
-    console.log("   🔧 FAQ Embeddings: POST /api/workspaces/{workspaceId}/faqs/generate-embeddings")
-    console.log("   📄 Document Embeddings: POST /api/workspaces/{workspaceId}/documents/generate-embeddings")
-    console.log("   🛠️ Service Embeddings: POST /api/workspaces/{workspaceId}/services/generate-embeddings")
-    console.log("   🛍️ Product Embeddings: POST /api/workspaces/{workspaceId}/products/generate-embeddings")
-    console.log("   Or use the admin interface buttons on the respective pages.")
+    console.log(
+      "   🔧 FAQ Embeddings: POST /api/workspaces/{workspaceId}/faqs/generate-embeddings"
+    )
+    console.log(
+      "   📄 Document Embeddings: POST /api/workspaces/{workspaceId}/documents/generate-embeddings"
+    )
+    console.log(
+      "   🛠️ Service Embeddings: POST /api/workspaces/{workspaceId}/services/generate-embeddings"
+    )
+    console.log(
+      "   🛍️ Product Embeddings: POST /api/workspaces/{workspaceId}/products/generate-embeddings"
+    )
+    console.log(
+      "   Or use the admin interface buttons on the respective pages."
+    )
   }
 }
 
 // Function to seed default document
 async function seedDefaultDocument() {
   console.log("Seeding default document...")
-  
+
   try {
     // Check if document already exists
     const existingDocument = await prisma.documents.findFirst({
       where: {
         workspaceId: mainWorkspaceId,
-        originalName: "international-transportation-law.pdf"
-      }
+        originalName: "international-transportation-law.pdf",
+      },
     })
 
     if (existingDocument) {
@@ -247,7 +256,11 @@ async function seedDefaultDocument() {
     }
 
     // Copy PDF from samples to uploads directory
-    const sourcePath = path.join(__dirname, "samples", "international-transportation-law.pdf")
+    const sourcePath = path.join(
+      __dirname,
+      "samples",
+      "international-transportation-law.pdf"
+    )
     const targetDir = path.join(__dirname, "..", "uploads", "documents")
     const filename = `${Date.now()}-international-transportation-law.pdf`
     const targetPath = path.join(targetDir, filename)
@@ -266,14 +279,14 @@ async function seedDefaultDocument() {
     // Copy the file using streams for better handling of large binary files
     const sourceStream = fs.createReadStream(sourcePath)
     const targetStream = fs.createWriteStream(targetPath)
-    
+
     await new Promise<void>((resolve, reject) => {
       sourceStream.pipe(targetStream)
-      targetStream.on('finish', () => resolve())
-      targetStream.on('error', reject)
-      sourceStream.on('error', reject)
+      targetStream.on("finish", () => resolve())
+      targetStream.on("error", reject)
+      sourceStream.on("error", reject)
     })
-    
+
     const stats = fs.statSync(targetPath)
 
     console.log(`PDF copied to: ${targetPath}`)
@@ -287,16 +300,17 @@ async function seedDefaultDocument() {
         fileSize: stats.size,
         mimeType: "application/pdf",
         status: "UPLOADED",
-        workspaceId: mainWorkspaceId
-      }
+        workspaceId: mainWorkspaceId,
+      },
     })
 
     console.log(`Document created with ID: ${document.id}`)
 
     // Note: Embedding generation is skipped in seed due to memory constraints
     // The document will be in UPLOADED status and can be processed manually via API
-    console.log("Document created successfully - embeddings can be generated via API")
-
+    console.log(
+      "Document created successfully - embeddings can be generated via API"
+    )
   } catch (error) {
     console.error("Error seeding default document:", error)
   }
@@ -304,22 +318,24 @@ async function seedDefaultDocument() {
 
 async function main() {
   console.log("🚀 STARTING COMPLETE DATABASE SEED")
-  console.log("=" .repeat(50))
-  
-  // 🔥 PULIZIA COMPLETA DEL DATABASE 
-  console.log("🧹 COMPLETE DATABASE CLEANUP - Removing all data from all tables...")
-  
+  console.log("=".repeat(50))
+
+  // 🔥 PULIZIA COMPLETA DEL DATABASE
+  console.log(
+    "🧹 COMPLETE DATABASE CLEANUP - Removing all data from all tables..."
+  )
+
   try {
     // Elimina tutti i chunks prima (foreign keys)
     await prisma.documentChunks.deleteMany({})
     console.log("✅ Deleted all document chunks")
-    
+
     await prisma.fAQChunks.deleteMany({})
     console.log("✅ Deleted all FAQ chunks")
-    
+
     await prisma.serviceChunks.deleteMany({})
     console.log("✅ Deleted all service chunks")
-    
+
     // Elimina ordini e carrelli
     await prisma.orderItems.deleteMany({})
     await prisma.paymentDetails.deleteMany({})
@@ -327,12 +343,12 @@ async function main() {
     await prisma.cartItems.deleteMany({})
     await prisma.carts.deleteMany({})
     console.log("✅ Deleted all orders and carts")
-    
+
     // Elimina chat e messaggi
     await prisma.message.deleteMany({})
     await prisma.chatSession.deleteMany({})
     console.log("✅ Deleted all chat sessions and messages")
-    
+
     // Elimina documenti, FAQ, prodotti, categorie, servizi
     await prisma.documents.deleteMany({})
     await prisma.fAQ.deleteMany({})
@@ -341,7 +357,7 @@ async function main() {
     await prisma.services.deleteMany({})
     await prisma.offers.deleteMany({})
     console.log("✅ Deleted all content entities")
-    
+
     // Elimina customers e configurazioni
     await prisma.customers.deleteMany({})
     await prisma.agentConfig.deleteMany({})
@@ -349,23 +365,22 @@ async function main() {
     await prisma.languages.deleteMany({})
     await prisma.whatsappSettings.deleteMany({})
     console.log("✅ Deleted all customers and configurations")
-    
+
     // Elimina associazioni user-workspace
     await prisma.userWorkspace.deleteMany({})
     console.log("✅ Deleted all user-workspace associations")
-    
+
     // Elimina secure tokens prima dei workspace (foreign key)
     await prisma.secureToken.deleteMany({})
     console.log("✅ Deleted all secure tokens")
-    
+
     // Elimina workspace e utenti
     await prisma.workspace.deleteMany({})
     await prisma.user.deleteMany({})
     console.log("✅ Deleted all workspaces and users")
-    
+
     console.log("🎉 COMPLETE DATABASE CLEANUP FINISHED!")
-    console.log("=" .repeat(50))
-    
+    console.log("=".repeat(50))
   } catch (error) {
     console.error("❌ Error during database cleanup:", error)
     throw error
@@ -376,7 +391,7 @@ async function main() {
     where: { email: adminEmail },
   })
 
-  let adminUser;
+  let adminUser
   if (!existingAdmin) {
     const hashedPassword = await bcrypt.hash(adminPassword, 10)
     adminUser = await prisma.user.create({
@@ -388,9 +403,11 @@ async function main() {
         status: "ACTIVE",
       },
     })
-    console.log(`✅ Admin user created: ${adminUser.email} (ID: ${adminUser.id})`)
+    console.log(
+      `✅ Admin user created: ${adminUser.email} (ID: ${adminUser.id})`
+    )
   } else {
-    adminUser = existingAdmin;
+    adminUser = existingAdmin
     console.log("ℹ️ Admin user already exists.")
   }
 
@@ -409,7 +426,7 @@ async function main() {
 
     // 1. Prima eliminiamo gli elementi con dipendenze (chunks e relazioni)
     console.log("🗑️ Eliminazione chunks e dipendenze...")
-    
+
     // Elimina tutti i chunks (usando i nomi corretti dal schema)
     try {
       await prisma.documentChunks.deleteMany({
@@ -423,7 +440,7 @@ async function main() {
     } catch (error) {
       console.log("Errore eliminazione document chunks:", error.message)
     }
-    
+
     try {
       await prisma.fAQChunks.deleteMany({
         where: {
@@ -436,7 +453,7 @@ async function main() {
     } catch (error) {
       console.log("Errore eliminazione FAQ chunks:", error.message)
     }
-    
+
     try {
       await prisma.serviceChunks.deleteMany({
         where: {
@@ -501,7 +518,7 @@ async function main() {
 
     // 2. Poi eliminiamo le entità principali
     console.log("🗑️ Eliminazione entità principali...")
-    
+
     // Elimina tutti i documenti
     await prisma.documents.deleteMany({
       where: {
@@ -556,7 +573,9 @@ async function main() {
         workspaceId: mainWorkspaceId,
       },
     })
-    console.log("Eliminate tutte le configurazioni agenti dal workspace principale")
+    console.log(
+      "Eliminate tutte le configurazioni agenti dal workspace principale"
+    )
 
     // Elimina tutti i prompt e agenti
     const deletedPrompts = await prisma.prompts.deleteMany({
@@ -576,11 +595,12 @@ async function main() {
       data: {
         name: "L'Altra Italia(ESP)",
         whatsappPhoneNumber: "+34654728753",
-        
+        whatsappApiKey: "placeholder_whatsapp_api_key_for_testing",
+
         language: "es",
         currency: "EUR",
         url: "http://localhost:3000",
-        n8nWorkflowUrl: "http://localhost:5678/workflow/1XPQF919PP0MEdtH",
+        n8nWorkflowUrl: "http://localhost:5678/webhook-test/webhook-start",
         plan: "FREE",
         wipMessages: {
           en: "Work in progress. Please contact us later.",
@@ -601,43 +621,49 @@ async function main() {
         where: {
           userId_workspaceId: {
             userId: adminUser.id,
-            workspaceId: mainWorkspaceId
-          }
+            workspaceId: mainWorkspaceId,
+          },
         },
         update: {
-          role: "OWNER"
+          role: "OWNER",
         },
         create: {
           userId: adminUser.id,
           workspaceId: mainWorkspaceId,
-          role: "OWNER"
-        }
-      });
-      console.log(`✅ Admin user forzatamente associato al workspace come OWNER (upsert) - UserID: ${adminUser.id}`);
-      
+          role: "OWNER",
+        },
+      })
+      console.log(
+        `✅ Admin user forzatamente associato al workspace come OWNER (upsert) - UserID: ${adminUser.id}`
+      )
+
       // Verifica che l'associazione sia stata creata
       const verification = await prisma.userWorkspace.findUnique({
         where: {
           userId_workspaceId: {
             userId: adminUser.id,
-            workspaceId: mainWorkspaceId
-          }
-        }
-      });
+            workspaceId: mainWorkspaceId,
+          },
+        },
+      })
       if (verification) {
-        console.log(`✅ Verifica: associazione UserWorkspace creata correttamente`);
+        console.log(
+          `✅ Verifica: associazione UserWorkspace creata correttamente`
+        )
       } else {
-        console.error(`❌ ERRORE: associazione UserWorkspace NON trovata dopo la creazione!`);
+        console.error(
+          `❌ ERRORE: associazione UserWorkspace NON trovata dopo la creazione!`
+        )
       }
     } catch (error) {
-      console.error(`❌ ERRORE nella creazione UserWorkspace:`, error);
-      throw error;
+      console.error(`❌ ERRORE nella creazione UserWorkspace:`, error)
+      throw error
     }
 
     // AGGIUNTA: CREA AgentConfig DI DEFAULT SE NON ESISTE
     const existingAgentConfig = await prisma.agentConfig.findFirst({
       where: { workspaceId: mainWorkspaceId },
-    });
+    })
     if (!existingAgentConfig) {
       await prisma.agentConfig.create({
         data: {
@@ -648,10 +674,10 @@ async function main() {
           maxTokens: 1000,
           isActive: true,
         },
-      });
-      console.log("SofIA AgentConfig creato per il workspace principale");
+      })
+      console.log("SofIA AgentConfig creato per il workspace principale")
     } else {
-      console.log("AgentConfig già esistente per il workspace principale");
+      console.log("AgentConfig già esistente per il workspace principale")
     }
 
     // CREA ANCHE UN AGENT NELLA TABELLA PROMPTS SE NON ESISTE
@@ -661,7 +687,7 @@ async function main() {
         isRouter: true,
         isActive: true,
       },
-    });
+    })
     if (!existingPromptAgent) {
       await prisma.prompts.create({
         data: {
@@ -676,10 +702,10 @@ async function main() {
           top_p: 1,
           max_tokens: 1024,
         },
-      });
-      console.log("SofIA Prompt agent creato per il workspace principale");
+      })
+      console.log("SofIA Prompt agent creato per il workspace principale")
     } else {
-      console.log("Prompt agent già esistente per il workspace principale");
+      console.log("Prompt agent già esistente per il workspace principale")
     }
 
     // CREA ROUTER PROMPT SE NON ESISTE
@@ -689,7 +715,7 @@ async function main() {
         name: "Router LLM",
         isActive: true,
       },
-    });
+    })
     if (!existingRouterPrompt) {
       await prisma.prompts.create({
         data: {
@@ -704,10 +730,10 @@ async function main() {
           top_p: 1,
           max_tokens: 500,
         },
-      });
-      console.log("Router Prompt creato per il workspace principale");
+      })
+      console.log("Router Prompt creato per il workspace principale")
     } else {
-      console.log("Router Prompt già esistente per il workspace principale");
+      console.log("Router Prompt già esistente per il workspace principale")
     }
   } else {
     console.log(
@@ -720,11 +746,12 @@ async function main() {
         name: "L'Altra Italia(ESP)",
         slug: "altra-italia-esp",
         whatsappPhoneNumber: "+34654728753",
-        
+        whatsappApiKey: "placeholder_whatsapp_api_key_for_testing",
+
         language: "es",
         currency: "EUR",
         url: "http://localhost:3000",
-        n8nWorkflowUrl: "http://localhost:5678/workflow/1XPQF919PP0MEdtH",
+        n8nWorkflowUrl: "http://localhost:5678/webhook-test/webhook-start",
         plan: "FREE",
         wipMessages: {
           en: "Work in progress. Please contact us later.",
@@ -750,43 +777,49 @@ async function main() {
         where: {
           userId_workspaceId: {
             userId: adminUser.id,
-            workspaceId: mainWorkspaceId
-          }
+            workspaceId: mainWorkspaceId,
+          },
         },
         update: {
-          role: "OWNER"
+          role: "OWNER",
         },
         create: {
           userId: adminUser.id,
           workspaceId: mainWorkspaceId,
-          role: "OWNER"
-        }
-      });
-      console.log(`✅ Admin user forzatamente associato al nuovo workspace come OWNER (upsert) - UserID: ${adminUser.id}`);
-      
+          role: "OWNER",
+        },
+      })
+      console.log(
+        `✅ Admin user forzatamente associato al nuovo workspace come OWNER (upsert) - UserID: ${adminUser.id}`
+      )
+
       // Verifica che l'associazione sia stata creata
       const verification = await prisma.userWorkspace.findUnique({
         where: {
           userId_workspaceId: {
             userId: adminUser.id,
-            workspaceId: mainWorkspaceId
-          }
-        }
-      });
+            workspaceId: mainWorkspaceId,
+          },
+        },
+      })
       if (verification) {
-        console.log(`✅ Verifica: associazione UserWorkspace creata correttamente`);
+        console.log(
+          `✅ Verifica: associazione UserWorkspace creata correttamente`
+        )
       } else {
-        console.error(`❌ ERRORE: associazione UserWorkspace NON trovata dopo la creazione!`);
+        console.error(
+          `❌ ERRORE: associazione UserWorkspace NON trovata dopo la creazione!`
+        )
       }
     } catch (error) {
-      console.error(`❌ ERRORE nella creazione UserWorkspace:`, error);
-      throw error;
+      console.error(`❌ ERRORE nella creazione UserWorkspace:`, error)
+      throw error
     }
 
     // AGGIUNTA: CREA AgentConfig DI DEFAULT SE NON ESISTE
     const existingAgentConfig = await prisma.agentConfig.findFirst({
       where: { workspaceId: mainWorkspaceId },
-    });
+    })
     if (!existingAgentConfig) {
       await prisma.agentConfig.create({
         data: {
@@ -797,10 +830,10 @@ async function main() {
           maxTokens: 1000,
           isActive: true,
         },
-      });
-      console.log("SofIA AgentConfig creato per il workspace principale");
+      })
+      console.log("SofIA AgentConfig creato per il workspace principale")
     } else {
-      console.log("AgentConfig già esistente per il workspace principale");
+      console.log("AgentConfig già esistente per il workspace principale")
     }
 
     // CREA ANCHE UN AGENT NELLA TABELLA PROMPTS SE NON ESISTE
@@ -810,7 +843,7 @@ async function main() {
         isRouter: true,
         isActive: true,
       },
-    });
+    })
     if (!existingPromptAgent) {
       await prisma.prompts.create({
         data: {
@@ -825,10 +858,10 @@ async function main() {
           top_p: 1,
           max_tokens: 1024,
         },
-      });
-      console.log("SofIA Prompt agent creato per il workspace principale");
+      })
+      console.log("SofIA Prompt agent creato per il workspace principale")
     } else {
-      console.log("Prompt agent già esistente per il workspace principale");
+      console.log("Prompt agent già esistente per il workspace principale")
     }
 
     // CREA ROUTER PROMPT SE NON ESISTE
@@ -838,7 +871,7 @@ async function main() {
         name: "Router LLM",
         isActive: true,
       },
-    });
+    })
     if (!existingRouterPrompt) {
       await prisma.prompts.create({
         data: {
@@ -853,10 +886,10 @@ async function main() {
           top_p: 1,
           max_tokens: 500,
         },
-      });
-      console.log("Router Prompt creato per il workspace principale");
+      })
+      console.log("Router Prompt creato per il workspace principale")
     } else {
-      console.log("Router Prompt già esistente per il workspace principale");
+      console.log("Router Prompt già esistente per il workspace principale")
     }
   }
 
@@ -979,7 +1012,7 @@ async function main() {
       await prisma.categories.create({
         data: {
           ...category,
-          
+
           workspace: {
             connect: {
               id: mainWorkspaceId,
@@ -1006,7 +1039,9 @@ async function main() {
     },
   })
 
-  const existingLanguageCodes = existingLanguages.map((lang: { code: string }) => lang.code)
+  const existingLanguageCodes = existingLanguages.map(
+    (lang: { code: string }) => lang.code
+  )
   const languagesToCreate = languageCodes.filter(
     (code) => !existingLanguageCodes.includes(code)
   )
@@ -1145,7 +1180,7 @@ async function main() {
         "Traditional spaghetti from Gragnano, made with selected durum wheat semolina. Bronze drawn for the perfect texture.",
       price: 4.99,
       stock: 120,
-      
+
       status: "ACTIVE",
       slug: "gragnano-igp-pasta-spaghetti",
       categoryName: "Pasta",
@@ -1156,7 +1191,7 @@ async function main() {
         "Freshly made egg tagliatelle, perfect for rich meat sauces and ragù.",
       price: 6.99,
       stock: 45,
-      
+
       status: "ACTIVE",
       slug: "homemade-tagliatelle",
       categoryName: "Pasta",
@@ -1167,7 +1202,7 @@ async function main() {
         "Authentic Parmigiano Reggiano DOP aged 24 months. Intense flavor with a granular texture.",
       price: 29.99,
       stock: 25,
-      
+
       status: "ACTIVE",
       slug: "parmigiano-reggiano-dop-24-months",
       categoryName: "Cheese",
@@ -1178,7 +1213,7 @@ async function main() {
         "Fresh buffalo mozzarella DOP from Campania. Soft texture and delicate milk flavor.",
       price: 9.99,
       stock: 40,
-      
+
       status: "ACTIVE",
       slug: "mozzarella-di-bufala-campana-dop",
       categoryName: "Cheese",
@@ -1189,7 +1224,7 @@ async function main() {
         "Premium extra virgin olive oil from Tuscany with balanced flavor and fruity notes.",
       price: 19.99,
       stock: 48,
-      
+
       status: "ACTIVE",
       slug: "tuscan-igp-extra-virgin-olive-oil",
       categoryName: "Beverages",
@@ -1200,7 +1235,7 @@ async function main() {
         "Traditional balsamic vinegar of Modena IGP with a perfect balance of sweet and sour.",
       price: 14.99,
       stock: 30,
-      
+
       status: "ACTIVE",
       slug: "aceto-balsamico-di-modena-igp",
       categoryName: "Condiments",
@@ -1211,7 +1246,7 @@ async function main() {
         "Fine Parma ham aged for 24 months. Sweet flavor and delicate aroma.",
       price: 24.99,
       stock: 15,
-      
+
       status: "ACTIVE",
       slug: "prosciutto-di-parma-dop-24-months",
       categoryName: "Gourmet",
@@ -1223,7 +1258,7 @@ async function main() {
         "Vibrant green pistachios from Bronte, Sicily. Intensely flavored with sweet and slightly resinous notes.",
       price: 18.99,
       stock: 35,
-      
+
       status: "ACTIVE",
       slug: "pistacchi-di-bronte-dop",
       categoryName: "Antipasti",
@@ -1236,7 +1271,7 @@ async function main() {
         "Autentica pizza napoletana con impasto a lunga lievitazione (24h), pomodoro San Marzano DOP, mozzarella di bufala campana e basilico fresco. Cotta in forno a legna a 485°C per 60-90 secondi secondo la tradizione. Certificata Specialità Tradizionale Garantita (STG).",
       price: 12.9,
       stock: 25,
-      
+
       status: "ACTIVE",
       slug: "pizza-napoletana-artigianale",
       categoryName: "Pizza e Pasta",
@@ -1247,7 +1282,7 @@ async function main() {
         "Autentica pasta all'uovo tagliata a mano (8mm di larghezza) secondo la ricetta depositata alla Camera di Commercio di Bologna. Accompagnata dal tradizionale ragù bolognese preparato con carne di manzo e maiale, soffritto, pomodoro e vino, cotto lentamente per almeno 4 ore.",
       price: 14.5,
       stock: 20,
-      
+
       status: "ACTIVE",
       slug: "tagliatelle-al-ragu-bolognese",
       categoryName: "Pizza e Pasta",
@@ -1258,7 +1293,7 @@ async function main() {
         "Trofie fresche artigianali servite con autentico pesto genovese preparato secondo la ricetta tradizionale ligure con basilico DOP di Prà, pinoli italiani, formaggio Parmigiano Reggiano e Pecorino, aglio e olio extravergine d'oliva della Riviera Ligure.",
       price: 13.9,
       stock: 18,
-      
+
       status: "ACTIVE",
       slug: "trofie-al-pesto-genovese",
       categoryName: "Pizza e Pasta",
@@ -1269,7 +1304,7 @@ async function main() {
         "Autentico dolce italiano preparato secondo la ricetta tradizionale veneta. Strati di savoiardi inzuppati in caffè espresso, alternati a crema al mascarpone e cacao amaro in polvere. Ogni porzione è preparata a mano e conservata a temperatura controllata.",
       price: 8.9,
       stock: 30,
-      
+
       status: "ACTIVE",
       slug: "tiramisu-tradizionale",
       categoryName: "Desserts",
@@ -1280,7 +1315,7 @@ async function main() {
         "Autentica lasagna italiana con sfoglie di pasta all'uovo fatte a mano, stratificate con ragù di carne selezionata, besciamella cremosa e Parmigiano Reggiano DOP. Cotta lentamente al forno per ottenere la perfetta consistenza e il caratteristico bordo croccante.",
       price: 15.9,
       stock: 15,
-      
+
       status: "ACTIVE",
       slug: "lasagna-al-forno-tradizionale",
       categoryName: "Piatti Pronti",
@@ -1291,7 +1326,7 @@ async function main() {
         "Pasta linguine di grano duro servita con un ricco sugo di mare che include cozze, vongole, gamberetti e calamari freschi. Preparata con pomodorini freschi, aglio, prezzemolo e un tocco di peperoncino. Un classico piatto della cucina costiera italiana.",
       price: 16.9,
       stock: 12,
-      
+
       status: "ACTIVE",
       slug: "linguine-allo-scoglio",
       categoryName: "Pesce",
@@ -1302,7 +1337,7 @@ async function main() {
         "Autentico cannolo siciliano con croccante scorza di cialda fritta a mano, ripiena di ricotta di pecora fresca setacciata e dolcificata con zucchero. Arricchito con gocce di cioccolato fondente e guarnito con pistacchi di Bronte DOP e scorze di arancia candita.",
       price: 7.5,
       stock: 35,
-      
+
       status: "ACTIVE",
       slug: "cannolo-siciliano-artigianale",
       categoryName: "Desserts",
@@ -1313,7 +1348,7 @@ async function main() {
         "Autentica porchetta di Ariccia IGP, specialità laziale preparata con maiale intero disossato, arrotolato e aromatizzato con una miscela di erbe aromatiche (rosmarino, finocchietto selvatico, aglio e pepe nero). Cotta lentamente in forno a legna per 8 ore, presenta una crosta croccante e una carne interna tenera e succosa.",
       price: 18.9,
       stock: 10,
-      
+
       status: "ACTIVE",
       slug: "porchetta-di-ariccia-igp",
       categoryName: "Salumi",
@@ -1324,7 +1359,7 @@ async function main() {
         "Autentica Mozzarella di Bufala Campana DOP, prodotta esclusivamente con latte di bufala secondo la tradizione secolare della Campania. Caratterizzata da una superficie liscia e una consistenza elastica, presenta un colore bianco perlaceo e un sapore dolce e delicato con note di latte fresco. Confezionata nel suo siero di conservazione per mantenerne intatte le caratteristiche organolettiche.",
       price: 12.5,
       stock: 30,
-      
+
       status: "ACTIVE",
       slug: "mozzarella-di-bufala",
       categoryName: "Cheese",
@@ -1335,7 +1370,7 @@ async function main() {
         "Autentico Parmigiano Reggiano DOP, un formaggio a pasta dura prodotto con latte vaccino crudo parzialmente scremato. Stagionato per almeno 12 mesi, si distingue per il suo sapore ricco, complesso e persistente con note di frutta secca e brodo. La sua consistenza è granulosa e friabile, con una crosta spessa di colore giallo paglierino. Considerato il 'Re dei formaggi', è ideale sia da tavola che da grattugia.",
       price: 24.9,
       stock: 35,
-      
+
       status: "ACTIVE",
       slug: "parmigiano-reggiano",
       categoryName: "Cheese",
@@ -1346,7 +1381,7 @@ async function main() {
         "Autentici pomodori pelati San Marzano DOP, coltivati nell'area vesuviana della Campania secondo tradizione. Raccolti a piena maturazione e lavorati entro 24 ore, conservano tutto il sapore, la dolcezza e il basso livello di acidità tipici della varietà. Confezionati in succo di pomodoro naturale senza conservanti aggiunti, sono l'ingrediente ideale per salse, sughi e pizze della tradizione italiana.",
       price: 3.9,
       stock: 60,
-      
+
       status: "ACTIVE",
       slug: "pomodori-pelati-san-marzano",
       categoryName: "Vegetables",
@@ -1357,7 +1392,7 @@ async function main() {
         "Autentico pesto genovese preparato secondo la ricetta tradizionale ligure con basilico DOP di Prà, pinoli italiani, aglio, sale marino, Parmigiano Reggiano DOP invecchiato 24 mesi, Pecorino Sardo e olio extravergine d'oliva della Riviera Ligure. Lavorato a crudo nel mortaio di marmo per preservare tutti gli aromi.",
       price: 8.9,
       stock: 40,
-      
+
       status: "ACTIVE",
       slug: "pesto-alla-genovese-dop",
       categoryName: "Salse",
@@ -1368,7 +1403,7 @@ async function main() {
         "Un cornicione leggero e soffice, pomodori dolci, mozzarella e qualche foglia di basilico profumato. Questo è tutto ciò di cui hai bisogno per una classica pizza margherita, il punto di partenza perfetto per il tuo viaggio nella preparazione della pizza fatta in casa, nonché una ricetta collaudata per quando vuoi...",
       price: 8.9,
       stock: 40,
-      
+
       status: "ACTIVE",
       slug: "pesto-alla-genovese-dop",
       categoryName: "Salse",
@@ -1379,7 +1414,7 @@ async function main() {
         "Limoncello di Capri, prodotto secondo la ricetta tradizionale italiana, è un liquore dolce e leggero, caratterizzato da un sapore intenso e fruttato. È preparato con limoni freschi di Capri, zucchero e acqua, e viene fermentato per ottenere un'alchocolizzazione naturale.",
       price: 8.9,
       stock: 40,
-      
+
       status: "ACTIVE",
       slug: "pesto-alla-genovese-dop",
       categoryName: "Beverages",
@@ -1394,15 +1429,13 @@ async function main() {
         "Premium shipping service with tracking and guaranteed delivery within 3-5 business days.",
       price: 30.0,
       currency: "EUR",
-      
     },
     {
-      name: "Gift Package", 
+      name: "Gift Package",
       description:
         "Luxury gift wrapping service with personalized message and premium packaging materials.",
       price: 30.0,
       currency: "EUR",
-      
     },
   ]
 
@@ -1473,7 +1506,7 @@ async function main() {
             description: product.description,
             price: product.price,
             stock: product.stock,
-            
+
             status: "ACTIVE" as any, // Casting to any per evitare errori di tipo
             slug: `${product.slug}-${Date.now()}`, // Generiamo slug unici
             workspaceId: mainWorkspaceId,
@@ -1492,7 +1525,7 @@ async function main() {
             description: product.description,
             price: product.price,
             stock: product.stock,
-            
+
             categoryId: category.id,
           },
         })
@@ -1522,7 +1555,7 @@ async function main() {
       discountPercent: 25,
       startDate: new Date(new Date().getFullYear(), 10, 25), // November 25th
       endDate: new Date(new Date().getFullYear(), 10, 28), // November 28th
-      
+
       categoryId: null, // All categories
     },
     {
@@ -1531,7 +1564,7 @@ async function main() {
       discountPercent: 15,
       startDate: new Date(new Date().getFullYear(), 11, 1), // December 1st
       endDate: new Date(new Date().getFullYear(), 11, 24), // December 24th
-      
+
       categoryId: null, // All categories
     },
     {
@@ -1540,18 +1573,18 @@ async function main() {
       discountPercent: 30,
       startDate: new Date(new Date().getFullYear(), 7, 15), // August 15th
       endDate: new Date(new Date().getFullYear(), 8, 15), // September 15th
-      
+
       categoryId: null, // All categories
-    }
-  ];
+    },
+  ]
 
   // Delete existing offers first
   await prisma.offers.deleteMany({
     where: {
       workspaceId: mainWorkspaceId,
     },
-  });
-  console.log("Deleted existing offers");
+  })
+  console.log("Deleted existing offers")
 
   // Create new offers
   for (const offer of specialOffers) {
@@ -1561,10 +1594,12 @@ async function main() {
           ...offer,
           workspaceId: mainWorkspaceId,
         },
-      });
-      console.log(`Offer created: ${offer.name} for workspace ${createdWorkspaces[0].name}`);
+      })
+      console.log(
+        `Offer created: ${offer.name} for workspace ${createdWorkspaces[0].name}`
+      )
     } catch (error) {
-      console.error(`Error creating offer ${offer.name}:`, error);
+      console.error(`Error creating offer ${offer.name}:`, error)
     }
   }
 
@@ -1575,7 +1610,7 @@ async function main() {
       workspaceId: mainWorkspaceId,
     },
     take: 2,
-  });
+  })
 
   if (categories.length > 0) {
     const categorySpecificOffers = [
@@ -1585,7 +1620,7 @@ async function main() {
         discountPercent: 20,
         startDate: new Date(new Date().setDate(new Date().getDate() - 5)), // Started 5 days ago
         endDate: new Date(new Date().setDate(new Date().getDate() + 5)), // Ends 5 days from now
-        
+
         categoryId: categories[0].id,
       },
       {
@@ -1594,10 +1629,10 @@ async function main() {
         discountPercent: 10,
         startDate: new Date(new Date().setDate(new Date().getDate())), // Starts today
         endDate: new Date(new Date().setDate(new Date().getDate() + 14)), // Ends in 14 days
-        
+
         categoryId: categories.length > 1 ? categories[1].id : categories[0].id,
-      }
-    ];
+      },
+    ]
 
     for (const offer of categorySpecificOffers) {
       try {
@@ -1606,10 +1641,12 @@ async function main() {
             ...offer,
             workspaceId: mainWorkspaceId,
           },
-        });
-        console.log(`Category-specific offer created: ${offer.name} for workspace ${createdWorkspaces[0].name}`);
+        })
+        console.log(
+          `Category-specific offer created: ${offer.name} for workspace ${createdWorkspaces[0].name}`
+        )
       } catch (error) {
-        console.error(`Error creating offer ${offer.name}:`, error);
+        console.error(`Error creating offer ${offer.name}:`, error)
       }
     }
   }
@@ -1642,7 +1679,9 @@ async function main() {
           phoneNumber: "+88888888888888",
           apiKey: "dummy-api-key",
           gdpr: existingWhatsappSettings.gdpr || defaultGdprText,
-          n8nWebhook: existingWhatsappSettings.n8nWebhook || "http://localhost:5678/webhook/webhook-start",
+          n8nWebhook:
+            existingWhatsappSettings.n8nWebhook ||
+            "http://localhost:5678/webhook/webhook-start",
         },
       })
       console.log(
@@ -1670,7 +1709,9 @@ async function main() {
         data: {
           phoneNumber: "+88888888888888",
           apiKey: "dummy-api-key",
-          n8nWebhook: existingWhatsappSettings.n8nWebhook || "http://localhost:5678/webhook/webhook-start",
+          n8nWebhook:
+            existingWhatsappSettings.n8nWebhook ||
+            "http://localhost:5678/webhook/webhook-start",
         },
       })
       console.log(
@@ -1687,62 +1728,62 @@ async function main() {
     where: {
       workspaceId: mainWorkspaceId,
     },
-  });
-  console.log("Deleted existing FAQs");
+  })
+  console.log("Deleted existing FAQs")
 
   // Define sample FAQs
   const faqsData = [
     {
       question: "What are your business hours?",
-      answer: "Our business hours are Monday to Friday from 9:00 AM to 6:00 PM, and Saturdays from 9:00 AM to 2:00 PM. We are closed on Sundays.",
-      
+      answer:
+        "Our business hours are Monday to Friday from 9:00 AM to 6:00 PM, and Saturdays from 9:00 AM to 2:00 PM. We are closed on Sundays.",
     },
     {
       question: "How can I place an order?",
-      answer: "You can place your order directly through this WhatsApp chat. Just tell me which products you're interested in and I'll help you with the entire purchase process.",
-      
+      answer:
+        "You can place your order directly through this WhatsApp chat. Just tell me which products you're interested in and I'll help you with the entire purchase process.",
     },
     {
       question: "What payment methods do you accept?",
-      answer: "We accept credit/debit card payments, bank transfers, PayPal, and cash on delivery (depending on availability in your area).",
-      
+      answer:
+        "We accept credit/debit card payments, bank transfers, PayPal, and cash on delivery (depending on availability in your area).",
     },
     {
       question: "Do you ship throughout Spain?",
-      answer: "Yes, we ship throughout mainland Spain. For the Balearic Islands, Canary Islands, Ceuta, and Melilla, please check special shipping conditions.",
-      
+      answer:
+        "Yes, we ship throughout mainland Spain. For the Balearic Islands, Canary Islands, Ceuta, and Melilla, please check special shipping conditions.",
     },
     {
       question: "How long does it take for my order to arrive?",
-      answer: "Orders usually arrive within 24-48 hours in mainland Spain. For other destinations, delivery time may vary between 3-5 business days.",
-      
+      answer:
+        "Orders usually arrive within 24-48 hours in mainland Spain. For other destinations, delivery time may vary between 3-5 business days.",
     },
     {
       question: "Are the products authentic Italian products?",
-      answer: "Yes, all our products are authentic Italian products imported directly from Italy. We work with certified and trusted producers.",
-      
+      answer:
+        "Yes, all our products are authentic Italian products imported directly from Italy. We work with certified and trusted producers.",
     },
     {
       question: "Can I return a product if I don't like it?",
-      answer: "Yes, you have 14 days from receipt of your order to return it. The product must be in perfect condition and in its original packaging.",
-      
+      answer:
+        "Yes, you have 14 days from receipt of your order to return it. The product must be in perfect condition and in its original packaging.",
     },
     {
       question: "Do you offer discounts for large purchases?",
-      answer: "Yes, we offer special discounts for large orders. Contact us to learn about our special offers for businesses and bulk orders.",
-      
+      answer:
+        "Yes, we offer special discounts for large orders. Contact us to learn about our special offers for businesses and bulk orders.",
     },
     {
       question: "Do the products have a long expiration date?",
-      answer: "All our products have a minimum expiration date of 6 months from shipping. Fresh products are shipped with appropriate expiration dates.",
-      
+      answer:
+        "All our products have a minimum expiration date of 6 months from shipping. Fresh products are shipped with appropriate expiration dates.",
     },
     {
       question: "How should I store the products once received?",
-      answer: "Each product includes storage instructions. Generally, dry products in a cool, dry place, refrigerated products in the fridge, and frozen products in the freezer.",
-      
+      answer:
+        "Each product includes storage instructions. Generally, dry products in a cool, dry place, refrigerated products in the fridge, and frozen products in the freezer.",
     },
-  ];
+  ]
 
   // Create new FAQs
   for (const faq of faqsData) {
@@ -1752,10 +1793,10 @@ async function main() {
           ...faq,
           workspaceId: mainWorkspaceId,
         },
-      });
-      console.log(`FAQ created: ${faq.question.substring(0, 50)}...`);
+      })
+      console.log(`FAQ created: ${faq.question.substring(0, 50)}...`)
     } catch (error) {
-      console.error(`Error creating FAQ ${faq.question}:`, error);
+      console.error(`Error creating FAQ ${faq.question}:`, error)
     }
   }
 

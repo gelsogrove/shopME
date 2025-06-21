@@ -43,6 +43,33 @@
       "currency": "EUR",
       "timezone": "Europe/Rome",
       "isActive": true,
+      "url": "https://laltroitalia.shop",
+      "notificationEmail": "admin@laltroitalia.shop",
+      "description": "Prodotti alimentari italiani di alta qualità",
+      "welcomeMessages": {
+        "en": "Welcome! How can I help you today?",
+        "es": "¡Bienvenido! ¿En qué puedo ayudarte hoy?",
+        "it": "Benvenuto! Come posso aiutarti oggi?",
+        "fr": "Bienvenue! Comment puis-je vous aider aujourd'hui?",
+        "de": "Willkommen! Wie kann ich Ihnen heute helfen?",
+        "pt": "Bem-vindo! Em que posso ajudá-lo hoje?"
+      },
+      "wipMessages": {
+        "en": "Work in progress. Please contact us later.",
+        "es": "Trabajos en curso. Por favor, contáctenos más tarde.",
+        "it": "Lavori in corso. Contattaci più tardi.",
+        "fr": "Travaux en cours. Veuillez nous contacter plus tard.",
+        "de": "Arbeiten im Gange. Bitte kontaktieren Sie uns später.",
+        "pt": "Em manutenção. Por favor, contacte-nos mais tarde."
+      },
+      "afterRegistrationMessages": {
+        "en": "Registration completed successfully. Hello [nome], how can I help you today?",
+        "es": "Registro completado con éxito. Hola [nome], ¿en qué puedo ayudarte hoy?",
+        "it": "Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?",
+        "fr": "Enregistrement effectué avec succès. Bonjour [nome], en quoi puis-je vous aider aujourd'hui ?",
+        "de": "Registrierung erfolgreich abgeschlossen. Hallo [nome], wie kann ich Ihnen heute helfen?",
+        "pt": "Registro concluído com sucesso. Olá [nome], em que posso ajudá-lo hoje?"
+      },
       "createdAt": "2024-06-19T10:00:00.000Z",
       "updatedAt": "2024-06-19T15:30:00.000Z"
     },
@@ -54,7 +81,7 @@
         "timestamp": "2024-06-19T15:25:00.000Z"
       },
       {
-        "id": "msg-2", 
+        "id": "msg-2",
         "content": "Salve, sto cercando dei formaggi",
         "role": "user",
         "timestamp": "2024-06-19T15:26:00.000Z"
@@ -62,10 +89,34 @@
       {
         "id": "msg-3",
         "content": "Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?",
-        "role": "assistant", 
+        "role": "assistant",
         "timestamp": "2024-06-19T15:26:30.000Z"
       }
-    ]
+    ],
+    "wipMessages": {
+      "it": "Sto elaborando la tua richiesta, un momento per favore...",
+      "en": "Processing your request, please wait a moment...",
+      "es": "Procesando tu solicitud, por favor espera un momento...",
+      "fr": "Je traite votre demande, veuillez patienter un moment...",
+      "de": "Ich bearbeite Ihre Anfrage, bitte warten Sie einen Moment...",
+      "pt": "Processando sua solicitação, aguarde um momento por favor..."
+    },
+    "welcomeMessages": {
+      "it": "Benvenuto! Per offrirti un servizio personalizzato, ti invitiamo a completare la registrazione: {registrationLink}",
+      "en": "Welcome! To provide you with personalized service, please complete the registration: {registrationLink}",
+      "es": "¡Bienvenido! Para ofrecerte un servicio personalizado, te invitamos a completar el registro: {registrationLink}",
+      "fr": "Bienvenue ! Pour vous offrir un service personnalisé, nous vous invitons à compléter l'inscription : {registrationLink}",
+      "de": "Willkommen! Um Ihnen einen personalisierten Service zu bieten, laden wir Sie ein, die Registrierung abzuschließen: {registrationLink}",
+      "pt": "Bem-vindo! Para oferecer um serviço personalizado, convidamos você a completar o registro: {registrationLink}"
+    },
+    "afterRegistrationMessages": {
+      "it": "Grazie per esserti registrato! Ora puoi accedere a tutti i nostri servizi. Come posso aiutarti?",
+      "en": "Thank you for registering! You can now access all our services. How can I help you?",
+      "es": "¡Gracias por registrarte! Ahora puedes acceder a todos nuestros servicios. ¿Cómo puedo ayudarte?",
+      "fr": "Merci de vous être inscrit ! Vous pouvez maintenant accéder à tous nos services. Comment puis-je vous aider ?",
+      "de": "Danke für Ihre Registrierung! Sie können jetzt auf alle unsere Dienste zugreifen. Wie kann ich Ihnen helfen?",
+      "pt": "Obrigado por se registrar! Agora você pode acessar todos os nossos serviços. Como posso ajudá-lo?"
+    }
   },
   "metadata": {
     "timestamp": "2024-06-19T15:36:10.004Z",
@@ -83,4 +134,4 @@
       "totalProcessingTime": "17ms"
     }
   }
-} 
+}

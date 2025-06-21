@@ -23,6 +23,7 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
       whatsappApiToken: data.whatsappApiKey,
       whatsappWebhookUrl: data.whatsappWebhookUrl,
       webhookUrl: data.webhookUrl,
+      n8nWorkflowUrl: data.n8nWorkflowUrl,
       notificationEmail: data.notificationEmail,
       language: data.language,
       currency: data.currency,
@@ -81,7 +82,7 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
       })
 
       logger.debug(`Found ${workspaces.length} workspaces`)
-      
+
       // Map workspaces to domain entities
       return workspaces.map((workspace) => this.mapToDomain(workspace))
     } catch (error) {
@@ -107,18 +108,20 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
       }
 
       logger.debug(`Found workspace with ID ${id}`)
-      
+
       try {
         return this.mapToDomain(workspace)
       } catch (error) {
         // If mapping fails but it's a deleted workspace, return a simplified version
         // This preserves compatibility with the test that expects to find deleted workspaces
         if (workspace.isDelete) {
-          logger.debug(`Returning simplified version of deleted workspace ${id}`)
+          logger.debug(
+            `Returning simplified version of deleted workspace ${id}`
+          )
           return Workspace.create({
             id: workspace.id,
             name: workspace.name || "Deleted Workspace", // Ensure name is never empty
-            isDelete: true
+            isDelete: true,
           })
         } else {
           throw error
@@ -181,7 +184,7 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
       const workspaces = user.workspaces
         .map((uw) => uw.workspace)
         .filter((workspace) => !workspace.isDelete)
-      
+
       logger.debug(`Found ${workspaces.length} workspaces for user ${userId}`)
 
       return workspaces.map((workspace) => this.mapToDomain(workspace))
@@ -199,7 +202,7 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
 
     try {
       const data = this.mapToDatabase(workspace)
-      
+
       const createdWorkspace = await this.prisma.workspace.create({
         data,
       })
@@ -215,7 +218,10 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
   /**
    * Update an existing workspace
    */
-  async update(id: string, data: Partial<WorkspaceProps>): Promise<Workspace | null> {
+  async update(
+    id: string,
+    data: Partial<WorkspaceProps>
+  ): Promise<Workspace | null> {
     logger.debug(`Updating workspace with ID ${id}`)
 
     try {
@@ -227,12 +233,12 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
         logger.debug(`Workspace with ID ${id} not found for update`)
         return null
       }
-      
+
       // Ensure whatsappApiToken is mapped to whatsappApiKey for Prisma
-      const dbData: any = { ...data };
+      const dbData: any = { ...data }
       if (dbData.whatsappApiToken !== undefined) {
-        dbData.whatsappApiKey = dbData.whatsappApiToken;
-        delete dbData.whatsappApiToken;
+        dbData.whatsappApiKey = dbData.whatsappApiToken
+        delete dbData.whatsappApiToken
       }
 
       const updatedWorkspace = await this.prisma.workspace.update({
@@ -241,17 +247,19 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
       })
 
       logger.debug(`Updated workspace with ID ${id}`)
-      
+
       try {
         return this.mapToDomain(updatedWorkspace)
       } catch (error) {
         // If mapping fails but it's a deleted workspace, return a simplified version
         if (updatedWorkspace.isDelete) {
-          logger.debug(`Returning simplified version of deleted workspace ${id}`)
+          logger.debug(
+            `Returning simplified version of deleted workspace ${id}`
+          )
           return Workspace.create({
             id: updatedWorkspace.id,
             name: updatedWorkspace.name || "Deleted Workspace", // Ensure name is never empty
-            isDelete: true
+            isDelete: true,
           })
         }
         throw error
@@ -278,128 +286,128 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
         return false
       }
 
-              // Hard delete in cascading order to avoid foreign key constraints
-        await this.prisma.$transaction(async (tx) => {
-          // 1. Delete document chunks
-          await tx.documentChunks.deleteMany({
-            where: { 
-              document: {
-                workspaceId: id
-              }
-            }
-          })
-
-          // 2. Delete FAQ chunks  
-          await tx.fAQChunks.deleteMany({
-            where: {
-              faq: {
-                workspaceId: id
-              }
-            }
-          })
-
-          // 3. Delete documents
-          await tx.documents.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 4. Delete FAQs
-          await tx.fAQ.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 5. Delete services
-          await tx.services.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 6. Delete offers
-          await tx.offers.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 7. Delete order items first
-          await tx.orderItems.deleteMany({
-            where: {
-              order: {
-                workspaceId: id
-              }
-            }
-          })
-
-          // 8. Delete cart items
-          await tx.cartItems.deleteMany({
-            where: {
-              cart: {
-                workspaceId: id
-              }
-            }
-          })
-
-          // 9. Delete carts
-          await tx.carts.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 10. Delete orders
-          await tx.orders.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 11. Delete products
-          await tx.products.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 12. Delete categories
-          await tx.categories.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 13. Delete messages first
-          await tx.message.deleteMany({
-            where: {
-              chatSession: {
-                workspaceId: id
-              }
-            }
-          })
-
-          // 14. Delete chat sessions
-          await tx.chatSession.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 15. Delete customers
-          await tx.customers.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 16. Delete prompts
-          await tx.prompts.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 17. Delete languages
-          await tx.languages.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 18. Delete WhatsApp settings
-          await tx.whatsappSettings.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 19. Delete user-workspace relationships
-          await tx.userWorkspace.deleteMany({
-            where: { workspaceId: id }
-          })
-
-          // 20. Finally delete the workspace itself
-          await tx.workspace.delete({
-            where: { id }
-          })
+      // Hard delete in cascading order to avoid foreign key constraints
+      await this.prisma.$transaction(async (tx) => {
+        // 1. Delete document chunks
+        await tx.documentChunks.deleteMany({
+          where: {
+            document: {
+              workspaceId: id,
+            },
+          },
         })
+
+        // 2. Delete FAQ chunks
+        await tx.fAQChunks.deleteMany({
+          where: {
+            faq: {
+              workspaceId: id,
+            },
+          },
+        })
+
+        // 3. Delete documents
+        await tx.documents.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 4. Delete FAQs
+        await tx.fAQ.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 5. Delete services
+        await tx.services.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 6. Delete offers
+        await tx.offers.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 7. Delete order items first
+        await tx.orderItems.deleteMany({
+          where: {
+            order: {
+              workspaceId: id,
+            },
+          },
+        })
+
+        // 8. Delete cart items
+        await tx.cartItems.deleteMany({
+          where: {
+            cart: {
+              workspaceId: id,
+            },
+          },
+        })
+
+        // 9. Delete carts
+        await tx.carts.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 10. Delete orders
+        await tx.orders.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 11. Delete products
+        await tx.products.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 12. Delete categories
+        await tx.categories.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 13. Delete messages first
+        await tx.message.deleteMany({
+          where: {
+            chatSession: {
+              workspaceId: id,
+            },
+          },
+        })
+
+        // 14. Delete chat sessions
+        await tx.chatSession.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 15. Delete customers
+        await tx.customers.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 16. Delete prompts
+        await tx.prompts.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 17. Delete languages
+        await tx.languages.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 18. Delete WhatsApp settings
+        await tx.whatsappSettings.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 19. Delete user-workspace relationships
+        await tx.userWorkspace.deleteMany({
+          where: { workspaceId: id },
+        })
+
+        // 20. Finally delete the workspace itself
+        await tx.workspace.delete({
+          where: { id },
+        })
+      })
 
       logger.info(`Hard deleted workspace ${id} and all related data`)
       return true
