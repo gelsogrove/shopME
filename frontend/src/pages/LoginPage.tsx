@@ -1,3 +1,6 @@
+import React, { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 import {
     Card,
     CardContent,
@@ -5,9 +8,11 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { toast } from "sonner"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AuthLogo } from "@/components/ui/auth-logo"
 import { auth } from "../services/api"
 
 export function LoginPage() {
@@ -66,53 +71,90 @@ export function LoginPage() {
   }
 
   return (
-    <div className="container flex h-screen items-center justify-center">
-      <Card className="w-[400px]">
-        <CardHeader className="text-center">
-          <CardTitle>Welcome Back</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="rounded-md bg-red-50 p-2 text-sm text-red-500">
-                {error}
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center p-4 relative">
+      <AuthLogo />
+      
+      <div className="w-full max-w-md">
+        <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
+          <CardHeader className="text-center space-y-1 pb-8">
+            <div className="mx-auto w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mb-4 shadow-lg">
+              <div className="text-white text-2xl font-bold">S</div>
+            </div>
+            <CardTitle className="text-2xl font-bold text-gray-900">
+              Welcome Back
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              Sign in to your ShopMe account
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <Alert variant="destructive" className="border-red-200 bg-red-50">
+                  <div className="h-4 w-4 text-red-500 text-xl">⚠</div>
+                  <AlertDescription className="text-red-700">
+                    {error}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email Address
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@shopme.com"
+                  className="h-11"
+                  required
+                  disabled={isLoading}
+                  autoComplete="username"
+                />
               </div>
-            )}
-            <div className="space-y-2">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@shopme.com"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none"
-                required
+              
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="h-11"
+                  required
+                  disabled={isLoading}
+                  autoComplete="current-password"
+                />
+              </div>
+              
+              <Button
+                type="submit"
+                className="w-full h-11 bg-green-500 hover:bg-green-600 text-white font-medium transition-colors"
                 disabled={isLoading}
-                autoComplete="username"
-              />
+              >
+                {isLoading ? (
+                  <>
+                    <div className="mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+            </form>
+            
+            <div className="text-center text-sm text-gray-500">
+              <p>© 2024 ShopMe. Secure authentication powered by cookies.</p>
             </div>
-            <div className="space-y-2">
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none"
-                required
-                disabled={isLoading}
-                autoComplete="current-password"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full rounded-md bg-green-500 py-2 text-white hover:bg-green-600 disabled:opacity-50"
-              disabled={isLoading}
-            >
-              {isLoading ? "Signing in..." : "Sign In"}
-            </button>
-          </form>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
