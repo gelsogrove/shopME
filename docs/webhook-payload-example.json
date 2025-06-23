@@ -12,9 +12,7 @@
       "maxTokens": 1000,
       "topP": 0.9,
       "prompt": "Sei un assistente virtuale esperto per L'Altra Italia, un'azienda italiana specializzata in prodotti alimentari di alta qualità. Il tuo compito è aiutare i clienti a trovare i prodotti giusti, fornire informazioni sui prezzi, ingredienti e disponibilità. Rispondi sempre in modo professionale e cortese.",
-      "isActive": true,
-      "createdAt": "2024-06-19T10:00:00.000Z",
-      "updatedAt": "2024-06-19T15:30:00.000Z"
+      "isActive": true
     },
     "customer": {
       "id": "7a305200-993a-41d1-82c3-f1d148c3cf31",
@@ -28,9 +26,7 @@
       "discount": 0,
       "currency": "EUR",
       "address": "Via Roma 123, Milano",
-      "company": "",
-      "createdAt": "2024-06-19T10:00:00.000Z",
-      "updatedAt": "2024-06-19T15:30:00.000Z"
+      "company": ""
     },
     "businessInfo": {
       "id": "cm9hjgq9v00014qk8fsdy4ujv",
@@ -46,14 +42,6 @@
       "url": "https://laltroitalia.shop",
       "notificationEmail": "admin@laltroitalia.shop",
       "description": "Prodotti alimentari italiani di alta qualità",
-      "welcomeMessages": {
-        "en": "Welcome! How can I help you today?",
-        "es": "¡Bienvenido! ¿En qué puedo ayudarte hoy?",
-        "it": "Benvenuto! Come posso aiutarti oggi?",
-        "fr": "Bienvenue! Comment puis-je vous aider aujourd'hui?",
-        "de": "Willkommen! Wie kann ich Ihnen heute helfen?",
-        "pt": "Bem-vindo! Em que posso ajudá-lo hoje?"
-      },
       "wipMessages": {
         "en": "Work in progress. Please contact us later.",
         "es": "Trabajos en curso. Por favor, contáctenos más tarde.",
@@ -61,17 +49,7 @@
         "fr": "Travaux en cours. Veuillez nous contacter plus tard.",
         "de": "Arbeiten im Gange. Bitte kontaktieren Sie uns später.",
         "pt": "Em manutenção. Por favor, contacte-nos mais tarde."
-      },
-      "afterRegistrationMessages": {
-        "en": "Registration completed successfully. Hello [nome], how can I help you today?",
-        "es": "Registro completado con éxito. Hola [nome], ¿en qué puedo ayudarte hoy?",
-        "it": "Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?",
-        "fr": "Enregistrement effectué avec succès. Bonjour [nome], en quoi puis-je vous aider aujourd'hui ?",
-        "de": "Registrierung erfolgreich abgeschlossen. Hallo [nome], wie kann ich Ihnen heute helfen?",
-        "pt": "Registro concluído com sucesso. Olá [nome], em que posso ajudá-lo hoje?"
-      },
-      "createdAt": "2024-06-19T10:00:00.000Z",
-      "updatedAt": "2024-06-19T15:30:00.000Z"
+      }
     },
     "conversationHistory": [
       {
@@ -92,46 +70,6 @@
         "role": "assistant",
         "timestamp": "2024-06-19T15:26:30.000Z"
       }
-    ],
-    "wipMessages": {
-      "it": "Sto elaborando la tua richiesta, un momento per favore...",
-      "en": "Processing your request, please wait a moment...",
-      "es": "Procesando tu solicitud, por favor espera un momento...",
-      "fr": "Je traite votre demande, veuillez patienter un moment...",
-      "de": "Ich bearbeite Ihre Anfrage, bitte warten Sie einen Moment...",
-      "pt": "Processando sua solicitação, aguarde um momento por favor..."
-    },
-    "welcomeMessages": {
-      "it": "Benvenuto! Per offrirti un servizio personalizzato, ti invitiamo a completare la registrazione: {registrationLink}",
-      "en": "Welcome! To provide you with personalized service, please complete the registration: {registrationLink}",
-      "es": "¡Bienvenido! Para ofrecerte un servicio personalizado, te invitamos a completar el registro: {registrationLink}",
-      "fr": "Bienvenue ! Pour vous offrir un service personnalisé, nous vous invitons à compléter l'inscription : {registrationLink}",
-      "de": "Willkommen! Um Ihnen einen personalisierten Service zu bieten, laden wir Sie ein, die Registrierung abzuschließen: {registrationLink}",
-      "pt": "Bem-vindo! Para oferecer um serviço personalizado, convidamos você a completar o registro: {registrationLink}"
-    },
-    "afterRegistrationMessages": {
-      "it": "Grazie per esserti registrato! Ora puoi accedere a tutti i nostri servizi. Come posso aiutarti?",
-      "en": "Thank you for registering! You can now access all our services. How can I help you?",
-      "es": "¡Gracias por registrarte! Ahora puedes acceder a todos nuestros servicios. ¿Cómo puedo ayudarte?",
-      "fr": "Merci de vous être inscrit ! Vous pouvez maintenant accéder à tous nos services. Comment puis-je vous aider ?",
-      "de": "Danke für Ihre Registrierung! Sie können jetzt auf alle unsere Dienste zugreifen. Wie kann ich Ihnen helfen?",
-      "pt": "Obrigado por se registrar! Agora você pode acessar todos os nossos serviços. Como posso ajudá-lo?"
-    }
-  },
-  "metadata": {
-    "timestamp": "2024-06-19T15:36:10.004Z",
-    "source": "whatsapp",
-    "apiVersion": "v1.0",
-    "securityChecks": {
-      "apiLimitPassed": true,
-      "spamDetectionPassed": true,
-      "blacklistCheck": false,
-      "operatorControl": false
-    },
-    "performance": {
-      "securityGatewayTime": "5ms",
-      "precompilationTime": "12ms",
-      "totalProcessingTime": "17ms"
-    }
+    ]
   }
 }
