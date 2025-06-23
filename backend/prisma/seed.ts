@@ -1668,7 +1668,7 @@ async function main() {
           apiKey: "dummy-api-key",
           workspaceId: mainWorkspaceId,
           gdpr: defaultGdprText,
-          n8nWebhook: "http://localhost:5678/webhook/webhook-start",
+          n8nWebhook: "http://localhost:5678/webhook-test/webhook-start",
         },
       })
       console.log("Impostazioni WhatsApp create per il workspace principale")
@@ -1681,7 +1681,7 @@ async function main() {
           gdpr: existingWhatsappSettings.gdpr || defaultGdprText,
           n8nWebhook:
             existingWhatsappSettings.n8nWebhook ||
-            "http://localhost:5678/webhook/webhook-start",
+            "http://localhost:5678/webhook-test/webhook-start",
         },
       })
       console.log(
@@ -1697,7 +1697,7 @@ async function main() {
           phoneNumber: "+88888888888888",
           apiKey: "dummy-api-key",
           workspaceId: mainWorkspaceId,
-          n8nWebhook: "http://localhost:5678/webhook/webhook-start",
+          n8nWebhook: "http://localhost:5678/webhook-test/webhook-start",
         },
       })
       console.log(
@@ -1711,7 +1711,7 @@ async function main() {
           apiKey: "dummy-api-key",
           n8nWebhook:
             existingWhatsappSettings.n8nWebhook ||
-            "http://localhost:5678/webhook/webhook-start",
+            "http://localhost:5678/webhook-test/webhook-start",
         },
       })
       console.log(

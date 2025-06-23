@@ -225,36 +225,155 @@ export function AgentPage() {
         message: testMessage,
       })
 
-      // Simulate WhatsApp webhook payload
+      // Simulate complete N8N payload structure (matching backend)
       const payload = {
-        entry: [
-          {
-            changes: [
-              {
-                value: {
-                  messages: [
-                    {
-                      from: testPhoneNumber,
-                      text: {
-                        body: testMessage,
-                      },
-                      type: "text",
-                      timestamp: Math.floor(Date.now() / 1000).toString(),
-                    },
-                  ],
-                },
-              },
-            ],
-          },
-        ],
-        // Add workspace ID for backend routing
         workspaceId: workspace.id,
+        phoneNumber: testPhoneNumber,
+        messageContent: testMessage,
+        sessionToken:
+          "frontend-test-" + Math.random().toString(36).substring(2, 15),
+        precompiledData: {
+          agentConfig: {
+            id: `agent-config-${Date.now()}`,
+            workspaceId: workspace.id,
+            model: "openai/gpt-4o-mini",
+            temperature: 0.7,
+            maxTokens: 1000,
+            topP: 0.9,
+            prompt:
+              "Sei un assistente virtuale esperto per L'Altra Italia, un'azienda italiana specializzata in prodotti alimentari di alta qualità. Il tuo compito è aiutare i clienti a trovare i prodotti giusti, fornire informazioni sui prezzi, ingredienti e disponibilità. Rispondi sempre in modo professionale e cortese.",
+            isActive: true,
+            createdAt: "2024-06-19T10:00:00.000Z",
+            updatedAt: "2024-06-19T15:30:00.000Z",
+          },
+          customer: {
+            id: `customer-${Date.now()}`,
+            name: "Test User",
+            email: "test@example.com",
+            phone: testPhoneNumber,
+            language: "it",
+            isActive: true,
+            isBlacklisted: false,
+            activeChatbot: true,
+            discount: 0,
+            currency: "EUR",
+            address: "Via Roma 123, Milano",
+            company: "",
+            createdAt: "2024-06-19T10:00:00.000Z",
+            updatedAt: "2024-06-19T15:30:00.000Z",
+          },
+          businessInfo: {
+            id: workspace.id,
+            name: "L'Altra Italia(ESP)",
+            businessType: "ECOMMERCE",
+            plan: "PREMIUM",
+            whatsappPhoneNumber: "+34654728753",
+            whatsappApiKey: "your-whatsapp-api-key",
+            language: "it",
+            currency: "EUR",
+            timezone: "Europe/Rome",
+            isActive: true,
+            url: "https://laltroitalia.shop",
+            notificationEmail: "admin@laltroitalia.shop",
+            description: "Prodotti alimentari italiani di alta qualità",
+            welcomeMessages: {
+              en: "Welcome! How can I help you today?",
+              es: "¡Bienvenido! ¿En qué puedo ayudarte hoy?",
+              it: "Benvenuto! Come posso aiutarti oggi?",
+              fr: "Bienvenue! Comment puis-je vous aider aujourd'hui?",
+              de: "Willkommen! Wie kann ich Ihnen heute helfen?",
+              pt: "Bem-vindo! Em que posso ajudá-lo hoje?",
+            },
+            wipMessages: {
+              en: "Work in progress. Please contact us later.",
+              es: "Trabajos en curso. Por favor, contáctenos más tarde.",
+              it: "Lavori in corso. Contattaci più tardi.",
+              fr: "Travaux en cours. Veuillez nous contacter plus tard.",
+              de: "Arbeiten im Gange. Bitte kontaktieren Sie uns später.",
+              pt: "Em manutenção. Por favor, contacte-nos mais tarde.",
+            },
+            afterRegistrationMessages: {
+              en: "Registration completed successfully. Hello [nome], how can I help you today?",
+              es: "Registro completado con éxito. Hola [nome], ¿en qué puedo ayudarte hoy?",
+              it: "Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?",
+              fr: "Enregistrement effectué avec succès. Bonjour [nome], en quoi puis-je vous aider aujourd'hui ?",
+              de: "Registrierung erfolgreich abgeschlossen. Hallo [nome], wie kann ich Ihnen heute helfen?",
+              pt: "Registro concluído com sucesso. Olá [nome], em que posso ajudá-lo hoje?",
+            },
+            createdAt: "2024-06-19T10:00:00.000Z",
+            updatedAt: "2024-06-19T15:30:00.000Z",
+          },
+          conversationHistory: [
+            {
+              id: "msg-1",
+              content: "Ciao! Come posso aiutarti oggi?",
+              role: "assistant",
+              timestamp: "2024-06-19T15:25:00.000Z",
+            },
+            {
+              id: "msg-2",
+              content: "Salve, sto cercando dei formaggi",
+              role: "user",
+              timestamp: "2024-06-19T15:26:00.000Z",
+            },
+            {
+              id: "msg-3",
+              content:
+                "Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?",
+              role: "assistant",
+              timestamp: "2024-06-19T15:26:30.000Z",
+            },
+          ],
+          wipMessages: {
+            it: "Sto elaborando la tua richiesta, un momento per favore...",
+            en: "Processing your request, please wait a moment...",
+            es: "Procesando tu solicitud, por favor espera un momento...",
+            fr: "Je traite votre demande, veuillez patienter un moment...",
+            de: "Ich bearbeite Ihre Anfrage, bitte warten Sie einen Moment...",
+            pt: "Processando sua solicitação, aguarde um momento por favor...",
+          },
+          welcomeMessages: {
+            it: "Benvenuto! Per offrirti un servizio personalizzato, ti invitiamo a completare la registrazione: {registrationLink}",
+            en: "Welcome! To provide you with personalized service, please complete the registration: {registrationLink}",
+            es: "¡Bienvenido! Para ofrecerte un servizio personalizado, te invitamos a completar el registro: {registrationLink}",
+            fr: "Bienvenue ! Pour vous offrir un service personnalisé, nous vous invitons à compléter l'inscription : {registrationLink}",
+            de: "Willkommen! Um Ihnen einen personalisierten Service zu bieten, laden wir Sie ein, die Registrierung abzuschließen: {registrationLink}",
+            pt: "Bem-vindo! Para oferecer um serviço personalizado, convidamos você a completar o registro: {registrationLink}",
+          },
+          afterRegistrationMessages: {
+            it: "Grazie per esserti registrato! Ora puoi accedere a tutti i nostri servizi. Come posso aiutarti?",
+            en: "Thank you for registering! You can now access all our services. How can I help you?",
+            es: "¡Gracias por registrarte! Ahora puedes acceder a todos nuestros servicios. ¿Cómo puedo ayudarte?",
+            fr: "Merci de vous être inscrit ! Vous pouvez maintenant accéder à tous nos services. Comment puis-je vous aider ?",
+            de: "Danke für Ihre Registrierung! Sie können jetzt auf alle unsere Dienste zugreifen. Wie kann ich Ihnen helfen?",
+            pt: "Obrigado por se registrar! Agora você pode acessar todos os nossos serviços. Como posso ajudá-lo?",
+          },
+        },
+        metadata: {
+          timestamp: new Date().toISOString(),
+          source: "frontend_test",
+          apiVersion: "v1.0",
+          securityChecks: {
+            apiLimitPassed: true,
+            spamDetectionPassed: true,
+            blacklistCheck: false,
+            operatorControl: false,
+          },
+          performance: {
+            securityGatewayTime: "5ms",
+            precompilationTime: "12ms",
+            totalProcessingTime: "17ms",
+          },
+        },
       }
 
-      const fullUrl = "http://localhost:3001/api/whatsapp/webhook"
+      const fullUrl = "http://localhost:5678/webhook-test/webhook-start"
       console.log("🚨 API_URL VALUE:", API_URL)
-      console.log("🚨 URL CHIAMATA:", fullUrl)
-      console.log("🚨 PAYLOAD INVIATO:", JSON.stringify(payload, null, 2))
+      console.log("🚨 URL CHIAMATA N8N DIRETTA:", fullUrl)
+      console.log(
+        "🚨 PAYLOAD COMPLETO INVIATO:",
+        JSON.stringify(payload, null, 2)
+      )
 
       // Save for display
       setLastTestUrl(fullUrl)

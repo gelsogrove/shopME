@@ -12,14 +12,20 @@
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [-1500, 180],
+      "position": [
+        -1560,
+        180
+      ],
       "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
     },
     {
       "parameters": {},
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
-      "position": [-620, 80],
+      "position": [
+        -620,
+        80
+      ],
       "id": "33927e63-93c0-4af3-81f6-65f0f4ce1cde",
       "name": "Wait3",
       "webhookId": "59956c9f-d486-4e0c-b949-a3c634750e9b"
@@ -41,7 +47,10 @@
       "name": "IsChannelActive?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [-840, 180],
+      "position": [
+        -840,
+        180
+      ],
       "alwaysOutputData": false,
       "executeOnce": true,
       "retryOnFail": false,
@@ -55,7 +64,10 @@
       "name": "return",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [-400, 80],
+      "position": [
+        -400,
+        80
+      ],
       "alwaysOutputData": true
     },
     {
@@ -66,19 +78,12 @@
       "name": "return wip message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [-620, 280],
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "jsCode": "return {\n  \"workspaceId\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n  \"phoneNumber\": \"393451234567\",\n  \"messageContent\": \"cerco mozzarella per la pizza\",\n  \"sessionToken\": \"dc3d1eb7b9b7c4e2f1a8d6c5b9e4f7a2\",\n  \"precompiledData\": {\n    \"agentConfig\": {\n      \"id\": \"agent-config-123\",\n      \"workspaceId\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n      \"model\": \"openai/gpt-4o-mini\",\n      \"temperature\": 0.7,\n      \"maxTokens\": 1000,\n      \"topP\": 0.9,\n      \"prompt\": \"Sei un assistente virtuale esperto per L'Altra Italia, un'azienda italiana specializzata in prodotti alimentari di alta qualità. Il tuo compito è aiutare i clienti a trovare i prodotti giusti, fornire informazioni sui prezzi, ingredienti e disponibilità. Rispondi sempre in modo professionale e cortese.\",\n      \"isActive\": true,\n      \"createdAt\": \"2024-06-19T10:00:00.000Z\",\n      \"updatedAt\": \"2024-06-19T15:30:00.000Z\"\n    },\n    \"customer\": {\n      \"id\": \"7a305200-993a-41d1-82c3-f1d148c3cf31\",\n      \"name\": \"Mario Rossi\",\n      \"email\": \"mario.rossi@email.com\",\n      \"phone\": \"393451234567\",\n      \"language\": \"it\",\n      \"isActive\": true,\n      \"isBlacklisted\": false,\n      \"activeChatbot\": true,\n      \"discount\": 0,\n      \"currency\": \"EUR\",\n      \"address\": \"Via Roma 123, Milano\",\n      \"company\": \"\",\n      \"createdAt\": \"2024-06-19T10:00:00.000Z\",\n      \"updatedAt\": \"2024-06-19T15:30:00.000Z\"\n    },\n    \"businessInfo\": {\n      \"id\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n      \"name\": \"L'Altra Italia(ESP)\",\n      \"businessType\": \"ECOMMERCE\",\n      \"plan\": \"PREMIUM\",\n      \"whatsappPhoneNumber\": \"+34654728753\",\n      \"whatsappApiKey\": \"your-whatsapp-api-key\",\n      \"language\": \"it\",\n      \"currency\": \"EUR\",\n      \"timezone\": \"Europe/Rome\",\n      \"isActive\": true,\n      \"url\": \"https://laltroitalia.shop\",\n      \"notificationEmail\": \"admin@laltroitalia.shop\",\n      \"description\": \"Prodotti alimentari italiani di alta qualità\",\n      \"welcomeMessages\": {\n        \"en\": \"Welcome! How can I help you today?\",\n        \"es\": \"¡Bienvenido! ¿En qué puedo ayudarte hoy?\",\n        \"it\": \"Benvenuto! Come posso aiutarti oggi?\",\n        \"fr\": \"Bienvenue! Comment puis-je vous aider aujourd'hui?\",\n        \"de\": \"Willkommen! Wie kann ich Ihnen heute helfen?\",\n        \"pt\": \"Bem-vindo! Em que posso ajudá-lo hoje?\"\n      },\n      \"wipMessages\": {\n        \"en\": \"Work in progress. Please contact us later.\",\n        \"es\": \"Trabajos en curso. Por favor, contáctenos más tarde.\",\n        \"it\": \"Lavori in corso. Contattaci più tardi.\",\n        \"fr\": \"Travaux en cours. Veuillez nous contacter plus tard.\",\n        \"de\": \"Arbeiten im Gange. Bitte kontaktieren Sie uns später.\",\n        \"pt\": \"Em manutenção. Por favor, contacte-nos mais tarde.\"\n      },\n      \"afterRegistrationMessages\": {\n        \"en\": \"Registration completed successfully. Hello [nome], how can I help you today?\",\n        \"es\": \"Registro completado con éxito. Hola [nome], ¿en qué puedo ayudarte hoy?\",\n        \"it\": \"Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?\",\n        \"fr\": \"Enregistrement effectué avec succès. Bonjour [nome], en quoi puis-je vous aider aujourd'hui ?\",\n        \"de\": \"Registrierung erfolgreich abgeschlossen. Hallo [nome], wie kann ich Ihnen heute helfen?\",\n        \"pt\": \"Registro concluído com sucesso. Olá [nome], em que posso ajudá-lo hoje?\"\n      },\n      \"createdAt\": \"2024-06-19T10:00:00.000Z\",\n      \"updatedAt\": \"2024-06-19T15:30:00.000Z\"\n    },\n    \"conversationHistory\": [\n      {\n        \"id\": \"msg-1\",\n        \"content\": \"Ciao! Come posso aiutarti oggi?\",\n        \"role\": \"assistant\",\n        \"timestamp\": \"2024-06-19T15:25:00.000Z\"\n      },\n      {\n        \"id\": \"msg-2\",\n        \"content\": \"Salve, sto cercando dei formaggi\",\n        \"role\": \"user\",\n        \"timestamp\": \"2024-06-19T15:26:00.000Z\"\n      },\n      {\n        \"id\": \"msg-3\",\n        \"content\": \"Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?\",\n        \"role\": \"assistant\",\n        \"timestamp\": \"2024-06-19T15:26:30.000Z\"\n      }\n    ],\n    \"wipMessages\": {\n      \"it\": \"Sto elaborando la tua richiesta, un momento per favore...\",\n      \"en\": \"Processing your request, please wait a moment...\",\n      \"es\": \"Procesando tu solicitud, por favor espera un momento...\",\n      \"fr\": \"Je traite votre demande, veuillez patienter un moment...\",\n      \"de\": \"Ich bearbeite Ihre Anfrage, bitte warten Sie einen Moment...\",\n      \"pt\": \"Processando sua solicitação, aguarde um momento por favor...\"\n    },\n    \"welcomeMessages\": {\n      \"it\": \"Benvenuto! Per offrirti un servizio personalizzato, ti invitiamo a completare la registrazione: {registrationLink}\",\n      \"en\": \"Welcome! To provide you with personalized service, please complete the registration: {registrationLink}\",\n      \"es\": \"¡Bienvenido! Para ofrecerte un servicio personalizado, te invitamos a completar el registro: {registrationLink}\",\n      \"fr\": \"Bienvenue ! Pour vous offrir un service personnalisé, nous vous invitons à compléter l'inscription : {registrationLink}\",\n      \"de\": \"Willkommen! Um Ihnen einen personalisierten Service zu bieten, laden wir Sie ein, die Registrierung abzuschließen: {registrationLink}\",\n      \"pt\": \"Bem-vindo! Para oferecer um serviço personalizado, convidamos você a completar o registro: {registrationLink}\"\n    },\n    \"afterRegistrationMessages\": {\n      \"it\": \"Grazie per esserti registrato! Ora puoi accedere a tutti i nostri servizi. Come posso aiutarti?\",\n      \"en\": \"Thank you for registering! You can now access all our services. How can I help you?\",\n      \"es\": \"¡Gracias por registrarte! Ahora puedes acceder a todos nuestros servicios. ¿Cómo puedo ayudarte?\",\n      \"fr\": \"Merci de vous être inscrit ! Vous pouvez maintenant accéder à tous nos services. Comment puis-je vous aider ?\",\n      \"de\": \"Danke für Ihre Registrierung! Sie können jetzt auf alle unsere Dienste zugreifen. Wie kann ich Ihnen helfen?\",\n      \"pt\": \"Obrigado por se registrar! Agora você pode acessar todos os nossos serviços. Como posso ajudá-lo?\"\n    }\n  },\n  \"metadata\": {\n    \"timestamp\": \"2024-06-19T15:36:10.004Z\",\n    \"source\": \"whatsapp\",\n    \"apiVersion\": \"v1.0\",\n    \"securityChecks\": {\n      \"apiLimitPassed\": true,\n      \"spamDetectionPassed\": true,\n      \"blacklistCheck\": false,\n      \"operatorControl\": false\n    },\n    \"performance\": {\n      \"securityGatewayTime\": \"5ms\",\n      \"precompilationTime\": \"12ms\",\n      \"totalProcessingTime\": \"17ms\"\n    }\n  }\n}\n"
-      },
-      "id": "ce7b17ff-f3e0-4795-b779-1586c454964e",
-      "name": "test",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [-1500, -180],
-      "alwaysOutputData": true
+      "position": [
+        -620,
+        280
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -86,7 +91,7 @@
           "boolean": [
             {
               "value1": "={{ $json.precompiledData.customer.activeChatbot }}",
-              "value2": true
+              "value2": "=true"
             }
           ]
         }
@@ -95,8 +100,11 @@
       "name": "is activeChatbot?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [-1060, 280],
-      "alwaysOutputData": true,
+      "position": [
+        -1060,
+        280
+      ],
+      "alwaysOutputData": false,
       "executeOnce": false,
       "retryOnFail": false,
       "notesInFlow": true
@@ -116,7 +124,10 @@
       "name": "IsUserBlocked?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [-1280, 180],
+      "position": [
+        -1280,
+        180
+      ],
       "alwaysOutputData": true,
       "executeOnce": true,
       "retryOnFail": true,
@@ -130,18 +141,24 @@
       "name": "return userblock",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [-1060, 80],
+      "position": [
+        -1060,
+        80
+      ],
       "alwaysOutputData": true
     },
     {
       "parameters": {
-        "jsCode": "const message = \"channel is not active\"\n\nreturn [\n  {\n    json: {\n      message\n    }\n  }\n];"
+        "jsCode": "const item = $input.first().json;\n\nconst activeChatbot = item.precompiledData.customer.activeChatbot;\nconst message = activeChatbot ? \"Chatbot is active\" : \"Chatbot is not active\";\n\nreturn [\n  {\n    json: {\n      message: item.precompiledData\n    }\n  }\n];\n"
       },
       "id": "cdf79464-eb11-4774-bb66-a46725e76cf7",
       "name": "return activechallenge",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [-840, 380],
+      "position": [
+        -840,
+        380
+      ],
       "alwaysOutputData": true
     }
   ],
@@ -214,9 +231,6 @@
         ]
       ]
     },
-    "test": {
-      "main": [[]]
-    },
     "is activeChatbot?": {
       "main": [
         [
@@ -236,7 +250,9 @@
       ]
     },
     "return wip message": {
-      "main": [[]]
+      "main": [
+        []
+      ]
     },
     "IsUserBlocked?": {
       "main": [
@@ -262,9 +278,10 @@
     "executionOrder": "v1",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "9f07e3fa-33af-4d55-8c5d-32955137a22c",
+  "versionId": "90ec9b8e-af4e-4255-af30-9b6ba825c1c8",
   "meta": {
-    "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
+    "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65",
+    "templateCredsSetupCompleted": true
   },
   "id": "1XPQF919PP0MEdtH",
   "tags": []
