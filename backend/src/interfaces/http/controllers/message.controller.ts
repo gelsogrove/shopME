@@ -400,28 +400,12 @@ export class MessageController {
   ): Promise<void> {
     try {
       // Create customer placeholder if doesn't exist (for chat history tracking)
-      let customer = await prisma.customers.findFirst({
-        where: {
-          phone: phoneNumber,
-          workspaceId,
-        },
+      const customer = await this.findOrCreateCustomer(phoneNumber, workspaceId, {
+        name: `Unregistered User ${phoneNumber}`,
+        isActive: false, // Mark as inactive until registration
+        language: "Italian",
+        activeChatbot: true,
       })
-
-      if (!customer) {
-        customer = await prisma.customers.create({
-          data: {
-            name: `Unregistered User ${phoneNumber}`,
-            email: `${phoneNumber.replace(/[^0-9]/g, "")}@temp.unregistered`,
-            phone: phoneNumber,
-            workspaceId,
-            isActive: false, // Mark as inactive until registration
-            language: "Italian",
-          },
-        })
-        logger.info(
-          `[WELCOME-HISTORY] ✅ Created placeholder customer: ${customer.id}`
-        )
-      }
 
       // Find or create chat session
       let chatSession = await prisma.chatSession.findFirst({
@@ -497,41 +481,16 @@ export class MessageController {
         `[CUSTOMER-PLACEHOLDER] 👤 Creating placeholder for ${phoneNumber}`
       )
 
-      // Check if customer already exists
-      const existingCustomer = await prisma.customers.findFirst({
-        where: {
-          phone: phoneNumber,
-          workspaceId,
-        },
-      })
-
-      if (existingCustomer) {
-        logger.info(
-          `[CUSTOMER-PLACEHOLDER] ✅ Customer already exists: ${existingCustomer.id}`
-        )
-        return
-      }
-
-      // Create placeholder customer
-      const customer = await prisma.customers.create({
-        data: {
-          phone: phoneNumber,
-          workspaceId,
-          name: `WhatsApp User ${phoneNumber.slice(-4)}`, // Placeholder name with last 4 digits
-          email: "", // Empty email until registration
-          language: language || "it",
-          isActive: true,
-          isBlacklisted: false,
-          activeChatbot: true,
-          discount: 0,
-          currency: "EUR",
-          address: "",
-          company: "",
-        },
+      // Find or create customer using unified method
+      const customer = await this.findOrCreateCustomer(phoneNumber, workspaceId, {
+        name: `WhatsApp User ${phoneNumber.slice(-4)}`, // Placeholder name with last 4 digits
+        isActive: true,
+        language: language || "it",
+        activeChatbot: true,
       })
 
       logger.info(
-        `[CUSTOMER-PLACEHOLDER] ✅ Created placeholder customer: ${customer.id}`
+        `[CUSTOMER-PLACEHOLDER] ✅ Customer found/created: ${customer.id}`
       )
     } catch (error) {
       logger.error(
@@ -539,6 +498,66 @@ export class MessageController {
         error
       )
       throw error
+    }
+  }
+
+  /**
+   * 👤 UNIFIED CUSTOMER FIND OR CREATE METHOD
+   * Centralized method to prevent duplicate customer creation
+   */
+  private async findOrCreateCustomer(
+    phoneNumber: string,
+    workspaceId: string,
+    options: {
+      name?: string;
+      isActive?: boolean;
+      language?: string;
+      activeChatbot?: boolean;
+    } = {}
+  ): Promise<any> {
+    try {
+      // Always search for ANY customer with this phone and workspace (regardless of isActive)
+      let customer = await prisma.customers.findFirst({
+        where: {
+          phone: phoneNumber,
+          workspaceId: workspaceId,
+        },
+      });
+
+      if (customer) {
+        logger.info(
+          `[UNIFIED-CUSTOMER] Found existing customer ${customer.id} for phone ${phoneNumber}`
+        );
+        return customer;
+      }
+
+      // Create new customer with provided options or defaults
+      const customerData = {
+        name: options.name || `WhatsApp User ${phoneNumber}`,
+        email: `${phoneNumber.replace(/[^0-9]/g, "")}@whatsapp.placeholder`,
+        phone: phoneNumber,
+        workspaceId: workspaceId,
+        language: options.language || "Italian",
+        currency: "EUR",
+        isActive: options.isActive !== undefined ? options.isActive : true,
+        activeChatbot: options.activeChatbot !== undefined ? options.activeChatbot : true,
+      };
+
+      customer = await prisma.customers.create({
+        data: customerData,
+      });
+
+      logger.info(
+        `[UNIFIED-CUSTOMER] Created new customer ${customer.id} for phone ${phoneNumber} with isActive: ${customerData.isActive}`
+      );
+
+      return customer;
+    } catch (error) {
+      logger.error(
+        `[UNIFIED-CUSTOMER] Error finding or creating customer for ${phoneNumber}:`,
+        error
+      );
+      throw error;
     }
   }
 
