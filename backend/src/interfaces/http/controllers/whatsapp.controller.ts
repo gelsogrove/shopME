@@ -529,19 +529,8 @@ export class WhatsAppController {
     workspaceId: string
   ): Promise<any> {
     try {
-      // Get N8N webhook URL from workspace settings
-      const workspace = await prisma.workspace.findUnique({
-        where: { id: workspaceId },
-        select: { n8nWorkflowUrl: true },
-      })
-
-      if (!workspace || !workspace.n8nWorkflowUrl) {
-        throw new Error(
-          `N8N webhook URL not configured for workspace ${workspaceId}`
-        )
-      }
-
-      const n8nWebhookUrl = workspace.n8nWorkflowUrl
+      // 🚨 FIXED N8N URL - hardcoded for now
+      const n8nWebhookUrl = "http://localhost:5678/webhook/webhook-start"
 
       // 📋 EXTRACT KEY DATA FOR OPTIMIZATION
       const phoneNumber =
@@ -584,146 +573,7 @@ export class WhatsAppController {
   }
 
   /**
-   * 🚀 PRECOMPILE N8N DATA (Andrea's Performance Optimization)
-   * Gathers ALL necessary data in parallel to avoid multiple N8N->Backend API calls
-   * Replaces: /agent-config, /user-check, /business-type, /channel-status, /conversation-history
-   */
-  private async precompileN8NData(
-    workspaceId: string,
-    phoneNumber: string,
-    messageContent: string,
-    sessionToken: string
-  ) {
-    try {
-      logger.info(
-        `[PRECOMPILE] 🔄 Gathering all N8N data for workspace ${workspaceId}`
-      )
-
-      // 🏃‍♂️ PARALLEL EXECUTION - Andrea's efficiency approach
-      const [agentConfig, customer, workspace, recentMessages] =
-        await Promise.all([
-          // 1. Agent Configuration (replaces /agent-config call)
-          prisma.agentConfig.findFirst({
-            where: { workspaceId },
-          }),
-
-          // 2. Customer Information (replaces /user-check call)
-          prisma.customers.findFirst({
-            where: {
-              phone: phoneNumber,
-              workspaceId: workspaceId,
-              isActive: true,
-            },
-          }),
-
-          // 3. Workspace Information (replaces /channel-status and /business-type calls)
-          prisma.workspace.findUnique({
-            where: { id: workspaceId },
-          }),
-
-          // 4. Conversation History (replaces /conversation-history call)
-          this.getRecentConversationHistory(workspaceId, phoneNumber, 10),
-        ])
-
-      logger.info(
-        `[PRECOMPILE] ✅ Data gathered - Agent: ${agentConfig?.model}, Customer: ${customer?.id ? "exists" : "new"}, Workspace: ${workspace?.name}`
-      )
-      logger.info(
-        `[PRECOMPILE] 📝 WIP Messages included: ${workspace?.wipMessages ? Object.keys(workspace.wipMessages).join(", ") : "none"}`
-      )
-
-      return {
-        // 🤖 AGENT CONFIGURATION
-        agentConfig: agentConfig
-          ? {
-              model: agentConfig.model,
-              temperature: agentConfig.temperature,
-              maxTokens: agentConfig.maxTokens,
-              prompt: agentConfig.prompt,
-              isActive: agentConfig.isActive,
-            }
-          : null,
-
-        // 👤 CUSTOMER INFORMATION
-        customer: customer
-          ? {
-              id: customer.id,
-              phone: customer.phone,
-              name: customer.name,
-              email: customer.email,
-              language: customer.language || "en",
-              isActive: customer.isActive,
-              activeChatbot: customer.activeChatbot,
-              isBlacklisted: customer.isBlacklisted,
-              discount: customer.discount,
-              currency: customer.currency,
-            }
-          : null,
-
-        // 🏢 BUSINESS INFORMATION
-        businessInfo: workspace
-          ? {
-              name: workspace.name,
-              businessType: workspace.businessType,
-              whatsappPhoneNumber: workspace.whatsappPhoneNumber,
-              isActive: workspace.isActive,
-              plan: workspace.plan,
-              language: workspace.language,
-              url: workspace.url || "",
-              notificationEmail: workspace.notificationEmail,
-              welcomeMessages: workspace.welcomeMessages,
-              wipMessages: workspace.wipMessages, // 🚨 NEW: WIP messages in all languages
-              afterRegistrationMessages: workspace.afterRegistrationMessages,
-              currency: workspace.currency,
-              description: workspace.description,
-            }
-          : null,
-
-        // 📞 WHATSAPP SETTINGS (from workspace directly)
-        whatsappSettings: workspace
-          ? {
-              apiKey: workspace.whatsappApiKey,
-              webhookUrl: workspace.webhookUrl,
-              phoneNumber: workspace.whatsappPhoneNumber,
-              notificationEmail: workspace.notificationEmail,
-            }
-          : null,
-
-        // 💬 CONVERSATION HISTORY (last 10 messages)
-        conversationHistory: recentMessages,
-
-        // 🔐 SESSION TOKEN
-        sessionToken: sessionToken,
-
-        // 📱 MESSAGE CONTEXT
-        messageContext: {
-          phoneNumber: phoneNumber,
-          messageContent: messageContent,
-          timestamp: new Date().toISOString(),
-          workspaceId: workspaceId,
-        },
-      }
-    } catch (error) {
-      logger.error(`[PRECOMPILE] ❌ Error precompiling N8N data:`, error)
-      return {
-        agentConfig: null,
-        customer: null,
-        businessInfo: null,
-        whatsappSettings: null,
-        conversationHistory: [],
-        sessionToken: sessionToken,
-        messageContext: {
-          phoneNumber: phoneNumber,
-          messageContent: messageContent,
-          timestamp: new Date().toISOString(),
-          workspaceId: workspaceId,
-        },
-      }
-    }
-  }
-
-  /**
-   * 💬 GET RECENT CONVERSATION HISTORY
+   *  GET RECENT CONVERSATION HISTORY
    * Retrieves recent conversation for context (replaces N8N API call)
    */
   private async getRecentConversationHistory(

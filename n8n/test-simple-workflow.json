@@ -1,0 +1,42 @@
+{
+  "name": "Test Simple Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook-start",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-node",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst activeChatbot = item.precompiledData?.customer?.activeChatbot;\nconst isActive = item.precompiledData?.businessInfo?.isActive;\nconst isBlacklisted = item.precompiledData?.customer?.isBlacklisted;\n\nreturn [{\n  json: {\n    message: \"Test successful!\",\n    debug: {\n      activeChatbot: activeChatbot,\n      activeChatbotType: typeof activeChatbot,\n      isActive: isActive,\n      isActiveType: typeof isActive,\n      isBlacklisted: isBlacklisted,\n      isBlacklistedType: typeof isBlacklisted\n    }\n  }\n}];"
+      },
+      "id": "debug-node",
+      "name": "Debug Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [300, 200]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Debug Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true
+} 

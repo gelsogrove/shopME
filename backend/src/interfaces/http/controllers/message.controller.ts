@@ -170,13 +170,23 @@ export class MessageController {
         workspaceId
       )
 
+      // 🚨 NO HARDCODE: If N8N fails, return proper error response
+      if (response === null) {
+        logger.error(`[MESSAGES API] ❌ N8N workflow failed - system cannot process message`)
+        res.status(500).json({
+          success: false,
+          error: "N8N workflow failed - message cannot be processed",
+          details: "The N8N workflow is not responding correctly. Please check N8N status."
+        })
+        return
+      }
+
       // Return the processed message with metadata
       res.status(200).json({
         success: true,
         data: {
           originalMessage: message,
-          processedMessage:
-            response || "Message processed - N8N workflow will handle response",
+          processedMessage: response,
           phoneNumber: phoneNumber,
           workspaceId: workspaceId,
           timestamp: new Date().toISOString(),

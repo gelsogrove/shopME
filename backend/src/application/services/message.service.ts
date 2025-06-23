@@ -1,10 +1,11 @@
 // @ts-nocheck
 import { MessageRepository } from "../../repositories/message.repository"
 import {
-  detectGreeting as detectGreetingLang,
-  detectLanguage,
+    detectGreeting as detectGreetingLang,
+    detectLanguage,
 } from "../../utils/language-detector"
 import logger from "../../utils/logger"
+import { N8nPayloadBuilder } from "../../utils/n8n-payload-builder"
 import { ApiLimitService } from "./api-limit.service"
 
 import { PrismaClient } from "@prisma/client"
@@ -269,83 +270,60 @@ export class MessageService {
       // 🚨 DEBUG: Alert prima della chiamata a N8N
       console.log("🚨 DEBUG: RUN POST N8N (from message service)")
 
-      // 🚀 NOW CALL N8N DIRECTLY
+      // 🚀 NOW CALL N8N DIRECTLY using centralized builder
       try {
-        const workspace = await prisma.workspace.findUnique({
-          where: { id: workspaceId },
-          select: { n8nWorkflowUrl: true },
-        })
+        // 🚨 FIXED N8N URL - correct webhook URL format
+        const n8nWebhookUrl = "http://localhost:5678/webhook/webhook-start"
 
-        if (!workspace || !workspace.n8nWorkflowUrl) {
-          logger.error(
-            `[N8N] ❌ N8N webhook URL not configured for workspace ${workspaceId}`
+        console.log("🚨 N8N URL FISSO:", n8nWebhookUrl)
+
+        // Generate a session token for this API call
+        const sessionToken =
+          Math.random().toString(36).substring(2, 15) +
+          Math.random().toString(36).substring(2, 15)
+
+        // 🎯 BUILD SIMPLIFIED PAYLOAD using centralized builder
+        const simplifiedPayload =
+          await N8nPayloadBuilder.buildSimplifiedPayload(
+            workspaceId,
+            phoneNumber,
+            message,
+            sessionToken,
+            "api_message"
           )
-          return "N8N webhook URL not configured"
-        }
 
-        const n8nWebhookUrl = workspace.n8nWorkflowUrl
-        console.log("🚨 N8N URL:", n8nWebhookUrl)
-
-        // Create webhook payload similar to WhatsApp format
-        const webhookPayload = {
-          entry: [
-            {
-              changes: [
-                {
-                  value: {
-                    messages: [
-                      {
-                        from: phoneNumber,
-                        text: {
-                          body: message,
-                        },
-                        type: "text",
-                        timestamp: Math.floor(Date.now() / 1000).toString(),
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          ],
-          workspaceId: workspaceId,
-          source: "api_message",
-        }
-
-        console.log("🚨 N8N Payload:", JSON.stringify(webhookPayload, null, 2))
-
-        const response = await fetch(n8nWebhookUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(webhookPayload),
-        })
-
-        if (!response.ok) {
-          const errorText = await response.text()
-          console.log("🚨 N8N ERROR:", errorText)
-          logger.error(
-            `[N8N] ❌ N8N webhook failed: ${response.status} - ${errorText}`
-          )
-          return `N8N webhook failed: ${response.status}`
-        }
-
-        const n8nResponse = await response.json()
-        console.log("🚨 N8N RESPONSE SUCCESS:", n8nResponse)
-        logger.info(
-          `[N8N] ✅ Successfully received response from N8N:`,
-          n8nResponse
+        // 🚀 SEND TO N8N using centralized method
+        const n8nResponse = await N8nPayloadBuilder.sendToN8N(
+          simplifiedPayload,
+          n8nWebhookUrl,
+          "Message Service"
         )
 
-        // 🚨 DEBUG: Log quando viene salvato
-        console.log("🚨 SALVATO - N8N response processed")
+        // 🚨 NO HARDCODE: If N8N fails, return error - NO FALLBACK RESPONSES
+        if (n8nResponse?.message === "Error in workflow" || !n8nResponse?.message || n8nResponse?.message === "") {
+          logger.error(`[N8N] ❌ N8N workflow failed and returned empty response - NO FALLBACK ALLOWED`)
+          
+          // Save the message to database for history only
+          await this.saveMessage(message, phoneNumber, workspaceId, "N8N workflow error", "N8N_ERROR")
+          
+          // Return null to indicate system failure - NO HARDCODED RESPONSES
+          return null
+        }
 
-        return n8nResponse?.message || "Message processed successfully"
+        return n8nResponse?.message || "Messaggio elaborato con successo"
       } catch (n8nError) {
         console.log("🚨 N8N ERROR:", n8nError)
         logger.error(`[N8N] ❌ Error calling N8N:`, n8nError)
-        return "Error processing message with N8N"
+        
+        // 🚨 NO HARDCODE: Save message and return null (no fallback responses)
+        try {
+          await this.saveMessage(message, phoneNumber, workspaceId, "N8N connection error", "N8N_CONNECTION_ERROR")
+        } catch (saveError) {
+          logger.error(`[SAVE-ERROR] ❌ Error saving error message:`, saveError)
+        }
+        
+        // Return null to indicate system failure - NO HARDCODED RESPONSES
+        return null
       }
     } catch (error) {
       logger.error(`[SECURITY-GATEWAY] ❌ ERROR in security checks:`, error)
@@ -453,18 +431,14 @@ export class MessageService {
   }
 
   /**
-   * Ottiene il messaggio WIP appropriato per la lingua
+   * Ottiene il messaggio WIP appropriato per la lingua - NO HARDCODE
    */
-  private getWipMessage(wipMessages: any, language: string): string {
+  private getWipMessage(wipMessages: any, language: string): string | null {
     if (!wipMessages) {
-      return "Our service is temporarily unavailable. We will be back soon!"
+      return null // NO HARDCODED FALLBACK
     }
 
-    return (
-      wipMessages[language] ||
-      wipMessages["en"] ||
-      "Our service is temporarily unavailable. We will be back soon!"
-    )
+    return wipMessages[language] || wipMessages["en"] || null // NO HARDCODED FALLBACK
   }
 
   /**
@@ -493,11 +467,11 @@ export class MessageService {
   private getCustomerInfo(customer: Customer): string {
     let context = "## CUSTOMER INFORMATION\n"
     context += `Name: ${customer.name}\n`
-    context += `Email: ${customer.email || "Not provided"}\n`
-    context += `Phone: ${customer.phone || "Not provided"}\n`
+    context += `Email: ${customer.email || ""}\n`
+    context += `Phone: ${customer.phone || ""}\n`
 
     // Converti il codice della lingua in un formato leggibile
-    let languageDisplay = "English" // Default
+    let languageDisplay = customer.language || ""
     if (customer.language) {
       const langCode = customer.language.toUpperCase()
       if (
@@ -522,31 +496,24 @@ export class MessageService {
     }
 
     context += `Language: ${languageDisplay}\n`
-    context += `Shipping Address: ${customer.address || "Not provided"}\n\n`
+    context += `Shipping Address: ${customer.address || ""}\n\n`
     return context
   }
 
-  private getAvailableFunctions(): string {
-    let context = "## AVAILABLE FUNCTIONS\n"
-    context += "- searchProducts(query: string): Search for products\n"
-    context += "- checkStock(productId: string): Check product availability\n"
-    context += "- calculateShipping(address: string): Calculate shipping cost\n"
-    context += "- placeOrder(products: string[]): Place a new order\n\n"
-    return context
-  }
+  // REMOVED: getAvailableFunctions() - NO HARDCODED FUNCTION LISTS
+  // All function definitions must come from database/configuration
 
   private enrichAgentContext(selectedAgent: any, customer: Customer): void {
     if (selectedAgent.content && customer) {
-      // Aggiungi informazioni cliente e funzioni disponibili
+      // Aggiungi solo informazioni cliente - NO HARDCODED FUNCTIONS
       selectedAgent.content =
         this.getCustomerInfo(customer) +
-        this.getAvailableFunctions() +
         selectedAgent.content
 
       // Sostituisci il placeholder {customerLanguage} con il nome della lingua leggibile
       if (customer.language) {
-        // Converti il codice della lingua in un formato leggibile
-        let languageDisplay = "English" // Default
+        // Converti il codice della lingua in un formato leggibile - NO HARDCODE
+        let languageDisplay = customer.language || ""
         const langCode = customer.language.toUpperCase()
         if (
           langCode === "IT" ||
@@ -569,13 +536,15 @@ export class MessageService {
         }
 
         // Sostituisci il placeholder con il nome della lingua leggibile
-        selectedAgent.content = selectedAgent.content.replace(
-          /\{customerLanguage\}/g,
-          languageDisplay
-        )
+        if (languageDisplay) {
+          selectedAgent.content = selectedAgent.content.replace(
+            /\{customerLanguage\}/g,
+            languageDisplay
+          )
 
-        // Aggiungi anche la lingua alla risposta
-        selectedAgent.content += `\nYour response MUST be in **${languageDisplay}** language.`
+          // Aggiungi anche la lingua alla risposta
+          selectedAgent.content += `\nYour response MUST be in **${languageDisplay}** language.`
+        }
       }
     }
   }

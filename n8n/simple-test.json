@@ -1,0 +1,42 @@
+{
+  "name": "Simple Test Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook-start",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst userMessage = item.messageContent || 'test';\nconst message = `✅ FUNZIONA! Messaggio ricevuto: \"${userMessage}\"`;\n\nreturn [{\n  json: {\n    message: message\n  }\n}];"
+      },
+      "id": "response-1",
+      "name": "Simple Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [400, 200]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Simple Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true
+} 
