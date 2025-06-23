@@ -8,82 +8,40 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "43717cb6-168b-43eb-9a83-93d2efeda016",
+      "id": "aa4506fc-28c3-4328-aba6-1cc236296b54",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -1560,
-        180
+        -1720,
+        300
       ],
       "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        -620,
-        80
-      ],
-      "id": "33927e63-93c0-4af3-81f6-65f0f4ce1cde",
-      "name": "Wait3",
-      "webhookId": "59956c9f-d486-4e0c-b949-a3c634750e9b"
     },
     {
       "parameters": {
         "conditions": {
           "boolean": [
             {
-              "value1": "={{ $json.precompiledData.businessInfo.isActive }}",
+              "value1": "={{ $json.precompiledData.businessInfo.isActive}}",
               "operation": "=equal",
-              "value2": "={{ false }}"
+              "value2": true
             }
           ]
-        },
-        "combineOperation": "any"
+        }
       },
-      "id": "6620d60b-d1ef-4b78-8256-3cd88e2ebb0c",
+      "id": "537fc4f4-7a72-4ea9-8a87-21e24366905b",
       "name": "IsChannelActive?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        -840,
-        180
+        -620,
+        300
       ],
       "alwaysOutputData": false,
-      "executeOnce": true,
+      "executeOnce": false,
       "retryOnFail": false,
       "notesInFlow": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const message = \"SI CI SIAOM ...\"\n\nreturn [\n  {\n    json: {\n      message\n    }\n  }\n];"
-      },
-      "id": "0a70987e-8e38-4415-8bdd-70616e637e9c",
-      "name": "return",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [
-        -400,
-        80
-      ],
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const item = $input.first().json;\n\n// Corretto percorso dei dati\nconst userLang = item.precompiledData.customer.language || 'it';\nconst wipMessages = item.precompiledData.wipMessages || {};\n\n// Fallback se la lingua non esiste\nconst message = wipMessages[userLang]\n\nreturn [\n  {\n    json: {\n      message \n    }\n  }\n];\n"
-      },
-      "id": "68eba54b-27c3-4815-a70b-900b7c4e1d34",
-      "name": "return wip message",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [
-        -620,
-        280
-      ],
-      "alwaysOutputData": true,
-      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -91,18 +49,19 @@
           "boolean": [
             {
               "value1": "={{ $json.precompiledData.customer.activeChatbot }}",
-              "value2": "=true"
+              "operation": "notEqual",
+              "value2": "={{ false }}"
             }
           ]
         }
       },
-      "id": "7450105b-9479-4d82-9d30-c2478d0d43eb",
+      "id": "8c26f9f3-a565-4ae0-8bd0-f95239fe4fdb",
       "name": "is activeChatbot?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        -1060,
-        280
+        -860,
+        300
       ],
       "alwaysOutputData": false,
       "executeOnce": false,
@@ -120,13 +79,13 @@
           ]
         }
       },
-      "id": "9de5cd81-9251-427b-8bd5-1943200ab07e",
+      "id": "29b5c40e-429a-41fa-ba83-b7cff0bb783e",
       "name": "IsUserBlocked?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        -1280,
-        180
+        -1060,
+        300
       ],
       "alwaysOutputData": true,
       "executeOnce": true,
@@ -137,27 +96,108 @@
       "parameters": {
         "jsCode": "const message = \"User blocked\"\n\nreturn [\n  {\n    json: {\n      message\n    }\n  }\n];"
       },
-      "id": "0e89f620-5ad7-404b-9b18-1a93568624c0",
+      "id": "367aef06-5796-424e-b6b6-16444390400d",
       "name": "return userblock",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -1060,
-        80
+        -860,
+        120
       ],
       "alwaysOutputData": true
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first().json;\n\nconst activeChatbot = item.precompiledData.customer.activeChatbot;\nconst message = activeChatbot ? \"Chatbot is active\" : \"Chatbot is not active\";\n\nreturn [\n  {\n    json: {\n      message: item.precompiledData\n    }\n  }\n];\n"
+        "jsCode": "//const item = $input.first().json;\n\n//const activeChatbot = item.precompiledData.customer.activeChatbot;\n//const message = activeChatbot ? \"Chatbot is active\" : \"Chatbot is not active\";\n\nreturn [\n  {\n    json: {\n      message: \"Chatbot is block\"  \n    }\n  }\n];\n"
       },
-      "id": "cdf79464-eb11-4774-bb66-a46725e76cf7",
+      "id": "845b378e-abb3-4522-811f-068666228465",
       "name": "return activechallenge",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -840,
-        380
+        -600,
+        480
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      message: \"Channel is not active\"\n    }\n  }\n];\n\n"
+      },
+      "id": "1a98ed59-c372-4755-9a3c-58ecc1328588",
+      "name": "return wip message1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -300,
+        220
+      ],
+      "alwaysOutputData": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  \"workspaceId\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n  \"phoneNumber\": \"393451234567\",\n  \"messageContent\": \"cerco mozzarella per la pizza\",\n  \"sessionToken\": \"dc3d1eb7b9b7c4e2f1a8d6c5b9e4f7a2\",\n  \"precompiledData\": {\n    \"agentConfig\": {\n      \"id\": \"agent-config-123\",\n      \"workspaceId\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n      \"model\": \"openai/gpt-4o-mini\",\n      \"temperature\": 0.7,\n      \"maxTokens\": 1000,\n      \"topP\": 0.9,\n      \"prompt\": \"Sei un assistente virtuale esperto per L'Altra Italia, un'azienda italiana specializzata in prodotti alimentari di alta qualità. Il tuo compito è aiutare i clienti a trovare i prodotti giusti, fornire informazioni sui prezzi, ingredienti e disponibilità. Rispondi sempre in modo professionale e cortese.\",\n      \"isActive\": true,\n      \"createdAt\": \"2024-06-19T10:00:00.000Z\",\n      \"updatedAt\": \"2024-06-19T15:30:00.000Z\"\n    },\n    \"customer\": {\n      \"id\": \"7a305200-993a-41d1-82c3-f1d148c3cf31\",\n      \"name\": \"Mario Rossi\",\n      \"email\": \"mario.rossi@email.com\",\n      \"phone\": \"393451234567\",\n      \"language\": \"it\",\n      \"isActive\": true,\n      \"isBlacklisted\": false,\n      \"activeChatbot\": true,\n      \"discount\": 0,\n      \"currency\": \"EUR\",\n      \"address\": \"Via Roma 123, Milano\",\n      \"company\": \"\",\n      \"createdAt\": \"2024-06-19T10:00:00.000Z\",\n      \"updatedAt\": \"2024-06-19T15:30:00.000Z\"\n    },\n    \"businessInfo\": {\n      \"id\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n      \"name\": \"L'Altra Italia(ESP)\",\n      \"businessType\": \"ECOMMERCE\",\n      \"plan\": \"PREMIUM\",\n      \"whatsappPhoneNumber\": \"+34654728753\",\n      \"whatsappApiKey\": \"your-whatsapp-api-key\",\n      \"language\": \"it\",\n      \"currency\": \"EUR\",\n      \"timezone\": \"Europe/Rome\",\n      \"isActive\": true,\n      \"url\": \"https://laltroitalia.shop\",\n      \"notificationEmail\": \"admin@laltroitalia.shop\",\n      \"description\": \"Prodotti alimentari italiani di alta qualità\",\n      \"welcomeMessages\": {\n        \"en\": \"Welcome! How can I help you today?\",\n        \"es\": \"¡Bienvenido! ¿En qué puedo ayudarte hoy?\",\n        \"it\": \"Benvenuto! Come posso aiutarti oggi?\",\n        \"fr\": \"Bienvenue! Comment puis-je vous aider aujourd'hui?\",\n        \"de\": \"Willkommen! Wie kann ich Ihnen heute helfen?\",\n        \"pt\": \"Bem-vindo! Em que posso ajudá-lo hoje?\"\n      },\n      \"wipMessages\": {\n        \"en\": \"Work in progress. Please contact us later.\",\n        \"es\": \"Trabajos en curso. Por favor, contáctenos más tarde.\",\n        \"it\": \"Lavori in corso. Contattaci più tardi.\",\n        \"fr\": \"Travaux en cours. Veuillez nous contacter plus tard.\",\n        \"de\": \"Arbeiten im Gange. Bitte kontaktieren Sie uns später.\",\n        \"pt\": \"Em manutenção. Por favor, contacte-nos mais tarde.\"\n      },\n      \"afterRegistrationMessages\": {\n        \"en\": \"Registration completed successfully. Hello [nome], how can I help you today?\",\n        \"es\": \"Registro completado con éxito. Hola [nome], ¿en qué puedo ayudarte hoy?\",\n        \"it\": \"Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?\",\n        \"fr\": \"Enregistrement effectué avec succès. Bonjour [nome], en quoi puis-je vous aider aujourd'hui ?\",\n        \"de\": \"Registrierung erfolgreich abgeschlossen. Hallo [nome], wie kann ich Ihnen heute helfen?\",\n        \"pt\": \"Registro concluído com sucesso. Olá [nome], em que posso ajudá-lo hoje?\"\n      },\n      \"createdAt\": \"2024-06-19T10:00:00.000Z\",\n      \"updatedAt\": \"2024-06-19T15:30:00.000Z\"\n    },\n    \"conversationHistory\": [\n      {\n        \"id\": \"msg-1\",\n        \"content\": \"Ciao! Come posso aiutarti oggi?\",\n        \"role\": \"assistant\",\n        \"timestamp\": \"2024-06-19T15:25:00.000Z\"\n      },\n      {\n        \"id\": \"msg-2\",\n        \"content\": \"Salve, sto cercando dei formaggi\",\n        \"role\": \"user\",\n        \"timestamp\": \"2024-06-19T15:26:00.000Z\"\n      },\n      {\n        \"id\": \"msg-3\",\n        \"content\": \"Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?\",\n        \"role\": \"assistant\",\n        \"timestamp\": \"2024-06-19T15:26:30.000Z\"\n      }\n    ],\n    \"wipMessages\": {\n      \"it\": \"Sto elaborando la tua richiesta, un momento per favore...\",\n      \"en\": \"Processing your request, please wait a moment...\",\n      \"es\": \"Procesando tu solicitud, por favor espera un momento...\",\n      \"fr\": \"Je traite votre demande, veuillez patienter un moment...\",\n      \"de\": \"Ich bearbeite Ihre Anfrage, bitte warten Sie einen Moment...\",\n      \"pt\": \"Processando sua solicitação, aguarde um momento por favor...\"\n    },\n    \"welcomeMessages\": {\n      \"it\": \"Benvenuto! Per offrirti un servizio personalizzato, ti invitiamo a completare la registrazione: {registrationLink}\",\n      \"en\": \"Welcome! To provide you with personalized service, please complete the registration: {registrationLink}\",\n      \"es\": \"¡Bienvenido! Para ofrecerte un servicio personalizado, te invitamos a completar el registro: {registrationLink}\",\n      \"fr\": \"Bienvenue ! Pour vous offrir un service personnalisé, nous vous invitons à compléter l'inscription : {registrationLink}\",\n      \"de\": \"Willkommen! Um Ihnen einen personalisierten Service zu bieten, laden wir Sie ein, die Registrierung abzuschließen: {registrationLink}\",\n      \"pt\": \"Bem-vindo! Para oferecer um serviço personalizado, convidamos você a completar o registro: {registrationLink}\"\n    },\n    \"afterRegistrationMessages\": {\n      \"it\": \"Grazie per esserti registrato! Ora puoi accedere a tutti i nostri servizi. Come posso aiutarti?\",\n      \"en\": \"Thank you for registering! You can now access all our services. How can I help you?\",\n      \"es\": \"¡Gracias por registrarte! Ahora puedes acceder a todos nuestros servicios. ¿Cómo puedo ayudarte?\",\n      \"fr\": \"Merci de vous être inscrit ! Vous pouvez maintenant accéder à tous nos services. Comment puis-je vous aider ?\",\n      \"de\": \"Danke für Ihre Registrierung! Sie können jetzt auf alle unsere Dienste zugreifen. Wie kann ich Ihnen helfen?\",\n      \"pt\": \"Obrigado por se registrar! Agora você pode acessar todos os nossos serviços. Como posso ajudá-lo?\"\n    }\n  },\n  \"metadata\": {\n    \"timestamp\": \"2024-06-19T15:36:10.004Z\",\n    \"source\": \"whatsapp\",\n    \"apiVersion\": \"v1.0\",\n    \"securityChecks\": {\n      \"apiLimitPassed\": true,\n      \"spamDetectionPassed\": true,\n      \"blacklistCheck\": false,\n      \"operatorControl\": false\n    },\n    \"performance\": {\n      \"securityGatewayTime\": \"5ms\",\n      \"precompilationTime\": \"12ms\",\n      \"totalProcessingTime\": \"17ms\"\n    }\n  }\n}\n"
+      },
+      "id": "d7db60e2-c2d4-412b-a83e-a69712f012a5",
+      "name": "return userblock1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -1500,
+        300
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.precompiledData.customer.isActive }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "7f87cec2-97fd-41b0-92c3-d0c275928b98",
+      "name": "isCustomerActive?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        300
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true,
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": " \nreturn [\n  {\n    json: {\n      message: \"User not active\"\n    }\n  }\n];\n"
+      },
+      "id": "e035ac12-1fdb-47f7-bcc7-38de9b21b2f0",
+      "name": "return activechallenge1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -1060,
+        480
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst activeChatbot = item.precompiledData.customer.activeChatbot;\nconst message = activeChatbot ? \"Chatbot is active\" : \"Chatbot is not active\";\n\nreturn [\n  {\n    json: {\n      message \n    }\n  }\n];\n"
+      },
+      "id": "283686d1-4e5b-4b5c-af9a-36ba43e4f49e",
+      "name": "return wip message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -300,
+        440
       ],
       "alwaysOutputData": true
     }
@@ -195,7 +235,7 @@
       "main": [
         [
           {
-            "node": "IsUserBlocked?",
+            "node": "return userblock1",
             "type": "main",
             "index": 0
           }
@@ -206,7 +246,7 @@
       "main": [
         [
           {
-            "node": "Wait3",
+            "node": "return wip message1",
             "type": "main",
             "index": 0
           }
@@ -214,17 +254,6 @@
         [
           {
             "node": "return wip message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait3": {
-      "main": [
-        [
-          {
-            "node": "return",
             "type": "main",
             "index": 0
           }
@@ -249,11 +278,6 @@
         ]
       ]
     },
-    "return wip message": {
-      "main": [
-        []
-      ]
-    },
     "IsUserBlocked?": {
       "main": [
         [
@@ -271,6 +295,35 @@
           }
         ]
       ]
+    },
+    "return userblock1": {
+      "main": [
+        [
+          {
+            "node": "isCustomerActive?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isCustomerActive?": {
+      "main": [
+        [
+          {
+            "node": "IsUserBlocked?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "return activechallenge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -278,7 +331,7 @@
     "executionOrder": "v1",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "90ec9b8e-af4e-4255-af30-9b6ba825c1c8",
+  "versionId": "5009e942-69aa-4c45-9e16-f0eb40296627",
   "meta": {
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65",
     "templateCredsSetupCompleted": true
