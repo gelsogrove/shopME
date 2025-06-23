@@ -282,7 +282,34 @@ export class MessageService {
           Math.random().toString(36).substring(2, 15) +
           Math.random().toString(36).substring(2, 15)
 
-        // 🎯 BUILD SIMPLIFIED PAYLOAD using centralized builder
+        // 🚨 ANDREA LOOP FIX: Check agentConfig FIRST - NO N8N CALL if disabled
+        // BUT ALLOW ADMIN BYPASS (numbers starting with +34654728753 or messages containing "admin")
+        const isAdminPhone = phoneNumber.includes("34654728753") || phoneNumber.includes("654728753")
+        const isAdminMessage = message.toLowerCase().includes("admin") || message.toLowerCase().includes("reactivate") || message.toLowerCase().includes("riattiva")
+        
+        // 🔍 Quick check: Get agentConfig directly from DB to avoid N8N call
+        const agentConfigCheck = await prisma.agentConfig.findFirst({
+          where: {
+            workspaceId: workspaceId,
+            isActive: true,
+          },
+        })
+        
+        if (!agentConfigCheck && !isAdminPhone && !isAdminMessage) {
+          logger.warn(`[AGENT-DISABLED] ❌ NO ACTIVE AGENT FOUND for workspace ${workspaceId} - BLOCKING N8N CALL`)
+          
+          // Save the message for history
+          await this.saveMessage(message, phoneNumber, workspaceId, "Chat assistant disattivato", "AGENT_DISABLED")
+          
+          // Return user-friendly message WITHOUT calling N8N at all
+          return "Il servizio di assistenza è temporaneamente disattivato. Riprova più tardi."
+        }
+        
+        if (!agentConfigCheck && (isAdminPhone || isAdminMessage)) {
+          logger.info(`[ADMIN-BYPASS] ✅ Agent disabled but allowing admin access from ${phoneNumber}`)
+        }
+
+        // 🎯 BUILD SIMPLIFIED PAYLOAD using centralized builder (only if agent is active or admin)
         const simplifiedPayload =
           await N8nPayloadBuilder.buildSimplifiedPayload(
             workspaceId,
