@@ -282,34 +282,78 @@ export class WhatsAppController {
               `[WHATSAPP-SEND] 📱 ATTEMPTING to send message to ${phoneNumber}: ${messageToSend}`
             )
 
-            await this.sendWhatsAppMessage(
-              phoneNumber,
-              messageToSend,
-              workspaceId
-            )
+            try {
+              // Save the successful message to chat history BEFORE sending
+              const { MessageRepository } = await import('../../../repositories/message.repository')
+              const messageRepository = new MessageRepository()
+              await messageRepository.saveMessage({
+                workspaceId,
+                phoneNumber,
+                message: messageContent,
+                response: messageToSend,
+                agentSelected: "N8N_SUCCESS"
+              })
+              logger.info(`[SUCCESS-HISTORY] ✅ Successful message saved to chat history for ${phoneNumber}`)
 
-            logger.info(
-              `[WHATSAPP-SEND] ✅ Message sent successfully to ${phoneNumber}: ${messageToSend}`
-            )
+              // Then send the WhatsApp message
+              await this.sendWhatsAppMessage(phoneNumber, messageToSend, workspaceId)
+
+              logger.info(
+                `[WHATSAPP-SEND] ✅ Message sent successfully to ${phoneNumber}: ${messageToSend}`
+              )
+            } catch (saveError) {
+              logger.error(`[SUCCESS-HISTORY] ❌ Failed to save successful message to history: ${saveError}`)
+              
+              // Still try to send the message even if saving fails
+              try {
+                await this.sendWhatsAppMessage(phoneNumber, messageToSend, workspaceId)
+                logger.info(`[WHATSAPP-SEND] ✅ Message sent (without history): ${phoneNumber}`)
+              } catch (sendError) {
+                logger.error(`[WHATSAPP-SEND] ❌ Failed to send message: ${sendError}`)
+              }
+            }
           } else {
             logger.warn(
               `[N8N-RESPONSE] ⚠️ No message found in N8N response:`,
               n8nResponse
             )
 
+            const fallbackMessage = "Ho ricevuto la tua richiesta ma non sono riuscito a generare una risposta. Riprova più tardi."
+
             logger.info(
               `[WHATSAPP-SEND] 📱 SENDING fallback message to ${phoneNumber}`
             )
 
-            await this.sendWhatsAppMessage(
-              phoneNumber,
-              "Ho ricevuto la tua richiesta ma non sono riuscito a generare una risposta. Riprova più tardi.",
-              workspaceId
-            )
+            try {
+              // Save the fallback message to chat history BEFORE sending
+              const { MessageRepository } = await import('../../../repositories/message.repository')
+              const messageRepository = new MessageRepository()
+              await messageRepository.saveMessage({
+                workspaceId,
+                phoneNumber,
+                message: messageContent,
+                response: fallbackMessage,
+                agentSelected: "N8N_FALLBACK"
+              })
+              logger.info(`[FALLBACK-HISTORY] ✅ Fallback message saved to chat history for ${phoneNumber}`)
 
-            logger.info(
-              `[WHATSAPP-SEND] ✅ Fallback message sent to ${phoneNumber}`
-            )
+              // Then send the WhatsApp message
+              await this.sendWhatsAppMessage(phoneNumber, fallbackMessage, workspaceId)
+
+              logger.info(
+                `[WHATSAPP-SEND] ✅ Fallback message sent to ${phoneNumber}`
+              )
+            } catch (saveError) {
+              logger.error(`[FALLBACK-HISTORY] ❌ Failed to save fallback message to history: ${saveError}`)
+              
+              // Still try to send the message even if saving fails
+              try {
+                await this.sendWhatsAppMessage(phoneNumber, fallbackMessage, workspaceId)
+                logger.info(`[WHATSAPP-SEND] ✅ Fallback message sent (without history): ${phoneNumber}`)
+              } catch (sendError) {
+                logger.error(`[WHATSAPP-SEND] ❌ Failed to send fallback message: ${sendError}`)
+              }
+            }
           }
         } catch (error) {
           logger.error(
@@ -324,11 +368,36 @@ export class WhatsAppController {
             `[ERROR-SEND] 📱 SENDING error message to ${phoneNumber}: ${errorMessage}`
           )
 
-          await this.sendWhatsAppMessage(phoneNumber, errorMessage, workspaceId)
+          try {
+            // Save the error message to chat history BEFORE sending
+            const { MessageRepository } = await import('../../../repositories/message.repository')
+            const messageRepository = new MessageRepository()
+            await messageRepository.saveMessage({
+              workspaceId,
+              phoneNumber,
+              message: messageContent,
+              response: errorMessage,
+              agentSelected: "N8N_ERROR"
+            })
+            logger.info(`[ERROR-HISTORY] ✅ Error message saved to chat history for ${phoneNumber}`)
 
-          logger.info(
-            `[ERROR-SENT] ✅ Error message sent successfully to user: ${phoneNumber}`
-          )
+            // Then send the WhatsApp message
+            await this.sendWhatsAppMessage(phoneNumber, errorMessage, workspaceId)
+
+            logger.info(
+              `[ERROR-SENT] ✅ Error message sent successfully to user: ${phoneNumber}`
+            )
+          } catch (saveError) {
+            logger.error(`[ERROR-HISTORY] ❌ Failed to save error message to history: ${saveError}`)
+            
+            // Still try to send the message even if saving fails
+            try {
+              await this.sendWhatsAppMessage(phoneNumber, errorMessage, workspaceId)
+              logger.info(`[ERROR-SENT] ✅ Error message sent (without history): ${phoneNumber}`)
+            } catch (sendError) {
+              logger.error(`[ERROR-SEND] ❌ Failed to send error message: ${sendError}`)
+            }
+          }
         }
       }
 
