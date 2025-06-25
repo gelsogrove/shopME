@@ -172,8 +172,20 @@ export class WhatsAppController {
             return
           } else {
             logger.info(
-              `[UNREGISTERED-NON-GREETING] ❌ Unregistered user ${phoneNumber} sent non-greeting message - ignoring`
+              `[UNREGISTERED-NON-GREETING] ❌ Unregistered user ${phoneNumber} sent non-greeting message - sending registration required message`
             )
+            
+            // Detect language from the message and send registration required message
+            const detectedLang = this.detectLanguageFromMessage(messageContent)
+            const registrationRequiredMessage = this.getRegistrationRequiredMessage(detectedLang)
+            
+            try {
+              await this.sendWhatsAppMessage(phoneNumber, registrationRequiredMessage, workspaceId)
+              logger.info(`[REGISTRATION-REQUIRED] ✅ Registration required message sent to ${phoneNumber}`)
+            } catch (error) {
+              logger.error(`[REGISTRATION-REQUIRED] ❌ Error sending registration required message to ${phoneNumber}:`, error)
+            }
+            
             res.status(200).send("USER_NOT_REGISTERED")
             return
           }
@@ -341,13 +353,21 @@ export class WhatsAppController {
         `[SESSION-TOKEN] 🔑 Generating session token for ${phoneNumber} in workspace ${workspaceId}`
       )
 
-      // Find or create customer using unified method
-      const customer = await this.findOrCreateCustomer(phoneNumber, workspaceId, {
-        name: `WhatsApp User ${phoneNumber}`,
-        isActive: true,
-        language: "Italian",
-        activeChatbot: true,
+      // Use MessageRepository to handle customer creation
+      const { MessageRepository } = await import('../../../repositories/message.repository')
+      const messageRepository = new MessageRepository()
+      
+      // Find or create customer by triggering saveMessage
+      await messageRepository.saveMessage({
+        workspaceId,
+        phoneNumber,
+        message: "system_session_init",
+        response: "session_initialized", 
+        agentSelected: "SESSION_TOKEN_SERVICE"
       })
+      
+      // Now get the customer that was created
+      const customer = await messageRepository.findCustomerByPhone(phoneNumber, workspaceId)
 
       // Generate or renew session token
       const sessionToken =
@@ -989,58 +1009,15 @@ export class WhatsAppController {
     welcomeMessage: string
   ): Promise<void> {
     try {
-      // Create customer placeholder if doesn't exist (for chat history tracking)
-      const customer = await this.findOrCreateCustomer(phoneNumber, workspaceId, {
-        name: `Unregistered User ${phoneNumber}`,
-        isActive: false, // Mark as inactive until registration
-        language: "Italian",
-        activeChatbot: true,
-      })
-
-      // Find or create chat session
-      let chatSession = await prisma.chatSession.findFirst({
-        where: {
-          customerId: customer.id,
-          workspaceId,
-        },
-      })
-
-      if (!chatSession) {
-        chatSession = await prisma.chatSession.create({
-          data: {
-            customerId: customer.id,
-            workspaceId,
-            status: "pending_registration",
-            context: {},
-          },
-        })
-      }
-
-      // Save incoming greeting message
-      await prisma.message.create({
-        data: {
-          content: incomingMessage,
-          direction: "INBOUND",
-          chatSessionId: chatSession.id,
-          metadata: {
-            messageType: "greeting",
-            userRegistrationStatus: "unregistered",
-          },
-        },
-      })
-
-      // Save outgoing welcome message
-      await prisma.message.create({
-        data: {
-          content: welcomeMessage,
-          direction: "OUTBOUND",
-          chatSessionId: chatSession.id,
-          metadata: {
-            agentSelected: "WELCOME_SYSTEM",
-            messageType: "welcome_registration",
-            userRegistrationStatus: "unregistered",
-          },
-        },
+      // Use MessageRepository to handle customer and chat session creation
+      const { MessageRepository } = await import('../../../repositories/message.repository')
+      const messageRepository = new MessageRepository()
+      await messageRepository.saveMessage({
+        workspaceId,
+        phoneNumber,
+        message: incomingMessage,
+        response: welcomeMessage,
+        agentSelected: "WELCOME_SYSTEM"
       })
 
       logger.info(
@@ -1073,6 +1050,23 @@ export class WhatsAppController {
   }
 
   /**
+   * 📝 GET REGISTRATION REQUIRED MESSAGE
+   * Returns the "registration required" message in the appropriate language
+   */
+  private getRegistrationRequiredMessage(language: string): string {
+    const registrationRequiredMessages = {
+      it: "Per utilizzare questo servizio devi prima registrarti. Scrivi 'ciao' per ricevere il link di registrazione.",
+      es: "Para usar este servicio primero debes registrarte. Escribe 'hola' para recibir el enlace de registro.",
+      en: "To use this service you must first register. Write 'hello' to receive the registration link.",
+      fr: "Pour utiliser ce service, vous devez d'abord vous inscrire. Écrivez 'bonjour' pour recevoir le lien d'inscription.",
+      de: "Um diesen Service zu nutzen, müssen Sie sich zuerst registrieren. Schreiben Sie 'hallo', um den Registrierungslink zu erhalten.",
+      pt: "Para usar este serviço você deve primeiro se registrar. Escreva 'olá' para receber o link de registro.",
+    }
+
+    return registrationRequiredMessages[language] || registrationRequiredMessages["it"]
+  }
+
+  /**
    * 👤 CREATE CUSTOMER PLACEHOLDER
    * Creates a placeholder customer for unregistered users
    */
@@ -1083,19 +1077,46 @@ export class WhatsAppController {
   ): Promise<void> {
     try {
       logger.info(
-        `[CUSTOMER-PLACEHOLDER] 👤 Creating placeholder for ${phoneNumber}`
+        `[CUSTOMER-PLACEHOLDER] 👤 Creating placeholder for ${phoneNumber} with language: ${language}`
       )
 
-      // Find or create customer using unified method
-      const customer = await this.findOrCreateCustomer(phoneNumber, workspaceId, {
-        name: `WhatsApp User ${phoneNumber.slice(-4)}`, // Placeholder name with last 4 digits
-        isActive: true,
-        language: language || "it",
-        activeChatbot: true,
+      // Check if customer already exists first
+      const existingCustomer = await prisma.customers.findFirst({
+        where: {
+          phone: phoneNumber,
+          workspaceId: workspaceId,
+        },
+      })
+
+      if (existingCustomer) {
+        logger.info(`[CUSTOMER-PLACEHOLDER] ✅ Customer already exists: ${existingCustomer.id}`)
+        
+        // Update language if it's different from detected one
+        if (existingCustomer.language !== language) {
+          await prisma.customers.update({
+            where: { id: existingCustomer.id },
+            data: { language: language }
+          })
+          logger.info(`[CUSTOMER-PLACEHOLDER] 🌍 Updated customer language to: ${language}`)
+        }
+        return
+      }
+
+      // Create new customer with the detected language
+      const newCustomer = await prisma.customers.create({
+        data: {
+          phone: phoneNumber,
+          workspaceId: workspaceId,
+          name: `Unregistered User ${phoneNumber.slice(-4)}`,
+          email: `unregistered_${phoneNumber.replace(/[^0-9]/g, '')}@placeholder.com`,
+          language: language,
+          isActive: false, // Unregistered users are inactive
+          activeChatbot: true,
+        },
       })
 
       logger.info(
-        `[CUSTOMER-PLACEHOLDER] ✅ Customer found/created: ${customer.id}`
+        `[CUSTOMER-PLACEHOLDER] ✅ Customer created: ${newCustomer.id} with language: ${language}`
       )
     } catch (error) {
       logger.error(
@@ -1184,48 +1205,16 @@ export class WhatsAppController {
     message: string
   ): Promise<void> {
     try {
-      // Find the customer by phone number
-      const customer = await prisma.customers.findFirst({
-        where: {
-          phone: phoneNumber,
-          workspaceId: workspaceId,
-        },
-      })
-
-      if (!customer) {
-        logger.warn(
-          `[HISTORY] Customer not found for phone ${phoneNumber}, skipping history save`
-        )
-        return
-      }
-
-      // Find or create active chat session
-      let chatSession = await prisma.chatSession.findFirst({
-        where: {
-          customerId: customer.id,
-          workspaceId: workspaceId,
-          status: "active",
-        },
-      })
-
-      if (!chatSession) {
-        chatSession = await prisma.chatSession.create({
-          data: {
-            customerId: customer.id,
-            workspaceId: workspaceId,
-            status: "active",
-          },
-        })
-      }
-
-      // Save the message
-      await prisma.message.create({
-        data: {
-          chatSessionId: chatSession.id,
-          direction: "OUTBOUND",
-          content: message,
-          status: "sent",
-        },
+      // Use MessageRepository to handle customer and chat session creation
+      const { MessageRepository } = await import('../../../repositories/message.repository')
+      const messageRepository = new MessageRepository()
+      await messageRepository.saveMessage({
+        workspaceId,
+        phoneNumber,
+        message: "system_outbound",
+        response: message,
+        direction: "OUTBOUND",
+        agentSelected: "WHATSAPP_OUTBOUND"
       })
 
       logger.info(
@@ -1239,63 +1228,5 @@ export class WhatsAppController {
     }
   }
 
-  /**
-   * 👤 UNIFIED CUSTOMER FIND OR CREATE METHOD
-   * Centralized method to prevent duplicate customer creation
-   */
-  private async findOrCreateCustomer(
-    phoneNumber: string,
-    workspaceId: string,
-    options: {
-      name?: string;
-      isActive?: boolean;
-      language?: string;
-      activeChatbot?: boolean;
-    } = {}
-  ): Promise<any> {
-    try {
-      // Always search for ANY customer with this phone and workspace (regardless of isActive)
-      let customer = await prisma.customers.findFirst({
-        where: {
-          phone: phoneNumber,
-          workspaceId: workspaceId,
-        },
-      });
-
-      if (customer) {
-        logger.info(
-          `[UNIFIED-CUSTOMER] Found existing customer ${customer.id} for phone ${phoneNumber}`
-        );
-        return customer;
-      }
-
-      // Create new customer with provided options or defaults
-      const customerData = {
-        name: options.name || `WhatsApp User ${phoneNumber}`,
-        email: `${phoneNumber.replace(/[^0-9]/g, "")}@whatsapp.placeholder`,
-        phone: phoneNumber,
-        workspaceId: workspaceId,
-        language: options.language || "Italian",
-        currency: "EUR",
-        isActive: options.isActive !== undefined ? options.isActive : true,
-        activeChatbot: options.activeChatbot !== undefined ? options.activeChatbot : true,
-      };
-
-      customer = await prisma.customers.create({
-        data: customerData,
-      });
-
-      logger.info(
-        `[UNIFIED-CUSTOMER] Created new customer ${customer.id} for phone ${phoneNumber} with isActive: ${customerData.isActive}`
-      );
-
-      return customer;
-    } catch (error) {
-      logger.error(
-        `[UNIFIED-CUSTOMER] Error finding or creating customer for ${phoneNumber}:`,
-        error
-      );
-      throw error;
-    }
-  }
+  // REMOVED: findOrCreateCustomer - Now using MessageRepository.saveMessage() for all operations
 }

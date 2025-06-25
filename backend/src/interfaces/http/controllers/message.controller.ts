@@ -134,12 +134,15 @@ export class MessageController {
           logger.info(
             `[MESSAGES API] ❌ Unregistered user sent non-greeting message - requiring registration`
           )
+          
+          // Get registration required message in the user's detected language
+          const registrationRequiredMessage = this.getRegistrationRequiredMessage(detectedLanguage)
+          
           res.status(200).json({
             success: false,
             data: {
               originalMessage: message,
-              processedMessage:
-                "Per utilizzare questo servizio devi prima registrarti. Scrivi 'ciao' per ricevere il link di registrazione.",
+              processedMessage: registrationRequiredMessage,
               phoneNumber: phoneNumber,
               workspaceId: workspaceId,
               timestamp: new Date().toISOString(),
@@ -399,61 +402,13 @@ export class MessageController {
     welcomeMessage: string
   ): Promise<void> {
     try {
-      // Create customer placeholder if doesn't exist (for chat history tracking)
-      const customer = await this.findOrCreateCustomer(phoneNumber, workspaceId, {
-        name: `Unregistered User ${phoneNumber}`,
-        isActive: false, // Mark as inactive until registration
-        language: "Italian",
-        activeChatbot: true,
-      })
-
-      // Find or create chat session
-      let chatSession = await prisma.chatSession.findFirst({
-        where: {
-          customerId: customer.id,
-          workspaceId,
-        },
-      })
-
-      if (!chatSession) {
-        chatSession = await prisma.chatSession.create({
-          data: {
-            customerId: customer.id,
-            workspaceId,
-            status: "pending_registration",
-            context: {},
-          },
-        })
-        logger.info(
-          `[WELCOME-HISTORY] ✅ Created chat session: ${chatSession.id}`
-        )
-      }
-
-      // Save incoming greeting message
-      await prisma.message.create({
-        data: {
-          content: incomingMessage,
-          direction: "INBOUND",
-          chatSessionId: chatSession.id,
-          metadata: {
-            messageType: "greeting",
-            userRegistrationStatus: "unregistered",
-          },
-        },
-      })
-
-      // Save outgoing welcome message
-      await prisma.message.create({
-        data: {
-          content: welcomeMessage,
-          direction: "OUTBOUND",
-          chatSessionId: chatSession.id,
-          metadata: {
-            agentSelected: "WELCOME_SYSTEM",
-            messageType: "welcome_registration",
-            userRegistrationStatus: "unregistered",
-          },
-        },
+      // Use MessageRepository to handle customer and chat session creation
+      await this.messageService.getMessageRepository().saveMessage({
+        workspaceId,
+        phoneNumber,
+        message: incomingMessage,
+        response: welcomeMessage,
+        agentSelected: "WELCOME_SYSTEM"
       })
 
       logger.info(
@@ -478,19 +433,46 @@ export class MessageController {
   ): Promise<void> {
     try {
       logger.info(
-        `[CUSTOMER-PLACEHOLDER] 👤 Creating placeholder for ${phoneNumber}`
+        `[CUSTOMER-PLACEHOLDER] 👤 Creating placeholder for ${phoneNumber} with language: ${language}`
       )
 
-      // Find or create customer using unified method
-      const customer = await this.findOrCreateCustomer(phoneNumber, workspaceId, {
-        name: `WhatsApp User ${phoneNumber.slice(-4)}`, // Placeholder name with last 4 digits
-        isActive: true,
-        language: language || "it",
-        activeChatbot: true,
+      // Check if customer already exists first
+      const existingCustomer = await prisma.customers.findFirst({
+        where: {
+          phone: phoneNumber,
+          workspaceId: workspaceId,
+        },
+      })
+
+      if (existingCustomer) {
+        logger.info(`[CUSTOMER-PLACEHOLDER] ✅ Customer already exists: ${existingCustomer.id}`)
+        
+        // Update language if it's different from detected one
+        if (existingCustomer.language !== language) {
+          await prisma.customers.update({
+            where: { id: existingCustomer.id },
+            data: { language: language }
+          })
+          logger.info(`[CUSTOMER-PLACEHOLDER] 🌍 Updated customer language to: ${language}`)
+        }
+        return
+      }
+
+      // Create new customer with the detected language
+      const newCustomer = await prisma.customers.create({
+        data: {
+          phone: phoneNumber,
+          workspaceId: workspaceId,
+          name: `Unregistered User ${phoneNumber.slice(-4)}`,
+          email: `unregistered_${phoneNumber.replace(/[^0-9]/g, '')}@placeholder.com`,
+          language: language,
+          isActive: false, // Unregistered users are inactive
+          activeChatbot: true,
+        },
       })
 
       logger.info(
-        `[CUSTOMER-PLACEHOLDER] ✅ Customer found/created: ${customer.id}`
+        `[CUSTOMER-PLACEHOLDER] ✅ Customer created: ${newCustomer.id} with language: ${language}`
       )
     } catch (error) {
       logger.error(
@@ -501,65 +483,7 @@ export class MessageController {
     }
   }
 
-  /**
-   * 👤 UNIFIED CUSTOMER FIND OR CREATE METHOD
-   * Centralized method to prevent duplicate customer creation
-   */
-  private async findOrCreateCustomer(
-    phoneNumber: string,
-    workspaceId: string,
-    options: {
-      name?: string;
-      isActive?: boolean;
-      language?: string;
-      activeChatbot?: boolean;
-    } = {}
-  ): Promise<any> {
-    try {
-      // Always search for ANY customer with this phone and workspace (regardless of isActive)
-      let customer = await prisma.customers.findFirst({
-        where: {
-          phone: phoneNumber,
-          workspaceId: workspaceId,
-        },
-      });
-
-      if (customer) {
-        logger.info(
-          `[UNIFIED-CUSTOMER] Found existing customer ${customer.id} for phone ${phoneNumber}`
-        );
-        return customer;
-      }
-
-      // Create new customer with provided options or defaults
-      const customerData = {
-        name: options.name || `WhatsApp User ${phoneNumber}`,
-        email: `${phoneNumber.replace(/[^0-9]/g, "")}@whatsapp.placeholder`,
-        phone: phoneNumber,
-        workspaceId: workspaceId,
-        language: options.language || "Italian",
-        currency: "EUR",
-        isActive: options.isActive !== undefined ? options.isActive : true,
-        activeChatbot: options.activeChatbot !== undefined ? options.activeChatbot : true,
-      };
-
-      customer = await prisma.customers.create({
-        data: customerData,
-      });
-
-      logger.info(
-        `[UNIFIED-CUSTOMER] Created new customer ${customer.id} for phone ${phoneNumber} with isActive: ${customerData.isActive}`
-      );
-
-      return customer;
-    } catch (error) {
-      logger.error(
-        `[UNIFIED-CUSTOMER] Error finding or creating customer for ${phoneNumber}:`,
-        error
-      );
-      throw error;
-    }
-  }
+  // REMOVED: findOrCreateCustomer - Now using MessageRepository.saveMessage() for all operations
 
   /**
    * 🔗 GET REGISTRATION TEXT
@@ -576,5 +500,22 @@ export class MessageController {
     }
 
     return registrationTexts[language] || registrationTexts["it"]
+  }
+
+  /**
+   * 📝 GET REGISTRATION REQUIRED MESSAGE
+   * Returns the "registration required" message in the appropriate language
+   */
+  private getRegistrationRequiredMessage(language: string): string {
+    const registrationRequiredMessages = {
+      it: "Per utilizzare questo servizio devi prima registrarti. Scrivi 'ciao' per ricevere il link di registrazione.",
+      es: "Para usar este servicio primero debes registrarte. Escribe 'hola' para recibir el enlace de registro.",
+      en: "To use this service you must first register. Write 'hello' to receive the registration link.",
+      fr: "Pour utiliser ce service, vous devez d'abord vous inscrire. Écrivez 'bonjour' pour recevoir le lien d'inscription.",
+      de: "Um diesen Service zu nutzen, müssen Sie sich zuerst registrieren. Schreiben Sie 'hallo', um den Registrierungslink zu erhalten.",
+      pt: "Para usar este serviço você deve primeiro se registrar. Escreva 'olá' para receber o link de registro.",
+    }
+
+    return registrationRequiredMessages[language] || registrationRequiredMessages["it"]
   }
 }

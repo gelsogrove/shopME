@@ -1,8 +1,7 @@
 // @ts-nocheck
 import { MessageRepository } from "../../repositories/message.repository"
 import {
-    detectGreeting as detectGreetingLang,
-    detectLanguage,
+    detectGreeting as detectGreetingLang
 } from "../../utils/language-detector"
 import logger from "../../utils/logger"
 import { N8nPayloadBuilder } from "../../utils/n8n-payload-builder"
@@ -330,11 +329,13 @@ export class MessageService {
         if (n8nResponse?.message === "Error in workflow" || !n8nResponse?.message || n8nResponse?.message === "") {
           logger.error(`[N8N] ❌ N8N workflow failed and returned empty response - NO FALLBACK ALLOWED`)
           
-          // Save the message to database for history only
-          await this.saveMessage(message, phoneNumber, workspaceId, "N8N workflow error", "N8N_ERROR")
+          const userFriendlyError = "Si è verificato un errore durante l'elaborazione del messaggio. Riprova più tardi o contatta il supporto.";
           
-          // Return null to indicate system failure - NO HARDCODED RESPONSES
-          return null
+          // Save the user-friendly error message to database for history 
+          await this.saveMessage(message, phoneNumber, workspaceId, userFriendlyError, "N8N_ERROR")
+          
+          // Return user-friendly error message instead of null
+          return userFriendlyError
         }
 
         return n8nResponse?.message || "Messaggio elaborato con successo"
@@ -342,15 +343,15 @@ export class MessageService {
         console.log("🚨 N8N ERROR:", n8nError)
         logger.error(`[N8N] ❌ Error calling N8N:`, n8nError)
         
-        // 🚨 NO HARDCODE: Save message and return null (no fallback responses)
+        // 🚨 NO HARDCODE: Save message and return proper error response 
         try {
-          await this.saveMessage(message, phoneNumber, workspaceId, "N8N connection error", "N8N_CONNECTION_ERROR")
+          await this.saveMessage(message, phoneNumber, workspaceId, "Si è verificato un errore di connessione. Riprova più tardi.", "SYSTEM_ERROR")
         } catch (saveError) {
           logger.error(`[SAVE-ERROR] ❌ Error saving error message:`, saveError)
         }
         
-        // Return null to indicate system failure - NO HARDCODED RESPONSES
-        return null
+        // Return a user-friendly error message instead of null
+        return "Si è verificato un errore di connessione. Riprova più tardi."
       }
     } catch (error) {
       logger.error(`[SECURITY-GATEWAY] ❌ ERROR in security checks:`, error)
@@ -370,33 +371,13 @@ export class MessageService {
     workspaceId: string
   ) {
     try {
-      // Find or create chat session
-      let chatSession = await prisma.chatSession.findFirst({
-        where: {
-          customerPhoneNumber: phoneNumber,
-          workspaceId,
-        },
-      })
-
-      if (!chatSession) {
-        chatSession = await prisma.chatSession.create({
-          data: {
-            customerPhoneNumber: phoneNumber,
-            workspaceId,
-            language: detectLanguage(message),
-            isActive: true,
-          },
-        })
-      }
-
-      // Save the message for operator review
-      await prisma.message.create({
-        data: {
-          content: message,
-          role: "user",
-          chatSessionId: chatSession.id,
-          needsOperatorReview: true,
-        },
+      // Use the MessageRepository to properly handle chat session creation
+      await this.messageRepository.saveMessage({
+        workspaceId,
+        phoneNumber,
+        message,
+        response: "Message saved for operator review",
+        agentSelected: "OPERATOR_REVIEW"
       })
 
       logger.info(`[FLOWISE] Message saved for operator review: ${phoneNumber}`)
@@ -416,39 +397,13 @@ export class MessageService {
     language: string
   ) {
     try {
-      // Find or create chat session
-      let chatSession = await prisma.chatSession.findFirst({
-        where: {
-          customerPhoneNumber: phoneNumber,
-          workspaceId,
-        },
-      })
-
-      if (!chatSession) {
-        chatSession = await prisma.chatSession.create({
-          data: {
-            customerPhoneNumber: phoneNumber,
-            workspaceId,
-            language,
-            isActive: true,
-          },
-        })
-      }
-
-      // Save user message and AI response
-      await prisma.message.createMany({
-        data: [
-          {
-            content: userMessage,
-            role: "user",
-            chatSessionId: chatSession.id,
-          },
-          {
-            content: aiResponse,
-            role: "assistant",
-            chatSessionId: chatSession.id,
-          },
-        ],
+      // Use the MessageRepository to properly handle chat session creation
+      await this.messageRepository.saveMessage({
+        workspaceId,
+        phoneNumber,
+        message: userMessage,
+        response: aiResponse,
+        agentSelected: "FLOWISE"
       })
 
       logger.info(`[FLOWISE] Conversation saved for ${phoneNumber}`)
