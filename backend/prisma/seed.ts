@@ -1800,6 +1800,98 @@ async function main() {
     }
   }
 
+  // Create test customer with active chat and welcome message
+  console.log("Creating test customer with active chat...")
+  
+  // Delete existing test customer if it exists
+  await prisma.customers.deleteMany({
+    where: {
+      workspaceId: mainWorkspaceId,
+      email: "test.customer@shopme.com",
+    },
+  })
+  console.log("Deleted existing test customer")
+
+  // Create test customer
+  const testCustomer = await prisma.customers.create({
+    data: {
+      name: "Mario Rossi",
+      email: "test.customer@shopme.com",
+      phone: "+39123456789",
+      address: "Via Roma 123, Milano, Italy",
+      company: "Test Company SRL",
+      language: "it",
+      currency: "EUR",
+      workspaceId: mainWorkspaceId,
+      activeChatbot: true,
+    },
+  })
+  console.log(`Test customer created: ${testCustomer.name} (${testCustomer.email})`)
+
+  // Create active chat session for the test customer
+  const chatSession = await prisma.chatSession.create({
+    data: {
+      customerId: testCustomer.id,
+      workspaceId: mainWorkspaceId,
+      status: "active",
+      context: {
+        language: "it",
+        userRegistered: true,
+        lastActivity: new Date().toISOString(),
+      },
+    },
+  })
+  console.log(`Chat session created for customer: ${chatSession.id}`)
+
+  // Get the active prompt for creating messages
+  const activePrompt = await prisma.prompts.findFirst({
+    where: {
+      workspaceId: mainWorkspaceId,
+      isActive: true,
+      isRouter: true,
+    },
+  })
+
+  // Create initial messages in the chat
+  const messages = [
+    {
+      direction: "INBOUND" as const,
+      content: "ciao",
+      type: "TEXT" as const,
+      status: "received",
+      aiGenerated: false,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        source: "whatsapp",
+      },
+    },
+    {
+      direction: "OUTBOUND" as const,
+      content: "Ciao Mario! 👋 Benvenuto a L'Altra Italia! Sono il tuo assistente virtuale e sono qui per aiutarti con qualsiasi informazione sui nostri prodotti e servizi. Come posso assisterti oggi? 😊",
+      type: "TEXT" as const,
+      status: "sent",
+      aiGenerated: true,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        messageType: "welcome",
+        language: "it",
+      },
+    },
+  ]
+
+  for (const messageData of messages) {
+    const message = await prisma.message.create({
+      data: {
+        ...messageData,
+        chatSessionId: chatSession.id,
+        promptId: activePrompt?.id || null,
+      },
+    })
+    console.log(`Message created: ${messageData.direction} - "${messageData.content.substring(0, 50)}..."`)
+  }
+
+  console.log("✅ Test customer with active chat and welcome message created successfully!")
+
   // Seed default document
   await seedDefaultDocument()
 
@@ -1813,6 +1905,7 @@ async function main() {
   console.log(`- Prodotti creati/aggiornati: ${products.length}`)
   console.log(`- Services creati/aggiornati: ${services.length}`)
   console.log(`- FAQs create: ${faqsData.length}`)
+  console.log(`- Test customer with active chat created: Mario Rossi (+39123456789)`)
   console.log(`- Embeddings ready for manual generation via API`)
 }
 
