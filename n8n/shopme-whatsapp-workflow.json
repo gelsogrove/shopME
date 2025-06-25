@@ -1,5 +1,5 @@
 {
-  "name": "ShopMe WhatsApp Workflow",
+  "name": "Temp Workflow",
   "nodes": [
     {
       "parameters": {
@@ -8,41 +8,15 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "c18e2d53-7a43-430c-aca8-fb6959b6549e",
+      "id": "2c70e640-d7ee-47da-995a-19861445c201",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -3020,
-        0
+        -120,
+        -20
       ],
-      "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "boolean": [
-            {
-              "value1": "={{ $json.precompiledData.businessInfo.isActive }}",
-              "operation": "=equal",
-              "value2": true
-            }
-          ]
-        }
-      },
-      "id": "b2d2c5d2-0fc0-4af8-ab21-089656061f53",
-      "name": "IsChannelActive?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [
-        -2440,
-        0
-      ],
-      "alwaysOutputData": true,
-      "executeOnce": false,
-      "retryOnFail": false,
-      "notesInFlow": true
+      "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
     },
     {
       "parameters": {
@@ -50,13 +24,13 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict",
+            "typeValidation": "loose",
             "version": 2
           },
           "conditions": [
             {
               "id": "1a179627-1c1f-4c54-af66-6ad7491f99b2",
-              "leftValue": "={{ $json.precompiledData.customer.isActive }}",
+              "leftValue": "={{ $json.isActive }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -66,7 +40,7 @@
             },
             {
               "id": "a8bba5ed-daac-4ec1-aec4-dc8b3f9f93f0",
-              "leftValue": "={{ $json.precompiledData.customer.activeChatbot }}",
+              "leftValue": "={{ $json.activeChatbot }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -76,7 +50,7 @@
             },
             {
               "id": "d781db6b-2bd6-4766-a7ef-9b828b685793",
-              "leftValue": "={{ $json.precompiledData.customer.isBlacklisted }}",
+              "leftValue": "={{ $json.isBlacklisted }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -87,6 +61,7 @@
           ],
           "combinator": "and"
         },
+        "looseTypeValidation": true,
         "options": {
           "ignoreCase": false
         }
@@ -94,148 +69,74 @@
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.2,
       "position": [
-        -2620,
-        0
+        280,
+        -20
       ],
-      "id": "86692e5b-d2b2-45fc-8992-30514fb38b28",
+      "id": "fe2a2695-0b08-4d03-ab40-68733d62edef",
       "name": "Filter",
       "alwaysOutputData": false,
       "executeOnce": true
     },
     {
       "parameters": {
-        "jsCode": "return {\n  \"workspaceId\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n  \"phoneNumber\": \"393451234567\",\n  \"messageContent\": \"cerco mozzarella per la pizza\",\n  \"sessionToken\": \"dc3d1eb7b9b7c4e2f1a8d6c5b9e4f7a2\",\n  \"precompiledData\": {\n    \"agentConfig\": {\n      \"id\": \"agent-config-123\",\n      \"workspaceId\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n      \"model\": \"openai/gpt-4o-mini\",\n      \"temperature\": 0.7,\n      \"maxTokens\": 1000,\n      \"topP\": 0.9,\n      \"prompt\": \"Sei un assistente virtuale esperto per L'Altra Italia, un'azienda italiana specializzata in prodotti alimentari di alta qualità. Il tuo compito è aiutare i clienti a trovare i prodotti giusti, fornire informazioni sui prezzi, ingredienti e disponibilità. Rispondi sempre in modo professionale e cortese.\",\n      \"isActive\": true\n    },\n    \"customer\": {\n      \"id\": \"7a305200-993a-41d1-82c3-f1d148c3cf31\",\n      \"name\": \"Mario Rossi\",\n      \"email\": \"mario.rossi@email.com\",\n      \"phone\": \"393451234567\",\n      \"language\": \"it\",\n      \"isActive\": true,\n      \"isBlacklisted\": false,\n      \"activeChatbot\": true,\n      \"discount\": 0,\n      \"currency\": \"EUR\",\n      \"address\": \"Via Roma 123, Milano\",\n      \"company\": \"\"\n    },\n    \"businessInfo\": {\n      \"id\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n      \"name\": \"L'Altra Italia(ESP)\",\n      \"businessType\": \"ECOMMERCE\",\n      \"plan\": \"PREMIUM\",\n      \"whatsappPhoneNumber\": \"+34654728753\",\n      \"whatsappApiKey\": \"your-whatsapp-api-key\",\n      \"language\": \"it\",\n      \"currency\": \"EUR\",\n      \"timezone\": \"Europe/Rome\",\n      \"isActive\": true,\n      \"url\": \"https://laltroitalia.shop\",\n      \"notificationEmail\": \"admin@laltroitalia.shop\",\n      \"description\": \"Prodotti alimentari italiani di alta qualità\",\n      \"wipMessages\": {\n        \"en\": \"Work in progress. Please contact us later.\",\n        \"es\": \"Trabajos en curso. Por favor, contáctenos más tarde.\",\n        \"it\": \"Lavori in corso. Contattaci più tardi.\",\n        \"fr\": \"Travaux en cours. Veuillez nous contacter plus tard.\",\n        \"de\": \"Arbeiten im Gange. Bitte kontaktieren Sie uns später.\",\n        \"pt\": \"Em manutenção. Por favor, contacte-nos mais tarde.\"\n      }\n    },\n    \"conversationHistory\": [\n      {\n        \"id\": \"msg-1\",\n        \"content\": \"Ciao! Come posso aiutarti oggi?\",\n        \"role\": \"assistant\",\n        \"timestamp\": \"2024-06-19T15:25:00.000Z\"\n      },\n      {\n        \"id\": \"msg-2\",\n        \"content\": \"Salve, sto cercando dei formaggi\",\n        \"role\": \"user\",\n        \"timestamp\": \"2024-06-19T15:26:00.000Z\"\n      },\n      {\n        \"id\": \"msg-3\",\n        \"content\": \"Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?\",\n        \"role\": \"assistant\",\n        \"timestamp\": \"2024-06-19T15:26:30.000Z\"\n      }\n    ]\n  }\n}\n"
+        "jsCode": "return {\n  messageContent: \"Cerco mozzarella per la pizza\",\n  chatHistory: [\n    {\n      id: \"msg-1\",\n      content: \"Ciao! Come posso aiutarti oggi?\",\n      role: \"assistant\",\n      timestamp: \"2024-06-19T15:25:00.000Z\"\n    },\n    {\n      id: \"msg-2\",\n      content: \"Salve, sto cercando dei formaggi\",\n      role: \"user\",\n      timestamp: \"2024-06-19T15:26:00.000Z\"\n    }\n  ],\n  isBlacklisted: false,\n  activeChatbot: true,\n  mail: \"mario.rossi@email.com\",\n  customer: \"Mario Rossi\",\n  language: \"it\",\n  isActive: true,\n  phone: \"393451234567\",\n  email: \"mario.rossi@email.com\",\n  cusomerId: \"7a305200-993a-41d1-82c3-f1d148c3cf31\",\n  businessName: \"L'Altra Italia\",\n  prompt: \"Sei un assistente virtuale esperto per L'Altra Italia, un'azienda italiana specializzata in prodotti alimentari di alta qualità. Il tuo compito è aiutare i clienti a trovare i prodotti giusti, fornire informazioni sui prezzi, ingredienti e disponibilità. Rispondi sempre in modo professionale e cortese.\",\n  model: \"openai/gpt-4o-mini\",\n  temperature: 0.7,\n  maxTokens: 1000,\n  workspaceId: \"cm9hjgq9v00014qk8fsdy4ujv\"\n}"
       },
-      "id": "c937f1da-c3bf-48e0-8da2-45c829edef34",
+      "id": "a21874c1-4db1-4aad-a34f-80b64946ef21",
       "name": "mock",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -2800,
-        0
+        100,
+        -20
       ],
       "alwaysOutputData": true,
       "executeOnce": true
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first();\n\nlet message = ''; \n\nconst customerLanguage = item.json?.customer?.language;\nconst language = customerLanguage || 'en';\n\nconsole.log(\"Detected Language:\", language);\n\n JSON.stringify(item.json?.wipMessages, null, 2);\n\nif (language == 'it') {\n  message = item.json?.precompiledData.businessInfo.wipMessages?.it;\n} else if (language == 'es') {\n  message = item.json?.precompiledData.businessInfo.wipMessages?.es;\n} else if (language == 'en') {\n message = item.json?.precompiledData.businessInfo.wipMessages?.en;\n} else if (language == 'pt') {\n message = item.json?.precompiledData.businessInfo.wipMessages?.pt;\n} else {\n  message = item.json?.precompiledData.businessInfo.wipMessages?.en\n}\n\n\nreturn [\n  {\n    json: {\n      message: message\n    }\n  }\n];"
+        "jsCode": "//const item = $input.first();\n\nlet message = 'WIP MESSAGE TODO'; \n \n\nreturn [\n  {\n    json: {\n      message: message\n    }\n  }\n];"
       },
-      "id": "11a54a05-ce2e-4c10-b5b5-75c418d8a767",
+      "id": "6667ee9d-8354-41ef-ac4c-e247c9f9c215",
       "name": "return wip message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -2220,
-        180
+        680,
+        160
       ],
       "alwaysOutputData": false
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first().json;\n\nreturn  {\n      chatInput : item.precompiledData.agentConfig.prompt\n    }\n "
+        "jsCode": "const item = $input.first().json;\n\nreturn  {\n    messageContent: item.messageContent || \"\",\n    chatHistory: item.conversationHistory || \"\",\n    isBlacklisted: item.isBlacklisted || \"\",\n    activeChatbot: item.activeChatbot || \"\",\n    mail: item.mail || \"\",\n    language: item.language || \"\",\n  /*  \n  isActive: item.customer.isActive || \"\",\n    phone: item.customer.phone || \"\",\n    email: item.customer.email || \"\",\n    cusomerId: item.customer.id || \"\",\n    businessName:  item.customer.businessName || \"\",\n    prompt :  item.agentConfig.prompt || \"\",\n    model: item.agentConfig.model || \"\",\n    temperature: item.agentConfig.temperature || \"\",\n    maxTokens: item.agentConfig.maxTokens || \"\",\n    workspaceId: item.precompiledData.agentConfig.maxTokens || \"\",\n  */\n}\n"
       },
-      "id": "db68c6a5-a671-4814-b47e-33ee362fa09b",
+      "id": "3dc37bd7-6988-4e25-87ad-a54b5c1fa6a4",
       "name": "go!!",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -2200,
-        -200
+        700,
+        -220
       ],
       "alwaysOutputData": false
     },
     {
       "parameters": {
-        "public": true,
-        "options": {}
+        "jsCode": "const item = $input.first();\n\nlet message =item.json.messageContent || \"\";\n \n\nreturn [\n  {\n    json: {\n      message: message\n    }\n  }\n];"
       },
-      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        -2040,
-        -40
-      ],
-      "id": "402c7806-e503-4fcb-91f0-62237481ab94",
-      "name": "When chat message received",
-      "webhookId": "186ecbae-0c55-4190-b5cd-cf805e20beef"
-    },
-    {
-      "parameters": {
-        "batching": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "typeVersion": 1.7,
-      "position": [
-        -1840,
-        -140
-      ],
-      "id": "2522490d-f2ac-40e0-a421-3facb180165e",
-      "name": "Basic LLM Chain"
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        -1820,
-        80
-      ],
-      "id": "eea46108-4dfa-4ed7-873e-ad652967eb54",
-      "name": "OpenRouter Chat Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "iaUWug0H1lDU4t0A",
-          "name": "OpenRouter account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const item = $input.first();\nconsole.log('LLM Chain Output:', JSON.stringify(item.json, null, 2));\n\n// Il Basic LLM Chain restituisce la risposta in diversi possibili campi\nlet message = '';\n\n// Prova diversi campi possibili\nif (item.json.response) {\n  message = item.json.response;\n} else if (item.json.text) {\n  message = item.json.text;\n} else if (item.json.output) {\n  message = item.json.output;\n} else if (item.json.result) {\n  message = item.json.result;\n} else if (item.json.content) {\n  message = item.json.content;\n} else {\n  // Fallback: converte tutto l'oggetto in stringa per debug\n  message = 'Errore: formato risposta non riconosciuto. Debug: ' + JSON.stringify(item.json);\n}\n\nreturn [\n  {\n    json: {\n      message: message,\n      originalData: item.json\n    }\n  }\n];"
-      },
-      "id": "9695a281-c79b-4c48-8cd1-c40635853b82",
-      "name": "Extract LLM Response",
+      "id": "14568dae-8f65-40cc-9845-b877c34bbabb",
+      "name": "return wip message1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -1420,
-        -140
+        960,
+        -220
       ],
       "alwaysOutputData": false
     }
   ],
   "pinData": {},
   "connections": {
-    "LLM Router (Intent Classification)": {
-      "main": [
-        [
-          {
-            "node": "Needs RAG Search?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "LLM Formatter (Response Generation)": {
-      "main": [
-        [
-          {
-            "node": "Save Inbound Message",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Send WhatsApp Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Webhook": {
       "main": [
         [
@@ -247,29 +148,11 @@
         ]
       ]
     },
-    "IsChannelActive?": {
-      "main": [
-        [
-          {
-            "node": "go!!",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "return wip message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Filter": {
       "main": [
         [
           {
-            "node": "IsChannelActive?",
+            "node": "go!!",
             "type": "main",
             "index": 0
           }
@@ -287,66 +170,25 @@
         ]
       ]
     },
-    "OpenRouter Chat Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Basic LLM Chain",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "When chat message received": {
-      "main": [
-        [
-          {
-            "node": "Basic LLM Chain",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "go!!": {
       "main": [
         [
           {
-            "node": "Basic LLM Chain",
+            "node": "return wip message1",
             "type": "main",
             "index": 0
           }
         ]
-      ]
-    },
-    "Basic LLM Chain": {
-      "main": [
-        [
-          {
-            "node": "Extract LLM Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract LLM Response": {
-      "main": [
-        []
       ]
     }
   },
   "active": true,
-  "settings": {
-    "executionOrder": "v1",
-    "callerPolicy": "workflowsFromSameOwner"
-  },
-  "versionId": "561f643f-3781-4412-aba3-302cd2137106",
+  "settings": {},
+  "versionId": "d943b3c0-d94c-4a9e-a23c-0d9157370a01",
   "meta": {
-    "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65",
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
   },
-  "id": "1XPQF919PP0MEdtH",
+  "id": "px4cL5MEa4gsyOgW",
   "tags": []
 }

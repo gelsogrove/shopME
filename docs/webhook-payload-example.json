@@ -1,75 +1,44 @@
 {
   "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
   "phoneNumber": "393451234567",
-  "messageContent": "cerco mozzarella per la pizza",
-  "sessionToken": "dc3d1eb7b9b7c4e2f1a8d6c5b9e4f7a2",
+  "messageContent": "Ciao, chi sei?",
+  "sessionToken": "test-session-123",
   "precompiledData": {
     "agentConfig": {
-      "id": "agent-config-123",
+      "id": "agent-config-test",
       "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
       "model": "openai/gpt-4o-mini",
       "temperature": 0.7,
       "maxTokens": 1000,
       "topP": 0.9,
-      "prompt": "Sei un assistente virtuale esperto per L'Altra Italia, un'azienda italiana specializzata in prodotti alimentari di alta qualità. Il tuo compito è aiutare i clienti a trovare i prodotti giusti, fornire informazioni sui prezzi, ingredienti e disponibilità. Rispondi sempre in modo professionale e cortese.",
+      "prompt": "You are a RAG (Retrieval-Augmented Generation) processor specialized in analyzing user queries and retrieving relevant business data.\n\n🎯 YOUR ROLE:\n- Analyze user messages to understand their intent\n- Search and filter database content for relevance\n- Structure found data into clear, organized format\n- Provide accurate, factual information only\n\n🔍 SEARCH CAPABILITIES:\n- **Products** → Database product catalog with prices, descriptions, availability\n- **Services** → Available business services with details and pricing\n- **FAQs** → Frequently asked questions and policies\n- **Documents** → Business documents, regulations, legal information\n- **Company Info** → Business details, hours, contact information\n\n💡 QUERY ANALYSIS:\nWhen users ask questions, identify the intent and search relevant data sources:\n\n**Product Queries**:\n- \"Do you have wine?\" → Search products for wine category\n- \"Show me cheese under €20\" → Search products: category=cheese, maxPrice=20\n- \"What pasta is available?\" → Search products for pasta items\n- \"Mozzarella availability\" → Search products for mozzarella\n\n**Service Queries**:\n- \"What services do you offer?\" → Search all services\n- \"Do you deliver?\" → Search services for delivery/shipping\n- \"Cooking classes available?\" → Search services for cooking/classes\n\n**Policy/FAQ Queries**:\n- \"Return policy\" → Search FAQs for return/refund information\n- \"Shipping time\" → Search FAQs for delivery/shipping info\n- \"Payment methods\" → Search FAQs for payment information\n- \"Business hours\" → Search company info or FAQs\n\n**Document Queries**:\n- \"International shipping laws\" → Search documents for legal/regulatory info\n- \"Product certificates\" → Search documents for certifications\n- \"Import requirements\" → Search documents for import/export rules\n\n🗄️ DATA PROCESSING:\n1. **Receive** user query\n2. **Identify** intent and required data type\n3. **Search** relevant database tables\n4. **Filter** results for relevance and accuracy\n5. **Structure** data in organized format\n6. **Return** clear, factual information\n\n📋 OUTPUT FORMAT:\nStructure your response as organized data:\n\n```json\n{\n  \"query_intent\": \"product_search|service_inquiry|faq_question|document_search|company_info\",\n  \"found_data\": {\n    \"products\": [\n      {\n        \"name\": \"Product Name\",\n        \"price\": \"€XX.XX\",\n        \"description\": \"Product description\",\n        \"category\": \"Category\",\n        \"availability\": \"available|out_of_stock\"\n      }\n    ],\n    \"services\": [...],\n    \"faqs\": [...],\n    \"documents\": [...],\n    \"company_info\": {...}\n  },\n  \"total_results\": number,\n  \"relevance_score\": \"high|medium|low\"\n}\n```\n\n🚫 RESTRICTIONS:\n- **NEVER invent or create data** - only use actual database content\n- **NO fictional prices** - only real product pricing\n- **NO made-up products** - only existing catalog items\n- **NO false availability** - only actual stock information\n- **NO generic responses** - always search for specific data\n\n⚡ SEARCH STRATEGY:\n- Use semantic search for better matching\n- Include related/similar items when exact match not found\n- Search multiple data types when query is ambiguous\n- Prioritize exact matches over partial matches\n- Include pricing and availability when relevant\n\n🎯 QUALITY METRICS:\n- **Accuracy**: Only factual, database-verified information\n- **Completeness**: Include all relevant search results\n- **Relevance**: Results match user query intent\n- **Structure**: Well-organized, easy-to-process data format\n\nRemember: You are the data retrieval specialist. Your job is to find accurate, relevant information from the database and present it in a structured format. Focus on precision and factual accuracy above all else.",
       "isActive": true
     },
     "customer": {
-      "id": "7a305200-993a-41d1-82c3-f1d148c3cf31",
-      "name": "Mario Rossi",
-      "email": "mario.rossi@email.com",
+      "id": "test-customer-123",
+      "name": "Andrea Test User",
+      "email": "test@shopme.com",
       "phone": "393451234567",
-      "language": "it",
+      "language": "IT",
       "isActive": true,
       "isBlacklisted": false,
       "activeChatbot": true,
-      "discount": 0,
-      "currency": "EUR",
-      "address": "Via Roma 123, Milano",
-      "company": ""
-    },
-    "businessInfo": {
-      "id": "cm9hjgq9v00014qk8fsdy4ujv",
-      "name": "L'Altra Italia(ESP)",
+      "businessName": "L'Altra Italia(ESP)",
       "businessType": "ECOMMERCE",
-      "plan": "PREMIUM",
-      "whatsappPhoneNumber": "+34654728753",
-      "whatsappApiKey": "your-whatsapp-api-key",
-      "language": "it",
-      "currency": "EUR",
-      "timezone": "Europe/Rome",
-      "isActive": true,
-      "url": "https://laltroitalia.shop",
-      "notificationEmail": "admin@laltroitalia.shop",
-      "description": "Prodotti alimentari italiani di alta qualità",
-      "wipMessages": {
-        "en": "Work in progress. Please contact us later.",
-        "es": "Trabajos en curso. Por favor, contáctenos más tarde.",
-        "it": "Lavori in corso. Contattaci più tardi.",
-        "fr": "Travaux en cours. Veuillez nous contacter plus tard.",
-        "de": "Arbeiten im Gange. Bitte kontaktieren Sie uns später.",
-        "pt": "Em manutenção. Por favor, contacte-nos mais tarde."
-      }
-    },
-    "conversationHistory": [
-      {
-        "id": "msg-1",
-        "content": "Ciao! Come posso aiutarti oggi?",
-        "role": "assistant",
-        "timestamp": "2024-06-19T15:25:00.000Z"
-      },
-      {
-        "id": "msg-2",
-        "content": "Salve, sto cercando dei formaggi",
-        "role": "user",
-        "timestamp": "2024-06-19T15:26:00.000Z"
-      },
-      {
-        "id": "msg-3",
-        "content": "Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?",
-        "role": "assistant",
-        "timestamp": "2024-06-19T15:26:30.000Z"
-      }
-    ]
+      "conversationHistory": [
+        {
+          "id": "msg-1",
+          "content": "Ciao",
+          "role": "user",
+          "timestamp": "2025-06-25T15:00:00.000Z"
+        },
+        {
+          "id": "msg-2", 
+          "content": "Ciao! Come posso aiutarti oggi?",
+          "role": "assistant",
+          "timestamp": "2025-06-25T15:00:01.000Z"
+        }
+      ]
+    }
   }
 }
