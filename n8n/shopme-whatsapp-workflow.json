@@ -8,155 +8,93 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "962bdc5a-d504-469c-abd0-1e5bc6b0f4dc",
+      "id": "41ff1d3d-9ad2-4abc-ac03-fadf45e31b7a",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -800,
-        240
+        -2600,
+        360
       ],
       "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
     },
     {
       "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  // Esponi il tipo e il valore di body come output per debug\n  return {\n    json: {\n      original: item.json,\n      bodyType: typeof item.json.body,\n      bodyValue: item.json.body\n    }\n  };\n});"
+      },
+      "id": "c83f6d6c-05ad-4afd-be9a-14674c6e0000",
+      "name": "Flatten body after Webhook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -2420,
+        360
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
         "conditions": {
           "options": {
-            "caseSensitive": false,
+            "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "loose",
+            "typeValidation": "strict",
             "version": 2
           },
           "conditions": [
             {
               "id": "1a179627-1c1f-4c54-af66-6ad7491f99b2",
-              "leftValue": "={{ $json.precompiledData.customer.isActive }}",
+              "leftValue": "={{ true}}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
                 "operation": "true",
-                "singleValue": true
-              }
-            },
-            {
-              "id": "a8bba5ed-daac-4ec1-aec4-dc8b3f9f93f0",
-              "leftValue": "={{ $json.precompiledData.customer.activeChatbot }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            },
-            {
-              "id": "d781db6b-2bd6-4766-a7ef-9b828b685793",
-              "leftValue": "={{ $json.precompiledData.customer.isBlacklisted }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "false",
                 "singleValue": true
               }
             }
           ],
           "combinator": "and"
         },
-        "looseTypeValidation": true,
         "options": {
-          "ignoreCase": true
+          "ignoreCase": false
         }
       },
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.2,
       "position": [
-        -560,
-        240
+        -2140,
+        360
       ],
-      "id": "f1c5e836-2549-4c17-ad83-0f7b19a4051c",
+      "id": "8f17e90e-caa6-4bf8-a542-f3ca75c9ea20",
       "name": "Filter",
-      "alwaysOutputData": false,
+      "alwaysOutputData": true,
       "executeOnce": false
     },
     {
       "parameters": {
         "jsCode": "const item = $input.first();\n\nlet message =item.json.messageContent || \"\";\n \n\nreturn [\n  {\n    json: {\n      message: message\n    }\n  }\n];"
       },
-      "id": "1054339e-bec8-4f9f-af2f-3e517e0faccf",
+      "id": "ec02fd7d-dc4d-4d8b-a00c-f7245c41ff33",
       "name": "return wip message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -260,
-        400
+        -1820,
+        500
       ],
       "alwaysOutputData": false
     },
     {
       "parameters": {
-        "requestMethod": "POST",
-        "url": "https://openrouter.ai/api/v1/chat/completions",
-        "options": {},
-        "bodyParametersUi": {
-          "parameter": [
-            {
-              "name": "model",
-              "value": "={{ $json.model }}"
-            },
-            {
-              "name": "messages",
-              "value": "={{ $json.messages }}"
-            },
-            {
-              "name": "temperature",
-              "value": "={{ $json.temperature || 0.7 }}"
-            },
-            {
-              "name": "max_tokens",
-              "value": "={{ $json.max_tokens || 1000 }}"
-            }
-          ]
-        },
-        "headerParametersUi": {
-          "parameter": [
-            {
-              "name": "Authorization",
-              "value": "Bearer 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"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "HTTP-Referer",
-              "value": "https://iltuosito.com"
-            },
-            {
-              "name": "X-Title",
-              "value": "Demo Chat"
-            }
-          ]
-        }
+        "jsCode": "const agentConfig =$input.first().json.original.body.precompiledData.agentConfig;\n const messages = $input.first().json.original.body.precompiledData.customer.conversationHistory;\n\nconst messageContent= $input.first().json.bodyValue.messageContent\nconst sessionToken= $input.first().json.bodyValue.sessionToken\n\nreturn [\n  {\n    json: {\n     chatInput : agentConfig.prompt,\n      temperature : agentConfig.temperature,\n      maxTokens: agentConfig.maxTokens,\n      model: agentConfig.model,\n      messages,\n      messageContent,\n      sessionId: sessionToken\n      \n    },\n \n  }\n];\n"
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 2,
-      "position": [
-        -60,
-        140
-      ],
-      "id": "d683acc2-e6c4-4951-bc4e-aff792d7e1e7",
-      "name": "HTTP POST OPENROUTER"
-    },
-    {
-      "parameters": {
-        "jsCode": "const item = $input.first().json;\n\nconst prompt = item.prompt || 'You are a RAG (Retrieval-Augmented Generation) processor specialized in analyzing user queries and retrieving relevant business data.';\nconst chatHistory = Array.isArray(item.precompiledData.customer) ? item.precompiledData.customer.conversationHistory : [];\nconst messages = [\n  { role: 'system', content: prompt },\n  ...chatHistory,\n  { role: 'user', content: item.messageContent }\n];\n \nreturn [{\n  json: {\n    model: item.precompiledData.agentConfig.model,\n    messages,\n    temperature: item.temperature || 0.7,\n    max_tokens: item.maxTokens || 1000\n  }\n}];\n"
-      },
-      "id": "e4052014-2737-4c16-bd04-6f0bfbccb874",
+      "id": "964b4e05-d8aa-4c70-a75b-74fb38781f49",
       "name": "prepare-data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -260,
-        140
+        -1820,
+        200
       ],
       "alwaysOutputData": false
     },
@@ -164,58 +102,43 @@
       "parameters": {
         "jsCode": "//const item = $input.first();\n\nlet message = \"New order\"\n \n\nreturn [\n  {\n    json: {\n      message \n    }\n  }\n];"
       },
-      "id": "7292f92b-06ab-4f0b-85a7-8b0dd066c62a",
+      "id": "60323309-8160-4ff7-81ec-318471bb7dfc",
       "name": "CallingFunction NewOrder()",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        380,
-        260
+        -740,
+        500
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const args = JSON.parse(item.json.choices[0].message.function_call.arguments);\nreturn [{ json: args }];"
+      },
+      "id": "375b88ec-8d26-431f-a2c5-418113f433e0",
+      "name": "Parse searchRag arguments",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -740,
+        320
       ],
       "alwaysOutputData": false
     },
     {
       "parameters": {
         "requestMethod": "POST",
-        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "url": "http://localhost:3001/api/search_rag",
         "options": {},
         "bodyParametersUi": {
-          "parameter": [
-            {
-              "name": "model",
-              "value": "={{ $json.model }}"
-            },
-            {
-              "name": "messages",
-              "value": "={{ $json.messages }}"
-            },
-            {
-              "name": "temperature",
-              "value": "={{ $json.temperature || 0.7 }}"
-            },
-            {
-              "name": "max_tokens",
-              "value": "={{ $json.max_tokens || 1000 }}"
-            }
-          ]
+          "parameter": []
         },
         "headerParametersUi": {
           "parameter": [
             {
-              "name": "Authorization",
-              "value": "Bearer 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"
-            },
-            {
               "name": "Content-Type",
               "value": "application/json"
-            },
-            {
-              "name": "HTTP-Referer",
-              "value": "https://iltuosito.com"
-            },
-            {
-              "name": "X-Title",
-              "value": "Demo Chat"
             }
           ]
         }
@@ -223,66 +146,28 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 2,
       "position": [
-        380,
-        60
+        -540,
+        320
       ],
-      "id": "93312670-2c07-4776-aaed-e964798648c3",
-      "name": "CallingFunction searchRag()"
+      "id": "ee9ea6fd-3b21-4250-a433-172e4a7050ae",
+      "name": "HTTP Request searchRag"
     },
     {
       "parameters": {
         "requestMethod": "POST",
         "url": "https://openrouter.ai/api/v1/chat/completions",
+        "jsonParameters": true,
         "options": {},
-        "bodyParametersUi": {
-          "parameter": [
-            {
-              "name": "model",
-              "value": "={{ $json.model }}"
-            },
-            {
-              "name": "messages",
-              "value": "={{ $json.messages }}"
-            },
-            {
-              "name": "temperature",
-              "value": "={{ $json.temperature || 0.7 }}"
-            },
-            {
-              "name": "max_tokens",
-              "value": "={{ $json.max_tokens || 1000 }}"
-            }
-          ]
-        },
-        "headerParametersUi": {
-          "parameter": [
-            {
-              "name": "Authorization",
-              "value": "Bearer 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"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "HTTP-Referer",
-              "value": "https://iltuosito.com"
-            },
-            {
-              "name": "X-Title",
-              "value": "Demo Chat"
-            }
-          ]
-        }
+        "bodyParametersJson": "{\n  \"model\": \"{{ $json.model }}\",\n  \"messages\": {{ $json.messages }},\n  \"temperature\": {{ $json.temperature }},\n  \"max_tokens\": {{ $json.max_tokens }}\n}"
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 2,
       "position": [
-        640,
-        140
+        -1180,
+        460
       ],
-      "id": "857f758a-2d43-4180-ba32-2b756549ec7c",
-      "name": "LLM FORMATTER"
+      "id": "4c66a291-eed0-4983-8724-76d172039f31",
+      "name": "LLM"
     },
     {
       "parameters": {
@@ -298,8 +183,8 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "searchRag",
-                    "rightValue": "true",
+                    "leftValue": "{{ $json.choices[0].message.function_call.name }}",
+                    "rightValue": "searchRag",
                     "operator": {
                       "type": "string",
                       "operation": "equals"
@@ -321,8 +206,8 @@
                 "conditions": [
                   {
                     "id": "8b53db12-987e-4414-8a53-044b60f0691c",
-                    "leftValue": "newOrder",
-                    "rightValue": "true",
+                    "leftValue": "{{ $json.choices[0].message.function_call.name }}",
+                    "rightValue": "newORder",
                     "operator": {
                       "type": "string",
                       "operation": "equals",
@@ -343,13 +228,13 @@
                 },
                 "conditions": [
                   {
-                    "id": "76093c37-4bfd-4e15-b793-e927fa9662b7",
-                    "leftValue": "noCallingFunction",
-                    "rightValue": "true",
+                    "id": "c54db954-f064-40e4-971b-6a067ec10208",
+                    "leftValue": "={{ $json.choices[0].message.function_call.name }}",
+                    "rightValue": "",
                     "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
+                      "type": "object",
+                      "operation": "empty",
+                      "singleValue": true
                     }
                   }
                 ],
@@ -363,23 +248,23 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        140,
-        140
+        -1020,
+        460
       ],
-      "id": "e8b37282-29f3-493a-9ae5-6fdb770962b2",
+      "id": "a4c6bc98-0742-4b2d-97a0-cb33650007ee",
       "name": "Calling Function Switch"
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first();\n\nlet message =item.json.messageContent || \"\";\n \n\nreturn [\n  {\n    json: {\n      message: message\n    }\n  }\n];"
+        "jsCode": "const cleanString = $input.first().json.output.replace(/```json\\n?|```/g, '');\nconst jsonObj = JSON.parse(cleanString);\n \n\nreturn {\n  chatInput: jsonObj.found_data\n}"
       },
-      "id": "461ee8c8-4ebd-442b-86ec-6c8d2f118027",
+      "id": "8d68e161-f3f1-4a63-8842-ec8ca665440e",
       "name": "return LLM response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        380,
-        460
+        -1100,
+        0
       ],
       "alwaysOutputData": false
     },
@@ -387,69 +272,257 @@
       "parameters": {
         "jsCode": "const item = $input.first().json;\nconsole.log('Risposta OpenRouter:', JSON.stringify(item, null, 2));\n\nlet message = 'Nessuna risposta dal modello';\nif (item.choices && item.choices[0] && item.choices[0].message && item.choices[0].message.content) {\n  message = item.choices[0].message.content;\n}\n\nreturn  {\n  message : item.choices[0].message.content\n}\n"
       },
-      "id": "186abf02-4533-45d4-bf84-96e45400d752",
+      "id": "a5993c42-8101-4f1c-9a51-2364be52249a",
       "name": "Return LLM  Format response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        880,
-        140
+        -780,
+        80
       ],
       "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -1500,
+        0
+      ],
+      "id": "e4542f2c-c48d-4b0b-b65e-c8252ded56be",
+      "name": "AI Agent",
+      "alwaysOutputData": true,
+      "notesInFlow": false,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxTokens": "={{ $json.maxTokens }}",
+          "temperature": "={{ $json.temperature }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -1500,
+        180
+      ],
+      "id": "c28ea94d-3ab3-4326-a0bf-9cd4fd75f651",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "wULmtD18AyTFRgQo",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1380,
+        180
+      ],
+      "id": "55bbcba4-10db-4782-acc2-5e44fa4506ba",
+      "name": "Simple Memory"
     }
   ],
   "pinData": {
     "Webhook": [
       {
         "json": {
-          "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
-          "phoneNumber": "393451234567",
-          "messageContent": "Ciao, chi sei?",
-          "sessionToken": "test-session-123",
-          "precompiledData": {
-            "agentConfig": {
-              "id": "agent-config-test",
-              "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
-              "model": "openai/gpt-4o-mini",
-              "temperature": 0.7,
-              "maxTokens": 1000,
-              "topP": 0.9,
-              "prompt": "You are a RAG (Retrieval-Augmented Generation) processor specialized in analyzing user queries and retrieving relevant business data.\n\n🎯 YOUR ROLE:\n- Analyze user messages to understand their intent\n- Search and filter database content for relevance\n- Structure found data into clear, organized format\n- Provide accurate, factual information only\n\n🔍 SEARCH CAPABILITIES:\n- **Products** → Database product catalog with prices, descriptions, availability\n- **Services** → Available business services with details and pricing\n- **FAQs** → Frequently asked questions and policies\n- **Documents** → Business documents, regulations, legal information\n- **Company Info** → Business details, hours, contact information\n\n💡 QUERY ANALYSIS:\nWhen users ask questions, identify the intent and search relevant data sources:\n\n**Product Queries**:\n- \"Do you have wine?\" → Search products for wine category\n- \"Show me cheese under €20\" → Search products: category=cheese, maxPrice=20\n- \"What pasta is available?\" → Search products for pasta items\n- \"Mozzarella availability\" → Search products for mozzarella\n\n**Service Queries**:\n- \"What services do you offer?\" → Search all services\n- \"Do you deliver?\" → Search services for delivery/shipping\n- \"Cooking classes available?\" → Search services for cooking/classes\n\n**Policy/FAQ Queries**:\n- \"Return policy\" → Search FAQs for return/refund information\n- \"Shipping time\" → Search FAQs for delivery/shipping info\n- \"Payment methods\" → Search FAQs for payment information\n- \"Business hours\" → Search company info or FAQs\n\n**Document Queries**:\n- \"International shipping laws\" → Search documents for legal/regulatory info\n- \"Product certificates\" → Search documents for certifications\n- \"Import requirements\" → Search documents for import/export rules\n\n🗄️ DATA PROCESSING:\n1. **Receive** user query\n2. **Identify** intent and required data type\n3. **Search** relevant database tables\n4. **Filter** results for relevance and accuracy\n5. **Structure** data in organized format\n6. **Return** clear, factual information\n\n📋 OUTPUT FORMAT:\nStructure your response as organized data:\n\n```json\n{\n  \"query_intent\": \"product_search|service_inquiry|faq_question|document_search|company_info\",\n  \"found_data\": {\n    \"products\": [\n      {\n        \"name\": \"Product Name\",\n        \"price\": \"€XX.XX\",\n        \"description\": \"Product description\",\n        \"category\": \"Category\",\n        \"availability\": \"available|out_of_stock\"\n      }\n    ],\n    \"services\": [...],\n    \"faqs\": [...],\n    \"documents\": [...],\n    \"company_info\": {...}\n  },\n  \"total_results\": number,\n  \"relevance_score\": \"high|medium|low\"\n}\n```\n\n🚫 RESTRICTIONS:\n- **NEVER invent or create data** - only use actual database content\n- **NO fictional prices** - only real product pricing\n- **NO made-up products** - only existing catalog items\n- **NO false availability** - only actual stock information\n- **NO generic responses** - always search for specific data\n\n⚡ SEARCH STRATEGY:\n- Use semantic search for better matching\n- Include related/similar items when exact match not found\n- Search multiple data types when query is ambiguous\n- Prioritize exact matches over partial matches\n- Include pricing and availability when relevant\n\n🎯 QUALITY METRICS:\n- **Accuracy**: Only factual, database-verified information\n- **Completeness**: Include all relevant search results\n- **Relevance**: Results match user query intent\n- **Structure**: Well-organized, easy-to-process data format\n\nRemember: You are the data retrieval specialist. Your job is to find accurate, relevant information from the database and present it in a structured format. Focus on precision and factual accuracy above all else.",
-              "isActive": true
-            },
-            "customer": {
-              "id": "test-customer-123",
-              "name": "Andrea Test User",
-              "email": "test@shopme.com",
-              "phone": "393451234567",
-              "language": "IT",
-              "isActive": true,
-              "isBlacklisted": false,
-              "activeChatbot": true,
-              "businessName": "L'Altra Italia(ESP)",
-              "businessType": "ECOMMERCE",
-              "conversationHistory": [
-                {
-                  "id": "msg-1",
-                  "content": "Ciao",
-                  "role": "user",
-                  "timestamp": "2025-06-25T15:00:00.000Z"
+          "headers": {
+            "host": "localhost:5678",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "accept": "*/*",
+            "accept-language": "*",
+            "sec-fetch-mode": "cors",
+            "user-agent": "node",
+            "accept-encoding": "gzip, deflate",
+            "content-length": "7448"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+            "phoneNumber": "+39123456789",
+            "messageContent": "Ciao",
+            "sessionToken": "yw0z4td8x1h1nm7rgfc912",
+            "messages": [
+              {
+                "role": "user",
+                "content": "Ciao"
+              },
+              {
+                "role": "assistant",
+                "content": "Si è verificato un errore di connessione. Riprova più tardi."
+              },
+              {
+                "role": "user",
+                "content": "chi sei?"
+              },
+              {
+                "role": "assistant",
+                "content": "Si è verificato un errore di connessione. Riprova più tardi."
+              },
+              {
+                "role": "user",
+                "content": "Ciao"
+              },
+              {
+                "role": "assistant",
+                "content": "Si è verificato un errore di connessione. Riprova più tardi."
+              },
+              {
+                "role": "user",
+                "content": "Ciai"
+              },
+              {
+                "role": "assistant",
+                "content": "Si è verificato un errore di connessione. Riprova più tardi."
+              },
+              {
+                "role": "user",
+                "content": "Ciao"
+              },
+              {
+                "role": "assistant",
+                "content": "Si è verificato un errore di connessione. Riprova più tardi."
+              }
+            ],
+            "precompiledData": {
+              "agentConfig": {
+                "id": "agent-config-1750945495722",
+                "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+                "model": "openai/gpt-4o-mini",
+                "temperature": 0.7,
+                "maxTokens": 1000,
+                "topP": 0.9,
+                "prompt": "You are a RAG (Retrieval-Augmented Generation) processor specialized in analyzing user queries and retrieving relevant business data.\n\n🎯 YOUR ROLE:\n- Analyze user messages to understand their intent\n- Search and filter database content for relevance\n- Structure found data into clear, organized format\n- Provide accurate, factual information only\n\n🔍 SEARCH CAPABILITIES:\n- **Products** → Database product catalog with prices, descriptions, availability\n- **Services** → Available business services with details and pricing\n- **FAQs** → Frequently asked questions and policies\n- **Documents** → Business documents, regulations, legal information\n- **Company Info** → Business details, hours, contact information\n\n💡 QUERY ANALYSIS:\nWhen users ask questions, identify the intent and search relevant data sources:\n\n**Product Queries**:\n- \"Do you have wine?\" → Search products for wine category\n- \"Show me cheese under €20\" → Search products: category=cheese, maxPrice=20\n- \"What pasta is available?\" → Search products for pasta items\n- \"Mozzarella availability\" → Search products for mozzarella\n\n**Service Queries**:\n- \"What services do you offer?\" → Search all services\n- \"Do you deliver?\" → Search services for delivery/shipping\n- \"Cooking classes available?\" → Search services for cooking/classes\n\n**Policy/FAQ Queries**:\n- \"Return policy\" → Search FAQs for return/refund information\n- \"Shipping time\" → Search FAQs for delivery/shipping info\n- \"Payment methods\" → Search FAQs for payment information\n- \"Business hours\" → Search company info or FAQs\n\n**Document Queries**:\n- \"International shipping laws\" → Search documents for legal/regulatory info\n- \"Product certificates\" → Search documents for certifications\n- \"Import requirements\" → Search documents for import/export rules\n\n🗄️ DATA PROCESSING:\n1. **Receive** user query\n2. **Identify** intent and required data type\n3. **Search** relevant database tables\n4. **Filter** results for relevance and accuracy\n5. **Structure** data in organized format\n6. **Return** clear, factual information\n\n📋 OUTPUT FORMAT:\nStructure your response as organized data:\n\n```json\n{\n  \"query_intent\": \"product_search|service_inquiry|faq_question|document_search|company_info\",\n  \"found_data\": {\n    \"products\": [\n      {\n        \"name\": \"Product Name\",\n        \"price\": \"€XX.XX\",\n        \"description\": \"Product description\",\n        \"category\": \"Category\",\n        \"availability\": \"available|out_of_stock\"\n      }\n    ],\n    \"services\": [...],\n    \"faqs\": [...],\n    \"documents\": [...],\n    \"company_info\": {...}\n  },\n  \"total_results\": number,\n  \"relevance_score\": \"high|medium|low\"\n}\n```\n\n🚫 RESTRICTIONS:\n- **NEVER invent or create data** - only use actual database content\n- **NO fictional prices** - only real product pricing\n- **NO made-up products** - only existing catalog items\n- **NO false availability** - only actual stock information\n- **NO generic responses** - always search for specific data\n\n⚡ SEARCH STRATEGY:\n- Use semantic search for better matching\n- Include related/similar items when exact match not found\n- Search multiple data types when query is ambiguous\n- Prioritize exact matches over partial matches\n- Include pricing and availability when relevant\n\n🎯 QUALITY METRICS:\n- **Accuracy**: Only factual, database-verified information\n- **Completeness**: Include all relevant search results\n- **Relevance**: Results match user query intent\n- **Structure**: Well-organized, easy-to-process data format\n\nRemember: You are the data retrieval specialist. Your job is to find accurate, relevant information from the database and present it in a structured format. Focus on precision and factual accuracy above all else.",
+                "isActive": true
+              },
+              "customer": {
+                "id": "ab47dfc1-1146-45ac-992f-7375455d54ca",
+                "name": "Mario Rossi",
+                "email": "test.customer@shopme.com",
+                "phone": "+39123456789",
+                "language": "it",
+                "isActive": true,
+                "isBlacklisted": false,
+                "activeChatbot": true,
+                "discount": 0,
+                "currency": "EUR",
+                "address": "Via Roma 123, Milano, Italy",
+                "company": "Test Company SRL",
+                "businessName": "L'Altra Italia(ESP)",
+                "businessType": "ECOMMERCE",
+                "plan": "FREE",
+                "whatsappPhoneNumber": "+34654728753",
+                "whatsappApiKey": "your-whatsapp-api-key",
+                "timezone": "Europe/Rome",
+                "url": "http://localhost:3000",
+                "notificationEmail": "admin@laltroitalia.shop",
+                "description": "Prodotti alimentari italiani di alta qualità",
+                "wipMessages": {
+                  "it": "Sto elaborando la tua richiesta, un momento per favore...",
+                  "en": "Processing your request, please wait a moment...",
+                  "es": "Procesando tu solicitud, por favor espera un momento...",
+                  "fr": "Je traite votre demande, veuillez patienter un moment...",
+                  "de": "Ich bearbeite Ihre Anfrage, bitte warten Sie einen Moment...",
+                  "pt": "Processando sua solicitação, aguarde um momento por favor..."
                 },
-                {
-                  "id": "msg-2",
-                  "content": "Ciao! Come posso aiutarti oggi?",
-                  "role": "assistant",
-                  "timestamp": "2025-06-25T15:00:01.000Z"
-                }
-              ]
+                "conversationHistory": [
+                  {
+                    "id": "99675ae5-3aa7-4229-a583-1623c50ce90c",
+                    "content": "Ciao",
+                    "role": "user",
+                    "timestamp": "2025-06-26T13:38:36.336Z"
+                  },
+                  {
+                    "id": "ca032a94-a66b-44cb-9a4a-a30b81093354",
+                    "content": "Si è verificato un errore di connessione. Riprova più tardi.",
+                    "role": "assistant",
+                    "timestamp": "2025-06-26T13:38:36.337Z"
+                  },
+                  {
+                    "id": "40d93132-a692-46da-97a4-612982ccb243",
+                    "content": "chi sei?",
+                    "role": "user",
+                    "timestamp": "2025-06-26T13:39:59.577Z"
+                  },
+                  {
+                    "id": "e3e2e49e-51bb-42d0-bce3-2b42c02371d6",
+                    "content": "Si è verificato un errore di connessione. Riprova più tardi.",
+                    "role": "assistant",
+                    "timestamp": "2025-06-26T13:39:59.579Z"
+                  },
+                  {
+                    "id": "25cc391a-cfee-424b-9362-b5cce4b15967",
+                    "content": "Ciao",
+                    "role": "user",
+                    "timestamp": "2025-06-26T13:40:29.132Z"
+                  },
+                  {
+                    "id": "d68a46e6-1bdc-4520-af9a-3a94ba798f5c",
+                    "content": "Si è verificato un errore di connessione. Riprova più tardi.",
+                    "role": "assistant",
+                    "timestamp": "2025-06-26T13:40:29.133Z"
+                  },
+                  {
+                    "id": "8a70de71-ff6d-42fb-a1b4-b0f83cafed30",
+                    "content": "Ciai",
+                    "role": "user",
+                    "timestamp": "2025-06-26T13:41:20.276Z"
+                  },
+                  {
+                    "id": "37bf71a1-7b6c-482d-94d1-9b6a712fdf30",
+                    "content": "Si è verificato un errore di connessione. Riprova più tardi.",
+                    "role": "assistant",
+                    "timestamp": "2025-06-26T13:41:20.277Z"
+                  },
+                  {
+                    "id": "c17f2a46-7218-40eb-ab16-e6922e9823ae",
+                    "content": "Ciao",
+                    "role": "user",
+                    "timestamp": "2025-06-26T13:43:41.185Z"
+                  },
+                  {
+                    "id": "a61883d0-6658-4aa3-ba71-7c0822fc4056",
+                    "content": "Si è verificato un errore di connessione. Riprova più tardi.",
+                    "role": "assistant",
+                    "timestamp": "2025-06-26T13:43:41.186Z"
+                  }
+                ]
+              }
             }
-          }
+          },
+          "webhookUrl": "http://localhost:5678/webhook/webhook-start",
+          "executionMode": "production"
         }
       }
     ]
   },
   "connections": {
     "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Flatten body after Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flatten body after Webhook": {
       "main": [
         [
           {
@@ -476,55 +549,22 @@
         ]
       ]
     },
-    "HTTP POST OPENROUTER": {
-      "main": [
-        [
-          {
-            "node": "Calling Function Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "prepare-data": {
       "main": [
         [
           {
-            "node": "HTTP POST OPENROUTER",
+            "node": "AI Agent",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "CallingFunction NewOrder()": {
+    "Parse searchRag arguments": {
       "main": [
         [
           {
-            "node": "LLM FORMATTER",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "CallingFunction searchRag()": {
-      "main": [
-        [
-          {
-            "node": "LLM FORMATTER",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "LLM FORMATTER": {
-      "main": [
-        [
-          {
-            "node": "Return LLM  Format response",
+            "node": "HTTP Request searchRag",
             "type": "main",
             "index": 0
           }
@@ -535,7 +575,7 @@
       "main": [
         [
           {
-            "node": "CallingFunction searchRag()",
+            "node": "Parse searchRag arguments",
             "type": "main",
             "index": 0
           }
@@ -547,6 +587,49 @@
             "index": 0
           }
         ],
+        []
+      ]
+    },
+    "LLM": {
+      "main": [
+        [
+          {
+            "node": "Calling Function Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request searchRag": {
+      "main": [
+        []
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
         [
           {
             "node": "return LLM response",
@@ -555,11 +638,6 @@
           }
         ]
       ]
-    },
-    "Return LLM  Format response": {
-      "main": [
-        []
-      ]
     }
   },
   "active": true,
@@ -567,7 +645,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "executionOrder": "v0"
   },
-  "versionId": "7503dcd4-723c-44db-bd5c-4c8af8efe931",
+  "versionId": "3d5de79f-28f4-47b2-9e93-40cf649c33bb",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
