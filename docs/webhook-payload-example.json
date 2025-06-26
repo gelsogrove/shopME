@@ -40,5 +40,18 @@
         }
       ]
     }
+  },
+  "wipMessages": {
+    "en": "Work in progress. Please contact us later.",
+    "es": "Trabajos en curso. Por favor, contáctenos más tarde.",
+    "it": "Lavori in corso. Contattaci più tardi.",
+    "fr": "Travaux en cours. Veuillez nous contacter plus tard.",
+    "de": "Arbeiten im Gange. Bitte kontaktieren Sie uns später.",
+    "pt": "Em manutenção. Por favor, contacte-nos mais tarde."
   }
 }
+
+
+
+
+ 

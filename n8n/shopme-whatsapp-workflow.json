@@ -8,13 +8,13 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "2c70e640-d7ee-47da-995a-19861445c201",
+      "id": "962bdc5a-d504-469c-abd0-1e5bc6b0f4dc",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -120,
-        -20
+        -800,
+        240
       ],
       "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
     },
@@ -22,7 +22,7 @@
       "parameters": {
         "conditions": {
           "options": {
-            "caseSensitive": true,
+            "caseSensitive": false,
             "leftValue": "",
             "typeValidation": "loose",
             "version": 2
@@ -30,7 +30,7 @@
           "conditions": [
             {
               "id": "1a179627-1c1f-4c54-af66-6ad7491f99b2",
-              "leftValue": "={{ $json.isActive }}",
+              "leftValue": "={{ $json.precompiledData.customer.isActive }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -40,7 +40,7 @@
             },
             {
               "id": "a8bba5ed-daac-4ec1-aec4-dc8b3f9f93f0",
-              "leftValue": "={{ $json.activeChatbot }}",
+              "leftValue": "={{ $json.precompiledData.customer.activeChatbot }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -50,7 +50,7 @@
             },
             {
               "id": "d781db6b-2bd6-4766-a7ef-9b828b685793",
-              "leftValue": "={{ $json.isBlacklisted }}",
+              "leftValue": "={{ $json.precompiledData.customer.isBlacklisted }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -63,103 +63,393 @@
         },
         "looseTypeValidation": true,
         "options": {
-          "ignoreCase": false
+          "ignoreCase": true
         }
       },
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.2,
       "position": [
-        280,
-        -20
+        -560,
+        240
       ],
-      "id": "fe2a2695-0b08-4d03-ab40-68733d62edef",
+      "id": "f1c5e836-2549-4c17-ad83-0f7b19a4051c",
       "name": "Filter",
       "alwaysOutputData": false,
-      "executeOnce": true
-    },
-    {
-      "parameters": {
-        "jsCode": "return {\n  messageContent: \"Cerco mozzarella per la pizza\",\n  chatHistory: [\n    {\n      id: \"msg-1\",\n      content: \"Ciao! Come posso aiutarti oggi?\",\n      role: \"assistant\",\n      timestamp: \"2024-06-19T15:25:00.000Z\"\n    },\n    {\n      id: \"msg-2\",\n      content: \"Salve, sto cercando dei formaggi\",\n      role: \"user\",\n      timestamp: \"2024-06-19T15:26:00.000Z\"\n    }\n  ],\n  isBlacklisted: false,\n  activeChatbot: true,\n  mail: \"mario.rossi@email.com\",\n  customer: \"Mario Rossi\",\n  language: \"it\",\n  isActive: true,\n  phone: \"393451234567\",\n  email: \"mario.rossi@email.com\",\n  cusomerId: \"7a305200-993a-41d1-82c3-f1d148c3cf31\",\n  businessName: \"L'Altra Italia\",\n  prompt: \"Sei un assistente virtuale esperto per L'Altra Italia, un'azienda italiana specializzata in prodotti alimentari di alta qualità. Il tuo compito è aiutare i clienti a trovare i prodotti giusti, fornire informazioni sui prezzi, ingredienti e disponibilità. Rispondi sempre in modo professionale e cortese.\",\n  model: \"openai/gpt-4o-mini\",\n  temperature: 0.7,\n  maxTokens: 1000,\n  workspaceId: \"cm9hjgq9v00014qk8fsdy4ujv\"\n}"
-      },
-      "id": "a21874c1-4db1-4aad-a34f-80b64946ef21",
-      "name": "mock",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [
-        100,
-        -20
-      ],
-      "alwaysOutputData": true,
-      "executeOnce": true
-    },
-    {
-      "parameters": {
-        "jsCode": "//const item = $input.first();\n\nlet message = 'WIP MESSAGE TODO'; \n \n\nreturn [\n  {\n    json: {\n      message: message\n    }\n  }\n];"
-      },
-      "id": "6667ee9d-8354-41ef-ac4c-e247c9f9c215",
-      "name": "return wip message",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [
-        680,
-        160
-      ],
-      "alwaysOutputData": false
-    },
-    {
-      "parameters": {
-        "jsCode": "const item = $input.first().json;\n\nreturn  {\n    messageContent: item.messageContent || \"\",\n    chatHistory: item.conversationHistory || \"\",\n    isBlacklisted: item.isBlacklisted || \"\",\n    activeChatbot: item.activeChatbot || \"\",\n    mail: item.mail || \"\",\n    language: item.language || \"\",\n  /*  \n  isActive: item.customer.isActive || \"\",\n    phone: item.customer.phone || \"\",\n    email: item.customer.email || \"\",\n    cusomerId: item.customer.id || \"\",\n    businessName:  item.customer.businessName || \"\",\n    prompt :  item.agentConfig.prompt || \"\",\n    model: item.agentConfig.model || \"\",\n    temperature: item.agentConfig.temperature || \"\",\n    maxTokens: item.agentConfig.maxTokens || \"\",\n    workspaceId: item.precompiledData.agentConfig.maxTokens || \"\",\n  */\n}\n"
-      },
-      "id": "3dc37bd7-6988-4e25-87ad-a54b5c1fa6a4",
-      "name": "go!!",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [
-        700,
-        -220
-      ],
-      "alwaysOutputData": false
+      "executeOnce": false
     },
     {
       "parameters": {
         "jsCode": "const item = $input.first();\n\nlet message =item.json.messageContent || \"\";\n \n\nreturn [\n  {\n    json: {\n      message: message\n    }\n  }\n];"
       },
-      "id": "14568dae-8f65-40cc-9845-b877c34bbabb",
-      "name": "return wip message1",
+      "id": "1054339e-bec8-4f9f-af2f-3e517e0faccf",
+      "name": "return wip message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        960,
-        -220
+        -260,
+        400
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "model",
+              "value": "={{ $json.model }}"
+            },
+            {
+              "name": "messages",
+              "value": "={{ $json.messages }}"
+            },
+            {
+              "name": "temperature",
+              "value": "={{ $json.temperature || 0.7 }}"
+            },
+            {
+              "name": "max_tokens",
+              "value": "={{ $json.max_tokens || 1000 }}"
+            }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "HTTP-Referer",
+              "value": "https://iltuosito.com"
+            },
+            {
+              "name": "X-Title",
+              "value": "Demo Chat"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        -60,
+        140
+      ],
+      "id": "d683acc2-e6c4-4951-bc4e-aff792d7e1e7",
+      "name": "HTTP POST OPENROUTER"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst chatHistory = Array.isArray(item.precompiledData.customer) ? item.precompiledData.customer.conversationHistory : [];\nconst messages = [\n  ...chatHistory,\n  { role: 'user', content: item.messageContent }\n];\n \nreturn [{\n  json: {\n    model: item.precompiledData.agentConfig.model,\n    messages,\n    prompt: item.prompt || \"\",\n    temperature: item.temperature || 0.7,\n    max_tokens: item.maxTokens || 1000\n  }\n}];\n"
+      },
+      "id": "e4052014-2737-4c16-bd04-6f0bfbccb874",
+      "name": "prepare-data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        140
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "//const item = $input.first();\n\nlet message = \"New order\"\n \n\nreturn [\n  {\n    json: {\n      message \n    }\n  }\n];"
+      },
+      "id": "7292f92b-06ab-4f0b-85a7-8b0dd066c62a",
+      "name": "CallingFunction NewOrder()",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        380,
+        260
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "model",
+              "value": "={{ $json.model }}"
+            },
+            {
+              "name": "messages",
+              "value": "={{ $json.messages }}"
+            },
+            {
+              "name": "temperature",
+              "value": "={{ $json.temperature || 0.7 }}"
+            },
+            {
+              "name": "max_tokens",
+              "value": "={{ $json.max_tokens || 1000 }}"
+            }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "HTTP-Referer",
+              "value": "https://iltuosito.com"
+            },
+            {
+              "name": "X-Title",
+              "value": "Demo Chat"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        380,
+        60
+      ],
+      "id": "93312670-2c07-4776-aaed-e964798648c3",
+      "name": "CallingFunction searchRag()"
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "model",
+              "value": "={{ $json.model }}"
+            },
+            {
+              "name": "messages",
+              "value": "={{ $json.messages }}"
+            },
+            {
+              "name": "temperature",
+              "value": "={{ $json.temperature || 0.7 }}"
+            },
+            {
+              "name": "max_tokens",
+              "value": "={{ $json.max_tokens || 1000 }}"
+            }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "HTTP-Referer",
+              "value": "https://iltuosito.com"
+            },
+            {
+              "name": "X-Title",
+              "value": "Demo Chat"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        640,
+        140
+      ],
+      "id": "857f758a-2d43-4180-ba32-2b756549ec7c",
+      "name": "LLM FORMATTER"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "searchRag",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "24ba27ab-8657-4005-845c-17dda3241394"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8b53db12-987e-4414-8a53-044b60f0691c",
+                    "leftValue": "newOrder",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "76093c37-4bfd-4e15-b793-e927fa9662b7",
+                    "leftValue": "noCallingFunction",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        140,
+        140
+      ],
+      "id": "e8b37282-29f3-493a-9ae5-6fdb770962b2",
+      "name": "Calling Function Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\nlet message =item.json.messageContent || \"\";\n \n\nreturn [\n  {\n    json: {\n      message: message\n    }\n  }\n];"
+      },
+      "id": "461ee8c8-4ebd-442b-86ec-6c8d2f118027",
+      "name": "return LLM response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        380,
+        460
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconsole.log('Risposta OpenRouter:', JSON.stringify(item, null, 2));\n\nlet message = 'Nessuna risposta dal modello';\nif (item.choices && item.choices[0] && item.choices[0].message && item.choices[0].message.content) {\n  message = item.choices[0].message.content;\n}\n\nreturn  {\n  message : item.choices[0].message.content\n}\n"
+      },
+      "id": "186abf02-4533-45d4-bf84-96e45400d752",
+      "name": "Return LLM  Format response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        880,
+        140
       ],
       "alwaysOutputData": false
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+          "phoneNumber": "393451234567",
+          "messageContent": "Ciao, chi sei?",
+          "sessionToken": "test-session-123",
+          "precompiledData": {
+            "agentConfig": {
+              "id": "agent-config-test",
+              "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+              "model": "openai/gpt-4o-mini",
+              "temperature": 0.7,
+              "maxTokens": 1000,
+              "topP": 0.9,
+              "prompt": "You are a RAG (Retrieval-Augmented Generation) processor specialized in analyzing user queries and retrieving relevant business data.\n\n🎯 YOUR ROLE:\n- Analyze user messages to understand their intent\n- Search and filter database content for relevance\n- Structure found data into clear, organized format\n- Provide accurate, factual information only\n\n🔍 SEARCH CAPABILITIES:\n- **Products** → Database product catalog with prices, descriptions, availability\n- **Services** → Available business services with details and pricing\n- **FAQs** → Frequently asked questions and policies\n- **Documents** → Business documents, regulations, legal information\n- **Company Info** → Business details, hours, contact information\n\n💡 QUERY ANALYSIS:\nWhen users ask questions, identify the intent and search relevant data sources:\n\n**Product Queries**:\n- \"Do you have wine?\" → Search products for wine category\n- \"Show me cheese under €20\" → Search products: category=cheese, maxPrice=20\n- \"What pasta is available?\" → Search products for pasta items\n- \"Mozzarella availability\" → Search products for mozzarella\n\n**Service Queries**:\n- \"What services do you offer?\" → Search all services\n- \"Do you deliver?\" → Search services for delivery/shipping\n- \"Cooking classes available?\" → Search services for cooking/classes\n\n**Policy/FAQ Queries**:\n- \"Return policy\" → Search FAQs for return/refund information\n- \"Shipping time\" → Search FAQs for delivery/shipping info\n- \"Payment methods\" → Search FAQs for payment information\n- \"Business hours\" → Search company info or FAQs\n\n**Document Queries**:\n- \"International shipping laws\" → Search documents for legal/regulatory info\n- \"Product certificates\" → Search documents for certifications\n- \"Import requirements\" → Search documents for import/export rules\n\n🗄️ DATA PROCESSING:\n1. **Receive** user query\n2. **Identify** intent and required data type\n3. **Search** relevant database tables\n4. **Filter** results for relevance and accuracy\n5. **Structure** data in organized format\n6. **Return** clear, factual information\n\n📋 OUTPUT FORMAT:\nStructure your response as organized data:\n\n```json\n{\n  \"query_intent\": \"product_search|service_inquiry|faq_question|document_search|company_info\",\n  \"found_data\": {\n    \"products\": [\n      {\n        \"name\": \"Product Name\",\n        \"price\": \"€XX.XX\",\n        \"description\": \"Product description\",\n        \"category\": \"Category\",\n        \"availability\": \"available|out_of_stock\"\n      }\n    ],\n    \"services\": [...],\n    \"faqs\": [...],\n    \"documents\": [...],\n    \"company_info\": {...}\n  },\n  \"total_results\": number,\n  \"relevance_score\": \"high|medium|low\"\n}\n```\n\n🚫 RESTRICTIONS:\n- **NEVER invent or create data** - only use actual database content\n- **NO fictional prices** - only real product pricing\n- **NO made-up products** - only existing catalog items\n- **NO false availability** - only actual stock information\n- **NO generic responses** - always search for specific data\n\n⚡ SEARCH STRATEGY:\n- Use semantic search for better matching\n- Include related/similar items when exact match not found\n- Search multiple data types when query is ambiguous\n- Prioritize exact matches over partial matches\n- Include pricing and availability when relevant\n\n🎯 QUALITY METRICS:\n- **Accuracy**: Only factual, database-verified information\n- **Completeness**: Include all relevant search results\n- **Relevance**: Results match user query intent\n- **Structure**: Well-organized, easy-to-process data format\n\nRemember: You are the data retrieval specialist. Your job is to find accurate, relevant information from the database and present it in a structured format. Focus on precision and factual accuracy above all else.",
+              "isActive": true
+            },
+            "customer": {
+              "id": "test-customer-123",
+              "name": "Andrea Test User",
+              "email": "test@shopme.com",
+              "phone": "393451234567",
+              "language": "IT",
+              "isActive": true,
+              "isBlacklisted": false,
+              "activeChatbot": true,
+              "businessName": "L'Altra Italia(ESP)",
+              "businessType": "ECOMMERCE",
+              "conversationHistory": [
+                {
+                  "id": "msg-1",
+                  "content": "Ciao",
+                  "role": "user",
+                  "timestamp": "2025-06-25T15:00:00.000Z"
+                },
+                {
+                  "id": "msg-2",
+                  "content": "Ciao! Come posso aiutarti oggi?",
+                  "role": "assistant",
+                  "timestamp": "2025-06-25T15:00:01.000Z"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
   "connections": {
     "Webhook": {
-      "main": [
-        [
-          {
-            "node": "mock",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter": {
-      "main": [
-        [
-          {
-            "node": "go!!",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "mock": {
       "main": [
         [
           {
@@ -170,21 +460,114 @@
         ]
       ]
     },
-    "go!!": {
+    "Filter": {
       "main": [
         [
           {
-            "node": "return wip message1",
+            "node": "return wip message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "prepare-data",
             "type": "main",
             "index": 0
           }
         ]
       ]
+    },
+    "HTTP POST OPENROUTER": {
+      "main": [
+        [
+          {
+            "node": "Calling Function Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prepare-data": {
+      "main": [
+        [
+          {
+            "node": "HTTP POST OPENROUTER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CallingFunction NewOrder()": {
+      "main": [
+        [
+          {
+            "node": "LLM FORMATTER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CallingFunction searchRag()": {
+      "main": [
+        [
+          {
+            "node": "LLM FORMATTER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM FORMATTER": {
+      "main": [
+        [
+          {
+            "node": "Return LLM  Format response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calling Function Switch": {
+      "main": [
+        [
+          {
+            "node": "CallingFunction searchRag()",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CallingFunction NewOrder()",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "return LLM response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return LLM  Format response": {
+      "main": [
+        []
+      ]
     }
   },
   "active": true,
-  "settings": {},
-  "versionId": "d943b3c0-d94c-4a9e-a23c-0d9157370a01",
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionOrder": "v0"
+  },
+  "versionId": "7503dcd4-723c-44db-bd5c-4c8af8efe931",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
