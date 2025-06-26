@@ -159,11 +159,42 @@ export class N8nPayloadBuilder {
     console.log(JSON.stringify(optimizedData.customer, null, 2))
 
     // 🚀 NEW CONSOLIDATED PAYLOAD STRUCTURE - Following updated webhook-payload-example.json
+    const conversationHistory = optimizedData.conversationHistory.length > 0
+      ? optimizedData.conversationHistory.map((msg) => ({
+          id: msg.id,
+          content: msg.content,
+          role: msg.direction === "INBOUND" ? "user" : "assistant",
+          timestamp: msg.createdAt,
+        }))
+      : [
+          {
+            id: "msg-1",
+            content: "Ciao! Come posso aiutarti oggi?",
+            role: "assistant",
+            timestamp: "2024-06-19T15:25:00.000Z",
+          },
+          {
+            id: "msg-2",
+            content: "Salve, sto cercando dei formaggi",
+            role: "user",
+            timestamp: "2024-06-19T15:26:00.000Z",
+          },
+          {
+            id: "msg-3",
+            content: "Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?",
+            role: "assistant",
+            timestamp: "2024-06-19T15:26:30.000Z",
+          },
+        ];
+
+    const messages = conversationHistory.map(({ role, content }) => ({ role, content }));
+
     const simplifiedPayload = {
       workspaceId: workspaceId,
       phoneNumber: phoneNumber,
       messageContent: messageContent,
       sessionToken: sessionToken,
+      messages,
       precompiledData: {
         agentConfig: optimizedData.agentConfig
           ? {
@@ -227,33 +258,7 @@ export class N8nPayloadBuilder {
               },
               
               // 📜 CONVERSATION HISTORY MERGED HERE
-              conversationHistory: optimizedData.conversationHistory.length > 0
-                ? optimizedData.conversationHistory.map((msg) => ({
-                    id: msg.id,
-                    content: msg.content,
-                    role: msg.direction === "INBOUND" ? "user" : "assistant",
-                    timestamp: msg.createdAt,
-                  }))
-                : [
-                    {
-                      id: "msg-1",
-                      content: "Ciao! Come posso aiutarti oggi?",
-                      role: "assistant",
-                      timestamp: "2024-06-19T15:25:00.000Z",
-                    },
-                    {
-                      id: "msg-2",
-                      content: "Salve, sto cercando dei formaggi",
-                      role: "user",
-                      timestamp: "2024-06-19T15:26:00.000Z",
-                    },
-                    {
-                      id: "msg-3",
-                      content: "Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?",
-                      role: "assistant",
-                      timestamp: "2024-06-19T15:26:30.000Z",
-                    },
-                  ],
+              conversationHistory: conversationHistory,
             }
           : {
               // 🚨 FALLBACK CUSTOMER (when no customer found)
@@ -292,26 +297,7 @@ export class N8nPayloadBuilder {
               },
               
               // 📜 FALLBACK CONVERSATION HISTORY
-              conversationHistory: [
-                {
-                  id: "msg-1",
-                  content: "Ciao! Come posso aiutarti oggi?",
-                  role: "assistant",
-                  timestamp: "2024-06-19T15:25:00.000Z",
-                },
-                {
-                  id: "msg-2",
-                  content: "Salve, sto cercando dei formaggi",
-                  role: "user",
-                  timestamp: "2024-06-19T15:26:00.000Z",
-                },
-                {
-                  id: "msg-3",
-                  content: "Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?",
-                  role: "assistant",
-                  timestamp: "2024-06-19T15:26:30.000Z",
-                },
-              ],
+              conversationHistory: conversationHistory,
             },
       },
     }
