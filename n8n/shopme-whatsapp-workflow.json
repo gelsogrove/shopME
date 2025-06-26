@@ -148,7 +148,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first().json;\n\nconst chatHistory = Array.isArray(item.precompiledData.customer) ? item.precompiledData.customer.conversationHistory : [];\nconst messages = [\n  ...chatHistory,\n  { role: 'user', content: item.messageContent }\n];\n \nreturn [{\n  json: {\n    model: item.precompiledData.agentConfig.model,\n    messages,\n    prompt: item.prompt || \"\",\n    temperature: item.temperature || 0.7,\n    max_tokens: item.maxTokens || 1000\n  }\n}];\n"
+        "jsCode": "const item = $input.first().json;\n\nconst prompt = item.prompt || 'You are a RAG (Retrieval-Augmented Generation) processor specialized in analyzing user queries and retrieving relevant business data.';\nconst chatHistory = Array.isArray(item.precompiledData.customer) ? item.precompiledData.customer.conversationHistory : [];\nconst messages = [\n  { role: 'system', content: prompt },\n  ...chatHistory,\n  { role: 'user', content: item.messageContent }\n];\n \nreturn [{\n  json: {\n    model: item.precompiledData.agentConfig.model,\n    messages,\n    temperature: item.temperature || 0.7,\n    max_tokens: item.maxTokens || 1000\n  }\n}];\n"
       },
       "id": "e4052014-2737-4c16-bd04-6f0bfbccb874",
       "name": "prepare-data",
