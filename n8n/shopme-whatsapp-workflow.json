@@ -1,5 +1,5 @@
 {
-  "name": "Temp Workflow",
+  "name": "My workflow",
   "nodes": [
     {
       "parameters": {
@@ -8,13 +8,13 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "41ff1d3d-9ad2-4abc-ac03-fadf45e31b7a",
+      "id": "882770a0-ebdb-498a-85de-95b235591357",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -2600,
-        360
+        -1120,
+        320
       ],
       "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
     },
@@ -22,13 +22,13 @@
       "parameters": {
         "jsCode": "return $input.all().map(item => {\n  // Esponi il tipo e il valore di body come output per debug\n  return {\n    json: {\n      original: item.json,\n      bodyType: typeof item.json.body,\n      bodyValue: item.json.body\n    }\n  };\n});"
       },
-      "id": "c83f6d6c-05ad-4afd-be9a-14674c6e0000",
+      "id": "6b66224d-a587-4a22-9aee-ff1cc9bb6258",
       "name": "Flatten body after Webhook",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -2420,
-        360
+        -940,
+        320
       ],
       "alwaysOutputData": false
     },
@@ -38,23 +38,44 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict",
+            "typeValidation": "loose",
             "version": 2
           },
           "conditions": [
             {
-              "id": "1a179627-1c1f-4c54-af66-6ad7491f99b2",
-              "leftValue": "={{ true}}",
-              "rightValue": "",
+              "id": "886f3c80-d2cc-45c4-8455-61f98540c27c",
+              "leftValue": "={{ $json.bodyValue.precompiledData.customer.isActive }}",
+              "rightValue": "true",
               "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "f5e912a0-c565-4198-9713-a3218f20208a",
+              "leftValue": "={{ $json.bodyValue.precompiledData.customer.isBlacklisted }}",
+              "rightValue": "false",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "528b8754-587f-4381-ae93-a8587ae96468",
+              "leftValue": "={{ $json.bodyValue.precompiledData.customer.activeChatbot }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
               }
             }
           ],
           "combinator": "and"
         },
+        "looseTypeValidation": true,
         "options": {
           "ignoreCase": false
         }
@@ -62,10 +83,10 @@
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.2,
       "position": [
-        -2140,
-        360
+        -720,
+        320
       ],
-      "id": "8f17e90e-caa6-4bf8-a542-f3ca75c9ea20",
+      "id": "c147a5e1-c6ae-4576-96f2-73de944478b2",
       "name": "Filter",
       "alwaysOutputData": true,
       "executeOnce": false
@@ -74,67 +95,41 @@
       "parameters": {
         "jsCode": "const item = $input.first();\n\nlet message =item.json.messageContent || \"\";\n \n\nreturn [\n  {\n    json: {\n      message: message\n    }\n  }\n];"
       },
-      "id": "ec02fd7d-dc4d-4d8b-a00c-f7245c41ff33",
+      "id": "eb2e60e9-fc5b-4883-aba9-af7fc4fa5745",
       "name": "return wip message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -1820,
-        500
+        -340,
+        460
       ],
       "alwaysOutputData": false
     },
     {
       "parameters": {
-        "jsCode": "const agentConfig =$input.first().json.original.body.precompiledData.agentConfig;\n const messages = $input.first().json.original.body.precompiledData.customer.conversationHistory;\n\nconst messageContent= $input.first().json.bodyValue.messageContent\nconst sessionToken= $input.first().json.bodyValue.sessionToken\n\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature : agentConfig.temperature,\n      maxTokens: agentConfig.maxTokens,\n      model: agentConfig.model,\n      messages,\n      messageContent,\n      sessionId: sessionToken\n      \n    },\n \n  }\n];\n"
+        "jsCode": "const agentConfig =$input.first().json.original.body.precompiledData.agentConfig;\n const messages = $input.first().json.original.body.precompiledData.customer.conversationHistory;\n\nconst messageContent= $input.first().json.bodyValue.messageContent\nconst sessionToken= $input.first().json.bodyValue.sessionToken\nconst workspaceId = $input.first().json.original.body.workspaceId\nconst language = $input.first().json.original.body.precompiledData.customer.language\nconst customerid = $input.first().json.bodyValue.precompiledData.customer.id\n\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature : agentConfig.temperature,\n      maxTokens: agentConfig.maxTokens,\n      model: agentConfig.model,\n      messages,\n      messageContent,\n      sessionId: sessionToken,\n      language, \n      workspaceId,\n      customerid\n    },\n \n  }\n];\n"
       },
-      "id": "964b4e05-d8aa-4c70-a75b-74fb38781f49",
+      "id": "842f31ee-e032-4a82-98b0-7c3b98b7fd82",
       "name": "prepare-data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -1820,
-        200
+        -340,
+        160
       ],
       "alwaysOutputData": false
     },
     {
       "parameters": {
-        "requestMethod": "POST",
-        "url": "http://localhost:3001/api/search_rag",
-        "options": {},
-        "bodyParametersUi": {
-          "parameter": []
-        },
-        "headerParametersUi": {
-          "parameter": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        }
+        "jsCode": "return {\n  message:  $input.first().json.output\n}"
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 2,
-      "position": [
-        -1020,
-        300
-      ],
-      "id": "ee9ea6fd-3b21-4250-a433-172e4a7050ae",
-      "name": "HTTP Request searchRag"
-    },
-    {
-      "parameters": {
-        "jsCode": "\nreturn [{\n  message: $input.first().json.output\n}]"
-      },
-      "id": "8d68e161-f3f1-4a63-8842-ec8ca665440e",
+      "id": "a45be72a-08df-4c85-b670-574ea3c48a70",
       "name": "return LLM response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -1100,
-        0
+        380,
+        -40
       ],
       "alwaysOutputData": false
     },
@@ -145,10 +140,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
       "position": [
-        -1500,
-        0
+        -20,
+        -40
       ],
-      "id": "e4542f2c-c48d-4b0b-b65e-c8252ded56be",
+      "id": "b2a968a4-ba32-466f-a411-c27a7bcaee5d",
       "name": "AI Agent",
       "alwaysOutputData": true,
       "notesInFlow": false,
@@ -165,10 +160,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        -1500,
-        180
+        -20,
+        140
       ],
-      "id": "c28ea94d-3ab3-4326-a0bf-9cd4fd75f651",
+      "id": "8ef240bb-cbcd-47a8-ae0f-2f3e1b967a80",
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
@@ -184,11 +179,105 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        -1380,
-        180
+        100,
+        140
       ],
-      "id": "55bbcba4-10db-4782-acc2-5e44fa4506ba",
+      "id": "d14cb085-ce1c-46a7-9649-7aeb5be496c9",
       "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Makes an HTTP request and returns the response data when the user try to ask something related to the Products, Faqs,Services,Documents info",
+        "method": "POST",
+        "url": "http://localhost:3001/api/search_rag",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $('prepare-data').item.json.chatInput }}"
+            },
+            {
+              "name": "messages",
+              "value": "={{ $('prepare-data').item.json.messages }}"
+            },
+            {
+              "name": "language",
+              "value": "={{ $('prepare-data').item.json.language }}"
+            },
+            {
+              "name": "workspaceId",
+              "value": "={{ $('prepare-data').item.json.workspaceId }}"
+            },
+            {
+              "name": "customerId",
+              "value": "={{ $('prepare-data').item.json.workspaceId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        140
+      ],
+      "id": "f7ba73e4-0f59-48e4-98f7-f8d1ff53185b",
+      "name": "HTTP Request",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "todo mettere messggio di WIP"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -180,
+        460
+      ],
+      "typeVersion": 1,
+      "id": "8e28acc0-6622-4233-bbc3-e0429c2b895d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "filter non va"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -820,
+        120
+      ],
+      "typeVersion": 1,
+      "id": "fc1eeabb-bcac-411c-be4e-12248d2b09fd",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "devi farlo andare con il callng function"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -280,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "a6fc4b5f-929f-4e49-839f-62bdbddf0f15",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "ritorna il rag va formattato bene "
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        400,
+        120
+      ],
+      "typeVersion": 1,
+      "id": "24386f2c-b8f2-469f-a08f-734b8046213c",
+      "name": "Sticky Note3"
     }
   ],
   "pinData": {
@@ -397,11 +486,6 @@
         ]
       ]
     },
-    "HTTP Request searchRag": {
-      "main": [
-        []
-      ]
-    },
     "OpenRouter Chat Model": {
       "ai_languageModel": [
         [
@@ -434,18 +518,27 @@
           }
         ]
       ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
-    "callerPolicy": "workflowsFromSameOwner",
-    "executionOrder": "v0"
+    "executionOrder": "v1"
   },
-  "versionId": "bca2d742-d79f-4315-9d1a-607ca27998f2",
+  "versionId": "ed400bde-3b23-450a-8e5f-92a482de798b",
   "meta": {
-    "templateCredsSetupCompleted": true,
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
   },
-  "id": "px4cL5MEa4gsyOgW",
+  "id": "5RzpUaDV72MlE1Ie",
   "tags": []
 }

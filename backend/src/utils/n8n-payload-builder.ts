@@ -360,7 +360,22 @@ export class N8nPayloadBuilder {
       logger.info(`[N8N] ✅ N8N response received successfully`)
       logger.info(`[N8N] 📝 Response:`, JSON.stringify(n8nResponse, null, 2))
 
-      return n8nResponse
+      // PATCH: Gestione robusta di array/oggetto
+      let parsedResponse;
+      if (Array.isArray(n8nResponse) && n8nResponse.length > 0) {
+        parsedResponse = n8nResponse[0];
+      } else if (n8nResponse && typeof n8nResponse === 'object') {
+        parsedResponse = n8nResponse;
+      } else {
+        parsedResponse = { message: "Errore: risposta N8N non valida" };
+      }
+      
+      // DEBUG: Log della risposta parsata
+      console.log("[DEBUG PATCH] Original n8nResponse:", JSON.stringify(n8nResponse, null, 2));
+      console.log("[DEBUG PATCH] Parsed response:", JSON.stringify(parsedResponse, null, 2));
+      console.log("[DEBUG PATCH] parsedResponse.message:", parsedResponse.message);
+      
+      return parsedResponse;
     } catch (error) {
       logger.error(`[N8N] ❌ Error sending to N8N:`, error)
       throw error
