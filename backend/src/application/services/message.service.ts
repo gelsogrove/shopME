@@ -272,8 +272,8 @@ export class MessageService {
       // 🚀 NOW CALL N8N DIRECTLY using centralized builder
       try {
         // 🚨 FIXED N8N URL - correct webhook URL format
-        const n8nWebhookUrl = "http://localhost:5678/webhook/webhook-start"
-
+                const n8nWebhookUrl = "http://localhost:5678/webhook/webhook-start"
+        
         console.log("🚨 N8N URL FISSO:", n8nWebhookUrl)
 
         // Generate a session token for this API call

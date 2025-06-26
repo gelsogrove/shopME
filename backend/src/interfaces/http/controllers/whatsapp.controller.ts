@@ -253,15 +253,14 @@ export class WhatsAppController {
             n8nResponse
           )
 
-          // Parse N8N response - it returns an array with json.message format
+          // Parse N8N response - it returns an array with message format
           let messageToSend = null
           if (
             Array.isArray(n8nResponse) &&
             n8nResponse.length > 0 &&
-            n8nResponse[0].json &&
-            n8nResponse[0].json.message
+            n8nResponse[0].message
           ) {
-            messageToSend = n8nResponse[0].json.message
+            messageToSend = n8nResponse[0].message
             logger.info(
               `[N8N-PARSE] 📝 Found message in array format: ${messageToSend}`
             )
