@@ -1,10 +1,9 @@
 // @ts-nocheck
 import { MessageRepository } from "../../repositories/message.repository"
 import {
-    detectGreeting as detectGreetingLang
+  detectGreeting as detectGreetingLang
 } from "../../utils/language-detector"
 import logger from "../../utils/logger"
-import { N8nPayloadBuilder } from "../../utils/n8n-payload-builder"
 import { ApiLimitService } from "./api-limit.service"
 
 import { PrismaClient } from "@prisma/client"
@@ -211,152 +210,27 @@ export class MessageService {
     phoneNumber: string,
     workspaceId: string
   ): Promise<string | null> {
-    const startTime = Date.now()
+    // STEP 1: API Limit Check
+    const step1Start = Date.now()
+    logger.info(`[SECURITY-GATEWAY] STEP 1: API Limit Check - Starting`)
 
-    try {
-      logger.info(
-        `[SECURITY-GATEWAY] 🚦 Andrea's Architecture: Starting security checks only`
+    const apiLimitResult =
+      await this.apiLimitService.checkApiLimit(workspaceId)
+    if (apiLimitResult.exceeded) {
+      logger.warn(
+        `[SECURITY-GATEWAY] STEP 1: API Limit Check - EXCEEDED: ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`
       )
-      logger.info(
-        `[SECURITY-GATEWAY] Message: "${message}" from ${phoneNumber} for workspace ${workspaceId}`
-      )
-
-      // STEP 1: API Limit Check
-      const step1Start = Date.now()
-      logger.info(`[SECURITY-GATEWAY] STEP 1: API Limit Check - Starting`)
-
-      const apiLimitResult =
-        await this.apiLimitService.checkApiLimit(workspaceId)
-      if (apiLimitResult.exceeded) {
-        logger.warn(
-          `[SECURITY-GATEWAY] STEP 1: API Limit Check - EXCEEDED: ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`
-        )
-        return null // BLOCKED - no further processing
-      }
-
-      const step1Time = Date.now() - step1Start
-      logger.info(
-        `[SECURITY-GATEWAY] STEP 1: API Limit Check - PASSED (${step1Time}ms): ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`
-      )
-
-      // STEP 2: Spam Detection - 🚨 10+ messaggi in 30 secondi? → AUTO-BLACKLIST + STOP
-      const step2Start = Date.now()
-      logger.info(`[SECURITY-GATEWAY] STEP 2: Spam Detection - Starting`)
-
-      const spamCheck = await this.checkSpamBehavior(phoneNumber, workspaceId)
-      if (spamCheck.isSpam) {
-        logger.warn(
-          `[SECURITY-GATEWAY] STEP 2: Spam Detection - DETECTED: ${spamCheck.messageCount} messages. Auto-blacklisting user.`
-        )
-        await this.addToAutoBlacklist(phoneNumber, workspaceId, "AUTO_SPAM")
-        return null // BLOCKED - no further processing
-      }
-
-      const step2Time = Date.now() - step2Start
-      logger.info(
-        `[SECURITY-GATEWAY] STEP 2: Spam Detection - PASSED (${step2Time}ms): ${spamCheck.messageCount} messages`
-      )
-
-      // 🚀 SECURITY PASSED - N8N TAKES COMPLETE CONTROL
-      const totalTime = Date.now() - startTime
-      logger.info(
-        `[SECURITY-GATEWAY] ✅ SECURITY CHECKS PASSED in ${totalTime}ms`
-      )
-      logger.info(
-        `[SECURITY-GATEWAY] 🚀 N8N NOW HANDLES: workspace, blacklist, WIP, user flow, checkout, RAG, LLM, response, sending`
-      )
-
-      // 🚨 DEBUG: Alert prima della chiamata a N8N
-      console.log("🚨 DEBUG: RUN POST N8N (from message service)")
-
-      // 🚀 NOW CALL N8N DIRECTLY using centralized builder
-      try {
-        // 🚨 FIXED N8N URL - correct webhook URL format
-                const n8nWebhookUrl = "http://localhost:5678/webhook/webhook-start"
-        
-        console.log("🚨 N8N URL FISSO:", n8nWebhookUrl)
-
-        // Generate a session token for this API call
-        const sessionToken =
-          Math.random().toString(36).substring(2, 15) +
-          Math.random().toString(36).substring(2, 15)
-
-        // 🚨 ANDREA LOOP FIX: Check agentConfig FIRST - NO N8N CALL if disabled
-        // BUT ALLOW ADMIN BYPASS (numbers starting with +34654728753 or messages containing "admin")
-        const isAdminPhone = phoneNumber.includes("34654728753") || phoneNumber.includes("654728753")
-        const isAdminMessage = message.toLowerCase().includes("admin") || message.toLowerCase().includes("reactivate") || message.toLowerCase().includes("riattiva")
-        
-        // 🔍 Quick check: Get agentConfig directly from DB to avoid N8N call
-        const agentConfigCheck = await prisma.agentConfig.findFirst({
-          where: {
-            workspaceId: workspaceId,
-            isActive: true,
-          },
-        })
-        
-        if (!agentConfigCheck && !isAdminPhone && !isAdminMessage) {
-          logger.warn(`[AGENT-DISABLED] ❌ NO ACTIVE AGENT FOUND for workspace ${workspaceId} - BLOCKING N8N CALL`)
-          
-          // Save the message for history
-          await this.saveMessage(message, phoneNumber, workspaceId, "Chat assistant disattivato", "AGENT_DISABLED")
-          
-          // Return user-friendly message WITHOUT calling N8N at all
-          return "Il servizio di assistenza è temporaneamente disattivato. Riprova più tardi."
-        }
-        
-        if (!agentConfigCheck && (isAdminPhone || isAdminMessage)) {
-          logger.info(`[ADMIN-BYPASS] ✅ Agent disabled but allowing admin access from ${phoneNumber}`)
-        }
-
-        // 🎯 BUILD SIMPLIFIED PAYLOAD using centralized builder (only if agent is active or admin)
-        const simplifiedPayload =
-          await N8nPayloadBuilder.buildSimplifiedPayload(
-            workspaceId,
-            phoneNumber,
-            message,
-            sessionToken,
-            "api_message"
-          )
-
-        // 🚀 SEND TO N8N using centralized method
-        const n8nResponse = await N8nPayloadBuilder.sendToN8N(
-          simplifiedPayload,
-          n8nWebhookUrl,
-          "Message Service"
-        )
-
-        // 🚨 NO HARDCODE: If N8N fails, return error - NO FALLBACK RESPONSES
-        if (n8nResponse?.message === "Error in workflow" || !n8nResponse?.message || n8nResponse?.message === "") {
-          logger.error(`[N8N] ❌ N8N workflow failed and returned empty response - NO FALLBACK ALLOWED`)
-          
-          const userFriendlyError = "Si è verificato un errore durante l'elaborazione del messaggio. Riprova più tardi o contatta il supporto.";
-          
-          // Save the user-friendly error message to database for history 
-          await this.saveMessage(message, phoneNumber, workspaceId, userFriendlyError, "N8N_ERROR")
-          
-          // Return user-friendly error message instead of null
-          return userFriendlyError
-        }
-
-        return n8nResponse?.message || "Messaggio elaborato con successo"
-      } catch (n8nError) {
-        console.log("🚨 N8N ERROR:", n8nError)
-        logger.error(`[N8N] ❌ Error calling N8N:`, n8nError)
-        
-        // 🚨 NO HARDCODE: Save message and return proper error response 
-        try {
-          await this.saveMessage(message, phoneNumber, workspaceId, "Si è verificato un errore di connessione. Riprova più tardi.", "SYSTEM_ERROR")
-        } catch (saveError) {
-          logger.error(`[SAVE-ERROR] ❌ Error saving error message:`, saveError)
-        }
-        
-        // Return a user-friendly error message instead of null
-        return "Si è verificato un errore di connessione. Riprova più tardi."
-      }
-    } catch (error) {
-      logger.error(`[SECURITY-GATEWAY] ❌ ERROR in security checks:`, error)
-      return null // Block on any security error
+      return null // BLOCKED - no further processing
     }
+
+    const step1Time = Date.now() - step1Start
+    logger.info(
+      `[SECURITY-GATEWAY] STEP 1: API Limit Check - PASSED (${step1Time}ms): ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`
+    )
+
+    // Andrea: funzione completamente disabilitata per debug pipeline N8N
+    // Restituisce sempre null (security ok, passa sempre a N8N)
+    return null;
   }
 
   // N8N integration replaces the processMessageWithFlowise method

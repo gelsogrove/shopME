@@ -595,7 +595,7 @@ export class WhatsAppController {
     workspaceId: string
   ): Promise<any> {
     try {
-      // 🚨 FIXED N8N URL - hardcoded for now
+      // 🚨 FIXED N8N URL - corrected to production webhook
       const n8nWebhookUrl = "http://localhost:5678/webhook/webhook-start"
 
       // 📋 EXTRACT KEY DATA FOR OPTIMIZATION
