@@ -178,32 +178,12 @@
       "parameters": {
         "toolDescription": "Makes an HTTP request and returns the response data when the user ask something related to the Products, Faqs, Services, Documents info for example:\n\nwhat kind of wine do you have?\n\n- Avete mozzarella di bufala?\n- Quanto costa il servizio di trasporto?\n- Avete un servizio id packaging?\n- Che regole devo seguire per il trasporto?\n- Como puedo pagar ?\n- Which kind of wind do you have?\n- how many products do you havae?",
         "method": "POST",
-        "url": "={{$env.BACKEND_API_URL}}/api/internal/rag-search",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "query",
-              "value": "={{ $('prepare-data').item.json.chatInput }}"
-            },
-            {
-              "name": "messages",
-              "value": "={{ $('prepare-data').item.json.messages }}"
-            },
-            {
-              "name": "language",
-              "value": "={{ $('prepare-data').item.json.language }}"
-            },
-            {
-              "name": "workspaceId",
-              "value": "={{ $('prepare-data').item.json.workspaceId }}"
-            },
-            {
-              "name": "customerId",
-              "value": "={{ $('prepare-data').item.json.workspaceId }}"
-            }
-          ]
-        },
+        "url": "=http://host.docker.internal:3001/api/internal/rag-search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "= {\n      \"query\": \"{{ $('prepare-data').item.json.chatInput }}\",\n      \"messages\": \"{{ $('prepare-data').item.json.messages }}\",\n      \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n      \"customerId\": \"{{ $('prepare-data').item.json.workspaceId }}\"\n    }",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequestTool",
@@ -213,16 +193,22 @@
         180
       ],
       "id": "be96e8f5-f02f-4f89-abd8-e50ae060c621",
-      "name": "HTTP Request"
+      "name": "HTTP Request",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "Te0PU8I7yMMEr5yi",
+          "name": "Backend API Basic Auth"
+        }
+      }
     },
     {
       "parameters": {
-        "content": "ritorna il rag va formattato bene "
+        "content": "VA FATTO UNO per avere la lista dei prodotti quantita' filtrato per categorie "
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        460,
-        320
+        500,
+        360
       ],
       "typeVersion": 1,
       "id": "1a0cd1cb-8681-4617-9b73-6ffa09f13b75",
@@ -401,7 +387,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "cacee019-1bbd-4453-b213-9903dba478ae",
+  "versionId": "96d5446f-037b-4477-968d-ef0fd48ccf04",
   "meta": {
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
   },
