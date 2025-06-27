@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { MessageRepository } from "../../repositories/message.repository"
 import {
-  detectGreeting as detectGreetingLang
+    detectGreeting as detectGreetingLang
 } from "../../utils/language-detector"
 import logger from "../../utils/logger"
 import { ApiLimitService } from "./api-limit.service"

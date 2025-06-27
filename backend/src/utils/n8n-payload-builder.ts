@@ -306,6 +306,42 @@ export class N8nPayloadBuilder {
   }
 
   /**
+   * 💾 SAVE MESSAGE TO HISTORY
+   * Ensures all messages processed by N8N are saved to the chat history
+   * This fixes the issue where direct API calls to N8N weren't saving to history
+   */
+  static async saveMessageToHistory(
+    workspaceId: string,
+    phoneNumber: string,
+    userMessage: string,
+    botResponse: string
+  ) {
+    try {
+      logger.info(`[HISTORY-SAVE] 💾 Saving message to history for ${phoneNumber}`)
+      
+      // Import MessageRepository dynamically to avoid circular dependencies
+      const { MessageRepository } = await import('../repositories/message.repository')
+      const messageRepository = new MessageRepository()
+      
+      // Save both the user message and bot response to history
+      await messageRepository.saveMessage({
+        workspaceId,
+        phoneNumber,
+        message: userMessage,
+        response: botResponse,
+        agentSelected: "N8N_API_DIRECT"
+      })
+      
+      logger.info(`[HISTORY-SAVE] ✅ Successfully saved message to history for ${phoneNumber}`)
+      return true
+    } catch (error) {
+      logger.error(`[HISTORY-SAVE] ❌ Error saving message to history:`, error)
+      // Don't throw error, just log it - we don't want to break the main flow
+      return false
+    }
+  }
+
+  /**
    * 📤 SEND TO N8N
    * Centralized method to send payload to N8N webhook
    */
@@ -391,6 +427,28 @@ export class N8nPayloadBuilder {
       console.log("[DEBUG PATCH] Original n8nResponse:", JSON.stringify(n8nResponse, null, 2));
       console.log("[DEBUG PATCH] Parsed response:", JSON.stringify(parsedResponse, null, 2));
       console.log("[DEBUG PATCH] parsedResponse.message:", parsedResponse.message);
+      
+      // 💾 SAVE MESSAGE TO HISTORY - Fix for direct API calls
+      // Only save if we have a valid response with a message
+      if (parsedResponse && parsedResponse.message && 
+          simplifiedPayload.workspaceId && 
+          simplifiedPayload.phoneNumber && 
+          simplifiedPayload.messageContent) {
+        
+        logger.info(`[N8N] 💾 Saving message to history after N8N response`)
+        
+        // Save the message pair to history (async, don't wait)
+        this.saveMessageToHistory(
+          simplifiedPayload.workspaceId,
+          simplifiedPayload.phoneNumber,
+          simplifiedPayload.messageContent,
+          parsedResponse.message
+        ).catch(error => {
+          logger.error(`[N8N] ❌ Error in async history save:`, error)
+        })
+      } else {
+        logger.warn(`[N8N] ⚠️ Cannot save to history - missing required data`)
+      }
       
       return parsedResponse;
     } catch (error: any) {

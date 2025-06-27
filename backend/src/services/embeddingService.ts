@@ -19,15 +19,15 @@ export interface TextChunk {
 export class EmbeddingService {
   // Using local embeddings instead of OpenRouter (which doesn't support embeddings)
   private readonly LOCAL_MODEL = 'Xenova/all-MiniLM-L6-v2';
-  private readonly MAX_CHUNK_SIZE = 2000;
+  private readonly MAX_CHUNK_SIZE = 500;
   private readonly CHUNK_OVERLAP = 200;
 
   // 🎯 CONFIGURABLE SIMILARITY THRESHOLDS (Andrea's Request)
   private readonly SIMILARITY_THRESHOLDS = {
-    FAQ: 0.3,      // Increased from 0.1 - more selective for FAQs
-    PRODUCTS: 0.5, // Good balance for product search
-    SERVICES: 0.6, // Higher threshold for service precision  
-    DOCUMENTS: 0.4 // Future use
+    FAQ: 0.5,      // Lowered from 0.3 to 0.15 for better recall on paraphrased questions
+    PRODUCTS: 0.3, // Good balance for product search
+    SERVICES: 0.3, // Higher threshold for service precision  
+    DOCUMENTS: 0.5 // Set to 0.8 for stricter document match after chunk reduction
   };
 
   /**
