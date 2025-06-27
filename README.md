@@ -319,6 +319,38 @@ For questions or issues:
 3. Use the hard delete test script for validation
 4. Verify environment configuration
 
+## N8N ↔️ Backend API: Configurazione variabile BACKEND_API_URL
+
+Per far comunicare N8N (in Docker) con il backend, imposta la variabile d'ambiente `BACKEND_API_URL`.
+
+### Sviluppo locale (Mac/Win/Linux)
+- Nel file `.env` (solo promemoria):
+  ```env
+  BACKEND_API_URL=http://host.docker.internal:3001
+  ```
+- In `docker-compose.yml`:
+  ```yaml
+  environment:
+    - BACKEND_API_URL=http://host.docker.internal:3001
+  ```
+- Oppure con `docker run`:
+  ```bash
+  docker run -e BACKEND_API_URL=http://host.docker.internal:3001 -p 5678:5678 n8nio/n8n
+  ```
+
+### Produzione (tutto in Docker Compose o server)
+- Cambia in:
+  ```env
+  BACKEND_API_URL=http://backend:3001
+  ```
+  (dove `backend` è il nome del servizio nel docker-compose)
+
+### Nei workflow N8N
+- Usa sempre: `{{$env.BACKEND_API_URL}}/api/internal/rag-search`
+- La UI mostrerà "Invalid URL" ma la variabile funziona in esecuzione.
+
+**Non hardcodare mai l'URL nei workflow!**
+
 ---
 
 **Built with ❤️ for AI4Devs Final Project** 
