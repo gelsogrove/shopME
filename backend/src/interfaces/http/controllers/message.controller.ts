@@ -3,6 +3,7 @@ import { Request, Response } from "express"
 import { MessageService } from "../../../application/services/message.service"
 import { detectLanguage } from "../../../utils/language-detector"
 import logger from "../../../utils/logger"
+import { N8nPayloadBuilder } from "../../../utils/n8n-payload-builder"
 
 const prisma = new PrismaClient()
 
@@ -173,15 +174,46 @@ export class MessageController {
         workspaceId
       )
 
-      // 🚨 NO HARDCODE: If N8N fails, return proper error response
+      // Se security ok, chiama N8N
       if (response === null) {
-        logger.error(`[MESSAGES API] ❌ N8N workflow failed - system cannot process message`)
-        res.status(500).json({
-          success: false,
-          error: "N8N workflow failed - message cannot be processed",
-          details: "The N8N workflow is not responding correctly. Please check N8N status."
-        })
-        return
+        try {
+          // Costruisco il payload corretto per N8N
+          const simplifiedPayload = await N8nPayloadBuilder.buildSimplifiedPayload(
+            workspaceId,
+            phoneNumber,
+            message, // messageContent
+            sessionId || "",
+            "MessageController"
+          );
+          const n8nResponse = await N8nPayloadBuilder.sendToN8N(
+            simplifiedPayload,
+            "http://localhost:5678/webhook/webhook-start",
+            "MessageController"
+          );
+          res.status(200).json({
+            success: true,
+            data: {
+              originalMessage: message,
+              processedMessage: n8nResponse.message,
+              phoneNumber: phoneNumber,
+              workspaceId: workspaceId,
+              timestamp: new Date().toISOString(),
+              metadata: { agentName: "N8N Workflow" },
+              detectedLanguage: detectedLanguage,
+              sessionId: sessionId,
+              customerId: `customer-${phoneNumber.replace("+", "")}`,
+              customerLanguage: detectedLanguage,
+            },
+          });
+        } catch (error: any) {
+          logger.error(`[MESSAGES API] ❌ Error calling N8N:`, error);
+          res.status(500).json({
+            success: false,
+            error: "N8N call failed",
+            details: error.message,
+          });
+        }
+        return;
       }
 
       // Return the processed message with metadata

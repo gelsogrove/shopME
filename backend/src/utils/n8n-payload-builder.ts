@@ -341,19 +341,36 @@ export class N8nPayloadBuilder {
       console.log("🚨 SUPER DEBUG - INTERO precompiledData:")
       console.log(JSON.stringify(simplifiedPayload?.precompiledData, null, 2))
 
-      // Send to N8N
-      const response = await fetch(n8nWebhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(simplifiedPayload),
-      })
+      // LOG PRIMA DELLA FETCH
+      console.log("🚨 PRIMA DELLA FETCH A N8N", n8nWebhookUrl, JSON.stringify(simplifiedPayload).substring(0, 200));
+      let response;
+      try {
+        response = await fetch(n8nWebhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(simplifiedPayload),
+        });
+        // LOG DOPO LA FETCH
+        console.log("🚨 DOPO FETCH, response.ok:", response.ok, "status:", response.status);
+      } catch (error) {
+        // LOG ERRORE FETCH
+        console.error("🚨 ERRORE FETCH N8N:", error);
+        throw error;
+      }
 
       if (!response.ok) {
-        throw new Error(
-          `N8N webhook failed with status: ${response.status} ${response.statusText}`
-        )
+        // Leggi il body di errore se presente
+        let errorBody = '';
+        try {
+          errorBody = await response.text();
+        } catch (e) {
+          errorBody = '[Impossibile leggere il body di errore]';
+        }
+        const errorMsg = `N8N webhook failed with status: ${response.status} ${response.statusText}\nBody: ${errorBody}`;
+        logger.error(`[N8N] ❌ HTTP error sending to N8N:`, errorMsg)
+        throw new Error(errorMsg);
       }
 
       const n8nResponse = await response.json()
@@ -376,9 +393,10 @@ export class N8nPayloadBuilder {
       console.log("[DEBUG PATCH] parsedResponse.message:", parsedResponse.message);
       
       return parsedResponse;
-    } catch (error) {
+    } catch (error: any) {
       logger.error(`[N8N] ❌ Error sending to N8N:`, error)
-      throw error
+      // Rilancio l'errore con stack completo e messaggio
+      throw new Error(`[N8N] Error: ${error.message}\nSTACK: ${error.stack}`)
     }
   }
 }

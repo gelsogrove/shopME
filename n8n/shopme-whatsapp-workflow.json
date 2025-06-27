@@ -1,5 +1,5 @@
 {
-  "name": "My workflow",
+  "name": "My workflow1",
   "nodes": [
     {
       "parameters": {
@@ -8,29 +8,15 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "882770a0-ebdb-498a-85de-95b235591357",
+      "id": "148536ab-b0b0-409e-9a35-53c6dd9c23f8",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -1120,
-        320
+        -620,
+        140
       ],
       "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
-    },
-    {
-      "parameters": {
-        "jsCode": "return $input.all().map(item => {\n  // Esponi il tipo e il valore di body come output per debug\n  return {\n    json: {\n      original: item.json,\n      bodyType: typeof item.json.body,\n      bodyValue: item.json.body\n    }\n  };\n});"
-      },
-      "id": "6b66224d-a587-4a22-9aee-ff1cc9bb6258",
-      "name": "Flatten body after Webhook",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [
-        -940,
-        320
-      ],
-      "alwaysOutputData": false
     },
     {
       "parameters": {
@@ -44,7 +30,7 @@
           "conditions": [
             {
               "id": "886f3c80-d2cc-45c4-8455-61f98540c27c",
-              "leftValue": "={{ $json.bodyValue.precompiledData.customer.isActive }}",
+              "leftValue": "={{ $json.precompiledData.customer.isActive }}",
               "rightValue": "true",
               "operator": {
                 "type": "string",
@@ -54,7 +40,7 @@
             },
             {
               "id": "f5e912a0-c565-4198-9713-a3218f20208a",
-              "leftValue": "={{ $json.bodyValue.precompiledData.customer.isBlacklisted }}",
+              "leftValue": "={{ $json.precompiledData.customer.isBlacklisted }}",
               "rightValue": "false",
               "operator": {
                 "type": "string",
@@ -64,7 +50,7 @@
             },
             {
               "id": "528b8754-587f-4381-ae93-a8587ae96468",
-              "leftValue": "={{ $json.bodyValue.precompiledData.customer.activeChatbot }}",
+              "leftValue": "={{ $json.precompiledData.customer.activeChatbot }}",
               "rightValue": "true",
               "operator": {
                 "type": "string",
@@ -83,39 +69,40 @@
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.2,
       "position": [
-        -720,
-        320
+        -260,
+        140
       ],
-      "id": "c147a5e1-c6ae-4576-96f2-73de944478b2",
+      "id": "69354e03-f61a-4160-874c-63ca8ba02b24",
       "name": "Filter",
       "alwaysOutputData": true,
-      "executeOnce": false
+      "executeOnce": true,
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first();\n\nlet message =item.json.messageContent || \"\";\n \n\nreturn [\n  {\n    json: {\n      message: message\n    }\n  }\n];"
+        "jsCode": "const languageRaw = $input.first().json.precompiledData.customer.language || 'en';\nconst language = languageRaw.toLowerCase();\n\nlet messageWip = 'WIP_' + language; // fallback generico\n\nconst wipMessages = $input.first().json.wipMessages;\n\nif (language === 'it') {\n    messageWip = wipMessages.it;\n} else if (language === 'es') {\n    messageWip = wipMessages.es;\n} else if (language === 'en') {\n    messageWip = wipMessages.en;\n} else if (language === 'pt') {\n    messageWip = wipMessages.pt;\n} else if (wipMessages[language]) {\n    messageWip = wipMessages[language]; // supporto per altre lingue future\n}\n\nreturn [\n  {\n    json: {\n      message: messageWip\n    }\n  }\n];\n"
       },
-      "id": "eb2e60e9-fc5b-4883-aba9-af7fc4fa5745",
+      "id": "823afa03-d0d6-4b0d-85b8-02c951cbd5ea",
       "name": "return wip message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -340,
-        460
+        0,
+        280
       ],
       "alwaysOutputData": false
     },
     {
       "parameters": {
-        "jsCode": "const agentConfig =$input.first().json.original.body.precompiledData.agentConfig;\n const messages = $input.first().json.original.body.precompiledData.customer.conversationHistory;\n\nconst messageContent= $input.first().json.bodyValue.messageContent\nconst sessionToken= $input.first().json.bodyValue.sessionToken\nconst workspaceId = $input.first().json.original.body.workspaceId\nconst language = $input.first().json.original.body.precompiledData.customer.language\nconst customerid = $input.first().json.bodyValue.precompiledData.customer.id\n\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature : agentConfig.temperature,\n      maxTokens: agentConfig.maxTokens,\n      model: agentConfig.model,\n      messages,\n      messageContent,\n      sessionId: sessionToken,\n      language, \n      workspaceId,\n      customerid\n    },\n \n  }\n];\n"
+        "jsCode": "//const agentConfig =$input.first().json.original.precompiledData.agentConfig\n//const conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\n\nconst messageContent= $input.first().json.messageContent\nconst sessionToken=  $input.first().json.sessionToken\n//const workspaceId = $input.first().json.original.precompiledData.agentConfig.workspaceId\nconst language =   $input.first().json.precompiledData.customer.language\nconst customerid = $input.first().json.precompiledData.customer.id\n  \nconst temperature = $input.first().json.precompiledData.agentConfig.temperature\nconst maxTokens = $input.first().json.precompiledData.agentConfig.maxTokens\nconst model = $input.first().json.precompiledData.agentConfig.model\nconst conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\nconst prompt = $input.first().json.precompiledData.agentConfig.prompt\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature,\n      maxTokens,\n      model,\n      messages: conversationHistory,\n      sessionId: sessionToken,\n      language, \n      workspaceId: $input.first().json.workspaceId,\n      customerid  ,\n      prompt\n    },\n \n  }\n];\n"
       },
-      "id": "842f31ee-e032-4a82-98b0-7c3b98b7fd82",
+      "id": "3977df6d-73e8-46fc-acc0-5a77d87913b2",
       "name": "prepare-data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -340,
-        160
+        0,
+        0
       ],
       "alwaysOutputData": false
     },
@@ -123,27 +110,29 @@
       "parameters": {
         "jsCode": "return {\n  message:  $input.first().json.output\n}"
       },
-      "id": "a45be72a-08df-4c85-b670-574ea3c48a70",
+      "id": "0f70a9bd-cf4a-4044-9a06-f0037426f198",
       "name": "return LLM response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        380,
-        -40
+        700,
+        0
       ],
       "alwaysOutputData": false
     },
     {
       "parameters": {
-        "options": {}
+        "options": {
+          "systemMessage": "={{ $json.prompt }}"
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
       "position": [
-        -20,
-        -40
+        300,
+        0
       ],
-      "id": "b2a968a4-ba32-466f-a411-c27a7bcaee5d",
+      "id": "d10186b2-7ff7-4e86-b1c7-a70ef7fff70b",
       "name": "AI Agent",
       "alwaysOutputData": true,
       "notesInFlow": false,
@@ -160,10 +149,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        -20,
-        140
+        300,
+        180
       ],
-      "id": "8ef240bb-cbcd-47a8-ae0f-2f3e1b967a80",
+      "id": "95f32b5b-ac0b-4269-a509-aaf642301c31",
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
@@ -179,15 +168,15 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        100,
-        140
+        420,
+        180
       ],
-      "id": "d14cb085-ce1c-46a7-9649-7aeb5be496c9",
+      "id": "76ccb0b7-69d1-4347-9e66-06e9c23121dc",
       "name": "Simple Memory"
     },
     {
       "parameters": {
-        "toolDescription": "Makes an HTTP request and returns the response data when the user try to ask something related to the Products, Faqs,Services,Documents info",
+        "toolDescription": "Makes an HTTP request and returns the response data when the user ask something related to the Products, Faqs, Services, Documents info for example:\n\nwhat kind of wine do you have?\n\n- Avete mozzarella di bufala?\n- Quanto costa il servizio di trasporto?\n- Avete un servizio id packaging?\n- Che regole devo seguire per il trasporto?\n- Como puedo pagar ?\n- Which kind of wind do you have?\n- how many products do you havae?",
         "method": "POST",
         "url": "http://localhost:3001/api/search_rag",
         "sendQuery": true,
@@ -220,51 +209,11 @@
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
       "position": [
-        240,
-        140
+        560,
+        180
       ],
-      "id": "f7ba73e4-0f59-48e4-98f7-f8d1ff53185b",
-      "name": "HTTP Request",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "content": "todo mettere messggio di WIP"
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -180,
-        460
-      ],
-      "typeVersion": 1,
-      "id": "8e28acc0-6622-4233-bbc3-e0429c2b895d",
-      "name": "Sticky Note"
-    },
-    {
-      "parameters": {
-        "content": "filter non va"
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -820,
-        120
-      ],
-      "typeVersion": 1,
-      "id": "fc1eeabb-bcac-411c-be4e-12248d2b09fd",
-      "name": "Sticky Note1"
-    },
-    {
-      "parameters": {
-        "content": "devi farlo andare con il callng function"
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -280,
-        -80
-      ],
-      "typeVersion": 1,
-      "id": "a6fc4b5f-929f-4e49-839f-62bdbddf0f15",
-      "name": "Sticky Note2"
+      "id": "be96e8f5-f02f-4f89-abd8-e50ae060c621",
+      "name": "HTTP Request"
     },
     {
       "parameters": {
@@ -272,166 +221,81 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        400,
-        120
+        460,
+        320
       ],
       "typeVersion": 1,
-      "id": "24386f2c-b8f2-469f-a08f-734b8046213c",
+      "id": "1a0cd1cb-8681-4617-9b73-6ffa09f13b75",
       "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "jsCode": "if ($json.body) {\n  return [{ ...$json.body }];\n} else {\n  return [{ ...$json }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        140
+      ],
+      "id": "21d80ba8-9f46-482a-8156-9c65503edc7d",
+      "name": "body"
     }
   ],
   "pinData": {
     "Webhook": [
       {
         "json": {
-          "headers": {
-            "host": "localhost:5678",
-            "connection": "keep-alive",
-            "content-type": "application/json",
-            "accept": "*/*",
-            "accept-language": "*",
-            "sec-fetch-mode": "cors",
-            "user-agent": "node",
-            "accept-encoding": "gzip, deflate",
-            "content-length": "7303"
-          },
-          "params": {},
-          "query": {},
-          "body": {
-            "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
-            "phoneNumber": "+39123456789",
-            "messageContent": "ciao",
-            "sessionToken": "13orv1rr461oiqww5pe5bii",
-            "messages": [
-              {
-                "role": "user",
-                "content": "ciao"
-              },
-              {
-                "role": "assistant",
-                "content": "Ciao Mario! 👋 Benvenuto a L'Altra Italia! Sono il tuo assistente virtuale e sono qui per aiutarti con qualsiasi informazione sui nostri prodotti e servizi. Come posso assisterti oggi? 😊"
-              },
-              {
-                "role": "user",
-                "content": "chi sei?"
-              },
-              {
-                "role": "assistant",
-                "content": "Si è verificato un errore di connessione. Riprova più tardi."
-              },
-              {
-                "role": "user",
-                "content": "ciao"
-              },
-              {
-                "role": "assistant",
-                "content": "Si è verificato un errore di connessione. Riprova più tardi."
-              },
-              {
-                "role": "user",
-                "content": "ciao chi sei¿"
-              },
-              {
-                "role": "assistant",
-                "content": "Si è verificato un errore di connessione. Riprova più tardi."
-              }
-            ],
-            "precompiledData": {
-              "agentConfig": {
-                "id": "agent-config-1750947055575",
-                "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
-                "model": "openai/gpt-4o-mini",
-                "temperature": 0.7,
-                "maxTokens": 1000,
-                "topP": 0.9,
-                "prompt": "You are a RAG (Retrieval-Augmented Generation) processor specialized in analyzing user queries and retrieving relevant business data.\n\n🎯 YOUR ROLE:\n- Analyze user messages to understand their intent\n- Search and filter database content for relevance\n- Structure found data into clear, organized format\n- Provide accurate, factual information only\n\n🔍 SEARCH CAPABILITIES:\n- **Products** → Database product catalog with prices, descriptions, availability\n- **Services** → Available business services with details and pricing\n- **FAQs** → Frequently asked questions and policies\n- **Documents** → Business documents, regulations, legal information\n- **Company Info** → Business details, hours, contact information\n\n💡 QUERY ANALYSIS:\nWhen users ask questions, identify the intent and search relevant data sources:\n\n**Product Queries**:\n- \"Do you have wine?\" → Search products for wine category\n- \"Show me cheese under €20\" → Search products: category=cheese, maxPrice=20\n- \"What pasta is available?\" → Search products for pasta items\n- \"Mozzarella availability\" → Search products for mozzarella\n\n**Service Queries**:\n- \"What services do you offer?\" → Search all services\n- \"Do you deliver?\" → Search services for delivery/shipping\n- \"Cooking classes available?\" → Search services for cooking/classes\n\n**Policy/FAQ Queries**:\n- \"Return policy\" → Search FAQs for return/refund information\n- \"Shipping time\" → Search FAQs for delivery/shipping info\n- \"Payment methods\" → Search FAQs for payment information\n- \"Business hours\" → Search company info or FAQs\n\n**Document Queries**:\n- \"International shipping laws\" → Search documents for legal/regulatory info\n- \"Product certificates\" → Search documents for certifications\n- \"Import requirements\" → Search documents for import/export rules\n\n🗄️ DATA PROCESSING:\n1. **Receive** user query\n2. **Identify** intent and required data type\n3. **Search** relevant database tables\n4. **Filter** results for relevance and accuracy\n5. **Structure** data in organized format\n6. **Return** clear, factual information\n\n📋 OUTPUT FORMAT:\nStructure your response as organized data:\n\n```json\n{\n  \"query_intent\": \"product_search|service_inquiry|faq_question|document_search|company_info\",\n  \"found_data\": {\n    \"products\": [\n      {\n        \"name\": \"Product Name\",\n        \"price\": \"€XX.XX\",\n        \"description\": \"Product description\",\n        \"category\": \"Category\",\n        \"availability\": \"available|out_of_stock\"\n      }\n    ],\n    \"services\": [...],\n    \"faqs\": [...],\n    \"documents\": [...],\n    \"company_info\": {...}\n  },\n  \"total_results\": number,\n  \"relevance_score\": \"high|medium|low\"\n}\n```\n\n🚫 RESTRICTIONS:\n- **NEVER invent or create data** - only use actual database content\n- **NO fictional prices** - only real product pricing\n- **NO made-up products** - only existing catalog items\n- **NO false availability** - only actual stock information\n- **NO generic responses** - always search for specific data\n\n⚡ SEARCH STRATEGY:\n- Use semantic search for better matching\n- Include related/similar items when exact match not found\n- Search multiple data types when query is ambiguous\n- Prioritize exact matches over partial matches\n- Include pricing and availability when relevant\n\n🎯 QUALITY METRICS:\n- **Accuracy**: Only factual, database-verified information\n- **Completeness**: Include all relevant search results\n- **Relevance**: Results match user query intent\n- **Structure**: Well-organized, easy-to-process data format\n\nRemember: You are the data retrieval specialist. Your job is to find accurate, relevant information from the database and present it in a structured format. Focus on precision and factual accuracy above all else.",
-                "isActive": true
-              },
-              "customer": {
-                "id": "d5e6e275-808d-4215-bf6c-d860cb52aca2",
-                "name": "Mario Rossi",
-                "email": "test.customer@shopme.com",
-                "phone": "+39123456789",
-                "language": "it",
-                "isActive": true,
-                "isBlacklisted": false,
-                "activeChatbot": true,
-                "discount": 0,
-                "currency": "EUR",
-                "address": "Via Roma 123, Milano, Italy",
-                "company": "Test Company SRL",
-                "businessName": "L'Altra Italia(ESP)",
-                "businessType": "ECOMMERCE",
-                "plan": "FREE",
-                "whatsappPhoneNumber": "+34654728753",
-                "whatsappApiKey": "your-whatsapp-api-key",
-                "timezone": "Europe/Rome",
-                "url": "http://localhost:3000",
-                "notificationEmail": "admin@laltroitalia.shop",
-                "description": "Prodotti alimentari italiani di alta qualità",
-                "wipMessages": {
-                  "it": "Sto elaborando la tua richiesta, un momento per favore...",
-                  "en": "Processing your request, please wait a moment...",
-                  "es": "Procesando tu solicitud, por favor espera un momento...",
-                  "fr": "Je traite votre demande, veuillez patienter un moment...",
-                  "de": "Ich bearbeite Ihre Anfrage, bitte warten Sie einen Moment...",
-                  "pt": "Processando sua solicitação, aguarde um momento por favor..."
+          "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+          "phoneNumber": "393451234567",
+          "messageContent": "Ciao, chi sei?",
+          "sessionToken": "test-session-123",
+          "precompiledData": {
+            "agentConfig": {
+              "id": "agent-config-test",
+              "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+              "model": "openai/gpt-4o-mini",
+              "temperature": 0.7,
+              "maxTokens": 1000,
+              "topP": 0.9,
+              "prompt": "You are a RAG (Retrieval-Augmented Generation) processor specialized in analyzing user queries and retrieving relevant business data.\n\n🎯 YOUR ROLE:\n- Analyze user messages to understand their intent\n- Search and filter database content for relevance\n- Structure found data into clear, organized format\n- Provide accurate, factual information only\n\n🔍 SEARCH CAPABILITIES:\n- **Products** → Database product catalog with prices, descriptions, availability\n- **Services** → Available business services with details and pricing\n- **FAQs** → Frequently asked questions and policies\n- **Documents** → Business documents, regulations, legal information\n- **Company Info** → Business details, hours, contact information\n\n💡 QUERY ANALYSIS:\nWhen users ask questions, identify the intent and search relevant data sources:\n\n**Product Queries**:\n- \"Do you have wine?\" → Search products for wine category\n- \"Show me cheese under €20\" → Search products: category=cheese, maxPrice=20\n- \"What pasta is available?\" → Search products for pasta items\n- \"Mozzarella availability\" → Search products for mozzarella\n\n**Service Queries**:\n- \"What services do you offer?\" → Search all services\n- \"Do you deliver?\" → Search services for delivery/shipping\n- \"Cooking classes available?\" → Search services for cooking/classes\n\n**Policy/FAQ Queries**:\n- \"Return policy\" → Search FAQs for return/refund information\n- \"Shipping time\" → Search FAQs for delivery/shipping info\n- \"Payment methods\" → Search FAQs for payment information\n- \"Business hours\" → Search company info or FAQs\n\n**Document Queries**:\n- \"International shipping laws\" → Search documents for legal/regulatory info\n- \"Product certificates\" → Search documents for certifications\n- \"Import requirements\" → Search documents for import/export rules\n\n🗄️ DATA PROCESSING:\n1. **Receive** user query\n2. **Identify** intent and required data type\n3. **Search** relevant database tables\n4. **Filter** results for relevance and accuracy\n5. **Structure** data in organized format\n6. **Return** clear, factual information\n\n📋 OUTPUT FORMAT:\nStructure your response as organized data:\n\n```json\n{\n  \"query_intent\": \"product_search|service_inquiry|faq_question|document_search|company_info\",\n  \"found_data\": {\n    \"products\": [\n      {\n        \"name\": \"Product Name\",\n        \"price\": \"€XX.XX\",\n        \"description\": \"Product description\",\n        \"category\": \"Category\",\n        \"availability\": \"available|out_of_stock\"\n      }\n    ],\n    \"services\": [...],\n    \"faqs\": [...],\n    \"documents\": [...],\n    \"company_info\": {...}\n  },\n  \"total_results\": number,\n  \"relevance_score\": \"high|medium|low\"\n}\n```\n\n🚫 RESTRICTIONS:\n- **NEVER invent or create data** - only use actual database content\n- **NO fictional prices** - only real product pricing\n- **NO made-up products** - only existing catalog items\n- **NO false availability** - only actual stock information\n- **NO generic responses** - always search for specific data\n\n⚡ SEARCH STRATEGY:\n- Use semantic search for better matching\n- Include related/similar items when exact match not found\n- Search multiple data types when query is ambiguous\n- Prioritize exact matches over partial matches\n- Include pricing and availability when relevant\n\n🎯 QUALITY METRICS:\n- **Accuracy**: Only factual, database-verified information\n- **Completeness**: Include all relevant search results\n- **Relevance**: Results match user query intent\n- **Structure**: Well-organized, easy-to-process data format\n\nRemember: You are the data retrieval specialist. Your job is to find accurate, relevant information from the database and present it in a structured format. Focus on precision and factual accuracy above all else.",
+              "isActive": true
+            },
+            "customer": {
+              "id": "test-customer-123",
+              "name": "Andrea Test User",
+              "email": "test@shopme.com",
+              "phone": "393451234567",
+              "language": "IT",
+              "isActive": true,
+              "isBlacklisted": false,
+              "activeChatbot": true,
+              "businessName": "L'Altra Italia(ESP)",
+              "businessType": "ECOMMERCE",
+              "conversationHistory": [
+                {
+                  "id": "msg-1",
+                  "content": "Ciao",
+                  "role": "user",
+                  "timestamp": "2025-06-25T15:00:00.000Z"
                 },
-                "conversationHistory": [
-                  {
-                    "id": "2afbb78f-fa42-4fe3-b2b0-2ff93a546f44",
-                    "content": "ciao",
-                    "role": "user",
-                    "timestamp": "2025-06-26T13:59:37.897Z"
-                  },
-                  {
-                    "id": "38a8d112-14ef-47a8-9c06-30b30dfe7f68",
-                    "content": "Ciao Mario! 👋 Benvenuto a L'Altra Italia! Sono il tuo assistente virtuale e sono qui per aiutarti con qualsiasi informazione sui nostri prodotti e servizi. Come posso assisterti oggi? 😊",
-                    "role": "assistant",
-                    "timestamp": "2025-06-26T13:59:37.899Z"
-                  },
-                  {
-                    "id": "a40b010e-448a-4659-aeaa-a43148e2a53a",
-                    "content": "chi sei?",
-                    "role": "user",
-                    "timestamp": "2025-06-26T14:06:48.760Z"
-                  },
-                  {
-                    "id": "27445e82-0094-4b3c-9818-d422101fcec8",
-                    "content": "Si è verificato un errore di connessione. Riprova più tardi.",
-                    "role": "assistant",
-                    "timestamp": "2025-06-26T14:06:48.761Z"
-                  },
-                  {
-                    "id": "82a0f4ab-6b08-44df-b42e-8b4e93fd7a3b",
-                    "content": "ciao",
-                    "role": "user",
-                    "timestamp": "2025-06-26T14:09:08.560Z"
-                  },
-                  {
-                    "id": "01fa1cb1-2268-4dbf-9774-f3f76f78ce1d",
-                    "content": "Si è verificato un errore di connessione. Riprova più tardi.",
-                    "role": "assistant",
-                    "timestamp": "2025-06-26T14:09:08.561Z"
-                  },
-                  {
-                    "id": "ca73b7fd-f846-457e-9141-7dfae59ab6a0",
-                    "content": "ciao chi sei¿",
-                    "role": "user",
-                    "timestamp": "2025-06-26T14:09:26.949Z"
-                  },
-                  {
-                    "id": "583519a1-8fda-4aa5-b64e-60fd8190bd8d",
-                    "content": "Si è verificato un errore di connessione. Riprova più tardi.",
-                    "role": "assistant",
-                    "timestamp": "2025-06-26T14:09:26.954Z"
-                  }
-                ]
-              }
+                {
+                  "id": "msg-2",
+                  "content": "Ciao! Come posso aiutarti oggi?",
+                  "role": "assistant",
+                  "timestamp": "2025-06-25T15:00:01.000Z"
+                }
+              ]
             }
           },
-          "webhookUrl": "http://localhost:5678/webhook/webhook-start",
-          "executionMode": "production"
+          "wipMessages": {
+            "en": "Work in progress. Please contact us later.",
+            "es": "Trabajos en curso. Por favor, contáctenos más tarde.",
+            "it": "Lavori in corso. Contattaci più tardi.",
+            "fr": "Travaux en cours. Veuillez nous contacter plus tard.",
+            "de": "Arbeiten im Gange. Bitte kontaktieren Sie uns später.",
+            "pt": "Em manutenção. Por favor, contacte-nos mais tarde."
+          }
         }
       }
     ]
@@ -441,18 +305,7 @@
       "main": [
         [
           {
-            "node": "Flatten body after Webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Flatten body after Webhook": {
-      "main": [
-        [
-          {
-            "node": "Filter",
+            "node": "body",
             "type": "main",
             "index": 0
           }
@@ -463,12 +316,14 @@
       "main": [
         [
           {
-            "node": "return wip message",
+            "node": "prepare-data",
             "type": "main",
             "index": 0
-          },
+          }
+        ],
+        [
           {
-            "node": "prepare-data",
+            "node": "return wip message",
             "type": "main",
             "index": 0
           }
@@ -529,16 +384,27 @@
           }
         ]
       ]
+    },
+    "body": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "ed400bde-3b23-450a-8e5f-92a482de798b",
+  "versionId": "fc61d98f-2cc4-4088-82dc-0c8da28f53e7",
   "meta": {
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
   },
-  "id": "5RzpUaDV72MlE1Ie",
+  "id": "iUnUEjLskK75Bu3v",
   "tags": []
 }
