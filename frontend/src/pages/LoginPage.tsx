@@ -3,7 +3,7 @@ import AuthLogo from "@/components/ui/auth-logo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { AlertTriangle } from "lucide-react"
+import { AlertTriangle, MessageSquare, ShoppingCart, Zap, Globe } from "lucide-react"
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -60,17 +60,20 @@ export function LoginPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-[100vh] lg:grid-cols-2 xl:min-h-[100vh]">
-      <div className="flex items-center justify-center py-12">
-        <div className="mx-auto grid w-[350px] gap-6">
-          <div className="grid gap-2 text-center">
+      {/* Left side - Login Form */}
+      <div className="flex items-center justify-center py-12 px-4 lg:px-8">
+        <div className="mx-auto w-full max-w-[400px] space-y-6">
+          <div className="space-y-4 text-center">
             <AuthLogo />
-            <h1 className="text-3xl font-bold">Welcome Back</h1>
-            <p className="text-balance text-muted-foreground">
-              Enter your credentials to access your workspace
-            </p>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold tracking-tight">Welcome Back</h1>
+              <p className="text-balance text-muted-foreground">
+                Enter your credentials to access your workspace
+              </p>
+            </div>
           </div>
 
-            {error && (
+          {error && (
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Login Error</AlertTitle>
@@ -78,10 +81,10 @@ export function LoginPage() {
                 {error}
               </AlertDescription>
             </Alert>
-            )}
+          )}
 
-          <form onSubmit={handleSubmit} className="grid gap-4">
-            <div className="grid gap-2">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -92,18 +95,11 @@ export function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 autoComplete="username"
+                className="h-11"
               />
             </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  to="/forgot-password"
-                  className="ml-auto inline-block text-sm underline"
-                >
-                  Forgot your password?
-                </Link>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -112,26 +108,88 @@ export function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
                 autoComplete="current-password"
+                className="h-11"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            
+            {/* Forgot Password Link - Better positioned */}
+            <div className="flex justify-end">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline"
+              >
+                Forgot your password?
+              </Link>
+            </div>
+
+            <Button type="submit" className="w-full h-11" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
+          
+          <div className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link to="/signup" className="underline">
+            <Link to="/signup" className="text-primary hover:text-primary/80 underline-offset-4 hover:underline font-medium">
               Sign up
             </Link>
           </div>
         </div>
       </div>
-      <div className="hidden bg-muted lg:block">
-        <div className="flex h-full w-full flex-col items-center justify-center bg-gray-900 text-white p-12">
-          <h2 className="mt-6 text-4xl font-bold tracking-tight">Conversational E-commerce, Reimagined</h2>
-          <p className="mt-4 text-lg text-gray-300 max-w-xl text-center">
+
+      {/* Right side - Enhanced Visual Design */}
+      <div className="hidden lg:block relative overflow-hidden">
+        {/* Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800"></div>
+        
+        {/* Geometric Pattern Overlay */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-full h-full">
+            <div className="absolute top-20 left-20 w-32 h-32 border border-white/20 rounded-full"></div>
+            <div className="absolute top-40 right-32 w-24 h-24 border border-white/15 rounded-lg rotate-12"></div>
+            <div className="absolute bottom-32 left-16 w-40 h-40 border border-white/10 rounded-full"></div>
+            <div className="absolute bottom-20 right-20 w-28 h-28 border border-white/20 rounded-lg -rotate-12"></div>
+          </div>
+        </div>
+        
+        {/* Content */}
+        <div className="relative z-10 flex h-full w-full flex-col items-center justify-center text-white p-12">
+          {/* Main Logo/Icon */}
+          <div className="mb-8 p-4 bg-white/10 rounded-full backdrop-blur-sm">
+            <MessageSquare className="w-16 h-16 text-white" />
+          </div>
+          
+          {/* Main Heading */}
+          <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-center mb-6">
+            Conversational E-commerce,
+            <span className="block text-blue-200">Reimagined</span>
+          </h2>
+          
+          {/* Description */}
+          <p className="text-lg text-blue-100 max-w-xl text-center mb-12 leading-relaxed">
             Power your business with an AI-driven sales agent that understands, assists, and sells, directly on WhatsApp.
           </p>
+          
+          {/* Feature Icons */}
+          <div className="grid grid-cols-3 gap-8 max-w-sm">
+            <div className="flex flex-col items-center space-y-3 group">
+              <div className="p-3 bg-white/10 rounded-lg backdrop-blur-sm group-hover:bg-white/20 transition-colors">
+                <ShoppingCart className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-sm text-blue-100 text-center">Smart Sales</span>
+            </div>
+            <div className="flex flex-col items-center space-y-3 group">
+              <div className="p-3 bg-white/10 rounded-lg backdrop-blur-sm group-hover:bg-white/20 transition-colors">
+                <Zap className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-sm text-blue-100 text-center">AI Powered</span>
+            </div>
+            <div className="flex flex-col items-center space-y-3 group">
+              <div className="p-3 bg-white/10 rounded-lg backdrop-blur-sm group-hover:bg-white/20 transition-colors">
+                <Globe className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-sm text-blue-100 text-center">Global Reach</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
