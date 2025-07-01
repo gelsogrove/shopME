@@ -769,6 +769,22 @@ RESPONSE INSTRUCTIONS:
 
       logger.info(`[LLM-PROCESS] OpenRouter response received, tokens used: ${data.usage?.total_tokens || 0}`);
 
+      // Track usage for registered customers (0.5 cents per LLM response)
+      if (formattedResponse && customer?.id) {
+        try {
+          const { usageService } = await import('../../../services/usage.service');
+          await usageService.trackUsage({
+            workspaceId: workspaceId,
+            clientId: customer.id,
+            price: 0.005 // 0.5 cents as requested by Andrea
+          });
+          logger.info(`[LLM-PROCESS] 💰 Usage tracked for customer ${customer.id}`);
+        } catch (usageError) {
+          logger.error(`[LLM-PROCESS] Failed to track usage for customer ${customer.id}:`, usageError);
+          // Don't fail the main request if usage tracking fails
+        }
+      }
+
       res.json({
         response: formattedResponse,
         model: agentConfig.model,
