@@ -1980,20 +1980,8 @@ INSTRUCTIONS FOR LLM FORMATTER:
       
       logger.info(`[RAG] LLM formatter response generated successfully`);
       
-      // Track usage for registered customers (0.5 cents per LLM response)
-      if (formattedResponse && customer.id) {
-        try {
-          const { usageService } = await import('../services/usage.service');
-          await usageService.trackUsage({
-            workspaceId: workspaceId,
-            clientId: customer.id,
-            price: 0.005 // 0.5 cents as requested by Andrea
-          });
-        } catch (usageError) {
-          logger.error(`[RAG] Failed to track usage for customer ${customer.id}:`, usageError);
-          // Don't fail the main request if usage tracking fails
-        }
-      }
+      // 💰 USAGE TRACKING: Now handled in saveMessage (Andrea's Logic)
+      // No need to track here - tracking happens when N8N saves final conversation
       
       return formattedResponse;
 

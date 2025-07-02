@@ -64,12 +64,13 @@ const stats = await usageService.getUsageStats({
 | `GET /api/usage/summary/{workspaceId}` | Quick summary | Overview widgets |
 | `GET /api/usage/export/{workspaceId}` | CSV/JSON export | Data analysis |
 
-### 5. **LLM Integration Points**
+### 5. **N8N Integration Point (Andrea's Logic)**
 
-**Automatic tracking in:**
-- ✅ `message.repository.ts` → `getResponseFromRag()` method
-- ✅ `internal-api.controller.ts` → `llmProcess()` method
-- ✅ Every successful LLM response for registered customers
+**Single tracking point (no public endpoints):**
+- ✅ `internal-api.controller.ts` → `saveMessage()` method
+- ✅ Called by N8N when saving final conversation
+- ✅ Tracks only registered customers with `activeChatbot: true`
+- ✅ No multiple tracking - single point of truth
 
 ### 6. **Sample Data & Testing**
 - ✅ Seed script generates 30 days of realistic usage data
@@ -107,18 +108,26 @@ const stats = await usageService.getUsageStats({
 
 ## 🔧 Technical Implementation Details
 
-### **Usage Tracking Logic**
+### **Usage Tracking Logic (Andrea's Direct Integration)**
 ```typescript
-// Only tracks for registered customers
-if (formattedResponse && customer?.id) {
-  try {
-    await usageService.trackUsage({
+// Called by N8N in saveMessage - single point of tracking
+if (response && response.trim()) {
+  const customer = await prisma.customers.findFirst({
+    where: {
+      phone: phoneNumber,
       workspaceId: workspaceId,
-      clientId: customer.id,
-      price: 0.005 // 0.5 cents as requested
+      activeChatbot: true // Only active registered customers
+    }
+  });
+
+  if (customer) {
+    await prisma.usage.create({
+      data: {
+        workspaceId: workspaceId,
+        clientId: customer.id,
+        price: 0.005 // 0.5 cents as requested by Andrea
+      }
     });
-  } catch (error) {
-    // Graceful error handling - doesn't break main flow
   }
 }
 ```
