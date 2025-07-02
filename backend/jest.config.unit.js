@@ -10,7 +10,7 @@ module.exports = {
     '^.+\\.(ts|tsx)$': [
       'ts-jest',
       {
-        isolatedModules: true,
+        useESM: true,
         diagnostics: {
           ignoreCodes: [
             2615,
@@ -30,9 +30,4 @@ module.exports = {
     'node_modules/'
   ],
   extensionsToTreatAsEsm: ['.ts'],
-  globals: {
-    'ts-jest': {
-      useESM: true
-    }
-  },
 }; 
