@@ -42,6 +42,8 @@ import createPromptsRouter from "./prompts.routes"
 import documentRoutes from "./documentRoutes"
 // Import internal API routes for N8N integration
 import { internalApiRoutes } from "../interfaces/http/routes/internal-api.routes"
+// Import analytics routes
+import analyticsRoutes from "./analytics.routes"
 
 // Simple logging middleware
 const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -191,6 +193,10 @@ logger.info("Registered document router with workspace and upload endpoints")
 // Mount internal API routes for N8N integration
 router.use("/internal", internalApiRoutes);
 logger.info("Registered internal API routes for N8N integration")
+
+// Mount analytics routes
+router.use("/analytics", analyticsRoutes);
+logger.info("Registered analytics routes for dashboard metrics")
 
 // Add special route for GDPR default content (to handle frontend request to /gdpr/default)
 router.get("/gdpr/default", authMiddleware, settingsController.getDefaultGdprContent.bind(settingsController))
