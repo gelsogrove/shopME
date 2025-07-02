@@ -48,6 +48,12 @@ const options = {
           in: 'cookie',
           name: 'auth_token',
         },
+        tokenAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'SecureToken',
+          description: 'Secure token for calling function endpoints',
+        },
       },
     },
     security: [

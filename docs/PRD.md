@@ -21,10 +21,14 @@
 - Ha parametri diversi (temperature, model, prompt)?
 
 ### **Q4: Calling Functions con Token di Protezione**
-**A:** ✅ **IMPLEMENTATO**
-- Token interno N8N: `internal_api_secret_n8n_shopme_2024`
-- SecureTokenService per customer tokens temporanei
-- Cleanup automatico after expiration (1 ora)
+**A:** ✅ **IMPLEMENTATO COMPLETAMENTE**
+- **CF Products Endpoint**: `/api/cf/products` - Prodotti con categorie attive, stock > 1, ordinati per categoria
+- **CF Services Endpoint**: `/api/cf/services` - Tutti i servizi del workspace
+- **Token Security**: Validazione tramite tabella `secureToken` con controllo scadenza
+- **N8N Integration**: Token automatici per workflow calling functions
+- **Dual Authentication**: Bearer header o query parameter per flessibilità
+- **Workspace Isolation**: Filtraggio automatico per workspaceId
+- **Automatic Cleanup**: Rimozione token scaduti via background job
 
 ### **Q6: N8N Auto-Setup e Import Automatico**
 **A:** ✅ **IMPLEMENTATO COMPLETAMENTE**
@@ -3071,6 +3075,135 @@ We protect all API endpoints with smart rate limiting:
   - **Description**: Sends message to a customer via WhatsApp
   - **Body**: Message content, recipient, and options
   - **Returns**: Delivery status
+
+#### Calling Function API (Token-Protected)
+
+**🔒 Authentication**: All CF endpoints require valid token authentication via `Authorization: Bearer <token>` header or `?token=<token>` query parameter.
+
+**🛡️ Security**: Tokens are validated against `secureToken` table for expiration and usage status.
+
+**🎯 Purpose**: These endpoints are specifically designed for AI function calling in N8N workflows and other automated systems.
+
+##### CF Products API
+
+- `GET /api/cf/products`
+  - **Description**: Gets all products with active categories for function calling
+  - **Authentication**: Secure token required (Bearer token or query parameter)
+  - **Parameters**: 
+    - `workspaceId` (required): Workspace identifier
+    - `categoryId` (optional): Filter by specific category ID
+  - **Filters Applied Automatically**:
+    - `product.isActive = true` (only active products)
+    - `category.isActive = true` (only products in active categories)
+    - `stock > 1` (only products with sufficient stock)
+  - **Ordering**: Results ordered by `category.name ASC`
+  - **Returns**: 
+    ```json
+    {
+      "success": true,
+      "products": [
+        {
+          "id": "prod-123",
+          "name": "Mozzarella di Bufala",
+          "description": "Fresh buffalo mozzarella",
+          "price": 8.50,
+          "stock": 15,
+          "isActive": true,
+          "categoryId": "cat-123",
+          "categoryName": "Formaggi",
+          "workspaceId": "ws-123"
+        }
+      ],
+      "count": 1,
+      "workspaceId": "ws-123",
+      "filters": {
+        "categoryId": null,
+        "conditions": [
+          "product.isActive = true",
+          "category.isActive = true",
+          "stock > 1"
+        ]
+      }
+    }
+    ```
+  - **Error Responses**:
+    - `401`: Missing or invalid token
+    - `403`: Token expired or inactive
+    - `400`: Missing workspaceId parameter
+
+##### CF Services API
+
+- `GET /api/cf/services`
+  - **Description**: Gets all services for function calling
+  - **Authentication**: Secure token required (Bearer token or query parameter)
+  - **Parameters**: 
+    - `workspaceId` (required): Workspace identifier
+  - **Filters Applied Automatically**:
+    - `workspaceId` filtering (workspace isolation)
+    - Returns all services for the workspace
+  - **Returns**: 
+    ```json
+    {
+      "success": true,
+      "services": [
+        {
+          "id": "serv-123",
+          "name": "Consulenza IT",
+          "description": "Servizio di consulenza informatica",
+          "price": 100.00,
+          "currency": "EUR",
+          "duration": 60,
+          "isActive": true,
+          "workspaceId": "ws-123"
+        }
+      ],
+      "count": 1,
+      "workspaceId": "ws-123"
+    }
+    ```
+  - **Error Responses**:
+    - `401`: Missing or invalid token
+    - `403`: Token expired or inactive
+    - `400`: Missing workspaceId parameter
+
+##### CF Token Validation
+
+**Token Types Supported**:
+- `calling_function`: General function calling access
+- `checkout`: Checkout-specific access
+- `registration`: Registration-specific access
+- `invoice`: Invoice-specific access
+
+**Token Security Features**:
+- **Expiration Check**: Tokens must have `expiresAt > NOW()`
+- **Usage Tracking**: Optional `usedAt` field for one-time tokens
+- **Workspace Isolation**: Each token is tied to a specific workspace
+- **IP Logging**: Optional IP address tracking for security auditing
+
+**Token Validation Flow**:
+```
+1. Extract token from Authorization header or query parameter
+2. Query secureToken table for active, non-expired token
+3. Verify token belongs to requested workspace
+4. Add token info to request context for controllers
+5. Proceed with request or return 401/403 error
+```
+
+**Example Token Usage**:
+```bash
+# Via Authorization Header (Recommended)
+curl -X GET "https://api.shopme.com/api/cf/products?workspaceId=ws-123" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# Via Query Parameter (Alternative)
+curl -X GET "https://api.shopme.com/api/cf/products?workspaceId=ws-123&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+**Token Management**:
+- Tokens are generated via `SecureTokenService`
+- Default expiration: 1 hour for function calling tokens
+- Automatic cleanup of expired tokens via background job
+- Integration with N8N workflows for automated token usage
 
 ### Security Implementation (OWASP)
 
