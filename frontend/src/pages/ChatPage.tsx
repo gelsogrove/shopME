@@ -1,8 +1,10 @@
 import { PageLayout } from "@/components/layout/PageLayout"
 import { ClientSheet } from "@/components/shared/ClientSheet"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { OperatorRequestIndicator, OperatorRequestsBadge } from "@/components/shared/OperatorRequestIndicator"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
+import { useOperatorRequests } from "@/hooks/useOperatorRequests"
 import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
 import { useQuery } from "@tanstack/react-query"
@@ -128,6 +130,29 @@ export function ChatPage() {
   const [hasToggledChatbot, setHasToggledChatbot] = useState(false)
   const [isBlocking, setIsBlocking] = useState(false)
   const navigate = useNavigate()
+
+  // Operator requests management
+  const {
+    operatorRequests,
+    totalRequests,
+    chatHasRequest,
+    getRequestForChat,
+    takeControl,
+    isTakingControl,
+    refetch: refetchOperatorRequests
+  } = useOperatorRequests()
+
+  // Handle operator taking control
+  const handleTakeControl = async (requestId: string) => {
+    try {
+      await takeControl(requestId)
+      // Refresh chat data after taking control
+      refetchChats()
+      refetchOperatorRequests()
+    } catch (error) {
+      console.error('Error taking control:', error)
+    }
+  }
 
   // Redirect to workspace selection if user has no workspace
   useEffect(() => {
@@ -631,7 +656,27 @@ export function ChatPage() {
       <div className="grid grid-cols-12 gap-6 h-[calc(100vh-12rem)]">
         {/* Chat List */}
         <Card className="col-span-4 p-4 overflow-hidden flex flex-col">
-          <div className="mb-4">
+          <div className="mb-4 space-y-3">
+            {/* Operator Requests Summary */}
+            {totalRequests > 0 && (
+              <div className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <AlertCircle className="h-5 w-5 text-red-600 animate-pulse" />
+                    <OperatorRequestsBadge count={totalRequests} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-red-800">
+                      {totalRequests} richiesta{totalRequests > 1 ? 'e' : ''} operatore
+                    </p>
+                    <p className="text-xs text-red-600">
+                      Clicca sulle icone rosse per prendere controllo
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <Input
               type="search"
               placeholder="Search chats..."
@@ -659,11 +704,14 @@ export function ChatPage() {
               chats.map((chat: Chat) => {
                 // Compare sessionId instead of id
                 const isSelected = selectedChat?.sessionId === chat.sessionId
+                const chatSessionId = chat.sessionId || chat.id
+                const hasOperatorRequest = chatHasRequest(chatSessionId)
+                const operatorRequest = getRequestForChat(chatSessionId)
 
                 return (
                   <div
                     key={chat.id}
-                    className={`p-4 cursor-pointer rounded-lg mb-2 transition-all
+                    className={`relative p-4 cursor-pointer rounded-lg mb-2 transition-all
                       ${
                         isSelected
                           ? "border-l-4 border-green-600 bg-green-50 text-green-800 font-bold"
@@ -674,11 +722,12 @@ export function ChatPage() {
                         loadingChat && isSelected
                           ? "opacity-70 pointer-events-none"
                           : ""
-                      }`}
+                      }
+                      ${hasOperatorRequest ? "ring-2 ring-red-200 bg-red-50" : ""}`}
                     onClick={() => selectChat(chat)}
                   >
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-sm">
                           {chat.customerName}{" "}
                           {chat.companyName ? `(${chat.companyName})` : ""}
@@ -687,18 +736,48 @@ export function ChatPage() {
                           {chat.customerPhone}
                         </p>
                       </div>
-                      {chat.unreadCount > 0 && (
-                        <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                          {chat.unreadCount}
-                        </span>
-                      )}
+                      
+                      <div className="flex items-center gap-2">
+                        {/* Operator Request Indicator */}
+                        {hasOperatorRequest && operatorRequest && (
+                                                     <OperatorRequestIndicator
+                             operatorRequest={operatorRequest}
+                             onTakeControl={handleTakeControl}
+                             isLoading={isTakingControl}
+                             showDetails={false}
+                             size="sm"
+                           />
+                        )}
+                        
+                        {/* Unread Messages Badge */}
+                        {chat.unreadCount > 0 && (
+                          <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                            {chat.unreadCount}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                    
                     <p className="text-xs text-gray-600 mt-1 truncate">
                       {chat.lastMessage}
                     </p>
                     <p className="text-[10px] text-gray-400 mt-1">
                       {formatDate(chat.lastMessageTime)}
                     </p>
+                    
+                    {/* Operator Request Details (when selected) */}
+                    {hasOperatorRequest && operatorRequest && isSelected && (
+                      <div className="mt-3 pt-3 border-t border-red-200">
+                                                 <OperatorRequestIndicator
+                           operatorRequest={operatorRequest}
+                           onTakeControl={handleTakeControl}
+                           isLoading={isTakingControl}
+                           showDetails={true}
+                           size="sm"
+                           className="bg-white p-3 rounded-lg border border-red-200"
+                         />
+                      </div>
+                    )}
                   </div>
                 )
               })

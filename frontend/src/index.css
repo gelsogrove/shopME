@@ -2,6 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Operator Request Indicator Animations */
+@keyframes operator-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes operator-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes operator-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.8), 0 0 30px rgba(239, 68, 68, 0.6);
+  }
+}
+
+/* Custom utility classes for operator requests */
+.operator-pulse {
+  animation: operator-pulse 2s ease-in-out infinite;
+}
+
+.operator-ring {
+  animation: operator-ring 2s ease-out infinite;
+}
+
+.operator-glow {
+  animation: operator-glow 2s ease-in-out infinite;
+}
+
+/* Urgent request highlight */
+.urgent-request {
+  @apply ring-2 ring-red-300 bg-red-50 border-red-200;
+  animation: operator-glow 3s ease-in-out infinite;
+}
+
+/* Recent request highlight */
+.recent-request {
+  @apply ring-2 ring-green-300 bg-green-50 border-green-200;
+}
+
+/* Operator control message styling */
+.operator-message {
+  @apply border-l-4 border-blue-500 bg-blue-50 text-blue-900;
+}
+
+.manual-control-message {
+  @apply border-l-4 border-orange-400 bg-orange-50 text-orange-900;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

@@ -25,3 +25,6 @@ export type { CreateWorkspaceData, Language, UpdateWorkspaceData, Workspace } fr
 // Export clients API
 export * from "./clientsApi"
 
+// Export operator requests API
+export * from "./operatorRequestsApi"
+
