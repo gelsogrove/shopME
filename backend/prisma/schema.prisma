@@ -50,6 +50,7 @@ model Workspace {
   whatsappSettings          WhatsappSettings?
   secureTokens              SecureToken[]
   gdprContent               GdprContent?
+  operatorRequests          OperatorRequests[]
 }
 
 model Categories {
@@ -536,6 +537,25 @@ model GdprContent {
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   @@map("gdpr_content")
+}
+
+model OperatorRequests {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  chatId      String
+  phoneNumber String
+  message     String
+  timestamp   DateTime
+  status      String    @default("PENDING") // PENDING status only, then deleted
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("operator_requests")
+  @@index([workspaceId])
+  @@index([chatId])
+  @@index([phoneNumber])
+  @@index([status])
 }
 
 enum UserStatus {

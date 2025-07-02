@@ -170,5 +170,79 @@ export const callingFunctionRouter = (): Router => {
     controller.getServices(req, res).catch(next);
   });
 
+  /**
+   * @swagger
+   * /api/cf/callOperator:
+   *   post:
+   *     summary: Request human operator assistance
+   *     description: Creates a request for human operator assistance in chat
+   *     tags: [Calling Function]
+   *     security:
+   *       - tokenAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [workspaceId, phoneNumber, chatId, timestamp, message]
+   *             properties:
+   *               workspaceId:
+   *                 type: string
+   *                 description: The workspace ID
+   *                 example: "ws-123456"
+   *               phoneNumber:
+   *                 type: string
+   *                 description: Customer phone number
+   *                 example: "+393331234567"
+   *               chatId:
+   *                 type: string
+   *                 description: Chat session ID
+   *                 example: "chat-789"
+   *               timestamp:
+   *                 type: string
+   *                 format: date-time
+   *                 description: Timestamp of the request
+   *                 example: "2024-12-19T08:30:00Z"
+   *               message:
+   *                 type: string
+   *                 description: Customer message requesting operator
+   *                 example: "Voglio parlare con un operatore"
+   *     responses:
+   *       201:
+   *         description: Operator request created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 requestId:
+   *                   type: string
+   *                   example: "req-123456"
+   *                 status:
+   *                   type: string
+   *                   example: "PENDING"
+   *                 message:
+   *                   type: string
+   *                   example: "Richiesta inviata. Un operatore ti contatterà presto."
+   *                 timestamp:
+   *                   type: string
+   *                   format: date-time
+   *       400:
+   *         description: Missing required fields
+   *       401:
+   *         description: Missing or invalid token
+   *       403:
+   *         description: Token expired or invalid
+   *       500:
+   *         description: Internal server error
+   */
+  router.post('/callOperator', (req: Request, res: Response, next: NextFunction): void => {
+    controller.callOperator(req, res).catch(next);
+  });
+
   return router;
 };

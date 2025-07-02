@@ -98,4 +98,56 @@ export class CallingFunctionController {
       });
     }
   };
+
+  /**
+   * Call operator request - Creates a request for human operator assistance
+   * Requires token validation and saves operator request in database
+   */
+  callOperator = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { workspaceId, phoneNumber, chatId, timestamp, message } = req.body;
+      
+      // Validate required fields
+      if (!workspaceId || !phoneNumber || !chatId || !timestamp || !message) {
+        logger.error('Missing required fields for callOperator request');
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields',
+          error: 'workspaceId, phoneNumber, chatId, timestamp, and message are required'
+        });
+      }
+
+      const { prisma } = await import('../../../lib/prisma');
+      
+      // Create operator request
+      const operatorRequest = await prisma.operatorRequests.create({
+        data: {
+          workspaceId,
+          phoneNumber,
+          chatId,
+          message,
+          timestamp: new Date(timestamp),
+          status: 'PENDING'
+        }
+      });
+
+      logger.info(`CF callOperator: Created request ${operatorRequest.id} for phone ${phoneNumber} in workspace ${workspaceId}`);
+
+      return res.status(201).json({
+        success: true,
+        requestId: operatorRequest.id,
+        status: 'PENDING',
+        message: 'Richiesta inviata. Un operatore ti contatterà presto.',
+        timestamp: operatorRequest.createdAt
+      });
+
+    } catch (error) {
+      logger.error('Error in CF callOperator:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create operator request',
+        error: (error as Error).message
+      });
+    }
+  };
 }

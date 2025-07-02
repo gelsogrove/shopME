@@ -24,10 +24,12 @@
 **A:** ✅ **IMPLEMENTATO COMPLETAMENTE**
 - **CF Products Endpoint**: `/api/cf/products` - Prodotti con categorie attive, stock > 1, ordinati per categoria
 - **CF Services Endpoint**: `/api/cf/services` - Tutti i servizi del workspace
+- **CF CallOperator Endpoint**: `/api/cf/callOperator` - Richiesta assistenza operatore umano
 - **Token Security**: Validazione tramite tabella `secureToken` con controllo scadenza
 - **N8N Integration**: Token automatici per workflow calling functions
 - **Dual Authentication**: Bearer header o query parameter per flessibilità
 - **Workspace Isolation**: Filtraggio automatico per workspaceId
+- **Operator Escalation**: Sistema escalation a operatore con visual indicators
 - **Automatic Cleanup**: Rimozione token scaduti via background job
 
 ### **Q6: N8N Auto-Setup e Import Automatico**
@@ -3198,6 +3200,44 @@ curl -X GET "https://api.shopme.com/api/cf/products?workspaceId=ws-123" \
 # Via Query Parameter (Alternative)
 curl -X GET "https://api.shopme.com/api/cf/products?workspaceId=ws-123&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
+
+##### CF CallOperator API
+
+- `POST /api/cf/callOperator`
+  - **Description**: Creates request for human operator assistance in chat
+  - **Authentication**: Secure token required (Bearer token or query parameter)
+  - **Body**: 
+    ```json
+    {
+      "workspaceId": "ws-123456",
+      "phoneNumber": "+393331234567",
+      "chatId": "chat-789",
+      "timestamp": "2024-12-19T08:30:00Z",
+      "message": "Voglio parlare con un operatore"
+    }
+    ```
+  - **Returns**: 
+    ```json
+    {
+      "success": true,
+      "requestId": "req-123456",
+      "status": "PENDING",
+      "message": "Richiesta inviata. Un operatore ti contatterà presto.",
+      "timestamp": "2024-12-19T08:30:15Z"
+    }
+    ```
+  - **Database Impact**: Creates record in `OperatorRequests` table
+  - **Frontend Impact**: Displays operator assistance icon in chat history
+  - **Workflow**: 
+    1. N8N calls endpoint when customer requests operator
+    2. Backend saves request with PENDING status
+    3. Frontend shows visual indicator in chat list
+    4. Operator clicks icon → request is deleted → icon disappears
+  - **Error Responses**:
+    - `400`: Missing required fields (workspaceId, phoneNumber, chatId, timestamp, message)
+    - `401`: Missing or invalid token
+    - `403`: Token expired or inactive
+    - `500`: Database or server error
 
 **Token Management**:
 - Tokens are generated via `SecureTokenService`

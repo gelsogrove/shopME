@@ -44,6 +44,8 @@ import documentRoutes from "./documentRoutes"
 import { internalApiRoutes } from "../interfaces/http/routes/internal-api.routes"
 // Import calling function routes
 import { callingFunctionRouter } from "../interfaces/http/routes/calling-function.routes"
+// Import operator requests routes
+import { operatorRequestsRouter } from "../interfaces/http/routes/operator-requests.routes"
 
 // Simple logging middleware
 const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -197,6 +199,10 @@ logger.info("Registered internal API routes for N8N integration")
 // Mount calling function routes
 router.use("/cf", callingFunctionRouter());
 logger.info("Registered calling function routes with token validation")
+
+// Mount operator requests routes
+router.use("/workspaces", operatorRequestsRouter());
+logger.info("Registered operator requests routes for frontend")
 
 // Add special route for GDPR default content (to handle frontend request to /gdpr/default)
 router.get("/gdpr/default", authMiddleware, settingsController.getDefaultGdprContent.bind(settingsController))
