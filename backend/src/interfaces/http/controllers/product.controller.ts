@@ -430,4 +430,52 @@ export class ProductController {
       });
     }
   }
+
+  /**
+   * Get all products with active categories ordered by category name
+   * Filters: product.isActive = true, category.isActive = true, stock > 1
+   */
+  getAllProductsWithActiveCategoriesOrderedByCategory = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const workspaceIdParam = req.params.workspaceId;
+      const workspaceIdQuery = req.query.workspaceId as string;
+      const effectiveWorkspaceId = workspaceIdParam || workspaceIdQuery;
+      
+      if (!effectiveWorkspaceId) {
+        logger.error('WorkspaceId mancante nella richiesta getAllProductsWithActiveCategoriesOrderedByCategory');
+        return res.status(400).json({ 
+          message: 'WorkspaceId is required',
+          error: 'Missing workspaceId parameter' 
+        });
+      }
+
+      const categoryFilter = req.query.categoryId as string;
+      
+      const products = await this.productService.getAllProductsWithActiveCategoriesOrderedByCategory(
+        effectiveWorkspaceId,
+        categoryFilter
+      );
+      
+      return res.json({
+        success: true,
+        products,
+        count: products.length,
+        filters: {
+          workspaceId: effectiveWorkspaceId,
+          categoryFilter: categoryFilter || null,
+          conditions: [
+            'product.isActive = true',
+            'category.isActive = true', 
+            'stock > 1'
+          ]
+        }
+      });
+    } catch (error) {
+      logger.error('Error fetching products with active categories ordered by category:', error);
+      return res.status(500).json({ 
+        message: 'An error occurred while fetching products with active categories',
+        error: (error as Error).message 
+      });
+    }
+  };
 } 

@@ -315,6 +315,41 @@ export class ProductRepository implements IProductRepository {
     }
   }
 
+  async findAllWithActiveCategoriesOrderedByCategory(workspaceId: string, categoryFilter?: string): Promise<Product[]> {
+    try {
+      const where: Prisma.ProductsWhereInput = {
+        workspaceId,
+        isActive: true,
+        stock: { gt: 1 }, // WTA > 1 (assuming WTA refers to stock)
+        category: {
+          isActive: true
+        }
+      };
+
+      // Add category filter if provided
+      if (categoryFilter) {
+        where.categoryId = categoryFilter;
+      }
+
+      const products = await this.prisma.products.findMany({
+        where,
+        include: {
+          category: true
+        },
+        orderBy: {
+          category: {
+            name: 'asc'
+          }
+        }
+      });
+
+      return products.map(product => this.mapToDomainEntity(product));
+    } catch (error) {
+      logger.error('Error in findAllWithActiveCategoriesOrderedByCategory:', error);
+      return [];
+    }
+  }
+
   private mapToDomainEntity(data: any): Product {
     return new Product({
       id: data.id,

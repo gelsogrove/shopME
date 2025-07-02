@@ -27,4 +27,5 @@ export interface IProductRepository {
   updateStock(id: string, stock: number, workspaceId: string): Promise<Product | null>;
   updateStatus(id: string, status: ProductStatus, workspaceId: string): Promise<Product | null>;
   getProductsWithDiscounts(workspaceId: string, customerDiscount?: number): Promise<Product[]>;
+  findAllWithActiveCategoriesOrderedByCategory(workspaceId: string, categoryFilter?: string): Promise<Product[]>;
 } 

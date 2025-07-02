@@ -180,4 +180,23 @@ export class ProductService {
       throw error;
     }
   }
+
+  /**
+   * Get all products filtered by active categories, ordered by category name
+   * Only returns products where:
+   * - product.isActive = true
+   * - category.isActive = true  
+   * - stock > 1 (assuming WTA refers to stock)
+   * @param workspaceId ID del workspace
+   * @param categoryFilter Optional category filter
+   * @returns Products with active categories ordered by category name
+   */
+  async getAllProductsWithActiveCategoriesOrderedByCategory(workspaceId: string, categoryFilter?: string): Promise<Product[]> {
+    try {
+      return await this.productRepository.findAllWithActiveCategoriesOrderedByCategory(workspaceId, categoryFilter);
+    } catch (error) {
+      logger.error('Error in getAllProductsWithActiveCategoriesOrderedByCategory service:', error);
+      throw new Error(`Failed to get products with active categories: ${(error as Error).message}`);
+    }
+  }
 } 

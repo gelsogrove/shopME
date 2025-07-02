@@ -527,5 +527,62 @@ export default function setupProductRoutes(): Router {
    */
   router.post("/generate-embeddings", productController.generateEmbeddings.bind(productController));
 
+  /**
+   * @swagger
+   * /api/workspaces/{workspaceId}/products/active-with-categories:
+   *   get:
+   *     summary: Get all products with active categories ordered by category name
+   *     description: Returns products where product.isActive=true, category.isActive=true, and stock > 1
+   *     tags: [Products]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: The workspace ID
+   *       - in: query
+   *         name: categoryId
+   *         schema:
+   *           type: string
+   *         description: Filter by specific category ID
+   *     responses:
+   *       200:
+   *         description: List of products with active categories ordered by category name
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 products:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/Product'
+   *                 count:
+   *                   type: integer
+   *                 filters:
+   *                   type: object
+   *                   properties:
+   *                     workspaceId:
+   *                       type: string
+   *                     categoryFilter:
+   *                       type: string
+   *                       nullable: true
+   *                     conditions:
+   *                       type: array
+   *                       items:
+   *                         type: string
+   *       400:
+   *         description: Missing required parameters
+   *       401:
+   *         description: Unauthorized
+   */
+  // @ts-ignore
+  router.get('/active-with-categories', productController.getAllProductsWithActiveCategoriesOrderedByCategory);
+
   return router;
 } 
