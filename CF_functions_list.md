@@ -1,13 +1,13 @@
 # 🔧 LISTA COMPLETA FUNZIONI CF (CALLING FUNCTIONS)
 
-**Ciao Andrea!** Ecco la lista completa delle funzioni CF del tuo sistema ShopMe basata sul PRD.
+**Ciao Andrea!** Ecco la lista corretta delle funzioni CF del tuo sistema ShopMe.
 
 ## 📋 OVERVIEW
-Le **Calling Functions (CF)** sono funzioni intelligenti che il chatbot utilizza per processare richieste specifiche degli utenti. Il sistema utilizza un LLM Router per classificare l'intent del messaggio e selezionare automaticamente la funzione CF appropriata.
+Le **Calling Functions (CF)** sono funzioni intelligenti che il chatbot utilizza per processare richieste specifiche degli utenti. Tutte le funzioni CF hanno il path `CF/`.
 
 ---
 
-## ✅ FUNZIONI CF IMPLEMENTATE (3/6)
+## ✅ FUNZIONI CF IMPLEMENTATE E DA IMPLEMENTARE (6 totali)
 
 ### 1. 🔍 **search_rag()** - Ricerca Semantica Unificata
 - **Status**: ✅ COMPLETAMENTE IMPLEMENTATA (100%)
