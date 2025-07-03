@@ -9,107 +9,54 @@ Le **Calling Functions (CF)** sono funzioni intelligenti che il chatbot utilizza
 
 ## ✅ FUNZIONI CF IMPLEMENTATE E DA IMPLEMENTARE (6 totali)
 
-### 1. 🔍 **search_rag()** - Ricerca Semantica Unificata
-- **Status**: ✅ COMPLETAMENTE IMPLEMENTATA (100%)
-- **Endpoint**: `POST /api/internal/rag-search`
+### 1. 🔍 **SearchRag** - Ricerca Semantica Unificata
+- **Status**: ✅ IMPLEMENTATA
+- **Endpoint**: `CF/SearchRag`
 - **Scopo**: Ricerca semantica unificata tra prodotti, FAQ, servizi e documenti
-- **Features**:
-  - ✅ Embeddings locali con `@xenova/transformers`
-  - ✅ Ricerca parallela su tutti i tipi di contenuto
-  - ✅ Verifica stock per prodotti
-  - ✅ Soglie di similarità per tipo di contenuto
-  - ✅ Supporto multilingua (IT/EN/ES/PT)
 
-**Esempio di utilizzo**:
-```json
-{
-  "query": "cerco mozzarella fresca",
-  "workspaceId": "workspace-123",
-  "sessionToken": "secure-token-123"
-}
-```
+### 2. 📦 **GetAllProducts** - Lista Prodotti
+- **Status**: ✅ IMPLEMENTATA 
+- **Endpoint**: `CF/GetAllProducts`
+- **Scopo**: Restituisce lista completa prodotti del workspace
 
-### 2. 🛒 **create_order()** - Sistema E-commerce
-- **Status**: ⚠️ PARZIALMENTE IMPLEMENTATA (40%)
-- **Endpoint**: `CF/create_order`
-- **Scopo**: Generazione link checkout sicuri e gestione ordini
+### 3. �️ **GetAllServices** - Lista Servizi
+- **Status**: ✅ IMPLEMENTATA
+- **Endpoint**: `CF/GetAllServices` 
+- **Scopo**: Restituisce lista completa servizi del workspace
 
-**Implementato**:
-- ✅ SecureTokenService (generazione token)
-- ✅ Tracking sessione per customer
-- ✅ Link sicuri con scadenza automatica
-
-**Mancante**:
-- ❌ Gestione carrello completa
-- ❌ Integrazione gateway pagamento
-- ❌ Workflow processamento ordini
-
-### 3. 👨‍💼 **contact_operator()** - Controllo Operatore
+### 4. 👨‍💼 **CallOperator** - Controllo Operatore
 - **Status**: ⚠️ QUASI COMPLETA (90%)
-- **Endpoint**: `CF/contact_operator`
+- **Endpoint**: `CF/CallOperator`
 - **Scopo**: Attiva controllo manuale operatore
 
 **Implementato**:
 - ✅ Rilevamento controllo operatore
 - ✅ Salvataggio messaggi per revisione operatore
-- ✅ Endpoint invio messaggi manuali
 - ✅ Gestione flag activeChatbot
-- ✅ Sistema notifiche operatore
 
 **Mancante**:
 - ❌ Invio email notifica operatore
 
----
+### 5. � **ReceiveInvoice** - Gestione Fatture
+- **Status**: ❌ DA IMPLEMENTARE
+- **Endpoint**: `CF/ReceiveInvoice`
+- **Scopo**: Gestisce richieste fatture con filtro codice ordine
 
-## ❌ FUNZIONI CF NON IMPLEMENTATE (4/7)
+**Specifiche**:
+- ✅ Deve accettare codice ordine come filtro
+- ✅ Se codice ordine non fornito → invia link lista fatture
+- ✅ Se codice ordine valido → restituisce fattura specifica
+- ✅ Deve ritornare link PDF per download
 
-### 4. 📅 **add_calendar_event()** - Sistema Calendario
-- **Status**: ❌ NON IMPLEMENTATA (0%)
-- **Priorità**: HIGH
-- **Necessaria per**: Ristoranti, Cliniche, Servizi
+### 6. 💳 **PaymentProcessStart** - Avvio Pagamento
+- **Status**: ❌ IN TODO
+- **Endpoint**: `CF/PaymentProcessStart`
+- **Scopo**: Avvia processo di pagamento per ordini
 
-**Implementazione richiesta**:
-- Schema database calendario/prenotazioni
-- Sistema gestione appuntamenti
-- Controllo disponibilità slot temporali
-- Sistema conferme/promemoria
-- Integrazione calendario (Google/Outlook)
-
-### 5. 🎫 **create_ticket()** - Sistema Ticketing
-- **Status**: ❌ NON IMPLEMENTATA (0%)
-- **Priorità**: MEDIUM
-- **Necessaria per**: Supporto clienti, Problemi tecnici
-
-**Implementazione richiesta**:
-- Schema database ticket
-- Sistema priorità/categorie
-- Assegnazione agenti supporto
-- Tracking stato (aperto/in-corso/chiuso)
-- Gestione SLA
-
-### 6. 💳 **process_payment()** - Processamento Pagamenti
-- **Status**: ❌ NON IMPLEMENTATA (0%)
-- **Priorità**: HIGH
-- **Necessaria per**: Pagamenti diretti WhatsApp
-
-**Implementazione richiesta**:
-- Integrazione gateway pagamento (Stripe/PayPal)
-- Link pagamento sicuri
-- Tracking transazioni
-- Gestione rimborsi
-- Generazione fatture
-
-### 7. 📧 **send_invoice()** - Sistema Fatturazione
-- **Status**: ❌ NON IMPLEMENTATA (0%)
-- **Priorità**: LOW
-- **Necessaria per**: Transazioni B2B, Compliance legale
-
-**Implementazione richiesta**:
-- Sistema template fatture
-- Calcolo tasse
-- Compliance legale (UE/IT)
-- Generazione PDF
-- Sistema invio email
+**Da implementare**:
+- Integrazione gateway pagamento
+- Generazione link pagamento sicuri
+- Tracking stato pagamento
 
 ---
 
