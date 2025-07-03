@@ -56,11 +56,14 @@ Implementare la calling function **ReceiveInvoice** che gestisce le richieste di
   "success": true,
   "type": "invoice_list",
   "message": "Ecco tutte le tue fatture:",
-  "invoiceListUrl": "https://domain.com/customer/invoices?token=secure-access-token",
+  "invoiceListUrl": "https://domain.com/customer/invoices?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "invoicesCount": 12,
-  "secureToken": "secure-token-123"
+  "secureToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "tokenExpiration": "2024-01-16T10:30:00Z"
 }
 ```
+
+**⚠️ IMPORTANTE**: Il `secureToken` deve essere **SEMPRE incluso** nell'URL `invoiceListUrl` come parametro query `?token=...`
 
 ---
 
@@ -74,8 +77,15 @@ Implementare la calling function **ReceiveInvoice** che gestisce le richieste di
 
 ### **URL Structure**
 ```
-https://domain.com/customer/invoices?token=secure-access-token
+https://domain.com/customer/invoices?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
+
+**🔑 TOKEN REQUIREMENTS:**
+- ✅ **Obbligatorio**: Il token deve essere presente nell'URL
+- ✅ **Validazione**: Frontend valida token prima di mostrare fatture
+- ✅ **Scadenza**: Token scade dopo 24h dalla generazione
+- ✅ **Sicurezza**: Token contiene customerId + workspaceId criptati
+- ✅ **One-time use**: Ogni richiesta CF genera nuovo token
 
 ### **Componenti UI da Creare**
 
@@ -167,11 +177,39 @@ POST /CF/ReceiveInvoice  // Calling function endpoint
 #### **4. Services**
 ```typescript
 // backend/src/services/invoice.service.ts
-- getInvoiceByOrderCode()
-- getCustomerInvoices() 
-- generateSecureInvoiceListToken()
-- validateInvoiceAccess()
-- generateInvoicePDF()
+class InvoiceService {
+  // Recupera fattura specifica per codice ordine
+  async getInvoiceByOrderCode(orderCode: string, workspaceId: string): Promise<Invoice | null>
+  
+  // Recupera tutte le fatture del cliente (ORDER BY id DESC)
+  async getCustomerInvoices(customerId: string, workspaceId: string): Promise<Invoice[]>
+  
+  // ⚠️ CRITICO: Genera token sicuro per accesso lista fatture
+  async generateSecureInvoiceListToken(customerId: string, workspaceId: string): Promise<{
+    token: string;
+    url: string;
+    expiration: Date;
+  }>
+  
+  // Valida token e estrae customerId + workspaceId
+  async validateInvoiceListToken(token: string): Promise<{
+    customerId: string;
+    workspaceId: string;
+    isValid: boolean;
+  }>
+  
+  // Genera PDF fattura (se non esiste)
+  async generateInvoicePDF(invoiceId: string): Promise<string>
+}
+
+// ⚠️ TOKEN PAYLOAD EXAMPLE:
+{
+  "customerId": "customer-456",
+  "workspaceId": "workspace-123", 
+  "purpose": "invoice_list",
+  "iat": 1643723400,
+  "exp": 1643809800  // 24h expiration
+}
 ```
 
 ### **Frontend Components**
@@ -179,10 +217,28 @@ POST /CF/ReceiveInvoice  // Calling function endpoint
 #### **1. Pages**
 ```typescript
 // frontend/src/pages/InvoiceListPage.tsx
-- Pagina principale lista fatture
-- Validazione token di accesso
-- Gestione stati loading/error
-- Design responsive
+export function InvoiceListPage() {
+  // ⚠️ STEP 1: Estrae token dall'URL
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
+  
+  // ⚠️ STEP 2: Valida token e recupera fatture
+  useEffect(() => {
+    if (!token) {
+      // Redirect a pagina errore - token mancante
+      return;
+    }
+    
+    // Valida token e carica fatture
+    validateTokenAndLoadInvoices(token);
+  }, [token]);
+  
+  // ⚠️ STEP 3: Design responsive matching registration page
+  // ⚠️ STEP 4: Gestione stati loading/error/success
+}
+
+// 🚨 CRITICAL: Se token non presente o invalido → mostra errore
+// 🚨 CRITICAL: Se token scaduto → mostra messaggio scadenza
 ```
 
 #### **2. Components**
@@ -197,9 +253,55 @@ POST /CF/ReceiveInvoice  // Calling function endpoint
 #### **3. Services**
 ```typescript
 // frontend/src/services/invoiceApi.ts
-- getCustomerInvoices(token)
-- downloadInvoicePDF(invoiceId, token)
-- validateInvoiceListToken(token)
+class InvoiceApiService {
+  // ⚠️ CRITICO: Usa token per autenticazione
+  async getCustomerInvoices(token: string): Promise<Invoice[]> {
+    const response = await fetch(`/api/customer/invoices?token=${token}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // Double security
+      }
+    });
+    
+    if (!response.ok) {
+      if (response.status === 401) throw new Error('Token scaduto o invalido');
+      if (response.status === 403) throw new Error('Accesso negato');
+      throw new Error('Errore nel caricamento fatture');
+    }
+    
+    return response.json();
+  }
+  
+  // Download PDF con token validation
+  async downloadInvoicePDF(invoiceId: string, token: string): Promise<Blob> {
+    const response = await fetch(`/api/invoices/${invoiceId}/download?token=${token}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) throw new Error('Errore nel download PDF');
+    return response.blob();
+  }
+  
+  // Valida token lato client (pre-check)
+  async validateInvoiceListToken(token: string): Promise<{isValid: boolean; customerId?: string}> {
+    // Decode JWT senza chiamare backend (performance)
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const now = Math.floor(Date.now() / 1000);
+      
+      return {
+        isValid: payload.exp > now && payload.purpose === 'invoice_list',
+        customerId: payload.customerId
+      };
+    } catch {
+      return { isValid: false };
+    }
+  }
+}
 ```
 
 ---
@@ -212,6 +314,29 @@ POST /CF/ReceiveInvoice  // Calling function endpoint
 - ✅ **Download token** per ogni PDF (1h expiration)
 - ✅ **Customer validation** prima dell'accesso
 - ✅ **Workspace isolation** (fatture solo del workspace corretto)
+
+### **🔑 TOKEN FLOW COMPLETO**
+```
+1. CF ReceiveInvoice (senza orderCode) chiamata
+   ↓
+2. Backend genera JWT token con customerId + workspaceId
+   ↓  
+3. Backend restituisce URL: "domain.com/customer/invoices?token=JWT_TOKEN"
+   ↓
+4. Cliente clicca link WhatsApp
+   ↓
+5. Frontend estrae token da URL query parameter
+   ↓
+6. Frontend valida token (pre-check JWT decode)
+   ↓
+7. Se valido: API call con token per recuperare fatture
+   ↓
+8. Backend valida token + restituisce fatture del cliente
+   ↓
+9. Frontend mostra lista fatture (ORDER BY id DESC)
+```
+
+**⚠️ SECURITY CRITICAL**: Token deve essere presente in OGNI chiamata API e URL
 
 ### **Access Control**
 - ✅ **Token-based authentication** (no login required)
@@ -265,11 +390,24 @@ POST /CF/ReceiveInvoice  // Calling function endpoint
 - [ ] Accessibility compliance
 
 ### **Security Testing**  
-- [ ] Token validation funziona
+- [ ] Token validation funziona correttamente
+- [ ] URL senza token → mostra errore accesso negato
+- [ ] Token scaduto → mostra messaggio scadenza
+- [ ] Token invalido → mostra errore token
+- [ ] Token altro cliente → accesso negato (workspace isolation)
 - [ ] Non si accede a fatture di altri clienti
 - [ ] Non si accede a fatture di altri workspace
 - [ ] Rate limiting sui download
 - [ ] XSS/CSRF protection
+
+### **Token Flow Testing**
+- [ ] CF senza orderCode genera token corretto
+- [ ] URL generato contiene token
+- [ ] Frontend estrae token da URL query param
+- [ ] API call include token in Authorization header
+- [ ] Backend valida token prima di restituire fatture
+- [ ] Download PDF richiede token valido
+- [ ] Token expiration (24h) funziona correttamente
 
 ---
 
