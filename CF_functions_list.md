@@ -7,7 +7,7 @@ Le **Calling Functions (CF)** sono funzioni intelligenti che il chatbot utilizza
 
 ---
 
-## ✅ FUNZIONI CF IMPLEMENTATE (3/7)
+## ✅ FUNZIONI CF IMPLEMENTATE (3/6)
 
 ### 1. 🔍 **search_rag()** - Ricerca Semantica Unificata
 - **Status**: ✅ COMPLETAMENTE IMPLEMENTATA (100%)
@@ -31,7 +31,7 @@ Le **Calling Functions (CF)** sono funzioni intelligenti che il chatbot utilizza
 
 ### 2. 🛒 **create_order()** - Sistema E-commerce
 - **Status**: ⚠️ PARZIALMENTE IMPLEMENTATA (40%)
-- **Endpoint**: Utilizza `SecureTokenService` interno
+- **Endpoint**: `CF/create_order`
 - **Scopo**: Generazione link checkout sicuri e gestione ordini
 
 **Implementato**:
@@ -45,8 +45,8 @@ Le **Calling Functions (CF)** sono funzioni intelligenti che il chatbot utilizza
 - ❌ Workflow processamento ordini
 
 ### 3. 👨‍💼 **contact_operator()** - Controllo Operatore
-- **Status**: ⚠️ PARZIALMENTE IMPLEMENTATA (70%)
-- **Endpoint**: Controllo flag `customer.activeChatbot`
+- **Status**: ⚠️ QUASI COMPLETA (90%)
+- **Endpoint**: `CF/contact_operator`
 - **Scopo**: Attiva controllo manuale operatore
 
 **Implementato**:
@@ -54,10 +54,10 @@ Le **Calling Functions (CF)** sono funzioni intelligenti che il chatbot utilizza
 - ✅ Salvataggio messaggi per revisione operatore
 - ✅ Endpoint invio messaggi manuali
 - ✅ Gestione flag activeChatbot
+- ✅ Sistema notifiche operatore
 
 **Mancante**:
-- ❌ Funzione CF attivazione automatica operatore
-- ❌ Sistema notifiche operatore
+- ❌ Invio email notifica operatore
 
 ---
 
