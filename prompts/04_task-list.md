@@ -26,8 +26,8 @@
 - [x] **Rimuovi User Info Header**: Nascosto iniziali nome+cognome+piano in alto a destra
 - [x] **Fix Customers Active Toggle**: Risolto problema toggle Active/Inactive nella form clienti
 
-## 🔧 **UI/UX FIXES GENERALI** (DA FARE)
-- [ ] **Documents Toggle Frontend**: Aggiungere toggle per attivare/disattivare documenti nel FE come altre parti
+## ✅ **UI/UX FIXES GENERALI** (COMPLETATO - Andrea's small-changes)
+- [x] **Documents Toggle Frontend**: Toggle per attivare/disattivare documenti già implementato nel form di edit
 
 ## 💳 **PAGAMENTO ONLINE & CHECKOUT**
 
