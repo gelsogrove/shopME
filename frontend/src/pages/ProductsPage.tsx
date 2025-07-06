@@ -190,7 +190,7 @@ export function ProductsPage() {
       price: parseFloat(formData.get("price") as string),
       stock: parseInt(formData.get("stock") as string, 10),
       categoryId: formData.get("categoryId") as string || null,
-      isActive: true,
+      isActive: formData.get("isActive") === "on",
     }
 
     // Debug logging
@@ -228,6 +228,7 @@ export function ProductsPage() {
       price: parseFloat(formData.get("price") as string),
       stock: parseInt(formData.get("stock") as string, 10),
       categoryId: formData.get("categoryId") as string || null,
+      isActive: formData.get("isActive") === "on",
     }
 
     try {
@@ -369,6 +370,19 @@ export function ProductsPage() {
             </SelectContent>
           </Select>
           <input type="hidden" name="categoryId" value={selectedCategoryId === "none" ? "" : selectedCategoryId} />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="isActive"
+            name="isActive"
+            defaultChecked={product?.isActive ?? true}
+            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <Label htmlFor="isActive" className="text-sm font-medium">
+            Active Product
+          </Label>
         </div>
       </div>
     )

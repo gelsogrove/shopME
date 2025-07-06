@@ -106,8 +106,8 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
     return new Intl.NumberFormat('it-IT', {
       style: 'currency',
       currency: 'EUR',
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(value);
   };
 
@@ -121,16 +121,6 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
         ? calculateTrend(analytics.overview.totalOrders, previousPeriodAnalytics.overview.totalOrders)
         : undefined,
       description: "Numero totale di ordini ricevuti"
-    },
-    {
-      title: "Fatturato",
-      value: analytics.overview.totalRevenue,
-      icon: <Euro className="h-4 w-4 text-muted-foreground" />,
-      formatter: formatCurrency,
-      trend: previousPeriodAnalytics 
-        ? calculateTrend(analytics.overview.totalRevenue, previousPeriodAnalytics.overview.totalRevenue)
-        : undefined,
-      description: "Ricavo totale generato"
     },
     {
       title: "Clienti",
