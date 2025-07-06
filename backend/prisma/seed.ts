@@ -1897,6 +1897,65 @@ async function main() {
 
   console.log("✅ Test customer with active chat and welcome message created successfully!")
 
+  // Create sample usage data for dashboard testing
+  console.log("Creating sample usage data for dashboard...")
+  
+  // Create usage records for the last 30 days with realistic patterns
+  const today = new Date()
+  const usageData: Array<{
+    workspaceId: string
+    clientId: string
+    price: number
+    createdAt: Date
+  }> = []
+  
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(today)
+    date.setDate(date.getDate() - i)
+    
+    // More usage on weekdays, peak hours 10-16
+    const isWeekday = date.getDay() >= 1 && date.getDay() <= 5
+    const baseMessages = isWeekday ? 8 : 3 // More messages on weekdays
+    const randomVariation = Math.floor(Math.random() * 5) // Add some randomness
+    const dailyMessages = baseMessages + randomVariation
+    
+    // Create messages throughout the day with peak hours
+    for (let j = 0; j < dailyMessages; j++) {
+      let hour
+      if (isWeekday) {
+        // Peak hours 10-16 on weekdays
+        hour = Math.random() < 0.6 ? 10 + Math.floor(Math.random() * 6) : Math.floor(Math.random() * 24)
+      } else {
+        // Random hours on weekends
+        hour = Math.floor(Math.random() * 24)
+      }
+      
+      const messageTime = new Date(date)
+      messageTime.setHours(hour, Math.floor(Math.random() * 60), Math.floor(Math.random() * 60))
+      
+      usageData.push({
+        workspaceId: mainWorkspaceId,
+        clientId: testCustomer.id,
+        price: 0.005, // 0.5 cents as requested by Andrea
+        createdAt: messageTime
+      })
+    }
+  }
+  
+  // Create usage records
+  for (const usage of usageData) {
+    try {
+      await prisma.usage.create({
+        data: usage
+      })
+    } catch (error) {
+      console.error('Error creating usage record:', error)
+    }
+  }
+  
+  console.log(`✅ Created ${usageData.length} usage records for testing`)
+  console.log(`💰 Total cost simulation: €${(usageData.length * 0.005).toFixed(4)}`)
+
   // Seed default document
   await seedDefaultDocument()
 

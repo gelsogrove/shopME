@@ -1979,6 +1979,10 @@ INSTRUCTIONS FOR LLM FORMATTER:
       const formattedResponse = data.choices?.[0]?.message?.content || null;
       
       logger.info(`[RAG] LLM formatter response generated successfully`);
+      
+      // 💰 USAGE TRACKING: Now handled in saveMessage (Andrea's Logic)
+      // No need to track here - tracking happens when N8N saves final conversation
+      
       return formattedResponse;
 
     } catch (error) {
