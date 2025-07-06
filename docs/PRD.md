@@ -760,17 +760,57 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 - Invoice generation
 ```
 
-##### **7. 📧 send_invoice() - Invoice System**
+##### **7. 📧 ReceiveInvoice() - Sistema Gestione Fatture**
 ```javascript
-// Status: ❌ NOT IMPLEMENTED
-// Required for: B2B transactions, Legal compliance
+// Endpoint: CF/ReceiveInvoice
+// Status: ❌ DA IMPLEMENTARE
+// Scopo: Gestisce richieste fatture con filtro codice ordine
 
-// Needed Implementation:
-- Invoice template system
-- Tax calculation
-- Legal compliance (EU/IT regulations)
-- PDF generation
-- Email delivery system
+// SPECIFICHE FUNZIONAMENTO:
+// 1. Se riceve codice ordine → restituisce fattura specifica per quell'ordine
+// 2. Se NON riceve codice ordine → invia link con lista tutte le fatture
+
+// Payload con codice ordine:
+{
+  "orderCode": "ORD-2024-001",
+  "workspaceId": "workspace-123",
+  "customerId": "customer-456"
+}
+
+// Response con codice ordine valido:
+{
+  "success": true,
+  "invoice": {
+    "orderCode": "ORD-2024-001",
+    "invoiceNumber": "INV-2024-001",
+    "pdfUrl": "https://domain.com/invoices/INV-2024-001.pdf",
+    "amount": "€45.50",
+    "date": "2024-01-15"
+  }
+}
+
+// Payload SENZA codice ordine:
+{
+  "workspaceId": "workspace-123", 
+  "customerId": "customer-456"
+}
+
+// Response SENZA codice ordine:
+{
+  "success": true,
+  "message": "Ecco tutte le tue fatture:",
+  "invoiceListUrl": "https://domain.com/customer/invoices?token=secure-token",
+  "invoicesCount": 12
+}
+
+// Implementazione richiesta:
+- Sistema template fatture
+- Calcolo tasse
+- Compliance legale (UE/IT)
+- Generazione PDF 
+- Link sicuri per download
+- Filtro per codice ordine
+- Lista fatture per customer
 ```
 
 ### 🏗️ **TECHNICAL ARCHITECTURE - CALLING FUNCTIONS**
@@ -803,19 +843,18 @@ const prompt = `
 Analizza il messaggio del cliente e determina quale calling function utilizzare:
 
 CALLING FUNCTIONS DISPONIBILI:
-- search_rag: Ricerca prodotti, FAQ, servizi, informazioni
-- create_order: Creazione ordini, carrello, checkout
-- contact_operator: Richiesta assistenza umana
-- add_calendar_event: Prenotazioni, appuntamenti
-- create_ticket: Segnalazioni, problemi tecnici
-- process_payment: Pagamenti diretti
-- send_invoice: Richiesta fatture
+- SearchRag: Ricerca prodotti, FAQ, servizi, informazioni
+- GetAllProducts: Lista completa prodotti workspace
+- GetAllServices: Lista completa servizi workspace  
+- CallOperator: Richiesta assistenza umana
+- ReceiveInvoice: Gestione fatture con filtro codice ordine
+- PaymentProcessStart: Avvio processo pagamento
 
 MESSAGGIO CLIENTE: "${userMessage}"
 
 Rispondi in JSON:
 {
-  "function_name": "search_rag",
+  "function_name": "SearchRag",
   "parameters": {
     "query": "mozzarella fresca",
     "intent": "product_search"
@@ -829,54 +868,47 @@ Rispondi in JSON:
 
 | **Calling Function** | **Status** | **Completion** | **Priority** |
 |---------------------|-----------|---------------|-------------|
-| 🔍 search_rag | ✅ COMPLETE | 100% | HIGH |
-| 🛒 create_order | ⚠️ PARTIAL | 40% | HIGH |
-| 👨‍💼 contact_operator | ⚠️ PARTIAL | 70% | MEDIUM |
-| 📅 add_calendar_event | ❌ MISSING | 0% | HIGH |
-| 🎫 create_ticket | ❌ MISSING | 0% | MEDIUM |
-| 💳 process_payment | ❌ MISSING | 0% | HIGH |
-| 📧 send_invoice | ❌ MISSING | 0% | LOW |
+| 🔍 SearchRag | ✅ COMPLETE | 100% | HIGH |
+| 📦 GetAllProducts | ✅ COMPLETE | 100% | HIGH |
+| 🛎️ GetAllServices | ✅ COMPLETE | 100% | HIGH |
+| 👨‍💼 CallOperator | ⚠️ PARTIAL | 90% | MEDIUM |
+| 📧 ReceiveInvoice | ❌ MISSING | 0% | HIGH |
+| 💳 PaymentProcessStart | ❌ TODO | 0% | HIGH |
 
 ### 🎯 **BUSINESS TYPE COMPATIBILITY**
 
 #### **✅ FULLY SUPPORTED (100%)**
-- **E-COMMERCE**: search_rag + partial create_order
-- **INFORMATION**: search_rag (FAQ/documents)
+- **E-COMMERCE**: SearchRag + GetAllProducts + GetAllServices + CallOperator
+- **INFORMATION**: SearchRag + GetAllProducts + GetAllServices + CallOperator
 
-#### **⚠️ PARTIALLY SUPPORTED (40-70%)**
-- **RESTAURANT**: search_rag + missing add_calendar_event
-- **RETAIL**: search_rag + partial create_order
-- **SERVICES**: search_rag + missing add_calendar_event
+#### **⚠️ PARTIALLY SUPPORTED (80%)**
+- **RESTAURANT**: SearchRag + GetAllProducts + GetAllServices + CallOperator (manca ReceiveInvoice)
+- **RETAIL**: SearchRag + GetAllProducts + GetAllServices + CallOperator (manca PaymentProcessStart)
+- **SERVICES**: SearchRag + GetAllProducts + GetAllServices + CallOperator (manca ReceiveInvoice)
 
-#### **❌ LIMITED SUPPORT (30%)**
-- **CLINIC**: search_rag only, missing add_calendar_event + create_ticket
-- **HOTEL**: search_rag only, missing add_calendar_event + process_payment
+#### **⚠️ LIMITED SUPPORT (60%)**
+- **CLINIC**: SearchRag + GetAllServices + CallOperator (manca ReceiveInvoice + PaymentProcessStart)
+- **HOTEL**: SearchRag + GetAllServices + CallOperator (manca ReceiveInvoice + PaymentProcessStart)
 
 ### 🚀 **NEXT DEVELOPMENT PRIORITIES**
 
-#### **Phase 1: Complete E-commerce (HIGH PRIORITY)**
-1. Complete `create_order()` calling function
-2. Implement cart management system
-3. Add payment gateway integration
-4. Build order processing workflow
+#### **Phase 1: Sistema Fatturazione (HIGH PRIORITY)**
+1. Implementare `ReceiveInvoice` calling function
+2. Sistema filtro per codice ordine
+3. Generazione link lista fatture
+4. Template PDF fatture con compliance UE/IT
 
-#### **Phase 2: Calendar System (HIGH PRIORITY)**
-1. Implement `add_calendar_event()` calling function
-2. Build booking/appointment system
-3. Add time slot management
-4. Create confirmation/reminder system
+#### **Phase 2: Sistema Pagamenti (HIGH PRIORITY)**
+1. Implementare `PaymentProcessStart` calling function  
+2. Integrazione gateway pagamento (Stripe/PayPal)
+3. Generazione link pagamento sicuri
+4. Tracking stato pagamento
 
-#### **Phase 3: Support System (MEDIUM PRIORITY)**
-1. Implement `create_ticket()` calling function
-2. Build support ticketing system
-3. Add agent assignment logic
-4. Create SLA tracking
-
-#### **Phase 4: Financial System (LOW PRIORITY)**
-1. Implement `process_payment()` calling function
-2. Build invoice generation system
-3. Add tax calculation
-4. Create refund management
+#### **Phase 3: Completare CallOperator (MEDIUM PRIORITY)**
+1. Aggiungere invio email notifica operatore
+2. Sistema escalation automatica
+3. Template email personalizzabili
+4. Dashboard operatori in tempo reale
 
 ### 🎉 **ANDREA'S ACHIEVEMENT**
 
@@ -886,13 +918,22 @@ Andrea ha creato la **base architecturale perfetta** per un sistema WhatsApp int
 
 ✅ **Security Gateway** bulletproof  
 ✅ **Calling Functions Infrastructure** ready
-✅ **RAG Search** fully operational
-✅ **LLM Router** for intelligent function selection
+✅ **SearchRag** fully operational
+✅ **GetAllProducts & GetAllServices** complete
+✅ **CallOperator** quasi completo (90%)
 ✅ **N8N Visual Workflow** for business logic
 ✅ **Session Token System** for security
 ✅ **Multi-business Architecture** ready for expansion
 
-**Il sistema è pronto per gestire qualsiasi tipo di business** con l'aggiunta delle calling functions mancanti! 🎯
+**FUNZIONI CF CORRETTE IDENTIFICATE:**
+1. ✅ SearchRag (100%)
+2. ✅ GetAllProducts (100%) 
+3. ✅ GetAllServices (100%)
+4. ⚠️ CallOperator (90% - manca email)
+5. ❌ ReceiveInvoice (0% - con filtro codice ordine)
+6. ❌ PaymentProcessStart (0% - in TODO)
+
+**Il sistema è pronto per gestire qualsiasi tipo di business** con l'implementazione delle 2 funzioni CF mancanti! 🎯
 - **Executions**: Container volume (n8n_data) → Performance
 - **Settings**: Container volume (n8n_data) → Persistent
     
