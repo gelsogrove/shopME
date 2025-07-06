@@ -21,97 +21,54 @@ export class N8nPayloadBuilder {
   ) {
     try {
       logger.info(
-        `[PRECOMPILE] 🔄 Gathering all N8N data for workspace ${workspaceId}`
+        `[N8N Payload Builder] 🚀 Precompiling N8N data for workspace: ${workspaceId}`
       )
 
-      // 🏃‍♂️ PARALLEL EXECUTION - Andrea's efficiency approach
-      const [agentConfig, customer, workspace, recentMessages] =
-        await Promise.all([
-          // 1. Agent Configuration
-          prisma.agentConfig.findFirst({
-            where: { workspaceId },
-          }),
+      // 🏢 Get workspace/business info
+      const businessInfo = await prisma.workspace.findUnique({
+        where: { id: workspaceId },
+      })
 
-          // 2. Customer Information
-          prisma.customers.findFirst({
-            where: {
-              phone: phoneNumber,
-              workspaceId: workspaceId,
-              isActive: true,
-            },
-          }),
+      // 👤 Get customer info
+      const customer = await prisma.customers.findFirst({
+        where: {
+          phone: phoneNumber,
+          workspaceId: workspaceId,
+        },
+      })
 
-          // 3. Workspace Information
-          prisma.workspace.findUnique({
-            where: { id: workspaceId },
-          }),
+      // 🤖 Get agent configuration
+      const agentConfig = await prisma.agentConfig.findFirst({
+        where: {
+          workspaceId: workspaceId,
+          isActive: true,
+        },
+      })
 
-          // 4. Conversation History
-          N8nPayloadBuilder.getRecentConversationHistory(workspaceId, phoneNumber, 10),
-        ])
+      // 📜 Get recent conversation history
+      const conversationHistory = await this.getRecentConversationHistory(
+        workspaceId,
+        phoneNumber,
+        10
+      )
 
       logger.info(
-        `[PRECOMPILE] ✅ Data gathered - Agent: ${agentConfig?.model}, Customer: ${customer?.id ? "exists" : "new"}, Workspace: ${workspace?.name}`
+        `[N8N Payload Builder] ✅ Precompilation complete - Business: ${
+          businessInfo ? "✅" : "❌"
+        } | Customer: ${customer ? "✅" : "❌"} | Agent: ${
+          agentConfig ? "✅" : "❌"
+        } | History: ${conversationHistory.length} messages`
       )
 
       return {
-        // 🤖 AGENT CONFIGURATION
-        agentConfig: agentConfig
-          ? {
-              model: agentConfig.model,
-              temperature: agentConfig.temperature,
-              maxTokens: agentConfig.maxTokens,
-              prompt: agentConfig.prompt,
-              isActive: agentConfig.isActive,
-            }
-          : null,
-
-        // 👤 CUSTOMER INFORMATION
-        customer: customer
-          ? {
-              id: customer.id,
-              phone: customer.phone,
-              name: customer.name,
-              email: customer.email,
-              language: customer.language || "en",
-              isActive: customer.isActive,
-              activeChatbot: customer.activeChatbot,
-              isBlacklisted: customer.isBlacklisted,
-              discount: customer.discount,
-              currency: customer.currency,
-            }
-          : null,
-
-        // 🏢 BUSINESS INFORMATION
-        businessInfo: workspace
-          ? {
-              name: workspace.name,
-              businessType: workspace.businessType,
-              whatsappPhoneNumber: workspace.whatsappPhoneNumber,
-              isActive: workspace.isActive,
-              plan: workspace.plan,
-              language: workspace.language,
-              url: workspace.url || "",
-              notificationEmail: workspace.notificationEmail,
-              welcomeMessages: workspace.welcomeMessages,
-              wipMessages: workspace.wipMessages,
-              afterRegistrationMessages: workspace.afterRegistrationMessages,
-              currency: workspace.currency,
-              description: workspace.description,
-            }
-          : null,
-
-        // 💬 CONVERSATION HISTORY (last 10 messages)
-        conversationHistory: recentMessages,
+        businessInfo,
+        customer,
+        agentConfig,
+        conversationHistory,
       }
     } catch (error) {
-      logger.error(`[PRECOMPILE] ❌ Error precompiling N8N data:`, error)
-      return {
-        agentConfig: null,
-        customer: null,
-        businessInfo: null,
-        conversationHistory: [],
-      }
+      logger.error(`[N8N Payload Builder] ❌ Error precompiling data:`, error)
+      throw error
     }
   }
 
@@ -195,95 +152,193 @@ export class N8nPayloadBuilder {
       sessionToken
     )
 
-    // 🚀 EXACT PAYLOAD STRUCTURE - Following webhook-payload-example.json
+    // 🚨 ANDREA DEBUG: Verifica cosa arriva DAL DATABASE
+    console.log("🚨 ANDREA DEBUG - optimizedData.businessInfo from DB:")
+    console.log(JSON.stringify(optimizedData.businessInfo, null, 2))
+    console.log("🚨 ANDREA DEBUG - optimizedData.customer from DB:")
+    console.log(JSON.stringify(optimizedData.customer, null, 2))
+
+    // 🚀 NEW CONSOLIDATED PAYLOAD STRUCTURE - Following updated webhook-payload-example.json
+    const conversationHistory = optimizedData.conversationHistory.length > 0
+      ? optimizedData.conversationHistory.map((msg) => ({
+          id: msg.id,
+          content: msg.content,
+          role: msg.direction === "INBOUND" ? "user" : "assistant",
+          timestamp: msg.createdAt,
+        }))
+      : [
+          {
+            id: "msg-1",
+            content: "Ciao! Come posso aiutarti oggi?",
+            role: "assistant",
+            timestamp: "2024-06-19T15:25:00.000Z",
+          },
+          {
+            id: "msg-2",
+            content: "Salve, sto cercando dei formaggi",
+            role: "user",
+            timestamp: "2024-06-19T15:26:00.000Z",
+          },
+          {
+            id: "msg-3",
+            content: "Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?",
+            role: "assistant",
+            timestamp: "2024-06-19T15:26:30.000Z",
+          },
+        ];
+
+    const messages = conversationHistory.map(({ role, content }) => ({ role, content }));
+
     const simplifiedPayload = {
       workspaceId: workspaceId,
       phoneNumber: phoneNumber,
       messageContent: messageContent,
       sessionToken: sessionToken,
+      messages,
       precompiledData: {
-        agentConfig: optimizedData.agentConfig ? {
-          id: `agent-config-${Date.now()}`,
-          workspaceId: workspaceId,
-          model: optimizedData.agentConfig.model,
-          temperature: optimizedData.agentConfig.temperature,
-          maxTokens: optimizedData.agentConfig.maxTokens,
-          topP: 0.9,
-          prompt: optimizedData.agentConfig.prompt,
-          isActive: optimizedData.agentConfig.isActive,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } : null,
-        
-        customer: optimizedData.customer ? {
-          id: optimizedData.customer.id,
-          name: optimizedData.customer.name,
-          email: optimizedData.customer.email,
-          phone: optimizedData.customer.phone,
-          language: optimizedData.customer.language || "en",
-          isActive: optimizedData.customer.isActive,
-          isBlacklisted: optimizedData.customer.isBlacklisted,
-          activeChatbot: optimizedData.customer.activeChatbot,
-          discount: optimizedData.customer.discount,
-          currency: optimizedData.customer.currency,
-          address: "",
-          company: "",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } : null,
-        
-        businessInfo: optimizedData.businessInfo ? {
-          id: workspaceId,
-          name: optimizedData.businessInfo.name,
-          businessType: optimizedData.businessInfo.businessType,
-          plan: optimizedData.businessInfo.plan || "BASIC",
-          whatsappPhoneNumber: optimizedData.businessInfo.whatsappPhoneNumber,
-          whatsappApiKey: "your-whatsapp-api-key",
-          language: optimizedData.businessInfo.language || "en",
-          currency: optimizedData.businessInfo.currency || "EUR",
-          timezone: "Europe/Rome",
-          isActive: optimizedData.businessInfo.isActive,
-          url: optimizedData.businessInfo.url || "",
-          notificationEmail: optimizedData.businessInfo.notificationEmail,
-          description: optimizedData.businessInfo.description || "",
-          welcomeMessages: optimizedData.businessInfo.welcomeMessages || {},
-          wipMessages: optimizedData.businessInfo.wipMessages || {},
-          afterRegistrationMessages: optimizedData.businessInfo.afterRegistrationMessages || {},
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } : null,
-        
-        conversationHistory: optimizedData.conversationHistory.map(msg => ({
-          id: msg.id,
-          content: msg.content,
-          role: msg.direction === "INBOUND" ? "user" : "assistant",
-          timestamp: msg.createdAt,
-        })),
-        
-        // 🚨 SEPARATE MESSAGES STRUCTURE (as per example)
-        wipMessages: optimizedData.businessInfo?.wipMessages || {},
-        welcomeMessages: optimizedData.businessInfo?.welcomeMessages || {},
-        afterRegistrationMessages: optimizedData.businessInfo?.afterRegistrationMessages || {},
-      },
-      metadata: {
-        timestamp: new Date().toISOString(),
-        source: source,
-        apiVersion: "v1.0",
-        securityChecks: {
-          apiLimitPassed: true,
-          spamDetectionPassed: true,
-          blacklistCheck: false,
-          operatorControl: false,
-        },
-        performance: {
-          securityGatewayTime: "5ms",
-          precompilationTime: "12ms",
-          totalProcessingTime: "17ms",
-        },
+        agentConfig: optimizedData.agentConfig
+          ? {
+              id: `agent-config-${Date.now()}`,
+              workspaceId: workspaceId,
+              model: optimizedData.agentConfig.model,
+              temperature: optimizedData.agentConfig.temperature,
+              maxTokens: optimizedData.agentConfig.maxTokens,
+              topP: 0.9,
+              prompt: optimizedData.agentConfig.prompt,
+              isActive: optimizedData.agentConfig.isActive,
+            }
+          : {
+              id: `agent-config-${Date.now()}`,
+              workspaceId: workspaceId,
+              model: "openai/gpt-4o-mini",
+              temperature: 0.7,
+              maxTokens: 1000,
+              topP: 0.9,
+              prompt:
+                "Sei un assistente virtuale esperto per L'Altra Italia, un'azienda italiana specializzata in prodotti alimentari di alta qualità. Il tuo compito è aiutare i clienti a trovare i prodotti giusti, fornire informazioni sui prezzi, ingredienti e disponibilità. Rispondi sempre in modo professionale e cortese.",
+              isActive: true,
+            },
+
+        // 🎯 CONSOLIDATED CUSTOMER OBJECT - ALL DATA IN ONE PLACE
+        customer: optimizedData.customer
+          ? {
+              // 👤 CUSTOMER DATA
+              id: optimizedData.customer.id,
+              name: optimizedData.customer.name,
+              email: optimizedData.customer.email,
+              phone: optimizedData.customer.phone,
+              language: optimizedData.customer.language || "it",
+              isActive: Boolean(optimizedData.customer.isActive),
+              isBlacklisted: Boolean(optimizedData.customer.isBlacklisted),
+              activeChatbot: Boolean(optimizedData.customer.activeChatbot),
+              discount: optimizedData.customer.discount,
+              currency: optimizedData.customer.currency,
+              address: optimizedData.customer.address || "Via Roma 123, Milano",
+              company: optimizedData.customer.company || "",
+              
+              // 🏢 BUSINESS INFO MERGED HERE
+              businessName: optimizedData.businessInfo?.name || "L'Altra Italia(ESP)",
+              businessType: optimizedData.businessInfo?.businessType || "ECOMMERCE",
+              plan: optimizedData.businessInfo?.plan || "PREMIUM",
+              whatsappPhoneNumber: optimizedData.businessInfo?.whatsappPhoneNumber || "+34654728753",
+              whatsappApiKey: "your-whatsapp-api-key",
+              timezone: "Europe/Rome",
+              url: optimizedData.businessInfo?.url || "https://laltroitalia.shop",
+              notificationEmail: optimizedData.businessInfo?.notificationEmail || "admin@laltroitalia.shop",
+              description: optimizedData.businessInfo?.description || "Prodotti alimentari italiani di alta qualità",
+              
+              // 💬 MESSAGES MERGED HERE
+              wipMessages: {
+                it: "Sto elaborando la tua richiesta, un momento per favore...",
+                en: "Processing your request, please wait a moment...",
+                es: "Procesando tu solicitud, por favor espera un momento...",
+                fr: "Je traite votre demande, veuillez patienter un moment...",
+                de: "Ich bearbeite Ihre Anfrage, bitte warten Sie einen Moment...",
+                pt: "Processando sua solicitação, aguarde um momento por favor...",
+              },
+              
+              // 📜 CONVERSATION HISTORY MERGED HERE
+              conversationHistory: conversationHistory,
+            }
+          : {
+              // 🚨 FALLBACK CUSTOMER (when no customer found)
+              id: `customer-${Date.now()}`,
+              name: "Customer",
+              email: "",
+              phone: phoneNumber,
+              language: "it",
+              isActive: true,
+              isBlacklisted: false,
+              activeChatbot: Boolean(true),
+              discount: 0,
+              currency: "EUR",
+              address: "",
+              company: "",
+              
+              // 🏢 FALLBACK BUSINESS INFO
+              businessName: "L'Altra Italia(ESP)",
+              businessType: "ECOMMERCE",
+              plan: "PREMIUM",
+              whatsappPhoneNumber: "+34654728753",
+              whatsappApiKey: "your-whatsapp-api-key",
+              timezone: "Europe/Rome",
+              url: "https://laltroitalia.shop",
+              notificationEmail: "admin@laltroitalia.shop",
+              description: "Prodotti alimentari italiani di alta qualità",
+              
+              // 💬 FALLBACK MESSAGES
+              wipMessages: {
+                it: "Sto elaborando la tua richiesta, un momento per favore...",
+                en: "Processing your request, please wait a moment...",
+                es: "Procesando tu solicitud, por favor espera un momento...",
+                fr: "Je traite votre demande, veuillez patienter un moment...",
+                de: "Ich bearbeite Ihre Anfrage, bitte warten Sie einen Moment...",
+                pt: "Processando sua solicitação, aguarde um momento por favor...",
+              },
+              
+              // 📜 FALLBACK CONVERSATION HISTORY
+              conversationHistory: conversationHistory,
+            },
       },
     }
 
     return simplifiedPayload
+  }
+
+  /**
+   * 💾 SAVE MESSAGE TO HISTORY
+   * Ensures all messages processed by N8N are saved to the chat history
+   * This fixes the issue where direct API calls to N8N weren't saving to history
+   */
+  static async saveMessageToHistory(
+    workspaceId: string,
+    phoneNumber: string,
+    userMessage: string,
+    botResponse: string
+  ) {
+    try {
+      logger.info(`[HISTORY-SAVE] 💾 Saving message to history for ${phoneNumber}`)
+      
+      // Import MessageRepository dynamically to avoid circular dependencies
+      const { MessageRepository } = await import('../repositories/message.repository')
+      const messageRepository = new MessageRepository()
+      
+      // Save both the user message and bot response to history
+      await messageRepository.saveMessage({
+        workspaceId,
+        phoneNumber,
+        message: userMessage,
+        response: botResponse,
+        agentSelected: "N8N_API_DIRECT"
+      })
+      
+      logger.info(`[HISTORY-SAVE] ✅ Successfully saved message to history for ${phoneNumber}`)
+      return true
+    } catch (error) {
+      logger.error(`[HISTORY-SAVE] ❌ Error saving message to history:`, error)
+      // Don't throw error, just log it - we don't want to break the main flow
+      return false
+    }
   }
 
   /**
@@ -296,51 +351,110 @@ export class N8nPayloadBuilder {
     source: string = "unknown"
   ) {
     try {
-      logger.info(`[N8N] 🚀 Sending simplified payload to N8N: ${n8nWebhookUrl}`)
+      logger.info(
+        `[N8N] 🚀 Sending simplified payload to N8N: ${n8nWebhookUrl}`
+      )
       logger.info(`[N8N] 📱 Phone: ${simplifiedPayload.phoneNumber}`)
       logger.info(`[N8N] 💬 Message: ${simplifiedPayload.messageContent}`)
-      logger.info(`[N8N] 🔑 Session Token: ${simplifiedPayload.sessionToken.substring(0, 12)}...`)
+      logger.info(
+        `[N8N] 🔑 Session Token: ${simplifiedPayload.sessionToken.substring(0, 12)}...`
+      )
 
       // 🚨 DEBUG: Alert prima della chiamata a N8N
       logger.info(`🚨 DEBUG: RUN POST N8N (from ${source})`)
       console.log(`🚨 DEBUG: RUN POST N8N (from ${source}) - ALERT EQUIVALENTE`)
       console.log("🚨 N8N URL:", n8nWebhookUrl)
-      console.log(
-        "🚨 N8N Simplified Payload:",
-        JSON.stringify(simplifiedPayload, null, 2)
-      )
+      console.log("🚨 N8N Simplified Payload:")
+      console.log(JSON.stringify(simplifiedPayload, null, 2))
+      
+      // 🔍 ANDREA DEBUG: Verifica specificamente businessInfo.isActive
+      console.log("🔍 ANDREA DEBUG - customer.isActive:", simplifiedPayload?.precompiledData?.customer?.isActive)
+      console.log("🔍 ANDREA DEBUG - customer.isActive type:", typeof simplifiedPayload?.precompiledData?.customer?.isActive)
+      console.log("🔍 ANDREA DEBUG - customer.activeChatbot:", simplifiedPayload?.precompiledData?.customer?.activeChatbot)
+      console.log("🔍 ANDREA DEBUG - customer.isBlacklisted:", simplifiedPayload?.precompiledData?.customer?.isBlacklisted)
+      
+      // 🚨 SUPER DEBUG: Mostra tutto il precompiledData
+      console.log("🚨 SUPER DEBUG - INTERO precompiledData:")
+      console.log(JSON.stringify(simplifiedPayload?.precompiledData, null, 2))
 
-      // Send to N8N
-      const response = await fetch(n8nWebhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(simplifiedPayload),
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        const errorDetails = `Status: ${response.status}, Response: ${errorText}`
-        logger.error(`[N8N] ❌ N8N webhook failed: ${errorDetails}`)
-        console.log(`🚨 N8N ERROR (from ${source}):`, errorDetails)
-        throw new Error(`N8N webhook failed: ${errorDetails}`)
+      // LOG PRIMA DELLA FETCH
+      console.log("🚨 PRIMA DELLA FETCH A N8N", n8nWebhookUrl, JSON.stringify(simplifiedPayload).substring(0, 200));
+      let response;
+      try {
+        response = await fetch(n8nWebhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(simplifiedPayload),
+        });
+        // LOG DOPO LA FETCH
+        console.log("🚨 DOPO FETCH, response.ok:", response.ok, "status:", response.status);
+      } catch (error) {
+        // LOG ERRORE FETCH
+        console.error("🚨 ERRORE FETCH N8N:", error);
+        throw error;
       }
 
-      // Parse and return the response from N8N
-      const n8nResponse = await response.json()
-      logger.info(
-        `[N8N] ✅ Successfully received response from N8N:`,
-        n8nResponse
-      )
-      console.log(`🚨 N8N RESPONSE SUCCESS (from ${source}):`, n8nResponse)
-      console.log(`🚨 SALVATO - Risposta N8N processata con successo (from ${source})`)
+      if (!response.ok) {
+        // Leggi il body di errore se presente
+        let errorBody = '';
+        try {
+          errorBody = await response.text();
+        } catch (e) {
+          errorBody = '[Impossibile leggere il body di errore]';
+        }
+        const errorMsg = `N8N webhook failed with status: ${response.status} ${response.statusText}\nBody: ${errorBody}`;
+        logger.error(`[N8N] ❌ HTTP error sending to N8N:`, errorMsg)
+        throw new Error(errorMsg);
+      }
 
-      return n8nResponse
-    } catch (error) {
-      logger.error(`[N8N] ❌ Error sending to N8N (from ${source}):`, error)
-      console.log(`🚨 N8N ERROR (from ${source}):`, error)
-      throw error
+      const n8nResponse = await response.json()
+      logger.info(`[N8N] ✅ N8N response received successfully`)
+      logger.info(`[N8N] 📝 Response:`, JSON.stringify(n8nResponse, null, 2))
+
+      // PATCH: Gestione robusta di array/oggetto
+      let parsedResponse;
+      if (Array.isArray(n8nResponse) && n8nResponse.length > 0) {
+        parsedResponse = n8nResponse[0];
+      } else if (n8nResponse && typeof n8nResponse === 'object') {
+        parsedResponse = n8nResponse;
+      } else {
+        parsedResponse = { message: "Errore: risposta N8N non valida" };
+      }
+      
+      // DEBUG: Log della risposta parsata
+      console.log("[DEBUG PATCH] Original n8nResponse:", JSON.stringify(n8nResponse, null, 2));
+      console.log("[DEBUG PATCH] Parsed response:", JSON.stringify(parsedResponse, null, 2));
+      console.log("[DEBUG PATCH] parsedResponse.message:", parsedResponse.message);
+      
+      // 💾 SAVE MESSAGE TO HISTORY - Fix for direct API calls
+      // Only save if we have a valid response with a message
+      if (parsedResponse && parsedResponse.message && 
+          simplifiedPayload.workspaceId && 
+          simplifiedPayload.phoneNumber && 
+          simplifiedPayload.messageContent) {
+        
+        logger.info(`[N8N] 💾 Saving message to history after N8N response`)
+        
+        // Save the message pair to history (async, don't wait)
+        this.saveMessageToHistory(
+          simplifiedPayload.workspaceId,
+          simplifiedPayload.phoneNumber,
+          simplifiedPayload.messageContent,
+          parsedResponse.message
+        ).catch(error => {
+          logger.error(`[N8N] ❌ Error in async history save:`, error)
+        })
+      } else {
+        logger.warn(`[N8N] ⚠️ Cannot save to history - missing required data`)
+      }
+      
+      return parsedResponse;
+    } catch (error: any) {
+      logger.error(`[N8N] ❌ Error sending to N8N:`, error)
+      // Rilancio l'errore con stack completo e messaggio
+      throw new Error(`[N8N] Error: ${error.message}\nSTACK: ${error.stack}`)
     }
   }
 }

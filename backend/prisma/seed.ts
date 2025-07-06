@@ -56,101 +56,106 @@ const defaultAgent = {
 }
 
 // Andrea's Two-LLM Architecture - LLM 1 RAG Processor Prompt (Agent Settings)
-const SOFIA_PROMPT = `You are a RAG (Retrieval-Augmented Generation) processor specialized in analyzing user queries and retrieving relevant business data.
+const SOFIA_PROMPT = `# 🤖 Assistente Virtuale – L'Altra Italia
 
-🎯 YOUR ROLE:
-- Analyze user messages to understand their intent
-- Search and filter database content for relevance
-- Structure found data into clear, organized format
-- Provide accurate, factual information only
+Sei **l'assistente virtuale ufficiale de "L'Altra Italia"**, un ristorante e rivenditore specializzato in autentici prodotti italiani, con sede a **Cervelló, Barcellona**.
 
-🔍 SEARCH CAPABILITIES:
-- **Products** → Database product catalog with prices, descriptions, availability
-- **Services** → Available business services with details and pricing
-- **FAQs** → Frequently asked questions and policies
-- **Documents** → Business documents, regulations, legal information
-- **Company Info** → Business details, hours, contact information
+🌐 **Sito web**: https://laltrait.com/
+📍 **Indirizzo**: C/ Ull de Llebre 7, 08758, Cervelló (Barcelona)
+📞 **Telefono**: (+34) 93 15 91 221
+📧 **Email**: info@laltrait.com
 
-💡 QUERY ANALYSIS:
-When users ask questions, identify the intent and search relevant data sources:
+---
 
-**Product Queries**:
-- "Do you have wine?" → Search products for wine category
-- "Show me cheese under €20" → Search products: category=cheese, maxPrice=20
-- "What pasta is available?" → Search products for pasta items
-- "Mozzarella availability" → Search products for mozzarella
+## 🧠 Competenze dell'Assistente
 
-**Service Queries**:
-- "What services do you offer?" → Search all services
-- "Do you deliver?" → Search services for delivery/shipping
-- "Cooking classes available?" → Search services for cooking/classes
+Hai accesso a un motore di ricerca intelligente per fornire informazioni dettagliate su:
 
-**Policy/FAQ Queries**:
-- "Return policy" → Search FAQs for return/refund information
-- "Shipping time" → Search FAQs for delivery/shipping info
-- "Payment methods" → Search FAQs for payment information
-- "Business hours" → Search company info or FAQs
+- 🛒 Prodotti → Catalogo, prezzi, descrizioni, disponibilità
+- 🛎️ Servizi → Servizi offerti con dettagli e costi
+- ❓ FAQ → Domande frequenti e politiche aziendali
+- 📄 Documenti → Normative, documenti legali e aziendali
+- 🏢 Informazioni aziendali → Orari, contatti, dati societari
 
-**Document Queries**:
-- "International shipping laws" → Search documents for legal/regulatory info
-- "Product certificates" → Search documents for certifications
-- "Import requirements" → Search documents for import/export rules
+> ✅ Ogni volta che l'utente fa una domanda in uno di questi ambiti, chiama la funzione:
+> searchRag(query)
 
-🗄️ DATA PROCESSING:
-1. **Receive** user query
-2. **Identify** intent and required data type
-3. **Search** relevant database tables
-4. **Filter** results for relevance and accuracy
-5. **Structure** data in organized format
-6. **Return** clear, factual information
+---
 
-📋 OUTPUT FORMAT:
-Structure your response as organized data:
+## 🛍️ Gestione Ordini
 
-\`\`\`json
-{
-  "query_intent": "product_search|service_inquiry|faq_question|document_search|company_info",
-  "found_data": {
-    "products": [
-      {
-        "name": "Product Name",
-        "price": "€XX.XX",
-        "description": "Product description",
-        "category": "Category",
-        "availability": "available|out_of_stock"
-      }
-    ],
-    "services": [...],
-    "faqs": [...],
-    "documents": [...],
-    "company_info": {...}
-  },
-  "total_results": number,
-  "relevance_score": "high|medium|low"
-}
-\`\`\`
+Se l'utente desidera fare un ordine (esempi: "vorrei ordinare", "aggiungi al carrello", "fammi un ordine"), raccogli i dettagli dell'ordine:
 
-🚫 RESTRICTIONS:
-- **NEVER invent or create data** - only use actual database content
-- **NO fictional prices** - only real product pricing
-- **NO made-up products** - only existing catalog items
-- **NO false availability** - only actual stock information
-- **NO generic responses** - always search for specific data
+- Prodotti richiesti
+- Quantità
+- Eventuali preferenze
+- Dati di recapito (se necessari)
 
-⚡ SEARCH STRATEGY:
-- Use semantic search for better matching
-- Include related/similar items when exact match not found
-- Search multiple data types when query is ambiguous
-- Prioritize exact matches over partial matches
-- Include pricing and availability when relevant
+> ✅ Poi chiama la funzione:
+> newOrder(orderDetails)
 
-🎯 QUALITY METRICS:
-- **Accuracy**: Only factual, database-verified information
-- **Completeness**: Include all relevant search results
-- **Relevance**: Results match user query intent
-- **Structure**: Well-organized, easy-to-process data format
+---
 
-Remember: You are the data retrieval specialist. Your job is to find accurate, relevant information from the database and present it in a structured format. Focus on precision and factual accuracy above all else.`
+## ☎️ Richiesta Operatore
+
+Se l'utente dice frasi come:
+"voglio parlare con un operatore", "serve aiuto umano", "chiama qualcuno"...
+
+> ✅ Chiama subito la funzione:
+> callOperator()
+
+ℹ️ Gli operatori sono disponibili dal lunedì al venerdì, dalle 09:00 alle 18:00.
+
+---
+
+## 🚨 Messaggio Urgente
+
+Se l'utente chiede di inviare un messaggio urgente (es. "è urgente", "devo contattare subito qualcuno"), invitalo a compilare il modulo ufficiale di contatto:
+
+📬 Formulario urgente: https://laltrait.com/contacto/
+🕘 Nota: Gli operatori rispondono dal lunedì al venerdì, dalle 9:00 alle 18:00.
+
+---
+
+## 🌍 Lingua dell'Utente
+
+L'assistente deve parlare automaticamente la lingua dell'utente, rilevando la lingua utilizzata nella conversazione.
+Adatta le risposte alla lingua per garantire comprensione e comfort all'utente.
+
+---
+
+## 🧾 Testi Istituzionali
+
+### 🧑‍🍳 Quiénes somos
+Visión por la eccellenza, attraverso la passione e sforzo quotidiano.
+Lavoriamo con piccoli artigiani con rispetto per la materia prima, tradizione e origine.
+Per questo, ci definiamo come veri "Ambasciatori del gusto."
+
+### ⚖️ Avviso Legale
+Consulta le informazioni legali dell'azienda qui:
+https://laltrait.com/aviso-legal/
+
+---
+
+## 📌 Contatti
+
+Indirizzo:
+C/ Ull de Llebre 7, 08758
+Cervelló (Barcelona)
+
+Telefono: (+34) 93 15 91 221
+Email: info@laltrait.com
+Sito web: https://laltrait.com/
+
+---
+
+## 🗣️ Tono e Stile
+
+- Professionale, cortese e cordiale
+- Linguaggio naturale ma competente
+- Risposte brevi ma informative
+- Invita all'azione se serve (es. "vuoi che ti aiuti a trovare un prodotto?")
+`;
 
 // Andrea's Two-LLM Architecture - Router Prompt (DEPRECATED)
 const ROUTER_PROMPT = `DEPRECATED: This router is no longer used in Andrea's Two-LLM Architecture.
@@ -600,7 +605,7 @@ async function main() {
         language: "es",
         currency: "EUR",
         url: "http://localhost:3000",
-        n8nWorkflowUrl: "http://localhost:5678/webhook-test/webhook-start",
+        n8nWorkflowUrl: "http://localhost:5678/webhook/webhook-start",
         plan: "FREE",
         wipMessages: {
           en: "Work in progress. Please contact us later.",
@@ -751,7 +756,7 @@ async function main() {
         language: "es",
         currency: "EUR",
         url: "http://localhost:3000",
-        n8nWorkflowUrl: "http://localhost:5678/webhook-test/webhook-start",
+        n8nWorkflowUrl: "http://localhost:5678/webhook/webhook-start",
         plan: "FREE",
         wipMessages: {
           en: "Work in progress. Please contact us later.",
@@ -1800,6 +1805,157 @@ async function main() {
     }
   }
 
+  // Create test customer with active chat and welcome message
+  console.log("Creating test customer with active chat...")
+  
+  // Delete existing test customer if it exists
+  await prisma.customers.deleteMany({
+    where: {
+      workspaceId: mainWorkspaceId,
+      email: "test.customer@shopme.com",
+    },
+  })
+  console.log("Deleted existing test customer")
+
+  // Create test customer
+  const testCustomer = await prisma.customers.create({
+    data: {
+      name: "Mario Rossi",
+      email: "test.customer@shopme.com",
+      phone: "+39123456789",
+      address: "Via Roma 123, Milano, Italy",
+      company: "Test Company SRL",
+      language: "it",
+      currency: "EUR",
+      workspaceId: mainWorkspaceId,
+      activeChatbot: true,
+    },
+  })
+  console.log(`Test customer created: ${testCustomer.name} (${testCustomer.email})`)
+
+  // Create active chat session for the test customer
+  const chatSession = await prisma.chatSession.create({
+    data: {
+      customerId: testCustomer.id,
+      workspaceId: mainWorkspaceId,
+      status: "active",
+      context: {
+        language: "it",
+        userRegistered: true,
+        lastActivity: new Date().toISOString(),
+      },
+    },
+  })
+  console.log(`Chat session created for customer: ${chatSession.id}`)
+
+  // Get the active prompt for creating messages
+  const activePrompt = await prisma.prompts.findFirst({
+    where: {
+      workspaceId: mainWorkspaceId,
+      isActive: true,
+      isRouter: true,
+    },
+  })
+
+  // Create initial messages in the chat
+  const messages = [
+    {
+      direction: "INBOUND" as const,
+      content: "ciao",
+      type: "TEXT" as const,
+      status: "received",
+      aiGenerated: false,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        source: "whatsapp",
+      },
+    },
+    {
+      direction: "OUTBOUND" as const,
+      content: "Ciao Mario! 👋 Benvenuto a L'Altra Italia! Sono il tuo assistente virtuale e sono qui per aiutarti con qualsiasi informazione sui nostri prodotti e servizi. Come posso assisterti oggi? 😊",
+      type: "TEXT" as const,
+      status: "sent",
+      aiGenerated: true,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        messageType: "welcome",
+        language: "it",
+      },
+    },
+  ]
+
+  for (const messageData of messages) {
+    const message = await prisma.message.create({
+      data: {
+        ...messageData,
+        chatSessionId: chatSession.id,
+        promptId: activePrompt?.id || null,
+      },
+    })
+    console.log(`Message created: ${messageData.direction} - "${messageData.content.substring(0, 50)}..."`)
+  }
+
+  console.log("✅ Test customer with active chat and welcome message created successfully!")
+
+  // Create sample usage data for dashboard testing
+  console.log("Creating sample usage data for dashboard...")
+  
+  // Create usage records for the last 30 days with realistic patterns
+  const today = new Date()
+  const usageData: Array<{
+    workspaceId: string
+    clientId: string
+    price: number
+    createdAt: Date
+  }> = []
+  
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(today)
+    date.setDate(date.getDate() - i)
+    
+    // More usage on weekdays, peak hours 10-16
+    const isWeekday = date.getDay() >= 1 && date.getDay() <= 5
+    const baseMessages = isWeekday ? 8 : 3 // More messages on weekdays
+    const randomVariation = Math.floor(Math.random() * 5) // Add some randomness
+    const dailyMessages = baseMessages + randomVariation
+    
+    // Create messages throughout the day with peak hours
+    for (let j = 0; j < dailyMessages; j++) {
+      let hour
+      if (isWeekday) {
+        // Peak hours 10-16 on weekdays
+        hour = Math.random() < 0.6 ? 10 + Math.floor(Math.random() * 6) : Math.floor(Math.random() * 24)
+      } else {
+        // Random hours on weekends
+        hour = Math.floor(Math.random() * 24)
+      }
+      
+      const messageTime = new Date(date)
+      messageTime.setHours(hour, Math.floor(Math.random() * 60), Math.floor(Math.random() * 60))
+      
+      usageData.push({
+        workspaceId: mainWorkspaceId,
+        clientId: testCustomer.id,
+        price: 0.005, // 0.5 cents as requested by Andrea
+        createdAt: messageTime
+      })
+    }
+  }
+  
+  // Create usage records
+  for (const usage of usageData) {
+    try {
+      await prisma.usage.create({
+        data: usage
+      })
+    } catch (error) {
+      console.error('Error creating usage record:', error)
+    }
+  }
+  
+  console.log(`✅ Created ${usageData.length} usage records for testing`)
+  console.log(`💰 Total cost simulation: €${(usageData.length * 0.005).toFixed(4)}`)
+
   // Seed default document
   await seedDefaultDocument()
 
@@ -1813,6 +1969,7 @@ async function main() {
   console.log(`- Prodotti creati/aggiornati: ${products.length}`)
   console.log(`- Services creati/aggiornati: ${services.length}`)
   console.log(`- FAQs create: ${faqsData.length}`)
+  console.log(`- Test customer with active chat created: Mario Rossi (+39123456789)`)
   console.log(`- Embeddings ready for manual generation via API`)
 }
 
