@@ -5,27 +5,52 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Loader2 } from "lucide-react"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
+import * as z from "zod"
 import { auth } from "../services/api"
 
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+})
+
+type LoginForm = z.infer<typeof loginSchema>
+
 export function LoginPage() {
-  // Prefill credentials only in development
-  const isDev = import.meta.env.MODE === "development"
-  const [email, setEmail] = useState(isDev ? "admin@shopme.com" : "")
-  const [password, setPassword] = useState(isDev ? "Venezia44" : "")
-  const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
   const navigate = useNavigate()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // Prefill credentials only in development
+  const isDev = import.meta.env.MODE === "development"
+
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: isDev ? "admin@shopme.com" : "",
+      password: isDev ? "venezia44" : "",
+    },
+  })
+
+  const onSubmit = async (data: LoginForm) => {
     setError("")
     setIsLoading(true)
 
@@ -35,7 +60,8 @@ export function LoginPage() {
 
     try {
       // Usa await esplicitamente e salva la risposta
-      const response = await auth.login({ email, password })
+      const response = await auth.login(data)
+      console.log("Login successful:", response.data)
 
       if (response.data && response.data.user) {
         localStorage.setItem("user", JSON.stringify(response.data.user))
@@ -65,88 +91,98 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center p-4 relative">
+    <div className="auth-background">
       <AuthLogo />
-      
-      <div className="w-full max-w-md">
-        <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
-          <CardHeader className="text-center space-y-1 pb-8">
-            <div className="mx-auto w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mb-4 shadow-lg">
-              <div className="text-white text-2xl font-bold">S</div>
-            </div>
-            <CardTitle className="text-2xl font-bold text-gray-900">
+      <div className="container mx-auto px-4 flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md font-system bg-white/95 backdrop-blur-sm shadow-xl">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">
               Welcome Back
             </CardTitle>
-            <CardDescription className="text-gray-600">
-              Sign in to your ShopMe account
+            <CardDescription className="text-center">
+              Sign in to your account
             </CardDescription>
           </CardHeader>
-          
-          <CardContent className="space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <Alert variant="destructive" className="border-red-200 bg-red-50">
-                  <div className="h-4 w-4 text-red-500 text-xl">⚠</div>
-                  <AlertDescription className="text-red-700">
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              )}
-              
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email Address
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@shopme.com"
-                  className="h-11"
-                  required
-                  disabled={isLoading}
-                  autoComplete="username"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="h-11"
-                  required
-                  disabled={isLoading}
-                  autoComplete="current-password"
-                />
-              </div>
-              
-              <Button
-                type="submit"
-                className="w-full h-11 bg-green-500 hover:bg-green-600 text-white font-medium transition-colors"
-                disabled={isLoading}
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
               >
-                {isLoading ? (
-                  <>
-                    <div className="mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Signing in...
-                  </>
-                ) : (
-                  "Sign In"
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
                 )}
-              </Button>
-            </form>
-            
-            <div className="text-center text-sm text-gray-500">
-              <p>© 2024 ShopMe. Secure authentication powered by cookies.</p>
-            </div>
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="admin@shopme.com"
+                          type="email"
+                          autoComplete="username"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="••••••••"
+                          type="password"
+                          autoComplete="current-password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  className="w-full bg-green-500 hover:bg-green-600 text-white font-medium"
+                  disabled={isLoading}
+                >
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Sign In
+                </Button>
+              </form>
+            </Form>
           </CardContent>
+          <CardFooter className="flex flex-col space-y-2">
+            <Link
+              to="/auth/forgot-password"
+              className="text-sm text-green-500 hover:text-green-600 hover:underline"
+            >
+              Forgot your password?
+            </Link>
+            <p className="text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Link
+                to="/auth/signup"
+                className="text-green-500 hover:text-green-600 hover:underline"
+              >
+                Sign up
+              </Link>
+            </p>
+          </CardFooter>
         </Card>
       </div>
     </div>
