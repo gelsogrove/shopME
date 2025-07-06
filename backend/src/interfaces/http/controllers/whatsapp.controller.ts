@@ -172,8 +172,20 @@ export class WhatsAppController {
             return
           } else {
             logger.info(
-              `[UNREGISTERED-NON-GREETING] ❌ Unregistered user ${phoneNumber} sent non-greeting message - ignoring`
+              `[UNREGISTERED-NON-GREETING] ❌ Unregistered user ${phoneNumber} sent non-greeting message - sending registration required message`
             )
+            
+            // Detect language from the message and send registration required message
+            const detectedLang = this.detectLanguageFromMessage(messageContent)
+            const registrationRequiredMessage = this.getRegistrationRequiredMessage(detectedLang)
+            
+            try {
+              await this.sendWhatsAppMessage(phoneNumber, registrationRequiredMessage, workspaceId)
+              logger.info(`[REGISTRATION-REQUIRED] ✅ Registration required message sent to ${phoneNumber}`)
+            } catch (error) {
+              logger.error(`[REGISTRATION-REQUIRED] ❌ Error sending registration required message to ${phoneNumber}:`, error)
+            }
+            
             res.status(200).send("USER_NOT_REGISTERED")
             return
           }
@@ -241,15 +253,14 @@ export class WhatsAppController {
             n8nResponse
           )
 
-          // Parse N8N response - it returns an array with json.message format
+          // Parse N8N response - it returns an array with message format
           let messageToSend = null
           if (
             Array.isArray(n8nResponse) &&
             n8nResponse.length > 0 &&
-            n8nResponse[0].json &&
-            n8nResponse[0].json.message
+            n8nResponse[0].message
           ) {
-            messageToSend = n8nResponse[0].json.message
+            messageToSend = n8nResponse[0].message
             logger.info(
               `[N8N-PARSE] 📝 Found message in array format: ${messageToSend}`
             )
@@ -270,34 +281,78 @@ export class WhatsAppController {
               `[WHATSAPP-SEND] 📱 ATTEMPTING to send message to ${phoneNumber}: ${messageToSend}`
             )
 
-            await this.sendWhatsAppMessage(
-              phoneNumber,
-              messageToSend,
-              workspaceId
-            )
+            try {
+              // Save the successful message to chat history BEFORE sending
+              const { MessageRepository } = await import('../../../repositories/message.repository')
+              const messageRepository = new MessageRepository()
+              await messageRepository.saveMessage({
+                workspaceId,
+                phoneNumber,
+                message: messageContent,
+                response: messageToSend,
+                agentSelected: "N8N_SUCCESS"
+              })
+              logger.info(`[SUCCESS-HISTORY] ✅ Successful message saved to chat history for ${phoneNumber}`)
 
-            logger.info(
-              `[WHATSAPP-SEND] ✅ Message sent successfully to ${phoneNumber}: ${messageToSend}`
-            )
+              // Then send the WhatsApp message
+              await this.sendWhatsAppMessage(phoneNumber, messageToSend, workspaceId)
+
+              logger.info(
+                `[WHATSAPP-SEND] ✅ Message sent successfully to ${phoneNumber}: ${messageToSend}`
+              )
+            } catch (saveError) {
+              logger.error(`[SUCCESS-HISTORY] ❌ Failed to save successful message to history: ${saveError}`)
+              
+              // Still try to send the message even if saving fails
+              try {
+                await this.sendWhatsAppMessage(phoneNumber, messageToSend, workspaceId)
+                logger.info(`[WHATSAPP-SEND] ✅ Message sent (without history): ${phoneNumber}`)
+              } catch (sendError) {
+                logger.error(`[WHATSAPP-SEND] ❌ Failed to send message: ${sendError}`)
+              }
+            }
           } else {
             logger.warn(
               `[N8N-RESPONSE] ⚠️ No message found in N8N response:`,
               n8nResponse
             )
 
+            const fallbackMessage = "Ho ricevuto la tua richiesta ma non sono riuscito a generare una risposta. Riprova più tardi."
+
             logger.info(
               `[WHATSAPP-SEND] 📱 SENDING fallback message to ${phoneNumber}`
             )
 
-            await this.sendWhatsAppMessage(
-              phoneNumber,
-              "Ho ricevuto la tua richiesta ma non sono riuscito a generare una risposta. Riprova più tardi.",
-              workspaceId
-            )
+            try {
+              // Save the fallback message to chat history BEFORE sending
+              const { MessageRepository } = await import('../../../repositories/message.repository')
+              const messageRepository = new MessageRepository()
+              await messageRepository.saveMessage({
+                workspaceId,
+                phoneNumber,
+                message: messageContent,
+                response: fallbackMessage,
+                agentSelected: "N8N_FALLBACK"
+              })
+              logger.info(`[FALLBACK-HISTORY] ✅ Fallback message saved to chat history for ${phoneNumber}`)
 
-            logger.info(
-              `[WHATSAPP-SEND] ✅ Fallback message sent to ${phoneNumber}`
-            )
+              // Then send the WhatsApp message
+              await this.sendWhatsAppMessage(phoneNumber, fallbackMessage, workspaceId)
+
+              logger.info(
+                `[WHATSAPP-SEND] ✅ Fallback message sent to ${phoneNumber}`
+              )
+            } catch (saveError) {
+              logger.error(`[FALLBACK-HISTORY] ❌ Failed to save fallback message to history: ${saveError}`)
+              
+              // Still try to send the message even if saving fails
+              try {
+                await this.sendWhatsAppMessage(phoneNumber, fallbackMessage, workspaceId)
+                logger.info(`[WHATSAPP-SEND] ✅ Fallback message sent (without history): ${phoneNumber}`)
+              } catch (sendError) {
+                logger.error(`[WHATSAPP-SEND] ❌ Failed to send fallback message: ${sendError}`)
+              }
+            }
           }
         } catch (error) {
           logger.error(
@@ -312,11 +367,36 @@ export class WhatsAppController {
             `[ERROR-SEND] 📱 SENDING error message to ${phoneNumber}: ${errorMessage}`
           )
 
-          await this.sendWhatsAppMessage(phoneNumber, errorMessage, workspaceId)
+          try {
+            // Save the error message to chat history BEFORE sending
+            const { MessageRepository } = await import('../../../repositories/message.repository')
+            const messageRepository = new MessageRepository()
+            await messageRepository.saveMessage({
+              workspaceId,
+              phoneNumber,
+              message: messageContent,
+              response: errorMessage,
+              agentSelected: "N8N_ERROR"
+            })
+            logger.info(`[ERROR-HISTORY] ✅ Error message saved to chat history for ${phoneNumber}`)
 
-          logger.info(
-            `[ERROR-SENT] ✅ Error message sent successfully to user: ${phoneNumber}`
-          )
+            // Then send the WhatsApp message
+            await this.sendWhatsAppMessage(phoneNumber, errorMessage, workspaceId)
+
+            logger.info(
+              `[ERROR-SENT] ✅ Error message sent successfully to user: ${phoneNumber}`
+            )
+          } catch (saveError) {
+            logger.error(`[ERROR-HISTORY] ❌ Failed to save error message to history: ${saveError}`)
+            
+            // Still try to send the message even if saving fails
+            try {
+              await this.sendWhatsAppMessage(phoneNumber, errorMessage, workspaceId)
+              logger.info(`[ERROR-SENT] ✅ Error message sent (without history): ${phoneNumber}`)
+            } catch (sendError) {
+              logger.error(`[ERROR-SEND] ❌ Failed to send error message: ${sendError}`)
+            }
+          }
         }
       }
 
@@ -341,33 +421,21 @@ export class WhatsAppController {
         `[SESSION-TOKEN] 🔑 Generating session token for ${phoneNumber} in workspace ${workspaceId}`
       )
 
-      // Find or create customer
-      let customer = await prisma.customers.findFirst({
-        where: {
-          phone: phoneNumber,
-          workspaceId: workspaceId,
-          isActive: true,
-        },
+      // Use MessageRepository to handle customer creation
+      const { MessageRepository } = await import('../../../repositories/message.repository')
+      const messageRepository = new MessageRepository()
+      
+      // Find or create customer by triggering saveMessage
+      await messageRepository.saveMessage({
+        workspaceId,
+        phoneNumber,
+        message: "system_session_init",
+        response: "session_initialized", 
+        agentSelected: "SESSION_TOKEN_SERVICE"
       })
-
-      if (!customer) {
-        // Create customer if not exists (for new WhatsApp contacts)
-        customer = await prisma.customers.create({
-          data: {
-            name: `WhatsApp User ${phoneNumber}`,
-            email: `${phoneNumber.replace(/[^0-9]/g, "")}@whatsapp.placeholder`,
-            phone: phoneNumber,
-            workspaceId: workspaceId,
-            language: "Italian",
-            currency: "EUR",
-            isActive: true,
-            activeChatbot: true, // Default to chatbot active
-          },
-        })
-        logger.info(
-          `[SESSION-TOKEN] Created new customer ${customer.id} for phone ${phoneNumber}`
-        )
-      }
+      
+      // Now get the customer that was created
+      const customer = await messageRepository.findCustomerByPhone(phoneNumber, workspaceId)
 
       // Generate or renew session token
       const sessionToken =
@@ -406,12 +474,11 @@ export class WhatsAppController {
         `[OPERATOR-CONTROL] Checking operator control for ${phoneNumber} in workspace ${workspaceId}`
       )
 
-      // Find customer by phone number
+      // Find customer by phone number (search any customer regardless of isActive)
       const customer = await prisma.customers.findFirst({
         where: {
           phone: phoneNumber,
           workspaceId: workspaceId,
-          isActive: true,
         },
       })
 
@@ -457,12 +524,11 @@ export class WhatsAppController {
         `[OPERATOR-CONTROL] Saving incoming message for operator review: ${phoneNumber}`
       )
 
-      // Find customer by phone number
+      // Find customer by phone number (search any customer regardless of isActive)
       const customer = await prisma.customers.findFirst({
         where: {
           phone: phoneNumber,
           workspaceId: workspaceId,
-          isActive: true,
         },
       })
 
@@ -529,19 +595,8 @@ export class WhatsAppController {
     workspaceId: string
   ): Promise<any> {
     try {
-      // Get N8N webhook URL from workspace settings
-      const workspace = await prisma.workspace.findUnique({
-        where: { id: workspaceId },
-        select: { n8nWorkflowUrl: true },
-      })
-
-      if (!workspace || !workspace.n8nWorkflowUrl) {
-        throw new Error(
-          `N8N webhook URL not configured for workspace ${workspaceId}`
-        )
-      }
-
-      const n8nWebhookUrl = workspace.n8nWorkflowUrl
+      // 🚨 FIXED N8N URL - corrected to production webhook
+      const n8nWebhookUrl = "http://localhost:5678/webhook/webhook-start"
 
       // 📋 EXTRACT KEY DATA FOR OPTIMIZATION
       const phoneNumber =
@@ -565,7 +620,7 @@ export class WhatsAppController {
         "whatsapp"
       )
 
-      // � SEND TO N8N using centralized method
+      // 🎯 SEND TO N8N using centralized method
       const n8nResponse = await N8nPayloadBuilder.sendToN8N(
         simplifiedPayload,
         n8nWebhookUrl,
@@ -584,146 +639,7 @@ export class WhatsAppController {
   }
 
   /**
-   * 🚀 PRECOMPILE N8N DATA (Andrea's Performance Optimization)
-   * Gathers ALL necessary data in parallel to avoid multiple N8N->Backend API calls
-   * Replaces: /agent-config, /user-check, /business-type, /channel-status, /conversation-history
-   */
-  private async precompileN8NData(
-    workspaceId: string,
-    phoneNumber: string,
-    messageContent: string,
-    sessionToken: string
-  ) {
-    try {
-      logger.info(
-        `[PRECOMPILE] 🔄 Gathering all N8N data for workspace ${workspaceId}`
-      )
-
-      // 🏃‍♂️ PARALLEL EXECUTION - Andrea's efficiency approach
-      const [agentConfig, customer, workspace, recentMessages] =
-        await Promise.all([
-          // 1. Agent Configuration (replaces /agent-config call)
-          prisma.agentConfig.findFirst({
-            where: { workspaceId },
-          }),
-
-          // 2. Customer Information (replaces /user-check call)
-          prisma.customers.findFirst({
-            where: {
-              phone: phoneNumber,
-              workspaceId: workspaceId,
-              isActive: true,
-            },
-          }),
-
-          // 3. Workspace Information (replaces /channel-status and /business-type calls)
-          prisma.workspace.findUnique({
-            where: { id: workspaceId },
-          }),
-
-          // 4. Conversation History (replaces /conversation-history call)
-          this.getRecentConversationHistory(workspaceId, phoneNumber, 10),
-        ])
-
-      logger.info(
-        `[PRECOMPILE] ✅ Data gathered - Agent: ${agentConfig?.model}, Customer: ${customer?.id ? "exists" : "new"}, Workspace: ${workspace?.name}`
-      )
-      logger.info(
-        `[PRECOMPILE] 📝 WIP Messages included: ${workspace?.wipMessages ? Object.keys(workspace.wipMessages).join(", ") : "none"}`
-      )
-
-      return {
-        // 🤖 AGENT CONFIGURATION
-        agentConfig: agentConfig
-          ? {
-              model: agentConfig.model,
-              temperature: agentConfig.temperature,
-              maxTokens: agentConfig.maxTokens,
-              prompt: agentConfig.prompt,
-              isActive: agentConfig.isActive,
-            }
-          : null,
-
-        // 👤 CUSTOMER INFORMATION
-        customer: customer
-          ? {
-              id: customer.id,
-              phone: customer.phone,
-              name: customer.name,
-              email: customer.email,
-              language: customer.language || "en",
-              isActive: customer.isActive,
-              activeChatbot: customer.activeChatbot,
-              isBlacklisted: customer.isBlacklisted,
-              discount: customer.discount,
-              currency: customer.currency,
-            }
-          : null,
-
-        // 🏢 BUSINESS INFORMATION
-        businessInfo: workspace
-          ? {
-              name: workspace.name,
-              businessType: workspace.businessType,
-              whatsappPhoneNumber: workspace.whatsappPhoneNumber,
-              isActive: workspace.isActive,
-              plan: workspace.plan,
-              language: workspace.language,
-              url: workspace.url || "",
-              notificationEmail: workspace.notificationEmail,
-              welcomeMessages: workspace.welcomeMessages,
-              wipMessages: workspace.wipMessages, // 🚨 NEW: WIP messages in all languages
-              afterRegistrationMessages: workspace.afterRegistrationMessages,
-              currency: workspace.currency,
-              description: workspace.description,
-            }
-          : null,
-
-        // 📞 WHATSAPP SETTINGS (from workspace directly)
-        whatsappSettings: workspace
-          ? {
-              apiKey: workspace.whatsappApiKey,
-              webhookUrl: workspace.webhookUrl,
-              phoneNumber: workspace.whatsappPhoneNumber,
-              notificationEmail: workspace.notificationEmail,
-            }
-          : null,
-
-        // 💬 CONVERSATION HISTORY (last 10 messages)
-        conversationHistory: recentMessages,
-
-        // 🔐 SESSION TOKEN
-        sessionToken: sessionToken,
-
-        // 📱 MESSAGE CONTEXT
-        messageContext: {
-          phoneNumber: phoneNumber,
-          messageContent: messageContent,
-          timestamp: new Date().toISOString(),
-          workspaceId: workspaceId,
-        },
-      }
-    } catch (error) {
-      logger.error(`[PRECOMPILE] ❌ Error precompiling N8N data:`, error)
-      return {
-        agentConfig: null,
-        customer: null,
-        businessInfo: null,
-        whatsappSettings: null,
-        conversationHistory: [],
-        sessionToken: sessionToken,
-        messageContext: {
-          phoneNumber: phoneNumber,
-          messageContent: messageContent,
-          timestamp: new Date().toISOString(),
-          workspaceId: workspaceId,
-        },
-      }
-    }
-  }
-
-  /**
-   * 💬 GET RECENT CONVERSATION HISTORY
+   *  GET RECENT CONVERSATION HISTORY
    * Retrieves recent conversation for context (replaces N8N API call)
    */
   private async getRecentConversationHistory(
@@ -736,7 +652,6 @@ export class WhatsAppController {
         where: {
           phone: phoneNumber,
           workspaceId: workspaceId,
-          isActive: true,
         },
       })
 
@@ -1162,71 +1077,15 @@ export class WhatsAppController {
     welcomeMessage: string
   ): Promise<void> {
     try {
-      // Create customer placeholder if doesn't exist (for chat history tracking)
-      let customer = await prisma.customers.findFirst({
-        where: {
-          phone: phoneNumber,
-          workspaceId,
-        },
-      })
-
-      if (!customer) {
-        customer = await prisma.customers.create({
-          data: {
-            name: `Unregistered User ${phoneNumber}`,
-            email: `${phoneNumber.replace(/[^0-9]/g, "")}@temp.unregistered`,
-            phone: phoneNumber,
-            workspaceId,
-            isActive: false, // Mark as inactive until registration
-            language: "Italian",
-          },
-        })
-      }
-
-      // Find or create chat session
-      let chatSession = await prisma.chatSession.findFirst({
-        where: {
-          customerId: customer.id,
-          workspaceId,
-        },
-      })
-
-      if (!chatSession) {
-        chatSession = await prisma.chatSession.create({
-          data: {
-            customerId: customer.id,
-            workspaceId,
-            status: "pending_registration",
-            context: {},
-          },
-        })
-      }
-
-      // Save incoming greeting message
-      await prisma.message.create({
-        data: {
-          content: incomingMessage,
-          direction: "INBOUND",
-          chatSessionId: chatSession.id,
-          metadata: {
-            messageType: "greeting",
-            userRegistrationStatus: "unregistered",
-          },
-        },
-      })
-
-      // Save outgoing welcome message
-      await prisma.message.create({
-        data: {
-          content: welcomeMessage,
-          direction: "OUTBOUND",
-          chatSessionId: chatSession.id,
-          metadata: {
-            agentSelected: "WELCOME_SYSTEM",
-            messageType: "welcome_registration",
-            userRegistrationStatus: "unregistered",
-          },
-        },
+      // Use MessageRepository to handle customer and chat session creation
+      const { MessageRepository } = await import('../../../repositories/message.repository')
+      const messageRepository = new MessageRepository()
+      await messageRepository.saveMessage({
+        workspaceId,
+        phoneNumber,
+        message: incomingMessage,
+        response: welcomeMessage,
+        agentSelected: "WELCOME_SYSTEM"
       })
 
       logger.info(
@@ -1259,6 +1118,23 @@ export class WhatsAppController {
   }
 
   /**
+   * 📝 GET REGISTRATION REQUIRED MESSAGE
+   * Returns the "registration required" message in the appropriate language
+   */
+  private getRegistrationRequiredMessage(language: string): string {
+    const registrationRequiredMessages = {
+      it: "Per utilizzare questo servizio devi prima registrarti. Scrivi 'ciao' per ricevere il link di registrazione.",
+      es: "Para usar este servicio primero debes registrarte. Escribe 'hola' para recibir el enlace de registro.",
+      en: "To use this service you must first register. Write 'hello' to receive the registration link.",
+      fr: "Pour utiliser ce service, vous devez d'abord vous inscrire. Écrivez 'bonjour' pour recevoir le lien d'inscription.",
+      de: "Um diesen Service zu nutzen, müssen Sie sich zuerst registrieren. Schreiben Sie 'hallo', um den Registrierungslink zu erhalten.",
+      pt: "Para usar este serviço você deve primeiro se registrar. Escreva 'olá' para receber o link de registro.",
+    }
+
+    return registrationRequiredMessages[language] || registrationRequiredMessages["it"]
+  }
+
+  /**
    * 👤 CREATE CUSTOMER PLACEHOLDER
    * Creates a placeholder customer for unregistered users
    */
@@ -1269,44 +1145,46 @@ export class WhatsAppController {
   ): Promise<void> {
     try {
       logger.info(
-        `[CUSTOMER-PLACEHOLDER] 👤 Creating placeholder for ${phoneNumber}`
+        `[CUSTOMER-PLACEHOLDER] 👤 Creating placeholder for ${phoneNumber} with language: ${language}`
       )
 
-      // Check if customer already exists
+      // Check if customer already exists first
       const existingCustomer = await prisma.customers.findFirst({
         where: {
           phone: phoneNumber,
-          workspaceId,
+          workspaceId: workspaceId,
         },
       })
 
       if (existingCustomer) {
-        logger.info(
-          `[CUSTOMER-PLACEHOLDER] ✅ Customer already exists: ${existingCustomer.id}`
-        )
+        logger.info(`[CUSTOMER-PLACEHOLDER] ✅ Customer already exists: ${existingCustomer.id}`)
+        
+        // Update language if it's different from detected one
+        if (existingCustomer.language !== language) {
+          await prisma.customers.update({
+            where: { id: existingCustomer.id },
+            data: { language: language }
+          })
+          logger.info(`[CUSTOMER-PLACEHOLDER] 🌍 Updated customer language to: ${language}`)
+        }
         return
       }
 
-      // Create placeholder customer
-      const customer = await prisma.customers.create({
+      // Create new customer with the detected language
+      const newCustomer = await prisma.customers.create({
         data: {
           phone: phoneNumber,
-          workspaceId,
-          name: `WhatsApp User ${phoneNumber.slice(-4)}`, // Placeholder name with last 4 digits
-          email: "", // Empty email until registration
-          language: language || "it",
-          isActive: true,
-          isBlacklisted: false,
+          workspaceId: workspaceId,
+          name: `Unregistered User ${phoneNumber.slice(-4)}`,
+          email: `unregistered_${phoneNumber.replace(/[^0-9]/g, '')}@placeholder.com`,
+          language: language,
+          isActive: false, // Unregistered users are inactive
           activeChatbot: true,
-          discount: 0,
-          currency: "EUR",
-          address: "",
-          company: "",
         },
       })
 
       logger.info(
-        `[CUSTOMER-PLACEHOLDER] ✅ Created placeholder customer: ${customer.id}`
+        `[CUSTOMER-PLACEHOLDER] ✅ Customer created: ${newCustomer.id} with language: ${language}`
       )
     } catch (error) {
       logger.error(
@@ -1395,48 +1273,16 @@ export class WhatsAppController {
     message: string
   ): Promise<void> {
     try {
-      // Find the customer by phone number
-      const customer = await prisma.customers.findFirst({
-        where: {
-          phone: phoneNumber,
-          workspaceId: workspaceId,
-        },
-      })
-
-      if (!customer) {
-        logger.warn(
-          `[HISTORY] Customer not found for phone ${phoneNumber}, skipping history save`
-        )
-        return
-      }
-
-      // Find or create active chat session
-      let chatSession = await prisma.chatSession.findFirst({
-        where: {
-          customerId: customer.id,
-          workspaceId: workspaceId,
-          status: "active",
-        },
-      })
-
-      if (!chatSession) {
-        chatSession = await prisma.chatSession.create({
-          data: {
-            customerId: customer.id,
-            workspaceId: workspaceId,
-            status: "active",
-          },
-        })
-      }
-
-      // Save the message
-      await prisma.message.create({
-        data: {
-          chatSessionId: chatSession.id,
-          direction: "OUTBOUND",
-          content: message,
-          status: "sent",
-        },
+      // Use MessageRepository to handle customer and chat session creation
+      const { MessageRepository } = await import('../../../repositories/message.repository')
+      const messageRepository = new MessageRepository()
+      await messageRepository.saveMessage({
+        workspaceId,
+        phoneNumber,
+        message: "system_outbound",
+        response: message,
+        direction: "OUTBOUND",
+        agentSelected: "WHATSAPP_OUTBOUND"
       })
 
       logger.info(
@@ -1449,4 +1295,6 @@ export class WhatsAppController {
       )
     }
   }
+
+  // REMOVED: findOrCreateCustomer - Now using MessageRepository.saveMessage() for all operations
 }
