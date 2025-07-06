@@ -1,25 +1,40 @@
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import AuthLogo from "@/components/ui/auth-logo"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AuthLogo } from "@/components/ui/auth-logo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { AlertTriangle, MessageSquare, ShoppingCart, Zap, Globe } from "lucide-react"
+import { AlertTriangle, Globe, MessageSquare, ShoppingCart, Zap } from "lucide-react"
 import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
+import * as z from "zod"
 import { auth } from "../services/api"
 
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+})
+
+type LoginForm = z.infer<typeof loginSchema>
+
 export function LoginPage() {
-  // Prefill credentials only in development
-  const isDev = import.meta.env.MODE === "development"
-  const [email, setEmail] = useState(isDev ? "admin@shopme.com" : "")
-  const [password, setPassword] = useState(isDev ? "Venezia44" : "")
-  const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
   const navigate = useNavigate()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // Prefill credentials only in development
+  const isDev = import.meta.env.MODE === "development"
+
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: isDev ? "admin@shopme.com" : "",
+      password: isDev ? "venezia44" : "",
+    },
+  })
+
+  const onSubmit = async (data: LoginForm) => {
     setError("")
     setIsLoading(true)
 
@@ -29,7 +44,8 @@ export function LoginPage() {
 
     try {
       // Usa await esplicitamente e salva la risposta
-      const response = await auth.login({ email, password })
+      const response = await auth.login(data)
+      console.log("Login successful:", response.data)
 
       if (response.data && response.data.user) {
         localStorage.setItem("user", JSON.stringify(response.data.user))

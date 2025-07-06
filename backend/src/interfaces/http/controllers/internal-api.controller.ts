@@ -769,6 +769,9 @@ RESPONSE INSTRUCTIONS:
 
       logger.info(`[LLM-PROCESS] OpenRouter response received, tokens used: ${data.usage?.total_tokens || 0}`);
 
+      // 💰 USAGE TRACKING: Now handled in saveMessage (Andrea's Logic)
+      // No need to track here - tracking happens when N8N saves final conversation
+
       res.json({
         response: formattedResponse,
         model: agentConfig.model,
@@ -832,7 +835,7 @@ ${JSON.stringify(ragResults, null, 2)}`;
 
   /**
    * POST /internal/save-message
-   * Save message and conversation history
+   * Save message and conversation history + Track usage (Andrea's Logic)
    */
   async saveMessage(req: Request, res: Response): Promise<void> {
     try {
@@ -844,13 +847,52 @@ ${JSON.stringify(ragResults, null, 2)}`;
       }
 
       // Save the conversation
-      await this.messageRepository.saveMessage({
+      const savedMessage = await this.messageRepository.saveMessage({
         workspaceId,
         phoneNumber,
         message,
         response: response || '',
         direction: 'INBOUND'
       });
+
+      // 💰 TRACK USAGE - Andrea's Direct Integration (No Public Endpoint)
+      // Only if there's a response (LLM generated content) and it's a registered customer
+      if (response && response.trim()) {
+        try {
+          // Get customer by phone to validate registration
+          const { PrismaClient } = await import('@prisma/client');
+          const prisma = new PrismaClient();
+          
+          const customer = await prisma.customers.findFirst({
+            where: {
+              phone: phoneNumber,
+              workspaceId: workspaceId,
+              activeChatbot: true // Only active customers
+            },
+            select: { id: true, name: true }
+          });
+
+          // Track usage only for registered customers
+          if (customer) {
+            await prisma.usage.create({
+              data: {
+                workspaceId: workspaceId,
+                clientId: customer.id,
+                price: 0.005 // 0.5 cents as requested by Andrea
+              }
+            });
+            
+            logger.info(`[USAGE-TRACKING] 💰 €0.005 tracked for customer ${customer.name} (${phoneNumber})`);
+          } else {
+            logger.info(`[USAGE-TRACKING] ⚪ No tracking - customer ${phoneNumber} not registered or inactive`);
+          }
+
+          await prisma.$disconnect();
+        } catch (usageError) {
+          logger.error(`[USAGE-TRACKING] ❌ Error tracking usage:`, usageError);
+          // Don't fail the main request if usage tracking fails
+        }
+      }
 
       res.json({ success: true });
 
