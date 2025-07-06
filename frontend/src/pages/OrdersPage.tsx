@@ -21,122 +21,17 @@ import {
 import { useWorkspace } from "@/hooks/use-workspace"
 import { formatDate } from "@/lib/utils"
 import "@/styles/sheet.css"
-import { formatPrice, getCurrencySymbol } from "@/utils/format"
-import { AlertCircle, X } from "lucide-react"
+import { formatPrice } from "@/utils/format"
+import { AlertCircle, X, Plus, Search, Filter, Eye, Edit, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
-
-interface Order {
-  id: number
-  customer: {
-    name: string
-    email: string
-  }
-  date: string
-  status: "pending" | "processing" | "completed" | "cancelled"
-  payment: {
-    method: string
-    status: "paid" | "pending" | "failed"
-    amount: number
-  }
-  total: number
-  items: {
-    id: number
-    name: string
-    price: number
-    quantity: number
-  }[]
-  userDetails: {
-    name: string
-    email: string
-    phone: string
-  }
-  shippingAddress: {
-    street: string
-    city: string
-    state: string
-    zip: string
-    country: string
-  }
-}
-
-const initialOrders: Order[] = [
-  {
-    id: 1,
-    customer: {
-      name: "John Doe",
-      email: "john@example.com",
-    },
-    date: "2024-03-15T14:30:15",
-    status: "completed",
-    payment: {
-      method: "credit_card",
-      status: "paid",
-      amount: 299.99,
-    },
-    total: 299.99,
-    items: [
-      {
-        id: 1,
-        name: "Product 1",
-        price: 149.99,
-        quantity: 1,
-      },
-      {
-        id: 2,
-        name: "Product 2",
-        price: 150.0,
-        quantity: 1,
-      },
-    ],
-    userDetails: {
-      name: "John Doe",
-      email: "john@example.com",
-      phone: "+1234567890",
-    },
-    shippingAddress: {
-      street: "123 Main St",
-      city: "New York",
-      state: "NY",
-      zip: "10001",
-      country: "USA",
-    },
-  },
-  {
-    id: 2,
-    customer: {
-      name: "Jane Smith",
-      email: "jane@example.com",
-    },
-    date: "2024-03-14T09:45:22",
-    status: "processing",
-    payment: {
-      method: "paypal",
-      status: "paid",
-      amount: 199.99,
-    },
-    total: 199.99,
-    items: [
-      {
-        id: 3,
-        name: "Product 3",
-        price: 199.99,
-        quantity: 1,
-      },
-    ],
-    userDetails: {
-      name: "Jane Smith",
-      email: "jane@example.com",
-      phone: "+0987654321",
-    },
-    shippingAddress: {
-      street: "456 Oak Ave",
-      city: "Los Angeles",
-      state: "CA",
-      zip: "90001",
-      country: "USA",
-    },
-  },
-]
+import { toast } from "sonner"
+import { 
+  Order, 
+  OrderStatus, 
+  PaymentStatus, 
+  OrderFilters,
+  ordersApi 
+} from "@/services/ordersApi"
 
 function OrderDetailsSheet({
   order,
@@ -148,9 +43,29 @@ function OrderDetailsSheet({
   onClose: () => void
 }): JSX.Element | null {
   const { workspace } = useWorkspace()
-  const currencySymbol = getCurrencySymbol(workspace?.currency)
   
   if (!order) return null
+
+  const getStatusBadgeVariant = (status: OrderStatus) => {
+    switch (status) {
+      case 'DELIVERED': return 'success'
+      case 'PROCESSING': 
+      case 'SHIPPED': return 'warning'
+      case 'CANCELLED': return 'destructive'
+      default: return 'default'
+    }
+  }
+
+  const getPaymentBadgeVariant = (status: PaymentStatus) => {
+    switch (status) {
+      case 'COMPLETED': return 'success'
+      case 'PENDING': 
+      case 'AUTHORIZED': return 'warning'
+      case 'FAILED':
+      case 'REFUNDED': return 'destructive'
+      default: return 'default'
+    }
+  }
 
   return (
     <Drawer open={open} onOpenChange={onClose} direction="right">
@@ -170,7 +85,7 @@ function OrderDetailsSheet({
         <div className="h-[calc(100vh-100px)] px-6 overflow-y-auto scrollbar-custom">
           <DrawerHeader>
             <DrawerTitle className="text-2xl font-bold">
-              Order #{order.id}
+              Order {order.orderCode}
             </DrawerTitle>
           </DrawerHeader>
           <div className="mt-6 grid gap-6 pb-8">
@@ -187,22 +102,12 @@ function OrderDetailsSheet({
                   <dl className="grid gap-2">
                     <div className="flex justify-between">
                       <dt className="font-medium">Date:</dt>
-                      <dd>{formatDate(order.date)}</dd>
+                      <dd>{formatDate(order.createdAt)}</dd>
                     </div>
                     <div className="flex justify-between">
                       <dt className="font-medium">Status:</dt>
                       <dd>
-                        <Badge
-                          variant={
-                            order.status === "completed"
-                              ? "success"
-                              : order.status === "processing"
-                              ? "warning"
-                              : order.status === "cancelled"
-                              ? "destructive"
-                              : "default"
-                          }
-                        >
+                        <Badge variant={getStatusBadgeVariant(order.status)}>
                           {order.status}
                         </Badge>
                       </dd>
@@ -210,23 +115,27 @@ function OrderDetailsSheet({
                     <div className="flex justify-between">
                       <dt className="font-medium">Payment:</dt>
                       <dd>
-                        <Badge
-                          variant={
-                            order.payment.status === "paid"
-                              ? "success"
-                              : order.payment.status === "pending"
-                              ? "warning"
-                              : "destructive"
-                          }
-                        >
-                          {order.payment.status}
+                        <Badge variant={getPaymentBadgeVariant(order.paymentStatus)}>
+                          {order.paymentStatus}
                         </Badge>
                       </dd>
                     </div>
                     <div className="flex justify-between">
                       <dt className="font-medium">Total:</dt>
-                      <dd className="font-medium">{formatPrice(order.total, workspace?.currency)}</dd>
+                      <dd className="font-medium">{formatPrice(order.totalAmount, workspace?.currency)}</dd>
                     </div>
+                    {order.shippingAmount > 0 && (
+                      <div className="flex justify-between">
+                        <dt className="font-medium">Shipping:</dt>
+                        <dd>{formatPrice(order.shippingAmount, workspace?.currency)}</dd>
+                      </div>
+                    )}
+                    {order.taxAmount > 0 && (
+                      <div className="flex justify-between">
+                        <dt className="font-medium">Tax:</dt>
+                        <dd>{formatPrice(order.taxAmount, workspace?.currency)}</dd>
+                      </div>
+                    )}
                   </dl>
                 </CardContent>
               </Card>
@@ -239,15 +148,15 @@ function OrderDetailsSheet({
                   <dl className="grid gap-2">
                     <div className="flex justify-between">
                       <dt className="font-medium">Name:</dt>
-                      <dd>{order.userDetails.name}</dd>
+                      <dd>{order.customer?.name || 'N/A'}</dd>
                     </div>
                     <div className="flex justify-between">
                       <dt className="font-medium">Email:</dt>
-                      <dd>{order.userDetails.email}</dd>
+                      <dd>{order.customer?.email || 'N/A'}</dd>
                     </div>
                     <div className="flex justify-between">
                       <dt className="font-medium">Phone:</dt>
-                      <dd>{order.userDetails.phone}</dd>
+                      <dd>{order.customer?.phone || 'N/A'}</dd>
                     </div>
                   </dl>
                 </CardContent>
@@ -264,21 +173,21 @@ function OrderDetailsSheet({
                     <thead>
                       <tr>
                         <th className="text-left font-medium">Item</th>
-                        <th className="text-right font-medium">Price ({currencySymbol})</th>
+                        <th className="text-right font-medium">Price</th>
                         <th className="text-right font-medium">Quantity</th>
                         <th className="text-right font-medium">Total</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {order.items.map((item) => (
+                      {order.items?.map((item) => (
                         <tr key={item.id}>
-                          <td className="py-2">{item.name}</td>
+                          <td className="py-2">{item.product?.name || `Product ${item.productId}`}</td>
                           <td className="py-2 text-right">
-                            {formatPrice(item.price, workspace?.currency)}
+                            {formatPrice(item.unitPrice, workspace?.currency)}
                           </td>
                           <td className="py-2 text-center">{item.quantity}</td>
                           <td className="py-2 text-right">
-                            {formatPrice(item.price * item.quantity, workspace?.currency)}
+                            {formatPrice(item.totalPrice, workspace?.currency)}
                           </td>
                         </tr>
                       ))}
@@ -288,21 +197,41 @@ function OrderDetailsSheet({
               </CardContent>
             </Card>
 
-            <Card className="border rounded-lg">
-              <CardHeader>
-                <CardTitle>Shipping Address</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <address className="not-italic">
-                  {order.shippingAddress.street}
-                  <br />
-                  {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
-                  {order.shippingAddress.zip}
-                  <br />
-                  {order.shippingAddress.country}
-                </address>
-              </CardContent>
-            </Card>
+            {order.shippingAddress && (
+              <Card className="border rounded-lg">
+                <CardHeader>
+                  <CardTitle>Shipping Address</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <address className="not-italic">
+                    {order.shippingAddress.firstName} {order.shippingAddress.lastName}
+                    <br />
+                    {order.shippingAddress.address}
+                    <br />
+                    {order.shippingAddress.city}, {order.shippingAddress.postalCode}
+                    <br />
+                    {order.shippingAddress.country}
+                    {order.shippingAddress.phone && (
+                      <>
+                        <br />
+                        Phone: {order.shippingAddress.phone}
+                      </>
+                    )}
+                  </address>
+                </CardContent>
+              </Card>
+            )}
+
+            {order.notes && (
+              <Card className="border rounded-lg">
+                <CardHeader>
+                  <CardTitle>Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{order.notes}</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </DrawerContent>
@@ -322,68 +251,33 @@ function OrderEditSheet({
   onSave: (updatedOrder: Order) => void
 }): JSX.Element | null {
   const { workspace } = useWorkspace()
-  const currencySymbol = getCurrencySymbol(workspace?.currency)
-  const [items, setItems] = useState<Order["items"]>([])
-  const [newItem, setNewItem] = useState({ name: "", price: 0, quantity: 1 })
-
-  // Inizializza gli elementi quando l'ordine cambia
-  useEffect(() => {
-    if (order) {
-      setItems(order.items)
-    }
-  }, [order])
+  const [isLoading, setIsLoading] = useState(false)
 
   if (!order) return null
 
-  const handleAddItem = () => {
-    if (newItem.name && newItem.price > 0) {
-      setItems([
-        ...items,
-        {
-          id: Math.max(...items.map((item) => item.id)) + 1,
-          ...newItem,
-        },
-      ])
-      setNewItem({ name: "", price: 0, quantity: 1 })
-    }
-  }
-
-  const handleRemoveItem = (itemId: number) => {
-    setItems(items.filter((item) => item.id !== itemId))
-  }
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-
-    // Ottieni gli elementi aggiornati dal form data
-    const updatedItems = items.map((item) => ({
-      ...item,
-      quantity:
-        parseInt(formData.get(`quantity-${item.id}`) as string) ||
-        item.quantity,
-      price:
-        parseFloat(formData.get(`price-${item.id}`) as string) || item.price,
-    }))
-
-    // Calcola il nuovo totale
-    const newTotal = updatedItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    )
-
-    const updatedOrder = {
-      ...order,
-      status: formData.get("status") as Order["status"],
-      payment: {
-        ...order.payment,
-        status: formData.get("paymentStatus") as Order["payment"]["status"],
-      },
-      items: updatedItems,
-      total: newTotal,
+    setIsLoading(true)
+    
+    try {
+      const formData = new FormData(e.currentTarget)
+      
+      const updateData = {
+        status: formData.get("status") as OrderStatus,
+        paymentStatus: formData.get("paymentStatus") as PaymentStatus,
+        notes: formData.get("notes") as string,
+      }
+      
+      const updatedOrder = await ordersApi.update(order.id, workspace?.id!, updateData)
+      onSave(updatedOrder)
+      onClose()
+      toast.success('Order updated successfully')
+    } catch (error) {
+      console.error('Error updating order:', error)
+      toast.error('Failed to update order')
+    } finally {
+      setIsLoading(false)
     }
-    onSave(updatedOrder)
-    onClose()
   }
 
   return (
@@ -404,7 +298,7 @@ function OrderEditSheet({
         <div className="h-[calc(100vh-100px)] px-6 overflow-y-auto scrollbar-custom">
           <DrawerHeader>
             <DrawerTitle className="text-2xl font-bold">
-              Edit Order #{order.id}
+              Edit Order {order.orderCode}
             </DrawerTitle>
           </DrawerHeader>
 
@@ -422,27 +316,28 @@ function OrderEditSheet({
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="processing">Processing</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="PENDING">Pending</SelectItem>
+                        <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                        <SelectItem value="PROCESSING">Processing</SelectItem>
+                        <SelectItem value="SHIPPED">Shipped</SelectItem>
+                        <SelectItem value="DELIVERED">Delivered</SelectItem>
+                        <SelectItem value="CANCELLED">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="paymentStatus">Payment Status</Label>
-                    <Select
-                      name="paymentStatus"
-                      defaultValue={order.payment.status}
-                    >
+                    <Select name="paymentStatus" defaultValue={order.paymentStatus}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select payment status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="failed">Failed</SelectItem>
+                        <SelectItem value="PENDING">Pending</SelectItem>
+                        <SelectItem value="AUTHORIZED">Authorized</SelectItem>
+                        <SelectItem value="COMPLETED">Completed</SelectItem>
+                        <SelectItem value="FAILED">Failed</SelectItem>
+                        <SelectItem value="REFUNDED">Refunded</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -456,15 +351,15 @@ function OrderEditSheet({
                 <CardContent className="space-y-4">
                   <div className="space-y-1">
                     <dt className="font-medium">Name:</dt>
-                    <dd>{order.userDetails.name}</dd>
+                    <dd>{order.customer?.name || 'N/A'}</dd>
                   </div>
                   <div className="space-y-1">
                     <dt className="font-medium">Email:</dt>
-                    <dd>{order.userDetails.email}</dd>
+                    <dd>{order.customer?.email || 'N/A'}</dd>
                   </div>
                   <div className="space-y-1">
                     <dt className="font-medium">Phone:</dt>
-                    <dd>{order.userDetails.phone}</dd>
+                    <dd>{order.customer?.phone || 'N/A'}</dd>
                   </div>
                 </CardContent>
               </Card>
@@ -472,141 +367,24 @@ function OrderEditSheet({
 
             <Card className="border rounded-lg">
               <CardHeader>
-                <CardTitle>Order Items</CardTitle>
+                <CardTitle>Notes</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {/* Modulo per aggiungere un nuovo elemento */}
-                  <div className="flex items-end gap-4 pb-4 border-b">
-                    <div className="flex-1">
-                      <Label htmlFor="newItemName">Item Name</Label>
-                      <Input
-                        id="newItemName"
-                        value={newItem.name}
-                        onChange={(e) =>
-                          setNewItem({ ...newItem, name: e.target.value })
-                        }
-                        placeholder="Enter item name"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="newItemPrice">Price ({currencySymbol})</Label>
-                      <Input
-                        id="newItemPrice"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={newItem.price}
-                        onChange={(e) =>
-                          setNewItem({
-                            ...newItem,
-                            price: parseFloat(e.target.value) || 0,
-                          })
-                        }
-                        className="w-24"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="newItemQuantity">Quantity</Label>
-                      <Input
-                        id="newItemQuantity"
-                        type="number"
-                        min="1"
-                        value={newItem.quantity}
-                        onChange={(e) =>
-                          setNewItem({
-                            ...newItem,
-                            quantity: parseInt(e.target.value) || 1,
-                          })
-                        }
-                        className="w-20"
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={handleAddItem}
-                      disabled={!newItem.name || newItem.price <= 0}
-                      className="mb-0.5"
-                    >
-                      Add Item
-                    </Button>
-                  </div>
-
-                  {/* Tabella degli elementi */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-4 font-medium">Item</th>
-                          <th className="text-right py-4 font-medium">
-                            Price ({currencySymbol})
-                          </th>
-                          <th className="text-right py-4 font-medium">
-                            Quantity
-                          </th>
-                          <th className="text-right py-4 font-medium">Total</th>
-                          <th className="py-4 w-16"></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {items.map((item) => (
-                          <tr key={item.id} className="border-b">
-                            <td className="py-4">{item.name}</td>
-                            <td className="py-4">
-                              <Input
-                                type="number"
-                                name={`price-${item.id}`}
-                                defaultValue={item.price}
-                                step="0.01"
-                                min="0"
-                                className="w-24 text-right ml-auto"
-                              />
-                            </td>
-                            <td className="py-4">
-                              <Input
-                                type="number"
-                                name={`quantity-${item.id}`}
-                                defaultValue={item.quantity}
-                                min="1"
-                                className="w-20 text-right ml-auto"
-                              />
-                            </td>
-                            <td className="py-4 text-right">
-                              {formatPrice(item.price * item.quantity, workspace?.currency)}
-                            </td>
-                            <td className="py-4 text-right">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleRemoveItem(item.id)}
-                                className="hover:bg-red-50"
-                              >
-                                <X className="h-4 w-4 text-red-600" />
-                                <span className="sr-only">Remove item</span>
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                        <tr className="font-medium">
-                          <td colSpan={3} className="py-4 text-right">
-                            Total:
-                          </td>
-                          <td className="py-4 text-right">
-                            {formatPrice(items.reduce((sum, item) => sum + item.price * item.quantity, 0), workspace?.currency)}
-                          </td>
-                          <td></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                <Label htmlFor="notes">Order Notes</Label>
+                <textarea 
+                  name="notes" 
+                  id="notes"
+                  className="w-full p-3 border rounded-md resize-none"
+                  rows={4}
+                  defaultValue={order.notes || ''}
+                  placeholder="Add notes about this order..."
+                />
               </CardContent>
             </Card>
 
             <div className="flex justify-end">
-              <Button type="submit" size="lg" className="w-full md:w-auto">
-                Save Changes
+              <Button type="submit" size="lg" className="w-full md:w-auto" disabled={isLoading}>
+                {isLoading ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </form>
@@ -617,44 +395,303 @@ function OrderEditSheet({
 }
 
 export default function OrdersPage() {
+  const { workspace } = useWorkspace()
+  const [orders, setOrders] = useState<Order[]>([])
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all")
+  const [paymentFilter, setPaymentFilter] = useState<PaymentStatus | "all">("all")
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [pagination, setPagination] = useState({
+    page: 1,
+    totalPages: 1,
+    total: 0
+  })
+
+  // Load orders
+  const loadOrders = async () => {
+    if (!workspace?.id) return
+    
+    setIsLoading(true)
+    try {
+      const filters: OrderFilters = {
+        page: 1,
+        limit: 50,
+        search: searchTerm || undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        paymentStatus: paymentFilter !== "all" ? paymentFilter : undefined,
+      }
+      
+      const response = await ordersApi.getAllForWorkspace(workspace.id, filters)
+      setOrders(response.orders)
+      setFilteredOrders(response.orders)
+      setPagination({
+        page: response.page,
+        totalPages: response.totalPages,
+        total: response.total
+      })
+    } catch (error) {
+      console.error('Error loading orders:', error)
+      toast.error('Failed to load orders')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Load orders on component mount and when workspace changes
+  useEffect(() => {
+    loadOrders()
+  }, [workspace?.id])
+
+  // Filter orders when search or filters change
+  useEffect(() => {
+    loadOrders()
+  }, [searchTerm, statusFilter, paymentFilter])
+
+  // Handle order actions
+  const handleViewOrder = (order: Order) => {
+    setSelectedOrder(order)
+    setIsDetailsOpen(true)
+  }
+
+  const handleEditOrder = (order: Order) => {
+    setSelectedOrder(order)
+    setIsEditOpen(true)
+  }
+
+  const handleDeleteOrder = async (order: Order) => {
+    if (!workspace?.id) return
+    
+    if (!confirm(`Are you sure you want to delete order ${order.orderCode}?`)) {
+      return
+    }
+    
+    try {
+      await ordersApi.delete(order.id, workspace.id)
+      toast.success('Order deleted successfully')
+      loadOrders()
+    } catch (error) {
+      console.error('Error deleting order:', error)
+      toast.error('Failed to delete order')
+    }
+  }
+
+  const handleOrderSave = (updatedOrder: Order) => {
+    setOrders(orders.map(o => o.id === updatedOrder.id ? updatedOrder : o))
+    setFilteredOrders(filteredOrders.map(o => o.id === updatedOrder.id ? updatedOrder : o))
+  }
+
+  const getStatusBadgeVariant = (status: OrderStatus) => {
+    switch (status) {
+      case 'DELIVERED': return 'success'
+      case 'PROCESSING': 
+      case 'SHIPPED': return 'warning'
+      case 'CANCELLED': return 'destructive'
+      default: return 'default'
+    }
+  }
+
+  const getPaymentBadgeVariant = (status: PaymentStatus) => {
+    switch (status) {
+      case 'COMPLETED': return 'success'
+      case 'PENDING': 
+      case 'AUTHORIZED': return 'warning'
+      case 'FAILED':
+      case 'REFUNDED': return 'destructive'
+      default: return 'default'
+    }
+  }
+
+  if (!workspace) {
+    return (
+      <div className="container mx-auto py-6">
+        <Card>
+          <CardContent className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">No Workspace Selected</h2>
+              <p className="text-gray-500">Please select a workspace to view orders.</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
-    <div className="container mx-auto py-6">
-      {/* Work in Progress Banner */}
-      <div className="bg-amber-100 border-2 border-amber-300 rounded-lg p-6 flex flex-col md:flex-row items-center gap-4 mb-6">
-        <div className="bg-amber-200 p-3 rounded-full">
-          <AlertCircle className="h-8 w-8 text-amber-600" />
-        </div>
-        <div className="text-center md:text-left">
-          <h2 className="text-xl font-bold text-amber-800">
-            🚧 Work in Progress - Orders 🚧
-          </h2>
-          <p className="text-amber-700">
-            The order management system is currently under development. All data shown is for demonstration purposes only.
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
+          <p className="text-muted-foreground">
+            Manage and track all customer orders
           </p>
         </div>
       </div>
 
+      {/* Filters */}
       <Card>
-        <CardContent className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Order Management Coming Soon
-          </h1>
-          <p className="text-gray-500 mb-6">
-            We're building a comprehensive order management system to help you track and process customer orders efficiently.
-            Check back soon for updates.
-          </p>
-          <div className="max-w-2xl mx-auto bg-blue-50 p-6 rounded-lg border border-blue-200">
-            <h3 className="font-semibold text-blue-800 mb-2">What you'll be able to do:</h3>
-            <ul className="text-blue-700 space-y-2 text-left">
-              <li>• Process and manage all customer orders in one place</li>
-              <li>• Track order statuses from placement to delivery</li>
-              <li>• View detailed order information and customer data</li>
-              <li>• Generate and download invoices automatically</li>
-              <li>• Access order history and analytics for better business insights</li>
-            </ul>
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search orders by code or customer..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </div>
+            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as OrderStatus | "all")}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                <SelectItem value="PROCESSING">Processing</SelectItem>
+                <SelectItem value="SHIPPED">Shipped</SelectItem>
+                <SelectItem value="DELIVERED">Delivered</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={paymentFilter} onValueChange={(value) => setPaymentFilter(value as PaymentStatus | "all")}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by payment" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Payments</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="AUTHORIZED">Authorized</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                <SelectItem value="FAILED">Failed</SelectItem>
+                <SelectItem value="REFUNDED">Refunded</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
+
+      {/* Orders Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Orders ({pagination.total})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading orders...</p>
+              </div>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="text-center py-12">
+              <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No orders found</h3>
+              <p className="text-gray-500">Try adjusting your search filters.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-4 font-medium">Order Code</th>
+                    <th className="text-left py-4 font-medium">Customer</th>
+                    <th className="text-left py-4 font-medium">Date</th>
+                    <th className="text-left py-4 font-medium">Status</th>
+                    <th className="text-left py-4 font-medium">Payment</th>
+                    <th className="text-right py-4 font-medium">Total</th>
+                    <th className="text-right py-4 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredOrders.map((order) => (
+                    <tr key={order.id} className="border-b hover:bg-gray-50">
+                      <td className="py-4 font-mono">{order.orderCode}</td>
+                      <td className="py-4">
+                        <div>
+                          <div className="font-medium">{order.customer?.name || 'N/A'}</div>
+                          <div className="text-sm text-gray-500">{order.customer?.email || 'No email'}</div>
+                        </div>
+                      </td>
+                      <td className="py-4">{formatDate(order.createdAt)}</td>
+                      <td className="py-4">
+                        <Badge variant={getStatusBadgeVariant(order.status)}>
+                          {order.status}
+                        </Badge>
+                      </td>
+                      <td className="py-4">
+                        <Badge variant={getPaymentBadgeVariant(order.paymentStatus)}>
+                          {order.paymentStatus}
+                        </Badge>
+                      </td>
+                      <td className="py-4 text-right font-medium">
+                        {formatPrice(order.totalAmount, workspace?.currency)}
+                      </td>
+                      <td className="py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleViewOrder(order)}
+                            title="View details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditOrder(order)}
+                            title="Edit order"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteOrder(order)}
+                            title="Delete order"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Sheets */}
+      <OrderDetailsSheet
+        order={selectedOrder}
+        open={isDetailsOpen}
+        onClose={() => {
+          setIsDetailsOpen(false)
+          setSelectedOrder(null)
+        }}
+      />
+
+      <OrderEditSheet
+        order={selectedOrder}
+        open={isEditOpen}
+        onClose={() => {
+          setIsEditOpen(false)
+          setSelectedOrder(null)
+        }}
+        onSave={handleOrderSave}
+      />
     </div>
   )
 }
