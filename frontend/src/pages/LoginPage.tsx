@@ -1,25 +1,9 @@
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AuthLogo } from "@/components/ui/auth-logo"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2 } from "lucide-react"
+import { Label } from "@/components/ui/label"
+import { AlertTriangle, Globe, MessageSquare, ShoppingCart, Zap } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
@@ -91,99 +75,138 @@ export function LoginPage() {
   }
 
   return (
-    <div className="auth-background">
-      <AuthLogo />
-      <div className="container mx-auto px-4 flex items-center justify-center min-h-screen">
-        <Card className="w-full max-w-md font-system bg-white/95 backdrop-blur-sm shadow-xl">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">
-              Welcome Back
-            </CardTitle>
-            <CardDescription className="text-center">
-              Sign in to your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
+    <div className="w-full lg:grid lg:min-h-[100vh] lg:grid-cols-2 xl:min-h-[100vh]">
+      {/* Left side - Login Form */}
+      <div className="flex items-center justify-center py-12 px-4 lg:px-8">
+        <div className="mx-auto w-full max-w-[400px] space-y-6">
+          <div className="space-y-4 text-center">
+            <AuthLogo />
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold tracking-tight">Welcome Back</h1>
+              <p className="text-balance text-muted-foreground">
+                Enter your credentials to access your workspace
+              </p>
+            </div>
+          </div>
 
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="admin@shopme.com"
-                          type="email"
-                          autoComplete="username"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          {error && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Login Error</AlertTitle>
+              <AlertDescription>
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="••••••••"
-                          type="password"
-                          autoComplete="current-password"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  className="w-full bg-green-500 hover:bg-green-600 text-white font-medium"
-                  disabled={isLoading}
-                >
-                  {isLoading && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Sign In
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-2">
-            <Link
-              to="/auth/forgot-password"
-              className="text-sm text-green-500 hover:text-green-600 hover:underline"
-            >
-              Forgot your password?
-            </Link>
-            <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+                autoComplete="username"
+                className="h-11"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                autoComplete="current-password"
+                className="h-11"
+              />
+            </div>
+            
+            {/* Forgot Password Link - Better positioned */}
+            <div className="flex justify-end">
               <Link
-                to="/auth/signup"
-                className="text-green-500 hover:text-green-600 hover:underline"
+                to="/forgot-password"
+                className="text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline"
               >
-                Sign up
+                Forgot your password?
               </Link>
-            </p>
-          </CardFooter>
-        </Card>
+            </div>
+
+            <Button type="submit" className="w-full h-11" disabled={isLoading}>
+              {isLoading ? "Signing in..." : "Sign In"}
+            </Button>
+          </form>
+          
+          <div className="text-center text-sm text-muted-foreground">
+            Don&apos;t have an account?{" "}
+            <Link to="/signup" className="text-primary hover:text-primary/80 underline-offset-4 hover:underline font-medium">
+              Sign up
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Right side - Enhanced Visual Design */}
+      <div className="hidden lg:block relative overflow-hidden">
+        {/* Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800"></div>
+        
+        {/* Geometric Pattern Overlay */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-full h-full">
+            <div className="absolute top-20 left-20 w-32 h-32 border border-white/20 rounded-full"></div>
+            <div className="absolute top-40 right-32 w-24 h-24 border border-white/15 rounded-lg rotate-12"></div>
+            <div className="absolute bottom-32 left-16 w-40 h-40 border border-white/10 rounded-full"></div>
+            <div className="absolute bottom-20 right-20 w-28 h-28 border border-white/20 rounded-lg -rotate-12"></div>
+          </div>
+        </div>
+        
+        {/* Content */}
+        <div className="relative z-10 flex h-full w-full flex-col items-center justify-center text-white p-12">
+          {/* Main Logo/Icon */}
+          <div className="mb-8 p-4 bg-white/10 rounded-full backdrop-blur-sm">
+            <MessageSquare className="w-16 h-16 text-white" />
+          </div>
+          
+          {/* Main Heading */}
+          <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-center mb-6">
+            Conversational E-commerce,
+            <span className="block text-blue-200">Reimagined</span>
+          </h2>
+          
+          {/* Description */}
+          <p className="text-lg text-blue-100 max-w-xl text-center mb-12 leading-relaxed">
+            Power your business with an AI-driven sales agent that understands, assists, and sells, directly on WhatsApp.
+          </p>
+          
+          {/* Feature Icons */}
+          <div className="grid grid-cols-3 gap-8 max-w-sm">
+            <div className="flex flex-col items-center space-y-3 group">
+              <div className="p-3 bg-white/10 rounded-lg backdrop-blur-sm group-hover:bg-white/20 transition-colors">
+                <ShoppingCart className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-sm text-blue-100 text-center">Smart Sales</span>
+            </div>
+            <div className="flex flex-col items-center space-y-3 group">
+              <div className="p-3 bg-white/10 rounded-lg backdrop-blur-sm group-hover:bg-white/20 transition-colors">
+                <Zap className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-sm text-blue-100 text-center">AI Powered</span>
+            </div>
+            <div className="flex flex-col items-center space-y-3 group">
+              <div className="p-3 bg-white/10 rounded-lg backdrop-blur-sm group-hover:bg-white/20 transition-colors">
+                <Globe className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-sm text-blue-100 text-center">Global Reach</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
