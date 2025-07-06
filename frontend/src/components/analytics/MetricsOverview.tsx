@@ -164,36 +164,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
     }
   ];
 
-  const engagementMetrics = [
-    {
-      title: "Valore Medio Ordine",
-      value: analytics.overview.averageOrderValue,
-      icon: <Euro className="h-4 w-4 text-muted-foreground" />,
-      formatter: formatCurrency,
-      description: "Importo medio per ordine"
-    },
-    {
-      title: "Nuovi Clienti",
-      value: analytics.customerEngagement.newCustomers,
-      icon: <Users className="h-4 w-4 text-muted-foreground" />,
-      formatter: formatNumber,
-      description: "Clienti registrati nel periodo"
-    },
-    {
-      title: "Durata Media Sessione",
-      value: analytics.customerEngagement.averageSessionDuration,
-      icon: <MessageCircle className="h-4 w-4 text-muted-foreground" />,
-      formatter: formatDuration,
-      description: "Tempo medio di conversazione"
-    },
-    {
-      title: "Tasso di Risposta AI",
-      value: analytics.customerEngagement.messageResponseRate,
-      icon: <MessageCircle className="h-4 w-4 text-muted-foreground" />,
-      formatter: formatPercentage,
-      description: "Percentuale di risposte automatiche"
-    }
-  ];
+  // Engagement metrics removed as requested by Andrea
 
   return (
     <div className="space-y-6">
@@ -215,22 +186,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
         </div>
       </div>
 
-      {/* Engagement Metrics */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Engagement e Qualità</h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {engagementMetrics.map((metric) => (
-            <MetricCard
-              key={metric.title}
-              title={metric.title}
-              value={metric.value}
-              icon={metric.icon}
-              formatter={metric.formatter}
-              description={metric.description}
-            />
-          ))}
-        </div>
-      </div>
+      {/* Engagement Metrics section removed as requested by Andrea */}
     </div>
   );
 };

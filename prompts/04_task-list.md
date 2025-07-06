@@ -12,6 +12,23 @@
 - [x] **Frontend Dashboard**: Aggiunta carta "Costo LLM" con formatter €0.0000 precision
 - [x] **Grid Layout**: Aggiornato layout per supportare 5 metriche (xl:grid-cols-5)
 - [x] **Compilation**: Backend e Frontend compilano correttamente
+- [x] **Engagement Metrics**: Rimosso sezione "Engagement e Qualità" come richiesto
+
+## 🎨 **ANALYTICS UI/UX IMPROVEMENTS** (DA FARE)
+- [ ] **Rimuovi Date Range Selector**: Eliminare il componente di selezione range date
+- [ ] **Rimuovi InfoBox**: Eliminare la sezione "Informazioni sul periodo di default"
+- [ ] **Migliora Grafica**: Redesign componenti analytics per look più moderno
+- [ ] **Semplifica Layout**: Layout più pulito senza elementi di configurazione
+- [ ] **Default Period**: Usare sempre periodo default senza opzioni utente
+- [ ] **Rimuovi Fatturato**: Eliminare completamente la carta "Fatturato" dal dashboard
+- [ ] **Fix Costo LLM Format**: Cambiare da €0.0000 a €0.00 (solo 2 decimali)
+
+## 🔧 **UI/UX FIXES GENERALI** (DA FARE)
+- [ ] **Disabilita Link Plans**: Rimuovere/disabilitare il link a http://localhost:3000/plans
+- [ ] **GDPR Upload per Clienti**: Aggiungere possibilità per clienti di fare upload e enable GDPR
+- [ ] **Fix Products Upload Form**: Aggiungere possibilità di disattivare prodotti nella form di upload
+- [ ] **Rimuovi User Info Header**: Commentare/nascondere iniziali nome+cognome+piano in alto a destra
+- [ ] **Documents Toggle Frontend**: Aggiungere toggle per attivare/disattivare documenti nel FE come altre parti
 
 ## 💳 **PAGAMENTO ONLINE & CHECKOUT**
 
