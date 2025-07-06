@@ -7,6 +7,7 @@ export interface DashboardAnalytics {
     totalCustomers: number;
     totalMessages: number;
     averageOrderValue: number;
+    usageCost: number; // Andrea's €0.005 per LLM message tracking
   };
   trends: {
     orders: MonthlyData[];
@@ -56,13 +57,15 @@ export class AnalyticsService {
       customers,
       messages,
       orderItems,
-      chatSessions
+      chatSessions,
+      usageRecords
     ] = await Promise.all([
       this.getOrdersInDateRange(workspaceId, startDate, endDate),
       this.getCustomersInDateRange(workspaceId, startDate, endDate),
       this.getMessagesInDateRange(workspaceId, startDate, endDate),
       this.getOrderItemsInDateRange(workspaceId, startDate, endDate),
-      this.getChatSessionsInDateRange(workspaceId, startDate, endDate)
+      this.getChatSessionsInDateRange(workspaceId, startDate, endDate),
+      this.getUsageInDateRange(workspaceId, startDate, endDate)
     ]);
 
     // Calculate overview metrics
@@ -71,6 +74,7 @@ export class AnalyticsService {
     const totalCustomers = customers.length;
     const totalMessages = messages.length;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    const usageCost = usageRecords.reduce((sum, record) => sum + (record.price || 0), 0); // Andrea's €0.005 per LLM tracking
 
     // Generate monthly trends
     const orderTrends = this.generateMonthlyTrends(orders, startDate, endDate, 'count');
@@ -101,7 +105,8 @@ export class AnalyticsService {
         totalRevenue,
         totalCustomers,
         totalMessages,
-        averageOrderValue
+        averageOrderValue,
+        usageCost
       },
       trends: {
         orders: orderTrends,
@@ -206,6 +211,18 @@ export class AnalyticsService {
       where: {
         workspaceId,
         startedAt: {
+          gte: startDate,
+          lte: endDate
+        }
+      }
+    });
+  }
+
+  private async getUsageInDateRange(workspaceId: string, startDate: Date, endDate: Date) {
+    return await this.prisma.usage.findMany({
+      where: {
+        workspaceId,
+        createdAt: {
           gte: startDate,
           lte: endDate
         }

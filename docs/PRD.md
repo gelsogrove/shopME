@@ -15,10 +15,10 @@
 - È hardcoded per lingua o configurabile per workspace?
 
 ### **Q3: LLM di Formattazione in N8N**
-**A:** [DA CHIARIRE CON ANDREA]
-- È diverso dall'LLM Responder?
-- Cosa formatta esattamente (output RAG, messaggi finali, entrambi)?
-- Ha parametri diversi (temperature, model, prompt)?
+**A:** ✅ **IMPLEMENTATO - TWO-LLM ARCHITECTURE**
+- **LLM 1 (RAG Processor)**: Analizza e filtra dati grezzi dal database (T=0.3)
+- **LLM 2 (Formatter)**: Crea risposta conversazionale naturale (T=0.7)
+- Configurazione dinamica dalla tabella `agentConfig` (prompt, temperatura, token, modello)
 
 ### **Q4: Calling Functions con Token di Protezione**
 **A:** ✅ **IMPLEMENTATO**
@@ -26,14 +26,21 @@
 - SecureTokenService per customer tokens temporanei
 - Cleanup automatico after expiration (1 ora)
 
+### **Q5: Usage Tracking System**
+**A:** ✅ **IMPLEMENTATO COMPLETAMENTE**
+- **Costo per messaggio**: €0.005 (0.5 centesimi) per ogni risposta LLM
+- **Tracciamento automatico**: Integrato in `saveMessage()` - single point of truth
+- **Dashboard analytics**: Statistiche complete con grafici e export
+- **Filtri di sicurezza**: Solo clienti registrati con `activeChatbot: true`
+
 ### **Q6: N8N Auto-Setup e Import Automatico**
 **A:** ✅ **IMPLEMENTATO COMPLETAMENTE**
 - **Flusso attivo**: SÌ - workflow creato automaticamente e impostato `active: true`
 - **Workflow completo**: SÌ - Two-LLM Architecture (LLM 1: RAG + LLM 2: Formatter)
 - **Credenziali**: SÌ - Basic Auth automaticamente configurato per Internal API
-- **Owner account**: SÌ - `admin@shopme.com / Shopme2024`
-- **Script**: `scripts/init-n8n.sh` - setup completamente automatico
-- **Files**: `.n8n/shopme-whatsapp-workflow.json` + credentials
+- **Owner account**: SÌ - `admin@shopme.com / Venezia44`
+- **Script**: `scripts/n8n_import-optimized-workflow.sh` - setup completamente automatico
+- **Files**: `n8n/shopme-whatsapp-workflow.json` + credentials
 - **Processo**: Docker start → Owner setup → Credential import → Workflow import → Activation
 
 ### **🔑 N8N CREDENTIALS CONFIGURATION**
@@ -41,12 +48,12 @@
 
 #### **1. N8N Admin Login**
 - **Email**: `admin@shopme.com`
-- **Password**: `Shopme2024`
+- **Password**: `Venezia44` (uppercase V required)
 - **URL**: http://localhost:5678
-- **Setup**: Automatico via `scripts/init-n8n.sh`
+- **Setup**: Automatico via `scripts/n8n_import-optimized-workflow.sh`
 
 #### **2. Backend API Authentication (Basic Auth)**
-- **Name**: `ShopMe Backend Auth`
+- **Name**: `Backend API Basic Auth`
 - **Type**: `Basic Authentication`
 - **Username**: `admin`
 - **Password**: `admin`
@@ -72,28 +79,499 @@
 #### **📋 SETUP AUTOMATICO CREDENZIALI:**
 ```bash
 # Eseguito automaticamente in npm run dev
-./scripts/init-n8n.sh
+./scripts/n8n_import-optimized-workflow.sh
 ```
 
 #### **⚠️ CONFIGURAZIONE MANUALE (se automatico fallisce):**
-1. Login N8N: http://localhost:5678 (`admin@shopme.com / Shopme2024`)
+1. Login N8N: http://localhost:5678 (`admin@shopme.com / Venezia44`)
 2. Settings → Credentials → Create New
 3. Seleziona tipo appropriato (Basic Auth, Header Auth)
 4. Inserisci nome e valori come specificato sopra
 5. Salva e assegna ai nodi workflow appropriati
 
-### **Q5: Logica RAG Condizionale**
+### **Q7: Logica RAG Condizionale**
 **A:** ✅ **IMPLEMENTATO**
 - LLM Router classifica l'intenzione: sociale vs prodotto/servizio
 - Pattern sociali (saluti, ringraziamenti) = NO RAG
 - Pattern commerciali (prodotti, prezzi, ordini) = SÌ RAG
 - Endpoint: `/internal/llm-router`
 
-### **Q6: Disable Chatbot - Non Rispondere**
+### **Q8: Disable Chatbot - Non Rispondere**
 **A:** ✅ **IMPLEMENTATO**
 - Check `workspace.isActive` e `whatsappSettings.isActive`
 - Se disattivo, nessuna risposta automatica
 - Implementato nel workflow N8N e backend
+
+### **Q9: Invoice Management System**
+**A:** ✅ **TASK DOCUMENTATO - DA IMPLEMENTARE**
+- **CF Function**: `ReceiveInvoice` con filtro codice ordine
+- **Pagina lista fatture**: Design coerente con registrazione + token security
+- **Download PDF**: Sistema di token temporanei per sicurezza
+- **Database schema**: Tabella `invoices` con relazioni customer/workspace
+
+---
+
+## 💰 **USAGE TRACKING SYSTEM - COMPLETE IMPLEMENTATION**
+
+### **🎯 Overview**
+Il sistema di tracciamento usage monitora automaticamente i costi LLM con €0.005 per messaggio e fornisce dashboard analytics complete per business intelligence.
+
+### **✅ Architettura Implementata**
+
+#### **🔄 Single Point of Truth**
+```typescript
+// In saveMessage method - chiamato da N8N
+if (response && response.trim()) {
+  const customer = await prisma.customers.findFirst({
+    where: {
+      phone: phoneNumber,
+      workspaceId: workspaceId,
+      activeChatbot: true // Solo clienti registrati e attivi
+    }
+  });
+
+  if (customer) {
+    await prisma.usage.create({
+      data: {
+        workspaceId: workspaceId,
+        clientId: customer.id,
+        price: 0.005 // 0.5 centesimi come richiesto
+      }
+    });
+    
+    logger.info(`💰 €0.005 tracked for ${customer.name}`);
+  }
+}
+```
+
+#### **📊 Database Schema**
+```sql
+CREATE TABLE usage (
+  id VARCHAR(255) PRIMARY KEY,
+  workspace_id VARCHAR(255) NOT NULL,
+  client_id VARCHAR(255) NOT NULL,
+  price DECIMAL(10,3) DEFAULT 0.005,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  FOREIGN KEY (workspace_id) REFERENCES workspaces(id),
+  FOREIGN KEY (client_id) REFERENCES customers(id)
+);
+
+-- Indici per performance
+CREATE INDEX idx_usage_workspace_date ON usage(workspace_id, created_at DESC);
+CREATE INDEX idx_usage_client_date ON usage(client_id, created_at DESC);
+```
+
+#### **🔄 Flusso Completo**
+```
+📱 Cliente: "ciao mozzarella"
+         ↓
+🤖 N8N Workflow → LLM Response
+         ↓
+💾 /internal/save-message con response
+         ↓
+💰 AUTOMATIC Usage Tracking (€0.005)
+         ↓
+📊 Dashboard Analytics Update
+```
+
+### **📈 Dashboard Analytics**
+
+#### **API Endpoints**
+```typescript
+// Dashboard completa
+GET /api/usage/dashboard/{workspaceId}?period=30
+
+// Statistiche dettagliate  
+GET /api/usage/stats/{workspaceId}?startDate=2024-01-01&endDate=2024-01-31
+
+// Export CSV/JSON
+GET /api/usage/export/{workspaceId}?format=csv
+```
+
+#### **Metriche Fornite**
+- **Total Cost**: €0.125 (esempio 25 messaggi)
+- **Top Client**: Mario Rossi - 9 messaggi, €0.045
+- **Peak Hour**: 14:00 (2 PM) - 8 messaggi
+- **Growth**: +31.58% vs mese precedente
+- **Daily Usage Trends**: Grafici linea per analisi temporale
+- **Customer Segmentation**: Top spenders per targeting
+
+#### **Business Intelligence**
+- Clienti più attivi per targeting marketing
+- Ore di punta per ottimizzare staff
+- Trend di crescita per budget planning
+- Costi AI monitorati in tempo reale
+
+### **🛡️ Validazioni Automatiche**
+- ✅ **Solo clienti registrati**: `activeChatbot: true`
+- ✅ **Solo con risposta LLM**: `response && response.trim()`
+- ✅ **Workspace isolation**: `workspaceId` validation
+- ✅ **Error handling**: Non blocca il flusso principale
+
+### **🎯 Vantaggi Architettura Andrea**
+1. **Performance**: Zero overhead di chiamate HTTP extra
+2. **Reliability**: Single point of failure = maggiore stabilità
+3. **Security**: Nessun endpoint pubblico esposto
+4. **Maintainability**: Un solo posto da mantenere
+
+---
+
+## 📧 **INVOICE MANAGEMENT SYSTEM - TASK DOCUMENTATION**
+
+### **🎯 Obiettivo**
+Implementare la calling function **ReceiveInvoice** che gestisce richieste di fatture con filtro codice ordine e pagina lista fatture sicura.
+
+### **📋 CF Function ReceiveInvoice**
+
+#### **Comportamento CON Codice Ordine**
+```json
+// Input
+{
+  "orderCode": "ORD-2024-001",
+  "workspaceId": "workspace-123", 
+  "customerId": "customer-456"
+}
+
+// Output
+{
+  "success": true,
+  "type": "direct_invoice",
+  "invoice": {
+    "orderCode": "ORD-2024-001",
+    "invoiceNumber": "INV-2024-001", 
+    "pdfUrl": "https://domain.com/invoices/INV-2024-001.pdf",
+    "amount": "€45.50",
+    "date": "2024-01-15",
+    "downloadToken": "secure-token-download"
+  },
+  "message": "Ecco la fattura per l'ordine ORD-2024-001:"
+}
+```
+
+#### **Comportamento SENZA Codice Ordine**
+```json
+// Input
+{
+  "workspaceId": "workspace-123",
+  "customerId": "customer-456"
+}
+
+// Output  
+{
+  "success": true,
+  "type": "invoice_list",
+  "message": "Ecco tutte le tue fatture:",
+  "invoiceListUrl": "https://domain.com/customer/invoices?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "invoicesCount": 12,
+  "secureToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "tokenExpiration": "2024-01-16T10:30:00Z"
+}
+```
+
+### **🎨 Pagina Lista Fatture**
+
+#### **Design Requirements**
+- ✅ **Stessi colori** della form di registrazione
+- ✅ **Layout simile** alla pagina di registrazione  
+- ✅ **Responsive design** mobile-first
+- ✅ **Branding coerente** con il resto del sistema
+
+#### **URL Structure**
+```
+https://domain.com/customer/invoices?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+#### **🔑 Token Security**
+```typescript
+// TOKEN PAYLOAD EXAMPLE:
+{
+  "customerId": "customer-456",
+  "workspaceId": "workspace-123", 
+  "purpose": "invoice_list",
+  "iat": 1643723400,
+  "exp": 1643809800  // 24h expiration
+}
+```
+
+#### **Token Flow Completo**
+```
+1. CF ReceiveInvoice (senza orderCode) chiamata
+   ↓
+2. Backend genera JWT token con customerId + workspaceId
+   ↓  
+3. Backend restituisce URL: "domain.com/customer/invoices?token=JWT_TOKEN"
+   ↓
+4. Cliente clicca link WhatsApp
+   ↓
+5. Frontend estrae token da URL query parameter
+   ↓
+6. Frontend valida token (pre-check JWT decode)
+   ↓
+7. Se valido: API call con token per recuperare fatture
+   ↓
+8. Backend valida token + restituisce fatture del cliente
+   ↓
+9. Frontend mostra lista fatture (ORDER BY id DESC)
+```
+
+### **🏗️ Database Schema**
+```sql
+CREATE TABLE invoices (
+  id SERIAL PRIMARY KEY,
+  invoice_number VARCHAR(50) UNIQUE NOT NULL,
+  order_code VARCHAR(50) NOT NULL,
+  customer_id VARCHAR(255) NOT NULL,
+  workspace_id VARCHAR(255) NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  currency VARCHAR(3) DEFAULT 'EUR',
+  pdf_url TEXT,
+  status VARCHAR(20) DEFAULT 'generated',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  FOREIGN KEY (customer_id) REFERENCES customers(id),
+  FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
+);
+
+-- Indici per performance
+CREATE INDEX idx_invoices_customer_workspace ON invoices(customer_id, workspace_id);
+CREATE INDEX idx_invoices_order_code ON invoices(order_code);
+CREATE INDEX idx_invoices_created_desc ON invoices(created_at DESC);
+```
+
+### **🔧 Implementation Files**
+```typescript
+// Files to Create:
+- backend/src/chatbot/calling-functions/CF/ReceiveInvoice.ts
+- frontend/src/pages/InvoiceListPage.tsx
+- backend/src/services/invoice.service.ts
+- frontend/src/components/invoices/InvoiceTable.tsx
+- backend/src/routes/invoice.routes.ts
+```
+
+### **✅ Security Requirements**
+- ✅ **Token-based authentication** (no login required)
+- ✅ **24h token expiration** per lista fatture
+- ✅ **1h token expiration** per download PDF
+- ✅ **Workspace isolation** (fatture solo del workspace corretto)
+- ✅ **Rate limiting** su download
+- ✅ **Customer validation** prima dell'accesso
+
+---
+
+## 🧠 **TWO-LLM ARCHITECTURE - COMPLETE IMPLEMENTATION**
+
+### **🎯 Andrea's Single Responsibility Principle**
+
+#### **🔍 LLM 1: RAG PROCESSOR**
+**RESPONSABILITÀ**: Analizzare e organizzare dati grezzi dal database
+- **INPUT**: Lista grezza (10 prodotti, 4 FAQ, 2 servizi, etc.)
+- **COMPITO**: Filtrare, analizzare relevanza, organizzare informazioni
+- **OUTPUT**: JSON strutturato con dati più rilevanti
+- **TEMPERATURA**: 0.3 (bassa per analisi precisa)
+
+#### **🎨 LLM 2: FORMATTER**
+**RESPONSABILITÀ**: Creare risposta conversazionale per l'utente
+- **INPUT**: Dati processati da LLM 1 + storico conversazione + agent config
+- **COMPITO**: Formattare risposta naturale, personalizzata, linguaggio corretto
+- **OUTPUT**: Risposta finale conversazionale per WhatsApp
+- **TEMPERATURA**: 0.7 (alta per creatività conversazionale)
+
+### **🔄 Flusso Completo Two-LLM**
+
+```
+📝 DOMANDA UTENTE: "avete mozzarelle? quanto costa la spedizione?"
+         |
+         v
+    ┌─────────────────┐
+    │ 🔍 RAG SEARCH   │ ──> Cerca in database:
+    │ (Database Only) │     • product_chunks + products table
+    │                 │     • faq_chunks + faq table  
+    │                 │     • service_chunks + services table
+    │                 │     • document_chunks + documents table
+    └─────────────────┘
+         |
+         v
+    ┌─────────────────┐
+    │ 📊 RAW RESULTS  │ ──> Lista grezza di 10+ elementi:
+    │ (Unprocessed)   │     • 5 prodotti con similarity scores
+    │                 │     • 3 FAQ con similarity scores
+    │                 │     • 2 servizi con similarity scores
+    └─────────────────┘
+         |
+         v
+    ┌─────────────────┐
+    │ 🧠 LLM 1:       │ ──> Analizza e filtra dati grezzi:
+    │ RAG PROCESSOR   │     • Seleziona più rilevanti per query
+    │ (T=0.3, Focus)  │     • Organizza in JSON strutturato
+    │                 │     • Rimuove duplicati/irrilevanti
+    └─────────────────┘
+         |
+         v
+    ┌─────────────────┐
+    │ 📋 PROCESSED    │ ──> Dati organizzati e filtrati:
+    │ DATA (Clean)    │     • 2 mozzarelle più rilevanti
+    │                 │     • 1 FAQ spedizione pertinente
+    │                 │     • Informazioni essenziali
+    └─────────────────┘
+         |
+         v
+    ┌─────────────────┐
+    │ 🎨 LLM 2:       │ ──> Crea risposta conversazionale:
+    │ FORMATTER       │     • Usa dati processati da LLM 1
+    │ (T=0.7, Creative) │  • Aggiunge storico conversazione
+    │                 │     • Applica stile agente dal DB
+    │                 │     • Risponde in lingua cliente
+    └─────────────────┘
+         |
+         v
+    ┌─────────────────┐
+    │ 💬 RISPOSTA     │ ──> "Ciao! 🧀 Abbiamo 2 mozzarelle:
+    │ FINALE          │     • Mozzarella di Bufala DOP €8.50
+    │ (Conversational)│     • Mozzarella Classica €6.90
+    │                 │     Spedizione €4.99, gratis sopra €50.
+    │                 │     Quale preferisci? 😊"
+    └─────────────────┘
+```
+
+### **🎯 Vantaggi Two-LLM Architecture**
+
+#### **🔧 Single Responsibility Benefits:**
+1. **LLM 1 (Processor)**: Focalizzato solo su analisi dati
+   - Temperature bassa (0.3) per precision
+   - Nessuna creatività, solo logica
+   - Output JSON strutturato e prevedibile
+
+2. **LLM 2 (Formatter)**: Focalizzato solo su conversazione
+   - Temperature alta (0.7) per naturalezza
+   - Creatività conversazionale
+   - Stile personalizzato per cliente
+
+#### **📊 Quality Improvements:**
+- **Meno allucinazioni**: LLM 1 filtra solo dati reali
+- **Risposte più accurate**: Separazione logica vs creatività
+- **Performance migliore**: Ogni LLM ottimizzato per il suo compito
+- **Debug più facile**: Errori isolati per responsabilità
+
+#### **🔄 Cost Efficiency:**
+- **LLM 1**: Pochi token, focus su struttura
+- **LLM 2**: Più token solo per creatività necessaria
+- **Totale**: Spesso meno costoso di un singolo LLM sovraccarico
+
+### **⚙️ Configurazione Dinamica**
+**IMPORTANTE**: Prompt, temperatura, token e modello arrivano dalla tabella `agentConfig` - tutto dinamico!
+
+---
+
+## 📊 **COMPLETE MESSAGE PROCESSING FLOW**
+
+### **🔄 Schema ASCII del Flow Completo**
+
+```
+📱 MESSAGGIO WHATSAPP
+         |
+         v
+    ┌─────────────────┐
+    │ 🚨 SPAM CHECK   │ ──YES─> 🚫 AUTO-BLACKLIST + STOP
+    │ 10+ msg/30sec?  │         (customer + workspace)
+    └─────────────────┘
+         |NO
+         v
+    ┌─────────────────┐
+    │ CANALE ATTIVO?  │ ──NO──> ❌ STOP DIALOGO
+    │ (isActive)      │
+    └─────────────────┘
+         |YES
+         v
+    ┌─────────────────┐
+    │ CHATBOT ATTIVO? │ ──NO──> 👨‍💼 CONTROLLO OPERATORE
+    │ (activeChatbot) │         (salva msg, no AI response)
+    └─────────────────┘
+         |YES
+         v
+    ┌─────────────────┐
+    │ USER BLACKLIST? │ ──YES─> ❌ BLOCCA CONVERSAZIONE
+    └─────────────────┘
+         |NO
+         v
+    ┌─────────────────┐
+    │ CANALE IN WIP?  │ ──YES─> ⚠️ MESSAGGIO WIP
+    └─────────────────┘
+         |NO
+         v
+    ┌─────────────────┐
+    │ NUOVO UTENTE?   │
+    └─────────────────┘
+         |              |
+       YES|              |NO
+         v              v
+    ┌─────────────┐  ┌─────────────────┐
+    │ SALUTO?     │  │ E' REGISTRATO?  │
+    │ Ciao/Hello  │  └─────────────────┘
+    └─────────────┘         |        |
+         |YES              NO|        |YES
+         v                   v        v
+    ┌─────────────┐  ┌─────────────┐ ┌─────────────────┐
+    │ 🎉 WELCOME  │  │ 🎉 WELCOME  │ │ >2 ORE ULTIMA   │ ──YES─> 👋 BENTORNATO {NOME}
+    │ + REG LINK  │  │ + REG LINK  │ │ CONVERSAZIONE?  │
+    └─────────────┘  └─────────────┘ └─────────────────┘
+         |                 |              |NO
+         v                 v              v
+    ┌─────────────┐  ┌─────────────┐ ┌─────────────────┐
+    │ 🔗 TOKEN +  │  │ ⏳ ATTENDI  │ │ 🤖 RAG SEARCH + │
+    │ REGISTRA    │  │ REGISTRA    │ │ 🎨 TWO-LLM PROC │
+    └─────────────┘  └─────────────┘ └─────────────────┘
+         |                              |
+         v                              v
+    ┌─────────────┐                ┌─────────────────┐
+    │ 🤖 RAG +    │                │ 💬 RISPOSTA     │
+    │ 🎨 TWO-LLM  │                │ DISCORSIVA      │
+    │ PROCESSOR   │                │ + 💰 USAGE      │
+    └─────────────┘                └─────────────────┘
+         |
+         v
+    ┌─────────────┐   
+    │ 💬 RISPOSTA │   
+    │ DISCORSIVA  │  
+    │ + 💰 USAGE  │
+    └─────────────┘   
+```
+
+### **🔑 Legenda Completa**
+- 🚨 = SPAM DETECTION (10+ msg/30sec)
+- 🚫 = AUTO-BLACKLIST (customer + workspace)
+- ❌ = STOP/BLOCCO DIALOGO
+- 👨‍💼 = CONTROLLO OPERATORE (salva msg, no AI)
+- ⚠️ = MESSAGGIO WIP AUTOMATICO
+- 🎉 = MESSAGGIO BENVENUTO (da settings)
+- 🤖 = ELABORAZIONE RAG SEARCH
+- 🎨 = TWO-LLM PROCESSING (Processor + Formatter)
+- ⏳ = ATTENDI REGISTRAZIONE (loop welcome)
+- 🔗 = LINK CON TOKEN SICURO
+- 🛒 = FINALIZZAZIONE ORDINE/CHECKOUT
+- 💬 = CONVERSAZIONE FORMATTATA
+- 💰 = USAGE TRACKING (€0.005)
+
+### **📱 Gestione Messaggi Specifici**
+
+#### **Nuovi Utenti - Welcome Flow**
+- Riconoscimento saluti: "Ciao", "Hello", "Hi", "Hola", "Buongiorno"
+- Welcome message dal database (settings)
+- Link registrazione con token sicuro
+- Loop fino a registrazione completata
+
+#### **Utenti Registrati - Conversazione**
+- Check ultima conversazione (>2 ore = "Bentornato {NOME}")
+- RAG search unificato (prodotti, FAQ, servizi, documenti)
+- Two-LLM processing per risposta ottimale
+- Usage tracking automatico (€0.005)
+
+#### **Controlli di Sicurezza**
+- **Spam detection**: 10+ messaggi in 30 secondi → auto-blacklist
+- **Blacklist check**: Verifica customer.isBlacklisted
+- **Channel status**: isActive e activeChatbot flags
+- **WIP status**: Messaggio work-in-progress se canale in manutenzione
 
 ---
 
@@ -103,6 +581,24 @@
   - [Business Model](#business-model)
   - [Message Processing Flow](#message-processing-flow)
   - [N8N Visual Workflow Integration](#n8n-visual-workflow-integration)
+- [Usage Tracking System](#usage-tracking-system---complete-implementation)
+  - [Overview](#overview)
+  - [Architecture](#architettura-implementata)
+  - [Dashboard Analytics](#dashboard-analytics)
+  - [Business Intelligence](#business-intelligence)
+- [Invoice Management System](#invoice-management-system---task-documentation)
+  - [CF Function ReceiveInvoice](#cf-function-receiveinvoice)
+  - [Invoice List Page](#pagina-lista-fatture)
+  - [Database Schema](#database-schema)
+  - [Security Requirements](#security-requirements)
+- [Two-LLM Architecture](#two-llm-architecture---complete-implementation)
+  - [Single Responsibility Principle](#andreas-single-responsibility-principle)
+  - [Complete Flow](#flusso-completo-two-llm)
+  - [Architecture Benefits](#vantaggi-two-llm-architecture)
+- [Complete Message Processing Flow](#complete-message-processing-flow)
+  - [Flow Diagram](#schema-ascii-del-flow-completo)
+  - [Message Types](#gestione-messaggi-specifici)
+  - [Security Controls](#controlli-di-sicurezza)
 - [UI Screenshots](#ui-screenshots)
 - [Dialog Examples](#dialog-examples)
   - [User Registration](#registro-de-nuevo-usuario)
@@ -199,7 +695,14 @@ All sensitive operations are handled securely through temporary links with secur
 
 ### WhatsApp Chatbot Flow - Complete Documentation
 
-The ShopMe platform implements an intelligent conversational flow that handles new and registered users with comprehensive security controls, blacklist management, and RAG (Retrieval-Augmented Generation) integration for contextual responses based on uploaded documents.
+The ShopMe platform implements an intelligent conversational flow that handles new and registered users with comprehensive security controls, blacklist management, and **Two-LLM Architecture** for optimal response generation. The system uses **Andrea's Single Responsibility Principle** with LLM 1 (RAG Processor) for data analysis and LLM 2 (Formatter) for conversational responses.
+
+**Key Features:**
+- ✅ **Two-LLM Processing**: Separate LLMs for data analysis (T=0.3) and conversation (T=0.7)
+- ✅ **Usage Tracking**: Automatic €0.005 cost tracking per LLM response
+- ✅ **Spam Detection**: 10+ messages/30sec → auto-blacklist
+- ✅ **Token Security**: Secure links for registration, invoices, checkout
+- ✅ **Unified RAG**: Search across products, FAQs, services, documents simultaneously
 
 #### Complete Message Processing Flow
 
@@ -253,10 +756,12 @@ User Query: "hai la mozzarella fresca? quanto costa la spedizione?"
      |
      v
 ┌─────────────────────────────────────────────────────────────┐
-│ LLM FORMATTER - UNIFIED RESPONSE GENERATION                 │
+│ TWO-LLM ARCHITECTURE - COMPLETE PROCESSING                 │
 ├─────────────────────────────────────────────────────────────┤
-│ Input: Customer context + Welcome back + All search results│
-│ Output: Single coherent response combining all information  │
+│ LLM 1 (Processor): Analyze raw data → structured JSON      │
+│ LLM 2 (Formatter): Create conversational response          │
+│ Input: All search results + customer context + history     │
+│ Output: Natural conversation + Usage tracking (€0.005)     │
 └─────────────────────────────────────────────────────────────┘
      |
      v

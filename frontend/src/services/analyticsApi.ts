@@ -7,6 +7,7 @@ export interface DashboardAnalytics {
     totalCustomers: number;
     totalMessages: number;
     averageOrderValue: number;
+    usageCost: number;
   };
   trends: {
     orders: MonthlyData[];
