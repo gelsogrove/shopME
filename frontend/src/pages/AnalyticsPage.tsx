@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, BarChart3, TrendingUp, Activity } from "lucide-react";
-import { DateRangeSelector } from "@/components/analytics/DateRangeSelector";
 import { MetricsOverview } from "@/components/analytics/MetricsOverview";
 import { 
   getDashboardAnalytics, 
@@ -16,35 +15,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function AnalyticsPage() {
   const { workspace: currentWorkspace } = useWorkspace();
-  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange());
+  const [dateRange] = useState<DateRange>(getDefaultDateRange());
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isDefault, setIsDefault] = useState(true);
 
-  const loadAnalytics = async (selectedDateRange?: DateRange) => {
+  const loadAnalytics = async () => {
     if (!currentWorkspace?.id) return;
 
     try {
       setLoading(true);
       setError(null);
       
-      const rangeToUse = selectedDateRange || dateRange;
       const response: AnalyticsResponse = await getDashboardAnalytics(
         currentWorkspace.id, 
-        rangeToUse
+        dateRange
       );
       
       setAnalytics(response.data);
-      setIsDefault(response.dateRange.isDefault);
-      
-      // Update actual date range from server response if using default
-      if (response.dateRange.isDefault) {
-        setDateRange({
-          startDate: new Date(response.dateRange.startDate),
-          endDate: new Date(response.dateRange.endDate)
-        });
-      }
     } catch (err: any) {
       console.error('Error loading analytics:', err);
       setError(err.message || 'Errore nel caricamento dei dati analytics');
@@ -56,11 +44,6 @@ export function AnalyticsPage() {
   useEffect(() => {
     loadAnalytics();
   }, [currentWorkspace?.id]);
-
-  const handleDateRangeChange = (newDateRange: DateRange) => {
-    setDateRange(newDateRange);
-    loadAnalytics(newDateRange);
-  };
 
   const handleRefresh = () => {
     loadAnalytics();
@@ -109,23 +92,6 @@ export function AnalyticsPage() {
           </Button>
         </div>
       </div>
-
-      {/* Date Range Selector */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Periodo di Analisi
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DateRangeSelector
-            dateRange={dateRange}
-            onDateRangeChange={handleDateRangeChange}
-            isDefault={isDefault}
-          />
-        </CardContent>
-      </Card>
 
       {/* Error State */}
       {error && (
@@ -239,8 +205,8 @@ export function AnalyticsPage() {
               Non ci sono dati sufficienti per il periodo selezionato. 
               Prova a selezionare un periodo diverso o verifica che ci siano ordini e clienti registrati.
             </p>
-            <Button onClick={() => setDateRange(getDefaultDateRange())} variant="outline">
-              Ripristina Periodo Default
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Ricarica Pagina
             </Button>
           </CardContent>
         </Card>

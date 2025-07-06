@@ -159,27 +159,22 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="relative h-16 w-16 rounded-full"
+                className="relative h-8 w-8 rounded-full"
               >
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src="/avatars/01.png" alt={userName} />
-                  <AvatarFallback className="text-2xl font-black">
-                    {userInitials}
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src="/avatars/01.png" alt="User" />
+                  <AvatarFallback className="text-sm font-medium">
+                    U
                   </AvatarFallback>
                 </Avatar>
-                <div
-                  className={`absolute -bottom-4 left-1/2 transform -translate-x-1/2 px-3 py-1 rounded font-semibold text-xs whitespace-nowrap border ${planInfo.color}`}
-                >
-                  {planInfo.label}
-                </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-72" align="end" forceMount>
               <DropdownMenuLabel className="font-normal p-4">
                 <div className="flex flex-col space-y-2">
-                  <p className="text-xl font-medium leading-none">{userName}</p>
+                  <p className="text-xl font-medium leading-none">User</p>
                   <p className="text-lg leading-none text-muted-foreground">
-                    {userEmail}
+                    Welcome to ShopMe
                   </p>
                 </div>
               </DropdownMenuLabel>
@@ -193,12 +188,13 @@ export function Header() {
               </DropdownMenuItem>
 
               <DropdownMenuItem
-                className="p-4 text-lg cursor-pointer"
-                onClick={() => navigate("/plans")}
+                className="p-4 text-lg cursor-not-allowed opacity-50"
+                disabled
               >
                 <CreditCard className="mr-3 h-5 w-5" />
-                <span>Plans</span>
+                <span>Plans (Coming Soon)</span>
               </DropdownMenuItem>
+
               <DropdownMenuItem
                 className="p-4 text-lg cursor-pointer"
                 onClick={() => navigate("/settings")}
