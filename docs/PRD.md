@@ -1149,7 +1149,6 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 │ 🛒 create_order() → Gestione carrello e checkout           │
 │ 👨‍💼 contact_operator() → Attiva controllo operatore        │
 │ 📅 add_calendar_event() → Prenotazioni e appuntamenti      │
-│ 🎫 create_ticket() → Sistema ticketing supporto            │
 │ 💳 process_payment() → Gestione pagamenti                  │
 │ 📧 send_invoice() → Fatturazione elettronica               │
 └─────────────────────────────────────────────────────────────┘
@@ -1239,20 +1238,7 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 - Calendar integration (Google/Outlook)
 ```
 
-##### **5. 🎫 create_ticket() - Support Ticketing**
-```javascript
-// Status: ❌ NOT IMPLEMENTED
-// Required for: Customer support, Technical issues
-
-// Needed Implementation:
-- Ticket database schema
-- Priority/category system
-- Assignment to support agents
-- Status tracking (open/in-progress/closed)
-- SLA management
-```
-
-##### **6. 💳 process_payment() - Payment Processing**
+##### **5. 💳 process_payment() - Payment Processing**
 ```javascript
 // Status: ❌ NOT IMPLEMENTED
 // Required for: Direct WhatsApp payments
@@ -1265,7 +1251,7 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 - Invoice generation
 ```
 
-##### **7. 📧 ReceiveInvoice() - Sistema Gestione Fatture**
+##### **6. 📧 ReceiveInvoice() - Sistema Gestione Fatture**
 ```javascript
 // Endpoint: CF/ReceiveInvoice
 // Status: ❌ DA IMPLEMENTARE
@@ -2022,10 +2008,9 @@ FRONTEND_URL=https://your-domain.com
 1. **Security Audit & Vulnerability Assessment**: Comprehensive OWASP compliance, JWT enhancement, audit logging
 2. **WhatsApp Message Templates & Rich Media**: Advanced messaging with templates, media support, bulk messaging
 3. **Temporary Token System**: Secure links for payments, invoices, cart access with comprehensive token management
-4. **Ticketing System with Plan-Based Access**: Customer support tickets with operator assignment (Professional+ only)
-5. **Plan-Based AI Prompt System**: Dynamic prompts based on subscription tier with upgrade messaging
-6. **Auto-Blacklist Spam Detection**: 10 messages in 30 seconds → automatic block
-7. **API Rate Limiting**: 100 calls every 10 minutes for anti-attack protection
+4. **Plan-Based AI Prompt System**: Dynamic prompts based on subscription tier with upgrade messaging
+5. **Auto-Blacklist Spam Detection**: 10 messages in 30 seconds → automatic block
+6. **API Rate Limiting**: 100 calls every 10 minutes for anti-attack protection
 
 **🎯 High Priority (Business Features)**
 1. **Product Pricing with Discounts**: Customer vs product discount calculation system
@@ -2035,7 +2020,7 @@ FRONTEND_URL=https://your-domain.com
 5. **Enhanced Document Management**: PDF management improvements (5MB limit)
 
 **📈 Medium Priority (Extended Features)**
-1. **Database Schema Updates**: Support for new security and ticketing features
+1. **Database Schema Updates**: Support for new security features
 2. **Workspace-Specific GDPR**: Per-workspace GDPR text management
 3. **Pay-Per-Use Billing System**: Usage-based billing with Stripe integration
 4. **Professional Plan Contact Sales**: Lead management and operator assignment
@@ -2151,38 +2136,6 @@ FRONTEND_URL=https://your-domain.com
 - **Token Rotation**: Extended session support
 - **Manual Revocation**: Administrative token invalidation
 - **Automatic Cleanup**: Expired token removal
-
-### Ticketing System with Plan-Based Access
-
-**Current Support System**:
-- ✅ **Operator Manual Control**: activeChatbot flag for operator takeover
-- ✅ **Chat History**: Message storage and retrieval
-- ❌ **Formal Ticketing**: No ticket creation or management
-- ❌ **Plan-Based Access**: No subscription tier restrictions
-- ❌ **Operator Assignment**: No systematic operator management
-
-**Planned Ticketing System**:
-
-#### 🎫 **Ticket Management**
-- **Automatic Creation**: Detect customer requests for human support
-- **Ticket Categories**: Support, Sales, Technical, Billing
-- **Priority Levels**: Low, Medium, High, Urgent
-- **Status Tracking**: New, Assigned, In Progress, Waiting, Resolved, Closed
-- **SLA Management**: Response time tracking and escalation
-
-#### 📋 **Plan-Based Access**
-- **Free Plan**: No ticketing - upgrade messaging only
-- **Basic Plan**: No ticketing - upgrade to Professional required
-- **Professional Plan**: Full ticketing system access
-- **Enterprise Plan**: Priority support with dedicated operators
-- **Plan Validation**: Automatic subscription tier checking
-
-#### 👥 **Operator Management**
-- **Operator Profiles**: Skill-based operator accounts
-- **Workload Balancing**: Even ticket distribution
-- **Availability Status**: Online, Busy, Away, Offline
-- **Performance Metrics**: Response time, satisfaction scores
-- **Escalation Rules**: Automatic ticket escalation
 
 ### Plan-Based AI Prompt System
 
