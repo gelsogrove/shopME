@@ -1985,6 +1985,76 @@ This ensures developers and administrators know exactly how to activate the RAG 
 
 This multi-source RAG approach ensures comprehensive knowledge coverage, allowing the chatbot to answer questions using information from uploaded documents, configured FAQs, and service catalog details.
 
+### E-commerce & Orders Management
+
+The ShopMe platform includes a comprehensive e-commerce system that enables businesses to manage the complete order lifecycle directly through WhatsApp conversations and the admin dashboard.
+
+#### 🛒 **Smart Shopping Cart System**
+- **Real-time Cart Management**: Dynamic cart updates during WhatsApp conversations
+- **Intelligent Product Addition**: AI automatically adds products to cart based on customer requests
+- **Variant Management**: Support for product variants (size, color, type) in conversational flow
+- **Cart Persistence**: Customer carts saved across conversation sessions
+- **Smart Recommendations**: AI suggests complementary products based on cart contents
+
+#### 💳 **Advanced Checkout & Payment System**
+- **Multi-Step Checkout**: Guided checkout process through WhatsApp with order confirmation
+- **Payment Gateway Integration**: Support for multiple payment providers (Stripe, PayPal)
+- **Secure Payment Links**: Temporary secure links for payment processing outside WhatsApp
+- **Payment Status Tracking**: Real-time payment confirmation and failure handling
+- **Multiple Payment Methods**: Credit cards, digital wallets, bank transfers
+
+#### 📦 **Intelligent Shipping & Address Management**
+- **LLM-Generated Shipping Links**: AI automatically provides secure links for address collection
+- **Dynamic Shipping Calculator**: Real-time shipping cost calculation based on location and weight
+- **Address Validation**: Automatic address verification and correction suggestions
+- **Shipping Method Selection**: Multiple shipping options with cost and time estimates
+- **Delivery Tracking Integration**: Real-time tracking updates sent via WhatsApp
+
+#### ✅ **Order Confirmation & Management System**
+- **Smart Order Confirmation**: Interactive order confirmation pages with full details
+- **Order Details Drilldown**: Complete order information with shipping and payment details
+- **Order Status Management**: Real-time order status updates (pending, confirmed, shipped, delivered)
+- **Customer Order Portal**: Dedicated customer portal for order history and tracking
+- **Order Modification**: Ability to modify orders before shipment
+
+#### 📊 **Comprehensive Order Database**
+- **Unified Order Storage**: Complete order information stored with unique order codes
+- **Customer Order History**: Full order history linked to customer profiles
+- **Order Analytics**: Sales analytics and reporting by product, category, and time period
+- **Inventory Integration**: Automatic inventory updates when orders are placed
+- **Order Search & Filtering**: Advanced search capabilities by date, status, customer, products
+
+#### 📄 **Professional Invoicing & PDF System**
+- **Automatic PDF Generation**: Professional invoice PDFs generated for each completed order
+- **Secure Download Links**: Temporary secure links for invoice downloads with order codes
+- **Invoice Template System**: Customizable invoice templates with business branding
+- **Tax Calculation**: Automatic tax calculation based on location and product types
+- **Invoice Archive**: Secure storage and retrieval of all generated invoices
+
+#### 📑 **Orders & Invoices Management Dashboard**
+- **Complete Orders Overview**: Admin dashboard showing all orders with filters and search
+- **Order Status Workflow**: Visual order status management with drag-and-drop status updates
+- **Invoice Management**: Bulk invoice generation and download capabilities
+- **Customer Order Analytics**: Customer-specific order patterns and analytics
+- **Revenue Analytics**: Detailed revenue tracking and reporting
+- **Export Capabilities**: Export orders and invoices for accounting systems
+
+#### 🤖 **N8N E-commerce Workflow Integration**
+- **Advanced Calling Functions**: Specialized e-commerce calling functions for order processing
+- **WhatsApp Checkout Flow**: Complete order processing through WhatsApp conversations
+- **Automated Order Notifications**: Automatic status updates and confirmations via WhatsApp
+- **Smart Order Recovery**: Abandoned cart recovery through intelligent follow-up messages
+- **Cross-platform Synchronization**: Order data synchronized across all channels
+
+#### 🔐 **Security & Compliance**
+- **PCI Compliance**: Secure payment processing following PCI DSS standards
+- **Data Protection**: GDPR-compliant handling of customer payment and shipping data
+- **Secure Token System**: Temporary tokens for all sensitive operations (payments, address collection)
+- **Audit Trail**: Complete audit trail for all order and payment operations
+- **Fraud Protection**: Built-in fraud detection and prevention mechanisms
+
+This comprehensive e-commerce system transforms WhatsApp into a complete sales channel while maintaining the security and professionalism expected in modern e-commerce platforms.
+
 
 ## UI SCREENSHOTS
 
@@ -2322,12 +2392,20 @@ erDiagram
     
     Order {
         id UUID PK
+        orderCode String UNIQUE
         customerId UUID FK
         workspaceId UUID FK
         status OrderStatus
-        totalAmount Decimal
         paymentStatus PaymentStatus
         paymentMethod PaymentMethod
+        totalAmount Decimal
+        shippingAmount Decimal
+        taxAmount Decimal
+        shippingAddress JSONB
+        billingAddress JSONB
+        notes Text
+        discountCode String
+        discountAmount Decimal
         createdAt DateTime
         updatedAt DateTime
     }
@@ -2337,7 +2415,88 @@ erDiagram
         orderId UUID FK
         productId UUID FK
         quantity Int
-        price Decimal
+        unitPrice Decimal
+        totalPrice Decimal
+        productVariant JSONB
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    Cart {
+        id UUID PK
+        customerId UUID FK
+        workspaceId UUID FK
+        sessionId String
+        expiresAt DateTime
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    CartItem {
+        id UUID PK
+        cartId UUID FK
+        productId UUID FK
+        quantity Int
+        productVariant JSONB
+        addedAt DateTime
+    }
+    
+    Invoice {
+        id UUID PK
+        orderId UUID FK
+        invoiceNumber String UNIQUE
+        workspaceId UUID FK
+        customerId UUID FK
+        subtotal Decimal
+        taxAmount Decimal
+        totalAmount Decimal
+        taxRate Decimal
+        currency String
+        status InvoiceStatus
+        pdfPath String
+        generatedAt DateTime
+        sentAt DateTime
+        paidAt DateTime
+        dueDate DateTime
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    Shipment {
+        id UUID PK
+        orderId UUID FK
+        workspaceId UUID FK
+        carrier String
+        trackingNumber String
+        shippingMethod String
+        status ShipmentStatus
+        estimatedDelivery DateTime
+        actualDelivery DateTime
+        shippingCost Decimal
+        weight Decimal
+        dimensions JSONB
+        shippedAt DateTime
+        deliveredAt DateTime
+        createdAt DateTime
+        updatedAt DateTime
+    }
+    
+    Payment {
+        id UUID PK
+        orderId UUID FK
+        workspaceId UUID FK
+        paymentIntentId String
+        gatewayProvider String
+        amount Decimal
+        currency String
+        status PaymentStatus
+        method PaymentMethod
+        gatewayResponse JSONB
+        transactionId String
+        refundAmount Decimal
+        refundReason String
+        processedAt DateTime
+        refundedAt DateTime
         createdAt DateTime
         updatedAt DateTime
     }
@@ -2429,15 +2588,28 @@ erDiagram
     Workspace ||--o{ AgentConfig : "has"
     Workspace ||--o{ Offer : "has"
     Workspace ||--o{ Document : "has"
+    Workspace ||--o{ Cart : "has"
+    Workspace ||--o{ Invoice : "has"
+    Workspace ||--o{ Shipment : "has"
+    Workspace ||--o{ Payment : "has"
     
     Category ||--o{ Product : "contains"
     Category ||--o{ Category : "has children"
     
     Customer ||--o{ Order : "places"
     Customer ||--o{ Conversation : "has"
+    Customer ||--o{ Cart : "has"
+    Customer ||--o{ Invoice : "receives"
     
     Order ||--o{ OrderItem : "contains"
+    Order ||--|| Invoice : "generates"
+    Order ||--|| Shipment : "ships_via"
+    Order ||--|| Payment : "processes_via"
+    
+    Cart ||--o{ CartItem : "contains"
+    
     OrderItem ||--|| Product : "references"
+    CartItem ||--|| Product : "references"
     
     Conversation ||--o{ Message : "contains"
     
@@ -2510,21 +2682,15 @@ The system implements several AI function calls to handle specific operations:
 +-------------------------+--------------------------------------+----------------+
 | get_product_info        | Get details about a specific product | Implemented    |
 +-------------------------+--------------------------------------+----------------+
-
-+-------------------------+--------------------------------------+----------------+
 | get_service_info        | Get details about a specific service | Implemented    |
 +-------------------------+--------------------------------------+----------------+
 | welcome_user            | Generate welcome message for users   | Implemented    |
 +-------------------------+--------------------------------------+----------------+
-| create_order            | Create a new order from cart items   | Implemented    |
+| get_faq_info            | Get information from FAQ database    | Implemented    |
 +-------------------------+--------------------------------------+----------------+
-| get_cart_info           | Get contents of a user's cart        | Implemented    |
+| search_documents        | Search through uploaded documents    | Implemented    |
 +-------------------------+--------------------------------------+----------------+
-| get_order_status        | Check status of specific order       | Implemented    |
-+-------------------------+--------------------------------------+----------------+
-| add_to_cart             | Add product to shopping cart         | Implemented    |
-+-------------------------+--------------------------------------+----------------+
-| remove_from_cart        | Remove product from shopping cart    | Implemented    |
+| get_generic_response    | Handle general conversation/fallback | Implemented    |
 +-------------------------+--------------------------------------+----------------+
 | get_product_list        | Get list of available products       | Implemented    |
 +-------------------------+--------------------------------------+----------------+
@@ -2532,11 +2698,44 @@ The system implements several AI function calls to handle specific operations:
 +-------------------------+--------------------------------------+----------------+
 | get_categories          | Get list of all product categories   | Planned        |
 +-------------------------+--------------------------------------+----------------+
-| get_faq_info            | Get information from FAQ database    | Implemented    |
+
+## E-COMMERCE CALLING FUNCTIONS (NEW)
 +-------------------------+--------------------------------------+----------------+
-| search_documents        | Search through uploaded documents    | Implemented    |
+| add_to_cart             | Add product to shopping cart         | Planned        |
 +-------------------------+--------------------------------------+----------------+
-| get_generic_response    | Handle general conversation/fallback | Implemented    |
+| remove_from_cart        | Remove product from shopping cart    | Planned        |
++-------------------------+--------------------------------------+----------------+
+| get_cart_info           | Get contents of a user's cart        | Planned        |
++-------------------------+--------------------------------------+----------------+
+| clear_cart              | Clear all items from customer cart   | Planned        |
++-------------------------+--------------------------------------+----------------+
+| create_order            | Create a new order from cart items   | Planned        |
++-------------------------+--------------------------------------+----------------+
+| get_order_status        | Check status of specific order       | Planned        |
++-------------------------+--------------------------------------+----------------+
+| get_order_details       | Get complete order information       | Planned        |
++-------------------------+--------------------------------------+----------------+
+| update_order_status     | Update order status and tracking     | Planned        |
++-------------------------+--------------------------------------+----------------+
+| calculate_shipping      | Calculate shipping costs for order   | Planned        |
++-------------------------+--------------------------------------+----------------+
+| generate_shipping_link  | Create secure link for address form  | Planned        |
++-------------------------+--------------------------------------+----------------+
+| process_payment         | Initiate payment process for order   | Planned        |
++-------------------------+--------------------------------------+----------------+
+| generate_payment_link   | Create secure payment link           | Planned        |
++-------------------------+--------------------------------------+----------------+
+| confirm_order           | Confirm order after payment          | Planned        |
++-------------------------+--------------------------------------+----------------+
+| generate_invoice        | Create PDF invoice for order         | Planned        |
++-------------------------+--------------------------------------+----------------+
+| send_invoice_link       | Send secure invoice download link    | Planned        |
++-------------------------+--------------------------------------+----------------+
+| track_shipment          | Get real-time shipping status        | Planned        |
++-------------------------+--------------------------------------+----------------+
+| cancel_order            | Cancel order and process refund      | Planned        |
++-------------------------+--------------------------------------+----------------+
+| get_customer_orders     | Get order history for customer       | Planned        |
 +-------------------------+--------------------------------------+----------------+
 ```
 
@@ -3000,6 +3199,240 @@ We protect all API endpoints with smart rate limiting:
     - `period` (optional): Time period
   - **Returns**: Conversation metrics (volume, response time, satisfaction)
 
+#### E-commerce & Payment API
+
+##### Shopping Cart API
+
+- `GET /api/cart/:customerId`
+  - **Description**: Gets customer's current shopping cart
+  - **Parameters**: `customerId` (required): Customer identifier
+  - **Returns**: Cart contents with products, quantities, and total amount
+
+- `POST /api/cart/add`
+  - **Description**: Adds product to customer's cart
+  - **Body**: 
+    - `customerId`: Customer identifier
+    - `productId`: Product to add
+    - `quantity`: Number of items
+    - `variant` (optional): Product variant details
+  - **Returns**: Updated cart contents
+
+- `PUT /api/cart/update`
+  - **Description**: Updates product quantity in cart
+  - **Body**: 
+    - `customerId`: Customer identifier
+    - `productId`: Product to update
+    - `quantity`: New quantity (0 to remove)
+  - **Returns**: Updated cart contents
+
+- `DELETE /api/cart/clear/:customerId`
+  - **Description**: Clears customer's entire cart
+  - **Parameters**: `customerId` (required): Customer identifier
+  - **Returns**: Empty cart confirmation
+
+##### Order Management API
+
+- `GET /api/orders/advanced`
+  - **Description**: Advanced order listing with comprehensive filters
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `customer_id` (optional): Filter by specific customer
+    - `status` (optional): Order status filter (pending, confirmed, shipped, delivered, cancelled)
+    - `payment_status` (optional): Payment status filter (pending, paid, failed, refunded)
+    - `date_from`, `date_to` (optional): Date range filters
+    - `order_code` (optional): Search by order code
+    - `min_amount`, `max_amount` (optional): Order value filters
+    - `page`, `limit` (optional): Pagination parameters
+    - `sort_by` (optional): Sort field (created_at, total_amount, status)
+    - `sort_order` (optional): Sort direction (asc, desc)
+  - **Returns**: Comprehensive paginated order list with customer details
+
+- `POST /api/orders/create`
+  - **Description**: Creates a comprehensive order with full checkout process
+  - **Body**: 
+    - `customerId`: Customer placing the order
+    - `items`: Array of order items with products and quantities
+    - `shippingAddress`: Complete shipping address details
+    - `paymentMethod`: Selected payment method
+    - `shippingMethod`: Selected shipping option
+    - `notes` (optional): Order notes or special instructions
+    - `discountCode` (optional): Applied discount code
+  - **Returns**: Created order with unique order code and payment intent
+
+- `GET /api/orders/:orderCode/details`
+  - **Description**: Gets comprehensive order details by order code
+  - **Parameters**: `orderCode` (required): Unique order code
+  - **Returns**: Complete order information including items, customer, shipping, payment status
+
+- `PUT /api/orders/:orderCode/confirm`
+  - **Description**: Confirms order after payment verification
+  - **Parameters**: `orderCode` (required): Order code to confirm
+  - **Body**: 
+    - `paymentIntentId`: Payment gateway confirmation ID
+    - `finalShippingAddress`: Confirmed shipping address
+  - **Returns**: Confirmed order with updated status
+
+- `PUT /api/orders/:orderCode/status`
+  - **Description**: Updates order status with tracking information
+  - **Parameters**: `orderCode` (required): Order code
+  - **Body**: 
+    - `status`: New order status
+    - `trackingNumber` (optional): Shipping tracking number
+    - `notes` (optional): Status update notes
+  - **Returns**: Updated order with status history
+
+- `POST /api/orders/:orderCode/cancel`
+  - **Description**: Cancels an order and initiates refund if applicable
+  - **Parameters**: `orderCode` (required): Order code to cancel
+  - **Body**: 
+    - `reason`: Cancellation reason
+    - `refundAmount` (optional): Partial refund amount
+  - **Returns**: Cancelled order with refund information
+
+##### Payment Processing API
+
+- `POST /api/payments/intent`
+  - **Description**: Creates payment intent for order
+  - **Body**: 
+    - `orderCode`: Order for payment
+    - `paymentMethod`: Selected payment method (stripe, paypal, bank_transfer)
+    - `currency`: Payment currency (EUR, USD, etc.)
+    - `returnUrl`: Success redirect URL
+    - `cancelUrl`: Cancellation redirect URL
+  - **Returns**: Payment intent with secure payment URL
+
+- `POST /api/payments/confirm`
+  - **Description**: Confirms payment completion
+  - **Body**: 
+    - `paymentIntentId`: Payment intent identifier
+    - `orderCode`: Associated order code
+    - `paymentGatewayResponse`: Payment gateway callback data
+  - **Returns**: Payment confirmation with order update
+
+- `GET /api/payments/:orderCode/status`
+  - **Description**: Gets real-time payment status for order
+  - **Parameters**: `orderCode` (required): Order code
+  - **Returns**: Current payment status and transaction details
+
+- `POST /api/payments/:orderCode/refund`
+  - **Description**: Processes payment refund
+  - **Parameters**: `orderCode` (required): Order to refund
+  - **Body**: 
+    - `amount`: Refund amount
+    - `reason`: Refund reason
+    - `partial`: Whether this is a partial refund
+  - **Returns**: Refund confirmation and updated order status
+
+##### Shipping & Address API
+
+- `POST /api/shipping/calculate`
+  - **Description**: Calculates shipping costs for order
+  - **Body**: 
+    - `items`: Array of products with quantities and weights
+    - `shippingAddress`: Destination address
+    - `shippingMethod` (optional): Preferred shipping method
+  - **Returns**: Available shipping options with costs and delivery times
+
+- `POST /api/shipping/address/validate`
+  - **Description**: Validates and standardizes shipping address
+  - **Body**: 
+    - `address`: Address to validate
+    - `country`: Destination country
+  - **Returns**: Validated address with corrections and suggestions
+
+- `GET /api/shipping/methods`
+  - **Description**: Gets available shipping methods for workspace
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `country` (optional): Filter by destination country
+  - **Returns**: Available shipping methods with pricing
+
+- `POST /api/shipping/create`
+  - **Description**: Creates shipping label and tracking
+  - **Body**: 
+    - `orderCode`: Order to ship
+    - `shippingMethod`: Selected shipping method
+    - `packages`: Package details (weight, dimensions)
+  - **Returns**: Shipping label and tracking number
+
+- `GET /api/shipping/:trackingNumber/status`
+  - **Description**: Gets real-time shipping status
+  - **Parameters**: `trackingNumber` (required): Package tracking number
+  - **Returns**: Current shipping status and delivery updates
+
+##### Invoice & PDF API
+
+- `POST /api/invoices/generate`
+  - **Description**: Generates professional PDF invoice for order
+  - **Body**: 
+    - `orderCode`: Order to invoice
+    - `invoiceTemplate` (optional): Custom invoice template
+    - `taxSettings`: Tax calculation settings
+  - **Returns**: Generated invoice details with PDF download URL
+
+- `GET /api/invoices/:orderCode/download`
+  - **Description**: Downloads PDF invoice using secure temporary link
+  - **Parameters**: `orderCode` (required): Order code
+  - **Query**: `token` (required): Secure download token
+  - **Returns**: PDF file download
+
+- `GET /api/invoices`
+  - **Description**: Lists all invoices for workspace with advanced filtering
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `customer_id` (optional): Filter by customer
+    - `date_from`, `date_to` (optional): Date range filters
+    - `status` (optional): Invoice status filter
+    - `page`, `limit` (optional): Pagination parameters
+  - **Returns**: Paginated invoice list with download links
+
+- `GET /api/invoices/:invoiceId/details`
+  - **Description**: Gets detailed invoice information
+  - **Parameters**: `invoiceId` (required): Invoice identifier
+  - **Returns**: Complete invoice details with payment history
+
+- `POST /api/invoices/:invoiceId/resend`
+  - **Description**: Resends invoice to customer via email or WhatsApp
+  - **Parameters**: `invoiceId` (required): Invoice to resend
+  - **Body**: 
+    - `method`: Delivery method (email, whatsapp)
+    - `customMessage` (optional): Custom message with invoice
+  - **Returns**: Delivery confirmation
+
+##### Order Analytics & Reports API
+
+- `GET /api/orders/analytics/summary`
+  - **Description**: Gets comprehensive order analytics summary
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `period` (optional): Time period (today, week, month, year)
+    - `date_from`, `date_to` (optional): Custom date range
+  - **Returns**: Order metrics including revenue, volume, average order value
+
+- `GET /api/orders/analytics/products`
+  - **Description**: Gets product performance analytics from orders
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `period` (optional): Analysis period
+    - `limit` (optional): Number of top products to return
+  - **Returns**: Top-selling products with quantities and revenue
+
+- `GET /api/orders/analytics/customers`
+  - **Description**: Gets customer ordering behavior analytics
+  - **Parameters**: 
+    - `workspace_id` (required): Workspace identifier
+    - `period` (optional): Analysis period
+  - **Returns**: Customer lifetime value, repeat order rates, top customers
+
+- `POST /api/orders/export`
+  - **Description**: Exports order data for accounting systems
+  - **Body**: 
+    - `workspace_id`: Workspace identifier
+    - `format`: Export format (csv, xlsx, json)
+    - `date_from`, `date_to`: Date range for export
+    - `includeItems`: Whether to include order items details
+  - **Returns**: Download URL for exported data
+
 #### Settings API
 
 - `GET /api/settings`
@@ -3349,59 +3782,115 @@ const totalMonthlyBill = basePrice + overageCost;
   - Performance statistics and metrics
   - Customer satisfaction survey system
 
-### Phase 3: Monetization & Notifications (Months 5-6)
-- M3.1 (Week 1-2): Payment integration
-  - Payment gateway implementation
-  - Transaction and billing management
-  - Payment tracking UI
-- M3.2 (Week 3-4): Push notifications system
+### Phase 3: E-commerce & Advanced Orders (Months 5-6)
+- M3.1 (Week 1-2): Shopping Cart System
+  - Smart cart management implementation
+  - Cart persistence across sessions
+  - Product variant support
+  - Real-time cart updates via WhatsApp
+- M3.2 (Week 3-4): Advanced Order Management
+  - Complete order lifecycle implementation
+  - Order confirmation pages with full details
+  - Order status tracking and notifications
+  - Advanced order filtering and search
+- M3.3 (Week 5-6): Payment & Checkout Integration
+  - Payment gateway implementation (Stripe, PayPal)
+  - Secure payment links generation
+  - Multi-step checkout process
+  - Payment status tracking and confirmations
+- M3.4 (Week 7-8): Shipping & Address Management
+  - LLM-generated shipping address links
+  - Dynamic shipping cost calculation
+  - Address validation and verification
+  - Multiple shipping method support
+
+### Phase 4: Professional Invoicing & Analytics (Months 7-8)
+- M4.1 (Week 1-2): Professional PDF Invoicing
+  - Automatic PDF invoice generation
+  - Customizable invoice templates
+  - Secure invoice download links
+  - Tax calculation and compliance
+- M4.2 (Week 3-4): Order Analytics & Reports
+  - Comprehensive order analytics dashboard
+  - Customer ordering behavior analysis
+  - Product performance reports
+  - Revenue tracking and forecasting
+- M4.3 (Week 5-6): Orders & Invoices Management Dashboard
+  - Complete admin orders overview
+  - Bulk invoice generation capabilities
+  - Order status workflow management
+  - Export capabilities for accounting systems
+- M4.4 (Week 7-8): N8N E-commerce Workflow Integration
+  - Advanced calling functions for e-commerce
+  - WhatsApp checkout flow optimization
+  - Automated order notifications via WhatsApp
+  - Cross-platform order synchronization
+
+### Phase 5: Push Notifications & Beta Testing (Months 9-10)
+- M5.1 (Week 1-2): Push notifications system
   - Push notification architecture
   - Customizable notification templates
   - Scheduler and automation sends
-- M3.3 (Week 5-6): Beta testing
-  - Beta client onboarding
+  - Order status notification automation
+- M5.2 (Week 3-4): Beta testing
+  - Beta client onboarding with e-commerce features
   - Structured feedback collection
+  - E-commerce flow testing and optimization
   - Analysis and improvement prioritization
-- M3.4 (Week 7-8): Optimization
+- M5.3 (Week 5-6): Performance optimization
   - Backend/frontend performance tuning
-  - Strategic caching implementation
-  - Security hardening and penetration testing
+  - Strategic caching for orders and invoices
+  - Database optimization for e-commerce queries
+  - Payment gateway performance optimization
+- M5.4 (Week 7-8): Security hardening
+  - PCI compliance implementation
+  - Payment security audit
+  - E-commerce security testing
+  - Fraud detection and prevention
 
-### Phase 4: Marketing & MMP Enhancements (Months 7-8)
-- M4.1 (Week 1-2): Marketing tools
+### Phase 6: Marketing & MMP Enhancements (Months 11-12)
+- M6.1 (Week 1-2): Marketing tools
   - Automated campaign implementation
   - Advanced customer segmentation
   - A/B testing and optimization
-- M4.2 (Week 3-4): Advanced analytics
+  - E-commerce marketing automation
+- M6.2 (Week 3-4): Advanced analytics
   - Complete analytics dashboard
   - Customizable reporting
   - Data export and BI tools integration
-- M4.3 (Week 5-6): Vertical market adaptations
+  - E-commerce performance analytics
+- M6.3 (Week 5-6): Vertical market adaptations
   - Sector-specific templates (retail, hotel, restaurants)
-  - Industry-customized functions
+  - Industry-customized e-commerce functions
   - Showcase and sector use cases
-- M4.4 (Week 7-8): Advanced AI capabilities
+  - E-commerce vertical optimizations
+- M6.4 (Week 7-8): Advanced AI capabilities
   - Sentiment analysis model improvement
   - Predictive system for customer behavior
   - Intelligent product recommendation implementation
+  - AI-powered order management optimization
 
-### Phase 5: Full Deployment & Quality Assurance (Months 9-10)
-- M5.1 (Week 1-2): Complete testing
-  - End-to-end testing on all flows
-  - Load and stress testing in production
+### Phase 7: Full Deployment & Quality Assurance (Months 13-14)
+- M7.1 (Week 1-2): Complete testing
+  - End-to-end testing on all flows including e-commerce
+  - Load and stress testing for order processing
+  - Payment gateway stress testing
   - Accessibility and compliance verification
-- M5.2 (Week 3-4): Performance benchmarking
-  - Final database optimization
+- M7.2 (Week 3-4): Performance benchmarking
+  - Final database optimization for e-commerce queries
   - API and frontend latency fine-tuning
-  - Cloud resource usage review
-- M5.3 (Week 5-6): Security and audit
-  - Complete security audit
-  - Security improvements implementation
+  - Order processing performance optimization
+  - Cloud resource usage review for e-commerce workloads
+- M7.3 (Week 5-6): Security and audit
+  - Complete security audit including PCI compliance
+  - E-commerce security improvements implementation
   - GDPR and regulatory compliance verification
-- M5.4 (Week 7-8): Go-to-market
-  - Documentation finalization
-  - Customer support system setup
+  - Payment security audit completion
+- M7.4 (Week 7-8): Go-to-market
+  - Documentation finalization including e-commerce features
+  - Customer support system setup for order management
   - Public launch and marketing plan
+  - E-commerce case studies and success stories
 
 
 ## COMPETITIVE ANALYSIS
