@@ -53,6 +53,7 @@ export class CustomersController {
         language, 
         notes, 
         serviceIds,
+        isActive,
         last_privacy_version_accepted,
         push_notifications_consent
       } = req.body;
@@ -68,6 +69,7 @@ export class CustomersController {
         notes,
         serviceIds,
         workspaceId,
+        isActive: isActive !== undefined ? isActive : true,
         last_privacy_version_accepted,
         push_notifications_consent: push_notifications_consent || false,
         push_notifications_consent_at: push_notifications_consent ? new Date() : undefined,

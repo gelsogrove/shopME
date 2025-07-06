@@ -12,14 +12,12 @@
  * ⚠️ MANTIENI SINCRONIZZATO CON GdprSettingsTab.tsx
  */
 
-import React, { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { api } from "@/services/api"
-import { Loader2, Save, ShieldCheck, Upload, File, Download, Trash2 } from "lucide-react"
+import { Loader2, Save, ShieldCheck } from "lucide-react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 export default function GdprPage() {
@@ -27,9 +25,6 @@ export default function GdprPage() {
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [gdprText, setGdprText] = useState("")
   const [defaultGdpr, setDefaultGdpr] = useState("")
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{id: string, name: string, uploadedAt: string}>>([])
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   useEffect(() => {
     const loadGdprContent = async () => {
@@ -60,79 +55,6 @@ export default function GdprPage() {
     }
   }
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
-    }
-  }
-
-  const handleUpload = async () => {
-    if (!selectedFile) return
-
-    setIsUploading(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', selectedFile)
-      
-      const response = await api.post('/gdpr/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-      
-      setUploadedFiles(prev => [...prev, {
-        id: response.data.id,
-        name: selectedFile.name,
-        uploadedAt: new Date().toISOString()
-      }])
-      
-      setSelectedFile(null)
-      const input = document.getElementById('file-upload') as HTMLInputElement
-      if (input) input.value = ''
-      
-      toast.success('GDPR document uploaded successfully')
-    } catch (error) {
-      console.error('Error uploading GDPR document:', error)
-      toast.error('Failed to upload GDPR document')
-    } finally {
-      setIsUploading(false)
-    }
-  }
-
-  const handleDownload = async (fileId: string, fileName: string) => {
-    try {
-      const response = await api.get(`/gdpr/download/${fileId}`, {
-        responseType: 'blob',
-      })
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', fileName)
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      window.URL.revokeObjectURL(url)
-      
-      toast.success('File downloaded successfully')
-    } catch (error) {
-      console.error('Error downloading file:', error)
-      toast.error('Failed to download file')
-    }
-  }
-
-  const handleDelete = async (fileId: string) => {
-    try {
-      await api.delete(`/gdpr/delete/${fileId}`)
-      setUploadedFiles(prev => prev.filter(file => file.id !== fileId))
-      toast.success('File deleted successfully')
-    } catch (error) {
-      console.error('Error deleting file:', error)
-      toast.error('Failed to delete file')
-    }
-  }
-
   if (isPageLoading) {
     return (
       <div className="container mx-auto py-8 flex flex-col items-center justify-center min-h-[50vh]">
@@ -151,100 +73,9 @@ export default function GdprPage() {
             <h1 className="text-3xl font-bold text-green-600">Privacy & GDPR Policy</h1>
           </div>
           
-          <div className="space-y-6">
-            {/* GDPR Document Upload */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  Upload GDPR Documents
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Upload your GDPR-related documents (privacy policy, terms of service, etc.)
-                </p>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-4">
-                    <Input
-                      id="file-upload"
-                      type="file"
-                      accept=".pdf,.doc,.docx,.txt"
-                      onChange={handleFileSelect}
-                      className="flex-1"
-                    />
-                    <Button
-                      onClick={handleUpload}
-                      disabled={!selectedFile || isUploading}
-                      className="flex items-center gap-2"
-                    >
-                      {isUploading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="h-4 w-4" />
-                          Upload
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  
-                  {selectedFile && (
-                    <div className="text-sm text-gray-600">
-                      Selected: {selectedFile.name}
-                    </div>
-                  )}
-                </div>
-                
-                {/* Uploaded Files List */}
-                {uploadedFiles.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Uploaded Documents</h4>
-                    <div className="space-y-2">
-                      {uploadedFiles.map((file) => (
-                        <div key={file.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <File className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm">{file.name}</span>
-                            <span className="text-xs text-gray-500">
-                              {new Date(file.uploadedAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDownload(file.id, file.name)}
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(file.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            
-            {/* GDPR Policy Editor */}
-            <Card>
-              <CardHeader>
-                <CardTitle>GDPR Policy Editor</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+          <Card>
+            <CardContent className="p-6 space-y-6">
+              <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
                   Edit your privacy policy and GDPR compliance statement that will be shown to your customers.
                 </p>
@@ -262,21 +93,15 @@ export default function GdprPage() {
                     className="flex items-center gap-2"
                   >
                     {isLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
+                      <><Loader2 className="h-4 w-4 animate-spin" />Saving...</>
                     ) : (
-                      <>
-                        <Save className="h-4 w-4" />
-                        Save Policy
-                      </>
+                      <><Save className="h-4 w-4" />Save Policy</>
                     )}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
