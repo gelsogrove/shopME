@@ -50,6 +50,7 @@ model Workspace {
   whatsappSettings          WhatsappSettings?
   secureTokens              SecureToken[]
   gdprContent               GdprContent?
+  usage                     Usage[]
 }
 
 model Categories {
@@ -133,6 +134,7 @@ model Customers {
   chatSessions                  ChatSession[]
   workspace                     Workspace     @relation(fields: [workspaceId], references: [id])
   orders                        Orders[]
+  usage                         Usage[]
 
   @@map("customers")
 }
@@ -536,6 +538,22 @@ model GdprContent {
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   @@map("gdpr_content")
+}
+
+model Usage {
+  id          String    @id @default(uuid())
+  workspaceId String
+  clientId    String
+  price       Float     @default(0.005)
+  createdAt   DateTime  @default(now())
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  customer    Customers @relation(fields: [clientId], references: [id])
+
+  @@index([workspaceId])
+  @@index([clientId])
+  @@index([createdAt])
+  @@map("usage")
 }
 
 enum UserStatus {

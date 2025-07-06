@@ -1,26 +1,56 @@
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AuthLogo } from "@/components/ui/auth-logo"
+import { Button } from "@/components/ui/button"
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Loader2 } from "lucide-react"
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useForm } from "react-hook-form"
+import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
+import * as z from "zod"
 import { auth } from "../services/api"
 
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+})
+
+type LoginForm = z.infer<typeof loginSchema>
+
 export function LoginPage() {
-  // Prefill credentials only in development
-  const isDev = import.meta.env.MODE === "development"
-  const [email, setEmail] = useState(isDev ? "admin@shopme.com" : "")
-  const [password, setPassword] = useState(isDev ? "venezia44" : "")
-  const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
   const navigate = useNavigate()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // Prefill credentials only in development
+  const isDev = import.meta.env.MODE === "development"
+
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: isDev ? "admin@shopme.com" : "",
+      password: isDev ? "venezia44" : "",
+    },
+  })
+
+  const onSubmit = async (data: LoginForm) => {
     setError("")
     setIsLoading(true)
 
@@ -30,23 +60,18 @@ export function LoginPage() {
 
     try {
       // Usa await esplicitamente e salva la risposta
-      const response = await auth.login({ email, password })
+      const response = await auth.login(data)
       console.log("Login successful:", response.data)
 
-      // Salva solo le informazioni dell'utente (senza token)
       if (response.data && response.data.user) {
         localStorage.setItem("user", JSON.stringify(response.data.user))
+        toast.success("Login successful!")
 
-        // Mostro toast di successo
-        toast.success("Login effettuato con successo")
-
-        // Aggiungo un breve ritardo per dare tempo ai cookie di essere salvati
         setTimeout(() => {
-          // Naviga alla selezione del workspace
           navigate("/workspace-selection")
         }, 300)
       } else {
-        throw new Error("Formato di risposta dal server non valido")
+        throw new Error("Invalid response format from the server.")
       }
     } catch (err: any) {
       console.error("Login error:", err)
@@ -56,7 +81,7 @@ export function LoginPage() {
         err.response?.data?.error ||
         err.response?.data?.message ||
         err.message ||
-        "Login fallito. Controlla le tue credenziali."
+        "Login failed. Please check your credentials."
 
       setError(errorMsg)
       toast.error(errorMsg)
@@ -66,53 +91,100 @@ export function LoginPage() {
   }
 
   return (
-    <div className="container flex h-screen items-center justify-center">
-      <Card className="w-[400px]">
-        <CardHeader className="text-center">
-          <CardTitle>Welcome Back</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="rounded-md bg-red-50 p-2 text-sm text-red-500">
-                {error}
-              </div>
-            )}
-            <div className="space-y-2">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@shopme.com"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none"
-                required
-                disabled={isLoading}
-                autoComplete="username"
-              />
-            </div>
-            <div className="space-y-2">
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none"
-                required
-                disabled={isLoading}
-                autoComplete="current-password"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full rounded-md bg-green-500 py-2 text-white hover:bg-green-600 disabled:opacity-50"
-              disabled={isLoading}
+    <div className="auth-background">
+      <AuthLogo />
+      <div className="container mx-auto px-4 flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md font-system bg-white/95 backdrop-blur-sm shadow-xl">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">
+              Welcome Back
+            </CardTitle>
+            <CardDescription className="text-center">
+              Sign in to your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="admin@shopme.com"
+                          type="email"
+                          autoComplete="username"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="••••••••"
+                          type="password"
+                          autoComplete="current-password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  className="w-full bg-green-500 hover:bg-green-600 text-white font-medium"
+                  disabled={isLoading}
+                >
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Sign In
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-2">
+            <Link
+              to="/auth/forgot-password"
+              className="text-sm text-green-500 hover:text-green-600 hover:underline"
             >
-              {isLoading ? "Signing in..." : "Sign In"}
-            </button>
-          </form>
-        </CardContent>
-      </Card>
+              Forgot your password?
+            </Link>
+            <p className="text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Link
+                to="/auth/signup"
+                className="text-green-500 hover:text-green-600 hover:underline"
+              >
+                Sign up
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   )
 }

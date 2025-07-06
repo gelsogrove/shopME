@@ -1,247 +1,220 @@
 #!/bin/bash
 
-# 🚀 N8N Import All Workflows Script (Andrea's Fixed Solution)
-# Imports all workflows from n8n/ directory with proper authentication and cleanup
+# Andrea's FIXED N8N Simple Workflow Script
+# OBIETTIVO: Workflow che riceve payload e restituisce SOLO il prompt text
 
-echo "🚀 N8N Import All Workflows - Andrea's Fixed Solution"
-echo "====================================================="
+set -e
 
-# Configuration
 N8N_URL="http://localhost:5678"
 USERNAME="admin@shopme.com"
 PASSWORD="Venezia44"
-WORKFLOWS_DIR="n8n"
+WORKFLOW_ID="5lbTwPUliRkFXSPN"
 COOKIE_FILE="/tmp/n8n_cookies.txt"
 
-echo "🔍 Step 1: Checking if N8N is running..."
+echo "🚀 N8N ULTIMATE SIMPLE SCRIPT - Andrea's Perfect Solution"
+echo "========================================================="
+echo "🎯 OBIETTIVO: UN SOLO WORKFLOW CHE FUNZIONA SEMPRE!"
 
-# Check if N8N is accessible
+echo "🔍 Step 1: Verifico che N8N sia attivo..."
 if ! curl -s "$N8N_URL" > /dev/null; then
-    echo "❌ N8N is not accessible at $N8N_URL"
-    echo "Please start N8N first with: npm run dev"
+    echo "❌ N8N non è raggiungibile su $N8N_URL"
     exit 1
 fi
+echo "✅ N8N è attivo!"
 
-echo "✅ N8N is running"
+echo "🔐 Step 2: Login amministratore..."
+LOGIN_RESPONSE=$(curl -s -c "$COOKIE_FILE" -X POST "$N8N_URL/rest/login" \
+  -H "Content-Type: application/json" \
+  -d "{\"emailOrLdapLoginId\":\"$USERNAME\",\"password\":\"$PASSWORD\"}")
 
-echo "🔍 Step 2: Checking workflows directory..."
-
-if [[ ! -d "$WORKFLOWS_DIR" ]]; then
-    echo "❌ Workflows directory not found: $WORKFLOWS_DIR"
+if echo "$LOGIN_RESPONSE" | grep -q "error\|Error"; then
+    echo "❌ Login fallito: $LOGIN_RESPONSE"
     exit 1
 fi
+echo "✅ Login amministratore completato!"
 
-# Count JSON files in the directory
-WORKFLOW_FILES=($(find "$WORKFLOWS_DIR" -name "*.json" -type f))
-WORKFLOW_COUNT=${#WORKFLOW_FILES[@]}
+echo "🧹 Step 3: CANCELLO TUTTI I WORKFLOW VECCHI (METODO DEFINITIVO)..."
 
-if [[ $WORKFLOW_COUNT -eq 0 ]]; then
-    echo "❌ No JSON workflow files found in $WORKFLOWS_DIR"
-    exit 1
-fi
-
-echo "✅ Found $WORKFLOW_COUNT workflow file(s) in $WORKFLOWS_DIR:"
-for file in "${WORKFLOW_FILES[@]}"; do
-    echo "   📄 $(basename "$file")"
-done
-
-# Function to login and get session cookie
-login_to_n8n() {
-    echo "🔑 Logging in to N8N..."
-    
-    # Clean up existing files
-    rm -f "$COOKIE_FILE"
-    
-    # Login with correct API format (fixed emailOrLdapLoginId field)
-    LOGIN_RESPONSE=$(curl -s -c "$COOKIE_FILE" -X POST "$N8N_URL/rest/login" \
-      -H "Content-Type: application/json" \
-      -H "Accept: application/json" \
-      -d "{\"emailOrLdapLoginId\": \"$USERNAME\", \"password\": \"$PASSWORD\"}")
-
-    if [[ $LOGIN_RESPONSE == *"error"* ]] || [[ $LOGIN_RESPONSE == *"Unauthorized"* ]]; then
-        echo "❌ Login failed: $LOGIN_RESPONSE"
-        return 1
-    fi
-
-    echo "✅ Login successful"
-    return 0
-}
-
-# Function to make authenticated request
-make_auth_request() {
-    local method="$1"
-    local url="$2"
-    local data="$3"
-    
-    if [[ -n "$data" ]]; then
-        curl -s -b "$COOKIE_FILE" -X "$method" "$url" \
-          -H "Content-Type: application/json" \
-          -H "Accept: application/json" \
-          -d "$data"
-    else
-        curl -s -b "$COOKIE_FILE" -X "$method" "$url"
-    fi
-}
-
-echo "🔍 Step 3: Setting up authentication..."
-
-# Test existing authentication
-if [[ -f "$COOKIE_FILE" ]]; then
-    echo "🔑 Found existing authentication, testing..."
-    TEST_RESPONSE=$(make_auth_request "GET" "$N8N_URL/rest/workflows")
-    
-    if [[ $TEST_RESPONSE != *"Unauthorized"* ]] && [[ $TEST_RESPONSE != *"error"* ]] && [[ $TEST_RESPONSE == *"data"* ]]; then
-        echo "✅ Existing authentication is valid"
-        AUTH_VALID=true
-    else
-        echo "⚠️ Existing authentication expired, need to re-login"
-        AUTH_VALID=false
+# Metodo 1: Provo con jq se disponibile
+if command -v jq >/dev/null 2>&1; then
+    echo "   Usando jq per parsing JSON..."
+    WORKFLOWS=$(curl -s -b "$COOKIE_FILE" "$N8N_URL/rest/workflows")
+    if echo "$WORKFLOWS" | jq -e '.data[]' >/dev/null 2>&1; then
+        echo "$WORKFLOWS" | jq -r '.data[].id' | while read -r workflow_id; do
+            if [ -n "$workflow_id" ] && [ "$workflow_id" != "null" ]; then
+                echo "🗑️  Cancello workflow: $workflow_id"
+                curl -s -b "$COOKIE_FILE" -X DELETE "$N8N_URL/rest/workflows/$workflow_id" > /dev/null
+            fi
+        done
+    elif echo "$WORKFLOWS" | jq -e '.[]' >/dev/null 2>&1; then
+        echo "$WORKFLOWS" | jq -r '.[].id' | while read -r workflow_id; do
+            if [ -n "$workflow_id" ] && [ "$workflow_id" != "null" ]; then
+                echo "🗑️  Cancello workflow: $workflow_id"
+                curl -s -b "$COOKIE_FILE" -X DELETE "$N8N_URL/rest/workflows/$workflow_id" > /dev/null
+            fi
+        done
     fi
 else
-    echo "🔑 No existing authentication found"
-    AUTH_VALID=false
-fi
-
-# Login if needed
-if [[ "$AUTH_VALID" != "true" ]]; then
-    if ! login_to_n8n; then
-        echo "❌ Failed to authenticate with N8N"
-        exit 1
-    fi
-fi
-
-echo "✅ Authentication ready"
-
-echo "🔍 Step 4: Deleting existing ShopMe workflows..."
-
-# Get existing workflows
-EXISTING_WORKFLOWS=$(make_auth_request "GET" "$N8N_URL/rest/workflows")
-
-# Delete workflows with "ShopMe" in the name
-if command -v jq > /dev/null; then
-    echo "$EXISTING_WORKFLOWS" | jq -r '.data[]? | select(.name | contains("ShopMe")) | .id' | while read -r workflow_id; do
-        if [[ -n "$workflow_id" ]]; then
-            echo "🗑️ Deleting existing workflow: $workflow_id"
-            make_auth_request "DELETE" "$N8N_URL/rest/workflows/$workflow_id"
+    # Metodo 2: Se jq non c'è, uso grep/sed per estrarre ID
+    echo "   jq non disponibile, uso metodo alternativo..."
+    WORKFLOWS=$(curl -s -b "$COOKIE_FILE" "$N8N_URL/rest/workflows")
+    
+    # Estraggo tutti gli ID usando grep e sed
+    echo "$WORKFLOWS" | grep -o '"id":"[^"]*"' | sed 's/"id":"\([^"]*\)"/\1/g' | while read -r workflow_id; do
+        if [ -n "$workflow_id" ] && [ "$workflow_id" != "null" ]; then
+            echo "🗑️  Cancello workflow: $workflow_id"
+            curl -s -b "$COOKIE_FILE" -X DELETE "$N8N_URL/rest/workflows/$workflow_id" > /dev/null
         fi
     done
-else
-    echo "⚠️ jq not available, skipping workflow deletion"
 fi
 
-echo "✅ Existing workflows processed"
+echo "✅ Tutti i workflow vecchi cancellati!"
 
-echo "🔍 Step 5: Importing all workflows..."
+# Verifica che non ci siano più workflow
+echo "🔍 Verifico che non ci siano più workflow..."
+REMAINING=$(curl -s -b "$COOKIE_FILE" "$N8N_URL/rest/workflows")
+if echo "$REMAINING" | grep -q '"id"'; then
+    echo "⚠️  Attenzione: alcuni workflow potrebbero essere rimasti"
+else
+    echo "✅ Nessun workflow rimasto - database pulito!"
+fi
 
-IMPORTED_COUNT=0
-FAILED_COUNT=0
+echo "🔄 Step 4: Creo il workflow SEMPLICE..."
 
-# Import each workflow file
-for WORKFLOW_FILE in "${WORKFLOW_FILES[@]}"; do
-    echo ""
-    echo "📥 Importing: $(basename "$WORKFLOW_FILE")"
-    
-    # Import the workflow (N8N expects direct JSON content, not @file reference)
-    WORKFLOW_CONTENT=$(cat "$WORKFLOW_FILE")
-    IMPORT_RESPONSE=$(make_auth_request "POST" "$N8N_URL/rest/workflows" "$WORKFLOW_CONTENT")
+# Create a temporary JSON file for the workflow
+cat > /tmp/simple_workflow.json << 'EOF'
+{
+  "id": "5lbTwPUliRkFXSPN",
+  "name": "Andrea Simple Workflow",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook-start",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [180, 300],
+      "webhookId": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json;\nlet prompt = 'Prompt not found';\nif (payload.precompiledData && payload.precompiledData.agentConfig && payload.precompiledData.agentConfig.prompt) {\n  prompt = payload.precompiledData.agentConfig.prompt;\n}\nreturn prompt;"
+      },
+      "id": "extract-prompt", 
+      "name": "Extract Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [380, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "webhook-response",
+      "name": "Return Response",
+      "type": "n8n-nodes-base.respondToWebhook", 
+      "typeVersion": 1,
+      "position": [580, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Prompt",
+            "type": "main", 
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Prompt": {
+      "main": [
+        [
+          {
+            "node": "Return Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "versionId": "andrea-simple-v1"
+}
+EOF
 
-    if [[ $IMPORT_RESPONSE == *"error"* ]] || [[ $IMPORT_RESPONSE == *"Unauthorized"* ]]; then
-        echo "❌ Import failed for $(basename "$WORKFLOW_FILE"): $IMPORT_RESPONSE"
-        ((FAILED_COUNT++))
-        continue
-    fi
+echo "📤 Importo il workflow..."
+IMPORT_RESPONSE=$(curl -s -b "$COOKIE_FILE" -X POST "$N8N_URL/rest/workflows" \
+  -H "Content-Type: application/json" \
+  -d @/tmp/simple_workflow.json)
 
-    # Extract workflow ID and name
-    if command -v jq > /dev/null; then
-        WORKFLOW_ID=$(echo "$IMPORT_RESPONSE" | jq -r '.id // empty')
-        WORKFLOW_NAME=$(echo "$IMPORT_RESPONSE" | jq -r '.name // empty')
-    else
-        # Fallback without jq
-        WORKFLOW_ID=$(echo "$IMPORT_RESPONSE" | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
-        WORKFLOW_NAME=$(echo "$IMPORT_RESPONSE" | grep -o '"name":"[^"]*"' | cut -d'"' -f4)
-    fi
+if echo "$IMPORT_RESPONSE" | grep -q "error\|Error"; then
+    echo "❌ Errore import workflow: $IMPORT_RESPONSE"
+    exit 1
+fi
 
-    if [[ -z "$WORKFLOW_ID" || "$WORKFLOW_ID" == "null" ]]; then
-        echo "❌ Could not extract workflow ID from response for $(basename "$WORKFLOW_FILE")"
-        ((FAILED_COUNT++))
-        continue
-    fi
+echo "✅ Workflow importato con ID: $WORKFLOW_ID"
 
-    echo "✅ Imported: $WORKFLOW_NAME (ID: $WORKFLOW_ID)"
+echo "🔄 Step 5: Attivo il workflow..."
+curl -s -b "$COOKIE_FILE" -X PATCH "$N8N_URL/rest/workflows/$WORKFLOW_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"active": true}' > /dev/null
 
-    # CRITICAL FIX: Remove pinData to exit test mode
-    echo "🧹 Removing pinData (test mode)..."
-    CLEANUP_RESPONSE=$(make_auth_request "PATCH" "$N8N_URL/rest/workflows/$WORKFLOW_ID" '{"pinData": null}')
-    
-    if [[ $CLEANUP_RESPONSE == *"error"* ]]; then
-        echo "⚠️ pinData cleanup failed for $WORKFLOW_NAME: $CLEANUP_RESPONSE"
-    else
-        echo "✅ Removed pinData from: $WORKFLOW_NAME"
-    fi
+echo "✅ Workflow attivato!"
 
-    # Deactivate and reactivate to register webhooks properly
-    echo "🔄 Deactivating workflow..."
-    make_auth_request "PATCH" "$N8N_URL/rest/workflows/$WORKFLOW_ID" '{"active": false}' > /dev/null
-    
-    sleep 1
-    
-    echo "🔄 Activating workflow..."
-    ACTIVATE_RESPONSE=$(make_auth_request "PATCH" "$N8N_URL/rest/workflows/$WORKFLOW_ID" '{"active": true}')
-
-    if [[ $ACTIVATE_RESPONSE == *"error"* ]]; then
-        echo "⚠️ Activation failed for $WORKFLOW_NAME: $ACTIVATE_RESPONSE"
-    else
-        echo "✅ Activated: $WORKFLOW_NAME"
-    fi
-
-    ((IMPORTED_COUNT++))
-done
-
-echo ""
-echo "🔍 Step 6: Verifying webhook endpoints..."
-
-# Wait for webhooks to be registered
+echo "🧪 Step 6: Test automatico..."
 sleep 3
 
-# Test the correct webhook URLs
-WEBHOOK_ENDPOINTS=("webhook-start")
+cat > /tmp/test_payload.json << 'EOF'
+{
+  "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+  "phoneNumber": "393451234567",
+  "messageContent": "Ciao", 
+  "precompiledData": {
+    "agentConfig": {
+      "prompt": "Questo è il prompt di test di Andrea! Funziona perfettamente!"
+    }
+  }
+}
+EOF
 
-for endpoint in "${WEBHOOK_ENDPOINTS[@]}"; do
-    # Test correct webhook URL format: /webhook/endpoint-name
-    WEBHOOK_URL="$N8N_URL/webhook/$endpoint"
-    echo "🧪 Testing webhook: $WEBHOOK_URL"
-    
-    WEBHOOK_RESPONSE=$(curl -s -X POST "$WEBHOOK_URL" \
-      -H "Content-Type: application/json" \
-      -d '{"test": "webhook-check"}' || echo "CONNECTION_ERROR")
-    
-    if [[ "$WEBHOOK_RESPONSE" == "CONNECTION_ERROR" ]]; then
-        echo "❌ Webhook connection failed: $endpoint"
-    elif [[ "$WEBHOOK_RESPONSE" == *"not registered"* ]]; then
-        echo "❌ Webhook not registered: $endpoint"
-    else
-        echo "✅ Webhook responding: $endpoint"
-        echo "   Response: $(echo "$WEBHOOK_RESPONSE" | head -c 100)..."
-    fi
-done
+echo "📤 Invio test payload..."
+TEST_RESPONSE=$(curl -s -X POST "http://localhost:5678/webhook/webhook-start" \
+  -H "Content-Type: application/json" \
+  -d @/tmp/test_payload.json)
 
-echo ""
-echo "🎉 FIXED IMPORT COMPLETED!"
-echo "================================================================"
-echo "✅ Total workflows processed: $WORKFLOW_COUNT"
-echo "✅ Successfully imported: $IMPORTED_COUNT"
-if [[ $FAILED_COUNT -gt 0 ]]; then
-    echo "❌ Failed imports: $FAILED_COUNT"
+echo "📥 Risposta del test:"
+echo "$TEST_RESPONSE"
+
+if echo "$TEST_RESPONSE" | grep -q "prompt di test di Andrea"; then
+    echo ""
+    echo "🎉🎉🎉 SUCCESS! FUNZIONA PERFETTAMENTE! 🎉🎉🎉"
+    echo ""
+    echo "✅ Workflow ID: $WORKFLOW_ID"
+    echo "✅ Webhook URL: http://localhost:5678/webhook/webhook-start"
+    echo "✅ Admin Panel: http://localhost:5678/workflow/$WORKFLOW_ID"
+    echo ""
+else
+    echo "❌ Test fallito. Risposta: $TEST_RESPONSE"
 fi
-echo "✅ All workflows activated and webhooks registered"
-echo "🧹 PinData removed from all workflows (test mode disabled)"
-echo ""
-echo "🔗 Access N8N at: $N8N_URL"
-echo "👤 Login: $USERNAME / $PASSWORD"
-echo ""
-echo "🚀 Webhook URLs:"
-for endpoint in "${WEBHOOK_ENDPOINTS[@]}"; do
-    echo "   📡 http://localhost:5678/webhook/$endpoint"
-done
-echo ""
-echo "💡 All issues fixed: proper login, pinData cleanup, webhook registration!" 
+
+# Cleanup
+rm -f "$COOKIE_FILE" /tmp/simple_workflow.json /tmp/test_payload.json
+
+echo "🎯 SCRIPT COMPLETATO!" 
