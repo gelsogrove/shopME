@@ -1,25 +1,25 @@
-import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { toast } from "sonner"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AuthLogo } from "@/components/ui/auth-logo"
+import { Button } from "@/components/ui/button"
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AuthLogo } from "@/components/ui/auth-logo"
+import React, { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 import { auth } from "../services/api"
 
 export function LoginPage() {
   // Prefill credentials only in development
   const isDev = import.meta.env.MODE === "development"
   const [email, setEmail] = useState(isDev ? "admin@shopme.com" : "")
-  const [password, setPassword] = useState(isDev ? "venezia44" : "")
+  const [password, setPassword] = useState(isDev ? "Venezia44" : "")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
@@ -36,22 +36,16 @@ export function LoginPage() {
     try {
       // Usa await esplicitamente e salva la risposta
       const response = await auth.login({ email, password })
-      console.log("Login successful:", response.data)
 
-      // Salva solo le informazioni dell'utente (senza token)
       if (response.data && response.data.user) {
         localStorage.setItem("user", JSON.stringify(response.data.user))
+        toast.success("Login successful!")
 
-        // Mostro toast di successo
-        toast.success("Login effettuato con successo")
-
-        // Aggiungo un breve ritardo per dare tempo ai cookie di essere salvati
         setTimeout(() => {
-          // Naviga alla selezione del workspace
           navigate("/workspace-selection")
         }, 300)
       } else {
-        throw new Error("Formato di risposta dal server non valido")
+        throw new Error("Invalid response format from the server.")
       }
     } catch (err: any) {
       console.error("Login error:", err)
@@ -61,7 +55,7 @@ export function LoginPage() {
         err.response?.data?.error ||
         err.response?.data?.message ||
         err.message ||
-        "Login fallito. Controlla le tue credenziali."
+        "Login failed. Please check your credentials."
 
       setError(errorMsg)
       toast.error(errorMsg)

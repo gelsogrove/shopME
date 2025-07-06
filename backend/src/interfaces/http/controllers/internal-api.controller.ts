@@ -445,11 +445,16 @@ export class InternalApiController {
   private async ecommerceRagSearch(req: Request, res: Response, query: string, workspaceId: string): Promise<void> {
     const customerId = req.body.customerId;
     
+    // Import document service
+    const { DocumentService } = await import('../../../services/documentService');
+    const documentService = new DocumentService();
+    
     // Parallel search across all content types
-    const [productResults, faqResults, serviceResults] = await Promise.all([
+    const [productResults, faqResults, serviceResults, documentResults] = await Promise.all([
       embeddingService.searchProducts(query, workspaceId, 5),
       embeddingService.searchFAQs(query, workspaceId, 5),
-      embeddingService.searchServices(query, workspaceId, 5)
+      embeddingService.searchServices(query, workspaceId, 5),
+      documentService.searchDocuments(query, workspaceId, 5)
     ]);
 
     // Get full product details with stock verification
@@ -527,7 +532,11 @@ export class InternalApiController {
         content: r.content,
         service: { id: r.id, name: r.sourceName, description: r.content }
       })),
-      documents: [] // Documents not implemented yet
+      documents: documentResults.map(r => ({
+        similarity: r.similarity,
+        content: r.content,
+        document: { id: r.documentId, title: r.documentName }
+      }))
     });
   }
 
@@ -535,11 +544,16 @@ export class InternalApiController {
    * Restaurant specific RAG search (menu, reservations, delivery)
    */
   private async restaurantRagSearch(req: Request, res: Response, query: string, workspaceId: string): Promise<void> {
+    // Import document service
+    const { DocumentService } = await import('../../../services/documentService');
+    const documentService = new DocumentService();
+    
     // For restaurants: search menu items (products), restaurant info (services), hours/policies (FAQs)
-    const [menuResults, faqResults, serviceResults] = await Promise.all([
+    const [menuResults, faqResults, serviceResults, documentResults] = await Promise.all([
       embeddingService.searchProducts(query, workspaceId, 5), // Menu items
       embeddingService.searchFAQs(query, workspaceId, 5),     // Hours, policies
-      embeddingService.searchServices(query, workspaceId, 5)  // Delivery, reservations
+      embeddingService.searchServices(query, workspaceId, 5), // Delivery, reservations
+      documentService.searchDocuments(query, workspaceId, 5)  // Documents like menus, policies
     ]);
 
     const productIds = menuResults.map(r => r.id);
@@ -565,6 +579,11 @@ export class InternalApiController {
         similarity: r.similarity,
         content: r.content,
         service: { id: r.id, name: r.sourceName, description: r.content }
+      })),
+      documents: documentResults.map(r => ({
+        similarity: r.similarity,
+        content: r.content,
+        document: { id: r.documentId, title: r.documentName }
       }))
     });
   }
@@ -573,10 +592,15 @@ export class InternalApiController {
    * Clinic specific RAG search (appointments, medical services)
    */
   private async clinicRagSearch(req: Request, res: Response, query: string, workspaceId: string): Promise<void> {
+    // Import document service
+    const { DocumentService } = await import('../../../services/documentService');
+    const documentService = new DocumentService();
+    
     // For clinics: search medical services, appointment info, policies
-    const [serviceResults, faqResults] = await Promise.all([
+    const [serviceResults, faqResults, documentResults] = await Promise.all([
       embeddingService.searchServices(query, workspaceId, 8), // Medical services
-      embeddingService.searchFAQs(query, workspaceId, 5)      // Appointment policies, hours
+      embeddingService.searchFAQs(query, workspaceId, 5),     // Appointment policies, hours
+      documentService.searchDocuments(query, workspaceId, 5)  // Medical documents, forms
     ]);
 
     res.json({
@@ -591,7 +615,12 @@ export class InternalApiController {
         content: r.content,
         info: { id: r.id, question: r.sourceName, answer: r.content }
       })),
-      products: [] // No products for clinics
+      products: [], // No products for clinics
+      documents: documentResults.map(r => ({
+        similarity: r.similarity,
+        content: r.content,
+        document: { id: r.documentId, title: r.documentName }
+      }))
     });
   }
 
@@ -599,11 +628,16 @@ export class InternalApiController {
    * Generic RAG search for undefined business types
    */
   private async genericRagSearch(req: Request, res: Response, query: string, workspaceId: string): Promise<void> {
+    // Import document service
+    const { DocumentService } = await import('../../../services/documentService');
+    const documentService = new DocumentService();
+    
     // Generic search across all available content
-    const [productResults, faqResults, serviceResults] = await Promise.all([
+    const [productResults, faqResults, serviceResults, documentResults] = await Promise.all([
       embeddingService.searchProducts(query, workspaceId, 3),
       embeddingService.searchFAQs(query, workspaceId, 5),
-      embeddingService.searchServices(query, workspaceId, 3)
+      embeddingService.searchServices(query, workspaceId, 3),
+      documentService.searchDocuments(query, workspaceId, 5)
     ]);
 
     res.json({
@@ -611,7 +645,8 @@ export class InternalApiController {
       content: {
         products: productResults,
         faqs: faqResults,
-        services: serviceResults
+        services: serviceResults,
+        documents: documentResults
       }
     });
   }
@@ -734,6 +769,9 @@ RESPONSE INSTRUCTIONS:
 
       logger.info(`[LLM-PROCESS] OpenRouter response received, tokens used: ${data.usage?.total_tokens || 0}`);
 
+      // 💰 USAGE TRACKING: Now handled in saveMessage (Andrea's Logic)
+      // No need to track here - tracking happens when N8N saves final conversation
+
       res.json({
         response: formattedResponse,
         model: agentConfig.model,
@@ -797,7 +835,7 @@ ${JSON.stringify(ragResults, null, 2)}`;
 
   /**
    * POST /internal/save-message
-   * Save message and conversation history
+   * Save message and conversation history + Track usage (Andrea's Logic)
    */
   async saveMessage(req: Request, res: Response): Promise<void> {
     try {
@@ -809,13 +847,52 @@ ${JSON.stringify(ragResults, null, 2)}`;
       }
 
       // Save the conversation
-      await this.messageRepository.saveMessage({
+      const savedMessage = await this.messageRepository.saveMessage({
         workspaceId,
         phoneNumber,
         message,
         response: response || '',
         direction: 'INBOUND'
       });
+
+      // 💰 TRACK USAGE - Andrea's Direct Integration (No Public Endpoint)
+      // Only if there's a response (LLM generated content) and it's a registered customer
+      if (response && response.trim()) {
+        try {
+          // Get customer by phone to validate registration
+          const { PrismaClient } = await import('@prisma/client');
+          const prisma = new PrismaClient();
+          
+          const customer = await prisma.customers.findFirst({
+            where: {
+              phone: phoneNumber,
+              workspaceId: workspaceId,
+              activeChatbot: true // Only active customers
+            },
+            select: { id: true, name: true }
+          });
+
+          // Track usage only for registered customers
+          if (customer) {
+            await prisma.usage.create({
+              data: {
+                workspaceId: workspaceId,
+                clientId: customer.id,
+                price: 0.005 // 0.5 cents as requested by Andrea
+              }
+            });
+            
+            logger.info(`[USAGE-TRACKING] 💰 €0.005 tracked for customer ${customer.name} (${phoneNumber})`);
+          } else {
+            logger.info(`[USAGE-TRACKING] ⚪ No tracking - customer ${phoneNumber} not registered or inactive`);
+          }
+
+          await prisma.$disconnect();
+        } catch (usageError) {
+          logger.error(`[USAGE-TRACKING] ❌ Error tracking usage:`, usageError);
+          // Don't fail the main request if usage tracking fails
+        }
+      }
 
       res.json({ success: true });
 

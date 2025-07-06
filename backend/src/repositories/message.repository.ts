@@ -391,7 +391,7 @@ export class MessageRepository {
         workspaceId
       )
 
-      // If no customer exists, create one with the determined workspaceId
+      // If no customer exists, create one with the determined workspaceId using unified logic
       if (!customer) {
         customer = await this.prisma.customers.create({
           data: {
@@ -399,6 +399,10 @@ export class MessageRepository {
             email: `customer-${Date.now()}@example.com`,
             phone: data.phoneNumber,
             workspaceId: workspaceId,
+            isActive: true,
+            activeChatbot: true,
+            language: "Italian",
+            currency: "EUR",
           },
         })
         logger.info(`saveMessage: Created new customer: ${customer.id}`)
@@ -937,6 +941,9 @@ export class MessageRepository {
           phone,
           workspaceId,
           language,
+          isActive: true,
+          activeChatbot: true,
+          currency: "EUR",
         },
       })
       logger.info(`Created customer: ${customer.id}`)
@@ -1972,6 +1979,10 @@ INSTRUCTIONS FOR LLM FORMATTER:
       const formattedResponse = data.choices?.[0]?.message?.content || null;
       
       logger.info(`[RAG] LLM formatter response generated successfully`);
+      
+      // 💰 USAGE TRACKING: Now handled in saveMessage (Andrea's Logic)
+      // No need to track here - tracking happens when N8N saves final conversation
+      
       return formattedResponse;
 
     } catch (error) {

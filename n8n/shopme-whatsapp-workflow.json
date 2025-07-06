@@ -1,5 +1,5 @@
 {
-  "name": "ShopMe WhatsApp Workflow",
+  "name": "My workflow1",
   "nodes": [
     {
       "parameters": {
@@ -8,188 +8,301 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "43717cb6-168b-43eb-9a83-93d2efeda016",
+      "id": "148536ab-b0b0-409e-9a35-53c6dd9c23f8",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [-1500, 180],
+      "position": [
+        -620,
+        140
+      ],
       "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
     },
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [-620, 80],
-      "id": "33927e63-93c0-4af3-81f6-65f0f4ce1cde",
-      "name": "Wait3",
-      "webhookId": "59956c9f-d486-4e0c-b949-a3c634750e9b"
-    },
-    {
       "parameters": {
         "conditions": {
-          "boolean": [
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
             {
-              "value1": "={{ $json.precompiledData.businessInfo.isActive }}",
-              "operation": "=equal",
-              "value2": "={{ false }}"
+              "id": "886f3c80-d2cc-45c4-8455-61f98540c27c",
+              "leftValue": "={{ $json.precompiledData.customer.isActive }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "f5e912a0-c565-4198-9713-a3218f20208a",
+              "leftValue": "={{ $json.precompiledData.customer.isBlacklisted }}",
+              "rightValue": "false",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "528b8754-587f-4381-ae93-a8587ae96468",
+              "leftValue": "={{ $json.precompiledData.customer.activeChatbot }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
             }
-          ]
+          ],
+          "combinator": "and"
         },
-        "combineOperation": "any"
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": false
+        }
       },
-      "id": "6620d60b-d1ef-4b78-8256-3cd88e2ebb0c",
-      "name": "IsChannelActive?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [-840, 180],
-      "alwaysOutputData": false,
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -260,
+        140
+      ],
+      "id": "69354e03-f61a-4160-874c-63ca8ba02b24",
+      "name": "Filter",
+      "alwaysOutputData": true,
       "executeOnce": true,
-      "retryOnFail": false,
-      "notesInFlow": true
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "jsCode": "const message = \"SI CI SIAOM ...\"\n\nreturn [\n  {\n    json: {\n      message\n    }\n  }\n];"
+        "jsCode": "const languageRaw = $input.first().json.precompiledData.customer.language || 'en';\nconst language = languageRaw.toLowerCase();\n\nlet messageWip = 'WIP_' + language; // fallback generico\n\nconst wipMessages = $input.first().json.wipMessages;\n\nif (language === 'it') {\n    messageWip = wipMessages.it;\n} else if (language === 'es') {\n    messageWip = wipMessages.es;\n} else if (language === 'en') {\n    messageWip = wipMessages.en;\n} else if (language === 'pt') {\n    messageWip = wipMessages.pt;\n} else if (wipMessages[language]) {\n    messageWip = wipMessages[language]; // supporto per altre lingue future\n}\n\nreturn [\n  {\n    json: {\n      message: messageWip\n    }\n  }\n];\n"
       },
-      "id": "0a70987e-8e38-4415-8bdd-70616e637e9c",
-      "name": "return",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [-400, 80],
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const item = $input.first().json;\n\n// Corretto percorso dei dati\nconst userLang = item.precompiledData.customer.language || 'it';\nconst wipMessages = item.precompiledData.wipMessages || {};\n\n// Fallback se la lingua non esiste\nconst message = wipMessages[userLang]\n\nreturn [\n  {\n    json: {\n      message \n    }\n  }\n];\n"
-      },
-      "id": "68eba54b-27c3-4815-a70b-900b7c4e1d34",
+      "id": "823afa03-d0d6-4b0d-85b8-02c951cbd5ea",
       "name": "return wip message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [-620, 280],
-      "alwaysOutputData": true
+      "position": [
+        0,
+        280
+      ],
+      "alwaysOutputData": false
     },
     {
       "parameters": {
-        "jsCode": "return {\n  \"workspaceId\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n  \"phoneNumber\": \"393451234567\",\n  \"messageContent\": \"cerco mozzarella per la pizza\",\n  \"sessionToken\": \"dc3d1eb7b9b7c4e2f1a8d6c5b9e4f7a2\",\n  \"precompiledData\": {\n    \"agentConfig\": {\n      \"id\": \"agent-config-123\",\n      \"workspaceId\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n      \"model\": \"openai/gpt-4o-mini\",\n      \"temperature\": 0.7,\n      \"maxTokens\": 1000,\n      \"topP\": 0.9,\n      \"prompt\": \"Sei un assistente virtuale esperto per L'Altra Italia, un'azienda italiana specializzata in prodotti alimentari di alta qualità. Il tuo compito è aiutare i clienti a trovare i prodotti giusti, fornire informazioni sui prezzi, ingredienti e disponibilità. Rispondi sempre in modo professionale e cortese.\",\n      \"isActive\": true,\n      \"createdAt\": \"2024-06-19T10:00:00.000Z\",\n      \"updatedAt\": \"2024-06-19T15:30:00.000Z\"\n    },\n    \"customer\": {\n      \"id\": \"7a305200-993a-41d1-82c3-f1d148c3cf31\",\n      \"name\": \"Mario Rossi\",\n      \"email\": \"mario.rossi@email.com\",\n      \"phone\": \"393451234567\",\n      \"language\": \"it\",\n      \"isActive\": true,\n      \"isBlacklisted\": false,\n      \"activeChatbot\": true,\n      \"discount\": 0,\n      \"currency\": \"EUR\",\n      \"address\": \"Via Roma 123, Milano\",\n      \"company\": \"\",\n      \"createdAt\": \"2024-06-19T10:00:00.000Z\",\n      \"updatedAt\": \"2024-06-19T15:30:00.000Z\"\n    },\n    \"businessInfo\": {\n      \"id\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n      \"name\": \"L'Altra Italia(ESP)\",\n      \"businessType\": \"ECOMMERCE\",\n      \"plan\": \"PREMIUM\",\n      \"whatsappPhoneNumber\": \"+34654728753\",\n      \"whatsappApiKey\": \"your-whatsapp-api-key\",\n      \"language\": \"it\",\n      \"currency\": \"EUR\",\n      \"timezone\": \"Europe/Rome\",\n      \"isActive\": true,\n      \"url\": \"https://laltroitalia.shop\",\n      \"notificationEmail\": \"admin@laltroitalia.shop\",\n      \"description\": \"Prodotti alimentari italiani di alta qualità\",\n      \"welcomeMessages\": {\n        \"en\": \"Welcome! How can I help you today?\",\n        \"es\": \"¡Bienvenido! ¿En qué puedo ayudarte hoy?\",\n        \"it\": \"Benvenuto! Come posso aiutarti oggi?\",\n        \"fr\": \"Bienvenue! Comment puis-je vous aider aujourd'hui?\",\n        \"de\": \"Willkommen! Wie kann ich Ihnen heute helfen?\",\n        \"pt\": \"Bem-vindo! Em que posso ajudá-lo hoje?\"\n      },\n      \"wipMessages\": {\n        \"en\": \"Work in progress. Please contact us later.\",\n        \"es\": \"Trabajos en curso. Por favor, contáctenos más tarde.\",\n        \"it\": \"Lavori in corso. Contattaci più tardi.\",\n        \"fr\": \"Travaux en cours. Veuillez nous contacter plus tard.\",\n        \"de\": \"Arbeiten im Gange. Bitte kontaktieren Sie uns später.\",\n        \"pt\": \"Em manutenção. Por favor, contacte-nos mais tarde.\"\n      },\n      \"afterRegistrationMessages\": {\n        \"en\": \"Registration completed successfully. Hello [nome], how can I help you today?\",\n        \"es\": \"Registro completado con éxito. Hola [nome], ¿en qué puedo ayudarte hoy?\",\n        \"it\": \"Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?\",\n        \"fr\": \"Enregistrement effectué avec succès. Bonjour [nome], en quoi puis-je vous aider aujourd'hui ?\",\n        \"de\": \"Registrierung erfolgreich abgeschlossen. Hallo [nome], wie kann ich Ihnen heute helfen?\",\n        \"pt\": \"Registro concluído com sucesso. Olá [nome], em que posso ajudá-lo hoje?\"\n      },\n      \"createdAt\": \"2024-06-19T10:00:00.000Z\",\n      \"updatedAt\": \"2024-06-19T15:30:00.000Z\"\n    },\n    \"conversationHistory\": [\n      {\n        \"id\": \"msg-1\",\n        \"content\": \"Ciao! Come posso aiutarti oggi?\",\n        \"role\": \"assistant\",\n        \"timestamp\": \"2024-06-19T15:25:00.000Z\"\n      },\n      {\n        \"id\": \"msg-2\",\n        \"content\": \"Salve, sto cercando dei formaggi\",\n        \"role\": \"user\",\n        \"timestamp\": \"2024-06-19T15:26:00.000Z\"\n      },\n      {\n        \"id\": \"msg-3\",\n        \"content\": \"Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?\",\n        \"role\": \"assistant\",\n        \"timestamp\": \"2024-06-19T15:26:30.000Z\"\n      }\n    ],\n    \"wipMessages\": {\n      \"it\": \"Sto elaborando la tua richiesta, un momento per favore...\",\n      \"en\": \"Processing your request, please wait a moment...\",\n      \"es\": \"Procesando tu solicitud, por favor espera un momento...\",\n      \"fr\": \"Je traite votre demande, veuillez patienter un moment...\",\n      \"de\": \"Ich bearbeite Ihre Anfrage, bitte warten Sie einen Moment...\",\n      \"pt\": \"Processando sua solicitação, aguarde um momento por favor...\"\n    },\n    \"welcomeMessages\": {\n      \"it\": \"Benvenuto! Per offrirti un servizio personalizzato, ti invitiamo a completare la registrazione: {registrationLink}\",\n      \"en\": \"Welcome! To provide you with personalized service, please complete the registration: {registrationLink}\",\n      \"es\": \"¡Bienvenido! Para ofrecerte un servicio personalizado, te invitamos a completar el registro: {registrationLink}\",\n      \"fr\": \"Bienvenue ! Pour vous offrir un service personnalisé, nous vous invitons à compléter l'inscription : {registrationLink}\",\n      \"de\": \"Willkommen! Um Ihnen einen personalisierten Service zu bieten, laden wir Sie ein, die Registrierung abzuschließen: {registrationLink}\",\n      \"pt\": \"Bem-vindo! Para oferecer um serviço personalizado, convidamos você a completar o registro: {registrationLink}\"\n    },\n    \"afterRegistrationMessages\": {\n      \"it\": \"Grazie per esserti registrato! Ora puoi accedere a tutti i nostri servizi. Come posso aiutarti?\",\n      \"en\": \"Thank you for registering! You can now access all our services. How can I help you?\",\n      \"es\": \"¡Gracias por registrarte! Ahora puedes acceder a todos nuestros servicios. ¿Cómo puedo ayudarte?\",\n      \"fr\": \"Merci de vous être inscrit ! Vous pouvez maintenant accéder à tous nos services. Comment puis-je vous aider ?\",\n      \"de\": \"Danke für Ihre Registrierung! Sie können jetzt auf alle unsere Dienste zugreifen. Wie kann ich Ihnen helfen?\",\n      \"pt\": \"Obrigado por se registrar! Agora você pode acessar todos os nossos serviços. Como posso ajudá-lo?\"\n    }\n  },\n  \"metadata\": {\n    \"timestamp\": \"2024-06-19T15:36:10.004Z\",\n    \"source\": \"whatsapp\",\n    \"apiVersion\": \"v1.0\",\n    \"securityChecks\": {\n      \"apiLimitPassed\": true,\n      \"spamDetectionPassed\": true,\n      \"blacklistCheck\": false,\n      \"operatorControl\": false\n    },\n    \"performance\": {\n      \"securityGatewayTime\": \"5ms\",\n      \"precompilationTime\": \"12ms\",\n      \"totalProcessingTime\": \"17ms\"\n    }\n  }\n}\n"
+        "jsCode": "//const agentConfig =$input.first().json.original.precompiledData.agentConfig\n//const conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\n\nconst messageContent= $input.first().json.messageContent\nconst sessionToken=  $input.first().json.sessionToken\n//const workspaceId = $input.first().json.original.precompiledData.agentConfig.workspaceId\nconst language =   $input.first().json.precompiledData.customer.language\nconst customerid = $input.first().json.precompiledData.customer.id\n  \nconst temperature = $input.first().json.precompiledData.agentConfig.temperature\nconst maxTokens = $input.first().json.precompiledData.agentConfig.maxTokens\nconst model = $input.first().json.precompiledData.agentConfig.model\nconst conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\nconst prompt = $input.first().json.precompiledData.agentConfig.prompt\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature,\n      maxTokens,\n      model,\n      messages: conversationHistory,\n      sessionId: sessionToken,\n      language, \n      workspaceId: $input.first().json.workspaceId,\n      customerid  ,\n      prompt\n    },\n \n  }\n];\n"
       },
-      "id": "ce7b17ff-f3e0-4795-b779-1586c454964e",
-      "name": "test",
+      "id": "3977df6d-73e8-46fc-acc0-5a77d87913b2",
+      "name": "prepare-data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [-1500, -180],
-      "alwaysOutputData": true
+      "position": [
+        0,
+        0
+      ],
+      "alwaysOutputData": false
     },
     {
       "parameters": {
-        "conditions": {
-          "boolean": [
-            {
-              "value1": "={{ $json.precompiledData.customer.activeChatbot }}",
-              "value2": true
-            }
-          ]
+        "jsCode": "return {\n  message:  $input.first().json.output\n}"
+      },
+      "id": "0f70a9bd-cf4a-4044-9a06-f0037426f198",
+      "name": "return LLM response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        700,
+        0
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "={{ $json.prompt }}\npuoi metterci anche delle incone in mark down \nlingua utente: {{ $json.language }}\nnome utente: {{ $('Filter').item.json.precompiledData.customer.name }}\nnome azienda: {{ $('Filter').item.json.precompiledData.customer.businessName }}\nemail:  {{ $('Filter').item.json.precompiledData.customer.email }}\n"
         }
       },
-      "id": "7450105b-9479-4d82-9d30-c2478d0d43eb",
-      "name": "is activeChatbot?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [-1060, 280],
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        300,
+        0
+      ],
+      "id": "d10186b2-7ff7-4e86-b1c7-a70ef7fff70b",
+      "name": "AI Agent",
       "alwaysOutputData": true,
-      "executeOnce": false,
-      "retryOnFail": false,
-      "notesInFlow": true
+      "notesInFlow": false,
+      "executeOnce": true
     },
     {
       "parameters": {
-        "conditions": {
-          "boolean": [
-            {
-              "value1": "={{ $json.precompiledData.customer.isBlacklisted }}",
-              "value2": true
-            }
-          ]
+        "options": {
+          "maxTokens": "={{ $json.maxTokens }}",
+          "temperature": "={{ $json.temperature }}",
+          "topP": 1
         }
       },
-      "id": "9de5cd81-9251-427b-8bd5-1943200ab07e",
-      "name": "IsUserBlocked?",
-      "type": "n8n-nodes-base.if",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
-      "position": [-1280, 180],
-      "alwaysOutputData": true,
-      "executeOnce": true,
-      "retryOnFail": true,
-      "notesInFlow": true
+      "position": [
+        300,
+        180
+      ],
+      "id": "95f32b5b-ac0b-4269-a509-aaf642301c31",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "wULmtD18AyTFRgQo",
+          "name": "OpenRouter account"
+        }
+      }
     },
     {
       "parameters": {
-        "jsCode": "const message = \"User blocked\"\n\nreturn [\n  {\n    json: {\n      message\n    }\n  }\n];"
+        "contextWindowLength": 10
       },
-      "id": "0e89f620-5ad7-404b-9b18-1a93568624c0",
-      "name": "return userblock",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [-1060, 80],
-      "alwaysOutputData": true
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        420,
+        180
+      ],
+      "id": "76ccb0b7-69d1-4347-9e66-06e9c23121dc",
+      "name": "Simple Memory"
     },
     {
       "parameters": {
-        "jsCode": "const message = \"channel is not active\"\n\nreturn [\n  {\n    json: {\n      message\n    }\n  }\n];"
+        "toolDescription": "Makes an HTTP request and returns the response data when the user ask something related to the Products, Faqs, Services, Documents info for example:\n\nwhat kind of wine do you have?\n\n- Avete mozzarella di bufala?\n- Quanto costa il servizio di trasporto?\n- Avete un servizio id packaging?\n- Che regole devo seguire per il trasporto?\n- Como puedo pagar ?\n- Which kind of wind do you have?\n- how many products do you havae?",
+        "method": "POST",
+        "url": "=http://host.docker.internal:3001/api/internal/rag-search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "= {\n      \"query\": \"{{ $('prepare-data').item.json.chatInput }}\",\n      \"messages\": \"{{ $('prepare-data').item.json.messages }}\",\n      \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n      \"customerId\": \"{{ $('prepare-data').item.json.workspaceId }}\"\n    }",
+        "options": {}
       },
-      "id": "cdf79464-eb11-4774-bb66-a46725e76cf7",
-      "name": "return activechallenge",
-      "type": "n8n-nodes-base.code",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        180
+      ],
+      "id": "be96e8f5-f02f-4f89-abd8-e50ae060c621",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "Te0PU8I7yMMEr5yi",
+          "name": "Backend API Basic Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "VA FATTO UNO per avere la lista dei prodotti quantita' filtrato per categorie "
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        500,
+        360
+      ],
       "typeVersion": 1,
-      "position": [-840, 380],
-      "alwaysOutputData": true
+      "id": "1a0cd1cb-8681-4617-9b73-6ffa09f13b75",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "jsCode": "if ($json.body) {\n  return [{ ...$json.body }];\n} else {\n  return [{ ...$json }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        140
+      ],
+      "id": "21d80ba8-9f46-482a-8156-9c65503edc7d",
+      "name": "body"
     }
   ],
-  "pinData": {},
-  "connections": {
-    "LLM Router (Intent Classification)": {
-      "main": [
-        [
-          {
-            "node": "Needs RAG Search?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "LLM Formatter (Response Generation)": {
-      "main": [
-        [
-          {
-            "node": "Save Inbound Message",
-            "type": "main",
-            "index": 0
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+          "phoneNumber": "393451234567",
+          "messageContent": "Ciao, chi sei?",
+          "sessionToken": "test-session-123",
+          "precompiledData": {
+            "agentConfig": {
+              "id": "agent-config-test",
+              "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+              "model": "openai/gpt-4o-mini",
+              "temperature": 0.7,
+              "maxTokens": 1000,
+              "topP": 0.9,
+              "prompt": "# 🤖 Assistente Virtuale – L'Altra Italia\n\nSei **l'assistente virtuale ufficiale de 'L'Altra Italia'**, un ristorante e rivenditore specializzato in autentici prodotti italiani, con sede a **Cervelló, Barcellona**.\n\n🌐 **Sito web**: https://laltrait.com/\n📍 **Indirizzo**: C/ Ull de Llebre 7, 08758, Cervelló (Barcelona)\n📞 **Telefono**: (+34) 93 15 91 221\n📧 **Email**: info@laltrait.com\n\n## 🧠 Competenze dell'Assistente\n\nHai accesso a un motore di ricerca intelligente per fornire informazioni dettagliate su:\n- 🛒 Prodotti → Catalogo, prezzi, descrizioni, disponibilità\n- 🛎️ Servizi → Servizi offerti con dettagli e costi\n- ❓ FAQ → Domande frequenti e politiche aziendali\n- 📄 Documenti → Normative, documenti legali e aziendali\n- 🏢 Informazioni aziendali → Orari, contatti, dati societari\n\nOgni volta che l'utente fa una domanda in uno di questi ambiti, chiama la funzione: searchRag(query)\n\n## 🛍️ Gestione Ordini\nSe l'utente desidera fare un ordine (esempi: 'vorrei ordinare', 'aggiungi al carrello', 'fammi un ordine'), raccogli i dettagli dell'ordine:\n- Prodotti richiesti\n- Quantità\n- Eventuali preferenze\n- Dati di recapito (se necessari)\nPoi chiama la funzione: newOrder(orderDetails)\n\n## ☎️ Richiesta Operatore\nSe l'utente dice frasi come: 'voglio parlare con un operatore', 'serve aiuto umano', 'chiama qualcuno'...\nChiama subito la funzione: callOperator()\nGli operatori sono disponibili dal lunedì al venerdì, dalle 09:00 alle 18:00.\n\n## 🚨 Messaggio Urgente\nSe l'utente chiede di inviare un messaggio urgente (es. 'è urgente', 'devo contattare subito qualcuno'), invitalo a compilare il modulo ufficiale di contatto:\nFormulario urgente: https://laltrait.com/contacto/\nNota: Gli operatori rispondono dal lunedì al venerdì, dalle 9:00 alle 18:00.\n\n## 🌍 Lingua dell'Utente\nL'assistente deve parlare automaticamente la lingua dell'utente, rilevando la lingua utilizzata nella conversazione. Adatta le risposte alla lingua per garantire comprensione e comfort all'utente.\n\n## 🧾 Testi Istituzionali\n### 🧑‍🍳 Quiénes somos\nVisión por la excelencia, a través de la passione e sforzo diario.\nTrabajiamo con piccoli artigiani con rispetto per la materia prima, tradizione e origine.\nPer questo, ci definiamo come veri 'Ambasciatori del gusto.'\n### ⚖️ Avviso Legale\nConsulta le informazioni legali dell'azienda qui: https://laltrait.com/aviso-legal/\n\n## 📌 Contatti\nIndirizzo: C/ Ull de Llebre 7, 08758, Cervelló (Barcelona)\nTelefono: (+34) 93 15 91 221\nEmail: info@laltrait.com\nSito web: https://laltrait.com/\n\n## 🗣️ Tono e Stile\n- Professionale, cortese e cordiale\n- Linguaggio naturale ma competente\n- Risposte brevi ma informative\n- Invita all'azione se serve (es. 'vuoi che ti aiuti a trovare un prodotto?')\n",
+              "isActive": true
+            },
+            "customer": {
+              "id": "test-customer-123",
+              "name": "Andrea Test User",
+              "email": "test@shopme.com",
+              "phone": "393451234567",
+              "language": "IT",
+              "isActive": true,
+              "isBlacklisted": false,
+              "activeChatbot": true,
+              "businessName": "L'Altra Italia(ESP)",
+              "businessType": "ECOMMERCE",
+              "conversationHistory": [
+                {
+                  "id": "msg-1",
+                  "content": "Ciao",
+                  "role": "user",
+                  "timestamp": "2025-06-25T15:00:00.000Z"
+                },
+                {
+                  "id": "msg-2",
+                  "content": "Ciao! Come posso aiutarti oggi?",
+                  "role": "assistant",
+                  "timestamp": "2025-06-25T15:00:01.000Z"
+                }
+              ]
+            }
           },
-          {
-            "node": "Send WhatsApp Response",
-            "type": "main",
-            "index": 0
+          "wipMessages": {
+            "en": "Work in progress. Please contact us later.",
+            "es": "Trabajos en curso. Por favor, contáctenos más tarde.",
+            "it": "Lavori in corso. Contattaci più tardi.",
+            "fr": "Travaux en cours. Veuillez nous contacter plus tard.",
+            "de": "Arbeiten im Gange. Bitte kontaktieren Sie uns später.",
+            "pt": "Em manutenção. Por favor, contacte-nos mais tarde."
           }
-        ]
-      ]
-    },
+        }
+      }
+    ]
+  },
+  "connections": {
     "Webhook": {
       "main": [
         [
           {
-            "node": "IsUserBlocked?",
+            "node": "body",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IsChannelActive?": {
+    "Filter": {
       "main": [
         [
           {
-            "node": "Wait3",
+            "node": "prepare-data",
             "type": "main",
             "index": 0
           }
@@ -203,53 +316,66 @@
         ]
       ]
     },
-    "Wait3": {
+    "prepare-data": {
       "main": [
         [
           {
-            "node": "return",
+            "node": "AI Agent",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "test": {
-      "main": [[]]
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
     },
-    "is activeChatbot?": {
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
       "main": [
         [
           {
-            "node": "IsChannelActive?",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "return activechallenge",
+            "node": "return LLM response",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "return wip message": {
-      "main": [[]]
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     },
-    "IsUserBlocked?": {
+    "body": {
       "main": [
         [
           {
-            "node": "return userblock",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "is activeChatbot?",
+            "node": "Filter",
             "type": "main",
             "index": 0
           }
@@ -259,13 +385,12 @@
   },
   "active": true,
   "settings": {
-    "executionOrder": "v1",
-    "callerPolicy": "workflowsFromSameOwner"
+    "executionOrder": "v1"
   },
-  "versionId": "9f07e3fa-33af-4d55-8c5d-32955137a22c",
+  "versionId": "96d5446f-037b-4477-968d-ef0fd48ccf04",
   "meta": {
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
   },
-  "id": "1XPQF919PP0MEdtH",
+  "id": "iUnUEjLskK75Bu3v",
   "tags": []
 }

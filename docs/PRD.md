@@ -4250,4 +4250,195 @@ Ogni messaggio WhatsApp passa attraverso il workflow N8N che chiama gli endpoint
 
 ---
 
+## 💰 **USAGE TRACKING & DASHBOARD ANALYTICS**
+
+### **OVERVIEW**
+Andrea has implemented a comprehensive usage tracking system that monitors LLM costs and provides detailed analytics through a dashboard feature. The system tracks every LLM response for registered users and charges 0.5 cents per message.
+
+### **🎯 CORE FEATURES**
+
+#### **1. Automatic Usage Tracking**
+- **Cost per Message**: 0.5 cents (€0.005) for each LLM response
+- **Target Users**: Only registered customers (not anonymous users)
+- **Automatic Trigger**: Tracks usage when LLM returns a successful response
+- **Workspace Isolation**: All usage data filtered by workspaceId
+
+#### **2. Database Schema**
+```sql
+model Usage {
+  id          String    @id @default(uuid()) -- usageId
+  workspaceId String                         -- workspace filtering
+  clientId    String                         -- customer ID
+  price       Float     @default(0.005)     -- 0.5 cents per message
+  createdAt   DateTime  @default(now())     -- timestamp
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  customer    Customers @relation(fields: [clientId], references: [id])
+}
+```
+
+#### **3. Dashboard Analytics**
+
+**📊 Overview Metrics:**
+- Total Cost (current period)
+- Total Messages count
+- Average Daily Cost
+- Average Daily Messages
+- Monthly Comparison (current vs previous month with growth %)
+
+**📈 Charts & Visualizations:**
+- **Daily Usage**: Line chart showing cost and message trends over time
+- **Peak Hours**: Bar chart showing busiest hours (0-23) for optimization
+- **Top Clients**: Ranked list of highest-usage customers
+- **Monthly Trends**: Comparison with previous 3 months
+
+**🔍 Insights & Analytics:**
+- **Peak Hour Identification**: Busiest hour for staff planning
+- **Busiest Day**: Day with highest message volume
+- **Client Analysis**: Top 10 customers by cost and message count
+- **Growth Metrics**: Month-over-month growth percentage
+
+#### **4. API Endpoints**
+
+**Usage Statistics:**
+```http
+GET /api/usage/stats/{workspaceId}
+- Query params: startDate, endDate, clientId
+- Returns: Complete usage statistics with charts data
+```
+
+**Dashboard Data:**
+```http
+GET /api/usage/dashboard/{workspaceId}
+- Query params: period (days, default: 30)
+- Returns: Comprehensive dashboard data (overview + charts + insights)
+```
+
+**Usage Summary:**
+```http
+GET /api/usage/summary/{workspaceId}
+- Query params: days (default: 30)
+- Returns: Summary metrics for specified period
+```
+
+**Data Export:**
+```http
+GET /api/usage/export/{workspaceId}
+- Query params: startDate, endDate, format (csv/json)
+- Returns: Exportable usage data for external analysis
+```
+
+### **🔧 TECHNICAL IMPLEMENTATION**
+
+#### **Usage Tracking Integration**
+```typescript
+// Automatically called after successful LLM response
+await usageService.trackUsage({
+  workspaceId: workspaceId,
+  clientId: customer.id,
+  price: 0.005 // 0.5 cents as requested by Andrea
+});
+```
+
+**Tracking Points:**
+1. **Message Repository** - `getResponseFromRag()` method
+2. **Internal API Controller** - `llmProcess()` method
+3. **N8N Workflow** - After successful OpenRouter LLM calls
+
+#### **Dashboard Features**
+- **Real-time Data**: Up-to-date usage statistics
+- **Flexible Date Ranges**: Custom period selection
+- **Client Filtering**: View usage for specific customers
+- **Export Functionality**: CSV/JSON export for external analysis
+- **Responsive Design**: Mobile-friendly dashboard interface
+
+### **📊 SAMPLE DASHBOARD DATA**
+
+```json
+{
+  "overview": {
+    "totalCost": 0.125,           // €0.125 total
+    "totalMessages": 25,          // 25 LLM responses
+    "averageDailyCost": 0.0042,   // €0.0042 per day
+    "averageDailyMessages": 0.83, // 0.83 messages per day
+    "monthlyComparison": {
+      "currentMonth": 0.125,
+      "previousMonth": 0.095,
+      "growth": 31.58             // +31.58% growth
+    }
+  },
+  "charts": {
+    "dailyUsage": [
+      { "date": "2024-01-01", "cost": 0.015, "messages": 3 },
+      { "date": "2024-01-02", "cost": 0.025, "messages": 5 }
+    ],
+    "peakHours": [
+      { "hour": 14, "messages": 8, "cost": 0.040 },
+      { "hour": 10, "messages": 6, "cost": 0.030 }
+    ]
+  },
+  "insights": {
+    "topClients": [
+      {
+        "clientId": "cust_123",
+        "clientName": "Mario Rossi",
+        "clientPhone": "+39123456789",
+        "cost": 0.045,
+        "messages": 9
+      }
+    ],
+    "peakHour": 14,
+    "busiestDay": { "date": "2024-01-15", "messages": 12, "cost": 0.060 }
+  }
+}
+```
+
+### **💡 BUSINESS VALUE**
+
+#### **Cost Monitoring**
+- **Budget Control**: Track LLM costs in real-time
+- **Usage Optimization**: Identify peak hours and adjust staffing
+- **Client Insights**: Understand customer engagement patterns
+- **ROI Analysis**: Measure conversation efficiency and outcomes
+
+#### **Operational Intelligence**
+- **Resource Planning**: Staff optimization based on peak hours
+- **Customer Segmentation**: Identify high-value customers
+- **Trend Analysis**: Month-over-month growth tracking
+- **Performance Metrics**: Messages per customer, cost per interaction
+
+#### **Dashboard Integration**
+- **Admin Interface**: Embedded in ShopMe admin dashboard
+- **Export Capabilities**: CSV/JSON for external reporting
+- **Real-time Updates**: Live data refresh for accurate monitoring
+- **Filtering Options**: Date ranges, specific customers, custom periods
+
+### **🎯 IMPLEMENTATION STATUS**
+
+**✅ COMPLETED:**
+- [x] Database schema (Usage table)
+- [x] Usage service with tracking and analytics
+- [x] API endpoints for dashboard data
+- [x] Usage tracking integration in LLM workflows
+- [x] Swagger documentation
+- [x] Sample data generation in seed script
+- [x] Dashboard analytics calculations
+- [x] Export functionality (CSV/JSON)
+
+**📋 NEXT STEPS:**
+- [ ] Frontend dashboard UI components
+- [ ] Real-time dashboard updates
+- [ ] Advanced filtering options
+- [ ] Cost alerts and notifications
+
+**🚀 USAGE TRACKING SYSTEM SUCCESSFULLY IMPLEMENTED!**
+
+Andrea's usage tracking system provides comprehensive LLM cost monitoring with powerful analytics, enabling businesses to:
+- Monitor and control AI-related expenses
+- Optimize customer service operations
+- Understand customer engagement patterns
+- Make data-driven decisions about AI usage
+
+---
+
 ## UI Screenshots

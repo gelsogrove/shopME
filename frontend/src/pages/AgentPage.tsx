@@ -2,21 +2,18 @@ import { PageLayout } from "@/components/layout/PageLayout"
 import { PageHeader } from "@/components/shared/PageHeader"
 import MarkdownEditor from "@/components/ui/markdown-editor"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { API_URL } from "@/config"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { Agent, getAgent, updateAgent } from "@/services/agentApi"
 import {
-  Bot,
-  HelpCircle,
-  Loader2,
-  MessageSquare,
-  Play,
-  Save,
+    Bot,
+    HelpCircle,
+    Loader2,
+    Save,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -32,14 +29,6 @@ export function AgentPage() {
   const [modelValue, setModelValue] = useState("openai/gpt-4.1-mini")
   const [maxTokensValue, setMaxTokensValue] = useState(1000)
   const [error, setError] = useState<string | null>(null)
-
-  // WhatsApp Test states
-  const [testPhoneNumber, setTestPhoneNumber] = useState("")
-  const [testMessage, setTestMessage] = useState("")
-  const [isTestingWhatsApp, setIsTestingWhatsApp] = useState(false)
-  const [testResults, setTestResults] = useState<any>(null)
-  const [lastTestUrl, setLastTestUrl] = useState("")
-  const [lastTestPayload, setLastTestPayload] = useState<any>(null)
 
   // Redirect to workspace selection if user has no workspace
   useEffect(() => {
@@ -151,9 +140,9 @@ export function AgentPage() {
       return
     }
 
-    const formData = new FormData(e.currentTarget)
-    const content = formData.get("content") as string
-    const model = formData.get("model") as string
+    // Get values from state instead of FormData
+    const content = agent.content || ""
+    const model = modelValue
 
     console.log("=== FORM DATA ===")
     console.log("Content length:", content?.length)
@@ -162,7 +151,7 @@ export function AgentPage() {
     console.log("Max tokens:", maxTokensValue)
 
     // Validate required fields
-    if (!content) {
+    if (!content.trim()) {
       toast.error("Instructions are required", { duration: 1000 })
       return
     }
@@ -202,116 +191,6 @@ export function AgentPage() {
     }
   }
 
-  const handleWhatsAppTest = async () => {
-    if (!testPhoneNumber || !testMessage) {
-      toast.error("Please enter both phone number and message", {
-        duration: 1000,
-      })
-      return
-    }
-
-    if (!workspace?.id) {
-      toast.error("No workspace selected", { duration: 1000 })
-      return
-    }
-
-    try {
-      setIsTestingWhatsApp(true)
-      setTestResults(null)
-
-      console.log("=== WHATSAPP TEST ===")
-      console.log("Testing WhatsApp with:", {
-        phoneNumber: testPhoneNumber,
-        message: testMessage,
-      })
-
-      // Simulate WhatsApp webhook payload
-      const payload = {
-        entry: [
-          {
-            changes: [
-              {
-                value: {
-                  messages: [
-                    {
-                      from: testPhoneNumber,
-                      text: {
-                        body: testMessage,
-                      },
-                      type: "text",
-                      timestamp: Math.floor(Date.now() / 1000).toString(),
-                    },
-                  ],
-                },
-              },
-            ],
-          },
-        ],
-        // Add workspace ID for backend routing
-        workspaceId: workspace.id,
-      }
-
-      const fullUrl = "http://localhost:3001/api/whatsapp/webhook"
-      console.log("🚨 API_URL VALUE:", API_URL)
-      console.log("🚨 URL CHIAMATA:", fullUrl)
-      console.log("🚨 PAYLOAD INVIATO:", JSON.stringify(payload, null, 2))
-
-      // Save for display
-      setLastTestUrl(fullUrl)
-      setLastTestPayload(payload)
-
-      console.log("Sending payload:", payload)
-
-      const response = await fetch(fullUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      })
-
-      const responseText = await response.text()
-      let responseData
-
-      try {
-        responseData = JSON.parse(responseText)
-      } catch {
-        responseData = { message: responseText }
-      }
-
-      console.log("Response status:", response.status)
-      console.log("Response data:", responseData)
-
-      setTestResults({
-        status: response.status,
-        data: responseData,
-        success: response.ok,
-      })
-
-      if (response.ok) {
-        toast.success("WhatsApp test completed successfully", {
-          duration: 2000,
-        })
-      } else {
-        toast.error(`Test failed with status ${response.status}`, {
-          duration: 2000,
-        })
-      }
-    } catch (error) {
-      console.error("=== WHATSAPP TEST ERROR ===", error)
-      setTestResults({
-        status: 500,
-        data: {
-          error: error instanceof Error ? error.message : "Unknown error",
-        },
-        success: false,
-      })
-      toast.error("Failed to test WhatsApp message", { duration: 2000 })
-    } finally {
-      setIsTestingWhatsApp(false)
-    }
-  }
-
   return (
     <PageLayout>
       <div className="flex-1 space-y-2 p-1 pt-1 md:p-2">
@@ -341,77 +220,6 @@ export function AgentPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* SIMPLE WHATSAPP TEST BUTTON - SEMPRE VISIBILE */}
-            <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <MessageSquare className="h-5 w-5 text-blue-600" />
-                <h3 className="text-lg font-semibold text-blue-700">
-                  Test WhatsApp
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                <input
-                  type="text"
-                  placeholder="Numero telefono (es: +393123456789)"
-                  value={testPhoneNumber}
-                  onChange={(e) => setTestPhoneNumber(e.target.value)}
-                  className="px-3 py-2 border rounded-md text-sm"
-                />
-                <input
-                  type="text"
-                  placeholder="Messaggio (es: avete le mozzarelle?)"
-                  value={testMessage}
-                  onChange={(e) => setTestMessage(e.target.value)}
-                  className="px-3 py-2 border rounded-md text-sm"
-                />
-                <button
-                  onClick={handleWhatsAppTest}
-                  disabled={
-                    isTestingWhatsApp || !testPhoneNumber || !testMessage
-                  }
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-                >
-                  {isTestingWhatsApp ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Testing...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-4 w-4" />
-                      TEST
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {testResults && (
-                <div
-                  className={`p-3 rounded-md text-sm ${
-                    testResults.success
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  <strong>🚨 URL CHIAMATA:</strong> {lastTestUrl}
-                  <br />
-                  <strong>🚨 PAYLOAD INVIATO:</strong>
-                  <pre className="text-xs mt-2 bg-gray-100 p-2 rounded overflow-auto max-h-32">
-                    {JSON.stringify(lastTestPayload, null, 2)}
-                  </pre>
-                  <strong>Risultato:</strong>{" "}
-                  {testResults.success ? "SUCCESS" : "ERROR"} (Status:{" "}
-                  {testResults.status})
-                  <br />
-                  <strong>🚨 ERRORE/RISPOSTA:</strong>
-                  <pre className="text-xs mt-2 bg-gray-100 p-2 rounded overflow-auto max-h-32">
-                    {JSON.stringify(testResults.data, null, 2)}
-                  </pre>
-                </div>
-              )}
-            </div>
-
             {!agent ? (
               <div className="flex justify-center items-center h-64">
                 <p className="text-gray-500">
@@ -476,34 +284,90 @@ export function AgentPage() {
                           </TooltipProvider>
                         </label>
                       </div>
-                      <input
-                        type="range"
-                        id="temperature"
-                        name="temperature"
-                        min="0"
-                        max="2"
-                        step="0.1"
-                        value={tempValue}
-                        onChange={(e) =>
-                          setTempValue(parseFloat(e.target.value))
-                        }
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Controls randomness (0-2)
-                      </p>
+                      <div>
+                        <input
+                          type="range"
+                          id="temperature"
+                          name="temperature"
+                          min="0"
+                          max="2"
+                          step="0.1"
+                          value={tempValue}
+                          onChange={(e) => setTempValue(Number(e.target.value))}
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
-                      <div className="flex items-center">
+                      <label
+                        htmlFor="model"
+                        className="text-sm font-medium leading-none flex items-center"
+                      >
+                        Model:{" "}
+                        <span className="font-bold ml-1">{modelValue}</span>
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-4 w-4 ml-1 text-muted-foreground cursor-pointer" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs p-4 bg-white shadow-lg rounded-lg border z-50">
+                              <div className="space-y-2">
+                                <h4 className="font-semibold text-sm">
+                                  AI Model Selection
+                                </h4>
+                                <p>Choose the AI model for your agent:</p>
+                                <ul className="list-disc pl-5 space-y-1">
+                                  <li>
+                                    <span className="font-medium">
+                                      GPT-4o-mini:
+                                    </span>{" "}
+                                    Fast, cost-effective, good for most tasks
+                                  </li>
+                                  <li>
+                                    <span className="font-medium">GPT-4o:</span>{" "}
+                                    Most advanced, best quality responses
+                                  </li>
+                                  <li>
+                                    <span className="font-medium">
+                                      Claude-3.5-sonnet:
+                                    </span>{" "}
+                                    Excellent reasoning and analysis
+                                  </li>
+                                </ul>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </label>
+                      <select
+                        id="model"
+                        name="model"
+                        value={modelValue}
+                        onChange={(e) => setModelValue(e.target.value)}
+                        className="w-full px-3 py-2 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                      >
+                        <option value="openai/gpt-4o-mini">
+                          GPT-4o-mini (Fast)
+                        </option>
+                        <option value="openai/gpt-4o">GPT-4o (Advanced)</option>
+                        <option value="anthropic/claude-3.5-sonnet">
+                          Claude-3.5-sonnet
+                        </option>
+                        <option value="openai/gpt-3.5-turbo">
+                          GPT-3.5-turbo (Legacy)
+                        </option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
                         <label
-                          htmlFor="max_tokens"
+                          htmlFor="maxTokens"
                           className="text-sm font-medium leading-none flex items-center"
                         >
                           Max Tokens:{" "}
-                          <span className="font-bold ml-1">
-                            {maxTokensValue}
-                          </span>
+                          <span className="font-bold ml-1">{maxTokensValue}</span>
                           <TooltipProvider delayDuration={0}>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -512,12 +376,9 @@ export function AgentPage() {
                               <TooltipContent className="max-w-xs p-4 bg-white shadow-lg rounded-lg border z-50">
                                 <div className="space-y-2">
                                   <h4 className="font-semibold text-sm">
-                                    Max Tokens (100-8000)
+                                    Max Tokens (100-4000)
                                   </h4>
-                                  <p>
-                                    Controls the maximum length of the AI's
-                                    response:
-                                  </p>
+                                  <p>Controls response length:</p>
                                   <ul className="list-disc pl-5 space-y-1">
                                     <li>
                                       <span className="font-medium">
@@ -527,97 +388,15 @@ export function AgentPage() {
                                     </li>
                                     <li>
                                       <span className="font-medium">
-                                        Medium (500-2000):
+                                        Medium (500-1500):
                                       </span>{" "}
-                                      Detailed explanations
+                                      Balanced detail level
                                     </li>
                                     <li>
                                       <span className="font-medium">
-                                        High (2000-8000):
+                                        High (1500-4000):
                                       </span>{" "}
-                                      Comprehensive, in-depth responses
-                                    </li>
-                                  </ul>
-                                  <p className="text-xs italic mt-2">
-                                    Higher values allow for longer responses but
-                                    may cost more tokens.
-                                  </p>
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </label>
-                      </div>
-                      <input
-                        type="range"
-                        id="max_tokens"
-                        name="max_tokens"
-                        min="100"
-                        max="8000"
-                        step="100"
-                        value={maxTokensValue}
-                        onChange={(e) =>
-                          setMaxTokensValue(parseInt(e.target.value))
-                        }
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Response length limit (100-8000)
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center">
-                        <label
-                          htmlFor="model"
-                          className="text-sm font-medium leading-none flex items-center"
-                        >
-                          Model
-                          <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <HelpCircle className="h-4 w-4 ml-1 text-muted-foreground cursor-pointer" />
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-xs p-4 bg-white shadow-lg rounded-lg border z-50">
-                                <div className="space-y-2">
-                                  <h4 className="font-semibold text-sm">
-                                    AI Model Selection
-                                  </h4>
-                                  <p>
-                                    Specify which OpenRouter AI model to use:
-                                  </p>
-                                  <ul className="list-disc pl-5 space-y-1">
-                                    <li>
-                                      <span className="font-medium">
-                                        openai/gpt-4.1-mini:
-                                      </span>{" "}
-                                      Default model, good balance of performance
-                                      and cost
-                                    </li>
-                                    <li>
-                                      <span className="font-medium">
-                                        claude-3-haiku-20240307:
-                                      </span>{" "}
-                                      Fast, efficient for simple tasks
-                                    </li>
-                                    <li>
-                                      <span className="font-medium">
-                                        claude-3-opus-20240229:
-                                      </span>{" "}
-                                      Most powerful, best for complex reasoning
-                                    </li>
-                                    <li>
-                                      <span className="font-medium">
-                                        claude-3-sonnet-20240229:
-                                      </span>{" "}
-                                      Balanced performance and cost
-                                    </li>
-                                    <li>
-                                      <span className="font-medium">
-                                        gpt-4-turbo:
-                                      </span>{" "}
-                                      Advanced reasoning and instruction
-                                      following
+                                      Detailed, comprehensive responses
                                     </li>
                                   </ul>
                                 </div>
@@ -626,93 +405,44 @@ export function AgentPage() {
                           </TooltipProvider>
                         </label>
                       </div>
-                      <input
-                        type="text"
-                        id="model"
-                        name="model"
-                        value={modelValue}
-                        onChange={(e) => setModelValue(e.target.value)}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        AI model (default: openai/gpt-4.1-mini)
-                      </p>
+                      <div>
+                        <input
+                          type="range"
+                          id="maxTokens"
+                          name="maxTokens"
+                          min="100"
+                          max="4000"
+                          step="100"
+                          value={maxTokensValue}
+                          onChange={(e) =>
+                            setMaxTokensValue(Number(e.target.value))
+                          }
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                        />
+                      </div>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <label
-                        htmlFor="content"
-                        className="text-sm font-medium leading-none flex items-center"
-                      >
-                        Instructions
-                        <TooltipProvider delayDuration={0}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <HelpCircle className="h-4 w-4 ml-1 text-muted-foreground cursor-pointer" />
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-xs p-4 bg-white shadow-lg rounded-lg border z-50">
-                              <div className="space-y-2">
-                                <h4 className="font-semibold text-sm">
-                                  Agent Instructions
-                                </h4>
-                                <p>
-                                  Define how your AI agent should behave and
-                                  respond to users:
-                                </p>
-                                <ul className="list-disc pl-5 space-y-1">
-                                  <li>Set the agent's personality and tone</li>
-                                  <li>
-                                    Define knowledge boundaries and expertise
-                                    areas
-                                  </li>
-                                  <li>
-                                    Specify how to handle different types of
-                                    questions
-                                  </li>
-                                  <li>
-                                    Include templates for common responses
-                                  </li>
-                                </ul>
-                                <p className="text-xs italic mt-2">
-                                  Markdown formatting is supported.
-                                </p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </label>
-                    </div>
-                    <div className="min-h-[300px]">
-                      <MarkdownEditor
-                        value={agent?.content || ""}
-                        onChange={(value) => {
-                          // Update the hidden input with the new value
-                          const form = document.getElementById("editAgentForm")
-                          if (form) {
-                            let hiddenInput = form.querySelector(
-                              'input[name="content"]'
-                            ) as HTMLInputElement
-                            if (!hiddenInput) {
-                              hiddenInput = document.createElement("input")
-                              hiddenInput.type = "hidden"
-                              hiddenInput.name = "content"
-                              form.appendChild(hiddenInput)
-                            }
-                            hiddenInput.value = value
-                          }
-                        }}
-                        hidePlayground={true}
-                      />
-                    </div>
+                    <label
+                      htmlFor="content"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Instructions *
+                    </label>
+                    <MarkdownEditor
+                      value={agent.content || ""}
+                      onChange={(value) =>
+                        setAgent({ ...agent, content: value })
+                      }
+                    />
                   </div>
 
                   <div className="flex justify-end">
                     <button
                       type="submit"
                       disabled={isSaving}
-                      className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-green-600 text-white hover:bg-green-700 h-10 px-4 py-2 gap-2"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                       {isSaving ? (
                         <>
@@ -722,7 +452,7 @@ export function AgentPage() {
                       ) : (
                         <>
                           <Save className="h-4 w-4" />
-                          Save Changes
+                          Save Configuration
                         </>
                       )}
                     </button>
