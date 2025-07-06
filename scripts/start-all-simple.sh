@@ -26,18 +26,6 @@ else
     echo "✅ Database e N8N già attivi!"
 fi
 
-# Step 2.5: Database reset e seed per situazione aggiornata
-echo "🔄 Database reset e seed..."
-cd backend
-echo "   Eseguo reset database e seed completo..."
-npm run seed > ../database-seed.log 2>&1
-if [ $? -eq 0 ]; then
-    echo "✅ Database reset e seed completato!"
-else
-    echo "❌ Errore nel seed! Controlla database-seed.log"
-fi
-cd ..
-
 # Step 3: Pulisci processi esistenti
 echo "🛑 Pulisco eventuali processi esistenti..."
 npx kill-port 3000 >/dev/null 2>&1 || true

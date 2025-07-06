@@ -1,137 +1,54 @@
-{
-  "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
-  "phoneNumber": "393451234567",
-  "messageContent": "cerco mozzarella per la pizza",
-  "sessionToken": "dc3d1eb7b9b7c4e2f1a8d6c5b9e4f7a2",
-  "precompiledData": {
-    "agentConfig": {
-      "id": "agent-config-123",
-      "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
-      "model": "openai/gpt-4o-mini",
-      "temperature": 0.7,
-      "maxTokens": 1000,
-      "topP": 0.9,
-      "prompt": "Sei un assistente virtuale esperto per L'Altra Italia, un'azienda italiana specializzata in prodotti alimentari di alta qualità. Il tuo compito è aiutare i clienti a trovare i prodotti giusti, fornire informazioni sui prezzi, ingredienti e disponibilità. Rispondi sempre in modo professionale e cortese.",
-      "isActive": true,
-      "createdAt": "2024-06-19T10:00:00.000Z",
-      "updatedAt": "2024-06-19T15:30:00.000Z"
-    },
-    "customer": {
-      "id": "7a305200-993a-41d1-82c3-f1d148c3cf31",
-      "name": "Mario Rossi",
-      "email": "mario.rossi@email.com",
-      "phone": "393451234567",
-      "language": "it",
-      "isActive": true,
-      "isBlacklisted": false,
-      "activeChatbot": true,
-      "discount": 0,
-      "currency": "EUR",
-      "address": "Via Roma 123, Milano",
-      "company": "",
-      "createdAt": "2024-06-19T10:00:00.000Z",
-      "updatedAt": "2024-06-19T15:30:00.000Z"
-    },
-    "businessInfo": {
-      "id": "cm9hjgq9v00014qk8fsdy4ujv",
-      "name": "L'Altra Italia(ESP)",
-      "businessType": "ECOMMERCE",
-      "plan": "PREMIUM",
-      "whatsappPhoneNumber": "+34654728753",
-      "whatsappApiKey": "your-whatsapp-api-key",
-      "language": "it",
-      "currency": "EUR",
-      "timezone": "Europe/Rome",
-      "isActive": true,
-      "url": "https://laltroitalia.shop",
-      "notificationEmail": "admin@laltroitalia.shop",
-      "description": "Prodotti alimentari italiani di alta qualità",
-      "welcomeMessages": {
-        "en": "Welcome! How can I help you today?",
-        "es": "¡Bienvenido! ¿En qué puedo ayudarte hoy?",
-        "it": "Benvenuto! Come posso aiutarti oggi?",
-        "fr": "Bienvenue! Comment puis-je vous aider aujourd'hui?",
-        "de": "Willkommen! Wie kann ich Ihnen heute helfen?",
-        "pt": "Bem-vindo! Em que posso ajudá-lo hoje?"
+[
+  {
+    "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+    "phoneNumber": "393451234567",
+    "messageContent": "Ciao, chi sei?",
+    "sessionToken": "test-session-123",
+    "precompiledData": {
+      "agentConfig": {
+        "id": "agent-config-test",
+        "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+        "model": "openai/gpt-4o-mini",
+        "temperature": 0.7,
+        "maxTokens": 1000,
+        "topP": 0.9,
+        "prompt": "# 🤖 Assistente Virtuale – L'Altra Italia\n\nSei **l'assistente virtuale ufficiale de 'L'Altra Italia'**, un ristorante e rivenditore specializzato in autentici prodotti italiani, con sede a **Cervelló, Barcellona**.\n\n🌐 **Sito web**: https://laltrait.com/\n📍 **Indirizzo**: C/ Ull de Llebre 7, 08758, Cervelló (Barcelona)\n📞 **Telefono**: (+34) 93 15 91 221\n📧 **Email**: info@laltrait.com\n\n## 🧠 Competenze dell'Assistente\n\nHai accesso a un motore di ricerca intelligente per fornire informazioni dettagliate su:\n- 🛒 Prodotti → Catalogo, prezzi, descrizioni, disponibilità\n- 🛎️ Servizi → Servizi offerti con dettagli e costi\n- ❓ FAQ → Domande frequenti e politiche aziendali\n- 📄 Documenti → Normative, documenti legali e aziendali\n- 🏢 Informazioni aziendali → Orari, contatti, dati societari\n\nOgni volta che l'utente fa una domanda in uno di questi ambiti, chiama la funzione: searchRag(query)\n\n## 🛍️ Gestione Ordini\nSe l'utente desidera fare un ordine (esempi: 'vorrei ordinare', 'aggiungi al carrello', 'fammi un ordine'), raccogli i dettagli dell'ordine:\n- Prodotti richiesti\n- Quantità\n- Eventuali preferenze\n- Dati di recapito (se necessari)\nPoi chiama la funzione: newOrder(orderDetails)\n\n## ☎️ Richiesta Operatore\nSe l'utente dice frasi come: 'voglio parlare con un operatore', 'serve aiuto umano', 'chiama qualcuno'...\nChiama subito la funzione: callOperator()\nGli operatori sono disponibili dal lunedì al venerdì, dalle 09:00 alle 18:00.\n\n## 🚨 Messaggio Urgente\nSe l'utente chiede di inviare un messaggio urgente (es. 'è urgente', 'devo contattare subito qualcuno'), invitalo a compilare il modulo ufficiale di contatto:\nFormulario urgente: https://laltrait.com/contacto/\nNota: Gli operatori rispondono dal lunedì al venerdì, dalle 9:00 alle 18:00.\n\n## 🌍 Lingua dell'Utente\nL'assistente deve parlare automaticamente la lingua dell'utente, rilevando la lingua utilizzata nella conversazione. Adatta le risposte alla lingua per garantire comprensione e comfort all'utente.\n\n## 🧾 Testi Istituzionali\n### 🧑‍🍳 Quiénes somos\nVisión por la excelencia, a través de la passione e sforzo diario.\nTrabajiamo con piccoli artigiani con rispetto per la materia prima, tradizione e origine.\nPer questo, ci definiamo come veri 'Ambasciatori del gusto.'\n### ⚖️ Avviso Legale\nConsulta le informazioni legali dell'azienda qui: https://laltrait.com/aviso-legal/\n\n## 📌 Contatti\nIndirizzo: C/ Ull de Llebre 7, 08758, Cervelló (Barcelona)\nTelefono: (+34) 93 15 91 221\nEmail: info@laltrait.com\nSito web: https://laltrait.com/\n\n## 🗣️ Tono e Stile\n- Professionale, cortese e cordiale\n- Linguaggio naturale ma competente\n- Risposte brevi ma informative\n- Invita all'azione se serve (es. 'vuoi che ti aiuti a trovare un prodotto?')\n",
+        "isActive": true
       },
-      "wipMessages": {
-        "en": "Work in progress. Please contact us later.",
-        "es": "Trabajos en curso. Por favor, contáctenos más tarde.",
-        "it": "Lavori in corso. Contattaci più tardi.",
-        "fr": "Travaux en cours. Veuillez nous contacter plus tard.",
-        "de": "Arbeiten im Gange. Bitte kontaktieren Sie uns später.",
-        "pt": "Em manutenção. Por favor, contacte-nos mais tarde."
-      },
-      "afterRegistrationMessages": {
-        "en": "Registration completed successfully. Hello [nome], how can I help you today?",
-        "es": "Registro completado con éxito. Hola [nome], ¿en qué puedo ayudarte hoy?",
-        "it": "Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?",
-        "fr": "Enregistrement effectué avec succès. Bonjour [nome], en quoi puis-je vous aider aujourd'hui ?",
-        "de": "Registrierung erfolgreich abgeschlossen. Hallo [nome], wie kann ich Ihnen heute helfen?",
-        "pt": "Registro concluído com sucesso. Olá [nome], em que posso ajudá-lo hoje?"
-      },
-      "createdAt": "2024-06-19T10:00:00.000Z",
-      "updatedAt": "2024-06-19T15:30:00.000Z"
-    },
-    "conversationHistory": [
-      {
-        "id": "msg-1",
-        "content": "Ciao! Come posso aiutarti oggi?",
-        "role": "assistant",
-        "timestamp": "2024-06-19T15:25:00.000Z"
-      },
-      {
-        "id": "msg-2",
-        "content": "Salve, sto cercando dei formaggi",
-        "role": "user",
-        "timestamp": "2024-06-19T15:26:00.000Z"
-      },
-      {
-        "id": "msg-3",
-        "content": "Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?",
-        "role": "assistant",
-        "timestamp": "2024-06-19T15:26:30.000Z"
+      "customer": {
+        "id": "test-customer-123",
+        "name": "Andrea Test User",
+        "email": "test@shopme.com",
+        "phone": "393451234567",
+        "language": "IT",
+        "isActive": true,
+        "isBlacklisted": false,
+        "activeChatbot": true,
+        "businessName": "L'Altra Italia(ESP)",
+        "businessType": "ECOMMERCE",
+        "conversationHistory": [
+          {
+            "id": "msg-1",
+            "content": "Ciao",
+            "role": "user",
+            "timestamp": "2025-06-25T15:00:00.000Z"
+          },
+          {
+            "id": "msg-2",
+            "content": "Ciao! Come posso aiutarti oggi?",
+            "role": "assistant",
+            "timestamp": "2025-06-25T15:00:01.000Z"
+          }
+        ]
       }
-    ],
+    },
     "wipMessages": {
-      "it": "Sto elaborando la tua richiesta, un momento per favore...",
-      "en": "Processing your request, please wait a moment...",
-      "es": "Procesando tu solicitud, por favor espera un momento...",
-      "fr": "Je traite votre demande, veuillez patienter un moment...",
-      "de": "Ich bearbeite Ihre Anfrage, bitte warten Sie einen Moment...",
-      "pt": "Processando sua solicitação, aguarde um momento por favor..."
-    },
-    "welcomeMessages": {
-      "it": "Benvenuto! Per offrirti un servizio personalizzato, ti invitiamo a completare la registrazione: {registrationLink}",
-      "en": "Welcome! To provide you with personalized service, please complete the registration: {registrationLink}",
-      "es": "¡Bienvenido! Para ofrecerte un servicio personalizado, te invitamos a completar el registro: {registrationLink}",
-      "fr": "Bienvenue ! Pour vous offrir un service personnalisé, nous vous invitons à compléter l'inscription : {registrationLink}",
-      "de": "Willkommen! Um Ihnen einen personalisierten Service zu bieten, laden wir Sie ein, die Registrierung abzuschließen: {registrationLink}",
-      "pt": "Bem-vindo! Para oferecer um serviço personalizado, convidamos você a completar o registro: {registrationLink}"
-    },
-    "afterRegistrationMessages": {
-      "it": "Grazie per esserti registrato! Ora puoi accedere a tutti i nostri servizi. Come posso aiutarti?",
-      "en": "Thank you for registering! You can now access all our services. How can I help you?",
-      "es": "¡Gracias por registrarte! Ahora puedes acceder a todos nuestros servicios. ¿Cómo puedo ayudarte?",
-      "fr": "Merci de vous être inscrit ! Vous pouvez maintenant accéder à tous nos services. Comment puis-je vous aider ?",
-      "de": "Danke für Ihre Registrierung! Sie können jetzt auf alle unsere Dienste zugreifen. Wie kann ich Ihnen helfen?",
-      "pt": "Obrigado por se registrar! Agora você pode acessar todos os nossos serviços. Como posso ajudá-lo?"
-    }
-  },
-  "metadata": {
-    "timestamp": "2024-06-19T15:36:10.004Z",
-    "source": "whatsapp",
-    "apiVersion": "v1.0",
-    "securityChecks": {
-      "apiLimitPassed": true,
-      "spamDetectionPassed": true,
-      "blacklistCheck": false,
-      "operatorControl": false
-    },
-    "performance": {
-      "securityGatewayTime": "5ms",
-      "precompilationTime": "12ms",
-      "totalProcessingTime": "17ms"
+      "en": "Work in progress. Please contact us later.",
+      "es": "Trabajos en curso. Por favor, contáctenos más tarde.",
+      "it": "Lavori in corso. Contattaci più tardi.",
+      "fr": "Travaux en cours. Veuillez nous contacter plus tard.",
+      "de": "Arbeiten im Gange. Bitte kontaktieren Sie uns später.",
+      "pt": "Em manutenção. Por favor, contacte-nos mais tarde."
     }
   }
-}
+]
