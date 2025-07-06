@@ -35,14 +35,7 @@
 - [ ] **Database Schema**: Tabella `invoices` con relazioni customer/workspace
 - [ ] **Secure Download Links**: Token temporanei per download sicuro PDF
 
-### 🎫 **TICKETING SYSTEM** (HIGH PRIORITY)
-- [ ] **Plan-Based Ticketing**: Solo Professional+ hanno accesso
-- [ ] **Automatic Creation**: Detect richieste supporto umano
-- [ ] **Ticket Categories**: Support, Sales, Technical, Billing
-- [ ] **Status Tracking**: New, Assigned, In Progress, Waiting, Resolved, Closed
-- [ ] **SLA Management**: Response time tracking per piano
-- [ ] **Operator Assignment**: Skill-based operator allocation
-- [ ] **Ticket Dashboard**: Admin interface per gestione ticket
+
 
 ### � **SUBSCRIPTION PLANS & BILLING** (HIGH PRIORITY)
 - [ ] **Pay-Per-Use Billing**: €59/month + €0.005/messaggio oltre 1000
@@ -195,10 +188,9 @@
 
 ### 🔥 **READY TO START (può iniziare subito)**
 1. **ReceiveInvoice Calling Function** - Implementazione CF per gestione fatture
-2. **Ticketing System Database** - Schema tabelle per ticket
-3. **Subscription Plans Limits** - Enforcement limiti per piano
-4. **Plan-Based AI Prompts** - Sistema prompt diversi per piano
-5. **Security Headers** - Implementazione header OWASP
+2. **Subscription Plans Limits** - Enforcement limiti per piano
+3. **Plan-Based AI Prompts** - Sistema prompt diversi per piano
+4. **Security Headers** - Implementazione header OWASP
 
 ### ⚡ **HIGH IMPACT (maggior valore business)**
 1. **Pay-Per-Use Billing** - Sistema billing €0.005/messaggio
@@ -218,10 +210,10 @@
 
 ## 🎉 **SUMMARY TASK COUNT**
 - **✅ COMPLETATI**: 12 task
-- **🔥 CRITICAL MISSING**: 35 task (dal PRD)
+- **🔥 CRITICAL MISSING**: 28 task (dal PRD)
 - **⚡ E-COMMERCE CORE**: 24 task
 - **📊 ANALYTICS & DASHBOARD**: 12 task
 - **🏗️ INFRASTRUCTURE**: 18 task
-- **📋 TOTALE DA FARE**: 89 task
+- **📋 TOTALE DA FARE**: 82 task
 
 **STIMA TEMPO TOTALE**: 6-8 mesi per completamento completo sistema enterprise-level come specificato nel PRD.
