@@ -61,7 +61,7 @@ export const getAllForWorkspace = async (workspaceId: string): Promise<Client[]>
       throw new Error("WorkspaceId is required for getAllForWorkspace")
     }
 
-    const requestUrl = `/customers?workspaceId=${workspaceId}`
+    const requestUrl = `/workspaces/${workspaceId}/customers`
     const response = await api.get<ClientsResponse>(requestUrl)
     
     if (!response.data) {

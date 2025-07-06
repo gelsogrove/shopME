@@ -44,6 +44,7 @@ services:
       - SHOPME_API_URL=http://host.docker.internal:3001
       - INTERNAL_API_SECRET=internal_api_secret_n8n_shopme_2024
       - FRONTEND_URL=http://localhost:3000
+      - BACKEND_API_URL=http://host.docker.internal:3001
       
       # 🗄️ Database Settings
       - N8N_DATABASE_TYPE=sqlite

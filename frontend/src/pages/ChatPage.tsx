@@ -203,10 +203,12 @@ export function ChatPage() {
         }
       }
 
+      // 🚨 ANDREA LOOP FIX: Don't auto-select first chat to prevent potential loops
       // As a fallback, select the first chat
-      if (!selectedChat) {
-        selectChat(chats[0])
-      }
+      // if (!selectedChat) {
+      //   selectChat(chats[0])
+      // }
+      console.log("🚨 LOOP PREVENTION: Not auto-selecting first chat to prevent potential loops")
     }
   }, [chats, selectedChat, sessionId, clientSearchTerm])
 

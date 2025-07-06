@@ -2,12 +2,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AuthLogo } from "@/components/ui/auth-logo"
 import { Button } from "@/components/ui/button"
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card"
 import {
   Form,
@@ -63,20 +63,15 @@ export function LoginPage() {
       const response = await auth.login(data)
       console.log("Login successful:", response.data)
 
-      // Salva solo le informazioni dell'utente (senza token)
       if (response.data && response.data.user) {
         localStorage.setItem("user", JSON.stringify(response.data.user))
+        toast.success("Login successful!")
 
-        // Mostro toast di successo
-        toast.success("Login effettuato con successo")
-
-        // Aggiungo un breve ritardo per dare tempo ai cookie di essere salvati
         setTimeout(() => {
-          // Naviga alla selezione del workspace
           navigate("/workspace-selection")
         }, 300)
       } else {
-        throw new Error("Formato di risposta dal server non valido")
+        throw new Error("Invalid response format from the server.")
       }
     } catch (err: any) {
       console.error("Login error:", err)
@@ -86,7 +81,7 @@ export function LoginPage() {
         err.response?.data?.error ||
         err.response?.data?.message ||
         err.message ||
-        "Login fallito. Controlla le tue credenziali."
+        "Login failed. Please check your credentials."
 
       setError(errorMsg)
       toast.error(errorMsg)
