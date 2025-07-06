@@ -1,25 +1,56 @@
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import AuthLogo from "@/components/ui/auth-logo"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AuthLogo } from "@/components/ui/auth-logo"
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { AlertTriangle } from "lucide-react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Loader2 } from "lucide-react"
 import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
+import * as z from "zod"
 import { auth } from "../services/api"
 
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+})
+
+type LoginForm = z.infer<typeof loginSchema>
+
 export function LoginPage() {
-  // Prefill credentials only in development
-  const isDev = import.meta.env.MODE === "development"
-  const [email, setEmail] = useState(isDev ? "admin@shopme.com" : "")
-  const [password, setPassword] = useState(isDev ? "Venezia44" : "")
-  const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
   const navigate = useNavigate()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // Prefill credentials only in development
+  const isDev = import.meta.env.MODE === "development"
+
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: isDev ? "admin@shopme.com" : "",
+      password: isDev ? "venezia44" : "",
+    },
+  })
+
+  const onSubmit = async (data: LoginForm) => {
     setError("")
     setIsLoading(true)
 
@@ -29,7 +60,8 @@ export function LoginPage() {
 
     try {
       // Usa await esplicitamente e salva la risposta
-      const response = await auth.login({ email, password })
+      const response = await auth.login(data)
+      console.log("Login successful:", response.data)
 
       if (response.data && response.data.user) {
         localStorage.setItem("user", JSON.stringify(response.data.user))
@@ -59,80 +91,99 @@ export function LoginPage() {
   }
 
   return (
-    <div className="w-full lg:grid lg:min-h-[100vh] lg:grid-cols-2 xl:min-h-[100vh]">
-      <div className="flex items-center justify-center py-12">
-        <div className="mx-auto grid w-[350px] gap-6">
-          <div className="grid gap-2 text-center">
-            <AuthLogo />
-            <h1 className="text-3xl font-bold">Welcome Back</h1>
-            <p className="text-balance text-muted-foreground">
-              Enter your credentials to access your workspace
-            </p>
-          </div>
+    <div className="auth-background">
+      <AuthLogo />
+      <div className="container mx-auto px-4 flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md font-system bg-white/95 backdrop-blur-sm shadow-xl">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">
+              Welcome Back
+            </CardTitle>
+            <CardDescription className="text-center">
+              Sign in to your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
 
-            {error && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Login Error</AlertTitle>
-              <AlertDescription>
-                {error}
-              </AlertDescription>
-            </Alert>
-            )}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="admin@shopme.com"
+                          type="email"
+                          autoComplete="username"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          <form onSubmit={handleSubmit} className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-                autoComplete="username"
-              />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  to="/forgot-password"
-                  className="ml-auto inline-block text-sm underline"
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="••••••••"
+                          type="password"
+                          autoComplete="current-password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  className="w-full bg-green-500 hover:bg-green-600 text-white font-medium"
+                  disabled={isLoading}
                 >
-                  Forgot your password?
-                </Link>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-                autoComplete="current-password"
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link to="/signup" className="underline">
-              Sign up
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Sign In
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-2">
+            <Link
+              to="/auth/forgot-password"
+              className="text-sm text-green-500 hover:text-green-600 hover:underline"
+            >
+              Forgot your password?
             </Link>
-          </div>
-        </div>
-      </div>
-      <div className="hidden bg-muted lg:block">
-        <div className="flex h-full w-full flex-col items-center justify-center bg-gray-900 text-white p-12">
-          <h2 className="mt-6 text-4xl font-bold tracking-tight">Conversational E-commerce, Reimagined</h2>
-          <p className="mt-4 text-lg text-gray-300 max-w-xl text-center">
-            Power your business with an AI-driven sales agent that understands, assists, and sells, directly on WhatsApp.
-          </p>
-        </div>
+            <p className="text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Link
+                to="/auth/signup"
+                className="text-green-500 hover:text-green-600 hover:underline"
+              >
+                Sign up
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   )
