@@ -134,6 +134,7 @@ model Customers {
   chatSessions                  ChatSession[]
   workspace                     Workspace     @relation(fields: [workspaceId], references: [id])
   orders                        Orders[]
+  usage                         Usage[]
 
   @@map("customers")
 }
