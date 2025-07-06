@@ -1,12 +1,13 @@
-import { MessageRepository } from '../../../repositories/message.repository';
 import { N8nPayloadBuilder } from '../../../utils/n8n-payload-builder';
 
 // Mock the MessageRepository import
+const mockSaveMessage = jest.fn().mockResolvedValue(true);
+
 jest.mock('../../../repositories/message.repository', () => {
   return {
     MessageRepository: jest.fn().mockImplementation(() => {
       return {
-        saveMessage: jest.fn().mockResolvedValue(true)
+        saveMessage: mockSaveMessage
       };
     })
   };
@@ -24,6 +25,7 @@ global.fetch = jest.fn().mockImplementation(() => {
 describe('N8nPayloadBuilder', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSaveMessage.mockResolvedValue(true);
   });
 
   describe('saveMessageToHistory', () => {
@@ -45,12 +47,9 @@ describe('N8nPayloadBuilder', () => {
       // Verify the result
       expect(result).toBe(true);
       
-      // Get the mock instance
-      const messageRepositoryInstance = new MessageRepository();
-      
       // Verify saveMessage was called with correct parameters
-      expect(messageRepositoryInstance.saveMessage).toHaveBeenCalledTimes(1);
-      expect(messageRepositoryInstance.saveMessage).toHaveBeenCalledWith({
+      expect(mockSaveMessage).toHaveBeenCalledTimes(1);
+      expect(mockSaveMessage).toHaveBeenCalledWith({
         workspaceId,
         phoneNumber,
         message: userMessage,
@@ -60,17 +59,8 @@ describe('N8nPayloadBuilder', () => {
     });
     
     it('should handle errors gracefully', async () => {
-      // Mock implementation for this test only
-      const mockSaveMessage = jest.fn().mockRejectedValue(new Error('Test error'));
-      jest.mock('../../../repositories/message.repository', () => {
-        return {
-          MessageRepository: jest.fn().mockImplementation(() => {
-            return {
-              saveMessage: mockSaveMessage
-            };
-          })
-        };
-      });
+      // Mock error for this test
+      mockSaveMessage.mockRejectedValueOnce(new Error('Test error'));
       
       // Test data
       const workspaceId = 'test-workspace-id';

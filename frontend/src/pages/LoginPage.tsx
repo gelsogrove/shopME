@@ -1,8 +1,9 @@
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AuthLogo } from "@/components/ui/auth-logo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { AlertTriangle, Globe, MessageSquare, ShoppingCart, Zap } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -31,7 +32,7 @@ export function LoginPage() {
     defaultValues: {
       email: isDev ? "admin@shopme.com" : "",
       password: isDev ? "venezia44" : "",
-    },
+    } as LoginForm,
   })
 
   const onSubmit = async (data: LoginForm) => {
@@ -74,6 +75,8 @@ export function LoginPage() {
     }
   }
 
+  const { handleSubmit, register, formState: { errors } } = form
+
   return (
     <div className="w-full lg:grid lg:min-h-[100vh] lg:grid-cols-2 xl:min-h-[100vh]">
       {/* Left side - Login Form */}
@@ -99,33 +102,35 @@ export function LoginPage() {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="m@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {...register("email")}
                 disabled={isLoading}
                 autoComplete="username"
                 className="h-11"
               />
+              {errors.email && (
+                <p className="text-sm text-red-500">{errors.email.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                {...register("password")}
                 disabled={isLoading}
                 autoComplete="current-password"
                 className="h-11"
               />
+              {errors.password && (
+                <p className="text-sm text-red-500">{errors.password.message}</p>
+              )}
             </div>
             
             {/* Forgot Password Link - Better positioned */}

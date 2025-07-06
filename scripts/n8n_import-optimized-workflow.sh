@@ -79,94 +79,31 @@ else
     echo "✅ Nessun workflow rimasto - database pulito!"
 fi
 
-echo "🔄 Step 4: Creo il workflow SEMPLICE..."
+echo "🔄 Step 4: Importo il workflow di Andrea..."
 
-# Create a temporary JSON file for the workflow
-cat > /tmp/simple_workflow.json << 'EOF'
-{
-  "id": "5lbTwPUliRkFXSPN",
-  "name": "Andrea Simple Workflow",
-  "active": true,
-  "nodes": [
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "webhook-start",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "id": "webhook-trigger",
-      "name": "Webhook Trigger",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
-      "position": [180, 300],
-      "webhookId": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-    },
-    {
-      "parameters": {
-        "jsCode": "const payload = $input.first().json;\nlet prompt = 'Prompt not found';\nif (payload.precompiledData && payload.precompiledData.agentConfig && payload.precompiledData.agentConfig.prompt) {\n  prompt = payload.precompiledData.agentConfig.prompt;\n}\nreturn prompt;"
-      },
-      "id": "extract-prompt", 
-      "name": "Extract Prompt",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [380, 300]
-    },
-    {
-      "parameters": {
-        "respondWith": "text",
-        "responseBody": "={{ $json }}"
-      },
-      "id": "webhook-response",
-      "name": "Return Response",
-      "type": "n8n-nodes-base.respondToWebhook", 
-      "typeVersion": 1,
-      "position": [580, 300]
-    }
-  ],
-  "connections": {
-    "Webhook Trigger": {
-      "main": [
-        [
-          {
-            "node": "Extract Prompt",
-            "type": "main", 
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Prompt": {
-      "main": [
-        [
-          {
-            "node": "Return Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "pinData": {},
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "staticData": null,
-  "tags": [],
-  "triggerCount": 1,
-  "versionId": "andrea-simple-v1"
-}
-EOF
+# Usa il file workflow di Andrea
+WORKFLOW_FILE="/Users/gelso/workspace/AI/shop/n8n/shopme-whatsapp-workflow.json"
 
-echo "📤 Importo il workflow..."
+if [ ! -f "$WORKFLOW_FILE" ]; then
+    echo "❌ File workflow non trovato: $WORKFLOW_FILE"
+    exit 1
+fi
+
+echo "📤 Importo il workflow da: $WORKFLOW_FILE"
 IMPORT_RESPONSE=$(curl -s -b "$COOKIE_FILE" -X POST "$N8N_URL/rest/workflows" \
   -H "Content-Type: application/json" \
-  -d @/tmp/simple_workflow.json)
+  -d @"$WORKFLOW_FILE")
 
 if echo "$IMPORT_RESPONSE" | grep -q "error\|Error"; then
     echo "❌ Errore import workflow: $IMPORT_RESPONSE"
     exit 1
+fi
+
+# Estraggo l'ID del workflow dalla risposta
+if command -v jq >/dev/null 2>&1; then
+    WORKFLOW_ID=$(echo "$IMPORT_RESPONSE" | jq -r '.id // .data.id // empty')
+else
+    WORKFLOW_ID=$(echo "$IMPORT_RESPONSE" | grep -o '"id":"[^"]*"' | head -1 | sed 's/"id":"\([^"]*\)"/\1/')
 fi
 
 echo "✅ Workflow importato con ID: $WORKFLOW_ID"
@@ -215,6 +152,6 @@ else
 fi
 
 # Cleanup
-rm -f "$COOKIE_FILE" /tmp/simple_workflow.json /tmp/test_payload.json
+rm -f "$COOKIE_FILE" /tmp/test_payload.json
 
 echo "🎯 SCRIPT COMPLETATO!" 

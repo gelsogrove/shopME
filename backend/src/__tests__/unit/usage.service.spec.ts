@@ -1,22 +1,21 @@
-import { usageService } from '../../services/usage.service';
-import { PrismaClient } from '@prisma/client';
+// Mock PrismaClient constructor
+const mockPrisma = {
+  customers: {
+    findUnique: jest.fn(),
+  },
+  usage: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    aggregate: jest.fn(),
+  },
+  $disconnect: jest.fn(),
+};
 
-// Mock Prisma
 jest.mock('@prisma/client', () => ({
-  PrismaClient: jest.fn(() => ({
-    customers: {
-      findUnique: jest.fn(),
-    },
-    usage: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      aggregate: jest.fn(),
-    },
-    $disconnect: jest.fn(),
-  })),
+  PrismaClient: jest.fn().mockImplementation(() => mockPrisma),
 }));
 
-const mockPrisma = new PrismaClient() as jest.Mocked<PrismaClient>;
+import { usageService } from '../../services/usage.service';
 
 describe('UsageService', () => {
   beforeEach(() => {

@@ -1,15 +1,15 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  ShoppingCart, 
-  Euro, 
-  Users, 
-  MessageCircle,
-  TrendingUp,
-  TrendingDown,
-  Minus
-} from 'lucide-react';
 import { DashboardAnalytics } from '@/services/analyticsApi';
+import {
+    Euro,
+    MessageCircle,
+    Minus,
+    ShoppingCart,
+    TrendingDown,
+    TrendingUp,
+    Users
+} from 'lucide-react';
+import React from 'react';
 
 interface MetricsOverviewProps {
   analytics: DashboardAnalytics;
@@ -102,6 +102,15 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
     return `${value.toFixed(1)}%`;
   };
 
+  const formatUsageCost = (value: number): string => {
+    return new Intl.NumberFormat('it-IT', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4
+    }).format(value);
+  };
+
   const metrics = [
     {
       title: "Ordini Totali",
@@ -142,6 +151,16 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
         ? calculateTrend(analytics.overview.totalMessages, previousPeriodAnalytics.overview.totalMessages)
         : undefined,
       description: "Messaggi scambiati con i clienti"
+    },
+    {
+      title: "Costo LLM",
+      value: analytics.overview.usageCost,
+      icon: <Euro className="h-4 w-4 text-orange-500" />,
+      formatter: formatUsageCost,
+      trend: previousPeriodAnalytics 
+        ? calculateTrend(analytics.overview.usageCost, previousPeriodAnalytics.overview.usageCost)
+        : undefined,
+      description: "€0.005 per risposta LLM (Andrea's tracking)"
     }
   ];
 
@@ -181,7 +200,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
       {/* Main Metrics */}
       <div>
         <h3 className="text-lg font-semibold mb-4">Metriche Principali</h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {metrics.map((metric) => (
             <MetricCard
               key={metric.title}

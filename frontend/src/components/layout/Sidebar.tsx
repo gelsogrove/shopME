@@ -2,6 +2,7 @@ import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
 import { cn } from "@/lib/utils"
 import {
+    BarChart3,
     FileText,
     HelpCircle,
     LucideIcon,
@@ -63,6 +64,11 @@ export function Sidebar() {
       label: "Chat History",
       icon: MessageSquare,
       badge: totalUnreadMessages > 0 ? totalUnreadMessages : undefined,
+    },
+    {
+      href: "/analytics",
+      label: "Analytics",
+      icon: BarChart3,
     },
     {
       href: "/clients",

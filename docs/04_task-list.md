@@ -6,13 +6,6 @@
 - [x] **Single Source of Truth**: PRD.md ora contiene tutta la documentazione tecnica completa
 - [x] **Table of Contents**: Aggiornato indice con nuove sezioni consolidate
 
-## ✅ **USAGE TRACKING FRONTEND FIX** (COMPLETATO)
-- [x] **Analytics API**: Aggiunto campo `usageCost` all'interfaccia `DashboardAnalytics`
-- [x] **Backend Service**: Esteso `AnalyticsService` per includere calcolo costi LLM (€0.005)
-- [x] **Frontend Dashboard**: Aggiunta carta "Costo LLM" con formatter €0.0000 precision
-- [x] **Grid Layout**: Aggiornato layout per supportare 5 metriche (xl:grid-cols-5)
-- [x] **Compilation**: Backend e Frontend compilano correttamente
-
 ## 💳 **PAGAMENTO ONLINE & CHECKOUT**
 
 ### 🛒 **Sistema Ordini Completo**
