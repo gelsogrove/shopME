@@ -14,20 +14,20 @@
 - [x] **Compilation**: Backend e Frontend compilano correttamente
 - [x] **Engagement Metrics**: Rimosso sezione "Engagement e Qualità" come richiesto
 
-## 🎨 **ANALYTICS UI/UX IMPROVEMENTS** (DA FARE)
-- [ ] **Rimuovi Date Range Selector**: Eliminare il componente di selezione range date
-- [ ] **Rimuovi InfoBox**: Eliminare la sezione "Informazioni sul periodo di default"
-- [ ] **Migliora Grafica**: Redesign componenti analytics per look più moderno
-- [ ] **Semplifica Layout**: Layout più pulito senza elementi di configurazione
-- [ ] **Default Period**: Usare sempre periodo default senza opzioni utente
-- [ ] **Rimuovi Fatturato**: Eliminare completamente la carta "Fatturato" dal dashboard
-- [ ] **Fix Costo LLM Format**: Cambiare da €0.0000 a €0.00 (solo 2 decimali)
+## ✅ **ANALYTICS UI/UX IMPROVEMENTS** (COMPLETATO - Andrea's small-changes)
+- [x] **Rimuovi Date Range Selector**: Eliminato il componente di selezione range date
+- [x] **Rimuovi InfoBox**: Eliminata la sezione "Informazioni sul periodo di default"
+- [x] **Rimuovi Fatturato**: Eliminata completamente la carta "Fatturato" dal dashboard
+- [x] **Fix Costo LLM Format**: Cambiato da €0.0000 a €0.00 (solo 2 decimali)
+
+## ✅ **UI/UX FIXES GENERALI** (COMPLETATO - Andrea's small-changes)
+- [x] **Disabilita Link Plans**: Disabilitato il link a http://localhost:3000/plans
+- [x] **Fix Products Upload Form**: Aggiunta possibilità di disattivare prodotti nella form di upload
+- [x] **Rimuovi User Info Header**: Nascosto iniziali nome+cognome+piano in alto a destra
+- [x] **Fix Customers Active Toggle**: Risolto problema toggle Active/Inactive nella form clienti
 
 ## 🔧 **UI/UX FIXES GENERALI** (DA FARE)
-- [ ] **Disabilita Link Plans**: Rimuovere/disabilitare il link a http://localhost:3000/plans
 - [ ] **GDPR Upload per Clienti**: Aggiungere possibilità per clienti di fare upload e enable GDPR
-- [ ] **Fix Products Upload Form**: Aggiungere possibilità di disattivare prodotti nella form di upload
-- [ ] **Rimuovi User Info Header**: Commentare/nascondere iniziali nome+cognome+piano in alto a destra
 - [ ] **Documents Toggle Frontend**: Aggiungere toggle per attivare/disattivare documenti nel FE come altre parti
 
 ## 💳 **PAGAMENTO ONLINE & CHECKOUT**

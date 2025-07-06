@@ -46,7 +46,7 @@ const clientToCustomer = (client: Client): Customer => ({
   totalOrders: 0, // This would come from orders API
   totalSpent: 0, // This would come from orders API
   lastActive: client.updatedAt,
-  status: "active", // Assuming all clients are active
+  status: client.isActive ? "active" : "inactive", // Use actual isActive field
   gdprConsent: true, // Assuming GDPR consent for existing clients
   pushNotificationsConsent: false, // Default value
   activeChatbot: client.activeChatbot || false,
@@ -174,6 +174,7 @@ export default function CustomersPage() {
           company: formState.company || "",
           discount: formState.discount,
           language: "en", // Default language
+          isActive: formState.status === "active",
         }
         
         const updatedClient = await clientsApi.update(selectedCustomerId, clientData, workspace.id)
@@ -195,6 +196,7 @@ export default function CustomersPage() {
           company: formState.company || "",
           discount: formState.discount,
           language: "en", // Default language
+          isActive: formState.status === "active",
         }
         
         const newClient = await clientsApi.create(clientData, workspace.id)
