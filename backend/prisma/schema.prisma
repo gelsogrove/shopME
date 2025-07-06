@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Workspace {
@@ -140,31 +140,43 @@ model Customers {
 }
 
 model Orders {
-  id             String          @id @default(uuid())
-  status         String
-  total          Float
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  customerId     String
-  workspaceId    String
-  items          OrderItems[]
-  customer       Customers       @relation(fields: [customerId], references: [id])
-  workspace      Workspace       @relation(fields: [workspaceId], references: [id])
-  paymentDetails PaymentDetails?
+  id              String         @id @default(uuid())
+  orderCode       String         @unique
+  status          OrderStatus    @default(PENDING)
+  paymentStatus   PaymentStatus  @default(PENDING)
+  paymentMethod   PaymentMethod?
+  totalAmount     Float
+  shippingAmount  Float?         @default(0)
+  taxAmount       Float?         @default(0)
+  shippingAddress Json?
+  billingAddress  Json?
+  notes           String?
+  discountCode    String?
+  discountAmount  Float?         @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  customerId      String
+  workspaceId     String
+  items           OrderItems[]
+  customer        Customers      @relation(fields: [customerId], references: [id])
+  workspace       Workspace      @relation(fields: [workspaceId], references: [id])
+  paymentDetails  PaymentDetails?
 
   @@map("orders")
 }
 
 model OrderItems {
-  id        String   @id @default(uuid())
-  quantity  Int
-  price     Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  orderId   String
-  productId String
-  order     Orders   @relation(fields: [orderId], references: [id])
-  product   Products @relation(fields: [productId], references: [id])
+  id             String   @id @default(uuid())
+  quantity       Int
+  unitPrice      Float
+  totalPrice     Float
+  productVariant Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  orderId        String
+  productId      String
+  order          Orders   @relation(fields: [orderId], references: [id])
+  product        Products @relation(fields: [productId], references: [id])
 
   @@map("order_items")
 }
@@ -596,6 +608,15 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   REFUNDED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+  PAYPAL
+  CASH_ON_DELIVERY
+  CRYPTO
 }
 
 enum MessageDirection {
