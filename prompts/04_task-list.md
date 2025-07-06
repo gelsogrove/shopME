@@ -27,7 +27,6 @@
 - [x] **Fix Customers Active Toggle**: Risolto problema toggle Active/Inactive nella form clienti
 
 ## 🔧 **UI/UX FIXES GENERALI** (DA FARE)
-- [ ] **GDPR Upload per Clienti**: Aggiungere possibilità per clienti di fare upload e enable GDPR
 - [ ] **Documents Toggle Frontend**: Aggiungere toggle per attivare/disattivare documenti nel FE come altre parti
 
 ## 💳 **PAGAMENTO ONLINE & CHECKOUT**
