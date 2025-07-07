@@ -1,4 +1,4 @@
-# 🚀 SHOPME - TASK LIST E-COMMERCE AVANZATO
+# 🚀 SHOPME - TASK LIST E-COMMERCE ESSENZIALE
 
 ## ✅ **DOCUMENTAZIONE CONSOLIDATA** (COMPLETATO)
 - [x] **PRD.md Update**: Consolidato Usage Tracking, Invoice Management, Two-LLM Architecture e Complete Flow nel PRD.md
@@ -9,224 +9,130 @@
 ## ✅ **USAGE TRACKING FRONTEND FIX** (COMPLETATO)
 - [x] **Analytics API**: Aggiunto campo `usageCost` all'interfaccia `DashboardAnalytics`
 - [x] **Backend Service**: Esteso `AnalyticsService` per includere calcolo costi LLM (€0.005)
-- [x] **Frontend Dashboard**: Aggiunta carta "Costo LLM" con formatter €0.0000 precision
-- [x] **Grid Layout**: Aggiornato layout per supportare 5 metriche (xl:grid-cols-5)
-- [x] **Compilation**: Backend e Frontend compilano correttamente
-- [x] **Engagement Metrics**: Rimosso sezione "Engagement e Qualità" come richiesto
+- [x] **Frontend Dashboard**: Aggiunta carta "Costo LLM" con formato €0.00 (2 decimali)
+- [x] **Usage Tracking**: Sistema automatico di tracking €0.005 per messaggio LLM
+- [x] **Business Intelligence**: Metriche complete per analisi costi AI
 
-## 🎨 **ANALYTICS UI/UX IMPROVEMENTS** (DA FARE)
-- [ ] **Rimuovi Date Range Selector**: Eliminare il componente di selezione range date
-- [ ] **Rimuovi InfoBox**: Eliminare la sezione "Informazioni sul periodo di default"
-- [ ] **Migliora Grafica**: Redesign componenti analytics per look più moderno
-- [ ] **Semplifica Layout**: Layout più pulito senza elementi di configurazione
-- [ ] **Default Period**: Usare sempre periodo default senza opzioni utente
-- [ ] **Rimuovi Fatturato**: Eliminare completamente la carta "Fatturato" dal dashboard
-- [ ] **Fix Costo LLM Format**: Cambiare da €0.0000 a €0.00 (solo 2 decimali)
+## ✅ **SMALL-CHANGES COMPLETATI** (Andrea's Quick Fixes)
+- [x] **Analytics UI/UX Improvements**: Rimossi Date Range Selector, InfoBox, Fatturato
+- [x] **Fix Costo LLM Format**: Cambiato da €0.0000 a €0.00 (2 decimali)
+- [x] **Disabilitato Link Plans**: Link a plans ora mostra "Plans (Coming Soon)" e disabled
+- [x] **Fix Products Upload Form**: Aggiunto checkbox Active Product funzionante
+- [x] **Nascosto User Info Header**: Commentate iniziali nome+cognome+piano
+- [x] **Fix Customers Active Toggle**: Risolto problema attivazione/disattivazione clienti
+- [x] **Documents Toggle Frontend**: Toggle Active/Inactive già implementato nel form di edit
 
-## 🔧 **UI/UX FIXES GENERALI** (DA FARE)
-- [ ] **Disabilita Link Plans**: Rimuovere/disabilitare il link a http://localhost:3000/plans
-- [ ] **GDPR Upload per Clienti**: Aggiungere possibilità per clienti di fare upload e enable GDPR
-- [ ] **Fix Products Upload Form**: Aggiungere possibilità di disattivare prodotti nella form di upload
-- [ ] **Rimuovi User Info Header**: Commentare/nascondere iniziali nome+cognome+piano in alto a destra
-- [ ] **Documents Toggle Frontend**: Aggiungere toggle per attivare/disattivare documenti nel FE come altre parti
+## 🔥 **CRITICAL MISSING TASKS** (dal PRD - PRIORITÀ ASSOLUTA)
 
-## 💳 **PAGAMENTO ONLINE & CHECKOUT**
+### 📧 **INVOICE MANAGEMENT SYSTEM** (HIGH PRIORITY)
+- [ ] **ReceiveInvoice Calling Function**: Implementare CF che gestisce richieste fatture
+  - [ ] **Con codice ordine**: Restituisce fattura specifica per ordine
+  - [ ] **Senza codice ordine**: Invia link con lista tutte le fatture del cliente
+  - [ ] **Filtro per customer**: Solo fatture del cliente richiedente
+  - [ ] **Sicurezza**: Token-based access per lista fatture
+- [ ] **Pagina Lista Fatture**: Design coerente con registrazione + token security
+- [ ] **Sistema PDF Invoices**: Generazione automatica PDF fatture
+- [ ] **Database Schema**: Tabella `invoices` con relazioni customer/workspace
+- [ ] **Secure Download Links**: Token temporanei per download sicuro PDF
 
-### 🛒 **Sistema Ordini Completo**
-- [ ] **Carrello Smart**: Gestione prodotti nel carrello con quantità e varianti
-- [ ] **Checkout Process**: Flusso completo di checkout con validazione
-- [ ] **Pagamento Online**: Integrazione gateway di pagamento (Stripe/PayPal)
-- [ ] **Conferma Pagamento**: Gestione stati pagamento (pending/success/failed)
+### 💰 **SUBSCRIPTION PLANS & BILLING** (HIGH PRIORITY)
+- [ ] **Pay-Per-Use Billing**: €59/month + €0.005/messaggio oltre 1000
+- [ ] **Real-Time Billing Dashboard**: Conta messaggi in tempo reale
+- [ ] **Usage Limits Enforcement**: Blocco servizio al superamento limiti
+- [ ] **Plan Upgrade Triggers**: Automatic upgrade suggestions
+- [ ] **Stripe Integration**: Pagamenti ricorrenti + overage
+- [ ] **Professional Plan Contact Sales**: Form invece di upgrade diretto
+- [ ] **Plan-Based Feature Limits**: Enforcement limite prodotti/servizi/API
 
-### 📦 **Gestione Spedizioni**
-- [ ] **LLM Spedizione**: LLM ritorna link per inserire indirizzo di spedizione
-- [ ] **Form Indirizzo**: Pagina dedicata per inserimento dettagli spedizione
-- [ ] **Calcolo Spedizione**: Sistema di calcolo costi spedizione automatico
-- [ ] **Tracking Spedizione**: Integrazione con corrieri per tracking
+### 🤖 **PLAN-BASED AI PROMPT SYSTEM** (HIGH PRIORITY)
+- [ ] **Prompt Diversi per Piano**: Free, Basic, Professional, Enterprise
+- [ ] **Upgrade Messaging**: Promozione upgrade nei prompt AI
+- [ ] **Dynamic Prompt Loading**: Cambio prompt automatico su upgrade
+- [ ] **Fallback System**: Prompt default per configurazioni mancanti
+- [ ] **Plan Feature Restrictions**: Disable funzioni per piano inferiore
 
-## 📋 **PAGINE ORDINI & CONFERME**
+### 🔐 **SECURITY IMPLEMENTATION (OWASP)** (HIGH PRIORITY)
+- [ ] **Comprehensive Security Audit**: Valutazione vulnerabilità completa
+- [ ] **JWT Token Security**: Token rotation, blacklisting, secure storage
+- [ ] **Security Headers**: OWASP recommended headers
+- [ ] **Input Validation**: Validazione completa tutti gli input
+- [ ] **SQL Injection Prevention**: Protezione avanzata database
+- [ ] **XSS Protection**: Content Security Policy implementation
+- [ ] **2FA Enhancement**: Two-factor authentication sistema
+- [ ] **Security Monitoring**: Audit logging completo
+- [ ] **Rate Limiting Advanced**: Protezione anti-DDoS
 
-### ✅ **Conferma Ordine**
-- [ ] **Pagina Conferma**: Se clicca va al dettaglio ordine completo
-- [ ] **Conferma Indirizzo**: Visualizzazione e conferma indirizzo spedizione
-- [ ] **Conferma Pagamento**: Visualizzazione metodo di pagamento selezionato
-- [ ] **Riepilogo Finale**: Totali, prodotti, spedizione prima della conferma
+## 🎯 **CORE E-COMMERCE ESSENZIALE** (Andrea's Requirements)
 
-### 📊 **Gestione Ordini Database**
-- [ ] **Tabella Ordini**: Sistema completo per memorizzare tutti gli ordini
-- [ ] **Codice Ordine**: Generazione automatica codici ordine univoci
-- [ ] **Stati Ordine**: Gestione stati (pending/confirmed/shipped/delivered)
-- [ ] **Associazione Cliente**: Collegamento ordini a clienti/workspace
+### 🛒 **Sistema Ordini Database** (BACKEND ONLY)
+- [ ] **Tabelle Core**: orders, order_items, invoices, shipments, payments
+- [ ] **API Endpoints**: CRUD completo per gestione ordini
+- [ ] **Order Status Workflow**: Stati ordine (pending, confirmed, shipped, delivered)
+- [ ] **Unique Order Codes**: Codici ordine univoci per tracking
+- [ ] **Customer Relations**: Collegamento ordini ai clienti
+- [ ] **Inventory Integration**: Aggiornamento stock automatico
 
-## 📄 **FATTURAZIONE & PDF**
-
-### 🧾 **Sistema Fatture**
-- [ ] **Generazione PDF**: Download automatico PDF fattura con codice ordine
-- [ ] **Template Fattura**: Template PDF professionale con dati fiscali
-- [ ] **Link Download**: Sistema link sicuri per download PDF fatture
-- [ ] **Archiviazione**: Storage sicuro PDF fatture per accesso futuro
-
-### 📑 **Pagina Gestione Ordini**
-- [ ] **Lista Ordini**: Pagina con tutti gli ordini del cliente/workspace
-- [ ] **Filtri Ordini**: Filtro per data, stato, importo, prodotti
-- [ ] **Dettaglio Ordine**: Drill-down in dettaglio singolo ordine
-- [ ] **Azioni Ordine**: Annulla, modifica, ristampa fattura
-
-## 🔧 **BACKEND API NECESSARIE**
-
-### 🛒 **Ordini APIs**
-- [ ] `POST /api/orders` - Creazione nuovo ordine
-- [ ] `GET /api/orders/:id` - Dettaglio singolo ordine
-- [ ] `GET /api/orders` - Lista ordini con filtri
-- [ ] `PUT /api/orders/:id/status` - Aggiornamento stato ordine
-- [ ] `DELETE /api/orders/:id` - Cancellazione ordine
-
-### 💳 **Pagamenti APIs**
-- [ ] `POST /api/payments/intent` - Creazione payment intent
-- [ ] `POST /api/payments/confirm` - Conferma pagamento
-- [ ] `GET /api/payments/:id/status` - Stato pagamento
-- [ ] `POST /api/payments/refund` - Gestione rimborsi
-
-### 📦 **Spedizioni APIs**
-- [ ] `POST /api/shipping/calculate` - Calcolo costi spedizione
-- [ ] `POST /api/shipping/create` - Creazione spedizione
-- [ ] `GET /api/shipping/:id/tracking` - Tracking spedizione
-- [ ] `PUT /api/shipping/:id/address` - Aggiornamento indirizzo
-
-### 📄 **Fatture APIs**
-- [ ] `POST /api/invoices/generate` - Generazione fattura PDF
-- [ ] `GET /api/invoices/:orderCode/download` - Download PDF fattura
-- [ ] `GET /api/invoices` - Lista fatture workspace
-- [ ] `GET /api/invoices/:id` - Dettaglio fattura
-
-## 📱 **FRONTEND COMPONENTI**
-
-### 🛒 **Carrello & Checkout**
-- [ ] **CartComponent**: Carrello smart con aggiornamenti real-time
-- [ ] **CheckoutPage**: Pagina checkout con step wizard
-- [ ] **PaymentForm**: Form pagamento integrato con gateway
-- [ ] **OrderSummary**: Riepilogo ordine finale
-
-### 📦 **Spedizioni & Indirizzi**
-- [ ] **ShippingForm**: Form indirizzo spedizione con validazione
-- [ ] **ShippingCalculator**: Calcolatore costi spedizione real-time
-- [ ] **AddressConfirm**: Componente conferma indirizzo
-- [ ] **TrackingDisplay**: Visualizzazione stato spedizione
-
-### 📋 **Ordini & Fatture**
-- [ ] **OrdersPage**: Pagina lista ordini con filtri e ricerca
+### 📦 **GESTIONE ORDINI FRONTEND** (ESSENZIALE)
+- [ ] **OrdersPage**: Pagina lista ordini con filtri basic
 - [ ] **OrderDetail**: Pagina dettaglio singolo ordine
-- [ ] **InvoicesList**: Lista fatture con download links
-- [ ] **OrderConfirmation**: Pagina conferma ordine post-checkout
+- [ ] **Order Status Display**: Visualizzazione stato ordine semplice
+- [ ] **Customer Order History**: Storico ordini cliente
 
-## 🗄️ **DATABASE SCHEMA**
+### 💳 **PAGINA PAGAMENTO** (ESSENZIALE)
+- [ ] **PaymentPage**: Pagina dedicata per processo pagamento
+- [ ] **Payment Form**: Form selezione metodo pagamento
+- [ ] **Stripe Integration**: Integrazione gateway Stripe
+- [ ] **Payment Confirmation**: Conferma pagamento con redirect
+- [ ] **Payment Status Tracking**: Tracking stato pagamento real-time
 
-### 📊 **Tabelle Nuove**
-```sql
--- Tabella Ordini
-CREATE TABLE orders (
-  id UUID PRIMARY KEY,
-  orderCode VARCHAR(20) UNIQUE NOT NULL,
-  workspaceId UUID REFERENCES workspaces(id),
-  customerId UUID REFERENCES customers(id),
-  status OrderStatus DEFAULT 'pending',
-  totalAmount DECIMAL(10,2) NOT NULL,
-  shippingAmount DECIMAL(10,2),
-  taxAmount DECIMAL(10,2),
-  shippingAddress JSONB,
-  paymentMethod VARCHAR(50),
-  paymentStatus PaymentStatus DEFAULT 'pending',
-  createdAt TIMESTAMP DEFAULT NOW(),
-  updatedAt TIMESTAMP DEFAULT NOW()
-);
+### � **PAGINA INDIRIZZO SPEDIZIONE** (ESSENZIALE)
+- [ ] **ShippingPage**: Pagina dedicata raccolta indirizzo
+- [ ] **Address Form**: Form indirizzo spedizione con validazione
+- [ ] **Shipping Calculator**: Calcolo costi spedizione
+- [ ] **Address Validation**: Validazione indirizzo automatica
 
--- Dettagli Ordine
-CREATE TABLE order_items (
-  id UUID PRIMARY KEY,
-  orderId UUID REFERENCES orders(id),
-  productId UUID REFERENCES products(id),
-  quantity INTEGER NOT NULL,
-  unitPrice DECIMAL(10,2) NOT NULL,
-  totalPrice DECIMAL(10,2) NOT NULL
-);
+### 📄 **Sistema Fatture Backend**
+- [ ] **Invoice Generation**: Generazione automatica PDF fatture
+- [ ] **Invoice Templates**: Template fatture professionali
+- [ ] **Tax Calculation**: Calcolo tasse per compliance
+- [ ] **Secure Download**: Link sicuri per download fatture
 
--- Fatture
-CREATE TABLE invoices (
-  id UUID PRIMARY KEY,
-  orderId UUID REFERENCES orders(id),
-  invoiceNumber VARCHAR(20) UNIQUE NOT NULL,
-  pdfPath VARCHAR(255),
-  generatedAt TIMESTAMP DEFAULT NOW()
-);
+## 🎯 **PROSSIMI TASK IMMEDIATAMENTE DISPONIBILI:**
 
--- Spedizioni
-CREATE TABLE shipments (
-  id UUID PRIMARY KEY,
-  orderId UUID REFERENCES orders(id),
-  trackingNumber VARCHAR(100),
-  carrier VARCHAR(50),
-  status ShipmentStatus DEFAULT 'preparing',
-  shippedAt TIMESTAMP,
-  deliveredAt TIMESTAMP
-);
-```
+### 🔥 **READY TO START (può iniziare subito)**
+1. **ReceiveInvoice Calling Function** - Implementazione CF per gestione fatture
+2. **Orders Database Schema** - Tabelle ordini nel database
+3. **PaymentPage Frontend** - Pagina dedicata pagamenti
+4. **ShippingPage Frontend** - Pagina dedicata indirizzo spedizione
 
-## 🔄 **INTEGRATION N8N**
+### ⚡ **HIGH IMPACT (maggior valore business)**
+1. **Pay-Per-Use Billing** - Sistema billing €0.005/messaggio
+2. **OrdersPage Frontend** - Lista e dettaglio ordini
+3. **Stripe Payment Integration** - Gateway pagamenti
+4. **Invoice PDF Generation** - Generazione automatica fatture
 
-### 🤖 **N8N Calling Functions E-commerce**
-- [ ] **create_order()**: Calling function completa per creazione ordini
-- [ ] **process_payment()**: Gestione pagamenti via N8N workflow
-- [ ] **calculate_shipping()**: Calcolo spedizione intelligente
-- [ ] **generate_invoice()**: Generazione automatica fattura PDF
-- [ ] **send_confirmation()**: Invio conferme via WhatsApp/Email
-
-### 📱 **WhatsApp E-commerce Flow**
-- [ ] **Checkout WhatsApp**: Possibilità completare ordine via WhatsApp
-- [ ] **Payment Links**: Invio link pagamento sicuro via WhatsApp
-- [ ] **Order Status**: Aggiornamenti stato ordine via WhatsApp
-- [ ] **Invoice Delivery**: Invio fattura PDF via WhatsApp
-
-## 🧪 **TESTING**
-
-### ✅ **Test E-commerce**
-- [ ] **Cart Tests**: Test funzionalità carrello
-- [ ] **Checkout Tests**: Test flusso checkout completo
-- [ ] **Payment Tests**: Test integrazione pagamenti
-- [ ] **Invoice Tests**: Test generazione PDF fatture
-- [ ] **Orders Tests**: Test gestione ordini completa
-
-## 🚀 **DEPLOYMENT**
-
-### 📦 **Production Ready**
-- [ ] **Payment Gateway**: Configurazione produzione Stripe/PayPal
-- [ ] **PDF Storage**: Storage sicuro PDF fatture (AWS S3/MinIO)
-- [ ] **Email Service**: Servizio email per conferme (SendGrid/AWS SES)
-- [ ] **Monitoring**: Monitoring pagamenti e ordini
+### 📋 **FOUNDATION REQUIRED (prerequisiti)**
+1. **Orders Database Schema** - Prima di tutto il resto
+2. **Payment Gateway** - Prima di billing avanzato
+3. **Security Headers** - Prima di production
+4. **JWT Token Security** - Prima di scale
 
 ---
 
-## 📋 **PRIORITÀ SVILUPPO**
+## 🎉 **SUMMARY TASK COUNT SEMPLIFICATO**
+- **✅ COMPLETATI**: 12 task
+- **🔥 CRITICAL MISSING**: 28 task (dal PRD)
+- **⚡ E-COMMERCE ESSENZIALE**: 16 task (solo quello che serve)
+- **📋 TOTALE DA FARE**: 44 task
 
-### 🔥 **FASE 1 - CORE E-COMMERCE** (2-3 settimane)
-1. Sistema ordini database (tabelle + API)
-2. Carrello frontend smart
-3. Pagina conferma ordine
-4. Integrazione pagamento base
-
-### ⚡ **FASE 2 - SPEDIZIONI & FATTURE** (2 settimane)  
-1. Sistema spedizioni con LLM link
-2. Generazione PDF fatture
-3. Pagina gestione ordini
-4. Download fatture con codice ordine
-
-### 🎯 **FASE 3 - ADVANCED FEATURES** (1-2 settimane)
-1. N8N calling functions e-commerce
-2. WhatsApp checkout completo
-3. Tracking spedizioni
-4. Dashboard analytics ordini
+**STIMA TEMPO TOTALE**: 2-3 mesi per completamento sistema e-commerce essenziale.
 
 ---
 
-**TOTALE TASK: 50+ funzionalità**  
-**TEMPO STIMATO: 5-7 settimane**  
-**COMPLESSITÀ: ALTA (Sistema e-commerce enterprise-level)**
+## 📝 **FOCUS ANDREA: SOLO L'ESSENZIALE**
+**Frontend necessario:**
+1. 📦 **Gestione ordini** (lista + dettaglio)
+2. 💳 **Pagina pagamento** (Stripe integration)  
+3. 🚚 **Pagina indirizzo spedizione** (form + validazione)
+
+**Tutto il resto è backend + calling functions per WhatsApp!** 🎯

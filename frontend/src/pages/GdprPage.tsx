@@ -93,15 +93,9 @@ export default function GdprPage() {
                     className="flex items-center gap-2"
                   >
                     {isLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
+                      <><Loader2 className="h-4 w-4 animate-spin" />Saving...</>
                     ) : (
-                      <>
-                        <Save className="h-4 w-4" />
-                        Save Policy
-                      </>
+                      <><Save className="h-4 w-4" />Save Policy</>
                     )}
                   </Button>
                 </div>
