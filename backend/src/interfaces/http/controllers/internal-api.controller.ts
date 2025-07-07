@@ -1673,4 +1673,99 @@ ${JSON.stringify(ragResults, null, 2)}`;
       res.status(500).json({ error: 'Internal server error' });
     }
   }
+
+  /**
+   * 📋 GET ALL PRODUCTS - For N8N getAllProducts Tool (Andrea's Request)
+   * POST /internal/get-all-products
+   * Returns all products for a workspace - used by N8N when user asks for product list/menu
+   */
+  async getAllProducts(req: Request, res: Response): Promise<void> {
+    try {
+      const { workspaceId, categoryId, search, limit } = req.body;
+
+      if (!workspaceId) {
+        res.status(400).json({
+          error: 'Workspace ID is required',
+          example: { workspaceId: "clzd8x8z20000356cqhpe6yu0" }
+        });
+        return;
+      }
+
+      logger.info(`[GET-ALL-PRODUCTS] 📋 Andrea's getAllProducts - Getting products for workspace ${workspaceId}`);
+
+      // Build filter conditions
+      const where: any = {
+        workspaceId,
+        isActive: true, // Only active products
+      };
+
+      // Add category filter if provided
+      if (categoryId) {
+        where.categoryId = categoryId;
+      }
+
+      // Add search filter if provided
+      if (search) {
+        where.name = {
+          contains: search,
+          mode: 'insensitive'
+        };
+      }
+
+      // Get products with pagination
+      const maxLimit = limit || 50; // Default limit
+      const products = await prisma.products.findMany({
+        where,
+        include: {
+          category: true
+        },
+        orderBy: {
+          name: 'asc'
+        },
+        take: maxLimit
+      });
+
+      // Count total products in workspace
+      const totalProducts = await prisma.products.count({
+        where: { workspaceId, isActive: true }
+      });
+
+      // Format response for N8N
+      const formattedProducts = products.map(product => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        stock: product.stock,
+        category: product.category?.name || 'Uncategorized',
+        status: product.status,
+        available: product.stock > 0
+      }));
+
+      logger.info(`[GET-ALL-PRODUCTS] ✅ Found ${formattedProducts.length} products (total in workspace: ${totalProducts})`);
+
+      res.json({
+        success: true,
+        workspaceId,
+        products: formattedProducts,
+        summary: {
+          found: formattedProducts.length,
+          totalInWorkspace: totalProducts,
+          filters: {
+            categoryId: categoryId || null,
+            search: search || null,
+            limit: maxLimit
+          }
+        },
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error: any) {
+      logger.error('[GET-ALL-PRODUCTS] ❌ Error getting products:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: error.message
+      });
+    }
+  }
 } 
