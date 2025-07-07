@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, OrderStatus } from '@prisma/client'
 import crypto from 'crypto'
 import logger from '../../utils/logger'
 import { SecureTokenService } from './secure-token.service'
@@ -310,13 +310,14 @@ export class CheckoutService {
         data: {
           customerId: checkoutData.customerId,
           workspaceId: checkoutData.workspaceId,
-          total: checkoutData.totalAmount,
-          status: 'PENDING',
+          totalAmount: checkoutData.totalAmount,
+          status: OrderStatus.PENDING,
           items: {
             create: checkoutData.items.map(item => ({
-              productId: item.type === 'product' ? item.id : null,
+              productId: item.type === 'product' ? item.id : '',
               quantity: item.quantity,
-              price: item.price
+              unitPrice: item.price,
+              totalPrice: item.price * item.quantity
             }))
           }
         },
@@ -332,7 +333,7 @@ export class CheckoutService {
       // For now, we'll just mark as completed
       await this.prisma.orders.update({
         where: { id: order.id },
-        data: { status: 'COMPLETED' }
+        data: { status: OrderStatus.DELIVERED }
       })
 
       logger.info(`Checkout completed successfully for order ${order.id}`)

@@ -69,7 +69,7 @@ export class AnalyticsService {
     ]);
 
     // Calculate overview metrics
-    const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+    const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
     const totalOrders = orders.length;
     const totalCustomers = customers.length;
     const totalMessages = messages.length;
@@ -406,7 +406,7 @@ export class AnalyticsService {
     return products.map(product => ({
       ...product,
       totalSold: product.orderItems.reduce((sum, item) => sum + item.quantity, 0),
-      totalRevenue: product.orderItems.reduce((sum, item) => sum + (item.quantity * item.price), 0)
+      totalRevenue: product.orderItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0)
     }));
   }
 }
