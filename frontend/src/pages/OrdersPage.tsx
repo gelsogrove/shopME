@@ -204,11 +204,11 @@ function OrderDetailsSheet({
                 </CardHeader>
                 <CardContent>
                   <address className="not-italic">
-                    {order.shippingAddress.firstName} {order.shippingAddress.lastName}
+                    {order.shippingAddress.name || `${order.shippingAddress.firstName || ''} ${order.shippingAddress.lastName || ''}`.trim()}
                     <br />
-                    {order.shippingAddress.address}
+                    {order.shippingAddress.street || order.shippingAddress.address}
                     <br />
-                    {order.shippingAddress.city}, {order.shippingAddress.postalCode}
+                    {order.shippingAddress.city}, {order.shippingAddress.zipCode || order.shippingAddress.postalCode}
                     <br />
                     {order.shippingAddress.country}
                     {order.shippingAddress.phone && (
@@ -470,7 +470,7 @@ export default function OrdersPage() {
     }
     
     try {
-      await ordersApi.delete(order.id, workspace.id)
+      await ordersApi.delete_(order.id, workspace.id)
       toast.success('Order deleted successfully')
       loadOrders()
     } catch (error) {

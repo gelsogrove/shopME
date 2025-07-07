@@ -7,21 +7,27 @@ export type PaymentMethod = 'CREDIT_CARD' | 'DEBIT_CARD' | 'BANK_TRANSFER' | 'PA
 
 // Address interfaces
 export interface ShippingAddress {
-  firstName: string
-  lastName: string
-  address: string
+  name?: string
+  firstName?: string
+  lastName?: string
+  street?: string
+  address?: string
   city: string
-  postalCode: string
+  zipCode?: string
+  postalCode?: string
   country: string
   phone?: string
 }
 
 export interface BillingAddress {
-  firstName: string
-  lastName: string
-  address: string
+  name?: string
+  firstName?: string
+  lastName?: string
+  street?: string
+  address?: string
   city: string
-  postalCode: string
+  zipCode?: string
+  postalCode?: string
   country: string
   phone?: string
   company?: string
