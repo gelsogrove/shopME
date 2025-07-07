@@ -4,11 +4,7 @@
   "description": "ShopMefy - AI-Powered Business Assistant Platform",
   "scripts": {
     "dev": "chmod +x scripts/start-all-simple.sh && ./scripts/start-all-simple.sh",
-    "start": "chmod +x scripts/start-all-simple.sh && ./scripts/start-all-simple.sh",
-    "logs": "chmod +x scripts/logs-only.sh && ./scripts/logs-only.sh",
-    "restart": "chmod +x scripts/restart-all.sh && ./scripts/restart-all.sh",
-    "stop": "chmod +x scripts/stop-all.sh && ./scripts/stop-all.sh",
-    "kill": "chmod +x scripts/stop-all.sh && ./scripts/stop-all.sh",
+  
     "restart:quick": "chmod +x scripts/restart-all.sh && ./scripts/restart-all.sh",
     "docker:check": "docker info && echo '✅ Docker is ready!'",
     "docker:up": "docker compose -f docker-compose.yml up -d && docker compose -f docker-compose-n8n.yml up -d",

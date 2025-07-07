@@ -384,6 +384,37 @@ export default function CustomersPage() {
                 </select>
               </div>
             </div>
+            
+            {/* GDPR and Push Notification Toggles */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="gdprConsent"
+                  name="gdprConsent"
+                  checked={formState.gdprConsent}
+                  onChange={handleFormChange}
+                  className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                />
+                <Label htmlFor="gdprConsent" className="text-sm font-medium text-gray-700">
+                  GDPR Consent
+                </Label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="pushNotificationsConsent"
+                  name="pushNotificationsConsent"
+                  checked={formState.pushNotificationsConsent}
+                  onChange={handleFormChange}
+                  className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                />
+                <Label htmlFor="pushNotificationsConsent" className="text-sm font-medium text-gray-700">
+                  Push Notifications
+                </Label>
+              </div>
+            </div>
             <DialogFooter>
               <Button type="submit">{selectedCustomerId ? "Save Changes" : "Add Customer"}</Button>
             </DialogFooter>

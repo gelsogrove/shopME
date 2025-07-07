@@ -2137,8 +2137,12 @@ INSTRUCTIONS FOR LLM FORMATTER:
     totalAmount?: number
   }) {
     try {
+      // Generate unique order code
+      const orderCode = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+      
       return await this.prisma.orders.create({
         data: {
+          orderCode: orderCode,
           customerId: data.customerId,
           workspaceId: data.workspaceId,
           status: data.status || OrderStatus.PENDING,

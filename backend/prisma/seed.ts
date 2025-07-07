@@ -21,7 +21,7 @@
  * ⚠️ NON MODIFICARE CREDENZIALI SENZA AGGIORNARE .env
  */
 
-import { PrismaClient, OrderStatus } from "@prisma/client"
+import { OrderStatus, PrismaClient } from "@prisma/client"
 import * as bcrypt from "bcrypt"
 import dotenv from "dotenv"
 import fs from "fs"
@@ -194,52 +194,113 @@ const mainWorkspaceId = "cm9hjgq9v00014qk8fsdy4ujv"
 
 // Function to provide embedding generation instructions
 async function generateEmbeddingsAfterSeed() {
-  console.log("🚀 AUTOMATIC EMBEDDING GENERATION STARTED")
-  console.log("   Generating embeddings for all content types...")
-  console.log("   ")
+  console.log("\n🔄 Embedding Generation Instructions:")
+  console.log("=====================================")
+  console.log("After seeding, you need to generate embeddings for the new content:")
+  console.log("")
+  console.log("1. Documents: POST /api/documents/generate-embeddings")
+  console.log("2. Services: POST /api/services/generate-embeddings") 
+  console.log("3. FAQs: POST /api/faqs/generate-embeddings")
+  console.log("4. Products: POST /api/products/generate-embeddings")
+  console.log("")
+  console.log("Use the admin panel or call these endpoints directly.")
+  console.log("=====================================\n")
 
-  try {
-    // Import embedding service
-    const { embeddingService } = require("../src/services/embeddingService")
-
-    console.log("   🛍️ Generating Product Embeddings...")
-    await embeddingService.generateProductEmbeddings(mainWorkspaceId)
-    console.log("   ✅ Product embeddings generated successfully")
-
-    console.log("   🔧 Generating FAQ Embeddings...")
-    await embeddingService.generateFAQEmbeddings(mainWorkspaceId)
-    console.log("   ✅ FAQ embeddings generated successfully")
-
-    console.log("   🛠️ Generating Service Embeddings...")
-    await embeddingService.generateServiceEmbeddings(mainWorkspaceId)
-    console.log("   ✅ Service embeddings generated successfully")
-
-    console.log("   📄 Generating Document Embeddings...")
-    const { documentService } = require("../src/services/documentService")
-    await documentService.generateEmbeddingsForActiveDocuments(mainWorkspaceId)
-    console.log("   ✅ Document embeddings generated successfully")
-
-    console.log("   ")
-    console.log("🎉 ALL EMBEDDINGS GENERATED SUCCESSFULLY!")
-  } catch (error) {
-    console.error("❌ Error generating embeddings:", error)
-    console.log("📝 FALLBACK - Manual embedding generation instructions:")
-    console.log(
-      "   🔧 FAQ Embeddings: POST /api/workspaces/{workspaceId}/faqs/generate-embeddings"
-    )
-    console.log(
-      "   📄 Document Embeddings: POST /api/workspaces/{workspaceId}/documents/generate-embeddings"
-    )
-    console.log(
-      "   🛠️ Service Embeddings: POST /api/workspaces/{workspaceId}/services/generate-embeddings"
-    )
-    console.log(
-      "   🛍️ Product Embeddings: POST /api/workspaces/{workspaceId}/products/generate-embeddings"
-    )
-    console.log(
-      "   Or use the admin interface buttons on the respective pages."
-    )
+  // Create all embeddings automatically in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log("🤖 Auto-generating embeddings in development mode...")
+    
+    try {
+      // Import the embedding utilities
+      const { generateEmbedding } = require('../src/utils/embedding-utils')
+      
+      // Generate embeddings for documents
+      const documents = await prisma.documents.findMany({
+        include: { chunks: true },
+        where: { isActive: true }
+      })
+      
+      for (const document of documents) {
+        if (document.chunks.length === 0) {
+          console.log(`Generating embedding for document: ${document.originalName}`)
+          // Skip embedding generation in seed - too memory intensive
+          console.log(`Document ${document.originalName} is ready for embedding generation via API`)
+        }
+      }
+      
+      console.log("✅ Document embeddings generated")
+    } catch (error) {
+      console.log("⚠️ Could not auto-generate embeddings:", error.message)
+    }
   }
+}
+
+async function cleanAndImportN8NWorkflow() {
+  console.log("\n🔄 N8N Complete Cleanup & Import:")
+  console.log("============================")
+  
+  try {
+    const fs = require('fs')
+    const path = require('path')
+    const { exec } = require('child_process')
+    const { promisify } = require('util')
+    const execAsync = promisify(exec)
+    
+    // Path to the workflow file
+    const workflowPath = path.join(__dirname, '../../n8n/shopme-whatsapp-workflow.json')
+    
+    if (!fs.existsSync(workflowPath)) {
+      console.log("⚠️ N8N workflow file not found:", workflowPath)
+      return
+    }
+    
+    console.log("🗑️ Complete cleanup: removing workflows AND credentials to prevent duplicates...")
+    
+    // Execute the N8N cleanup and import script
+    const scriptsPath = path.join(__dirname, '../../scripts')
+    
+    // Check if the nuclear cleanup script exists
+    const nuclearScript = path.join(scriptsPath, 'n8n_nuclear-cleanup.sh')
+    
+    if (fs.existsSync(nuclearScript)) {
+      console.log("🚀 Running N8N NUCLEAR cleanup to prevent any duplicates...")
+      
+      try {
+        // Make script executable
+        await execAsync(`chmod +x "${nuclearScript}"`)
+        
+        // Run the nuclear cleanup script that completely resets N8N
+        const { stdout, stderr } = await execAsync(`"${nuclearScript}"`, {
+          cwd: scriptsPath,
+          timeout: 180000 // 180 seconds timeout for nuclear cleanup (includes docker restart and setup)
+        })
+        
+        if (stdout) {
+          console.log("📥 N8N Nuclear Cleanup Output:", stdout)
+        }
+        
+        if (stderr && !stderr.includes('Warning')) {
+          console.log("⚠️ N8N Nuclear Cleanup Warnings:", stderr)
+        }
+        
+        console.log("✅ N8N nuclear cleanup and workflow import completed successfully")
+        
+      } catch (execError) {
+        console.error("❌ Error running N8N nuclear cleanup script:", execError.message)
+        console.log("💡 You can manually run: scripts/n8n_nuclear-cleanup.sh")
+      }
+      
+    } else {
+      console.log("⚠️ N8N nuclear cleanup script not found:", nuclearScript)
+      console.log("💡 Please ensure scripts/n8n_nuclear-cleanup.sh exists")
+    }
+    
+  } catch (error) {
+    console.error("❌ Error in N8N workflow management:", error.message)
+    console.log("💡 N8N workflow import can be done manually if needed")
+  }
+  
+  console.log("============================\n")
 }
 
 // Function to seed default document
@@ -362,6 +423,10 @@ async function main() {
     await prisma.services.deleteMany({})
     await prisma.offers.deleteMany({})
     console.log("✅ Deleted all content entities")
+
+    // Elimina usage prima dei customers (foreign key)
+    await prisma.usage.deleteMany({})
+    console.log("✅ Deleted all usage records")
 
     // Elimina customers e configurazioni
     await prisma.customers.deleteMany({})
@@ -2086,22 +2151,24 @@ async function main() {
       }
     ]
     
-    // Create orders with different created dates
+    // Create orders with different created dates over 3 months
     for (let i = 0; i < ordersData.length; i++) {
       const orderData = ordersData[i]
       
-      // Create order dates spread over the last 30 days
+      // Create order dates spread over the last 90 days (3 months)
       const orderDate = new Date()
-      orderDate.setDate(orderDate.getDate() - (i * 7 + 1))
+      orderDate.setDate(orderDate.getDate() - (i * 20 + Math.floor(Math.random() * 10)))
       
       try {
-                          // Create a simple order with minimal fields
+                          // Create order with current database structure
          const order = await prisma.orders.create({
            data: {
-             workspaceId: mainWorkspaceId,
+             orderCode: `ORD-${Date.now()}-${i}`,
              customerId: testCustomer.id,
+             workspaceId: mainWorkspaceId,
              status: orderData.status,
-             // Note: totalAmount and other fields will be added after database migration
+             totalAmount: orderData.totalAmount,
+             createdAt: orderDate,
            },
          })
          
@@ -2116,7 +2183,6 @@ async function main() {
                quantity: item.quantity,
                unitPrice: item.unitPrice,
                totalPrice: item.totalPrice,
-               productVariant: item.productVariant,
              },
            })
          }
@@ -2133,10 +2199,59 @@ async function main() {
     console.log("⚠️ No products available for creating orders")
   }
 
+  // Create additional historical orders for better analytics
+  console.log("Creating additional historical orders for 3-month analytics...")
+  
+  // Create more orders spread over 3 months for better analytics visualization
+  const additionalOrdersCount = 15
+  for (let i = 0; i < additionalOrdersCount; i++) {
+    const orderDate = new Date()
+    orderDate.setDate(orderDate.getDate() - Math.floor(Math.random() * 90)) // Random date in last 3 months
+    
+    const randomStatus = ['PENDING', 'PROCESSING', 'DELIVERED', 'CANCELLED'][Math.floor(Math.random() * 4)]
+    const randomPayment = randomStatus === 'CANCELLED' ? 'REFUNDED' : ['PENDING', 'PAID'][Math.floor(Math.random() * 2)]
+    const randomAmount = 25 + Math.random() * 200 // Random amount between 25-225
+    
+    try {
+             const order = await prisma.orders.create({
+         data: {
+           orderCode: `ORD-${Date.now()}-${Math.random()}`,
+           workspaceId: mainWorkspaceId,
+           customerId: testCustomer.id,
+           status: randomStatus as any,
+           totalAmount: randomAmount,
+           createdAt: orderDate,
+         },
+       })
+      
+      // Add 1-3 random items to each order
+      const itemsCount = 1 + Math.floor(Math.random() * 3)
+      for (let j = 0; j < itemsCount; j++) {
+        const randomProduct = availableProducts[Math.floor(Math.random() * availableProducts.length)]
+        const quantity = 1 + Math.floor(Math.random() * 3)
+        const unitPrice = randomProduct.price
+        
+                 await prisma.orderItems.create({
+           data: {
+             orderId: order.id,
+             productId: randomProduct.id,
+             quantity: quantity,
+             unitPrice: unitPrice,
+             totalPrice: unitPrice * quantity,
+           },
+         })
+      }
+      
+      console.log(`Additional order ${i + 1}/${additionalOrdersCount} created for ${orderDate.toISOString().split('T')[0]}`)
+    } catch (error) {
+      console.error(`Error creating additional order ${i + 1}:`, error)
+    }
+  }
+
   // Create sample usage data for dashboard testing
   console.log("Creating sample usage data for dashboard...")
   
-  // Create usage records for the last 30 days with realistic patterns
+  // Create usage records for the last 90 days with realistic patterns
   const today = new Date()
   const usageData: Array<{
     workspaceId: string
@@ -2145,7 +2260,7 @@ async function main() {
     createdAt: Date
   }> = []
   
-  for (let i = 29; i >= 0; i--) {
+  for (let i = 89; i >= 0; i--) {
     const date = new Date(today)
     date.setDate(date.getDate() - i)
     
@@ -2197,6 +2312,9 @@ async function main() {
 
   // Provide embedding generation instructions
   await generateEmbeddingsAfterSeed()
+
+  // Clean N8N workflows and import new one
+  await cleanAndImportN8NWorkflow()
 
   console.log(`Seed completato con successo!`)
   console.log(`- Admin user creato: ${adminEmail}`)

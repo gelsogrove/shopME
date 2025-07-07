@@ -1,4 +1,4 @@
-import { PrismaClient, OrderStatus } from '@prisma/client'
+import { OrderStatus, PrismaClient } from '@prisma/client'
 import crypto from 'crypto'
 import logger from '../../utils/logger'
 import { SecureTokenService } from './secure-token.service'
@@ -305,9 +305,12 @@ export class CheckoutService {
 
       const { checkoutData } = validation
 
-      // Create order in database
+      // Create order in database  
+      const orderCode = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+      
       const order = await this.prisma.orders.create({
         data: {
+          orderCode: orderCode,
           customerId: checkoutData.customerId,
           workspaceId: checkoutData.workspaceId,
           totalAmount: checkoutData.totalAmount,

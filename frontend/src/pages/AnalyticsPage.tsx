@@ -1,21 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, BarChart3, TrendingUp, Activity } from "lucide-react";
+import { DateRangeSelector } from "@/components/analytics/DateRangeSelector";
 import { MetricsOverview } from "@/components/analytics/MetricsOverview";
-import { 
-  getDashboardAnalytics, 
-  getDefaultDateRange, 
-  DateRange, 
-  DashboardAnalytics,
-  AnalyticsResponse 
-} from "@/services/analyticsApi";
-import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useWorkspace } from "@/hooks/use-workspace";
+import {
+    AnalyticsResponse,
+    DashboardAnalytics,
+    DateRange,
+    getDashboardAnalytics,
+    getDefaultDateRange
+} from "@/services/analyticsApi";
+import { Activity, AlertCircle, BarChart3, TrendingUp } from "lucide-react";
+import { useEffect, useState } from 'react';
 
 export function AnalyticsPage() {
   const { workspace: currentWorkspace } = useWorkspace();
-  const [dateRange] = useState<DateRange>(getDefaultDateRange());
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange());
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,10 +44,14 @@ export function AnalyticsPage() {
 
   useEffect(() => {
     loadAnalytics();
-  }, [currentWorkspace?.id]);
+  }, [currentWorkspace?.id, dateRange]);
 
   const handleRefresh = () => {
     loadAnalytics();
+  };
+
+  const handleDateRangeChange = (newDateRange: DateRange) => {
+    setDateRange(newDateRange);
   };
 
   if (!currentWorkspace) {
@@ -72,7 +77,7 @@ export function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-green-600 flex items-center gap-2">
             <BarChart3 className="h-8 w-8" />
             Analytics Dashboard
           </h1>
@@ -81,6 +86,11 @@ export function AnalyticsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <DateRangeSelector
+            dateRange={dateRange}
+            onDateRangeChange={handleDateRangeChange}
+            isDefault={true}
+          />
           <Button 
             onClick={handleRefresh} 
             variant="outline" 
@@ -146,10 +156,32 @@ export function AnalyticsPage() {
           {/* Metrics Overview */}
           <Card>
             <CardHeader>
-              <CardTitle>Panoramica Metriche</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Panoramica Metriche
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <MetricsOverview analytics={analytics} />
+            </CardContent>
+          </Card>
+
+          {/* Performance Trends Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Andamento Performance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+                <div className="text-center">
+                  <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-500">Grafico delle performance in sviluppo</p>
+                  <p className="text-sm text-gray-400">Confronto con periodo precedente disponibile a breve</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
