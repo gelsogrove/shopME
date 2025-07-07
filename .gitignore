@@ -48,5 +48,4 @@ browser-tools-mcp/
 # N8N configuration (keep structure, ignore runtime data)
 .n8n/
 
-
-
+cookies.txt

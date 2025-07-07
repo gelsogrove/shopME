@@ -392,13 +392,15 @@ export class FunctionHandlerService {
       const order = await this.prisma.orders.create({
         data: {
           status: "PENDING",
-          total,
+          totalAmount: total,
+          orderCode: `ORD-${Date.now()}`,
           customerId,
           workspaceId,
           items: {
             create: cart.items.map((item) => ({
               quantity: item.quantity,
-              price: item.product.price,
+              unitPrice: item.product.price,
+              totalPrice: item.quantity * item.product.price,
               productId: item.productId,
             })),
           },
@@ -420,13 +422,13 @@ export class FunctionHandlerService {
       return {
         success: true,
         order_id: order.id,
-        total: order.total,
+        total: order.totalAmount,
         status: order.status,
         items: order.items.map((item) => ({
           nome: item.product.name,
           quantità: item.quantity,
-          prezzo_unitario: item.price,
-          subtotale: item.quantity * item.price,
+          prezzo_unitario: item.unitPrice,
+          subtotale: item.totalPrice,
         })),
       }
     } catch (error) {
@@ -553,12 +555,12 @@ export class FunctionHandlerService {
           found: true,
           id: order.id,
           status: order.status,
-          total: order.total,
+          total: order.totalAmount,
           data: order.createdAt,
           items: order.items.map((item) => ({
             nome: item.product.name,
             quantità: item.quantity,
-            prezzo_unitario: item.price,
+            prezzo_unitario: item.unitPrice,
           })),
         }
       } else {
@@ -581,7 +583,7 @@ export class FunctionHandlerService {
           orders: orders.map((order) => ({
             id: order.id,
             status: order.status,
-            total: order.total,
+            total: order.totalAmount,
             data: order.createdAt,
           })),
         }
