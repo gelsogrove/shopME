@@ -65,3 +65,6 @@ se trovi un errore blocca il processo di check !!!
 [ ] quando lanciamo il seed cancelliamo tutti i flussi prima di importare il nuovo prensente dentro la cartella  /Users/gelso/workspace/AI/shop/n8n/shopme-whatsapp-workflow.json
 [ ] Puoi aggioranre la checklist per veedere se e' da aggiornare?
 [ ] Puoui vedere se il PRD e' aggiornato con test, codice , e task list?
+[ ] mi devi controllare se generate embedding si esegue dopo il seed su faq, services, producst,documents
+[ ] mi devi controllare che le credenziali dentro n8n siano importate correttamente
+ 
