@@ -21,7 +21,7 @@
  * ⚠️ NON MODIFICARE CREDENZIALI SENZA AGGIORNARE .env
  */
 
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, OrderStatus } from "@prisma/client"
 import * as bcrypt from "bcrypt"
 import dotenv from "dotenv"
 import fs from "fs"
@@ -1896,6 +1896,242 @@ async function main() {
   }
 
   console.log("✅ Test customer with active chat and welcome message created successfully!")
+
+  // Create sample orders for testing
+  console.log("Creating sample orders for testing...")
+  
+  // Get some products for order items
+  const availableProducts = await prisma.products.findMany({
+    where: {
+      workspaceId: mainWorkspaceId,
+      status: "ACTIVE",
+    },
+    take: 5,
+  })
+  
+  if (availableProducts.length > 0) {
+    // Create multiple orders with different statuses
+    const ordersData = [
+      {
+                 status: OrderStatus.PENDING,
+         paymentStatus: "PENDING",
+         paymentMethod: "CREDIT_CARD",
+        totalAmount: 89.50,
+        shippingAmount: 9.99,
+        taxAmount: 15.84,
+        shippingAddress: {
+          street: "Via Roma 123",
+          city: "Milano",
+          zipCode: "20121",
+          country: "Italy",
+          name: "Mario Rossi",
+          phone: "+39123456789"
+        },
+        billingAddress: {
+          street: "Via Roma 123",
+          city: "Milano",
+          zipCode: "20121",
+          country: "Italy",
+          name: "Mario Rossi",
+          phone: "+39123456789"
+        },
+        notes: "Please deliver after 6 PM",
+        discountCode: "FIRST10",
+        discountAmount: 8.95,
+        items: [
+          {
+            productId: availableProducts[0].id,
+            quantity: 2,
+            unitPrice: 29.99,
+            totalPrice: 59.98,
+            productVariant: "250ml"
+          },
+          {
+            productId: availableProducts[1].id,
+            quantity: 1,
+            unitPrice: 19.53,
+            totalPrice: 19.53,
+            productVariant: "500g"
+          }
+        ]
+      },
+      {
+                 status: OrderStatus.PROCESSING,
+         paymentStatus: "PAID",
+         paymentMethod: "PAYPAL",
+        totalAmount: 156.75,
+        shippingAmount: 12.99,
+        taxAmount: 27.84,
+        shippingAddress: {
+          street: "Carrer de Balmes 45",
+          city: "Barcelona",
+          zipCode: "08007",
+          country: "Spain",
+          name: "Maria Garcia",
+          phone: "+34666777888"
+        },
+        billingAddress: {
+          street: "Carrer de Balmes 45",
+          city: "Barcelona",
+          zipCode: "08007",
+          country: "Spain",
+          name: "Maria Garcia",
+          phone: "+34666777888"
+        },
+        notes: "Corporate order - please provide invoice",
+        discountCode: null,
+        discountAmount: 0,
+        items: [
+          {
+            productId: availableProducts[0].id,
+            quantity: 3,
+            unitPrice: 29.99,
+            totalPrice: 89.97,
+            productVariant: "250ml"
+          },
+          {
+            productId: availableProducts[2].id,
+            quantity: 2,
+            unitPrice: 22.39,
+            totalPrice: 44.78,
+            productVariant: "Premium"
+          }
+        ]
+      },
+      {
+                 status: OrderStatus.DELIVERED,
+         paymentStatus: "PAID",
+         paymentMethod: "BANK_TRANSFER",
+        totalAmount: 245.99,
+        shippingAmount: 15.99,
+        taxAmount: 43.44,
+        shippingAddress: {
+          street: "Rue de la Paix 12",
+          city: "Paris",
+          zipCode: "75002",
+          country: "France",
+          name: "Jean Dupont",
+          phone: "+33123456789"
+        },
+        billingAddress: {
+          street: "Rue de la Paix 12",
+          city: "Paris",
+          zipCode: "75002",
+          country: "France",
+          name: "Jean Dupont",
+          phone: "+33123456789"
+        },
+        notes: "Delivered successfully to reception",
+        discountCode: "BULK20",
+        discountAmount: 49.20,
+        items: [
+          {
+            productId: availableProducts[0].id,
+            quantity: 5,
+            unitPrice: 29.99,
+            totalPrice: 149.95,
+            productVariant: "250ml"
+          },
+          {
+            productId: availableProducts[1].id,
+            quantity: 3,
+            unitPrice: 19.53,
+            totalPrice: 58.59,
+            productVariant: "500g"
+          },
+          {
+            productId: availableProducts[3].id,
+            quantity: 1,
+            unitPrice: 37.45,
+            totalPrice: 37.45,
+            productVariant: "Limited Edition"
+          }
+        ]
+      },
+      {
+                 status: OrderStatus.CANCELLED,
+         paymentStatus: "REFUNDED",
+         paymentMethod: "CREDIT_CARD",
+        totalAmount: 67.48,
+        shippingAmount: 8.99,
+        taxAmount: 11.95,
+        shippingAddress: {
+          street: "Via Veneto 88",
+          city: "Rome",
+          zipCode: "00187",
+          country: "Italy",
+          name: "Giuseppe Verdi",
+          phone: "+39987654321"
+        },
+        billingAddress: {
+          street: "Via Veneto 88",
+          city: "Rome",
+          zipCode: "00187",
+          country: "Italy",
+          name: "Giuseppe Verdi",
+          phone: "+39987654321"
+        },
+        notes: "Cancelled due to product availability",
+        discountCode: null,
+        discountAmount: 0,
+        items: [
+          {
+            productId: availableProducts[4].id,
+            quantity: 2,
+            unitPrice: 23.75,
+            totalPrice: 47.50,
+            productVariant: "Standard"
+          }
+        ]
+      }
+    ]
+    
+    // Create orders with different created dates
+    for (let i = 0; i < ordersData.length; i++) {
+      const orderData = ordersData[i]
+      
+      // Create order dates spread over the last 30 days
+      const orderDate = new Date()
+      orderDate.setDate(orderDate.getDate() - (i * 7 + 1))
+      
+      try {
+                          // Create a simple order with minimal fields
+         const order = await prisma.orders.create({
+           data: {
+             workspaceId: mainWorkspaceId,
+             customerId: testCustomer.id,
+             status: orderData.status,
+             // Note: totalAmount and other fields will be added after database migration
+           },
+         })
+         
+         console.log(`Order created: ${order.id} - Status: ${order.status}`)
+         
+         // Create order items for this order
+         for (const item of orderData.items) {
+           await prisma.orderItems.create({
+             data: {
+               orderId: order.id,
+               productId: item.productId,
+               quantity: item.quantity,
+               unitPrice: item.unitPrice,
+               totalPrice: item.totalPrice,
+               productVariant: item.productVariant,
+             },
+           })
+         }
+         
+         console.log(`Created ${orderData.items.length} order items for order ${order.id}`)
+        
+      } catch (error) {
+        console.error(`Error creating order ${i + 1}:`, error)
+      }
+    }
+    
+    console.log("✅ Sample orders created successfully!")
+  } else {
+    console.log("⚠️ No products available for creating orders")
+  }
 
   // Create sample usage data for dashboard testing
   console.log("Creating sample usage data for dashboard...")

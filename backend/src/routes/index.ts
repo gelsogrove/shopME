@@ -28,6 +28,7 @@ import { offersRouter } from "../interfaces/http/routes/offers.routes"
 import createRegistrationRouter from "../interfaces/http/routes/registration.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import createSettingsRouter from "../interfaces/http/routes/settings.routes"
+import { createOrderRouter } from "../interfaces/http/routes/order.routes"
 
 import { whatsappRouter } from "../interfaces/http/routes/whatsapp.routes"
 import { workspaceRoutes } from "../interfaces/http/routes/workspace.routes"
@@ -172,6 +173,12 @@ const offersRouterInstance = offersRouter()
 router.use("/workspaces/:workspaceId/offers", offersRouterInstance)
 router.use("/offers", offersRouterInstance)
 logger.info("Registered offers router with workspace routes")
+
+// Mount orders routes
+const ordersRouterInstance = createOrderRouter()
+router.use("/workspaces/:workspaceId/orders", ordersRouterInstance)
+router.use("/orders", ordersRouterInstance)
+logger.info("Registered orders router with workspace routes")
 
 // Mount WhatsApp router
 const whatsappInstance = whatsappRouter(whatsappController);

@@ -1,4 +1,4 @@
-import { MessageDirection, MessageType, PrismaClient } from "@prisma/client"
+import { MessageDirection, MessageType, OrderStatus, PrismaClient } from "@prisma/client"
 import * as dotenv from "dotenv"
 import OpenAI from "openai"
 import logger from "../utils/logger"
@@ -2133,16 +2133,16 @@ INSTRUCTIONS FOR LLM FORMATTER:
   public async createOrder(data: {
     customerId: string
     workspaceId: string
-    status?: string
-    total?: number
+    status?: OrderStatus
+    totalAmount?: number
   }) {
     try {
       return await this.prisma.orders.create({
         data: {
           customerId: data.customerId,
           workspaceId: data.workspaceId,
-          status: data.status || 'PENDING',
-          total: data.total || 0
+          status: data.status || OrderStatus.PENDING,
+          totalAmount: data.totalAmount || 0
         }
       })
     } catch (error) {
