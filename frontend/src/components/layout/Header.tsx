@@ -1,26 +1,26 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useCurrentUser } from "@/hooks/useCurrentUser"
 import { api } from "@/services/api"
 import {
-  ArrowLeftRight,
-  Bot,
-  CreditCard,
-  LogOut,
-  Network,
-  Phone,
-  Settings,
-  ShieldCheck,
-  User,
+    ArrowLeftRight,
+    Bot,
+    CreditCard,
+    LogOut,
+    Network,
+    Phone,
+    Settings,
+    ShieldCheck,
+    User,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -164,7 +164,7 @@ export function Header() {
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/avatars/01.png" alt="User" />
                   <AvatarFallback className="text-sm font-medium">
-                    U
+                    {userInitials}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -172,9 +172,9 @@ export function Header() {
             <DropdownMenuContent className="w-72" align="end" forceMount>
               <DropdownMenuLabel className="font-normal p-4">
                 <div className="flex flex-col space-y-2">
-                  <p className="text-xl font-medium leading-none">User</p>
+                  <p className="text-xl font-medium leading-none">{userName}</p>
                   <p className="text-lg leading-none text-muted-foreground">
-                    Welcome to ShopMe
+                    {userEmail || "Welcome to ShopMe"}
                   </p>
                 </div>
               </DropdownMenuLabel>
@@ -221,7 +221,7 @@ export function Header() {
                 onClick={() => {
                   const workflowUrl =
                     workspace?.n8nWorkflowUrl ||
-                    "http://localhost:5678/workflow/1XPQF919PP0MEdtH"
+                    "http://localhost:5678/projects/7i6FA4CnEst9J9FX/workflows"
                   window.open(workflowUrl, "_blank")
                 }}
               >

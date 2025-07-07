@@ -82,4 +82,8 @@ router.post('/test-mock-results',
 router.get('/test-simple-search', 
   internalApiController.testSimpleSearchGet.bind(internalApiController));
 
+// 📋 GET ALL PRODUCTS - For N8N getAllProducts Tool (Andrea's Request)
+router.post('/get-all-products', 
+  internalApiController.getAllProducts.bind(internalApiController));
+
 export { router as internalApiRoutes };

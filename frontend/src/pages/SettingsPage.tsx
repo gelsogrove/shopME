@@ -493,7 +493,7 @@ export default function SettingsPage() {
                     type="url"
                     value={workspace.n8nWorkflowUrl || ""}
                     onChange={(e) => handleFieldChange("n8nWorkflowUrl", e.target.value)}
-                    placeholder="http://localhost:5678/workflow/1XPQF919PP0MEdtH"
+                    placeholder="http://localhost:5678/projects/7i6FA4CnEst9J9FX/workflows"
                     className="mt-1"
                   />
                   <p className="text-xs text-gray-500 mt-1">
