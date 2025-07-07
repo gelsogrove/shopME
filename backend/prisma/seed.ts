@@ -80,6 +80,26 @@ Hai accesso a un motore di ricerca intelligente per fornire informazioni dettagl
 > ✅ Ogni volta che l'utente fa una domanda in uno di questi ambiti, chiama la funzione:
 > searchRag(query)
 
+## ⚠️ REGOLE CRITICHE PER L'USO DEI DATI
+
+**🚨 FONDAMENTALE - RISPETTA SEMPRE QUESTE REGOLE:**
+
+1. **USA SOLO I DATI RAG**: Quando ricevi risultati dal RAG search, usa ESCLUSIVAMENTE quelle informazioni. NON aggiungere conoscenze esterne.
+
+2. **NON INVENTARE MAI**: Se il RAG search non restituisce risultati, dì chiaramente "Non ho informazioni specifiche su questo argomento" invece di inventare risposte.
+
+3. **CITA ESATTAMENTE**: Riporta le informazioni dal database esattamente come sono scritte, senza modificarle o parafrasarle.
+
+4. **PRIORITÀ ASSOLUTA**: I dati dal RAG search hanno priorità assoluta su qualsiasi altra conoscenza.
+
+**Esempio corretto:**
+- Utente: "Quanto ci vuole per la consegna?"
+- RAG restituisce: "24-48 hours in mainland Spain"  
+- Risposta: "Gli ordini arrivano solitamente entro 24-48 ore in Spagna continentale"
+
+**Esempio SBAGLIATO:**
+- Inventare: "2-3 giorni lavorativi per Cervelló" (se non è nei dati RAG)
+
 ---
 
 ## 🛍️ Gestione Ordini
@@ -192,46 +212,72 @@ let createdWorkspaces: any[] = []
 // Definiamo un ID fisso per il nostro workspace unico
 const mainWorkspaceId = "cm9hjgq9v00014qk8fsdy4ujv"
 
-// Function to provide embedding generation instructions
+// Function to automatically generate ALL embeddings like clicking buttons in frontend
 async function generateEmbeddingsAfterSeed() {
-  console.log("\n🔄 Embedding Generation Instructions:")
-  console.log("=====================================")
-  console.log("After seeding, you need to generate embeddings for the new content:")
-  console.log("")
-  console.log("1. Documents: POST /api/documents/generate-embeddings")
-  console.log("2. Services: POST /api/services/generate-embeddings") 
-  console.log("3. FAQs: POST /api/faqs/generate-embeddings")
-  console.log("4. Products: POST /api/products/generate-embeddings")
-  console.log("")
-  console.log("Use the admin panel or call these endpoints directly.")
-  console.log("=====================================\n")
-
-  // Create all embeddings automatically in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log("🤖 Auto-generating embeddings in development mode...")
+  console.log("\n🤖 AUTO-GENERATING ALL EMBEDDINGS (like clicking FE buttons)")
+  console.log("============================================================")
+  
+  try {
+    // Import the embedding services
+    const { EmbeddingService } = require('../src/services/embeddingService')
+    const { DocumentService } = require('../src/services/documentService')
     
+    const embeddingService = new EmbeddingService()
+    const documentService = new DocumentService()
+
+    console.log("🔄 1. Generating FAQ embeddings...")
     try {
-      // Import the embedding utilities
-      const { generateEmbedding } = require('../src/utils/embedding-utils')
-      
-      // Generate embeddings for documents
-      const documents = await prisma.documents.findMany({
-        include: { chunks: true },
-        where: { isActive: true }
-      })
-      
-      for (const document of documents) {
-        if (document.chunks.length === 0) {
-          console.log(`Generating embedding for document: ${document.originalName}`)
-          // Skip embedding generation in seed - too memory intensive
-          console.log(`Document ${document.originalName} is ready for embedding generation via API`)
-        }
+      const faqResult = await embeddingService.generateFAQEmbeddings(mainWorkspaceId)
+      console.log(`✅ FAQ embeddings: ${faqResult.processed} processed, ${faqResult.errors.length} errors`)
+      if (faqResult.errors.length > 0) {
+        console.log("⚠️ FAQ errors:", faqResult.errors)
       }
-      
-      console.log("✅ Document embeddings generated")
     } catch (error) {
-      console.log("⚠️ Could not auto-generate embeddings:", error.message)
+      console.log("❌ FAQ embeddings failed:", error.message)
     }
+
+    console.log("🔄 2. Generating Service embeddings...")
+    try {
+      const serviceResult = await embeddingService.generateServiceEmbeddings(mainWorkspaceId)
+      console.log(`✅ Service embeddings: ${serviceResult.processed} processed, ${serviceResult.errors.length} errors`)
+      if (serviceResult.errors.length > 0) {
+        console.log("⚠️ Service errors:", serviceResult.errors)
+      }
+    } catch (error) {
+      console.log("❌ Service embeddings failed:", error.message)
+    }
+
+    console.log("🔄 3. Generating Product embeddings...")
+    try {
+      const productResult = await embeddingService.generateProductEmbeddings(mainWorkspaceId)
+      console.log(`✅ Product embeddings: ${productResult.processed} processed, ${productResult.errors.length} errors`)
+      if (productResult.errors.length > 0) {
+        console.log("⚠️ Product errors:", productResult.errors)
+      }
+    } catch (error) {
+      console.log("❌ Product embeddings failed:", error.message)
+    }
+
+    console.log("🔄 4. Generating Document embeddings...")
+    try {
+      const documentResult = await documentService.generateEmbeddingsForActiveDocuments(mainWorkspaceId)
+      console.log(`✅ Document embeddings: ${documentResult.processed} processed, ${documentResult.errors.length} errors`)
+      if (documentResult.errors.length > 0) {
+        console.log("⚠️ Document errors:", documentResult.errors)
+      }
+    } catch (error) {
+      console.log("❌ Document embeddings failed:", error.message)
+    }
+
+    console.log("🎉 EMBEDDING GENERATION COMPLETED!")
+    console.log("=================================")
+    console.log("✅ All embeddings generated automatically")
+    console.log("✅ RAG search should now work correctly")
+    console.log("✅ Chatbot will use ONLY database data")
+    
+  } catch (error) {
+    console.log("❌ Error during embedding generation:", error.message)
+    console.log("⚠️ You may need to generate embeddings manually via frontend")
   }
 }
 

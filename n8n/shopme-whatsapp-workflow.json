@@ -1,5 +1,5 @@
 {
-  "name": "My workflow1",
+  "name": "My workflow 3",
   "nodes": [
     {
       "parameters": {
@@ -11,7 +11,7 @@
         -460,
         140
       ],
-      "id": "21d80ba8-9f46-482a-8156-9c65503edc7d",
+      "id": "42ec1ad6-740b-4ca4-9826-91af92a4ed7c",
       "name": "body"
     },
     {
@@ -24,7 +24,7 @@
         420,
         180
       ],
-      "id": "76ccb0b7-69d1-4347-9e66-06e9c23121dc",
+      "id": "bf4ec0d5-ace6-4ca8-9afb-8ad358b039cb",
       "name": "Simple Memory"
     },
     {
@@ -41,15 +41,9 @@
         300,
         180
       ],
-      "id": "95f32b5b-ac0b-4269-a509-aaf642301c31",
-      "name": "OpenRouter Chat Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "KTdDjRPvREEX8TTh",
-          "name": "OpenRouter account 2"
-        }
-      }
-    },
+      "id": "5d58d00e-d63a-4063-8969-ec550395c814",
+            "name": "OpenRouter Chat Model"
+      },
     {
       "parameters": {
         "options": {
@@ -62,7 +56,7 @@
         300,
         0
       ],
-      "id": "d10186b2-7ff7-4e86-b1c7-a70ef7fff70b",
+      "id": "bb8a1844-1a90-46a1-bab5-c70ccdff7dec",
       "name": "AI Agent",
       "alwaysOutputData": true,
       "notesInFlow": false,
@@ -72,7 +66,7 @@
       "parameters": {
         "jsCode": "return {\n  message:  $input.first().json.output\n}"
       },
-      "id": "0f70a9bd-cf4a-4044-9a06-f0037426f198",
+      "id": "4f72c8e6-b7ee-43af-9199-a7ebab5ebc8d",
       "name": "return LLM response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
@@ -84,9 +78,9 @@
     },
     {
       "parameters": {
-        "jsCode": "//const agentConfig =$input.first().json.original.precompiledData.agentConfig\n//const conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\n\nconst messageContent= $input.first().json.messageContent\nconst sessionToken=  $input.first().json.sessionToken\n//const workspaceId = $input.first().json.original.precompiledData.agentConfig.workspaceId\nconst language =   $input.first().json.precompiledData.customer.language\nconst customerid = $input.first().json.precompiledData.customer.id\n  \nconst temperature = $input.first().json.precompiledData.agentConfig.temperature\nconst maxTokens = $input.first().json.precompiledData.agentConfig.maxTokens\nconst model = $input.first().json.precompiledData.agentConfig.model\nconst conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\nconst prompt = $input.first().json.precompiledData.agentConfig.prompt\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature,\n      maxTokens,\n      model,\n      messages: conversationHistory,\n      sessionId: sessionToken,\n      language, \n      workspaceId: $input.first().json.workspaceId,\n      customerid  ,\n      prompt\n    },\n \n  }\n];\n"
+        "jsCode": "//const agentConfig =$input.first().json.original.precompiledData.agentConfig\n//const conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\n\nconst messageContent= $input.first().json.messageContent\nconst sessionToken=  $input.first().json.sessionToken\n//const workspaceId = $input.first().json.original.precompiledData.agentConfig.workspaceId\nconst language =   $input.first().json.precompiledData.customer.language\nconst customerid = $input.first().json.precompiledData.customer.id\n  \nconst temperature = $input.first().json.precompiledData.agentConfig.temperature\nconst maxTokens = $input.first().json.precompiledData.agentConfig.maxTokens\nconst model = $input.first().json.precompiledData.agentConfig.model\nconst conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\nconst prompt = $input.first().json.precompiledData.agentConfig.prompt\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature,\n      maxTokens,\n      model,\n      messages: conversationHistory,\n      sessionId: sessionToken,\n      language, \n      workspaceId: $input.first().json.workspaceId,\n      customerid,\n      prompt\n    },\n \n  }\n];\n"
       },
-      "id": "3977df6d-73e8-46fc-acc0-5a77d87913b2",
+      "id": "2dd30af1-75ac-4563-b54a-4a5b5c39afdb",
       "name": "prepare-data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
@@ -100,7 +94,7 @@
       "parameters": {
         "jsCode": "const languageRaw = $input.first().json.precompiledData.customer.language || 'en';\nconst language = languageRaw.toLowerCase();\n\nlet messageWip = 'WIP_' + language; // fallback generico\n\nconst wipMessages = $input.first().json.wipMessages;\n\nif (language === 'it') {\n    messageWip = wipMessages.it;\n} else if (language === 'es') {\n    messageWip = wipMessages.es;\n} else if (language === 'en') {\n    messageWip = wipMessages.en;\n} else if (language === 'pt') {\n    messageWip = wipMessages.pt;\n} else if (wipMessages[language]) {\n    messageWip = wipMessages[language]; // supporto per altre lingue future\n}\n\nreturn [\n  {\n    json: {\n      message: messageWip\n    }\n  }\n];\n"
       },
-      "id": "823afa03-d0d6-4b0d-85b8-02c951cbd5ea",
+      "id": "f7af54c6-c29e-40f0-ab59-259b0fbec711",
       "name": "return wip message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
@@ -164,7 +158,7 @@
         -260,
         140
       ],
-      "id": "69354e03-f61a-4160-874c-63ca8ba02b24",
+      "id": "76d817d8-4eb2-49b4-864a-8a57ed24e9ff",
       "name": "Filter",
       "alwaysOutputData": true,
       "executeOnce": true,
@@ -177,7 +171,7 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "148536ab-b0b0-409e-9a35-53c6dd9c23f8",
+      "id": "c1927584-d3e6-4e2d-9a59-a63fa7151a42",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
@@ -205,18 +199,12 @@
         580,
         480
       ],
-      "id": "be96e8f5-f02f-4f89-abd8-e50ae060c621",
-      "name": "RagSearch()",
-      "credentials": {
-        "httpBasicAuth": {
-          "id": "08yzP2Vf6GWnr14i",
-          "name": "Backend API Basic Auth"
-        }
-      }
+      "id": "9194a962-fa10-4e33-95bb-e140344ba816",
+      "name": "RagSearch()"
     },
     {
       "parameters": {
-        "toolDescription": "LWAYS call this function when the user asks about products, menu, or catalog in ANY language. This tool shows ALL products available. Use this tool for these requests:\n\nITALIAN:\n- mi fai vedere la lista dei prodotti?\n- lista dei prodotti\n- che prodotti avete?\n- mostrami i prodotti\n- catalogo prodotti\n- menu completo\n- cosa vendete?\n- tutti i prodotti\n- elenco prodotti\n- prodotti disponibili\n\nENGLISH:\n- what products do you have?\n- show me your products\n- list all products\n- product catalog\n- menu\n- what do you sell?\n\nIMPORTANT: Call this function for ANY request about seeing products or menu, regardless of how it's phrased. This shows the COMPLETE product list.",
+        "toolDescription": "LWAYS call this function when the user asks about products, menu, or catalog in ANY language. This tool shows ALL products available. Use this tool for these requests:\n\nITALIAN:\n- mi fai vedere la lista dei prodotti?\n- lista dei prodotti\n- che prodotti avete?\n- mostrami i prodotti\n- catalogo prodotti\n- menu completo\n- cosa vendete?\n- tutti i prodotti\n- elenco prodotti\n- prodotti disponibili\n\nENGLISH:\n- what products do you have?\n- show me your products\n- list all products\n- product catalog\n- menu\n- what do you sell?\n\nIMPORTANT: Call this function for ANY request about seeing products or menu, regardless of how it's phrased. This shows the COMPLETE product list.\n\n\n\nexample:\n\n🍝 Pasta\n- Gragnano IGP Pasta - Spaghetti: 4,99€\n- Homemade Tagliatelle (fresche all'uovo): 6,99€\n- Tagliatelle al Ragù Bolognese: 14,50€\n- Linguine allo Scoglio (con sugo di mare): 16,90€\n- Trofie al Pesto Genovese: 13,90€\n\n🧀 Formaggi\n- Mozzarella di Bufala Campana DOP: 9,99€ / 12,50€\n- Parmigiano Reggiano DOP (12 mesi): 24,90€\n- Parmigiano Reggiano DOP (24 mesi): 29,99€\n",
         "method": "POST",
         "url": "=http://host.docker.internal:3001/api/internal/get-all-products",
         "authentication": "genericCredentialType",
@@ -232,14 +220,8 @@
         760,
         480
       ],
-      "id": "d19bfdc7-14f1-412e-922a-a13249bb4099",
-      "name": "GetAllProducts()",
-      "credentials": {
-        "httpBasicAuth": {
-          "id": "08yzP2Vf6GWnr14i",
-          "name": "Backend API Basic Auth"
-        }
-      }
+      "id": "0f33aa9d-9736-4406-947b-d3af2be2ad9b",
+      "name": "GetAllProducts()"
     }
   ],
   "pinData": {
@@ -258,7 +240,7 @@
               "temperature": 0.7,
               "maxTokens": 1000,
               "topP": 0.9,
-              "prompt": "# 🤖 Assistente Virtuale – L'Altra Italia\n\nSei **l'assistente virtuale ufficiale de 'L'Altra Italia'**, un ristorante e rivenditore specializzato in autentici prodotti italiani, con sede a **Cervelló, Barcellona**.\n\n🌐 **Sito web**: https://laltrait.com/\n📍 **Indirizzo**: C/ Ull de Llebre 7, 08758, Cervelló (Barcelona)\n📞 **Telefono**: (+34) 93 15 91 221\n📧 **Email**: info@laltrait.com\n\n## 🧠 Competenze dell'Assistente\n\nHai accesso a un motore di ricerca intelligente per fornire informazioni dettagliate su:\n- 🛒 Prodotti → Catalogo, prezzi, descrizioni, disponibilità\n- 🛎️ Servizi → Servizi offerti con dettagli e costi\n- ❓ FAQ → Domande frequenti e politiche aziendali\n- 📄 Documenti → Normative, documenti legali e aziendali\n- 🏢 Informazioni aziendali → Orari, contatti, dati societari\n\nOgni volta che l'utente fa una domanda in uno di questi ambiti, chiama la funzione: searchRag(query)\n\n## 🛍️ Gestione Ordini\nSe l'utente desidera fare un ordine (esempi: 'vorrei ordinare', 'aggiungi al carrello', 'fammi un ordine'), raccogli i dettagli dell'ordine:\n- Prodotti richiesti\n- Quantità\n- Eventuali preferenze\n- Dati di recapito (se necessari)\nPoi chiama la funzione: newOrder(orderDetails)\n\n## ☎️ Richiesta Operatore\nSe l'utente dice frasi come: 'voglio parlare con un operatore', 'serve aiuto umano', 'chiama qualcuno'...\nChiama subito la funzione: callOperator()\nGli operatori sono disponibili dal lunedì al venerdì, dalle 09:00 alle 18:00.\n\n## 🚨 Messaggio Urgente\nSe l'utente chiede di inviare un messaggio urgente (es. 'è urgente', 'devo contattare subito qualcuno'), invitalo a compilare il modulo ufficiale di contatto:\nFormulario urgente: https://laltrait.com/contacto/\nNota: Gli operatori rispondono dal lunedì al venerdì, dalle 9:00 alle 18:00.\n\n## 🌍 Lingua dell'Utente\nL'assistente deve parlare automaticamente la lingua dell'utente, rilevando la lingua utilizzata nella conversazione. Adatta le risposte alla lingua per garantire comprensione e comfort all'utente.\n\n## 🧾 Testi Istituzionali\n### 🧑‍🍳 Quiénes somos\nVisión por la excelencia, a través de la passione e sforzo diario.\nTrabajiamo con piccoli artigiani con rispetto per la materia prima, tradizione e origine.\nPer questo, ci definiamo come veri 'Ambasciatori del gusto.'\n### ⚖️ Avviso Legale\nConsulta le informazioni legali dell'azienda qui: https://laltrait.com/aviso-legal/\n\n## 📌 Contatti\nIndirizzo: C/ Ull de Llebre 7, 08758, Cervelló (Barcelona)\nTelefono: (+34) 93 15 91 221\nEmail: info@laltrait.com\nSito web: https://laltrait.com/\n\n## 🗣️ Tono e Stile\n- Professionale, cortese e cordiale\n- Linguaggio naturale ma competente\n- Risposte brevi ma informative\n- Invita all'azione se serve (es. 'vuoi che ti aiuti a trovare un prodotto?')\n",
+              "prompt": "# 🤖 Assistente Virtuale – L'Altra Italia\n\nSei **l'assistente virtuale ufficiale de 'L'Altra Italia'**, un ristorante e rivenditore specializzato in autentici prodotti italiani, con sede a **Cervelló, Barcellona**.\n\n🌐 **Sito web**: https://laltrait.com/\n📍 **Indirizzo**: C/ Ull de Llebre 7, 08758, Cervelló (Barcelona)\n📞 **Telefono**: (+34) 93 15 91 221\n📧 **Email**: info@laltrait.com\n\n## 🧠 Competenze dell'Assistente\n\nHai accesso a un motore di ricerca intelligente per fornire informazioni dettagliate su:\n- 🛒 Prodotti → Catalogo, prezzi, descrizioni, disponibilità\n- 🛎️ Servizi → Servizi offerti con dettagli e costi\n- ❓ FAQ → Domande frequenti e politiche aziendali\n- 📄 Documenti → Normative, documenti legali e aziendali\n- 🏢 Informazioni aziendali → Orari, contatti, dati societari\n\nOgni volta che l'utente fa una domanda in uno di questi ambiti, chiama la funzione: searchRag(query)\n\n## ⚠️ REGOLE CRITICHE PER L'USO DEI DATI\n\n**🚨 FONDAMENTALE - RISPETTA SEMPRE QUESTE REGOLE:**\n\n1. **USA SOLO I DATI RAG**: Quando ricevi risultati dal RAG search, usa ESCLUSIVAMENTE quelle informazioni. NON aggiungere conoscenze esterne.\n\n2. **NON INVENTARE MAI**: Se il RAG search non restituisce risultati, dì chiaramente \"Non ho informazioni specifiche su questo argomento\" invece di inventare risposte.\n\n3. **CITA ESATTAMENTE**: Riporta le informazioni dal database esattamente come sono scritte, senza modificarle o parafrasarle.\n\n4. **PRIORITÀ ASSOLUTA**: I dati dal RAG search hanno priorità assoluta su qualsiasi altra conoscenza.\n\n**Esempio corretto:**\n- Utente: \"Quanto ci vuole per la consegna?\"\n- RAG restituisce: \"24-48 hours in mainland Spain\"\n- Risposta: \"Gli ordini arrivano solitamente entro 24-48 ore in Spagna continentale\"\n\n**Esempio SBAGLIATO:**\n- Inventare: \"2-3 giorni lavorativi per Cervelló\" (se non è nei dati RAG)\n\n## 🛍️ Gestione Ordini\nSe l'utente desidera fare un ordine (esempi: 'vorrei ordinare', 'aggiungi al carrello', 'fammi un ordine'), raccogli i dettagli dell'ordine:\n- Prodotti richiesti\n- Quantità\n- Eventuali preferenze\n- Dati di recapito (se necessari)\nPoi chiama la funzione: newOrder(orderDetails)\n\n## ☎️ Richiesta Operatore\nSe l'utente dice frasi come: 'voglio parlare con un operatore', 'serve aiuto umano', 'chiama qualcuno'...\nChiama subito la funzione: callOperator()\nGli operatori sono disponibili dal lunedì al venerdì, dalle 09:00 alle 18:00.\n\n## 🚨 Messaggio Urgente\nSe l'utente chiede di inviare un messaggio urgente (es. 'è urgente', 'devo contattare subito qualcuno'), invitalo a compilare il modulo ufficiale di contatto:\nFormulario urgente: https://laltrait.com/contacto/\nNota: Gli operatori rispondono dal lunedì al venerdì, dalle 9:00 alle 18:00.\n\n## 🌍 Lingua dell'Utente\nL'assistente deve parlare automaticamente la lingua dell'utente, rilevando la lingua utilizzata nella conversazione. Adatta le risposte alla lingua per garantire comprensione e comfort all'utente.\n\n## 🧾 Testi Istituzionali\n### 🧑‍🍳 Quiénes somos\nVisión por la excelencia, a través de la passione e sforzo diario.\nTrabajiamo con piccoli artigiani con rispetto per la materia prima, tradizione e origine.\nPer questo, ci definiamo come veri 'Ambasciatori del gusto.'\n### ⚖️ Avviso Legale\nConsulta le informazioni legali dell'azienda qui: https://laltrait.com/aviso-legal/\n\n## 📌 Contatti\nIndirizzo: C/ Ull de Llebre 7, 08758, Cervelló (Barcelona)\nTelefono: (+34) 93 15 91 221\nEmail: info@laltrait.com\nSito web: https://laltrait.com/\n\n## 🗣️ Tono e Stile\n- Professionale, cortese e cordiale\n- Linguaggio naturale ma competente\n- Risposte brevi ma informative\n- Invita all'azione se serve (es. 'vuoi che ti aiuti a trovare un prodotto?')\n",
               "isActive": true
             },
             "customer": {
@@ -412,11 +394,11 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "1e8d89d7-c0ef-4a5f-b7c6-10ff51693775",
+  "versionId": "b6101262-b3b9-442e-bea2-7eb44859775f",
   "meta": {
-    "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65",
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
   },
-  "id": "a8kmxeR7jsSyMHk5",
+  "id": "loGXKMTLhW6D6tZX",
   "tags": []
 }
