@@ -217,6 +217,555 @@ GET /api/usage/export/{workspaceId}?format=csv
 
 ---
 
+## 🛒 **ORDERS & CART MANAGEMENT SYSTEM - ENTERPRISE REDESIGN**
+
+### **🎯 Overview**
+Sistema completo di gestione ordini e carrello enterprise-grade che sostituisce l'attuale implementazione "oscena" con un'interfaccia consistente, funzionalità CRUD complete e business logic robusta.
+
+### **❌ Problemi Attuali**
+- **Grafica inconsistente**: Layout e colori diversi dal resto dell'app
+- **Zero CRUD**: Impossibile modificare ordini esistenti
+- **Logica inesistente**: Nessuna gestione stati, stock, pagamenti
+- **Carrello primitivo**: Non si può modificare quantità o salvare carrello
+- **Relazioni rotte**: Products ↔ OrderItems ↔ Orders non funzionano
+
+### **✅ Obiettivo Target**
+**Sistema Orders & Cart di livello enterprise** con:
+- 🎨 **Design System Consistency**: Stesso tema/colori di Products/Categories/Customers
+- 🛠️ **CRUD Completo**: Create, Read, Update, Delete per tutti gli ordini
+- 🛒 **Smart Cart**: Modifica qty, aggiungi/rimuovi prodotti, salvataggio persistente
+- 📊 **Business Intelligence**: Dashboard con analytics, filtri, ricerca avanzata
+- 🔄 **Stock Management**: Gestione inventario automatica con validazioni
+
+### **🏗️ Architettura & Design**
+
+#### **🎨 Design System Compliance**
+```typescript
+// DESIGN TOKENS (ShopMe Standard):
+const theme = {
+  colors: {
+    primary: '#3B82F6',      // Blue - azioni principali
+    secondary: '#6B7280',    // Gray - azioni secondarie
+    success: '#10B981',      // Green - stati positivi
+    warning: '#F59E0B',      // Yellow - pending/processing
+    error: '#EF4444',        // Red - cancelled/failed
+    info: '#06B6D4'          // Cyan - informational
+  },
+  
+  statusBadges: {
+    pending: { bg: '#FEF3C7', text: '#D97706' },
+    confirmed: { bg: '#DBEAFE', text: '#2563EB' },
+    shipped: { bg: '#CFFAFE', text: '#0891B2' },
+    delivered: { bg: '#D1FAE5', text: '#059669' },
+    cancelled: { bg: '#FEE2E2', text: '#DC2626' }
+  }
+}
+```
+
+#### **📱 Component Architecture**
+```typescript
+// MAIN COMPONENTS:
+- OrdersPage.tsx        // Dashboard principale con table + filters
+- OrderDetail.tsx       // Modal/Sheet dettaglio ordine (view/edit)
+- OrderForm.tsx         // Form create/edit ordine con validazioni
+- CartManager.tsx       // Smart cart con qty management
+- OrderStatusBadge.tsx  // Badge colorati per stati ordine
+- OrdersTable.tsx       // DataTable con sorting/pagination
+- OrdersFilters.tsx     // Filtri avanzati (status, date, customer)
+
+// LAYOUT CONSISTENCY:
+- Header: Title + Actions + Breadcrumb (come Products page)
+- Sidebar: Navigation menu coerente
+- Main: Grid responsive (table + sidebar filters)
+- Actions: Buttons styling identico (primary/secondary)
+- Tables: Stesso DataTable component con sorting
+```
+
+### **🛒 Smart Cart System**
+
+#### **Enhanced Cart Features**
+```typescript
+interface SmartCart {
+  // CRUD Operations
+  addProduct(productId: string, quantity: number): Promise<void>
+  updateQuantity(itemId: string, quantity: number): Promise<void>
+  removeProduct(itemId: string): Promise<void>
+  clearCart(): Promise<void>
+  
+  // Persistence
+  saveCart(): Promise<void>           // localStorage + database backup
+  loadCart(): Promise<CartItem[]>     // restore session
+  
+  // Validations
+  validateStock(productId: string, qty: number): Promise<boolean>
+  validatePrices(): Promise<void>     // check for price changes
+  calculateTotals(): CartTotals       // subtotal, tax, shipping, total
+  
+  // State Management
+  cartItems: CartItem[]
+  totals: CartTotals
+  isLoading: boolean
+  errors: CartError[]
+}
+
+interface CartItem {
+  id: string
+  productId: string
+  productName: string
+  quantity: number
+  unitPrice: number
+  totalPrice: number
+  stockAvailable: number
+  lastUpdated: Date
+}
+
+interface CartTotals {
+  subtotal: number
+  taxAmount: number
+  shippingCost: number
+  discountAmount: number
+  totalAmount: number
+}
+```
+
+### **📊 Orders Dashboard**
+
+#### **Orders Table Specifications**
+```typescript
+interface OrdersTable {
+  columns: [
+    'Order ID',           // Primary key con link a dettaglio
+    'Customer',           // Nome + email customer
+    'Date',              // Data ordine con time ago
+    'Status',            // Badge colorato con stato
+    'Items',             // Numero prodotti in ordine
+    'Total',             // Prezzo totale formattato
+    'Actions'            // View, Edit, Delete buttons
+  ]
+  
+  features: {
+    search: string       // Ricerca per Order ID, Customer, Product
+    filters: {
+      status: OrderStatus[]
+      dateRange: [Date, Date]
+      customerType: string
+      amountRange: [number, number]
+    }
+    sorting: {
+      field: string
+      direction: 'asc' | 'desc'
+    }
+    pagination: {
+      page: number
+      perPage: number
+      total: number
+    }
+    bulkActions: [
+      'changeStatus',
+      'exportSelected', 
+      'deleteSelected'
+    ]
+  }
+}
+```
+
+#### **Advanced Filtering System**
+```typescript
+// FILTER COMBINATIONS:
+- Status: [Pending, Confirmed, Shipped, Delivered, Cancelled]
+- Date Range: Last 7 days, Last 30 days, Custom range
+- Customer: Dropdown with customer search
+- Amount: €0-50, €50-100, €100-200, €200+, Custom range
+- Payment: Credit Card, Bank Transfer, Cash, PayPal
+- Shipping: Standard, Express, Same Day, Pickup
+
+// QUICK FILTERS:
+- Today's Orders
+- Pending Orders (needs action)
+- High Value Orders (>€200)
+- Problem Orders (cancelled/refunded)
+```
+
+### **📝 Order Detail & Edit System**
+
+#### **Order Information Panel**
+```typescript
+interface OrderDetail {
+  // BASIC INFO
+  orderInfo: {
+    id: string
+    orderNumber: string
+    status: OrderStatus
+    createdAt: Date
+    updatedAt: Date
+  }
+  
+  // CUSTOMER SECTION
+  customer: {
+    id: string
+    name: string
+    email: string
+    phone: string
+    orderHistory: number        // total previous orders
+    totalSpent: number         // lifetime value
+  }
+  
+  // ORDER ITEMS TABLE
+  items: OrderItem[] = [
+    {
+      productId: string
+      productName: string
+      quantity: number
+      unitPrice: number
+      totalPrice: number
+      stockAtOrderTime: number
+      currentStock: number
+    }
+  ]
+  
+  // FINANCIAL SUMMARY
+  totals: {
+    subtotal: number
+    taxRate: number
+    taxAmount: number
+    shippingCost: number
+    discountAmount: number
+    totalAmount: number
+    paidAmount: number
+    refundedAmount: number
+  }
+  
+  // SHIPPING & DELIVERY
+  shipping: {
+    address: Address
+    method: ShippingMethod
+    trackingNumber?: string
+    estimatedDelivery: Date
+    actualDelivery?: Date
+  }
+  
+  // PAYMENT INFO
+  payment: {
+    method: PaymentMethod
+    status: PaymentStatus
+    transactionId?: string
+    paymentDate?: Date
+    refundInfo?: RefundInfo
+  }
+  
+  // AUDIT TRAIL
+  timeline: OrderEvent[] = [
+    {
+      event: 'ORDER_CREATED'
+      timestamp: Date
+      userId: string
+      description: string
+      metadata?: any
+    }
+  ]
+}
+```
+
+### **✏️ CRUD Operations**
+
+#### **Create Order Flow**
+```typescript
+// MANUAL ORDER CREATION:
+1. Select Customer (search/create new)
+2. Add Products (search catalog + qty selector)
+3. Calculate Totals (auto-calculate with tax/shipping)
+4. Payment Method (dropdown selection)
+5. Shipping Address (customer default or new)
+6. Order Notes (internal notes for processing)
+7. Validate Stock (check availability)
+8. Create Order (save + send confirmation)
+
+// VALIDATIONS:
+- Customer must be active
+- Products must be in stock
+- Prices must be current
+- Shipping address must be complete
+- Payment method must be valid
+```
+
+#### **Edit Order Capabilities**
+```typescript
+// EDITABLE FIELDS:
+- Order Status (dropdown with workflow validation)
+- Customer (change customer assignment)
+- Order Items (add/remove products, change quantities)
+- Shipping Address (update delivery location)
+- Payment Method (change payment type)
+- Internal Notes (add processing notes)
+- Discounts (apply/remove discounts)
+
+// BUSINESS RULES:
+- Cannot edit confirmed orders without reason
+- Stock changes trigger validation
+- Price changes require approval
+- Status changes follow workflow (Pending → Confirmed → Shipped → Delivered)
+- Cancelled orders restore stock automatically
+```
+
+#### **Status Management Workflow**
+```typescript
+enum OrderStatus {
+  PENDING = 'pending',         // Order created, awaiting confirmation
+  CONFIRMED = 'confirmed',     // Order confirmed, processing started
+  SHIPPED = 'shipped',         // Order shipped, tracking available
+  DELIVERED = 'delivered',     // Order delivered successfully
+  CANCELLED = 'cancelled',     // Order cancelled, stock restored
+  REFUNDED = 'refunded'        // Order refunded, payment reversed
+}
+
+// STATUS TRANSITIONS:
+const allowedTransitions = {
+  pending: ['confirmed', 'cancelled'],
+  confirmed: ['shipped', 'cancelled'],
+  shipped: ['delivered', 'cancelled'],
+  delivered: ['refunded'],
+  cancelled: [],              // Terminal state
+  refunded: []               // Terminal state
+}
+
+// AUTOMATIC ACTIONS:
+- CONFIRMED → Decrease stock
+- CANCELLED → Restore stock
+- SHIPPED → Send tracking email
+- DELIVERED → Request review
+```
+
+### **🔄 Business Logic & Integrations**
+
+#### **Stock Management System**
+```typescript
+interface InventoryService {
+  // STOCK OPERATIONS
+  checkAvailability(productId: string, quantity: number): Promise<boolean>
+  reserveStock(orderItems: OrderItem[]): Promise<ReservationResult>
+  confirmReservation(reservationId: string): Promise<void>
+  restoreStock(orderItems: OrderItem[]): Promise<void>
+  
+  // STOCK ALERTS
+  getLowStockProducts(threshold: number): Promise<Product[]>
+  notifyLowStock(products: Product[]): Promise<void>
+  
+  // INVENTORY TRACKING
+  logStockMovement(movement: StockMovement): Promise<void>
+  getStockHistory(productId: string): Promise<StockMovement[]>
+}
+
+interface StockMovement {
+  productId: string
+  orderId?: string
+  movementType: 'SALE' | 'RESTOCK' | 'ADJUSTMENT' | 'RETURN'
+  quantity: number
+  previousStock: number
+  newStock: number
+  reason: string
+  timestamp: Date
+}
+```
+
+#### **Payment Integration**
+```typescript
+interface PaymentService {
+  // PAYMENT PROCESSING
+  processPayment(order: Order, paymentMethod: PaymentMethod): Promise<PaymentResult>
+  refundPayment(orderId: string, amount: number): Promise<RefundResult>
+  
+  // PAYMENT STATUS SYNC
+  syncPaymentStatus(orderId: string): Promise<PaymentStatus>
+  handlePaymentWebhook(webhook: PaymentWebhook): Promise<void>
+  
+  // PAYMENT METHODS
+  getSupportedMethods(): PaymentMethod[]
+  validatePaymentMethod(method: PaymentMethod): boolean
+}
+
+interface PaymentMethod {
+  type: 'CREDIT_CARD' | 'BANK_TRANSFER' | 'PAYPAL' | 'CASH'
+  provider?: string
+  accountInfo?: any
+  isDefault: boolean
+}
+```
+
+### **🗄️ Database Schema Enhancement**
+
+#### **Enhanced Orders Table**
+```sql
+-- ORDERS TABLE ENHANCEMENT
+ALTER TABLE orders ADD COLUMN order_number VARCHAR(50) UNIQUE;
+ALTER TABLE orders ADD COLUMN customer_notes TEXT;
+ALTER TABLE orders ADD COLUMN internal_notes TEXT;
+ALTER TABLE orders ADD COLUMN shipping_method VARCHAR(50);
+ALTER TABLE orders ADD COLUMN shipping_cost DECIMAL(10,2) DEFAULT 0;
+ALTER TABLE orders ADD COLUMN tax_rate DECIMAL(5,4) DEFAULT 0;
+ALTER TABLE orders ADD COLUMN tax_amount DECIMAL(10,2) DEFAULT 0;
+ALTER TABLE orders ADD COLUMN discount_amount DECIMAL(10,2) DEFAULT 0;
+ALTER TABLE orders ADD COLUMN payment_method VARCHAR(50);
+ALTER TABLE orders ADD COLUMN payment_status VARCHAR(20) DEFAULT 'pending';
+ALTER TABLE orders ADD COLUMN tracking_number VARCHAR(100);
+ALTER TABLE orders ADD COLUMN estimated_delivery DATE;
+ALTER TABLE orders ADD COLUMN actual_delivery DATE;
+
+-- ORDER ITEMS TABLE
+CREATE TABLE order_items (
+  id VARCHAR(255) PRIMARY KEY,
+  order_id VARCHAR(255) NOT NULL,
+  product_id VARCHAR(255) NOT NULL,
+  product_name VARCHAR(255) NOT NULL,     -- Snapshot per history
+  quantity INTEGER NOT NULL,
+  unit_price DECIMAL(10,2) NOT NULL,      -- Snapshot per history
+  total_price DECIMAL(10,2) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
+-- ORDER EVENTS (Audit Trail)
+CREATE TABLE order_events (
+  id VARCHAR(255) PRIMARY KEY,
+  order_id VARCHAR(255) NOT NULL,
+  event_type VARCHAR(50) NOT NULL,
+  description TEXT,
+  metadata JSON,
+  user_id VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+
+-- PERFORMANCE INDEXES
+CREATE INDEX idx_orders_customer_date ON orders(customer_id, created_at DESC);
+CREATE INDEX idx_orders_status_date ON orders(status, created_at DESC);
+CREATE INDEX idx_order_items_order ON order_items(order_id);
+CREATE INDEX idx_order_events_order_date ON order_events(order_id, created_at DESC);
+```
+
+### **🎯 N8N Integration & Calling Functions**
+
+#### **Orders Calling Functions**
+```typescript
+// NEW CALLING FUNCTIONS for WhatsApp:
+
+// 1. CREATE ORDER
+interface CreateOrder {
+  input: {
+    customerId: string
+    items: { productId: string, quantity: number }[]
+    workspaceId: string
+  }
+  output: {
+    success: boolean
+    orderId: string
+    orderNumber: string
+    totalAmount: number
+    message: string
+  }
+}
+
+// 2. ADD TO CART
+interface AddToCart {
+  input: {
+    customerId: string
+    productId: string
+    quantity: number
+    workspaceId: string
+  }
+  output: {
+    success: boolean
+    cartItems: CartItem[]
+    cartTotal: number
+    message: string
+  }
+}
+
+// 3. VIEW CART
+interface ViewCart {
+  input: {
+    customerId: string
+    workspaceId: string
+  }
+  output: {
+    success: boolean
+    items: CartItem[]
+    totals: CartTotals
+    checkoutUrl?: string
+    message: string
+  }
+}
+
+// 4. ORDER STATUS
+interface CheckOrderStatus {
+  input: {
+    customerId: string
+    orderNumber?: string
+    workspaceId: string
+  }
+  output: {
+    success: boolean
+    orders: OrderSummary[]
+    message: string
+  }
+}
+```
+
+### **📊 Analytics & Reporting**
+
+#### **Orders Analytics Dashboard**
+```typescript
+interface OrdersAnalytics {
+  // KEY METRICS
+  totalOrders: number
+  totalRevenue: number
+  averageOrderValue: number
+  conversionRate: number
+  
+  // TRENDS
+  ordersGrowth: number          // % vs previous period
+  revenueGrowth: number         // % vs previous period
+  
+  // TOP PERFORMERS
+  topProducts: ProductPerformance[]
+  topCustomers: CustomerPerformance[]
+  
+  // STATUS BREAKDOWN
+  statusDistribution: {
+    pending: number
+    confirmed: number
+    shipped: number
+    delivered: number
+    cancelled: number
+  }
+  
+  // TIME ANALYSIS
+  peakHours: HourlyData[]
+  seasonalTrends: MonthlyData[]
+  
+  // GEOGRAPHICAL
+  shippingHeatmap: RegionData[]
+}
+```
+
+### **⚡ Performance Optimizations**
+
+#### **Database Performance**
+- **Indexes**: Ottimizzati per search, filter, sort operations
+- **Pagination**: Cursor-based per tabelle grandi
+- **Caching**: Redis per dati frequently accessed
+- **Aggregations**: Pre-calculated totals per dashboard
+
+#### **Frontend Performance**
+- **Virtual Scrolling**: Per tabelle con migliaia di ordini
+- **Lazy Loading**: Components caricati on-demand
+- **Memoization**: React.memo per componenti expensive
+- **Debouncing**: Search input con delay per API calls
+
+---
+
 ## 📧 **INVOICE MANAGEMENT SYSTEM - TASK DOCUMENTATION**
 
 ### **🎯 Obiettivo**
