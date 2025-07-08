@@ -143,7 +143,6 @@ model Orders {
   id              String         @id @default(uuid())
   orderCode       String         @unique
   status          OrderStatus    @default(PENDING)
-  paymentStatus   PaymentStatus  @default(PENDING)
   paymentMethod   PaymentMethod?
   totalAmount     Float
   shippingAmount  Float?         @default(0)
@@ -166,17 +165,20 @@ model Orders {
 }
 
 model OrderItems {
-  id             String   @id @default(uuid())
-  quantity       Int
+  id             String    @id @default(uuid())
+  itemType       ItemType  @default(PRODUCT) // PRODUCT or SERVICE
+  quantity       Int       @default(1)
   unitPrice      Float
   totalPrice     Float
   productVariant Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   orderId        String
-  productId      String
-  order          Orders   @relation(fields: [orderId], references: [id])
-  product        Products @relation(fields: [productId], references: [id])
+  productId      String?   // Optional for services
+  serviceId      String?   // Optional for products
+  order          Orders    @relation(fields: [orderId], references: [id])
+  product        Products? @relation(fields: [productId], references: [id])
+  service        Services? @relation(fields: [serviceId], references: [id])
 
   @@map("order_items")
 }
@@ -279,7 +281,7 @@ model WhatsappSettings {
 model PaymentDetails {
   id               String        @id @default(uuid())
   provider         String
-  status           PaymentStatus @default(PENDING)
+  status           String        @default("PENDING")
   amount           Float
   currency         String        @default("EUR")
   providerResponse Json?         @default("{}")
@@ -406,6 +408,7 @@ model Services {
   duration    Int            @default(60)
   workspace   Workspace      @relation(fields: [workspaceId], references: [id])
   chunks      ServiceChunks[]
+  orderItems  OrderItems[]
 
   @@map("services")
 }
@@ -602,13 +605,7 @@ enum OrderStatus {
   CANCELLED
 }
 
-enum PaymentStatus {
-  PENDING
-  AUTHORIZED
-  COMPLETED
-  FAILED
-  REFUNDED
-}
+
 
 enum PaymentMethod {
   CREDIT_CARD
@@ -658,4 +655,9 @@ enum BusinessType {
   RETAIL        // Physical store with inventory
   SERVICES      // Pure service business
   GENERIC       // Fallback for undefined business types
+}
+
+enum ItemType {
+  PRODUCT
+  SERVICE
 }

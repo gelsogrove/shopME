@@ -335,7 +335,7 @@ interface CartTotals {
 interface OrdersTable {
   columns: [
     'Order ID',           // Primary key con link a dettaglio
-    'Customer',           // Nome + email customer
+    'Customer',           // SOLO nome e cognome (NO EMAIL)
     'Date',              // Data ordine con time ago
     'Status',            // Badge colorato con stato
     'Items',             // Numero prodotti in ordine
@@ -346,10 +346,10 @@ interface OrdersTable {
   features: {
     search: string       // Ricerca per Order ID, Customer, Product
     filters: {
-      status: OrderStatus[]
-      dateRange: [Date, Date]
-      customerType: string
-      amountRange: [number, number]
+      status: OrderStatus[]           // PRIORITÀ: Filtro per status ordini
+      customer: string               // PRIORITÀ: Filtro dropdown per cliente
+      dateRange: [Date, Date]        // PRIORITÀ: Selettore range date
+      amountRange: [number, number]  // Filtro opzionale per importo
     }
     sorting: {
       field: string
@@ -365,6 +365,51 @@ interface OrdersTable {
       'exportSelected', 
       'deleteSelected'
     ]
+    filterActions: [
+      'clearAllFilters',              // NUOVO: Reset tutti i filtri
+      'saveFilterPreset'              // NUOVO: Salva combinazione filtri
+    ]
+  }
+}
+```
+
+#### **Enhanced Filtering System**
+```typescript
+interface OrdersPageFilters {
+  // PRIORITY FILTERS (Must Implement)
+  statusFilter: {
+    type: 'dropdown'
+    options: ['All', 'Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled']
+    multiple: boolean               // Allow multiple status selection
+    clearable: boolean              // Easy clear option
+  }
+  
+  customerFilter: {
+    type: 'searchable-dropdown'
+    source: 'customers'             // Load from customers table
+    displayField: 'firstName + lastName'  // Show name only, NO EMAIL
+    searchable: boolean             // Type to search customers
+    clearable: boolean              // Easy clear option
+  }
+  
+  dateRangeFilter: {
+    type: 'date-range-picker'
+    presets: ['Today', 'Last 7 days', 'Last 30 days', 'This month', 'Custom']
+    format: 'DD/MM/YYYY'           // Italian date format
+    clearable: boolean              // Easy clear option
+  }
+  
+  // UI IMPROVEMENTS
+  customerDisplay: {
+    showEmail: false                // REMOVE email from customer display
+    showPhone: boolean              // Optional phone display
+    format: 'firstName lastName'    // Clean name display
+  }
+  
+  filterCombination: {
+    allowMultiple: boolean          // Combine status + customer + date
+    persistence: boolean            // Remember filters across sessions
+    urlState: boolean              // Filters reflected in URL
   }
 }
 ```
@@ -1372,48 +1417,82 @@ The ShopMe platform integrates with **N8N** (n8nio.com) as a visual workflow aut
 ### 🎨 **Admin Interface Integration**
 
 #### **Settings Menu N8N Page**
-N8N is seamlessly integrated into the ShopMe admin interface as a dedicated settings page:
+### **N8N Integration Simplification Decision**
 
-- **Location**: `/settings/n8n` - Direct access from Settings sidebar menu
-- **Interface**: Embedded iframe with N8N workflow editor
-- **Authentication**: Single Sign-On using ShopMe admin credentials
-- **Access Control**: Restricted to admin users only (workspace role verification)
+**Current Issue**: 
+- N8N Workflow URL is not dynamic and doesn't work correctly
+- Frontend integration adds unnecessary complexity
+- URL hardcoding causes maintenance issues
 
-#### **N8N Management Features**
+**Simplification Strategy**:
+- **Remove Frontend Integration**: Eliminate N8N UI components from admin interface
+- **Keep Backend Workflow**: Maintain N8N workflow functionality for WhatsApp processing
+- **Simplify Architecture**: Focus on core functionality without complex UI integration
+- **Future Planning**: Document for potential re-integration when requirements are clearer
 
-##### **🖥️ Embedded Interface Components:**
-```typescript
-// N8NPage.tsx - Main container with iframe integration
-<div className="flex flex-col h-full">
-  <N8NStatusHeader />
-  <iframe
-    src={`http://localhost:5678?auth=${getN8NToken()}`}
-    className="flex-1 w-full border-0 rounded-lg"
-    style={{ minHeight: '800px' }}
-    title="N8N Workflow Editor"
-    sandbox="allow-same-origin allow-scripts allow-forms"
-  />
-  <QuickActions />
-</div>
-```
+**Components to Remove**:
+- N8NPage.tsx and related components
+- `/settings/n8n` route and navigation
+- N8N services and API calls from frontend
+- Embedded iframe integration
+- N8N management UI features
 
-##### **📊 Real-time Monitoring:**
-- **WorkflowStatusCard**: Live workflow execution status
-- **WorkflowMetrics**: Performance analytics and success rates  
-- **Container Health**: N8N service availability monitoring
-- **Error Dashboard**: Real-time error tracking and logging
+**What Remains**:
+- N8N Docker container and workflow
+- Backend API endpoints for N8N communication
+- WhatsApp message processing through N8N
+- Core workflow functionality
 
-##### **🔧 Quick Management Actions:**
-- **Import/Export Workflows**: Upload/download workflow JSON files
-- **Container Control**: Start/stop/restart N8N container
-- **Performance Dashboard**: Execution times, success rates, error rates
-- **Workflow Templates**: Pre-built templates for common business patterns
+~~N8N is seamlessly integrated into the ShopMe admin interface as a dedicated settings page:~~
 
-##### **🛡️ Security Integration:**
-- **Role-Based Access**: Only workspace owners/admins can modify workflows
-- **Audit Logging**: Track all workflow modifications with user attribution
-- **Secure Token Passing**: JWT tokens for N8N authentication
-- **Read-Only Mode**: Limited access for non-admin users
+~~- **Location**: `/settings/n8n` - Direct access from Settings sidebar menu~~
+~~- **Interface**: Embedded iframe with N8N workflow editor~~
+~~- **Authentication**: Single Sign-On using ShopMe admin credentials~~
+~~- **Access Control**: Restricted to admin users only (workspace role verification)~~
+
+#### **~~N8N Management Features~~ (REMOVED FOR SIMPLIFICATION)**
+
+**Decision**: All N8N frontend management features have been removed to simplify the architecture and focus on core functionality.
+
+##### **~~🖥️ Embedded Interface Components:~~ (REMOVED)**
+~~```typescript~~
+~~// N8NPage.tsx - Main container with iframe integration (REMOVED)~~
+~~<div className="flex flex-col h-full">~~
+~~  <N8NStatusHeader />~~
+~~  <iframe~~
+~~    src={`http://localhost:5678?auth=${getN8NToken()}`}~~
+~~    className="flex-1 w-full border-0 rounded-lg"~~
+~~    style={{ minHeight: '800px' }}~~
+~~    title="N8N Workflow Editor"~~
+~~    sandbox="allow-same-origin allow-scripts allow-forms"~~
+~~  />~~
+~~  <QuickActions />~~
+~~</div>~~
+~~```~~
+
+##### **~~📊 Real-time Monitoring:~~ (REMOVED)**
+~~- **WorkflowStatusCard**: Live workflow execution status~~
+~~- **WorkflowMetrics**: Performance analytics and success rates~~  
+~~- **Container Health**: N8N service availability monitoring~~
+~~- **Error Dashboard**: Real-time error tracking and logging~~
+
+##### **~~🔧 Quick Management Actions:~~ (REMOVED)**
+~~- **Import/Export Workflows**: Upload/download workflow JSON files~~
+~~- **Container Control**: Start/stop/restart N8N container~~
+~~- **Performance Dashboard**: Execution times, success rates, error rates~~
+~~- **Workflow Templates**: Pre-built templates for common business patterns~~
+
+##### **~~🛡️ Security Integration:~~ (REMOVED)**
+~~- **Role-Based Access**: Only workspace owners/admins can modify workflows~~
+~~- **Audit Logging**: Track all workflow modifications with user attribution~~
+~~- **Secure Token Passing**: JWT tokens for N8N authentication~~
+~~- **Read-Only Mode**: Limited access for non-admin users~~
+
+**Simplified N8N Architecture**:
+- N8N runs as Docker container for WhatsApp processing
+- Backend API endpoints remain for N8N communication
+- No frontend UI integration
+- Focus on core messaging workflow functionality
 
 ### 🎯 **Hybrid Architecture: Backend + N8N**
 
@@ -3307,6 +3386,111 @@ The ShopMe frontend is built with a modern React architecture:
   - Custom animations and transitions
   - Interactive data visualizations
 
+#### **UI/UX Standards & Toast Message System**
+
+**Toast Message Standardization**:
+- **Green Success Toast**: All success messages must use green background with white text
+- **Icon Integration**: Every toast must include appropriate icons:
+  - ✓ Success messages (green background, white text)
+  - ⚠️ Warning messages (yellow/orange background)
+  - ❌ Error messages (red background, white text)
+- **Consistent Styling**: Uniform appearance across all application components
+- **Sonner Configuration**: Properly configured sonner library for custom styling
+
+**Implementation Requirements**:
+```typescript
+// Toast Configuration
+const TOAST_CONFIG = {
+  success: {
+    backgroundColor: '#10B981',    // Green
+    color: '#FFFFFF',             // White text
+    icon: '✓',                    // Success checkmark
+    duration: 4000                // 4 seconds display
+  },
+  warning: {
+    backgroundColor: '#F59E0B',    // Orange/Yellow
+    color: '#1F2937',             // Dark text
+    icon: '⚠️',                    // Warning symbol
+    duration: 5000                // 5 seconds display
+  },
+  error: {
+    backgroundColor: '#EF4444',    // Red
+    color: '#FFFFFF',             // White text
+    icon: '❌',                    // Error X
+    duration: 6000                // 6 seconds display
+  }
+}
+```
+
+**Analytics Dashboard Design Requirements**:
+- **Remove Blue Info Box**: Eliminate the distracting blue "Informazioni sul periodo di default" box
+- **Consistent Design System**: Apply same colors, fonts, and spacing as main application
+- **Clean Professional Layout**: Modern dashboard appearance without cluttered information boxes
+- **Historical Data Visualization**: Proper charts showing orders from past months
+- **Date Range Functionality**: Working date selector for historical period analysis
+
+**Login Page Design Issues**:
+- **Right Panel Inconsistency**: The right side of `/auth/login` doesn't match application design
+- **Inappropriate Content**: "Conversational E-commerce, Reimagined" text is not aligned with brand
+- **Color Misalignment**: Colors don't follow the main application's design system
+- **Typography Issues**: Font families and sizes inconsistent with main app
+- **Icon Problems**: Icons don't match the established design system
+- **Brand Inconsistency**: Overall branding not coherent with ShopMe identity
+
+**Login Page Requirements**:
+```typescript
+// Login Page Design Fixes
+interface LoginPageDesign {
+  rightPanel: {
+    removeTagline: boolean                  // Remove "Conversational E-commerce, Reimagined"
+    contentStrategy: string                 // Appropriate content for ShopMe brand
+    colorConsistency: boolean               // Apply main app color palette
+    typographyAlignment: boolean            // Use consistent fonts and sizing
+    iconRedesign: boolean                   // Replace non-coherent icons
+    brandConsistency: boolean               // Ensure ShopMe branding coherence
+  }
+  
+  designSystem: {
+    colors: string[]                        // Main application color palette
+    typography: string[]                    // Consistent font families
+    spacing: string[]                       // Main app spacing system
+    components: string[]                    // Reuse existing UI components
+  }
+}
+```
+
+**User Avatar Design Issues**:
+- **Small Avatar Size**: The circular avatar with initials in the top-right corner is too small
+- **Poor Visibility**: Current size makes it difficult to see and interact with
+- **Usability Problems**: Small size affects user experience and accessibility
+- **Header Proportion**: Avatar doesn't scale well with the rest of the header elements
+
+**Avatar Improvement Requirements**:
+```typescript
+// User Avatar Design Improvements
+interface UserAvatarDesign {
+  sizing: {
+    currentSize: string                     // Current small size (e.g., 32px)
+    targetSize: string                      // Larger target size (e.g., 44px-48px)
+    responsive: boolean                     // Responsive sizing for different screens
+    minTouchTarget: string                  // Minimum 44px for touch accessibility
+  }
+  
+  visibility: {
+    contrast: boolean                       // Better color contrast for visibility
+    prominence: boolean                     // More prominent positioning
+    hover: boolean                          // Clear hover states
+    focus: boolean                          // Accessible focus indicators
+  }
+  
+  proportions: {
+    headerBalance: boolean                  // Balanced with header elements
+    logoAlignment: boolean                  // Proper alignment with logo/brand
+    spacing: string[]                       // Adequate spacing around avatar
+  }
+}
+```
+
 ### Backend Architecture
 
 The backend follows a Domain-Driven Design (DDD) architecture:
@@ -3835,6 +4019,40 @@ Our system uses JWT (JSON Web Token) authentication to keep user accounts secure
 - **Token Types**:
   - Access Token (1 hour validity, HTTP-only cookie)
   - Refresh Token (7 days validity, HTTP-only cookie)
+
+#### **Extended Session Duration Requirements**
+
+**Session Management Enhancement**:
+- **1 Hour Active Session**: User sessions must remain active for 1 hour without requiring re-login
+- **Seamless Experience**: No interruptions during normal work activities
+- **Auto Token Refresh**: Silent token renewal before expiration
+- **Activity-Based Renewal**: Session timer resets with user activity
+- **Graceful Expiry**: Clear messaging when session naturally expires
+
+**Technical Implementation**:
+```typescript
+// JWT Configuration
+const JWT_CONFIG = {
+  accessTokenExpiry: '1h',        // 1 hour session duration
+  refreshTokenExpiry: '7d',       // 7 days for refresh
+  silentRefreshThreshold: 300,    // Refresh 5 minutes before expiry
+  inactivityTimeout: 3600         // 1 hour of inactivity
+}
+
+// Session Monitoring
+interface SessionManager {
+  trackActivity(): void           // Reset inactivity timer
+  refreshToken(): Promise<void>   // Silent token renewal
+  validateSession(): boolean      // Check session validity
+  handleExpiry(): void           // Graceful logout
+}
+```
+
+**User Experience Requirements**:
+- **No Login Interruptions**: Users should work uninterrupted for 1 hour
+- **Background Refresh**: Token renewal happens automatically
+- **Session Indicators**: Optional visual indication of session time remaining
+- **Quick Re-login**: Fast re-authentication process if needed
 
 - **Security Measures**:
   - Regular secret key rotation
@@ -5915,7 +6133,54 @@ await usageService.trackUsage({
 - **Export Functionality**: CSV/JSON export for external analysis
 - **Responsive Design**: Mobile-friendly dashboard interface
 
-### **📊 SAMPLE DASHBOARD DATA**
+### #### **Analytics Dashboard Issues & Fixes**
+
+**Current Problems:**
+- **Missing Historical Data**: Analytics Dashboard not showing orders from past months
+- **Blue Info Box**: Distracting "Informazioni sul periodo di default" box ruins dashboard aesthetics
+- **Inconsistent Design**: Dashboard doesn't match main application's color scheme and typography
+- **Date Range Issues**: Date selector not properly loading historical data
+
+**Required Fixes:**
+```typescript
+// Analytics Dashboard Requirements
+interface AnalyticsDashboardFixes {
+  // Remove distracting info box
+  removeInfoBox: boolean                    // Eliminate blue default period info box
+  
+  // Historical data visualization
+  historicalOrders: {
+    showPastMonths: boolean                 // Display orders from previous months
+    dateRangeSelector: boolean              // Working date range picker
+    monthlyTrends: boolean                  // Monthly order trends charts
+    yearOverYear: boolean                   // Year-over-year comparisons
+  }
+  
+  // Design consistency
+  designSystem: {
+    colors: string[]                        // Match main app color palette
+    typography: string[]                    // Consistent font families and sizes
+    spacing: string[]                       // Match main app spacing system
+    components: string[]                    // Reuse existing UI components
+  }
+  
+  // Data loading improvements
+  dataLoading: {
+    historicalQuery: boolean                // Proper historical data queries
+    performanceOptimization: boolean       // Optimized chart rendering
+    cacheStrategy: boolean                  // Cache frequently accessed data
+  }
+}
+```
+
+**Implementation Requirements:**
+- **Remove Blue Box**: Eliminate the default period information box entirely
+- **Historical Charts**: Implement proper charts showing orders from past months
+- **Design Consistency**: Apply same colors, fonts, and spacing as main application
+- **Clean Layout**: Professional dashboard without cluttered information boxes
+- **Working Date Picker**: Functional date range selector for historical analysis
+
+**📊 SAMPLE DASHBOARD DATA**
 
 ```json
 {

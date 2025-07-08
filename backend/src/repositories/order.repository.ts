@@ -1,6 +1,6 @@
-import { Prisma, PrismaClient, OrderStatus, PaymentStatus } from '@prisma/client';
-import { Order, OrderItem } from '../domain/entities/order.entity';
-import { IOrderRepository, PaginatedOrders, OrderFilters } from '../domain/repositories/order.repository.interface';
+import { OrderStatus, Prisma, PrismaClient } from '@prisma/client';
+import { Order } from '../domain/entities/order.entity';
+import { IOrderRepository, OrderFilters, PaginatedOrders } from '../domain/repositories/order.repository.interface';
 import logger from '../utils/logger';
 
 export class OrderRepository implements IOrderRepository {
@@ -36,10 +36,7 @@ export class OrderRepository implements IOrderRepository {
         where.status = filters.status;
       }
 
-      // Payment status filter
-      if (filters?.paymentStatus) {
-        where.paymentStatus = filters.paymentStatus;
-      }
+      // Payment status is now handled via PaymentDetails table
 
       // Date range filter
       if (filters?.dateFrom || filters?.dateTo) {
@@ -191,7 +188,6 @@ export class OrderRepository implements IOrderRepository {
           customerId: order.customerId,
           workspaceId: order.workspaceId,
           status: order.status,
-          paymentStatus: order.paymentStatus,
           paymentMethod: order.paymentMethod,
           totalAmount: order.totalAmount,
           shippingAmount: order.shippingAmount,
@@ -237,7 +233,6 @@ export class OrderRepository implements IOrderRepository {
         },
         data: {
           status: order.status,
-          paymentStatus: order.paymentStatus,
           paymentMethod: order.paymentMethod,
           totalAmount: order.totalAmount,
           shippingAmount: order.shippingAmount,
@@ -308,33 +303,6 @@ export class OrderRepository implements IOrderRepository {
     }
   }
 
-  async updatePaymentStatus(id: string, paymentStatus: PaymentStatus, workspaceId: string): Promise<Order | null> {
-    try {
-      const updatedOrder = await this.prisma.orders.update({
-        where: {
-          id,
-          workspaceId
-        },
-        data: {
-          paymentStatus,
-          updatedAt: new Date()
-        },
-        include: {
-          customer: true,
-          items: {
-            include: {
-              product: true
-            }
-          }
-        }
-      });
-
-      return this.mapToDomainEntity(updatedOrder);
-    } catch (error) {
-      logger.error(`Error updating payment status for order ${id}:`, error);
-      return null;
-    }
-  }
 
   async getOrdersByDateRange(workspaceId: string, startDate: Date, endDate: Date): Promise<Order[]> {
     try {
@@ -376,9 +344,7 @@ export class OrderRepository implements IOrderRepository {
         where.status = filters.status;
       }
 
-      if (filters?.paymentStatus) {
-        where.paymentStatus = filters.paymentStatus;
-      }
+      // Payment status filtering removed
 
       if (filters?.dateFrom || filters?.dateTo) {
         where.createdAt = {};
@@ -401,7 +367,7 @@ export class OrderRepository implements IOrderRepository {
     try {
       const where: Prisma.OrdersWhereInput = {
         workspaceId,
-        paymentStatus: PaymentStatus.COMPLETED
+        // Payment status removed
       };
 
       if (filters?.dateFrom || filters?.dateTo) {
@@ -435,7 +401,7 @@ export class OrderRepository implements IOrderRepository {
       customerId: data.customerId,
       workspaceId: data.workspaceId,
       status: data.status,
-      paymentStatus: data.paymentStatus,
+      // Payment status removed
       paymentMethod: data.paymentMethod,
       totalAmount: data.totalAmount,
       shippingAmount: data.shippingAmount,

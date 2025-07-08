@@ -2220,7 +2220,7 @@ async function main() {
                           // Create order with current database structure
          const order = await prisma.orders.create({
            data: {
-             orderCode: `ORD-${Date.now()}-${i}`,
+             orderCode: `${10001 + i}`, // 5-digit numeric codes starting from 10001
              customerId: testCustomer.id,
              workspaceId: mainWorkspaceId,
              status: orderData.status,
@@ -2231,11 +2231,12 @@ async function main() {
          
          console.log(`Order created: ${order.id} - Status: ${order.status}`)
          
-         // Create order items for this order
+                  // Create order items for this order
          for (const item of orderData.items) {
            await prisma.orderItems.create({
              data: {
                orderId: order.id,
+               itemType: 'PRODUCT', // For now, keep existing orders as products
                productId: item.productId,
                quantity: item.quantity,
                unitPrice: item.unitPrice,
@@ -2272,7 +2273,7 @@ async function main() {
     try {
              const order = await prisma.orders.create({
          data: {
-           orderCode: `ORD-${Date.now()}-${Math.random()}`,
+           orderCode: `${20001 + i}`, // 5-digit numeric codes starting from 20001 for additional orders
            workspaceId: mainWorkspaceId,
            customerId: testCustomer.id,
            status: randomStatus as any,

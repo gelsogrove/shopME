@@ -1,32 +1,32 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { commonStyles } from "@/styles/common"
 import {
-  type ColumnDef,
-  type ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  Row,
-  type SortingState,
-  useReactTable,
-  type VisibilityState,
+    type ColumnDef,
+    type ColumnFiltersState,
+    flexRender,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    Row,
+    type SortingState,
+    useReactTable,
+    type VisibilityState,
 } from "@tanstack/react-table"
 import { ChevronLeft, ChevronRight, Pencil, Search, Trash2 } from "lucide-react"
 import React, { ReactNode, useState } from "react"
@@ -65,10 +65,10 @@ export function DataTable<TData>({
 
   const allColumns = React.useMemo(() => {
     const cols = [...columns]
-    if (onEdit || onDelete || actionButtons) {
+    if (onEdit || onDelete || actionButtons || renderActions) {
       cols.push({
         id: "actions",
-        header: "",
+        header: "Actions",
         cell: ({ row }) => (
           <div className="flex justify-end items-center space-x-2">
             {renderActions && renderActions(row.original)}

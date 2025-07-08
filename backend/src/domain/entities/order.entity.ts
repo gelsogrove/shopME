@@ -1,16 +1,20 @@
-import { OrderStatus, PaymentStatus, PaymentMethod } from '@prisma/client';
+import { ItemType, OrderStatus, PaymentMethod } from '@prisma/client';
 import { Customer } from './customer.entity';
 import { Product } from './product.entity';
+import { Service } from './service.entity';
 
 export interface OrderItem {
   id: string;
   orderId: string;
-  productId: string;
+  itemType: ItemType; // PRODUCT or SERVICE
+  productId?: string; // Optional for services
+  serviceId?: string; // Optional for products
   quantity: number;
   unitPrice: number;
   totalPrice: number;
   productVariant: any | null;
   product?: Product;
+  service?: Service;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,7 +47,6 @@ export class Order {
   customerId: string;
   workspaceId: string;
   status: OrderStatus;
-  paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod | null;
   totalAmount: number;
   shippingAmount: number;
@@ -64,7 +67,6 @@ export class Order {
     this.customerId = data.customerId || '';
     this.workspaceId = data.workspaceId || '';
     this.status = data.status || OrderStatus.PENDING;
-    this.paymentStatus = data.paymentStatus || PaymentStatus.PENDING;
     this.paymentMethod = data.paymentMethod || null;
     this.totalAmount = data.totalAmount || 0;
     this.shippingAmount = data.shippingAmount || 0;
@@ -81,9 +83,11 @@ export class Order {
   }
 
   private generateOrderCode(): string {
-    const year = new Date().getFullYear();
-    const timestamp = Date.now().toString().slice(-6);
-    return `ORD-${year}-${timestamp}`;
+    // Generate 5-digit numeric code (10000-99999)
+    const min = 10000;
+    const max = 99999;
+    const code = Math.floor(Math.random() * (max - min + 1)) + min;
+    return code.toString();
   }
 
   getTotalItemsCount(): number {
@@ -102,14 +106,6 @@ export class Order {
     });
   }
 
-  updatePaymentStatus(paymentStatus: PaymentStatus): Order {
-    return new Order({
-      ...this,
-      paymentStatus,
-      updatedAt: new Date()
-    });
-  }
-
   calculateTotalAmount(): number {
     const itemsTotal = this.items?.reduce((sum, item) => sum + item.totalPrice, 0) || 0;
     return itemsTotal + this.shippingAmount + this.taxAmount - this.discountAmount;
@@ -119,11 +115,24 @@ export class Order {
     return this.status === OrderStatus.PENDING || this.status === OrderStatus.CONFIRMED;
   }
 
-  canBeShipped(): boolean {
-    return this.status === OrderStatus.CONFIRMED && this.paymentStatus === PaymentStatus.COMPLETED;
-  }
-
   isComplete(): boolean {
     return this.status === OrderStatus.DELIVERED;
+  }
+
+  // Helper methods for services
+  hasServices(): boolean {
+    return this.items?.some(item => item.itemType === ItemType.SERVICE) || false;
+  }
+
+  hasProducts(): boolean {
+    return this.items?.some(item => item.itemType === ItemType.PRODUCT) || false;
+  }
+
+  getServices(): OrderItem[] {
+    return this.items?.filter(item => item.itemType === ItemType.SERVICE) || [];
+  }
+
+  getProducts(): OrderItem[] {
+    return this.items?.filter(item => item.itemType === ItemType.PRODUCT) || [];
   }
 }
