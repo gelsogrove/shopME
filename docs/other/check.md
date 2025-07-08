@@ -51,7 +51,7 @@ se trovi un errore blocca il processo di check !!!
 [ ] IL backenbd e il Frontend hanno un buon livello di programmazione e dividono bene in cartelle le varie responsabilita?
  
 [ ] le CF ricevono tutte il token ? 
-[ ] il seed crea il file pdf dentro /uploads/docu
+[ ] il seed crea il file pdf dentro /uploads/document?
 
 [ ] Vedi criticita? bug ? 
 [ ] lint funziona sia di BE che di FE?
@@ -67,4 +67,5 @@ se trovi un errore blocca il processo di check !!!
 [ ] Puoui vedere se il PRD e' aggiornato con test, codice , e task list?
 [ ] mi devi controllare se generate embedding si esegue dopo il seed su faq, services, producst,documents
 [ ] mi devi controllare che le credenziali dentro n8n siano importate correttamente
+[ ] se l'operatore prende il controllo LLM non deve piu rispondere viene fatto questo controllo dentro n8n o nel codice ?
  

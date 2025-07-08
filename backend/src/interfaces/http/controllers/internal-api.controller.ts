@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import { SecureTokenService } from '../../../application/services/secure-token.service';
+import { createCheckoutLink } from '../../../chatbot/calling-functions/createCheckoutLink';
+import { getAllCategories } from '../../../chatbot/calling-functions/getAllCategories';
 import { MessageRepository } from '../../../repositories/message.repository';
 import { embeddingService } from '../../../services/embeddingService';
 import logger from '../../../utils/logger';
@@ -1765,6 +1767,83 @@ ${JSON.stringify(ragResults, null, 2)}`;
       res.status(500).json({
         error: 'Internal server error',
         message: error.message
+      });
+    }
+  }
+
+  /**
+   * Create Checkout Link (PRD Implementation)
+   */
+  async createCheckoutLink(req: Request, res: Response): Promise<void> {
+    try {
+      const { phoneNumber, workspaceId, customerId, message } = req.body;
+
+      if (!phoneNumber || !workspaceId || !message) {
+        res.status(400).json({
+          error: 'Missing required fields: phoneNumber, workspaceId, message'
+        });
+        return;
+      }
+
+      logger.info(`[INTERNAL_API] Creating checkout link for ${phoneNumber}`);
+
+      const result = await createCheckoutLink({
+        phoneNumber,
+        workspaceId,
+        customerId,
+        message
+      });
+
+      res.json({
+        success: true,
+        checkout_url: result.checkoutUrl,
+        checkout_token: result.checkoutToken,
+        response_message: result.response,
+        expires_at: result.expiresAt
+      });
+
+    } catch (error) {
+      logger.error('[INTERNAL_API] Error creating checkout link:', error);
+      res.status(500).json({
+        error: 'Internal server error creating checkout link'
+      });
+    }
+  }
+
+  /**
+   * Get All Categories (PRD Implementation)
+   */
+  async getAllCategories(req: Request, res: Response): Promise<void> {
+    try {
+      const { phoneNumber, workspaceId, customerId, message } = req.body;
+
+      if (!phoneNumber || !workspaceId || !message) {
+        res.status(400).json({
+          error: 'Missing required fields: phoneNumber, workspaceId, message'
+        });
+        return;
+      }
+
+      logger.info(`[INTERNAL_API] Getting categories for ${phoneNumber}`);
+
+      const result = await getAllCategories({
+        phoneNumber,
+        workspaceId,
+        customerId,
+        message
+      });
+
+      res.json({
+        success: true,
+        total_categories: result.totalCategories,
+        categories: result.categories,
+        response_message: result.response
+      });
+
+    } catch (error) {
+      logger.error('[INTERNAL_API] Error getting categories:', error);
+      res.status(500).json({
+        error: 'Internal server error getting categories'
       });
     }
   }

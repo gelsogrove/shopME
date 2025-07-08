@@ -1,4 +1,7 @@
 import { PrismaClient } from "@prisma/client"
+import { createCheckoutLink } from "../../chatbot/calling-functions/createCheckoutLink"
+import { getAllCategories } from "../../chatbot/calling-functions/getAllCategories"
+import { getAllProducts } from "../../chatbot/calling-functions/getAllProducts"
 import { MessageRepository } from "../../repositories/message.repository"
 import { documentService } from "../../services/documentService"
 import logger from "../../utils/logger"
@@ -135,6 +138,39 @@ export class FunctionHandlerService {
           return {
             functionName,
             data: await this.searchDocuments(params.query, workspaceId),
+          }
+
+        case "create_checkout_link":
+          return {
+            functionName,
+            data: await this.handleCreateCheckoutLink(
+              phoneNumber,
+              workspaceId,
+              customer?.id,
+              params.message
+            ),
+          }
+
+        case "get_all_categories":
+          return {
+            functionName,
+            data: await this.handleGetAllCategories(
+              phoneNumber,
+              workspaceId,
+              customer?.id,
+              params.message
+            ),
+          }
+
+        case "get_all_products":
+          return {
+            functionName,
+            data: await this.handleGetAllProducts(
+              phoneNumber,
+              workspaceId,
+              customer?.id,
+              params.message
+            ),
           }
 
         case "get_generic_response":
@@ -916,6 +952,123 @@ export class FunctionHandlerService {
         error: "Failed to search documents",
         message: "There was an error searching through the documents. Please try again later.",
         results: []
+      }
+    }
+  }
+
+  /**
+   * Handles checkout link creation (PRD Implementation)
+   */
+  private async handleCreateCheckoutLink(
+    phoneNumber: string,
+    workspaceId: string,
+    customerId?: string,
+    message?: string
+  ): Promise<any> {
+    try {
+      logger.info(`[CHECKOUT_HANDLER] Processing checkout for ${phoneNumber}`)
+      
+      const result = await createCheckoutLink({
+        phoneNumber,
+        workspaceId,
+        customerId,
+        message: message || "checkout"
+      })
+      
+      logger.info(`[CHECKOUT_HANDLER] Checkout link created successfully`)
+      
+      return {
+        success: true,
+        checkout_url: result.checkoutUrl,
+        checkout_token: result.checkoutToken,
+        response_message: result.response,
+        expires_at: result.expiresAt
+      }
+      
+    } catch (error) {
+      logger.error(`[CHECKOUT_HANDLER] Error creating checkout link:`, error)
+      return {
+        success: false,
+        error: "Si è verificato un errore nella creazione del link checkout",
+        fallback_message: "Per finalizzare l'ordine, contatta il nostro servizio clienti."
+      }
+    }
+  }
+
+  /**
+   * Handles get all categories (PRD Implementation)
+   */
+  private async handleGetAllCategories(
+    phoneNumber: string,
+    workspaceId: string,
+    customerId?: string,
+    message?: string
+  ): Promise<any> {
+    try {
+      logger.info(`[CATEGORIES_HANDLER] Getting categories for ${phoneNumber}`)
+      
+      const result = await getAllCategories({
+        phoneNumber,
+        workspaceId,
+        customerId,
+        message: message || "categorie"
+      })
+      
+      logger.info(`[CATEGORIES_HANDLER] Found ${result.totalCategories} categories`)
+      
+      return {
+        success: true,
+        total_categories: result.totalCategories,
+        categories: result.categories,
+        response_message: result.response
+      }
+      
+    } catch (error) {
+      logger.error(`[CATEGORIES_HANDLER] Error getting categories:`, error)
+      return {
+        success: false,
+        error: "Si è verificato un errore nel recupero delle categorie",
+        fallback_message: "Per vedere le categorie disponibili, contatta il nostro servizio clienti."
+      }
+    }
+  }
+
+  /**
+   * Handles get all products using the dedicated calling function
+   */
+  private async handleGetAllProducts(
+    phoneNumber: string,
+    workspaceId: string,
+    customerId?: string,
+    message?: string
+  ): Promise<any> {
+    try {
+      logger.info(`[GET_ALL_PRODUCTS_HANDLER] Getting all products for ${phoneNumber}`)
+      
+      // Use the dedicated getAllProducts calling function
+      const result = await getAllProducts({
+        phoneNumber,
+        workspaceId,
+        customerId,
+        message: message || "Lista prodotti"
+      })
+      
+      logger.info(`[GET_ALL_PRODUCTS_HANDLER] Found ${result.totalProducts} products`)
+      
+      return {
+        success: true,
+        response: result.response,
+        products: result.products,
+        totalProducts: result.totalProducts
+      }
+      
+    } catch (error) {
+      logger.error(`[GET_ALL_PRODUCTS_HANDLER] Error getting products:`, error)
+      return {
+        success: false,
+        response: "Si è verificato un errore nel recupero dei prodotti. Per favore riprova più tardi o contatta il nostro servizio clienti.",
+        products: [],
+        totalProducts: 0
       }
     }
   }

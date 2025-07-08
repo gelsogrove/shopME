@@ -86,4 +86,126 @@ router.get('/test-simple-search',
 router.post('/get-all-products', 
   internalApiController.getAllProducts.bind(internalApiController));
 
+  /**
+   * @swagger
+   * /internal/create-checkout-link:
+   *   post:
+   *     tags: [Internal API]
+   *     summary: Create secure checkout link for customer
+   *     security:
+   *       - InternalAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - phoneNumber
+   *               - workspaceId
+   *               - message
+   *             properties:
+   *               phoneNumber:
+   *                 type: string
+   *                 description: Customer phone number
+   *               workspaceId:
+   *                 type: string
+   *                 description: Workspace ID
+   *               customerId:
+   *                 type: string
+   *                 description: Customer ID (optional)
+   *               message:
+   *                 type: string
+   *                 description: User message indicating checkout intent
+   *     responses:
+   *       200:
+   *         description: Checkout link created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 checkout_url:
+   *                   type: string
+   *                 checkout_token:
+   *                   type: string
+   *                 response_message:
+   *                   type: string
+   *                 expires_at:
+   *                   type: string
+   *                   format: date-time
+   *       400:
+   *         description: Bad request
+   *       401:
+   *         description: Unauthorized
+   */
+  router.post('/create-checkout-link', internalApiController.createCheckoutLink.bind(internalApiController));
+
+  /**
+   * @swagger
+   * /internal/get-all-categories:
+   *   post:
+   *     tags: [Internal API]
+   *     summary: Get all categories for workspace
+   *     security:
+   *       - InternalAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - phoneNumber
+   *               - workspaceId
+   *               - message
+   *             properties:
+   *               phoneNumber:
+   *                 type: string
+   *                 description: Customer phone number
+   *               workspaceId:
+   *                 type: string
+   *                 description: Workspace ID
+   *               customerId:
+   *                 type: string
+   *                 description: Customer ID (optional)
+   *               message:
+   *                 type: string
+   *                 description: User message requesting categories
+   *     responses:
+   *       200:
+   *         description: Categories retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 total_categories:
+   *                   type: integer
+   *                 categories:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       id:
+   *                         type: string
+   *                       name:
+   *                         type: string
+   *                       description:
+   *                         type: string
+   *                       productCount:
+   *                         type: integer
+   *                 response_message:
+   *                   type: string
+   *       400:
+   *         description: Bad request
+   *       401:
+   *         description: Unauthorized
+   */
+  router.post('/get-all-categories', internalApiController.getAllCategories.bind(internalApiController));
+
 export { router as internalApiRoutes };

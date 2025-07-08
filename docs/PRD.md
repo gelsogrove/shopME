@@ -380,6 +380,43 @@ CREATE INDEX idx_invoices_created_desc ON invoices(created_at DESC);
 
 ### **🔄 Flusso Completo Two-LLM**
 
+#### **🎯 ARCHITETTURA RAG: 2 FASI DISTINTE**
+
+```mermaid
+flowchart TD
+    A["🌐 UTENTE<br/>WhatsApp: 'tempi di consegna'"] --> B["📬 N8N WEBHOOK<br/>shopme-whatsapp-workflow.json"]
+    
+    B --> C["🔧 prepare-data<br/>Estrae parametri per LLM"]
+    C --> D["🤖 AI AGENT<br/>LangChain Agent Node"]
+    
+    D --> E["🛠️ RagSearch() TOOL<br/>HTTP Request Tool"]
+    E --> F["🔗 BACKEND API<br/>POST /api/internal/rag-search"]
+    
+    F --> G["📊 COMBINAZIONE BACKEND<br/>Parallel Search + Merge"]
+    G --> H["📤 RISPOSTA RAG<br/>products + faqs + services + docs"]
+    
+    H --> E
+    E --> D
+    
+    D --> I["🧠 LLM OPENROUTER<br/>gpt-4o-mini + Agent Prompt"]
+    I --> J["💬 RISPOSTA FINALE<br/>Combinazione intelligente"]
+    
+    J --> K["📱 WHATSAPP<br/>Messaggio combinato"]
+    
+    style F fill:#e1f5fe
+    style G fill:#f3e5f5
+    style I fill:#fff9c4
+    style J fill:#e8f5e8
+    
+    classDef n8nBox fill:#ff9800,stroke:#f57c00,stroke-width:2px,color:#fff
+    class B,C,D,E,I n8nBox
+    
+    classDef backendBox fill:#4caf50,stroke:#388e3c,stroke-width:2px,color:#fff
+    class F,G,H backendBox
+```
+
+#### **🔄 Flusso Dettagliato con ASCII**
+
 ```
 📝 DOMANDA UTENTE: "avete mozzarelle? quanto costa la spedizione?"
          |
