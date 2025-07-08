@@ -2,8 +2,8 @@ import { api } from '@/services/api'
 
 // Enums aligned with backend
 export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
-export type PaymentStatus = 'PENDING' | 'AUTHORIZED' | 'COMPLETED' | 'FAILED' | 'REFUNDED'
 export type PaymentMethod = 'CREDIT_CARD' | 'DEBIT_CARD' | 'BANK_TRANSFER' | 'PAYPAL' | 'CASH_ON_DELIVERY' | 'CRYPTO'
+export type ItemType = 'PRODUCT' | 'SERVICE'
 
 // Address interfaces
 export interface ShippingAddress {
@@ -38,7 +38,9 @@ export interface BillingAddress {
 export interface OrderItem {
   id: string
   orderId: string
-  productId: string
+  itemType: ItemType
+  productId?: string // Optional for services
+  serviceId?: string // Optional for products
   quantity: number
   unitPrice: number
   totalPrice: number
@@ -49,6 +51,7 @@ export interface OrderItem {
     description: string
     price: number
   }
+  service?: Service
   createdAt: string
   updatedAt: string
 }
@@ -69,7 +72,6 @@ export interface Order {
   customerId: string
   workspaceId: string
   status: OrderStatus
-  paymentStatus: PaymentStatus
   paymentMethod: PaymentMethod | null
   totalAmount: number
   shippingAmount: number
@@ -85,11 +87,26 @@ export interface Order {
   items?: OrderItem[]
 }
 
+export interface Service {
+  id: string
+  name: string
+  description: string
+  price: number
+  currency: string
+  duration: number
+  isActive: boolean
+  workspaceId: string
+  createdAt: string
+  updatedAt: string
+}
+
 // Create order data interface
 export interface CreateOrderData {
   customerId: string
   items: {
-    productId: string
+    itemType: ItemType
+    productId?: string
+    serviceId?: string
     quantity: number
     unitPrice: number
     totalPrice: number
@@ -109,7 +126,6 @@ export interface CreateOrderData {
 // Update order data interface
 export interface UpdateOrderData {
   status?: OrderStatus
-  paymentStatus?: PaymentStatus
   paymentMethod?: PaymentMethod
   totalAmount?: number
   shippingAmount?: number
@@ -126,7 +142,6 @@ export interface OrderFilters {
   search?: string
   customerId?: string
   status?: OrderStatus
-  paymentStatus?: PaymentStatus
   dateFrom?: string
   dateTo?: string
   page?: number
@@ -179,10 +194,6 @@ export const getAllForWorkspace = async (
     
     if (filters?.status) {
       queryParams.append('status', filters.status)
-    }
-    
-    if (filters?.paymentStatus) {
-      queryParams.append('paymentStatus', filters.paymentStatus)
     }
     
     if (filters?.dateFrom) {
@@ -316,18 +327,7 @@ export const updateStatus = async (id: string, workspaceId: string, status: Orde
   }
 }
 
-/**
- * Update payment status
- */
-export const updatePaymentStatus = async (id: string, workspaceId: string, paymentStatus: PaymentStatus): Promise<Order> => {
-  try {
-    const response = await api.patch(`/workspaces/${workspaceId}/orders/${id}/payment-status`, { paymentStatus })
-    return response.data
-  } catch (error) {
-    console.error('Error updating payment status:', error)
-    throw error
-  }
-}
+
 
 /**
  * Get order analytics
@@ -338,10 +338,6 @@ export const getAnalytics = async (workspaceId: string, filters?: Omit<OrderFilt
     
     if (filters?.status) {
       queryParams.append('status', filters.status)
-    }
-    
-    if (filters?.paymentStatus) {
-      queryParams.append('paymentStatus', filters.paymentStatus)
     }
     
     if (filters?.dateFrom) {
@@ -385,7 +381,6 @@ export const ordersApi = {
   update,
   delete: delete_,
   updateStatus,
-  updatePaymentStatus,
   getAnalytics,
   getByDateRange,
 }

@@ -1,7 +1,7 @@
 import { Router } from 'express';
+import logger from '../../../utils/logger';
 import { OrderController } from '../controllers/order.controller';
 import { authMiddleware } from '../middlewares/auth.middleware';
-import logger from '../../../utils/logger';
 
 export function createOrderRouter(): Router {
   const router = Router();
@@ -43,8 +43,7 @@ export function createOrderRouter(): Router {
   // PATCH /orders/:id/status - Update order status
   router.patch('/:id/status', orderController.updateOrderStatus);
 
-  // PATCH /orders/:id/payment-status - Update payment status
-  router.patch('/:id/payment-status', orderController.updatePaymentStatus);
+  // Payment status is now handled by PaymentDetails table
 
   logger.info('Order routes configured');
 

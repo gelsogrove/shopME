@@ -1,4 +1,4 @@
-import { OrderStatus, PaymentStatus } from '@prisma/client';
+import { OrderStatus } from '@prisma/client';
 import { Order } from '../../domain/entities/order.entity';
 import { IOrderRepository, OrderFilters } from '../../domain/repositories/order.repository.interface';
 import { OrderRepository } from '../../repositories/order.repository';
@@ -80,7 +80,6 @@ export class OrderService {
 
       // Set default values
       orderData.status = orderData.status || OrderStatus.PENDING;
-      orderData.paymentStatus = orderData.paymentStatus || PaymentStatus.PENDING;
       orderData.shippingAmount = orderData.shippingAmount || 0;
       orderData.taxAmount = orderData.taxAmount || 0;
       orderData.discountAmount = orderData.discountAmount || 0;
@@ -166,18 +165,7 @@ export class OrderService {
     }
   }
 
-  async updatePaymentStatus(id: string, paymentStatus: PaymentStatus, workspaceId: string): Promise<Order | null> {
-    try {
-      if (!id) {
-        throw new Error('Order ID is required');
-      }
-
-      return await this.orderRepository.updatePaymentStatus(id, paymentStatus, workspaceId);
-    } catch (error) {
-      logger.error(`Error in order service updatePaymentStatus for order ${id}:`, error);
-      throw new Error(`Failed to update payment status: ${(error as Error).message}`);
-    }
-  }
+  // Payment status is now handled by PaymentDetails table
 
   async getOrdersByDateRange(workspaceId: string, startDate: Date, endDate: Date): Promise<Order[]> {
     try {
@@ -215,10 +203,11 @@ export class OrderService {
   }
 
   private generateOrderCode(): string {
-    const year = new Date().getFullYear();
-    const timestamp = Date.now().toString().slice(-6);
-    const random = Math.random().toString(36).substring(2, 5).toUpperCase();
-    return `ORD-${year}-${timestamp}-${random}`;
+    // Generate 5-digit numeric code (10000-99999)
+    const min = 10000;
+    const max = 99999;
+    const code = Math.floor(Math.random() * (max - min + 1)) + min;
+    return code.toString();
   }
 
   private isValidStatusTransition(currentStatus: OrderStatus, newStatus: OrderStatus): boolean {

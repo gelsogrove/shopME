@@ -1,11 +1,10 @@
-import { OrderStatus, PaymentStatus } from '@prisma/client';
+import { OrderStatus } from '@prisma/client';
 import { Order } from '../entities/order.entity';
 
 export type OrderFilters = {
   search?: string;
   customerId?: string;
   status?: OrderStatus;
-  paymentStatus?: PaymentStatus;
   dateFrom?: Date;
   dateTo?: Date;
   page?: number;
@@ -28,7 +27,7 @@ export interface IOrderRepository {
   update(id: string, order: Partial<Order>, workspaceId: string): Promise<Order | null>;
   delete(id: string, workspaceId: string): Promise<void>;
   updateStatus(id: string, status: OrderStatus, workspaceId: string): Promise<Order | null>;
-  updatePaymentStatus(id: string, paymentStatus: PaymentStatus, workspaceId: string): Promise<Order | null>;
+  // Payment status is now handled by PaymentDetails table
   getOrdersByDateRange(workspaceId: string, startDate: Date, endDate: Date): Promise<Order[]>;
   getOrdersCount(workspaceId: string, filters?: OrderFilters): Promise<number>;
   getTotalRevenue(workspaceId: string, filters?: OrderFilters): Promise<number>;

@@ -1,4 +1,4 @@
-import { OrderStatus, PaymentStatus } from '@prisma/client';
+import { OrderStatus } from '@prisma/client';
 import { Request, Response } from 'express';
 import { OrderService } from '../../../application/services/order.service';
 import logger from '../../../utils/logger';
@@ -47,7 +47,7 @@ export class OrderController {
           search: search as string,
           customerId: customerId as string,
           status: status as OrderStatus,
-          paymentStatus: paymentStatus as PaymentStatus,
+          // paymentStatus removed
           dateFrom: dateFromParsed,
           dateTo: dateToParsed,
           page: pageNumber,
@@ -317,45 +317,7 @@ export class OrderController {
     }
   };
 
-  updatePaymentStatus = async (req: Request, res: Response): Promise<Response> => {
-    try {
-      const { id } = req.params;
-      const { paymentStatus } = req.body;
-      const workspaceIdParam = req.params.workspaceId;
-      const workspaceIdQuery = req.query.workspaceId as string;
-      const workspaceIdHeader = req.headers['x-workspace-id'] as string;
-      const workspaceId = workspaceIdParam || workspaceIdQuery || workspaceIdHeader;
-      
-      if (!workspaceId) {
-        return res.status(400).json({ 
-          message: 'WorkspaceId is required',
-          error: 'Missing workspaceId parameter' 
-        });
-      }
-      
-      if (!paymentStatus || !Object.values(PaymentStatus).includes(paymentStatus as PaymentStatus)) {
-        return res.status(400).json({ 
-          message: 'Valid payment status is required',
-          error: 'Missing or invalid paymentStatus parameter',
-          validStatuses: Object.values(PaymentStatus)
-        });
-      }
-      
-      const updatedOrder = await this.orderService.updatePaymentStatus(id, paymentStatus as PaymentStatus, workspaceId);
-      
-      if (!updatedOrder) {
-        return res.status(404).json({ message: 'Order not found' });
-      }
-      
-      return res.json(updatedOrder);
-    } catch (error) {
-      logger.error('Error updating payment status:', error);
-      return res.status(500).json({ 
-        message: 'An error occurred while updating payment status',
-        error: (error as Error).message 
-      });
-    }
-  };
+  // Payment status is now handled by PaymentDetails table
 
   getOrderAnalytics = async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -373,7 +335,7 @@ export class OrderController {
 
       const { 
         status,
-        paymentStatus,
+        // paymentStatus removed
         dateFrom,
         dateTo
       } = req.query;
@@ -383,7 +345,7 @@ export class OrderController {
 
       const analytics = await this.orderService.getOrderAnalytics(workspaceId, {
         status: status as OrderStatus,
-        paymentStatus: paymentStatus as PaymentStatus,
+        // Payment status removed
         dateFrom: dateFromParsed,
         dateTo: dateToParsed
       });
