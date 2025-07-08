@@ -13,6 +13,163 @@
 - [x] **Prompt Sync**: Aggiornati prompt_agent.md, seed.ts e workflow N8N
 - [x] **PRD Documentation**: Aggiunto diagramma architettura RAG nel PRD
 
+## 🚨 **ORDERS & CART MANAGEMENT REDESIGN** (ALTISSIMA PRIORITÀ)
+
+### 🛒 **USER STORY: SISTEMA ORDINI & CARRELLO ENTERPRISE**
+
+**COME** amministratore ShopMe  
+**VOGLIO** un sistema completo di gestione ordini e carrello  
+**COSÌ CHE** possa gestire tutto il flusso e-commerce con la stessa qualità grafica del resto dell'app
+
+#### 📋 **ACCEPTANCE CRITERIA - ORDERS MANAGEMENT:**
+
+##### **🎨 GRAFICA & DESIGN SYSTEM:**
+- [ ] **Consistent Design**: Stessa grafica di Products/Categories/Customers (colori, font, spacing)
+- [ ] **ShopMe Theme**: Uso coerente dei colori principali, secondary, accents del design system
+- [ ] **Typography**: Font families e sizing consistenti con Header, Sidebar, Cards
+- [ ] **Component Library**: Riuso Button, Card, Badge, Table, Modal, Sheet components esistenti
+- [ ] **Responsive Design**: Layout responsive come altre pagine (desktop, tablet, mobile)
+- [ ] **Icons & Badges**: Sistema icone coerente, badge di stato colorati e leggibili
+
+##### **🛒 CARRELLO SMART (Enhanced Cart):**
+- [ ] **Add Products**: Aggiungi prodotti al carrello da catalogo con qty selector
+- [ ] **Modify Quantity**: Modifica quantità prodotti nel carrello (+/- buttons, input diretto)
+- [ ] **Remove Products**: Rimuovi singoli prodotti dal carrello (X button + conferma)
+- [ ] **Save Cart**: Salva carrello per sessioni future (localStorage + database backup)
+- [ ] **Clear Cart**: Svuota tutto il carrello (button + modal conferma)
+- [ ] **Cart Totals**: Calcolo automatico subtotal, tax, shipping, total con aggiornamento real-time
+- [ ] **Cart Validation**: Validazione stock availability, prezzo aggiornato, prodotti attivi
+- [ ] **Cart Persistence**: Carrello persistente tra sessioni e dispositivi
+
+##### **📊 ORDERS DASHBOARD (Lista Ordini):**
+- [ ] **Orders Table**: Tabella ordini con colonne: ID, Customer, Date, Status, Total, Actions
+- [ ] **Status Badges**: Badge colorati per stati (Pending, Confirmed, Shipped, Delivered, Cancelled)
+- [ ] **Search Orders**: Ricerca per Order ID, Customer Name, Product, Date Range
+- [ ] **Filter Orders**: Filtri per Status, Date Range, Customer, Amount Range, Payment Method
+- [ ] **Pagination**: Paginazione performante per migliaia di ordini
+- [ ] **Sort Columns**: Ordinamento per Date, Total, Customer, Status (asc/desc)
+- [ ] **Bulk Actions**: Selezione multipla ordini per azioni bulk (change status, export, delete)
+- [ ] **Export Orders**: Export CSV/Excel con filtri applicati
+
+##### **📝 ORDER DETAILS (Dettaglio Ordine):**
+- [ ] **Order Info Panel**: Panel laterale/modal con dettagli completi ordine
+- [ ] **Customer Info**: Dati cliente, contatti, storico ordini del cliente
+- [ ] **Order Items Table**: Lista prodotti ordinati con qty, prezzo unitario, totale riga
+- [ ] **Shipping Address**: Indirizzo spedizione con mappa integration (optional)
+- [ ] **Payment Details**: Metodo pagamento, status pagamento, transaction ID
+- [ ] **Order Timeline**: Timeline stati ordine con date e user che ha fatto il cambio
+- [ ] **Order Notes**: Note interne per tracking e comunicazioni
+
+##### **✏️ ORDER CRUD OPERATIONS:**
+- [ ] **Create Order**: Creazione nuovo ordine manuale da admin panel
+- [ ] **Edit Order**: Modifica tutti i campi ordine (customer, products, quantities, shipping, notes)
+- [ ] **Update Status**: Cambio stato ordine con dropdown e note (Pending → Confirmed → Shipped → Delivered)
+- [ ] **Cancel Order**: Cancellazione ordine con motivo e handling stock restoration
+- [ ] **Delete Order**: Eliminazione definitiva ordine (soft delete per audit)
+- [ ] **Duplicate Order**: Duplica ordine esistente per nuovo ordine simile
+- [ ] **Add/Remove Items**: Aggiungi/rimuovi prodotti da ordine esistente con stock validation
+
+##### **🔄 BUSINESS LOGIC & VALIDATIONS:**
+- [ ] **Stock Management**: Aggiornamento stock automatico (decrease on confirm, restore on cancel)
+- [ ] **Price Calculation**: Calcolo automatico totali con tax, shipping, discounts
+- [ ] **Inventory Check**: Validazione stock availability prima di conferma ordine
+- [ ] **Customer Validation**: Verifica customer attivo e dati completi
+- [ ] **Payment Integration**: Collegamento con payment status e processing
+- [ ] **Notification System**: Notifiche email/SMS per cambio stati ordine
+- [ ] **Audit Trail**: Log completo modifiche ordine per compliance
+
+##### **🗄️ DATABASE SCHEMA & RELATIONS:**
+- [ ] **Orders Table**: Schema completo con relazioni Customer, Payment, Shipping
+- [ ] **OrderItems Table**: Relazione Products con quantities, prezzi snapshot
+- [ ] **Order Status Enum**: Stati standardizzati per workflow business
+- [ ] **Payment Integration**: Link con payment processor per status sync
+- [ ] **Indexes Performance**: Indici database per ricerche veloci
+- [ ] **Data Integrity**: Constraints e validazioni database level
+
+##### **🎯 INTEGRATION & API:**
+- [ ] **REST API**: Endpoint completi CRUD ordini per integrations
+- [ ] **N8N Integration**: Calling functions per order management via WhatsApp
+- [ ] **Payment Gateway**: Sync con Stripe/PayPal per payment status
+- [ ] **Shipping API**: Integration con corrieri per tracking
+- [ ] **Analytics Integration**: Dati ordini in analytics dashboard
+- [ ] **Export API**: API per export dati verso sistemi esterni
+
+#### 🎨 **DESIGN SPECIFICATIONS:**
+
+##### **COLOR PALETTE (ShopMe Standard):**
+- **Primary**: Blue (#3B82F6) per azioni principali
+- **Secondary**: Gray (#6B7280) per azioni secondarie  
+- **Success**: Green (#10B981) per stati positivi/confirmed
+- **Warning**: Yellow (#F59E0B) per pending/processing
+- **Error**: Red (#EF4444) per cancelled/failed
+- **Info**: Cyan (#06B6D4) per informational
+
+##### **STATUS BADGE COLORS:**
+- **Pending**: Yellow badge (#FEF3C7 bg, #D97706 text)
+- **Confirmed**: Blue badge (#DBEAFE bg, #2563EB text)
+- **Shipped**: Cyan badge (#CFFAFE bg, #0891B2 text)
+- **Delivered**: Green badge (#D1FAE5 bg, #059669 text)
+- **Cancelled**: Red badge (#FEE2E2 bg, #DC2626 text)
+
+##### **LAYOUT COMPONENTS:**
+- **Header**: Consistent con altre pagine (title, actions, breadcrumb)
+- **Sidebar**: Menu navigation coerente
+- **Main Content**: Grid layout responsive (table + filters)
+- **Action Buttons**: Stesso styling Button component
+- **Modals**: Consistent modal styling per edit/create
+- **Cards**: Product cards styling per order items
+- **Tables**: Stesso DataTable component con sorting/pagination
+
+##### **TYPOGRAPHY:**
+- **Headings**: H1/H2/H3 con stesso font-weight e spacing
+- **Body Text**: Consistent font-size e line-height
+- **Labels**: Form labels con stesso styling
+- **Numbers**: Monospace per prezzi e quantities
+
+#### 🚀 **TECHNICAL IMPLEMENTATION:**
+
+##### **Frontend Components:**
+- **OrdersPage.tsx**: Pagina principale lista ordini
+- **OrderDetail.tsx**: Component dettaglio ordine (modal/sheet)
+- **OrderForm.tsx**: Form create/edit ordine
+- **CartManager.tsx**: Component gestione carrello smart
+- **OrderStatusBadge.tsx**: Badge component per stati
+- **OrdersTable.tsx**: Tabella ordini con sorting/filtering
+- **OrdersFilters.tsx**: Component filtri avanzati
+
+##### **Backend Services:**
+- **OrderService**: Business logic gestione ordini
+- **CartService**: Logica carrello e validazioni
+- **InventoryService**: Gestione stock e availability
+- **PaymentService**: Integration payment processing
+- **NotificationService**: Invio notifiche status changes
+
+##### **Database Migrations:**
+- **Enhanced Orders Schema**: Campi aggiuntivi per business logic
+- **OrderItems Relations**: Relazioni ottimizzate con prodotti
+- **Indexes**: Performance indexes per ricerche
+- **Constraints**: Validazioni database level
+
+#### ⏱️ **ESTIMATION & PRIORITY:**
+
+##### **PHASE 1 - FOUNDATION (1-2 settimane):**
+- Database schema enhancement
+- Basic CRUD operations backend
+- Orders table component frontend
+
+##### **PHASE 2 - CORE FEATURES (2-3 settimane):**
+- Complete Orders dashboard
+- Cart management enhanced
+- Order detail/edit functionality
+
+##### **PHASE 3 - ADVANCED (1-2 settimane):**
+- Advanced filtering/search
+- Bulk operations
+- Payment integration
+- Analytics integration
+
+##### **TOTAL ESTIMATION: 4-7 settimane** (dipende da complessità integration)
+
 ## 🚨 **NUOVI TASK CRITICI** (dall'ultimo CHECK - GENNAIO 2025)
 
 ### 🔧 **SISTEMA BUILD & LINTING** (ALTA PRIORITÀ)
