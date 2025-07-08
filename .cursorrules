@@ -224,7 +224,6 @@ frontend/
 **DO NOT CREATE:**
 - `package.json` in project root
 - Test files outside `__tests__/` or `__test__/` directories
-- `cypress/` directory in frontend (use `__test__/e2e/` instead)
 - Files directly in `src/` without proper subdirectories
 - Mixed naming conventions
 
@@ -240,27 +239,21 @@ frontend/
 - when you are in a terminal, always check the context of the terminal, if you are in the wrong terminal, ask me to switch to the correct terminal
 - when you are in the correct terminal, always check the context of the terminal, if you are in the wrong terminal, ask me to switch to the correct terminal
 - when you are in the correct terminal, always check the context of the terminal, if you are in the wrong terminal, ask me to switch to the correct terminal
-- Rifletti ragione confronta leggi in ordine PRD test prima di effettuare un'azione se scrivo qualcosa che non e' in linea blocca l'utente
-- chiediti sempre se devi aggiornare il seed
-- e' inportante che non cambi quello che funziona che e' presente nella lista
-/Users/gelso/workspace/AI/shop/do-not-touch.md se lo tocchi e' molto grave
-se lo vuoi toccare, chiedi prima per sicurezza
-- non modificare mai li file do-not-touch.md
+
+
+
+- chiamami per nome , mi chiamo Andrea
+- Ricordati che PRD ha la verita assoluta poi la verita e' sui test e poi sul codice 
+- tutti i file .md devono stare detro docs tranne readme.md
+- dobbiamo evitare di mettere su git le credenziali
+- calling function dentro  shop/backend/src/chatbot/calling-functions
+- non voglio package.json in root
+- non fare nessun file .js MAI MAI 
+- se si modifica un api devi aggionare Swagger  
+- Nessun hardcode introdotto miraccomando !! 
+- Layout non modificarlo  senza  il mio permesso
 - gli script devono essere sempre in /scripts/
 - test di BE vanno sotto /Users/gelso/workspace/AI/shop/backend/src/__tests__  dentro unit o integration
+- Rifletti ragione confronta leggi in ordine PRD test prima di effettuare un'azione se scrivo qualcosa che non e' in linea blocca l'utente
 - i server si riavviano da soli non c'e' bisogno di aprire mille terminali usa sempre lo stesso terminal
-- Ricordati che PRD ha la verita assoluta poi passano los test
-- **SWAGGER: aggiorna SEMPRE dopo ogni modifica API - è OBBLIGATORIO**
-
-## 🔄 VERIFICA FINALE OBBLIGATORIA
-**PRIMA DI DIRE "FATTO" O "COMPLETATO", VERIFICA:**
-1. ✅ Swagger aggiornato se ho modificato API
-2. ✅ Test eseguiti e passanti
-3. ✅ Nessun hardcode introdotto
-4. ✅ WorkspaceId filtering presente
-5. ✅ Andrea chiamato per nome
-6. ✅ Layout non modificato senza permesso
-- non fare nessun file .js MAI MAI 
-
-
-tutti i file .md devono stare detro docs tranne readme.md
+ - utilizzare la buona practica per BE usa DDD per Fe se necessario crea componenti riutilizzabili

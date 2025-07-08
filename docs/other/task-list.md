@@ -6,26 +6,42 @@
 - [x] **Single Source of Truth**: PRD.md ora contiene tutta la documentazione tecnica completa
 - [x] **Table of Contents**: Aggiornato indice con nuove sezioni consolidate
 
+## ✅ **MIGLIORAMENTI MULTILINGUE** (COMPLETATO)
+- [x] **Prompt Multilingue Enhancement**: ✅ COMPLETED - Aggiunta regola "TRADUCI LE INFORMAZIONI" 
+- [x] **Database English Info**: Specificato che dati DB sono in inglese ma utente può usare IT/EN/ES/PT
+- [x] **Translation Examples**: Aggiunti esempi multilingue nel prompt per traduzioni corrette
+- [x] **Prompt Sync**: Aggiornati prompt_agent.md, seed.ts e workflow N8N
+- [x] **PRD Documentation**: Aggiunto diagramma architettura RAG nel PRD
+
 ## 🚨 **NUOVI TASK CRITICI** (dall'ultimo CHECK - GENNAIO 2025)
 
 ### 🔧 **SISTEMA BUILD & LINTING** (ALTA PRIORITÀ)
 - [x] **Backend TypeScript Compilation**: ✅ FIXED - Backend ora compila senza errori
-- [ ] **ESLint Backend Configuration**: Configurare ESLint per backend - attualmente mancante
+- [x] **ESLint Backend Configuration**: ✅ COMPLETED - Configurato ESLint TypeScript per backend
 - [ ] **ESLint Frontend Fix**: Aggiornare configurazione frontend (rimuovere flag --ext obsoleto)
 - [ ] **Linting Integration**: Integrare linting nel processo CI/CD
 
 ### 🔄 **N8N WORKFLOW ACTIVATION** (ALTA PRIORITÀ)
 - [ ] **N8N Workflow Registration**: Attivare workflow per webhook-start endpoint
 - [ ] **Webhook Testing**: Verificare che webhook N8N risponda correttamente
-- [ ] **N8N Authentication Fix**: Risolvere problemi di autenticazione N8N API
+- [x] **N8N Correct Import Script**: ✅ COMPLETED - Creato script con endpoint N8N corretti
 - [x] **Workflow Auto-Import in Seed**: ✅ COMPLETED - Seed ora pulisce e importa automaticamente workflow N8N
-- [ ] **Workflow Import Automation**: Automatizzare import workflow su startup
+- [ ] **N8N Authentication Fix**: Risolvere problemi di autorizzazione N8N API (401 Unauthorized)
+- [ ] **🚨 PROMPT DINAMICO N8N**: Rimuovere prompt hardcoded dal workflow, usare {{ $json.prompt }} dal database agentConfig
+- [x] **N8N Workflow Path Update**: ✅ COMPLETED - Aggiornati tutti gli script per nuovo path `/n8n/workflows/`
 
 ### 🛒 **CHECKOUT FUNCTION INTEGRATION** (ALTA PRIORITÀ)
-- [ ] **createCheckoutLink Integration**: Integrare createCheckoutLink nel FunctionHandlerService
+- [x] **createCheckoutLink Integration**: ✅ COMPLETED - Integrato createCheckoutLink nel FunctionHandlerService
+- [x] **Checkout Function Router**: ✅ COMPLETED - Aggiunto create_checkout_link al function router
 - [ ] **Checkout Token Security**: Implementare passaggio token sicuro alle calling functions
 - [ ] **Checkout Flow Testing**: Testare flow completo di checkout con token
 - [ ] **CheckoutService Connection**: Collegare CheckoutService esistente al FunctionHandlerService
+
+### 📋 **CALLING FUNCTIONS IMPLEMENTATE** (NUOVE COMPLETATE)
+- [x] **GetAllCategories CF**: ✅ COMPLETED - Implementata calling function per ottenere tutte le categorie
+- [x] **Categories Function Router**: ✅ COMPLETED - Aggiunto get_all_categories al function router
+- [x] **Categories Integration**: ✅ COMPLETED - Integrata nel FunctionHandlerService con gestione errori
+- [x] **Build Verification**: ✅ COMPLETED - Backend e Frontend compilano correttamente
 
 ### 🔒 **TOKEN SECURITY ENHANCEMENT** (MEDIA PRIORITÀ)
 - [ ] **Calling Functions Token Pass**: Implementare passaggio esplicito token a tutte le CF

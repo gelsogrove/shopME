@@ -151,7 +151,7 @@ echo ""
 echo "📤 Step 7: Importo IL SOLO E UNICO workflow..."
 
 # Use main workflow (credentials have been removed from JSON)
-WORKFLOW_FILE="/Users/gelso/workspace/AI/shop/n8n/shopme-whatsapp-workflow.json"
+WORKFLOW_FILE="/Users/gelso/workspace/AI/shop/n8n/workflows/shopme-whatsapp-workflow.json"
 
 if [ ! -f "$WORKFLOW_FILE" ]; then
     echo "❌ File workflow principale non trovato: $WORKFLOW_FILE"

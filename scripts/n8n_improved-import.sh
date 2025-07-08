@@ -8,7 +8,7 @@ set -e
 echo "🚀 N8N IMPROVED IMPORT - Andrea's Final Solution"
 echo "================================================"
 
-WORKFLOW_FILE="/Users/gelso/workspace/AI/shop/n8n/shopme-whatsapp-workflow.json"
+WORKFLOW_FILE="/Users/gelso/workspace/AI/shop/n8n/workflows/shopme-whatsapp-workflow.json"
 N8N_URL="http://localhost:5678"
 
 # Check if workflow file exists
@@ -146,14 +146,38 @@ fi
 
 echo "✅ Workflow imported successfully: $WORKFLOW_ID"
 
-# Step 7: Activate workflow
+# Step 7: Activate workflow (ANDREA'S AUTO-ACTIVATION)
 echo "🔄 Step 7: Activate workflow..."
 ACTIVATION_RESPONSE=$(make_request "PATCH" "/rest/workflows/$WORKFLOW_ID" '{"active": true}')
 
 if echo "$ACTIVATION_RESPONSE" | grep -q "error"; then
     echo "⚠️ Activation warning: $ACTIVATION_RESPONSE"
+    # Try alternative activation method
+    echo "🔄 Trying alternative activation method..."
+    ALT_ACTIVATION=$(make_request "POST" "/rest/workflows/$WORKFLOW_ID/activate" '{}')
+    if echo "$ALT_ACTIVATION" | grep -q "error"; then
+        echo "⚠️ Alternative activation also failed: $ALT_ACTIVATION"
+    else
+        echo "✅ Workflow activated via alternative method!"
+    fi
 else
     echo "✅ Workflow activated successfully!"
+fi
+
+# Step 7.5: Verify activation with webhook test
+echo "🧪 Step 7.5: Test webhook activation..."
+sleep 2
+WEBHOOK_TEST=$(curl -s -X POST "$N8N_URL/webhook/webhook-start" \
+    -H "Content-Type: application/json" \
+    -d '{"test": "activation_check"}')
+
+if echo "$WEBHOOK_TEST" | grep -q "not registered"; then
+    echo "⚠️ Webhook still not active, forcing activation..."
+    # Force activation via direct API
+    FORCE_ACTIVATION=$(make_request "PUT" "/rest/workflows/$WORKFLOW_ID" "{\"id\": \"$WORKFLOW_ID\", \"active\": true}")
+    echo "🔧 Force activation result: $FORCE_ACTIVATION"
+else
+    echo "✅ Webhook is active and responding!"
 fi
 
 # Step 8: Final verification
@@ -171,6 +195,20 @@ echo "   OpenRouter credentials: $OPENROUTER_CRED_ID"
 if [ "$TOTAL_COUNT" = "1" ] && [ "$ACTIVE_COUNT" = "1" ]; then
     echo "🎉 SUCCESS! Perfect N8N state achieved!"
     echo "✅ Single active workflow with fresh credentials"
+    
+    # Final webhook test (Andrea's verification)
+    echo "🧪 Final webhook test..."
+    FINAL_TEST=$(curl -s -X POST "$N8N_URL/webhook/webhook-start" \
+        -H "Content-Type: application/json" \
+        -d '{"workspaceId": "cm9hjgq9v00014qk8fsdy4ujv", "phoneNumber": "+39123456789", "messageContent": "test import", "sessionToken": "test"}')
+    
+    if echo "$FINAL_TEST" | grep -q "not registered"; then
+        echo "❌ FINAL TEST FAILED: Webhook still not responding"
+        echo "📋 Manual activation required via N8N interface"
+    else
+        echo "🎉 FINAL TEST PASSED: Webhook is fully active!"
+        echo "🚀 Ready for chatbot testing!"
+    fi
 else
     echo "⚠️ Warning: Expected 1 total and 1 active workflow"
 fi

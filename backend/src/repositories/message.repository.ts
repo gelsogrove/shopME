@@ -1199,6 +1199,48 @@ export class MessageRepository {
           },
         },
         {
+          name: "create_checkout_link",
+          description: "Creates a secure checkout link when user wants to finalize an order",
+          parameters: {
+            type: "object",
+            properties: {
+              message: {
+                type: "string",
+                description: "User's message indicating checkout intent",
+              },
+            },
+            required: ["message"],
+          },
+        },
+        {
+          name: "get_all_categories",
+          description: "Gets a list of all available product categories with product counts",
+          parameters: {
+            type: "object",
+            properties: {
+              message: {
+                type: "string",
+                description: "User's message requesting categories",
+              },
+            },
+            required: ["message"],
+          },
+        },
+        {
+          name: "get_all_products",
+          description: "Gets a complete list of all available products with prices, stock and category information",
+          parameters: {
+            type: "object",
+            properties: {
+              message: {
+                type: "string",
+                description: "User's message requesting products",
+              },
+            },
+            required: ["message"],
+          },
+        },
+        {
           name: "get_generic_response",
           description:
             "Handles general conversation, greetings, or unclear requests",
