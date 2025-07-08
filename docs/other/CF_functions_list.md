@@ -72,7 +72,7 @@ CALLING FUNCTIONS DISPONIBILI:
 - search_rag: Ricerca prodotti, FAQ, servizi, informazioni
 - create_order: Creazione ordini, carrello, checkout
 - contact_operator: Richiesta assistenza umana
-- add_calendar_event: Prenotazioni, appuntamenti
+
 - create_ticket: Segnalazioni, problemi tecnici
 - process_payment: Pagamenti diretti
 - send_invoice: Richiesta fatture
@@ -119,13 +119,13 @@ Rispondi in JSON:
 - **INFORMAZIONI**: search_rag (FAQ/documenti)
 
 ### ⚠️ PARZIALMENTE SUPPORTATI (40-70%)
-- **RISTORANTE**: search_rag + manca add_calendar_event
+- **RISTORANTE**: search_rag (COMPLETO)
 - **RETAIL**: search_rag + create_order parziale
-- **SERVIZI**: search_rag + manca add_calendar_event
+- **SERVIZI**: search_rag (COMPLETO)
 
 ### ❌ SUPPORTO LIMITATO (30%)
-- **CLINICA**: solo search_rag, manca add_calendar_event + create_ticket
-- **HOTEL**: solo search_rag, manca add_calendar_event + process_payment
+- **CLINICA**: solo search_rag, manca create_ticket
+- **HOTEL**: solo search_rag, manca process_payment
 
 ---
 
@@ -137,11 +137,8 @@ Rispondi in JSON:
 3. Aggiungere integrazione gateway pagamento
 4. Costruire workflow processamento ordini
 
-### **Fase 2: Sistema Calendario (HIGH PRIORITY)**
-1. Implementare `add_calendar_event()` calling function
-2. Costruire sistema prenotazioni/appuntamenti
-3. Aggiungere gestione slot temporali
-4. Creare sistema conferme/promemoria
+
+
 
 ### **Fase 3: Sistema Supporto (MEDIUM PRIORITY)**
 1. Implementare `create_ticket()` calling function
@@ -188,7 +185,7 @@ Andrea ha creato la **base architetturale perfetta** con:
 | 🔑 Generate Checkout Token | SecureTokenService (interno) | ✅ ATTIVO |
 | 💾 Save Message | `/api/internal/save-message` | ✅ ATTIVO |
 | 📤 Send WhatsApp | `/api/internal/send-whatsapp` | ✅ ATTIVO |
-| 📅 Calendar Event | NON IMPLEMENTATO | ❌ MANCANTE |
+
 | 🎫 Create Ticket | NON IMPLEMENTATO | ❌ MANCANTE |
 | 💳 Process Payment | NON IMPLEMENTATO | ❌ MANCANTE |
 | 📧 Send Invoice | NON IMPLEMENTATO | ❌ MANCANTE |

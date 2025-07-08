@@ -1734,7 +1734,7 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 │ 🔍 search_rag() → Ricerca prodotti/FAQ/servizi/documenti   │
 │ 🛒 create_order() → Gestione carrello e checkout           │
 │ 👨‍💼 contact_operator() → Attiva controllo operatore        │
-│ 📅 add_calendar_event() → Prenotazioni e appuntamenti      │
+
 │ 💳 process_payment() → Gestione pagamenti                  │
 │ 📧 send_invoice() → Fatturazione elettronica               │
 └─────────────────────────────────────────────────────────────┘
@@ -1811,20 +1811,9 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 
 #### **❌ NOT IMPLEMENTED CALLING FUNCTIONS**
 
-##### **4. 📅 add_calendar_event() - Calendar System**
-```javascript
-// Status: ❌ NOT IMPLEMENTED
-// Required for: Restaurants, Clinics, Services
 
-// Needed Implementation:
-- Calendar/booking database schema
-- Appointment management system
-- Time slot availability checking
-- Confirmation/reminder system
-- Calendar integration (Google/Outlook)
-```
 
-##### **5. 💳 process_payment() - Payment Processing**
+##### **4. 💳 process_payment() - Payment Processing**
 ```javascript
 // Status: ❌ NOT IMPLEMENTED
 // Required for: Direct WhatsApp payments
@@ -1837,7 +1826,7 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 - Invoice generation
 ```
 
-##### **6. 📧 ReceiveInvoice() - Sistema Gestione Fatture**
+##### **5. 📧 ReceiveInvoice() - Sistema Gestione Fatture**
 ```javascript
 // Endpoint: CF/ReceiveInvoice
 // Status: ❌ DA IMPLEMENTARE

@@ -148,7 +148,7 @@
 - **Enhanced Orders Schema**: Campi aggiuntivi per business logic
 - **OrderItems Relations**: Relazioni ottimizzate con prodotti
 - **Indexes**: Performance indexes per ricerche
-- **Constraints**: Validazioni database level
+- [ ] **Constraints**: Validazioni database level
 
 #### ⏱️ **ESTIMATION & PRIORITY:**
 
@@ -169,6 +169,101 @@
 - Analytics integration
 
 ##### **TOTAL ESTIMATION: 4-7 settimane** (dipende da complessità integration)
+
+## 🚨 **CHUNK OPTIMIZATION CRITICAL** (ALTISSIMA PRIORITÀ - GENNAIO 2025)
+
+### 🧩 **USER STORY: OTTIMIZZAZIONE CHUNKING STRATEGY**
+
+**PROBLEMA IDENTIFICATO**: Il documento `international-transportation-law.pdf` (3.4MB) genera 7602 chunks con la configurazione attuale, causando:
+- ⏱️ **Performance degradata**: ~12.6 minuti solo per embeddings generation
+- 🗄️ **Database overhead**: 7602 record × embedding vector = storage eccessivo  
+- 🔍 **Perdita di contesto**: chunk di 500 caratteri troppo piccoli per documenti legali
+- 💾 **Memory issues**: processing di migliaia di chunks simultanei
+
+**COME** sviluppatore ShopMe  
+**VOGLIO** ottimizzare la strategia di chunking per documenti grandi  
+**COSÌ CHE** il sistema possa gestire PDF complessi mantenendo performance e qualità RAG
+
+#### 📋 **ACCEPTANCE CRITERIA - CHUNK OPTIMIZATION:**
+
+##### **🎯 CONFIGURAZIONE OTTIMIZZATA:**
+- [ ] **Chunk Size Increase**: Aumentare MAX_CHUNK_SIZE da 500 a **1500-2000 caratteri**
+- [ ] **Overlap Enhancement**: Aumentare CHUNK_OVERLAP da 200 a **300-400 caratteri**
+- [ ] **Adaptive Chunking**: Dimensioni diverse per tipo contenuto (FAQ=800, Products=1200, Documents=2000)
+- [ ] **Smart Boundaries**: Priorità a fine frase/paragrafo per mantenere contesto semantico
+- [ ] **Chunk Quality**: Evitare split di parole, frasi incomplete, tabelle frammentate
+
+##### **📊 ANALISI IMPATTO ATTUALE:**
+- [x] **Current Analysis**: ✅ COMPLETED - 73 chunks totali (61 products + 10 FAQs + 2 services + 0 documents)
+- [x] **Size Distribution**: ✅ COMPLETED - Products avg 363 chars, FAQs avg 195 chars, Services avg 156 chars  
+- [ ] **Document Impact**: Stimare riduzione chunks per international-transportation-law.pdf (da 7602 a ~2500)
+- [ ] **Performance Gain**: Calcolare riduzione tempo processing (da 12.6min a ~4.2min)
+- [ ] **Storage Optimization**: Stimare riduzione storage database (~65% reduction)
+
+##### **🔧 TECHNICAL IMPLEMENTATION:**
+- [ ] **EmbeddingService Update**: Modificare parametri MAX_CHUNK_SIZE e CHUNK_OVERLAP in embeddingService.ts
+- [ ] **Content-Type Specific**: Implementare chunking adattivo per Documents, FAQs, Products, Services
+- [ ] **Boundary Detection**: Migliorare algoritmo split per rispettare boundaries semantici
+- [ ] **Batch Processing**: Ottimizzare processing per evitare memory overflow con documenti grandi
+- [ ] **Progress Tracking**: Aggiungere progress tracking per long-running operations
+
+##### **🗄️ DATABASE MIGRATION:**
+- [ ] **Chunk Regeneration**: Script per rigenerare tutti i chunks esistenti con nuova configurazione
+- [ ] **Backup Strategy**: Backup chunks esistenti prima della migrazione
+- [ ] **Rollback Plan**: Piano di rollback in caso di problemi
+- [ ] **Index Optimization**: Ottimizzare indici database per gestire chunks più grandi
+- [ ] **Performance Testing**: Test performance prima/dopo ottimizzazione
+
+##### **📈 QUALITY ASSURANCE:**
+- [ ] **Semantic Quality**: Verificare che chunks più grandi mantengano qualità semantica
+- [ ] **Search Accuracy**: Test accuracy ricerca con chunks ottimizzati vs attuali
+- [ ] **Context Preservation**: Verificare che contesto non venga perso con overlap aumentato
+- [ ] **Edge Cases**: Test con documenti molto grandi, molto piccoli, formati diversi
+- [ ] **RAG Performance**: Benchmark qualità risposte RAG prima/dopo ottimizzazione
+
+#### ⚡ **SOLUZIONE IMMEDIATA (HOTFIX):**
+
+##### **STEP 1 - INTERRUPT CURRENT PROCESSING:**
+- [ ] **Stop Current Seed**: Interrompere processing corrente del documento PDF
+- [ ] **Reset Document Status**: Impostare status da PROCESSING a UPLOADED per retry
+- [ ] **Clear Partial Chunks**: Eliminare eventuali chunks parziali creati
+
+##### **STEP 2 - QUICK CONFIGURATION UPDATE:**
+- [ ] **Increase Chunk Size**: Aggiornare MAX_CHUNK_SIZE a 1500 caratteri
+- [ ] **Increase Overlap**: Aggiornare CHUNK_OVERLAP a 300 caratteri  
+- [ ] **Test New Config**: Test rapido con documento piccolo
+
+##### **STEP 3 - REPROCESS DOCUMENT:**
+- [ ] **Regenerate PDF Chunks**: Riprocessare international-transportation-law.pdf con nuova config
+- [ ] **Monitor Performance**: Verificare riduzione tempo e chunks generati
+- [ ] **Validate Quality**: Test rapido qualità search results
+
+#### 📊 **EXPECTED RESULTS:**
+
+##### **BEFORE OPTIMIZATION:**
+- 📄 **Document Chunks**: 7602 chunks × 500 chars = 3.8M chars
+- ⏱️ **Processing Time**: ~12.6 minutes  
+- 💾 **Storage**: 7602 records + embeddings
+- 🔍 **Context Quality**: Frammentato, perdita contesto
+
+##### **AFTER OPTIMIZATION:**
+- 📄 **Document Chunks**: ~2500 chunks × 1500 chars = 3.75M chars
+- ⏱️ **Processing Time**: ~4.2 minutes (**-67% faster**)
+- 💾 **Storage**: 2500 records + embeddings (**-67% storage**)
+- 🔍 **Context Quality**: Migliorato, contesto preservato
+
+#### ⏱️ **ESTIMATION:**
+- **Hotfix Implementation**: 2-3 ore
+- **Full Optimization**: 1-2 giorni  
+- **Testing & Validation**: 1 giorno
+- **TOTAL**: 2-3 giorni
+
+#### 🚨 **PRIORITY JUSTIFICATION:**
+- **CRITICAL**: Sistema attualmente bloccato su processing documento
+- **PERFORMANCE**: 67% improvement in processing time
+- **SCALABILITY**: Necessario per gestire documenti enterprise
+- **USER EXPERIENCE**: Riduzione drastica tempi attesa
+- **COST OPTIMIZATION**: Riduzione storage e compute costs
 
 ## 🚨 **NUOVI TASK CRITICI** (dall'ultimo CHECK - GENNAIO 2025)
 
