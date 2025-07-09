@@ -32,7 +32,7 @@ export function LoginPage() {
     defaultValues: {
       email: isDev ? "admin@shopme.com" : "",
       password: isDev ? "venezia44" : "",
-    } as LoginForm,
+    } satisfies Partial<LoginForm>,
   })
 
   const onSubmit = async (data: LoginForm) => {

@@ -16,12 +16,7 @@ export interface DashboardAnalytics {
     messages: MonthlyData[];
   };
   topProducts: ProductAnalytics[];
-  customerEngagement: {
-    newCustomers: number;
-    returningCustomers: number;
-    averageSessionDuration: number;
-    messageResponseRate: number;
-  };
+  topCustomers: CustomerAnalytics[];
 }
 
 export interface MonthlyData {
@@ -39,6 +34,18 @@ export interface ProductAnalytics {
   stock: number;
 }
 
+export interface CustomerAnalytics {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  totalOrders: number;
+  totalSpent: number;
+  lastOrderDate?: string;
+  averageOrderValue: number;
+}
+
 export class AnalyticsService {
   private prisma: PrismaClient;
 
@@ -52,7 +59,7 @@ export class AnalyticsService {
     endDate: Date
   ): Promise<DashboardAnalytics> {
     try {
-      // Get basic counts - simplified to avoid Prisma type issues
+      // Get basic data
       const [orders, customers, messages, usageRecords] = await Promise.all([
         this.getOrdersInDateRange(workspaceId, startDate, endDate),
         this.getCustomersInDateRange(workspaceId, startDate, endDate),
@@ -60,16 +67,27 @@ export class AnalyticsService {
         this.getUsageInDateRange(workspaceId, startDate, endDate)
       ]);
 
-      // Calculate overview metrics - simplified
+      // Calculate overview metrics
       const totalOrders = orders.length;
       const totalCustomers = customers.length;
       const totalMessages = messages.length;
-      const totalRevenue = 0; // TODO: Fix when Prisma types are resolved
-      const averageOrderValue = 0; // TODO: Fix when Prisma types are resolved
+      const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+      const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
       const usageCost = usageRecords.reduce((sum, record) => sum + (record.price || 0), 0);
 
-      // Generate empty trends for now - avoid complex calculations
-      const emptyTrends: MonthlyData[] = [];
+      // Generate historical trends - REAL DATA
+      const [orderTrends, revenueTrends, customerTrends, messageTrends] = await Promise.all([
+        this.generateOrderTrends(workspaceId, startDate, endDate),
+        this.generateRevenueTrends(workspaceId, startDate, endDate),
+        this.generateCustomerTrends(workspaceId, startDate, endDate),
+        this.generateMessageTrends(workspaceId, startDate, endDate)
+      ]);
+
+      // Get top products and top customers
+      const [topProducts, topCustomers] = await Promise.all([
+        this.getTopProducts(workspaceId, startDate, endDate),
+        this.getTopCustomers(workspaceId, startDate, endDate)
+      ]);
 
       return {
         overview: {
@@ -81,23 +99,203 @@ export class AnalyticsService {
           usageCost
         },
         trends: {
-          orders: emptyTrends,
-          revenue: emptyTrends,
-          customers: emptyTrends,
-          messages: emptyTrends
+          orders: orderTrends,
+          revenue: revenueTrends,
+          customers: customerTrends,
+          messages: messageTrends
         },
-        topProducts: [], // Simplified for now
-        customerEngagement: {
-          newCustomers: totalCustomers,
-          returningCustomers: 0,
-          averageSessionDuration: 0,
-          messageResponseRate: 0
-        }
+        topProducts,
+        topCustomers
       };
     } catch (error) {
       console.error('Analytics error:', error);
       throw error;
     }
+  }
+
+  // Generate monthly trends for orders
+  private async generateOrderTrends(workspaceId: string, startDate: Date, endDate: Date): Promise<MonthlyData[]> {
+    const monthlyData = await this.prisma.$queryRaw`
+      SELECT 
+        EXTRACT(YEAR FROM "createdAt") as year,
+        EXTRACT(MONTH FROM "createdAt") as month,
+        COUNT(*) as count
+      FROM "orders" 
+      WHERE "workspaceId" = ${workspaceId}
+        AND "createdAt" >= ${startDate}
+        AND "createdAt" <= ${endDate}
+      GROUP BY EXTRACT(YEAR FROM "createdAt"), EXTRACT(MONTH FROM "createdAt")
+      ORDER BY year, month
+    ` as { year: number; month: number; count: bigint }[];
+
+    return this.formatMonthlyData(monthlyData);
+  }
+
+  // Generate monthly trends for revenue
+  private async generateRevenueTrends(workspaceId: string, startDate: Date, endDate: Date): Promise<MonthlyData[]> {
+    const monthlyData = await this.prisma.$queryRaw`
+      SELECT 
+        EXTRACT(YEAR FROM "createdAt") as year,
+        EXTRACT(MONTH FROM "createdAt") as month,
+        COALESCE(SUM("totalAmount"), 0) as total
+      FROM "orders" 
+      WHERE "workspaceId" = ${workspaceId}
+        AND "createdAt" >= ${startDate}
+        AND "createdAt" <= ${endDate}
+      GROUP BY EXTRACT(YEAR FROM "createdAt"), EXTRACT(MONTH FROM "createdAt")
+      ORDER BY year, month
+    ` as { year: number; month: number; total: number }[];
+
+    return monthlyData.map(item => ({
+      month: this.getMonthName(item.month),
+      year: item.year,
+      value: Number(item.total) || 0,
+      label: `${this.getMonthName(item.month)} ${item.year}`
+    }));
+  }
+
+  // Generate monthly trends for customers
+  private async generateCustomerTrends(workspaceId: string, startDate: Date, endDate: Date): Promise<MonthlyData[]> {
+    const monthlyData = await this.prisma.$queryRaw`
+      SELECT 
+        EXTRACT(YEAR FROM "createdAt") as year,
+        EXTRACT(MONTH FROM "createdAt") as month,
+        COUNT(*) as count
+      FROM "customers" 
+      WHERE "workspaceId" = ${workspaceId}
+        AND "createdAt" >= ${startDate}
+        AND "createdAt" <= ${endDate}
+      GROUP BY EXTRACT(YEAR FROM "createdAt"), EXTRACT(MONTH FROM "createdAt")
+      ORDER BY year, month
+    ` as { year: number; month: number; count: bigint }[];
+
+    return this.formatMonthlyData(monthlyData);
+  }
+
+  // Generate monthly trends for messages
+  private async generateMessageTrends(workspaceId: string, startDate: Date, endDate: Date): Promise<MonthlyData[]> {
+    const monthlyData = await this.prisma.$queryRaw`
+      SELECT 
+        EXTRACT(YEAR FROM m."createdAt") as year,
+        EXTRACT(MONTH FROM m."createdAt") as month,
+        COUNT(*) as count
+      FROM "messages" m
+      JOIN "chat_sessions" cs ON m."chatSessionId" = cs.id
+      WHERE cs."workspaceId" = ${workspaceId}
+        AND m."createdAt" >= ${startDate}
+        AND m."createdAt" <= ${endDate}
+      GROUP BY EXTRACT(YEAR FROM m."createdAt"), EXTRACT(MONTH FROM m."createdAt")
+      ORDER BY year, month
+    ` as { year: number; month: number; count: bigint }[];
+
+    return this.formatMonthlyData(monthlyData);
+  }
+
+  // Get top selling products
+  private async getTopProducts(workspaceId: string, startDate: Date, endDate: Date): Promise<ProductAnalytics[]> {
+    try {
+      const topProducts = await this.prisma.$queryRaw`
+        SELECT 
+          p.id,
+          p.name,
+          COUNT(oi.*) as total_sold,
+          COALESCE(SUM(oi."unitPrice" * oi.quantity), 0) as revenue,
+          p.stock
+        FROM "products" p
+        LEFT JOIN "order_items" oi ON p.id = oi."productId"
+        LEFT JOIN "orders" o ON oi."orderId" = o.id
+        WHERE p."workspaceId" = ${workspaceId}
+          AND (o."createdAt" IS NULL OR (o."createdAt" >= ${startDate} AND o."createdAt" <= ${endDate}))
+        GROUP BY p.id, p.name, p.stock
+        ORDER BY total_sold DESC, revenue DESC
+        LIMIT 10
+      ` as { id: string; name: string; total_sold: bigint; revenue: number; stock: number }[];
+
+      return topProducts.map(product => ({
+        id: product.id,
+        name: product.name,
+        totalSold: Number(product.total_sold) || 0,
+        revenue: Number(product.revenue) || 0,
+        stock: product.stock || 0
+      }));
+    } catch (error) {
+      console.error('Error getting top products:', error);
+      return [];
+    }
+  }
+
+  // Get top customers by total spending
+  private async getTopCustomers(workspaceId: string, startDate: Date, endDate: Date): Promise<CustomerAnalytics[]> {
+    try {
+      const topCustomers = await this.prisma.$queryRaw`
+        SELECT 
+          c.id,
+          c.name,
+          c.email,
+          c.phone,
+          c.company,
+          COUNT(o.id) as total_orders,
+          COALESCE(SUM(o."totalAmount"), 0) as total_spent,
+          MAX(o."createdAt") as last_order_date,
+          CASE 
+            WHEN COUNT(o.id) > 0 THEN COALESCE(SUM(o."totalAmount"), 0) / COUNT(o.id) 
+            ELSE 0 
+          END as average_order_value
+        FROM "customers" c
+        LEFT JOIN "orders" o ON c.id = o."customerId" 
+          AND o."createdAt" >= ${startDate} 
+          AND o."createdAt" <= ${endDate}
+        WHERE c."workspaceId" = ${workspaceId}
+          AND c."isActive" = true
+        GROUP BY c.id, c.name, c.email, c.phone, c.company
+        ORDER BY total_spent DESC, total_orders DESC
+        LIMIT 10
+      ` as { 
+        id: string; 
+        name: string; 
+        email: string; 
+        phone: string | null; 
+        company: string | null; 
+        total_orders: bigint; 
+        total_spent: number; 
+        last_order_date: Date | null;
+        average_order_value: number;
+      }[];
+
+      return topCustomers.map(customer => ({
+        id: customer.id,
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone || undefined,
+        company: customer.company || undefined,
+        totalOrders: Number(customer.total_orders) || 0,
+        totalSpent: Number(customer.total_spent) || 0,
+        lastOrderDate: customer.last_order_date ? customer.last_order_date.toISOString() : undefined,
+        averageOrderValue: Number(customer.average_order_value) || 0
+      }));
+    } catch (error) {
+      console.error('Error getting top customers:', error);
+      return [];
+    }
+  }
+
+  // Helper method to format monthly data
+  private formatMonthlyData(data: { year: number; month: number; count: bigint }[]): MonthlyData[] {
+    return data.map(item => ({
+      month: this.getMonthName(item.month),
+      year: item.year,
+      value: Number(item.count) || 0,
+      label: `${this.getMonthName(item.month)} ${item.year}`
+    }));
+  }
+
+  // Helper method to get month name in English
+  private getMonthName(monthNumber: number): string {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[monthNumber - 1] || 'Unknown';
   }
 
   async getDetailedMetrics(

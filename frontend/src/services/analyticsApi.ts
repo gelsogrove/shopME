@@ -16,12 +16,17 @@ export interface DashboardAnalytics {
     messages: MonthlyData[];
   };
   topProducts: ProductAnalytics[];
-  customerEngagement: {
-    newCustomers: number;
-    returningCustomers: number;
-    averageSessionDuration: number;
-    messageResponseRate: number;
-  };
+  topCustomers: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    company?: string;
+    totalOrders: number;
+    totalSpent: number;
+    lastOrderDate?: string;
+    averageOrderValue: number;
+  }[];
 }
 
 export interface MonthlyData {

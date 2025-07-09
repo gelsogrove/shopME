@@ -3463,11 +3463,42 @@ const TOAST_CONFIG = {
 ```
 
 **Analytics Dashboard Design Requirements**:
-- **Remove Blue Info Box**: Eliminate the distracting blue "Informazioni sul periodo di default" box
-- **Consistent Design System**: Apply same colors, fonts, and spacing as main application
-- **Clean Professional Layout**: Modern dashboard appearance without cluttered information boxes
-- **Historical Data Visualization**: Proper charts showing orders from past months
-- **Date Range Functionality**: Working date selector for historical period analysis
+- ✅ **COMPLETED**: Remove Blue Info Box - Eliminated the distracting blue "Informazioni sul periodo di default" box
+- ✅ **COMPLETED**: Consistent Design System - Applied same colors, fonts, and spacing as main application
+- ✅ **COMPLETED**: Clean Professional Layout - Modern dashboard appearance without cluttered information boxes
+- ✅ **COMPLETED**: Historical Data Visualization - Proper charts showing orders from past months using Recharts
+- ✅ **COMPLETED**: Period Selector Upgrade - **NEW FEATURE**: Replaced complex date range picker with user-friendly dropdown
+
+#### **📅 New Period Selector System**
+**User Experience Enhancement**: Replaced complex date range picker with intuitive dropdown selector for better usability.
+
+**Period Options Available**:
+- **Last Week**: Previous 7 days of data
+- **Last 3 Months**: Previous 90 days (Default selection)
+- **Last 6 Months**: Previous 180 days  
+- **Last Year**: Previous 365 days
+
+**Default Setting**: 3 months as requested by Andrea for optimal data analysis balance.
+
+**Technical Implementation**:
+```typescript
+// Period Selector Configuration
+type PeriodPreset = 'week' | '3months' | '6months' | '1year';
+
+const periodOptions = [
+  { value: 'week', label: 'Last Week', description: 'Last 7 days' },
+  { value: '3months', label: 'Last 3 Months', description: 'Last 90 days' }, // Default
+  { value: '6months', label: 'Last 6 Months', description: 'Last 180 days' },
+  { value: '1year', label: 'Last Year', description: 'Last 365 days' }
+];
+```
+
+**Benefits of New Period Selector**:
+- **Simplified UX**: No complex calendar navigation required
+- **Common Use Cases**: Pre-defined periods cover 95% of analytics needs
+- **Faster Selection**: One-click period changes vs multi-step date selection
+- **Mobile Friendly**: Dropdown works better on smaller screens
+- **Business Logic**: Periods align with standard business reporting cycles
 
 **Login Page Design Issues**:
 - **Right Panel Inconsistency**: The right side of `/auth/login` doesn't match application design

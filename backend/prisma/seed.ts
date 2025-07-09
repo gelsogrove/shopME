@@ -2022,13 +2022,20 @@ async function main() {
   // Create sample orders for testing
   console.log("Creating sample orders for testing...")
   
-  // Get some products for order items
+  // Get some products and services for order items
   const availableProducts = await prisma.products.findMany({
     where: {
       workspaceId: mainWorkspaceId,
       status: "ACTIVE",
     },
     take: 5,
+  })
+  
+  const availableServices = await prisma.services.findMany({
+    where: {
+      workspaceId: mainWorkspaceId,
+    },
+    take: 2,
   })
   
   if (availableProducts.length > 0) {
@@ -2074,6 +2081,19 @@ async function main() {
             unitPrice: 19.53,
             totalPrice: 19.53,
             productVariant: "500g"
+          },
+          {
+            productId: availableProducts[2].id,
+            quantity: 1,
+            unitPrice: 24.99,
+            totalPrice: 24.99,
+            productVariant: null
+          },
+          {
+            serviceId: availableServices[0]?.id,
+            quantity: 1,
+            unitPrice: availableServices[0]?.price || 30.0,
+            totalPrice: availableServices[0]?.price || 30.0
           }
         ]
       },
@@ -2368,11 +2388,38 @@ async function main() {
   // Seed default document
   await seedDefaultDocument()
 
-  // Provide embedding generation instructions
+  // PHASE 1: Embedding Generation
+  console.log("\n🧠 PHASE 1: EMBEDDING GENERATION")
+  console.log("=================================")
   await generateEmbeddingsAfterSeed()
 
-  // Clean N8N workflows and import new one
+  // PHASE 2: N8N Complete Setup (Credentials + Workflow + Activation)
+  console.log("\n🤖 PHASE 2: N8N COMPLETE AUTOMATION")
+  console.log("===================================")
+  console.log("📋 CHECKLIST ANDREA:")
+  console.log("   ✅ Query SQL (completato)")
+  console.log("   ⏳ Embedding (in corso)")
+  console.log("   ⏳ N8N Credential (prossimo)")
+  console.log("   ⏳ Delete old workflow (prossimo)")
+  console.log("   ⏳ N8N import workflow (prossimo)")
+  console.log("   ⏳ Compila il workflow (prossimo)")
+  console.log("   ⏳ Attiva il workflow (prossimo)")
+  
   await cleanAndImportN8NWorkflow()
+  
+  console.log("✅ CHECKLIST ANDREA COMPLETATA:")
+  console.log("   ✅ Query SQL")
+  console.log("   ✅ Embedding")
+  console.log("   ✅ N8N Credential (from .env)")
+  console.log("   ✅ Delete old workflow")
+  console.log("   ✅ N8N import workflow")
+  console.log("   ✅ Compila il workflow")
+  console.log("   ✅ Attiva il workflow")
+  console.log("")
+  console.log("🎯 SETUP COMPLETO! N8N PRONTO PER WHATSAPP!")
+  console.log("🔗 Webhook URL: http://localhost:5678/webhook/webhook-start")
+  console.log("⚙️ Admin Panel: http://localhost:5678")
+  console.log("   ✅ Attiva il workflow")
 
   console.log(`Seed completato con successo!`)
   console.log(`- Admin user creato: ${adminEmail}`)

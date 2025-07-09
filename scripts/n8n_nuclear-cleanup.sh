@@ -14,6 +14,28 @@ N8N_URL="http://localhost:5678"
 USERNAME="admin@shopme.com"
 PASSWORD="Venezia44"
 
+# Load environment variables from backend/.env
+ENV_FILE="backend/.env"
+# Se lanciato da scripts/ subdirectory, usa path relativo
+if [ ! -f "$ENV_FILE" ] && [ -f "../backend/.env" ]; then
+    ENV_FILE="../backend/.env"
+fi
+if [ -f "$ENV_FILE" ]; then
+    echo "📄 Carico variabili d'ambiente da $ENV_FILE..."
+    export $(grep -v '^#' "$ENV_FILE" | grep -v '^$' | xargs)
+    echo "✅ Variabili d'ambiente caricate!"
+    
+    if [ -n "$OPENROUTER_API_KEY" ]; then
+        echo "🔑 OPENROUTER_API_KEY trovata e caricata!"
+    else
+        echo "❌ OPENROUTER_API_KEY non trovata nel file .env!"
+        exit 1
+    fi
+else
+    echo "❌ File .env non trovato: $ENV_FILE"
+    exit 1
+fi
+
 echo ""
 echo "🔍 Step 1: Stop N8N container per accesso diretto database..."
 docker compose stop n8n || true
@@ -132,99 +154,93 @@ BACKEND_CRED_RESPONSE=$(curl -s -b /tmp/n8n_cookies.txt -X POST "$N8N_URL/rest/c
 BACKEND_CRED_ID=$(echo "$BACKEND_CRED_RESPONSE" | jq -r '.id // .data.id // empty' 2>/dev/null || echo "ERROR")
 echo "✅ Credenziale Backend API creata con ID: $BACKEND_CRED_ID"
 
-# Crea la credenziale OpenRouter API
+# Crea la credenziale OpenRouter API con chiave dal .env
+echo "🔑 Creo credenziale OpenRouter con API key dal file .env..."
 OPENROUTER_CRED_RESPONSE=$(curl -s -b /tmp/n8n_cookies.txt -X POST "$N8N_URL/rest/credentials" \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "OpenRouter API",
-    "type": "httpHeaderAuth",
-    "data": {
-      "name": "Authorization",
-      "value": "Bearer $OPENROUTER_API_KEY"
+  -d "{
+    \"name\": \"OpenRouter API\",
+    \"type\": \"openRouterApi\",
+    \"data\": {
+      \"apiKey\": \"$OPENROUTER_API_KEY\"
     }
-  }')
+  }")
 
 OPENROUTER_CRED_ID=$(echo "$OPENROUTER_CRED_RESPONSE" | jq -r '.id // .data.id // empty' 2>/dev/null || echo "ERROR")
 echo "✅ Credenziale OpenRouter API creata con ID: $OPENROUTER_CRED_ID"
+echo "🔍 API Key utilizzata: ${OPENROUTER_API_KEY:0:20}...${OPENROUTER_API_KEY: -10}"
 
 echo ""
-echo "📤 Step 7: Importo IL SOLO E UNICO workflow..."
+echo "📤 Step 7: Importo IL SOLO E UNICO workflow con credenziali embedded..."
 
-# Use main workflow (credentials have been removed from JSON)
-WORKFLOW_FILE="/Users/gelso/workspace/AI/shop/n8n/workflows/shopme-whatsapp-workflow.json"
+# Determina il path corretto del workflow
+WORKFLOW_FILE="n8n/workflows/shopme-whatsapp-workflow.json"
+if [ ! -f "$WORKFLOW_FILE" ]; then
+    WORKFLOW_FILE="/Users/gelso/workspace/AI/shop/n8n/workflows/shopme-whatsapp-workflow.json"
+fi
 
 if [ ! -f "$WORKFLOW_FILE" ]; then
     echo "❌ File workflow principale non trovato: $WORKFLOW_FILE"
-    echo "⚠️  Provo con il workflow di test..."
-    WORKFLOW_FILE="/Users/gelso/workspace/AI/shop/n8n/simple-test-workflow.json"
-    if [ ! -f "$WORKFLOW_FILE" ]; then
-        echo "❌ Nessun workflow trovato!"
-        exit 1
-    fi
-fi
-
-echo "📤 Importo il workflow da: $WORKFLOW_FILE"
-IMPORT_RESPONSE=$(curl -s -b /tmp/n8n_cookies.txt -X POST "$N8N_URL/rest/workflows" \
-  -H "Content-Type: application/json" \
-  -d @"$WORKFLOW_FILE")
-
-if command -v jq >/dev/null 2>&1; then
-    WORKFLOW_ID=$(echo "$IMPORT_RESPONSE" | jq -r '.data.id // .id // empty' 2>/dev/null)
-else
-    WORKFLOW_ID=$(echo "$IMPORT_RESPONSE" | grep -o '"id":"[^"]*"' | head -1 | sed 's/"id":"\([^"]*\)"/\1/')
-fi
-
-if [ -z "$WORKFLOW_ID" ] || [ "$WORKFLOW_ID" = "null" ] || [ "$WORKFLOW_ID" = "empty" ]; then
-    echo "❌ Errore estrazione ID workflow: $IMPORT_RESPONSE"
     exit 1
 fi
 
-echo "✅ Workflow importato con ID: $WORKFLOW_ID"
+echo "📄 Leggo workflow originale da: $WORKFLOW_FILE"
+
+# Create new workflow with credentials injected directly in the JSON
+echo "🔧 Creo workflow con credenziali embedded..."
+NEW_WORKFLOW=$(cat "$WORKFLOW_FILE" | jq --arg backend_id "$BACKEND_CRED_ID" --arg openrouter_id "$OPENROUTER_CRED_ID" '
+    . + {"active": true} |
+    .nodes = (.nodes | map(
+        if .id == "5d58d00e-d63a-4063-8969-ec550395c814" then
+            . + {"credentials": {"openRouterApi": {"id": $openrouter_id, "name": "OpenRouter API"}}}
+        elif .id == "9194a962-fa10-4e33-95bb-e140344ba816" then
+            . + {"credentials": {"httpBasicAuth": {"id": $backend_id, "name": "Backend API Basic Auth"}}}
+        elif .id == "0f33aa9d-9736-4406-947b-d3af2be2ad9b" then
+            . + {"credentials": {"httpBasicAuth": {"id": $backend_id, "name": "Backend API Basic Auth"}}}
+        else
+            .
+        end
+    ))
+')
+
+echo "📤 Importo workflow con credenziali..."
+IMPORT_RESPONSE=$(curl -s -b /tmp/n8n_cookies.txt -X POST "$N8N_URL/rest/workflows" \
+  -H "Content-Type: application/json" \
+  -d "$NEW_WORKFLOW")
+
+WORKFLOW_ID=$(echo "$IMPORT_RESPONSE" | jq -r '.data.id // .id // empty' 2>/dev/null || echo "ERROR")
+if [ "$WORKFLOW_ID" = "ERROR" ] || [ -z "$WORKFLOW_ID" ] || [ "$WORKFLOW_ID" = "null" ]; then
+    echo "❌ Errore import workflow: $IMPORT_RESPONSE"
+    exit 1
+fi
+
+echo "✅ Workflow importato con ID: $WORKFLOW_ID e credenziali embedded"
 
 echo ""
-echo "🔗 Step 8: Assegno credenziali al workflow..."
+echo "🔗 Step 8: Verifico che le credenziali siano già embedded..."
 
-# Update workflow to assign fresh credentials
-WORKFLOW_UPDATE_DATA=$(cat << EOF
-{
-  "nodes": [
-    {
-      "id": "95f32b5b-ac0b-4269-a509-aaf642301c31",
-      "credentials": {
-        "openRouterApi": {
-          "id": "$OPENROUTER_CRED_ID",
-          "name": "OpenRouter API"
-        }
-      }
-    },
-    {
-      "id": "be96e8f5-f02f-4f89-abd8-e50ae060c621", 
-      "credentials": {
-        "httpBasicAuth": {
-          "id": "$BACKEND_CRED_ID",
-          "name": "Backend API Basic Auth"
-        }
-      }
-    }
-  ]
-}
-EOF
-)
+# Verify credentials were properly embedded during import
+echo "🔍 Verifico credenziali embedded nel workflow..."
+VERIFY_WORKFLOW=$(curl -s -b /tmp/n8n_cookies.txt "$N8N_URL/rest/workflows/$WORKFLOW_ID")
 
-# Apply credential updates to workflow
-UPDATE_RESPONSE=$(curl -s -b /tmp/n8n_cookies.txt -X PATCH "$N8N_URL/rest/workflows/$WORKFLOW_ID" \
-  -H "Content-Type: application/json" \
-  -d "$WORKFLOW_UPDATE_DATA")
+OPENROUTER_NODE_CREDS=$(echo "$VERIFY_WORKFLOW" | jq -r '.data.nodes[] | select(.id == "5d58d00e-d63a-4063-8969-ec550395c814") | .credentials.openRouterApi.id // "MISSING"')
+RAG_NODE_CREDS=$(echo "$VERIFY_WORKFLOW" | jq -r '.data.nodes[] | select(.id == "9194a962-fa10-4e33-95bb-e140344ba816") | .credentials.httpBasicAuth.id // "MISSING"')
+PRODUCTS_NODE_CREDS=$(echo "$VERIFY_WORKFLOW" | jq -r '.data.nodes[] | select(.id == "0f33aa9d-9736-4406-947b-d3af2be2ad9b") | .credentials.httpBasicAuth.id // "MISSING"')
 
-echo "✅ Credenziali assegnate al workflow!"
+echo "📊 Verifica credenziali embedded:"
+echo "   🤖 OpenRouter Chat Model: $OPENROUTER_NODE_CREDS"
+echo "   🔍 RagSearch(): $RAG_NODE_CREDS"
+echo "   📦 GetAllProducts(): $PRODUCTS_NODE_CREDS"
+
+if [ "$OPENROUTER_NODE_CREDS" != "MISSING" ] && [ "$RAG_NODE_CREDS" != "MISSING" ] && [ "$PRODUCTS_NODE_CREDS" != "MISSING" ]; then
+    echo "✅ Tutte le credenziali sono embedded correttamente!"
+else
+    echo "❌ Alcune credenziali non sono state embedded correttamente"
+    exit 1
+fi
 
 echo ""
-echo "🔄 Step 9: Attivo l'UNICO workflow..."
-ACTIVATE_RESPONSE=$(curl -s -b /tmp/n8n_cookies.txt -X PATCH "$N8N_URL/rest/workflows/$WORKFLOW_ID" \
-  -H "Content-Type: application/json" \
-  -d '{"active": true}')
-
-echo "✅ Workflow attivato!"
+echo "🔄 Step 9: Workflow già attivo dalla creazione!"
 
 echo ""
 echo "📊 Step 9: VERIFICA FINALE - Un solo workflow deve esistere..."
