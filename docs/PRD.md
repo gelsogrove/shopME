@@ -1494,6 +1494,46 @@ The ShopMe platform integrates with **N8N** (n8nio.com) as a visual workflow aut
 - No frontend UI integration
 - Focus on core messaging workflow functionality
 
+### **Critical N8N Issues**
+
+**Credentials Persistence Problem**:
+- **Issue**: N8N loses credentials on every restart/reload
+- **Impact**: WhatsApp workflow stops working after container restart
+- **Frequency**: Always happens on system restart or N8N container reload
+- **Critical Impact**: Complete WhatsApp messaging system failure
+
+**Required Solutions**:
+```typescript
+// N8N Credentials Persistence Requirements
+interface N8NCredentialsFix {
+  persistentStorage: {
+    volume: string                      // Docker volume for N8N data persistence
+    database: string                    // SQLite database persistence
+    credentialsFile: string             // Credentials backup file
+  }
+  
+  autoRecovery: {
+    healthCheck: boolean                // Monitor N8N credentials status
+    autoReconnect: boolean              // Auto-reconnect on credential loss
+    retryMechanism: number              // Retry attempts for credential restoration
+    alerting: boolean                   // Alert when credentials lost
+  }
+  
+  backupStrategy: {
+    credentialsBackup: boolean          // Regular backup of N8N credentials
+    configBackup: boolean               // Backup workflow configuration
+    restoreScript: string               // Automated restore script
+    manualRecovery: string              // Manual recovery documentation
+  }
+}
+```
+
+**Implementation Priority**:
+1. **CRITICAL**: Fix Docker volume persistence for N8N database
+2. **HIGH**: Implement health monitoring for credential status
+3. **MEDIUM**: Create automated backup/restore scripts
+4. **LOW**: Documentation for manual recovery procedures
+
 ### 🎯 **Hybrid Architecture: Backend + N8N**
 
 #### **🛡️ ShopMe Backend Security Layer (SEMPRE nel server):**
