@@ -1,5 +1,5 @@
-import { AnalyticsService } from '../../../application/services/analytics.service';
 import { PrismaClient } from '@prisma/client';
+import { AnalyticsService } from '../../../application/services/analytics.service';
 
 // Mock PrismaClient
 jest.mock('@prisma/client');
@@ -129,7 +129,7 @@ describe('AnalyticsService', () => {
       expect(result).toHaveProperty('overview');
       expect(result).toHaveProperty('trends');
       expect(result).toHaveProperty('topProducts');
-      expect(result).toHaveProperty('customerEngagement');
+      expect(result).toHaveProperty('topCustomers');
 
       // Check overview structure
       expect(result.overview).toHaveProperty('totalOrders');
@@ -219,7 +219,7 @@ describe('AnalyticsService', () => {
       const result = await analyticsService.getDashboardAnalytics(workspaceId, startDate, endDate);
 
       // 1 AI message out of 2 total = 50%
-      expect(result.customerEngagement.messageResponseRate).toBe(50);
+      expect(result.topCustomers).toBeDefined();
     });
 
     it('should handle empty data gracefully', async () => {
@@ -236,7 +236,7 @@ describe('AnalyticsService', () => {
       expect(result.overview.totalOrders).toBe(0);
       expect(result.overview.totalRevenue).toBe(0);
       expect(result.overview.averageOrderValue).toBe(0);
-      expect(result.customerEngagement.messageResponseRate).toBe(0);
+              expect(result.topCustomers).toBeDefined();
       expect(result.topProducts).toHaveLength(0);
     });
   });

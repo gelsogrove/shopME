@@ -11,6 +11,7 @@ import { faqsRouter } from './faqs.routes';
 import { messagesRouter } from './messages.routes';
 import { offersRouter } from './offers.routes';
 import { createOpenAIRouter } from './openai.routes';
+import { createOrderRouter } from './order.routes';
 import productsRouter from './products.routes';
 import { servicesRouter } from './services.routes';
 import { settingsRouter } from './settings.routes';
@@ -93,6 +94,10 @@ export const apiRouter = (): Router => {
   router.use('/faqs', faqsRouter());
   router.use('/whatsapp', whatsappRouter(whatsappController));
   router.use('/openai', createOpenAIRouter(openaiController));
+  
+  // Orders routes
+  router.use('/orders', createOrderRouter());
+  router.use('/workspaces/:workspaceId/orders', createOrderRouter());
   
   // N8N Internal API Routes
   router.use('/internal', internalApiRoutes);

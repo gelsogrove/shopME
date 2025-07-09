@@ -135,6 +135,15 @@ export interface UpdateOrderData {
   notes?: string
   discountCode?: string
   discountAmount?: number
+  items?: {
+    itemType: ItemType
+    productId?: string
+    serviceId?: string
+    quantity: number
+    unitPrice: number
+    totalPrice: number
+    productVariant?: any
+  }[]
 }
 
 // Filters interface
@@ -213,7 +222,7 @@ export const getAllForWorkspace = async (
     }
     
     const queryString = queryParams.toString()
-    const requestUrl = `/workspaces/${workspaceId}/orders${queryString ? `?${queryString}` : ''}`
+    const requestUrl = `/orders${queryString ? `?${queryString}` : ''}`
     console.log('Orders API request URL:', requestUrl)
     
     const response = await api.get(requestUrl)
@@ -236,7 +245,7 @@ export const getAllForWorkspace = async (
  */
 export const getById = async (id: string, workspaceId: string): Promise<Order> => {
   try {
-    const response = await api.get(`/workspaces/${workspaceId}/orders/${id}`)
+    const response = await api.get(`/orders/${id}`)
     return response.data
   } catch (error) {
     console.error('Error getting order:', error)
@@ -249,7 +258,7 @@ export const getById = async (id: string, workspaceId: string): Promise<Order> =
  */
 export const getByCode = async (orderCode: string, workspaceId: string): Promise<Order> => {
   try {
-    const response = await api.get(`/workspaces/${workspaceId}/orders/code/${orderCode}`)
+    const response = await api.get(`/orders/code/${orderCode}`)
     return response.data
   } catch (error) {
     console.error('Error getting order by code:', error)
@@ -262,7 +271,7 @@ export const getByCode = async (orderCode: string, workspaceId: string): Promise
  */
 export const getByCustomer = async (customerId: string, workspaceId: string): Promise<Order[]> => {
   try {
-    const response = await api.get(`/workspaces/${workspaceId}/orders/customer/${customerId}`)
+    const response = await api.get(`/orders/customer/${customerId}`)
     return response.data
   } catch (error) {
     console.error('Error getting orders by customer:', error)
@@ -278,7 +287,7 @@ export const create = async (workspaceId: string, data: CreateOrderData): Promis
     console.log('Creating order with data:', data)
     console.log('Workspace ID:', workspaceId)
     
-    const response = await api.post(`/workspaces/${workspaceId}/orders`, data)
+    const response = await api.post(`/orders`, data)
     console.log('Order creation response:', response.data)
     return response.data
   } catch (error) {
@@ -294,7 +303,7 @@ export const update = async (id: string, workspaceId: string, data: UpdateOrderD
   try {
     console.log('Updating order with data:', data)
     
-    const response = await api.put(`/workspaces/${workspaceId}/orders/${id}`, data)
+    const response = await api.put(`/orders/${id}`, data)
     return response.data
   } catch (error) {
     console.error('Error updating order:', error)
@@ -307,7 +316,7 @@ export const update = async (id: string, workspaceId: string, data: UpdateOrderD
  */
 export const delete_ = async (id: string, workspaceId: string): Promise<void> => {
   try {
-    await api.delete(`/workspaces/${workspaceId}/orders/${id}`)
+    await api.delete(`/orders/${id}`)
   } catch (error) {
     console.error('Error deleting order:', error)
     throw error
@@ -319,7 +328,7 @@ export const delete_ = async (id: string, workspaceId: string): Promise<void> =>
  */
 export const updateStatus = async (id: string, workspaceId: string, status: OrderStatus): Promise<Order> => {
   try {
-    const response = await api.patch(`/workspaces/${workspaceId}/orders/${id}/status`, { status })
+    const response = await api.patch(`/orders/${id}/status`, { status })
     return response.data
   } catch (error) {
     console.error('Error updating order status:', error)
@@ -349,7 +358,7 @@ export const getAnalytics = async (workspaceId: string, filters?: Omit<OrderFilt
     }
     
     const queryString = queryParams.toString()
-    const requestUrl = `/workspaces/${workspaceId}/orders/analytics${queryString ? `?${queryString}` : ''}`
+    const requestUrl = `/orders/analytics${queryString ? `?${queryString}` : ''}`
     
     const response = await api.get(requestUrl)
     return response.data
@@ -364,7 +373,7 @@ export const getAnalytics = async (workspaceId: string, filters?: Omit<OrderFilt
  */
 export const getByDateRange = async (workspaceId: string, startDate: string, endDate: string): Promise<Order[]> => {
   try {
-    const response = await api.get(`/workspaces/${workspaceId}/orders/date-range?startDate=${startDate}&endDate=${endDate}`)
+    const response = await api.get(`/orders/date-range?startDate=${startDate}&endDate=${endDate}`)
     return response.data
   } catch (error) {
     console.error('Error getting orders by date range:', error)

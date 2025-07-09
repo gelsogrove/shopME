@@ -263,19 +263,10 @@ export class AnalyticsController {
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/ProductAnalytics'
- *         customerEngagement:
- *           type: object
- *           properties:
- *             newCustomers:
- *               type: number
- *             returningCustomers:
- *               type: number
- *             averageSessionDuration:
- *               type: number
- *               description: Average session duration in minutes
- *             messageResponseRate:
- *               type: number
- *               description: AI response rate percentage
+ *         topCustomers:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/CustomerAnalytics'
  *     
  *     MonthlyData:
  *       type: object
@@ -311,6 +302,37 @@ export class AnalyticsController {
  *         stock:
  *           type: number
  *           description: Current stock level
+ * 
+ *     CustomerAnalytics:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Customer ID
+ *         name:
+ *           type: string
+ *           description: Customer name
+ *         email:
+ *           type: string
+ *           description: Customer email
+ *         phone:
+ *           type: string
+ *           description: Customer phone
+ *         company:
+ *           type: string
+ *           description: Customer company
+ *         totalOrders:
+ *           type: number
+ *           description: Total number of orders
+ *         totalSpent:
+ *           type: number
+ *           description: Total amount spent
+ *         lastOrderDate:
+ *           type: string
+ *           description: Date of last order
+ *         averageOrderValue:
+ *           type: number
+ *           description: Average order value
  * 
  * tags:
  *   - name: Analytics
