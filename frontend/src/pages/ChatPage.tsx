@@ -1,6 +1,8 @@
 import { PageLayout } from "@/components/layout/PageLayout"
 import { ClientSheet } from "@/components/shared/ClientSheet"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
+import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
 import { api } from "@/services/api"
@@ -128,6 +130,10 @@ export function ChatPage() {
   const [hasToggledChatbot, setHasToggledChatbot] = useState(false)
   const [isBlocking, setIsBlocking] = useState(false)
   const navigate = useNavigate()
+  const [showPlaygroundDialog, setShowPlaygroundDialog] = useState(false)
+
+  const handlePlaygroundClick = () => setShowPlaygroundDialog(true)
+  const handleClosePlayground = () => setShowPlaygroundDialog(false)
 
   // Redirect to workspace selection if user has no workspace
   useEffect(() => {
@@ -1024,6 +1030,27 @@ export function ChatPage() {
             ? availableLanguages.map((lang) => lang.name || "")
             : []
         }
+      />
+      {/* WhatsApp Floating Button - stile OlaClick, solo su /chat */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          onClick={handlePlaygroundClick}
+          className="bg-[#25D366] hover:bg-[#128C7E] text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 h-16 w-16 p-0 flex items-center justify-center group relative"
+          title="Chat WhatsApp"
+        >
+          <WhatsAppIcon className="h-8 w-8 text-white transition-transform group-hover:scale-110" />
+          <div className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-20"></div>
+          <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+            Chatta con noi su WhatsApp
+          </div>
+        </Button>
+      </div>
+      <WhatsAppChatModal
+        isOpen={showPlaygroundDialog}
+        onClose={handleClosePlayground}
+        channelName="WhatsApp Chat"
+        workspaceId={workspace?.id}
+        selectedChat={selectedChat}
       />
     </PageLayout>
   )

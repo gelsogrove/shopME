@@ -3,44 +3,40 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
-import { cn } from "@/lib/utils"
-import { clientsApi, type Client } from "@/services/clientsApi"
+import { clientsApi } from "@/services/clientsApi"
 import {
-    ordersApi,
-    type ItemType,
-    type Order,
-    type OrderStatus,
-    type PaymentMethod
+  ordersApi,
+  type ItemType,
+  type Order,
+  type OrderStatus,
+  type PaymentMethod
 } from "@/services/ordersApi"
 import { productsApi } from "@/services/productsApi"
 import { servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
 import { formatPrice } from "@/utils/format"
-import { format } from "date-fns"
-import { CalendarDays, Download, Package, Pencil, Plus, ShoppingCart, Trash2, Wrench } from "lucide-react"
+import { ExternalLink, FileText, Package, Pencil, Plus, ShoppingCart, Trash2, Truck, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -59,12 +55,7 @@ interface Service {
   duration?: number
 }
 
-interface Customer {
-  id: string
-  name: string
-  email: string
-  phone?: string
-}
+// Customer interface is imported from ordersApi.ts
 
 // Cart Item Edit Sheet Component
 function CartItemEditSheet({
@@ -87,11 +78,19 @@ function CartItemEditSheet({
   const [selectedProductId, setSelectedProductId] = useState("")
   const [selectedServiceId, setSelectedServiceId] = useState("")
   const [productQuantity, setProductQuantity] = useState(1)
+  
+  // Add state for editable order fields
+  const [orderStatus, setOrderStatus] = useState<OrderStatus>(order?.status || 'PENDING')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(order?.paymentMethod || null)
 
   useEffect(() => {
     if (open && order) {
       // Load initial cart items
       setEditingItems([...order.items])
+      
+      // Set initial order status and payment method
+      setOrderStatus(order.status)
+      setPaymentMethod(order.paymentMethod)
       
       // Load products and services
       const loadData = async () => {
@@ -102,9 +101,6 @@ function CartItemEditSheet({
             productsApi.getAllForWorkspace(workspace.id),
             servicesApi.getServices(workspace.id)
           ])
-          
-          console.log('Loaded products for cart:', productsRes?.products?.length || 0)
-          console.log('Loaded services for cart:', servicesRes?.length || 0)
           
           setProducts(productsRes?.products || [])
           setServices(servicesRes || [])
@@ -117,6 +113,54 @@ function CartItemEditSheet({
       loadData()
     }
   }, [open, order, workspace?.id])
+
+  // Function to handle status change with immediate save
+  const handleStatusChange = async (newStatus: OrderStatus) => {
+    if (!order || !workspace?.id) return
+    
+    try {
+      setOrderStatus(newStatus)
+      
+      const updateData = {
+        status: newStatus,
+        paymentMethod: paymentMethod
+      }
+
+      const updatedOrder = await ordersApi.update(order.id, workspace.id, updateData)
+      onSave(updatedOrder)
+      
+      toast.success("Order status updated successfully")
+    } catch (error) {
+      console.error('Failed to update status:', error)
+      // Revert the change if API call fails
+      setOrderStatus(order.status)
+      toast.error("Failed to update order status")
+    }
+  }
+
+  // Function to handle payment method change with immediate save
+  const handlePaymentMethodChange = async (newPaymentMethod: PaymentMethod | null) => {
+    if (!order || !workspace?.id) return
+    
+    try {
+      setPaymentMethod(newPaymentMethod)
+      
+      const updateData = {
+        status: orderStatus,
+        paymentMethod: newPaymentMethod
+      }
+
+      const updatedOrder = await ordersApi.update(order.id, workspace.id, updateData)
+      onSave(updatedOrder)
+      
+      toast.success("Payment method updated successfully")
+    } catch (error) {
+      console.error('Failed to update payment method:', error)
+      // Revert the change if API call fails
+      setPaymentMethod(order.paymentMethod)
+      toast.error("Failed to update payment method")
+    }
+  }
 
   const handleAddProduct = () => {
     if (!selectedProductId) return
@@ -140,7 +184,6 @@ function CartItemEditSheet({
     setSelectedProductId("")
     setProductQuantity(1)
     setShowAddProduct(false)
-    toast.success("Product added to cart")
   }
 
   const handleAddService = () => {
@@ -164,46 +207,35 @@ function CartItemEditSheet({
     setEditingItems([...editingItems, newItem])
     setSelectedServiceId("")
     setShowAddService(false)
-    toast.success("Service added to cart")
   }
 
   const handleRemoveItem = (itemId: string) => {
     setEditingItems(editingItems.filter(item => item.id !== itemId))
-    toast.success("Item removed from cart")
   }
 
   const handleUpdateProductQuantity = (itemId: string, newQuantity: number) => {
     if (newQuantity < 1) return
     
-    console.log('Updating quantity for item:', itemId, 'to:', newQuantity)
-    
-    setEditingItems(prevItems => {
-      const newItems = prevItems.map(item => {
-        console.log('Checking item:', item.id, 'itemType:', item.itemType, 'productId:', item.productId, 'serviceId:', item.serviceId)
+    // Calculate the new items array
+    const newItems = editingItems.map(item => {
+      if (item.id === itemId) {
+        // Determine item type more robustly
+        const itemType = item.itemType || (item.serviceId ? 'SERVICE' : 'PRODUCT')
         
-        if (item.id === itemId) {
-          // Determine item type more robustly
-          const itemType = item.itemType || (item.serviceId ? 'SERVICE' : 'PRODUCT')
-          console.log('Determined itemType:', itemType)
-          
-          // Only update quantity for products
-          if (itemType === 'PRODUCT') {
-            const updatedItem = {
-              ...item,
-              quantity: newQuantity,
-              totalPrice: item.unitPrice * newQuantity
-            }
-            console.log('Updated item:', updatedItem)
-            toast.success(`Quantity updated to ${newQuantity}`)
-            return updatedItem
+        // Only update quantity for products
+        if (itemType === 'PRODUCT') {
+          return {
+            ...item,
+            quantity: newQuantity,
+            totalPrice: item.unitPrice * newQuantity
           }
         }
-        return item
-      })
-      
-      console.log('New items array:', newItems)
-      return newItems
+      }
+      return item
     })
+    
+    // Update local state only - no auto-save
+    setEditingItems(newItems)
   }
 
   const handleSave = async () => {
@@ -238,7 +270,7 @@ function CartItemEditSheet({
         }))
       }
 
-      console.log('Updating order with data:', updateData)
+
       
       // Save via API
       const updatedOrder = await ordersApi.update(order.id, workspace.id, updateData)
@@ -249,7 +281,7 @@ function CartItemEditSheet({
       // Update local order data to reflect changes
       order.totalAmount = newTotalAmount
       
-      toast.success("🛒 Cart updated successfully - Slide stays open for more edits")
+      toast.success("Changes saved successfully")
     } catch (error) {
       console.error('Error saving cart:', error)
       
@@ -276,13 +308,12 @@ function CartItemEditSheet({
 
   return (
     <Sheet open={open} onOpenChange={(isOpen) => {
-      // Only close if explicitly requested, not on outside click
-      if (!isOpen) {
-        console.log('Sheet close requested')
-        onClose()
-      }
+              // Only close if explicitly requested, not on outside click
+        if (!isOpen) {
+          onClose()
+        }
     }}>
-      <SheetContent side="right" className="max-w-[80%] overflow-y-auto"
+      <SheetContent side="right" className="max-w-[90%] overflow-y-auto"
         onInteractOutside={(e) => {
           // Prevent closing on outside click
           e.preventDefault()
@@ -292,29 +323,169 @@ function CartItemEditSheet({
           onClose()
         }}
       >
-        <SheetHeader>
-          <SheetTitle className="text-2xl font-bold">
-            Edit Cart - Order {order.orderCode}
+        <SheetHeader className="border-b pb-4 mb-6">
+          <SheetTitle className="text-2xl font-bold text-gray-900">
+            Edit Order {order.orderCode}
           </SheetTitle>
-          <SheetDescription>
-            Manage products and services in this order
+          <SheetDescription className="text-gray-600">
+            Manage products, services, and order details
           </SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-6 mt-6">
-          {/* Current Cart Items */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5" />
-                Cart Items ({editingItems.length})
-              </CardTitle>
+        <div className="space-y-10">
+          {/* Order Header Card */}
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-xl font-bold text-gray-900">Order {order.orderCode}</CardTitle>
+                  <p className="text-gray-600 mt-1">{order.customer?.name || "Unknown Customer"}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">Total Amount</p>
+                  <p className="text-2xl font-bold text-gray-900">€{order.totalAmount.toFixed(2)}</p>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
+              {/* Status and Payment in one clean row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Status</Label>
+                  <div className="flex items-center gap-3">
+                    <Select value={orderStatus} onValueChange={handleStatusChange}>
+                      <SelectTrigger className="w-[160px]">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PENDING">Pending</SelectItem>
+                        <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                        <SelectItem value="PROCESSING">Processing</SelectItem>
+                        <SelectItem value="SHIPPED">Shipped</SelectItem>
+                        <SelectItem value="DELIVERED">Delivered</SelectItem>
+                        <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Badge variant={getStatusBadgeVariant(orderStatus)} className={getStatusBadgeClass(orderStatus)}>
+                      {orderStatus}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Payment Method</Label>
+                  <div className="flex items-center gap-3">
+                    <Select 
+                      value={paymentMethod || "NONE"} 
+                      onValueChange={(value) => handlePaymentMethodChange(value === "NONE" ? null : value as PaymentMethod)}
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NONE">None</SelectItem>
+                        <SelectItem value="CREDIT_CARD">Credit Card</SelectItem>
+                        <SelectItem value="DEBIT_CARD">Debit Card</SelectItem>
+                        <SelectItem value="PAYPAL">PayPal</SelectItem>
+                        <SelectItem value="BANK_TRANSFER">Bank Transfer</SelectItem>
+                        <SelectItem value="CASH_ON_DELIVERY">Cash on Delivery</SelectItem>
+                        <SelectItem value="CRYPTO">Cryptocurrency</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300">
+                      {paymentMethod ? paymentMethod.replace(/_/g, ' ') : 'None'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-sm text-gray-500">
+                Order created on {new Date(order.createdAt).toLocaleDateString('en-GB')} at {new Date(order.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Addresses Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Shipping Address */}
+            <Card className="border border-gray-200 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <Truck className="h-5 w-5 text-green-600" />
+                  Shipping Address
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-gray-700 leading-relaxed">
+                  {order.shippingAddress ? 
+                    `${order.shippingAddress.street || order.shippingAddress.address || ''}, ${order.shippingAddress.city || ''}, ${order.shippingAddress.zipCode || order.shippingAddress.postalCode || ''}, ${order.shippingAddress.country || ''}`.replace(/^,\s*|,\s*$/g, '').replace(/,\s*,/g, ',') 
+                    : <span className="text-gray-500 italic">Not specified</span>}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Invoice Address */}
+            <Card className="border border-gray-200 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  Invoice Address
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {order.customer?.invoiceAddress ? (
+                  <div className="space-y-2 text-gray-700">
+                    <div className="font-medium">
+                      {order.customer.invoiceAddress.firstName} {order.customer.invoiceAddress.lastName}
+                    </div>
+                    {order.customer.invoiceAddress.company && (
+                      <div className="text-sm text-gray-600">{order.customer.invoiceAddress.company}</div>
+                    )}
+                    <div className="text-sm">
+                      {order.customer.invoiceAddress.address}<br/>
+                      {order.customer.invoiceAddress.city} {order.customer.invoiceAddress.postalCode}<br/>
+                      {order.customer.invoiceAddress.country}
+                    </div>
+                    {order.customer.invoiceAddress.vatNumber && (
+                      <div className="text-sm text-gray-600">VAT: {order.customer.invoiceAddress.vatNumber}</div>
+                    )}
+                    {order.customer.invoiceAddress.phone && (
+                      <div className="text-sm text-gray-600">Phone: {order.customer.invoiceAddress.phone}</div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-gray-500 italic">
+                    No invoice address available for this customer.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+
+
+          {/* Cart Items */}
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="border-b border-gray-100">
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <ShoppingCart className="h-5 w-5 text-blue-600" />
+                  Cart Items ({editingItems.length})
+                </CardTitle>
+                <div className="text-lg font-bold text-gray-900">
+                  Total: {formatPrice(editingItems.reduce((sum, item) => sum + item.totalPrice, 0), workspace?.currency)}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
               {editingItems.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">No items in cart</p>
+                <div className="text-center py-12 text-gray-500">
+                  <ShoppingCart className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                  <p className="text-lg">No items in cart</p>
+                  <p className="text-sm">Add products or services to get started</p>
+                </div>
               ) : (
-                <div className="space-y-3">
+                <div className="divide-y divide-gray-100">
                   {editingItems.map((item) => {
                     // Determine item type more robustly for display
                     const itemType = item.itemType || (item.serviceId ? 'SERVICE' : 'PRODUCT')
@@ -323,80 +494,83 @@ function CartItemEditSheet({
                       : (item.service?.name || `Service ${item.serviceId}`)
 
                     return (
-                      <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Badge variant="outline" className="text-xs">
-                            {itemType === 'PRODUCT' ? (
-                              <>
-                                <Package className="h-3 w-3 mr-1" />
-                                Product
-                              </>
-                            ) : (
-                              <>
-                                <Wrench className="h-3 w-3 mr-1" />
-                                Service
-                              </>
-                            )}
-                          </Badge>
-                          <div>
-                            <p className="font-medium">{itemName}</p>
-                            <p className="text-sm text-gray-500">
-                              {formatPrice(item.unitPrice, workspace?.currency)} each
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          {/* Quantity controls for products only */}
-                          {itemType === 'PRODUCT' ? (
+                      <div key={item.id} className="p-6 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4 flex-1">
                             <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  handleUpdateProductQuantity(item.id, item.quantity - 1)
-                                }}
-                                disabled={item.quantity <= 1}
-                              >
-                                -
-                              </Button>
-                              <span className="w-8 text-center">{item.quantity}</span>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  handleUpdateProductQuantity(item.id, item.quantity + 1)
-                                }}
-                              >
-                                +
-                              </Button>
+                              {itemType === 'PRODUCT' ? (
+                                <Package className="h-5 w-5 text-blue-600" />
+                              ) : (
+                                <Wrench className="h-5 w-5 text-purple-600" />
+                              )}
+                              <Badge variant="outline" className="text-xs font-medium">
+                                {itemType}
+                              </Badge>
                             </div>
-                          ) : (
-                            <span className="text-sm text-gray-500">Qty: 1</span>
-                          )}
-
-                          <div className="text-right">
-                            <p className="font-medium">
-                              {formatPrice(item.totalPrice, workspace?.currency)}
-                            </p>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-900">{itemName}</h3>
+                              <p className="text-sm text-gray-600">
+                                {formatPrice(item.unitPrice, workspace?.currency)} per unit
+                              </p>
+                            </div>
                           </div>
 
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
-                              handleRemoveItem(item.id)
-                            }}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-6">
+                            {/* Quantity controls */}
+                            {itemType === 'PRODUCT' ? (
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleUpdateProductQuantity(item.id, item.quantity - 1)
+                                  }}
+                                  disabled={item.quantity <= 1}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  -
+                                </Button>
+                                <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleUpdateProductQuantity(item.id, item.quantity + 1)
+                                  }}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  +
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="w-20 text-center">
+                                <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">Qty: 1</span>
+                              </div>
+                            )}
+
+                            <div className="text-right min-w-[100px]">
+                              <p className="text-lg font-bold text-gray-900">
+                                {formatPrice(item.totalPrice, workspace?.currency)}
+                              </p>
+                            </div>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleRemoveItem(item.id)
+                              }}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     )
@@ -404,153 +578,32 @@ function CartItemEditSheet({
                 </div>
               )}
             </CardContent>
-          </Card>
-
-          {/* Add Products Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Add Products
-                </div>
-                <Button
-                  onClick={() => setShowAddProduct(!showAddProduct)}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Product
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            {showAddProduct && (
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label>Product</Label>
-                    <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select product" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {products.map((product) => (
-                          <SelectItem key={product.id} value={product.id}>
-                            {product.name} - {formatPrice(product.price, workspace?.currency)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Quantity</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={productQuantity}
-                      onChange={(e) => setProductQuantity(Number(e.target.value))}
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <Button
-                      onClick={handleAddProduct}
-                      disabled={!selectedProductId}
-                      className="bg-green-600 hover:bg-green-700 text-white w-full"
-                    >
-                      Add to Cart
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            )}
-          </Card>
-
-          {/* Add Services Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Wrench className="h-5 w-5" />
-                  Add Services
-                </div>
-                <Button
-                  onClick={() => setShowAddService(!showAddService)}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Service
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            {showAddService && (
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Service</Label>
-                    <Select value={selectedServiceId} onValueChange={setSelectedServiceId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select service" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {services.map((service) => (
-                          <SelectItem key={service.id} value={service.id}>
-                            {service.name} - {formatPrice(service.price, workspace?.currency)}
-                            {service.duration && ` (${service.duration} min)`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-end">
-                    <Button
-                      onClick={handleAddService}
-                      disabled={!selectedServiceId}
-                      className="bg-green-600 hover:bg-green-700 text-white w-full"
-                    >
-                      Add to Cart
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-500">
-                  Note: Services are added with quantity 1 (cannot be modified)
-                </p>
-              </CardContent>
-            )}
-          </Card>
-
-          {/* Total and Actions */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-lg font-medium">Cart Total:</span>
-                <span className="text-xl font-bold">
-                  {formatPrice(editingItems.reduce((sum, item) => sum + item.totalPrice, 0), workspace?.currency)}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={onClose}
-                  className="flex-1"
-                >
-                  ❌ Cancel
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                >
-                  💾 Save Changes
-                </Button>
-                <Button
-                  onClick={() => {
-                    toast.success("✅ Cart editing completed!")
-                    onClose()
-                  }}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  ✅ Done & Close
-                </Button>
-              </div>
-            </CardContent>
+                         {editingItems.length > 0 && (
+               <div className="border-t border-gray-100 p-6 bg-gray-50">
+                 <div className="flex justify-between items-center">
+                   <div className="text-sm text-gray-600">
+                     {editingItems.length} item{editingItems.length !== 1 ? 's' : ''} in cart
+                   </div>
+                   <div className="flex gap-3">
+                     <Button variant="outline" size="sm" disabled className="flex items-center gap-2">
+                       <FileText className="h-4 w-4" />
+                       Download Invoice
+                     </Button>
+                     <Button variant="outline" size="sm" disabled className="flex items-center gap-2">
+                       <FileText className="h-4 w-4" />
+                       Download DDT
+                     </Button>
+                     <Button
+                       onClick={handleSave}
+                       size="default"
+                       className="bg-green-600 hover:bg-green-700 text-white px-8"
+                     >
+                       Save Changes
+                     </Button>
+                   </div>
+                 </div>
+               </div>
+             )}
           </Card>
         </div>
       </SheetContent>
@@ -605,6 +658,22 @@ function OrderDetailsSheet({
                 <div>
                   <Label className="text-sm font-medium text-gray-500">Payment Method</Label>
                   <p>{order.paymentMethod || "Not specified"}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Order Date</Label>
+                  <p>{new Date(order.createdAt).toLocaleDateString('en-GB', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Shipping Address</Label>
+                  <p>{order.shippingAddress ? 
+                    `${order.shippingAddress.street || order.shippingAddress.address || ''}, ${order.shippingAddress.city || ''}, ${order.shippingAddress.zipCode || order.shippingAddress.postalCode || ''}, ${order.shippingAddress.country || ''}`.replace(/^,\s*|,\s*$/g, '').replace(/,\s*,/g, ',') 
+                    : "Not specified"}</p>
                 </div>
               </div>
             </CardContent>
@@ -749,21 +818,42 @@ function OrderCrudSheet({
       if (!workspace?.id) return
 
       try {
+        console.log('🔄 OrderCrudSheet - Starting to load data...')
+        
         const [customersResponse, productsResponse, servicesResponse] = await Promise.all([
           clientsApi.getAllForWorkspace(workspace.id),
           productsApi.getAllForWorkspace(workspace.id),
           servicesApi.getServices(workspace.id)
         ])
         
-        setCustomers(customersResponse || [])
+        console.log('🔍 OrderCrudSheet - Raw API responses:')
+        console.log('  - customersResponse:', customersResponse)
+        console.log('  - customersResponse type:', typeof customersResponse)
+        console.log('  - customersResponse.length:', customersResponse?.length)
+        console.log('  - productsResponse:', productsResponse)
+        console.log('  - servicesResponse:', servicesResponse)
+        
+        // Handle different response formats for customers
+        const customersArray = Array.isArray(customersResponse) 
+          ? customersResponse 
+          : (customersResponse as any)?.customers || (customersResponse as any)?.data || []
+        
+        setCustomers(customersArray)
         setProducts(productsResponse.products || [])
         setServices(servicesResponse || [])
         
-        console.log('Loaded products:', productsResponse.products?.length || 0)
-        console.log('Loaded services:', servicesResponse?.length || 0)
-        console.log('Loaded customers:', customersResponse?.length || 0)
+        console.log('✅ OrderCrudSheet - Data loaded successfully:')
+        console.log('  - Customers set:', customersArray.length, 'items')
+        console.log('  - Products set:', (productsResponse.products || []).length, 'items')
+        console.log('  - Services set:', (servicesResponse || []).length, 'items')
+        
+        if (customersArray.length === 0) {
+          console.warn('⚠️ No customers found - this might be why dropdown is empty')
+          toast.warning("No customers found. Please add customers first.")
+        }
+        
       } catch (error) {
-        console.error("Error loading data:", error)
+        console.error("❌ Error loading OrderCrudSheet data:", error)
         toast.error("Failed to load form data")
       }
     }
@@ -1268,6 +1358,44 @@ function OrderCrudSheet({
             </Card>
           )}
 
+          {/* Invoice Address (always show in edit mode) */}
+          {mode === "edit" && order?.customer && (
+            <Card className="border-2 border-blue-200 bg-blue-50">
+              <CardHeader>
+                <CardTitle className="text-blue-800">📧 Invoice Address</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {order.customer.invoiceAddress ? (
+                  <div className="space-y-2">
+                    <p><strong>Name:</strong> {order.customer.invoiceAddress.firstName || ''} {order.customer.invoiceAddress.lastName || ''}</p>
+                    {order.customer.invoiceAddress.company && <p><strong>Company:</strong> {order.customer.invoiceAddress.company}</p>}
+                    <p><strong>Address:</strong> {order.customer.invoiceAddress.address || 'N/A'}</p>
+                    <p><strong>City:</strong> {order.customer.invoiceAddress.city || 'N/A'}</p>
+                    <p><strong>Postal Code:</strong> {order.customer.invoiceAddress.postalCode || 'N/A'}</p>
+                    <p><strong>Country:</strong> {order.customer.invoiceAddress.country || 'N/A'}</p>
+                    {order.customer.invoiceAddress.vatNumber && <p><strong>VAT Number:</strong> {order.customer.invoiceAddress.vatNumber}</p>}
+                    {order.customer.invoiceAddress.phone && <p><strong>Phone:</strong> {order.customer.invoiceAddress.phone}</p>}
+                  </div>
+                ) : (
+                  <div className="text-gray-500 italic">
+                    <p>No invoice address available for this customer.</p>
+                    <p className="text-sm">You can add one by editing the customer profile.</p>
+                  </div>
+                )}
+                {/* DEBUG INFO */}
+                <div className="mt-4 p-2 bg-yellow-100 text-xs">
+                  <p><strong>🔍 DEBUG:</strong></p>
+                  <p>Customer ID: {order.customer.id}</p>
+                  <p>Customer Name: {order.customer.name}</p>
+                  <p>Has Invoice Address: {order.customer.invoiceAddress ? 'YES' : 'NO'}</p>
+                  {order.customer.invoiceAddress && (
+                    <p>Invoice Data: {JSON.stringify(order.customer.invoiceAddress, null, 2)}</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Notes */}
           <Card>
             <CardHeader>
@@ -1335,18 +1463,20 @@ export default function OrdersPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all")
-  const [customerFilter, setCustomerFilter] = useState<string>("all")
-  const [dateFromFilter, setDateFromFilter] = useState<Date | undefined>(undefined)
-  const [dateToFilter, setDateToFilter] = useState<Date | undefined>(undefined)
+  const [dateRangeFilter, setDateRangeFilter] = useState<string>("last_month")
+  const [dateFromFilter, setDateFromFilter] = useState<Date | undefined>(() => {
+    const today = new Date()
+    return new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
+  })
+  const [dateToFilter, setDateToFilter] = useState<Date | undefined>(() => new Date())
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isCartEditOpen, setIsCartEditOpen] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [customers, setCustomers] = useState<Client[]>([])
   const navigate = useNavigate()
 
-  // Load orders and customers
+  // Load orders
   useEffect(() => {
     const loadData = async () => {
       if (!workspace?.id) return
@@ -1354,18 +1484,21 @@ export default function OrdersPage() {
       try {
         setIsLoading(true)
         
-        // Load orders and customers in parallel using proper API services
-        const [ordersResponse, customersResponse] = await Promise.all([
-          ordersApi.getAllForWorkspace(workspace.id),
-          clientsApi.getAllForWorkspace(workspace.id)
-        ])
+        // Load orders using proper API service
+        const ordersResponse = await ordersApi.getAllForWorkspace(workspace.id)
+        
+        // DEBUG: Log the first order's customer data
+        if (ordersResponse.orders && ordersResponse.orders.length > 0) {
+          const firstOrder = ordersResponse.orders[0]
+          console.log('🔍 DEBUG: First order customer data:', firstOrder.customer)
+          console.log('🔍 DEBUG: Invoice address:', firstOrder.customer?.invoiceAddress)
+        }
         
         // Sort orders by date descending (newest first)
         const sortedOrders = (ordersResponse.orders || []).sort((a, b) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
         setOrders(sortedOrders)
-        setCustomers(customersResponse || [])
       } catch (error) {
         console.error("Error loading data:", error)
         toast.error("Failed to load data")
@@ -1394,11 +1527,6 @@ export default function OrdersPage() {
       filtered = filtered.filter(order => order.status === statusFilter)
     }
 
-    // Customer filter
-    if (customerFilter !== "all") {
-      filtered = filtered.filter(order => order.customerId === customerFilter)
-    }
-
     // Date range filters
     if (dateFromFilter) {
       filtered = filtered.filter(order => 
@@ -1418,7 +1546,7 @@ export default function OrdersPage() {
     )
 
     setFilteredOrders(filtered)
-  }, [orders, searchTerm, statusFilter, customerFilter, dateFromFilter, dateToFilter])
+  }, [orders, searchTerm, statusFilter, dateRangeFilter, dateFromFilter, dateToFilter])
 
   // Event handlers
   const handleEdit = (order: Order) => {
@@ -1447,8 +1575,45 @@ export default function OrdersPage() {
       toast.error("Customer information not available")
       return
     }
-    navigate(`/customers/${customer.id}`)
-    toast.info(`Navigate to customer: ${customer.name}`)
+    navigate(`/clients?edit=${customer.id}`)
+    toast.info(`Opening customer edit form: ${customer.name}`)
+  }
+
+  const handleDateRangeChange = (range: string) => {
+    setDateRangeFilter(range)
+    
+    const today = new Date()
+    let from: Date | undefined = undefined
+    let to: Date | undefined = undefined
+    
+    switch(range) {
+      case 'last_week':
+        from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7)
+        to = today
+        break
+      case 'last_month':
+        from = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
+        to = today
+        break
+      case 'last_3_months':
+        from = new Date(today.getFullYear(), today.getMonth() - 3, today.getDate())
+        to = today
+        break
+      case 'last_6_months':
+        from = new Date(today.getFullYear(), today.getMonth() - 6, today.getDate())
+        to = today
+        break
+      case 'last_year':
+        from = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
+        to = today
+        break
+      default: // 'all'
+        from = undefined
+        to = undefined
+    }
+    
+    setDateFromFilter(from)
+    setDateToFilter(to)
   }
 
   // Define columns for the table
@@ -1523,55 +1688,65 @@ export default function OrdersPage() {
     }
   }
 
-  const handleOrderSave = (savedOrder: Order) => {
+
+
+  const handleOrderSave = async (savedOrder: Order) => {
+    // Update local state immediately for instant feedback
     setOrders(prev => {
       const index = prev.findIndex(o => o.id === savedOrder.id)
       if (index >= 0) {
         const updated = [...prev]
         updated[index] = savedOrder
-        // Sort again to maintain date descending order
         return updated.sort((a, b) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
       } else {
-        // Add new order and sort by date descending
         const newOrders = [savedOrder, ...prev]
         return newOrders.sort((a, b) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
       }
     })
+    
+    // Show success message
+    toast.success("Order updated successfully")
+    
+    // Close the sheets
+    setIsEditOpen(false)
+    setIsCartEditOpen(false)
+    setSelectedOrder(null)
+    
+    // Verify with server in background
+    if (workspace?.id) {
+      try {
+        const response = await ordersApi.getAllForWorkspace(workspace.id, {})
+        setOrders(response.orders)
+      } catch (error) {
+        console.error("Background sync failed:", error)
+      }
+    }
   }
 
-  // Custom actions for orders - only Edit, Delete, and Download Invoice
+  // Custom actions for orders - Edit and Delete only
   const renderOrderActions = (order: Order) => (
-    <div className="flex gap-2">
+    <div className="flex gap-1 justify-end">
       <Button
         variant="ghost"
-        size="icon"
-        onClick={() => handleEdit(order)}
-        title="Edit Order"
-        className={commonStyles.buttonGhost}
+        size="sm"
+        onClick={() => handleCartEdit(order)}
+        title="Edit Order Items"
+        className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-700"
       >
         <Pencil className={`${commonStyles.actionIcon} ${commonStyles.primary}`} />
       </Button>
       <Button
         variant="ghost"
-        size="icon"
+        size="sm"
         onClick={() => handleDelete(order)}
         title="Delete Order"
-        className={commonStyles.buttonGhost}
+        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-700"
       >
         <Trash2 className={`${commonStyles.actionIcon} text-red-500`} />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        disabled
-        title="Download Invoice (Coming Soon)"
-        className="opacity-50 cursor-not-allowed"
-      >
-        <Download className={`${commonStyles.actionIcon} text-gray-400`} />
       </Button>
     </div>
   )
@@ -1588,8 +1763,6 @@ export default function OrdersPage() {
               onSearch={setSearchTerm}
               searchPlaceholder="Search orders..."
               itemCount={filteredOrders.length}
-              onAdd={() => {/* Add order functionality if needed */}}
-              addButtonText="Add"
               extraButtons={
                 <div className="flex gap-2">
                   {/* Status Filter */}
@@ -1608,83 +1781,37 @@ export default function OrdersPage() {
                     </SelectContent>
                   </Select>
 
-                  {/* Customer Filter */}
-                  <Select value={customerFilter} onValueChange={setCustomerFilter}>
+
+
+                  {/* Date Range Filter */}
+                  <Select value={dateRangeFilter} onValueChange={handleDateRangeChange}>
                     <SelectTrigger className="w-[160px]">
-                      <SelectValue placeholder="All Customers" />
+                      <SelectValue placeholder="Date Range" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Customers</SelectItem>
-                      {customers.map((customer) => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          {customer.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="all">-</SelectItem>
+                      <SelectItem value="last_week">Last week</SelectItem>
+                      <SelectItem value="last_month">Last month</SelectItem>
+                      <SelectItem value="last_3_months">Last 3 months</SelectItem>
+                      <SelectItem value="last_6_months">Last 6 months</SelectItem>
+                      <SelectItem value="last_year">Last year</SelectItem>
                     </SelectContent>
                   </Select>
-
-                  {/* Date From Filter */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-[140px] justify-start text-left font-normal",
-                          !dateFromFilter && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarDays className="mr-2 h-4 w-4" />
-                        {dateFromFilter ? format(dateFromFilter, "PPP") : "From date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={dateFromFilter}
-                        onSelect={setDateFromFilter}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-
-                  {/* Date To Filter */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-[140px] justify-start text-left font-normal",
-                          !dateToFilter && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarDays className="mr-2 h-4 w-4" />
-                        {dateToFilter ? format(dateToFilter, "PPP") : "To date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={dateToFilter}
-                        onSelect={setDateToFilter}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
                 </div>
               }
             />
 
-            <div className="mt-6 w-full">
-              <Card className="border-0 shadow-sm">
+            <div className="mt-4 w-full">
+              <Card className="border shadow-sm">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-b">
-                      <TableHead className="font-semibold">Order Code</TableHead>
-                      <TableHead className="font-semibold">Customer</TableHead>
-                      <TableHead className="font-semibold">Status</TableHead>
-                      <TableHead className="font-semibold">Total</TableHead>
-                      <TableHead className="font-semibold">Date</TableHead>
-                      <TableHead className="font-semibold text-right">Actions</TableHead>
+                    <TableRow className="border-b bg-gray-50/50">
+                      <TableHead className="font-semibold py-3">Order Code</TableHead>
+                      <TableHead className="font-semibold py-3">Customer</TableHead>
+                      <TableHead className="font-semibold py-3">Status</TableHead>
+                      <TableHead className="font-semibold py-3">Total</TableHead>
+                      <TableHead className="font-semibold py-3">Date</TableHead>
+                      <TableHead className="font-semibold py-3 text-right w-[100px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1702,20 +1829,19 @@ export default function OrdersPage() {
                       </TableRow>
                     ) : (
                       filteredOrders.map((order) => (
-                        <TableRow key={order.id} className="hover:bg-gray-50">
-                          <TableCell className="font-medium">{order.orderCode}</TableCell>
-                          <TableCell>
-                            <div>
-                              <p 
-                                className="font-medium cursor-pointer hover:text-green-600 transition-colors"
-                                onClick={() => handleCustomerNavigation(order.customer)}
-                                title="Click to view customer details"
-                              >
-                                {order.customer?.name || "Unknown Customer"}
-                              </p>
-                            </div>
+                        <TableRow key={order.id} className="hover:bg-gray-50/50 transition-colors">
+                          <TableCell className="font-medium py-4">{order.orderCode}</TableCell>
+                          <TableCell className="py-4">
+                            <p 
+                              className="font-medium cursor-pointer hover:text-green-600 transition-colors inline-flex items-center gap-1"
+                              onClick={() => handleCustomerNavigation(order.customer)}
+                              title="Click to view customer details"
+                            >
+                              {order.customer?.name || "Unknown Customer"}
+                              <ExternalLink className="h-3 w-3 opacity-50" />
+                            </p>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="py-4">
                             <Badge 
                               variant={getStatusBadgeVariant(order.status)} 
                               className={getStatusBadgeClass(order.status)}
@@ -1723,13 +1849,17 @@ export default function OrdersPage() {
                               {order.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="font-medium">
-                            {formatPrice(order.totalAmount, workspace?.currency)}
+                          <TableCell className="py-4">
+                            <span className="font-semibold text-green-700">
+                              {formatPrice(order.totalAmount, workspace?.currency)}
+                            </span>
                           </TableCell>
-                          <TableCell>
-                            {new Date(order.createdAt).toLocaleDateString()}
+                          <TableCell className="py-4">
+                            <span className="text-sm text-gray-600">
+                              {new Date(order.createdAt).toLocaleDateString('en-GB')} {new Date(order.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right py-4">
                             {renderOrderActions(order)}
                           </TableCell>
                         </TableRow>
@@ -1756,7 +1886,7 @@ export default function OrdersPage() {
         open={isEditOpen}
         onClose={() => setIsEditOpen(false)}
         onSave={handleOrderSave}
-        mode="edit"
+        mode={selectedOrder?.id ? "edit" : "create"}
       />
 
       {/* Cart Edit Sheet */}

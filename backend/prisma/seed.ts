@@ -1927,19 +1927,19 @@ async function main() {
     }
   }
 
-  // Create test customer with active chat and welcome message
-  console.log("Creating test customer with active chat...")
+  // Create test customers with active chats and welcome messages
+  console.log("Creating test customers with active chats...")
   
-  // Delete existing test customer if it exists
+  // Delete existing test customers if they exist
   await prisma.customers.deleteMany({
     where: {
       workspaceId: mainWorkspaceId,
-      email: "test.customer@shopme.com",
+      email: { in: ["test.customer@shopme.com", "maria.garcia@shopme.com"] },
     },
   })
-  console.log("Deleted existing test customer")
+  console.log("Deleted existing test customers")
 
-  // Create test customer
+  // Create first test customer - Mario Rossi
   const testCustomer = await prisma.customers.create({
     data: {
       name: "Mario Rossi",
@@ -1951,11 +1951,58 @@ async function main() {
       currency: "EUR",
       workspaceId: mainWorkspaceId,
       activeChatbot: true,
+      privacy_accepted_at: new Date(),
+      push_notifications_consent: true,
+      push_notifications_consent_at: new Date(),
+      invoiceAddress: {
+        firstName: "Mario",
+        lastName: "Rossi",
+        company: "Test Company SRL",
+        address: "Via Giuseppe Verdi 42",
+        city: "Milano",
+        postalCode: "20121",
+        country: "Italia",
+        vatNumber: "IT12345678901",
+        phone: "+39 02 8765432",
+        email: "fatturazione@testcompany.it"
+      },
     },
   })
-  console.log(`Test customer created: ${testCustomer.name} (${testCustomer.email})`)
+  console.log(`Test customer 1 created: ${testCustomer.name} (${testCustomer.email})`)
 
-  // Create active chat session for the test customer
+  // Create second test customer - Maria Garcia
+  const testCustomer2 = await prisma.customers.create({
+    data: {
+      name: "Maria Garcia",
+      email: "maria.garcia@shopme.com",
+      phone: "+34666777888",
+      address: "Carrer de Balmes 45, Barcelona, Spain",
+      company: "Barcelona Foods SL",
+      language: "es",
+      currency: "EUR",
+      workspaceId: mainWorkspaceId,
+      activeChatbot: true,
+      privacy_accepted_at: new Date(),
+      push_notifications_consent: true,
+      push_notifications_consent_at: new Date(),
+      invoiceAddress: {
+        firstName: "Maria",
+        lastName: "Garcia",
+        company: "Barcelona Foods SL",
+        address: "Carrer del Comte Urgell 158",
+        city: "Barcelona",
+        postalCode: "08036",
+        country: "España",
+        vatNumber: "ES87654321009",
+        phone: "+34 93 454 7890",
+        email: "facturacion@barcelonafoods.es"
+      },
+    },
+  })
+  console.log(`Test customer 2 created: ${testCustomer2.name} (${testCustomer2.email})`)
+
+  // Create active chat sessions for both customers
+  // Chat session for Mario Rossi
   const chatSession = await prisma.chatSession.create({
     data: {
       customerId: testCustomer.id,
@@ -1970,6 +2017,21 @@ async function main() {
   })
   console.log(`Chat session created for customer: ${chatSession.id}`)
 
+  // Chat session for Maria Garcia
+  const chatSession2 = await prisma.chatSession.create({
+    data: {
+      customerId: testCustomer2.id,
+      workspaceId: mainWorkspaceId,
+      status: "active",
+      context: {
+        language: "es",
+        userRegistered: true,
+        lastActivity: new Date().toISOString(),
+      },
+    },
+  })
+  console.log(`Chat session created for customer 2: ${chatSession2.id}`)
+
   // Get the active prompt for creating messages
   const activePrompt = await prisma.prompts.findFirst({
     where: {
@@ -1979,7 +2041,7 @@ async function main() {
     },
   })
 
-  // Create initial messages in the chat
+  // Create initial messages for Mario Rossi (Italian)
   const messages = [
     {
       direction: "INBOUND" as const,
@@ -2014,10 +2076,48 @@ async function main() {
         promptId: activePrompt?.id || null,
       },
     })
-    console.log(`Message created: ${messageData.direction} - "${messageData.content.substring(0, 50)}..."`)
+    console.log(`Message created for Mario: ${messageData.direction} - "${messageData.content.substring(0, 50)}..."`)
   }
 
-  console.log("✅ Test customer with active chat and welcome message created successfully!")
+  // Create initial messages for Maria Garcia (Spanish)
+  const messages2 = [
+    {
+      direction: "INBOUND" as const,
+      content: "hola",
+      type: "TEXT" as const,
+      status: "received",
+      aiGenerated: false,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        source: "whatsapp",
+      },
+    },
+    {
+      direction: "OUTBOUND" as const,
+      content: "¡Hola María! 👋 ¡Bienvenida a L'Altra Italia! Soy tu asistente virtual y estoy aquí para ayudarte con cualquier información sobre nuestros productos y servicios. ¿Cómo puedo asistirte hoy? 😊",
+      type: "TEXT" as const,
+      status: "sent",
+      aiGenerated: true,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        messageType: "welcome",
+        language: "es",
+      },
+    },
+  ]
+
+  for (const messageData of messages2) {
+    const message = await prisma.message.create({
+      data: {
+        ...messageData,
+        chatSessionId: chatSession2.id,
+        promptId: activePrompt?.id || null,
+      },
+    })
+    console.log(`Message created for Maria: ${messageData.direction} - "${messageData.content.substring(0, 50)}..."`)
+  }
+
+  console.log("✅ Test customers with active chats and welcome messages created successfully!")
 
   // Create sample orders for testing
   console.log("Creating sample orders for testing...")
@@ -2236,36 +2336,64 @@ async function main() {
       const orderDate = new Date()
       orderDate.setDate(orderDate.getDate() - (i * 20 + Math.floor(Math.random() * 10)))
       
+      // Distribute orders between customers: odd for Mario, even for Maria
+      const customerId = i % 2 === 0 ? testCustomer.id : testCustomer2.id
+      const customerName = i % 2 === 0 ? "Mario Rossi" : "Maria Garcia"
+      
       try {
-                          // Create order with current database structure
+        // Define shipping addresses for each customer
+        const shippingAddresses = {
+          [testCustomer.id]: { // Mario Rossi (Italian customer)
+            name: "Mario Rossi",
+            street: "Via Roma 123",
+            city: "Milano",
+            postalCode: "20121",
+            province: "MI",
+            country: "Italia",
+            phone: "+39 02 1234567"
+          },
+          [testCustomer2.id]: { // Maria Garcia (Spanish customer)
+            name: "Maria Garcia",
+            street: "Carrer de Balmes 456",
+            city: "Barcelona", 
+            postalCode: "08008",
+            province: "Barcelona",
+            country: "España",
+            phone: "+34 93 987 6543"
+          }
+        }
+
+        // Create order with current database structure including shipping address
          const order = await prisma.orders.create({
            data: {
              orderCode: `${10001 + i}`, // 5-digit numeric codes starting from 10001
-             customerId: testCustomer.id,
+             customerId: customerId,
              workspaceId: mainWorkspaceId,
              status: orderData.status,
              totalAmount: orderData.totalAmount,
+             shippingAddress: shippingAddresses[customerId],
              createdAt: orderDate,
            },
          })
          
-         console.log(`Order created: ${order.id} - Status: ${order.status}`)
+         console.log(`Order created: ${order.id} - Status: ${order.status} - Customer: ${customerName}`)
          
-                  // Create order items for this order
+                  // Create order items for this order (without itemType for now)
          for (const item of orderData.items) {
-           await prisma.orderItems.create({
-             data: {
-               orderId: order.id,
-               itemType: 'PRODUCT', // For now, keep existing orders as products
-               productId: item.productId,
-               quantity: item.quantity,
-               unitPrice: item.unitPrice,
-               totalPrice: item.totalPrice,
-             },
-           })
+           if (item.productId) {
+             await prisma.orderItems.create({
+               data: {
+                 orderId: order.id,
+                 productId: item.productId,
+                 quantity: item.quantity,
+                 unitPrice: item.unitPrice,
+                 totalPrice: item.totalPrice,
+               },
+             })
+           }
          }
          
-         console.log(`Created ${orderData.items.length} order items for order ${order.id}`)
+         console.log(`Created ${orderData.items.filter(item => item.productId).length} order items for order ${order.id}`)
         
       } catch (error) {
         console.error(`Error creating order ${i + 1}:`, error)
@@ -2290,14 +2418,40 @@ async function main() {
     const randomPayment = randomStatus === 'CANCELLED' ? 'REFUNDED' : ['PENDING', 'PAID'][Math.floor(Math.random() * 2)]
     const randomAmount = 25 + Math.random() * 200 // Random amount between 25-225
     
+    // Randomly assign to either customer
+    const randomCustomerId = Math.random() < 0.5 ? testCustomer.id : testCustomer2.id
+    
     try {
+      // Define shipping addresses for each customer (for additional orders)
+      const shippingAddresses = {
+        [testCustomer.id]: { // Mario Rossi (Italian customer)
+          name: "Mario Rossi",
+          street: "Via Roma 123",
+          city: "Milano",
+          postalCode: "20121",
+          province: "MI",
+          country: "Italia",
+          phone: "+39 02 1234567"
+        },
+        [testCustomer2.id]: { // Maria Garcia (Spanish customer)
+          name: "Maria Garcia",
+          street: "Carrer de Balmes 456",
+          city: "Barcelona", 
+          postalCode: "08008",
+          province: "Barcelona",
+          country: "España",
+          phone: "+34 93 987 6543"
+        }
+      }
+
              const order = await prisma.orders.create({
          data: {
            orderCode: `${20001 + i}`, // 5-digit numeric codes starting from 20001 for additional orders
            workspaceId: mainWorkspaceId,
-           customerId: testCustomer.id,
+           customerId: randomCustomerId,
            status: randomStatus as any,
            totalAmount: randomAmount,
+           shippingAddress: shippingAddresses[randomCustomerId],
            createdAt: orderDate,
          },
        })
@@ -2362,9 +2516,12 @@ async function main() {
       const messageTime = new Date(date)
       messageTime.setHours(hour, Math.floor(Math.random() * 60), Math.floor(Math.random() * 60))
       
+      // Randomly assign usage to either customer
+      const randomClientId = Math.random() < 0.5 ? testCustomer.id : testCustomer2.id
+      
       usageData.push({
         workspaceId: mainWorkspaceId,
-        clientId: testCustomer.id,
+        clientId: randomClientId,
         price: 0.005, // 0.5 cents as requested by Andrea
         createdAt: messageTime
       })

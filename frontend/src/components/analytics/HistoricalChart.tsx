@@ -28,12 +28,14 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
   const chartData = analytics.trends.orders.map((orderData, index) => {
     const revenueData = analytics.trends.revenue[index];
     const customerData = analytics.trends.customers[index];
+    const usageCostData = analytics.trends.usageCost[index];
     
     return {
       month: orderData.month,
       orders: orderData.value,
       revenue: revenueData?.value || 0,
-      customers: customerData?.value || 0
+      customers: customerData?.value || 0,
+      usageCost: usageCostData?.value || 0
     };
   });
 
@@ -51,11 +53,11 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
               />
               <span className="text-gray-600">{entry.name}:</span>
               <span className="font-medium text-gray-900">
-                {entry.dataKey === 'revenue' 
+                {entry.dataKey === 'revenue' || entry.dataKey === 'usageCost'
                   ? new Intl.NumberFormat('en-US', {
                       style: 'currency',
                       currency: 'EUR',
-                      minimumFractionDigits: 0
+                      minimumFractionDigits: entry.dataKey === 'usageCost' ? 3 : 0
                     }).format(entry.value)
                   : entry.value.toLocaleString('en-US')
                 }
@@ -182,6 +184,17 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
           dot={{ fill: '#f59e0b', strokeWidth: 2, r: 6 }}
           activeDot={{ r: 8, stroke: '#f59e0b', strokeWidth: 2 }}
         />
+        <Line 
+          yAxisId="right"
+          type="monotone" 
+          dataKey="usageCost" 
+          name="LLM Costs (€)"
+          stroke="#f97316" 
+          strokeWidth={2}
+          strokeDasharray="5 5"
+          dot={{ fill: '#f97316', strokeWidth: 2, r: 4 }}
+          activeDot={{ r: 6, stroke: '#f97316', strokeWidth: 2 }}
+        />
       </LineChart>
     );
   };
@@ -191,14 +204,14 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-green-600" />
-          Historical Trends - Orders & Revenue
+          Historical Trends - Orders, Revenue & LLM Costs
         </CardTitle>
         <p className="text-sm text-gray-500 mt-1">
-          Performance evolution over the selected period
+          Performance evolution over the selected period including AI costs tracking
         </p>
       </CardHeader>
       <CardContent>
-        <div className="h-80 w-full">
+        <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             {renderChart()}
           </ResponsiveContainer>

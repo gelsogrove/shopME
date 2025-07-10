@@ -30,6 +30,19 @@ export interface ShippingAddress {
   country: string
 }
 
+// Invoice address interface 
+export interface InvoiceAddress {
+  firstName?: string
+  lastName?: string
+  company?: string
+  address?: string
+  city?: string
+  postalCode?: string
+  country?: string
+  vatNumber?: string
+  phone?: string
+}
+
 export interface Client {
   id: string
   name: string
@@ -46,6 +59,7 @@ export interface Client {
   last_privacy_version_accepted?: string
   push_notifications_consent?: boolean
   activeChatbot?: boolean
+  invoiceAddress?: InvoiceAddress
 }
 
 const availableLanguages = ["Spanish", "English", "Italian"]
@@ -116,7 +130,7 @@ export default function ClientsPage(): JSX.Element {
       const customersResponse = await api.get(
         `/workspaces/${workspace.id}/customers`
       )
-      const customersData = customersResponse.data
+      const customersData = customersResponse.data.data || customersResponse.data
 
       // Map the client data
       const mappedClients = customersData.map((customer: any) => ({
@@ -136,6 +150,7 @@ export default function ClientsPage(): JSX.Element {
         push_notifications_consent: customer.push_notifications_consent,
         activeChatbot:
           customer.activeChatbot !== undefined ? customer.activeChatbot : true,
+        invoiceAddress: customer.invoiceAddress || undefined,
       }))
 
       // Sort clients by ID in descending order (newer clients at the top)
@@ -191,12 +206,12 @@ export default function ClientsPage(): JSX.Element {
 
       if (newCustomer) {
         // Add the new client to state with converted format
-        refetchClients()
+        await refetchClients()
         toast.success("Client created successfully", { duration: 1000 })
+        
+        // Close the form AFTER refetch completes
+        setClientSheetOpen(false)
       }
-
-      // Close the form
-      setClientSheetOpen(false)
     } catch (error) {
       console.error("Error creating client:", error)
       toast.error("Failed to create client", { duration: 1000 })
@@ -226,31 +241,25 @@ export default function ClientsPage(): JSX.Element {
       console.log("Customer ID:", clientId)
       console.log("Workspace ID:", workspace.id)
 
-      // Update client in API
-      const response = await api.put(
-        `/workspaces/${workspace.id}/customers/${clientId}`,
-        customerData
-      )
-      const updatedCustomer = response.data
+      // Import the API functions
+      const { update } = await import('@/services/clientsApi')
+      
+      // Update client using the clientsApi
+      const updatedCustomer = await update(clientId, workspace.id, customerData)
 
       console.log("Response from update API:", updatedCustomer)
 
       if (updatedCustomer) {
         // Update client in state with correct format and preserve existing data not returned by API
-        refetchClients()
+        await refetchClients()
         toast.success("Client updated successfully", { duration: 1000 })
+        
+        // Close the form AFTER refetch completes
+        setClientSheetOpen(false)
+        setSelectedClient(null)
       }
-
-      // Close the form
-      setClientSheetOpen(false)
-      setSelectedClient(null)
     } catch (error: any) {
       console.error("Error updating client:", error)
-      // Log detailed error information
-      if (error.response) {
-        console.error("Response status:", error.response.status)
-        console.error("Response data:", error.response.data)
-      }
       toast.error(
         error instanceof Error ? error.message : "Failed to update client",
         { duration: 1000 }
@@ -312,7 +321,7 @@ export default function ClientsPage(): JSX.Element {
       )
 
       // Remove from state if successful
-      refetchClients()
+      await refetchClients()
       toast.success("Client deleted successfully", { duration: 1000 })
       setShowDeleteDialog(false)
       setClientToDelete(null)
@@ -342,6 +351,7 @@ export default function ClientsPage(): JSX.Element {
       last_privacy_version_accepted: "",
       push_notifications_consent: false,
       activeChatbot: true,
+      invoiceAddress: undefined,
     }
     setSelectedClient(newClient)
     setClientSheetMode("edit")
@@ -365,10 +375,13 @@ export default function ClientsPage(): JSX.Element {
     {
       header: "Name",
       accessorKey: "name",
-    },
-    {
-      header: "Company",
-      accessorKey: "company",
+      size: 300,
+      cell: ({ row }) => (
+        <span className="min-w-[280px] block">
+          {row.original.name}
+          {row.original.company && ` (${row.original.company})`}
+        </span>
+      ),
     },
     {
       header: "Language",
@@ -524,9 +537,10 @@ export default function ClientsPage(): JSX.Element {
           <PageHeader
             title="Clients"
             titleIcon={<Users className="mr-2 h-6 w-6 text-green-500" />}
+            itemCount={filteredClients.length}
           />
           {/* Search and New Chat aligned to the right */}
-          <div className="flex items-center justify-end gap-2 mb-4 mt-2">
+          <div className="flex items-center justify-end gap-2 mb-4">
             <Input
               type="search"
               placeholder="Search clients..."
@@ -542,10 +556,6 @@ export default function ClientsPage(): JSX.Element {
               <Plus className="h-4 w-4 mr-1" />
               New Chat
             </Button>
-          </div>
-          {/* Number of items display */}
-          <div className="text-sm text-muted-foreground ml-1 mb-2">
-            {filteredClients.length} items
           </div>
           <div className="mt-6 w-full">
             <DataTable

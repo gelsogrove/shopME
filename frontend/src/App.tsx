@@ -76,6 +76,7 @@ export function App() {
           </Route>
           <Route path="/clients" element={<Layout />}>
             <Route index element={<ClientsPage />} />
+            <Route path=":id" element={<ClientsPage />} />
           </Route>
           <Route path="/customers" element={<Layout />}>
             <Route index element={<CustomersPage />} />

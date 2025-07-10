@@ -161,7 +161,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
       {/* Main Metrics */}
       <div>
         <h3 className="text-lg font-semibold mb-4">Metriche Principali</h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {metrics.map((metric) => (
             <MetricCard
               key={metric.title}

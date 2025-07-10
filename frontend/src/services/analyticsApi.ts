@@ -14,6 +14,7 @@ export interface DashboardAnalytics {
     revenue: MonthlyData[];
     customers: MonthlyData[];
     messages: MonthlyData[];
+    usageCost: MonthlyData[]; // Add LLM usage cost trends
   };
   topProducts: ProductAnalytics[];
   topCustomers: {

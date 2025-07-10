@@ -5,7 +5,14 @@ import { FormSheet } from "@/components/shared/FormSheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { categoriesApi } from "@/services/categoriesApi"
@@ -26,8 +33,9 @@ export function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [searchValue, setSearchValue] = useState("")
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("")
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("none")
   const [isGeneratingEmbeddings, setIsGeneratingEmbeddings] = useState(false)
+  const [productIsActive, setProductIsActive] = useState(true)
 
   // Get currency symbol based on workspace settings
   const currencySymbol = getCurrencySymbol(workspace?.currency)
@@ -190,7 +198,7 @@ export function ProductsPage() {
       price: parseFloat(formData.get("price") as string),
       stock: parseInt(formData.get("stock") as string, 10),
       categoryId: formData.get("categoryId") as string || null,
-      isActive: formData.get("isActive") === "on",
+      isActive: productIsActive,
     }
 
     // Debug logging
@@ -212,6 +220,7 @@ export function ProductsPage() {
   const handleEdit = (product: Product) => {
     setSelectedProduct(product)
     setSelectedCategoryId(product.categoryId || "none")
+    setProductIsActive(product.isActive ?? true)
     setShowEditSheet(true)
   }
 
@@ -228,7 +237,7 @@ export function ProductsPage() {
       price: parseFloat(formData.get("price") as string),
       stock: parseInt(formData.get("stock") as string, 10),
       categoryId: formData.get("categoryId") as string || null,
-      isActive: formData.get("isActive") === "on",
+      isActive: productIsActive,
     }
 
     try {
@@ -372,17 +381,20 @@ export function ProductsPage() {
           <input type="hidden" name="categoryId" value={selectedCategoryId === "none" ? "" : selectedCategoryId} />
         </div>
         
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
+        <div className="flex items-center justify-between border rounded-lg p-3">
+          <div className="space-y-1">
+            <Label htmlFor="isActive" className="text-sm font-medium">
+              Active Product
+            </Label>
+            <p className="text-xs text-gray-500">
+              Only active products will be shown to customers
+            </p>
+          </div>
+          <Switch
             id="isActive"
-            name="isActive"
-            defaultChecked={product?.isActive ?? true}
-            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            checked={productIsActive}
+            onCheckedChange={setProductIsActive}
           />
-          <Label htmlFor="isActive" className="text-sm font-medium">
-            Active Product
-          </Label>
         </div>
       </div>
     )
@@ -408,6 +420,7 @@ export function ProductsPage() {
         }
         onAdd={() => {
           setSelectedCategoryId("none")
+          setProductIsActive(true)
           setShowAddSheet(true)
         }}
         addButtonText="Add"

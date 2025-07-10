@@ -69,3 +69,6 @@ se trovi un errore blocca il processo di check !!!
 [ ] mi devi controllare che le credenziali dentro n8n siano importate correttamente
 [ ] se l'operatore prende il controllo LLM non deve piu rispondere viene fatto questo controllo dentro n8n o nel codice ?
  [ ] controllq che prd e task-list siano sempre allineati
+ [] non ci sono testi in italiano nel codice vero?
+ [] NON CI SONO console.log vero ?
+ 

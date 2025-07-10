@@ -14,6 +14,7 @@ export interface DashboardAnalytics {
     revenue: MonthlyData[];
     customers: MonthlyData[];
     messages: MonthlyData[];
+    usageCost: MonthlyData[]; // Add LLM usage cost trends
   };
   topProducts: ProductAnalytics[];
   topCustomers: CustomerAnalytics[];
@@ -76,11 +77,12 @@ export class AnalyticsService {
       const usageCost = usageRecords.reduce((sum, record) => sum + (record.price || 0), 0);
 
       // Generate historical trends - REAL DATA
-      const [orderTrends, revenueTrends, customerTrends, messageTrends] = await Promise.all([
+      const [orderTrends, revenueTrends, customerTrends, messageTrends, usageCostTrends] = await Promise.all([
         this.generateOrderTrends(workspaceId, startDate, endDate),
         this.generateRevenueTrends(workspaceId, startDate, endDate),
         this.generateCustomerTrends(workspaceId, startDate, endDate),
-        this.generateMessageTrends(workspaceId, startDate, endDate)
+        this.generateMessageTrends(workspaceId, startDate, endDate),
+        this.generateUsageCostTrends(workspaceId, startDate, endDate)
       ]);
 
       // Get top products and top customers
@@ -102,7 +104,8 @@ export class AnalyticsService {
           orders: orderTrends,
           revenue: revenueTrends,
           customers: customerTrends,
-          messages: messageTrends
+          messages: messageTrends,
+          usageCost: usageCostTrends
         },
         topProducts,
         topCustomers
@@ -189,6 +192,29 @@ export class AnalyticsService {
     ` as { year: number; month: number; count: bigint }[];
 
     return this.formatMonthlyData(monthlyData);
+  }
+
+  // Generate monthly trends for usage cost
+  private async generateUsageCostTrends(workspaceId: string, startDate: Date, endDate: Date): Promise<MonthlyData[]> {
+    const monthlyData = await this.prisma.$queryRaw`
+      SELECT 
+        EXTRACT(YEAR FROM u."createdAt") as year,
+        EXTRACT(MONTH FROM u."createdAt") as month,
+        COALESCE(SUM(u.price), 0) as total_cost
+      FROM "usage" u
+      WHERE u."workspaceId" = ${workspaceId}
+        AND u."createdAt" >= ${startDate}
+        AND u."createdAt" <= ${endDate}
+      GROUP BY EXTRACT(YEAR FROM u."createdAt"), EXTRACT(MONTH FROM u."createdAt")
+      ORDER BY year, month
+    ` as { year: number; month: number; total_cost: number }[];
+
+    return monthlyData.map(item => ({
+      month: this.getMonthName(item.month),
+      year: item.year,
+      value: Number(item.total_cost) || 0,
+      label: `${this.getMonthName(item.month)} ${item.year}`
+    }));
   }
 
   // Get top selling products

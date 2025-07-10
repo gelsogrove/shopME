@@ -15,7 +15,7 @@ export class CustomersController {
       
       const customers = await this.customerService.getActiveForWorkspace(workspaceId);
       
-      res.json(customers);
+      res.json({ data: customers });
     } catch (error) {
       logger.error("Error getting customers:", error);
       next(error);
@@ -55,7 +55,8 @@ export class CustomersController {
         serviceIds,
         isActive,
         last_privacy_version_accepted,
-        push_notifications_consent
+        push_notifications_consent,
+        invoiceAddress
       } = req.body;
       
       const customerData = {
@@ -73,7 +74,8 @@ export class CustomersController {
         last_privacy_version_accepted,
         push_notifications_consent: push_notifications_consent || false,
         push_notifications_consent_at: push_notifications_consent ? new Date() : undefined,
-        privacy_accepted_at: last_privacy_version_accepted ? new Date() : undefined
+        privacy_accepted_at: last_privacy_version_accepted ? new Date() : undefined,
+        invoiceAddress
       };
       
       const customer = await this.customerService.create(customerData);
@@ -106,7 +108,8 @@ export class CustomersController {
         serviceIds,
         last_privacy_version_accepted,
         push_notifications_consent,
-        activeChatbot
+        activeChatbot,
+        invoiceAddress
       } = req.body;
       
       // Validate required fields if attempting to update them
@@ -147,6 +150,7 @@ export class CustomersController {
         }
       }
       if (activeChatbot !== undefined) customerData.activeChatbot = activeChatbot;
+      if (invoiceAddress !== undefined) customerData.invoiceAddress = invoiceAddress;
       
       logger.info('Updating customer with data:', { id, workspaceId, ...customerData });
       

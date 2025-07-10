@@ -32,7 +32,8 @@ export class CustomerRepository implements ICustomerRepository {
       push_notifications_consent_at: customerData.push_notifications_consent_at,
       createdAt: customerData.createdAt,
       updatedAt: customerData.updatedAt,
-      activeChatbot: customerData.activeChatbot
+      activeChatbot: customerData.activeChatbot,
+      invoiceAddress: customerData.invoiceAddress
     });
   }
 
@@ -153,7 +154,8 @@ export class CustomerRepository implements ICustomerRepository {
         privacy_accepted_at: data.privacy_accepted_at,
         push_notifications_consent: data.push_notifications_consent || false,
         push_notifications_consent_at: data.push_notifications_consent_at,
-        activeChatbot: data.activeChatbot !== undefined ? data.activeChatbot : true
+        activeChatbot: data.activeChatbot !== undefined ? data.activeChatbot : true,
+        invoiceAddress: data.invoiceAddress
       };
       
       const customer = await prisma.customers.create({
@@ -182,10 +184,32 @@ export class CustomerRepository implements ICustomerRepository {
         return null;
       }
 
+      // Manually map fields that can be updated, excluding workspaceId and id
+      const updateData: any = {};
+      
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.email !== undefined) updateData.email = data.email;
+      if (data.phone !== undefined) updateData.phone = data.phone;
+      if (data.address !== undefined) updateData.address = data.address;
+      if (data.company !== undefined) updateData.company = data.company;
+      if (data.discount !== undefined) updateData.discount = data.discount;
+      if (data.language !== undefined) updateData.language = data.language;
+      if (data.currency !== undefined) updateData.currency = data.currency;
+      if (data.notes !== undefined) updateData.notes = data.notes;
+      if (data.serviceIds !== undefined) updateData.serviceIds = data.serviceIds;
+      if (data.isBlacklisted !== undefined) updateData.isBlacklisted = data.isBlacklisted;
+      if (data.isActive !== undefined) updateData.isActive = data.isActive;
+      if (data.last_privacy_version_accepted !== undefined) updateData.last_privacy_version_accepted = data.last_privacy_version_accepted;
+      if (data.privacy_accepted_at !== undefined) updateData.privacy_accepted_at = data.privacy_accepted_at;
+      if (data.push_notifications_consent !== undefined) updateData.push_notifications_consent = data.push_notifications_consent;
+      if (data.push_notifications_consent_at !== undefined) updateData.push_notifications_consent_at = data.push_notifications_consent_at;
+      if (data.activeChatbot !== undefined) updateData.activeChatbot = data.activeChatbot;
+      if (data.invoiceAddress !== undefined) updateData.invoiceAddress = data.invoiceAddress;
+
       // Update the customer record
       const updatedCustomer = await prisma.customers.update({
         where: { id },
-        data
+        data: updateData
       });
       
       // Convert to domain entity
