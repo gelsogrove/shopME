@@ -68,7 +68,7 @@ export function DataTable<TData>({
     if (onEdit || onDelete || actionButtons || renderActions) {
       cols.push({
         id: "actions",
-        header: "Actions",
+        header: () => <span style={{ display: 'block', width: '100%', minHeight: '1em' }}></span>,
         cell: ({ row }) => (
           <div className="flex justify-end items-center space-x-2">
             {renderActions && renderActions(row.original)}

@@ -343,8 +343,9 @@ export function ClientSheet({
 
             <div className="flex-1 overflow-y-auto px-6 py-4">
               <div className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Client Info</h3>
+                {/* CLIENT INFO BOX */}
+                <div className="space-y-4 border-2 border-gray-200 bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-medium text-gray-800">👤 Client Info</h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">

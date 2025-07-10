@@ -3,9 +3,9 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { FormSheet } from "@/components/shared/FormSheet"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { type Document, documentsApi } from "@/services/documentsApi"
 import { commonStyles } from "@/styles/common"
@@ -265,10 +265,10 @@ export default function DocumentsPage() {
             />
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox
+            <Switch
               id="editIsActive"
               checked={editIsActive}
-              onCheckedChange={(checked) => setEditIsActive(checked as boolean)}
+              onCheckedChange={setEditIsActive}
             />
             <Label htmlFor="editIsActive">Active Document</Label>
           </div>

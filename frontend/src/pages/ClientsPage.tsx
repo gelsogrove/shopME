@@ -17,7 +17,7 @@ import { api } from "@/services/api"
 import { commonStyles } from "@/styles/common"
 import { useQuery } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Bot, MessageSquare, Pencil, Plus, Trash2, Users } from "lucide-react"
+import { Bot, MessageSquare, Pencil, Plus, ShoppingCart, Trash2, Users } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
@@ -453,6 +453,24 @@ export default function ClientsPage(): JSX.Element {
       header: "",
       cell: ({ row }) => (
         <div className="flex justify-end items-center gap-2">
+          {/* View orders for this client */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0 flex items-center justify-center"
+                  onClick={() => navigate(`/orders?search=${encodeURIComponent(row.original.name)}`)}
+                >
+                  <span className="sr-only">View orders</span>
+                  <ShoppingCart className="h-4 w-4 text-blue-600" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View orders for this client</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           {/* Chat history button for all clients */}
           <TooltipProvider>
             <Tooltip>
