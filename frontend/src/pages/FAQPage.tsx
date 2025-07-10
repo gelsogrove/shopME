@@ -8,10 +8,10 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { FAQ, faqApi } from "@/services/faqApi"
@@ -80,10 +80,10 @@ export function FAQPage() {
     {
       header: "Answer",
       accessorKey: "answer" as keyof FAQ,
-      size: 400,
+      size: 700, // Increased from 400 to 700 for a longer column
       cell: ({ row }: { row: { original: FAQ } }) => {
         const answer = row.original.answer
-        const maxLength = 80
+        const maxLength = 200 // Increased from 80 to 200
         const isTruncated = answer.length > maxLength
 
         return (
@@ -96,7 +96,7 @@ export function FAQPage() {
                       {answer.substring(0, maxLength)}...
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-md p-4 text-sm">
+                  <TooltipContent className="max-w-2xl p-4 text-sm"> {/* Increased max width */}
                     <p>{answer}</p>
                   </TooltipContent>
                 </Tooltip>

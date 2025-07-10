@@ -1,5 +1,54 @@
 # 🚀 SHOPME - STRUCTURED TASK LIST (PRIORITY ORDERED)
 
+## TASK #15
+**TITLE**: Full Application Responsiveness
+**DESCRIPTION/ROADMAP**:
+- Review all frontend pages and components to ensure they are fully responsive
+- Test on various devices and screen sizes (mobile, tablet, desktop)
+- Fix any layout, overflow, or usability issues
+- Maintain design system consistency and accessibility
+
+**SPECIAL NOTE**:
+Andrea requires that the entire application is fully responsive for a seamless user experience on all devices.
+
+**STORY POINT**: TBD
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #16
+**TITLE**: Remove Direct Catalog Links Without Subfolders
+**DESCRIPTION/ROADMAP**:
+- Identify all 'Catalog' links in the application
+- Remove any direct links that do not point to a subfolder or subcategory
+- Ensure navigation is clear and only shows valid, structured catalog paths
+- Test navigation to confirm no orphan or dead-end links remain
+
+**SPECIAL NOTE**:
+Andrea wants to eliminate all direct catalog links that do not lead to a subfolder, improving navigation clarity.
+
+**STORY POINT**: TBD
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #17
+**TITLE**: Add Pagination to Orders Page
+**DESCRIPTION/ROADMAP**:
+- Implement pagination controls on http://localhost:3000/orders
+- Update backend API to support paginated order queries if not already present
+- Ensure frontend displays paginated results and navigation controls
+- Maintain UI/UX consistency with other paginated sections
+- Test for performance and usability with large order datasets
+
+**SPECIAL NOTE**:
+Currently, the Orders page does not have pagination, which can cause performance and usability issues with many orders. Andrea requires proper pagination.
+
+**STORY POINT**: TBD
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
 ## TASK #6 ✅ COMPLETED
 **TITLE**: Complete Invoice Address Management System for Clients
 **DESCRIPTION/ROADMAP**:
@@ -286,21 +335,28 @@ Andrea non gradisce la parte destra del login - né colori, né testo, né icone
 
 ================================================================================
 
-## TASK #7
+## TASK #7 ✅ COMPLETED
 **TITLE**: User Avatar Size Increase
 **DESCRIPTION/ROADMAP**:
-- Increase avatar size from current (32px) to 44px-48px
-- Improve visibility and prominence in header
-- Ensure proper proportions with other header elements
-- Add proper hover and focus states
-- Maintain accessibility standards (minimum 44px touch target)
-- Test responsive behavior across different screen sizes
+- ✅ Increase avatar size from current (32px) to 48px
+- ✅ Improve visibility and prominence in header
+- ✅ Ensure proper proportions with other header elements
+- ✅ Add proper hover and focus states
+- ✅ Maintain accessibility standards (minimum 44px touch target)
+- ✅ Test responsive behavior across different screen sizes
+
+**IMPLEMENTATION COMPLETED**:
+- Updated Header.tsx to set avatar and button size to 48px (h-12 w-12)
+- Added focus ring and hover scale for accessibility and visibility
+- Increased fallback initials font size for better readability
+- Verified proportions and alignment in header
+- Ran full frontend build to ensure no errors after update
 
 **SPECIAL NOTE**:
-L'icona rotonda con le iniziali in alto a destra è troppo piccola e poco visibile. Andrea vuole che sia più grande e prominente per migliorare l'usabilità.
+L'avatar utente in alto a destra ora è molto più visibile, accessibile e conforme alle richieste di Andrea. Nessun impatto negativo su layout o funzionalità.
 
 **STORY POINT**: 2
-**STATUS**: 🔴 Not Started
+**STATUS**: ✅ COMPLETED - Fully Functional
 
 ================================================================================
 
@@ -318,6 +374,22 @@ L'icona rotonda con le iniziali in alto a destra è troppo piccola e poco visibi
 L'URL del workflow N8N non è dinamico e non funziona. Andrea preferisce semplificare rimuovendo l'integrazione frontend e mantenendo solo il workflow backend.
 
 **STORY POINT**: 3
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #14
+**TITLE**: Automatic Embedding Trigger & Remove Manual Button
+**DESCRIPTION/ROADMAP**:
+- Remove the manual embedding button from all relevant sections (documents, products, FAQs, services, etc.)
+- Automatically trigger the embedding process after every add, update, or delete operation
+- Ensure this behavior is consistent across all sessions and entity types
+- No manual intervention required for embedding generation
+
+**SPECIAL NOTE**:
+Andrea requires that embedding is always up-to-date and automatic. The manual embedding button is no longer desired and must be removed everywhere.
+
+**STORY POINT**: TBD
 **STATUS**: 🔴 Not Started
 
 ================================================================================

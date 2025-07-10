@@ -501,8 +501,9 @@ export function ChatPage() {
 
   // Show orders dialog
   const handleViewOrders = () => {
-    setShowOrdersDialog(true)
-  }
+    if (!selectedChat?.customerName) return;
+    navigate(`/orders?search=${encodeURIComponent(selectedChat.customerName)}`);
+  };
 
   // Format date for display
   const formatDate = (dateString: string) => {

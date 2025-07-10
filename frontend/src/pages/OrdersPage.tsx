@@ -38,7 +38,7 @@ import { commonStyles } from "@/styles/common"
 import { formatPrice } from "@/utils/format"
 import { ExternalLink, FileText, Package, Pencil, Plus, ShoppingCart, Trash2, Truck, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 interface Product {
@@ -115,52 +115,14 @@ function CartItemEditSheet({
   }, [open, order, workspace?.id])
 
   // Function to handle status change with immediate save
-  const handleStatusChange = async (newStatus: OrderStatus) => {
-    if (!order || !workspace?.id) return
-    
-    try {
-      setOrderStatus(newStatus)
-      
-      const updateData = {
-        status: newStatus,
-        paymentMethod: paymentMethod
-      }
-
-      const updatedOrder = await ordersApi.update(order.id, workspace.id, updateData)
-      onSave(updatedOrder)
-      
-      toast.success("Order status updated successfully")
-    } catch (error) {
-      console.error('Failed to update status:', error)
-      // Revert the change if API call fails
-      setOrderStatus(order.status)
-      toast.error("Failed to update order status")
-    }
-  }
+  const handleStatusChange = (newStatus: OrderStatus) => {
+    setOrderStatus(newStatus)
+  };
 
   // Function to handle payment method change with immediate save
-  const handlePaymentMethodChange = async (newPaymentMethod: PaymentMethod | null) => {
-    if (!order || !workspace?.id) return
-    
-    try {
-      setPaymentMethod(newPaymentMethod)
-      
-      const updateData = {
-        status: orderStatus,
-        paymentMethod: newPaymentMethod
-      }
-
-      const updatedOrder = await ordersApi.update(order.id, workspace.id, updateData)
-      onSave(updatedOrder)
-      
-      toast.success("Payment method updated successfully")
-    } catch (error) {
-      console.error('Failed to update payment method:', error)
-      // Revert the change if API call fails
-      setPaymentMethod(order.paymentMethod)
-      toast.error("Failed to update payment method")
-    }
-  }
+  const handlePaymentMethodChange = (newPaymentMethod: PaymentMethod | null) => {
+    setPaymentMethod(newPaymentMethod)
+  };
 
   const handleAddProduct = () => {
     if (!selectedProductId) return
@@ -259,6 +221,8 @@ function CartItemEditSheet({
       // Prepare the updated order data for API
       const updateData = {
         totalAmount: newTotalAmount,
+        status: orderStatus,
+        paymentMethod: paymentMethod,
         items: editingItems.map(item => ({
           itemType: item.itemType || (item.serviceId ? 'SERVICE' : 'PRODUCT'),
           productId: item.productId,
@@ -448,9 +412,6 @@ function CartItemEditSheet({
                     </div>
                     {order.customer.invoiceAddress.vatNumber && (
                       <div className="text-sm text-gray-600">VAT: {order.customer.invoiceAddress.vatNumber}</div>
-                    )}
-                    {order.customer.invoiceAddress.phone && (
-                      <div className="text-sm text-gray-600">Phone: {order.customer.invoiceAddress.phone}</div>
                     )}
                   </div>
                 ) : (
@@ -741,22 +702,31 @@ function OrderDetailsSheet({
             </CardContent>
           </Card>
 
-          {/* Shipping Address */}
-          {order.shippingAddress && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Shipping Address</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-1">
-                  <p>{order.shippingAddress.street || order.shippingAddress.address}</p>
-                  <p>{order.shippingAddress.city}</p>
-                  <p>{order.shippingAddress.zipCode || order.shippingAddress.postalCode}</p>
-                  <p>{order.shippingAddress.country}</p>
+          {/* Shipping Address (multiline, like Invoice Address) */}
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <Truck className="h-5 w-5 text-green-600" />
+                Shipping Address
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {order.shippingAddress ? (
+                <div className="space-y-1 text-gray-700">
+                  {/* Street/Address */}
+                  <div>{order.shippingAddress.street || order.shippingAddress.address || ''}</div>
+                  {/* City */}
+                  <div>{order.shippingAddress.city || ''}</div>
+                  {/* Postal Code */}
+                  <div>{order.shippingAddress.zipCode || order.shippingAddress.postalCode || ''}</div>
+                  {/* Country */}
+                  <div>{order.shippingAddress.country || ''}</div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <span className="text-gray-500 italic">Not specified</span>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Notes */}
           {order.notes && (
@@ -1341,7 +1311,7 @@ function OrderCrudSheet({
             </Card>
           )}
 
-          {/* Shipping Address (only show in edit mode if available) */}
+          {/* Shipping Address (multiline) */}
           {mode === "edit" && order?.shippingAddress && (
             <Card>
               <CardHeader>
@@ -1349,16 +1319,16 @@ function OrderCrudSheet({
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <p><strong>Address:</strong> {order.shippingAddress.street || order.shippingAddress.address}</p>
-                  <p><strong>City:</strong> {order.shippingAddress.city}</p>
-                  <p><strong>Postal Code:</strong> {order.shippingAddress.zipCode || order.shippingAddress.postalCode}</p>
-                  <p><strong>Country:</strong> {order.shippingAddress.country}</p>
+                  <div><strong>Address:</strong> {order.shippingAddress.street || order.shippingAddress.address}</div>
+                  <div><strong>City:</strong> {order.shippingAddress.city}</div>
+                  <div><strong>Postal Code:</strong> {order.shippingAddress.zipCode || order.shippingAddress.postalCode}</div>
+                  <div><strong>Country:</strong> {order.shippingAddress.country}</div>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Invoice Address (always show in edit mode) */}
+          {/* Invoice Address (remove Phone field) */}
           {mode === "edit" && order?.customer && (
             <Card className="border-2 border-blue-200 bg-blue-50">
               <CardHeader>
@@ -1374,7 +1344,6 @@ function OrderCrudSheet({
                     <p><strong>Postal Code:</strong> {order.customer.invoiceAddress.postalCode || 'N/A'}</p>
                     <p><strong>Country:</strong> {order.customer.invoiceAddress.country || 'N/A'}</p>
                     {order.customer.invoiceAddress.vatNumber && <p><strong>VAT Number:</strong> {order.customer.invoiceAddress.vatNumber}</p>}
-                    {order.customer.invoiceAddress.phone && <p><strong>Phone:</strong> {order.customer.invoiceAddress.phone}</p>}
                   </div>
                 ) : (
                   <div className="text-gray-500 italic">
@@ -1458,10 +1427,16 @@ const getStatusBadgeClass = (status: OrderStatus) => {
 // Main Orders Page Component
 export default function OrdersPage() {
   const { workspace } = useWorkspace()
+  const location = useLocation()
+  // Leggi il parametro search dalla query string
+  const initialSearch = (() => {
+    const params = new URLSearchParams(location.search)
+    return params.get("search") || ""
+  })()
   const [orders, setOrders] = useState<Order[]>([])
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState(initialSearch)
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all")
   const [dateRangeFilter, setDateRangeFilter] = useState<string>("last_month")
   const [dateFromFilter, setDateFromFilter] = useState<Date | undefined>(() => {
@@ -1629,13 +1604,15 @@ export default function OrdersPage() {
     { 
       header: "Customer", 
       accessorKey: "customer" as keyof Order, 
-      size: 200,
+      size: 320,
       cell: ({ row }: { row: { original: Order } }) => (
         <div>
           <p className="font-medium cursor-pointer hover:text-blue-600 transition-colors"
              onClick={() => handleCustomerNavigation(row.original.customer)}
              title="Click to view customer details">
             {row.original.customer?.name || "Unknown Customer"}
+            {row.original.customer?.company ? ` (${row.original.customer.company})` : ""}
+            <ExternalLink className="h-3 w-3 opacity-50" />
           </p>
         </div>
       ),
@@ -1652,6 +1629,16 @@ export default function OrdersPage() {
             {row.original.status}
           </Badge>
         ),
+    },
+    { 
+      header: "Payment Method", 
+      accessorKey: "paymentMethod" as keyof Order, 
+      size: 150,
+      cell: ({ row }: { row: { original: Order } }) => (
+        <span className="text-sm text-gray-700">
+          {row.original.paymentMethod || 'Not specified'}
+        </span>
+      ),
     },
     { 
       header: "Total", 
@@ -1753,123 +1740,120 @@ export default function OrdersPage() {
 
   return (
     <PageLayout>
-      <div className="container pl-0 pr-4 pt-4 pb-4">
-        <div className="grid grid-cols-12 gap-0">
-          <div className="col-span-11 col-start-1">
-            <PageHeader
-              title="Orders"
-              titleIcon={<ShoppingCart className={commonStyles.headerIcon} />}
-              searchValue={searchTerm}
-              onSearch={setSearchTerm}
-              searchPlaceholder="Search orders..."
-              itemCount={filteredOrders.length}
-              extraButtons={
-                <div className="flex gap-2">
-                  {/* Status Filter */}
-                  <Select value={statusFilter} onValueChange={(value: OrderStatus | "all") => setStatusFilter(value)}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="All Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="PENDING">Pending</SelectItem>
-                      <SelectItem value="CONFIRMED">Confirmed</SelectItem>
-                      <SelectItem value="PROCESSING">Processing</SelectItem>
-                      <SelectItem value="SHIPPED">Shipped</SelectItem>
-                      <SelectItem value="DELIVERED">Delivered</SelectItem>
-                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-
-
-                  {/* Date Range Filter */}
-                  <Select value={dateRangeFilter} onValueChange={handleDateRangeChange}>
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue placeholder="Date Range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">-</SelectItem>
-                      <SelectItem value="last_week">Last week</SelectItem>
-                      <SelectItem value="last_month">Last month</SelectItem>
-                      <SelectItem value="last_3_months">Last 3 months</SelectItem>
-                      <SelectItem value="last_6_months">Last 6 months</SelectItem>
-                      <SelectItem value="last_year">Last year</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              }
-            />
-
-            <div className="mt-4 w-full">
-              <Card className="border shadow-sm">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-b bg-gray-50/50">
-                      <TableHead className="font-semibold py-3">Order Code</TableHead>
-                      <TableHead className="font-semibold py-3">Customer</TableHead>
-                      <TableHead className="font-semibold py-3">Status</TableHead>
-                      <TableHead className="font-semibold py-3">Total</TableHead>
-                      <TableHead className="font-semibold py-3">Date</TableHead>
-                      <TableHead className="font-semibold py-3 text-right w-[100px]">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {isLoading ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8">
-                          Loading orders...
-                        </TableCell>
-                      </TableRow>
-                    ) : filteredOrders.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                          No orders found
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredOrders.map((order) => (
-                        <TableRow key={order.id} className="hover:bg-gray-50/50 transition-colors">
-                          <TableCell className="font-medium py-4">{order.orderCode}</TableCell>
-                          <TableCell className="py-4">
-                            <p 
-                              className="font-medium cursor-pointer hover:text-green-600 transition-colors inline-flex items-center gap-1"
-                              onClick={() => handleCustomerNavigation(order.customer)}
-                              title="Click to view customer details"
-                            >
-                              {order.customer?.name || "Unknown Customer"}
-                              <ExternalLink className="h-3 w-3 opacity-50" />
-                            </p>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <Badge 
-                              variant={getStatusBadgeVariant(order.status)} 
-                              className={getStatusBadgeClass(order.status)}
-                            >
-                              {order.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <span className="font-semibold text-green-700">
-                              {formatPrice(order.totalAmount, workspace?.currency)}
-                            </span>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <span className="text-sm text-gray-600">
-                              {new Date(order.createdAt).toLocaleDateString('en-GB')} {new Date(order.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right py-4">
-                            {renderOrderActions(order)}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </Card>
+      <div className="container mx-auto py-6 max-w-5xl">
+        <PageHeader
+          title="Orders"
+          titleIcon={<ShoppingCart className={commonStyles.headerIcon} />}
+          searchValue={searchTerm}
+          onSearch={setSearchTerm}
+          searchPlaceholder="Search ..."
+          itemCount={filteredOrders.length}
+          extraButtons={
+            <div className="flex justify-end gap-3">
+              <Select value={statusFilter} onValueChange={(value: OrderStatus | "all") => setStatusFilter(value)}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                  <SelectItem value="PROCESSING">Processing</SelectItem>
+                  <SelectItem value="SHIPPED">Shipped</SelectItem>
+                  <SelectItem value="DELIVERED">Delivered</SelectItem>
+                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={dateRangeFilter} onValueChange={handleDateRangeChange}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Date Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">-</SelectItem>
+                  <SelectItem value="last_week">Last week</SelectItem>
+                  <SelectItem value="last_month">Last month</SelectItem>
+                  <SelectItem value="last_3_months">Last 3 months</SelectItem>
+                  <SelectItem value="last_6_months">Last 6 months</SelectItem>
+                  <SelectItem value="last_year">Last year</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </div>
+          }
+        />
+        <div className="mt-4 w-full">
+          <Card className="border shadow-sm w-full">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b bg-gray-50/50">
+                  <TableHead className="font-semibold py-3">Order Code</TableHead>
+                  <TableHead className="font-semibold py-3">Customer</TableHead>
+                  <TableHead className="font-semibold py-3">Status</TableHead>
+                  <TableHead className="font-semibold py-3">Payment Method</TableHead>
+                  <TableHead className="font-semibold py-3">Total</TableHead>
+                  <TableHead className="font-semibold py-3">Date</TableHead>
+                  <TableHead className="font-semibold py-3 text-right w-[100px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      Loading orders...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredOrders.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      No orders found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredOrders.map((order) => (
+                    <TableRow key={order.id} className="hover:bg-gray-50/50 transition-colors">
+                      <TableCell className="font-medium py-4">{order.orderCode}</TableCell>
+                      <TableCell className="py-4">
+                        <p 
+                          className="font-medium cursor-pointer hover:text-green-600 transition-colors inline-flex items-center gap-1"
+                          onClick={() => handleCustomerNavigation(order.customer)}
+                          title="Click to view customer details"
+                        >
+                          {order.customer?.name || "Unknown Customer"}
+                          {order.customer?.company ? ` (${order.customer.company})` : ""}
+                          <ExternalLink className="h-3 w-3 opacity-50" />
+                        </p>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <Badge 
+                          variant={getStatusBadgeVariant(order.status)} 
+                          className={getStatusBadgeClass(order.status)}
+                        >
+                          {order.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <span className="text-sm text-gray-700">
+                          {order.paymentMethod || 'Not specified'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <span className="font-semibold text-green-700">
+                          {formatPrice(order.totalAmount, workspace?.currency)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <span className="text-sm text-gray-600">
+                          {new Date(order.createdAt).toLocaleDateString('en-GB')} {new Date(order.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right py-4">
+                        {renderOrderActions(order)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </Card>
         </div>
       </div>
 
