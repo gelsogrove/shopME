@@ -944,6 +944,39 @@ CREATE INDEX idx_invoices_created_desc ON invoices(created_at DESC);
 - backend/src/routes/invoice.routes.ts
 ```
 
+### **📋 Customer Invoice Address Management**
+
+#### **Customer Schema Enhancement**
+```sql
+-- Add invoice address field to customers table
+ALTER TABLE customers ADD COLUMN invoice_address JSONB;
+
+-- Invoice address structure
+{
+  "firstName": "Mario",
+  "lastName": "Rossi", 
+  "company": "Rossi S.r.l.",
+  "address": "Via Roma 123",
+  "city": "Milano",
+  "postalCode": "20121",
+  "country": "Italy",
+  "vatNumber": "IT12345678901",
+  "phone": "+39 02 1234567"
+}
+```
+
+#### **Frontend Components**
+- **ClientSheet**: Extended with invoice address section
+- **Form Validation**: Client-side validation for VAT numbers, postal codes
+- **Address Management**: Separate shipping and invoice address handling
+- **View/Edit Modes**: Invoice address display in view mode, editable in edit mode
+
+#### **Backend Integration**
+- **Customer Entity**: Updated with invoiceAddress property
+- **Validation Schema**: Joi validation for invoice address fields
+- **API Endpoints**: Full CRUD support for invoice address in customer endpoints
+- **Repository**: Database operations for invoice address JSON field
+
 ### **✅ Security Requirements**
 - ✅ **Token-based authentication** (no login required)
 - ✅ **24h token expiration** per lista fatture

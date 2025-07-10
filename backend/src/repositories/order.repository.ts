@@ -226,24 +226,49 @@ export class OrderRepository implements IOrderRepository {
 
   async update(id: string, order: Partial<Order>, workspaceId: string): Promise<Order | null> {
     try {
+      // Prepare update data
+      const updateData: any = {
+        status: order.status,
+        paymentMethod: order.paymentMethod,
+        totalAmount: order.totalAmount,
+        shippingAmount: order.shippingAmount,
+        taxAmount: order.taxAmount,
+        shippingAddress: order.shippingAddress as any,
+        billingAddress: order.billingAddress as any,
+        notes: order.notes,
+        discountCode: order.discountCode,
+        discountAmount: order.discountAmount,
+        updatedAt: new Date()
+      };
+
+      // Handle items update efficiently
+      if (order.items && Array.isArray(order.items)) {
+        logger.info(`Updating order ${id} with ${order.items.length} items`);
+        
+        // Delete existing items and create new ones in a transaction
+        await this.prisma.orderItems.deleteMany({
+          where: { orderId: id }
+        });
+
+        updateData.items = {
+          create: order.items.map(item => ({
+            itemType: item.itemType || 'PRODUCT',
+            productId: item.productId,
+            serviceId: item.serviceId || null,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: item.totalPrice,
+            productVariant: item.productVariant as any
+          }))
+        };
+      }
+
       const updatedOrder = await this.prisma.orders.update({
         where: {
           id,
           workspaceId
         },
-        data: {
-          status: order.status,
-          paymentMethod: order.paymentMethod,
-          totalAmount: order.totalAmount,
-          shippingAmount: order.shippingAmount,
-          taxAmount: order.taxAmount,
-          shippingAddress: order.shippingAddress as any,
-          billingAddress: order.billingAddress as any,
-          notes: order.notes,
-          discountCode: order.discountCode,
-          discountAmount: order.discountAmount,
-          updatedAt: new Date()
-        },
+        data: updateData,
         include: {
           customer: true,
           items: {
@@ -254,6 +279,7 @@ export class OrderRepository implements IOrderRepository {
         }
       });
 
+      logger.info(`Order ${id} updated successfully`);
       return this.mapToDomainEntity(updatedOrder);
     } catch (error) {
       logger.error(`Error updating order ${id}:`, error);

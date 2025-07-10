@@ -63,6 +63,17 @@ export interface Customer {
   email: string
   phone?: string
   company?: string
+  invoiceAddress?: {
+    firstName?: string
+    lastName?: string
+    company?: string
+    address?: string
+    city?: string
+    postalCode?: string
+    country?: string
+    vatNumber?: string
+    phone?: string
+  }
 }
 
 // Main Order interface aligned with backend

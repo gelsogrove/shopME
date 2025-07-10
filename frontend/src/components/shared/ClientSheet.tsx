@@ -20,10 +20,25 @@ import { Textarea } from "@/components/ui/textarea"
 import { Client } from "@/pages/ClientsPage"
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
+
+// Invoice address interface
+interface InvoiceAddress {
+  firstName?: string
+  lastName?: string
+  company?: string
+  address?: string
+  city?: string
+  postalCode?: string
+  country?: string
+  vatNumber?: string
+  phone?: string
+}
 
 // Extend the Client type for internal use to include address string property
 interface ExtendedClient extends Client {
   address?: string
+  invoiceAddress?: InvoiceAddress
 }
 
 interface ClientSheetProps {
@@ -67,6 +82,19 @@ export function ClientSheet({
   const [city, setCity] = useState("")
   const [zip, setZip] = useState("")
   const [country, setCountry] = useState("")
+  const [pushNotificationsConsent, setPushNotificationsConsent] = useState(false)
+  
+  // Invoice address state
+  const [invoiceFirstName, setInvoiceFirstName] = useState("")
+  const [invoiceLastName, setInvoiceLastName] = useState("")
+  const [invoiceCompany, setInvoiceCompany] = useState("")
+  const [invoiceAddress, setInvoiceAddress] = useState("")
+  const [invoiceCity, setInvoiceCity] = useState("")
+  const [invoicePostalCode, setInvoicePostalCode] = useState("")
+  const [invoiceCountry, setInvoiceCountry] = useState("")
+  const [invoiceVatNumber, setInvoiceVatNumber] = useState("")
+  const [invoicePhone, setInvoicePhone] = useState("")
+  
   const [fetchedClient, setFetchedClient] = useState<ExtendedClient | null>(
     null
   )
@@ -131,6 +159,30 @@ export function ClientSheet({
       setCity(addressData.city)
       setZip(addressData.zip)
       setCountry(addressData.country)
+      setPushNotificationsConsent(fetchedClient.push_notifications_consent || false)
+      
+      // Set invoice address data
+      if (fetchedClient.invoiceAddress) {
+        setInvoiceFirstName(fetchedClient.invoiceAddress.firstName || "")
+        setInvoiceLastName(fetchedClient.invoiceAddress.lastName || "")
+        setInvoiceCompany(fetchedClient.invoiceAddress.company || "")
+        setInvoiceAddress(fetchedClient.invoiceAddress.address || "")
+        setInvoiceCity(fetchedClient.invoiceAddress.city || "")
+        setInvoicePostalCode(fetchedClient.invoiceAddress.postalCode || "")
+        setInvoiceCountry(fetchedClient.invoiceAddress.country || "")
+        setInvoiceVatNumber(fetchedClient.invoiceAddress.vatNumber || "")
+        setInvoicePhone(fetchedClient.invoiceAddress.phone || "")
+      } else {
+        setInvoiceFirstName("")
+        setInvoiceLastName("")
+        setInvoiceCompany("")
+        setInvoiceAddress("")
+        setInvoiceCity("")
+        setInvoicePostalCode("")
+        setInvoiceCountry("")
+        setInvoiceVatNumber("")
+        setInvoicePhone("")
+      }
     } else {
       setName("")
       setEmail("")
@@ -143,6 +195,18 @@ export function ClientSheet({
       setCity("")
       setZip("")
       setCountry("")
+      setPushNotificationsConsent(false)
+      
+      // Reset invoice address fields
+      setInvoiceFirstName("")
+      setInvoiceLastName("")
+      setInvoiceCompany("")
+      setInvoiceAddress("")
+      setInvoiceCity("")
+      setInvoicePostalCode("")
+      setInvoiceCountry("")
+      setInvoiceVatNumber("")
+      setInvoicePhone("")
     }
   }, [fetchedClient, availableLanguages, open])
 
@@ -189,11 +253,8 @@ export function ClientSheet({
   }, [client, open])
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    console.log("Form submitted")
-    e.preventDefault()
-
-    // Create the customer data object from form values
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     const customerData = {
       name,
       email,
@@ -202,18 +263,32 @@ export function ClientSheet({
       language,
       discount: parseFloat(discount),
       notes,
-      address: JSON.stringify({
-        street,
-        city,
-        zip,
-        country,
-      }),
+      address: JSON.stringify({ street, city, zip, country }),
+      push_notifications_consent: pushNotificationsConsent,
+      invoiceAddress: {
+        firstName: invoiceFirstName,
+        lastName: invoiceLastName,
+        company: invoiceCompany,
+        address: invoiceAddress,
+        city: invoiceCity,
+        postalCode: invoicePostalCode,
+        country: invoiceCountry,
+        vatNumber: invoiceVatNumber,
+        phone: invoicePhone,
+      },
+    };
+    const clientId = typeof client === "string" ? client : fetchedClient?.id;
+    try {
+      await onSubmit(customerData, clientId);
+      toast.success("Client updated successfully");
+      onOpenChange(false);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (err) {
+      toast.error("Error updating client");
     }
-
-    console.log("Submitting customer data:", customerData)
-    const clientId = typeof client === "string" ? client : fetchedClient?.id
-    onSubmit(customerData, clientId)
-  }
+  };
 
   // Make sure to render even if not open
   console.log("ClientSheet render", { open, mode, client })
@@ -350,55 +425,177 @@ export function ClientSheet({
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Shipping Address</h3>
+                  {/* SHIPPING ADDRESS - styled like invoice, but green */}
+                  <div className="space-y-4 border-2 border-green-200 bg-green-50 p-4 rounded-lg">
+                    <h3 className="text-lg font-medium text-green-800">🚚 Shipping Address</h3>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="street" className="text-sm font-medium">
+                        Street Address
+                      </Label>
+                      <Input
+                        id="street"
+                        name="street"
+                        value={street}
+                        onChange={(e) => setStreet(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="city" className="text-sm font-medium">
+                          City
+                        </Label>
+                        <Input
+                          id="city"
+                          name="city"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="zip" className="text-sm font-medium">
+                          ZIP Code
+                        </Label>
+                        <Input
+                          id="zip"
+                          name="zip"
+                          value={zip}
+                          onChange={(e) => setZip(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="country" className="text-sm font-medium">
+                        Country
+                      </Label>
+                      <Input
+                        id="country"
+                        name="country"
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 border-2 border-blue-200 bg-blue-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-medium text-blue-800">📧 Invoice Address</h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="invoiceFirstName" className="text-sm font-medium">
+                        First Name
+                      </Label>
+                      <Input
+                        id="invoiceFirstName"
+                        name="invoiceFirstName"
+                        value={invoiceFirstName}
+                        onChange={(e) => setInvoiceFirstName(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="invoiceLastName" className="text-sm font-medium">
+                        Last Name
+                      </Label>
+                      <Input
+                        id="invoiceLastName"
+                        name="invoiceLastName"
+                        value={invoiceLastName}
+                        onChange={(e) => setInvoiceLastName(e.target.value)}
+                      />
+                    </div>
+                  </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="street" className="text-sm font-medium">
-                      Street Address
+                    <Label htmlFor="invoiceCompany" className="text-sm font-medium">
+                      Company
                     </Label>
                     <Input
-                      id="street"
-                      name="street"
-                      value={street}
-                      onChange={(e) => setStreet(e.target.value)}
+                      id="invoiceCompany"
+                      name="invoiceCompany"
+                      value={invoiceCompany}
+                      onChange={(e) => setInvoiceCompany(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="invoiceAddress" className="text-sm font-medium">
+                      Address
+                    </Label>
+                    <Input
+                      id="invoiceAddress"
+                      name="invoiceAddress"
+                      value={invoiceAddress}
+                      onChange={(e) => setInvoiceAddress(e.target.value)}
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="city" className="text-sm font-medium">
+                      <Label htmlFor="invoiceCity" className="text-sm font-medium">
                         City
                       </Label>
                       <Input
-                        id="city"
-                        name="city"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
+                        id="invoiceCity"
+                        name="invoiceCity"
+                        value={invoiceCity}
+                        onChange={(e) => setInvoiceCity(e.target.value)}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="zip" className="text-sm font-medium">
-                        ZIP Code
+                      <Label htmlFor="invoicePostalCode" className="text-sm font-medium">
+                        Postal Code
                       </Label>
                       <Input
-                        id="zip"
-                        name="zip"
-                        value={zip}
-                        onChange={(e) => setZip(e.target.value)}
+                        id="invoicePostalCode"
+                        name="invoicePostalCode"
+                        value={invoicePostalCode}
+                        onChange={(e) => setInvoicePostalCode(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="invoiceCountry" className="text-sm font-medium">
+                        Country
+                      </Label>
+                      <Input
+                        id="invoiceCountry"
+                        name="invoiceCountry"
+                        value={invoiceCountry}
+                        onChange={(e) => setInvoiceCountry(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="invoicePhone" className="text-sm font-medium">
+                        Phone
+                      </Label>
+                      <Input
+                        id="invoicePhone"
+                        name="invoicePhone"
+                        value={invoicePhone}
+                        onChange={(e) => setInvoicePhone(e.target.value)}
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="country" className="text-sm font-medium">
-                      Country
+                    <Label htmlFor="invoiceVatNumber" className="text-sm font-medium">
+                      VAT Number
                     </Label>
                     <Input
-                      id="country"
-                      name="country"
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
+                      id="invoiceVatNumber"
+                      name="invoiceVatNumber"
+                      value={invoiceVatNumber}
+                      onChange={(e) => setInvoiceVatNumber(e.target.value)}
+                      placeholder="IT12345678901"
                     />
                   </div>
                 </div>

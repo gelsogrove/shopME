@@ -1,10 +1,8 @@
 import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
-import { Button } from "@/components/ui/button"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { Chat } from "@/types/chat"
 // Importiamo l'icona WhatsAppIcon che creiamo internamente
-import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
 import { memo, useEffect, useState } from "react"
 import { Outlet } from "react-router-dom"
 import { Header } from "./Header"
@@ -89,17 +87,6 @@ export function Layout() {
           <main className="flex-1 p-8">
             <Outlet />
           </main>
-        </div>
-        {/* Playground Button and Modal always visible */}
-        <div className="fixed bottom-8 right-8 z-50">
-          <Button
-            onClick={handlePlaygroundClick}
-            className="bg-[#25D366] hover:bg-[#22c35e] text-white rounded-full shadow-lg h-14 px-6 flex items-center justify-center gap-2"
-            title="WhatsApp Playground"
-          >
-            <WhatsAppIcon className="h-6 w-6 text-white" />
-            <span className="font-medium text-sm">Playground</span>
-          </Button>
         </div>
         <WhatsAppChatModal
           isOpen={showPlaygroundDialog}

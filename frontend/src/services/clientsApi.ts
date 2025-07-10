@@ -7,6 +7,19 @@ export interface ShippingAddress {
   country: string
 }
 
+// Invoice address interface
+export interface InvoiceAddress {
+  firstName?: string
+  lastName?: string
+  company?: string
+  address?: string
+  city?: string
+  postalCode?: string
+  country?: string
+  vatNumber?: string
+  phone?: string
+}
+
 export interface Client {
   id: string
   name: string
@@ -24,6 +37,7 @@ export interface Client {
   workspaceId: string
   createdAt: string
   updatedAt: string
+  invoiceAddress?: InvoiceAddress
 }
 
 export interface CreateClientData {
@@ -44,6 +58,7 @@ export interface CreateClientData {
 
 export interface UpdateClientData extends Partial<CreateClientData> {
   id: string
+  invoiceAddress?: InvoiceAddress
 }
 
 export interface ClientsResponse {
@@ -62,7 +77,7 @@ export const getAllForWorkspace = async (workspaceId: string): Promise<Client[]>
     }
 
     const requestUrl = `/workspaces/${workspaceId}/customers`
-    const response = await api.get<ClientsResponse>(requestUrl)
+    const response = await api.get<{ data: Client[] }>(requestUrl)
     
     if (!response.data) {
       throw new Error("Empty API response")
@@ -101,9 +116,9 @@ export const create = async (clientData: CreateClientData): Promise<Client> => {
 /**
  * Update an existing client
  */
-export const update = async (id: string, clientData: UpdateClientData): Promise<Client> => {
+export const update = async (id: string, workspaceId: string, clientData: UpdateClientData): Promise<Client> => {
   try {
-    const response = await api.put<{ data: Client }>(`/customers/${id}`, clientData)
+    const response = await api.put<{ data: Client }>(`/workspaces/${workspaceId}/customers/${id}`, clientData)
     return response.data.data
   } catch (error) {
     throw new Error(`Error updating client: ${error instanceof Error ? error.message : 'Unknown error'}`)

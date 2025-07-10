@@ -130,6 +130,7 @@ model Customers {
   push_notifications_consent    Boolean       @default(false)
   push_notifications_consent_at DateTime?
   activeChatbot                 Boolean       @default(true)
+  invoiceAddress                Json?
   cart                          Carts?
   chatSessions                  ChatSession[]
   workspace                     Workspace     @relation(fields: [workspaceId], references: [id])

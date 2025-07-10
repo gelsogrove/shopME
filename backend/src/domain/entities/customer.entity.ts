@@ -1,6 +1,22 @@
 import { v4 as uuidv4 } from 'uuid';
 
 /**
+ * InvoiceAddress interface
+ * Defines structure for customer invoice address
+ */
+export interface InvoiceAddress {
+  firstName?: string;
+  lastName?: string;
+  company?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  vatNumber?: string;
+  phone?: string;
+}
+
+/**
  * CustomerProps interface
  * Defines properties for Customer entity
  */
@@ -26,6 +42,7 @@ export interface CustomerProps {
   createdAt?: Date;
   updatedAt?: Date;
   activeChatbot?: boolean;
+  invoiceAddress?: InvoiceAddress;
 }
 
 /**
@@ -54,6 +71,7 @@ export class Customer {
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly activeChatbot: boolean;
+  readonly invoiceAddress?: InvoiceAddress;
 
   constructor(props: CustomerProps) {
     this.id = props.id || uuidv4();
@@ -77,6 +95,7 @@ export class Customer {
     this.createdAt = props.createdAt || new Date();
     this.updatedAt = props.updatedAt || new Date();
     this.activeChatbot = props.activeChatbot !== undefined ? props.activeChatbot : true;
+    this.invoiceAddress = props.invoiceAddress;
   }
 
   /**
