@@ -2,23 +2,23 @@ import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
 import { cn } from "@/lib/utils"
 import {
-    BarChart3,
-    FileText,
-    HelpCircle,
-    LucideIcon,
-    MessageSquare,
-    Package2,
-    Percent,
-    ShoppingCart,
-    Tag,
-    Users,
-    Wrench
+  BarChart3,
+  FileText,
+  HelpCircle,
+  LucideIcon,
+  MessageSquare,
+  Package2,
+  Percent,
+  ShoppingCart,
+  Tag,
+  Users,
+  Wrench
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 
 interface SidebarLink {
-  href: string
+  href?: string // Made optional to allow non-navigable parent links
   label: string
   icon: LucideIcon
   badge?: number
@@ -75,36 +75,27 @@ export function Sidebar() {
       label: "Clients",
       icon: Users,
     },
+    // Catalog removed, add its children as top-level links
     {
-      href: "#",
-      label: "Catalog",
+      href: "/products",
+      label: "Products",
       icon: Package2,
-      key: "products",
-      children: [
-        {
-          href: "/products",
-          label: "Products",
-          icon: Package2,
-        },
-        {
-          href: "/categories",
-          label: "Categories",
-          icon: Tag,
-        },
-
-        {
-          href: "/offers",
-          label: "Offers",
-          icon: Percent,
-        },
-      ],
+    },
+    {
+      href: "/categories",
+      label: "Categories",
+      icon: Tag,
+    },
+    {
+      href: "/offers",
+      label: "Offers",
+      icon: Percent,
     },
     {
       href: "/services",
       label: "Services",
       icon: Wrench,
     },
-
     {
       href: "/faq",
       label: "FAQ",
@@ -119,7 +110,7 @@ export function Sidebar() {
       href: "/orders",
       label: "Orders",
       icon: ShoppingCart,
-    } 
+    }
   ]
 
   return (

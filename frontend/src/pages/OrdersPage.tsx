@@ -1,6 +1,6 @@
 import { PageLayout } from "@/components/layout/PageLayout"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
-import { PageHeader } from "@/components/shared/PageHeader"
+import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,7 +21,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { clientsApi } from "@/services/clientsApi"
@@ -36,7 +35,7 @@ import { productsApi } from "@/services/productsApi"
 import { servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
 import { formatPrice } from "@/utils/format"
-import { ExternalLink, FileText, Package, Pencil, Plus, ShoppingCart, Trash2, Truck, Wrench } from "lucide-react"
+import { FileText, Package, Pencil, Plus, ShoppingCart, Trash2, Truck, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -1434,7 +1433,8 @@ export default function OrdersPage() {
     return params.get("search") || ""
   })()
   const [orders, setOrders] = useState<Order[]>([])
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
+  const [page, setPage] = useState(1)
+  const pageSize = 15; // Fixed page size
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState(initialSearch)
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all")
@@ -1458,17 +1458,8 @@ export default function OrdersPage() {
 
       try {
         setIsLoading(true)
-        
-        // Load orders using proper API service
+        // Fetch all orders in one call, no pagination params
         const ordersResponse = await ordersApi.getAllForWorkspace(workspace.id)
-        
-        // DEBUG: Log the first order's customer data
-        if (ordersResponse.orders && ordersResponse.orders.length > 0) {
-          const firstOrder = ordersResponse.orders[0]
-          console.log('🔍 DEBUG: First order customer data:', firstOrder.customer)
-          console.log('🔍 DEBUG: Invoice address:', firstOrder.customer?.invoiceAddress)
-        }
-        
         // Sort orders by date descending (newest first)
         const sortedOrders = (ordersResponse.orders || []).sort((a, b) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -1487,41 +1478,9 @@ export default function OrdersPage() {
 
   // Enhanced filter logic
   useEffect(() => {
-    let filtered = orders
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(order =>
-        order.orderCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    }
-
-    // Status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(order => order.status === statusFilter)
-    }
-
-    // Date range filters
-    if (dateFromFilter) {
-      filtered = filtered.filter(order => 
-        new Date(order.createdAt) >= dateFromFilter
-      )
-    }
-
-    if (dateToFilter) {
-      filtered = filtered.filter(order => 
-        new Date(order.createdAt) <= dateToFilter
-      )
-    }
-
-    // Sort filtered orders by date descending (newest first)
-    filtered = filtered.sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-
-    setFilteredOrders(filtered)
-  }, [orders, searchTerm, statusFilter, dateRangeFilter, dateFromFilter, dateToFilter])
+    // Remove filteredOrders and all client-side filtering logic (search, status, date) should trigger a reload with page=1
+    // The API call will handle pagination and filtering based on the parameters
+  }, [searchTerm, statusFilter, dateRangeFilter, dateFromFilter, dateToFilter])
 
   // Event handlers
   const handleEdit = (order: Order) => {
@@ -1593,56 +1552,53 @@ export default function OrdersPage() {
 
   // Define columns for the table
   const columns = [
-    { 
-      header: "Order Code", 
-      accessorKey: "orderCode" as keyof Order, 
+    {
+      header: "Num.",
+      accessorKey: "orderCode" as keyof Order,
       size: 120,
       cell: ({ row }: { row: { original: Order } }) => (
         <span className="font-mono font-medium">{row.original.orderCode}</span>
       ),
     },
-    { 
-      header: "Customer", 
-      accessorKey: "customer" as keyof Order, 
-      size: 320,
+    {
+      header: "Customer Name",
+      accessorKey: "customerName",
+      size: 220,
       cell: ({ row }: { row: { original: Order } }) => (
-        <div>
-          <p className="font-medium cursor-pointer hover:text-blue-600 transition-colors"
-             onClick={() => handleCustomerNavigation(row.original.customer)}
-             title="Click to view customer details">
-            {row.original.customer?.name || "Unknown Customer"}
-            {row.original.customer?.company ? ` (${row.original.customer.company})` : ""}
-            <ExternalLink className="h-3 w-3 opacity-50" />
-          </p>
-        </div>
-      ),
-    },
-    { 
-      header: "Status", 
-      accessorKey: "status" as keyof Order, 
-      size: 120,
-              cell: ({ row }: { row: { original: Order } }) => (
-          <Badge 
-            variant={getStatusBadgeVariant(row.original.status)} 
-            className={getStatusBadgeClass(row.original.status)}
-          >
-            {row.original.status}
-          </Badge>
-        ),
-    },
-    { 
-      header: "Payment Method", 
-      accessorKey: "paymentMethod" as keyof Order, 
-      size: 150,
-      cell: ({ row }: { row: { original: Order } }) => (
-        <span className="text-sm text-gray-700">
-          {row.original.paymentMethod || 'Not specified'}
+        <span className="font-medium cursor-pointer hover:text-blue-600 transition-colors"
+          onClick={() => handleCustomerNavigation(row.original.customer)}
+          title="Click to view customer details"
+        >
+          {row.original.customer?.name || "Unknown Customer"}
         </span>
       ),
     },
-    { 
-      header: "Total", 
-      accessorKey: "totalAmount" as keyof Order, 
+    {
+      header: "Company Name",
+      accessorKey: "companyName",
+      size: 220,
+      cell: ({ row }: { row: { original: Order } }) => (
+        <span className="font-normal">
+          {row.original.customer?.company || ""}
+        </span>
+      ),
+    },
+    {
+      header: "Status",
+      accessorKey: "status" as keyof Order,
+      size: 120,
+      cell: ({ row }: { row: { original: Order } }) => (
+        <Badge
+          variant={getStatusBadgeVariant(row.original.status)}
+          className={getStatusBadgeClass(row.original.status)}
+        >
+          {row.original.status}
+        </Badge>
+      ),
+    },
+    {
+      header: "Total",
+      accessorKey: "totalAmount" as keyof Order,
       size: 120,
       cell: ({ row }: { row: { original: Order } }) => (
         <span className="font-medium">
@@ -1650,15 +1606,53 @@ export default function OrdersPage() {
         </span>
       ),
     },
-    { 
-      header: "Date", 
-      accessorKey: "createdAt" as keyof Order, 
-      size: 120,
-      cell: ({ row }: { row: { original: Order } }) => (
-        <span>{new Date(row.original.createdAt).toLocaleDateString()}</span>
-      ),
+    {
+      header: "Date",
+      accessorKey: "createdAt" as keyof Order,
+      size: 160,
+      cell: ({ row }: { row: { original: Order } }) => {
+        const date = new Date(row.original.createdAt)
+        return (
+          <span>
+            {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        )
+      },
     },
   ]
+
+  // Update search logic to match each word against customer name and company separately
+  const filteredOrders = orders.filter((order) => {
+    const searchValue = searchTerm.toLowerCase().trim();
+    const searchWords = searchValue.split(/\s+/).filter(Boolean);
+    const name = (order.customer?.name || "").toLowerCase();
+    const company = (order.customer?.company || "").toLowerCase();
+    const orderCode = order.orderCode?.toLowerCase() || "";
+    const status = order.status?.toLowerCase() || "";
+    const total = formatPrice(order.totalAmount, workspace?.currency).toLowerCase();
+    const date = new Date(order.createdAt).toLocaleDateString().toLowerCase();
+    const time = new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase();
+    return searchWords.every(word =>
+      orderCode.includes(word) ||
+      name.includes(word) ||
+      company.includes(word) ||
+      status.includes(word) ||
+      total.includes(word) ||
+      date.includes(word) ||
+      time.includes(word)
+    );
+  });
+
+  // 1. Always sort filteredOrders by date descending
+  const sortedOrders = [...filteredOrders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+  // 2. Client-side pagination
+  const paginatedOrders = sortedOrders.slice((page - 1) * pageSize, page * pageSize)
+  const totalFiltered = sortedOrders.length
+  const totalPagesFiltered = Math.max(1, Math.ceil(totalFiltered / pageSize))
+
+  // 3. Reset page to 1 on search/filter change (removed pageSize)
+  useEffect(() => { setPage(1) }, [searchTerm, statusFilter, dateRangeFilter])
 
   const handleDeleteConfirm = async () => {
     if (!selectedOrder || !workspace?.id) return
@@ -1740,130 +1734,55 @@ export default function OrdersPage() {
 
   return (
     <PageLayout>
-      <div className="container mx-auto py-6 max-w-5xl">
-        <PageHeader
-          title="Orders"
-          titleIcon={<ShoppingCart className={commonStyles.headerIcon} />}
-          searchValue={searchTerm}
-          onSearch={setSearchTerm}
-          searchPlaceholder="Search ..."
-          itemCount={filteredOrders.length}
-          extraButtons={
-            <div className="flex justify-end gap-3">
-              <Select value={statusFilter} onValueChange={(value: OrderStatus | "all") => setStatusFilter(value)}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="CONFIRMED">Confirmed</SelectItem>
-                  <SelectItem value="PROCESSING">Processing</SelectItem>
-                  <SelectItem value="SHIPPED">Shipped</SelectItem>
-                  <SelectItem value="DELIVERED">Delivered</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={dateRangeFilter} onValueChange={handleDateRangeChange}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Date Range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">-</SelectItem>
-                  <SelectItem value="last_week">Last week</SelectItem>
-                  <SelectItem value="last_month">Last month</SelectItem>
-                  <SelectItem value="last_3_months">Last 3 months</SelectItem>
-                  <SelectItem value="last_6_months">Last 6 months</SelectItem>
-                  <SelectItem value="last_year">Last year</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          }
-        />
-        <div className="mt-4 w-full">
-          <Card className="border shadow-sm w-full">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b bg-gray-50/50">
-                  <TableHead className="font-semibold py-3">Order Code</TableHead>
-                  <TableHead className="font-semibold py-3">Customer</TableHead>
-                  <TableHead className="font-semibold py-3">Status</TableHead>
-                  <TableHead className="font-semibold py-3">Payment Method</TableHead>
-                  <TableHead className="font-semibold py-3">Total</TableHead>
-                  <TableHead className="font-semibold py-3">Date</TableHead>
-                  <TableHead className="font-semibold py-3 text-right w-[100px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      Loading orders...
-                    </TableCell>
-                  </TableRow>
-                ) : filteredOrders.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                      No orders found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredOrders.map((order) => (
-                    <TableRow key={order.id} className="hover:bg-gray-50/50 transition-colors">
-                      <TableCell className="font-medium py-4">{order.orderCode}</TableCell>
-                      <TableCell className="py-4">
-                        <p 
-                          className="font-medium cursor-pointer hover:text-green-600 transition-colors inline-flex items-center gap-1"
-                          onClick={() => handleCustomerNavigation(order.customer)}
-                          title="Click to view customer details"
-                        >
-                          {order.customer?.name || "Unknown Customer"}
-                          {order.customer?.company ? ` (${order.customer.company})` : ""}
-                          <ExternalLink className="h-3 w-3 opacity-50" />
-                        </p>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <Badge 
-                          variant={getStatusBadgeVariant(order.status)} 
-                          className={getStatusBadgeClass(order.status)}
-                        >
-                          {order.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <span className="text-sm text-gray-700">
-                          {order.paymentMethod || 'Not specified'}
-                        </span>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <span className="font-semibold text-green-700">
-                          {formatPrice(order.totalAmount, workspace?.currency)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <span className="text-sm text-gray-600">
-                          {new Date(order.createdAt).toLocaleDateString('en-GB')} {new Date(order.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right py-4">
-                        {renderOrderActions(order)}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </Card>
-        </div>
-      </div>
-
+      <CrudPageContent
+        title="Orders"
+        titleIcon={<ShoppingCart className={commonStyles.headerIcon} />}
+        searchValue={searchTerm}
+        onSearch={setSearchTerm}
+        searchPlaceholder="Search orders..."
+        data={filteredOrders}
+        columns={columns}
+        isLoading={isLoading}
+        renderActions={renderOrderActions}
+        extraButtons={
+          <div className="flex justify-end gap-3">
+            <Select value={statusFilter} onValueChange={(value: OrderStatus | "all") => setStatusFilter(value)}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                <SelectItem value="PROCESSING">Processing</SelectItem>
+                <SelectItem value="SHIPPED">Shipped</SelectItem>
+                <SelectItem value="DELIVERED">Delivered</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={dateRangeFilter} onValueChange={handleDateRangeChange}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Date Range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">-</SelectItem>
+                <SelectItem value="last_week">Last week</SelectItem>
+                <SelectItem value="last_month">Last month</SelectItem>
+                <SelectItem value="last_3_months">Last 3 months</SelectItem>
+                <SelectItem value="last_6_months">Last 6 months</SelectItem>
+                <SelectItem value="last_year">Last year</SelectItem>
+              </SelectContent>
+            </Select>
+            {/* Removed page size dropdown */}
+          </div>
+        }
+      />
       {/* Order Details Sheet */}
       <OrderDetailsSheet
         order={selectedOrder}
         open={isDetailsOpen}
         onClose={() => setIsDetailsOpen(false)}
       />
-
       {/* Order Edit Sheet */}
       <OrderCrudSheet
         order={selectedOrder}
@@ -1872,7 +1791,6 @@ export default function OrdersPage() {
         onSave={handleOrderSave}
         mode={selectedOrder?.id ? "edit" : "create"}
       />
-
       {/* Cart Edit Sheet */}
       <CartItemEditSheet
         order={selectedOrder}
@@ -1880,7 +1798,6 @@ export default function OrdersPage() {
         onClose={() => setIsCartEditOpen(false)}
         onSave={handleOrderSave}
       />
-
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         open={showDeleteDialog}

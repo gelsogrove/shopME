@@ -475,32 +475,6 @@ export default function SettingsPage() {
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="registration-url">URL Domain</Label>
-                  <Input
-                    id="registration-url"
-                    type="url"
-                    value={workspace.url || ""}
-                    onChange={(e) => handleFieldChange("url", e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="n8n-workflow-url">N8N Workflow URL</Label>
-                  <Input
-                    id="n8n-workflow-url"
-                    type="url"
-                    value={workspace.n8nWorkflowUrl || ""}
-                    onChange={(e) => handleFieldChange("n8nWorkflowUrl", e.target.value)}
-                    placeholder="http://localhost:5678/projects/7i6FA4CnEst9J9FX/workflows"
-                    className="mt-1"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    URL to open the N8N workflow editor when clicking "N8N Workflow" in the header menu.
-                  </p>
-                </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Phone Number Blocklist

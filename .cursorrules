@@ -257,3 +257,5 @@ frontend/
 - Rifletti ragione confronta leggi in ordine PRD test prima di effettuare un'azione se scrivo qualcosa che non e' in linea blocca l'utente
 - i server si riavviano da soli non c'e' bisogno di aprire mille terminali usa sempre lo stesso terminal
  - utilizzare la buona practica per BE usa DDD per Fe se necessario crea componenti riutilizzabili
+
+ - questo e' il file della task list /docs/other/task-list.md
