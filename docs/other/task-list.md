@@ -1,5 +1,75 @@
 # 🚀 SHOPME - STRUCTURED TASK LIST (PRIORITY ORDERED)
 
+## BUG TASK #22
+**TITLE**: Order List: Search Filters Not Working
+**DESCRIPTION/ROADMAP**:
+- Investigate and fix the search and filter functionality on the orders list page
+- Ensure all filters (search, status, date range, etc.) work correctly and update the displayed orders
+- Update backend and frontend logic as needed to support correct filtering
+- Add tests to verify filter functionality if necessary
+
+**SPECIAL NOTE**:
+This is a bug: currently, the filters on the orders list page do not work as expected. All filters must be fully functional for a correct user experience.
+
+**STORY POINT**: TBD
+**STATUS**: 🐞 BUG - Not Started
+
+================================================================================
+
+## BUG TASK #21
+**TITLE**: Customer Discount Field and Correct Discount Application in RAG Search
+**DESCRIPTION/ROADMAP**:
+- Add a 'discount' field to the customer table if not already present
+- Ensure the discount is applied in the RAG search when calculating product prices for a customer
+- If an active offer (by date and category) provides a better discount, the offer discount prevails
+- The system must always apply the best available discount (customer or offer)
+- Offers must be checked for validity by date and category
+- Add unit and integration tests to verify correct discount application logic
+
+**SPECIAL NOTE**:
+This is a bug: currently, customer discounts are not always applied correctly in RAG search, and the best discount logic (customer vs. offer) must be enforced. Tests are required to prevent regressions.
+
+**STORY POINT**: TBD
+**STATUS**: 🐞 BUG - Not Started
+
+================================================================================
+
+## TASK #19
+**TITLE**: Standardize Shipping Address and Invoice Address Handling
+**DESCRIPTION/ROADMAP**:
+- Refactor the edit form so that both Shipping Address and Invoice Address are managed as structured objects (field by field)
+- Use the same field-by-field approach as currently implemented for Invoice Address
+- Update backend models, DTOs, and validation to support structured shipping address
+- Update frontend forms to display and edit shipping address with individual fields (not a single string)
+- Remove any string-based handling for shipping address
+- Test thoroughly to ensure both addresses are saved and displayed correctly
+
+**SPECIAL NOTE**:
+Andrea requires that both addresses are handled in a consistent, structured way for better data quality and user experience. The Invoice Address model is the reference.
+
+**STORY POINT**: TBD
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #18
+**TITLE**: Database Cleanup: Remove Unused Tables
+**DESCRIPTION/ROADMAP**:
+- Identify all tables in the database that are no longer used by the application
+- Remove unused tables from the Prisma schema
+- Create and run proper Prisma migrations to drop these tables
+- Ensure no code references or dependencies remain for removed tables
+- Test the system thoroughly to confirm no regressions or errors
+- Update documentation and ERD if necessary
+
+**SPECIAL NOTE**:
+Andrea requires a clean and maintainable database. All legacy or unused tables must be removed to avoid confusion and improve performance.
+
+**STORY POINT**: TBD
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
 ## TASK #15
 **TITLE**: Full Application Responsiveness
 **DESCRIPTION/ROADMAP**:
@@ -16,7 +86,7 @@ Andrea requires that the entire application is fully responsive for a seamless u
 
 ================================================================================
 
-## TASK #16
+## TASK #16 ✅ COMPLETED
 **TITLE**: Remove Direct Catalog Links Without Subfolders
 **DESCRIPTION/ROADMAP**:
 - Identify all 'Catalog' links in the application
@@ -25,14 +95,14 @@ Andrea requires that the entire application is fully responsive for a seamless u
 - Test navigation to confirm no orphan or dead-end links remain
 
 **SPECIAL NOTE**:
-Andrea wants to eliminate all direct catalog links that do not lead to a subfolder, improving navigation clarity.
+Catalog menu has been completely removed. 'Products', 'Categories', and 'Offers' are now top-level sidebar items, as requested by Andrea.
 
 **STORY POINT**: TBD
-**STATUS**: 🔴 Not Started
+**STATUS**: ✅ COMPLETED
 
 ================================================================================
 
-## TASK #17
+## TASK #17 ✅ COMPLETED
 **TITLE**: Add Pagination to Orders Page
 **DESCRIPTION/ROADMAP**:
 - Implement pagination controls on http://localhost:3000/orders
@@ -42,10 +112,10 @@ Andrea wants to eliminate all direct catalog links that do not lead to a subfold
 - Test for performance and usability with large order datasets
 
 **SPECIAL NOTE**:
-Currently, the Orders page does not have pagination, which can cause performance and usability issues with many orders. Andrea requires proper pagination.
+Pagination for the Orders page is now implemented and fully functional.
 
 **STORY POINT**: TBD
-**STATUS**: 🔴 Not Started
+**STATUS**: ✅ COMPLETED
 
 ================================================================================
 
@@ -418,57 +488,51 @@ Funzionalità avanzate WhatsApp per il futuro. Richiede integrazione con WhatsAp
 
 ================================================================================
 
-## TASK #11
-**TITLE**: Multi-language Support Enhancement
+## TASK #23
+**TITLE**: N8N - CF Call Operator
 **DESCRIPTION/ROADMAP**:
-- Implement frontend internationalization (i18n)
-- Add backend language detection improvements
-- Create dynamic content translation system
-- Develop language-specific workflows
-- Add language switching UI components
-- Test all languages (IT, EN, ES, PT)
+- Implement a new N8N Custom Function (CF) for the "Call Operator" workflow
+- Integrate with backend as needed
+- Ensure proper error handling and logging
+- Test the workflow end-to-end
 
 **SPECIAL NOTE**:
-Il sistema supporta già multiple lingue nel backend, ma il frontend necessita di i18n completo.
+Andrea requires a dedicated N8N CF for operator call management.
 
-**STORY POINT**: 8
-**STATUS**: 🔵 PLANNED
+**STORY POINT**: TBD
+**STATUS**: 🔴 Not Started
 
 ================================================================================
 
-## TASK #12
-**TITLE**: Comprehensive Testing Implementation
+## TASK #24
+**TITLE**: N8N - CF New Order
 **DESCRIPTION/ROADMAP**:
-- Implement unit tests for all services and utilities
-- Add integration tests for API endpoints and database operations
-- Create end-to-end tests for critical user flows (login, orders, WhatsApp)
-- Set up test coverage reporting (target >80%)
-- Add automated testing in CI/CD pipeline
-- Create test documentation and guidelines
+- Implement a new N8N Custom Function (CF) for the "New Order" workflow
+- Integrate with backend as needed
+- Ensure proper error handling and logging
+- Test the workflow end-to-end
 
 **SPECIAL NOTE**:
-Da implementare SOLO quando la situazione sarà stabile. Prima priorità è stabilizzare le funzionalità core, poi aggiungere test completi per garantire qualità del codice.
+Andrea requires a dedicated N8N CF for new order management.
 
-**STORY POINT**: 8
-**STATUS**: 🔵 PLANNED - When System Stable
+**STORY POINT**: TBD
+**STATUS**: 🔴 Not Started
 
 ================================================================================
 
-## TASK #13
-**TITLE**: Security & Performance Optimization
+## TASK #25
+**TITLE**: Integrate Google Translate Node for English Conversion in RAG Search
 **DESCRIPTION/ROADMAP**:
-- Implement comprehensive API rate limiting
-- Add advanced authentication (2FA)
-- Optimize database queries for performance
-- Add frontend performance monitoring
-- Implement security headers and OWASP compliance
-- Add comprehensive error logging and monitoring
+- Integrate a Google Translate node into the RAG search workflow
+- Automatically convert any non-English content (especially FAQs) to English before processing
+- Update backend logic to ensure all relevant content is translated to English within the RAG flow
+- Test the system to confirm correct translation and improved search accuracy
 
 **SPECIAL NOTE**:
-Task di ottimizzazione generale per sicurezza e performance. Da implementare quando le funzionalità core sono stabili.
+Andrea requires that all non-English content, especially FAQs, is automatically translated to English in the RAG search process for better LLM results.
 
-**STORY POINT**: 13
-**STATUS**: 🔵 PLANNED
+**STORY POINT**: TBD
+**STATUS**: 🔴 Not Started
 
 ================================================================================
 

@@ -353,4 +353,8 @@ Per far comunicare N8N (in Docker) con il backend, imposta la variabile d'ambien
 
 ---
 
+## Changelog
+
+- 2025-07-10: TASK #16 completed. Removed direct Catalog links without subfolders from the sidebar; only valid subcategory links remain. Navigation is now clearer as per Andrea's requirements.
+
 **Built with ❤️ for AI4Devs Final Project** 

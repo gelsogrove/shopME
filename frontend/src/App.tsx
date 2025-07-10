@@ -32,7 +32,7 @@ import { ServicesPage } from "./pages/ServicesPage"
 import { CategoriesPage as SettingsCategoriesPage } from "./pages/settings/CategoriesPage"
 import { ChannelTypesPage } from "./pages/settings/ChannelTypesPage"
 import { LanguagesPage } from "./pages/settings/LanguagesPage"
-import N8NPage from "./pages/settings/N8NPage"
+
 import { ProductsPage as SettingsProductsPage } from "./pages/settings/ProductsPage"
 
 import SurveysPage from "./pages/SurveysPage"
@@ -119,7 +119,6 @@ export function App() {
             <Route path="channel-types" element={<ChannelTypesPage />} />
             <Route path="categories" element={<SettingsCategoriesPage />} />
             <Route path="products" element={<SettingsProductsPage />} />
-            <Route path="n8n" element={<N8NPage />} />
           </Route>
           <Route path="/gdpr" element={<Layout />}>
             <Route index element={<GdprPage />} />

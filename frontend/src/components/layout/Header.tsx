@@ -20,7 +20,7 @@ import {
     Phone,
     Settings,
     ShieldCheck,
-    User,
+    User
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
