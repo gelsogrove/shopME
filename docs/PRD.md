@@ -1,5 +1,36 @@
 # ShopMe - WhatsApp E-commerce Platform PRD
 
+---
+
+## 🚀 Recent Changes & Roadmap (2025-07)
+
+### ✅ Completed & In Progress
+- **Catalog menu removed:** Sidebar now shows Products, Categories, Offers as top-level items.
+- **Orders page pagination:** Implemented server-side pagination; marked as completed.
+- **Order filters bug:** Known issue—filters (search, status, date) on orders list not working; see bug task.
+- **Customer discount logic:** Customer discount field enforced; best discount (customer vs. offer) always applied in RAG search.
+- **Address handling:** Shipping Address and Invoice Address will both be managed as structured objects (field by field) in forms and backend.
+- **Pagination limits:** All paginated lists will show 5 more items per page (default and max).
+- **N8N Custom Functions:** New tasks for "CF Call Operator" and "CF New Order" workflows.
+- **Google Translate in RAG:** All non-English content (especially FAQs) will be translated to English before LLM processing.
+
+### 🐞 Known Bugs
+- **Order list filters:** Filters on the orders page do not work as expected (search, status, date, etc.).
+- **Customer discount in RAG:** Must always apply the best discount (customer or offer) in price calculations.
+
+### ⏳ Phase 2 Tasks (Deferred)
+- **Advanced WhatsApp Features** (media, templates, bulk, scheduling)
+- **Security & Performance Optimization** (rate limiting, 2FA, monitoring, OWASP)
+- **Full Application Responsiveness** (mobile/tablet/desktop)
+- **Database Cleanup** (remove unused tables)
+
+---
+
+## 📋 Task List Reference
+See `docs/other/task-list.md` for the full, up-to-date structured task list, including all completed, active, bug, and phase 2 tasks.
+
+---
+
 ## ❓ **FREQUENTLY ASKED QUESTIONS - TECHNICAL CLARIFICATIONS**
 
 ### **Q1: Come si calcolano i prezzi con sconti e offerte?**

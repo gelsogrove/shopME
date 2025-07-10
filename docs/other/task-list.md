@@ -52,40 +52,6 @@ Andrea requires that both addresses are handled in a consistent, structured way 
 
 ================================================================================
 
-## TASK #18
-**TITLE**: Database Cleanup: Remove Unused Tables
-**DESCRIPTION/ROADMAP**:
-- Identify all tables in the database that are no longer used by the application
-- Remove unused tables from the Prisma schema
-- Create and run proper Prisma migrations to drop these tables
-- Ensure no code references or dependencies remain for removed tables
-- Test the system thoroughly to confirm no regressions or errors
-- Update documentation and ERD if necessary
-
-**SPECIAL NOTE**:
-Andrea requires a clean and maintainable database. All legacy or unused tables must be removed to avoid confusion and improve performance.
-
-**STORY POINT**: TBD
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #15
-**TITLE**: Full Application Responsiveness
-**DESCRIPTION/ROADMAP**:
-- Review all frontend pages and components to ensure they are fully responsive
-- Test on various devices and screen sizes (mobile, tablet, desktop)
-- Fix any layout, overflow, or usability issues
-- Maintain design system consistency and accessibility
-
-**SPECIAL NOTE**:
-Andrea requires that the entire application is fully responsive for a seamless user experience on all devices.
-
-**STORY POINT**: TBD
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
 ## TASK #16 ✅ COMPLETED
 **TITLE**: Remove Direct Catalog Links Without Subfolders
 **DESCRIPTION/ROADMAP**:
@@ -470,24 +436,6 @@ Andrea requires that embedding is always up-to-date and automatic. The manual em
 
 ================================================================================
 
-## TASK #10
-**TITLE**: Advanced WhatsApp Features
-**DESCRIPTION/ROADMAP**:
-- Implement rich media support (images, documents)
-- Integrate WhatsApp Business API features
-- Add template message management
-- Create automated response system
-- Implement message scheduling
-- Add bulk messaging capabilities
-
-**SPECIAL NOTE**:
-Funzionalità avanzate WhatsApp per il futuro. Richiede integrazione con WhatsApp Business API ufficiale.
-
-**STORY POINT**: 21
-**STATUS**: 🔵 PLANNED
-
-================================================================================
-
 ## TASK #23
 **TITLE**: N8N - CF Call Operator
 **DESCRIPTION/ROADMAP**:
@@ -530,6 +478,23 @@ Andrea requires a dedicated N8N CF for new order management.
 
 **SPECIAL NOTE**:
 Andrea requires that all non-English content, especially FAQs, is automatically translated to English in the RAG search process for better LLM results.
+
+**STORY POINT**: TBD
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #27
+**TITLE**: Payment Page: Create Order and Handle Shipping Address via Call Function
+**DESCRIPTION/ROADMAP**:
+- On payment confirmation, trigger a call function to the backend to create a new order record
+- Manage the shipping address as part of this call function flow
+- Update the call function prompt to include all necessary order and shipping address details
+- Ensure the backend correctly saves the order and shipping address
+- Test the end-to-end flow from payment to order creation and address storage
+
+**SPECIAL NOTE**:
+Andrea requires that the payment page, once payment is confirmed, always triggers a backend call function to create the order and handle the shipping address. The prompt for the call function must be updated to reflect this logic.
 
 **STORY POINT**: TBD
 **STATUS**: 🔴 Not Started
@@ -593,3 +558,94 @@ Andrea requires that all non-English content, especially FAQs, is automatically 
 
 *Last updated: 2025-07-09*
 *Format: Structured Task List v2.0*
+
+================================================================================
+
+# PHASE 2 TASKS
+
+## TASK #10
+**TITLE**: Advanced WhatsApp Features
+**DESCRIPTION/ROADMAP**:
+- Implement rich media support (images, documents)
+- Integrate WhatsApp Business API features
+- Add template message management
+- Create automated response system
+- Implement message scheduling
+- Add bulk messaging capabilities
+
+**SPECIAL NOTE**:
+Funzionalità avanzate WhatsApp per il futuro. Richiede integrazione con WhatsApp Business API ufficiale.
+
+**STORY POINT**: 21
+**STATUS**: 🔵 PHASE 2
+
+================================================================================
+
+## TASK #13
+**TITLE**: Security & Performance Optimization
+**DESCRIPTION/ROADMAP**:
+- Implement comprehensive API rate limiting
+- Add advanced authentication (2FA)
+- Optimize database queries for performance
+- Add frontend performance monitoring
+- Implement security headers and OWASP compliance
+- Add comprehensive error logging and monitoring
+
+**SPECIAL NOTE**:
+Task di ottimizzazione generale per sicurezza e performance. Da implementare quando le funzionalità core sono stabili.
+
+**STORY POINT**: 13
+**STATUS**: 🔵 PHASE 2
+
+================================================================================
+
+## TASK #15
+**TITLE**: Full Application Responsiveness
+**DESCRIPTION/ROADMAP**:
+- Review all frontend pages and components to ensure they are fully responsive
+- Test on various devices and screen sizes (mobile, tablet, desktop)
+- Fix any layout, overflow, or usability issues
+- Maintain design system consistency and accessibility
+
+**SPECIAL NOTE**:
+Andrea requires that the entire application is fully responsive for a seamless user experience on all devices.
+
+**STORY POINT**: TBD
+**STATUS**: 🔵 PHASE 2
+
+================================================================================
+
+## TASK #18
+**TITLE**: Database Cleanup: Remove Unused Tables
+**DESCRIPTION/ROADMAP**:
+- Identify all tables in the database that are no longer used by the application
+- Remove unused tables from the Prisma schema
+- Create and run proper Prisma migrations to drop these tables
+- Ensure no code references or dependencies remain for removed tables
+- Test the system thoroughly to confirm no regressions or errors
+- Update documentation and ERD if necessary
+
+**SPECIAL NOTE**:
+Andrea requires a clean and maintainable database. All legacy or unused tables must be removed to avoid confusion and improve performance.
+
+**STORY POINT**: TBD
+**STATUS**: 🔵 PHASE 2
+
+================================================================================
+
+## TASK #26
+**TITLE**: Automatic Embedding Trigger on Data Change
+**DESCRIPTION/ROADMAP**:
+- Remove the manual embedding button from all relevant sections (documents, products, FAQs, services, etc.)
+- Automatically trigger the embedding process after every add, update, or delete operation
+- Ensure this behavior is consistent across all sessions and entity types
+- No manual intervention required for embedding generation
+- Test thoroughly to confirm embeddings are always up-to-date
+
+**SPECIAL NOTE**:
+Andrea requires that embedding is always up-to-date and automatic. The manual embedding button is no longer desired and must be removed everywhere.
+
+**STORY POINT**: TBD
+**STATUS**: 🔴 Not Started
+
+================================================================================
