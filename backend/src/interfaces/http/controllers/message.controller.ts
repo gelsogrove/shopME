@@ -3,7 +3,6 @@ import { Request, Response } from "express"
 import { MessageService } from "../../../application/services/message.service"
 import { detectLanguage } from "../../../utils/language-detector"
 import logger from "../../../utils/logger"
-import { N8nPayloadBuilder } from "../../../utils/n8n-payload-builder"
 
 const prisma = new PrismaClient()
 
@@ -166,72 +165,154 @@ export class MessageController {
         `[MESSAGES API] ✅ User is registered - proceeding with normal N8N flow`
       )
 
-      // Process the message with base MessageService (security only)
-      // N8N will handle the business logic through webhooks
-      const response = await this.messageService.processMessage(
-        message,
+      // Always save inbound message to history, even in manual operator mode
+      const messageRepository = this.messageService.getMessageRepository();
+      await messageRepository.saveMessage({
+        workspaceId,
         phoneNumber,
-        workspaceId
-      )
+        message,
+        response: "",
+        agentSelected: "MANUAL_OPERATOR"
+      });
 
-      // Se security ok, chiama N8N
-      if (response === null) {
-        try {
-          // Costruisco il payload corretto per N8N
-          const simplifiedPayload = await N8nPayloadBuilder.buildSimplifiedPayload(
+      // PATCH: Check if customer has activeChatbot === false (manual operator mode)
+      const customer = await prisma.customers.findFirst({
+        where: {
+          phone: phoneNumber,
+          workspaceId,
+          isActive: true,
+        },
+      });
+      if (customer && customer.activeChatbot === false) {
+        logger.info(`[MESSAGES API] Manual operator mode active for customer ${customer.id} - skipping N8N/LLM`);
+        // Message is now always saved above
+        res.status(200).json({
+          success: true,
+          data: {
+            originalMessage: message,
+            processedMessage: "",
+            phoneNumber: phoneNumber,
+            workspaceId: workspaceId,
+            timestamp: new Date().toISOString(),
+            metadata: { agentName: "MANUAL_OPERATOR" },
+            detectedLanguage: detectedLanguage,
+            sessionId: sessionId,
+            customerId: `customer-${phoneNumber.replace("+", "")}`,
+            customerLanguage: detectedLanguage,
+          },
+        });
+        return;
+      }
+
+      // If we reach here, chatbot is active: call N8N and return AI response
+      try {
+        // Build simplified payload (simulate WhatsApp structure for N8N)
+        const n8nWebhookUrl = "http://localhost:5678/webhook/webhook-start"
+        const sessionToken = sessionId || `api-session-${phoneNumber}`
+        const N8nPayloadBuilder = require("../../../utils/n8n-payload-builder").N8nPayloadBuilder
+        const simplifiedPayload = await N8nPayloadBuilder.buildSimplifiedPayload(
+          workspaceId,
+          phoneNumber,
+          message,
+          sessionToken,
+          "api"
+        )
+        // Send to N8N
+        const n8nResponse = await N8nPayloadBuilder.sendToN8N(
+          simplifiedPayload,
+          n8nWebhookUrl,
+          "API Chat Controller"
+        )
+        logger.info(`[N8N] ✅ N8N call completed for ${phoneNumber}`)
+        logger.info(`[N8N-RESPONSE] ✅ Received response from N8N:`, n8nResponse)
+        // Parse N8N response
+        let messageToSend = null
+        if (
+          Array.isArray(n8nResponse) &&
+          n8nResponse.length > 0 &&
+          n8nResponse[0].message
+        ) {
+          messageToSend = n8nResponse[0].message
+        } else if (n8nResponse && n8nResponse.message) {
+          messageToSend = n8nResponse.message
+        }
+        if (messageToSend) {
+          // Save AI response to history
+          await messageRepository.saveMessage({
             workspaceId,
             phoneNumber,
-            message, // messageContent
-            sessionId || "",
-            "MessageController"
-          );
-          const n8nResponse = await N8nPayloadBuilder.sendToN8N(
-            simplifiedPayload,
-            "http://localhost:5678/webhook/webhook-start",
-            "MessageController"
-          );
+            message,
+            response: messageToSend,
+            agentSelected: "N8N_SUCCESS"
+          })
           res.status(200).json({
             success: true,
             data: {
               originalMessage: message,
-              processedMessage: n8nResponse.message,
+              processedMessage: messageToSend,
               phoneNumber: phoneNumber,
               workspaceId: workspaceId,
               timestamp: new Date().toISOString(),
-              metadata: { agentName: "N8N Workflow" },
+              metadata: { agentName: "N8N_SUCCESS" },
               detectedLanguage: detectedLanguage,
               sessionId: sessionId,
-              customerId: `customer-${phoneNumber.replace("+", "")}`,
+              customerId: customer ? customer.id : undefined,
               customerLanguage: detectedLanguage,
             },
-          });
-        } catch (error: any) {
-          logger.error(`[MESSAGES API] ❌ Error calling N8N:`, error);
-          res.status(500).json({
-            success: false,
-            error: "N8N call failed",
-            details: error.message,
-          });
+          })
+        } else {
+          // Fallback message
+          const fallbackMessage = "Ho ricevuto la tua richiesta ma non sono riuscito a generare una risposta. Riprova più tardi."
+          await messageRepository.saveMessage({
+            workspaceId,
+            phoneNumber,
+            message,
+            response: fallbackMessage,
+            agentSelected: "N8N_FALLBACK"
+          })
+          res.status(200).json({
+            success: true,
+            data: {
+              originalMessage: message,
+              processedMessage: fallbackMessage,
+              phoneNumber: phoneNumber,
+              workspaceId: workspaceId,
+              timestamp: new Date().toISOString(),
+              metadata: { agentName: "N8N_FALLBACK" },
+              detectedLanguage: detectedLanguage,
+              sessionId: sessionId,
+              customerId: customer ? customer.id : undefined,
+              customerLanguage: detectedLanguage,
+            },
+          })
         }
-        return;
+      } catch (error) {
+        logger.error(`[N8N-ERROR] ❌ Error with N8N processing for ${phoneNumber}:`, error)
+        const errorMessage = `❌ Si è verificato un errore durante l'elaborazione del messaggio.\n\n🔍 Dettagli tecnici:\n${error.message}\n\nRiprova più tardi o contatta il supporto.`
+        await messageRepository.saveMessage({
+          workspaceId,
+          phoneNumber,
+          message,
+          response: errorMessage,
+          agentSelected: "N8N_ERROR"
+        })
+        res.status(200).json({
+          success: true,
+          data: {
+            originalMessage: message,
+            processedMessage: errorMessage,
+            phoneNumber: phoneNumber,
+            workspaceId: workspaceId,
+            timestamp: new Date().toISOString(),
+            metadata: { agentName: "N8N_ERROR" },
+            detectedLanguage: detectedLanguage,
+            sessionId: sessionId,
+            customerId: customer ? customer.id : undefined,
+            customerLanguage: detectedLanguage,
+          },
+        })
       }
 
-      // Return the processed message with metadata
-      res.status(200).json({
-        success: true,
-        data: {
-          originalMessage: message,
-          processedMessage: response,
-          phoneNumber: phoneNumber,
-          workspaceId: workspaceId,
-          timestamp: new Date().toISOString(),
-          metadata: { agentName: "N8N Workflow" },
-          detectedLanguage: detectedLanguage,
-          sessionId: sessionId,
-          customerId: `customer-${phoneNumber.replace("+", "")}`,
-          customerLanguage: detectedLanguage,
-        },
-      })
     } catch (error) {
       logger.error("[MESSAGES API] Error processing message:", error)
       res.status(500).json({

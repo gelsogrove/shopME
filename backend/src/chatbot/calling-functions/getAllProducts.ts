@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import type { ProductWithPrice } from "../../application/services/price-calculation.service";
 import logger from '../../utils/logger';
 
 const prisma = new PrismaClient();
@@ -79,11 +80,30 @@ Contatta il nostro staff per maggiori informazioni sui prodotti disponibili.`;
       return acc;
     }, {} as Record<string, typeof products>);
 
+    // After fetching products, import and use PriceCalculationService:
+    const { PriceCalculationService } = await import("../../application/services/price-calculation.service");
+    const priceService = new PriceCalculationService(prisma);
+    const productIds = products.map((p) => p.id);
+    const customerDiscount = params.customerId ? (await prisma.customers.findUnique({ where: { id: params.customerId }, select: { discount: true } }))?.discount || 0 : 0;
+    const priceResult = await priceService.calculatePricesWithDiscounts(workspaceId, productIds, customerDiscount);
+    const priceMap = new Map(priceResult.products.map(p => [p.id, p]));
+
     // Formatta i prodotti per la risposta
     const productList = Object.entries(productsByCategory).map(([categoryName, categoryProducts]) => {
       const productItems = categoryProducts.map((product, index) => {
+        const priceData = priceMap.get(product.id) as ProductWithPrice | undefined;
+        const hasDiscount = (priceData?.appliedDiscount || 0) > 0;
+        const prezzoFinale = priceData?.finalPrice ?? product.price;
+        const prezzoOriginale = priceData?.originalPrice ?? product.price;
+        const scontoPercentuale = priceData?.appliedDiscount || 0;
+        const scontoTipo = priceData?.discountSource || null;
+        let priceText = `€${prezzoFinale.toFixed(2)}`;
+        if (hasDiscount) {
+          priceText += ` (scontato del ${scontoPercentuale}%, prezzo pieno €${prezzoOriginale.toFixed(2)}`;
+          if (scontoTipo) priceText += `, fonte: ${scontoTipo}`;
+          priceText += ")";
+        }
         const stockText = product.stock > 0 ? `✅ Disponibile (${product.stock})` : '❌ Esaurito';
-        const priceText = product.price ? `€${product.price.toFixed(2)}` : 'Prezzo da definire';
         
         return `   ${index + 1}. **${product.name}** - ${priceText} - ${stockText}${product.description ? `\n      _${product.description}_` : ''}`;
       }).join('\n');
@@ -101,15 +121,33 @@ Dimmi quale prodotto ti interessa o scrivi il nome specifico per maggiori dettag
     
     return {
       response: productsMessage,
-      products: products.map(product => ({
-        id: product.id,
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        stock: product.stock,
-        sku: product.sku,
-        category: product.category?.name
-      })),
+      products: products.map(product => {
+        const priceData = priceMap.get(product.id) as ProductWithPrice | undefined;
+        const hasDiscount = (priceData?.appliedDiscount || 0) > 0;
+        const prezzoFinale = priceData?.finalPrice ?? product.price;
+        const prezzoOriginale = priceData?.originalPrice ?? product.price;
+        const scontoPercentuale = priceData?.appliedDiscount || 0;
+        const scontoTipo = priceData?.discountSource || null;
+        let formatted = `Prezzo: €${prezzoFinale.toFixed(2)}`;
+        if (hasDiscount) {
+          formatted += ` (scontato del ${scontoPercentuale}%, prezzo pieno €${prezzoOriginale.toFixed(2)}`;
+          if (scontoTipo) formatted += `, fonte: ${scontoTipo}`;
+          formatted += ")";
+        }
+        return {
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          price: prezzoFinale,
+          originalPrice: prezzoOriginale,
+          discountPercent: scontoPercentuale,
+          discountSource: scontoTipo,
+          stock: product.stock,
+          sku: product.sku,
+          category: product.category?.name,
+          formatted,
+        };
+      }),
       totalProducts: products.length
     };
     

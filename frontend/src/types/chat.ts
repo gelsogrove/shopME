@@ -4,6 +4,13 @@ export interface Message {
   sender: "user" | "customer"
   timestamp: string
   agentName?: string
+  metadata?: {
+    isOperatorMessage?: boolean
+    isOperatorControl?: boolean
+    agentSelected?: string
+    sentBy?: string
+    operatorId?: string
+  }
 }
 
 export interface ShippingAddress {

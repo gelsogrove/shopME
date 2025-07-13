@@ -158,13 +158,9 @@ router.post('/get-all-products',
    *           schema:
    *             type: object
    *             required:
-   *               - phoneNumber
    *               - workspaceId
    *               - message
    *             properties:
-   *               phoneNumber:
-   *                 type: string
-   *                 description: Customer phone number
    *               workspaceId:
    *                 type: string
    *                 description: Workspace ID
@@ -174,6 +170,9 @@ router.post('/get-all-products',
    *               message:
    *                 type: string
    *                 description: User message requesting categories
+   *               phoneNumber:
+   *                 type: string
+   *                 description: Customer phone number (optional)
    *     responses:
    *       200:
    *         description: Categories retrieved successfully

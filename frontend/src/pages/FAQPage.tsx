@@ -2,16 +2,15 @@ import { PageLayout } from "@/components/layout/PageLayout"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { FormSheet } from "@/components/shared/FormSheet"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { FAQ, faqApi } from "@/services/faqApi"
@@ -24,7 +23,6 @@ export function FAQPage() {
   const { workspace, loading: isLoadingWorkspace } = useWorkspace()
   const [faqs, setFaqs] = useState<FAQ[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isGeneratingEmbeddings, setIsGeneratingEmbeddings] = useState(false)
   const [searchValue, setSearchValue] = useState("")
   const [showAddSheet, setShowAddSheet] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
@@ -49,25 +47,6 @@ export function FAQPage() {
       loadFAQs()
     }
   }, [workspace?.id, isLoadingWorkspace])
-
-  const handleGenerateEmbeddings = async () => {
-    if (!workspace?.id) return
-
-    setIsGeneratingEmbeddings(true)
-    try {
-      await faqApi.generateEmbeddings(workspace.id)
-      
-      toast.success('FAQ embeddings generation started successfully')
-      
-      // Reload FAQs to see updated status
-      await loadFAQs()
-    } catch (error) {
-      console.error('Failed to generate FAQ embeddings:', error)
-      toast.error('Failed to generate FAQ embeddings')
-    } finally {
-      setIsGeneratingEmbeddings(false)
-    }
-  }
 
   const filteredFAQs = faqs.filter((faq) =>
     Object.values(faq).some((value) =>
@@ -260,16 +239,6 @@ export function FAQPage() {
         searchValue={searchValue}
         onSearch={setSearchValue}
         searchPlaceholder="Search FAQs..."
-        extraButtons={
-          <Button
-            onClick={handleGenerateEmbeddings}
-            disabled={isGeneratingEmbeddings}
-            size="sm"
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            {isGeneratingEmbeddings ? "Generating..." : "Generate Embeddings"}
-          </Button>
-        }
         onAdd={() => setShowAddSheet(true)}
         addButtonText="Add"
         data={filteredFAQs}

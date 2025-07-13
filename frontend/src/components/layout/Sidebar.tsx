@@ -76,20 +76,20 @@ export function Sidebar() {
       icon: Users,
     },
     // Catalog removed, add its children as top-level links
-    {
-      href: "/products",
-      label: "Products",
-      icon: Package2,
-    },
-    {
-      href: "/categories",
-      label: "Categories",
-      icon: Tag,
-    },
-    {
-      href: "/offers",
-      label: "Offers",
-      icon: Percent,
+        {
+          href: "/products",
+          label: "Products",
+          icon: Package2,
+        },
+        {
+          href: "/categories",
+          label: "Categories",
+          icon: Tag,
+        },
+        {
+          href: "/offers",
+          label: "Offers",
+          icon: Percent,
     },
     {
       href: "/services",
@@ -110,7 +110,7 @@ export function Sidebar() {
       href: "/orders",
       label: "Orders",
       icon: ShoppingCart,
-    }
+    } 
   ]
 
   return (

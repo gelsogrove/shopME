@@ -39,7 +39,7 @@ export function CategoriesPage() {
               searchPlaceholder="Search categories..."
               itemCount={categories.length}
               onAdd={() => setShowAddCategoryDialog(true)}
-              addButtonText="Add Category"
+              addButtonText="Add"
             />
 
             <div className="mt-6 w-full">

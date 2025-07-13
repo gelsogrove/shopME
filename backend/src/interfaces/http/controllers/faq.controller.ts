@@ -156,6 +156,8 @@ export class FaqController {
       };
       
       const faq = await this.faqService.create(faqData);
+      // Fire-and-forget: trigger embedding regeneration for FAQs
+      embeddingService.generateFAQEmbeddings(workspaceId).catch((err) => logger.error('Embedding generation error (create):', err));
       return res.status(201).json(faq);
     } catch (error: any) {
       logger.error("Error creating FAQ:", error);
@@ -219,6 +221,11 @@ export class FaqController {
         isActive
       });
       
+      // Fire-and-forget: trigger embedding regeneration for FAQs
+      const workspaceIdForUpdate = faq?.workspaceId || req.params.workspaceId;
+      if (workspaceIdForUpdate) {
+        embeddingService.generateFAQEmbeddings(workspaceIdForUpdate).catch((err) => logger.error('Embedding generation error (update):', err));
+      }
       return res.json(faq);
     } catch (error: any) {
       logger.error(`Error updating FAQ ${req.params.id}:`, error);
@@ -269,6 +276,12 @@ export class FaqController {
       
       try {
         await this.faqService.delete(id);
+        // Fire-and-forget: trigger embedding regeneration for FAQs
+        const deletedFaq = await this.faqService.getById(id); // Might be null after delete
+        const workspaceIdForDelete = deletedFaq ? deletedFaq.workspaceId : req.params.workspaceId;
+        if (workspaceIdForDelete) {
+          embeddingService.generateFAQEmbeddings(workspaceIdForDelete).catch((err) => logger.error('Embedding generation error (delete):', err));
+        }
         return res.status(204).send();
       } catch (error: any) {
         if (error.message === 'FAQ not found') {

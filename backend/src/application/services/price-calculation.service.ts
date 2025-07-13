@@ -7,17 +7,7 @@
 import { PrismaClient } from '@prisma/client';
 import logger from '../../utils/logger';
 
-interface OfferData {
-  id: string;
-  name: string;
-  discountPercent: number;
-  startDate: Date;
-  endDate: Date;
-  isActive: boolean;
-  categoryId: string | null;
-}
-
-interface ProductWithPrice {
+export interface ProductWithPrice {
   id: string;
   name: string;
   price: number;
@@ -38,6 +28,16 @@ interface PriceCalculationResult {
     appliedDiscount: number;
     source: 'customer' | 'offer' | 'none';
   };
+}
+
+export interface OfferData {
+  id: string;
+  name: string;
+  discountPercent: number;
+  startDate: Date;
+  endDate: Date;
+  isActive: boolean;
+  categoryId: string | null;
 }
 
 export class PriceCalculationService {

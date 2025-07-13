@@ -422,6 +422,21 @@ export function ClientSheet({
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="discount" className="text-sm font-medium">
+                        Discount (%)
+                      </Label>
+                      <Input
+                        id="discount"
+                        name="discount"
+                        type="number"
+                        min={0}
+                        step={0.01}
+                        value={discount}
+                        onChange={(e) => setDiscount(e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -667,6 +682,10 @@ export function ClientSheet({
                     <div className="flex justify-between">
                       <dt className="font-medium">Phone:</dt>
                       <dd>{fetchedClient?.phone}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="font-medium">Discount:</dt>
+                      <dd>{fetchedClient?.discount ?? 0}%</dd>
                     </div>
                   </dl>
                 </div>

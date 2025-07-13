@@ -72,6 +72,37 @@ const prisma = new PrismaClient();
  *           type: array
  *           items:
  *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 description: Product ID
+ *               name:
+ *                 type: string
+ *                 description: Product name
+ *               description:
+ *                 type: string
+ *                 description: Product description
+ *               price:
+ *                 type: number
+ *                 description: Discounted price (final price shown to customer)
+ *               originalPrice:
+ *                 type: number
+ *                 description: Original price before discount
+ *               discountPercent:
+ *                 type: number
+ *                 description: Discount percent applied (0 if none)
+ *               discountSource:
+ *                 type: string
+ *                 description: Source of discount ("customer" or "offer")
+ *               formatted:
+ *                 type: string
+ *                 description: Formatted price string (e.g., "Prezzo: €8,01 (scontato del 10%, prezzo pieno €8,90, fonte: customer)")
+ *               stock:
+ *                 type: number
+ *                 description: Units in stock
+ *               category:
+ *                 type: string
+ *                 description: Product category
  *         faqs:
  *           type: array
  *           items:
@@ -1163,7 +1194,33 @@ ${JSON.stringify(ragResults, null, 2)}`;
 
       res.json({
         success: true,
-        products: filteredProducts,
+        products: filteredProducts.map(product => {
+          // Build formatted string if not present
+          const hasDiscount = (product.appliedDiscount || 0) > 0;
+          const prezzoFinale = product.finalPrice ?? product.price;
+          const prezzoOriginale = product.originalPrice ?? product.price;
+          const scontoPercentuale = product.appliedDiscount || 0;
+          const scontoTipo = product.discountSource || null;
+          let formatted = `Prezzo: €${prezzoFinale.toFixed(2)}`;
+          if (hasDiscount) {
+            formatted += ` (scontato del ${scontoPercentuale}%, prezzo pieno €${prezzoOriginale.toFixed(2)}`;
+            if (scontoTipo) formatted += `, fonte: ${scontoTipo}`;
+            formatted += ")";
+          }
+          return {
+            id: product.id,
+            name: product.name,
+            // description, stock, and category may not be present; fallback to empty string or null
+            description: '',
+            price: product.finalPrice,
+            originalPrice: product.originalPrice,
+            discountPercent: product.appliedDiscount,
+            discountSource: product.discountSource,
+            formatted,
+            stock: null,
+            category: product.categoryId ? String(product.categoryId) : null
+          };
+        }),
         discountInfo: {
           customerDiscount,
           bestOfferDiscount: result.discountsApplied.bestOfferDiscount,
@@ -1749,7 +1806,18 @@ ${JSON.stringify(ragResults, null, 2)}`;
       res.json({
         success: true,
         workspaceId,
-        products: formattedProducts,
+        products: formattedProducts.map(product => ({
+          id: product.id,
+          name: product.name,
+          description: product.description || '',
+          price: product.price,
+          originalPrice: product.price, // Assuming original price is the same as current price for mock data
+          discountPercent: 0, // No discount for mock data
+          discountSource: null, // No discount source for mock data
+          formatted: `Prezzo: €${product.price} (scontato del 0%, prezzo pieno €${product.price}, fonte: mock)`,
+          stock: product.stock || null,
+          category: product.category || null
+        })),
         summary: {
           found: formattedProducts.length,
           totalInWorkspace: totalProducts,
@@ -1848,20 +1916,20 @@ ${JSON.stringify(ragResults, null, 2)}`;
     try {
       const { phoneNumber, workspaceId, customerId, message } = req.body;
 
-      if (!phoneNumber || !workspaceId || !message) {
+      if (!workspaceId || !message) {
         res.status(400).json({
-          error: 'Missing required fields: phoneNumber, workspaceId, message'
+          error: 'Missing required fields: workspaceId, message'
         });
         return;
       }
 
-      logger.info(`[INTERNAL_API] Getting categories for ${phoneNumber}`);
+      logger.info(`[INTERNAL_API] Getting categories for workspace ${workspaceId}`);
 
       const result = await getAllCategories({
-        phoneNumber,
         workspaceId,
         customerId,
-        message
+        message,
+        phoneNumber // opzionale, passato solo se presente
       });
 
       res.json({

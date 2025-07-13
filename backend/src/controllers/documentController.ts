@@ -63,6 +63,8 @@ export class DocumentController {
         mimeType: req.file.mimetype,
         workspaceId: workspaceId
       });
+      // Fire-and-forget: trigger embedding regeneration for documents
+      require('../services/embeddingService').embeddingService.generateDocumentEmbeddings(workspaceId).catch((err) => console.error('Embedding generation error (create):', err));
 
       res.status(201).json({
         success: true,
@@ -257,6 +259,12 @@ export class DocumentController {
       }
 
       await documentService.deleteDocument(id);
+      // Fire-and-forget: trigger embedding regeneration for documents
+      const deletedDoc = await documentService.getDocumentById(id); // Might be null after delete
+      const workspaceIdForDelete = deletedDoc ? deletedDoc.workspaceId : req.body.workspaceId || req.query.workspaceId;
+      if (workspaceIdForDelete) {
+        require('../services/embeddingService').embeddingService.generateDocumentEmbeddings(workspaceIdForDelete).catch((err) => console.error('Embedding generation error (delete):', err));
+      }
 
       res.status(200).json({
         success: true,
@@ -415,6 +423,11 @@ export class DocumentController {
       }
 
       const updatedDocument = await documentService.updateDocument(id, updateData);
+      // Fire-and-forget: trigger embedding regeneration for documents
+      const workspaceIdForUpdate = updatedDocument?.workspaceId || req.body.workspaceId || req.query.workspaceId;
+      if (workspaceIdForUpdate) {
+        require('../services/embeddingService').embeddingService.generateDocumentEmbeddings(workspaceIdForUpdate).catch((err) => console.error('Embedding generation error (update):', err));
+      }
 
       res.status(200).json({
         success: true,

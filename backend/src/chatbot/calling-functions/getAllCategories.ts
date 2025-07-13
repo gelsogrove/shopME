@@ -10,10 +10,10 @@ const prisma = new PrismaClient();
  */
 
 export interface GetAllCategoriesParams {
-  phoneNumber: string;
   workspaceId: string;
   customerId?: string;
   message: string;
+  phoneNumber?: string;
 }
 
 export interface GetAllCategoriesResult {
@@ -26,9 +26,9 @@ export interface GetAllCategoriesResult {
  * Funzione per ottenere tutte le categorie
  */
 export async function getAllCategories(params: GetAllCategoriesParams): Promise<GetAllCategoriesResult> {
-  const { phoneNumber, workspaceId, message } = params;
+  const { workspaceId, message } = params;
   
-  logger.info(`[GET_ALL_CATEGORIES] Getting categories for ${phoneNumber} in workspace ${workspaceId}`);
+  logger.info(`[GET_ALL_CATEGORIES] Getting categories in workspace ${workspaceId}`);
   
   try {
     // Ottieni tutte le categorie attive del workspace
@@ -116,12 +116,12 @@ export const getAllCategoriesFunction = {
   parameters: {
     type: 'object',
     properties: {
-      phoneNumber: { type: 'string', description: 'Numero telefono utente' },
       workspaceId: { type: 'string', description: 'ID workspace' },
       customerId: { type: 'string', description: 'ID cliente (opzionale)' },
-      message: { type: 'string', description: 'Messaggio utente' }
+      message: { type: 'string', description: 'Messaggio utente' },
+      phoneNumber: { type: 'string', description: 'Numero telefono utente (opzionale)' }
     },
-    required: ['phoneNumber', 'workspaceId', 'message']
+    required: ['workspaceId', 'message']
   },
   handler: getAllCategories
 }; 

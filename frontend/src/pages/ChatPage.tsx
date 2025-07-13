@@ -15,14 +15,14 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import remarkGfm from "remark-gfm"
 import { toast } from "sonner"
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "../components/ui/alert-dialog"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
