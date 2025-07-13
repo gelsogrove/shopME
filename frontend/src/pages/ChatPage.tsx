@@ -78,6 +78,7 @@ interface Chat {
   isActive: boolean
   isFavorite: boolean
   messages?: Message[]
+  activeChatbot?: boolean
 }
 
 const formatDate = (dateString: string | null | undefined): string => {
@@ -172,11 +173,14 @@ export function ChatPage() {
     setChats(filteredChats)
   }, [allChats, clientSearchTerm])
 
-  // Select first chat when chats are loaded and no chat is selected,
-  // or select the chat matching the client filter if present
+  // Select first chat when chats are loaded and no chat is selected, or select the chat matching the client filter if present
   useEffect(() => {
+    if (chats.length > 0 && !selectedChat && !clientSearchTerm) {
+      selectChat(chats[0]);
+      return;
+    }
+    // If we have a sessionId, find that specific chat
     if (chats.length > 0 && (!selectedChat || clientSearchTerm)) {
-      // If we have a sessionId, find that specific chat
       if (sessionId) {
         const chatWithSessionId = chats.find(
           (chat) => chat.sessionId === sessionId
@@ -686,9 +690,14 @@ export function ChatPage() {
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-medium text-sm">
-                          {chat.customerName}{" "}
-                          {chat.companyName ? `(${chat.companyName})` : ""}
+                        <h3 className="font-medium text-sm flex items-center gap-1">
+                          {chat.customerName} {chat.companyName ? `(${chat.companyName})` : ""}
+                          {/* Manual operator icon if chatbot is disabled */}
+                          {chat.activeChatbot === false && (
+                            <span title="Manual Operator Control">
+                              <Bot className="h-4 w-4 text-orange-500" />
+                            </span>
+                          )}
                         </h3>
                         <p className="text-xs text-green-600">
                           {chat.customerPhone}
@@ -914,34 +923,36 @@ export function ChatPage() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Message Input */}
-              <div className="mt-2 flex gap-2">
-                <Textarea
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  placeholder="Type your message..."
-                  className="min-h-[40px] resize-none text-xs"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault()
-                      handleSubmit(e)
-                    }
-                  }}
-                  disabled={loading}
-                />
-                <Button
-                  onClick={(e) => handleSubmit(e)}
-                  className="self-end h-8 w-8 p-0"
-                  size="sm"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <Send className="h-3 w-3" />
-                  )}
-                </Button>
-              </div>
+              {/* Message Input: Only show if chatbot is disabled */}
+              {!activeChatbot && (
+                <div className="mt-2 flex gap-2">
+                  <Textarea
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                    placeholder="Type your message..."
+                    className="min-h-[40px] resize-none text-xs"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault()
+                        handleSubmit(e)
+                      }
+                    }}
+                    disabled={loading}
+                  />
+                  <Button
+                    onClick={(e) => handleSubmit(e)}
+                    className="self-end h-8 w-8 p-0"
+                    size="sm"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Send className="h-3 w-3" />
+                    )}
+                  </Button>
+                </div>
+              )}
             </>
           ) : (
             <div className="text-center py-4 text-gray-500">

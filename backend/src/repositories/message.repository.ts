@@ -541,6 +541,7 @@ export class MessageRepository {
           status: session.status,
           unreadCount: 0, // Will be updated later
           workspaceId: session.workspaceId, // Add workspaceId to the returned object
+          activeChatbot: session.customer?.activeChatbot ?? true, // Add activeChatbot for chat list icon
         }
       })
     } catch (error) {
@@ -644,6 +645,7 @@ export class MessageRepository {
               name: true,
               email: true,
               phone: true,
+              activeChatbot: true, // Include activeChatbot for chat list icon
               // Remove avatar as it doesn't exist in the schema
             },
           },
@@ -670,10 +672,11 @@ export class MessageRepository {
         take: limit,
       })
 
-      // Map sessions to include unread count
+      // Map sessions to include unread count and activeChatbot
       return chatSessions.map((session) => ({
         ...session,
         unreadCount: session.messages.length,
+        activeChatbot: session.customer?.activeChatbot ?? true,
         messages: undefined, // Remove messages array
       }))
     } catch (error) {

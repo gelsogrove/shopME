@@ -208,4 +208,58 @@ router.post('/get-all-products',
    */
   router.post('/get-all-categories', internalApiController.getAllCategories.bind(internalApiController));
 
+  /**
+   * @swagger
+   * /internal/contact-operator:
+   *   post:
+   *     tags: [Internal API]
+   *     summary: Contact the operator for a customer
+   *     security:
+   *       - InternalAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - phoneNumber
+   *               - workspaceId
+   *               - message
+   *             properties:
+   *               phoneNumber:
+   *                 type: string
+   *                 description: Customer phone number
+   *               workspaceId:
+   *                 type: string
+   *                 description: Workspace ID
+   *               customerId:
+   *                 type: string
+   *                 description: Customer ID (optional)
+   *               message:
+   *                 type: string
+   *                 description: User message requesting operator contact
+   *     responses:
+   *       200:
+   *         description: Operator contact information retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 operator_phone:
+   *                   type: string
+   *                 operator_name:
+   *                   type: string
+   *                 response_message:
+   *                   type: string
+   *       400:
+   *         description: Bad request
+   *       401:
+   *         description: Unauthorized
+   */
+  router.post('/contact-operator', (req, res) => internalApiController.contactOperator(req, res));
+
 export { router as internalApiRoutes };

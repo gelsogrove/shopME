@@ -26,6 +26,7 @@ se trovi un errore blocca il processo di check !!!
 [ ] E1. Il webhook WhatsApp `/api/whatsapp/webhook` è attivo e risponde? 
 [ ] E2. Il webhook riceve i messaggi correttamente da WhatsApp?
 [ ] E3. Viene generato un token di sessione all'arrivo di un messaggio?
+[ ] La textarea e il bottone di invio nella chat sono visibili solo quando il chatbot è disattivato (`isActiveChatbot = false`). Quando il chatbot è attivo, solo l'AI risponde e l'input manuale è nascosto.
 
 >> F. TEST DEI FLUSSI
 

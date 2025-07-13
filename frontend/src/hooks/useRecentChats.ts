@@ -41,6 +41,7 @@ export function useRecentChats() {
             unreadCount: chat.unreadCount || 0,
             isActive: true,
             isFavorite: false,
+            activeChatbot: chat.customer?.activeChatbot ?? true, // Include activeChatbot for chat list icon
           }));
           
           console.log('Transformed chats:', transformedChats);
