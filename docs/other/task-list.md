@@ -32,8 +32,7 @@ This is a bug: currently, the filters on the orders list page do not work as exp
 This is a bug: currently, customer discounts are not always applied correctly in RAG search, and the best discount logic (customer vs. offer) must be enforced. Tests are required to prevent regressions.
 
 **STORY POINT**: TBD
-- [x] COMPLETED 2024-07-10: All product list and info responses now show discount-aware prices, with correct formatting and logic as per PRD. Swagger updated accordingly.
-**STATUS**: ✅ COMPLETED
+**STATUS**: 🔴 Not Started
 
 ================================================================================
 
@@ -451,7 +450,7 @@ Andrea requires that embedding is always up-to-date and automatic. The manual em
 Andrea requires a dedicated N8N CF for operator call management.
 
 **STORY POINT**: TBD
-**STATUS**: 🔴 Not Started
+**STATUS**: ✅ COMPLETED
 
 ================================================================================
 
@@ -500,6 +499,21 @@ Andrea requires that all non-English content, especially FAQs, is automatically 
 Andrea requires that the payment page, once payment is confirmed, always triggers a backend call function to create the order and handle the shipping address. The prompt for the call function must be updated to reflect this logic.
 
 **STORY POINT**: TBD
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## BUG TASK #24
+**TITLE**: Discounted Price Not Applied in LLM/N8N Responses
+**DESCRIPTION/ROADMAP**:
+- When a customer with a discount (e.g., 10%) asks for a product price, the system returns the full price instead of the discounted price.
+- Investigate why the discount is not being applied in the LLM/N8N response flow.
+- Ensure the correct discounted price is always shown in responses, both in RAG/LLM and N8N flows.
+- Add/Update tests to verify correct discount application in all relevant endpoints and flows.
+
+**SPECIAL NOTE**:
+Andrea requires that the customer discount logic is always respected and visible to the user. No hardcoded prices; always use the dynamic, discounted price.
+
 **STATUS**: 🔴 Not Started
 
 ================================================================================
@@ -737,3 +751,8 @@ Test verifies correct backend behavior for WIP/maintenance mode, in compliance w
 **STATUS**: 🔴 Not Started
 
 ================================================================================
+
+- [ ] Ensure that when a human operator sends a message (manual operator mode), the message is always saved to the chat history, just like AI/LLM responses. This guarantees full auditability and traceability of all operator actions (operator/manual mode logic).
+- [ ] On the FAQ page (/faq), if there are 10 or fewer elements, the pagination controls should not be visible. Only show pagination if there are more than 10 items. (FAQ page pagination logic)
+- [ ] Change the 'Add Categories' button to just 'Add' for consistency across all CRUD pages (button text standardization)
+- [ ] On the Offers page (/offers), if there are fewer than 10 elements, the pagination controls should not be visible. Only show pagination if there are more than 10 items. (Offers page pagination logic)
