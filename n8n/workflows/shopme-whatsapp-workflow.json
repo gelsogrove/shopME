@@ -42,8 +42,14 @@
         180
       ],
       "id": "5d58d00e-d63a-4063-8969-ec550395c814",
-            "name": "OpenRouter Chat Model"
-      },
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "T3USl3MvX22cl3gO",
+          "name": "OpenRouter API"
+        }
+      }
+    },
     {
       "parameters": {
         "options": {
@@ -78,7 +84,7 @@
     },
     {
       "parameters": {
-        "jsCode": "//const agentConfig =$input.first().json.original.precompiledData.agentConfig\n//const conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\n\nconst messageContent= $input.first().json.messageContent\nconst sessionToken=  $input.first().json.sessionToken\n//const workspaceId = $input.first().json.original.precompiledData.agentConfig.workspaceId\nconst language =   $input.first().json.precompiledData.customer.language\nconst customerid = $input.first().json.precompiledData.customer.id\n  \nconst temperature = $input.first().json.precompiledData.agentConfig.temperature\nconst maxTokens = $input.first().json.precompiledData.agentConfig.maxTokens\nconst model = $input.first().json.precompiledData.agentConfig.model\nconst conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\nconst prompt = $input.first().json.precompiledData.agentConfig.prompt\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature,\n      maxTokens,\n      model,\n      messages: conversationHistory,\n      sessionId: sessionToken,\n      language, \n      workspaceId: $input.first().json.workspaceId,\n      customerid,\n      prompt\n    },\n \n  }\n];\n"
+        "jsCode": "//const agentConfig =$input.first().json.original.precompiledData.agentConfig\n//const conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\n\nconst messageContent= $input.first().json.messageContent\nconst sessionToken=  $input.first().json.sessionToken\n//const workspaceId = $input.first().json.original.precompiledData.agentConfig.workspaceId\nconst language =   $input.first().json.precompiledData.customer.language\nconst customerid = $input.first().json.precompiledData.customer.id\n  \nconst temperature = $input.first().json.precompiledData.agentConfig.temperature\nconst maxTokens = $input.first().json.precompiledData.agentConfig.maxTokens\nconst model = $input.first().json.precompiledData.agentConfig.model\nconst conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\nconst prompt = $input.first().json.precompiledData.agentConfig.prompt\nconst phone = $input.first().json.precompiledData.customer.phone\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature,\n      maxTokens,\n      model,\n      messages: conversationHistory,\n      sessionId: sessionToken,\n      language, \n      workspaceId: $input.first().json.workspaceId,\n      customerid,\n      prompt,\n      phone\n    },\n \n  }\n];\n"
       },
       "id": "2dd30af1-75ac-4563-b54a-4a5b5c39afdb",
       "name": "prepare-data",
@@ -200,7 +206,13 @@
         480
       ],
       "id": "9194a962-fa10-4e33-95bb-e140344ba816",
-      "name": "RagSearch()"
+      "name": "RagSearch()",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "JyyF8A2d1GosmOdd",
+          "name": "Backend API Basic Auth"
+        }
+      }
     },
     {
       "parameters": {
@@ -221,7 +233,40 @@
         480
       ],
       "id": "0f33aa9d-9736-4406-947b-d3af2be2ad9b",
-      "name": "GetAllProducts()"
+      "name": "GetAllProducts()",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "JyyF8A2d1GosmOdd",
+          "name": "Backend API Basic Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "contact operatore",
+        "method": "POST",
+        "url": "=http://host.docker.internal:3001/api/internal/contact-operator",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"phone\": \"{{ $('prepare-data').item.json.phone }}\",\n    \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        940,
+        480
+      ],
+      "id": "e8fcd67f-1a3d-49a6-a7b7-ca2c3dd80971",
+      "name": "ContactOperator()",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "JyyF8A2d1GosmOdd",
+          "name": "Backend API Basic Auth"
+        }
+      }
     }
   ],
   "pinData": {
@@ -388,17 +433,28 @@
           }
         ]
       ]
+    },
+    "ContactOperator()": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "b6101262-b3b9-442e-bea2-7eb44859775f",
+  "versionId": "1f131a99-84bc-43ef-81c3-e8b3214c7e7a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
   },
-  "id": "loGXKMTLhW6D6tZX",
+  "id": "5eykqOSTLpautSZe",
   "tags": []
 }

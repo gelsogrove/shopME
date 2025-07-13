@@ -1,5 +1,7 @@
 # 🚀 SHOPME - STRUCTURED TASK LIST (PRIORITY ORDERED)
 
+> [UPDATE 2025-07-09] Technical checklist (check.md) updated: Added check for chat input visibility logic (textarea and send button only visible when chatbot is disabled).
+
 ## BUG TASK #22
 **TITLE**: Order List: Search Filters Not Working
 **DESCRIPTION/ROADMAP**:
@@ -647,5 +649,36 @@ Andrea requires that embedding is always up-to-date and automatic. The manual em
 
 **STORY POINT**: TBD
 **STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #28 ✅ COMPLETED
+**TITLE**: Chat Input Visibility Based on Chatbot Status
+**DESCRIPTION/ROADMAP**:
+- Update the frontend chat page so that the textarea and send button are only visible when the chatbot is disabled (`isActiveChatbot = false`).
+- When the chatbot is active, only the AI responds; manual operator input is hidden.
+- Add a clear note in the PRD to document this behavior for future reference.
+
+**SPECIAL NOTE**:
+This ensures operator/manual input is only possible when the chatbot is not active, improving clarity and preventing accidental manual intervention when the AI is in control. PRD and frontend are now aligned.
+
+**STORY POINT**: 1
+**STATUS**: ✅ COMPLETED
+
+================================================================================
+
+## TASK #29 ✅ COMPLETED
+**TITLE**: Manual Operator Icon in Chat List
+**DESCRIPTION/ROADMAP**:
+- Add a visual icon in the chat list (left panel) to indicate when a chat is in manual operator mode (activeChatbot === false).
+- The icon is orange and appears next to the customer name for immediate visibility.
+- Fixed backend to include activeChatbot field in all chat list endpoints (getRecentChats, getChatSessionsWithUnreadCounts).
+- Updated frontend hook (useRecentChats) to properly map the activeChatbot field from backend response.
+
+**SPECIAL NOTE**:
+This improves operator awareness and makes it easy to identify which chats are under manual control at a glance. Backend and frontend are now fully synchronized for activeChatbot status.
+
+**STORY POINT**: 2
+**STATUS**: ✅ COMPLETED
 
 ================================================================================

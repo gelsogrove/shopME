@@ -1772,6 +1772,37 @@ ${JSON.stringify(ragResults, null, 2)}`;
   }
 
   /**
+   * POST /internal/contact-operator
+   * Disattiva il chatbot per il cliente e segnala richiesta operatore
+   */
+  async contactOperator(req: Request, res: Response): Promise<void> {
+    try {
+      const { phone, workspaceId } = req.body;
+      if (!phone || !workspaceId) {
+        res.status(400).json({
+          error: 'Missing required fields: phone, workspaceId'
+        });
+        return;
+      }
+      logger.info(`[CONTACT-OPERATOR] Request for phone: ${phone}, workspace: ${workspaceId}`);
+      const customer = await prisma.customers.findFirst({ where: { phone, workspaceId } });
+      if (!customer) {
+        res.status(404).json({ error: 'Customer not found' });
+        return;
+      }
+      await prisma.customers.update({ where: { id: customer.id }, data: { activeChatbot: false } });
+      logger.info(`[CONTACT-OPERATOR] Chatbot deactivated for customer ${customer.id}`);
+      res.json({
+        success: true,
+        message: 'Certo, verrà contattato il prima possibile dal nostro operatore.'
+      });
+    } catch (error: any) {
+      logger.error('[CONTACT-OPERATOR] Error:', error);
+      res.status(500).json({ error: 'Internal server error', message: error.message });
+    }
+  }
+
+  /**
    * Create Checkout Link (PRD Implementation)
    */
   async createCheckoutLink(req: Request, res: Response): Promise<void> {
