@@ -32,7 +32,8 @@ This is a bug: currently, the filters on the orders list page do not work as exp
 This is a bug: currently, customer discounts are not always applied correctly in RAG search, and the best discount logic (customer vs. offer) must be enforced. Tests are required to prevent regressions.
 
 **STORY POINT**: TBD
-**STATUS**: 🐞 BUG - Not Started
+- [x] COMPLETED 2024-07-10: All product list and info responses now show discount-aware prices, with correct formatting and logic as per PRD. Swagger updated accordingly.
+**STATUS**: ✅ COMPLETED
 
 ================================================================================
 
@@ -680,5 +681,59 @@ This improves operator awareness and makes it easy to identify which chats are u
 
 **STORY POINT**: 2
 **STATUS**: ✅ COMPLETED
+
+================================================================================
+
+## TASK #23 ✅ COMPLETED
+**TITLE**: Integration Test for WIP Message (Work In Progress)
+**DESCRIPTION/ROADMAP**:
+- Add integration test for /api/internal/wip-status/:workspaceId/:phone endpoint
+- Ensure the endpoint returns hasActiveWip and wipData when challengeStatus is true
+- Test both WIP active and inactive cases
+- Use workspaceId filtering in all queries
+- No hardcoded messages: WIP message must come from database
+- Use Basic Auth (admin:admin) for internal API authentication
+
+**SPECIAL NOTE**:
+Test verifies correct backend behavior for WIP/maintenance mode, in compliance with Andrea's critical rules. No layout or UI changes. Test is isolated and does not affect production data.
+
+**STORY POINT**: 2
+**STATUS**: ✅ COMPLETED
+
+================================================================================
+
+## TASK #23
+**TITLE**: Remove N8N Filter for isActive and isBlacklisted – Move Logic to Backend (LLM/Workflow Bypass)
+**DESCRIPTION/ROADMAP**:
+- Refactor the backend message processing logic so that:
+  - If `customer.isActive === false` **OR** `customer.isBlacklisted === true`, the backend must:
+    - NOT call LLM (no OpenRouter, no AI response)
+    - NOT call N8N (no workflow trigger)
+    - Only save the inbound message to history (using MessageRepository.saveMessage)
+    - Return a 200 OK with `processedMessage: ""` and no error
+- Remove the corresponding filter/condition from the N8N workflow:
+  - Eliminate any N8N node or filter that checks `{{$json.precompiledData.customer.isActive}}` or `{{$json.precompiledData.customer.isBlacklisted}}`
+  - The backend will be the single source of truth for these checks
+- Ensure that the logic is now identical to how `activeChatbot` is handled (manual operator mode):
+  - If any of these conditions are true, the system is "muted" for AI/automation, but always logs the message
+- Add/Update unit and integration tests to verify:
+  - No LLM/N8N call is made when customer is inactive or blacklisted
+  - Messages are always saved to history
+  - N8N workflow does not contain the removed filters
+- Update documentation and technical checklist as needed
+
+**RATIONALE**:
+- Centralizes business logic in the backend for better maintainability and security
+- Prevents accidental AI/automation triggers for blocked or inactive customers
+- Ensures message history is always complete, regardless of customer status
+- Simplifies N8N workflow and reduces duplication of logic
+
+**SPECIAL NOTE**:
+- This task will remove the filter logic from N8N and enforce all checks in the backend only
+- Applies to both REST API and WhatsApp/N8N webhook flows
+- Must be coordinated with N8N workflow update to avoid regressions
+
+**STORY POINT**: TBD
+**STATUS**: 🔴 Not Started
 
 ================================================================================

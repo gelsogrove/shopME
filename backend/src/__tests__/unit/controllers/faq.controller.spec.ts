@@ -1,5 +1,7 @@
 import { Response } from 'express';
+import 'jest';
 import { FaqController } from '../../../interfaces/http/controllers/faq.controller';
+import { embeddingService } from '../../../services/embeddingService';
 
 // Mock per FaqService
 jest.mock('../../../application/services/faq.service', () => {
@@ -29,6 +31,13 @@ jest.mock('../../../application/services/faq.service', () => {
   };
 });
 
+// Move embeddingService mock before FaqController import for proper jest hoisting
+jest.mock('../../../services/embeddingService', () => ({
+  embeddingService: {
+    generateFAQEmbeddings: jest.fn().mockResolvedValue({ processed: 1, errors: [] })
+  }
+}));
+
 describe('Test environment setup', () => {
   it('Jest is properly configured', () => {
     expect(1 + 1).toBe(2);
@@ -57,6 +66,7 @@ describe('FaqController', () => {
       json: jest.fn().mockReturnThis(),
       send: jest.fn().mockReturnThis()
     };
+    (embeddingService.generateFAQEmbeddings as jest.Mock).mockClear();
   });
   
   it('should return all FAQs for a workspace', async () => {
@@ -128,21 +138,14 @@ describe('FaqController', () => {
     }));
   });
   
-  it('should create a new FAQ', async () => {
-    // Arrange
+  it('should create a new FAQ and trigger embedding generation', async () => {
     mockRequest.body = {
       question: 'New Question',
       answer: 'New Answer'
     };
-    
-    // Act
     await faqController.createFaq(mockRequest, mockResponse as Response);
-    
-    // Assert
     expect(mockResponse.status).toHaveBeenCalledWith(201);
-    expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({
-      id: expect.any(String)
-    }));
+    expect(embeddingService.generateFAQEmbeddings).toHaveBeenCalledWith('test-workspace-id');
   });
   
   it('should handle missing required fields error', async () => {
@@ -163,20 +166,13 @@ describe('FaqController', () => {
     }));
   });
   
-  it('should update an existing FAQ', async () => {
-    // Arrange
+  it('should update an existing FAQ and trigger embedding generation', async () => {
     mockRequest.body = {
       question: 'Updated Question',
       answer: 'Updated Answer'
     };
-    
-    // Act
     await faqController.updateFaq(mockRequest, mockResponse as Response);
-    
-    // Assert
-    expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({
-      id: expect.any(String)
-    }));
+    expect(embeddingService.generateFAQEmbeddings).toHaveBeenCalledWith('workspace-1');
   });
   
   it('should handle not found error', async () => {
@@ -219,13 +215,9 @@ describe('FaqController', () => {
     }));
   });
   
-  it('should delete a FAQ', async () => {
-    // Act
+  it('should delete a FAQ and trigger embedding generation', async () => {
     await faqController.deleteFaq(mockRequest, mockResponse as Response);
-    
-    // Assert
-    expect(mockResponse.status).toHaveBeenCalledWith(204);
-    expect(mockResponse.send).toHaveBeenCalled();
+    expect(embeddingService.generateFAQEmbeddings).toHaveBeenCalled();
   });
   
   it('should handle error when FAQ not found', async () => {

@@ -5,6 +5,7 @@ import { getAllProducts } from "../../chatbot/calling-functions/getAllProducts"
 import { MessageRepository } from "../../repositories/message.repository"
 import { documentService } from "../../services/documentService"
 import logger from "../../utils/logger"
+import type { ProductWithPrice } from "./price-calculation.service"
 import { TokenService } from "./token.service"
 
 interface FunctionCallResult {
@@ -49,7 +50,7 @@ export class FunctionHandlerService {
         case "get_product_info":
           return {
             functionName,
-            data: await this.getProductInfo(params.product_name, workspaceId),
+            data: await this.getProductInfo(params.product_name, workspaceId, customer),
           }
 
         case "get_event_by_date":
@@ -212,7 +213,8 @@ export class FunctionHandlerService {
    */
   private async getProductInfo(
     productName: string,
-    workspaceId: string
+    workspaceId: string,
+    customer?: any
   ): Promise<any> {
     try {
       // Cerca prodotti che corrispondono approssimativamente al nome
@@ -234,17 +236,38 @@ export class FunctionHandlerService {
         return null
       }
 
-      // Se ci sono più corrispondenze, trova quella più vicina
-      // Per ora prendiamo la prima corrispondenza
+      // Prendi la prima corrispondenza
       const product = products[0]
 
+      // Calcola il prezzo scontato usando il servizio prezzi
+      const { PriceCalculationService } = await import("./price-calculation.service")
+      const priceService = new PriceCalculationService(this.prisma)
+      const customerDiscount = customer?.discount || 0
+      const priceResult = await priceService.calculatePricesWithDiscounts(workspaceId, [product.id], customerDiscount)
+      const priceData = priceResult.products.find(p => p.id === product.id)
+
+      const hasDiscount = (priceData?.appliedDiscount || 0) > 0;
+      const prezzoFinale = priceData?.finalPrice ?? product.price;
+      const prezzoOriginale = priceData?.originalPrice ?? product.price;
+      const scontoPercentuale = priceData?.appliedDiscount || 0;
+      const scontoTipo = priceData?.discountSource || null;
+      let formatted = `Prezzo: €${prezzoFinale.toFixed(2)}`;
+      if (hasDiscount) {
+        formatted += ` (scontato del ${scontoPercentuale}%, prezzo pieno €${prezzoOriginale.toFixed(2)}`;
+        if (scontoTipo) formatted += `, fonte: ${scontoTipo}`;
+        formatted += ")";
+      }
       return {
         nome: product.name,
-        prezzo: product.price,
+        prezzo: prezzoFinale,
+        prezzo_originale: prezzoOriginale,
+        sconto_percentuale: scontoPercentuale,
+        sconto_tipo: scontoTipo,
         descrizione: product.description || "",
         disponibilita: product.stock > 0,
         categoria: product.category?.name || "",
         sku: product.sku || "",
+        formatted,
       }
     } catch (error) {
       logger.error("Error fetching product info:", error)
@@ -836,15 +859,39 @@ export class FunctionHandlerService {
         }
       }
 
+      const { PriceCalculationService } = await import("./price-calculation.service");
+      const priceService = new PriceCalculationService(this.prisma);
+      const productIds = products.map((p) => p.id);
+      const priceResult = await priceService.calculatePricesWithDiscounts(workspaceId, productIds, 0); // No customer discount in generic list
+      const priceMap = new Map(priceResult.products.map(p => [p.id, p]));
+
       return {
         found: true,
         count: products.length,
-        products: products.map((product) => ({
-          nome: product.name,
-          prezzo: product.price,
-          categoria: product.category?.name || "",
-          disponibilità: product.stock > 0 ? "Disponibile" : "Non disponibile",
-        })),
+        products: products.map((product) => {
+          const priceData = priceMap.get(product.id) as ProductWithPrice | undefined;
+          const hasDiscount = (priceData?.appliedDiscount || 0) > 0;
+          const prezzoFinale = priceData?.finalPrice ?? product.price;
+          const prezzoOriginale = priceData?.originalPrice ?? product.price;
+          const scontoPercentuale = priceData?.appliedDiscount || 0;
+          const scontoTipo = priceData?.discountSource || null;
+          let formatted = `Prezzo: €${prezzoFinale.toFixed(2)}`;
+          if (hasDiscount) {
+            formatted += ` (scontato del ${scontoPercentuale}%, prezzo pieno €${prezzoOriginale.toFixed(2)}`;
+            if (scontoTipo) formatted += `, fonte: ${scontoTipo}`;
+            formatted += ")";
+          }
+          return {
+            nome: product.name,
+            prezzo: prezzoFinale,
+            prezzoOriginale,
+            scontoPercentuale,
+            scontoTipo,
+            categoria: product.category?.name || "",
+            disponibilità: product.stock > 0 ? "Disponibile" : "Non disponibile",
+            formatted,
+          };
+        }),
       }
     } catch (error) {
       logger.error("Error fetching product list:", error)

@@ -53,7 +53,7 @@
     {
       "parameters": {
         "options": {
-          "systemMessage": "={{ $json.prompt }}\npuoi metterci anche delle incone in mark down \nlingua utente: {{ $json.language }}\nnome utente: {{ $('Filter').item.json.precompiledData.customer.name }}\nnome azienda: {{ $('Filter').item.json.precompiledData.customer.businessName }}\nemail:  {{ $('Filter').item.json.precompiledData.customer.email }}\n"
+          "systemMessage": "={{ $json.prompt }}\npuoi metterci anche delle incone in mark down \nlingua utente: {{ $json.language }}\nnome utente: {{ $('Filter').item.json.precompiledData.customer.name }}\nnome azienda: {{ $('Filter').item.json.precompiledData.customer.businessName }}\nemail:  {{ $('Filter').item.json.precompiledData.customer.email }}\n\n\nformatta le lista mettendo bullet point e andando a capo quando e' necessario solo una volta\nusa il bold usa il corsivo quando lo reputi necessario usa i caratterei maiuscoli quando e' veramente importante, uso le icone emoticon per un tono piu simpativo ma senza esagerare\n"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -267,6 +267,33 @@
           "name": "Backend API Basic Auth"
         }
       }
+    },
+    {
+      "parameters": {
+        "toolDescription": "categories",
+        "method": "POST",
+        "url": "=http://host.docker.internal:3001/api/internal/get-all-categories",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        480
+      ],
+      "id": "923290cb-6bd5-4442-af75-1803db7ba433",
+      "name": "GetAllCategories()",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "JyyF8A2d1GosmOdd",
+          "name": "Backend API Basic Auth"
+        }
+      }
     }
   ],
   "pinData": {
@@ -444,13 +471,24 @@
           }
         ]
       ]
+    },
+    "GetAllCategories()": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "1f131a99-84bc-43ef-81c3-e8b3214c7e7a",
+  "versionId": "4e3e84fc-e78e-42d8-84de-dfbe95cca083",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"

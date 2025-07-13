@@ -2,7 +2,6 @@ import { PageLayout } from "@/components/layout/PageLayout"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { FormSheet } from "@/components/shared/FormSheet"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -19,7 +18,6 @@ export function ServicesPage() {
   const { workspace, loading: isLoadingWorkspace } = useWorkspace()
   const [services, setServices] = useState<Service[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isGeneratingEmbeddings, setIsGeneratingEmbeddings] = useState(false)
   const [searchValue, setSearchValue] = useState("")
   const [showAddSheet, setShowAddSheet] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
@@ -44,25 +42,6 @@ export function ServicesPage() {
       loadServices()
     }
   }, [workspace?.id, isLoadingWorkspace])
-
-  const handleGenerateEmbeddings = async () => {
-    if (!workspace?.id) return
-
-    setIsGeneratingEmbeddings(true)
-    try {
-      await servicesApi.generateEmbeddings(workspace.id)
-      
-      toast.success('Service embeddings generation started successfully')
-      
-      // Reload services to see updated status
-      await loadServices()
-    } catch (error) {
-      console.error('Failed to generate service embeddings:', error)
-      toast.error('Failed to generate service embeddings')
-    } finally {
-      setIsGeneratingEmbeddings(false)
-    }
-  }
 
   const filteredServices = services.filter((service) =>
     Object.values(service).some((value) =>
@@ -290,16 +269,6 @@ export function ServicesPage() {
         searchValue={searchValue}
         onSearch={setSearchValue}
         searchPlaceholder="Search services..."
-        extraButtons={
-          <Button
-            onClick={handleGenerateEmbeddings}
-            disabled={isGeneratingEmbeddings}
-            size="sm"
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            {isGeneratingEmbeddings ? "Generating..." : "Generate Embeddings"}
-          </Button>
-        }
         onAdd={() => setShowAddSheet(true)}
         addButtonText="Add"
         data={filteredServices}

@@ -170,6 +170,8 @@ export class ProductController {
       }
       
       const product = await this.productService.createProduct(productData);
+      // Fire-and-forget: trigger embedding regeneration for products
+      embeddingService.generateProductEmbeddings(workspaceId).catch((err) => logger.error('Embedding generation error (create):', err));
       
       return res.status(201).json(product);
     } catch (error) {
@@ -213,10 +215,11 @@ export class ProductController {
       }
       
       const updatedProduct = await this.productService.updateProduct(id, productData, workspaceId);
-      
       if (!updatedProduct) {
         return res.status(404).json({ message: 'Product not found' });
       }
+      // Fire-and-forget: trigger embedding regeneration for products
+      embeddingService.generateProductEmbeddings(workspaceId).catch((err) => logger.error('Embedding generation error (update):', err));
       
       return res.json(updatedProduct);
     } catch (error) {
@@ -249,6 +252,9 @@ export class ProductController {
       }
       
       await this.productService.deleteProduct(id, workspaceId);
+      // Fire-and-forget: trigger embedding regeneration for products
+      embeddingService.generateProductEmbeddings(workspaceId).catch((err) => logger.error('Embedding generation error (delete):', err));
+      
       return res.status(200).json({ message: 'Product deleted successfully' });
     } catch (error) {
       logger.error('Error deleting product:', error);

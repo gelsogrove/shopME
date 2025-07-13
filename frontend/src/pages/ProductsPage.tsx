@@ -2,7 +2,6 @@ import { PageLayout } from "@/components/layout/PageLayout"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { FormSheet } from "@/components/shared/FormSheet"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -34,7 +33,6 @@ export function ProductsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [searchValue, setSearchValue] = useState("")
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("none")
-  const [isGeneratingEmbeddings, setIsGeneratingEmbeddings] = useState(false)
   const [productIsActive, setProductIsActive] = useState(true)
 
   // Get currency symbol based on workspace settings
@@ -282,22 +280,6 @@ export function ProductsPage() {
     }
   }
 
-  const handleGenerateEmbeddings = async () => {
-    if (!workspace?.id) return
-
-    setIsGeneratingEmbeddings(true)
-    try {
-      await productsApi.generateEmbeddings(workspace.id)
-      
-      toast.success('Product embeddings generation started successfully')
-    } catch (error) {
-      console.error('Failed to generate product embeddings:', error)
-      toast.error('Failed to generate product embeddings')
-    } finally {
-      setIsGeneratingEmbeddings(false)
-    }
-  }
-
   if (isWorkspaceLoading || isLoading) {
     return <div>Loading...</div>
   }
@@ -408,16 +390,6 @@ export function ProductsPage() {
         searchValue={searchValue}
         onSearch={setSearchValue}
         searchPlaceholder="Search products..."
-        extraButtons={
-          <Button
-            onClick={handleGenerateEmbeddings}
-            disabled={isGeneratingEmbeddings}
-            size="sm"
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            {isGeneratingEmbeddings ? "Generating..." : "Generate Embeddings"}
-          </Button>
-        }
         onAdd={() => {
           setSelectedCategoryId("none")
           setProductIsActive(true)

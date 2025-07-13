@@ -22,7 +22,6 @@ export default function DocumentsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [editingDocument, setEditingDocument] = useState<Document | null>(null)
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
-  const [isGeneratingEmbeddings, setIsGeneratingEmbeddings] = useState(false)
   const [editName, setEditName] = useState('')
   const [editIsActive, setEditIsActive] = useState(false)
 
@@ -187,25 +186,6 @@ export default function DocumentsPage() {
     }
   }
 
-  const handleGenerateEmbeddings = async () => {
-    if (!workspace?.id) return
-
-    setIsGeneratingEmbeddings(true)
-    try {
-      await documentsApi.generateEmbeddings(workspace.id)
-      
-      toast.success('Embeddings generation started successfully')
-      
-      // Reload documents to see updated status
-      await loadDocuments()
-    } catch (error) {
-      console.error('Failed to generate embeddings:', error)
-      toast.error('Failed to generate embeddings')
-    } finally {
-      setIsGeneratingEmbeddings(false)
-    }
-  }
-
   return (
     <PageLayout>
       <CrudPageContent
@@ -215,14 +195,7 @@ export default function DocumentsPage() {
         onSearch={setSearchValue}
         searchPlaceholder="Search documents..."
         extraButtons={
-          <Button
-            onClick={handleGenerateEmbeddings}
-            disabled={isGeneratingEmbeddings}
-            size="sm"
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            {isGeneratingEmbeddings ? "Generating..." : "Generate Embeddings"}
-          </Button>
+          null // Removed the button
         }
         onAdd={() => {}}
         addButtonText="Add"
