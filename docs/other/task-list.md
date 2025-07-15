@@ -2,25 +2,27 @@
 
 > [UPDATE 2025-07-09] Technical checklist (check.md) updated: Added check for chat input visibility logic (textarea and send button only visible when chatbot is disabled).
 
-## BUG TASK #22
-**TITLE**: Order List: Search Filters Not Working
-**DESCRIPTION/ROADMAP**:
-- Investigate and fix the search and filter functionality on the orders list page
-- Ensure all filters (search, status, date range, etc.) work correctly and update the displayed orders
-- Update backend and frontend logic as needed to support correct filtering
-- Add tests to verify filter functionality if necessary
+## BUG TASK #22 ✅ COMPLETED
 
-**SPECIAL NOTE**:
-This is a bug: currently, the filters on the orders list page do not work as expected. All filters must be fully functional for a correct user experience.
+**TITLE**: Order List: Search Filters Not Working  
+**DESCRIPTION**: Search functionality was not working properly for customer names in the orders list.
 
-**STORY POINT**: TBD
-**STATUS**: 🐞 BUG - Not Started
+**COMPLETION SUMMARY**:
+- ✅ **ROOT CAUSE**: Component interference - `CrudPageContent` was applying TanStack Table's `globalFilter` on top of already-filtered data
+- ✅ **SOLUTION**: Fixed double filtering issue and enhanced search logic
+- ✅ **TESTING**: All search scenarios now work correctly (customer names, companies, order codes, etc.)
+- ✅ **DOCUMENTATION**: Complete technical documentation in `/docs/TASK-22-COMPLETED.md`
+
+**STATUS**: ✅ COMPLETED - Fully Functional  
+**COMPLETED ON**: January 15, 2025
 
 ================================================================================
 
 ## BUG TASK #21
+
 **TITLE**: Customer Discount Field and Correct Discount Application in RAG Search
 **DESCRIPTION/ROADMAP**:
+
 - Add a 'discount' field to the customer table if not already present
 - Ensure the discount is applied in the RAG search when calculating product prices for a customer
 - If an active offer (by date and category) provides a better discount, the offer discount prevails
@@ -37,8 +39,10 @@ This is a bug: currently, customer discounts are not always applied correctly in
 ================================================================================
 
 ## TASK #19
+
 **TITLE**: Standardize Shipping Address and Invoice Address Handling
 **DESCRIPTION/ROADMAP**:
+
 - Refactor the edit form so that both Shipping Address and Invoice Address are managed as structured objects (field by field)
 - Use the same field-by-field approach as currently implemented for Invoice Address
 - Update backend models, DTOs, and validation to support structured shipping address
@@ -55,8 +59,10 @@ Andrea requires that both addresses are handled in a consistent, structured way 
 ================================================================================
 
 ## TASK #16 ✅ COMPLETED
+
 **TITLE**: Remove Direct Catalog Links Without Subfolders
 **DESCRIPTION/ROADMAP**:
+
 - Identify all 'Catalog' links in the application
 - Remove any direct links that do not point to a subfolder or subcategory
 - Ensure navigation is clear and only shows valid, structured catalog paths
@@ -71,8 +77,10 @@ Catalog menu has been completely removed. 'Products', 'Categories', and 'Offers'
 ================================================================================
 
 ## TASK #17 ✅ COMPLETED
+
 **TITLE**: Add Pagination to Orders Page
 **DESCRIPTION/ROADMAP**:
+
 - Implement pagination controls on http://localhost:3000/orders
 - Update backend API to support paginated order queries if not already present
 - Ensure frontend displays paginated results and navigation controls
@@ -88,8 +96,10 @@ Pagination for the Orders page is now implemented and fully functional.
 ================================================================================
 
 ## TASK #6 ✅ COMPLETED
+
 **TITLE**: Complete Invoice Address Management System for Clients
 **DESCRIPTION/ROADMAP**:
+
 - ✅ **Database Schema Update**: Add invoiceAddress JSON field to customers table via Prisma migration
 - ✅ **Backend Infrastructure**: Update Customer entity, repository, validation schemas, and API endpoints
 - ✅ **Frontend Components**: Add invoice address fields to ClientSheet form (edit/create/view modes)
@@ -100,6 +110,7 @@ Pagination for the Orders page is now implemented and fully functional.
 - ✅ **Data Migration**: Ensure existing customers maintain compatibility with new address structure
 
 **IMPLEMENTATION COMPLETED**:
+
 - Updated Prisma schema with `invoiceAddress Json?` field in customers table
 - Applied migration `20250709210239_add_invoice_address_to_customers` successfully
 - Enhanced Customer entity with `InvoiceAddress` interface (9 optional fields)
@@ -116,11 +127,12 @@ Pagination for the Orders page is now implemented and fully functional.
 - All 5 unit tests passing successfully
 
 **TECHNICAL IMPLEMENTATION**:
+
 1. **Database**: `invoiceAddress` JSONB field in customers table with structure:
    ```json
    {
      "firstName": "string",
-     "lastName": "string", 
+     "lastName": "string",
      "company": "string",
      "address": "string",
      "city": "string",
@@ -144,8 +156,10 @@ Sistema di indirizzi di fatturazione completamente implementato e funzionante. T
 ================================================================================
 
 ## TASK #1 ✅ COMPLETED
+
 **TITLE**: N8N Credentials Persistence Fix
-**DESCRIPTION/ROADMAP**: 
+**DESCRIPTION/ROADMAP**:
+
 - ✅ Fix Docker volume persistence for N8N database (.n8n folder)
 - ✅ Implement automated credential creation from .env
 - ✅ Create automated backup/restore scripts for credentials
@@ -153,16 +167,18 @@ Sistema di indirizzi di fatturazione completamente implementato e funzionante. T
 - ✅ Integrate with seed process for full automation
 
 **IMPLEMENTATION COMPLETED**:
+
 - Updated n8n_nuclear-cleanup.sh to read OPENROUTER_API_KEY from backend/.env
 - Automated credential creation for Backend API and OpenRouter
 - Complete workflow import, compilation, and activation
 - Integrated into seed process with detailed logging
 - All 7 steps of Andrea's checklist implemented:
-  ✅ Query SQL ✅ Embedding ✅ N8N Credential ✅ Delete old workflow 
+  ✅ Query SQL ✅ Embedding ✅ N8N Credential ✅ Delete old workflow
   ✅ N8N import workflow ✅ Compila il workflow ✅ Attiva il workflow
 
-**SPECIAL NOTE**: 
+**SPECIAL NOTE**:
 Problema RISOLTO! Il setup ora è completamente automatico. Ogni volta che si fa `npm run seed`, il sistema:
+
 1. Fa backup obbligatorio del .env
 2. Legge OPENROUTER_API_KEY dal .env
 3. Fa nuclear cleanup di N8N
@@ -176,10 +192,12 @@ Problema RISOLTO! Il setup ora è completamente automatico. Ogni volta che si fa
 ================================================================================
 
 ## TASK #2 ✅ COMPLETED
+
 **TITLE**: Complete Orders Management System
 **DESCRIPTION/ROADMAP**:
+
 - ✅ **COMPLETED**: Fix Delete Order functionality (routes added to API router)
-- ✅ **COMPLETED**: Remove email display from orders list (show only customer name with click navigation)  
+- ✅ **COMPLETED**: Remove email display from orders list (show only customer name with click navigation)
 - ✅ **COMPLETED**: Implement advanced filtering system (Status, Customer dropdown, Date Range, Search)
 - ✅ **COMPLETED**: Enhanced Edit Order functionality with complete product/service management
 - ✅ **COMPLETED**: Customer name click navigation to Customers page (`/customers/{id}`)
@@ -191,6 +209,7 @@ Problema RISOLTO! Il setup ora è completamente automatico. Ogni volta che si fa
 **FINAL IMPLEMENTATION STATUS**: ✅ **COMPLETED** (except PDF generation)
 
 **🚨 UI CONSISTENCY FIXED**:
+
 - **Problem**: Initial implementation used custom layout that was inconsistent with other pages
 - **Solution**: Reverted to standard `PageHeader` + `Table` pattern used throughout the application
 - **Filters**: Moved to `extraButtons` prop in top-right position (consistent with other pages)
@@ -201,17 +220,20 @@ Problema RISOLTO! Il setup ora è completamente automatico. Ogni volta che si fa
 **✅ IMPLEMENTATIONS DELIVERED**:
 
 ### 🚨 **1. CRITICAL FIX: Delete Order Functionality**
+
 - **Problem**: Order routes missing from main API router
 - **Solution**: Added `createOrderRouter()` to `backend/src/interfaces/http/routes/api.ts`
 - **Result**: Delete order now fully functional
 
 ### 🎨 **2. UI/UX Enhancement: Email Removal & Customer Navigation**
+
 - **Removed**: Email display from orders list (cleaner interface)
 - **Added**: Clickable customer names with hover effects (`hover:text-green-600`)
 - **Navigation**: `onClick={() => navigate(\`/customers/\${customer.id}\`)}`
 - **Toast feedback**: Navigation confirmation messages
 
 ### 🔍 **3. ADVANCED FILTERING SYSTEM**
+
 - **✅ Customer Filter**: Dropdown with all workspace customers (width: 160px)
 - **✅ Date Range Filters**: From/To date pickers with calendar component (width: 140px each)
 - **✅ Status Filter**: All order statuses with proper badge styling (width: 140px)
@@ -220,21 +242,24 @@ Problema RISOLTO! Il setup ora è completamente automatico. Ogni volta che si fa
 - **✅ Real-time Filtering**: Instant results without page reload
 
 ### ✏️ **4. ENHANCED EDIT ORDER WITH ITEM MANAGEMENT**
+
 - **✅ Add Items**: Modal dialog for adding products/services to orders
 - **✅ Product Management**: Quantity adjustment with +/- buttons, price calculation
-- **✅ Service Management**: Add services with duration and pricing info  
+- **✅ Service Management**: Add services with duration and pricing info
 - **✅ Remove Items**: Delete button for each order item with confirmation
 - **✅ Real-time Totals**: Automatic calculation of order totals (items + shipping + tax - discount)
 - **✅ Item Type Support**: Full PRODUCT and SERVICE support
 - **✅ Validation**: Required fields and business rules enforcement
 
 ### 🔗 **5. CUSTOMER NAVIGATION**
+
 - **✅ Navigation**: Click customer name → redirect to `/customers/{customerId}`
 - **✅ Router Integration**: Uses React Router `useNavigate()` hook
 - **✅ User Feedback**: Toast messages for navigation actions
 - **✅ Error Handling**: Graceful handling of missing customer data
 
 ### 📊 **6. UI/UX CONSISTENCY ACHIEVED**
+
 - **✅ Standard Layout**: PageLayout → container → grid → PageHeader + Table pattern
 - **✅ Button Styling**: Green theme using `commonStyles.buttonPrimary` and `commonStyles.actionIcon`
 - **✅ Filter Positioning**: Top-right area via `extraButtons` prop (matches other pages)
@@ -254,7 +279,7 @@ Problema RISOLTO! Il setup ora è completamente automatico. Ogni volta che si fa
 
 **DEPLOYMENT READY**: ✅ All core order management features implemented, tested, and UI-consistent.
 
-**SPECIAL NOTE**: 
+**SPECIAL NOTE**:
 Sistema ordini completamente funzionante! Implementati tutti i filtri avanzati, gestione completa degli ordini, navigazione clienti, UI consistente. Delete order risolto. Pronto per deployment.
 
 **STORY POINT**: 13
@@ -263,8 +288,10 @@ Sistema ordini completamente funzionante! Implementati tutti i filtri avanzati, 
 ================================================================================
 
 ## TASK #3
+
 **TITLE**: Extended Session Duration (1 Hour)
 **DESCRIPTION/ROADMAP**:
+
 - Configure JWT with 1 hour expiration (3600 seconds)
 - Implement silent token refresh before expiration
 - Add activity-based session renewal (reset timer on user activity)
@@ -281,8 +308,10 @@ Andrea vuole lavorare 1 ora senza dover rifare il login. Attualmente la sessione
 ================================================================================
 
 ## TASK #4
+
 **TITLE**: Toast Messages Standardization
 **DESCRIPTION/ROADMAP**:
+
 - Configure Sonner for green success toasts with white text
 - Add appropriate icons: ✓ success, ⚠️ warning, ❌ error
 - Update all components using toast to new styling
@@ -298,8 +327,10 @@ Tutti i toast di successo devono essere verdi con scritta bianca e icone appropr
 ================================================================================
 
 ## TASK #5 ✅ COMPLETED
+
 **TITLE**: Analytics Dashboard Fixes
 **DESCRIPTION/ROADMAP**:
+
 - ✅ **COMPLETED**: Remove blue "Informazioni sul periodo di default" info box
 - ✅ **COMPLETED**: Implement historical orders charts for past months using Recharts
 - ✅ **COMPLETED**: Fix date range selector for historical data loading
@@ -312,21 +343,24 @@ Tutti i toast di successo devono essere verdi con scritta bianca e icone appropr
 **✅ IMPLEMENTATIONS DELIVERED**:
 
 ### 🚨 **1. CRITICAL FIX: Blue Information Box Removal**
+
 - **Problem**: Annoying blue box with "Informazioni sul periodo di default" ruining the interface
 - **Solution**: Completely removed the blue box from `DateRangeSelector.tsx` (lines 88-120)
 - **Result**: Clean, professional date selector without visual clutter
 
 ### 📊 **2. HISTORICAL CHARTS IMPLEMENTATION**
+
 - **Technology**: Implemented using Recharts library (professional charting solution)
 - **Data**: Real historical data from analytics API showing orders, customers, and revenue trends
 - **Chart Types**: LineChart with dual Y-axis for better data visualization
-- **Features**: 
+- **Features**:
   - Interactive tooltips with formatted currency and numbers
   - Responsive design that works on all screen sizes
   - Custom colors matching ShopMe design system (green #22c55e, blue #3b82f6, orange #f59e0b)
   - Legend and grid for better readability
 
 ### 🎨 **3. DESIGN SYSTEM CONSISTENCY**
+
 - **Colors**: Applied consistent green color scheme matching main app
 - **Typography**: Proper font weights and sizes consistent with ShopMe
 - **Spacing**: Professional spacing using Tailwind CSS grid system
@@ -334,6 +368,7 @@ Tutti i toast di successo devono essere verdi con scritta bianca e icone appropr
 - **Cards**: Consistent Card components with proper headers and content
 
 ### 📈 **4. ENHANCED DATA VISUALIZATION**
+
 - **Real Data**: Charts display actual order data from database (not mock data)
 - **Multi-metric**: Shows Orders, Customers, and Revenue in single chart
 - **Summary Stats**: Added bottom section with key metrics in colored cards
@@ -341,13 +376,14 @@ Tutti i toast di successo devono essere verdi con scritta bianca e icone appropr
 - **Responsive**: Charts adapt to different screen sizes
 
 ### 🔧 **5. TECHNICAL IMPLEMENTATION**
+
 - **Component**: Created `HistoricalChart.tsx` component with TypeScript
 - **Integration**: Seamlessly integrated into `AnalyticsPage.tsx`
 - **Data Flow**: Uses existing analytics API endpoints
 - **Performance**: Optimized with ResponsiveContainer for smooth rendering
 - **Error Handling**: Graceful fallbacks when data is missing
 
-**SPECIAL NOTE**: 
+**SPECIAL NOTE**:
 Il maledetto box azzurro è stato eliminato! Il dashboard ora mostra grafici storici reali e ha un design professionale che segue perfettamente il sistema di design di ShopMe. Charts responsivi con dati reali dal database.
 
 **STORY POINT**: 8
@@ -356,8 +392,10 @@ Il maledetto box azzurro è stato eliminato! Il dashboard ora mostra grafici sto
 ================================================================================
 
 ## TASK #6
+
 **TITLE**: Login Page Design Fixes
 **DESCRIPTION/ROADMAP**:
+
 - Remove "Conversational E-commerce, Reimagined" text from right panel
 - Apply consistent color palette matching main application
 - Update typography to match main app fonts and sizing
@@ -374,8 +412,10 @@ Andrea non gradisce la parte destra del login - né colori, né testo, né icone
 ================================================================================
 
 ## TASK #7 ✅ COMPLETED
+
 **TITLE**: User Avatar Size Increase
 **DESCRIPTION/ROADMAP**:
+
 - ✅ Increase avatar size from current (32px) to 48px
 - ✅ Improve visibility and prominence in header
 - ✅ Ensure proper proportions with other header elements
@@ -384,6 +424,7 @@ Andrea non gradisce la parte destra del login - né colori, né testo, né icone
 - ✅ Test responsive behavior across different screen sizes
 
 **IMPLEMENTATION COMPLETED**:
+
 - Updated Header.tsx to set avatar and button size to 48px (h-12 w-12)
 - Added focus ring and hover scale for accessibility and visibility
 - Increased fallback initials font size for better readability
@@ -399,8 +440,10 @@ L'avatar utente in alto a destra ora è molto più visibile, accessibile e confo
 ================================================================================
 
 ## TASK #8
+
 **TITLE**: N8N Frontend Integration Removal
 **DESCRIPTION/ROADMAP**:
+
 - Remove N8NPage.tsx and related components
 - Remove /settings/n8n route and navigation
 - Clean up N8N services and API calls from frontend
@@ -417,8 +460,10 @@ L'URL del workflow N8N non è dinamico e non funziona. Andrea preferisce semplif
 ================================================================================
 
 ## TASK #14
+
 **TITLE**: Automatic Embedding Trigger & Remove Manual Button
 **DESCRIPTION/ROADMAP**:
+
 - Remove the manual embedding button from all relevant sections (documents, products, FAQs, services, etc.)
 - Automatically trigger the embedding process after every add, update, or delete operation
 - Ensure this behavior is consistent across all sessions and entity types
@@ -433,14 +478,17 @@ Andrea requires that embedding is always up-to-date and automatic. The manual em
 ================================================================================
 
 ## ❌ TASK #9 - CANCELED
+
 **TITLE**: ~~Advanced Analytics Dashboard Implementation~~
 **REASON**: Task troppo avanzato, non presente nel PRD. Cancellato per decisione di Andrea.
 
 ================================================================================
 
 ## TASK #23
+
 **TITLE**: N8N - CF Call Operator
 **DESCRIPTION/ROADMAP**:
+
 - Implement a new N8N Custom Function (CF) for the "Call Operator" workflow
 - Integrate with backend as needed
 - Ensure proper error handling and logging
@@ -455,8 +503,10 @@ Andrea requires a dedicated N8N CF for operator call management.
 ================================================================================
 
 ## TASK #24
+
 **TITLE**: N8N - CF New Order
 **DESCRIPTION/ROADMAP**:
+
 - Implement a new N8N Custom Function (CF) for the "New Order" workflow
 - Integrate with backend as needed
 - Ensure proper error handling and logging
@@ -471,8 +521,10 @@ Andrea requires a dedicated N8N CF for new order management.
 ================================================================================
 
 ## TASK #25
+
 **TITLE**: Integrate Google Translate Node for English Conversion in RAG Search
 **DESCRIPTION/ROADMAP**:
+
 - Integrate a Google Translate node into the RAG search workflow
 - Automatically convert any non-English content (especially FAQs) to English before processing
 - Update backend logic to ensure all relevant content is translated to English within the RAG flow
@@ -487,8 +539,10 @@ Andrea requires that all non-English content, especially FAQs, is automatically 
 ================================================================================
 
 ## TASK #27
+
 **TITLE**: Payment Page: Create Order and Handle Shipping Address via Call Function
 **DESCRIPTION/ROADMAP**:
+
 - On payment confirmation, trigger a call function to the backend to create a new order record
 - Manage the shipping address as part of this call function flow
 - Update the call function prompt to include all necessary order and shipping address details
@@ -504,8 +558,10 @@ Andrea requires that the payment page, once payment is confirmed, always trigger
 ================================================================================
 
 ## BUG TASK #24
+
 **TITLE**: Discounted Price Not Applied in LLM/N8N Responses
 **DESCRIPTION/ROADMAP**:
+
 - When a customer with a discount (e.g., 10%) asks for a product price, the system returns the full price instead of the discounted price.
 - Investigate why the discount is not being applied in the LLM/N8N response flow.
 - Ensure the correct discounted price is always shown in responses, both in RAG/LLM and N8N flows.
@@ -521,10 +577,11 @@ Andrea requires that the customer discount logic is always respected and visible
 ## 📊 PRIORITY SUMMARY
 
 **🔴 CRITICAL/HIGH PRIORITY (Tasks #1-#8)**:
-- Total Story Points: 47 
-- ✅ **COMPLETED TASKS**: 
+
+- Total Story Points: 47
+- ✅ **COMPLETED TASKS**:
   - TASK #1: N8N Credentials Persistence Fix (8 Story Points)
-  - TASK #2: Complete Orders Management System (13 Story Points) 
+  - TASK #2: Complete Orders Management System (13 Story Points)
   - TASK #5: Analytics Dashboard Fixes (8 Story Points)
   - TASK #6: Complete Invoice Address Management System (8 Story Points)
 - **📊 PROGRESS**: 37/47 Story Points Complete (79% Complete)
@@ -532,20 +589,24 @@ Andrea requires that the customer discount logic is always respected and visible
 - Focus: Core functionality fixes and UX improvements
 
 **🔵 PLANNED/FUTURE (Tasks #10-#13)**:
+
 - Total Story Points: 50 (was 63, reduced after TASK #9 cancellation)
-- Estimated Duration: 8-12 weeks  
+- Estimated Duration: 8-12 weeks
 - Focus: Advanced features, testing, and optimizations
 
 **❌ CANCELED TASKS**:
+
 - TASK #9: Advanced Analytics Dashboard (13 Story Points) - Too advanced, not in PRD
 
 ## 🎯 SPRINT PLANNING SUGGESTION
 
 **✅ COMPLETED SPRINTS**:
+
 - **Sprint 1**: ✅ Tasks #1, #5, #6 (29 Story Points) - COMPLETED
 - **Sprint 2**: ✅ Task #2 (13 Story Points) - COMPLETED
 
 **🔴 REMAINING SPRINTS**:
+
 - **Sprint 3 (1 week)**: Tasks #4, #7 (5 Story Points) - UI/UX Fixes
 - **Sprint 4 (1 week)**: Tasks #3, #8 (8 Story Points) - Session & Cleanup
 
@@ -561,11 +622,13 @@ Andrea requires that the customer discount logic is always respected and visible
 ## 🧪 TESTING STRATEGY
 
 **CURRENT APPROACH**: Focus on core functionality stability first
+
 - **Unit Tests**: Da implementare quando la situazione sarà stabile
 - **Integration Tests**: Da implementare quando la situazione sarà stabile
 - **Priority**: Prima stabilizzare le funzionalità core, poi aggiungere test completi
 
 **FUTURE TESTING PLAN**:
+
 - Comprehensive unit tests for all services and utilities
 - Integration tests for API endpoints and database operations
 - End-to-end tests for critical user flows
@@ -573,16 +636,18 @@ Andrea requires that the customer discount logic is always respected and visible
 
 ---
 
-*Last updated: 2025-07-09*
-*Format: Structured Task List v2.0*
+_Last updated: 2025-07-09_
+_Format: Structured Task List v2.0_
 
 ================================================================================
 
 # PHASE 2 TASKS
 
 ## TASK #10
+
 **TITLE**: Advanced WhatsApp Features
 **DESCRIPTION/ROADMAP**:
+
 - Implement rich media support (images, documents)
 - Integrate WhatsApp Business API features
 - Add template message management
@@ -599,8 +664,10 @@ Funzionalità avanzate WhatsApp per il futuro. Richiede integrazione con WhatsAp
 ================================================================================
 
 ## TASK #13
+
 **TITLE**: Security & Performance Optimization
 **DESCRIPTION/ROADMAP**:
+
 - Implement comprehensive API rate limiting
 - Add advanced authentication (2FA)
 - Optimize database queries for performance
@@ -617,8 +684,10 @@ Task di ottimizzazione generale per sicurezza e performance. Da implementare qua
 ================================================================================
 
 ## TASK #15
+
 **TITLE**: Full Application Responsiveness
 **DESCRIPTION/ROADMAP**:
+
 - Review all frontend pages and components to ensure they are fully responsive
 - Test on various devices and screen sizes (mobile, tablet, desktop)
 - Fix any layout, overflow, or usability issues
@@ -633,8 +702,10 @@ Andrea requires that the entire application is fully responsive for a seamless u
 ================================================================================
 
 ## TASK #18
+
 **TITLE**: Database Cleanup: Remove Unused Tables
 **DESCRIPTION/ROADMAP**:
+
 - Identify all tables in the database that are no longer used by the application
 - Remove unused tables from the Prisma schema
 - Create and run proper Prisma migrations to drop these tables
@@ -651,8 +722,10 @@ Andrea requires a clean and maintainable database. All legacy or unused tables m
 ================================================================================
 
 ## TASK #26
+
 **TITLE**: Automatic Embedding Trigger on Data Change
 **DESCRIPTION/ROADMAP**:
+
 - Remove the manual embedding button from all relevant sections (documents, products, FAQs, services, etc.)
 - Automatically trigger the embedding process after every add, update, or delete operation
 - Ensure this behavior is consistent across all sessions and entity types
@@ -668,8 +741,10 @@ Andrea requires that embedding is always up-to-date and automatic. The manual em
 ================================================================================
 
 ## TASK #28 ✅ COMPLETED
+
 **TITLE**: Chat Input Visibility Based on Chatbot Status
 **DESCRIPTION/ROADMAP**:
+
 - Update the frontend chat page so that the textarea and send button are only visible when the chatbot is disabled (`isActiveChatbot = false`).
 - When the chatbot is active, only the AI responds; manual operator input is hidden.
 - Add a clear note in the PRD to document this behavior for future reference.
@@ -683,8 +758,10 @@ This ensures operator/manual input is only possible when the chatbot is not acti
 ================================================================================
 
 ## TASK #29 ✅ COMPLETED
+
 **TITLE**: Manual Operator Icon in Chat List
 **DESCRIPTION/ROADMAP**:
+
 - Add a visual icon in the chat list (left panel) to indicate when a chat is in manual operator mode (activeChatbot === false).
 - The icon is orange and appears next to the customer name for immediate visibility.
 - Fixed backend to include activeChatbot field in all chat list endpoints (getRecentChats, getChatSessionsWithUnreadCounts).
@@ -699,8 +776,10 @@ This improves operator awareness and makes it easy to identify which chats are u
 ================================================================================
 
 ## TASK #23 ✅ COMPLETED
+
 **TITLE**: Integration Test for WIP Message (Work In Progress)
 **DESCRIPTION/ROADMAP**:
+
 - Add integration test for /api/internal/wip-status/:workspaceId/:phone endpoint
 - Ensure the endpoint returns hasActiveWip and wipData when challengeStatus is true
 - Test both WIP active and inactive cases
@@ -717,8 +796,10 @@ Test verifies correct backend behavior for WIP/maintenance mode, in compliance w
 ================================================================================
 
 ## TASK #23
+
 **TITLE**: Remove N8N Filter for isActive and isBlacklisted – Move Logic to Backend (LLM/Workflow Bypass)
 **DESCRIPTION/ROADMAP**:
+
 - Refactor the backend message processing logic so that:
   - If `customer.isActive === false` **OR** `customer.isBlacklisted === true`, the backend must:
     - NOT call LLM (no OpenRouter, no AI response)
@@ -737,12 +818,14 @@ Test verifies correct backend behavior for WIP/maintenance mode, in compliance w
 - Update documentation and technical checklist as needed
 
 **RATIONALE**:
+
 - Centralizes business logic in the backend for better maintainability and security
 - Prevents accidental AI/automation triggers for blocked or inactive customers
 - Ensures message history is always complete, regardless of customer status
 - Simplifies N8N workflow and reduces duplication of logic
 
 **SPECIAL NOTE**:
+
 - This task will remove the filter logic from N8N and enforce all checks in the backend only
 - Applies to both REST API and WhatsApp/N8N webhook flows
 - Must be coordinated with N8N workflow update to avoid regressions
@@ -756,3 +839,19 @@ Test verifies correct backend behavior for WIP/maintenance mode, in compliance w
 - [ ] On the FAQ page (/faq), if there are 10 or fewer elements, the pagination controls should not be visible. Only show pagination if there are more than 10 items. (FAQ page pagination logic)
 - [ ] Change the 'Add Categories' button to just 'Add' for consistency across all CRUD pages (button text standardization)
 - [ ] On the Offers page (/offers), if there are fewer than 10 elements, the pagination controls should not be visible. Only show pagination if there are more than 10 items. (Offers page pagination logic)
+
+## TASK #30
+
+**TITLE**: Implement 'Aviso legal' PDF Upload and Integration
+**DESCRIPTION/ROADMAP**:
+
+- Create a legal notice ('Aviso legal') PDF document.
+- Upload the PDF to the system and ensure it is stored correctly (e.g., in the documents section or appropriate storage).
+- Integrate the PDF so it is accessible from the relevant section (e.g., legal, compliance, or info page).
+- Test the upload and retrieval process to verify PDF/document management works as expected.
+- Use this as a test case for document/PDF management features.
+
+**SPECIAL NOTE**:
+Andrea wants to try uploading and managing a legal notice PDF to validate the document handling flow.
+
+**STATUS**: 🔴 Not Started
