@@ -1,9 +1,11 @@
 // @ts-nocheck
 import { MessageRepository } from "../../repositories/message.repository"
 import {
-    detectGreeting as detectGreetingLang
+  detectGreeting as detectGreetingLang,
+  detectLanguage,
 } from "../../utils/language-detector"
 import logger from "../../utils/logger"
+import { N8nPayloadBuilder } from "../../utils/n8n-payload-builder"
 import { ApiLimitService } from "./api-limit.service"
 
 import { PrismaClient } from "@prisma/client"
@@ -210,27 +212,103 @@ export class MessageService {
     phoneNumber: string,
     workspaceId: string
   ): Promise<string | null> {
-    // STEP 1: API Limit Check
-    const step1Start = Date.now()
-    logger.info(`[SECURITY-GATEWAY] STEP 1: API Limit Check - Starting`)
+    const startTime = Date.now()
 
-    const apiLimitResult =
-      await this.apiLimitService.checkApiLimit(workspaceId)
-    if (apiLimitResult.exceeded) {
-      logger.warn(
-        `[SECURITY-GATEWAY] STEP 1: API Limit Check - EXCEEDED: ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`
+    try {
+      logger.info(
+        `[SECURITY-GATEWAY] 🚦 Andrea's Architecture: Starting security checks only`
       )
-      return null // BLOCKED - no further processing
+      logger.info(
+        `[SECURITY-GATEWAY] Message: "${message}" from ${phoneNumber} for workspace ${workspaceId}`
+      )
+
+      // STEP 1: API Limit Check
+      const step1Start = Date.now()
+      logger.info(`[SECURITY-GATEWAY] STEP 1: API Limit Check - Starting`)
+
+      const apiLimitResult =
+        await this.apiLimitService.checkApiLimit(workspaceId)
+      if (apiLimitResult.exceeded) {
+        logger.warn(
+          `[SECURITY-GATEWAY] STEP 1: API Limit Check - EXCEEDED: ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`
+        )
+        return null // BLOCKED - no further processing
+      }
+
+      const step1Time = Date.now() - step1Start
+      logger.info(
+        `[SECURITY-GATEWAY] STEP 1: API Limit Check - PASSED (${step1Time}ms): ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`
+      )
+
+      // STEP 2: Spam Detection - 🚨 10+ messaggi in 30 secondi? → AUTO-BLACKLIST + STOP
+      const step2Start = Date.now()
+      logger.info(`[SECURITY-GATEWAY] STEP 2: Spam Detection - Starting`)
+
+      const spamCheck = await this.checkSpamBehavior(phoneNumber, workspaceId)
+      if (spamCheck.isSpam) {
+        logger.warn(
+          `[SECURITY-GATEWAY] STEP 2: Spam Detection - DETECTED: ${spamCheck.messageCount} messages. Auto-blacklisting user.`
+        )
+        await this.addToAutoBlacklist(phoneNumber, workspaceId, "AUTO_SPAM")
+        return null // BLOCKED - no further processing
+      }
+
+      const step2Time = Date.now() - step2Start
+      logger.info(
+        `[SECURITY-GATEWAY] STEP 2: Spam Detection - PASSED (${step2Time}ms): ${spamCheck.messageCount} messages`
+      )
+
+      // 🚀 SECURITY PASSED - N8N TAKES COMPLETE CONTROL
+      const totalTime = Date.now() - startTime
+      logger.info(
+        `[SECURITY-GATEWAY] ✅ SECURITY CHECKS PASSED in ${totalTime}ms`
+      )
+      logger.info(
+        `[SECURITY-GATEWAY] 🚀 N8N NOW HANDLES: workspace, blacklist, WIP, user flow, checkout, RAG, LLM, response, sending`
+      )
+
+      // 🚨 DEBUG: Alert prima della chiamata a N8N
+      console.log("🚨 DEBUG: RUN POST N8N (from message service)")
+
+      // 🚀 NOW CALL N8N DIRECTLY using centralized builder
+      try {
+        // 🚨 FIXED N8N URL - hardcoded for now
+        const n8nWebhookUrl = "http://localhost:5678/webhook-test/webhook-start"
+
+        console.log("🚨 N8N URL FISSO:", n8nWebhookUrl)
+
+        // Generate a session token for this API call
+        const sessionToken =
+          Math.random().toString(36).substring(2, 15) +
+          Math.random().toString(36).substring(2, 15)
+
+        // 🎯 BUILD SIMPLIFIED PAYLOAD using centralized builder
+        const simplifiedPayload =
+          await N8nPayloadBuilder.buildSimplifiedPayload(
+            workspaceId,
+            phoneNumber,
+            message,
+            sessionToken,
+            "api_message"
+          )
+
+        // 🚀 SEND TO N8N using centralized method
+        const n8nResponse = await N8nPayloadBuilder.sendToN8N(
+          simplifiedPayload,
+          n8nWebhookUrl,
+          "Message Service"
+        )
+
+        return n8nResponse?.message || "Message processed successfully"
+      } catch (n8nError) {
+        console.log("🚨 N8N ERROR:", n8nError)
+        logger.error(`[N8N] ❌ Error calling N8N:`, n8nError)
+        return "Error processing message with N8N"
+      }
+    } catch (error) {
+      logger.error(`[SECURITY-GATEWAY] ❌ ERROR in security checks:`, error)
+      return null // Block on any security error
     }
-
-    const step1Time = Date.now() - step1Start
-    logger.info(
-      `[SECURITY-GATEWAY] STEP 1: API Limit Check - PASSED (${step1Time}ms): ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`
-    )
-
-    // Andrea: funzione completamente disabilitata per debug pipeline N8N
-    // Restituisce sempre null (security ok, passa sempre a N8N)
-    return null;
   }
 
   // N8N integration replaces the processMessageWithFlowise method
@@ -245,13 +323,33 @@ export class MessageService {
     workspaceId: string
   ) {
     try {
-      // Use the MessageRepository to properly handle chat session creation
-      await this.messageRepository.saveMessage({
-        workspaceId,
-        phoneNumber,
-        message,
-        response: "Message saved for operator review",
-        agentSelected: "OPERATOR_REVIEW"
+      // Find or create chat session
+      let chatSession = await prisma.chatSession.findFirst({
+        where: {
+          customerPhoneNumber: phoneNumber,
+          workspaceId,
+        },
+      })
+
+      if (!chatSession) {
+        chatSession = await prisma.chatSession.create({
+          data: {
+            customerPhoneNumber: phoneNumber,
+            workspaceId,
+            language: detectLanguage(message),
+            isActive: true,
+          },
+        })
+      }
+
+      // Save the message for operator review
+      await prisma.message.create({
+        data: {
+          content: message,
+          role: "user",
+          chatSessionId: chatSession.id,
+          needsOperatorReview: true,
+        },
       })
 
       logger.info(`[FLOWISE] Message saved for operator review: ${phoneNumber}`)
@@ -271,13 +369,39 @@ export class MessageService {
     language: string
   ) {
     try {
-      // Use the MessageRepository to properly handle chat session creation
-      await this.messageRepository.saveMessage({
-        workspaceId,
-        phoneNumber,
-        message: userMessage,
-        response: aiResponse,
-        agentSelected: "FLOWISE"
+      // Find or create chat session
+      let chatSession = await prisma.chatSession.findFirst({
+        where: {
+          customerPhoneNumber: phoneNumber,
+          workspaceId,
+        },
+      })
+
+      if (!chatSession) {
+        chatSession = await prisma.chatSession.create({
+          data: {
+            customerPhoneNumber: phoneNumber,
+            workspaceId,
+            language,
+            isActive: true,
+          },
+        })
+      }
+
+      // Save user message and AI response
+      await prisma.message.createMany({
+        data: [
+          {
+            content: userMessage,
+            role: "user",
+            chatSessionId: chatSession.id,
+          },
+          {
+            content: aiResponse,
+            role: "assistant",
+            chatSessionId: chatSession.id,
+          },
+        ],
       })
 
       logger.info(`[FLOWISE] Conversation saved for ${phoneNumber}`)
@@ -287,14 +411,18 @@ export class MessageService {
   }
 
   /**
-   * Ottiene il messaggio WIP appropriato per la lingua - NO HARDCODE
+   * Ottiene il messaggio WIP appropriato per la lingua
    */
-  private getWipMessage(wipMessages: any, language: string): string | null {
+  private getWipMessage(wipMessages: any, language: string): string {
     if (!wipMessages) {
-      return null // NO HARDCODED FALLBACK
+      return "Our service is temporarily unavailable. We will be back soon!"
     }
 
-    return wipMessages[language] || wipMessages["en"] || null // NO HARDCODED FALLBACK
+    return (
+      wipMessages[language] ||
+      wipMessages["en"] ||
+      "Our service is temporarily unavailable. We will be back soon!"
+    )
   }
 
   /**
@@ -323,11 +451,11 @@ export class MessageService {
   private getCustomerInfo(customer: Customer): string {
     let context = "## CUSTOMER INFORMATION\n"
     context += `Name: ${customer.name}\n`
-    context += `Email: ${customer.email || ""}\n`
-    context += `Phone: ${customer.phone || ""}\n`
+    context += `Email: ${customer.email || "Not provided"}\n`
+    context += `Phone: ${customer.phone || "Not provided"}\n`
 
     // Converti il codice della lingua in un formato leggibile
-    let languageDisplay = customer.language || ""
+    let languageDisplay = "English" // Default
     if (customer.language) {
       const langCode = customer.language.toUpperCase()
       if (
@@ -352,24 +480,31 @@ export class MessageService {
     }
 
     context += `Language: ${languageDisplay}\n`
-    context += `Shipping Address: ${customer.address || ""}\n\n`
+    context += `Shipping Address: ${customer.address || "Not provided"}\n\n`
     return context
   }
 
-  // REMOVED: getAvailableFunctions() - NO HARDCODED FUNCTION LISTS
-  // All function definitions must come from database/configuration
+  private getAvailableFunctions(): string {
+    let context = "## AVAILABLE FUNCTIONS\n"
+    context += "- searchProducts(query: string): Search for products\n"
+    context += "- checkStock(productId: string): Check product availability\n"
+    context += "- calculateShipping(address: string): Calculate shipping cost\n"
+    context += "- placeOrder(products: string[]): Place a new order\n\n"
+    return context
+  }
 
   private enrichAgentContext(selectedAgent: any, customer: Customer): void {
     if (selectedAgent.content && customer) {
-      // Aggiungi solo informazioni cliente - NO HARDCODED FUNCTIONS
+      // Aggiungi informazioni cliente e funzioni disponibili
       selectedAgent.content =
         this.getCustomerInfo(customer) +
+        this.getAvailableFunctions() +
         selectedAgent.content
 
       // Sostituisci il placeholder {customerLanguage} con il nome della lingua leggibile
       if (customer.language) {
-        // Converti il codice della lingua in un formato leggibile - NO HARDCODE
-        let languageDisplay = customer.language || ""
+        // Converti il codice della lingua in un formato leggibile
+        let languageDisplay = "English" // Default
         const langCode = customer.language.toUpperCase()
         if (
           langCode === "IT" ||
@@ -392,15 +527,13 @@ export class MessageService {
         }
 
         // Sostituisci il placeholder con il nome della lingua leggibile
-        if (languageDisplay) {
-          selectedAgent.content = selectedAgent.content.replace(
-            /\{customerLanguage\}/g,
-            languageDisplay
-          )
+        selectedAgent.content = selectedAgent.content.replace(
+          /\{customerLanguage\}/g,
+          languageDisplay
+        )
 
-          // Aggiungi anche la lingua alla risposta
-          selectedAgent.content += `\nYour response MUST be in **${languageDisplay}** language.`
-        }
+        // Aggiungi anche la lingua alla risposta
+        selectedAgent.content += `\nYour response MUST be in **${languageDisplay}** language.`
       }
     }
   }

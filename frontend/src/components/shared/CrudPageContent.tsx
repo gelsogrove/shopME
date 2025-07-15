@@ -41,9 +41,10 @@ export function CrudPageContent<T>({
   renderActions,
   renderEmptyState,
 }: CrudPageContentProps<T>) {
-
   if (isLoading) {
-    return <div className="flex justify-center items-center h-96">Loading...</div>
+    return (
+      <div className="flex justify-center items-center h-96">Loading...</div>
+    )
   }
 
   return (
@@ -76,4 +77,4 @@ export function CrudPageContent<T>({
       )}
     </>
   )
-} 
+}

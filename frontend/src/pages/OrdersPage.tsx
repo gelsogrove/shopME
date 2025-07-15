@@ -29,13 +29,22 @@ import {
   type ItemType,
   type Order,
   type OrderStatus,
-  type PaymentMethod
+  type PaymentMethod,
 } from "@/services/ordersApi"
 import { productsApi } from "@/services/productsApi"
 import { servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
 import { formatPrice } from "@/utils/format"
-import { FileText, Package, Pencil, Plus, ShoppingCart, Trash2, Truck, Wrench } from "lucide-react"
+import {
+  FileText,
+  Package,
+  Pencil,
+  Plus,
+  ShoppingCart,
+  Trash2,
+  Truck,
+  Wrench,
+} from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -77,38 +86,42 @@ function CartItemEditSheet({
   const [selectedProductId, setSelectedProductId] = useState("")
   const [selectedServiceId, setSelectedServiceId] = useState("")
   const [productQuantity, setProductQuantity] = useState(1)
-  
+
   // Add state for editable order fields
-  const [orderStatus, setOrderStatus] = useState<OrderStatus>(order?.status || 'PENDING')
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(order?.paymentMethod || null)
+  const [orderStatus, setOrderStatus] = useState<OrderStatus>(
+    order?.status || "PENDING"
+  )
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(
+    order?.paymentMethod || null
+  )
 
   useEffect(() => {
     if (open && order) {
       // Load initial cart items
       setEditingItems([...order.items])
-      
+
       // Set initial order status and payment method
       setOrderStatus(order.status)
       setPaymentMethod(order.paymentMethod)
-      
+
       // Load products and services
       const loadData = async () => {
         if (!workspace?.id) return
-        
+
         try {
           const [productsRes, servicesRes] = await Promise.all([
             productsApi.getAllForWorkspace(workspace.id),
-            servicesApi.getServices(workspace.id)
+            servicesApi.getServices(workspace.id),
           ])
-          
+
           setProducts(productsRes?.products || [])
           setServices(servicesRes || [])
         } catch (error) {
-          console.error('Error loading data:', error)
+          console.error("Error loading data:", error)
           toast.error("Failed to load products and services")
         }
       }
-      
+
       loadData()
     }
   }, [open, order, workspace?.id])
@@ -116,29 +129,31 @@ function CartItemEditSheet({
   // Function to handle status change with immediate save
   const handleStatusChange = (newStatus: OrderStatus) => {
     setOrderStatus(newStatus)
-  };
+  }
 
   // Function to handle payment method change with immediate save
-  const handlePaymentMethodChange = (newPaymentMethod: PaymentMethod | null) => {
+  const handlePaymentMethodChange = (
+    newPaymentMethod: PaymentMethod | null
+  ) => {
     setPaymentMethod(newPaymentMethod)
-  };
+  }
 
   const handleAddProduct = () => {
     if (!selectedProductId) return
-    
-    const product = products.find(p => p.id === selectedProductId)
+
+    const product = products.find((p) => p.id === selectedProductId)
     if (!product) return
 
     const newItem = {
       id: `temp-${Date.now()}`,
-      itemType: 'PRODUCT' as ItemType,
+      itemType: "PRODUCT" as ItemType,
       productId: selectedProductId,
       product: product,
       serviceId: null,
       service: null,
       quantity: productQuantity,
       unitPrice: product.price,
-      totalPrice: product.price * productQuantity
+      totalPrice: product.price * productQuantity,
     }
 
     setEditingItems([...editingItems, newItem])
@@ -149,20 +164,20 @@ function CartItemEditSheet({
 
   const handleAddService = () => {
     if (!selectedServiceId) return
-    
-    const service = services.find(s => s.id === selectedServiceId)
+
+    const service = services.find((s) => s.id === selectedServiceId)
     if (!service) return
 
     const newItem = {
       id: `temp-${Date.now()}`,
-      itemType: 'SERVICE' as ItemType,
+      itemType: "SERVICE" as ItemType,
       productId: null,
       product: null,
       serviceId: selectedServiceId,
       service: service,
       quantity: 1, // Services always quantity 1
       unitPrice: service.price,
-      totalPrice: service.price
+      totalPrice: service.price,
     }
 
     setEditingItems([...editingItems, newItem])
@@ -171,30 +186,31 @@ function CartItemEditSheet({
   }
 
   const handleRemoveItem = (itemId: string) => {
-    setEditingItems(editingItems.filter(item => item.id !== itemId))
+    setEditingItems(editingItems.filter((item) => item.id !== itemId))
   }
 
   const handleUpdateProductQuantity = (itemId: string, newQuantity: number) => {
     if (newQuantity < 1) return
-    
+
     // Calculate the new items array
-    const newItems = editingItems.map(item => {
+    const newItems = editingItems.map((item) => {
       if (item.id === itemId) {
         // Determine item type more robustly
-        const itemType = item.itemType || (item.serviceId ? 'SERVICE' : 'PRODUCT')
-        
+        const itemType =
+          item.itemType || (item.serviceId ? "SERVICE" : "PRODUCT")
+
         // Only update quantity for products
-        if (itemType === 'PRODUCT') {
+        if (itemType === "PRODUCT") {
           return {
             ...item,
             quantity: newQuantity,
-            totalPrice: item.unitPrice * newQuantity
+            totalPrice: item.unitPrice * newQuantity,
           }
         }
       }
       return item
     })
-    
+
     // Update local state only - no auto-save
     setEditingItems(newItems)
   }
@@ -204,64 +220,80 @@ function CartItemEditSheet({
 
     try {
       // Calculate new total amount
-      const newTotalAmount = editingItems.reduce((sum, item) => sum + item.totalPrice, 0)
-      
+      const newTotalAmount = editingItems.reduce(
+        (sum, item) => sum + item.totalPrice,
+        0
+      )
+
       // Validate we have items and total
       if (editingItems.length === 0) {
         toast.error("Cannot save an empty cart")
         return
       }
-      
+
       if (newTotalAmount <= 0) {
         toast.error("Cart total must be greater than zero")
         return
       }
-      
+
       // Prepare the updated order data for API
       const updateData = {
         totalAmount: newTotalAmount,
         status: orderStatus,
         paymentMethod: paymentMethod,
-        items: editingItems.map(item => ({
-          itemType: item.itemType || (item.serviceId ? 'SERVICE' : 'PRODUCT'),
+        items: editingItems.map((item) => ({
+          itemType: item.itemType || (item.serviceId ? "SERVICE" : "PRODUCT"),
           productId: item.productId,
           serviceId: item.serviceId,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           totalPrice: item.totalPrice,
-          productVariant: item.productVariant || null
-        }))
+          productVariant: item.productVariant || null,
+        })),
       }
 
-
-      
       // Save via API
-      const updatedOrder = await ordersApi.update(order.id, workspace.id, updateData)
-      
+      const updatedOrder = await ordersApi.update(
+        order.id,
+        workspace.id,
+        updateData
+      )
+
       // Update parent component data but DON'T close the slide
       onSave(updatedOrder)
-      
+
       // Update local order data to reflect changes
       order.totalAmount = newTotalAmount
-      
+
       toast.success("Changes saved successfully")
     } catch (error) {
-      console.error('Error saving cart:', error)
-      
+      console.error("Error saving cart:", error)
+
       // Parse the error more carefully
       let errorMessage = "Please try again."
-      if (error && typeof error === 'object') {
-        if ('response' in error && error.response && typeof error.response === 'object') {
-          if ('data' in error.response && error.response.data && typeof error.response.data === 'object') {
-            if ('message' in error.response.data && typeof error.response.data.message === 'string') {
+      if (error && typeof error === "object") {
+        if (
+          "response" in error &&
+          error.response &&
+          typeof error.response === "object"
+        ) {
+          if (
+            "data" in error.response &&
+            error.response.data &&
+            typeof error.response.data === "object"
+          ) {
+            if (
+              "message" in error.response.data &&
+              typeof error.response.data.message === "string"
+            ) {
               errorMessage = error.response.data.message
             }
           }
-        } else if ('message' in error && typeof error.message === 'string') {
+        } else if ("message" in error && typeof error.message === "string") {
           errorMessage = error.message
         }
       }
-      
+
       toast.error("Failed to update cart: " + errorMessage)
       // DON'T close the slide on error - let user try again
     }
@@ -270,13 +302,18 @@ function CartItemEditSheet({
   if (!order) return null
 
   return (
-    <Sheet open={open} onOpenChange={(isOpen) => {
-              // Only close if explicitly requested, not on outside click
+    <Sheet
+      open={open}
+      onOpenChange={(isOpen) => {
+        // Only close if explicitly requested, not on outside click
         if (!isOpen) {
           onClose()
         }
-    }}>
-      <SheetContent side="right" className="max-w-[90%] overflow-y-auto"
+      }}
+    >
+      <SheetContent
+        side="right"
+        className="max-w-[90%] overflow-y-auto"
         onInteractOutside={(e) => {
           // Prevent closing on outside click
           e.preventDefault()
@@ -301,12 +338,18 @@ function CartItemEditSheet({
             <CardHeader className="pb-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-xl font-bold text-gray-900">Order {order.orderCode}</CardTitle>
-                  <p className="text-gray-600 mt-1">{order.customer?.name || "Unknown Customer"}</p>
+                  <CardTitle className="text-xl font-bold text-gray-900">
+                    Order {order.orderCode}
+                  </CardTitle>
+                  <p className="text-gray-600 mt-1">
+                    {order.customer?.name || "Unknown Customer"}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-500">Total Amount</p>
-                  <p className="text-2xl font-bold text-gray-900">€{order.totalAmount.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    €{order.totalAmount.toFixed(2)}
+                  </p>
                 </div>
               </div>
             </CardHeader>
@@ -314,9 +357,14 @@ function CartItemEditSheet({
               {/* Status and Payment in one clean row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700">Status</Label>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Status
+                  </Label>
                   <div className="flex items-center gap-3">
-                    <Select value={orderStatus} onValueChange={handleStatusChange}>
+                    <Select
+                      value={orderStatus}
+                      onValueChange={handleStatusChange}
+                    >
                       <SelectTrigger className="w-[160px]">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
@@ -329,18 +377,27 @@ function CartItemEditSheet({
                         <SelectItem value="CANCELLED">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Badge variant={getStatusBadgeVariant(orderStatus)} className={getStatusBadgeClass(orderStatus)}>
+                    <Badge
+                      variant={getStatusBadgeVariant(orderStatus)}
+                      className={getStatusBadgeClass(orderStatus)}
+                    >
                       {orderStatus}
                     </Badge>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700">Payment Method</Label>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Payment Method
+                  </Label>
                   <div className="flex items-center gap-3">
-                    <Select 
-                      value={paymentMethod || "NONE"} 
-                      onValueChange={(value) => handlePaymentMethodChange(value === "NONE" ? null : value as PaymentMethod)}
+                    <Select
+                      value={paymentMethod || "NONE"}
+                      onValueChange={(value) =>
+                        handlePaymentMethodChange(
+                          value === "NONE" ? null : (value as PaymentMethod)
+                        )
+                      }
                     >
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Select method" />
@@ -350,20 +407,34 @@ function CartItemEditSheet({
                         <SelectItem value="CREDIT_CARD">Credit Card</SelectItem>
                         <SelectItem value="DEBIT_CARD">Debit Card</SelectItem>
                         <SelectItem value="PAYPAL">PayPal</SelectItem>
-                        <SelectItem value="BANK_TRANSFER">Bank Transfer</SelectItem>
-                        <SelectItem value="CASH_ON_DELIVERY">Cash on Delivery</SelectItem>
+                        <SelectItem value="BANK_TRANSFER">
+                          Bank Transfer
+                        </SelectItem>
+                        <SelectItem value="CASH_ON_DELIVERY">
+                          Cash on Delivery
+                        </SelectItem>
                         <SelectItem value="CRYPTO">Cryptocurrency</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300">
-                      {paymentMethod ? paymentMethod.replace(/_/g, ' ') : 'None'}
+                    <Badge
+                      variant="outline"
+                      className="bg-gray-50 text-gray-700 border-gray-300"
+                    >
+                      {paymentMethod
+                        ? paymentMethod.replace(/_/g, " ")
+                        : "None"}
                     </Badge>
                   </div>
                 </div>
               </div>
 
               <div className="text-sm text-gray-500">
-                Order created on {new Date(order.createdAt).toLocaleDateString('en-GB')} at {new Date(order.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                Order created on{" "}
+                {new Date(order.createdAt).toLocaleDateString("en-GB")} at{" "}
+                {new Date(order.createdAt).toLocaleTimeString("en-GB", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </div>
             </CardContent>
           </Card>
@@ -380,9 +451,21 @@ function CartItemEditSheet({
               </CardHeader>
               <CardContent>
                 <div className="text-gray-700 leading-relaxed">
-                  {order.shippingAddress ? 
-                    `${order.shippingAddress.street || order.shippingAddress.address || ''}, ${order.shippingAddress.city || ''}, ${order.shippingAddress.zipCode || order.shippingAddress.postalCode || ''}, ${order.shippingAddress.country || ''}`.replace(/^,\s*|,\s*$/g, '').replace(/,\s*,/g, ',') 
-                    : <span className="text-gray-500 italic">Not specified</span>}
+                  {order.shippingAddress ? (
+                    `${
+                      order.shippingAddress.street ||
+                      order.shippingAddress.address ||
+                      ""
+                    }, ${order.shippingAddress.city || ""}, ${
+                      order.shippingAddress.zipCode ||
+                      order.shippingAddress.postalCode ||
+                      ""
+                    }, ${order.shippingAddress.country || ""}`
+                      .replace(/^,\s*|,\s*$/g, "")
+                      .replace(/,\s*,/g, ",")
+                  ) : (
+                    <span className="text-gray-500 italic">Not specified</span>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -399,18 +482,26 @@ function CartItemEditSheet({
                 {order.customer?.invoiceAddress ? (
                   <div className="space-y-2 text-gray-700">
                     <div className="font-medium">
-                      {order.customer.invoiceAddress.firstName} {order.customer.invoiceAddress.lastName}
+                      {order.customer.invoiceAddress.firstName}{" "}
+                      {order.customer.invoiceAddress.lastName}
                     </div>
                     {order.customer.invoiceAddress.company && (
-                      <div className="text-sm text-gray-600">{order.customer.invoiceAddress.company}</div>
+                      <div className="text-sm text-gray-600">
+                        {order.customer.invoiceAddress.company}
+                      </div>
                     )}
                     <div className="text-sm">
-                      {order.customer.invoiceAddress.address}<br/>
-                      {order.customer.invoiceAddress.city} {order.customer.invoiceAddress.postalCode}<br/>
+                      {order.customer.invoiceAddress.address}
+                      <br />
+                      {order.customer.invoiceAddress.city}{" "}
+                      {order.customer.invoiceAddress.postalCode}
+                      <br />
                       {order.customer.invoiceAddress.country}
                     </div>
                     {order.customer.invoiceAddress.vatNumber && (
-                      <div className="text-sm text-gray-600">VAT: {order.customer.invoiceAddress.vatNumber}</div>
+                      <div className="text-sm text-gray-600">
+                        VAT: {order.customer.invoiceAddress.vatNumber}
+                      </div>
                     )}
                   </div>
                 ) : (
@@ -422,8 +513,6 @@ function CartItemEditSheet({
             </Card>
           </div>
 
-
-
           {/* Cart Items */}
           <Card className="border border-gray-200 shadow-sm">
             <CardHeader className="border-b border-gray-100">
@@ -433,7 +522,14 @@ function CartItemEditSheet({
                   Cart Items ({editingItems.length})
                 </CardTitle>
                 <div className="text-lg font-bold text-gray-900">
-                  Total: {formatPrice(editingItems.reduce((sum, item) => sum + item.totalPrice, 0), workspace?.currency)}
+                  Total:{" "}
+                  {formatPrice(
+                    editingItems.reduce(
+                      (sum, item) => sum + item.totalPrice,
+                      0
+                    ),
+                    workspace?.currency
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -442,42 +538,58 @@ function CartItemEditSheet({
                 <div className="text-center py-12 text-gray-500">
                   <ShoppingCart className="h-16 w-16 mx-auto mb-4 text-gray-300" />
                   <p className="text-lg">No items in cart</p>
-                  <p className="text-sm">Add products or services to get started</p>
+                  <p className="text-sm">
+                    Add products or services to get started
+                  </p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
                   {editingItems.map((item) => {
                     // Determine item type more robustly for display
-                    const itemType = item.itemType || (item.serviceId ? 'SERVICE' : 'PRODUCT')
-                    const itemName = itemType === 'PRODUCT' 
-                      ? (item.product?.name || `Product ${item.productId}`)
-                      : (item.service?.name || `Service ${item.serviceId}`)
+                    const itemType =
+                      item.itemType || (item.serviceId ? "SERVICE" : "PRODUCT")
+                    const itemName =
+                      itemType === "PRODUCT"
+                        ? item.product?.name || `Product ${item.productId}`
+                        : item.service?.name || `Service ${item.serviceId}`
 
                     return (
-                      <div key={item.id} className="p-6 hover:bg-gray-50 transition-colors">
+                      <div
+                        key={item.id}
+                        className="p-6 hover:bg-gray-50 transition-colors"
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4 flex-1">
                             <div className="flex items-center gap-2">
-                              {itemType === 'PRODUCT' ? (
+                              {itemType === "PRODUCT" ? (
                                 <Package className="h-5 w-5 text-blue-600" />
                               ) : (
                                 <Wrench className="h-5 w-5 text-purple-600" />
                               )}
-                              <Badge variant="outline" className="text-xs font-medium">
+                              <Badge
+                                variant="outline"
+                                className="text-xs font-medium"
+                              >
                                 {itemType}
                               </Badge>
                             </div>
                             <div className="flex-1">
-                              <h3 className="font-semibold text-gray-900">{itemName}</h3>
+                              <h3 className="font-semibold text-gray-900">
+                                {itemName}
+                              </h3>
                               <p className="text-sm text-gray-600">
-                                {formatPrice(item.unitPrice, workspace?.currency)} per unit
+                                {formatPrice(
+                                  item.unitPrice,
+                                  workspace?.currency
+                                )}{" "}
+                                per unit
                               </p>
                             </div>
                           </div>
 
                           <div className="flex items-center gap-6">
                             {/* Quantity controls */}
-                            {itemType === 'PRODUCT' ? (
+                            {itemType === "PRODUCT" ? (
                               <div className="flex items-center gap-2">
                                 <Button
                                   variant="outline"
@@ -485,21 +597,29 @@ function CartItemEditSheet({
                                   onClick={(e) => {
                                     e.preventDefault()
                                     e.stopPropagation()
-                                    handleUpdateProductQuantity(item.id, item.quantity - 1)
+                                    handleUpdateProductQuantity(
+                                      item.id,
+                                      item.quantity - 1
+                                    )
                                   }}
                                   disabled={item.quantity <= 1}
                                   className="h-8 w-8 p-0"
                                 >
                                   -
                                 </Button>
-                                <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                                <span className="w-8 text-center text-sm font-medium">
+                                  {item.quantity}
+                                </span>
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={(e) => {
                                     e.preventDefault()
                                     e.stopPropagation()
-                                    handleUpdateProductQuantity(item.id, item.quantity + 1)
+                                    handleUpdateProductQuantity(
+                                      item.id,
+                                      item.quantity + 1
+                                    )
                                   }}
                                   className="h-8 w-8 p-0"
                                 >
@@ -508,13 +628,18 @@ function CartItemEditSheet({
                               </div>
                             ) : (
                               <div className="w-20 text-center">
-                                <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">Qty: 1</span>
+                                <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                                  Qty: 1
+                                </span>
                               </div>
                             )}
 
                             <div className="text-right min-w-[100px]">
                               <p className="text-lg font-bold text-gray-900">
-                                {formatPrice(item.totalPrice, workspace?.currency)}
+                                {formatPrice(
+                                  item.totalPrice,
+                                  workspace?.currency
+                                )}
                               </p>
                             </div>
 
@@ -538,32 +663,43 @@ function CartItemEditSheet({
                 </div>
               )}
             </CardContent>
-                         {editingItems.length > 0 && (
-               <div className="border-t border-gray-100 p-6 bg-gray-50">
-                 <div className="flex justify-between items-center">
-                   <div className="text-sm text-gray-600">
-                     {editingItems.length} item{editingItems.length !== 1 ? 's' : ''} in cart
-                   </div>
-                   <div className="flex gap-3">
-                     <Button variant="outline" size="sm" disabled className="flex items-center gap-2">
-                       <FileText className="h-4 w-4" />
-                       Download Invoice
-                     </Button>
-                     <Button variant="outline" size="sm" disabled className="flex items-center gap-2">
-                       <FileText className="h-4 w-4" />
-                       Download DDT
-                     </Button>
-                     <Button
-                       onClick={handleSave}
-                       size="default"
-                       className="bg-green-600 hover:bg-green-700 text-white px-8"
-                     >
-                       Save Changes
-                     </Button>
-                   </div>
-                 </div>
-               </div>
-             )}
+            {editingItems.length > 0 && (
+              <div className="border-t border-gray-100 p-6 bg-gray-50">
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-600">
+                    {editingItems.length} item
+                    {editingItems.length !== 1 ? "s" : ""} in cart
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled
+                      className="flex items-center gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Download Invoice
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled
+                      className="flex items-center gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Download DDT
+                    </Button>
+                    <Button
+                      onClick={handleSave}
+                      size="default"
+                      className="bg-green-600 hover:bg-green-700 text-white px-8"
+                    >
+                      Save Changes
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </Card>
         </div>
       </SheetContent>
@@ -606,34 +742,60 @@ function OrderDetailsSheet({
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Status</Label>
+                  <Label className="text-sm font-medium text-gray-500">
+                    Status
+                  </Label>
                   <Badge variant={getStatusBadgeVariant(order.status)}>
                     {order.status}
                   </Badge>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Total Amount</Label>
-                  <p className="font-medium">{formatPrice(order.totalAmount, workspace?.currency)}</p>
+                  <Label className="text-sm font-medium text-gray-500">
+                    Total Amount
+                  </Label>
+                  <p className="font-medium">
+                    {formatPrice(order.totalAmount, workspace?.currency)}
+                  </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Payment Method</Label>
+                  <Label className="text-sm font-medium text-gray-500">
+                    Payment Method
+                  </Label>
                   <p>{order.paymentMethod || "Not specified"}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Order Date</Label>
-                  <p>{new Date(order.createdAt).toLocaleDateString('en-GB', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}</p>
+                  <Label className="text-sm font-medium text-gray-500">
+                    Order Date
+                  </Label>
+                  <p>
+                    {new Date(order.createdAt).toLocaleDateString("en-GB", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Shipping Address</Label>
-                  <p>{order.shippingAddress ? 
-                    `${order.shippingAddress.street || order.shippingAddress.address || ''}, ${order.shippingAddress.city || ''}, ${order.shippingAddress.zipCode || order.shippingAddress.postalCode || ''}, ${order.shippingAddress.country || ''}`.replace(/^,\s*|,\s*$/g, '').replace(/,\s*,/g, ',') 
-                    : "Not specified"}</p>
+                  <Label className="text-sm font-medium text-gray-500">
+                    Shipping Address
+                  </Label>
+                  <p>
+                    {order.shippingAddress
+                      ? `${
+                          order.shippingAddress.street ||
+                          order.shippingAddress.address ||
+                          ""
+                        }, ${order.shippingAddress.city || ""}, ${
+                          order.shippingAddress.zipCode ||
+                          order.shippingAddress.postalCode ||
+                          ""
+                        }, ${order.shippingAddress.country || ""}`
+                          .replace(/^,\s*|,\s*$/g, "")
+                          .replace(/,\s*,/g, ",")
+                      : "Not specified"}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -646,9 +808,17 @@ function OrderDetailsSheet({
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <p><strong>Name:</strong> {order.customer?.name}</p>
-                <p><strong>Email:</strong> {order.customer?.email}</p>
-                {order.customer?.phone && <p><strong>Phone:</strong> {order.customer.phone}</p>}
+                <p>
+                  <strong>Name:</strong> {order.customer?.name}
+                </p>
+                <p>
+                  <strong>Email:</strong> {order.customer?.email}
+                </p>
+                {order.customer?.phone && (
+                  <p>
+                    <strong>Phone:</strong> {order.customer.phone}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -675,20 +845,21 @@ function OrderDetailsSheet({
                       <tr key={item.id}>
                         <td className="py-2">
                           <Badge variant="outline" className="text-xs">
-                            {item.itemType === 'PRODUCT' ? 'Product' : 'Service'}
+                            {item.itemType === "PRODUCT"
+                              ? "Product"
+                              : "Service"}
                           </Badge>
                         </td>
                         <td className="py-2">
-                          {item.itemType === 'PRODUCT' 
-                            ? (item.product?.name || `Product ${item.productId}`)
-                            : (item.service?.name || `Service ${item.serviceId}`)
-                          }
+                          {item.itemType === "PRODUCT"
+                            ? item.product?.name || `Product ${item.productId}`
+                            : item.service?.name || `Service ${item.serviceId}`}
                         </td>
                         <td className="py-2 text-right">
                           {formatPrice(item.unitPrice, workspace?.currency)}
                         </td>
                         <td className="py-2 text-center">
-                          {item.itemType === 'SERVICE' ? '1' : item.quantity}
+                          {item.itemType === "SERVICE" ? "1" : item.quantity}
                         </td>
                         <td className="py-2 text-right">
                           {formatPrice(item.totalPrice, workspace?.currency)}
@@ -713,13 +884,21 @@ function OrderDetailsSheet({
               {order.shippingAddress ? (
                 <div className="space-y-1 text-gray-700">
                   {/* Street/Address */}
-                  <div>{order.shippingAddress.street || order.shippingAddress.address || ''}</div>
+                  <div>
+                    {order.shippingAddress.street ||
+                      order.shippingAddress.address ||
+                      ""}
+                  </div>
                   {/* City */}
-                  <div>{order.shippingAddress.city || ''}</div>
+                  <div>{order.shippingAddress.city || ""}</div>
                   {/* Postal Code */}
-                  <div>{order.shippingAddress.zipCode || order.shippingAddress.postalCode || ''}</div>
+                  <div>
+                    {order.shippingAddress.zipCode ||
+                      order.shippingAddress.postalCode ||
+                      ""}
+                  </div>
                   {/* Country */}
-                  <div>{order.shippingAddress.country || ''}</div>
+                  <div>{order.shippingAddress.country || ""}</div>
                 </div>
               ) : (
                 <span className="text-gray-500 italic">Not specified</span>
@@ -765,7 +944,9 @@ function OrderCrudSheet({
   const [services, setServices] = useState<any[]>([])
   const [orderItems, setOrderItems] = useState<any[]>([])
   const [showAddItemDialog, setShowAddItemDialog] = useState(false)
-  const [selectedItemType, setSelectedItemType] = useState<'PRODUCT' | 'SERVICE'>('PRODUCT')
+  const [selectedItemType, setSelectedItemType] = useState<
+    "PRODUCT" | "SERVICE"
+  >("PRODUCT")
   const [selectedProductId, setSelectedProductId] = useState("")
   const [selectedServiceId, setSelectedServiceId] = useState("")
   const [itemQuantity, setItemQuantity] = useState(1)
@@ -787,40 +968,52 @@ function OrderCrudSheet({
       if (!workspace?.id) return
 
       try {
-        console.log('🔄 OrderCrudSheet - Starting to load data...')
-        
-        const [customersResponse, productsResponse, servicesResponse] = await Promise.all([
-          clientsApi.getAllForWorkspace(workspace.id),
-          productsApi.getAllForWorkspace(workspace.id),
-          servicesApi.getServices(workspace.id)
-        ])
-        
-        console.log('🔍 OrderCrudSheet - Raw API responses:')
-        console.log('  - customersResponse:', customersResponse)
-        console.log('  - customersResponse type:', typeof customersResponse)
-        console.log('  - customersResponse.length:', customersResponse?.length)
-        console.log('  - productsResponse:', productsResponse)
-        console.log('  - servicesResponse:', servicesResponse)
-        
+        console.log("🔄 OrderCrudSheet - Starting to load data...")
+
+        const [customersResponse, productsResponse, servicesResponse] =
+          await Promise.all([
+            clientsApi.getAllForWorkspace(workspace.id),
+            productsApi.getAllForWorkspace(workspace.id),
+            servicesApi.getServices(workspace.id),
+          ])
+
+        console.log("🔍 OrderCrudSheet - Raw API responses:")
+        console.log("  - customersResponse:", customersResponse)
+        console.log("  - customersResponse type:", typeof customersResponse)
+        console.log("  - customersResponse.length:", customersResponse?.length)
+        console.log("  - productsResponse:", productsResponse)
+        console.log("  - servicesResponse:", servicesResponse)
+
         // Handle different response formats for customers
-        const customersArray = Array.isArray(customersResponse) 
-          ? customersResponse 
-          : (customersResponse as any)?.customers || (customersResponse as any)?.data || []
-        
+        const customersArray = Array.isArray(customersResponse)
+          ? customersResponse
+          : (customersResponse as any)?.customers ||
+            (customersResponse as any)?.data ||
+            []
+
         setCustomers(customersArray)
         setProducts(productsResponse.products || [])
         setServices(servicesResponse || [])
-        
-        console.log('✅ OrderCrudSheet - Data loaded successfully:')
-        console.log('  - Customers set:', customersArray.length, 'items')
-        console.log('  - Products set:', (productsResponse.products || []).length, 'items')
-        console.log('  - Services set:', (servicesResponse || []).length, 'items')
-        
+
+        console.log("✅ OrderCrudSheet - Data loaded successfully:")
+        console.log("  - Customers set:", customersArray.length, "items")
+        console.log(
+          "  - Products set:",
+          (productsResponse.products || []).length,
+          "items"
+        )
+        console.log(
+          "  - Services set:",
+          (servicesResponse || []).length,
+          "items"
+        )
+
         if (customersArray.length === 0) {
-          console.warn('⚠️ No customers found - this might be why dropdown is empty')
+          console.warn(
+            "⚠️ No customers found - this might be why dropdown is empty"
+          )
           toast.warning("No customers found. Please add customers first.")
         }
-        
       } catch (error) {
         console.error("❌ Error loading OrderCrudSheet data:", error)
         toast.error("Failed to load form data")
@@ -865,26 +1058,38 @@ function OrderCrudSheet({
 
   // Calculate total amount based on items
   useEffect(() => {
-    const itemsTotal = orderItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
-    const total = itemsTotal + formData.shippingAmount + formData.taxAmount - formData.discountAmount
-    setFormData(prev => ({ ...prev, totalAmount: total }))
-  }, [orderItems, formData.shippingAmount, formData.taxAmount, formData.discountAmount])
+    const itemsTotal = orderItems.reduce(
+      (sum, item) => sum + (item.totalPrice || 0),
+      0
+    )
+    const total =
+      itemsTotal +
+      formData.shippingAmount +
+      formData.taxAmount -
+      formData.discountAmount
+    setFormData((prev) => ({ ...prev, totalAmount: total }))
+  }, [
+    orderItems,
+    formData.shippingAmount,
+    formData.taxAmount,
+    formData.discountAmount,
+  ])
 
   const handleAddItem = () => {
-    if (selectedItemType === 'PRODUCT' && selectedProductId) {
-      const product = products.find(p => p.id === selectedProductId)
+    if (selectedItemType === "PRODUCT" && selectedProductId) {
+      const product = products.find((p) => p.id === selectedProductId)
       if (!product) return
 
       const newItem = {
         id: `temp-${Date.now()}`,
-        itemType: 'PRODUCT' as ItemType,
+        itemType: "PRODUCT" as ItemType,
         productId: selectedProductId,
         serviceId: null,
         quantity: itemQuantity,
         unitPrice: product.price,
         totalPrice: product.price * itemQuantity,
         product: product,
-        service: null
+        service: null,
       }
 
       setOrderItems([...orderItems, newItem])
@@ -892,20 +1097,20 @@ function OrderCrudSheet({
       setItemQuantity(1)
       setShowAddItemDialog(false)
       toast.success("Product added to order")
-    } else if (selectedItemType === 'SERVICE' && selectedServiceId) {
-      const service = services.find(s => s.id === selectedServiceId)
+    } else if (selectedItemType === "SERVICE" && selectedServiceId) {
+      const service = services.find((s) => s.id === selectedServiceId)
       if (!service) return
 
       const newItem = {
         id: `temp-${Date.now()}`,
-        itemType: 'SERVICE' as ItemType,
+        itemType: "SERVICE" as ItemType,
         productId: null,
         serviceId: selectedServiceId,
         quantity: 1, // Services always quantity 1
         unitPrice: service.price,
         totalPrice: service.price,
         product: null,
-        service: service
+        service: service,
       }
 
       setOrderItems([...orderItems, newItem])
@@ -916,40 +1121,43 @@ function OrderCrudSheet({
   }
 
   const handleRemoveItem = (itemId: string) => {
-    setOrderItems(orderItems.filter(item => item.id !== itemId))
+    setOrderItems(orderItems.filter((item) => item.id !== itemId))
     toast.success("Item removed from order")
   }
 
   const handleUpdateItemQuantity = (itemId: string, newQuantity: number) => {
     if (newQuantity < 1) return
-    
-    setOrderItems(orderItems.map(item => {
-      if (item.id === itemId) {
-        // Determine item type if not explicitly set
-        const itemType = item.itemType || (item.serviceId ? 'SERVICE' : 'PRODUCT')
-        
-        // Only update quantity for products
-        if (itemType === 'PRODUCT') {
-          return {
-            ...item,
-            quantity: newQuantity,
-            totalPrice: item.unitPrice * newQuantity
+
+    setOrderItems(
+      orderItems.map((item) => {
+        if (item.id === itemId) {
+          // Determine item type if not explicitly set
+          const itemType =
+            item.itemType || (item.serviceId ? "SERVICE" : "PRODUCT")
+
+          // Only update quantity for products
+          if (itemType === "PRODUCT") {
+            return {
+              ...item,
+              quantity: newQuantity,
+              totalPrice: item.unitPrice * newQuantity,
+            }
           }
         }
-      }
-      return item
-    }))
+        return item
+      })
+    )
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Validation
     if (formData.totalAmount <= 0) {
       toast.error("Total amount must be greater than 0")
       return
     }
-    
+
     if (!formData.customerId) {
       toast.error("Customer is required")
       return
@@ -962,15 +1170,15 @@ function OrderCrudSheet({
       let savedOrder
       const orderData = {
         ...formData,
-        items: orderItems.map(item => ({
+        items: orderItems.map((item) => ({
           itemType: item.itemType,
           productId: item.productId,
           serviceId: item.serviceId,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           totalPrice: item.totalPrice,
-          productVariant: item.productVariant || null
-        }))
+          productVariant: item.productVariant || null,
+        })),
       }
 
       if (mode === "create") {
@@ -982,7 +1190,9 @@ function OrderCrudSheet({
       if (savedOrder) {
         onSave(savedOrder)
         onClose()
-        toast.success(`Order ${mode === "create" ? "created" : "updated"} successfully`)
+        toast.success(
+          `Order ${mode === "create" ? "created" : "updated"} successfully`
+        )
       }
     } catch (error) {
       console.error("Error saving order:", error)
@@ -994,10 +1204,15 @@ function OrderCrudSheet({
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-[70vw] max-w-none overflow-y-auto">
+      <SheetContent
+        side="right"
+        className="w-[70vw] max-w-none overflow-y-auto"
+      >
         <SheetHeader>
           <SheetTitle>
-            {mode === "edit" ? `Edit Order ${order?.orderCode}` : "Create New Order"}
+            {mode === "edit"
+              ? `Edit Order ${order?.orderCode}`
+              : "Create New Order"}
           </SheetTitle>
         </SheetHeader>
 
@@ -1015,8 +1230,10 @@ function OrderCrudSheet({
                     id="orderCode"
                     value={formData.orderCode}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '').slice(0, 5) // Only digits, max 5
-                      setFormData(prev => ({ ...prev, orderCode: value }))
+                      const value = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 5) // Only digits, max 5
+                      setFormData((prev) => ({ ...prev, orderCode: value }))
                     }}
                     maxLength={5}
                     placeholder="12345"
@@ -1028,23 +1245,30 @@ function OrderCrudSheet({
                   {mode === "edit" ? (
                     <Input
                       value={(() => {
-                        const customer = customers.find(c => c.id === formData.customerId);
+                        const customer = customers.find(
+                          (c) => c.id === formData.customerId
+                        )
                         if (customer?.name && customer?.email) {
-                          return `${customer.name} (${customer.email})`;
+                          return `${customer.name} (${customer.email})`
                         }
                         // Fallback: use order's customer data if available
                         if (order?.customer) {
-                          return `${order.customer.name} (${order.customer.email})`;
+                          return `${order.customer.name} (${order.customer.email})`
                         }
-                        return `Customer ID: ${formData.customerId?.substring(0, 8)}...`;
+                        return `Customer ID: ${formData.customerId?.substring(
+                          0,
+                          8
+                        )}...`
                       })()}
                       disabled
                       className="bg-gray-50 text-gray-700"
                     />
                   ) : (
-                    <Select 
-                      value={formData.customerId} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, customerId: value }))}
+                    <Select
+                      value={formData.customerId}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({ ...prev, customerId: value }))
+                      }
                       required
                     >
                       <SelectTrigger>
@@ -1065,9 +1289,14 @@ function OrderCrudSheet({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="status">Status *</Label>
-                  <Select 
-                    value={formData.status} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as OrderStatus }))}
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        status: value as OrderStatus,
+                      }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -1084,9 +1313,15 @@ function OrderCrudSheet({
                 </div>
                 <div>
                   <Label htmlFor="paymentMethod">Payment Method</Label>
-                  <Select 
-                    value={formData.paymentMethod || "NONE"} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value === "NONE" ? null : value as PaymentMethod }))}
+                  <Select
+                    value={formData.paymentMethod || "NONE"}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        paymentMethod:
+                          value === "NONE" ? null : (value as PaymentMethod),
+                      }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -1096,8 +1331,12 @@ function OrderCrudSheet({
                       <SelectItem value="CREDIT_CARD">Credit Card</SelectItem>
                       <SelectItem value="DEBIT_CARD">Debit Card</SelectItem>
                       <SelectItem value="PAYPAL">PayPal</SelectItem>
-                      <SelectItem value="BANK_TRANSFER">Bank Transfer</SelectItem>
-                      <SelectItem value="CASH_ON_DELIVERY">Cash on Delivery</SelectItem>
+                      <SelectItem value="BANK_TRANSFER">
+                        Bank Transfer
+                      </SelectItem>
+                      <SelectItem value="CASH_ON_DELIVERY">
+                        Cash on Delivery
+                      </SelectItem>
                       <SelectItem value="CRYPTO">Cryptocurrency</SelectItem>
                     </SelectContent>
                   </Select>
@@ -1115,13 +1354,15 @@ function OrderCrudSheet({
                   onChange={(e) => {
                     const value = parseFloat(e.target.value) || 0
                     if (value > 0) {
-                      setFormData(prev => ({ ...prev, totalAmount: value }))
+                      setFormData((prev) => ({ ...prev, totalAmount: value }))
                     }
                   }}
                   placeholder="0.00"
                   required
                 />
-                <p className="text-sm text-gray-500 mt-1">Final price including all taxes and fees</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Final price including all taxes and fees
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -1148,13 +1389,20 @@ function OrderCrudSheet({
                 {/* Add Item Form - Show when dialog is open */}
                 {showAddItemDialog && (
                   <div className="border-2 border-green-200 bg-green-50 p-4 rounded-lg mb-4">
-                    <h4 className="font-medium mb-3 text-green-800">Add New Item</h4>
-                    
+                    <h4 className="font-medium mb-3 text-green-800">
+                      Add New Item
+                    </h4>
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {/* Item Type */}
                       <div>
                         <Label>Item Type</Label>
-                        <Select value={selectedItemType} onValueChange={(value: 'PRODUCT' | 'SERVICE') => setSelectedItemType(value)}>
+                        <Select
+                          value={selectedItemType}
+                          onValueChange={(value: "PRODUCT" | "SERVICE") =>
+                            setSelectedItemType(value)
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select item type" />
                           </SelectTrigger>
@@ -1166,18 +1414,28 @@ function OrderCrudSheet({
                       </div>
 
                       {/* Product/Service Selection */}
-                      {selectedItemType === 'PRODUCT' && (
+                      {selectedItemType === "PRODUCT" && (
                         <>
                           <div>
                             <Label>Product</Label>
-                            <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+                            <Select
+                              value={selectedProductId}
+                              onValueChange={setSelectedProductId}
+                            >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select a product" />
                               </SelectTrigger>
                               <SelectContent>
                                 {products.map((product) => (
-                                  <SelectItem key={product.id} value={product.id}>
-                                    {product.name} - {formatPrice(product.price, workspace?.currency)}
+                                  <SelectItem
+                                    key={product.id}
+                                    value={product.id}
+                                  >
+                                    {product.name} -{" "}
+                                    {formatPrice(
+                                      product.price,
+                                      workspace?.currency
+                                    )}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -1189,24 +1447,34 @@ function OrderCrudSheet({
                               type="number"
                               min="1"
                               value={itemQuantity}
-                              onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
+                              onChange={(e) =>
+                                setItemQuantity(parseInt(e.target.value) || 1)
+                              }
                             />
                           </div>
                         </>
                       )}
 
-                      {selectedItemType === 'SERVICE' && (
+                      {selectedItemType === "SERVICE" && (
                         <div>
                           <Label>Service</Label>
-                          <Select value={selectedServiceId} onValueChange={setSelectedServiceId}>
+                          <Select
+                            value={selectedServiceId}
+                            onValueChange={setSelectedServiceId}
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="Select a service" />
                             </SelectTrigger>
                             <SelectContent>
                               {services.map((service) => (
                                 <SelectItem key={service.id} value={service.id}>
-                                  {service.name} - {formatPrice(service.price, workspace?.currency)}
-                                  {service.duration && ` (${service.duration} min)`}
+                                  {service.name} -{" "}
+                                  {formatPrice(
+                                    service.price,
+                                    workspace?.currency
+                                  )}
+                                  {service.duration &&
+                                    ` (${service.duration} min)`}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -1216,12 +1484,19 @@ function OrderCrudSheet({
                     </div>
 
                     <div className="flex justify-end gap-2 mt-4">
-                      <Button variant="outline" onClick={() => setShowAddItemDialog(false)}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowAddItemDialog(false)}
+                      >
                         Cancel
                       </Button>
-                      <Button 
+                      <Button
                         onClick={handleAddItem}
-                        disabled={selectedItemType === 'PRODUCT' ? !selectedProductId : !selectedServiceId}
+                        disabled={
+                          selectedItemType === "PRODUCT"
+                            ? !selectedProductId
+                            : !selectedServiceId
+                        }
                         className="bg-green-600 hover:bg-green-700 text-white"
                       >
                         Add Item
@@ -1233,59 +1508,94 @@ function OrderCrudSheet({
                 <div className="space-y-3">
                   {orderItems.map((item, index) => {
                     // Determine item type if not explicitly set
-                    const itemType = item.itemType || (item.serviceId ? 'SERVICE' : 'PRODUCT')
-                    
+                    const itemType =
+                      item.itemType || (item.serviceId ? "SERVICE" : "PRODUCT")
+
                     // Find service or product name
-                    const serviceName = itemType === 'SERVICE' && item.serviceId 
-                      ? services.find(s => s.id === item.serviceId)?.name 
-                      : null
-                    
-                    const productName = itemType === 'PRODUCT' && item.productId
-                      ? products.find(p => p.id === item.productId)?.name || item.product?.name
-                      : null
+                    const serviceName =
+                      itemType === "SERVICE" && item.serviceId
+                        ? services.find((s) => s.id === item.serviceId)?.name
+                        : null
+
+                    const productName =
+                      itemType === "PRODUCT" && item.productId
+                        ? products.find((p) => p.id === item.productId)?.name ||
+                          item.product?.name
+                        : null
 
                     // Better fallback names
-                    const itemName = serviceName || productName || 
-                      (itemType === 'SERVICE' ? 'Unknown Service' : 'Unknown Product')
+                    const itemName =
+                      serviceName ||
+                      productName ||
+                      (itemType === "SERVICE"
+                        ? "Unknown Service"
+                        : "Unknown Product")
 
                     return (
-                      <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <div
+                        key={index}
+                        className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                      >
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <Badge variant="outline" className="text-xs">
-                              {itemType === 'PRODUCT' ? 'Product' : 'Service'}
+                              {itemType === "PRODUCT" ? "Product" : "Service"}
                             </Badge>
                             <p className="font-medium">{itemName}</p>
                           </div>
                           <p className="text-sm text-gray-500">
-                            Quantity: {itemType === 'SERVICE' ? '1 (service)' : item.quantity}
-                            {itemType === 'SERVICE' && item.service?.duration && 
-                              ` • Duration: ${item.service.duration} min`
-                            }
+                            Quantity:{" "}
+                            {itemType === "SERVICE"
+                              ? "1 (service)"
+                              : item.quantity}
+                            {itemType === "SERVICE" &&
+                              item.service?.duration &&
+                              ` • Duration: ${item.service.duration} min`}
                           </p>
                         </div>
                         <div className="text-right flex items-center gap-2">
                           <div>
-                            <p className="font-medium">{formatPrice(item.unitPrice, workspace?.currency)} each</p>
-                            <p className="text-sm text-gray-500">Total: {formatPrice(item.totalPrice, workspace?.currency)}</p>
+                            <p className="font-medium">
+                              {formatPrice(item.unitPrice, workspace?.currency)}{" "}
+                              each
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Total:{" "}
+                              {formatPrice(
+                                item.totalPrice,
+                                workspace?.currency
+                              )}
+                            </p>
                           </div>
                           <div className="flex gap-1">
-                            {itemType === 'PRODUCT' && (
+                            {itemType === "PRODUCT" && (
                               <div className="flex items-center gap-1">
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleUpdateItemQuantity(item.id, item.quantity - 1)}
+                                  onClick={() =>
+                                    handleUpdateItemQuantity(
+                                      item.id,
+                                      item.quantity - 1
+                                    )
+                                  }
                                   className="h-6 w-6 p-0 text-gray-600 hover:text-gray-800"
                                   disabled={item.quantity <= 1}
                                 >
                                   -
                                 </Button>
-                                <span className="text-sm w-8 text-center">{item.quantity}</span>
+                                <span className="text-sm w-8 text-center">
+                                  {item.quantity}
+                                </span>
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleUpdateItemQuantity(item.id, item.quantity + 1)}
+                                  onClick={() =>
+                                    handleUpdateItemQuantity(
+                                      item.id,
+                                      item.quantity + 1
+                                    )
+                                  }
                                   className="h-6 w-6 p-0 text-gray-600 hover:text-gray-800"
                                 >
                                   +
@@ -1318,10 +1628,22 @@ function OrderCrudSheet({
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div><strong>Address:</strong> {order.shippingAddress.street || order.shippingAddress.address}</div>
-                  <div><strong>City:</strong> {order.shippingAddress.city}</div>
-                  <div><strong>Postal Code:</strong> {order.shippingAddress.zipCode || order.shippingAddress.postalCode}</div>
-                  <div><strong>Country:</strong> {order.shippingAddress.country}</div>
+                  <div>
+                    <strong>Address:</strong>{" "}
+                    {order.shippingAddress.street ||
+                      order.shippingAddress.address}
+                  </div>
+                  <div>
+                    <strong>City:</strong> {order.shippingAddress.city}
+                  </div>
+                  <div>
+                    <strong>Postal Code:</strong>{" "}
+                    {order.shippingAddress.zipCode ||
+                      order.shippingAddress.postalCode}
+                  </div>
+                  <div>
+                    <strong>Country:</strong> {order.shippingAddress.country}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -1331,33 +1653,71 @@ function OrderCrudSheet({
           {mode === "edit" && order?.customer && (
             <Card className="border-2 border-blue-200 bg-blue-50">
               <CardHeader>
-                <CardTitle className="text-blue-800">📧 Invoice Address</CardTitle>
+                <CardTitle className="text-blue-800">
+                  📧 Invoice Address
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {order.customer.invoiceAddress ? (
                   <div className="space-y-2">
-                    <p><strong>Name:</strong> {order.customer.invoiceAddress.firstName || ''} {order.customer.invoiceAddress.lastName || ''}</p>
-                    {order.customer.invoiceAddress.company && <p><strong>Company:</strong> {order.customer.invoiceAddress.company}</p>}
-                    <p><strong>Address:</strong> {order.customer.invoiceAddress.address || 'N/A'}</p>
-                    <p><strong>City:</strong> {order.customer.invoiceAddress.city || 'N/A'}</p>
-                    <p><strong>Postal Code:</strong> {order.customer.invoiceAddress.postalCode || 'N/A'}</p>
-                    <p><strong>Country:</strong> {order.customer.invoiceAddress.country || 'N/A'}</p>
-                    {order.customer.invoiceAddress.vatNumber && <p><strong>VAT Number:</strong> {order.customer.invoiceAddress.vatNumber}</p>}
+                    <p>
+                      <strong>Name:</strong>{" "}
+                      {order.customer.invoiceAddress.firstName || ""}{" "}
+                      {order.customer.invoiceAddress.lastName || ""}
+                    </p>
+                    {order.customer.invoiceAddress.company && (
+                      <p>
+                        <strong>Company:</strong>{" "}
+                        {order.customer.invoiceAddress.company}
+                      </p>
+                    )}
+                    <p>
+                      <strong>Address:</strong>{" "}
+                      {order.customer.invoiceAddress.address || "N/A"}
+                    </p>
+                    <p>
+                      <strong>City:</strong>{" "}
+                      {order.customer.invoiceAddress.city || "N/A"}
+                    </p>
+                    <p>
+                      <strong>Postal Code:</strong>{" "}
+                      {order.customer.invoiceAddress.postalCode || "N/A"}
+                    </p>
+                    <p>
+                      <strong>Country:</strong>{" "}
+                      {order.customer.invoiceAddress.country || "N/A"}
+                    </p>
+                    {order.customer.invoiceAddress.vatNumber && (
+                      <p>
+                        <strong>VAT Number:</strong>{" "}
+                        {order.customer.invoiceAddress.vatNumber}
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div className="text-gray-500 italic">
                     <p>No invoice address available for this customer.</p>
-                    <p className="text-sm">You can add one by editing the customer profile.</p>
+                    <p className="text-sm">
+                      You can add one by editing the customer profile.
+                    </p>
                   </div>
                 )}
                 {/* DEBUG INFO */}
                 <div className="mt-4 p-2 bg-yellow-100 text-xs">
-                  <p><strong>🔍 DEBUG:</strong></p>
+                  <p>
+                    <strong>🔍 DEBUG:</strong>
+                  </p>
                   <p>Customer ID: {order.customer.id}</p>
                   <p>Customer Name: {order.customer.name}</p>
-                  <p>Has Invoice Address: {order.customer.invoiceAddress ? 'YES' : 'NO'}</p>
+                  <p>
+                    Has Invoice Address:{" "}
+                    {order.customer.invoiceAddress ? "YES" : "NO"}
+                  </p>
                   {order.customer.invoiceAddress && (
-                    <p>Invoice Data: {JSON.stringify(order.customer.invoiceAddress, null, 2)}</p>
+                    <p>
+                      Invoice Data:{" "}
+                      {JSON.stringify(order.customer.invoiceAddress, null, 2)}
+                    </p>
                   )}
                 </div>
               </CardContent>
@@ -1372,7 +1732,9 @@ function OrderCrudSheet({
             <CardContent>
               <Textarea
                 value={formData.notes}
-                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, notes: e.target.value }))
+                }
                 placeholder="Additional notes for this order..."
                 rows={3}
               />
@@ -1384,14 +1746,20 @@ function OrderCrudSheet({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading} className="bg-green-600 hover:bg-green-700 text-white">
-              {isLoading ? "Saving..." : mode === "create" ? "Create Order" : "Save Changes"}
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isLoading
+                ? "Saving..."
+                : mode === "create"
+                ? "Create Order"
+                : "Save Changes"}
             </Button>
           </div>
         </form>
       </SheetContent>
-
-
     </Sheet>
   )
 }
@@ -1399,29 +1767,41 @@ function OrderCrudSheet({
 // Helper functions
 const getStatusBadgeVariant = (status: OrderStatus) => {
   switch (status) {
-    case 'PENDING': return 'outline' // Yellow/orange for pending
-    case 'CONFIRMED': return 'secondary' // Blue for confirmed
-    case 'PROCESSING': return 'default' // Default blue for processing
-    case 'SHIPPED': return 'default' // Cyan for shipped
-    case 'DELIVERED': return 'default' // Green for delivered - using custom class
-    case 'CANCELLED': return 'destructive' // Red for cancelled
-    default: return 'outline'
+    case "PENDING":
+      return "outline" // Yellow/orange for pending
+    case "CONFIRMED":
+      return "secondary" // Blue for confirmed
+    case "PROCESSING":
+      return "default" // Default blue for processing
+    case "SHIPPED":
+      return "default" // Cyan for shipped
+    case "DELIVERED":
+      return "default" // Green for delivered - using custom class
+    case "CANCELLED":
+      return "destructive" // Red for cancelled
+    default:
+      return "outline"
   }
 }
 
 const getStatusBadgeClass = (status: OrderStatus) => {
   switch (status) {
-    case 'PENDING': return 'bg-yellow-100 text-yellow-800 border-yellow-300'
-    case 'CONFIRMED': return 'bg-blue-100 text-blue-800 border-blue-300'
-    case 'PROCESSING': return 'bg-purple-100 text-purple-800 border-purple-300'
-    case 'SHIPPED': return 'bg-cyan-100 text-cyan-800 border-cyan-300'
-    case 'DELIVERED': return 'bg-green-100 text-green-800 border-green-300'
-    case 'CANCELLED': return 'bg-red-100 text-red-800 border-red-300'
-    default: return 'bg-gray-100 text-gray-800 border-gray-300'
+    case "PENDING":
+      return "bg-yellow-100 text-yellow-800 border-yellow-300"
+    case "CONFIRMED":
+      return "bg-blue-100 text-blue-800 border-blue-300"
+    case "PROCESSING":
+      return "bg-purple-100 text-purple-800 border-purple-300"
+    case "SHIPPED":
+      return "bg-cyan-100 text-cyan-800 border-cyan-300"
+    case "DELIVERED":
+      return "bg-green-100 text-green-800 border-green-300"
+    case "CANCELLED":
+      return "bg-red-100 text-red-800 border-red-300"
+    default:
+      return "bg-gray-100 text-gray-800 border-gray-300"
   }
 }
-
-
 
 // Main Orders Page Component
 export default function OrdersPage() {
@@ -1433,17 +1813,14 @@ export default function OrdersPage() {
     return params.get("search") || ""
   })()
   const [orders, setOrders] = useState<Order[]>([])
-  const [page, setPage] = useState(1)
-  const pageSize = 15; // Fixed page size
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState(initialSearch)
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all")
-  const [dateRangeFilter, setDateRangeFilter] = useState<string>("last_month")
-  const [dateFromFilter, setDateFromFilter] = useState<Date | undefined>(() => {
-    const today = new Date()
-    return new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
-  })
-  const [dateToFilter, setDateToFilter] = useState<Date | undefined>(() => new Date())
+  const [dateRangeFilter, setDateRangeFilter] = useState<string>("all") // Default: show all orders
+  const [dateFromFilter, setDateFromFilter] = useState<Date | undefined>(
+    undefined
+  )
+  const [dateToFilter, setDateToFilter] = useState<Date | undefined>(undefined)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -1458,12 +1835,38 @@ export default function OrdersPage() {
 
       try {
         setIsLoading(true)
-        // Fetch all orders in one call, no pagination params
-        const ordersResponse = await ordersApi.getAllForWorkspace(workspace.id)
+
+        // Fetch orders and customers in parallel
+        const [ordersResponse, customersResponse] = await Promise.all([
+          ordersApi.getAllForWorkspace(workspace.id),
+          clientsApi.getAllForWorkspace(workspace.id),
+        ])
+
+        // Create a map of customers for quick lookup
+        const customersMap = new Map()
+        if (Array.isArray(customersResponse)) {
+          customersResponse.forEach((customer) => {
+            customersMap.set(customer.id, customer)
+          })
+        }
+
+        // Enrich orders with customer data
+        const enrichedOrders = (ordersResponse.orders || []).map((order) => {
+          const customerFromMap = customersMap.get(order.customerId)
+          const finalCustomer = customerFromMap || order.customer || null
+
+          return {
+            ...order,
+            customer: finalCustomer,
+          }
+        })
+
         // Sort orders by date descending (newest first)
-        const sortedOrders = (ordersResponse.orders || []).sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        const sortedOrders = enrichedOrders.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
+
         setOrders(sortedOrders)
       } catch (error) {
         console.error("Error loading data:", error)
@@ -1475,12 +1878,6 @@ export default function OrdersPage() {
 
     loadData()
   }, [workspace?.id])
-
-  // Enhanced filter logic
-  useEffect(() => {
-    // Remove filteredOrders and all client-side filtering logic (search, status, date) should trigger a reload with page=1
-    // The API call will handle pagination and filtering based on the parameters
-  }, [searchTerm, statusFilter, dateRangeFilter, dateFromFilter, dateToFilter])
 
   // Event handlers
   const handleEdit = (order: Order) => {
@@ -1515,37 +1912,57 @@ export default function OrdersPage() {
 
   const handleDateRangeChange = (range: string) => {
     setDateRangeFilter(range)
-    
+
     const today = new Date()
     let from: Date | undefined = undefined
     let to: Date | undefined = undefined
-    
-    switch(range) {
-      case 'last_week':
-        from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7)
+
+    switch (range) {
+      case "last_week":
+        from = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() - 7
+        )
         to = today
         break
-      case 'last_month':
-        from = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
+      case "last_month":
+        from = new Date(
+          today.getFullYear(),
+          today.getMonth() - 1,
+          today.getDate()
+        )
         to = today
         break
-      case 'last_3_months':
-        from = new Date(today.getFullYear(), today.getMonth() - 3, today.getDate())
+      case "last_3_months":
+        from = new Date(
+          today.getFullYear(),
+          today.getMonth() - 3,
+          today.getDate()
+        )
         to = today
         break
-      case 'last_6_months':
-        from = new Date(today.getFullYear(), today.getMonth() - 6, today.getDate())
+      case "last_6_months":
+        from = new Date(
+          today.getFullYear(),
+          today.getMonth() - 6,
+          today.getDate()
+        )
         to = today
         break
-      case 'last_year':
-        from = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
+      case "last_year":
+        from = new Date(
+          today.getFullYear() - 1,
+          today.getMonth(),
+          today.getDate()
+        )
         to = today
         break
       default: // 'all'
         from = undefined
         to = undefined
     }
-    
+
     setDateFromFilter(from)
     setDateToFilter(to)
   }
@@ -1565,7 +1982,8 @@ export default function OrdersPage() {
       accessorKey: "customerName",
       size: 220,
       cell: ({ row }: { row: { original: Order } }) => (
-        <span className="font-medium cursor-pointer hover:text-blue-600 transition-colors"
+        <span
+          className="font-medium cursor-pointer hover:text-blue-600 transition-colors"
           onClick={() => handleCustomerNavigation(row.original.customer)}
           title="Click to view customer details"
         >
@@ -1614,89 +2032,126 @@ export default function OrdersPage() {
         const date = new Date(row.original.createdAt)
         return (
           <span>
-            {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {date.toLocaleDateString()}{" "}
+            {date.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </span>
         )
       },
     },
   ]
 
-  // Update search logic to match each word against customer name and company separately
+  // Complete filtering logic with search, status, and date filters
   const filteredOrders = orders.filter((order) => {
-    const searchValue = searchTerm.toLowerCase().trim();
-    const searchWords = searchValue.split(/\s+/).filter(Boolean);
-    const name = (order.customer?.name || "").toLowerCase();
-    const company = (order.customer?.company || "").toLowerCase();
-    const orderCode = order.orderCode?.toLowerCase() || "";
-    const status = order.status?.toLowerCase() || "";
-    const total = formatPrice(order.totalAmount, workspace?.currency).toLowerCase();
-    const date = new Date(order.createdAt).toLocaleDateString().toLowerCase();
-    const time = new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase();
-    return searchWords.every(word =>
-      orderCode.includes(word) ||
-      name.includes(word) ||
-      company.includes(word) ||
-      status.includes(word) ||
-      total.includes(word) ||
-      date.includes(word) ||
-      time.includes(word)
-    );
-  });
+    // 1. Search filter (text search across multiple fields)
+    if (searchTerm.trim()) {
+      const searchValue = searchTerm.toLowerCase().trim()
 
-  // 1. Always sort filteredOrders by date descending
-  const sortedOrders = [...filteredOrders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      // Extract all searchable fields with null safety
+      const name = (order.customer?.name || "").toLowerCase()
+      const company = (order.customer?.company || "").toLowerCase()
+      const orderCode = (order.orderCode || "").toLowerCase()
+      const status = (order.status || "").toLowerCase()
+      const total = formatPrice(
+        order.totalAmount || 0,
+        workspace?.currency
+      ).toLowerCase()
+      const date = new Date(order.createdAt).toLocaleDateString().toLowerCase()
+      const time = new Date(order.createdAt)
+        .toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        .toLowerCase()
 
-  // 2. Client-side pagination
-  const paginatedOrders = sortedOrders.slice((page - 1) * pageSize, page * pageSize)
-  const totalFiltered = sortedOrders.length
-  const totalPagesFiltered = Math.max(1, Math.ceil(totalFiltered / pageSize))
+      // Combine all searchable text into one string
+      const allText = `${orderCode} ${name} ${company} ${status} ${total} ${date} ${time}`
 
-  // 3. Reset page to 1 on search/filter change (removed pageSize)
-  useEffect(() => { setPage(1) }, [searchTerm, statusFilter, dateRangeFilter])
+      // Simple includes check
+      if (!allText.includes(searchValue)) {
+        return false
+      }
+    }
+
+    // 2. Status filter
+    if (statusFilter !== "all" && order.status !== statusFilter) {
+      return false
+    }
+
+    // 3. Date range filter
+    if (dateFromFilter || dateToFilter) {
+      const orderDate = new Date(order.createdAt)
+
+      if (dateFromFilter) {
+        const fromDate = new Date(dateFromFilter)
+        fromDate.setHours(0, 0, 0, 0)
+        if (orderDate < fromDate) {
+          return false
+        }
+      }
+
+      if (dateToFilter) {
+        const toDate = new Date(dateToFilter)
+        toDate.setHours(23, 59, 59, 999)
+        if (orderDate > toDate) {
+          return false
+        }
+      }
+    }
+
+    return true
+  })
+
+  // Always sort filteredOrders by date descending
+  const sortedOrders = [...filteredOrders].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
 
   const handleDeleteConfirm = async () => {
     if (!selectedOrder || !workspace?.id) return
 
     try {
       await ordersApi.delete(selectedOrder.id, workspace.id)
-      setOrders(prev => prev.filter(o => o.id !== selectedOrder.id))
+      setOrders((prev) => prev.filter((o) => o.id !== selectedOrder.id))
       setShowDeleteDialog(false)
       setSelectedOrder(null)
       toast.success("Order deleted successfully")
     } catch (error) {
       console.error("Error deleting order:", error)
-      toast.error("Failed to delete order. " + (error as any)?.response?.data?.message || "Please try again.")
+      toast.error(
+        "Failed to delete order. " + (error as any)?.response?.data?.message ||
+          "Please try again."
+      )
     }
   }
 
-
-
   const handleOrderSave = async (savedOrder: Order) => {
     // Update local state immediately for instant feedback
-    setOrders(prev => {
-      const index = prev.findIndex(o => o.id === savedOrder.id)
+    setOrders((prev) => {
+      const index = prev.findIndex((o) => o.id === savedOrder.id)
       if (index >= 0) {
         const updated = [...prev]
         updated[index] = savedOrder
-        return updated.sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        return updated.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
       } else {
         const newOrders = [savedOrder, ...prev]
-        return newOrders.sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        return newOrders.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
       }
     })
-    
+
     // Show success message
     toast.success("Order updated successfully")
-    
+
     // Close the sheets
     setIsEditOpen(false)
     setIsCartEditOpen(false)
     setSelectedOrder(null)
-    
+
     // Verify with server in background
     if (workspace?.id) {
       try {
@@ -1718,7 +2173,9 @@ export default function OrdersPage() {
         title="Edit Order Items"
         className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-700"
       >
-        <Pencil className={`${commonStyles.actionIcon} ${commonStyles.primary}`} />
+        <Pencil
+          className={`${commonStyles.actionIcon} ${commonStyles.primary}`}
+        />
       </Button>
       <Button
         variant="ghost"
@@ -1740,13 +2197,18 @@ export default function OrdersPage() {
         searchValue={searchTerm}
         onSearch={setSearchTerm}
         searchPlaceholder="Search orders..."
-        data={filteredOrders}
+        data={sortedOrders}
         columns={columns}
         isLoading={isLoading}
         renderActions={renderOrderActions}
         extraButtons={
           <div className="flex justify-end gap-3">
-            <Select value={statusFilter} onValueChange={(value: OrderStatus | "all") => setStatusFilter(value)}>
+            <Select
+              value={statusFilter}
+              onValueChange={(value: OrderStatus | "all") =>
+                setStatusFilter(value)
+              }
+            >
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
@@ -1760,7 +2222,10 @@ export default function OrdersPage() {
                 <SelectItem value="CANCELLED">Cancelled</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={dateRangeFilter} onValueChange={handleDateRangeChange}>
+            <Select
+              value={dateRangeFilter}
+              onValueChange={handleDateRangeChange}
+            >
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Date Range" />
               </SelectTrigger>

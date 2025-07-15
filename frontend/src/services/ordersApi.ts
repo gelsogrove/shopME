@@ -1,9 +1,21 @@
-import { api } from '@/services/api'
+import { api } from "@/services/api"
 
 // Enums aligned with backend
-export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
-export type PaymentMethod = 'CREDIT_CARD' | 'DEBIT_CARD' | 'BANK_TRANSFER' | 'PAYPAL' | 'CASH_ON_DELIVERY' | 'CRYPTO'
-export type ItemType = 'PRODUCT' | 'SERVICE'
+export type OrderStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "PROCESSING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED"
+export type PaymentMethod =
+  | "CREDIT_CARD"
+  | "DEBIT_CARD"
+  | "BANK_TRANSFER"
+  | "PAYPAL"
+  | "CASH_ON_DELIVERY"
+  | "CRYPTO"
+export type ItemType = "PRODUCT" | "SERVICE"
 
 // Address interfaces
 export interface ShippingAddress {
@@ -181,72 +193,77 @@ export interface OrderAnalytics {
  * Get all orders for a workspace with optional filters and pagination
  */
 export const getAllForWorkspace = async (
-  workspaceId: string, 
+  workspaceId: string,
   filters?: OrderFilters
-): Promise<{ 
+): Promise<{
   orders: Order[]
   total: number
   page: number
-  totalPages: number 
+  totalPages: number
 }> => {
   try {
-    console.log('Getting orders for workspace:', workspaceId)
+    console.log("Getting orders for workspace:", workspaceId)
     if (!workspaceId) {
-      console.error('WorkspaceId missing in getAllForWorkspace')
+      console.error("WorkspaceId missing in getAllForWorkspace")
       return {
         orders: [],
         total: 0,
         page: 1,
-        totalPages: 0
+        totalPages: 0,
       }
     }
-    
+
     // Construct query parameters
     const queryParams = new URLSearchParams()
-    
+
+    // Always include customer data in the response
+    queryParams.append("include", "customer")
+
     if (filters?.search) {
-      queryParams.append('search', filters.search)
+      queryParams.append("search", filters.search)
     }
-    
+
     if (filters?.customerId) {
-      queryParams.append('customerId', filters.customerId)
+      queryParams.append("customerId", filters.customerId)
     }
-    
+
     if (filters?.status) {
-      queryParams.append('status', filters.status)
+      queryParams.append("status", filters.status)
     }
-    
+
     if (filters?.dateFrom) {
-      queryParams.append('dateFrom', filters.dateFrom)
+      queryParams.append("dateFrom", filters.dateFrom)
     }
-    
+
     if (filters?.dateTo) {
-      queryParams.append('dateTo', filters.dateTo)
+      queryParams.append("dateTo", filters.dateTo)
     }
-    
+
     if (filters?.page) {
-      queryParams.append('page', filters.page.toString())
+      queryParams.append("page", filters.page.toString())
     }
-    
+
     if (filters?.limit) {
-      queryParams.append('limit', filters.limit.toString())
+      queryParams.append("limit", filters.limit.toString())
     }
-    
+
     const queryString = queryParams.toString()
-    const requestUrl = `/orders${queryString ? `?${queryString}` : ''}`
-    console.log('Orders API request URL:', requestUrl)
-    
+    const requestUrl = `/workspaces/${workspaceId}/orders${
+      queryString ? `?${queryString}` : ""
+    }`
+    console.log("Orders API request URL:", requestUrl)
+
     const response = await api.get(requestUrl)
-    console.log('Orders API response:', response.data)
-    
+    console.log("Orders API response:", response.data)
+
     return response.data
   } catch (error) {
-    console.error('Error getting orders:', error)
+    console.error("Error getting orders:", error)
     return {
       orders: [],
       total: 0,
       page: 1,
-      totalPages: 0
+      totalPages: 0,
     }
   }
 }
@@ -254,12 +271,15 @@ export const getAllForWorkspace = async (
 /**
  * Get a specific order by ID
  */
-export const getById = async (id: string, workspaceId: string): Promise<Order> => {
+export const getById = async (
+  id: string,
+  workspaceId: string
+): Promise<Order> => {
   try {
     const response = await api.get(`/orders/${id}`)
     return response.data
   } catch (error) {
-    console.error('Error getting order:', error)
+    console.error("Error getting order:", error)
     throw error
   }
 }
@@ -267,12 +287,15 @@ export const getById = async (id: string, workspaceId: string): Promise<Order> =
 /**
  * Get order by order code
  */
-export const getByCode = async (orderCode: string, workspaceId: string): Promise<Order> => {
+export const getByCode = async (
+  orderCode: string,
+  workspaceId: string
+): Promise<Order> => {
   try {
     const response = await api.get(`/orders/code/${orderCode}`)
     return response.data
   } catch (error) {
-    console.error('Error getting order by code:', error)
+    console.error("Error getting order by code:", error)
     throw error
   }
 }
@@ -280,12 +303,15 @@ export const getByCode = async (orderCode: string, workspaceId: string): Promise
 /**
  * Get orders by customer ID
  */
-export const getByCustomer = async (customerId: string, workspaceId: string): Promise<Order[]> => {
+export const getByCustomer = async (
+  customerId: string,
+  workspaceId: string
+): Promise<Order[]> => {
   try {
     const response = await api.get(`/orders/customer/${customerId}`)
     return response.data
   } catch (error) {
-    console.error('Error getting orders by customer:', error)
+    console.error("Error getting orders by customer:", error)
     throw error
   }
 }
@@ -293,16 +319,19 @@ export const getByCustomer = async (customerId: string, workspaceId: string): Pr
 /**
  * Create a new order
  */
-export const create = async (workspaceId: string, data: CreateOrderData): Promise<Order> => {
+export const create = async (
+  workspaceId: string,
+  data: CreateOrderData
+): Promise<Order> => {
   try {
-    console.log('Creating order with data:', data)
-    console.log('Workspace ID:', workspaceId)
-    
+    console.log("Creating order with data:", data)
+    console.log("Workspace ID:", workspaceId)
+
     const response = await api.post(`/orders`, data)
-    console.log('Order creation response:', response.data)
+    console.log("Order creation response:", response.data)
     return response.data
   } catch (error) {
-    console.error('Error creating order:', error)
+    console.error("Error creating order:", error)
     throw error
   }
 }
@@ -310,14 +339,18 @@ export const create = async (workspaceId: string, data: CreateOrderData): Promis
 /**
  * Update an existing order
  */
-export const update = async (id: string, workspaceId: string, data: UpdateOrderData): Promise<Order> => {
+export const update = async (
+  id: string,
+  workspaceId: string,
+  data: UpdateOrderData
+): Promise<Order> => {
   try {
-    console.log('Updating order with data:', data)
-    
+    console.log("Updating order with data:", data)
+
     const response = await api.put(`/orders/${id}`, data)
     return response.data
   } catch (error) {
-    console.error('Error updating order:', error)
+    console.error("Error updating order:", error)
     throw error
   }
 }
@@ -325,11 +358,14 @@ export const update = async (id: string, workspaceId: string, data: UpdateOrderD
 /**
  * Delete an order
  */
-export const delete_ = async (id: string, workspaceId: string): Promise<void> => {
+export const delete_ = async (
+  id: string,
+  workspaceId: string
+): Promise<void> => {
   try {
     await api.delete(`/orders/${id}`)
   } catch (error) {
-    console.error('Error deleting order:', error)
+    console.error("Error deleting order:", error)
     throw error
   }
 }
@@ -337,44 +373,51 @@ export const delete_ = async (id: string, workspaceId: string): Promise<void> =>
 /**
  * Update order status
  */
-export const updateStatus = async (id: string, workspaceId: string, status: OrderStatus): Promise<Order> => {
+export const updateStatus = async (
+  id: string,
+  workspaceId: string,
+  status: OrderStatus
+): Promise<Order> => {
   try {
     const response = await api.patch(`/orders/${id}/status`, { status })
     return response.data
   } catch (error) {
-    console.error('Error updating order status:', error)
+    console.error("Error updating order status:", error)
     throw error
   }
 }
 
-
-
 /**
  * Get order analytics
  */
-export const getAnalytics = async (workspaceId: string, filters?: Omit<OrderFilters, 'page' | 'limit'>): Promise<OrderAnalytics> => {
+export const getAnalytics = async (
+  workspaceId: string,
+  filters?: Omit<OrderFilters, "page" | "limit">
+): Promise<OrderAnalytics> => {
   try {
     const queryParams = new URLSearchParams()
-    
+
     if (filters?.status) {
-      queryParams.append('status', filters.status)
+      queryParams.append("status", filters.status)
     }
-    
+
     if (filters?.dateFrom) {
-      queryParams.append('dateFrom', filters.dateFrom)
+      queryParams.append("dateFrom", filters.dateFrom)
     }
-    
+
     if (filters?.dateTo) {
-      queryParams.append('dateTo', filters.dateTo)
+      queryParams.append("dateTo", filters.dateTo)
     }
-    
+
     const queryString = queryParams.toString()
-    const requestUrl = `/orders/analytics${queryString ? `?${queryString}` : ''}`
-    
+    const requestUrl = `/orders/analytics${
+      queryString ? `?${queryString}` : ""
+    }`
+
     const response = await api.get(requestUrl)
     return response.data
   } catch (error) {
-    console.error('Error getting order analytics:', error)
+    console.error("Error getting order analytics:", error)
     throw error
   }
 }
@@ -382,12 +425,18 @@ export const getAnalytics = async (workspaceId: string, filters?: Omit<OrderFilt
 /**
  * Get orders by date range
  */
-export const getByDateRange = async (workspaceId: string, startDate: string, endDate: string): Promise<Order[]> => {
+export const getByDateRange = async (
+  workspaceId: string,
+  startDate: string,
+  endDate: string
+): Promise<Order[]> => {
   try {
-    const response = await api.get(`/orders/date-range?startDate=${startDate}&endDate=${endDate}`)
+    const response = await api.get(
+      `/orders/date-range?startDate=${startDate}&endDate=${endDate}`
+    )
     return response.data
   } catch (error) {
-    console.error('Error getting orders by date range:', error)
+    console.error("Error getting orders by date range:", error)
     throw error
   }
 }
