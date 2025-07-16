@@ -13,6 +13,16 @@
 - **Pagination limits:** All paginated lists will show 5 more items per page (default and max).
 - **N8N Custom Functions:** New tasks for "CF Call Operator" and "CF New Order" workflows.
 - **Google Translate in RAG:** All non-English content (especially FAQs) will be translated to English before LLM processing.
+- **🎉 OFFERS MANAGEMENT:** Complete offers system implemented with GetActiveOffers N8N tool for chatbot integration.
+
+### ✅ NEW: Offers Management System (July 2025)
+- **Complete Offers Infrastructure:** Full CRUD operations for creating, managing, and displaying offers
+- **Smart Discount Logic:** NON-CUMULATIVE system where highest discount wins (customer vs offer)
+- **Category-Specific Offers:** Offers can target specific product categories or all products
+- **N8N Tool Integration:** GetActiveOffers() function for chatbot to display current promotions
+- **Database Integration:** Offers table with start/end dates, categories, and automatic activation status
+- **Frontend Management:** Complete offers management interface for admins
+- **Prompt Integration:** Updated chatbot prompts to handle offer inquiries and display offer names in pricing
 
 ### 🐞 Known Bugs
 - **Order list filters:** Filters on the orders page do not work as expected (search, status, date, etc.).
