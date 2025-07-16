@@ -1547,13 +1547,22 @@ async function main() {
   // Define sample offers
   const specialOffers = [
     {
+      name: "Offerta Estiva 2025",
+      description: "Sconto speciale del 20% su tutte le bevande per l'estate!",
+      discountPercent: 20,
+      startDate: new Date(2025, 6, 1), // July 1st, 2025 (month is 0-indexed)
+      endDate: new Date(2025, 8, 30), // September 30th, 2025
+      isActive: true,
+      categoryId: null as string | null, // Will be set to Beverages category below
+    },
+    {
       name: "Black Friday Special",
       description: "Huge discounts on all products for Black Friday weekend!",
       discountPercent: 25,
       startDate: new Date(new Date().getFullYear(), 10, 25), // November 25th
       endDate: new Date(new Date().getFullYear(), 10, 28), // November 28th
-
-      categoryId: null, // All categories
+      isActive: false,
+      categoryId: null as string | null, // All categories
     },
     {
       name: "Christmas Sale",
@@ -1561,8 +1570,8 @@ async function main() {
       discountPercent: 15,
       startDate: new Date(new Date().getFullYear(), 11, 1), // December 1st
       endDate: new Date(new Date().getFullYear(), 11, 24), // December 24th
-
-      categoryId: null, // All categories
+      isActive: false,
+      categoryId: null as string | null, // All categories
     },
     {
       name: "Summer Clearance",
@@ -1570,8 +1579,8 @@ async function main() {
       discountPercent: 30,
       startDate: new Date(new Date().getFullYear(), 7, 15), // August 15th
       endDate: new Date(new Date().getFullYear(), 8, 15), // September 15th
-
-      categoryId: null, // All categories
+      isActive: false,
+      categoryId: null as string | null, // All categories
     },
   ]
 
@@ -1586,10 +1595,31 @@ async function main() {
   // Create new offers
   for (const offer of specialOffers) {
     try {
+      // For "Offerta Estiva 2025", find and assign Beverages category
+      let finalCategoryId = offer.categoryId;
+      if (offer.name === "Offerta Estiva 2025") {
+        const beverageCategory = await prisma.categories.findFirst({
+          where: {
+            workspaceId: mainWorkspaceId,
+            name: "Beverages",
+          },
+        });
+        if (beverageCategory) {
+          finalCategoryId = beverageCategory.id;
+          console.log(`Assigning Offerta Estiva to Beverages category: ${beverageCategory.id}`);
+        }
+      }
+
       await prisma.offers.create({
         data: {
-          ...offer,
+          name: offer.name,
+          description: offer.description,
+          discountPercent: offer.discountPercent,
+          startDate: offer.startDate,
+          endDate: offer.endDate,
+          isActive: offer.isActive,
           workspaceId: mainWorkspaceId,
+          categoryId: finalCategoryId,
         },
       })
       console.log(
