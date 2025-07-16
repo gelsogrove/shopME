@@ -500,20 +500,12 @@ export class InternalApiController {
     workspaceId: string
   ): Promise<void> {
     const customerId = req.body.customerId
-    const discount = req.body.discount // 🔥 NUOVO: Prendiamo il discount direttamente dal payload
 
-    // 🔍 DEBUG COMPLETO: Log di tutto il payload ricevuto
-    logger.info(`[E-COMMERCE-RAG] 🔍 FULL PAYLOAD DEBUG:`)
-    logger.info(
-      `[E-COMMERCE-RAG] 🔍 req.body:`,
-      JSON.stringify(req.body, null, 2)
-    )
-    logger.info(`[E-COMMERCE-RAG] 🔍 CustomerId received: "${customerId}"`)
-    logger.info(`[E-COMMERCE-RAG] 🔍 CustomerId type: ${typeof customerId}`)
-    logger.info(`[E-COMMERCE-RAG] 💰 Discount received: "${discount}"`)
-    logger.info(`[E-COMMERCE-RAG] 💰 Discount type: ${typeof discount}`)
+    // 🔍 DEBUG: Log dei parametri ricevuti
     logger.info(`[E-COMMERCE-RAG] 🔍 Query: "${query}"`)
     logger.info(`[E-COMMERCE-RAG] 🔍 WorkspaceId: "${workspaceId}"`)
+    logger.info(`[E-COMMERCE-RAG] 🔍 CustomerId received: "${customerId}"`)
+    logger.info(`[E-COMMERCE-RAG] 🔍 CustomerId type: ${typeof customerId}`)
 
     // Import document service
     const { DocumentService } = await import(
@@ -551,11 +543,38 @@ export class InternalApiController {
         const prisma = new PrismaClient()
         const priceService = new PriceCalculationService(prisma)
 
-        // 🔥 NUOVO: Usa il discount ricevuto direttamente dal payload
-        const customerDiscount = Number(discount) || 0
-        logger.info(
-          `[E-COMMERCE-RAG] 💰 Using discount from payload: ${customerDiscount}%`
-        )
+        // 🔥 NUOVO: Recupera il customer discount dalla tabella customers
+        let customerDiscount = 0
+        if (customerId) {
+          try {
+            const customer = await prisma.customers.findUnique({
+              where: { id: customerId },
+              select: { discount: true, name: true, phone: true },
+            })
+            
+            if (customer) {
+              customerDiscount = customer.discount || 0
+              logger.info(
+                `[E-COMMERCE-RAG] � Customer found: ${customer.name} (${customer.phone})`
+              )
+              logger.info(
+                `[E-COMMERCE-RAG] 💰 Customer discount from DB: ${customerDiscount}%`
+              )
+            } else {
+              logger.warn(
+                `[E-COMMERCE-RAG] ⚠️ Customer not found for ID: ${customerId}`
+              )
+            }
+          } catch (customerError) {
+            logger.error(
+              `[E-COMMERCE-RAG] ❌ Error fetching customer:`,
+              customerError
+            )
+            // Continue with 0% discount if customer fetch fails
+          }
+        } else {
+          logger.info(`[E-COMMERCE-RAG] ⚪ No customerId provided, using 0% discount`)
+        }
 
         // Calculate prices with Andrea's logic (highest discount wins)
         logger.info(
@@ -2271,6 +2290,138 @@ ${JSON.stringify(ragResults, null, 2)}`
       logger.error("[INTERNAL_API] Error getting active offers:", error)
       res.status(500).json({
         error: "Internal server error getting active offers",
+      })
+    }
+  }
+
+  /**
+   * GET /internal/get-cf-services
+   * Get complete list of Cloudflare services and functions
+   */
+  async getCFServices(req: Request, res: Response): Promise<void> {
+    try {
+      const { workspaceId } = req.body
+
+      if (!workspaceId) {
+        res.status(400).json({ error: "workspaceId is required" })
+        return
+      }
+
+      logger.info(
+        `[INTERNAL_API] Getting CF services list for workspace ${workspaceId}`
+      )
+
+      // Define the complete CF services list
+      const cfServices = [
+        {
+          id: 1,
+          name: "SearchRag",
+          status: "✅ IMPLEMENTATA",
+          endpoint: "CF/SearchRag",
+          description: "Ricerca semantica unificata tra prodotti, FAQ, servizi e documenti",
+          category: "Search & Discovery"
+        },
+        {
+          id: 2,
+          name: "GetAllProducts",
+          status: "✅ IMPLEMENTATA",
+          endpoint: "CF/GetAllProducts",
+          description: "Restituisce lista completa prodotti del workspace",
+          category: "Product Management"
+        },
+        {
+          id: 3,
+          name: "GetAllServices",
+          status: "✅ IMPLEMENTATA",
+          endpoint: "CF/GetAllServices",
+          description: "Restituisce lista completa servizi del workspace",
+          category: "Service Management"
+        },
+        {
+          id: 4,
+          name: "CallOperator",
+          status: "⚠️ QUASI COMPLETA (90%)",
+          endpoint: "CF/CallOperator",
+          description: "Attiva controllo manuale operatore",
+          category: "Support & Assistance"
+        },
+        {
+          id: 5,
+          name: "ReceiveInvoice",
+          status: "❌ DA IMPLEMENTARE",
+          endpoint: "CF/ReceiveInvoice",
+          description: "Gestisce richieste fatture con filtro codice ordine",
+          category: "Financial Operations"
+        },
+        {
+          id: 6,
+          name: "PaymentProcessStart",
+          status: "❌ IN TODO",
+          endpoint: "CF/PaymentProcessStart",
+          description: "Avvia processo di pagamento per ordini",
+          category: "Payment Processing"
+        },
+        {
+          id: 7,
+          name: "GetActiveOffers",
+          status: "✅ IMPLEMENTATA",
+          endpoint: "CF/GetActiveOffers",
+          description: "Restituisce tutte le offerte e sconti attivi",
+          category: "Promotions & Offers"
+        }
+      ]
+
+      // Group services by category
+      const servicesByCategory = cfServices.reduce((acc, service) => {
+        if (!acc[service.category]) {
+          acc[service.category] = []
+        }
+        acc[service.category].push(service)
+        return acc
+      }, {} as Record<string, typeof cfServices>)
+
+      // Calculate statistics
+      const totalServices = cfServices.length
+      const implementedServices = cfServices.filter(s => s.status.includes("✅")).length
+      const partialServices = cfServices.filter(s => s.status.includes("⚠️")).length
+      const missingServices = cfServices.filter(s => s.status.includes("❌")).length
+
+      // Create formatted response message
+      let responseMessage = "🔧 **LISTA COMPLETA FUNZIONI CF (CALLING FUNCTIONS)**\n\n"
+      responseMessage += `📊 **Statistiche:**\n`
+      responseMessage += `• Totale servizi: ${totalServices}\n`
+      responseMessage += `• ✅ Implementati: ${implementedServices}\n`
+      responseMessage += `• ⚠️ Parziali: ${partialServices}\n`
+      responseMessage += `• ❌ Mancanti: ${missingServices}\n\n`
+
+      // Add services by category
+      Object.entries(servicesByCategory).forEach(([category, services]) => {
+        responseMessage += `## 📂 ${category}\n\n`
+        services.forEach(service => {
+          responseMessage += `### ${service.status} **${service.name}**\n`
+          responseMessage += `📍 **Endpoint**: \`${service.endpoint}\`\n`
+          responseMessage += `📝 **Descrizione**: ${service.description}\n\n`
+        })
+      })
+
+      responseMessage += `---\n\n`
+      responseMessage += `💡 **Nota**: Le funzioni CF sono strumenti intelligenti che il chatbot utilizza per processare richieste specifiche degli utenti.`
+
+      res.json({
+        success: true,
+        total_services: totalServices,
+        implemented: implementedServices,
+        partial: partialServices,
+        missing: missingServices,
+        services: cfServices,
+        services_by_category: servicesByCategory,
+        response_message: responseMessage,
+      })
+
+    } catch (error) {
+      logger.error("[INTERNAL_API] Error getting CF services:", error)
+      res.status(500).json({
+        error: "Internal server error getting CF services",
       })
     }
   }

@@ -4,7 +4,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { AlertTriangle, Globe, MessageSquare, ShoppingCart, Zap } from "lucide-react"
+import {
+  AlertTriangle,
+  Globe,
+  MessageSquare,
+  ShoppingCart,
+  Zap,
+} from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
@@ -75,7 +81,11 @@ export function LoginPage() {
     }
   }
 
-  const { handleSubmit, register, formState: { errors } } = form
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = form
 
   return (
     <div className="w-full lg:grid lg:min-h-[100vh] lg:grid-cols-2 xl:min-h-[100vh]">
@@ -85,7 +95,9 @@ export function LoginPage() {
           <div className="space-y-4 text-center">
             <AuthLogo />
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight">Welcome Back</h1>
+              <h1 className="text-3xl font-bold tracking-tight">
+                Welcome Back
+              </h1>
               <p className="text-balance text-muted-foreground">
                 Enter your credentials to access your workspace
               </p>
@@ -96,9 +108,7 @@ export function LoginPage() {
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Login Error</AlertTitle>
-              <AlertDescription>
-                {error}
-              </AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
@@ -129,10 +139,12 @@ export function LoginPage() {
                 className="h-11"
               />
               {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.password.message}
+                </p>
               )}
             </div>
-            
+
             {/* Forgot Password Link - Better positioned */}
             <div className="flex justify-end">
               <Link
@@ -147,10 +159,13 @@ export function LoginPage() {
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
-          
+
           <div className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link to="/signup" className="text-primary hover:text-primary/80 underline-offset-4 hover:underline font-medium">
+            <Link
+              to="/signup"
+              className="text-primary hover:text-primary/80 underline-offset-4 hover:underline font-medium"
+            >
               Sign up
             </Link>
           </div>
@@ -161,7 +176,7 @@ export function LoginPage() {
       <div className="hidden lg:block relative overflow-hidden">
         {/* Gradient Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800"></div>
-        
+
         {/* Geometric Pattern Overlay */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-full h-full">
@@ -171,44 +186,50 @@ export function LoginPage() {
             <div className="absolute bottom-20 right-20 w-28 h-28 border border-white/20 rounded-lg -rotate-12"></div>
           </div>
         </div>
-        
+
         {/* Content */}
         <div className="relative z-10 flex h-full w-full flex-col items-center justify-center text-white p-12">
           {/* Main Logo/Icon */}
           <div className="mb-8 p-4 bg-white/10 rounded-full backdrop-blur-sm">
             <MessageSquare className="w-16 h-16 text-white" />
           </div>
-          
+
           {/* Main Heading */}
           <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-center mb-6">
-            Conversational E-commerce,
-            <span className="block text-blue-200">Reimagined</span>
+            Power your business
+            <span className="block text-blue-200">
+              with an AI-driven sales agent
+            </span>
           </h2>
-          
+
           {/* Description */}
           <p className="text-lg text-blue-100 max-w-xl text-center mb-12 leading-relaxed">
-            Power your business with an AI-driven sales agent that understands, assists, and sells, directly on WhatsApp.
+            that understands, assists, and sells, directly on WhatsApp.
           </p>
-          
+
           {/* Feature Icons */}
           <div className="grid grid-cols-3 gap-8 max-w-sm">
             <div className="flex flex-col items-center space-y-3 group">
               <div className="p-3 bg-white/10 rounded-lg backdrop-blur-sm group-hover:bg-white/20 transition-colors">
                 <ShoppingCart className="w-6 h-6 text-white" />
               </div>
-              <span className="text-sm text-blue-100 text-center">Smart Sales</span>
+              <span className="text-sm text-blue-100 text-center">
+                Smart Sales
+              </span>
             </div>
             <div className="flex flex-col items-center space-y-3 group">
               <div className="p-3 bg-white/10 rounded-lg backdrop-blur-sm group-hover:bg-white/20 transition-colors">
                 <Zap className="w-6 h-6 text-white" />
               </div>
-              <span className="text-sm text-blue-100 text-center">AI Powered</span>
+              <span className="text-sm text-blue-100 text-center">
+                AI Powered
+              </span>
             </div>
             <div className="flex flex-col items-center space-y-3 group">
               <div className="p-3 bg-white/10 rounded-lg backdrop-blur-sm group-hover:bg-white/20 transition-colors">
                 <Globe className="w-6 h-6 text-white" />
               </div>
-              <span className="text-sm text-blue-100 text-center">Global Reach</span>
+              <span className="text-sm text-blue-100 text-center">Support</span>
             </div>
           </div>
         </div>

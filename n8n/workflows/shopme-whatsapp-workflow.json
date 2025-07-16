@@ -7,10 +7,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        -460,
-        140
-      ],
+      "position": [-460, 140],
       "id": "42ec1ad6-740b-4ca4-9826-91af92a4ed7c",
       "name": "body"
     },
@@ -20,10 +17,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
-      "position": [
-        420,
-        180
-      ],
+      "position": [420, 180],
       "id": "bf4ec0d5-ace6-4ca8-9afb-8ad358b039cb",
       "name": "Simple Memory"
     },
@@ -37,15 +31,12 @@
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
-      "position": [
-        300,
-        180
-      ],
+      "position": [300, 180],
       "id": "5d58d00e-d63a-4063-8969-ec550395c814",
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
-          "id": "T3USl3MvX22cl3gO",
+          "id": "RZHQq7BU9QjaMaJp",
           "name": "OpenRouter API"
         }
       }
@@ -53,15 +44,12 @@
     {
       "parameters": {
         "options": {
-          "systemMessage": "={{ $json.prompt }}\npuoi metterci anche delle incone in mark down \nlingua utente: {{ $json.language }}\nnome utente: {{ $('Filter').item.json.precompiledData.customer.name }}\nnome azienda: {{ $('Filter').item.json.precompiledData.customer.businessName }}\nemail:  {{ $('Filter').item.json.precompiledData.customer.email }}\n\n\nformatta le lista mettendo bullet point e andando a capo quando e' necessario solo una volta\nusa il bold usa il corsivo quando lo reputi necessario usa i caratterei maiuscoli quando e' veramente importante, uso le icone emoticon per un tono piu simpativo ma senza esagerare\n"
+          "systemMessage": "={{ $json.prompt }}\npuoi metterci anche delle incone in mark down \nlingua utente: {{ $json.language }}\nnome utente: {{ $('Filter').item.json.precompiledData.customer.name }}\nnome azienda: {{ $('Filter').item.json.precompiledData.customer.businessName }}\ndiscount   {{ $('Filter').item.json.precompiledData.customer.discount }}\n\n\nformatta le lista mettendo bullet point e andando a capo quando e' necessario solo una volta\nusa il bold usa il corsivo quando lo reputi necessario usa i caratterei maiuscoli quando e' veramente importante, uso le icone emoticon per un tono piu simpativo ma senza esagerare\n"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
-      "position": [
-        300,
-        0
-      ],
+      "position": [300, 0],
       "id": "bb8a1844-1a90-46a1-bab5-c70ccdff7dec",
       "name": "AI Agent",
       "alwaysOutputData": true,
@@ -76,24 +64,18 @@
       "name": "return LLM response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [
-        700,
-        0
-      ],
+      "position": [700, 0],
       "alwaysOutputData": false
     },
     {
       "parameters": {
-        "jsCode": "//const agentConfig =$input.first().json.original.precompiledData.agentConfig\n//const conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\n\nconst messageContent= $input.first().json.messageContent\nconst sessionToken=  $input.first().json.sessionToken\n//const workspaceId = $input.first().json.original.precompiledData.agentConfig.workspaceId\nconst language =   $input.first().json.precompiledData.customer.language\nconst customerid = $input.first().json.precompiledData.customer.id\n  \nconst temperature = $input.first().json.precompiledData.agentConfig.temperature\nconst maxTokens = $input.first().json.precompiledData.agentConfig.maxTokens\nconst model = $input.first().json.precompiledData.agentConfig.model\nconst conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\nconst prompt = $input.first().json.precompiledData.agentConfig.prompt\nconst phone = $input.first().json.precompiledData.customer.phone\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature,\n      maxTokens,\n      model,\n      messages: conversationHistory,\n      sessionId: sessionToken,\n      language, \n      workspaceId: $input.first().json.workspaceId,\n      customerid,\n      prompt,\n      phone\n    },\n \n  }\n];\n"
+        "jsCode": "//const agentConfig =$input.first().json.original.precompiledData.agentConfig\n//const conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\n\nconst messageContent= $input.first().json.messageContent\nconst sessionToken=  $input.first().json.sessionToken\n//const workspaceId = $input.first().json.original.precompiledData.agentConfig.workspaceId\nconst language =   $input.first().json.precompiledData.customer.language\nconst customerid = $input.first().json.precompiledData.customer.id\n  \nconst temperature = $input.first().json.precompiledData.agentConfig.temperature\nconst maxTokens = $input.first().json.precompiledData.agentConfig.maxTokens\nconst model = $input.first().json.precompiledData.agentConfig.model\nconst conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\nconst prompt = $input.first().json.precompiledData.agentConfig.prompt\nconst phone = $input.first().json.precompiledData.customer.phone\nconst discount = $input.first().json.precompiledData.customer.discount | 0\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature,\n      maxTokens,\n      model,\n      messages: conversationHistory,\n      sessionId: sessionToken,\n      language, \n      workspaceId: $input.first().json.workspaceId,\n      customerid,\n      prompt,\n      phone\n    },\n \n  }\n];\n"
       },
       "id": "2dd30af1-75ac-4563-b54a-4a5b5c39afdb",
       "name": "prepare-data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [
-        0,
-        0
-      ],
+      "position": [0, 0],
       "alwaysOutputData": false
     },
     {
@@ -104,10 +86,7 @@
       "name": "return wip message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [
-        0,
-        280
-      ],
+      "position": [0, 280],
       "alwaysOutputData": false
     },
     {
@@ -160,10 +139,7 @@
       },
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.2,
-      "position": [
-        -260,
-        140
-      ],
+      "position": [-260, 140],
       "id": "76d817d8-4eb2-49b4-864a-8a57ed24e9ff",
       "name": "Filter",
       "alwaysOutputData": true,
@@ -181,10 +157,7 @@
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [
-        -620,
-        140
-      ],
+      "position": [-620, 140],
       "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
     },
     {
@@ -196,20 +169,17 @@
         "genericAuthType": "httpBasicAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "= {\n      \"query\": \"{{ $('prepare-data').item.json.chatInput }}\",\n      \"messages\": \"{{ $('prepare-data').item.json.messages }}\",\n      \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n      \"customerId\": \"{{ $('prepare-data').item.json.workspaceId }}\"\n    }",
+        "jsonBody": "= {\n      \"query\": \"{{ $('prepare-data').item.json.chatInput }}\",\n      \"messages\": \"{{ $('prepare-data').item.json.messages }}\",\n      \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n      \"customerId\": \"{{ $('prepare-data').item.json.customerId }}\"\n    }",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [
-        580,
-        480
-      ],
+      "position": [580, 480],
       "id": "9194a962-fa10-4e33-95bb-e140344ba816",
       "name": "RagSearch()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "JyyF8A2d1GosmOdd",
+          "id": "nOzUXNg0WY5kDNmK",
           "name": "Backend API Basic Auth"
         }
       }
@@ -228,15 +198,12 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [
-        760,
-        480
-      ],
+      "position": [760, 480],
       "id": "0f33aa9d-9736-4406-947b-d3af2be2ad9b",
       "name": "GetAllProducts()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "JyyF8A2d1GosmOdd",
+          "id": "nOzUXNg0WY5kDNmK",
           "name": "Backend API Basic Auth"
         }
       }
@@ -255,15 +222,12 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [
-        940,
-        480
-      ],
+      "position": [940, 480],
       "id": "e8fcd67f-1a3d-49a6-a7b7-ca2c3dd80971",
       "name": "ContactOperator()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "JyyF8A2d1GosmOdd",
+          "id": "nOzUXNg0WY5kDNmK",
           "name": "Backend API Basic Auth"
         }
       }
@@ -282,15 +246,84 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [
-        1120,
-        480
-      ],
+      "position": [1120, 480],
       "id": "923290cb-6bd5-4442-af75-1803db7ba433",
       "name": "GetAllCategories()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "JyyF8A2d1GosmOdd",
+          "id": "nOzUXNg0WY5kDNmK",
+          "name": "Backend API Basic Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "categories",
+        "method": "POST",
+        "url": "=http://host.docker.internal:3001/api/internal/get-active-offers",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [1280, 480],
+      "id": "217d48bf-0eda-4995-b34d-af46b925bc0b",
+      "name": "GetActiveOffers()",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "nOzUXNg0WY5kDNmK",
+          "name": "Backend API Basic Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "categories",
+        "method": "POST",
+        "url": "=http://host.docker.internal:3001/api/internal/get-active-offers",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [1540, 360],
+      "id": "e0fa8b8f-0b34-4479-a832-63610a029d53",
+      "name": "CreateOrder()",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "nOzUXNg0WY5kDNmK",
+          "name": "Backend API Basic Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "categories",
+        "method": "POST",
+        "url": "=http://host.docker.internal:3001/api/internal/get-active-offers",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [1720, 360],
+      "id": "a0221ba1-1f54-49e9-ab37-c58795f2887e",
+      "name": "GegtServices()",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "nOzUXNg0WY5kDNmK",
           "name": "Backend API Basic Auth"
         }
       }
@@ -326,6 +359,7 @@
               "activeChatbot": true,
               "businessName": "L'Altra Italia(ESP)",
               "businessType": "ECOMMERCE",
+              "discount": "0",
               "conversationHistory": [
                 {
                   "id": "msg-1",
@@ -482,17 +516,28 @@
           }
         ]
       ]
+    },
+    "GetActiveOffers()": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "4e3e84fc-e78e-42d8-84de-dfbe95cca083",
+  "versionId": "07d30945-4064-400c-a519-813bf0f2e25e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
   },
-  "id": "5eykqOSTLpautSZe",
+  "id": "k4VSXZIXJDydea9j",
   "tags": []
 }

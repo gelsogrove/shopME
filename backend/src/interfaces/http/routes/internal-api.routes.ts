@@ -319,4 +319,75 @@ router.post('/get-all-products',
    */
   router.post('/get-active-offers', (req, res) => internalApiController.getActiveOffers(req, res));
 
+/**
+ * @swagger
+ * /internal/get-cf-services:
+ *   post:
+ *     summary: Get complete list of Cloudflare services and functions
+ *     tags: [Internal API]
+ *     security:
+ *       - N8NAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               workspaceId:
+ *                 type: string
+ *                 description: The workspace ID
+ *                 example: "cm9hjgq9v00014qk8fsdy4ujv"
+ *             required:
+ *               - workspaceId
+ *     responses:
+ *       200:
+ *         description: CF services list retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 total_services:
+ *                   type: integer
+ *                   example: 7
+ *                 implemented:
+ *                   type: integer
+ *                   example: 4
+ *                 partial:
+ *                   type: integer
+ *                   example: 1
+ *                 missing:
+ *                   type: integer
+ *                   example: 2
+ *                 services:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                       endpoint:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       category:
+ *                         type: string
+ *                 response_message:
+ *                   type: string
+ *                   description: Formatted message for chatbot response
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ */
+  router.post('/get-cf-services', (req, res) => internalApiController.getCFServices(req, res));
+
 export { router as internalApiRoutes };

@@ -1,45 +1,403 @@
 # 🚀 SHOPME - STRUCTURED TASK LIST (PRIORITY ORDERED)
 
-> [UPDATE 2025-07-09] Technical checklist (check.md) updated: Added check for chat input visibility logic (textarea and send button only visible when chatbot is disabled).
+> [UPDATE 2025-07-16] Task list cleaned up - removed all completed tasks and added new critical tasks for services management and discount system verification.
 
-## BUG TASK #22 ✅ COMPLETED
+## TASK #30
 
-**TITLE**: Order List: Search Filters Not Working  
-**DESCRIPTION**: Search functionality was not working properly for customer names in the orders list.
+**TITLE**: CF Services Tool - GetAllServices Implementation
+**DESCRIPTION/ROADMAP**:
 
-**COMPLETION SUMMARY**:
+- Implement CF Services tool endpoint for N8N workflow
+- Create backend API endpoint `POST /api/internal/get-all-services`
+- Return all active services for workspace with proper formatting
+- Integrate with N8N workflow as GetAllServices() tool
+- Add Swagger documentation for the endpoint
+- Test integration with chatbot when user asks for services list
 
-- ✅ **ROOT CAUSE**: Component interference - `CrudPageContent` was applying TanStack Table's `globalFilter` on top of already-filtered data
-- ✅ **SOLUTION**: Fixed double filtering issue and enhanced search logic
-- ✅ **TESTING**: All search scenarios now work correctly (customer names, companies, order codes, etc.)
-- ✅ **DOCUMENTATION**: Complete technical documentation in `/docs/TASK-22-COMPLETED.md`
+**SPECIAL NOTE**:
+Andrea requires that users can ask "Che servizi avete?" and get a complete list of available services through the N8N workflow.
 
-**STATUS**: ✅ COMPLETED - Fully Functional  
-**COMPLETED ON**: January 15, 2025
+**STORY POINT**: 3
+**STATUS**: 🔴 Not Started
 
 ================================================================================
 
-## BUG TASK #21 ✅ COMPLETED
+## TASK #31
 
-**TITLE**: Customer Discount Field and Correct Discount Application in RAG Search
+**TITLE**: Verify Discount System - Customer + Offer Integration
+**DESCRIPTION/ROADMAP**:
 
-**COMPLETION SUMMARY**:
+- Test customer discount + offer discount calculation (NON-CUMULATIVE, highest wins)
+- Verify Limoncello price €8.90 with Maria Garcia (10% customer) + Offerta Estiva (20% beverages) = €7.12
+- Ensure ecommerceRagSearch shows correct discounted prices in responses
+- Verify that discount explanation is included in LLM responses
+- Test complete flow: customer query → database discount lookup → price calculation → formatted response
 
-- ✅ **DATABASE**: Campo `discount Float? @default(0)` già presente nel modello Customers
-- ✅ **PRICE CALCULATION**: `PriceCalculationService` implementa logica NON-CUMULATIVA (sconto più alto vince)
-- ✅ **RAG INTEGRATION**: Endpoint `/api/internal/rag-search` integra automaticamente calcolo prezzi scontati
-- ✅ **BUSINESS LOGIC**: Confronto customer discount vs offer discount → applica il più alto
-- ✅ **PRODUCTION READY**: Sistema completo e funzionante per workflow N8N
+**SPECIAL NOTE**:
+Andrea needs confirmation that the discount system works end-to-end: customer with 10% discount should see €7.12 for Limoncello (20% offer applied as higher discount), not the full price €8.90.
 
-**EXAMPLE**: Limoncello €8.90, cliente 10%, offerta 50% = €4.45 (offerta vince)
+**STORY POINT**: 2
+**STATUS**: 🔴 Not Started
 
-**STATUS**: ✅ COMPLETED - Full Implementation  
-**COMPLETED ON**: January 15, 2025  
-**DOCUMENTATION**: `/docs/TASK-21-COMPLETED.md`
+================================================================================
+
+## TASK #32
+
+**TITLE**: Product List Discount Display Verification
+**DESCRIPTION/ROADMAP**:
+
+- Verify getAllProducts endpoint applies customer discounts correctly
+- Ensure product list shows discounted prices when customer has discount
+- Test that offer discounts are applied to product listings
+- Verify that discounted vs original prices are clearly displayed
+- Ensure consistent discount formatting across product list and individual product queries
+
+**SPECIAL NOTE**:
+Andrea wants to ensure that when customers browse the product list, they see their personalized discounted prices, not just the base prices.
+
+**STORY POINT**: 3
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #33
+
+**TITLE**: Agent Prompt - Discount Communication Enhancement
+**DESCRIPTION/ROADMAP**:
+
+- Update agent prompt to explain discount application when customers ask
+- Include logic for communicating both customer discount and active offers
+- Ensure LLM explains which discount was applied (customer vs offer) and why
+- Add examples of discount communication in the prompt
+- Test that customers understand their discount benefits clearly
+
+**SPECIAL NOTE**:
+Andrea wants customers to understand their discount benefits clearly. When they ask about discounts, the agent should explain both their personal discount and any active offers, and which one is being applied.
+
+**STORY POINT**: 2
+**STATUS**: 🔴 Not Started
 
 ================================================================================
 
 ## TASK #19
+
+**TITLE**: Standardize Shipping Address and Invoice Address Handling
+**DESCRIPTION/ROADMAP**:
+
+- Refactor the edit form so that both Shipping Address and Invoice Address are managed as structured objects (field by field)
+- Use the same field-by-field approach as currently implemented for Invoice Address
+- Update backend models, DTOs, and validation to support structured shipping address
+- Update frontend forms to display and edit shipping address with individual fields (not a single string)
+- Remove any string-based handling for shipping address
+- Test thoroughly to ensure both addresses are saved and displayed correctly
+
+**SPECIAL NOTE**:
+Andrea requires that both addresses are handled in a consistent, structured way for better data quality and user experience. The Invoice Address model is the reference.
+
+**STORY POINT**: 5
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #3
+
+**TITLE**: Extended Session Duration (1 Hour)
+**DESCRIPTION/ROADMAP**:
+
+- Configure JWT with 1 hour expiration (3600 seconds)
+- Implement silent token refresh before expiration
+- Add activity-based session renewal (reset timer on user activity)
+- Create session monitoring and validation
+- Implement graceful session expiry handling
+- Add optional session time indicator
+
+**SPECIAL NOTE**:
+Andrea vuole lavorare 1 ora senza dover rifare il login. Attualmente la sessione scade troppo presto causando interruzioni del lavoro. Implementare refresh automatico silenzioso.
+
+**STORY POINT**: 5
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #4
+
+**TITLE**: Toast Messages Standardization
+**DESCRIPTION/ROADMAP**:
+
+- Configure Sonner for green success toasts with white text
+- Add appropriate icons: ✓ success, ⚠️ warning, ❌ error
+- Update all components using toast to new styling
+- Ensure consistent styling across entire application
+- Test toast functionality in all scenarios
+
+**SPECIAL NOTE**:
+Tutti i toast di successo devono essere verdi con scritta bianca e icone appropriate. Attualmente i toast non seguono un design system coerente.
+
+**STORY POINT**: 3
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #6
+
+**TITLE**: Login Page Design Fixes
+**DESCRIPTION/ROADMAP**:
+
+- Remove "Conversational E-commerce, Reimagined" text from right panel
+- Apply consistent color palette matching main application
+- Update typography to match main app fonts and sizing
+- Replace non-coherent icons with design system icons
+- Redesign right panel content strategy for ShopMe brand
+- Ensure brand consistency throughout login experience
+
+**SPECIAL NOTE**:
+Andrea non gradisce la parte destra del login - né colori, né testo, né icone sono in linea con il resto dell'applicazione. Tutto deve essere coerente con ShopMe.
+
+**STORY POINT**: 5
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #8
+
+**TITLE**: N8N Frontend Integration Removal
+**DESCRIPTION/ROADMAP**:
+
+- Remove N8NPage.tsx and related components
+- Remove /settings/n8n route and navigation
+- Clean up N8N services and API calls from frontend
+- Remove embedded iframe integration
+- Keep only backend N8N workflow functionality
+- Document for future integration when requirements are clearer
+
+**SPECIAL NOTE**:
+L'URL del workflow N8N non è dinamico e non funziona. Andrea preferisce semplificare rimuovendo l'integrazione frontend e mantenendo solo il workflow backend.
+
+**STORY POINT**: 3
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #14
+
+**TITLE**: Automatic Embedding Trigger & Remove Manual Button
+**DESCRIPTION/ROADMAP**:
+
+- Remove the manual embedding button from all relevant sections (documents, products, FAQs, services, etc.)
+- Automatically trigger the embedding process after every add, update, or delete operation
+- Ensure this behavior is consistent across all sessions and entity types
+- No manual intervention required for embedding generation
+
+**SPECIAL NOTE**:
+Andrea requires that embedding is always up-to-date and automatic. The manual embedding button is no longer desired and must be removed everywhere.
+
+**STORY POINT**: 4
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #24
+
+**TITLE**: N8N - CF New Order
+**DESCRIPTION/ROADMAP**:
+
+- Implement a new N8N Custom Function (CF) for the "New Order" workflow
+- Integrate with backend as needed
+- Ensure proper error handling and logging
+- Test the workflow end-to-end
+
+**SPECIAL NOTE**:
+Andrea requires a dedicated N8N CF for new order management.
+
+**STORY POINT**: 5
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #25
+
+**TITLE**: Integrate Google Translate Node for English Conversion in RAG Search
+**DESCRIPTION/ROADMAP**:
+
+- Integrate a Google Translate node into the RAG search workflow
+- Automatically convert any non-English content (especially FAQs) to English before processing
+- Update backend logic to ensure all relevant content is translated to English within the RAG flow
+- Test the system to confirm correct translation and improved search accuracy
+
+**SPECIAL NOTE**:
+Andrea requires that all non-English content, especially FAQs, is automatically translated to English in the RAG search process for better LLM results.
+
+**STORY POINT**: 6
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #27
+
+**TITLE**: Payment Page: Create Order and Handle Shipping Address via Call Function
+**DESCRIPTION/ROADMAP**:
+
+- On payment confirmation, trigger a call function to the backend to create a new order record
+- Manage the shipping address as part of this call function flow
+- Update the call function prompt to include all necessary order and shipping address details
+- Ensure the backend correctly saves the order and shipping address
+- Test the end-to-end flow from payment to order creation and address storage
+
+**SPECIAL NOTE**:
+Andrea requires that the payment page, once payment is confirmed, always triggers a backend call function to create the order and handle the shipping address. The prompt for the call function must be updated to reflect this logic.
+
+**STORY POINT**: 7
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #34
+
+**TITLE**: Manual Operator Message History Saving
+**DESCRIPTION/ROADMAP**:
+
+- Ensure that when a human operator sends a message (manual operator mode), the message is always saved to the chat history
+- Guarantee full auditability and traceability of all operator actions
+- Test operator/manual mode logic to confirm messages are properly stored
+- Verify that both AI/LLM responses and manual operator messages appear in chat history
+
+**SPECIAL NOTE**:
+Andrea requires complete message history for all interactions, including manual operator messages, for audit and quality purposes.
+
+**STORY POINT**: 2
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #35
+
+**TITLE**: FAQ Page Conditional Pagination
+**DESCRIPTION/ROADMAP**:
+
+- On the FAQ page (/faq), hide pagination controls when there are 10 or fewer elements
+- Only show pagination if there are more than 10 items
+- Ensure consistent behavior with other paginated sections
+- Test edge cases around the 10-item threshold
+
+**SPECIAL NOTE**:
+Andrea wants clean UI without unnecessary pagination controls when there are few items to display.
+
+**STORY POINT**: 1
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #36
+
+**TITLE**: Standardize Button Text Across CRUD Pages
+**DESCRIPTION/ROADMAP**:
+
+- Change the 'Add Categories' button to just 'Add' for consistency across all CRUD pages
+- Review all other CRUD pages and ensure consistent button text
+- Apply standardized button naming convention throughout the application
+- Update any other non-consistent button texts found
+
+**SPECIAL NOTE**:
+Andrea requires consistent UI language across all management pages.
+
+**STORY POINT**: 1
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #37
+
+**TITLE**: Offers Page Conditional Pagination
+**DESCRIPTION/ROADMAP**:
+
+- On the Offers page (/offers), hide pagination controls when there are fewer than 10 elements
+- Only show pagination if there are more than 10 items
+- Ensure consistent behavior with FAQ page and other paginated sections
+- Test edge cases around the 10-item threshold
+
+**SPECIAL NOTE**:
+Andrea wants clean UI without unnecessary pagination controls when there are few items to display.
+
+**STORY POINT**: 1
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #38
+
+**TITLE**: Implement 'Aviso legal' PDF Upload and Integration
+**DESCRIPTION/ROADMAP**:
+
+- Create a legal notice ('Aviso legal') PDF document
+- Upload the PDF to the system and ensure it is stored correctly (e.g., in the documents section or appropriate storage)
+- Integrate the PDF so it is accessible from the relevant section (e.g., legal, compliance, or info page)
+- Test the upload and retrieval process to verify PDF/document management works as expected
+- Use this as a test case for document/PDF management features
+
+**SPECIAL NOTE**:
+Andrea wants to try uploading and managing a legal notice PDF to validate the document handling flow.
+
+**STORY POINT**: 3
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+# 📊 PRIORITY SUMMARY
+
+**🔴 CRITICAL/HIGH PRIORITY (Tasks #30-#33)**:
+
+- Total Story Points: 10
+- Focus: Core discount system verification and services management
+- Estimated Duration: 1-2 weeks
+- Priority: Critical for customer experience
+
+**🟡 MEDIUM PRIORITY (Tasks #3-#8, #19)**:
+
+- Total Story Points: 26
+- Focus: UX improvements, session management, cleanup
+- Estimated Duration: 4-5 weeks
+- Priority: Important for usability
+
+**🔵 FUTURE/ENHANCEMENT (Tasks #14, #24-#27, #34-#38)**:
+
+- Total Story Points: 32
+- Focus: Advanced features, automation, polish
+- Estimated Duration: 6-8 weeks
+- Priority: Nice to have, future improvements
+
+## 🎯 SPRINT PLANNING SUGGESTION
+
+**🔴 CRITICAL SPRINT (1-2 weeks)**:
+
+- Sprint 1: Tasks #30, #31, #32, #33 (10 Story Points) - Discount & Services Verification
+
+**🟡 MEDIUM PRIORITY SPRINTS**:
+
+- Sprint 2: Tasks #3, #4 (8 Story Points) - Session & Toast fixes
+- Sprint 3: Tasks #6, #19 (10 Story Points) - Login & Address standardization
+- Sprint 4: Tasks #8, #14 (7 Story Points) - Cleanup & Automation
+
+## 📝 IMPLEMENTATION NOTES
+
+- All tasks follow existing project architecture (DDD backend, React frontend)
+- Database changes require Prisma migration scripts
+- Frontend changes must maintain existing design system consistency
+- All APIs must include proper error handling and validation
+- Tests should be added for new functionality
+- Andrea's approval required before marking any task as "DONE"
+
+## 🧪 TESTING STRATEGY
+
+**CURRENT APPROACH**: Focus on discount system and services functionality first
+
+- **Priority Testing**: Discount calculation, services listing, customer experience
+- **Integration Tests**: End-to-end discount flow verification
+- **Manual Testing**: Customer scenarios with different discount combinations
+
+---
+
+_Last updated: 2025-07-16_
+_Format: Structured Task List v3.0 - Cleaned and Prioritized_
 
 **TITLE**: Standardize Shipping Address and Invoice Address Handling
 **DESCRIPTION/ROADMAP**:

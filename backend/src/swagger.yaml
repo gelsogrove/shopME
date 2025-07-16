@@ -14,6 +14,10 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    basicAuth:
+      type: http
+      scheme: basic
+      description: Basic Authentication for N8N internal API (admin:admin)
 
   schemas:
     Workspace:
@@ -1097,3 +1101,118 @@ paths:
           description: Customer not found
         '500':
           description: Server error
+
+  # Internal API Endpoints
+  /internal/get-active-offers:
+    post:
+      tags:
+        - Internal API
+      summary: Get all active offers for a workspace (N8N Tool)
+      description: |
+        Returns all active offers for a workspace, used by the N8N workflow as a tool function.
+        This endpoint is called when users ask about current offers, promotions, or discounts.
+        
+        **Authentication**: Requires Basic Auth (admin:admin) for N8N workflow compatibility.
+        
+        **Use Cases**:
+        - User asks: "Che offerte avete?"
+        - User asks: "Ci sono promozioni attive?"
+        - User asks: "Avete sconti speciali?"
+        - User asks: "What offers do you have?"
+        
+        **Response Format**: Returns formatted message ready for chatbot display.
+      security:
+        - basicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - workspaceId
+              properties:
+                workspaceId:
+                  type: string
+                  description: ID of the workspace to get offers for
+                  example: "cm9hjgq9v00014qk8fsdy4ujv"
+      responses:
+        '200':
+          description: Active offers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  total_offers:
+                    type: integer
+                    example: 2
+                  offers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "offer-uuid-123"
+                        name:
+                          type: string
+                          example: "Offerta Estiva 2025"
+                        description:
+                          type: string
+                          example: "Sconto speciale del 20% su tutte le bevande per l'estate!"
+                        discountPercent:
+                          type: number
+                          example: 20
+                        startDate:
+                          type: string
+                          format: date-time
+                          example: "2025-07-01T00:00:00.000Z"
+                        endDate:
+                          type: string
+                          format: date-time
+                          example: "2025-09-30T23:59:59.999Z"
+                        categories:
+                          type: array
+                          items:
+                            type: string
+                          example: ["Beverages"]
+                        isForAllCategories:
+                          type: boolean
+                          example: false
+                  response_message:
+                    type: string
+                    example: "🎉 **Offerte attive al momento:**\n\n✨ **Offerta Estiva 2025** - 20% di sconto sulle categorie: Beverages\n📝 Sconto speciale del 20% su tutte le bevande per l'estate!\n📅 Valida fino al 30/09/2025\n\n"
+        '400':
+          description: Bad request - missing workspaceId
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "workspaceId is required"
+        '401':
+          description: Unauthorized - invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid internal API credentials"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error getting active offers"
