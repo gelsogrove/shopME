@@ -129,11 +129,7 @@ export class OfferRepository implements IOfferRepository {
       
       // Prepare the create data with category connections
       const createData: any = {
-        ...prismaData,
-        include: { 
-          category: true,
-          categories: true
-        }
+        ...prismaData
       };
       
       // Handle category relationships

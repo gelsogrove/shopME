@@ -261,4 +261,62 @@ router.post('/get-all-products',
    */
   router.post('/contact-operator', (req, res) => internalApiController.contactOperator(req, res));
 
+  /**
+   * @swagger
+   * /internal/get-active-offers:
+   *   post:
+   *     summary: Get all active offers for a workspace
+   *     tags: [Internal API]
+   *     security:
+   *       - N8NAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - workspaceId
+   *             properties:
+   *               workspaceId:
+   *                 type: string
+   *                 description: ID of the workspace to get offers for
+   *     responses:
+   *       200:
+   *         description: Active offers retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 total_offers:
+   *                   type: number
+   *                 offers:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       id:
+   *                         type: string
+   *                       name:
+   *                         type: string
+   *                       description:
+   *                         type: string
+   *                       discountPercent:
+   *                         type: number
+   *                       categories:
+   *                         type: array
+   *                         items:
+   *                           type: string
+   *                 response_message:
+   *                   type: string
+   *       400:
+   *         description: Bad request
+   *       401:
+   *         description: Unauthorized
+   */
+  router.post('/get-active-offers', (req, res) => internalApiController.getActiveOffers(req, res));
+
 export { router as internalApiRoutes };
