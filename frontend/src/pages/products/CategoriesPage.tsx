@@ -6,22 +6,25 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
-import { categoriesApi, type Category as ApiCategory } from "@/services/categoriesApi"
+import {
+  categoriesApi,
+  type Category as ApiCategory,
+} from "@/services/categoriesApi"
 import { Tag } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "../../lib/toast"
 
 // Interfaccia locale che estende quella dell'API
-interface Category extends Omit<ApiCategory, 'description'> {
-  description: string;
+interface Category extends Omit<ApiCategory, "description"> {
+  description: string
 }
 
 export default function CategoriesPage() {
@@ -50,9 +53,9 @@ export default function CategoriesPage() {
       setLoading(true)
       const response = await categoriesApi.getAllForWorkspace(workspace.id)
       // Ci assicuriamo che tutti gli elementi abbiano description come stringa
-      const formattedCategories: Category[] = response.map(cat => ({
+      const formattedCategories: Category[] = response.map((cat) => ({
         ...cat,
-        description: cat.description || ''
+        description: cat.description || "",
       }))
       setCategories(formattedCategories || [])
     } catch (error) {
@@ -71,7 +74,11 @@ export default function CategoriesPage() {
 
   const columns = [
     { header: "Name", accessorKey: "name" as keyof Category, size: 200 },
-    { header: "Description", accessorKey: "description" as keyof Category, size: 400 },
+    {
+      header: "Description",
+      accessorKey: "description" as keyof Category,
+      size: 400,
+    },
   ]
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -147,12 +154,15 @@ export default function CategoriesPage() {
 
   const handleDelete = async (category: Category) => {
     setSelectedCategory(category)
-    
+
     if (!workspace?.id) return
 
     try {
       // Verifichiamo se la categoria ha prodotti associati
-      const hasProducts = await categoriesApi.hasProducts(category.id, workspace.id)
+      const hasProducts = await categoriesApi.hasProducts(
+        category.id,
+        workspace.id
+      )
       setHasAssociatedProducts(hasProducts)
       setShowDeleteDialog(true)
     } catch (error) {
@@ -167,7 +177,9 @@ export default function CategoriesPage() {
     // Se la categoria ha prodotti associati, non consentiamo l'eliminazione
     if (hasAssociatedProducts) {
       setShowDeleteDialog(false)
-      toast.error("Cannot delete this category as it has associated products. Please remove or reassign the products first.")
+      toast.error(
+        "Cannot delete this category as it has associated products. Please remove or reassign the products first."
+      )
       return
     }
 
@@ -223,7 +235,7 @@ export default function CategoriesPage() {
 
       <div className="pt-4 flex justify-end">
         <Button type="submit" className="bg-green-600 hover:bg-green-700">
-          {category ? "Save Changes" : "Add Category"}
+          {category ? "Save Changes" : "Add"}
         </Button>
       </div>
     </form>
@@ -241,7 +253,7 @@ export default function CategoriesPage() {
             searchPlaceholder="Search categories..."
             itemCount={filteredCategories.length}
             onAdd={() => setShowAddSheet(true)}
-            addButtonText="Add Category"
+            addButtonText="Add"
           />
 
           <div className="mt-6 w-full">
@@ -260,7 +272,7 @@ export default function CategoriesPage() {
       <Sheet open={showAddSheet} onOpenChange={setShowAddSheet}>
         <SheetContent side="right" className="w-[25%]">
           <SheetHeader>
-            <SheetTitle>Add Category</SheetTitle>
+            <SheetTitle>Add</SheetTitle>
             <SheetDescription>
               Add a new category to your workspace
             </SheetDescription>
@@ -285,10 +297,13 @@ export default function CategoriesPage() {
       <ConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        title={hasAssociatedProducts ? "Cannot Delete Category" : "Delete Category"}
-        description={hasAssociatedProducts 
-          ? `The category "${selectedCategory?.name}" has products associated with it.\nYou need to remove or reassign these products before deleting this category.`
-          : `Are you sure you want to delete ${selectedCategory?.name}? This action cannot be undone.`
+        title={
+          hasAssociatedProducts ? "Cannot Delete Category" : "Delete Category"
+        }
+        description={
+          hasAssociatedProducts
+            ? `The category "${selectedCategory?.name}" has products associated with it.\nYou need to remove or reassign these products before deleting this category.`
+            : `Are you sure you want to delete ${selectedCategory?.name}? This action cannot be undone.`
         }
         onConfirm={handleDeleteConfirm}
         confirmLabel={hasAssociatedProducts ? "Understood" : "Delete"}

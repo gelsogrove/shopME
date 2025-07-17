@@ -1,30 +1,30 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
 import type { Language, Workspace } from "@/services/workspaceApi"
 import {
-    getCurrentWorkspace,
-    getLanguages,
-    updateWorkspace,
+  getCurrentWorkspace,
+  getLanguages,
+  updateWorkspace,
 } from "@/services/workspaceApi"
 import { Loader2, Save, Settings, Trash2, Video } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -529,8 +529,8 @@ export default function SettingsPage() {
               <DialogHeader>
                 <DialogTitle>Delete Workspace</DialogTitle>
                 <DialogDescription>
-                  This action cannot be undone. This will permanently delete your
-                  workspace and all associated data.
+                  This action cannot be undone. This will permanently delete
+                  your workspace and all associated data.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
@@ -569,11 +569,13 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <ol className="list-decimal pl-5 space-y-2">
                   <li>Log in to your Meta Business account.</li>
-                  <li>Navigate to the Business Settings &gt; WhatsApp Accounts.</li>
+                  <li>
+                    Navigate to the Business Settings &gt; WhatsApp Accounts.
+                  </li>
                   <li>Select the phone number you want to use.</li>
                   <li>
-                    Go to the API settings tab and generate a new API key (or use an
-                    existing one).
+                    Go to the API settings tab and generate a new API key (or
+                    use an existing one).
                   </li>
                   <li>Copy the API key and paste it in the field above.</li>
                 </ol>

@@ -75,7 +75,9 @@ export function FAQPage() {
                       {answer.substring(0, maxLength)}...
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-2xl p-4 text-sm"> {/* Increased max width */}
+                  <TooltipContent className="max-w-2xl p-4 text-sm">
+                    {" "}
+                    {/* Increased max width */}
                     <p>{answer}</p>
                   </TooltipContent>
                 </Tooltip>

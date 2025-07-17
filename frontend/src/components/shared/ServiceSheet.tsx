@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button"
 import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
 } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -41,33 +41,37 @@ export function ServiceSheet({
   currencySymbol,
 }: ServiceSheetProps) {
   // If service is provided, ensure all required fields have default values
-  const safeService = service ? {
-    ...service,
-    name: service.name || "",
-    description: service.description || "",
-    price: service.price || "",
-    isActive: service.status === "active" || service.isActive === true
-  } : null;
-  
+  const safeService = service
+    ? {
+        ...service,
+        name: service.name || "",
+        description: service.description || "",
+        price: service.price || "",
+        isActive: service.status === "active" || service.isActive === true,
+      }
+    : null
+
   // Custom submit handler that wraps the provided onSubmit
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    onSubmit(e);
+    e.preventDefault()
+    onSubmit(e)
     // Manually trigger the drawer to close after submission
-    onOpenChange(false);
-  };
-  
+    onOpenChange(false)
+  }
+
   if (!open) {
-    return null;
+    return null
   }
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="right">
       <DrawerContent className="h-full inset-y-0 right-0 absolute max-w-[80%] flex flex-col p-0">
         <DrawerHeader className="px-6 pt-6 pb-2">
-          <DrawerTitle>{service ? "Edit Service" : "Add Service"}</DrawerTitle>
+          <DrawerTitle>{service ? "Edit Service" : "Add"}</DrawerTitle>
           <DrawerDescription>
-            {service ? "Edit an existing service" : "Add a new service to your workspace"}
+            {service
+              ? "Edit an existing service"
+              : "Add a new service to your workspace"}
           </DrawerDescription>
         </DrawerHeader>
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
@@ -108,8 +112,8 @@ export function ServiceSheet({
                 <Label htmlFor="isActive" className="text-sm font-medium">
                   Active
                 </Label>
-                <Switch 
-                  id="isActive" 
+                <Switch
+                  id="isActive"
                   name="isActive"
                   defaultChecked={safeService?.isActive !== false}
                   value="true"
@@ -119,8 +123,8 @@ export function ServiceSheet({
           </div>
           <DrawerFooter className="mt-2 p-6 border-t sticky bottom-0 bg-white z-10 shadow-md">
             <DrawerClose asChild>
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 variant="outline"
                 className="border-input hover:bg-accent"
               >
@@ -128,7 +132,7 @@ export function ServiceSheet({
               </Button>
             </DrawerClose>
             <Button type="submit" className="bg-green-600 hover:bg-green-700">
-              {safeService ? "Save Changes" : "Add Service"}
+              {safeService ? "Save Changes" : "Add"}
             </Button>
           </DrawerFooter>
         </form>

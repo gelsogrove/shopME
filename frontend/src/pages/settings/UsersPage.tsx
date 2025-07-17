@@ -172,7 +172,7 @@ export function UsersPage() {
         onSearch={setSearchValue}
         searchPlaceholder="Search users..."
         onAdd={() => setShowAddDialog(true)}
-        addButtonText="Add User"
+        addButtonText="Add"
         itemCount={users.length}
       />
 

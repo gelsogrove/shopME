@@ -2,19 +2,19 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { Client } from "@/pages/ClientsPage"
@@ -82,8 +82,9 @@ export function ClientSheet({
   const [city, setCity] = useState("")
   const [zip, setZip] = useState("")
   const [country, setCountry] = useState("")
-  const [pushNotificationsConsent, setPushNotificationsConsent] = useState(false)
-  
+  const [pushNotificationsConsent, setPushNotificationsConsent] =
+    useState(false)
+
   // Invoice address state
   const [invoiceFirstName, setInvoiceFirstName] = useState("")
   const [invoiceLastName, setInvoiceLastName] = useState("")
@@ -94,7 +95,7 @@ export function ClientSheet({
   const [invoiceCountry, setInvoiceCountry] = useState("")
   const [invoiceVatNumber, setInvoiceVatNumber] = useState("")
   const [invoicePhone, setInvoicePhone] = useState("")
-  
+
   const [fetchedClient, setFetchedClient] = useState<ExtendedClient | null>(
     null
   )
@@ -159,8 +160,10 @@ export function ClientSheet({
       setCity(addressData.city)
       setZip(addressData.zip)
       setCountry(addressData.country)
-      setPushNotificationsConsent(fetchedClient.push_notifications_consent || false)
-      
+      setPushNotificationsConsent(
+        fetchedClient.push_notifications_consent || false
+      )
+
       // Set invoice address data
       if (fetchedClient.invoiceAddress) {
         setInvoiceFirstName(fetchedClient.invoiceAddress.firstName || "")
@@ -196,7 +199,7 @@ export function ClientSheet({
       setZip("")
       setCountry("")
       setPushNotificationsConsent(false)
-      
+
       // Reset invoice address fields
       setInvoiceFirstName("")
       setInvoiceLastName("")
@@ -254,7 +257,7 @@ export function ClientSheet({
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault()
     const customerData = {
       name,
       email,
@@ -276,19 +279,19 @@ export function ClientSheet({
         vatNumber: invoiceVatNumber,
         phone: invoicePhone,
       },
-    };
-    const clientId = typeof client === "string" ? client : fetchedClient?.id;
-    try {
-      await onSubmit(customerData, clientId);
-      toast.success("Client updated successfully");
-      onOpenChange(false);
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } catch (err) {
-      toast.error("Error updating client");
     }
-  };
+    const clientId = typeof client === "string" ? client : fetchedClient?.id
+    try {
+      await onSubmit(customerData, clientId)
+      toast.success("Client updated successfully")
+      onOpenChange(false)
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
+    } catch (err) {
+      toast.error("Error updating client")
+    }
+  }
 
   // Make sure to render even if not open
   console.log("ClientSheet render", { open, mode, client })
@@ -345,7 +348,9 @@ export function ClientSheet({
               <div className="space-y-6">
                 {/* CLIENT INFO BOX */}
                 <div className="space-y-4 border-2 border-gray-200 bg-gray-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-medium text-gray-800">👤 Client Info</h3>
+                  <h3 className="text-lg font-medium text-gray-800">
+                    👤 Client Info
+                  </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -443,7 +448,9 @@ export function ClientSheet({
                 <div className="space-y-4">
                   {/* SHIPPING ADDRESS - styled like invoice, but green */}
                   <div className="space-y-4 border-2 border-green-200 bg-green-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-medium text-green-800">🚚 Shipping Address</h3>
+                    <h3 className="text-lg font-medium text-green-800">
+                      🚚 Shipping Address
+                    </h3>
 
                     <div className="space-y-2">
                       <Label htmlFor="street" className="text-sm font-medium">
@@ -498,11 +505,16 @@ export function ClientSheet({
                 </div>
 
                 <div className="space-y-4 border-2 border-blue-200 bg-blue-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-medium text-blue-800">📧 Invoice Address</h3>
+                  <h3 className="text-lg font-medium text-blue-800">
+                    📧 Invoice Address
+                  </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="invoiceFirstName" className="text-sm font-medium">
+                      <Label
+                        htmlFor="invoiceFirstName"
+                        className="text-sm font-medium"
+                      >
                         First Name
                       </Label>
                       <Input
@@ -514,7 +526,10 @@ export function ClientSheet({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="invoiceLastName" className="text-sm font-medium">
+                      <Label
+                        htmlFor="invoiceLastName"
+                        className="text-sm font-medium"
+                      >
                         Last Name
                       </Label>
                       <Input
@@ -527,7 +542,10 @@ export function ClientSheet({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="invoiceCompany" className="text-sm font-medium">
+                    <Label
+                      htmlFor="invoiceCompany"
+                      className="text-sm font-medium"
+                    >
                       Company
                     </Label>
                     <Input
@@ -539,7 +557,10 @@ export function ClientSheet({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="invoiceAddress" className="text-sm font-medium">
+                    <Label
+                      htmlFor="invoiceAddress"
+                      className="text-sm font-medium"
+                    >
                       Address
                     </Label>
                     <Input
@@ -552,7 +573,10 @@ export function ClientSheet({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="invoiceCity" className="text-sm font-medium">
+                      <Label
+                        htmlFor="invoiceCity"
+                        className="text-sm font-medium"
+                      >
                         City
                       </Label>
                       <Input
@@ -564,7 +588,10 @@ export function ClientSheet({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="invoicePostalCode" className="text-sm font-medium">
+                      <Label
+                        htmlFor="invoicePostalCode"
+                        className="text-sm font-medium"
+                      >
                         Postal Code
                       </Label>
                       <Input
@@ -578,7 +605,10 @@ export function ClientSheet({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="invoiceCountry" className="text-sm font-medium">
+                      <Label
+                        htmlFor="invoiceCountry"
+                        className="text-sm font-medium"
+                      >
                         Country
                       </Label>
                       <Input
@@ -590,7 +620,10 @@ export function ClientSheet({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="invoicePhone" className="text-sm font-medium">
+                      <Label
+                        htmlFor="invoicePhone"
+                        className="text-sm font-medium"
+                      >
                         Phone
                       </Label>
                       <Input
@@ -603,7 +636,10 @@ export function ClientSheet({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="invoiceVatNumber" className="text-sm font-medium">
+                    <Label
+                      htmlFor="invoiceVatNumber"
+                      className="text-sm font-medium"
+                    >
                       VAT Number
                     </Label>
                     <Input

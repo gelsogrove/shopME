@@ -2,19 +2,14 @@ import { PageLayout } from "@/components/layout/PageLayout"
 import { PageHeader } from "@/components/shared/PageHeader"
 import MarkdownEditor from "@/components/ui/markdown-editor"
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { Agent, getAgent, updateAgent } from "@/services/agentApi"
-import {
-    Bot,
-    HelpCircle,
-    Loader2,
-    Save,
-} from "lucide-react"
+import { Bot, HelpCircle, Loader2, Save } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "../lib/toast"
@@ -367,7 +362,9 @@ export function AgentPage() {
                           className="text-sm font-medium leading-none flex items-center"
                         >
                           Max Tokens:{" "}
-                          <span className="font-bold ml-1">{maxTokensValue}</span>
+                          <span className="font-bold ml-1">
+                            {maxTokensValue}
+                          </span>
                           <TooltipProvider delayDuration={0}>
                             <Tooltip>
                               <TooltipTrigger asChild>

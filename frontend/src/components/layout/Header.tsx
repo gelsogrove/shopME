@@ -1,30 +1,30 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useCurrentUser } from "@/hooks/useCurrentUser"
+import { toast } from "@/lib/toast"
 import { api } from "@/services/api"
 import {
-    ArrowLeftRight,
-    Bot,
-    CreditCard,
-    LogOut,
-    Network,
-    Phone,
-    Settings,
-    ShieldCheck,
-    User
+  ArrowLeftRight,
+  Bot,
+  CreditCard,
+  LogOut,
+  Network,
+  Phone,
+  Settings,
+  ShieldCheck,
+  User,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { toast } from "@/lib/toast"
 
 export function Header() {
   const navigate = useNavigate()

@@ -14,8 +14,8 @@ import {
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
-import { toast } from "../lib/toast"
 import * as z from "zod"
+import { toast } from "../lib/toast"
 import { auth } from "../services/api"
 
 const loginSchema = z.object({
