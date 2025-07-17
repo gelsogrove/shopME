@@ -56,7 +56,10 @@ const defaultAgent = {
 }
 
 // Andrea's Two-LLM Architecture - LLM 1 RAG Processor Prompt (Agent Settings)
-const SOFIA_PROMPT = fs.readFileSync(path.join(__dirname, '../../docs/other/prompt_agent.md'), 'utf8');
+const SOFIA_PROMPT = fs.readFileSync(
+  path.join(__dirname, "../../docs/other/prompt_agent.md"),
+  "utf8"
+)
 
 // Andrea's Two-LLM Architecture - Router Prompt (DEPRECATED)
 const ROUTER_PROMPT = `DEPRECATED: This router is no longer used in Andrea's Two-LLM Architecture.
@@ -97,19 +100,22 @@ const mainWorkspaceId = "cm9hjgq9v00014qk8fsdy4ujv"
 async function generateEmbeddingsAfterSeed() {
   console.log("\n🤖 AUTO-GENERATING ALL EMBEDDINGS (like clicking FE buttons)")
   console.log("============================================================")
-  
+
   try {
     // Import the embedding services
-    const { EmbeddingService } = require('../src/services/embeddingService')
-    const { DocumentService } = require('../src/services/documentService')
-    
+    const { EmbeddingService } = require("../src/services/embeddingService")
+    const { DocumentService } = require("../src/services/documentService")
+
     const embeddingService = new EmbeddingService()
     const documentService = new DocumentService()
 
     console.log("🔄 1. Generating FAQ embeddings...")
     try {
-      const faqResult = await embeddingService.generateFAQEmbeddings(mainWorkspaceId)
-      console.log(`✅ FAQ embeddings: ${faqResult.processed} processed, ${faqResult.errors.length} errors`)
+      const faqResult =
+        await embeddingService.generateFAQEmbeddings(mainWorkspaceId)
+      console.log(
+        `✅ FAQ embeddings: ${faqResult.processed} processed, ${faqResult.errors.length} errors`
+      )
       if (faqResult.errors.length > 0) {
         console.log("⚠️ FAQ errors:", faqResult.errors)
       }
@@ -119,8 +125,11 @@ async function generateEmbeddingsAfterSeed() {
 
     console.log("🔄 2. Generating Service embeddings...")
     try {
-      const serviceResult = await embeddingService.generateServiceEmbeddings(mainWorkspaceId)
-      console.log(`✅ Service embeddings: ${serviceResult.processed} processed, ${serviceResult.errors.length} errors`)
+      const serviceResult =
+        await embeddingService.generateServiceEmbeddings(mainWorkspaceId)
+      console.log(
+        `✅ Service embeddings: ${serviceResult.processed} processed, ${serviceResult.errors.length} errors`
+      )
       if (serviceResult.errors.length > 0) {
         console.log("⚠️ Service errors:", serviceResult.errors)
       }
@@ -130,8 +139,11 @@ async function generateEmbeddingsAfterSeed() {
 
     console.log("🔄 3. Generating Product embeddings...")
     try {
-      const productResult = await embeddingService.generateProductEmbeddings(mainWorkspaceId)
-      console.log(`✅ Product embeddings: ${productResult.processed} processed, ${productResult.errors.length} errors`)
+      const productResult =
+        await embeddingService.generateProductEmbeddings(mainWorkspaceId)
+      console.log(
+        `✅ Product embeddings: ${productResult.processed} processed, ${productResult.errors.length} errors`
+      )
       if (productResult.errors.length > 0) {
         console.log("⚠️ Product errors:", productResult.errors)
       }
@@ -141,8 +153,13 @@ async function generateEmbeddingsAfterSeed() {
 
     console.log("🔄 4. Generating Document embeddings...")
     try {
-      const documentResult = await documentService.generateEmbeddingsForActiveDocuments(mainWorkspaceId)
-      console.log(`✅ Document embeddings: ${documentResult.processed} processed, ${documentResult.errors.length} errors`)
+      const documentResult =
+        await documentService.generateEmbeddingsForActiveDocuments(
+          mainWorkspaceId
+        )
+      console.log(
+        `✅ Document embeddings: ${documentResult.processed} processed, ${documentResult.errors.length} errors`
+      )
       if (documentResult.errors.length > 0) {
         console.log("⚠️ Document errors:", documentResult.errors)
       }
@@ -155,7 +172,6 @@ async function generateEmbeddingsAfterSeed() {
     console.log("✅ All embeddings generated automatically")
     console.log("✅ RAG search should now work correctly")
     console.log("✅ Chatbot will use ONLY database data")
-    
   } catch (error) {
     console.log("❌ Error during embedding generation:", error.message)
     console.log("⚠️ You may need to generate embeddings manually via frontend")
@@ -165,68 +181,75 @@ async function generateEmbeddingsAfterSeed() {
 async function cleanAndImportN8NWorkflow() {
   console.log("\n🔄 N8N Complete Cleanup & Import:")
   console.log("============================")
-  
+
   try {
-    const fs = require('fs')
-    const path = require('path')
-    const { exec } = require('child_process')
-    const { promisify } = require('util')
+    const fs = require("fs")
+    const path = require("path")
+    const { exec } = require("child_process")
+    const { promisify } = require("util")
     const execAsync = promisify(exec)
-    
+
     // Path to the workflow file
-    const workflowPath = path.join(__dirname, '../../n8n/workflows/shopme-whatsapp-workflow.json')
-    
+    const workflowPath = path.join(
+      __dirname,
+      "../../n8n/workflows/shopme-whatsapp-workflow.json"
+    )
+
     if (!fs.existsSync(workflowPath)) {
       console.log("⚠️ N8N workflow file not found:", workflowPath)
       return
     }
-    
-    console.log("🗑️ Complete cleanup: removing workflows AND credentials to prevent duplicates...")
-    
+
+    console.log(
+      "🗑️ Complete cleanup: removing workflows AND credentials to prevent duplicates..."
+    )
+
     // Execute the N8N cleanup and import script
-    const scriptsPath = path.join(__dirname, '../../scripts')
-    
+    const scriptsPath = path.join(__dirname, "../../scripts")
+
     // Check if the nuclear cleanup script exists
-    const nuclearScript = path.join(scriptsPath, 'n8n_nuclear-cleanup.sh')
-    
+    const nuclearScript = path.join(scriptsPath, "n8n_nuclear-cleanup.sh")
+
     if (fs.existsSync(nuclearScript)) {
       console.log("🚀 Running N8N NUCLEAR cleanup to prevent any duplicates...")
-      
+
       try {
         // Make script executable
         await execAsync(`chmod +x "${nuclearScript}"`)
-        
+
         // Run the nuclear cleanup script that completely resets N8N
         const { stdout, stderr } = await execAsync(`"${nuclearScript}"`, {
           cwd: scriptsPath,
-          timeout: 180000 // 180 seconds timeout for nuclear cleanup (includes docker restart and setup)
+          timeout: 180000, // 180 seconds timeout for nuclear cleanup (includes docker restart and setup)
         })
-        
+
         if (stdout) {
           console.log("📥 N8N Nuclear Cleanup Output:", stdout)
         }
-        
-        if (stderr && !stderr.includes('Warning')) {
+
+        if (stderr && !stderr.includes("Warning")) {
           console.log("⚠️ N8N Nuclear Cleanup Warnings:", stderr)
         }
-        
-        console.log("✅ N8N nuclear cleanup and workflow import completed successfully")
-        
+
+        console.log(
+          "✅ N8N nuclear cleanup and workflow import completed successfully"
+        )
       } catch (execError) {
-        console.error("❌ Error running N8N nuclear cleanup script:", execError.message)
+        console.error(
+          "❌ Error running N8N nuclear cleanup script:",
+          execError.message
+        )
         console.log("💡 You can manually run: scripts/n8n_nuclear-cleanup.sh")
       }
-      
     } else {
       console.log("⚠️ N8N nuclear cleanup script not found:", nuclearScript)
       console.log("💡 Please ensure scripts/n8n_nuclear-cleanup.sh exists")
     }
-    
   } catch (error) {
     console.error("❌ Error in N8N workflow management:", error.message)
     console.log("💡 N8N workflow import can be done manually if needed")
   }
-  
+
   console.log("============================\n")
 }
 
@@ -1596,17 +1619,19 @@ async function main() {
   for (const offer of specialOffers) {
     try {
       // For "Offerta Estiva 2025", find and assign Beverages category
-      let finalCategoryId = offer.categoryId;
+      let finalCategoryId = offer.categoryId
       if (offer.name === "Offerta Estiva 2025") {
         const beverageCategory = await prisma.categories.findFirst({
           where: {
             workspaceId: mainWorkspaceId,
             name: "Beverages",
           },
-        });
+        })
         if (beverageCategory) {
-          finalCategoryId = beverageCategory.id;
-          console.log(`Assigning Offerta Estiva to Beverages category: ${beverageCategory.id}`);
+          finalCategoryId = beverageCategory.id
+          console.log(
+            `Assigning Offerta Estiva to Beverages category: ${beverageCategory.id}`
+          )
         }
       }
 
@@ -1829,7 +1854,7 @@ async function main() {
 
   // Create test customers with active chats and welcome messages
   console.log("Creating test customers with active chats...")
-  
+
   // Delete existing test customers if they exist
   await prisma.customers.deleteMany({
     where: {
@@ -1864,11 +1889,13 @@ async function main() {
         country: "Italia",
         vatNumber: "IT12345678901",
         phone: "+39 02 8765432",
-        email: "fatturazione@testcompany.it"
+        email: "fatturazione@testcompany.it",
       },
     },
   })
-  console.log(`Test customer 1 created: ${testCustomer.name} (${testCustomer.email})`)
+  console.log(
+    `Test customer 1 created: ${testCustomer.name} (${testCustomer.email})`
+  )
 
   // Create second test customer - Maria Garcia
   const testCustomer2 = await prisma.customers.create({
@@ -1895,11 +1922,13 @@ async function main() {
         country: "España",
         vatNumber: "ES87654321009",
         phone: "+34 93 454 7890",
-        email: "facturacion@barcelonafoods.es"
+        email: "facturacion@barcelonafoods.es",
       },
     },
   })
-  console.log(`Test customer 2 created: ${testCustomer2.name} (${testCustomer2.email})`)
+  console.log(
+    `Test customer 2 created: ${testCustomer2.name} (${testCustomer2.email})`
+  )
 
   // Create active chat sessions for both customers
   // Chat session for Mario Rossi
@@ -1956,7 +1985,8 @@ async function main() {
     },
     {
       direction: "OUTBOUND" as const,
-      content: "Ciao Mario! 👋 Benvenuto a L'Altra Italia! Sono il tuo assistente virtuale e sono qui per aiutarti con qualsiasi informazione sui nostri prodotti e servizi. Come posso assisterti oggi? 😊",
+      content:
+        "Ciao Mario! 👋 Benvenuto a L'Altra Italia! Sono il tuo assistente virtuale e sono qui per aiutarti con qualsiasi informazione sui nostri prodotti e servizi. Come posso assisterti oggi? 😊",
       type: "TEXT" as const,
       status: "sent",
       aiGenerated: true,
@@ -1976,7 +2006,9 @@ async function main() {
         promptId: activePrompt?.id || null,
       },
     })
-    console.log(`Message created for Mario: ${messageData.direction} - "${messageData.content.substring(0, 50)}..."`)
+    console.log(
+      `Message created for Mario: ${messageData.direction} - "${messageData.content.substring(0, 50)}..."`
+    )
   }
 
   // Create initial messages for Maria Garcia (Spanish)
@@ -1994,7 +2026,8 @@ async function main() {
     },
     {
       direction: "OUTBOUND" as const,
-      content: "¡Hola María! 👋 ¡Bienvenida a L'Altra Italia! Soy tu asistente virtual y estoy aquí para ayudarte con cualquier información sobre nuestros productos y servicios. ¿Cómo puedo asistirte hoy? 😊",
+      content:
+        "¡Hola María! 👋 ¡Bienvenida a L'Altra Italia! Soy tu asistente virtual y estoy aquí para ayudarte con cualquier información sobre nuestros productos y servicios. ¿Cómo puedo asistirte hoy? 😊",
       type: "TEXT" as const,
       status: "sent",
       aiGenerated: true,
@@ -2014,14 +2047,18 @@ async function main() {
         promptId: activePrompt?.id || null,
       },
     })
-    console.log(`Message created for Maria: ${messageData.direction} - "${messageData.content.substring(0, 50)}..."`)
+    console.log(
+      `Message created for Maria: ${messageData.direction} - "${messageData.content.substring(0, 50)}..."`
+    )
   }
 
-  console.log("✅ Test customers with active chats and welcome messages created successfully!")
+  console.log(
+    "✅ Test customers with active chats and welcome messages created successfully!"
+  )
 
   // Create sample orders for testing
   console.log("Creating sample orders for testing...")
-  
+
   // Get some products and services for order items
   const availableProducts = await prisma.products.findMany({
     where: {
@@ -2030,22 +2067,22 @@ async function main() {
     },
     take: 5,
   })
-  
+
   const availableServices = await prisma.services.findMany({
     where: {
       workspaceId: mainWorkspaceId,
     },
     take: 2,
   })
-  
+
   if (availableProducts.length > 0) {
     // Create multiple orders with different statuses
     const ordersData = [
       {
-                 status: OrderStatus.PENDING,
-         paymentStatus: "PENDING",
-         paymentMethod: "CREDIT_CARD",
-        totalAmount: 89.50,
+        status: OrderStatus.PENDING,
+        paymentStatus: "PENDING",
+        paymentMethod: "CREDIT_CARD",
+        totalAmount: 89.5,
         shippingAmount: 9.99,
         taxAmount: 15.84,
         shippingAddress: {
@@ -2054,7 +2091,7 @@ async function main() {
           zipCode: "20121",
           country: "Italy",
           name: "Mario Rossi",
-          phone: "+39123456789"
+          phone: "+39123456789",
         },
         billingAddress: {
           street: "Via Roma 123",
@@ -2062,7 +2099,7 @@ async function main() {
           zipCode: "20121",
           country: "Italy",
           name: "Mario Rossi",
-          phone: "+39123456789"
+          phone: "+39123456789",
         },
         notes: "Please deliver after 6 PM",
         discountCode: "FIRST10",
@@ -2073,34 +2110,34 @@ async function main() {
             quantity: 2,
             unitPrice: 29.99,
             totalPrice: 59.98,
-            productVariant: "250ml"
+            productVariant: "250ml",
           },
           {
             productId: availableProducts[1].id,
             quantity: 1,
             unitPrice: 19.53,
             totalPrice: 19.53,
-            productVariant: "500g"
+            productVariant: "500g",
           },
           {
             productId: availableProducts[2].id,
             quantity: 1,
             unitPrice: 24.99,
             totalPrice: 24.99,
-            productVariant: null
+            productVariant: null,
           },
           {
             serviceId: availableServices[0]?.id,
             quantity: 1,
             unitPrice: availableServices[0]?.price || 30.0,
-            totalPrice: availableServices[0]?.price || 30.0
-          }
-        ]
+            totalPrice: availableServices[0]?.price || 30.0,
+          },
+        ],
       },
       {
-                 status: OrderStatus.PROCESSING,
-         paymentStatus: "PAID",
-         paymentMethod: "PAYPAL",
+        status: OrderStatus.PROCESSING,
+        paymentStatus: "PAID",
+        paymentMethod: "PAYPAL",
         totalAmount: 156.75,
         shippingAmount: 12.99,
         taxAmount: 27.84,
@@ -2110,7 +2147,7 @@ async function main() {
           zipCode: "08007",
           country: "Spain",
           name: "Maria Garcia",
-          phone: "+34666777888"
+          phone: "+34666777888",
         },
         billingAddress: {
           street: "Carrer de Balmes 45",
@@ -2118,7 +2155,7 @@ async function main() {
           zipCode: "08007",
           country: "Spain",
           name: "Maria Garcia",
-          phone: "+34666777888"
+          phone: "+34666777888",
         },
         notes: "Corporate order - please provide invoice",
         discountCode: null,
@@ -2129,21 +2166,21 @@ async function main() {
             quantity: 3,
             unitPrice: 29.99,
             totalPrice: 89.97,
-            productVariant: "250ml"
+            productVariant: "250ml",
           },
           {
             productId: availableProducts[2].id,
             quantity: 2,
             unitPrice: 22.39,
             totalPrice: 44.78,
-            productVariant: "Premium"
-          }
-        ]
+            productVariant: "Premium",
+          },
+        ],
       },
       {
-                 status: OrderStatus.DELIVERED,
-         paymentStatus: "PAID",
-         paymentMethod: "BANK_TRANSFER",
+        status: OrderStatus.DELIVERED,
+        paymentStatus: "PAID",
+        paymentMethod: "BANK_TRANSFER",
         totalAmount: 245.99,
         shippingAmount: 15.99,
         taxAmount: 43.44,
@@ -2153,7 +2190,7 @@ async function main() {
           zipCode: "75002",
           country: "France",
           name: "Jean Dupont",
-          phone: "+33123456789"
+          phone: "+33123456789",
         },
         billingAddress: {
           street: "Rue de la Paix 12",
@@ -2161,39 +2198,39 @@ async function main() {
           zipCode: "75002",
           country: "France",
           name: "Jean Dupont",
-          phone: "+33123456789"
+          phone: "+33123456789",
         },
         notes: "Delivered successfully to reception",
         discountCode: "BULK20",
-        discountAmount: 49.20,
+        discountAmount: 49.2,
         items: [
           {
             productId: availableProducts[0].id,
             quantity: 5,
             unitPrice: 29.99,
             totalPrice: 149.95,
-            productVariant: "250ml"
+            productVariant: "250ml",
           },
           {
             productId: availableProducts[1].id,
             quantity: 3,
             unitPrice: 19.53,
             totalPrice: 58.59,
-            productVariant: "500g"
+            productVariant: "500g",
           },
           {
             productId: availableProducts[3].id,
             quantity: 1,
             unitPrice: 37.45,
             totalPrice: 37.45,
-            productVariant: "Limited Edition"
-          }
-        ]
+            productVariant: "Limited Edition",
+          },
+        ],
       },
       {
-                 status: OrderStatus.CANCELLED,
-         paymentStatus: "REFUNDED",
-         paymentMethod: "CREDIT_CARD",
+        status: OrderStatus.CANCELLED,
+        paymentStatus: "REFUNDED",
+        paymentMethod: "CREDIT_CARD",
         totalAmount: 67.48,
         shippingAmount: 8.99,
         taxAmount: 11.95,
@@ -2203,7 +2240,7 @@ async function main() {
           zipCode: "00187",
           country: "Italy",
           name: "Giuseppe Verdi",
-          phone: "+39987654321"
+          phone: "+39987654321",
         },
         billingAddress: {
           street: "Via Veneto 88",
@@ -2211,7 +2248,7 @@ async function main() {
           zipCode: "00187",
           country: "Italy",
           name: "Giuseppe Verdi",
-          phone: "+39987654321"
+          phone: "+39987654321",
         },
         notes: "Cancelled due to product availability",
         discountCode: null,
@@ -2221,85 +2258,92 @@ async function main() {
             productId: availableProducts[4].id,
             quantity: 2,
             unitPrice: 23.75,
-            totalPrice: 47.50,
-            productVariant: "Standard"
-          }
-        ]
-      }
+            totalPrice: 47.5,
+            productVariant: "Standard",
+          },
+        ],
+      },
     ]
-    
+
     // Create orders with different created dates over 3 months
     for (let i = 0; i < ordersData.length; i++) {
       const orderData = ordersData[i]
-      
+
       // Create order dates spread over the last 90 days (3 months)
       const orderDate = new Date()
-      orderDate.setDate(orderDate.getDate() - (i * 20 + Math.floor(Math.random() * 10)))
-      
+      orderDate.setDate(
+        orderDate.getDate() - (i * 20 + Math.floor(Math.random() * 10))
+      )
+
       // Distribute orders between customers: odd for Mario, even for Maria
       const customerId = i % 2 === 0 ? testCustomer.id : testCustomer2.id
       const customerName = i % 2 === 0 ? "Mario Rossi" : "Maria Garcia"
-      
+
       try {
         // Define shipping addresses for each customer
         const shippingAddresses = {
-          [testCustomer.id]: { // Mario Rossi (Italian customer)
+          [testCustomer.id]: {
+            // Mario Rossi (Italian customer)
             name: "Mario Rossi",
             street: "Via Roma 123",
             city: "Milano",
             postalCode: "20121",
             province: "MI",
             country: "Italia",
-            phone: "+39 02 1234567"
+            phone: "+39 02 1234567",
           },
-          [testCustomer2.id]: { // Maria Garcia (Spanish customer)
+          [testCustomer2.id]: {
+            // Maria Garcia (Spanish customer)
             name: "Maria Garcia",
             street: "Carrer de Balmes 456",
-            city: "Barcelona", 
+            city: "Barcelona",
             postalCode: "08008",
             province: "Barcelona",
             country: "España",
-            phone: "+34 93 987 6543"
-          }
+            phone: "+34 93 987 6543",
+          },
         }
 
         // Create order with current database structure including shipping address
-         const order = await prisma.orders.create({
-           data: {
-             orderCode: `${10001 + i}`, // 5-digit numeric codes starting from 10001
-             customerId: customerId,
-             workspaceId: mainWorkspaceId,
-             status: orderData.status,
-             totalAmount: orderData.totalAmount,
-             shippingAddress: shippingAddresses[customerId],
-             createdAt: orderDate,
-           },
-         })
-         
-         console.log(`Order created: ${order.id} - Status: ${order.status} - Customer: ${customerName}`)
-         
-                  // Create order items for this order (without itemType for now)
-         for (const item of orderData.items) {
-           if (item.productId) {
-             await prisma.orderItems.create({
-               data: {
-                 orderId: order.id,
-                 productId: item.productId,
-                 quantity: item.quantity,
-                 unitPrice: item.unitPrice,
-                 totalPrice: item.totalPrice,
-               },
-             })
-           }
-         }
-         
-         console.log(`Created ${orderData.items.filter(item => item.productId).length} order items for order ${order.id}`)
-        
+        const order = await prisma.orders.create({
+          data: {
+            orderCode: `${10001 + i}`, // 5-digit numeric codes starting from 10001
+            customerId: customerId,
+            workspaceId: mainWorkspaceId,
+            status: orderData.status,
+            totalAmount: orderData.totalAmount,
+            shippingAddress: shippingAddresses[customerId],
+            createdAt: orderDate,
+          },
+        })
+
+        console.log(
+          `Order created: ${order.id} - Status: ${order.status} - Customer: ${customerName}`
+        )
+
+        // Create order items for this order (without itemType for now)
+        for (const item of orderData.items) {
+          if (item.productId) {
+            await prisma.orderItems.create({
+              data: {
+                orderId: order.id,
+                productId: item.productId,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: item.totalPrice,
+              },
+            })
+          }
+        }
+
+        console.log(
+          `Created ${orderData.items.filter((item) => item.productId).length} order items for order ${order.id}`
+        )
       } catch (error) {
         console.error(`Error creating order ${i + 1}:`, error)
       }
     }
-    
+
     console.log("✅ Sample orders created successfully!")
   } else {
     console.log("⚠️ No products available for creating orders")
@@ -2307,74 +2351,87 @@ async function main() {
 
   // Create additional historical orders for better analytics
   console.log("Creating additional historical orders for 3-month analytics...")
-  
+
   // Create more orders spread over 3 months for better analytics visualization
   const additionalOrdersCount = 15
   for (let i = 0; i < additionalOrdersCount; i++) {
     const orderDate = new Date()
     orderDate.setDate(orderDate.getDate() - Math.floor(Math.random() * 90)) // Random date in last 3 months
-    
-    const randomStatus = ['PENDING', 'PROCESSING', 'DELIVERED', 'CANCELLED'][Math.floor(Math.random() * 4)]
-    const randomPayment = randomStatus === 'CANCELLED' ? 'REFUNDED' : ['PENDING', 'PAID'][Math.floor(Math.random() * 2)]
+
+    const randomStatus = ["PENDING", "PROCESSING", "DELIVERED", "CANCELLED"][
+      Math.floor(Math.random() * 4)
+    ]
+    const randomPayment =
+      randomStatus === "CANCELLED"
+        ? "REFUNDED"
+        : ["PENDING", "PAID"][Math.floor(Math.random() * 2)]
     const randomAmount = 25 + Math.random() * 200 // Random amount between 25-225
-    
+
     // Randomly assign to either customer
-    const randomCustomerId = Math.random() < 0.5 ? testCustomer.id : testCustomer2.id
-    
+    const randomCustomerId =
+      Math.random() < 0.5 ? testCustomer.id : testCustomer2.id
+
     try {
       // Define shipping addresses for each customer (for additional orders)
       const shippingAddresses = {
-        [testCustomer.id]: { // Mario Rossi (Italian customer)
+        [testCustomer.id]: {
+          // Mario Rossi (Italian customer)
           name: "Mario Rossi",
           street: "Via Roma 123",
           city: "Milano",
           postalCode: "20121",
           province: "MI",
           country: "Italia",
-          phone: "+39 02 1234567"
+          phone: "+39 02 1234567",
         },
-        [testCustomer2.id]: { // Maria Garcia (Spanish customer)
+        [testCustomer2.id]: {
+          // Maria Garcia (Spanish customer)
           name: "Maria Garcia",
           street: "Carrer de Balmes 456",
-          city: "Barcelona", 
+          city: "Barcelona",
           postalCode: "08008",
           province: "Barcelona",
           country: "España",
-          phone: "+34 93 987 6543"
-        }
+          phone: "+34 93 987 6543",
+        },
       }
 
-             const order = await prisma.orders.create({
-         data: {
-           orderCode: `${20001 + i}`, // 5-digit numeric codes starting from 20001 for additional orders
-           workspaceId: mainWorkspaceId,
-           customerId: randomCustomerId,
-           status: randomStatus as any,
-           totalAmount: randomAmount,
-           shippingAddress: shippingAddresses[randomCustomerId],
-           createdAt: orderDate,
-         },
-       })
-      
+      const order = await prisma.orders.create({
+        data: {
+          orderCode: `${20001 + i}`, // 5-digit numeric codes starting from 20001 for additional orders
+          workspaceId: mainWorkspaceId,
+          customerId: randomCustomerId,
+          status: randomStatus as any,
+          totalAmount: randomAmount,
+          shippingAddress: shippingAddresses[randomCustomerId],
+          createdAt: orderDate,
+        },
+      })
+
       // Add 1-3 random items to each order
       const itemsCount = 1 + Math.floor(Math.random() * 3)
       for (let j = 0; j < itemsCount; j++) {
-        const randomProduct = availableProducts[Math.floor(Math.random() * availableProducts.length)]
+        const randomProduct =
+          availableProducts[
+            Math.floor(Math.random() * availableProducts.length)
+          ]
         const quantity = 1 + Math.floor(Math.random() * 3)
         const unitPrice = randomProduct.price
-        
-                 await prisma.orderItems.create({
-           data: {
-             orderId: order.id,
-             productId: randomProduct.id,
-             quantity: quantity,
-             unitPrice: unitPrice,
-             totalPrice: unitPrice * quantity,
-           },
-         })
+
+        await prisma.orderItems.create({
+          data: {
+            orderId: order.id,
+            productId: randomProduct.id,
+            quantity: quantity,
+            unitPrice: unitPrice,
+            totalPrice: unitPrice * quantity,
+          },
+        })
       }
-      
-      console.log(`Additional order ${i + 1}/${additionalOrdersCount} created for ${orderDate.toISOString().split('T')[0]}`)
+
+      console.log(
+        `Additional order ${i + 1}/${additionalOrdersCount} created for ${orderDate.toISOString().split("T")[0]}`
+      )
     } catch (error) {
       console.error(`Error creating additional order ${i + 1}:`, error)
     }
@@ -2382,7 +2439,7 @@ async function main() {
 
   // Create sample usage data for dashboard testing
   console.log("Creating sample usage data for dashboard...")
-  
+
   // Create usage records for the last 90 days with realistic patterns
   const today = new Date()
   const usageData: Array<{
@@ -2391,56 +2448,66 @@ async function main() {
     price: number
     createdAt: Date
   }> = []
-  
+
   for (let i = 89; i >= 0; i--) {
     const date = new Date(today)
     date.setDate(date.getDate() - i)
-    
+
     // More usage on weekdays, peak hours 10-16
     const isWeekday = date.getDay() >= 1 && date.getDay() <= 5
     const baseMessages = isWeekday ? 8 : 3 // More messages on weekdays
     const randomVariation = Math.floor(Math.random() * 5) // Add some randomness
     const dailyMessages = baseMessages + randomVariation
-    
+
     // Create messages throughout the day with peak hours
     for (let j = 0; j < dailyMessages; j++) {
       let hour
       if (isWeekday) {
         // Peak hours 10-16 on weekdays
-        hour = Math.random() < 0.6 ? 10 + Math.floor(Math.random() * 6) : Math.floor(Math.random() * 24)
+        hour =
+          Math.random() < 0.6
+            ? 10 + Math.floor(Math.random() * 6)
+            : Math.floor(Math.random() * 24)
       } else {
         // Random hours on weekends
         hour = Math.floor(Math.random() * 24)
       }
-      
+
       const messageTime = new Date(date)
-      messageTime.setHours(hour, Math.floor(Math.random() * 60), Math.floor(Math.random() * 60))
-      
+      messageTime.setHours(
+        hour,
+        Math.floor(Math.random() * 60),
+        Math.floor(Math.random() * 60)
+      )
+
       // Randomly assign usage to either customer
-      const randomClientId = Math.random() < 0.5 ? testCustomer.id : testCustomer2.id
-      
+      const randomClientId =
+        Math.random() < 0.5 ? testCustomer.id : testCustomer2.id
+
       usageData.push({
         workspaceId: mainWorkspaceId,
         clientId: randomClientId,
         price: 0.005, // 0.5 cents as requested by Andrea
-        createdAt: messageTime
+        createdAt: messageTime,
       })
     }
   }
-  
+
   // Create usage records
   for (const usage of usageData) {
     try {
       await prisma.usage.create({
-        data: usage
+        data: usage,
       })
     } catch (error) {
-      console.error('Error creating usage record:', error)
+      console.error("Error creating usage record:", error)
     }
   }
-  
+
   console.log(`✅ Created ${usageData.length} usage records for testing`)
-  console.log(`💰 Total cost simulation: €${(usageData.length * 0.005).toFixed(4)}`)
+  console.log(
+    `💰 Total cost simulation: €${(usageData.length * 0.005).toFixed(4)}`
+  )
 
   // Seed default document
   await seedDefaultDocument()
@@ -2461,9 +2528,9 @@ async function main() {
   console.log("   ⏳ N8N import workflow (prossimo)")
   console.log("   ⏳ Compila il workflow (prossimo)")
   console.log("   ⏳ Attiva il workflow (prossimo)")
-  
+
   await cleanAndImportN8NWorkflow()
-  
+
   console.log("✅ CHECKLIST ANDREA COMPLETATA:")
   console.log("   ✅ Query SQL")
   console.log("   ✅ Embedding")
@@ -2485,7 +2552,9 @@ async function main() {
   console.log(`- Prodotti creati/aggiornati: ${products.length}`)
   console.log(`- Services creati/aggiornati: ${services.length}`)
   console.log(`- FAQs create: ${faqsData.length}`)
-  console.log(`- Test customer with active chat created: Mario Rossi (+39123456789)`)
+  console.log(
+    `- Test customer with active chat created: Mario Rossi (+39123456789)`
+  )
   console.log(`- Embeddings ready for manual generation via API`)
 }
 

@@ -5,6 +5,7 @@
 ## 🚀 Recent Changes & Roadmap (2025-07)
 
 ### ✅ Completed & In Progress
+
 - **Catalog menu removed:** Sidebar now shows Products, Categories, Offers as top-level items.
 - **Orders page pagination:** Implemented server-side pagination; marked as completed.
 - **Order filters bug:** Known issue—filters (search, status, date) on orders list not working; see bug task.
@@ -16,6 +17,7 @@
 - **🎉 OFFERS MANAGEMENT:** Complete offers system implemented with GetActiveOffers N8N tool for chatbot integration.
 
 ### ✅ NEW: Offers Management System (July 2025)
+
 - **Complete Offers Infrastructure:** Full CRUD operations for creating, managing, and displaying offers
 - **Smart Discount Logic:** NON-CUMULATIVE system where highest discount wins (customer vs offer)
 - **Category-Specific Offers:** Offers can target specific product categories or all products
@@ -25,10 +27,12 @@
 - **Prompt Integration:** Updated chatbot prompts to handle offer inquiries and display offer names in pricing
 
 ### 🐞 Known Bugs
+
 - **Order list filters:** Filters on the orders page do not work as expected (search, status, date, etc.).
 - **Customer discount in RAG:** Must always apply the best discount (customer or offer) in price calculations.
 
 ### ⏳ Phase 2 Tasks (Deferred)
+
 - **Advanced WhatsApp Features** (media, templates, bulk, scheduling)
 - **Security & Performance Optimization** (rate limiting, 2FA, monitoring, OWASP)
 - **Full Application Responsiveness** (mobile/tablet/desktop)
@@ -37,6 +41,7 @@
 ---
 
 ## 📋 Task List Reference
+
 See `docs/other/task-list.md` for the full, up-to-date structured task list, including all completed, active, bug, and phase 2 tasks.
 
 ---
@@ -44,38 +49,50 @@ See `docs/other/task-list.md` for the full, up-to-date structured task list, inc
 ## ❓ **FREQUENTLY ASKED QUESTIONS - TECHNICAL CLARIFICATIONS**
 
 ### **Q1: Come si calcolano i prezzi con sconti e offerte?**
-**A:** [DA CHIARIRE CON ANDREA] 
+
+**A:** [DA CHIARIRE CON ANDREA]
+
 - Vince lo sconto più alto o sono cumulativi?
 - Quale ordine di priorità: sconto prodotto > sconto categoria > sconto workspace?
 - Come gestire percentuali vs importi fissi?
 
 ### **Q2: Gestione Canale Disattivo - Messaggio WIP**
+
 **A:** [DA CHIARIRE CON ANDREA]
+
 - Dove si trova il messaggio "Work in Progress" multilingua?
 - È nel database (tabella `gdprContent` o simile)?
 - È hardcoded per lingua o configurabile per workspace?
 
 ### **Q3: LLM di Formattazione in N8N**
+
 **A:** ✅ **IMPLEMENTATO - TWO-LLM ARCHITECTURE**
+
 - **LLM 1 (RAG Processor)**: Analizza e filtra dati grezzi dal database (T=0.3)
 - **LLM 2 (Formatter)**: Crea risposta conversazionale naturale (T=0.7)
 - Configurazione dinamica dalla tabella `agentConfig` (prompt, temperatura, token, modello)
 
 ### **Q4: Calling Functions con Token di Protezione**
+
 **A:** ✅ **IMPLEMENTATO**
+
 - Token interno N8N: `internal_api_secret_n8n_shopme_2024`
 - SecureTokenService per customer tokens temporanei
 - Cleanup automatico after expiration (1 ora)
 
 ### **Q5: Usage Tracking System**
+
 **A:** ✅ **IMPLEMENTATO COMPLETAMENTE**
+
 - **Costo per messaggio**: €0.005 (0.5 centesimi) per ogni risposta LLM
 - **Tracciamento automatico**: Integrato in `saveMessage()` - single point of truth
 - **Dashboard analytics**: Statistiche complete con grafici e export
 - **Filtri di sicurezza**: Solo clienti registrati con `activeChatbot: true`
 
 ### **Q6: N8N Auto-Setup e Import Automatico**
+
 **A:** ✅ **IMPLEMENTATO COMPLETAMENTE**
+
 - **Flusso attivo**: SÌ - workflow creato automaticamente e impostato `active: true`
 - **Workflow completo**: SÌ - Two-LLM Architecture (LLM 1: RAG + LLM 2: Formatter)
 - **Credenziali**: SÌ - Basic Auth automaticamente configurato per Internal API
@@ -85,15 +102,18 @@ See `docs/other/task-list.md` for the full, up-to-date structured task list, inc
 - **Processo**: Docker start → Owner setup → Credential import → Workflow import → Activation
 
 ### **🔑 N8N CREDENTIALS CONFIGURATION**
+
 **CREDENZIALI OBBLIGATORIE PER FUNZIONAMENTO N8N:**
 
 #### **1. N8N Admin Login**
+
 - **Email**: `admin@shopme.com`
 - **Password**: `Venezia44` (uppercase V required)
 - **URL**: http://localhost:5678
 - **Setup**: Automatico via `scripts/n8n_import-optimized-workflow.sh`
 
 #### **2. Backend API Authentication (Basic Auth)**
+
 - **Name**: `Backend API Basic Auth`
 - **Type**: `Basic Authentication`
 - **Username**: `admin`
@@ -102,6 +122,7 @@ See `docs/other/task-list.md` for the full, up-to-date structured task list, inc
 - **Nodes**: LLM Router, RAG Search, Save Message, Generate Token
 
 #### **3. OpenRouter API Authentication (Header Auth)**
+
 - **Name**: `OpenRouter API`
 - **Type**: `Header Auth`
 - **Header Name**: `Authorization`
@@ -110,6 +131,7 @@ See `docs/other/task-list.md` for the full, up-to-date structured task list, inc
 - **Nodes**: LLM Router, LLM Formatter
 
 #### **4. WhatsApp Business API (Header Auth)**
+
 - **Name**: `WhatsApp Business API`
 - **Type**: `Header Auth`
 - **Header Name**: `Authorization`
@@ -118,12 +140,14 @@ See `docs/other/task-list.md` for the full, up-to-date structured task list, inc
 - **Nodes**: Send WhatsApp Message
 
 #### **📋 SETUP AUTOMATICO CREDENZIALI:**
+
 ```bash
 # Eseguito automaticamente in npm run dev
 ./scripts/n8n_import-optimized-workflow.sh
 ```
 
 #### **⚠️ CONFIGURAZIONE MANUALE (se automatico fallisce):**
+
 1. Login N8N: http://localhost:5678 (`admin@shopme.com / Venezia44`)
 2. Settings → Credentials → Create New
 3. Seleziona tipo appropriato (Basic Auth, Header Auth)
@@ -131,20 +155,26 @@ See `docs/other/task-list.md` for the full, up-to-date structured task list, inc
 5. Salva e assegna ai nodi workflow appropriati
 
 ### **Q7: Logica RAG Condizionale**
+
 **A:** ✅ **IMPLEMENTATO**
+
 - LLM Router classifica l'intenzione: sociale vs prodotto/servizio
 - Pattern sociali (saluti, ringraziamenti) = NO RAG
 - Pattern commerciali (prodotti, prezzi, ordini) = SÌ RAG
 - Endpoint: `/internal/llm-router`
 
 ### **Q8: Disable Chatbot - Non Rispondere**
+
 **A:** ✅ **IMPLEMENTATO**
+
 - Check `workspace.isActive` e `whatsappSettings.isActive`
 - Se disattivo, nessuna risposta automatica
 - Implementato nel workflow N8N e backend
 
 ### **Q9: Invoice Management System**
+
 **A:** ✅ **TASK DOCUMENTATO - DA IMPLEMENTARE**
+
 - **CF Function**: `ReceiveInvoice` con filtro codice ordine
 - **Pagina lista fatture**: Design coerente con registrazione + token security
 - **Download PDF**: Sistema di token temporanei per sicurezza
@@ -155,11 +185,13 @@ See `docs/other/task-list.md` for the full, up-to-date structured task list, inc
 ## 💰 **USAGE TRACKING SYSTEM - COMPLETE IMPLEMENTATION**
 
 ### **🎯 Overview**
+
 Il sistema di tracciamento usage monitora automaticamente i costi LLM con €0.005 per messaggio e fornisce dashboard analytics complete per business intelligence.
 
 ### **✅ Architettura Implementata**
 
 #### **🔄 Single Point of Truth**
+
 ```typescript
 // In saveMessage method - chiamato da N8N
 if (response && response.trim()) {
@@ -167,25 +199,26 @@ if (response && response.trim()) {
     where: {
       phone: phoneNumber,
       workspaceId: workspaceId,
-      activeChatbot: true // Solo clienti registrati e attivi
-    }
-  });
+      activeChatbot: true, // Solo clienti registrati e attivi
+    },
+  })
 
   if (customer) {
     await prisma.usage.create({
       data: {
         workspaceId: workspaceId,
         clientId: customer.id,
-        price: 0.005 // 0.5 centesimi come richiesto
-      }
-    });
-    
-    logger.info(`💰 €0.005 tracked for ${customer.name}`);
+        price: 0.005, // 0.5 centesimi come richiesto
+      },
+    })
+
+    logger.info(`💰 €0.005 tracked for ${customer.name}`)
   }
 }
 ```
 
 #### **📊 Database Schema**
+
 ```sql
 CREATE TABLE usage (
   id VARCHAR(255) PRIMARY KEY,
@@ -193,7 +226,7 @@ CREATE TABLE usage (
   client_id VARCHAR(255) NOT NULL,
   price DECIMAL(10,3) DEFAULT 0.005,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  
+
   FOREIGN KEY (workspace_id) REFERENCES workspaces(id),
   FOREIGN KEY (client_id) REFERENCES customers(id)
 );
@@ -204,6 +237,7 @@ CREATE INDEX idx_usage_client_date ON usage(client_id, created_at DESC);
 ```
 
 #### **🔄 Flusso Completo**
+
 ```
 📱 Cliente: "ciao mozzarella"
          ↓
@@ -219,11 +253,12 @@ CREATE INDEX idx_usage_client_date ON usage(client_id, created_at DESC);
 ### **📈 Dashboard Analytics**
 
 #### **API Endpoints**
+
 ```typescript
 // Dashboard completa
 GET /api/usage/dashboard/{workspaceId}?period=30
 
-// Statistiche dettagliate  
+// Statistiche dettagliate
 GET /api/usage/stats/{workspaceId}?startDate=2024-01-01&endDate=2024-01-31
 
 // Export CSV/JSON
@@ -231,6 +266,7 @@ GET /api/usage/export/{workspaceId}?format=csv
 ```
 
 #### **Metriche Fornite**
+
 - **Total Cost**: €0.125 (esempio 25 messaggi)
 - **Top Client**: Mario Rossi - 9 messaggi, €0.045
 - **Peak Hour**: 14:00 (2 PM) - 8 messaggi
@@ -239,18 +275,21 @@ GET /api/usage/export/{workspaceId}?format=csv
 - **Customer Segmentation**: Top spenders per targeting
 
 #### **Business Intelligence**
+
 - Clienti più attivi per targeting marketing
 - Ore di punta per ottimizzare staff
 - Trend di crescita per budget planning
 - Costi AI monitorati in tempo reale
 
 ### **🛡️ Validazioni Automatiche**
+
 - ✅ **Solo clienti registrati**: `activeChatbot: true`
 - ✅ **Solo con risposta LLM**: `response && response.trim()`
 - ✅ **Workspace isolation**: `workspaceId` validation
 - ✅ **Error handling**: Non blocca il flusso principale
 
 ### **🎯 Vantaggi Architettura Andrea**
+
 1. **Performance**: Zero overhead di chiamate HTTP extra
 2. **Reliability**: Single point of failure = maggiore stabilità
 3. **Security**: Nessun endpoint pubblico esposto
@@ -261,9 +300,11 @@ GET /api/usage/export/{workspaceId}?format=csv
 ## 🛒 **ORDERS & CART MANAGEMENT SYSTEM - ENTERPRISE REDESIGN**
 
 ### **🎯 Overview**
+
 Sistema completo di gestione ordini e carrello enterprise-grade che sostituisce l'attuale implementazione "oscena" con un'interfaccia consistente, funzionalità CRUD complete e business logic robusta.
 
 ### **❌ Problemi Attuali**
+
 - **Grafica inconsistente**: Layout e colori diversi dal resto dell'app
 - **Zero CRUD**: Impossibile modificare ordini esistenti
 - **Logica inesistente**: Nessuna gestione stati, stock, pagamenti
@@ -271,7 +312,9 @@ Sistema completo di gestione ordini e carrello enterprise-grade che sostituisce 
 - **Relazioni rotte**: Products ↔ OrderItems ↔ Orders non funzionano
 
 ### **✅ Obiettivo Target**
+
 **Sistema Orders & Cart di livello enterprise** con:
+
 - 🎨 **Design System Consistency**: Stesso tema/colori di Products/Categories/Customers
 - 🛠️ **CRUD Completo**: Create, Read, Update, Delete per tutti gli ordini
 - 🛒 **Smart Cart**: Modifica qty, aggiungi/rimuovi prodotti, salvataggio persistente
@@ -281,29 +324,31 @@ Sistema completo di gestione ordini e carrello enterprise-grade che sostituisce 
 ### **🏗️ Architettura & Design**
 
 #### **🎨 Design System Compliance**
+
 ```typescript
 // DESIGN TOKENS (ShopMe Standard):
 const theme = {
   colors: {
-    primary: '#3B82F6',      // Blue - azioni principali
-    secondary: '#6B7280',    // Gray - azioni secondarie
-    success: '#10B981',      // Green - stati positivi
-    warning: '#F59E0B',      // Yellow - pending/processing
-    error: '#EF4444',        // Red - cancelled/failed
-    info: '#06B6D4'          // Cyan - informational
+    primary: "#3B82F6", // Blue - azioni principali
+    secondary: "#6B7280", // Gray - azioni secondarie
+    success: "#10B981", // Green - stati positivi
+    warning: "#F59E0B", // Yellow - pending/processing
+    error: "#EF4444", // Red - cancelled/failed
+    info: "#06B6D4", // Cyan - informational
   },
-  
+
   statusBadges: {
-    pending: { bg: '#FEF3C7', text: '#D97706' },
-    confirmed: { bg: '#DBEAFE', text: '#2563EB' },
-    shipped: { bg: '#CFFAFE', text: '#0891B2' },
-    delivered: { bg: '#D1FAE5', text: '#059669' },
-    cancelled: { bg: '#FEE2E2', text: '#DC2626' }
-  }
+    pending: { bg: "#FEF3C7", text: "#D97706" },
+    confirmed: { bg: "#DBEAFE", text: "#2563EB" },
+    shipped: { bg: "#CFFAFE", text: "#0891B2" },
+    delivered: { bg: "#D1FAE5", text: "#059669" },
+    cancelled: { bg: "#FEE2E2", text: "#DC2626" },
+  },
 }
 ```
 
 #### **📱 Component Architecture**
+
 ```typescript
 // MAIN COMPONENTS:
 - OrdersPage.tsx        // Dashboard principale con table + filters
@@ -325,6 +370,7 @@ const theme = {
 ### **🛒 Smart Cart System**
 
 #### **Enhanced Cart Features**
+
 ```typescript
 interface SmartCart {
   // CRUD Operations
@@ -332,16 +378,16 @@ interface SmartCart {
   updateQuantity(itemId: string, quantity: number): Promise<void>
   removeProduct(itemId: string): Promise<void>
   clearCart(): Promise<void>
-  
+
   // Persistence
-  saveCart(): Promise<void>           // localStorage + database backup
-  loadCart(): Promise<CartItem[]>     // restore session
-  
+  saveCart(): Promise<void> // localStorage + database backup
+  loadCart(): Promise<CartItem[]> // restore session
+
   // Validations
   validateStock(productId: string, qty: number): Promise<boolean>
-  validatePrices(): Promise<void>     // check for price changes
-  calculateTotals(): CartTotals       // subtotal, tax, shipping, total
-  
+  validatePrices(): Promise<void> // check for price changes
+  calculateTotals(): CartTotals // subtotal, tax, shipping, total
+
   // State Management
   cartItems: CartItem[]
   totals: CartTotals
@@ -372,90 +418,96 @@ interface CartTotals {
 ### **📊 Orders Dashboard**
 
 #### **Orders Table Specifications**
+
 ```typescript
 interface OrdersTable {
   columns: [
-    'Order ID',           // Primary key con link a dettaglio
-    'Customer',           // SOLO nome e cognome (NO EMAIL)
-    'Date',              // Data ordine con time ago
-    'Status',            // Badge colorato con stato
-    'Items',             // Numero prodotti in ordine
-    'Total',             // Prezzo totale formattato
-    'Actions'            // View, Edit, Delete buttons
+    "Order ID", // Primary key con link a dettaglio
+    "Customer", // SOLO nome e cognome (NO EMAIL)
+    "Date", // Data ordine con time ago
+    "Status", // Badge colorato con stato
+    "Items", // Numero prodotti in ordine
+    "Total", // Prezzo totale formattato
+    "Actions" // View, Edit, Delete buttons
   ]
-  
+
   features: {
-    search: string       // Ricerca per Order ID, Customer, Product
+    search: string // Ricerca per Order ID, Customer, Product
     filters: {
-      status: OrderStatus[]           // PRIORITÀ: Filtro per status ordini
-      customer: string               // PRIORITÀ: Filtro dropdown per cliente
-      dateRange: [Date, Date]        // PRIORITÀ: Selettore range date
-      amountRange: [number, number]  // Filtro opzionale per importo
+      status: OrderStatus[] // PRIORITÀ: Filtro per status ordini
+      customer: string // PRIORITÀ: Filtro dropdown per cliente
+      dateRange: [Date, Date] // PRIORITÀ: Selettore range date
+      amountRange: [number, number] // Filtro opzionale per importo
     }
     sorting: {
       field: string
-      direction: 'asc' | 'desc'
+      direction: "asc" | "desc"
     }
     pagination: {
       page: number
       perPage: number
       total: number
     }
-    bulkActions: [
-      'changeStatus',
-      'exportSelected', 
-      'deleteSelected'
-    ]
+    bulkActions: ["changeStatus", "exportSelected", "deleteSelected"]
     filterActions: [
-      'clearAllFilters',              // NUOVO: Reset tutti i filtri
-      'saveFilterPreset'              // NUOVO: Salva combinazione filtri
+      "clearAllFilters", // NUOVO: Reset tutti i filtri
+      "saveFilterPreset" // NUOVO: Salva combinazione filtri
     ]
   }
 }
 ```
 
 #### **Enhanced Filtering System**
+
 ```typescript
 interface OrdersPageFilters {
   // PRIORITY FILTERS (Must Implement)
   statusFilter: {
-    type: 'dropdown'
-    options: ['All', 'Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled']
-    multiple: boolean               // Allow multiple status selection
-    clearable: boolean              // Easy clear option
+    type: "dropdown"
+    options: [
+      "All",
+      "Pending",
+      "Confirmed",
+      "Shipped",
+      "Delivered",
+      "Cancelled"
+    ]
+    multiple: boolean // Allow multiple status selection
+    clearable: boolean // Easy clear option
   }
-  
+
   customerFilter: {
-    type: 'searchable-dropdown'
-    source: 'customers'             // Load from customers table
-    displayField: 'firstName + lastName'  // Show name only, NO EMAIL
-    searchable: boolean             // Type to search customers
-    clearable: boolean              // Easy clear option
+    type: "searchable-dropdown"
+    source: "customers" // Load from customers table
+    displayField: "firstName + lastName" // Show name only, NO EMAIL
+    searchable: boolean // Type to search customers
+    clearable: boolean // Easy clear option
   }
-  
+
   dateRangeFilter: {
-    type: 'date-range-picker'
-    presets: ['Today', 'Last 7 days', 'Last 30 days', 'This month', 'Custom']
-    format: 'DD/MM/YYYY'           // Italian date format
-    clearable: boolean              // Easy clear option
+    type: "date-range-picker"
+    presets: ["Today", "Last 7 days", "Last 30 days", "This month", "Custom"]
+    format: "DD/MM/YYYY" // Italian date format
+    clearable: boolean // Easy clear option
   }
-  
+
   // UI IMPROVEMENTS
   customerDisplay: {
-    showEmail: false                // REMOVE email from customer display
-    showPhone: boolean              // Optional phone display
-    format: 'firstName lastName'    // Clean name display
+    showEmail: false // REMOVE email from customer display
+    showPhone: boolean // Optional phone display
+    format: "firstName lastName" // Clean name display
   }
-  
+
   filterCombination: {
-    allowMultiple: boolean          // Combine status + customer + date
-    persistence: boolean            // Remember filters across sessions
-    urlState: boolean              // Filters reflected in URL
+    allowMultiple: boolean // Combine status + customer + date
+    persistence: boolean // Remember filters across sessions
+    urlState: boolean // Filters reflected in URL
   }
 }
 ```
 
 #### **Advanced Filtering System**
+
 ```typescript
 // FILTER COMBINATIONS:
 - Status: [Pending, Confirmed, Shipped, Delivered, Cancelled]
@@ -475,6 +527,7 @@ interface OrdersPageFilters {
 ### **📝 Order Detail & Edit System**
 
 #### **Order Information Panel**
+
 ```typescript
 interface OrderDetail {
   // BASIC INFO
@@ -485,7 +538,7 @@ interface OrderDetail {
     createdAt: Date
     updatedAt: Date
   }
-  
+
   // CUSTOMER SECTION
   customer: {
     id: string
@@ -495,7 +548,7 @@ interface OrderDetail {
     orderHistory: number        // total previous orders
     totalSpent: number         // lifetime value
   }
-  
+
   // ORDER ITEMS TABLE
   items: OrderItem[] = [
     {
@@ -508,7 +561,7 @@ interface OrderDetail {
       currentStock: number
     }
   ]
-  
+
   // FINANCIAL SUMMARY
   totals: {
     subtotal: number
@@ -520,7 +573,7 @@ interface OrderDetail {
     paidAmount: number
     refundedAmount: number
   }
-  
+
   // SHIPPING & DELIVERY
   shipping: {
     address: Address
@@ -529,7 +582,7 @@ interface OrderDetail {
     estimatedDelivery: Date
     actualDelivery?: Date
   }
-  
+
   // PAYMENT INFO
   payment: {
     method: PaymentMethod
@@ -538,7 +591,7 @@ interface OrderDetail {
     paymentDate?: Date
     refundInfo?: RefundInfo
   }
-  
+
   // AUDIT TRAIL
   timeline: OrderEvent[] = [
     {
@@ -555,6 +608,7 @@ interface OrderDetail {
 ### **✏️ CRUD Operations**
 
 #### **Create Order Flow**
+
 ```typescript
 // MANUAL ORDER CREATION:
 1. Select Customer (search/create new)
@@ -575,6 +629,7 @@ interface OrderDetail {
 ```
 
 #### **Edit Order Capabilities**
+
 ```typescript
 // EDITABLE FIELDS:
 - Order Status (dropdown with workflow validation)
@@ -594,6 +649,7 @@ interface OrderDetail {
 ```
 
 #### **Status Management Workflow**
+
 ```typescript
 enum OrderStatus {
   PENDING = 'pending',         // Order created, awaiting confirmation
@@ -624,6 +680,7 @@ const allowedTransitions = {
 ### **🔄 Business Logic & Integrations**
 
 #### **Stock Management System**
+
 ```typescript
 interface InventoryService {
   // STOCK OPERATIONS
@@ -631,11 +688,11 @@ interface InventoryService {
   reserveStock(orderItems: OrderItem[]): Promise<ReservationResult>
   confirmReservation(reservationId: string): Promise<void>
   restoreStock(orderItems: OrderItem[]): Promise<void>
-  
+
   // STOCK ALERTS
   getLowStockProducts(threshold: number): Promise<Product[]>
   notifyLowStock(products: Product[]): Promise<void>
-  
+
   // INVENTORY TRACKING
   logStockMovement(movement: StockMovement): Promise<void>
   getStockHistory(productId: string): Promise<StockMovement[]>
@@ -644,7 +701,7 @@ interface InventoryService {
 interface StockMovement {
   productId: string
   orderId?: string
-  movementType: 'SALE' | 'RESTOCK' | 'ADJUSTMENT' | 'RETURN'
+  movementType: "SALE" | "RESTOCK" | "ADJUSTMENT" | "RETURN"
   quantity: number
   previousStock: number
   newStock: number
@@ -654,23 +711,27 @@ interface StockMovement {
 ```
 
 #### **Payment Integration**
+
 ```typescript
 interface PaymentService {
   // PAYMENT PROCESSING
-  processPayment(order: Order, paymentMethod: PaymentMethod): Promise<PaymentResult>
+  processPayment(
+    order: Order,
+    paymentMethod: PaymentMethod
+  ): Promise<PaymentResult>
   refundPayment(orderId: string, amount: number): Promise<RefundResult>
-  
+
   // PAYMENT STATUS SYNC
   syncPaymentStatus(orderId: string): Promise<PaymentStatus>
   handlePaymentWebhook(webhook: PaymentWebhook): Promise<void>
-  
+
   // PAYMENT METHODS
   getSupportedMethods(): PaymentMethod[]
   validatePaymentMethod(method: PaymentMethod): boolean
 }
 
 interface PaymentMethod {
-  type: 'CREDIT_CARD' | 'BANK_TRANSFER' | 'PAYPAL' | 'CASH'
+  type: "CREDIT_CARD" | "BANK_TRANSFER" | "PAYPAL" | "CASH"
   provider?: string
   accountInfo?: any
   isDefault: boolean
@@ -680,6 +741,7 @@ interface PaymentMethod {
 ### **🗄️ Database Schema Enhancement**
 
 #### **Enhanced Orders Table**
+
 ```sql
 -- ORDERS TABLE ENHANCEMENT
 ALTER TABLE orders ADD COLUMN order_number VARCHAR(50) UNIQUE;
@@ -706,7 +768,7 @@ CREATE TABLE order_items (
   unit_price DECIMAL(10,2) NOT NULL,      -- Snapshot per history
   total_price DECIMAL(10,2) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  
+
   FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
   FOREIGN KEY (product_id) REFERENCES products(id)
 );
@@ -720,7 +782,7 @@ CREATE TABLE order_events (
   metadata JSON,
   user_id VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  
+
   FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 
@@ -734,6 +796,7 @@ CREATE INDEX idx_order_events_order_date ON order_events(order_id, created_at DE
 ### **🎯 N8N Integration & Calling Functions**
 
 #### **Orders Calling Functions**
+
 ```typescript
 // NEW CALLING FUNCTIONS for WhatsApp:
 
@@ -741,7 +804,7 @@ CREATE INDEX idx_order_events_order_date ON order_events(order_id, created_at DE
 interface CreateOrder {
   input: {
     customerId: string
-    items: { productId: string, quantity: number }[]
+    items: { productId: string; quantity: number }[]
     workspaceId: string
   }
   output: {
@@ -802,6 +865,7 @@ interface CheckOrderStatus {
 ### **📊 Analytics & Reporting**
 
 #### **Orders Analytics Dashboard**
+
 ```typescript
 interface OrdersAnalytics {
   // KEY METRICS
@@ -809,15 +873,15 @@ interface OrdersAnalytics {
   totalRevenue: number
   averageOrderValue: number
   conversionRate: number
-  
+
   // TRENDS
-  ordersGrowth: number          // % vs previous period
-  revenueGrowth: number         // % vs previous period
-  
+  ordersGrowth: number // % vs previous period
+  revenueGrowth: number // % vs previous period
+
   // TOP PERFORMERS
   topProducts: ProductPerformance[]
   topCustomers: CustomerPerformance[]
-  
+
   // STATUS BREAKDOWN
   statusDistribution: {
     pending: number
@@ -826,11 +890,11 @@ interface OrdersAnalytics {
     delivered: number
     cancelled: number
   }
-  
+
   // TIME ANALYSIS
   peakHours: HourlyData[]
   seasonalTrends: MonthlyData[]
-  
+
   // GEOGRAPHICAL
   shippingHeatmap: RegionData[]
 }
@@ -839,12 +903,14 @@ interface OrdersAnalytics {
 ### **⚡ Performance Optimizations**
 
 #### **Database Performance**
+
 - **Indexes**: Ottimizzati per search, filter, sort operations
 - **Pagination**: Cursor-based per tabelle grandi
 - **Caching**: Redis per dati frequently accessed
 - **Aggregations**: Pre-calculated totals per dashboard
 
 #### **Frontend Performance**
+
 - **Virtual Scrolling**: Per tabelle con migliaia di ordini
 - **Lazy Loading**: Components caricati on-demand
 - **Memoization**: React.memo per componenti expensive
@@ -855,16 +921,18 @@ interface OrdersAnalytics {
 ## 📧 **INVOICE MANAGEMENT SYSTEM - TASK DOCUMENTATION**
 
 ### **🎯 Obiettivo**
+
 Implementare la calling function **ReceiveInvoice** che gestisce richieste di fatture con filtro codice ordine e pagina lista fatture sicura.
 
 ### **📋 CF Function ReceiveInvoice**
 
 #### **Comportamento CON Codice Ordine**
+
 ```json
 // Input
 {
   "orderCode": "ORD-2024-001",
-  "workspaceId": "workspace-123", 
+  "workspaceId": "workspace-123",
   "customerId": "customer-456"
 }
 
@@ -874,7 +942,7 @@ Implementare la calling function **ReceiveInvoice** che gestisce richieste di fa
   "type": "direct_invoice",
   "invoice": {
     "orderCode": "ORD-2024-001",
-    "invoiceNumber": "INV-2024-001", 
+    "invoiceNumber": "INV-2024-001",
     "pdfUrl": "https://domain.com/invoices/INV-2024-001.pdf",
     "amount": "€45.50",
     "date": "2024-01-15",
@@ -885,6 +953,7 @@ Implementare la calling function **ReceiveInvoice** che gestisce richieste di fa
 ```
 
 #### **Comportamento SENZA Codice Ordine**
+
 ```json
 // Input
 {
@@ -892,7 +961,7 @@ Implementare la calling function **ReceiveInvoice** che gestisce richieste di fa
   "customerId": "customer-456"
 }
 
-// Output  
+// Output
 {
   "success": true,
   "type": "invoice_list",
@@ -907,22 +976,25 @@ Implementare la calling function **ReceiveInvoice** che gestisce richieste di fa
 ### **🎨 Pagina Lista Fatture**
 
 #### **Design Requirements**
+
 - ✅ **Stessi colori** della form di registrazione
-- ✅ **Layout simile** alla pagina di registrazione  
+- ✅ **Layout simile** alla pagina di registrazione
 - ✅ **Responsive design** mobile-first
 - ✅ **Branding coerente** con il resto del sistema
 
 #### **URL Structure**
+
 ```
 https://domain.com/customer/invoices?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 #### **🔑 Token Security**
+
 ```typescript
 // TOKEN PAYLOAD EXAMPLE:
 {
   "customerId": "customer-456",
-  "workspaceId": "workspace-123", 
+  "workspaceId": "workspace-123",
   "purpose": "invoice_list",
   "iat": 1643723400,
   "exp": 1643809800  // 24h expiration
@@ -930,11 +1002,12 @@ https://domain.com/customer/invoices?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
 ```
 
 #### **Token Flow Completo**
+
 ```
 1. CF ReceiveInvoice (senza orderCode) chiamata
    ↓
 2. Backend genera JWT token con customerId + workspaceId
-   ↓  
+   ↓
 3. Backend restituisce URL: "domain.com/customer/invoices?token=JWT_TOKEN"
    ↓
 4. Cliente clicca link WhatsApp
@@ -951,6 +1024,7 @@ https://domain.com/customer/invoices?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
 ```
 
 ### **🏗️ Database Schema**
+
 ```sql
 CREATE TABLE invoices (
   id SERIAL PRIMARY KEY,
@@ -964,7 +1038,7 @@ CREATE TABLE invoices (
   status VARCHAR(20) DEFAULT 'generated',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  
+
   FOREIGN KEY (customer_id) REFERENCES customers(id),
   FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
 );
@@ -976,18 +1050,21 @@ CREATE INDEX idx_invoices_created_desc ON invoices(created_at DESC);
 ```
 
 ### **🔧 Implementation Files**
+
 ```typescript
 // Files to Create:
-- backend/src/chatbot/calling-functions/CF/ReceiveInvoice.ts
-- frontend/src/pages/InvoiceListPage.tsx
-- backend/src/services/invoice.service.ts
-- frontend/src/components/invoices/InvoiceTable.tsx
-- backend/src/routes/invoice.routes.ts
+;-backend / src / chatbot / calling -
+  functions / CF / ReceiveInvoice.ts -
+  frontend / src / pages / InvoiceListPage.tsx -
+  backend / src / services / invoice.service.ts -
+  frontend / src / components / invoices / InvoiceTable.tsx -
+  backend / src / routes / invoice.routes.ts
 ```
 
 ### **📋 Customer Invoice Address Management**
 
 #### **Customer Schema Enhancement**
+
 ```sql
 -- Add invoice address field to customers table
 ALTER TABLE customers ADD COLUMN invoice_address JSONB;
@@ -995,7 +1072,7 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
 -- Invoice address structure
 {
   "firstName": "Mario",
-  "lastName": "Rossi", 
+  "lastName": "Rossi",
   "company": "Rossi S.r.l.",
   "address": "Via Roma 123",
   "city": "Milano",
@@ -1007,18 +1084,21 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
 ```
 
 #### **Frontend Components**
+
 - **ClientSheet**: Extended with invoice address section
 - **Form Validation**: Client-side validation for VAT numbers, postal codes
 - **Address Management**: Separate shipping and invoice address handling
 - **View/Edit Modes**: Invoice address display in view mode, editable in edit mode
 
 #### **Backend Integration**
+
 - **Customer Entity**: Updated with invoiceAddress property
 - **Validation Schema**: Joi validation for invoice address fields
 - **API Endpoints**: Full CRUD support for invoice address in customer endpoints
 - **Repository**: Database operations for invoice address JSON field
 
 ### **✅ Security Requirements**
+
 - ✅ **Token-based authentication** (no login required)
 - ✅ **24h token expiration** per lista fatture
 - ✅ **1h token expiration** per download PDF
@@ -1033,14 +1113,18 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
 ### **🎯 Andrea's Single Responsibility Principle**
 
 #### **🔍 LLM 1: RAG PROCESSOR**
+
 **RESPONSABILITÀ**: Analizzare e organizzare dati grezzi dal database
+
 - **INPUT**: Lista grezza (10 prodotti, 4 FAQ, 2 servizi, etc.)
 - **COMPITO**: Filtrare, analizzare relevanza, organizzare informazioni
 - **OUTPUT**: JSON strutturato con dati più rilevanti
 - **TEMPERATURA**: 0.3 (bassa per analisi precisa)
 
 #### **🎨 LLM 2: FORMATTER**
+
 **RESPONSABILITÀ**: Creare risposta conversazionale per l'utente
+
 - **INPUT**: Dati processati da LLM 1 + storico conversazione + agent config
 - **COMPITO**: Formattare risposta naturale, personalizzata, linguaggio corretto
 - **OUTPUT**: Risposta finale conversazionale per WhatsApp
@@ -1053,32 +1137,32 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
 ```mermaid
 flowchart TD
     A["🌐 UTENTE<br/>WhatsApp: 'tempi di consegna'"] --> B["📬 N8N WEBHOOK<br/>shopme-whatsapp-workflow.json"]
-    
+
     B --> C["🔧 prepare-data<br/>Estrae parametri per LLM"]
     C --> D["🤖 AI AGENT<br/>LangChain Agent Node"]
-    
+
     D --> E["🛠️ RagSearch() TOOL<br/>HTTP Request Tool"]
     E --> F["🔗 BACKEND API<br/>POST /api/internal/rag-search"]
-    
+
     F --> G["📊 COMBINAZIONE BACKEND<br/>Parallel Search + Merge"]
     G --> H["📤 RISPOSTA RAG<br/>products + faqs + services + docs"]
-    
+
     H --> E
     E --> D
-    
+
     D --> I["🧠 LLM OPENROUTER<br/>gpt-4o-mini + Agent Prompt"]
     I --> J["💬 RISPOSTA FINALE<br/>Combinazione intelligente"]
-    
+
     J --> K["📱 WHATSAPP<br/>Messaggio combinato"]
-    
+
     style F fill:#e1f5fe
     style G fill:#f3e5f5
     style I fill:#fff9c4
     style J fill:#e8f5e8
-    
+
     classDef n8nBox fill:#ff9800,stroke:#f57c00,stroke-width:2px,color:#fff
     class B,C,D,E,I n8nBox
-    
+
     classDef backendBox fill:#4caf50,stroke:#388e3c,stroke-width:2px,color:#fff
     class F,G,H backendBox
 ```
@@ -1092,7 +1176,7 @@ flowchart TD
     ┌─────────────────┐
     │ 🔍 RAG SEARCH   │ ──> Cerca in database:
     │ (Database Only) │     • product_chunks + products table
-    │                 │     • faq_chunks + faq table  
+    │                 │     • faq_chunks + faq table
     │                 │     • service_chunks + services table
     │                 │     • document_chunks + documents table
     └─────────────────┘
@@ -1143,7 +1227,9 @@ flowchart TD
 ### **🎯 Vantaggi Two-LLM Architecture**
 
 #### **🔧 Single Responsibility Benefits:**
+
 1. **LLM 1 (Processor)**: Focalizzato solo su analisi dati
+
    - Temperature bassa (0.3) per precision
    - Nessuna creatività, solo logica
    - Output JSON strutturato e prevedibile
@@ -1154,17 +1240,20 @@ flowchart TD
    - Stile personalizzato per cliente
 
 #### **📊 Quality Improvements:**
+
 - **Meno allucinazioni**: LLM 1 filtra solo dati reali
 - **Risposte più accurate**: Separazione logica vs creatività
 - **Performance migliore**: Ogni LLM ottimizzato per il suo compito
 - **Debug più facile**: Errori isolati per responsabilità
 
 #### **🔄 Cost Efficiency:**
+
 - **LLM 1**: Pochi token, focus su struttura
 - **LLM 2**: Più token solo per creatività necessaria
 - **Totale**: Spesso meno costoso di un singolo LLM sovraccarico
 
 ### **⚙️ Configurazione Dinamica**
+
 **IMPORTANTE**: Prompt, temperatura, token e modello arrivano dalla tabella `agentConfig` - tutto dinamico!
 
 ---
@@ -1236,14 +1325,15 @@ flowchart TD
     └─────────────┘                └─────────────────┘
          |
          v
-    ┌─────────────┐   
-    │ 💬 RISPOSTA │   
-    │ DISCORSIVA  │  
+    ┌─────────────┐
+    │ 💬 RISPOSTA │
+    │ DISCORSIVA  │
     │ + 💰 USAGE  │
-    └─────────────┘   
+    └─────────────┘
 ```
 
 ### **🔑 Legenda Completa**
+
 - 🚨 = SPAM DETECTION (10+ msg/30sec)
 - 🚫 = AUTO-BLACKLIST (customer + workspace)
 - ❌ = STOP/BLOCCO DIALOGO
@@ -1261,18 +1351,21 @@ flowchart TD
 ### **📱 Gestione Messaggi Specifici**
 
 #### **Nuovi Utenti - Welcome Flow**
+
 - Riconoscimento saluti: "Ciao", "Hello", "Hi", "Hola", "Buongiorno"
 - Welcome message dal database (settings)
 - Link registrazione con token sicuro
 - Loop fino a registrazione completata
 
 #### **Utenti Registrati - Conversazione**
+
 - Check ultima conversazione (>2 ore = "Bentornato {NOME}")
 - RAG search unificato (prodotti, FAQ, servizi, documenti)
 - Two-LLM processing per risposta ottimale
 - Usage tracking automatico (€0.005)
 
 #### **Controlli di Sicurezza**
+
 - **Spam detection**: 10+ messaggi in 30 secondi → auto-blacklist
 - **Blacklist check**: Verifica customer.isBlacklisted
 - **Channel status**: isActive e activeChatbot flags
@@ -1281,6 +1374,7 @@ flowchart TD
 ---
 
 ## Table of Contents
+
 - [Introduction](#introduction)
   - [Short Description](#short-description)
   - [Business Model](#business-model)
@@ -1341,6 +1435,7 @@ flowchart TD
 **Current Implementation**: This PRD documents the ShopMe platform as implemented with **SofIA (Smart Food Italian Assistant)** as the default AI agent for **"Gusto Italiano"**, an authentic Italian specialty foods store. This implementation serves as a comprehensive example of the platform's capabilities for food retail businesses.
 
 **SofIA Configuration**:
+
 - **Business**: Gusto Italiano - Authentic Italian Specialty Foods Store
 - **Agent Model**: openai/gpt-4o-mini
 - **Personality**: Warm, passionate Italian food expert
@@ -1350,6 +1445,7 @@ flowchart TD
 **Platform Adaptability**: While currently configured for Gusto Italiano, the ShopMe platform is designed to be fully customizable for any business type through the agent configuration system. The SofIA implementation demonstrates the platform's flexibility and can be adapted for different industries, products, and business models.
 
 ### Short Description
+
 ShopMe is a multilingual SaaS platform (Italian, English, Spanish) that turns WhatsApp into a complete sales channel. Customers can create smart chatbots, manage products, receive orders, and send invoices to their clients without any technical skills. Our AI technology automates customer-care responses, manages push notifications, and offers a 24/7 conversational shopping experience, all directly in the world's most popular messaging app.
 
 All sensitive operations are handled securely through temporary links with security tokens. These links direct customers to our secure website for registration forms, payments, invoices, and accessing personal data. This keeps all sensitive information outside of chat conversations, ensuring data protection while maintaining a smooth customer experience.
@@ -1403,6 +1499,7 @@ All sensitive operations are handled securely through temporary links with secur
 The ShopMe platform implements an intelligent conversational flow that handles new and registered users with comprehensive security controls, blacklist management, and **Two-LLM Architecture** for optimal response generation. The system uses **Andrea's Single Responsibility Principle** with LLM 1 (RAG Processor) for data analysis and LLM 2 (Formatter) for conversational responses.
 
 **Key Features:**
+
 - ✅ **Two-LLM Processing**: Separate LLMs for data analysis (T=0.3) and conversation (T=0.7)
 - ✅ **Usage Tracking**: Automatic €0.005 cost tracking per LLM response
 - ✅ **Spam Detection**: 10+ messages/30sec → auto-blacklist
@@ -1416,6 +1513,7 @@ The ShopMe platform implements an intelligent conversational flow that handles n
 The platform implements a revolutionary unified RAG (Retrieval-Augmented Generation) system that searches across ALL content types simultaneously and provides comprehensive responses.
 
 #### **Key Features:**
+
 1. **Semantic Search**: Uses local embeddings (`@xenova/transformers`) for multilingual semantic understanding
 2. **Unified Response**: Single LLM call combines products, FAQs, services, and documents
 3. **Stock Verification**: Real-time availability checking for products
@@ -1424,6 +1522,7 @@ The platform implements a revolutionary unified RAG (Retrieval-Augmented Generat
 #### **🔧 LOCAL EMBEDDING SYSTEM - COMPLETE INDEPENDENCE**
 
 **ZERO EXTERNAL DEPENDENCIES FOR EMBEDDINGS:**
+
 - **Model**: `Xenova/all-MiniLM-L6-v2` - 384 dimensions
 - **Processing**: 100% local using `@xenova/transformers` library
 - **Cost**: No API costs, no external service dependencies
@@ -1435,6 +1534,7 @@ The platform implements a revolutionary unified RAG (Retrieval-Augmented Generat
 - **Storage**: PostgreSQL JSONB format for optimal vector search performance
 
 #### **Search Flow:**
+
 ```
 User Query: "hai la mozzarella fresca? quanto costa la spedizione?"
      |
@@ -1478,6 +1578,7 @@ Vuoi procedere con l'ordine? 😊"
 ```
 
 #### **Technical Implementation:**
+
 - **Embedding Model**: `Xenova/all-MiniLM-L6-v2` (local, no API costs)
 - **Similarity Calculation**: Cosine similarity with configurable thresholds
 - **Database Integration**: All queries filtered by `workspaceId` for data isolation
@@ -1486,25 +1587,30 @@ Vuoi procedere con l'ordine? 😊"
 ## 🚀 N8N Visual Workflow Integration
 
 ### Overview
+
 The ShopMe platform integrates with **N8N** (n8nio.com) as a visual workflow automation platform to replace complex conditional business logic in WhatsApp message processing with intuitive drag-and-drop workflows. This hybrid architecture separates critical security controls (handled by ShopMe backend) from business logic (handled by N8N workflows).
 
 ### 🎨 **Admin Interface Integration**
 
 #### **Settings Menu N8N Page**
+
 ### **N8N Integration Simplification Decision**
 
-**Current Issue**: 
+**Current Issue**:
+
 - N8N Workflow URL is not dynamic and doesn't work correctly
 - Frontend integration adds unnecessary complexity
 - URL hardcoding causes maintenance issues
 
 **Simplification Strategy**:
+
 - **Remove Frontend Integration**: Eliminate N8N UI components from admin interface
 - **Keep Backend Workflow**: Maintain N8N workflow functionality for WhatsApp processing
 - **Simplify Architecture**: Focus on core functionality without complex UI integration
 - **Future Planning**: Document for potential re-integration when requirements are clearer
 
 **Components to Remove**:
+
 - N8NPage.tsx and related components
 - `/settings/n8n` route and navigation
 - N8N services and API calls from frontend
@@ -1512,6 +1618,7 @@ The ShopMe platform integrates with **N8N** (n8nio.com) as a visual workflow aut
 - N8N management UI features
 
 **What Remains**:
+
 - N8N Docker container and workflow
 - Backend API endpoints for N8N communication
 - WhatsApp message processing through N8N
@@ -1529,40 +1636,45 @@ The ShopMe platform integrates with **N8N** (n8nio.com) as a visual workflow aut
 **Decision**: All N8N frontend management features have been removed to simplify the architecture and focus on core functionality.
 
 ##### **~~🖥️ Embedded Interface Components:~~ (REMOVED)**
+
 ~~```typescript~~
 ~~// N8NPage.tsx - Main container with iframe integration (REMOVED)~~
 ~~<div className="flex flex-col h-full">~~
-~~  <N8NStatusHeader />~~
-~~  <iframe~~
-~~    src={`http://localhost:5678?auth=${getN8NToken()}`}~~
-~~    className="flex-1 w-full border-0 rounded-lg"~~
-~~    style={{ minHeight: '800px' }}~~
-~~    title="N8N Workflow Editor"~~
-~~    sandbox="allow-same-origin allow-scripts allow-forms"~~
-~~  />~~
-~~  <QuickActions />~~
+~~ <N8NStatusHeader />~~
+~~ <iframe~~
+~~ src={`http://localhost:5678?auth=${getN8NToken()}`}~~
+~~ className="flex-1 w-full border-0 rounded-lg"~~
+~~ style={{ minHeight: '800px' }}~~
+~~ title="N8N Workflow Editor"~~
+~~ sandbox="allow-same-origin allow-scripts allow-forms"~~
+~~ />~~
+~~ <QuickActions />~~
 ~~</div>~~
 ~~```~~
 
 ##### **~~📊 Real-time Monitoring:~~ (REMOVED)**
+
 ~~- **WorkflowStatusCard**: Live workflow execution status~~
 ~~- **WorkflowMetrics**: Performance analytics and success rates~~  
 ~~- **Container Health**: N8N service availability monitoring~~
 ~~- **Error Dashboard**: Real-time error tracking and logging~~
 
 ##### **~~🔧 Quick Management Actions:~~ (REMOVED)**
+
 ~~- **Import/Export Workflows**: Upload/download workflow JSON files~~
 ~~- **Container Control**: Start/stop/restart N8N container~~
 ~~- **Performance Dashboard**: Execution times, success rates, error rates~~
 ~~- **Workflow Templates**: Pre-built templates for common business patterns~~
 
 ##### **~~🛡️ Security Integration:~~ (REMOVED)**
+
 ~~- **Role-Based Access**: Only workspace owners/admins can modify workflows~~
 ~~- **Audit Logging**: Track all workflow modifications with user attribution~~
 ~~- **Secure Token Passing**: JWT tokens for N8N authentication~~
 ~~- **Read-Only Mode**: Limited access for non-admin users~~
 
 **Simplified N8N Architecture**:
+
 - N8N runs as Docker container for WhatsApp processing
 - Backend API endpoints remain for N8N communication
 - No frontend UI integration
@@ -1571,38 +1683,41 @@ The ShopMe platform integrates with **N8N** (n8nio.com) as a visual workflow aut
 ### **Critical N8N Issues**
 
 **Credentials Persistence Problem**:
+
 - **Issue**: N8N loses credentials on every restart/reload
 - **Impact**: WhatsApp workflow stops working after container restart
 - **Frequency**: Always happens on system restart or N8N container reload
 - **Critical Impact**: Complete WhatsApp messaging system failure
 
 **Required Solutions**:
+
 ```typescript
 // N8N Credentials Persistence Requirements
 interface N8NCredentialsFix {
   persistentStorage: {
-    volume: string                      // Docker volume for N8N data persistence
-    database: string                    // SQLite database persistence
-    credentialsFile: string             // Credentials backup file
+    volume: string // Docker volume for N8N data persistence
+    database: string // SQLite database persistence
+    credentialsFile: string // Credentials backup file
   }
-  
+
   autoRecovery: {
-    healthCheck: boolean                // Monitor N8N credentials status
-    autoReconnect: boolean              // Auto-reconnect on credential loss
-    retryMechanism: number              // Retry attempts for credential restoration
-    alerting: boolean                   // Alert when credentials lost
+    healthCheck: boolean // Monitor N8N credentials status
+    autoReconnect: boolean // Auto-reconnect on credential loss
+    retryMechanism: number // Retry attempts for credential restoration
+    alerting: boolean // Alert when credentials lost
   }
-  
+
   backupStrategy: {
-    credentialsBackup: boolean          // Regular backup of N8N credentials
-    configBackup: boolean               // Backup workflow configuration
-    restoreScript: string               // Automated restore script
-    manualRecovery: string              // Manual recovery documentation
+    credentialsBackup: boolean // Regular backup of N8N credentials
+    configBackup: boolean // Backup workflow configuration
+    restoreScript: string // Automated restore script
+    manualRecovery: string // Manual recovery documentation
   }
 }
 ```
 
 **Implementation Priority**:
+
 1. **CRITICAL**: Fix Docker volume persistence for N8N database
 2. **HIGH**: Implement health monitoring for credential status
 3. **MEDIUM**: Create automated backup/restore scripts
@@ -1611,11 +1726,13 @@ interface N8NCredentialsFix {
 ### 🎯 **Hybrid Architecture: Backend + N8N**
 
 #### **🛡️ ShopMe Backend Security Layer (SEMPRE nel server):**
+
 - ✅ **API Rate Limiting**: Controllo chiamate per workspace
 - ✅ **Spam Detection**: 10 messaggi in 30 secondi → auto-blacklist
 - ✅ **Blacklist Check**: Verifica customer.isBlacklisted e workspace.blocklist
 
 #### **🎨 N8N Visual Workflow Layer (Business Logic):**
+
 - 🔄 Channel Active Check
 - 👤 User Registration Flow
 - ⚠️ WIP Status Handling
@@ -1627,34 +1744,36 @@ interface N8NCredentialsFix {
 ### 🔄 **Message Processing Flow**
 
 #### **Step 1: Security Pre-Processing (ShopMe Backend)**
+
 ```typescript
 // SEMPRE eseguito nel backend PRIMA di chiamare N8N
 const securityCheck = await this.messageService.performSecurityChecks({
   phoneNumber: "+393451234567",
   workspaceId: "123",
-  message: "Cerco mozzarella"
-});
+  message: "Cerco mozzarella",
+})
 
 if (securityCheck.blocked) {
-  return securityCheck.response; // Blocca immediatamente
+  return securityCheck.response // Blocca immediatamente
 }
 
 // Se passa i controlli, chiama N8N webhook
 const n8nInput = {
   ...messageData,
   securityPassed: true,
-  userConfig: securityCheck.userConfig
-};
+  userConfig: securityCheck.userConfig,
+}
 ```
 
 #### **Step 2: N8N Webhook Trigger**
+
 ```bash
 # Backend ShopMe chiama N8N con POST
 curl -X POST http://localhost:5678/webhook/whatsapp-flow \
   -H "Content-Type: application/json" \
   -d '{
     "message": "Cerco mozzarella di bufala",
-    "phoneNumber": "+393451234567", 
+    "phoneNumber": "+393451234567",
     "workspaceId": "123",
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "securityPassed": true,
@@ -1672,6 +1791,7 @@ curl -X POST http://localhost:5678/webhook/whatsapp-flow \
 ```
 
 #### **Step 3: N8N Visual Workflow Execution**
+
 ```
 🌐 N8N Webhook Input
          |
@@ -1699,10 +1819,11 @@ curl -X POST http://localhost:5678/webhook/whatsapp-flow \
 ### 🔧 **N8N Workflow Nodes Configuration**
 
 #### **Node 1: Webhook Trigger**
+
 ```json
 {
   "type": "webhook",
-  "name": "WhatsApp Message Input", 
+  "name": "WhatsApp Message Input",
   "settings": {
     "path": "whatsapp-flow",
     "method": "POST"
@@ -1711,6 +1832,7 @@ curl -X POST http://localhost:5678/webhook/whatsapp-flow \
 ```
 
 #### **Node 2: Channel Active Check**
+
 ```json
 {
   "type": "http_request",
@@ -1729,6 +1851,7 @@ curl -X POST http://localhost:5678/webhook/whatsapp-flow \
 ```
 
 #### **Node 3: IF Condition - Channel Active**
+
 ```json
 {
   "type": "if",
@@ -1740,9 +1863,10 @@ curl -X POST http://localhost:5678/webhook/whatsapp-flow \
 ```
 
 #### **Node 4: RAG Search**
+
 ```json
 {
-  "type": "http_request", 
+  "type": "http_request",
   "name": "RAG Content Search",
   "settings": {
     "url": "http://shopme_backend:3000/api/internal/rag-search",
@@ -1761,6 +1885,7 @@ curl -X POST http://localhost:5678/webhook/whatsapp-flow \
 ```
 
 #### **Node 5: Get Agent Config**
+
 ```json
 {
   "type": "http_request",
@@ -1776,6 +1901,7 @@ curl -X POST http://localhost:5678/webhook/whatsapp-flow \
 ```
 
 #### **Node 6: Build OpenRouter Prompt**
+
 ```json
 {
   "type": "code",
@@ -1787,6 +1913,7 @@ curl -X POST http://localhost:5678/webhook/whatsapp-flow \
 ```
 
 #### **Node 7: Direct OpenRouter LLM Call**
+
 ```json
 {
   "type": "http_request",
@@ -1802,7 +1929,7 @@ curl -X POST http://localhost:5678/webhook/whatsapp-flow \
     },
     "body": {
       "model": "{{$json.model}}",
-      "messages": [{"role": "user", "content": "{{$json.prompt}}"}],
+      "messages": [{ "role": "user", "content": "{{$json.prompt}}" }],
       "temperature": "{{$json.temperature}}",
       "max_tokens": "{{$json.maxTokens}}"
     }
@@ -1813,6 +1940,7 @@ curl -X POST http://localhost:5678/webhook/whatsapp-flow \
 ### 🔐 **Security & Token Management**
 
 #### **Internal API Authentication:**
+
 Tutti i nodi N8N che chiamano API ShopMe usano JWT token:
 
 ```typescript
@@ -1834,6 +1962,7 @@ if (decoded.scope !== 'internal_api') {
 ### 🐳 **Docker Configuration**
 
 #### **N8N JSON File Storage Setup:**
+
 ```yaml
 # docker-compose.yml - N8N with JSON file storage
 services:
@@ -1851,8 +1980,8 @@ services:
       - WEBHOOK_URL=http://localhost:5678/
     volumes:
       # Mixed persistence: Volume + Local files
-      - n8n_data:/home/node/.n8n                          # Container data
-      - ./n8n/workflows:/home/node/.n8n/workflows          # Local workflow files
+      - n8n_data:/home/node/.n8n # Container data
+      - ./n8n/workflows:/home/node/.n8n/workflows # Local workflow files
     ports:
       - "5678:5678"
     networks:
@@ -1863,11 +1992,12 @@ networks:
     driver: bridge
 
 volumes:
-  n8n_data:           # Container persistence
-  postgres_data:      # ShopMe database
+  n8n_data: # Container persistence
+  postgres_data: # ShopMe database
 ```
 
 #### **File Structure:**
+
 ```bash
 ./n8n/
 ├── workflows/
@@ -1879,6 +2009,7 @@ volumes:
 ```
 
 #### **Persistence Strategy:**
+
 - **Workflows**: Local JSON files (./n8n/workflows/) → Git trackable
 - **Credentials**: Container volume (n8n_data) → Secure
 
@@ -1944,6 +2075,7 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 #### **✅ IMPLEMENTED CALLING FUNCTIONS**
 
 ##### **1. 🔍 search_rag() - RAG Search Function**
+
 ```javascript
 // Endpoint: POST /api/internal/rag-search
 // Status: ✅ FULLY IMPLEMENTED
@@ -1962,6 +2094,7 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 ```
 
 **Features:**
+
 - ✅ Local embeddings (`@xenova/transformers`)
 - ✅ Parallel search across all content types
 - ✅ Stock verification for products
@@ -1969,6 +2102,7 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 - ✅ Multilingual support (IT/EN/ES/PT)
 
 ##### **2. 🛒 create_order() - E-commerce Function**
+
 ```javascript
 // Endpoint: Internal SecureTokenService
 // Status: ⚠️ PARTIALLY IMPLEMENTED
@@ -1986,6 +2120,7 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 ```
 
 ##### **3. 👨‍💼 contact_operator() - Operator Control**
+
 ```javascript
 // Endpoint: Internal customer.activeChatbot toggle
 // Status: ✅ INFRASTRUCTURE READY
@@ -2004,9 +2139,8 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 
 #### **❌ NOT IMPLEMENTED CALLING FUNCTIONS**
 
-
-
 ##### **4. 💳 process_payment() - Payment Processing**
+
 ```javascript
 // Status: ❌ NOT IMPLEMENTED
 // Required for: Direct WhatsApp payments
@@ -2020,6 +2154,7 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 ```
 
 ##### **5. 📧 ReceiveInvoice() - Sistema Gestione Fatture**
+
 ```javascript
 // Endpoint: CF/ReceiveInvoice
 // Status: ❌ DA IMPLEMENTARE
@@ -2050,7 +2185,7 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 
 // Payload SENZA codice ordine:
 {
-  "workspaceId": "workspace-123", 
+  "workspaceId": "workspace-123",
   "customerId": "customer-456"
 }
 
@@ -2066,7 +2201,7 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 - Sistema template fatture
 - Calcolo tasse
 - Compliance legale (UE/IT)
-- Generazione PDF 
+- Generazione PDF
 - Link sicuri per download
 - Filtro per codice ordine
 - Lista fatture per customer
@@ -2075,6 +2210,7 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 ### 🏗️ **TECHNICAL ARCHITECTURE - CALLING FUNCTIONS**
 
 #### **N8N Workflow Integration**
+
 ```json
 // N8N HTTP Request Node for Calling Functions
 {
@@ -2096,6 +2232,7 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 ```
 
 #### **LLM Router Function Selection**
+
 ```javascript
 // OpenRouter LLM 1 (Router) classifies intent and selects function
 const prompt = `
@@ -2120,50 +2257,56 @@ Rispondi in JSON:
   },
   "confidence": 0.95
 }
-`;
+`
 ```
 
 ### 📊 **IMPLEMENTATION STATUS SUMMARY**
 
-| **Calling Function** | **Status** | **Completion** | **Priority** |
-|---------------------|-----------|---------------|-------------|
-| 🔍 SearchRag | ✅ COMPLETE | 100% | HIGH |
-| 📦 GetAllProducts | ✅ COMPLETE | 100% | HIGH |
-| 🛎️ GetAllServices | ✅ COMPLETE | 100% | HIGH |
-| 👨‍💼 CallOperator | ⚠️ PARTIAL | 90% | MEDIUM |
-| 📧 ReceiveInvoice | ❌ MISSING | 0% | HIGH |
-| 💳 PaymentProcessStart | ❌ TODO | 0% | HIGH |
+| **Calling Function**   | **Status**  | **Completion** | **Priority** |
+| ---------------------- | ----------- | -------------- | ------------ |
+| 🔍 SearchRag           | ✅ COMPLETE | 100%           | HIGH         |
+| 📦 GetAllProducts      | ✅ COMPLETE | 100%           | HIGH         |
+| 🛎️ GetAllServices      | ✅ COMPLETE | 100%           | HIGH         |
+| 👨‍💼 CallOperator        | ⚠️ PARTIAL  | 90%            | MEDIUM       |
+| 📧 ReceiveInvoice      | ❌ MISSING  | 0%             | HIGH         |
+| 💳 PaymentProcessStart | ❌ TODO     | 0%             | HIGH         |
 
 ### 🎯 **BUSINESS TYPE COMPATIBILITY**
 
 #### **✅ FULLY SUPPORTED (100%)**
+
 - **E-COMMERCE**: SearchRag + GetAllProducts + GetAllServices + CallOperator
 - **INFORMATION**: SearchRag + GetAllProducts + GetAllServices + CallOperator
 
 #### **⚠️ PARTIALLY SUPPORTED (80%)**
+
 - **RESTAURANT**: SearchRag + GetAllProducts + GetAllServices + CallOperator (manca ReceiveInvoice)
 - **RETAIL**: SearchRag + GetAllProducts + GetAllServices + CallOperator (manca PaymentProcessStart)
 - **SERVICES**: SearchRag + GetAllProducts + GetAllServices + CallOperator (manca ReceiveInvoice)
 
 #### **⚠️ LIMITED SUPPORT (60%)**
+
 - **CLINIC**: SearchRag + GetAllServices + CallOperator (manca ReceiveInvoice + PaymentProcessStart)
 - **HOTEL**: SearchRag + GetAllServices + CallOperator (manca ReceiveInvoice + PaymentProcessStart)
 
 ### 🚀 **NEXT DEVELOPMENT PRIORITIES**
 
 #### **Phase 1: Sistema Fatturazione (HIGH PRIORITY)**
+
 1. Implementare `ReceiveInvoice` calling function
 2. Sistema filtro per codice ordine
 3. Generazione link lista fatture
 4. Template PDF fatture con compliance UE/IT
 
 #### **Phase 2: Sistema Pagamenti (HIGH PRIORITY)**
-1. Implementare `PaymentProcessStart` calling function  
+
+1. Implementare `PaymentProcessStart` calling function
 2. Integrazione gateway pagamento (Stripe/PayPal)
 3. Generazione link pagamento sicuri
 4. Tracking stato pagamento
 
 #### **Phase 3: Completare CallOperator (MEDIUM PRIORITY)**
+
 1. Aggiungere invio email notifica operatore
 2. Sistema escalation automatica
 3. Template email personalizzabili
@@ -2185,63 +2328,66 @@ Andrea ha creato la **base architecturale perfetta** per un sistema WhatsApp int
 ✅ **Multi-business Architecture** ready for expansion
 
 **FUNZIONI CF CORRETTE IDENTIFICATE:**
+
 1. ✅ SearchRag (100%)
-2. ✅ GetAllProducts (100%) 
+2. ✅ GetAllProducts (100%)
 3. ✅ GetAllServices (100%)
 4. ⚠️ CallOperator (90% - manca email)
 5. ❌ ReceiveInvoice (0% - con filtro codice ordine)
 6. ❌ PaymentProcessStart (0% - in TODO)
 
 **Il sistema è pronto per gestire qualsiasi tipo di business** con l'implementazione delle 2 funzioni CF mancanti! 🎯
+
 - **Executions**: Container volume (n8n_data) → Performance
 - **Settings**: Container volume (n8n_data) → Persistent
-    
   shopme_n8n:
-    container_name: shopme_n8n
-    networks:
-      - shopme_network
-    environment:
-      - WEBHOOK_URL=http://shopme_backend:3000/webhook/n8n
-```
+  container_name: shopme_n8n
+  networks: - shopme_network
+  environment: - WEBHOOK_URL=http://shopme_backend:3000/webhook/n8n
+
+````
 
 #### **N8N HTTP Request URLs:**
 ```bash
 # N8N chiama backend usando network interno:
 http://shopme_backend:3000/api/internal/channel-status
-http://shopme_backend:3000/api/internal/rag-search  
+http://shopme_backend:3000/api/internal/rag-search
 http://shopme_backend:3000/api/internal/llm-process
 http://shopme_backend:3000/api/internal/save-message
-```
+````
 
 ### 📊 **API Endpoints per N8N**
 
 #### **Internal API Routes:**
+
 ```typescript
 // backend/src/routes/internal.ts
-POST /api/internal/channel-status     // Verifica canale attivo
-POST /api/internal/user-check         // Controllo registrazione utente
-POST /api/internal/wip-status         // Stato WIP workspace
-POST /api/internal/rag-search         // Ricerca semantica unificata
-POST /api/internal/llm-process        // Generazione risposta AI
-POST /api/internal/save-message       // Salvataggio storico
-POST /api/internal/conversation-history // Recupero storico chat
+POST / api / internal / channel - status // Verifica canale attivo
+POST / api / internal / user - check // Controllo registrazione utente
+POST / api / internal / wip - status // Stato WIP workspace
+POST / api / internal / rag - search // Ricerca semantica unificata
+POST / api / internal / llm - process // Generazione risposta AI
+POST / api / internal / save - message // Salvataggio storico
+POST / api / internal / conversation - history // Recupero storico chat
 ```
 
 #### **Example API Response:**
+
 ```json
 // POST /api/internal/rag-search
 {
   "success": true,
   "results": {
     "products": [
-      {"name": "Mozzarella di Bufala", "price": "€8.50", "stock": 15}
+      { "name": "Mozzarella di Bufala", "price": "€8.50", "stock": 15 }
     ],
     "faqs": [
-      {"question": "Quanto costa la spedizione?", "answer": "€5.00 per ordini sotto €50"}
+      {
+        "question": "Quanto costa la spedizione?",
+        "answer": "€5.00 per ordini sotto €50"
+      }
     ],
-    "documents": [
-      {"content": "Spedizione gratuita per ordini sopra €50..."}
-    ]
+    "documents": [{ "content": "Spedizione gratuita per ordini sopra €50..." }]
   },
   "searchUsed": true,
   "processingTime": 120
@@ -2251,18 +2397,21 @@ POST /api/internal/conversation-history // Recupero storico chat
 ### 📈 **Benefits della Separazione Backend/N8N**
 
 #### **Security Benefits:**
+
 - ✅ **Controlli critici** sempre nel backend (non modificabili via UI)
-- ✅ **Rate limiting** a livello infrastruttura 
+- ✅ **Rate limiting** a livello infrastruttura
 - ✅ **Spam detection** algoritmico robusto
 - ✅ **Blacklist management** centralizzato
 
 #### **Business Flexibility:**
+
 - ✅ **Business logic** modificabile visualmente
 - ✅ **No code deployment** per modifiche workflow
 - ✅ **A/B testing** di diversi flussi
 - ✅ **Debug visuale** del customer journey
 
 #### **Operational Benefits:**
+
 - ✅ **Separation of concerns** chiara
 - ✅ **Scaling indipendente** di security vs business logic
 - ✅ **Error isolation** tra security e business layer
@@ -2325,6 +2474,7 @@ POST /api/internal/conversation-history // Recupero storico chat
 ```
 
 ### **Legacy Flow (for comparison)**
+
 ```
 📱 MESSAGGIO WHATSAPP
          |
@@ -2367,21 +2517,22 @@ POST /api/internal/conversation-history // Recupero storico chat
     │ 🎉 WELCOME  │  │ 🤖 CHAT LIBERA  │
     │ + REG LINK  │  │ UTENTE + RAG    │
     └─────────────┘  └─────────────────┘
-         |                 
-         v                 
-    ┌─────────────┐   
-    │ 🔗 TOKEN +  │   
-    │ REGISTRA    │          
-    └─────────────┘   
-         |                 
-         v                 
-    ┌─────────────┐   
-    │ 🤖 CHAT     │   
-    │ LIBERA RAG  │  
-    └─────────────┘   
+         |
+         v
+    ┌─────────────┐
+    │ 🔗 TOKEN +  │
+    │ REGISTRA    │
+    └─────────────┘
+         |
+         v
+    ┌─────────────┐
+    │ 🤖 CHAT     │
+    │ LIBERA RAG  │
+    └─────────────┘
 ```
 
 ## 🔑 LEGENDA
+
 - ❌ = STOP/BLOCCO
 - 👨‍💼 = CONTROLLO OPERATORE
 - ⚠️ = MESSAGGIO AUTOMATICO
@@ -2394,23 +2545,27 @@ POST /api/internal/conversation-history // Recupero storico chat
 #### System Architecture Components with N8N Visual Workflow
 
 **1. WhatsApp Webhook Handler** (`whatsapp.controller.ts`)
+
 - Receives messages from Meta API
 - Validates webhook with verification token
 - Handles both GET (verification) and POST (messages)
 
 **2. Backend Security Pre-Processing** (`message.service.ts`)
+
 - **Security-only message processing**
 - API rate limiting and spam detection
 - Blacklist checks and workspace validation
 - Delegates business logic to N8N
 
 **3. N8N Visual Workflow Engine**
+
 - **Multi-business workflow with dynamic routing**
 - Business type detection (ECOMMERCE, RESTAURANT, CLINIC, etc.)
 - Visual workflow editor for non-technical users
 - Real-time execution monitoring and metrics
 
 **4. Internal API Endpoints** (`internal-api.controller.ts`)
+
 - **N8N-to-Backend communication layer**
 - Business type detection endpoint
 - RAG search with business-specific logic
@@ -2418,23 +2573,27 @@ POST /api/internal/conversation-history // Recupero storico chat
 - Message saving and conversation history
 
 **5. Business-Aware RAG Architecture**
+
 - **Multi-business type semantic search**
 - Dynamic search strategies per business type
 - Context-aware LLM prompts
 - Unified results formatting
 
 **6. N8N Admin Interface** (`/settings/n8n`)
+
 - **Embedded workflow management**
 - Real-time status monitoring
 - Workflow import/export functionality
 - Container management and health checks
 
 **6. Token Service** (`token.service.ts`)
+
 - Secure registration token management
 - Token validation and expiration
 - Prevents token reuse
 
 **7. Document Management Services**
+
 - **`embeddingService.ts`**: Shared service for chunking, embedding generation, and similarity calculation
 - **`documentService.ts`**: PDF upload and processing management (uses shared EmbeddingService)
 - **`searchService.ts`**: Unified multi-source RAG search across Documents, FAQs, and Services
@@ -2443,35 +2602,40 @@ POST /api/internal/conversation-history // Recupero storico chat
 #### Security Controls
 
 **1. Blacklist Management**
+
 ```typescript
 // Check in customer.isBlacklisted and workspace.blocklist
 const isBlacklisted = await this.messageRepository.isCustomerBlacklisted(
-  phoneNumber, 
+  phoneNumber,
   workspaceId
 )
 ```
 
 **Implementation:**
+
 - `isBlacklisted` field in Customer model
 - `blocklist` list in Workspace model (newline-separated numbers)
 - Dual control: customer-level and workspace-level
 
 **2. Registration Tokens**
+
 ```typescript
 // Generate secure token with expiration
 const token = await this.tokenService.createRegistrationToken(
-  phoneNumber, 
+  phoneNumber,
   workspaceId
 )
 ```
 
 **Features:**
+
 - Cryptographically secure tokens (crypto.randomBytes)
 - 1-hour expiration
 - Single use (marked as used after registration)
 - Phone + workspace validation
 
 **3. Channel WIP Status**
+
 ```typescript
 if (!workspaceSettings.isActive) {
   return wipMessages[userLang] || wipMessages["en"]
@@ -2484,39 +2648,54 @@ if (!workspaceSettings.isActive) {
 The system implements a dedicated spam detection service that automatically identifies and blocks abusive behavior patterns. This service operates as a separate layer in the message processing pipeline to ensure system stability and prevent resource abuse.
 
 **Service Architecture**
+
 ```typescript
 // Future implementation: Dedicated SpamDetectionService
 class SpamDetectionService {
-  async checkSpamBehavior(phoneNumber: string, workspaceId: string): Promise<SpamCheckResult>
-  async addToAutoBlacklist(phoneNumber: string, workspaceId: string, reason: string): Promise<void>
+  async checkSpamBehavior(
+    phoneNumber: string,
+    workspaceId: string
+  ): Promise<SpamCheckResult>
+  async addToAutoBlacklist(
+    phoneNumber: string,
+    workspaceId: string,
+    reason: string
+  ): Promise<void>
   async getSpamStatistics(workspaceId: string): Promise<SpamStats>
-  async removeFromBlacklist(phoneNumber: string, workspaceId: string): Promise<void>
+  async removeFromBlacklist(
+    phoneNumber: string,
+    workspaceId: string
+  ): Promise<void>
 }
 ```
 
 **Current Implementation (MessageService Integration)**
+
 ```typescript
 // Spam check: 10 messages in 30 seconds
 const spamCheck = await this.checkSpamBehavior(phoneNumber, workspaceId)
 if (spamCheck.isSpam) {
-  await this.addToAutoBlacklist(phoneNumber, workspaceId, 'AUTO_SPAM')
+  await this.addToAutoBlacklist(phoneNumber, workspaceId, "AUTO_SPAM")
   return null // Block immediately
 }
 ```
 
 **Detection Algorithm:**
+
 - **Threshold**: 10 messages in 30-second sliding window
 - **Scope**: Per phone number per workspace
 - **Message Type**: Only INBOUND messages (user messages, not bot responses)
 - **Time Window**: Sliding 30-second window (not fixed intervals)
 
 **Auto-Blacklist Implementation:**
+
 - **Dual Blocking**: Customer-level (`isBlacklisted = true`) + Workspace-level (`blocklist` field)
 - **Immediate Effect**: No response sent when spam detected
 - **Duration**: Unlimited (manual admin unlock only)
 - **Audit Trail**: Comprehensive logging for compliance and debugging
 
 **Future Service Enhancements:**
+
 - **Rate Limiting**: API call limits per workspace
 - **Pattern Recognition**: Advanced spam pattern detection
 - **Whitelist Management**: Trusted phone number management
@@ -2525,12 +2704,14 @@ if (spamCheck.isSpam) {
 - **Appeal Process**: Customer appeal and review workflow
 
 **Integration Points:**
+
 - **Message Flow**: Integrated before blacklist check in message processing
 - **Admin Interface**: Manual blacklist management in customer admin panel
 - **Monitoring**: Real-time spam detection alerts and notifications
 - **Reporting**: Spam detection reports for workspace administrators
 
 **5. Operator Manual Control (activeChatbot)**
+
 ```typescript
 // Check if operator has taken manual control
 if (customer && !customer.activeChatbot) {
@@ -2547,6 +2728,7 @@ if (customer && !customer.activeChatbot) {
 ```
 
 **Manual Control Implementation:**
+
 - **Field**: `activeChatbot` boolean in Customer model (default: true)
 - **Control**: Operators can disable chatbot via Chat History interface
 - **Behavior**: When disabled, bot saves messages but doesn't respond
@@ -2556,12 +2738,14 @@ if (customer && !customer.activeChatbot) {
 #### Multilingual Management
 
 **Language Detection**
+
 ```typescript
 const greetingLang = this.detectGreeting(message)
 // Supports: it, en, es, pt
 ```
 
 **Configurable Messages**
+
 - **Welcome Messages**: Configured per workspace in 4 languages
 - **WIP Messages**: Multilingual maintenance messages
 - **Fallback**: English as default language
@@ -2569,12 +2753,14 @@ const greetingLang = this.detectGreeting(message)
 #### RAG Integration (Retrieval-Augmented Generation)
 
 **1. Document Processing Pipeline**
+
 ```typescript
 // Upload → Extract Text → Chunk → Generate Embeddings
 await documentService.processDocument(documentId)
 ```
 
 **Phases:**
+
 1. **Upload**: PDF saved to `/uploads/documents/`
 2. **Text Extraction**: Text extraction with pdf-parse
 3. **Chunking**: Division into 1000-character chunks (100 overlap)
@@ -2582,27 +2768,30 @@ await documentService.processDocument(documentId)
 5. **Storage**: Embedding storage in PostgreSQL (JSONB)
 
 **2. Semantic Search**
+
 ```typescript
 const searchResults = await documentService.searchDocuments(
-  query, 
-  workspaceId, 
+  query,
+  workspaceId,
   limit
 )
 ```
 
 **Algorithm:**
+
 - User query embedding generation
 - Cosine similarity calculation with existing chunks
 - Relevance sorting
 - Top-K results return
 
 **3. Context Enrichment**
+
 ```typescript
 // Context enrichment for LLM
 const enrichedContext = {
   userMessage: message,
   documentContext: searchResults,
-  chatHistory: previousMessages
+  chatHistory: previousMessages,
 }
 ```
 
@@ -2613,8 +2802,9 @@ The system uses an LLM to determine which function to call:
 
 ```markdown
 # Available Functions:
+
 1. get_product_info(product_name)
-2. get_service_info(service_name) 
+2. get_service_info(service_name)
 3. welcome_user()
 4. create_order()
 5. get_cart_info()
@@ -2623,12 +2813,14 @@ The system uses an LLM to determine which function to call:
 ```
 
 **Two-Phase Workflow**
+
 1. **First LLM**: Determines target function
 2. **Second LLM**: Formats final response with context
 
 #### User State Management
 
 **New User**
+
 ```typescript
 if (!customer) {
   if (!greetingLang) {
@@ -2639,6 +2831,7 @@ if (!customer) {
 ```
 
 **Registered User**
+
 ```typescript
 if (customer) {
   // Check last activity
@@ -2652,6 +2845,7 @@ if (customer) {
 #### Database Schema
 
 **Main Tables**
+
 ```sql
 -- Customers
 CREATE TABLE customers (
@@ -2692,6 +2886,7 @@ CREATE TABLE document_chunks (
 #### Environment Configuration
 
 **Required Variables**
+
 ```env
 # WhatsApp
 WHATSAPP_VERIFY_TOKEN=your-verify-token
@@ -2710,39 +2905,46 @@ FRONTEND_URL=https://your-domain.com
 #### Confirmed Specifications
 
 **1. Blacklist Management**
+
 - ✅ **Population**: `blocklist` field in workspace Settings (manual) + auto-blacklist for spam
 - ✅ **Auto-blacklist**: 10 messages in 30 seconds → automatic block
 - ✅ **Timeout**: Unlimited until manual admin unlock
 
 **2. User Registration**
+
 - ✅ **Minimum data**: Existing registration form (first name, last name, company, phone)
 - ✅ **Email verification**: Not implemented (phone only)
 - ✅ **GDPR**: Checkbox with text from `http://localhost:3000/gdpr`
 
 **3. RAG and Knowledge Base**
+
 - ✅ **Supported formats**: PDF only
 - ✅ **Maximum size**: 5 MB
 - ✅ **Embedding updates**: Manual via "Generate Embeddings" button in admin
 - ✅ **Query cache**: Not implemented
 
 **4. Performance and Scalability**
+
 - ✅ **Rate limiting**: 100 calls every 10 minutes (anti-attack protection)
 - ✅ **Queue system**: Not necessary
 - ✅ **CDN**: Not implemented
 - ✅ **Database sharding**: Not necessary
 
 **5. Security**
+
 - ✅ **E2E encryption**: Not priority (management via external links)
 - ✅ **Audit log**: Not implemented
 - ✅ **2FA**: Planned for future releases (not priority)
 
 **6. Business Logic**
+
 - ✅ **Payments**: Planned for future releases
 - ✅ **Multi-step orders**: Not priority
 - ✅ **Proactive notifications**: Not priority
 - ✅ **Analytics**: Existing chat history sufficient
 
 **7. UX and Conversational Design**
+
 - ✅ **Media support**: Not implemented
 - ✅ **Quick replies**: Not implemented
 - ✅ **Operator handoff**: ✅ **IMPLEMENTED** - Toggle in chat for operator control
@@ -2751,28 +2953,33 @@ FRONTEND_URL=https://your-domain.com
 #### Development Roadmap
 
 **🚀 Immediate Priority (To Implement)**
+
 1. **Auto-Blacklist Spam Detection**: 10 messages in 30 seconds → automatic block
 2. **API Rate Limiting**: 100 calls every 10 minutes for anti-attack protection
 3. **GDPR Integration**: Dynamic link to `/gdpr` in registration form
 
 **🎯 High Priority (Future Releases)**
+
 1. **Payment Integration**: Complete checkout via WhatsApp
 2. **2FA Security**: Two-factor authentication for critical operations
 3. **Enhanced Document Management**: PDF management improvements (5MB limit)
 
 **📈 Medium Priority (Extended Roadmap)**
+
 1. **Multi-channel**: Extension to Telegram, Facebook Messenger
 2. **Voice Support**: Voice message handling
 3. **AI Training**: Fine-tuning models on specific conversations
 4. **Media Support**: Images and audio in chat
 
 **🔮 Low Priority (Future Vision)**
+
 1. **Chatbot Builder**: Drag-and-drop interface for flows
 2. **A/B Testing**: Automatic testing of message variants
 3. **Integration Hub**: Connectors for external CRM/ERP
 4. **Mobile App**: Dedicated app for chatbot management
 
 **🚀 Immediate Priority (Critical Security & Core Features)**
+
 1. **Security Audit & Vulnerability Assessment**: Comprehensive OWASP compliance, JWT enhancement, audit logging
 2. **WhatsApp Message Templates & Rich Media**: Advanced messaging with templates, media support, bulk messaging
 3. **Temporary Token System**: Secure links for payments, invoices, cart access with comprehensive token management
@@ -2781,6 +2988,7 @@ FRONTEND_URL=https://your-domain.com
 6. **API Rate Limiting**: 100 calls every 10 minutes for anti-attack protection
 
 **🎯 High Priority (Business Features)**
+
 1. **Product Pricing with Discounts**: Customer vs product discount calculation system
 2. **Customer Chat History Seeding**: Realistic demo data with conversation flows
 3. **Block User Integration**: Add blocked users to workspace phone number blocklist
@@ -2788,12 +2996,14 @@ FRONTEND_URL=https://your-domain.com
 5. **Enhanced Document Management**: PDF management improvements (5MB limit)
 
 **📈 Medium Priority (Extended Features)**
+
 1. **Database Schema Updates**: Support for new security features
 2. **Workspace-Specific GDPR**: Per-workspace GDPR text management
 3. **Pay-Per-Use Billing System**: Usage-based billing with Stripe integration
 4. **Professional Plan Contact Sales**: Lead management and operator assignment
 
 **🔮 Low Priority (Future Vision)**
+
 1. **Multi-Channel WhatsApp**: Multiple WhatsApp numbers per workspace
 2. **Performance Optimization**: Monitoring, caching, and scalability improvements
 3. **Chatbot Builder**: Drag-and-drop interface for flows
@@ -2802,6 +3012,7 @@ FRONTEND_URL=https://your-domain.com
 ### Security Implementation (OWASP)
 
 **Current Security Status**:
+
 - ✅ **JWT Authentication**: Implemented with workspace integration
 - ✅ **Basic Rate Limiting**: Auth endpoints protected
 - ✅ **Input Validation**: Basic Prisma validation
@@ -2813,6 +3024,7 @@ FRONTEND_URL=https://your-domain.com
 **Planned Security Enhancements**:
 
 #### 🔐 **Authentication & Authorization**
+
 - **JWT Token Security**: Token rotation, blacklisting, secure storage
 - **Session Management**: Timeout controls, concurrent session limits
 - **2FA Enhancement**: Backup codes, recovery options
@@ -2820,6 +3032,7 @@ FRONTEND_URL=https://your-domain.com
 - **Password Security**: Strong policies, history tracking
 
 #### 🛡️ **Data Protection**
+
 - **Input Validation**: Comprehensive validation for all inputs
 - **SQL Injection Prevention**: Parameterized queries, sanitization
 - **XSS Protection**: Content Security Policy, output encoding
@@ -2827,6 +3040,7 @@ FRONTEND_URL=https://your-domain.com
 - **File Upload Security**: Virus scanning, type validation
 
 #### 🔍 **Security Monitoring**
+
 - **Audit Logging**: All security events (login, data access, changes)
 - **Intrusion Detection**: Suspicious pattern monitoring
 - **Security Headers**: OWASP recommended headers
@@ -2834,6 +3048,7 @@ FRONTEND_URL=https://your-domain.com
 - **Penetration Testing**: External security assessments
 
 #### 📊 **Compliance**
+
 - **GDPR Compliance**: Data processing documentation, consent management
 - **Security Policies**: Incident response procedures
 - **Risk Assessment**: Security risk documentation
@@ -2842,6 +3057,7 @@ FRONTEND_URL=https://your-domain.com
 ### WhatsApp Advanced Messaging System
 
 **Current Messaging Capabilities**:
+
 - ✅ **Basic Message Sending**: Text messages via webhook
 - ✅ **Welcome Messages**: Multi-language registration links
 - ✅ **WIP Messages**: Maintenance mode notifications
@@ -2852,6 +3068,7 @@ FRONTEND_URL=https://your-domain.com
 **Planned Messaging Enhancements**:
 
 #### 📝 **Template System**
+
 - **Template Library**: Pre-built scenarios (welcome, order confirmation, support)
 - **Custom Templates**: Workspace-specific template creation
 - **Variable Substitution**: Dynamic content (customer name, order details)
@@ -2859,6 +3076,7 @@ FRONTEND_URL=https://your-domain.com
 - **Template Categories**: Marketing, transactional, support organization
 
 #### 🎨 **Rich Message Features**
+
 - **Media Support**: Images, documents, audio via WhatsApp
 - **Interactive Buttons**: Quick reply buttons for actions
 - **List Messages**: Structured product catalogs, menus
@@ -2866,6 +3084,7 @@ FRONTEND_URL=https://your-domain.com
 - **Contact Cards**: Business contact information sharing
 
 #### 📤 **Bulk Messaging**
+
 - **Customer Segmentation**: Targeted group messaging
 - **Broadcast Lists**: Marketing campaign management
 - **Message Scheduling**: Optimal delivery timing
@@ -2875,6 +3094,7 @@ FRONTEND_URL=https://your-domain.com
 ### Temporary Token Security System
 
 **Current Token Implementation**:
+
 - ✅ **Registration Tokens**: 1-hour expiration, single-use
 - ✅ **Token Validation**: Database verification
 - ❌ **Multiple Token Types**: Only registration supported
@@ -2884,6 +3104,7 @@ FRONTEND_URL=https://your-domain.com
 **Enhanced Token System**:
 
 #### 🔐 **Token Types**
+
 - **Registration Tokens**: Customer registration (enhanced)
 - **Payment Tokens**: Secure payment processing
 - **Invoice Tokens**: Invoice access and download
@@ -2892,6 +3113,7 @@ FRONTEND_URL=https://your-domain.com
 - **Email Verification Tokens**: Address verification
 
 #### 🛡️ **Security Features**
+
 - **Token Encryption**: Encrypted payloads for sensitive data
 - **IP Validation**: Optional IP address verification
 - **Device Fingerprinting**: Fraud prevention tracking
@@ -2899,6 +3121,7 @@ FRONTEND_URL=https://your-domain.com
 - **Audit Logging**: Complete token lifecycle tracking
 
 #### ⏰ **Lifecycle Management**
+
 - **Configurable Expiration**: Different times per token type
 - **Single-Use Tokens**: Automatic invalidation after use
 - **Token Rotation**: Extended session support
@@ -2908,6 +3131,7 @@ FRONTEND_URL=https://your-domain.com
 ### Plan-Based AI Prompt System
 
 **Current AI Configuration**:
+
 - ✅ **Single Prompt System**: One prompt per workspace
 - ✅ **Agent Configuration**: Temperature, tokens, model settings
 - ❌ **Plan-Based Prompts**: No subscription tier differentiation
@@ -2919,30 +3143,35 @@ FRONTEND_URL=https://your-domain.com
 #### 🤖 **Plan-Specific Prompts**
 
 **Free Plan Features**:
+
 - Basic product information only
 - Frequent upgrade messaging
 - No human support access
 - Limited order processing
 
 **Basic Plan Features**:
+
 - Full product catalog access
 - Standard order processing
 - Moderate upgrade messaging
 - No human support (upgrade required)
 
 **Professional Plan Features**:
+
 - Advanced AI capabilities
 - Human support integration
 - Priority response handling
 - Advanced analytics mentions
 
 **Enterprise Plan Features**:
+
 - Custom AI personality
 - Immediate priority support
 - Advanced integrations
 - White-label messaging options
 
 #### 🔄 **Dynamic Implementation**
+
 - **Plan Detection**: Automatic workspace plan identification
 - **Prompt Loading**: Database-driven prompt selection
 - **Real-time Updates**: Immediate prompt changes on plan upgrades
@@ -2950,6 +3179,7 @@ FRONTEND_URL=https://your-domain.com
 - **Performance Caching**: Optimized prompt loading
 
 #### 📊 **Analytics & Optimization**
+
 - **Conversion Tracking**: Plan upgrades from AI interactions
 - **Prompt Performance**: Response quality by plan tier
 - **A/B Testing**: Different prompt strategy comparison
@@ -2962,6 +3192,7 @@ FRONTEND_URL=https://your-domain.com
 **Business Context**: The following examples demonstrate the implemented SofIA assistant for "Gusto Italiano", an authentic Italian specialty foods store. SofIA represents the default agent configuration that showcases the platform's capabilities for food retail businesses.
 
 **Agent Profile**:
+
 - **Name**: SofIA (Smart Food Italian Assistant)
 - **Business**: Gusto Italiano - Authentic Italian Specialty Foods Store
 - **Personality**: Warm, passionate, expert in Italian cuisine
@@ -2972,7 +3203,7 @@ FRONTEND_URL=https://your-domain.com
 
 **Cliente**: "Ciao!"
 
-**SofIA**: "Ciao! 👋 Benvenuto a Gusto Italiano! 
+**SofIA**: "Ciao! 👋 Benvenuto a Gusto Italiano!
 
 Sono SofIA, la tua assistente virtuale appassionata, e sono qui per aiutarti a scoprire i tesori autentici della cucina italiana! 🇮🇹✨
 
@@ -2980,7 +3211,7 @@ Per offrirti la migliore esperienza e poter processare i tuoi ordini, ti chiedo 
 
 🔗 [https://gustoitaliano.com/registro/token_u7d9f3a1b5]
 
-Questo link è personale e scade in 1 ora per motivi di sicurezza. 
+Questo link è personale e scade in 1 ora per motivi di sicurezza.
 
 Dopo la registrazione, potrò aiutarti con la nostra selezione di prodotti italiani autentici! 🍝🧀🍷"
 
@@ -2996,7 +3227,7 @@ Come posso assisterti oggi? Stai cercando qualcosa di particolare? 😊"
 
 **Cliente**: "Che prodotti avete?"
 
-**SofIA**: *[FUNCTION CALL: getProducts()]*
+**SofIA**: _[FUNCTION CALL: getProducts()]_
 
 "Che meraviglia! 🤩 Abbiamo una selezione fantastica di autentici prodotti italiani che ti faranno innamorare della vera cucina italiana!
 
@@ -3026,7 +3257,7 @@ C'è qualche categoria che ti interessa particolarmente? 😊"
 
 **Cliente**: "Dammi il prodotto da €7.20"
 
-**SofIA**: *[FUNCTION CALL: getProducts({search: "pesto", price: 7.20})]*
+**SofIA**: _[FUNCTION CALL: getProducts({search: "pesto", price: 7.20})]_
 
 "Ah, ottima scelta! 🌿✨ Stai parlando del nostro **Pesto Genovese Tradizionale** - €7.20!
 
@@ -3051,6 +3282,7 @@ Questo è un vero gioiello della cucina ligure! 🇮🇹 Preparato seguendo la r
 **Totale: €7.20**
 
 Vuoi aggiungere altri prodotti o procedere con l'ordine? 😊"
+
 - Para preparar tiramisú o tarta de queso de pistacho
 - Simplemente disfrutada a cucharadas como postre
 
@@ -3069,6 +3301,7 @@ Está elaborada con pistachos de Bronte DOP (40%), azúcar moreno y aceite de gi
 **ShopMe**: "He creado su pedido para la Degustación Siciliana (55€). Aquí tiene el enlace de pago seguro: [Enlace de Pago]
 
 Una vez completado el pago, recibirá:
+
 1. Un email de confirmación del pedido con la información de seguimiento
 2. Actualizaciones sobre la entrega vía WhatsApp
 3. Su factura electrónica
@@ -3082,6 +3315,7 @@ La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo
 ## MAIN FEATURES
 
 ### Dashboard Overview
+
 - Real-time customer activity monitoring
 - Sales performance metrics and trends
 - Chatbot performance analytics
@@ -3090,6 +3324,7 @@ La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo
 - Order status tracking
 
 ### Push Notification System
+
 - Automated order status updates
 - Personalized promotions based on user behavior
 - Re-engagement campaigns for abandoned carts
@@ -3097,6 +3332,7 @@ La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo
 - Custom notification templates
 
 ### Products Catalog Management
+
 - Multi-category organization
 - Text-based product descriptions (WhatsApp optimized)
 - Variant management (size, color, etc.)
@@ -3113,6 +3349,7 @@ La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo
 **SofIA (Smart Food Italian Assistant)** is the default AI agent configuration that demonstrates the platform's capabilities for food retail businesses. SofIA is specifically configured for "Gusto Italiano", an authentic Italian specialty foods store.
 
 **Agent Profile**:
+
 - **Name**: SofIA - Gusto Italiano Assistant
 - **Model**: openai/gpt-4o-mini
 - **Temperature**: 0.7 (balanced creativity and consistency)
@@ -3120,6 +3357,7 @@ La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo
 - **Max Tokens**: 1000 (comprehensive responses)
 
 **Personality & Behavior**:
+
 - **Tone**: Warm, passionate, expert in Italian cuisine
 - **Language**: Multilingual (responds in user's language: IT, EN, ES, PT)
 - **Expertise**: Deep knowledge of Italian food products, cooking methods, and culinary traditions
@@ -3135,12 +3373,14 @@ SofIA implements intelligent function routing that calls appropriate functions o
 - **getCompanyInfo()**: When users ask about business details, location, or contact info
 
 **Smart Conversation Flow**:
+
 - **Greetings**: Responds naturally without function calls ("Ciao!", "Buongiorno!")
 - **General Chat**: Handles casual conversation about Italian culture, cooking tips
 - **Cart Management**: Manages shopping cart without external function calls
 - **Order Processing**: Guides users through purchase flow
 
 **Configuration Features**:
+
 - AI behavior customization
 - Response tone and style settings
 - Product recommendation rules
@@ -3150,6 +3390,7 @@ SofIA implements intelligent function routing that calls appropriate functions o
 - Intelligent function calling rules
 
 ### Documents Management
+
 - PDF document upload and storage (5MB maximum size)
 - Automatic text extraction from uploaded documents
 - AI-powered document chunking for optimal processing (1000 characters per chunk)
@@ -3165,18 +3406,21 @@ SofIA implements intelligent function routing that calls appropriate functions o
 The system implements a comprehensive RAG (Retrieval-Augmented Generation) pipeline that searches across three main content types:
 
 **1. Documents (PDF Files)**
+
 - Upload and processing of PDF documents up to 5MB
 - Automatic text extraction and chunking (1000 characters per chunk with 100 character overlap)
 - Vector embeddings generated using OpenRouter's `text-embedding-3-small` model
 - Storage in `document_chunks` table with embedding vectors
 
 **2. FAQ (Frequently Asked Questions)**
+
 - FAQ content stored in `faqs` table
 - Each FAQ (question + answer) generates embeddings for semantic search
 - Active FAQs only are included in RAG search
 - Storage in `faq_chunks` table with embedding vectors
 
 **3. Services Catalog**
+
 - Service descriptions and details stored in `services` table
 - Service information (name + description + details) generates embeddings
 - Active services only are included in RAG search
@@ -3189,7 +3433,7 @@ The RAG system is built on a modular, scalable architecture:
 ```typescript
 EmbeddingService (shared)
 ├── splitTextIntoChunks()
-├── generateEmbedding()  
+├── generateEmbedding()
 └── cosineSimilarity()
 
 DocumentService (refactored)
@@ -3208,6 +3452,7 @@ FAQ Controller
 ```
 
 **Benefits**:
+
 - **DRY Principle**: No code duplication across services
 - **Scalability**: Easy to add new content types
 - **Consistency**: Same embedding algorithms for all content
@@ -3245,6 +3490,7 @@ This ensures developers and administrators know exactly how to activate the RAG 
 6. **Response Generation**: LLM generates response using retrieved context + user query
 
 **Technical Implementation**:
+
 - **Shared EmbeddingService**: Centralizes chunking, embedding generation, and similarity calculation
 - **Unified SearchService**: Provides consistent API for multi-source search with `UnifiedSearchResult` interface
 - **Refactored DocumentService**: Uses shared embedding service, eliminating code duplication
@@ -3257,6 +3503,7 @@ This multi-source RAG approach ensures comprehensive knowledge coverage, allowin
 The ShopMe platform includes a comprehensive e-commerce system that enables businesses to manage the complete order lifecycle directly through WhatsApp conversations and the admin dashboard.
 
 #### 🛒 **Smart Shopping Cart System**
+
 - **Real-time Cart Management**: Dynamic cart updates during WhatsApp conversations
 - **Intelligent Product Addition**: AI automatically adds products to cart based on customer requests
 - **Variant Management**: Support for product variants (size, color, type) in conversational flow
@@ -3264,6 +3511,7 @@ The ShopMe platform includes a comprehensive e-commerce system that enables busi
 - **Smart Recommendations**: AI suggests complementary products based on cart contents
 
 #### 💳 **Advanced Checkout & Payment System**
+
 - **Multi-Step Checkout**: Guided checkout process through WhatsApp with order confirmation
 - **Payment Gateway Integration**: Support for multiple payment providers (Stripe, PayPal)
 - **Secure Payment Links**: Temporary secure links for payment processing outside WhatsApp
@@ -3271,6 +3519,7 @@ The ShopMe platform includes a comprehensive e-commerce system that enables busi
 - **Multiple Payment Methods**: Credit cards, digital wallets, bank transfers
 
 #### 📦 **Intelligent Shipping & Address Management**
+
 - **LLM-Generated Shipping Links**: AI automatically provides secure links for address collection
 - **Dynamic Shipping Calculator**: Real-time shipping cost calculation based on location and weight
 - **Address Validation**: Automatic address verification and correction suggestions
@@ -3278,6 +3527,7 @@ The ShopMe platform includes a comprehensive e-commerce system that enables busi
 - **Delivery Tracking Integration**: Real-time tracking updates sent via WhatsApp
 
 #### ✅ **Order Confirmation & Management System**
+
 - **Smart Order Confirmation**: Interactive order confirmation pages with full details
 - **Order Details Drilldown**: Complete order information with shipping and payment details
 - **Order Status Management**: Real-time order status updates (pending, confirmed, shipped, delivered)
@@ -3285,6 +3535,7 @@ The ShopMe platform includes a comprehensive e-commerce system that enables busi
 - **Order Modification**: Ability to modify orders before shipment
 
 #### 📊 **Comprehensive Order Database**
+
 - **Unified Order Storage**: Complete order information stored with unique order codes
 - **Customer Order History**: Full order history linked to customer profiles
 - **Order Analytics**: Sales analytics and reporting by product, category, and time period
@@ -3292,6 +3543,7 @@ The ShopMe platform includes a comprehensive e-commerce system that enables busi
 - **Order Search & Filtering**: Advanced search capabilities by date, status, customer, products
 
 #### 📄 **Professional Invoicing & PDF System**
+
 - **Automatic PDF Generation**: Professional invoice PDFs generated for each completed order
 - **Secure Download Links**: Temporary secure links for invoice downloads with order codes
 - **Invoice Template System**: Customizable invoice templates with business branding
@@ -3299,6 +3551,7 @@ The ShopMe platform includes a comprehensive e-commerce system that enables busi
 - **Invoice Archive**: Secure storage and retrieval of all generated invoices
 
 #### 📑 **Orders & Invoices Management Dashboard**
+
 - **Complete Orders Overview**: Admin dashboard showing all orders with filters and search
 - **Order Status Workflow**: Visual order status management with drag-and-drop status updates
 - **Invoice Management**: Bulk invoice generation and download capabilities
@@ -3307,6 +3560,7 @@ The ShopMe platform includes a comprehensive e-commerce system that enables busi
 - **Export Capabilities**: Export orders and invoices for accounting systems
 
 #### 🤖 **N8N E-commerce Workflow Integration**
+
 - **Advanced Calling Functions**: Specialized e-commerce calling functions for order processing
 - **WhatsApp Checkout Flow**: Complete order processing through WhatsApp conversations
 - **Automated Order Notifications**: Automatic status updates and confirmations via WhatsApp
@@ -3314,6 +3568,7 @@ The ShopMe platform includes a comprehensive e-commerce system that enables busi
 - **Cross-platform Synchronization**: Order data synchronized across all channels
 
 #### 🔐 **Security & Compliance**
+
 - **PCI Compliance**: Secure payment processing following PCI DSS standards
 - **Data Protection**: GDPR-compliant handling of customer payment and shipping data
 - **Secure Token System**: Temporary tokens for all sensitive operations (payments, address collection)
@@ -3322,24 +3577,20 @@ The ShopMe platform includes a comprehensive e-commerce system that enables busi
 
 This comprehensive e-commerce system transforms WhatsApp into a complete sales channel while maintaining the security and professionalism expected in modern e-commerce platforms.
 
-
 ## UI SCREENSHOTS
 
 The platform includes an admin panel where business owners can manage:
+
 - AI Prompts and settings
 - Products and categories
 - Special offers
 - Customer data
 - Performance metrics
 
-
 ![Chabnel](./img/channel.png)
 ![Products](./img/products.png)
 ![Agent configuration](./img/agentConfiguration.png)
 ![Chat History](./img/chatHistory.png)
-
-
-
 
 ## TECHNICAL ARCHITECTURE
 
@@ -3347,29 +3598,29 @@ The platform includes an admin panel where business owners can manage:
 
 ```mermaid
 flowchart TB
-        User["Customer via WhatsApp"] 
+        User["Customer via WhatsApp"]
         Operator["Business Operator"]
-    
+
     subgraph "Frontend"
         React["React + TypeScript\n(Tailwind CSS)"]
     end
-    
+
     subgraph "Backend"
         NodeJS["Node.js Express\nApplication"]
         API["REST API"]
     end
-    
+
     subgraph "Data Layer"
         Prisma["Prisma ORM"]
         DB["PostgreSQL Database"]
     end
-    
+
     subgraph "External Services"
         WhatsApp["WhatsApp Business API"]
         OpenAI["OpenAI / LLM Services"]
         Payment["Payment Gateway"]
     end
-    
+
     User <--> WhatsApp
     WhatsApp <--> NodeJS
     Operator --> React
@@ -3379,7 +3630,7 @@ flowchart TB
     Prisma --> DB
     NodeJS <--> OpenAI
     NodeJS <--> Payment
-    
+
     classDef frontend fill:#42A5F5,stroke:#1976D2,color:white
     classDef backend fill:#66BB6A,stroke:#388E3C,color:white
     classDef database fill:#AB47BC,stroke:#7B1FA2,color:white
@@ -3404,13 +3655,13 @@ C4Context
     Person(customer, "Customer", "A person who wants to purchase products via WhatsApp")
     Person(businessOwner, "Business Owner", "Owner of the business using ShopMe")
     Person(businessStaff, "Staff Member", "Staff handling customer inquiries")
-    
+
     System(shopMe, "ShopMe Platform", "Enables businesses to sell products and provide customer service via WhatsApp")
-    
+
     System_Ext(whatsApp, "WhatsApp", "Messaging platform used for customer communication")
     System_Ext(paymentGateway, "Payment Gateway", "Processes customer payments")
     System_Ext(aiServices, "AI Services", "Provides natural language processing and generation")
-    
+
     Rel(customer, whatsApp, "Sends messages, browses products, makes purchases")
     Rel(whatsApp, shopMe, "Forwards customer messages")
     Rel(shopMe, whatsApp, "Sends responses, product info, payment links")
@@ -3418,7 +3669,7 @@ C4Context
     Rel(shopMe, aiServices, "Uses for message processing")
     Rel(businessOwner, shopMe, "Configures business, manages products")
     Rel(businessStaff, shopMe, "Monitors conversations, handles escalations")
-    
+
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
 
@@ -3427,10 +3678,10 @@ C4Context
 ```mermaid
 C4Container
     title Container Diagram for ShopMe Platform
-    
+
     Person(customer, "Customer", "Uses WhatsApp to browse and purchase products")
     Person(businessUser, "Business User", "Manages products, orders, and customer interactions")
-    
+
     System_Boundary(shopMe, "ShopMe Platform") {
         Container(webApp, "Web Application", "React, Next.js", "Provides admin dashboard and management interface")
         Container(apiGateway, "API Gateway", "Express.js", "Handles API requests and orchestrates responses")
@@ -3442,35 +3693,35 @@ C4Container
         ContainerDb(database, "Database", "PostgreSQL", "Stores all persistent data")
         Container(cacheService, "Cache Service", "Redis", "Provides caching for improved performance")
     }
-    
+
     System_Ext(whatsApp, "WhatsApp API", "Messaging platform integration")
     System_Ext(aiService, "AI Service", "OpenAI/LLM", "Provides natural language processing")
     System_Ext(paymentGateway, "Payment Gateway", "Processes payments")
-    
+
     Rel(customer, whatsApp, "Interacts using")
     Rel(businessUser, webApp, "Uses")
-    
+
     Rel(whatsApp, chatService, "Forwards messages to")
     Rel(chatService, apiGateway, "Requests data from")
     Rel(webApp, apiGateway, "Makes API calls to")
-    
+
     Rel(apiGateway, authService, "Validates requests with")
     Rel(apiGateway, productService, "Manages products via")
     Rel(apiGateway, orderService, "Processes orders via")
     Rel(apiGateway, analyticsService, "Records events via")
-    
+
     Rel(authService, database, "Reads/writes user data to")
     Rel(chatService, database, "Reads/writes chat data to")
     Rel(productService, database, "Reads/writes product data to")
     Rel(orderService, database, "Reads/writes order data to")
     Rel(analyticsService, database, "Reads/writes analytics data to")
-    
+
     Rel(chatService, aiService, "Uses for natural language processing")
     Rel(orderService, paymentGateway, "Processes payments via")
-    
+
     Rel(apiGateway, cacheService, "Caches responses in")
     Rel(chatService, cacheService, "Caches conversation context in")
-    
+
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
 
@@ -3479,12 +3730,14 @@ C4Container
 The ShopMe frontend is built with a modern React architecture:
 
 - **Core Technologies**:
+
   - React 18+ with functional components and hooks
   - TypeScript for type safety and improved developer experience
   - Tailwind CSS for utility-first styling approach
   - Next.js for server-side rendering and optimized performance
 
 - **Key Frontend Components**:
+
   - Component library with atomic design principles
   - Responsive layouts for all device types
   - Custom hooks for business logic reuse
@@ -3503,6 +3756,7 @@ The ShopMe frontend is built with a modern React architecture:
 #### **UI/UX Standards & Toast Message System**
 
 **Toast Message Standardization**:
+
 - **Green Success Toast**: All success messages must use green background with white text
 - **Icon Integration**: Every toast must include appropriate icons:
   - ✓ Success messages (green background, white text)
@@ -3512,31 +3766,33 @@ The ShopMe frontend is built with a modern React architecture:
 - **Sonner Configuration**: Properly configured sonner library for custom styling
 
 **Implementation Requirements**:
+
 ```typescript
 // Toast Configuration
 const TOAST_CONFIG = {
   success: {
-    backgroundColor: '#10B981',    // Green
-    color: '#FFFFFF',             // White text
-    icon: '✓',                    // Success checkmark
-    duration: 4000                // 4 seconds display
+    backgroundColor: "#10B981", // Green
+    color: "#FFFFFF", // White text
+    icon: "✓", // Success checkmark
+    duration: 4000, // 4 seconds display
   },
   warning: {
-    backgroundColor: '#F59E0B',    // Orange/Yellow
-    color: '#1F2937',             // Dark text
-    icon: '⚠️',                    // Warning symbol
-    duration: 5000                // 5 seconds display
+    backgroundColor: "#F59E0B", // Orange/Yellow
+    color: "#1F2937", // Dark text
+    icon: "⚠️", // Warning symbol
+    duration: 5000, // 5 seconds display
   },
   error: {
-    backgroundColor: '#EF4444',    // Red
-    color: '#FFFFFF',             // White text
-    icon: '❌',                    // Error X
-    duration: 6000                // 6 seconds display
-  }
+    backgroundColor: "#EF4444", // Red
+    color: "#FFFFFF", // White text
+    icon: "❌", // Error X
+    duration: 6000, // 6 seconds display
+  },
 }
 ```
 
 **Analytics Dashboard Design Requirements**:
+
 - ✅ **COMPLETED**: Remove Blue Info Box - Eliminated the distracting blue "Informazioni sul periodo di default" box
 - ✅ **COMPLETED**: Consistent Design System - Applied same colors, fonts, and spacing as main application
 - ✅ **COMPLETED**: Clean Professional Layout - Modern dashboard appearance without cluttered information boxes
@@ -3544,30 +3800,34 @@ const TOAST_CONFIG = {
 - ✅ **COMPLETED**: Period Selector Upgrade - **NEW FEATURE**: Replaced complex date range picker with user-friendly dropdown
 
 #### **📅 New Period Selector System**
+
 **User Experience Enhancement**: Replaced complex date range picker with intuitive dropdown selector for better usability.
 
 **Period Options Available**:
+
 - **Last Week**: Previous 7 days of data
 - **Last 3 Months**: Previous 90 days (Default selection)
-- **Last 6 Months**: Previous 180 days  
+- **Last 6 Months**: Previous 180 days
 - **Last Year**: Previous 365 days
 
 **Default Setting**: 3 months as requested by Andrea for optimal data analysis balance.
 
 **Technical Implementation**:
+
 ```typescript
 // Period Selector Configuration
-type PeriodPreset = 'week' | '3months' | '6months' | '1year';
+type PeriodPreset = "week" | "3months" | "6months" | "1year"
 
 const periodOptions = [
-  { value: 'week', label: 'Last Week', description: 'Last 7 days' },
-  { value: '3months', label: 'Last 3 Months', description: 'Last 90 days' }, // Default
-  { value: '6months', label: 'Last 6 Months', description: 'Last 180 days' },
-  { value: '1year', label: 'Last Year', description: 'Last 365 days' }
-];
+  { value: "week", label: "Last Week", description: "Last 7 days" },
+  { value: "3months", label: "Last 3 Months", description: "Last 90 days" }, // Default
+  { value: "6months", label: "Last 6 Months", description: "Last 180 days" },
+  { value: "1year", label: "Last Year", description: "Last 365 days" },
+]
 ```
 
 **Benefits of New Period Selector**:
+
 - **Simplified UX**: No complex calendar navigation required
 - **Common Use Cases**: Pre-defined periods cover 95% of analytics needs
 - **Faster Selection**: One-click period changes vs multi-step date selection
@@ -3575,6 +3835,7 @@ const periodOptions = [
 - **Business Logic**: Periods align with standard business reporting cycles
 
 **Login Page Design Issues**:
+
 - **Right Panel Inconsistency**: The right side of `/auth/login` doesn't match application design
 - **Inappropriate Content**: "Conversational E-commerce, Reimagined" text is not aligned with brand
 - **Color Misalignment**: Colors don't follow the main application's design system
@@ -3583,55 +3844,58 @@ const periodOptions = [
 - **Brand Inconsistency**: Overall branding not coherent with ShopMe identity
 
 **Login Page Requirements**:
+
 ```typescript
 // Login Page Design Fixes
 interface LoginPageDesign {
   rightPanel: {
-    removeTagline: boolean                  // Remove "Conversational E-commerce, Reimagined"
-    contentStrategy: string                 // Appropriate content for ShopMe brand
-    colorConsistency: boolean               // Apply main app color palette
-    typographyAlignment: boolean            // Use consistent fonts and sizing
-    iconRedesign: boolean                   // Replace non-coherent icons
-    brandConsistency: boolean               // Ensure ShopMe branding coherence
+    removeTagline: boolean // Remove "Conversational E-commerce, Reimagined"
+    contentStrategy: string // Appropriate content for ShopMe brand
+    colorConsistency: boolean // Apply main app color palette
+    typographyAlignment: boolean // Use consistent fonts and sizing
+    iconRedesign: boolean // Replace non-coherent icons
+    brandConsistency: boolean // Ensure ShopMe branding coherence
   }
-  
+
   designSystem: {
-    colors: string[]                        // Main application color palette
-    typography: string[]                    // Consistent font families
-    spacing: string[]                       // Main app spacing system
-    components: string[]                    // Reuse existing UI components
+    colors: string[] // Main application color palette
+    typography: string[] // Consistent font families
+    spacing: string[] // Main app spacing system
+    components: string[] // Reuse existing UI components
   }
 }
 ```
 
 **User Avatar Design Issues**:
+
 - **Small Avatar Size**: The circular avatar with initials in the top-right corner is too small
 - **Poor Visibility**: Current size makes it difficult to see and interact with
 - **Usability Problems**: Small size affects user experience and accessibility
 - **Header Proportion**: Avatar doesn't scale well with the rest of the header elements
 
 **Avatar Improvement Requirements**:
+
 ```typescript
 // User Avatar Design Improvements
 interface UserAvatarDesign {
   sizing: {
-    currentSize: string                     // Current small size (e.g., 32px)
-    targetSize: string                      // Larger target size (e.g., 44px-48px)
-    responsive: boolean                     // Responsive sizing for different screens
-    minTouchTarget: string                  // Minimum 44px for touch accessibility
+    currentSize: string // Current small size (e.g., 32px)
+    targetSize: string // Larger target size (e.g., 44px-48px)
+    responsive: boolean // Responsive sizing for different screens
+    minTouchTarget: string // Minimum 44px for touch accessibility
   }
-  
+
   visibility: {
-    contrast: boolean                       // Better color contrast for visibility
-    prominence: boolean                     // More prominent positioning
-    hover: boolean                          // Clear hover states
-    focus: boolean                          // Accessible focus indicators
+    contrast: boolean // Better color contrast for visibility
+    prominence: boolean // More prominent positioning
+    hover: boolean // Clear hover states
+    focus: boolean // Accessible focus indicators
   }
-  
+
   proportions: {
-    headerBalance: boolean                  // Balanced with header elements
-    logoAlignment: boolean                  // Proper alignment with logo/brand
-    spacing: string[]                       // Adequate spacing around avatar
+    headerBalance: boolean // Balanced with header elements
+    logoAlignment: boolean // Proper alignment with logo/brand
+    spacing: string[] // Adequate spacing around avatar
   }
 }
 ```
@@ -3641,6 +3905,7 @@ interface UserAvatarDesign {
 The backend follows a Domain-Driven Design (DDD) architecture:
 
 - **Core Technologies**:
+
   - Node.js with Express framework
   - TypeScript for type safety across the stack
   - Prisma ORM for database access
@@ -3648,12 +3913,14 @@ The backend follows a Domain-Driven Design (DDD) architecture:
   - Redis for caching and session management
 
 - **Layer Separation**:
+
   - **Domain Layer**: Core business entities and rules
   - **Application Layer**: Use cases and application services
   - **Infrastructure Layer**: Technical implementations and external services
   - **Interfaces Layer**: API controllers and routes
 
 - **Key Design Principles**:
+
   - Business domain at the center of design
   - Clear boundaries between layers
   - Repository pattern for data access
@@ -3677,23 +3944,27 @@ The backend follows a Domain-Driven Design (DDD) architecture:
 #### Database Management and Seeding Strategy
 
 **Complete Database Reset Policy**
+
 - When running `npm run seed`, the script performs a complete database reset
 - All existing data is deleted before seeding to avoid conflicts and ensure clean state
 - This includes: users, workspaces, user-workspace associations, content, and all related data
 
 **Admin User and Workspace Association Requirements**
+
 - Admin user MUST always have a UserWorkspace association
 - The admin user should be associated with the main workspace as OWNER
 - UserWorkspace table manages the many-to-many relationship between users and workspaces
 - Each association includes a role field (OWNER, ADMIN, MEMBER)
 
 **Integration Test Management**
+
 - All integration tests are currently skipped using `describe.skip()` to prevent database conflicts
 - After each integration test completion, a complete seed is automatically executed
 - This ensures clean state and proper admin user setup for subsequent operations
 - Integration tests should only be enabled when the testing infrastructure is fully stable
 
 **Database Schema Key Requirements:**
+
 ```typescript
 // UserWorkspace Association (MANDATORY for admin)
 model UserWorkspace {
@@ -3709,6 +3980,7 @@ model UserWorkspace {
 ```
 
 **Seed Script Behavior:**
+
 1. **Complete Database Cleanup**: Removes ALL data from ALL tables
 2. **Admin User Creation**: Creates admin user with credentials from .env
 3. **Main Workspace Creation**: Creates the primary workspace with fixed ID
@@ -3717,6 +3989,7 @@ model UserWorkspace {
 6. **Verification**: Confirms all associations are properly created
 
 **Error Handling in Seed:**
+
 - Enhanced error logging for UserWorkspace creation
 - Verification step to confirm association was created
 - Detailed logging of user IDs and workspace IDs
@@ -3734,7 +4007,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     User {
         id UUID PK
         email String
@@ -3746,7 +4019,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     Customer {
         id UUID PK
         phone String
@@ -3758,7 +4031,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     Product {
         id UUID PK
         name String
@@ -3773,7 +4046,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     // PRICING CALCULATION RULES:
     // When displaying product prices to customers, the system must:
     // 1. Check if customer has a personal discount (Customer.discountValue)
@@ -3781,7 +4054,7 @@ erDiagram
     // 3. Apply the HIGHER of the two discounts (customer wins if equal)
     // 4. Final price = Product.price - (Product.price * max_discount / 100)
     // 5. Never show original price if discount is applied
-    
+
     Category {
         id UUID PK
         name String
@@ -3792,7 +4065,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     Order {
         id UUID PK
         orderCode String UNIQUE
@@ -3812,7 +4085,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     OrderItem {
         id UUID PK
         orderId UUID FK
@@ -3824,7 +4097,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     Cart {
         id UUID PK
         customerId UUID FK
@@ -3834,7 +4107,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     CartItem {
         id UUID PK
         cartId UUID FK
@@ -3843,7 +4116,7 @@ erDiagram
         productVariant JSONB
         addedAt DateTime
     }
-    
+
     Invoice {
         id UUID PK
         orderId UUID FK
@@ -3864,7 +4137,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     Shipment {
         id UUID PK
         orderId UUID FK
@@ -3883,7 +4156,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     Payment {
         id UUID PK
         orderId UUID FK
@@ -3903,7 +4176,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     Conversation {
         id UUID PK
         customerId UUID FK
@@ -3912,7 +4185,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     Message {
         id UUID PK
         conversationId UUID FK
@@ -3920,7 +4193,7 @@ erDiagram
         role MessageRole
         createdAt DateTime
     }
-    
+
     Setting {
         id UUID PK
         key String
@@ -3929,7 +4202,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     AgentConfig {
         id UUID PK
         workspaceId UUID FK
@@ -3944,7 +4217,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     Offer {
         id UUID PK
         name String
@@ -3958,7 +4231,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     Document {
         id UUID PK
         filename String
@@ -3971,7 +4244,7 @@ erDiagram
         createdAt DateTime
         updatedAt DateTime
     }
-    
+
     DocumentChunk {
         id UUID PK
         documentId UUID FK
@@ -3980,7 +4253,7 @@ erDiagram
         embedding JSON
         createdAt DateTime
     }
-    
+
     Workspace ||--o{ User : "has"
     Workspace ||--o{ Customer : "has"
     Workspace ||--o{ Product : "has"
@@ -3995,27 +4268,27 @@ erDiagram
     Workspace ||--o{ Invoice : "has"
     Workspace ||--o{ Shipment : "has"
     Workspace ||--o{ Payment : "has"
-    
+
     Category ||--o{ Product : "contains"
     Category ||--o{ Category : "has children"
-    
+
     Customer ||--o{ Order : "places"
     Customer ||--o{ Conversation : "has"
     Customer ||--o{ Cart : "has"
     Customer ||--o{ Invoice : "receives"
-    
+
     Order ||--o{ OrderItem : "contains"
     Order ||--|| Invoice : "generates"
     Order ||--|| Shipment : "ships_via"
     Order ||--|| Payment : "processes_via"
-    
+
     Cart ||--o{ CartItem : "contains"
-    
+
     OrderItem ||--|| Product : "references"
     CartItem ||--|| Product : "references"
-    
+
     Conversation ||--o{ Message : "contains"
-    
+
     Document ||--o{ DocumentChunk : "contains"
 ```
 
@@ -4146,16 +4419,16 @@ The system implements several AI function calls to handle specific operations:
 
 Under each plan, businesses can customize their AI agent with the following parameters:
 
-| Parameter | Description | Default Value | Available Options |
-|-----------|-------------|--------------|-------------------|
-| **Model Selection** | AI model used for responses | GPT-3.5-turbo | GPT-4, Claude, Mistral, Llama |
-| **Temperature** | Response creativity level | 0.7 | 0.1-1.0 in 0.1 increments |
-| **Max Tokens** | Maximum response length | 250 | 50-1000 |
-| **Top-P** | Nucleus sampling threshold | 0.95 | 0.5-1.0 |
-| **Top-K** | Number of highest probability tokens to consider | 40 | 10-100 |
-| **System Prompt** | Base instructions for AI | Basic retail template | Custom templates available |
-| **Memory Context** | Number of previous messages to include | 10 | 1-20 |
-| **Response Speed** | Balance between quality and speed | Balanced | Fast, Balanced, Quality |
+| Parameter           | Description                                      | Default Value         | Available Options             |
+| ------------------- | ------------------------------------------------ | --------------------- | ----------------------------- |
+| **Model Selection** | AI model used for responses                      | GPT-3.5-turbo         | GPT-4, Claude, Mistral, Llama |
+| **Temperature**     | Response creativity level                        | 0.7                   | 0.1-1.0 in 0.1 increments     |
+| **Max Tokens**      | Maximum response length                          | 250                   | 50-1000                       |
+| **Top-P**           | Nucleus sampling threshold                       | 0.95                  | 0.5-1.0                       |
+| **Top-K**           | Number of highest probability tokens to consider | 40                    | 10-100                        |
+| **System Prompt**   | Base instructions for AI                         | Basic retail template | Custom templates available    |
+| **Memory Context**  | Number of previous messages to include           | 10                    | 1-20                          |
+| **Response Speed**  | Balance between quality and speed                | Balanced              | Fast, Balanced, Quality       |
 
 ### Authentication and Token Management
 
@@ -4168,6 +4441,7 @@ Our system uses JWT (JSON Web Token) authentication to keep user accounts secure
 #### **Extended Session Duration Requirements**
 
 **Session Management Enhancement**:
+
 - **1 Hour Active Session**: User sessions must remain active for 1 hour without requiring re-login
 - **Seamless Experience**: No interruptions during normal work activities
 - **Auto Token Refresh**: Silent token renewal before expiration
@@ -4175,25 +4449,27 @@ Our system uses JWT (JSON Web Token) authentication to keep user accounts secure
 - **Graceful Expiry**: Clear messaging when session naturally expires
 
 **Technical Implementation**:
+
 ```typescript
 // JWT Configuration
 const JWT_CONFIG = {
-  accessTokenExpiry: '1h',        // 1 hour session duration
-  refreshTokenExpiry: '7d',       // 7 days for refresh
-  silentRefreshThreshold: 300,    // Refresh 5 minutes before expiry
-  inactivityTimeout: 3600         // 1 hour of inactivity
+  accessTokenExpiry: "1h", // 1 hour session duration
+  refreshTokenExpiry: "7d", // 7 days for refresh
+  silentRefreshThreshold: 300, // Refresh 5 minutes before expiry
+  inactivityTimeout: 3600, // 1 hour of inactivity
 }
 
 // Session Monitoring
 interface SessionManager {
-  trackActivity(): void           // Reset inactivity timer
-  refreshToken(): Promise<void>   // Silent token renewal
-  validateSession(): boolean      // Check session validity
-  handleExpiry(): void           // Graceful logout
+  trackActivity(): void // Reset inactivity timer
+  refreshToken(): Promise<void> // Silent token renewal
+  validateSession(): boolean // Check session validity
+  handleExpiry(): void // Graceful logout
 }
 ```
 
 **User Experience Requirements**:
+
 - **No Login Interruptions**: Users should work uninterrupted for 1 hour
 - **Background Refresh**: Token renewal happens automatically
 - **Session Indicators**: Optional visual indication of session time remaining
@@ -4209,6 +4485,7 @@ interface SessionManager {
 #### JWT Implementation Status & Security Requirements
 
 **Backend Security (✅ IMPLEMENTED)**:
+
 - JWT middleware active on ALL protected routes
 - Token verification includes workspace loading
 - Cookie-based authentication with `withCredentials: true`
@@ -4216,6 +4493,7 @@ interface SessionManager {
 - Database user validation on each request
 
 **Frontend Security (🚨 CRITICAL IMPLEMENTATION NEEDED)**:
+
 - **MISSING**: Authorization Bearer headers in API calls
 - **CURRENT**: Only cookie-based auth (works but incomplete)
 - **REQUIRED**: `Authorization: Bearer <token>` header for all API requests
@@ -4223,6 +4501,7 @@ interface SessionManager {
 - **REQUIRED**: Automatic re-authentication on 401 responses
 
 **Security Flow**:
+
 ```
 1. User Login → JWT Token Generated (Backend) ✅
 2. Token stored in HTTP-only cookie ✅
@@ -4247,26 +4526,29 @@ The platform implements a comprehensive onboarding flow for new users that ensur
 #### New User Registration Flow
 
 **1. Initial Registration**
+
 - Users register through the standard registration form
 - Required fields: first name, last name, company, phone number
 - GDPR consent checkbox with dynamic text from `/gdpr` endpoint
 - Email verification is not required (phone-based registration)
 
 **2. Post-Registration Redirect Logic**
+
 ```typescript
 // After successful OTP verification
 const userWorkspaces = await fetchUserWorkspaces(userId)
 
 if (userWorkspaces.length === 0) {
   // New user with no workspaces - redirect to workspace selection
-  navigate('/workspace-selection')
+  navigate("/workspace-selection")
 } else {
   // Existing user - redirect to main application
-  navigate('/chat')
+  navigate("/chat")
 }
 ```
 
 **3. Workspace Selection Page**
+
 - New users are automatically redirected to `/workspace-selection`
 - Users can either:
   - Create a new workspace (becomes workspace owner)
@@ -4282,18 +4564,20 @@ if (userWorkspaces.length === 0) {
 The system prevents the "Workspace ID is required and must be a string" error by implementing workspace validation at multiple levels:
 
 **1. Frontend Route Protection**
+
 ```typescript
 // In workspace-dependent pages (ChatPage, AgentPage, etc.)
 const { workspace, loading } = useWorkspace()
 
 useEffect(() => {
   if (!loading && !workspace?.id) {
-    navigate('/workspace-selection')
+    navigate("/workspace-selection")
   }
 }, [workspace, loading, navigate])
 ```
 
 **2. Component-Level Validation**
+
 ```typescript
 // In WhatsAppChatModal and similar components
 const currentWorkspaceId = getWorkspaceId(workspaceId)
@@ -4308,6 +4592,7 @@ if (!hasValidWorkspace) {
 ```
 
 **3. API Request Validation**
+
 ```typescript
 // All workspace-dependent API calls include workspace validation
 headers: {
@@ -4319,12 +4604,14 @@ headers: {
 #### Workspace Context Management
 
 **1. Workspace Hook (`useWorkspace`)**
+
 - Centralized workspace state management
 - Automatic workspace loading on app initialization
 - Session storage for workspace persistence
 - React Query integration for caching
 
 **2. Workspace Configuration (`workspace.config.ts`)**
+
 ```typescript
 export const getWorkspaceId = (workspaceId?: string): string | null => {
   // Priority order:
@@ -4336,6 +4623,7 @@ export const getWorkspaceId = (workspaceId?: string): string | null => {
 ```
 
 **3. Error Handling**
+
 - Clear error messages when workspace is missing
 - Visual indicators in UI (yellow warning boxes)
 - Graceful degradation of features
@@ -4344,15 +4632,18 @@ export const getWorkspaceId = (workspaceId?: string): string | null => {
 #### User Experience Flow
 
 **New User Journey**
+
 1. User registers → OTP verification → Workspace selection page
 2. User creates/joins workspace → Redirected to main application
 3. All features now work with proper workspace context
 
 **Existing User Journey**
+
 1. User logs in → Automatic workspace loading → Direct access to application
 2. If workspace becomes invalid → Automatic redirect to workspace selection
 
 **Error Prevention**
+
 - No API calls made without valid workspace ID
 - UI components show appropriate warnings
 - Buttons disabled when workspace unavailable
@@ -4375,11 +4666,13 @@ We protect all API endpoints with smart rate limiting:
 #### Authentication API
 
 - `POST /api/auth/login`
+
   - **Description**: Authenticates a user and returns tokens
   - **Body**: `{ email, password }`
   - **Returns**: Access token and refresh token
 
 - `POST /api/auth/refresh`
+
   - **Description**: Refreshes an expired access token
   - **Body**: (Uses refresh token from HTTP-only cookie)
   - **Returns**: New access token
@@ -4391,11 +4684,13 @@ We protect all API endpoints with smart rate limiting:
 #### Workspace API
 
 - `GET /api/workspaces`
+
   - **Description**: Lists workspaces accessible to the user
   - **Parameters**: `page`, `limit`, `status`
   - **Returns**: Paginated workspace list
 
 - `POST /api/workspaces`
+
   - **Description**: Creates a new workspace
   - **Body**: Workspace details
   - **Returns**: Created workspace details
@@ -4407,8 +4702,9 @@ We protect all API endpoints with smart rate limiting:
 #### Products API
 
 - `GET /api/products`
+
   - **Description**: Lists products
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - Various filters: `category`, `status`, `price_min`, `price_max`
     - Pagination: `page`, `limit`
@@ -4416,15 +4712,18 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated product list
 
 - `POST /api/products`
+
   - **Description**: Creates a new product
   - **Body**: Product details with category and workspace information
   - **Returns**: Created product
 
 - `GET /api/products/:id`
+
   - **Description**: Gets details of a specific product
   - **Returns**: Complete product information including variants and images
 
 - `PUT /api/products/:id`
+
   - **Description**: Updates a product
   - **Body**: Fields to update
   - **Returns**: Updated product
@@ -4436,11 +4735,13 @@ We protect all API endpoints with smart rate limiting:
 #### Categories API
 
 - `GET /api/categories`
+
   - **Description**: Lists categories
   - **Parameters**: `workspace_id`, `parent_id`, `status`, `page`, `limit`
   - **Returns**: Paginated category list
 
 - `POST /api/categories`
+
   - **Description**: Creates a new category
   - **Body**: Category details with parent info
   - **Returns**: Created category
@@ -4452,11 +4753,13 @@ We protect all API endpoints with smart rate limiting:
 #### Customers API
 
 - `GET /api/customers`
+
   - **Description**: Lists customers
   - **Parameters**: `workspace_id`, various filters, pagination
   - **Returns**: Paginated customer list
 
 - `GET /api/customers/:id`
+
   - **Description**: Gets customer profile
   - **Returns**: Customer details with order history
 
@@ -4468,18 +4771,20 @@ We protect all API endpoints with smart rate limiting:
 #### Offers API
 
 - `GET /api/offers`
+
   - **Description**: Retrieves offers and promotions list
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `status` (optional): Filter by active, upcoming, or expired
     - `page`, `limit` (optional): Pagination parameters
   - **Returns**: List of offers with details
 
 - `POST /api/offers`
+
   - **Description**: Creates a new offer
-  - **Body**: 
+  - **Body**:
     - `name`: Offer name
-    - `description`: Offer description 
+    - `description`: Offer description
     - `offer_type`: Discount type (percentage, fixed, buy_x_get_y)
     - `discount_value`: Value of discount
     - `products`: List of applicable product IDs
@@ -4499,8 +4804,9 @@ We protect all API endpoints with smart rate limiting:
 #### Orders API
 
 - `GET /api/orders`
+
   - **Description**: Lists orders
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `customer_id` (optional): Filter by customer
     - `status` (optional): Filter by order status
@@ -4509,8 +4815,9 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated order list with basic details
 
 - `POST /api/orders`
+
   - **Description**: Creates a new order
-  - **Body**: 
+  - **Body**:
     - `customer_id`: Customer making the order
     - `items`: Array of product IDs with quantities
     - `payment_method`: Payment method to use
@@ -4519,11 +4826,13 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Created order with payment link
 
 - `GET /api/orders/:id`
+
   - **Description**: Gets detailed information about an order
   - **Parameters**: `id` (required): Order ID
-  - `Returns**: Complete order information including items, payment status, and history
+  - `Returns\*\*: Complete order information including items, payment status, and history
 
 - `PUT /api/orders/:id/status`
+
   - **Description**: Updates order status
   - **Body**: `status`: New order status
   - **Returns**: Updated order with current status
@@ -4536,8 +4845,9 @@ We protect all API endpoints with smart rate limiting:
 #### Conversations API
 
 - `GET /api/conversations`
+
   - **Description**: Lists customer conversations
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `customer_id` (optional): Filter by customer
     - `status` (optional): Filter by conversation status
@@ -4546,18 +4856,21 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated conversation list
 
 - `GET /api/conversations/:id`
+
   - **Description**: Gets details of a specific conversation
   - **Parameters**: `id` (required): Conversation ID
   - **Returns**: Conversation with messages
 
 - `PUT /api/conversations/:id/status`
+
   - **Description**: Updates conversation status (e.g., open, closed)
   - **Body**: `status`: New conversation status
   - **Returns**: Updated conversation status
 
 - `GET /api/conversations/:id/messages`
+
   - **Description**: Gets messages from a conversation
-  - **Parameters**: 
+  - **Parameters**:
     - `id` (required): Conversation ID
     - `page`, `limit` (optional): Pagination parameters
   - **Returns**: Paginated message list
@@ -4570,36 +4883,41 @@ We protect all API endpoints with smart rate limiting:
 #### Documents API
 
 - `GET /api/documents`
+
   - **Description**: Lists uploaded documents
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `status` (optional): Filter by document status (uploaded, processing, ready, error)
     - `page`, `limit` (optional): Pagination parameters
   - **Returns**: Paginated document list with metadata
 
 - `POST /api/documents/upload`
+
   - **Description**: Uploads a new PDF document
   - **Body**: Multipart form data with PDF file
   - **Returns**: Created document with upload confirmation
 
 - `POST /api/documents/:id/process`
+
   - **Description**: Processes document for text extraction and embedding generation
   - **Parameters**: `id` (required): Document ID
   - **Returns**: Processing status and job information
 
 - `GET /api/documents/:id`
+
   - **Description**: Gets details of a specific document
   - **Parameters**: `id` (required): Document ID
   - **Returns**: Complete document information including processing status
 
 - `DELETE /api/documents/:id`
+
   - **Description**: Deletes a document and its associated chunks
   - **Parameters**: `id` (required): Document ID
   - **Returns**: Deletion confirmation
 
 - `POST /api/documents/search`
   - **Description**: Performs semantic search across document content
-  - **Body**: 
+  - **Body**:
     - `query`: Search query text
     - `workspace_id`: Workspace identifier
     - `limit` (optional): Maximum number of results (default: 5)
@@ -4608,30 +4926,33 @@ We protect all API endpoints with smart rate limiting:
 #### Analytics API
 
 - `GET /api/analytics/overview`
+
   - **Description**: Gets high-level analytics for a workspace
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `period` (optional): Time period (daily, weekly, monthly)
   - **Returns**: Key metrics summary
 
 - `GET /api/analytics/sales`
+
   - **Description**: Gets sales analytics
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `period` (optional): Time period
     - `group_by` (optional): Grouping (product, category)
   - **Returns**: Sales data for the requested period
 
 - `GET /api/analytics/customers`
+
   - **Description**: Gets customer analytics
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `period` (optional): Time period
   - **Returns**: Customer metrics (new, returning, average spend)
 
 - `GET /api/analytics/conversations`
   - **Description**: Gets conversation analytics
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `period` (optional): Time period
   - **Returns**: Conversation metrics (volume, response time, satisfaction)
@@ -4641,13 +4962,15 @@ We protect all API endpoints with smart rate limiting:
 ##### Shopping Cart API
 
 - `GET /api/cart/:customerId`
+
   - **Description**: Gets customer's current shopping cart
   - **Parameters**: `customerId` (required): Customer identifier
   - **Returns**: Cart contents with products, quantities, and total amount
 
 - `POST /api/cart/add`
+
   - **Description**: Adds product to customer's cart
-  - **Body**: 
+  - **Body**:
     - `customerId`: Customer identifier
     - `productId`: Product to add
     - `quantity`: Number of items
@@ -4655,8 +4978,9 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Updated cart contents
 
 - `PUT /api/cart/update`
+
   - **Description**: Updates product quantity in cart
-  - **Body**: 
+  - **Body**:
     - `customerId`: Customer identifier
     - `productId`: Product to update
     - `quantity`: New quantity (0 to remove)
@@ -4670,8 +4994,9 @@ We protect all API endpoints with smart rate limiting:
 ##### Order Management API
 
 - `GET /api/orders/advanced`
+
   - **Description**: Advanced order listing with comprehensive filters
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `customer_id` (optional): Filter by specific customer
     - `status` (optional): Order status filter (pending, confirmed, shipped, delivered, cancelled)
@@ -4685,8 +5010,9 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Comprehensive paginated order list with customer details
 
 - `POST /api/orders/create`
+
   - **Description**: Creates a comprehensive order with full checkout process
-  - **Body**: 
+  - **Body**:
     - `customerId`: Customer placing the order
     - `items`: Array of order items with products and quantities
     - `shippingAddress`: Complete shipping address details
@@ -4697,22 +5023,25 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Created order with unique order code and payment intent
 
 - `GET /api/orders/:orderCode/details`
+
   - **Description**: Gets comprehensive order details by order code
   - **Parameters**: `orderCode` (required): Unique order code
   - **Returns**: Complete order information including items, customer, shipping, payment status
 
 - `PUT /api/orders/:orderCode/confirm`
+
   - **Description**: Confirms order after payment verification
   - **Parameters**: `orderCode` (required): Order code to confirm
-  - **Body**: 
+  - **Body**:
     - `paymentIntentId`: Payment gateway confirmation ID
     - `finalShippingAddress`: Confirmed shipping address
   - **Returns**: Confirmed order with updated status
 
 - `PUT /api/orders/:orderCode/status`
+
   - **Description**: Updates order status with tracking information
   - **Parameters**: `orderCode` (required): Order code
-  - **Body**: 
+  - **Body**:
     - `status`: New order status
     - `trackingNumber` (optional): Shipping tracking number
     - `notes` (optional): Status update notes
@@ -4721,7 +5050,7 @@ We protect all API endpoints with smart rate limiting:
 - `POST /api/orders/:orderCode/cancel`
   - **Description**: Cancels an order and initiates refund if applicable
   - **Parameters**: `orderCode` (required): Order code to cancel
-  - **Body**: 
+  - **Body**:
     - `reason`: Cancellation reason
     - `refundAmount` (optional): Partial refund amount
   - **Returns**: Cancelled order with refund information
@@ -4729,8 +5058,9 @@ We protect all API endpoints with smart rate limiting:
 ##### Payment Processing API
 
 - `POST /api/payments/intent`
+
   - **Description**: Creates payment intent for order
-  - **Body**: 
+  - **Body**:
     - `orderCode`: Order for payment
     - `paymentMethod`: Selected payment method (stripe, paypal, bank_transfer)
     - `currency`: Payment currency (EUR, USD, etc.)
@@ -4739,14 +5069,16 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Payment intent with secure payment URL
 
 - `POST /api/payments/confirm`
+
   - **Description**: Confirms payment completion
-  - **Body**: 
+  - **Body**:
     - `paymentIntentId`: Payment intent identifier
     - `orderCode`: Associated order code
     - `paymentGatewayResponse`: Payment gateway callback data
   - **Returns**: Payment confirmation with order update
 
 - `GET /api/payments/:orderCode/status`
+
   - **Description**: Gets real-time payment status for order
   - **Parameters**: `orderCode` (required): Order code
   - **Returns**: Current payment status and transaction details
@@ -4754,7 +5086,7 @@ We protect all API endpoints with smart rate limiting:
 - `POST /api/payments/:orderCode/refund`
   - **Description**: Processes payment refund
   - **Parameters**: `orderCode` (required): Order to refund
-  - **Body**: 
+  - **Body**:
     - `amount`: Refund amount
     - `reason`: Refund reason
     - `partial`: Whether this is a partial refund
@@ -4763,30 +5095,34 @@ We protect all API endpoints with smart rate limiting:
 ##### Shipping & Address API
 
 - `POST /api/shipping/calculate`
+
   - **Description**: Calculates shipping costs for order
-  - **Body**: 
+  - **Body**:
     - `items`: Array of products with quantities and weights
     - `shippingAddress`: Destination address
     - `shippingMethod` (optional): Preferred shipping method
   - **Returns**: Available shipping options with costs and delivery times
 
 - `POST /api/shipping/address/validate`
+
   - **Description**: Validates and standardizes shipping address
-  - **Body**: 
+  - **Body**:
     - `address`: Address to validate
     - `country`: Destination country
   - **Returns**: Validated address with corrections and suggestions
 
 - `GET /api/shipping/methods`
+
   - **Description**: Gets available shipping methods for workspace
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `country` (optional): Filter by destination country
   - **Returns**: Available shipping methods with pricing
 
 - `POST /api/shipping/create`
+
   - **Description**: Creates shipping label and tracking
-  - **Body**: 
+  - **Body**:
     - `orderCode`: Order to ship
     - `shippingMethod`: Selected shipping method
     - `packages`: Package details (weight, dimensions)
@@ -4800,22 +5136,25 @@ We protect all API endpoints with smart rate limiting:
 ##### Invoice & PDF API
 
 - `POST /api/invoices/generate`
+
   - **Description**: Generates professional PDF invoice for order
-  - **Body**: 
+  - **Body**:
     - `orderCode`: Order to invoice
     - `invoiceTemplate` (optional): Custom invoice template
     - `taxSettings`: Tax calculation settings
   - **Returns**: Generated invoice details with PDF download URL
 
 - `GET /api/invoices/:orderCode/download`
+
   - **Description**: Downloads PDF invoice using secure temporary link
   - **Parameters**: `orderCode` (required): Order code
   - **Query**: `token` (required): Secure download token
   - **Returns**: PDF file download
 
 - `GET /api/invoices`
+
   - **Description**: Lists all invoices for workspace with advanced filtering
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `customer_id` (optional): Filter by customer
     - `date_from`, `date_to` (optional): Date range filters
@@ -4824,6 +5163,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated invoice list with download links
 
 - `GET /api/invoices/:invoiceId/details`
+
   - **Description**: Gets detailed invoice information
   - **Parameters**: `invoiceId` (required): Invoice identifier
   - **Returns**: Complete invoice details with payment history
@@ -4831,7 +5171,7 @@ We protect all API endpoints with smart rate limiting:
 - `POST /api/invoices/:invoiceId/resend`
   - **Description**: Resends invoice to customer via email or WhatsApp
   - **Parameters**: `invoiceId` (required): Invoice to resend
-  - **Body**: 
+  - **Body**:
     - `method`: Delivery method (email, whatsapp)
     - `customMessage` (optional): Custom message with invoice
   - **Returns**: Delivery confirmation
@@ -4839,31 +5179,34 @@ We protect all API endpoints with smart rate limiting:
 ##### Order Analytics & Reports API
 
 - `GET /api/orders/analytics/summary`
+
   - **Description**: Gets comprehensive order analytics summary
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `period` (optional): Time period (today, week, month, year)
     - `date_from`, `date_to` (optional): Custom date range
   - **Returns**: Order metrics including revenue, volume, average order value
 
 - `GET /api/orders/analytics/products`
+
   - **Description**: Gets product performance analytics from orders
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `period` (optional): Analysis period
     - `limit` (optional): Number of top products to return
   - **Returns**: Top-selling products with quantities and revenue
 
 - `GET /api/orders/analytics/customers`
+
   - **Description**: Gets customer ordering behavior analytics
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `period` (optional): Analysis period
   - **Returns**: Customer lifetime value, repeat order rates, top customers
 
 - `POST /api/orders/export`
   - **Description**: Exports order data for accounting systems
-  - **Body**: 
+  - **Body**:
     - `workspace_id`: Workspace identifier
     - `format`: Export format (csv, xlsx, json)
     - `date_from`, `date_to`: Date range for export
@@ -4873,11 +5216,13 @@ We protect all API endpoints with smart rate limiting:
 #### Settings API
 
 - `GET /api/settings`
+
   - **Description**: Gets workspace settings
   - **Parameters**: `workspace_id` (required): Workspace identifier
   - **Returns**: All workspace settings
 
 - `PUT /api/settings`
+
   - **Description**: Updates workspace settings
   - **Parameters**: `workspace_id` (required): Workspace identifier
   - **Body**: Object containing settings to update
@@ -4888,6 +5233,7 @@ We protect all API endpoints with smart rate limiting:
     - Blocked users cannot send messages and are filtered out from conversations
 
 - `GET /api/settings/templates`
+
   - **Description**: Gets message templates
   - **Parameters**: `workspace_id` (required): Workspace identifier
   - **Returns**: Available message templates
@@ -4900,14 +5246,16 @@ We protect all API endpoints with smart rate limiting:
 #### Media API
 
 - `POST /api/media/upload`
+
   - **Description**: Uploads a media file
   - **Body**: Multipart form with file
   - **Parameters**: `workspace_id` (required): Workspace identifier
   - **Returns**: Uploaded file details with URL
 
 - `GET /api/media`
+
   - **Description**: Lists media files
-  - **Parameters**: 
+  - **Parameters**:
     - `workspace_id` (required): Workspace identifier
     - `type` (optional): Filter by media type
     - `page`, `limit` (optional): Pagination parameters
@@ -4921,6 +5269,7 @@ We protect all API endpoints with smart rate limiting:
 #### Agent Configuration API
 
 - `GET /api/agent-config`
+
   - **Description**: Gets AI agent configuration
   - **Parameters**: `workspace_id`
   - **Returns**: Current AI configuration
@@ -4933,6 +5282,7 @@ We protect all API endpoints with smart rate limiting:
 #### WhatsApp Integration API
 
 - `POST /api/whatsapp/webhook`
+
   - **Description**: Webhook for incoming WhatsApp messages
   - **Body**: Message payload from WhatsApp Business API
   - **Returns**: Acknowledgment of receipt
@@ -4945,16 +5295,18 @@ We protect all API endpoints with smart rate limiting:
 ### Security Implementation (OWASP)
 
 The platform follows OWASP security guidelines:
+
 - Input validation and sanitization
 - Protection against XSS, CSRF, SQLi
 - Secure authentication and authorization
 - Data encryption in transit and at rest
 - Regular security audits
-- 
+-
 
 ### Testing Strategy
 
 Comprehensive testing approach:
+
 - Unit tests for domain logic
 - Integration tests for services
 - End-to-end tests for key flows
@@ -4966,7 +5318,9 @@ Comprehensive testing approach:
 ### Subscription Plans & Pricing (REVISED)
 
 #### 1. **Free Plan** (€0/month) - **STARTER**
+
 **Target**: Piccole attività che vogliono testare il sistema
+
 - ✅ **1 WhatsApp channel**
 - ✅ **Up to 100 AI messages/month**
 - ✅ **Maximum 5 Products**
@@ -4981,7 +5335,9 @@ Comprehensive testing approach:
 - **Response time**: Best effort (no SLA)
 
 #### 2. **Basic Plan** (€59/month + €0.005/message) - **BUSINESS**
+
 **Target**: Piccole/medie imprese con esigenze standard
+
 - ✅ **1 WhatsApp channel**
 - ✅ **Up to 1,000 AI messages/month included**
 - ✅ **€0.005 per additional message** (0.5 cents per message over limit)
@@ -4999,8 +5355,10 @@ Comprehensive testing approach:
 - **Billing**: Monthly subscription + pay-per-use overage
 
 #### 3. **Professional Plan** (€149/month) - **ENTERPRISE**
+
 **Target**: Aziende in crescita con esigenze avanzate
 **Upgrade Process**: **Contact Sales Form** - Direct operator contact required
+
 - ✅ **Up to 3 WhatsApp channels**
 - ✅ **Up to 5,000 AI messages/month**
 - ✅ **Unlimited Products and Services**
@@ -5017,7 +5375,9 @@ Comprehensive testing approach:
 - **Sales Process**: Personal consultation with technical specialist
 
 #### 4. **Enterprise Plan** (Custom pricing) - **CORPORATE**
+
 **Target**: Grandi aziende con esigenze specifiche
+
 - ✅ **Unlimited WhatsApp channels**
 - ✅ **Custom AI message volume**
 - ✅ **Unlimited products/services**
@@ -5032,25 +5392,26 @@ Comprehensive testing approach:
 
 ### Plan Comparison Matrix
 
-| Feature | Free | Basic (€59 + overage) | Professional (€149) | Enterprise (Custom) |
-|---------|------|-------------|-------------------|-------------------|
-| **WhatsApp Channels** | 1 | 1 | 3 | Unlimited |
-| **AI Messages/Month** | 100 (hard limit) | 1,000 included + €0.005/extra | 5,000 | Custom |
-| **Overage Billing** | ❌ | ✅ Pay-per-use | ❌ (unlimited) | Custom |
-| **Products** | 5 | 50 | Unlimited | Unlimited |
-| **Services** | 3 | 20 | Unlimited | Unlimited |
-| **Analytics** | Basic | Basic + Billing | Advanced | Custom |
-| **API Access** | ❌ | Limited | Full | Custom |
-| **Billing Dashboard** | ❌ | ✅ Real-time | ✅ Advanced | ✅ Custom |
-| **Payment Methods** | ❌ | Credit Card | Multiple | Enterprise |
-| **Push Notifications** | ❌ | ❌ | ✅ | ✅ |
-| **Custom AI Training** | ❌ | ❌ | ✅ | ✅ |
-| **Support** | Community | Email (48h) | Phone+Email (12h) | 24/7 Dedicated |
-| **White-label** | ❌ | ❌ | ✅ | ✅ |
+| Feature                | Free             | Basic (€59 + overage)         | Professional (€149) | Enterprise (Custom) |
+| ---------------------- | ---------------- | ----------------------------- | ------------------- | ------------------- |
+| **WhatsApp Channels**  | 1                | 1                             | 3                   | Unlimited           |
+| **AI Messages/Month**  | 100 (hard limit) | 1,000 included + €0.005/extra | 5,000               | Custom              |
+| **Overage Billing**    | ❌               | ✅ Pay-per-use                | ❌ (unlimited)      | Custom              |
+| **Products**           | 5                | 50                            | Unlimited           | Unlimited           |
+| **Services**           | 3                | 20                            | Unlimited           | Unlimited           |
+| **Analytics**          | Basic            | Basic + Billing               | Advanced            | Custom              |
+| **API Access**         | ❌               | Limited                       | Full                | Custom              |
+| **Billing Dashboard**  | ❌               | ✅ Real-time                  | ✅ Advanced         | ✅ Custom           |
+| **Payment Methods**    | ❌               | Credit Card                   | Multiple            | Enterprise          |
+| **Push Notifications** | ❌               | ❌                            | ✅                  | ✅                  |
+| **Custom AI Training** | ❌               | ❌                            | ✅                  | ✅                  |
+| **Support**            | Community        | Email (48h)                   | Phone+Email (12h)   | 24/7 Dedicated      |
+| **White-label**        | ❌               | ❌                            | ✅                  | ✅                  |
 
 ### Monetization Strategy
 
 #### Revenue Drivers:
+
 1. **Message Volume**: Primary limitation for scaling
 2. **Channel Count**: Multiple WhatsApp numbers for different departments
 3. **Product/Service Limits**: Catalog size restrictions
@@ -5058,6 +5419,7 @@ Comprehensive testing approach:
 5. **Support Level**: Response time and channel quality
 
 #### Upgrade Triggers:
+
 - **Free → Basic**: When hitting 100 messages/month or need more than 5 products (Self-service upgrade)
 - **Basic → Professional**: When overage costs exceed €90/month consistently (Contact Sales Form)
 - **Professional → Enterprise**: When need custom integrations or 24/7 support (Enterprise Sales Process)
@@ -5065,9 +5427,11 @@ Comprehensive testing approach:
 ### Professional Plan Sales Process
 
 #### Contact Sales Form Requirements:
+
 When users click "Upgrade to Professional" they are directed to a contact form instead of immediate upgrade:
 
 **Form Fields Required**:
+
 - Company name and size (employees)
 - Current monthly message volume
 - Specific needs (multiple channels, API access, custom training)
@@ -5076,6 +5440,7 @@ When users click "Upgrade to Professional" they are directed to a contact form i
 - Additional requirements or questions
 
 **Sales Response Process**:
+
 - **Immediate**: Automated confirmation email sent
 - **Within 2 hours**: Sales operator contacts prospect
 - **Within 24 hours**: Technical consultation scheduled
@@ -5083,6 +5448,7 @@ When users click "Upgrade to Professional" they are directed to a contact form i
 - **Onboarding**: Dedicated setup and configuration session
 
 **Benefits of Sales-Assisted Upgrade**:
+
 - Personalized feature configuration
 - Custom onboarding and training
 - Optimized setup for specific business needs
@@ -5092,32 +5458,36 @@ When users click "Upgrade to Professional" they are directed to a contact form i
 ### Pay-Per-Use Billing System
 
 #### Billing Model Overview:
+
 **Basic Plan**: €59/month base + €0.005 per message over 1,000 monthly limit
 
 #### Real-Time Billing Architecture:
 
 **1. Message Counting System**
+
 - Every AI response increments workspace message counter
 - Real-time tracking with Redis for performance
 - Daily aggregation to PostgreSQL for billing
 - Monthly reset on billing cycle date
 
 **2. Overage Calculation**
+
 ```typescript
 // Example billing calculation
-const basePrice = 59.00; // €59 monthly subscription
-const includedMessages = 1000;
-const overageRate = 0.005; // €0.005 per message
-const actualMessages = 1547;
+const basePrice = 59.0 // €59 monthly subscription
+const includedMessages = 1000
+const overageRate = 0.005 // €0.005 per message
+const actualMessages = 1547
 
-const overageMessages = Math.max(0, actualMessages - includedMessages);
-const overageCost = overageMessages * overageRate;
-const totalMonthlyBill = basePrice + overageCost;
+const overageMessages = Math.max(0, actualMessages - includedMessages)
+const overageCost = overageMessages * overageRate
+const totalMonthlyBill = basePrice + overageCost
 
 // Result: €59 + (547 * €0.005) = €59 + €2.735 = €61.74
 ```
 
 **3. Billing Dashboard Components**
+
 - **Current Month Usage**: Real-time message count and cost
 - **Projected Bill**: Estimated monthly cost based on current usage
 - **Usage History**: 12-month usage and billing history
@@ -5125,6 +5495,7 @@ const totalMonthlyBill = basePrice + overageCost;
 - **Usage Analytics**: Peak usage times, message trends
 
 **4. Payment Processing Integration**
+
 - **Stripe Integration**: For credit card processing
 - **Monthly Billing Cycle**: Subscription + overage charges
 - **Automatic Payment**: Credit card on file
@@ -5132,6 +5503,7 @@ const totalMonthlyBill = basePrice + overageCost;
 - **Failed Payment Handling**: Grace period + service suspension
 
 **5. Cost Control Features**
+
 - **Spending Limits**: Set maximum monthly overage (e.g., €50 max)
 - **Usage Alerts**: Email/SMS at 80%, 100%, 150% of included messages
 - **Auto-Upgrade**: Automatic upgrade to Professional when overage > €90/month
@@ -5142,26 +5514,31 @@ const totalMonthlyBill = basePrice + overageCost;
 #### Where Limits Are Applied:
 
 **1. WhatsApp Message Processing (`/src/services/whatsapp.service.ts`)**
+
 - Check monthly message count before sending AI response
 - Block response if limit exceeded, show upgrade message instead
 - Track message count per workspace per month
 
 **2. Product Management (`/src/controllers/products.controller.ts`)**
+
 - Validate product count before creating new product
 - Show upgrade popup when limit reached
 - Prevent product creation beyond plan limit
 
 **3. Service Management (`/src/controllers/services.controller.ts`)**
+
 - Validate service count before creating new service
 - Show upgrade popup when limit reached
 - Prevent service creation beyond plan limit
 
 **4. API Endpoints (`/src/middleware/plan-limits.middleware.ts`)**
+
 - Rate limiting based on plan (1,000 calls for Basic, unlimited for Professional)
 - Return 429 error with upgrade message when API limit exceeded
 - Track API usage per workspace
 
 **5. Frontend Components**
+
 - Products page: Show usage indicator "47/50 products used"
 - Services page: Show usage indicator "18/20 services used"
 - Dashboard: Show monthly message usage "847/1,000 messages used"
@@ -5170,6 +5547,7 @@ const totalMonthlyBill = basePrice + overageCost;
 #### Popup Trigger Locations:
 
 **Frontend Popup Triggers:**
+
 - **Products Page**: When clicking "Add Product" at limit
 - **Services Page**: When clicking "Add Service" at limit
 - **Chat Interface**: When monthly message limit reached
@@ -5177,6 +5555,7 @@ const totalMonthlyBill = basePrice + overageCost;
 - **Dashboard**: Proactive warnings at 80% usage
 
 **Backend Response Modifications:**
+
 - **WhatsApp Webhook**: Return upgrade message instead of AI response
 - **API Endpoints**: Return 402 Payment Required with upgrade link
 - **CRUD Operations**: Return limit exceeded errors with upgrade CTA
@@ -5184,6 +5563,7 @@ const totalMonthlyBill = basePrice + overageCost;
 ## DEVELOPMENT ROADMAP
 
 ### Phase 1: Core Data Management (Months 1-2)
+
 - M1.1 (Week 1-2): Infrastructure and development environment setup
   - Repository and CI/CD configuration
   - Database and Prisma schema setup
@@ -5202,6 +5582,7 @@ const totalMonthlyBill = basePrice + overageCost;
   - Load and performance testing
 
 ### Phase 2: Communication Platform (Months 3-4)
+
 - M2.1 (Week 1-2): WhatsApp API integration
   - WhatsApp API connection setup
   - Webhook and notifications management
@@ -5220,6 +5601,7 @@ const totalMonthlyBill = basePrice + overageCost;
   - Customer satisfaction survey system
 
 ### Phase 3: E-commerce & Advanced Orders (Months 5-6)
+
 - M3.1 (Week 1-2): Shopping Cart System
   - Smart cart management implementation
   - Cart persistence across sessions
@@ -5242,6 +5624,7 @@ const totalMonthlyBill = basePrice + overageCost;
   - Multiple shipping method support
 
 ### Phase 4: Professional Invoicing & Analytics (Months 7-8)
+
 - M4.1 (Week 1-2): Professional PDF Invoicing
   - Automatic PDF invoice generation
   - Customizable invoice templates
@@ -5264,6 +5647,7 @@ const totalMonthlyBill = basePrice + overageCost;
   - Cross-platform order synchronization
 
 ### Phase 5: Push Notifications & Beta Testing (Months 9-10)
+
 - M5.1 (Week 1-2): Push notifications system
   - Push notification architecture
   - Customizable notification templates
@@ -5286,6 +5670,7 @@ const totalMonthlyBill = basePrice + overageCost;
   - Fraud detection and prevention
 
 ### Phase 6: Marketing & MMP Enhancements (Months 11-12)
+
 - M6.1 (Week 1-2): Marketing tools
   - Automated campaign implementation
   - Advanced customer segmentation
@@ -5308,6 +5693,7 @@ const totalMonthlyBill = basePrice + overageCost;
   - AI-powered order management optimization
 
 ### Phase 7: Full Deployment & Quality Assurance (Months 13-14)
+
 - M7.1 (Week 1-2): Complete testing
   - End-to-end testing on all flows including e-commerce
   - Load and stress testing for order processing
@@ -5329,7 +5715,6 @@ const totalMonthlyBill = basePrice + overageCost;
   - Public launch and marketing plan
   - E-commerce case studies and success stories
 
-
 ## COMPETITIVE ANALYSIS
 
 ### Market Overview
@@ -5338,20 +5723,21 @@ The WhatsApp commerce software market is rapidly growing, with several players o
 
 ### Key Competitors
 
-| Platform | Focus | Target Market | Core Strengths |
-|----------|-------|---------------|----------------|
-| **WATI** | Conversational automation | SMBs | Chatbot automation, CRM integration |
-| **Zoko** | WhatsApp catalogs | E-commerce | Shopify integration, catalog browsing |
-| **Charles** | Customer retention | Enterprise, Retail | Journey automation, marketing campaigns |
-| **Yalo** | Enterprise solutions | Large B2B companies | GenAI conversations, flow builder |
-| **SleekFlow** | Omnichannel communication | SMBs, Service businesses | Multi-channel support, inbox management |
-| **Oct8ne** | Visual commerce | E-commerce, Retail | Co-browsing, visual chat, product showcasing |
-| **Tellephant** | Messaging solution | Marketing agencies, B2C | Template messaging, API integration |
-| **360dialog** | WhatsApp Business API | Enterprise, ISVs | API provider, developer-focused solutions |
+| Platform       | Focus                     | Target Market            | Core Strengths                               |
+| -------------- | ------------------------- | ------------------------ | -------------------------------------------- |
+| **WATI**       | Conversational automation | SMBs                     | Chatbot automation, CRM integration          |
+| **Zoko**       | WhatsApp catalogs         | E-commerce               | Shopify integration, catalog browsing        |
+| **Charles**    | Customer retention        | Enterprise, Retail       | Journey automation, marketing campaigns      |
+| **Yalo**       | Enterprise solutions      | Large B2B companies      | GenAI conversations, flow builder            |
+| **SleekFlow**  | Omnichannel communication | SMBs, Service businesses | Multi-channel support, inbox management      |
+| **Oct8ne**     | Visual commerce           | E-commerce, Retail       | Co-browsing, visual chat, product showcasing |
+| **Tellephant** | Messaging solution        | Marketing agencies, B2C  | Template messaging, API integration          |
+| **360dialog**  | WhatsApp Business API     | Enterprise, ISVs         | API provider, developer-focused solutions    |
 
 ### ShopMe's Unique Advantages
 
 #### 1. Industry-Leading Message Engagement
+
 - **98% message open rate vs 20% for email marketing**
   - Direct impact on ROI for all communication
   - Significantly higher conversion from notifications
@@ -5359,14 +5745,15 @@ The WhatsApp commerce software market is rapidly growing, with several players o
   - Results in measurable 53% reduction in cart abandonment
 
 #### 2. Cross-Industry Versatility Without Reconfiguration
+
 - Seamless adaptation to multiple verticals:
   - Retail: Product catalogs and inventory
   - Hospitality: Room bookings and service requests
   - Restaurants: Menu exploration and reservations
-  
 - Competitors typically require custom development for each industry
 
 #### 3. Secure Handling of Sensitive Operations
+
 - **Proprietary token-based secure link system**
 - All sensitive transactions (payments, registration, personal data) handled outside chat
 - Stronger compliance with privacy regulations
@@ -5374,6 +5761,7 @@ The WhatsApp commerce software market is rapidly growing, with several players o
 - Customizable platform for industry-specific compliance requirements
 
 #### 4. Unified Platform vs. Fragmented Solutions
+
 - Single integrated system for the entire customer journey:
   - Customer communication
   - Inventory management
@@ -5385,32 +5773,32 @@ The WhatsApp commerce software market is rapidly growing, with several players o
 
 ### Comparative Metrics
 
-| Metric | ShopMe | Industry Average | Improvement |
-|--------|--------|------------------|-------------|
-| Conversion rate | +42% | Baseline | Higher than any competitor |
-| Response time | -67% | Baseline | Faster customer service |
-| Average order value | +28% | Baseline | Better upselling capabilities |
-| Cart abandonment | -53% | Baseline | More completed purchases |
-| Customer retention | 3.2x | Baseline | Stronger long-term value |
+| Metric              | ShopMe | Industry Average | Improvement                   |
+| ------------------- | ------ | ---------------- | ----------------------------- |
+| Conversion rate     | +42%   | Baseline         | Higher than any competitor    |
+| Response time       | -67%   | Baseline         | Faster customer service       |
+| Average order value | +28%   | Baseline         | Better upselling capabilities |
+| Cart abandonment    | -53%   | Baseline         | More completed purchases      |
+| Customer retention  | 3.2x   | Baseline         | Stronger long-term value      |
 
 ### Comparative Feature Matrix
 
 The following matrix highlights how ShopMe positions itself against key competitors in terms of core functionality:
 
-| Feature | WATI | Zoko | Charles | Yalo | SleekFlow | Oct8ne | Tellephant | 360dialog |
-|---------|:----:|:----:|:-------:|:----:|:---------:|:------:|:----------:|:---------:|
-| **Conversational AI** | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ |
-| **Full E-commerce** | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐ |
-| **Push Notifications** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
-| **Secure Payments** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐ |
-| **Cross-industry** | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐ | ⭐ |
-| **Visual Commerce** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐ |
-| **Analytics** | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ |
-| **Customization** | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ |
-| **Ease of Setup** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
-| **Multi-language** | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
+| Feature                |   WATI   |   Zoko   | Charles  |    Yalo    | SleekFlow |   Oct8ne   | Tellephant | 360dialog |
+| ---------------------- | :------: | :------: | :------: | :--------: | :-------: | :--------: | :--------: | :-------: |
+| **Conversational AI**  | ⭐⭐⭐⭐ |  ⭐⭐⭐  | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |  ⭐⭐⭐   |    ⭐⭐    |    ⭐⭐    |    ⭐     |
+| **Full E-commerce**    |   ⭐⭐   | ⭐⭐⭐⭐ |  ⭐⭐⭐  |   ⭐⭐⭐   |   ⭐⭐    |    ⭐⭐    |     ⭐     |    ⭐     |
+| **Push Notifications** |  ⭐⭐⭐  |  ⭐⭐⭐  | ⭐⭐⭐⭐ |   ⭐⭐⭐   |  ⭐⭐⭐   |    ⭐⭐    |   ⭐⭐⭐   |   ⭐⭐    |
+| **Secure Payments**    |   ⭐⭐   |  ⭐⭐⭐  |  ⭐⭐⭐  |  ⭐⭐⭐⭐  |   ⭐⭐    |    ⭐⭐    |     ⭐     |    ⭐     |
+| **Cross-industry**     |   ⭐⭐   |   ⭐⭐   |  ⭐⭐⭐  |   ⭐⭐⭐   |  ⭐⭐⭐   |    ⭐⭐    |     ⭐     |    ⭐     |
+| **Visual Commerce**    |   ⭐⭐   |  ⭐⭐⭐  |  ⭐⭐⭐  |    ⭐⭐    |   ⭐⭐    | ⭐⭐⭐⭐⭐ |     ⭐     |    ⭐     |
+| **Analytics**          |  ⭐⭐⭐  |   ⭐⭐   | ⭐⭐⭐⭐ |  ⭐⭐⭐⭐  |  ⭐⭐⭐   |    ⭐⭐    |    ⭐⭐    |   ⭐⭐    |
+| **Customization**      |  ⭐⭐⭐  |   ⭐⭐   |  ⭐⭐⭐  |  ⭐⭐⭐⭐  |  ⭐⭐⭐   |    ⭐⭐    |    ⭐⭐    |  ⭐⭐⭐   |
+| **Ease of Setup**      | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |  ⭐⭐⭐  |    ⭐⭐    |  ⭐⭐⭐   |  ⭐⭐⭐⭐  |  ⭐⭐⭐⭐  |   ⭐⭐    |
+| **Multi-language**     |  ⭐⭐⭐  |   ⭐⭐   |  ⭐⭐⭐  |  ⭐⭐⭐⭐  |  ⭐⭐⭐   |   ⭐⭐⭐   |    ⭐⭐    |   ⭐⭐    |
 
-*Legend: ⭐ = Basic, ⭐⭐ = Adequate, ⭐⭐⭐ = Good, ⭐⭐⭐⭐ = Very Good, ⭐⭐⭐⭐⭐ = Excellent*
+_Legend: ⭐ = Basic, ⭐⭐ = Adequate, ⭐⭐⭐ = Good, ⭐⭐⭐⭐ = Very Good, ⭐⭐⭐⭐⭐ = Excellent_
 
 This matrix clearly demonstrates how ShopMe offers a complete and superior solution in most key categories, with particular advantages in full e-commerce, push notifications, secure payments, and cross-industry adaptability.
 
@@ -5423,31 +5811,34 @@ ShopMe is uniquely positioned at the intersection of customer communication and 
 Here's an estimate of the expected ROI for different market segments, based on industry benchmark data and ShopMe's differential advantages:
 
 #### Retail (Clothing/Accessories)
-| Metric | Before ShopMe | With ShopMe | Impact |
-|---------|----------------|------------|---------|
-| Conversion rate | 2.5% | 3.6% | +44% |
-| Average order value | €75 | €96 | +28% |
-| Cart abandonment | 70% | 33% | -53% |
-| Customer acquisition cost | €22 | €15 | -32% |
-| **Estimated first year ROI** | - | - | **+215%** |
+
+| Metric                       | Before ShopMe | With ShopMe | Impact    |
+| ---------------------------- | ------------- | ----------- | --------- |
+| Conversion rate              | 2.5%          | 3.6%        | +44%      |
+| Average order value          | €75           | €96         | +28%      |
+| Cart abandonment             | 70%           | 33%         | -53%      |
+| Customer acquisition cost    | €22           | €15         | -32%      |
+| **Estimated first year ROI** | -             | -           | **+215%** |
 
 #### Restaurants
-| Metric | Before ShopMe | With ShopMe | Impact |
-|---------|----------------|------------|---------|
-| Weekly reservations | 120 | 168 | +40% |
-| Average check value | €35 | €42 | +20% |
-| Takeaway/delivery orders | 45/week | 78/week | +73% |
-| No-show rate | 18% | 7% | -61% |
-| **Estimated first year ROI** | - | - | **+185%** |
+
+| Metric                       | Before ShopMe | With ShopMe | Impact    |
+| ---------------------------- | ------------- | ----------- | --------- |
+| Weekly reservations          | 120           | 168         | +40%      |
+| Average check value          | €35           | €42         | +20%      |
+| Takeaway/delivery orders     | 45/week       | 78/week     | +73%      |
+| No-show rate                 | 18%           | 7%          | -61%      |
+| **Estimated first year ROI** | -             | -           | **+185%** |
 
 #### Hotel/Hospitality
-| Metric | Before ShopMe | With ShopMe | Impact |
-|---------|----------------|------------|---------|
-| Direct bookings vs OTA | 25% | 42% | +68% |
-| Additional services upselling | €28/guest | €47/guest | +68% |
-| Positive reviews | 75% | 89% | +19% |
-| Customer Lifetime Value | €240 | €385 | +60% |
-| **Estimated first year ROI** | - | - | **+240%** |
+
+| Metric                        | Before ShopMe | With ShopMe | Impact    |
+| ----------------------------- | ------------- | ----------- | --------- |
+| Direct bookings vs OTA        | 25%           | 42%         | +68%      |
+| Additional services upselling | €28/guest     | €47/guest   | +68%      |
+| Positive reviews              | 75%           | 89%         | +19%      |
+| Customer Lifetime Value       | €240          | €385        | +60%      |
+| **Estimated first year ROI**  | -             | -           | **+240%** |
 
 The ROI methodology incorporates implementation costs, subscription fees, and training, with an estimated payback period of 4-6 months for all segments.
 
@@ -5456,6 +5847,7 @@ The ROI methodology incorporates implementation costs, subscription fees, and tr
 ShopMe is designed to easily adapt to different industry verticals without requiring significant reconfiguration or custom development. Here's how the platform perfectly adapts to three key sectors:
 
 #### Hospitality (Hotels)
+
 - **Reservation management:** Confirmation, modifications, and cancellations directly via WhatsApp
 - **Virtual concierge:** 24/7 assistance for guest requests (room service, restaurant reservations)
 - **Digital check-in:** Simplified check-in process via secure links
@@ -5463,6 +5855,7 @@ ShopMe is designed to easily adapt to different industry verticals without requi
 - **Seasonal promotions:** Push notifications for last-minute offers and special packages
 
 #### Restaurants
+
 - **Table reservations:** Reservation management with automatic confirmations
 - **Digital menu:** Rich presentation of dishes with photos and detailed descriptions
 - **Takeaway/delivery orders:** Complete management of take-out orders
@@ -5476,12 +5869,14 @@ Each industry implementation maintains the same basic architecture but uses temp
 ShopMe's launch strategy is designed to maximize adoption and commercial success in target segments:
 
 #### Phase 1: Early Adopters (Months 1-3)
+
 - **Initial target**: 50-75 selected businesses in retail, restaurant, and hospitality sectors
 - **Approach**: Direct implementation with assisted onboarding and personalized setup
 - **Incentives**: Special "Founding Member" pricing with 3 free months in exchange for testimonials and case studies
 - **KPIs**: Net Promoter Score >40, trial-to-paid conversion rate >70%
 
 #### Phase 2: Market Expansion (Months 4-8)
+
 - **Acquisition channels**:
   - Partnerships with e-commerce consultants (20% commission)
   - Targeted digital campaigns for verticals (Facebook/Instagram, LinkedIn)
@@ -5491,6 +5886,7 @@ ShopMe's launch strategy is designed to maximize adoption and commercial success
 - **KPIs**: CAC <€180, Payback period <5 months, monthly churn <2%
 
 #### Phase 3: Scale (Months 9-12)
+
 - **Geographic markets**: Expansion to Italy, Spain, UK with complete localization
 - **New vertical segments**: Focus on beauty & wellness
 - **Additional channels**:
@@ -5500,16 +5896,18 @@ ShopMe's launch strategy is designed to maximize adoption and commercial success
 - **KPIs**: MRR growth >15% month/month, 12-month retention >80%
 
 #### Marketing Mix
-| Channel | % Budget | Primary Focus | Key Metrics |
-|--------|----------|----------------|-----------------|
-| SEO/Content | 25% | Educazione mercato, lead gen | Conversione organica, tempo sul sito |
-| SEM | 20% | Intent-based acquisition | CPC, tasso conversione |
-| Social Media | 15% | Brand awareness, showcase | Engagement, traffico referral |
+
+| Channel      | % Budget | Primary Focus                | Key Metrics                          |
+| ------------ | -------- | ---------------------------- | ------------------------------------ |
+| SEO/Content  | 25%      | Educazione mercato, lead gen | Conversione organica, tempo sul sito |
+| SEM          | 20%      | Intent-based acquisition     | CPC, tasso conversione               |
+| Social Media | 15%      | Brand awareness, showcase    | Engagement, traffico referral        |
 
 | Partners/Referrals | 20% | Qualified conversions | CAC, Partner customer LTV |
 | PR/Influencers | 5% | Credibility, reach | Menzioni, sentiment |
 
 #### Pricing & Packaging Strategy
+
 - **"Land & Expand" approach**: Accessible entry point with usage-based guided upgrades
 - **Specialized vertical plans**: Pre-configured setups for hotels, restaurants, retail
 - **Free trial**: 14 days with message limitation (1000) and feature limits
@@ -5522,6 +5920,7 @@ The go-to-market strategy integrates with the product development roadmap, ensur
 Features planned for the MMP phase, after the initial MVP release:
 
 ### Enhanced Orders Management
+
 - Complete order lifecycle management
 - Order fulfillment workflows
 - Custom order statuses
@@ -5529,6 +5928,7 @@ Features planned for the MMP phase, after the initial MVP release:
 - Bulk order processing capabilities
 
 ### Advanced Analytics Dashboard
+
 - Customer behavior analysis
 - Conversion funnel visualization
 - Revenue and sales performance tracking
@@ -5536,6 +5936,7 @@ Features planned for the MMP phase, after the initial MVP release:
 - Custom report builder with export options
 
 ### Full Payment Integration
+
 - Multiple payment gateway integrations
 - Saved payment methods for customers
 - Subscription and recurring payment handling
@@ -5543,6 +5944,7 @@ Features planned for the MMP phase, after the initial MVP release:
 - Automated refund processing
 
 ### Multi-Agent Collaboration
+
 - Team inbox with shared conversation access
 - Agent routing and assignment rules
 - Supervisor monitoring and intervention tools
@@ -5550,6 +5952,7 @@ Features planned for the MMP phase, after the initial MVP release:
 - Shift management and availability tracking
 
 ### Enhanced AI Capabilities
+
 - Advanced sentiment analysis and emotional intelligence
 - Proactive customer outreach based on behavior
 - Personalized product recommendations based on preferences
@@ -5559,15 +5962,17 @@ Features planned for the MMP phase, after the initial MVP release:
 ## DATA MANAGEMENT AND DELETION POLICIES
 
 ### Hard Delete Implementation
+
 ShopMe implements a comprehensive **hard delete system** for workspace management to ensure complete data removal and compliance with data protection regulations.
 
 #### Workspace Hard Delete Features
+
 - **Complete cascade deletion**: When a workspace is deleted, ALL related data is permanently removed
 - **Transaction-based safety**: Uses database transactions to ensure data integrity during deletion
 - **No recovery option**: Hard delete is irreversible - ensures true data removal for privacy compliance
 - **Comprehensive scope**: Deletes all related entities including:
   - Products and categories
-  - Customers and chat sessions  
+  - Customers and chat sessions
   - Services and offers
   - Documents and FAQ chunks
   - Agent configurations and prompts
@@ -5575,6 +5980,7 @@ ShopMe implements a comprehensive **hard delete system** for workspace managemen
   - WhatsApp settings
 
 #### Implementation Details
+
 ```typescript
 // Hard delete in cascading order to avoid foreign key constraints
 await prisma.$transaction(async (tx) => {
@@ -5586,12 +5992,14 @@ await prisma.$transaction(async (tx) => {
 ```
 
 #### Data Protection Compliance
+
 - **GDPR Article 17 (Right to erasure)**: Complete data removal ensures compliance with right to be forgotten
 - **Audit trail**: Deletion operations are logged for compliance reporting
 - **No soft delete fallbacks**: Prevents accidental data retention
 - **Secure token cleanup**: Associated security tokens are also purged
 
 #### Business Justification
+
 - **Storage optimization**: Prevents accumulation of unused data
 - **Performance improvement**: Reduces database size and query complexity
 - **Cost efficiency**: Lower storage and backup costs
@@ -5605,6 +6013,7 @@ This implementation ensures that when users delete their workspace, their data i
 The ShopMe platform integrates **N8N** as the visual workflow engine for complete AI conversation management. N8N handles all business logic, AI processing, and external API integrations while maintaining full visibility and control over the entire customer conversation flow.
 
 **Key Integration Points:**
+
 - **Visual Workflow Editor**: Admin interface for designing conversation flows
 - **OpenRouter Direct Integration**: LLM calls executed directly within N8N nodes
 - **Business Logic Orchestration**: Complete customer journey managed in visual workflows
@@ -5621,9 +6030,11 @@ Il sistema ShopMe implementa una **separazione netta delle responsabilità** tra
 ---
 
 ### 🚦 **BACKEND - Security Gateway Only**
+
 **UNICA RESPONSABILITÀ: Controlli di Sicurezza Critici**
 
 #### ✅ **COSA FA IL BACKEND:**
+
 1. **API Rate Limiting** - Previene abuse del sistema (100 chiamate/10 minuti)
 2. **Spam Detection** - Auto-blacklist su comportamenti spam (>10 msg in 30s)
 3. **Customer Active Check** - Verifica se customer.isActive = true
@@ -5632,6 +6043,7 @@ Il sistema ShopMe implementa una **separazione netta delle responsabilità** tra
 6. **Internal API** - Fornisce endpoint per N8N consumption
 
 #### ❌ **COSA NON FA IL BACKEND:**
+
 - ❌ **Business Logic** (workspace checks, blacklist verification)
 - ❌ **User Flow Management** (nuovo/esistente utente logic)
 - ❌ **AI Processing** (RAG search, LLM calls, response formatting)
@@ -5639,11 +6051,12 @@ Il sistema ShopMe implementa una **separazione netta delle responsabilità** tra
 - ❌ **External Communications** (WhatsApp sending, token generation)
 
 #### 🧱 **MODULI BACKEND:**
+
 ```
 Backend/
 ├── Security Gateway
 │   ├── API Rate Limiter
-│   ├── Spam Detector  
+│   ├── Spam Detector
 │   └── Customer Validator
 ├── Data Layer
 │   ├── Prisma ORM
@@ -5659,28 +6072,34 @@ Backend/
 ---
 
 ### 🚀 **N8N - Complete Business Logic Engine**
+
 **UNICA RESPONSABILITÀ: Orchestrazione Completa Logica di Business**
 
 #### ✅ **COSA FA N8N:**
+
 1. **Business Logic Checks**
+
    - Workspace Active Verification
    - Chatbot Status Verification
    - Channel Availability Checks
    - Customer Blacklist Verification
 
 2. **User Experience Management**
+
    - New vs Existing Customer Detection
    - Welcome Message Logic
    - Language Preference Handling
    - Conversation Context Management
 
 3. **AI Processing Pipeline**
+
    - Checkout Intent Detection
    - RAG Search Coordination
    - OpenRouter LLM Calls (DIRECT)
    - Response Formatting & Enhancement
 
 4. **External System Integration**
+
    - WhatsApp Message Sending
    - Security Token Generation
    - Third-party API Calls
@@ -5693,11 +6112,13 @@ Backend/
    - Audit Trail Generation
 
 #### ❌ **COSA NON FA N8N:**
+
 - ❌ **Security Controls** (già gestiti dal Backend)
 - ❌ **Database Direct Access** (usa API Backend)
 - ❌ **File System Operations** (usa Backend services)
 
 #### 🔧 **WORKFLOW N8N:**
+
 ```
 N8N Workflow/
 ├── Business Logic Layer
@@ -5718,9 +6139,11 @@ N8N Workflow/
 ---
 
 ### 💬 **WHATSAPP WEBHOOK - Data Collection Only**
+
 **UNICA RESPONSABILITÀ: Raccolta e Arricchimento Dati**
 
 #### ✅ **COSA FA WEBHOOK:**
+
 1. **Message Reception** - Riceve messaggi WhatsApp raw
 2. **Customer Resolution** - Find/Create customer nel database
 3. **Data Enrichment** - Fetch TUTTI i dati necessari
@@ -5729,16 +6152,18 @@ N8N Workflow/
 6. **Language Detection** - Automatic language identification
 
 #### ❌ **COSA NON FA WEBHOOK:**
+
 - ❌ **Business Decisions** (delegati a N8N)
 - ❌ **Response Generation** (gestito da N8N)
 - ❌ **Error Recovery** (N8N responsibility)
 
 #### 📦 **WEBHOOK PAYLOAD:**
+
 ```json
 {
   "coreData": {
     "message": "string",
-    "phoneNumber": "string", 
+    "phoneNumber": "string",
     "workspaceId": "string"
   },
   "customerContext": {
@@ -5771,9 +6196,11 @@ N8N Workflow/
 ---
 
 ### 🗄️ **DATABASE - Data Persistence Only**
+
 **UNICA RESPONSABILITÀ: Persistenza e Retrieving Dati**
 
 #### ✅ **COSA FA DATABASE:**
+
 1. **Data Storage** - Store messages, customers, products, configs
 2. **Data Retrieval** - Query optimization per RAG search
 3. **Embedding Storage** - Vector embeddings per semantic search
@@ -5781,6 +6208,7 @@ N8N Workflow/
 5. **Migration Management** - Schema evolution tracking
 
 #### ❌ **COSA NON FA DATABASE:**
+
 - ❌ **Business Logic** (no stored procedures complesse)
 - ❌ **Data Processing** (no triggers per business rules)
 - ❌ **External Calls** (no API calls from DB)
@@ -5788,15 +6216,18 @@ N8N Workflow/
 ---
 
 ### 🤖 **OPENROUTER LLM - AI Processing Only**
+
 **UNICA RESPONSABILITÀ: Large Language Model Processing**
 
 #### ✅ **COSA FA OPENROUTER:**
+
 1. **Text Generation** - Generate risposte conversazionali
 2. **Intent Classification** - Classify customer intents
 3. **Context Understanding** - Process conversation context
 4. **Multi-language Support** - Handle multiple languages
 
 #### ❌ **COSA NON FA OPENROUTER:**
+
 - ❌ **Data Storage** (no memory persistence)
 - ❌ **Business Logic** (no if/then business rules)
 - ❌ **External API Calls** (no function calling to systems)
@@ -5806,21 +6237,25 @@ N8N Workflow/
 ### 🎭 **VANTAGGI SINGLE RESPONSIBILITY:**
 
 #### 🔧 **MAINTAINABILITY:**
+
 - **Modifiche isolate**: Cambiare security logic non tocca AI
 - **Testing semplificato**: Test unit per ogni responsabilità
 - **Debug facilitato**: Error isolation per componente
 
 #### 📈 **SCALABILITY:**
+
 - **Scaling indipendente**: N8N e Backend scalano separatamente
 - **Performance isolation**: Bottleneck in un componente non blocca altri
 - **Resource optimization**: Allocazione risorse per responsabilità
 
 #### 👥 **TEAM PRODUCTIVITY:**
+
 - **Ownership chiara**: Team diversi su componenti diversi
 - **Parallel development**: Sviluppo simultaneo senza conflicts
 - **Expertise specialization**: Team specialist per responsabilità
 
 #### 🛡️ **SECURITY:**
+
 - **Attack surface reduction**: Security centralizzata nel Backend
 - **Permission isolation**: N8N non ha access diretto al DB
 - **Audit trail clarity**: Responsabilità tracciabili per compliance
@@ -5829,16 +6264,16 @@ N8N Workflow/
 
 ### 📋 **DECISION MATRIX:**
 
-| **Domanda** | **Responsabile** | **Perché** |
-|-------------|------------------|------------|
-| "Customer può mandare messaggi?" | **Backend** | Security control |
-| "Workspace è attivo?" | **N8N** | Business rule |
-| "Che intent ha il messaggio?" | **N8N → OpenRouter** | AI processing |
-| "Come salvo il messaggio?" | **Backend** | Data persistence |
-| "Genero checkout link?" | **N8N** | Business orchestration |
-| "Rate limit superato?" | **Backend** | Security control |
-| "Nuovo vs esistente customer?" | **N8N** | Business logic |
-| "Che prompt usare?" | **N8N** | AI strategy |
+| **Domanda**                      | **Responsabile**     | **Perché**             |
+| -------------------------------- | -------------------- | ---------------------- |
+| "Customer può mandare messaggi?" | **Backend**          | Security control       |
+| "Workspace è attivo?"            | **N8N**              | Business rule          |
+| "Che intent ha il messaggio?"    | **N8N → OpenRouter** | AI processing          |
+| "Come salvo il messaggio?"       | **Backend**          | Data persistence       |
+| "Genero checkout link?"          | **N8N**              | Business orchestration |
+| "Rate limit superato?"           | **Backend**          | Security control       |
+| "Nuovo vs esistente customer?"   | **N8N**              | Business logic         |
+| "Che prompt usare?"              | **N8N**              | AI strategy            |
 
 ---
 
@@ -5846,86 +6281,98 @@ N8N Workflow/
 
 ### **CHECKLIST SYSTEM CHECK SHOPME (9/9 Questions)**
 
-#### **1. 🔧 COMPILA?** 
--   - Backend compila correttamente, tutte le route caricate
--   - Frontend compila senza errori TypeScript
--   - Zero errori di compilazione
+#### **1. 🔧 COMPILA?**
+
+- - Backend compila correttamente, tutte le route caricate
+- - Frontend compila senza errori TypeScript
+- - Zero errori di compilazione
 
 #### **2. 🧪 TEST VANNO?**
--   - Confermato da Andrea in precedenza
--   - Unit tests passano
--   - Integration tests funzionanti
+
+- - Confermato da Andrea in precedenza
+- - Unit tests passano
+- - Integration tests funzionanti
 
 #### **3. 🔗 WEBHOOK VERSO N8N**
--   - `forwardToN8N()` implementato in WhatsAppController  
--   - URL corretto: `http://localhost:5678/webhook/shopme-login-n8n`
--   - JSON completo inviato a N8N
+
+- - `forwardToN8N()` implementato in WhatsAppController
+- - URL corretto: `http://localhost:5678/webhook/shopme-login-n8n`
+- - JSON completo inviato a N8N
 
 #### **4. 🐳 DOCKER IMPORTA FLUSSI AL RIAVVIO?**
--   - Script automatico `setup-n8n-complete.sh` integrato
--   - Auto-import workflows da `/n8n/workflows/`
--   - Utente persistente: `andrea@shopme.com / shopme123`
+
+- - Script automatico `setup-n8n-complete.sh` integrato
+- - Auto-import workflows da `/n8n/workflows/`
+- - Utente persistente: `andrea@shopme.com / shopme123`
 
 #### **5. 🔐 DEVO FARE LOGIN?**
+
 - ✅ **FALSE** - No login necessario (questo è POSITIVO!)
--   - Setup persistente, accesso immediato
--   - Workflow importati automaticamente
+- - Setup persistente, accesso immediato
+- - Workflow importati automaticamente
 
 #### **6. 🛡️ API LIMIT E SPAM DETECTION**
--   - API limits implementati per workspace
--   - Spam detection: 10 messaggi/30 secondi → auto-blacklist
--   - MessageService gestisce entrambi
+
+- - API limits implementati per workspace
+- - Spam detection: 10 messaggi/30 secondi → auto-blacklist
+- - MessageService gestisce entrambi
 
 #### **7. 🚧 CONTROLLO WIP**
--   - N8N workflow controlla `workspace.challengeStatus !== 'ACTIVE'`
--   - Messaggi WIP localizzati (IT, EN, ES, PT)
--   - Blocco automatico se workspace in WIP
+
+- - N8N workflow controlla `workspace.challengeStatus !== 'ACTIVE'`
+- - Messaggi WIP localizzati (IT, EN, ES, PT)
+- - Blocco automatico se workspace in WIP
 
 #### **8. 🌍 CONTROLLO LINGUAGGIO**
--   - `language-detector.ts` con 4 lingue (EN, IT, ES, PT)
--   - Pattern detection avanzato e disambiguazione
--   - Risposte localizzate per ogni lingua
+
+- - `language-detector.ts` con 4 lingue (EN, IT, ES, PT)
+- - Pattern detection avanzato e disambiguazione
+- - Risposte localizzate per ogni lingua
 
 #### **9. 🤖 PROMPT AGENTE DAL DATABASE**
--   - `getAgentConfig()` estrae tutto dal database
--   - Prompt, model, temperature, maxTokens da DB
--   - Zero hardcode, tutto dinamico
+
+- - `getAgentConfig()` estrae tutto dal database
+- - Prompt, model, temperature, maxTokens da DB
+- - Zero hardcode, tutto dinamico
 
 ---
 
 ### 📱 **BONUS: WhatsApp API Implementation**
 
 #### **10. 🔧 FLUSSO N8N HA DUE LLM (PROCESSOR + FORMATTER)?**
--   - LLM 1: RAG Processor (analizza e organizza dati grezzi)
--   - LLM 2: Formatter (crea risposta conversazionale con storico)
--   - Single Responsibility Principle applicato correttamente
+
+- - LLM 1: RAG Processor (analizza e organizza dati grezzi)
+- - LLM 2: Formatter (crea risposta conversazionale con storico)
+- - Single Responsibility Principle applicato correttamente
 
 #### **11. 👨‍💼 CONTROLLO OPERATORE (activeChatbot = false)**
--   - Backend verifica activeChatbot prima di inviare a N8N
--   - Messaggi salvati nel DB con flag speciali per UI
--   - Indicazioni grafiche: banner, badge, colori diversi
+
+- - Backend verifica activeChatbot prima di inviare a N8N
+- - Messaggi salvati nel DB con flag speciali per UI
+- - Indicazioni grafiche: banner, badge, colori diversi
 
 #### **12. 🔑 SESSION TOKEN PER OGNI MESSAGGIO**
--   - SessionTokenService genera token per ogni messaggio WhatsApp
--   - Token sicuro (SHA256, 48 chars) con scadenza 1h
--   - N8N riceve sessionToken in ogni webhook
--   - RAG Search con token validation implementato
--   - Generate-token endpoint per checkout/invoice/cart
+
+- - SessionTokenService genera token per ogni messaggio WhatsApp
+- - Token sicuro (SHA256, 48 chars) con scadenza 1h
+- - N8N riceve sessionToken in ogni webhook
+- - RAG Search con token validation implementato
+- - Generate-token endpoint per checkout/invoice/cart
 
 #### **13. 🚨 WhatsApp API REALE (Meta Business API)**
+
 - ❌ **FALSE** - Non ancora implementato (come specificato da Andrea)
-- ❌ **FALSE** - Attualmente simulato nei log  
+- ❌ **FALSE** - Attualmente simulato nei log
 - ❌ **FALSE** - Da implementare: chiamata vera Meta Business API
 
-
 #### **13. 🚨 NPM RUN DEV**
+
 - lanciamo il FE e il BE e il DB e il docker del n8n
 - impostiamo lo user di N8N
-- importiamo il flusso dentro N8N 
+- importiamo il flusso dentro N8N
 - ci somo file che devono essere cacnellati
 - ci sonon file che non vengono chiamati
-- 
-
+-
 
 ---
 
@@ -5942,6 +6389,7 @@ N8N Workflow/
 ## 🔐 **ANDREA'S SESSION TOKEN ARCHITECTURE**
 
 ### **🎯 OVERVIEW**
+
 Andrea ha progettato un sistema di Session Token rivoluzionario che **genera un token sicuro per OGNI messaggio WhatsApp**, garantendo tracciabilità completa e sicurezza avanzata.
 
 ### **🏗️ ARCHITETTURA FLOW**
@@ -5965,6 +6413,7 @@ Andrea ha progettato un sistema di Session Token rivoluzionario che **genera un 
 ### **🔑 SESSION TOKEN FEATURES**
 
 #### **1. Auto-Generation per ogni messaggio**
+
 ```typescript
 // Chiamato per OGNI messaggio WhatsApp
 const sessionToken = await sessionTokenService.createOrRenewSessionToken(
@@ -5972,20 +6421,22 @@ const sessionToken = await sessionTokenService.createOrRenewSessionToken(
   customerId,
   phoneNumber,
   conversationId
-);
+)
 ```
 
 #### **2. Sicurezza Avanzata**
+
 - **Token Unico**: SHA256 di 48 caratteri
 - **Scadenza**: 1 ora auto-renewal
 - **Invalidazione**: Token precedenti scadono automaticamente
 - **Tracciabilità**: Ogni azione linkkata a sessione specifica
 
 #### **3. Payload Crittografato**
+
 ```json
 {
   "workspaceId": "workspace-123",
-  "customerId": "customer-456", 
+  "customerId": "customer-456",
   "phoneNumber": "+39123456789",
   "conversationId": "conv_1234567890_customer-456",
   "lastActivity": "2024-01-15T10:30:00Z",
@@ -5995,17 +6446,18 @@ const sessionToken = await sessionTokenService.createOrRenewSessionToken(
 
 ### **🔗 TOKEN TYPES SUPPORTATI**
 
-| Type | Durata | Utilizzo | Endpoint |
-|------|--------|----------|----------|
-| `session` | 1h | Conversazione WhatsApp | Auto-generated |
-| `checkout` | 1h | Link pagamento | `/api/internal/generate-token` |
-| `invoice` | 24h | Fatture elettroniche | `/api/internal/generate-token` |
-| `cart` | 2h | Carrello condiviso | `/api/internal/generate-token` |
-| `registration` | 1h | Registrazione utenti | `/api/internal/generate-registration-link` |
+| Type           | Durata | Utilizzo               | Endpoint                                   |
+| -------------- | ------ | ---------------------- | ------------------------------------------ |
+| `session`      | 1h     | Conversazione WhatsApp | Auto-generated                             |
+| `checkout`     | 1h     | Link pagamento         | `/api/internal/generate-token`             |
+| `invoice`      | 24h    | Fatture elettroniche   | `/api/internal/generate-token`             |
+| `cart`         | 2h     | Carrello condiviso     | `/api/internal/generate-token`             |
+| `registration` | 1h     | Registrazione utenti   | `/api/internal/generate-registration-link` |
 
 ### **🚀 N8N INTEGRATION**
 
 #### **Webhook Enhanced**
+
 ```javascript
 // N8N riceve il sessionToken con ogni messaggio
 {
@@ -6021,6 +6473,7 @@ const sessionToken = await sessionTokenService.createOrRenewSessionToken(
 ```
 
 #### **RAG Search con Token Validation**
+
 ```javascript
 // N8N chiama RAG con sessionToken
 POST /api/internal/rag-search
@@ -6043,11 +6496,13 @@ POST /api/internal/rag-search
 ### **🔧 ENDPOINT IMPLEMENTATI**
 
 #### **1. Session Token (Auto-generated)**
+
 - **Metodo**: Automatico ad ogni messaggio WhatsApp
 - **Durata**: 1 ora con auto-renewal
 - **Utilizzo**: Tracciamento conversazione sicura
 
 #### **2. Generate Token (N8N Call)**
+
 ```http
 POST /api/internal/generate-token
 {
@@ -6059,11 +6514,12 @@ POST /api/internal/generate-token
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
   "token": "secure-token-48-chars",
-  "expiresAt": "2024-01-15T11:30:00Z", 
+  "expiresAt": "2024-01-15T11:30:00Z",
   "linkUrl": "https://domain.com/checkout?token=...",
   "action": "checkout",
   "customerId": "customer-123",
@@ -6087,8 +6543,9 @@ POST /api/internal/generate-token
 **ANDREA HA CREATO IL SISTEMA PIÙ SICURO E TRACCIABILE DEL MERCATO!** 🚀
 
 Ogni singolo messaggio WhatsApp ora genera un session token sicuro che:
+
 1. **Traccia** ogni conversazione
-2. **Protegge** tutti i link generati  
+2. **Protegge** tutti i link generati
 3. **Previene** attacchi e abusi
 4. **Garantisce** compliance GDPR
 5. **Fornisce** audit trail completo
@@ -6103,46 +6560,47 @@ Ogni singolo messaggio WhatsApp ora genera un session token sicuro che:
 
 ### N8N Workflow Calling Functions → Internal API Endpoints
 
-| **N8N Function Node** | **Endpoint Chiamato** | **Metodo** | **Scopo** |
-|----------------------|----------------------|------------|-----------|
-| 📤 Send Welcome Message | `/api/internal/send-whatsapp` | POST | Invio messaggio di benvenuto |
-| 🔑 Generate Checkout Token | **SERVIZIO INTERNO** | Code Node | ✅ **Generazione token interna** |
-| 🔍 RAG Search | `/api/internal/rag-search` | POST | Ricerca semantica nei dati |
-| 🤖 OpenRouter LLM 1 Call | `https://openrouter.ai/api/v1/chat/completions` | POST | LLM 1 - RAG Processor |
-| 🤖 OpenRouter LLM 2 Call | `https://openrouter.ai/api/v1/chat/completions` | POST | LLM 2 - Formatter |
-| 💾 Save Message & Response | `/api/internal/save-message` | POST | Salvataggio conversazione |
-| 📤 Send WhatsApp Response | `/api/internal/send-whatsapp` | POST | Invio risposta finale |
-| 📤 Send WIP Message | `/api/internal/send-whatsapp` | POST | Messaggio workspace non attivo |
-| 📤 Send Checkout Link | `/api/internal/send-whatsapp` | POST | Invio link checkout sicuro |
+| **N8N Function Node**      | **Endpoint Chiamato**                           | **Metodo** | **Scopo**                        |
+| -------------------------- | ----------------------------------------------- | ---------- | -------------------------------- |
+| 📤 Send Welcome Message    | `/api/internal/send-whatsapp`                   | POST       | Invio messaggio di benvenuto     |
+| 🔑 Generate Checkout Token | **SERVIZIO INTERNO**                            | Code Node  | ✅ **Generazione token interna** |
+| 🔍 RAG Search              | `/api/internal/rag-search`                      | POST       | Ricerca semantica nei dati       |
+| 🤖 OpenRouter LLM 1 Call   | `https://openrouter.ai/api/v1/chat/completions` | POST       | LLM 1 - RAG Processor            |
+| 🤖 OpenRouter LLM 2 Call   | `https://openrouter.ai/api/v1/chat/completions` | POST       | LLM 2 - Formatter                |
+| 💾 Save Message & Response | `/api/internal/save-message`                    | POST       | Salvataggio conversazione        |
+| 📤 Send WhatsApp Response  | `/api/internal/send-whatsapp`                   | POST       | Invio risposta finale            |
+| 📤 Send WIP Message        | `/api/internal/send-whatsapp`                   | POST       | Messaggio workspace non attivo   |
+| 📤 Send Checkout Link      | `/api/internal/send-whatsapp`                   | POST       | Invio link checkout sicuro       |
 
 ### Legacy Calling Functions (Backend - Non Usate)
 
-| **Function File** | **Endpoint Target** | **Status** | **Note** |
-|------------------|-------------------|----------|----------|
-| `createCheckoutLink.ts` | *Nessun endpoint* | ❌ DEPRECATED | Sostituita da `/generate-token` |
-| `searchDocuments.ts` | *File vuoto* | ❌ DEPRECATED | Sostituita da `/rag-search` |
-| `welcomeUser.ts` | *File vuoto* | ❌ DEPRECATED | Sostituita da `/send-whatsapp` |
+| **Function File**       | **Endpoint Target** | **Status**    | **Note**                        |
+| ----------------------- | ------------------- | ------------- | ------------------------------- |
+| `createCheckoutLink.ts` | _Nessun endpoint_   | ❌ DEPRECATED | Sostituita da `/generate-token` |
+| `searchDocuments.ts`    | _File vuoto_        | ❌ DEPRECATED | Sostituita da `/rag-search`     |
+| `welcomeUser.ts`        | _File vuoto_        | ❌ DEPRECATED | Sostituita da `/send-whatsapp`  |
 
 ### Internal API Endpoints Disponibili
 
-| **Endpoint** | **Metodo** | **Utilizzato Da** | **Scopo** |
-|-------------|-----------|------------------|-----------|
-| `/api/internal/channel-status/:workspaceId` | GET | N8N Webhook | Verifica stato canale |
-| `/api/internal/business-type/:workspaceId` | GET | N8N Business Logic | Tipo business (ECOMMERCE, RESTAURANT, etc.) |
-| `/api/internal/user-check/:workspaceId/:phone` | GET | N8N User Flow | Verifica esistenza utente |
-| `/api/internal/wip-status/:workspaceId/:phone` | GET | N8N Workspace Check | Stato work-in-progress |
-| `/api/internal/rag-search` | POST | **N8N RAG Search** | ✅ **Ricerca semantica attiva** |
-| `/api/internal/agent-config/:workspaceId` | GET | N8N LLM Calls | Configurazione agente AI |
-| `/api/internal/save-message` | POST | **N8N Save Message** | ✅ **Salvataggio conversazioni** |
-| `/api/internal/conversation-history/:workspaceId/:phone` | GET | N8N History | Storico conversazioni |
-| `/api/internal/welcome-user` | POST | N8N Welcome Flow | Benvenuto nuovi utenti |
-| `/api/internal/generate-registration-link` | POST | N8N Registration | Link registrazione utenti |
-| `/api/internal/generate-token` | POST | ❌ **DEPRECATED** | Sostituito da servizio interno |
-| `/api/internal/send-whatsapp` | POST | **N8N Send WhatsApp** | ✅ **Invio messaggi WhatsApp** |
+| **Endpoint**                                             | **Metodo** | **Utilizzato Da**     | **Scopo**                                   |
+| -------------------------------------------------------- | ---------- | --------------------- | ------------------------------------------- |
+| `/api/internal/channel-status/:workspaceId`              | GET        | N8N Webhook           | Verifica stato canale                       |
+| `/api/internal/business-type/:workspaceId`               | GET        | N8N Business Logic    | Tipo business (ECOMMERCE, RESTAURANT, etc.) |
+| `/api/internal/user-check/:workspaceId/:phone`           | GET        | N8N User Flow         | Verifica esistenza utente                   |
+| `/api/internal/wip-status/:workspaceId/:phone`           | GET        | N8N Workspace Check   | Stato work-in-progress                      |
+| `/api/internal/rag-search`                               | POST       | **N8N RAG Search**    | ✅ **Ricerca semantica attiva**             |
+| `/api/internal/agent-config/:workspaceId`                | GET        | N8N LLM Calls         | Configurazione agente AI                    |
+| `/api/internal/save-message`                             | POST       | **N8N Save Message**  | ✅ **Salvataggio conversazioni**            |
+| `/api/internal/conversation-history/:workspaceId/:phone` | GET        | N8N History           | Storico conversazioni                       |
+| `/api/internal/welcome-user`                             | POST       | N8N Welcome Flow      | Benvenuto nuovi utenti                      |
+| `/api/internal/generate-registration-link`               | POST       | N8N Registration      | Link registrazione utenti                   |
+| `/api/internal/generate-token`                           | POST       | ❌ **DEPRECATED**     | Sostituito da servizio interno              |
+| `/api/internal/send-whatsapp`                            | POST       | **N8N Send WhatsApp** | ✅ **Invio messaggi WhatsApp**              |
 
 ### 🎯 FUNZIONI ATTIVE vs DEPRECATED
 
 **✅ ATTIVE (Usate da N8N Workflow):**
+
 - `/api/internal/rag-search` - Ricerca semantica principale
 - **SecureTokenService (interno)** - Generazione token sicuri Andrea
 - `/api/internal/send-whatsapp` - Invio messaggi WhatsApp
@@ -6150,11 +6608,13 @@ Ogni singolo messaggio WhatsApp ora genera un session token sicuro che:
 - OpenRouter API diretta - Due-LLM Architecture
 
 **❌ DEPRECATED (Files Legacy Non Usati):**
+
 - `backend/src/chatbot/calling-functions/` - Tutte le funzioni legacy
 - Endpoint manuali `/whatsapp` - Sostituiti da N8N automatico
 - `/api/internal/generate-token` - Sostituito da **SecureTokenService interno**
 
 **🏗️ ARCHITETTURA FINALE:**
+
 ```
 📱 WhatsApp → N8N Webhook → Internal API Endpoints → OpenRouter → Risposta
 ```
@@ -6162,13 +6622,15 @@ Ogni singolo messaggio WhatsApp ora genera un session token sicuro che:
 Ogni messaggio WhatsApp passa attraverso il workflow N8N che chiama gli endpoint Internal API appropriati per processare la richiesta e generare la risposta finale.
 
 **📊 STATISTICHE CALLING FUNCTIONS:**
+
 - **8 N8N HTTP Functions** → Endpoint reali attivi
 - **1 N8N Internal Service** → SecureTokenService (più efficiente)
-- **3 Legacy Functions** → Files vuoti/deprecated  
+- **3 Legacy Functions** → Files vuoti/deprecated
 - **11 Internal API Endpoints** → Attivi (1 deprecated)
 - **2 OpenRouter Calls** → LLM diretti per Two-LLM Architecture
 
 **🎯 ARCHITETTURA MIGLIORATA DA ANDREA:**
+
 - **Generate Checkout Token** ora usa **servizio interno** invece di HTTP
 - **Zero overhead** di chiamate HTTP inutili
 - **Maggiore sicurezza** con logica interna
@@ -6179,17 +6641,20 @@ Ogni messaggio WhatsApp passa attraverso il workflow N8N che chiama gli endpoint
 ## 💰 **USAGE TRACKING & DASHBOARD ANALYTICS**
 
 ### **OVERVIEW**
+
 Andrea has implemented a comprehensive usage tracking system that monitors LLM costs and provides detailed analytics through a dashboard feature. The system tracks every LLM response for registered users and charges 0.5 cents per message.
 
 ### **🎯 CORE FEATURES**
 
 #### **1. Automatic Usage Tracking**
+
 - **Cost per Message**: 0.5 cents (€0.005) for each LLM response
 - **Target Users**: Only registered customers (not anonymous users)
 - **Automatic Trigger**: Tracks usage when LLM returns a successful response
 - **Workspace Isolation**: All usage data filtered by workspaceId
 
 #### **2. Database Schema**
+
 ```sql
 model Usage {
   id          String    @id @default(uuid()) -- usageId
@@ -6197,7 +6662,7 @@ model Usage {
   clientId    String                         -- customer ID
   price       Float     @default(0.005)     -- 0.5 cents per message
   createdAt   DateTime  @default(now())     -- timestamp
-  
+
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
   customer    Customers @relation(fields: [clientId], references: [id])
 }
@@ -6206,6 +6671,7 @@ model Usage {
 #### **3. Dashboard Analytics**
 
 **📊 Overview Metrics:**
+
 - Total Cost (current period)
 - Total Messages count
 - Average Daily Cost
@@ -6213,12 +6679,14 @@ model Usage {
 - Monthly Comparison (current vs previous month with growth %)
 
 **📈 Charts & Visualizations:**
+
 - **Daily Usage**: Line chart showing cost and message trends over time
 - **Peak Hours**: Bar chart showing busiest hours (0-23) for optimization
 - **Top Clients**: Ranked list of highest-usage customers
 - **Monthly Trends**: Comparison with previous 3 months
 
 **🔍 Insights & Analytics:**
+
 - **Peak Hour Identification**: Busiest hour for staff planning
 - **Busiest Day**: Day with highest message volume
 - **Client Analysis**: Top 10 customers by cost and message count
@@ -6227,6 +6695,7 @@ model Usage {
 #### **4. API Endpoints**
 
 **Usage Statistics:**
+
 ```http
 GET /api/usage/stats/{workspaceId}
 - Query params: startDate, endDate, clientId
@@ -6234,6 +6703,7 @@ GET /api/usage/stats/{workspaceId}
 ```
 
 **Dashboard Data:**
+
 ```http
 GET /api/usage/dashboard/{workspaceId}
 - Query params: period (days, default: 30)
@@ -6241,6 +6711,7 @@ GET /api/usage/dashboard/{workspaceId}
 ```
 
 **Usage Summary:**
+
 ```http
 GET /api/usage/summary/{workspaceId}
 - Query params: days (default: 30)
@@ -6248,6 +6719,7 @@ GET /api/usage/summary/{workspaceId}
 ```
 
 **Data Export:**
+
 ```http
 GET /api/usage/export/{workspaceId}
 - Query params: startDate, endDate, format (csv/json)
@@ -6257,21 +6729,24 @@ GET /api/usage/export/{workspaceId}
 ### **🔧 TECHNICAL IMPLEMENTATION**
 
 #### **Usage Tracking Integration**
+
 ```typescript
 // Automatically called after successful LLM response
 await usageService.trackUsage({
   workspaceId: workspaceId,
   clientId: customer.id,
-  price: 0.005 // 0.5 cents as requested by Andrea
-});
+  price: 0.005, // 0.5 cents as requested by Andrea
+})
 ```
 
 **Tracking Points:**
+
 1. **Message Repository** - `getResponseFromRag()` method
 2. **Internal API Controller** - `llmProcess()` method
 3. **N8N Workflow** - After successful OpenRouter LLM calls
 
 #### **Dashboard Features**
+
 - **Real-time Data**: Up-to-date usage statistics
 - **Flexible Date Ranges**: Custom period selection
 - **Client Filtering**: View usage for specific customers
@@ -6281,44 +6756,47 @@ await usageService.trackUsage({
 ### #### **Analytics Dashboard Issues & Fixes**
 
 **Current Problems:**
+
 - **Missing Historical Data**: Analytics Dashboard not showing orders from past months
 - **Blue Info Box**: Distracting "Informazioni sul periodo di default" box ruins dashboard aesthetics
 - **Inconsistent Design**: Dashboard doesn't match main application's color scheme and typography
 - **Date Range Issues**: Date selector not properly loading historical data
 
 **Required Fixes:**
+
 ```typescript
 // Analytics Dashboard Requirements
 interface AnalyticsDashboardFixes {
   // Remove distracting info box
-  removeInfoBox: boolean                    // Eliminate blue default period info box
-  
+  removeInfoBox: boolean // Eliminate blue default period info box
+
   // Historical data visualization
   historicalOrders: {
-    showPastMonths: boolean                 // Display orders from previous months
-    dateRangeSelector: boolean              // Working date range picker
-    monthlyTrends: boolean                  // Monthly order trends charts
-    yearOverYear: boolean                   // Year-over-year comparisons
+    showPastMonths: boolean // Display orders from previous months
+    dateRangeSelector: boolean // Working date range picker
+    monthlyTrends: boolean // Monthly order trends charts
+    yearOverYear: boolean // Year-over-year comparisons
   }
-  
+
   // Design consistency
   designSystem: {
-    colors: string[]                        // Match main app color palette
-    typography: string[]                    // Consistent font families and sizes
-    spacing: string[]                       // Match main app spacing system
-    components: string[]                    // Reuse existing UI components
+    colors: string[] // Match main app color palette
+    typography: string[] // Consistent font families and sizes
+    spacing: string[] // Match main app spacing system
+    components: string[] // Reuse existing UI components
   }
-  
+
   // Data loading improvements
   dataLoading: {
-    historicalQuery: boolean                // Proper historical data queries
-    performanceOptimization: boolean       // Optimized chart rendering
-    cacheStrategy: boolean                  // Cache frequently accessed data
+    historicalQuery: boolean // Proper historical data queries
+    performanceOptimization: boolean // Optimized chart rendering
+    cacheStrategy: boolean // Cache frequently accessed data
   }
 }
 ```
 
 **Implementation Requirements:**
+
 - **Remove Blue Box**: Eliminate the default period information box entirely
 - **Historical Charts**: Implement proper charts showing orders from past months
 - **Design Consistency**: Apply same colors, fonts, and spacing as main application
@@ -6330,14 +6808,14 @@ interface AnalyticsDashboardFixes {
 ```json
 {
   "overview": {
-    "totalCost": 0.125,           // €0.125 total
-    "totalMessages": 25,          // 25 LLM responses
-    "averageDailyCost": 0.0042,   // €0.0042 per day
+    "totalCost": 0.125, // €0.125 total
+    "totalMessages": 25, // 25 LLM responses
+    "averageDailyCost": 0.0042, // €0.0042 per day
     "averageDailyMessages": 0.83, // 0.83 messages per day
     "monthlyComparison": {
       "currentMonth": 0.125,
       "previousMonth": 0.095,
-      "growth": 31.58             // +31.58% growth
+      "growth": 31.58 // +31.58% growth
     }
   },
   "charts": {
@@ -6346,8 +6824,8 @@ interface AnalyticsDashboardFixes {
       { "date": "2024-01-02", "cost": 0.025, "messages": 5 }
     ],
     "peakHours": [
-      { "hour": 14, "messages": 8, "cost": 0.040 },
-      { "hour": 10, "messages": 6, "cost": 0.030 }
+      { "hour": 14, "messages": 8, "cost": 0.04 },
+      { "hour": 10, "messages": 6, "cost": 0.03 }
     ]
   },
   "insights": {
@@ -6361,7 +6839,7 @@ interface AnalyticsDashboardFixes {
       }
     ],
     "peakHour": 14,
-    "busiestDay": { "date": "2024-01-15", "messages": 12, "cost": 0.060 }
+    "busiestDay": { "date": "2024-01-15", "messages": 12, "cost": 0.06 }
   }
 }
 ```
@@ -6369,18 +6847,21 @@ interface AnalyticsDashboardFixes {
 ### **💡 BUSINESS VALUE**
 
 #### **Cost Monitoring**
+
 - **Budget Control**: Track LLM costs in real-time
 - **Usage Optimization**: Identify peak hours and adjust staffing
 - **Client Insights**: Understand customer engagement patterns
 - **ROI Analysis**: Measure conversation efficiency and outcomes
 
 #### **Operational Intelligence**
+
 - **Resource Planning**: Staff optimization based on peak hours
 - **Customer Segmentation**: Identify high-value customers
 - **Trend Analysis**: Month-over-month growth tracking
 - **Performance Metrics**: Messages per customer, cost per interaction
 
 #### **Dashboard Integration**
+
 - **Admin Interface**: Embedded in ShopMe admin dashboard
 - **Export Capabilities**: CSV/JSON for external reporting
 - **Real-time Updates**: Live data refresh for accurate monitoring
@@ -6389,6 +6870,7 @@ interface AnalyticsDashboardFixes {
 ### **🎯 IMPLEMENTATION STATUS**
 
 **✅ COMPLETED:**
+
 - [x] Database schema (Usage table)
 - [x] Usage service with tracking and analytics
 - [x] API endpoints for dashboard data
@@ -6399,6 +6881,7 @@ interface AnalyticsDashboardFixes {
 - [x] Export functionality (CSV/JSON)
 
 **📋 NEXT STEPS:**
+
 - [ ] Frontend dashboard UI components
 - [ ] Real-time dashboard updates
 - [ ] Advanced filtering options
@@ -6407,6 +6890,7 @@ interface AnalyticsDashboardFixes {
 **🚀 USAGE TRACKING SYSTEM SUCCESSFULLY IMPLEMENTED!**
 
 Andrea's usage tracking system provides comprehensive LLM cost monitoring with powerful analytics, enabling businesses to:
+
 - Monitor and control AI-related expenses
 - Optimize customer service operations
 - Understand customer engagement patterns

@@ -587,7 +587,11 @@ export default function ClientsPage(): JSX.Element {
       {/* WhatsApp Playground Modal */}
       <WhatsAppChatModal
         isOpen={showPlayground}
-        onClose={() => setShowPlayground(false)}
+        onClose={() => {
+          setShowPlayground(false)
+          // Refresh the clients list when the WhatsApp modal closes
+          refetchClients()
+        }}
         channelName="WhatsApp Chat"
         phoneNumber={""}
         workspaceId={workspace?.id}

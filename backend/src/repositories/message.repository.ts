@@ -455,30 +455,83 @@ export class MessageRepository {
 
       // Save user message (ensure it's not empty)
       if (userMessage && userMessage.trim()) {
-        await this.prisma.message.create({
-          data: {
+        // 🚨 ANTI-DUPLICATE CHECK: Verify if similar message exists in same hour:minute
+        const now = new Date();
+        const currentHourMinute = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+        
+        // Search for messages in the last 2 minutes to catch duplicates across minute boundaries
+        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+        const existingMessage = await this.prisma.message.findFirst({
+          where: {
             chatSessionId: session.id,
             content: userMessage,
             direction: MessageDirection.INBOUND,
-            type: MessageType.TEXT,
-            aiGenerated: false,
+            createdAt: {
+              gte: twoMinutesAgo
+            }
           },
-        })
+          orderBy: {
+            createdAt: 'desc'
+          }
+        });
+
+        if (existingMessage) {
+          const existingHourMinute = `${existingMessage.createdAt.getHours()}:${existingMessage.createdAt.getMinutes().toString().padStart(2, '0')}`;
+          logger.warn(`🚨 DUPLICATE DETECTED: Message "${userMessage.substring(0, 50)}..." already exists from ${existingHourMinute} (${existingMessage.createdAt.toISOString()}). Current time: ${currentHourMinute}. Skipping insert.`);
+        } else {
+          await this.prisma.message.create({
+            data: {
+              chatSessionId: session.id,
+              content: userMessage,
+              direction: MessageDirection.INBOUND,
+              type: MessageType.TEXT,
+              aiGenerated: false,
+            },
+          })
+          logger.info(`✅ SAVED USER MESSAGE: "${userMessage.substring(0, 50)}..." for session ${session.id}`);
+        }
       }
 
       // Save bot response (ensure it's not empty)
       let botResponse = null
       if (botMessage && botMessage.trim()) {
-        botResponse = await this.prisma.message.create({
-          data: {
+        // 🚨 ANTI-DUPLICATE CHECK: Verify if similar bot response exists in same hour:minute
+        const now = new Date();
+        const currentHourMinute = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+        
+        // Search for messages in the last 2 minutes to catch duplicates across minute boundaries
+        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+        const existingBotMessage = await this.prisma.message.findFirst({
+          where: {
             chatSessionId: session.id,
             content: botMessage,
             direction: MessageDirection.OUTBOUND,
-            type: MessageType.TEXT,
-            aiGenerated: true,
-            metadata: botMetadata,
+            createdAt: {
+              gte: twoMinutesAgo
+            }
           },
-        })
+          orderBy: {
+            createdAt: 'desc'
+          }
+        });
+
+        if (existingBotMessage) {
+          const existingHourMinute = `${existingBotMessage.createdAt.getHours()}:${existingBotMessage.createdAt.getMinutes().toString().padStart(2, '0')}`;
+          logger.warn(`🚨 DUPLICATE BOT RESPONSE DETECTED: Response "${botMessage.substring(0, 50)}..." already exists from ${existingHourMinute} (${existingBotMessage.createdAt.toISOString()}). Current time: ${currentHourMinute}. Skipping insert.`);
+          botResponse = existingBotMessage; // Return existing response instead of creating new one
+        } else {
+          botResponse = await this.prisma.message.create({
+            data: {
+              chatSessionId: session.id,
+              content: botMessage,
+              direction: MessageDirection.OUTBOUND,
+              type: MessageType.TEXT,
+              aiGenerated: true,
+              metadata: botMetadata,
+            },
+          })
+          logger.info(`✅ SAVED BOT RESPONSE: "${botMessage.substring(0, 50)}..." for session ${session.id}`);
+        }
       }
 
       // Also update the chat session's lastMessageAt
