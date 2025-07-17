@@ -111,7 +111,7 @@ describe("RegistrationService", () => {
       const mockWorkspaceSettings = {
         id: "workspace-123",
         afterRegistrationMessages: {
-          en: "Registration completed successfully. Hello [nome], how can I help you today?"
+          en: "Thank you for registering, [nome]! How can I help you today? Would you like to see your orders? The offers? Or do you need other information?"
           // No Italian message
         }
       }
@@ -127,7 +127,7 @@ describe("RegistrationService", () => {
       // Verify that the English message was used, but with the correct name
       expect(mockMessageRepository.saveMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          response: "Registration completed successfully. Hello Marco, how can I help you today?"
+          response: "Thank you for registering, Marco! How can I help you today? Would you like to see your orders? The offers? Or do you need other information?"
         })
       )
       
@@ -165,7 +165,7 @@ describe("RegistrationService", () => {
       // Verify that the default message was used
       expect(mockMessageRepository.saveMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          response: "Registration completed successfully. Hello John, how can I help you today?"
+          response: "Thank you for registering, John! How can I help you today? Would you like to see your orders? The offers? Or do you need other information?"
         })
       )
       
