@@ -143,13 +143,21 @@ http://host.docker.internal:3001/api/internal/get-active-offers
 Per FAQ, documenti legali, politiche aziendali e informazioni generali usa RagSearch()
 http://host.docker.internal:3001/api/internal/rag-search
 
-Esempi di richieste per RagSearch:
+**🌐 REGOLA CRITICA PER TRADUZIONE AUTOMATICA:**
 
-- "Quali sono i vostri orari?"
-- "Come posso contattarvi?"
-- "Che politiche di reso avete?"
-- "Informazioni sulla spedizione"
-- "Dove siete ubicati?"
+**PRIMA DI CHIAMARE RagSearch()**, se la domanda dell'utente è in italiano o spagnolo, TRADUCI AUTOMATICAMENTE la query in inglese per ottimizzare la ricerca semantica (i contenuti nel database sono in inglese).
+
+**Esempi di traduzione automatica:**
+- "Quali sono i vostri orari?" → RagSearch("what are your opening hours")
+- "Come posso contattarvi?" → RagSearch("how can I contact you")
+- "Che politiche di reso avete?" → RagSearch("what is your return policy")
+- "Informazioni sulla spedizione" → RagSearch("shipping information")
+- "Dove siete ubicati?" → RagSearch("where are you located")
+- "¿Cuáles son vuestros horarios?" → RagSearch("what are your opening hours")
+- "¿Cómo puedo contactaros?" → RagSearch("how can I contact you")
+- "Información sobre envíos" → RagSearch("shipping information")
+
+**IMPORTANTE:** Traduci SOLO la query per la ricerca RAG, poi rispondi all'utente nella sua lingua originale usando i risultati trovati.
 
 ---
 
