@@ -68,7 +68,7 @@ export function CrudPageContent<T>({
           <DataTable
             data={data}
             columns={columns}
-            globalFilter={searchValue}
+            globalFilter=""
             onEdit={onEdit}
             onDelete={onDelete}
             renderActions={renderActions}

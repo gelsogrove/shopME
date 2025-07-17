@@ -53,38 +53,6 @@ Andrea requires that the payment page, once payment is confirmed, always trigger
 
 ================================================================================
 
-## TASK #34
-
-**TITLE**: Manual Operator Message History Saving
-**DESCRIPTION/ROADMAP**:
-
-- Ensure that when a human operator sends a message (manual operator mode), the message is always saved to the chat history
-- Guarantee full auditability and traceability of all operator actions
-- Test operator/manual mode logic to confirm messages are properly stored
-- Verify that both AI/LLM responses and manual operator messages appear in chat history
-
-**SPECIAL NOTE**:
-Andrea requires complete message history for all interactions, including manual operator messages, for audit and quality purposes.
-
-**IMPLEMENTATION COMPLETED**:
-✅ Created `/chat/:sessionId/send` endpoint in ChatController
-✅ Added proper validation to ensure chatbot is disabled (`activeChatbot = false`)
-✅ Implemented message saving with proper metadata (`MANUAL_OPERATOR`)
-✅ Added WhatsApp message sending integration
-✅ Added comprehensive error handling and logging
-✅ Frontend already sends to this endpoint when chatbot is disabled
-✅ Implemented color-coded message system:
-  - 🟢 GREEN: Messages with "CHATBOT" badge (chatbot responses)
-  - 🔵 BLUE: Messages without "CHATBOT" badge (operator messages)
-  - ⚪ GREY: Customer messages (inbound)
-
-**COLOR LOGIC**: If message badge is NOT "CHATBOT" → Operator (Blue)
-
-**STORY POINT**: 2
-**STATUS**: � Completed
-
-================================================================================
-
 ## TASK #38
 
 **TITLE**: Implement 'Aviso legal' PDF Upload and Integration
@@ -103,10 +71,7 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 
 ================================================================================
 
-
 blockuser
-
-
 
 # PHASE 2 TASKS
 
@@ -209,9 +174,11 @@ Andrea requires a clean and maintainable database. All legacy or unused tables m
 
 ================================================================================
 
+## NOTE
 
-- SECUIRTY
-- DEPLOYMENT
-- usage price?
+- SECUIRTY owasp
+- DEPLOYMENT ?
+- prompt con url dinamici?
+- usage price sembra statico
 - dentro il pannello se il token scade? gestione tokem app gestione token n8n getione tokend dell'applicativo
-- international-transportation-law.pdf togliere e mettere le cose legali
+- dammi il pdf ? rag?
