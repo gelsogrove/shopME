@@ -86,7 +86,7 @@ describe("RegistrationService", () => {
           message: '',
           response: "Thank you for registering, John! How can I help you today? Would you like to see your orders? The offers? Or do you need other information?",
           direction: "OUTBOUND",
-          agentSelected: "CHATBOX"
+          agentSelected: "CHATBOT"
         })
       )
       
@@ -217,6 +217,139 @@ describe("RegistrationService", () => {
       expect(mockMessageRepository.saveMessage).not.toHaveBeenCalled()
       
       expect(result).toBe(false)
+    })
+
+    it("should send Italian welcome message for Italian customers", async () => {
+      // Mock customer with Italian language
+      const mockCustomer = {
+        id: "customer-123",
+        name: "Marco Rossi",
+        phone: "+123456789",
+        language: "Italian",
+        workspaceId: "workspace-123",
+        workspace: {
+          id: "workspace-123",
+          name: "Test Workspace"
+        }
+      }
+
+      // Mock workspace settings
+      const mockWorkspaceSettings = {
+        id: "workspace-123",
+        afterRegistrationMessages: {
+          it: "Grazie per esserti registrato, [nome]! Come ti posso aiutare oggi? Vuoi vedere i tuoi ordini? Le offerte? O hai bisogno di altre informazioni?"
+        }
+      }
+
+      // Setup mocks
+      mockPrismaClient.customers.findUnique.mockResolvedValue(mockCustomer as any)
+      mockMessageRepository.getWorkspaceSettings.mockResolvedValue(mockWorkspaceSettings as any)
+      mockMessageRepository.saveMessage.mockResolvedValue(null)
+
+      // Call the method
+      const result = await registrationService.sendAfterRegistrationMessage("customer-123")
+
+      // Verify Italian message was used with CHATBOT agent
+      expect(mockMessageRepository.saveMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workspaceId: "workspace-123",
+          phoneNumber: "+123456789",
+          message: '',
+          response: "Grazie per esserti registrato, Marco! Come ti posso aiutare oggi? Vuoi vedere i tuoi ordini? Le offerte? O hai bisogno di altre informazioni?",
+          direction: "OUTBOUND",
+          agentSelected: "CHATBOT"
+        })
+      )
+
+      expect(result).toBe(true)
+    })
+
+    it("should send Spanish welcome message for Spanish customers", async () => {
+      // Mock customer with Spanish language
+      const mockCustomer = {
+        id: "customer-123",
+        name: "Carlos García",
+        phone: "+123456789",
+        language: "Spanish",
+        workspaceId: "workspace-123",
+        workspace: {
+          id: "workspace-123",
+          name: "Test Workspace"
+        }
+      }
+
+      // Mock workspace settings
+      const mockWorkspaceSettings = {
+        id: "workspace-123",
+        afterRegistrationMessages: {
+          es: "¡Gracias por registrarte, [nome]! ¿Cómo puedo ayudarte hoy? ¿Quieres ver tus pedidos? ¿Las ofertas? ¿O necesitas otra información?"
+        }
+      }
+
+      // Setup mocks
+      mockPrismaClient.customers.findUnique.mockResolvedValue(mockCustomer as any)
+      mockMessageRepository.getWorkspaceSettings.mockResolvedValue(mockWorkspaceSettings as any)
+      mockMessageRepository.saveMessage.mockResolvedValue(null)
+
+      // Call the method
+      const result = await registrationService.sendAfterRegistrationMessage("customer-123")
+
+      // Verify Spanish message was used with CHATBOT agent
+      expect(mockMessageRepository.saveMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workspaceId: "workspace-123",
+          phoneNumber: "+123456789",
+          message: '',
+          response: "¡Gracias por registrarte, Carlos! ¿Cómo puedo ayudarte hoy? ¿Quieres ver tus pedidos? ¿Las ofertas? ¿O necesitas otra información?",
+          direction: "OUTBOUND",
+          agentSelected: "CHATBOT"
+        })
+      )
+
+      expect(result).toBe(true)
+    })
+
+    it("should use default Italian message when no workspace messages available", async () => {
+      // Mock customer with Italian language
+      const mockCustomer = {
+        id: "customer-123",
+        name: "Giulia Bianchi",
+        phone: "+123456789",
+        language: "Italian",
+        workspaceId: "workspace-123",
+        workspace: {
+          id: "workspace-123",
+          name: "Test Workspace"
+        }
+      }
+
+      // Mock workspace settings without Italian messages
+      const mockWorkspaceSettings = {
+        id: "workspace-123",
+        afterRegistrationMessages: {}
+      }
+
+      // Setup mocks
+      mockPrismaClient.customers.findUnique.mockResolvedValue(mockCustomer as any)
+      mockMessageRepository.getWorkspaceSettings.mockResolvedValue(mockWorkspaceSettings as any)
+      mockMessageRepository.saveMessage.mockResolvedValue(null)
+
+      // Call the method
+      const result = await registrationService.sendAfterRegistrationMessage("customer-123")
+
+      // Verify default Italian message was used with CHATBOT agent
+      expect(mockMessageRepository.saveMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workspaceId: "workspace-123",
+          phoneNumber: "+123456789",
+          message: '',
+          response: "Grazie per esserti registrato, Giulia! Come ti posso aiutare oggi? Vuoi vedere i tuoi ordini? Le offerte? O hai bisogno di altre informazioni?",
+          direction: "OUTBOUND",
+          agentSelected: "CHATBOT"
+        })
+      )
+
+      expect(result).toBe(true)
     })
   })
 }) 

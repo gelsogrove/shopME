@@ -77,7 +77,7 @@ export class RegistrationService {
             message: '', // No incoming message
             response: afterRegistrationMessage,
             direction: 'OUTBOUND',
-            agentSelected: 'CHATBOX' // Mark this message as coming from the CHATBOX agent
+            agentSelected: 'CHATBOT' // Mark this message as coming from the CHATBOT agent
           });
           
           logger.info(`After-registration message sent to customer ${customerId}`);
