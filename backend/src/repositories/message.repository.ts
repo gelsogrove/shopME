@@ -1,4 +1,9 @@
-import { MessageDirection, MessageType, OrderStatus, PrismaClient } from "@prisma/client"
+import {
+  MessageDirection,
+  MessageType,
+  OrderStatus,
+  PrismaClient,
+} from "@prisma/client"
 import * as dotenv from "dotenv"
 import OpenAI from "openai"
 import logger from "../utils/logger"
@@ -30,10 +35,10 @@ const openai = new OpenAI({
 // Helper function to check if OpenAI is properly configured
 function isOpenAIConfigured() {
   // In test environment, always return true
-  if (process.env.NODE_ENV === 'test') {
-    return true;
+  if (process.env.NODE_ENV === "test") {
+    return true
   }
-  
+
   const apiKey = process.env.OPENAI_API_KEY
   // Log for debugging
   console.log(
@@ -132,17 +137,19 @@ export class MessageRepository {
         const session = await this.prisma.chatSession.findFirst({
           where: {
             id: chatSessionId,
-            workspaceId: workspaceId
+            workspaceId: workspaceId,
           },
-          select: { id: true }
-        });
-        
+          select: { id: true },
+        })
+
         if (!session) {
-          logger.warn(`getChatSessionMessages: Chat session ${chatSessionId} not found in workspace ${workspaceId}`);
-          return [];
+          logger.warn(
+            `getChatSessionMessages: Chat session ${chatSessionId} not found in workspace ${workspaceId}`
+          )
+          return []
         }
       }
-      
+
       const messages = await this.prisma.message.findMany({
         where: {
           chatSessionId,
@@ -232,7 +239,10 @@ export class MessageRepository {
    * @param workspaceId The workspace ID to check blocklist
    * @returns True if customer is blacklisted, false otherwise
    */
-  async isCustomerBlacklisted(phoneNumber: string, workspaceId?: string): Promise<boolean> {
+  async isCustomerBlacklisted(
+    phoneNumber: string,
+    workspaceId?: string
+  ): Promise<boolean> {
     try {
       // Check if customer has isBlacklisted flag
       const customer = await this.prisma.customers.findFirst({
@@ -264,7 +274,9 @@ export class MessageRepository {
 
         if (workspace?.blocklist) {
           // Split the blocklist by newlines and check if the phone number is in the list
-          const blockedNumbers = workspace.blocklist.split(/[\n,]/).map(num => num.trim())
+          const blockedNumbers = workspace.blocklist
+            .split(/[\n,]/)
+            .map((num) => num.trim())
           if (blockedNumbers.includes(phoneNumber)) {
             return true
           }
@@ -456,28 +468,30 @@ export class MessageRepository {
       // Save user message (ensure it's not empty)
       if (userMessage && userMessage.trim()) {
         // 🚨 ANTI-DUPLICATE CHECK: Verify if similar message exists in same hour:minute
-        const now = new Date();
-        const currentHourMinute = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-        
+        const now = new Date()
+        const currentHourMinute = `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`
+
         // Search for messages in the last 2 minutes to catch duplicates across minute boundaries
-        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000)
         const existingMessage = await this.prisma.message.findFirst({
           where: {
             chatSessionId: session.id,
             content: userMessage,
             direction: MessageDirection.INBOUND,
             createdAt: {
-              gte: twoMinutesAgo
-            }
+              gte: twoMinutesAgo,
+            },
           },
           orderBy: {
-            createdAt: 'desc'
-          }
-        });
+            createdAt: "desc",
+          },
+        })
 
         if (existingMessage) {
-          const existingHourMinute = `${existingMessage.createdAt.getHours()}:${existingMessage.createdAt.getMinutes().toString().padStart(2, '0')}`;
-          logger.warn(`🚨 DUPLICATE DETECTED: Message "${userMessage.substring(0, 50)}..." already exists from ${existingHourMinute} (${existingMessage.createdAt.toISOString()}). Current time: ${currentHourMinute}. Skipping insert.`);
+          const existingHourMinute = `${existingMessage.createdAt.getHours()}:${existingMessage.createdAt.getMinutes().toString().padStart(2, "0")}`
+          logger.warn(
+            `🚨 DUPLICATE DETECTED: Message "${userMessage.substring(0, 50)}..." already exists from ${existingHourMinute} (${existingMessage.createdAt.toISOString()}). Current time: ${currentHourMinute}. Skipping insert.`
+          )
         } else {
           await this.prisma.message.create({
             data: {
@@ -488,7 +502,9 @@ export class MessageRepository {
               aiGenerated: false,
             },
           })
-          logger.info(`✅ SAVED USER MESSAGE: "${userMessage.substring(0, 50)}..." for session ${session.id}`);
+          logger.info(
+            `✅ SAVED USER MESSAGE: "${userMessage.substring(0, 50)}..." for session ${session.id}`
+          )
         }
       }
 
@@ -496,29 +512,31 @@ export class MessageRepository {
       let botResponse = null
       if (botMessage && botMessage.trim()) {
         // 🚨 ANTI-DUPLICATE CHECK: Verify if similar bot response exists in same hour:minute
-        const now = new Date();
-        const currentHourMinute = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-        
+        const now = new Date()
+        const currentHourMinute = `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`
+
         // Search for messages in the last 2 minutes to catch duplicates across minute boundaries
-        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000)
         const existingBotMessage = await this.prisma.message.findFirst({
           where: {
             chatSessionId: session.id,
             content: botMessage,
             direction: MessageDirection.OUTBOUND,
             createdAt: {
-              gte: twoMinutesAgo
-            }
+              gte: twoMinutesAgo,
+            },
           },
           orderBy: {
-            createdAt: 'desc'
-          }
-        });
+            createdAt: "desc",
+          },
+        })
 
         if (existingBotMessage) {
-          const existingHourMinute = `${existingBotMessage.createdAt.getHours()}:${existingBotMessage.createdAt.getMinutes().toString().padStart(2, '0')}`;
-          logger.warn(`🚨 DUPLICATE BOT RESPONSE DETECTED: Response "${botMessage.substring(0, 50)}..." already exists from ${existingHourMinute} (${existingBotMessage.createdAt.toISOString()}). Current time: ${currentHourMinute}. Skipping insert.`);
-          botResponse = existingBotMessage; // Return existing response instead of creating new one
+          const existingHourMinute = `${existingBotMessage.createdAt.getHours()}:${existingBotMessage.createdAt.getMinutes().toString().padStart(2, "0")}`
+          logger.warn(
+            `🚨 DUPLICATE BOT RESPONSE DETECTED: Response "${botMessage.substring(0, 50)}..." already exists from ${existingHourMinute} (${existingBotMessage.createdAt.toISOString()}). Current time: ${currentHourMinute}. Skipping insert.`
+          )
+          botResponse = existingBotMessage // Return existing response instead of creating new one
         } else {
           botResponse = await this.prisma.message.create({
             data: {
@@ -530,7 +548,9 @@ export class MessageRepository {
               metadata: botMetadata,
             },
           })
-          logger.info(`✅ SAVED BOT RESPONSE: "${botMessage.substring(0, 50)}..." for session ${session.id}`);
+          logger.info(
+            `✅ SAVED BOT RESPONSE: "${botMessage.substring(0, 50)}..." for session ${session.id}`
+          )
         }
       }
 
@@ -574,8 +594,8 @@ export class MessageRepository {
           updatedAt: "desc",
         },
         where: {
-          ...(workspaceId ? { workspaceId } : {})
-        }
+          ...(workspaceId ? { workspaceId } : {}),
+        },
       })
 
       // Format the results to include last message information
@@ -643,14 +663,16 @@ export class MessageRepository {
         const session = await this.prisma.chatSession.findFirst({
           where: {
             id: chatSessionId,
-            workspaceId
+            workspaceId,
           },
-          select: { id: true }
-        });
-        
+          select: { id: true },
+        })
+
         if (!session) {
-          logger.warn(`markMessagesAsRead: Chat session ${chatSessionId} not found in workspace ${workspaceId}`);
-          return false;
+          logger.warn(
+            `markMessagesAsRead: Chat session ${chatSessionId} not found in workspace ${workspaceId}`
+          )
+          return false
         }
       }
 
@@ -689,7 +711,7 @@ export class MessageRepository {
       // @ts-ignore - Prisma types issue
       const chatSessions = await this.prisma.chatSession.findMany({
         where: {
-          ...(workspaceId ? { workspaceId } : {})
+          ...(workspaceId ? { workspaceId } : {}),
         },
         include: {
           customer: {
@@ -877,10 +899,10 @@ export class MessageRepository {
       const routerAgent = await this.prisma.prompts.findFirst({
         where: {
           isRouter: true,
-          ...(workspaceId ? { workspaceId } : {})
+          ...(workspaceId ? { workspaceId } : {}),
         },
       })
-      
+
       return routerAgent
     } catch (error) {
       logger.error("Error getting router agent:", error)
@@ -936,8 +958,8 @@ export class MessageRepository {
   async getEvents(workspaceId?: string) {
     try {
       // Events functionality has been removed from the system
-      logger.info("Events functionality has been removed from the system");
-      return [];
+      logger.info("Events functionality has been removed from the system")
+      return []
     } catch (error) {
       logger.error("Error getting events:", error)
       return []
@@ -946,7 +968,7 @@ export class MessageRepository {
 
   /**
    * Update a customer's language preference
-   * 
+   *
    * @param customerId The customer's ID
    * @param language The language code to set
    * @returns The updated customer
@@ -955,18 +977,18 @@ export class MessageRepository {
     try {
       const updatedCustomer = await this.prisma.customers.update({
         where: {
-          id: customerId
+          id: customerId,
         },
         data: {
-          language
-        }
-      });
-      
-      logger.info(`Updated language for customer ${customerId} to ${language}`);
-      return updatedCustomer;
+          language,
+        },
+      })
+
+      logger.info(`Updated language for customer ${customerId} to ${language}`)
+      return updatedCustomer
     } catch (error) {
-      logger.error(`Error updating customer language:`, error);
-      throw new Error("Failed to update customer language");
+      logger.error(`Error updating customer language:`, error)
+      throw new Error("Failed to update customer language")
     }
   }
 
@@ -981,7 +1003,7 @@ export class MessageRepository {
     email,
     phone,
     workspaceId,
-    language = "ENG" // Add default language
+    language = "ENG", // Add default language
   }: {
     name: string
     email: string
@@ -1256,7 +1278,8 @@ export class MessageRepository {
         },
         {
           name: "create_checkout_link",
-          description: "Creates a secure checkout link when user wants to finalize an order",
+          description:
+            "Creates a secure checkout link when user wants to finalize an order",
           parameters: {
             type: "object",
             properties: {
@@ -1270,7 +1293,8 @@ export class MessageRepository {
         },
         {
           name: "get_all_categories",
-          description: "Gets a list of all available product categories with product counts",
+          description:
+            "Gets a list of all available product categories with product counts",
           parameters: {
             type: "object",
             properties: {
@@ -1284,7 +1308,8 @@ export class MessageRepository {
         },
         {
           name: "get_all_products",
-          description: "Gets a complete list of all available products with prices, stock and category information",
+          description:
+            "Gets a complete list of all available products with prices, stock and category information",
           parameters: {
             type: "object",
             properties: {
@@ -1373,21 +1398,26 @@ export class MessageRepository {
    * @param workspaceId Optional workspace ID for filtering
    * @returns True if successful, false otherwise
    */
-  async deleteChat(chatSessionId: string, workspaceId?: string): Promise<boolean> {
+  async deleteChat(
+    chatSessionId: string,
+    workspaceId?: string
+  ): Promise<boolean> {
     try {
       // First verify that the chat session belongs to the workspace if needed
       if (workspaceId) {
         const session = await this.prisma.chatSession.findFirst({
           where: {
             id: chatSessionId,
-            workspaceId
+            workspaceId,
           },
-          select: { id: true }
-        });
-        
+          select: { id: true },
+        })
+
         if (!session) {
-          logger.warn(`deleteChat: Chat session ${chatSessionId} not found in workspace ${workspaceId}`);
-          return false;
+          logger.warn(
+            `deleteChat: Chat session ${chatSessionId} not found in workspace ${workspaceId}`
+          )
+          return false
         }
       }
 
@@ -1420,11 +1450,18 @@ export class MessageRepository {
    * @param workspaceId Workspace ID to filter by
    * @returns Recent chat messages
    */
-  async getLatesttMessages(phoneNumber: string, limit = 30, workspaceId?: string) {
+  async getLatesttMessages(
+    phoneNumber: string,
+    limit = 30,
+    workspaceId?: string
+  ) {
     try {
       // Find customer by phone - use workspaceId if provided, otherwise use empty string
-      const customer = await this.findCustomerByPhone(phoneNumber, workspaceId || "")
-      
+      const customer = await this.findCustomerByPhone(
+        phoneNumber,
+        workspaceId || ""
+      )
+
       if (!customer) return []
 
       // Find active chat session
@@ -1432,10 +1469,10 @@ export class MessageRepository {
         where: {
           customerId: customer.id,
           status: "active",
-          ...(workspaceId ? { workspaceId } : {})
+          ...(workspaceId ? { workspaceId } : {}),
         },
       })
-      
+
       if (!session) {
         return []
       }
@@ -1443,7 +1480,7 @@ export class MessageRepository {
       // Find messages for this session
       const messages = await this.prisma.message.findMany({
         where: {
-          chatSessionId: session.id
+          chatSessionId: session.id,
         },
         orderBy: {
           createdAt: "desc",
@@ -1467,8 +1504,8 @@ export class MessageRepository {
     try {
       const agent = await this.prisma.prompts.findFirst({
         where: {
-          workspaceId
-        }
+          workspaceId,
+        },
       })
       return agent
     } catch (error) {
@@ -1490,18 +1527,16 @@ export class MessageRepository {
       const response = {
         name: agent.name || "Unknown",
         content: agent.content || "",
-        department: agent.department || null
+        department: agent.department || null,
       }
-      
+
       return response
     } catch (error) {
       logger.error("Error getting response from agent:", error)
       return { name: "Error", content: "Failed to get agent response" }
     }
   }
-  
 
-  
   /**
    * Get conversation response from LLM
    * @param chatHistory Previous messages
@@ -1531,27 +1566,31 @@ export class MessageRepository {
    * @param since Date to count messages from
    * @returns Number of messages
    */
-  async countRecentMessages(phoneNumber: string, workspaceId: string, since: Date): Promise<number> {
+  async countRecentMessages(
+    phoneNumber: string,
+    workspaceId: string,
+    since: Date
+  ): Promise<number> {
     try {
       const count = await this.prisma.message.count({
         where: {
           chatSession: {
             workspaceId: workspaceId,
             customer: {
-              phone: phoneNumber
-            }
+              phone: phoneNumber,
+            },
           },
           direction: MessageDirection.INBOUND,
           createdAt: {
-            gte: since
-          }
-        }
-      });
-      
-      return count;
+            gte: since,
+          },
+        },
+      })
+
+      return count
     } catch (error) {
-      logger.error('Error counting recent messages:', error);
-      return 0; // Return 0 on error to avoid false positives
+      logger.error("Error counting recent messages:", error)
+      return 0 // Return 0 on error to avoid false positives
     }
   }
 
@@ -1561,7 +1600,11 @@ export class MessageRepository {
    * @param workspaceId Workspace ID
    * @param isBlacklisted Blacklist status
    */
-  async updateCustomerBlacklist(customerId: string, workspaceId: string, isBlacklisted: boolean): Promise<void> {
+  async updateCustomerBlacklist(
+    customerId: string,
+    workspaceId: string,
+    isBlacklisted: boolean
+  ): Promise<void> {
     try {
       await this.prisma.customers.update({
         where: {
@@ -1571,12 +1614,14 @@ export class MessageRepository {
         data: {
           isBlacklisted,
         },
-      });
-      
-      logger.info(`Customer ${customerId} blacklist status updated to: ${isBlacklisted}`);
+      })
+
+      logger.info(
+        `Customer ${customerId} blacklist status updated to: ${isBlacklisted}`
+      )
     } catch (error) {
-      logger.error("Error updating customer blacklist status:", error);
-      throw error;
+      logger.error("Error updating customer blacklist status:", error)
+      throw error
     }
   }
 
@@ -1585,88 +1630,102 @@ export class MessageRepository {
    * @param phoneNumber Phone number to add
    * @param workspaceId Workspace ID
    */
-  async addToWorkspaceBlocklist(phoneNumber: string, workspaceId: string): Promise<void> {
+  async addToWorkspaceBlocklist(
+    phoneNumber: string,
+    workspaceId: string
+  ): Promise<void> {
     try {
       // Get current workspace
       const workspace = await this.prisma.workspace.findUnique({
         where: { id: workspaceId },
         select: { blocklist: true },
-      });
+      })
 
       if (!workspace) {
-        throw new Error(`Workspace ${workspaceId} not found`);
+        throw new Error(`Workspace ${workspaceId} not found`)
       }
 
       // Parse current blocklist
-      const currentBlocklist = workspace.blocklist || "";
+      const currentBlocklist = workspace.blocklist || ""
       const blockedNumbers = currentBlocklist
         .split(/[\n,]/)
-        .map(num => num.trim())
-        .filter(num => num.length > 0);
+        .map((num) => num.trim())
+        .filter((num) => num.length > 0)
 
       // Add phone number if not already present
       if (!blockedNumbers.includes(phoneNumber)) {
-        blockedNumbers.push(phoneNumber);
-        
+        blockedNumbers.push(phoneNumber)
+
         // Update workspace blocklist
-        const newBlocklist = blockedNumbers.join('\n');
+        const newBlocklist = blockedNumbers.join("\n")
         await this.prisma.workspace.update({
           where: { id: workspaceId },
           data: { blocklist: newBlocklist },
-        });
+        })
 
-        logger.info(`Phone ${phoneNumber} added to workspace ${workspaceId} blocklist`);
+        logger.info(
+          `Phone ${phoneNumber} added to workspace ${workspaceId} blocklist`
+        )
       } else {
-        logger.info(`Phone ${phoneNumber} already in workspace ${workspaceId} blocklist`);
+        logger.info(
+          `Phone ${phoneNumber} already in workspace ${workspaceId} blocklist`
+        )
       }
     } catch (error) {
-      logger.error("Error adding to workspace blocklist:", error);
-      throw error;
+      logger.error("Error adding to workspace blocklist:", error)
+      throw error
     }
   }
 
   /**
    * TASK 4: Check if customer has recent activity within specified hours
    * Used for "Bentornato {NOME}" functionality
-   * 
+   *
    * @param customerId The customer ID
    * @param hours Number of hours to check back (default: 2)
    * @param workspaceId The workspace ID for filtering
    * @returns true if customer has recent activity, false otherwise
    */
-  async hasRecentActivity(customerId: string, hours: number = 2, workspaceId?: string): Promise<boolean> {
+  async hasRecentActivity(
+    customerId: string,
+    hours: number = 2,
+    workspaceId?: string
+  ): Promise<boolean> {
     try {
-      const hoursAgo = new Date();
-      hoursAgo.setHours(hoursAgo.getHours() - hours);
+      const hoursAgo = new Date()
+      hoursAgo.setHours(hoursAgo.getHours() - hours)
 
       const recentMessage = await this.prisma.message.findFirst({
         where: {
           chatSession: {
             customerId: customerId,
-            ...(workspaceId && { workspaceId: workspaceId })
+            ...(workspaceId && { workspaceId: workspaceId }),
           },
           direction: MessageDirection.INBOUND, // Only check incoming messages from customer
           createdAt: {
-            gte: hoursAgo
-          }
+            gte: hoursAgo,
+          },
         },
         orderBy: {
-          createdAt: 'desc'
-        }
-      });
+          createdAt: "desc",
+        },
+      })
 
-      const hasActivity = !!recentMessage;
-      
-      logger.info(`[TASK4] hasRecentActivity for customer ${customerId}: ${hasActivity} (within ${hours} hours)`);
-      
-      return hasActivity;
+      const hasActivity = !!recentMessage
+
+      logger.info(
+        `[TASK4] hasRecentActivity for customer ${customerId}: ${hasActivity} (within ${hours} hours)`
+      )
+
+      return hasActivity
     } catch (error) {
-      logger.error(`[TASK4] Error checking recent activity for customer ${customerId}:`, error);
-      return false; // Return false on error to trigger welcome back message (safer)
+      logger.error(
+        `[TASK4] Error checking recent activity for customer ${customerId}:`,
+        error
+      )
+      return false // Return false on error to trigger welcome back message (safer)
     }
   }
-
-
 
   /**
    * Get WIP message from database - NO HARDCODE
@@ -1678,19 +1737,26 @@ export class MessageRepository {
     try {
       const workspace = await this.prisma.workspace.findUnique({
         where: { id: workspaceId },
-        select: { wipMessages: true }
-      });
+        select: { wipMessages: true },
+      })
 
       if (!workspace?.wipMessages) {
-        logger.warn(`No WIP messages found for workspace ${workspaceId}`);
-        return "Service temporarily unavailable. We will be back soon!";
+        logger.warn(`No WIP messages found for workspace ${workspaceId}`)
+        return "Service temporarily unavailable. We will be back soon!"
       }
 
-      const wipMessages = workspace.wipMessages as Record<string, string>;
-      return wipMessages[language] || wipMessages['en'] || "Service temporarily unavailable. We will be back soon!";
+      const wipMessages = workspace.wipMessages as Record<string, string>
+      return (
+        wipMessages[language] ||
+        wipMessages["en"] ||
+        "Service temporarily unavailable. We will be back soon!"
+      )
     } catch (error) {
-      logger.error(`Error getting WIP message for workspace ${workspaceId}:`, error);
-      return "Service temporarily unavailable. We will be back soon!";
+      logger.error(
+        `Error getting WIP message for workspace ${workspaceId}:`,
+        error
+      )
+      return "Service temporarily unavailable. We will be back soon!"
     }
   }
 
@@ -1700,23 +1766,36 @@ export class MessageRepository {
    * @param language Customer language
    * @returns Welcome message from database
    */
-  async getWelcomeMessage(workspaceId: string, language: string): Promise<string> {
+  async getWelcomeMessage(
+    workspaceId: string,
+    language: string
+  ): Promise<string> {
     try {
       const workspace = await this.prisma.workspace.findUnique({
         where: { id: workspaceId },
-        select: { welcomeMessages: true }
-      });
+        select: { welcomeMessages: true },
+      })
 
       if (!workspace?.welcomeMessages) {
-        logger.warn(`No welcome messages found for workspace ${workspaceId}`);
-        return "Welcome! Please register to continue:";
+        logger.warn(`No welcome messages found for workspace ${workspaceId}`)
+        return "Welcome! Please register to continue:"
       }
 
-      const welcomeMessages = workspace.welcomeMessages as Record<string, string>;
-      return welcomeMessages[language] || welcomeMessages['en'] || "Welcome! Please register to continue:";
+      const welcomeMessages = workspace.welcomeMessages as Record<
+        string,
+        string
+      >
+      return (
+        welcomeMessages[language] ||
+        welcomeMessages["en"] ||
+        "Welcome! Please register to continue:"
+      )
     } catch (error) {
-      logger.error(`Error getting welcome message for workspace ${workspaceId}:`, error);
-      return "Welcome! Please register to continue:";
+      logger.error(
+        `Error getting welcome message for workspace ${workspaceId}:`,
+        error
+      )
+      return "Welcome! Please register to continue:"
     }
   }
 
@@ -1728,25 +1807,43 @@ export class MessageRepository {
    * @param language Customer language
    * @returns Welcome back message from database
    */
-  async getWelcomeBackMessage(workspaceId: string, customerName: string, language: string): Promise<string> {
+  async getWelcomeBackMessage(
+    workspaceId: string,
+    customerName: string,
+    language: string
+  ): Promise<string> {
     try {
       const workspace = await this.prisma.workspace.findUnique({
         where: { id: workspaceId },
-        select: { afterRegistrationMessages: true }
-      });
+        select: { afterRegistrationMessages: true },
+      })
 
       if (!workspace?.afterRegistrationMessages) {
-        logger.warn(`No after registration messages found for workspace ${workspaceId}`);
-        return `Welcome back, ${customerName}! How can I help you today?`;
+        logger.warn(
+          `No after registration messages found for workspace ${workspaceId}`
+        )
+        return `Welcome back, ${customerName}! How can I help you today?`
       }
 
-      const afterRegMessages = workspace.afterRegistrationMessages as Record<string, string>;
-      const template = afterRegMessages[language] || afterRegMessages['en'] || `Welcome back, {name}! How can I help you today?`;
-      
-      return template.replace('{name}', customerName).replace('{customerName}', customerName).replace('[nome]', customerName);
+      const afterRegMessages = workspace.afterRegistrationMessages as Record<
+        string,
+        string
+      >
+      const template =
+        afterRegMessages[language] ||
+        afterRegMessages["en"] ||
+        `Welcome back, {name}! How can I help you today?`
+
+      return template
+        .replace("{name}", customerName)
+        .replace("{customerName}", customerName)
+        .replace("[nome]", customerName)
     } catch (error) {
-      logger.error(`Error getting welcome back message for workspace ${workspaceId}:`, error);
-      return `Welcome back, ${customerName}! How can I help you today?`;
+      logger.error(
+        `Error getting welcome back message for workspace ${workspaceId}:`,
+        error
+      )
+      return `Welcome back, ${customerName}! How can I help you today?`
     }
   }
 
@@ -1757,24 +1854,34 @@ export class MessageRepository {
    * @param language Customer language
    * @returns Error message from database
    */
-  async getErrorMessage(workspaceId: string, language: string): Promise<string> {
+  async getErrorMessage(
+    workspaceId: string,
+    language: string
+  ): Promise<string> {
     try {
       const workspace = await this.prisma.workspace.findUnique({
         where: { id: workspaceId },
-        select: { wipMessages: true }
-      });
+        select: { wipMessages: true },
+      })
 
       if (!workspace?.wipMessages) {
-        logger.warn(`No error messages found for workspace ${workspaceId}`);
-        return "Sorry, I'm having technical difficulties. Please try again later.";
+        logger.warn(`No error messages found for workspace ${workspaceId}`)
+        return "Sorry, I'm having technical difficulties. Please try again later."
       }
 
       // Use WIP messages as error messages fallback
-      const wipMessages = workspace.wipMessages as Record<string, string>;
-      return wipMessages[language] || wipMessages['en'] || "Sorry, I'm having technical difficulties. Please try again later.";
+      const wipMessages = workspace.wipMessages as Record<string, string>
+      return (
+        wipMessages[language] ||
+        wipMessages["en"] ||
+        "Sorry, I'm having technical difficulties. Please try again later."
+      )
     } catch (error) {
-      logger.error(`Error getting error message for workspace ${workspaceId}:`, error);
-      return "Sorry, I'm having technical difficulties. Please try again later.";
+      logger.error(
+        `Error getting error message for workspace ${workspaceId}:`,
+        error
+      )
+      return "Sorry, I'm having technical difficulties. Please try again later."
     }
   }
 
@@ -1784,21 +1891,21 @@ export class MessageRepository {
    * @returns Agent configuration from database
    */
   async getAgentConfig(workspaceId: string): Promise<{
-    prompt: string;
-    model: string;
-    temperature: number;
-    maxTokens: number;
+    prompt: string
+    model: string
+    temperature: number
+    maxTokens: number
   } | null> {
     try {
       const agentConfig = await this.prisma.agentConfig.findFirst({
         where: {
           workspaceId: workspaceId,
-          isActive: true
+          isActive: true,
         },
         orderBy: {
-          createdAt: 'desc'
-        }
-      });
+          createdAt: "desc",
+        },
+      })
 
       if (!agentConfig) {
         return null
@@ -1808,11 +1915,14 @@ export class MessageRepository {
         prompt: agentConfig.prompt || "",
         model: agentConfig.model || "openai/gpt-4o-mini",
         temperature: agentConfig.temperature || 0.7,
-        maxTokens: agentConfig.maxTokens || 1000
+        maxTokens: agentConfig.maxTokens || 1000,
       }
     } catch (error) {
-      logger.error(`Error getting agent config for workspace ${workspaceId}:`, error);
-      return null;
+      logger.error(
+        `Error getting agent config for workspace ${workspaceId}:`,
+        error
+      )
+      return null
     }
   }
 
@@ -1823,38 +1933,41 @@ export class MessageRepository {
     try {
       const workspace = await this.prisma.workspace.findUnique({
         where: { id: workspaceId },
-        select: { url: true }
-      });
-      
+        select: { url: true },
+      })
+
       if (!workspace?.url) {
-        logger.warn(`No URL found for workspace ${workspaceId}, using default`);
-        return 'http://localhost:3000';
+        logger.warn(`No URL found for workspace ${workspaceId}, using default`)
+        return "http://localhost:3000"
       }
-      
-      return workspace.url;
+
+      return workspace.url
     } catch (error) {
-      logger.error('Error getting workspace URL:', error);
-      return 'http://localhost:3000';
+      logger.error("Error getting workspace URL:", error)
+      return "http://localhost:3000"
     }
   }
 
   /**
    * Get prompt by name from database
    */
-  async getPromptByName(workspaceId: string, promptName: string): Promise<{
-    id: string;
-    name: string;
-    content: string;
-    model: string;
-    temperature: number;
-    maxTokens: number;
+  async getPromptByName(
+    workspaceId: string,
+    promptName: string
+  ): Promise<{
+    id: string
+    name: string
+    content: string
+    model: string
+    temperature: number
+    maxTokens: number
   } | null> {
     try {
       const prompt = await this.prisma.prompts.findFirst({
         where: {
           workspaceId,
           name: promptName,
-          isActive: true
+          isActive: true,
         },
         select: {
           id: true,
@@ -1862,26 +1975,28 @@ export class MessageRepository {
           content: true,
           model: true,
           temperature: true,
-          max_tokens: true
-        }
-      });
-      
+          max_tokens: true,
+        },
+      })
+
       if (!prompt) {
-        logger.warn(`Prompt "${promptName}" not found for workspace ${workspaceId}`);
-        return null;
+        logger.warn(
+          `Prompt "${promptName}" not found for workspace ${workspaceId}`
+        )
+        return null
       }
-      
+
       return {
         id: prompt.id,
         name: prompt.name,
         content: prompt.content,
-        model: prompt.model || 'openai/gpt-4o-mini',
+        model: prompt.model || "openai/gpt-4o-mini",
         temperature: prompt.temperature || 0.7,
-        maxTokens: prompt.max_tokens || 1000
-      };
+        maxTokens: prompt.max_tokens || 1000,
+      }
     } catch (error) {
-      logger.error(`Error getting prompt "${promptName}":`, error);
-      return null;
+      logger.error(`Error getting prompt "${promptName}":`, error)
+      return null
     }
   }
 
@@ -1908,86 +2023,108 @@ export class MessageRepository {
   ): Promise<string | null> {
     try {
       // Import embedding service for semantic search
-      const { embeddingService } = await import('../services/embeddingService');
-      
-      // STEP 1: SEMANTIC SEARCH ACROSS ALL CHUNKS
-      logger.info(`[RAG] Searching all content types for: "${message}"`);
-      
-      // Search all content types in parallel using semantic search
-      const [productResults, faqResults, serviceResults, documentResults] = await Promise.all([
-        embeddingService.searchProducts(message, workspaceId, 5),
-        embeddingService.searchFAQs(message, workspaceId, 5), 
-        embeddingService.searchServices(message, workspaceId, 5),
-        Promise.resolve([]) // Documents search not implemented yet
-      ]);
+      const { embeddingService } = await import("../services/embeddingService")
 
-      logger.info(`[RAG] Found: ${productResults.length} products, ${faqResults.length} FAQs, ${serviceResults.length} services, ${documentResults.length} documents`);
+      // STEP 1: SEMANTIC SEARCH ACROSS ALL CHUNKS
+      logger.info(`[RAG] Searching all content types for: "${message}"`)
+
+      // Search all content types in parallel using semantic search
+      const [productResults, faqResults, serviceResults, documentResults] =
+        await Promise.all([
+          embeddingService.searchProducts(message, workspaceId, 5),
+          embeddingService.searchFAQs(message, workspaceId, 5),
+          embeddingService.searchServices(message, workspaceId, 5),
+          Promise.resolve([]), // Documents search not implemented yet
+        ])
+
+      logger.info(
+        `[RAG] Found: ${productResults.length} products, ${faqResults.length} FAQs, ${serviceResults.length} services, ${documentResults.length} documents`
+      )
 
       // STEP 2: GET FULL PRODUCT DETAILS WITH STOCK VERIFICATION
-      const productIds = productResults.map(r => r.id);
-      const fullProducts = productIds.length > 0 ? await this.prisma.products.findMany({
-        where: {
-          id: { in: productIds },
-          workspaceId: workspaceId,
-          isActive: true,
-          stock: { gt: 0 } // VERIFY AVAILABILITY
-        },
-        include: {
-          category: true
-        }
-      }) : [];
+      const productIds = productResults.map((r) => r.id)
+      const fullProducts =
+        productIds.length > 0
+          ? await this.prisma.products.findMany({
+              where: {
+                id: { in: productIds },
+                workspaceId: workspaceId,
+                isActive: true,
+                stock: { gt: 0 }, // VERIFY AVAILABILITY
+              },
+              include: {
+                category: true,
+              },
+            })
+          : []
 
       // STEP 3: GET FULL FAQ DETAILS
-      const faqIds = faqResults.map(r => r.id);
-      const fullFAQs = faqIds.length > 0 ? await this.prisma.fAQ.findMany({
-        where: {
-          id: { in: faqIds },
-          workspaceId: workspaceId,
-          isActive: true
-        }
-      }) : [];
+      const faqIds = faqResults.map((r) => r.id)
+      const fullFAQs =
+        faqIds.length > 0
+          ? await this.prisma.fAQ.findMany({
+              where: {
+                id: { in: faqIds },
+                workspaceId: workspaceId,
+                isActive: true,
+              },
+            })
+          : []
 
-      // STEP 4: GET FULL SERVICE DETAILS  
-      const serviceIds = serviceResults.map(r => r.id);
-      const fullServices = serviceIds.length > 0 ? await this.prisma.services.findMany({
-        where: {
-          id: { in: serviceIds },
-          workspaceId: workspaceId,
-          isActive: true
-        }
-      }) : [];
+      // STEP 4: GET FULL SERVICE DETAILS
+      const serviceIds = serviceResults.map((r) => r.id)
+      const fullServices =
+        serviceIds.length > 0
+          ? await this.prisma.services.findMany({
+              where: {
+                id: { in: serviceIds },
+                workspaceId: workspaceId,
+                isActive: true,
+              },
+            })
+          : []
 
       // STEP 5: GET CHAT HISTORY
-      const chatHistory = await this.getLatesttMessages(customer.phone, 5, workspaceId);
+      const chatHistory = await this.getLatesttMessages(
+        customer.phone,
+        5,
+        workspaceId
+      )
 
       // STEP 6: BUILD UNIFIED CONTEXT FOR LLM FORMATTER
       const unifiedContext = {
         customer: {
           name: customer.name,
           language: customer.language,
-          discount: customer.discount
+          discount: customer.discount,
         },
         welcomeBack: welcomeBackContext || null,
         searchResults: {
-          products: productResults.map(r => ({
-            similarity: r.similarity,
-            content: r.content,
-            product: fullProducts.find(p => p.id === r.id)
-          })).filter(r => r.product), // Only include available products
-          faqs: faqResults.map(r => ({
-            similarity: r.similarity,
-            content: r.content,
-            faq: fullFAQs.find(f => f.id === r.id)
-          })).filter(r => r.faq),
-          services: serviceResults.map(r => ({
-            similarity: r.similarity,
-            content: r.content,
-            service: fullServices.find(s => s.id === r.id)
-          })).filter(r => r.service),
-          documents: documentResults
+          products: productResults
+            .map((r) => ({
+              similarity: r.similarity,
+              content: r.content,
+              product: fullProducts.find((p) => p.id === r.id),
+            }))
+            .filter((r) => r.product), // Only include available products
+          faqs: faqResults
+            .map((r) => ({
+              similarity: r.similarity,
+              content: r.content,
+              faq: fullFAQs.find((f) => f.id === r.id),
+            }))
+            .filter((r) => r.faq),
+          services: serviceResults
+            .map((r) => ({
+              similarity: r.similarity,
+              content: r.content,
+              service: fullServices.find((s) => s.id === r.id),
+            }))
+            .filter((r) => r.service),
+          documents: documentResults,
         },
-        chatHistory: chatHistory.slice(0, 5)
-      };
+        chatHistory: chatHistory.slice(0, 5),
+      }
 
       // STEP 7: BUILD COMPREHENSIVE PROMPT FOR LLM FORMATTER
       const finalPrompt = `${prompt}
@@ -1997,43 +2134,55 @@ CUSTOMER CONTEXT:
 - Language: ${unifiedContext.customer.language}
 - Discount: ${unifiedContext.customer.discount}%
 
-${unifiedContext.welcomeBack ? `WELCOME BACK MESSAGE: ${unifiedContext.welcomeBack}` : ''}
+${unifiedContext.welcomeBack ? `WELCOME BACK MESSAGE: ${unifiedContext.welcomeBack}` : ""}
 
 SEMANTIC SEARCH RESULTS:
 
 PRODUCTS FOUND (with availability):
-${unifiedContext.searchResults.products.map(r => 
-  `- ${r.product?.name} (Similarity: ${r.similarity.toFixed(3)})
+${unifiedContext.searchResults.products
+  .map(
+    (r) =>
+      `- ${r.product?.name} (Similarity: ${r.similarity.toFixed(3)})
     Price: €${r.product?.price}
     Stock: ${r.product?.stock} units available
-    Category: ${r.product?.category?.name || 'General'}
+    Category: ${r.product?.category?.name || "General"}
     Match: ${r.content}`
-).join('\n\n')}
+  )
+  .join("\n\n")}
 
 FAQS FOUND:
-${unifiedContext.searchResults.faqs.map(r => 
-  `- ${r.faq?.question} (Similarity: ${r.similarity.toFixed(3)})
+${unifiedContext.searchResults.faqs
+  .map(
+    (r) =>
+      `- ${r.faq?.question} (Similarity: ${r.similarity.toFixed(3)})
     Answer: ${r.faq?.answer}
     Match: ${r.content}`
-).join('\n\n')}
+  )
+  .join("\n\n")}
 
 SERVICES FOUND:
-${unifiedContext.searchResults.services.map(r => 
-  `- ${r.service?.name} (Similarity: ${r.similarity.toFixed(3)})
+${unifiedContext.searchResults.services
+  .map(
+    (r) =>
+      `- ${r.service?.name} (Similarity: ${r.similarity.toFixed(3)})
     Description: ${r.service?.description}
     Price: €${r.service?.price}
-    Duration: ${r.service?.duration || 'N/A'}
+    Duration: ${r.service?.duration || "N/A"}
     Match: ${r.content}`
-).join('\n\n')}
+  )
+  .join("\n\n")}
 
 DOCUMENTS FOUND:
-${unifiedContext.searchResults.documents.map(r => 
-  `- Document: ${r.sourceName} (Similarity: ${r.similarity.toFixed(3)})
+${unifiedContext.searchResults.documents
+  .map(
+    (r) =>
+      `- Document: ${r.sourceName} (Similarity: ${r.similarity.toFixed(3)})
     Content: ${r.content}`
-).join('\n\n')}
+  )
+  .join("\n\n")}
 
 RECENT CHAT HISTORY:
-${unifiedContext.chatHistory.map(h => `${h.direction === MessageDirection.INBOUND ? 'Customer' : 'Bot'}: ${h.content}`).join('\n')}
+${unifiedContext.chatHistory.map((h) => `${h.direction === MessageDirection.INBOUND ? "Customer" : "Bot"}: ${h.content}`).join("\n")}
 
 CUSTOMER MESSAGE: ${message}
 
@@ -2045,47 +2194,49 @@ INSTRUCTIONS FOR LLM FORMATTER:
 - Mention services if applicable
 - Reference document information if found
 - Respond in ${unifiedContext.customer.language}
-- Be helpful and comprehensive but concise`;
+- Be helpful and comprehensive but concise`
 
-      logger.info(`[RAG] Sending unified context to LLM formatter (${model})`);
+      logger.info(`[RAG] Sending unified context to LLM formatter (${model})`)
 
       // STEP 8: CALL LLM FORMATTER WITH UNIFIED CONTEXT
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: [
-            {
-              role: 'user',
-              content: finalPrompt
-            }
-          ],
-          temperature: temperature,
-          max_tokens: maxTokens
-        })
-      });
+      const response = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [
+              {
+                role: "user",
+                content: finalPrompt,
+              },
+            ],
+            temperature: temperature,
+            max_tokens: maxTokens,
+          }),
+        }
+      )
 
       if (!response.ok) {
-        throw new Error(`OpenRouter API error: ${response.status}`);
+        throw new Error(`OpenRouter API error: ${response.status}`)
       }
 
-      const data = await response.json();
-      const formattedResponse = data.choices?.[0]?.message?.content || null;
-      
-      logger.info(`[RAG] LLM formatter response generated successfully`);
-      
+      const data = await response.json()
+      const formattedResponse = data.choices?.[0]?.message?.content || null
+
+      logger.info(`[RAG] LLM formatter response generated successfully`)
+
       // 💰 USAGE TRACKING: Now handled in saveMessage (Andrea's Logic)
       // No need to track here - tracking happens when N8N saves final conversation
-      
-      return formattedResponse;
 
+      return formattedResponse
     } catch (error) {
-      logger.error('Error in getResponseFromRag:', error);
-      return null;
+      logger.error("Error in getResponseFromRag:", error)
+      return null
     }
   }
 
@@ -2099,15 +2250,18 @@ INSTRUCTIONS FOR LLM FORMATTER:
   /**
    * Find services with filtering (public method for LangChain)
    */
-  public async findServices(workspaceId: string, options?: {
-    category?: string
-    limit?: number
-    isActive?: boolean
-  }) {
+  public async findServices(
+    workspaceId: string,
+    options?: {
+      category?: string
+      limit?: number
+      isActive?: boolean
+    }
+  ) {
     try {
       const whereClause: any = {
         workspaceId,
-        isActive: options?.isActive ?? true
+        isActive: options?.isActive ?? true,
       }
 
       if (options?.category) {
@@ -2117,10 +2271,10 @@ INSTRUCTIONS FOR LLM FORMATTER:
       return await this.prisma.services.findMany({
         where: whereClause,
         take: options?.limit || 10,
-        orderBy: { name: 'asc' }
+        orderBy: { name: "asc" },
       })
     } catch (error) {
-      logger.error('Error finding services:', error)
+      logger.error("Error finding services:", error)
       return []
     }
   }
@@ -2128,16 +2282,19 @@ INSTRUCTIONS FOR LLM FORMATTER:
   /**
    * Find products with filtering (public method for LangChain)
    */
-  public async findProducts(workspaceId: string, options?: {
-    category?: string
-    productIds?: string[]
-    limit?: number
-    isActive?: boolean
-  }) {
+  public async findProducts(
+    workspaceId: string,
+    options?: {
+      category?: string
+      productIds?: string[]
+      limit?: number
+      isActive?: boolean
+    }
+  ) {
     try {
       const whereClause: any = {
         workspaceId,
-        isActive: options?.isActive ?? true
+        isActive: options?.isActive ?? true,
       }
 
       if (options?.category) {
@@ -2152,10 +2309,10 @@ INSTRUCTIONS FOR LLM FORMATTER:
         where: whereClause,
         include: { category: true },
         take: options?.limit || 10,
-        orderBy: { name: 'asc' }
+        orderBy: { name: "asc" },
       })
     } catch (error) {
-      logger.error('Error finding products:', error)
+      logger.error("Error finding products:", error)
       return []
     }
   }
@@ -2163,31 +2320,34 @@ INSTRUCTIONS FOR LLM FORMATTER:
   /**
    * Find FAQs with filtering (public method for LangChain)
    */
-  public async findFAQs(workspaceId: string, options?: {
-    topic?: string
-    limit?: number
-    isActive?: boolean
-  }) {
+  public async findFAQs(
+    workspaceId: string,
+    options?: {
+      topic?: string
+      limit?: number
+      isActive?: boolean
+    }
+  ) {
     try {
       const whereClause: any = {
         workspaceId,
-        isActive: options?.isActive ?? true
+        isActive: options?.isActive ?? true,
       }
 
       if (options?.topic) {
         whereClause.OR = [
-          { question: { contains: options.topic, mode: 'insensitive' } },
-          { answer: { contains: options.topic, mode: 'insensitive' } }
+          { question: { contains: options.topic, mode: "insensitive" } },
+          { answer: { contains: options.topic, mode: "insensitive" } },
         ]
       }
 
       return await this.prisma.fAQ.findMany({
         where: whereClause,
         take: options?.limit || 5,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: "desc" },
       })
     } catch (error) {
-      logger.error('Error finding FAQs:', error)
+      logger.error("Error finding FAQs:", error)
       return []
     }
   }
@@ -2195,18 +2355,21 @@ INSTRUCTIONS FOR LLM FORMATTER:
   /**
    * Find offers with filtering (public method for LangChain)
    */
-  public async findOffers(workspaceId: string, options?: {
-    category?: string
-    limit?: number
-    isActive?: boolean
-  }) {
+  public async findOffers(
+    workspaceId: string,
+    options?: {
+      category?: string
+      limit?: number
+      isActive?: boolean
+    }
+  ) {
     try {
       const now = new Date()
       const whereClause: any = {
         workspaceId,
         isActive: options?.isActive ?? true,
         startDate: { lte: now },
-        endDate: { gte: now }
+        endDate: { gte: now },
       }
 
       if (options?.category) {
@@ -2217,10 +2380,10 @@ INSTRUCTIONS FOR LLM FORMATTER:
         where: whereClause,
         include: { category: true },
         take: options?.limit || 10,
-        orderBy: { discountPercent: 'desc' }
+        orderBy: { discountPercent: "desc" },
       })
     } catch (error) {
-      logger.error('Error finding offers:', error)
+      logger.error("Error finding offers:", error)
       return []
     }
   }
@@ -2236,20 +2399,20 @@ INSTRUCTIONS FOR LLM FORMATTER:
   }) {
     try {
       // Generate unique order code
-      const orderCode = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-      
+      const orderCode = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`
+
       return await this.prisma.orders.create({
         data: {
           orderCode: orderCode,
           customerId: data.customerId,
           workspaceId: data.workspaceId,
           status: data.status || OrderStatus.PENDING,
-          totalAmount: data.totalAmount || 0
-        }
+          totalAmount: data.totalAmount || 0,
+        },
       })
     } catch (error) {
-      logger.error('Error creating order:', error)
-      throw new Error('Failed to create order')
+      logger.error("Error creating order:", error)
+      throw new Error("Failed to create order")
     }
   }
 }

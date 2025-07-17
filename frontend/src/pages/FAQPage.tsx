@@ -17,7 +17,7 @@ import { FAQ, faqApi } from "@/services/faqApi"
 import { commonStyles } from "@/styles/common"
 import { HelpCircle } from "lucide-react"
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { toast } from "../lib/toast"
 
 export function FAQPage() {
   const { workspace, loading: isLoadingWorkspace } = useWorkspace()

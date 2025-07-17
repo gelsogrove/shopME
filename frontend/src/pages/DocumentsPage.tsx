@@ -12,7 +12,7 @@ import { commonStyles } from "@/styles/common"
 import { formatFileSize } from "@/utils/format"
 import { Download, FileText } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
-import { toast } from "sonner"
+import { toast } from "../lib/toast"
 
 export default function DocumentsPage() {
   const { workspace, loading: isLoading } = useWorkspace()

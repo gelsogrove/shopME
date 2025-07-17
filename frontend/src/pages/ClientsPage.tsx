@@ -6,10 +6,10 @@ import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
@@ -17,10 +17,18 @@ import { api } from "@/services/api"
 import { commonStyles } from "@/styles/common"
 import { useQuery } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
-import { Bot, MessageSquare, Pencil, Plus, ShoppingCart, Trash2, Users } from "lucide-react"
+import {
+  Bot,
+  MessageSquare,
+  Pencil,
+  Plus,
+  ShoppingCart,
+  Trash2,
+  Users,
+} from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 // Shared interfaces
 export interface ShippingAddress {
@@ -30,7 +38,7 @@ export interface ShippingAddress {
   country: string
 }
 
-// Invoice address interface 
+// Invoice address interface
 export interface InvoiceAddress {
   firstName?: string
   lastName?: string
@@ -130,7 +138,8 @@ export default function ClientsPage(): JSX.Element {
       const customersResponse = await api.get(
         `/workspaces/${workspace.id}/customers`
       )
-      const customersData = customersResponse.data.data || customersResponse.data
+      const customersData =
+        customersResponse.data.data || customersResponse.data
 
       // Map the client data
       const mappedClients = customersData.map((customer: any) => ({
@@ -208,7 +217,7 @@ export default function ClientsPage(): JSX.Element {
         // Add the new client to state with converted format
         await refetchClients()
         toast.success("Client created successfully", { duration: 1000 })
-        
+
         // Close the form AFTER refetch completes
         setClientSheetOpen(false)
       }
@@ -230,10 +239,7 @@ export default function ClientsPage(): JSX.Element {
   }
 
   // Handle update client
-  const handleUpdateClient = async (
-    customerData: any,
-    clientId: string
-  ) => {
+  const handleUpdateClient = async (customerData: any, clientId: string) => {
     if (!workspace?.id) return
 
     try {
@@ -242,8 +248,8 @@ export default function ClientsPage(): JSX.Element {
       console.log("Workspace ID:", workspace.id)
 
       // Import the API functions
-      const { update } = await import('@/services/clientsApi')
-      
+      const { update } = await import("@/services/clientsApi")
+
       // Update client using the clientsApi
       const updatedCustomer = await update(clientId, workspace.id, customerData)
 
@@ -253,7 +259,7 @@ export default function ClientsPage(): JSX.Element {
         // Update client in state with correct format and preserve existing data not returned by API
         await refetchClients()
         toast.success("Client updated successfully", { duration: 1000 })
-        
+
         // Close the form AFTER refetch completes
         setClientSheetOpen(false)
         setSelectedClient(null)
@@ -460,7 +466,11 @@ export default function ClientsPage(): JSX.Element {
                 <Button
                   variant="ghost"
                   className="h-8 w-8 p-0 flex items-center justify-center"
-                  onClick={() => navigate(`/orders?search=${encodeURIComponent(row.original.name)}`)}
+                  onClick={() =>
+                    navigate(
+                      `/orders?search=${encodeURIComponent(row.original.name)}`
+                    )
+                  }
                 >
                   <span className="sr-only">View orders</span>
                   <ShoppingCart className="h-4 w-4 text-blue-600" />

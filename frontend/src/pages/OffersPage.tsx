@@ -26,7 +26,7 @@ import { commonStyles } from "@/styles/common"
 import { format } from "date-fns"
 import { Calendar as CalendarIcon, Percent } from "lucide-react"
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { toast } from "../lib/toast"
 
 // Tipo per i badge di stato
 type StatusType =

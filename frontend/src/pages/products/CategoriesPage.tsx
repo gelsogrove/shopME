@@ -17,7 +17,7 @@ import { useWorkspace } from "@/hooks/use-workspace"
 import { categoriesApi, type Category as ApiCategory } from "@/services/categoriesApi"
 import { Tag } from "lucide-react"
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { toast } from "../../lib/toast"
 
 // Interfaccia locale che estende quella dell'API
 interface Category extends Omit<ApiCategory, 'description'> {

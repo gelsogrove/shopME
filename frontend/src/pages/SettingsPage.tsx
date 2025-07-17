@@ -29,7 +29,7 @@ import {
 import { Loader2, Save, Settings, Trash2, Video } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { toast } from "sonner"
+import { toast } from "../lib/toast"
 
 // Currency options with symbols
 const CURRENCY_OPTIONS = [

@@ -100,7 +100,7 @@ export function App() {
           <Route path="/faq" element={<Layout />}>
             <Route index element={<FAQPage />} />
           </Route>
-          
+
           <Route path="/surveys" element={<Layout />}>
             <Route index element={<SurveysPage />} />
           </Route>
@@ -126,7 +126,7 @@ export function App() {
           <Route path="/workspace" element={<Layout />}>
             <Route index element={<WorkspacePage />} />
           </Route>
-          
+
           {/* Modifico la route per offers per usare Layout e OffersPage */}
           <Route path="/offers" element={<Layout />}>
             <Route index element={<OffersPage />} />
@@ -135,7 +135,7 @@ export function App() {
 
         {/* Root redirect to login */}
         <Route path="/" element={<Navigate to="/auth/login" replace />} />
-        
+
         {/* Legacy login redirect */}
         <Route path="/login" element={<Navigate to="/auth/login" replace />} />
 

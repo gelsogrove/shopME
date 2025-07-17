@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { categoriesApi, Category } from "@/services/categoriesApi"
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { toast } from "../../lib/toast"
 
 export function CategoriesPage() {
   const { workspace, loading: isLoadingWorkspace } = useWorkspace()

@@ -14,7 +14,7 @@ import {
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
-import { toast } from "sonner"
+import { toast } from "../lib/toast"
 import * as z from "zod"
 import { auth } from "../services/api"
 

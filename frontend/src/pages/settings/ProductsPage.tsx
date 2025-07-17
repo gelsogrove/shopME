@@ -8,7 +8,7 @@ import { Product, productsApi } from "@/services/productsApi"
 import { formatPrice, getCurrencySymbol } from "@/utils/format"
 import { Package2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { toast } from "../../lib/toast"
 
 export function ProductsPage() {
   const { workspace, loading: isLoadingWorkspace } = useWorkspace()

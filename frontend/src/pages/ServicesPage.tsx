@@ -12,7 +12,7 @@ import { commonStyles } from "@/styles/common"
 import { formatPrice, getCurrencySymbol } from "@/utils/format"
 import { Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { toast } from "../lib/toast"
 
 export function ServicesPage() {
   const { workspace, loading: isLoadingWorkspace } = useWorkspace()
