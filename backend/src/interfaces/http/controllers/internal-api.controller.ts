@@ -96,7 +96,7 @@ const prisma = new PrismaClient()
  *                 description: Source of discount ("customer" or "offer")
  *               formatted:
  *                 type: string
- *                 description: Formatted price string (e.g., "Prezzo: €8,01 (scontato del 10%, prezzo pieno €8,90, fonte: customer)")
+ *                 description: Formatted price string with discount details
  *               stock:
  *                 type: number
  *                 description: Units in stock
@@ -551,7 +551,7 @@ export class InternalApiController {
               where: { id: customerId },
               select: { discount: true, name: true, phone: true },
             })
-            
+
             if (customer) {
               customerDiscount = customer.discount || 0
               logger.info(
@@ -573,7 +573,9 @@ export class InternalApiController {
             // Continue with 0% discount if customer fetch fails
           }
         } else {
-          logger.info(`[E-COMMERCE-RAG] ⚪ No customerId provided, using 0% discount`)
+          logger.info(
+            `[E-COMMERCE-RAG] ⚪ No customerId provided, using 0% discount`
+          )
         }
 
         // Calculate prices with Andrea's logic (highest discount wins)
@@ -1964,22 +1966,26 @@ ${JSON.stringify(ragResults, null, 2)}`
   /**
    * 📋 GET ALL PRODUCTS - For N8N getAllProducts Tool (Andrea's Request)
    * POST /internal/get-all-products
-   * Returns all products for a workspace - used by N8N when user asks for product list/menu
+   * Returns all products for a workspace with customer discount logic applied
+   * Enhanced with Andrea's "Highest Discount Wins" Logic
    */
   async getAllProducts(req: Request, res: Response): Promise<void> {
     try {
-      const { workspaceId, categoryId, search, limit } = req.body
+      const { workspaceId, customerId, categoryId, search, limit } = req.body
 
       if (!workspaceId) {
         res.status(400).json({
           error: "Workspace ID is required",
-          example: { workspaceId: "clzd8x8z20000356cqhpe6yu0" },
+          example: {
+            workspaceId: "clzd8x8z20000356cqhpe6yu0",
+            customerId: "optional",
+          },
         })
         return
       }
 
       logger.info(
-        `[GET-ALL-PRODUCTS] 📋 Andrea's getAllProducts - Getting products for workspace ${workspaceId}`
+        `[GET-ALL-PRODUCTS] 📋 Andrea's getAllProducts - Getting products for workspace ${workspaceId}, customerId: ${customerId}`
       )
 
       // Build filter conditions
@@ -2019,37 +2025,119 @@ ${JSON.stringify(ragResults, null, 2)}`
         where: { workspaceId, isActive: true },
       })
 
-      // Format response for N8N
-      const formattedProducts = products.map((product) => ({
-        id: product.id,
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        stock: product.stock,
-        category: product.category?.name || "Uncategorized",
-        status: product.status,
-        available: product.stock > 0,
-      }))
+      // 💰 ANDREA'S LOGIC: Apply customer discount calculation
+      let customerDiscount = 0
+      let customerInfo = null
+
+      if (customerId) {
+        try {
+          const customer = await prisma.customers.findUnique({
+            where: { id: customerId },
+            select: { discount: true, name: true, phone: true },
+          })
+
+          if (customer) {
+            customerDiscount = customer.discount || 0
+            customerInfo = {
+              name: customer.name,
+              discount: customerDiscount,
+            }
+            logger.info(
+              `[GET-ALL-PRODUCTS] 👤 Customer found: ${customer.name}, discount: ${customerDiscount}%`
+            )
+          }
+        } catch (customerError) {
+          logger.error(
+            `[GET-ALL-PRODUCTS] ❌ Error fetching customer:`,
+            customerError
+          )
+        }
+      }
+
+      // Apply pricing calculation with Andrea's logic
+      let finalProducts = products
+      if (products.length > 0) {
+        try {
+          const { PriceCalculationService } = await import(
+            "../../../application/services/price-calculation.service"
+          )
+          const priceService = new PriceCalculationService(prisma)
+
+          const productIds = products.map((p) => p.id)
+          const priceResult = await priceService.calculatePricesWithDiscounts(
+            workspaceId,
+            productIds,
+            customerDiscount
+          )
+
+          // Merge price data with product data
+          finalProducts = products.map((product) => {
+            const priceData = priceResult.products.find(
+              (p) => p.id === product.id
+            )
+            return {
+              ...product,
+              originalPrice: priceData?.originalPrice || product.price,
+              finalPrice: priceData?.finalPrice || product.price,
+              appliedDiscount: priceData?.appliedDiscount || 0,
+              discountSource: priceData?.discountSource,
+              discountName: priceData?.discountName,
+            }
+          })
+
+          logger.info(
+            `[GET-ALL-PRODUCTS] 💰 Andrea's Logic applied - Customer: ${customerDiscount}%, Best offer: ${priceResult.discountsApplied.bestOfferDiscount}%`
+          )
+        } catch (priceError) {
+          logger.error(
+            `[GET-ALL-PRODUCTS] ❌ Error calculating prices:`,
+            priceError
+          )
+        }
+      }
+
+      // Format response for N8N with Andrea's pricing
+      const formattedProducts = finalProducts.map((product: any) => {
+        const hasDiscount = (product.appliedDiscount || 0) > 0
+        const prezzoFinale = product.finalPrice || product.price
+        const prezzoOriginale = product.originalPrice || product.price
+        const scontoPercentuale = product.appliedDiscount || 0
+        const scontoTipo = product.discountSource || null
+
+        let formatted = `Prezzo: €${prezzoFinale.toFixed(2)}`
+        if (hasDiscount) {
+          formatted += ` (scontato del ${scontoPercentuale}%, prezzo pieno €${prezzoOriginale.toFixed(2)}`
+          if (scontoTipo) formatted += `, fonte: ${scontoTipo}`
+          formatted += ")"
+        }
+
+        return {
+          id: product.id,
+          name: product.name,
+          description: product.description || "",
+          price: prezzoFinale,
+          originalPrice: prezzoOriginale,
+          discountPercent: scontoPercentuale,
+          discountSource: scontoTipo,
+          formatted,
+          stock: product.stock,
+          category: product.category?.name || "Uncategorized",
+          available: product.stock > 0,
+          customerDiscount,
+          bestDiscount: Math.max(customerDiscount, scontoPercentuale),
+          discountApplied: hasDiscount ? scontoTipo : "none",
+        }
+      })
 
       logger.info(
-        `[GET-ALL-PRODUCTS] ✅ Found ${formattedProducts.length} products (total in workspace: ${totalProducts})`
+        `[GET-ALL-PRODUCTS] ✅ Found ${formattedProducts.length} products with pricing applied (total in workspace: ${totalProducts})`
       )
 
       res.json({
         success: true,
         workspaceId,
-        products: formattedProducts.map((product) => ({
-          id: product.id,
-          name: product.name,
-          description: product.description || "",
-          price: product.price,
-          originalPrice: product.price, // Assuming original price is the same as current price for mock data
-          discountPercent: 0, // No discount for mock data
-          discountSource: null, // No discount source for mock data
-          formatted: `Prezzo: €${product.price} (scontato del 0%, prezzo pieno €${product.price}, fonte: mock)`,
-          stock: product.stock || null,
-          category: product.category || null,
-        })),
+        customerInfo,
+        products: formattedProducts,
         summary: {
           found: formattedProducts.length,
           totalInWorkspace: totalProducts,
@@ -2059,10 +2147,175 @@ ${JSON.stringify(ragResults, null, 2)}`
             limit: maxLimit,
           },
         },
+        discountLogic: {
+          customerDiscount,
+          note: "Andrea's Logic: Highest discount wins",
+          appliedLogic: customerId
+            ? "customer_discount_considered"
+            : "no_customer_provided",
+        },
         timestamp: new Date().toISOString(),
       })
     } catch (error: any) {
       logger.error("[GET-ALL-PRODUCTS] ❌ Error getting products:", error)
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    }
+  }
+
+  /**
+   * 🛍️ GET ALL SERVICES - For N8N getAllServices Tool (Andrea's Request)
+   * POST /internal/get-all-services
+   * Returns all services for a workspace with customer discount logic applied
+   * Enhanced with Andrea's "Highest Discount Wins" Logic for services
+   */
+  async getAllServices(req: Request, res: Response): Promise<void> {
+    try {
+      const { workspaceId, customerId, search, limit } = req.body
+
+      if (!workspaceId) {
+        res.status(400).json({
+          error: "Workspace ID is required",
+          example: {
+            workspaceId: "clzd8x8z20000356cqhpe6yu0",
+            customerId: "optional",
+          },
+        })
+        return
+      }
+
+      logger.info(
+        `[GET-ALL-SERVICES] 🛍️ Andrea's getAllServices - Getting services for workspace ${workspaceId}, customerId: ${customerId}`
+      )
+
+      // Build filter conditions
+      const where: any = {
+        workspaceId,
+        isActive: true, // Only active services
+      }
+
+      // Add search filter if provided
+      if (search) {
+        where.name = {
+          contains: search,
+          mode: "insensitive",
+        }
+      }
+
+      // Get services with pagination
+      const maxLimit = limit || 50 // Default limit
+      const services = await prisma.services.findMany({
+        where,
+        orderBy: {
+          name: "asc",
+        },
+        take: maxLimit,
+      })
+
+      // Count total services in workspace
+      const totalServices = await prisma.services.count({
+        where: { workspaceId, isActive: true },
+      })
+
+      // 💰 ANDREA'S LOGIC: Apply customer discount to services
+      let customerDiscount = 0
+      let customerInfo = null
+
+      if (customerId) {
+        try {
+          const customer = await prisma.customers.findUnique({
+            where: { id: customerId },
+            select: { discount: true, name: true, phone: true },
+          })
+
+          if (customer) {
+            customerDiscount = customer.discount || 0
+            customerInfo = {
+              name: customer.name,
+              discount: customerDiscount,
+            }
+            logger.info(
+              `[GET-ALL-SERVICES] 👤 Customer found: ${customer.name}, discount: ${customerDiscount}%`
+            )
+          }
+        } catch (customerError) {
+          logger.error(
+            `[GET-ALL-SERVICES] ❌ Error fetching customer:`,
+            customerError
+          )
+        }
+      }
+
+      // Apply Andrea's discount logic to services
+      const formattedServices = services.map((service: any) => {
+        const originalPrice = service.price || 0
+        const serviceDiscount = service.discountPercent || 0
+
+        // Andrea's Logic: Highest discount wins
+        const bestDiscount = Math.max(customerDiscount, serviceDiscount)
+        const discountSource =
+          bestDiscount === customerDiscount && customerDiscount > 0
+            ? "customer"
+            : bestDiscount === serviceDiscount && serviceDiscount > 0
+              ? "service"
+              : "none"
+
+        const finalPrice = originalPrice * (1 - bestDiscount / 100)
+        const hasDiscount = bestDiscount > 0
+
+        let formatted = `Prezzo: €${finalPrice.toFixed(2)}`
+        if (hasDiscount) {
+          formatted += ` (scontato del ${bestDiscount}%, prezzo pieno €${originalPrice.toFixed(2)}, fonte: ${discountSource})`
+        }
+
+        return {
+          id: service.id,
+          name: service.name,
+          description: service.description || "",
+          price: finalPrice,
+          originalPrice,
+          discountPercent: bestDiscount,
+          discountSource,
+          formatted,
+          category: service.category || "Services",
+          available: service.isActive,
+          customerDiscount,
+          serviceDiscount,
+          bestDiscount,
+          discountApplied: hasDiscount ? discountSource : "none",
+        }
+      })
+
+      logger.info(
+        `[GET-ALL-SERVICES] ✅ Found ${formattedServices.length} services with pricing applied (total in workspace: ${totalServices})`
+      )
+
+      res.json({
+        success: true,
+        workspaceId,
+        customerInfo,
+        services: formattedServices,
+        summary: {
+          found: formattedServices.length,
+          totalInWorkspace: totalServices,
+          filters: {
+            search: search || null,
+            limit: maxLimit,
+          },
+        },
+        discountLogic: {
+          customerDiscount,
+          note: "Andrea's Logic: Highest discount wins (applied to services)",
+          appliedLogic: customerId
+            ? "customer_discount_considered"
+            : "no_customer_provided",
+        },
+        timestamp: new Date().toISOString(),
+      })
+    } catch (error: any) {
+      logger.error("[GET-ALL-SERVICES] ❌ Error getting services:", error)
       res.status(500).json({
         error: "Internal server error",
         message: error.message,
@@ -2191,12 +2444,13 @@ ${JSON.stringify(ragResults, null, 2)}`
   }
 
   /**
-   * GET /internal/get-active-offers
-   * Get all active offers for a workspace
+   * POST /internal/get-active-offers
+   * Get all active offers for a workspace with customer discount calculation
+   * 💰 Andrea's Logic: Considers customer discount vs offer discount (highest wins)
    */
   async getActiveOffers(req: Request, res: Response): Promise<void> {
     try {
-      const { workspaceId } = req.body
+      const { workspaceId, customerId } = req.body
 
       if (!workspaceId) {
         res.status(400).json({ error: "workspaceId is required" })
@@ -2204,8 +2458,42 @@ ${JSON.stringify(ragResults, null, 2)}`
       }
 
       logger.info(
-        `[INTERNAL_API] Getting active offers for workspace ${workspaceId}`
+        `[INTERNAL_API] 💰 Getting active offers for workspace ${workspaceId}, customerId: ${customerId || "none"}`
       )
+
+      // 💰 Get customer discount if customerId provided (Andrea's Logic)
+      let customerDiscount = 0
+      let customerInfo = null
+      if (customerId) {
+        try {
+          const customer = await prisma.customers.findUnique({
+            where: { id: customerId },
+            select: { discount: true, name: true, phone: true },
+          })
+
+          if (customer) {
+            customerDiscount = customer.discount || 0
+            customerInfo = customer
+            logger.info(
+              `[GET-ACTIVE-OFFERS] 👤 Customer found: ${customer.name} with ${customerDiscount}% discount`
+            )
+          } else {
+            logger.warn(
+              `[GET-ACTIVE-OFFERS] ⚠️ Customer not found for ID: ${customerId}`
+            )
+          }
+        } catch (customerError) {
+          logger.error(
+            `[GET-ACTIVE-OFFERS] ❌ Error fetching customer:`,
+            customerError
+          )
+          // Continue with 0% discount if customer fetch fails
+        }
+      } else {
+        logger.info(
+          `[GET-ACTIVE-OFFERS] ⚪ No customerId provided, using 0% discount`
+        )
+      }
 
       // Get current date
       const now = new Date()
@@ -2227,65 +2515,120 @@ ${JSON.stringify(ragResults, null, 2)}`
           categories: true,
         },
         orderBy: {
-          discountPercent: 'desc', // Show highest discounts first
+          discountPercent: "desc", // Show highest discounts first
         },
       })
 
-      logger.info(`Found ${activeOffers.length} active offers`)
+      logger.info(
+        `[GET-ACTIVE-OFFERS] Found ${activeOffers.length} active offers`
+      )
 
-      // Format the response
-      const formattedOffers = activeOffers.map(offer => {
+      // 💰 Andrea's Logic: Calculate which discount is better for each offer
+      const formattedOffers = activeOffers.map((offer) => {
         const categoryNames = []
-        
+
         // Add single category if exists
         if (offer.category) {
           categoryNames.push(offer.category.name)
         }
-        
+
         // Add multiple categories if exist
         if (offer.categories && offer.categories.length > 0) {
-          categoryNames.push(...offer.categories.map(cat => cat.name))
+          categoryNames.push(...offer.categories.map((cat) => cat.name))
         }
 
         // Remove duplicates
         const uniqueCategories = [...new Set(categoryNames)]
+
+        // 🎯 ANDREA'S DISCOUNT LOGIC: Compare customer vs offer discount
+        const offerDiscount = offer.discountPercent || 0
+        const bestDiscount = Math.max(customerDiscount, offerDiscount)
+        const discountSource =
+          bestDiscount === customerDiscount ? "customer" : "offer"
+
+        // Only show the offer if it provides better discount than customer discount
+        const isOfferBetterThanCustomer = offerDiscount > customerDiscount
+
+        logger.info(
+          `[GET-ACTIVE-OFFERS] Offer "${offer.name}": customer ${customerDiscount}% vs offer ${offerDiscount}% → best: ${bestDiscount}% (${discountSource})`
+        )
 
         return {
           id: offer.id,
           name: offer.name,
           description: offer.description,
           discountPercent: offer.discountPercent,
+          customerDiscount: customerDiscount,
+          bestDiscount: bestDiscount,
+          discountSource: discountSource,
+          isOfferBetterThanCustomer: isOfferBetterThanCustomer,
           startDate: offer.startDate,
           endDate: offer.endDate,
-          categories: uniqueCategories.length > 0 ? uniqueCategories : ['Tutte le categorie'],
+          categories:
+            uniqueCategories.length > 0
+              ? uniqueCategories
+              : ["Tutte le categorie"],
           isForAllCategories: uniqueCategories.length === 0,
         }
       })
 
-      // Create response message
+      // 🎯 Filter offers: only show offers that are better than customer discount
+      const relevantOffers = formattedOffers.filter(
+        (offer) => offer.isOfferBetterThanCustomer
+      )
+
+      logger.info(
+        `[GET-ACTIVE-OFFERS] 💰 Of ${formattedOffers.length} total offers, ${relevantOffers.length} are better than customer discount of ${customerDiscount}%`
+      )
+
+      // Create response message with Andrea's Logic
       let responseMessage = ""
-      if (formattedOffers.length === 0) {
-        responseMessage = "🚫 Non ci sono offerte attive al momento."
+      if (customerInfo) {
+        responseMessage += `👤 **Cliente: ${customerInfo.name}** (Sconto personale: ${customerDiscount}%)\n\n`
+      }
+
+      if (relevantOffers.length === 0) {
+        if (customerDiscount > 0) {
+          responseMessage += `🎯 Non ci sono offerte migliori del tuo sconto personale del ${customerDiscount}%.\n`
+          responseMessage += `💰 Tutti i prodotti hanno già il tuo sconto applicato!`
+        } else {
+          responseMessage += "🚫 Non ci sono offerte attive al momento."
+        }
       } else {
-        responseMessage = "🎉 **Offerte attive al momento:**\n\n"
-        formattedOffers.forEach(offer => {
-          const categoriesText = offer.isForAllCategories 
-            ? "su tutti i prodotti" 
-            : `sulle categorie: ${offer.categories.join(', ')}`
-          
+        responseMessage += `🎉 **Offerte migliori del tuo sconto personale (${customerDiscount}%):**\n\n`
+        relevantOffers.forEach((offer) => {
+          const categoriesText = offer.isForAllCategories
+            ? "su tutti i prodotti"
+            : `sulle categorie: ${offer.categories.join(", ")}`
+
+          const additionalDiscount = offer.discountPercent - customerDiscount
+
           responseMessage += `✨ **${offer.name}** - ${offer.discountPercent}% di sconto ${categoriesText}\n`
+          responseMessage += `💰 Risparmio extra: +${additionalDiscount}% rispetto al tuo sconto personale\n`
           responseMessage += `📝 ${offer.description}\n`
-          responseMessage += `📅 Valida fino al ${offer.endDate.toLocaleDateString('it-IT')}\n\n`
+          responseMessage += `📅 Valida fino al ${offer.endDate.toLocaleDateString("it-IT")}\n\n`
         })
       }
 
       res.json({
         success: true,
-        total_offers: formattedOffers.length,
-        offers: formattedOffers,
+        customerInfo: customerInfo
+          ? {
+              name: customerInfo.name,
+              discount: customerDiscount,
+            }
+          : null,
+        total_offers: activeOffers.length,
+        relevant_offers: relevantOffers.length,
+        offers: relevantOffers, // Only return offers better than customer discount
+        all_offers: formattedOffers, // All offers for debugging/admin
         response_message: responseMessage,
+        discountLogic: {
+          customerDiscount,
+          note: "Only showing offers better than customer discount",
+          appliedLogic: "Andrea's highest discount wins logic",
+        },
       })
-
     } catch (error) {
       logger.error("[INTERNAL_API] Error getting active offers:", error)
       res.status(500).json({
@@ -2318,8 +2661,9 @@ ${JSON.stringify(ragResults, null, 2)}`
           name: "SearchRag",
           status: "✅ IMPLEMENTATA",
           endpoint: "CF/SearchRag",
-          description: "Ricerca semantica unificata tra prodotti, FAQ, servizi e documenti",
-          category: "Search & Discovery"
+          description:
+            "Ricerca semantica unificata tra prodotti, FAQ, servizi e documenti",
+          category: "Search & Discovery",
         },
         {
           id: 2,
@@ -2327,7 +2671,7 @@ ${JSON.stringify(ragResults, null, 2)}`
           status: "✅ IMPLEMENTATA",
           endpoint: "CF/GetAllProducts",
           description: "Restituisce lista completa prodotti del workspace",
-          category: "Product Management"
+          category: "Product Management",
         },
         {
           id: 3,
@@ -2335,7 +2679,7 @@ ${JSON.stringify(ragResults, null, 2)}`
           status: "✅ IMPLEMENTATA",
           endpoint: "CF/GetAllServices",
           description: "Restituisce lista completa servizi del workspace",
-          category: "Service Management"
+          category: "Service Management",
         },
         {
           id: 4,
@@ -2343,7 +2687,7 @@ ${JSON.stringify(ragResults, null, 2)}`
           status: "⚠️ QUASI COMPLETA (90%)",
           endpoint: "CF/CallOperator",
           description: "Attiva controllo manuale operatore",
-          category: "Support & Assistance"
+          category: "Support & Assistance",
         },
         {
           id: 5,
@@ -2351,7 +2695,7 @@ ${JSON.stringify(ragResults, null, 2)}`
           status: "❌ DA IMPLEMENTARE",
           endpoint: "CF/ReceiveInvoice",
           description: "Gestisce richieste fatture con filtro codice ordine",
-          category: "Financial Operations"
+          category: "Financial Operations",
         },
         {
           id: 6,
@@ -2359,7 +2703,7 @@ ${JSON.stringify(ragResults, null, 2)}`
           status: "❌ IN TODO",
           endpoint: "CF/PaymentProcessStart",
           description: "Avvia processo di pagamento per ordini",
-          category: "Payment Processing"
+          category: "Payment Processing",
         },
         {
           id: 7,
@@ -2367,27 +2711,37 @@ ${JSON.stringify(ragResults, null, 2)}`
           status: "✅ IMPLEMENTATA",
           endpoint: "CF/GetActiveOffers",
           description: "Restituisce tutte le offerte e sconti attivi",
-          category: "Promotions & Offers"
-        }
+          category: "Promotions & Offers",
+        },
       ]
 
       // Group services by category
-      const servicesByCategory = cfServices.reduce((acc, service) => {
-        if (!acc[service.category]) {
-          acc[service.category] = []
-        }
-        acc[service.category].push(service)
-        return acc
-      }, {} as Record<string, typeof cfServices>)
+      const servicesByCategory = cfServices.reduce(
+        (acc, service) => {
+          if (!acc[service.category]) {
+            acc[service.category] = []
+          }
+          acc[service.category].push(service)
+          return acc
+        },
+        {} as Record<string, typeof cfServices>
+      )
 
       // Calculate statistics
       const totalServices = cfServices.length
-      const implementedServices = cfServices.filter(s => s.status.includes("✅")).length
-      const partialServices = cfServices.filter(s => s.status.includes("⚠️")).length
-      const missingServices = cfServices.filter(s => s.status.includes("❌")).length
+      const implementedServices = cfServices.filter((s) =>
+        s.status.includes("✅")
+      ).length
+      const partialServices = cfServices.filter((s) =>
+        s.status.includes("⚠️")
+      ).length
+      const missingServices = cfServices.filter((s) =>
+        s.status.includes("❌")
+      ).length
 
       // Create formatted response message
-      let responseMessage = "🔧 **LISTA COMPLETA FUNZIONI CF (CALLING FUNCTIONS)**\n\n"
+      let responseMessage =
+        "🔧 **LISTA COMPLETA FUNZIONI CF (CALLING FUNCTIONS)**\n\n"
       responseMessage += `📊 **Statistiche:**\n`
       responseMessage += `• Totale servizi: ${totalServices}\n`
       responseMessage += `• ✅ Implementati: ${implementedServices}\n`
@@ -2397,7 +2751,7 @@ ${JSON.stringify(ragResults, null, 2)}`
       // Add services by category
       Object.entries(servicesByCategory).forEach(([category, services]) => {
         responseMessage += `## 📂 ${category}\n\n`
-        services.forEach(service => {
+        services.forEach((service) => {
           responseMessage += `### ${service.status} **${service.name}**\n`
           responseMessage += `📍 **Endpoint**: \`${service.endpoint}\`\n`
           responseMessage += `📝 **Descrizione**: ${service.description}\n\n`
@@ -2417,7 +2771,6 @@ ${JSON.stringify(ragResults, null, 2)}`
         services_by_category: servicesByCategory,
         response_message: responseMessage,
       })
-
     } catch (error) {
       logger.error("[INTERNAL_API] Error getting CF services:", error)
       res.status(500).json({

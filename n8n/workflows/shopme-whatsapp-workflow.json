@@ -169,7 +169,7 @@
         "genericAuthType": "httpBasicAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "= {\n      \"query\": \"{{ $('prepare-data').item.json.chatInput }}\",\n      \"messages\": \"{{ $('prepare-data').item.json.messages }}\",\n      \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n      \"customerId\": \"{{ $('prepare-data').item.json.customerId }}\"\n    }",
+        "jsonBody": "= {\n      \"query\": \"{{ $('prepare-data').item.json.chatInput }}\",\n      \"messages\": \"{{ $('prepare-data').item.json.messages }}\",\n      \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n      \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\"\n    }",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequestTool",
@@ -193,7 +193,7 @@
         "genericAuthType": "httpBasicAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\"\n}",
+        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n   \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequestTool",
@@ -265,7 +265,7 @@
         "genericAuthType": "httpBasicAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\"\n}",
+        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n      \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequestTool",
@@ -294,7 +294,7 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1540, 360],
+      "position": [1660, 360],
       "id": "e0fa8b8f-0b34-4479-a832-63610a029d53",
       "name": "CreateOrder()",
       "credentials": {
@@ -306,21 +306,21 @@
     },
     {
       "parameters": {
-        "toolDescription": "categories",
+        "toolDescription": "ALWAYS call this function when the user asks about services in ANY language. This tool shows ALL services available with customer discount pricing. Use this tool for these requests:\\n\\nITALIAN:\\n- che servizi offrite?\\n- quali servizi avete?\\n- lista dei servizi\\n- servizi disponibili\\n- che servizi fate?\\n- servizi aziendali\\n\\nENGLISH:\\n- what services do you offer?\\n- show me your services\\n- list all services\\n- available services\\n- what services do you provide?\\n\\nSPANISH:\\n- ¿qué servicios ofrecen?\\n- servicios disponibles\\n- lista de servicios\\n\\nIMPORTANT: Call this function for ANY request about seeing services, regardless of how it's phrased. This shows the COMPLETE services list with pricing including customer discounts.\n",
         "method": "POST",
-        "url": "=http://host.docker.internal:3001/api/internal/get-active-offers",
+        "url": "=http://host.docker.internal:3001/api/internal/get-all-services",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpBasicAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\"\n}",
+        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1720, 360],
+      "position": [1460, 460],
       "id": "a0221ba1-1f54-49e9-ab37-c58795f2887e",
-      "name": "GegtServices()",
+      "name": "GetServices()",
       "credentials": {
         "httpBasicAuth": {
           "id": "nOzUXNg0WY5kDNmK",
@@ -527,13 +527,24 @@
           }
         ]
       ]
+    },
+    "GetServices()": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "07d30945-4064-400c-a519-813bf0f2e25e",
+  "versionId": "d7db9897-6ab6-49c7-8ffa-bbcdeb1d0a5c",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"

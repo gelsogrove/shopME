@@ -159,35 +159,40 @@ export class N8nPayloadBuilder {
     console.log(JSON.stringify(optimizedData.customer, null, 2))
 
     // 🚀 NEW CONSOLIDATED PAYLOAD STRUCTURE - Following updated webhook-payload-example.json
-    const conversationHistory = optimizedData.conversationHistory.length > 0
-      ? optimizedData.conversationHistory.map((msg) => ({
-          id: msg.id,
-          content: msg.content,
-          role: msg.direction === "INBOUND" ? "user" : "assistant",
-          timestamp: msg.createdAt,
-        }))
-      : [
-          {
-            id: "msg-1",
-            content: "Ciao! Come posso aiutarti oggi?",
-            role: "assistant",
-            timestamp: "2024-06-19T15:25:00.000Z",
-          },
-          {
-            id: "msg-2",
-            content: "Salve, sto cercando dei formaggi",
-            role: "user",
-            timestamp: "2024-06-19T15:26:00.000Z",
-          },
-          {
-            id: "msg-3",
-            content: "Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?",
-            role: "assistant",
-            timestamp: "2024-06-19T15:26:30.000Z",
-          },
-        ];
+    const conversationHistory =
+      optimizedData.conversationHistory.length > 0
+        ? optimizedData.conversationHistory.map((msg) => ({
+            id: msg.id,
+            content: msg.content,
+            role: msg.direction === "INBOUND" ? "user" : "assistant",
+            timestamp: msg.createdAt,
+          }))
+        : [
+            {
+              id: "msg-1",
+              content: "Ciao! Come posso aiutarti oggi?",
+              role: "assistant",
+              timestamp: "2024-06-19T15:25:00.000Z",
+            },
+            {
+              id: "msg-2",
+              content: "Salve, sto cercando dei formaggi",
+              role: "user",
+              timestamp: "2024-06-19T15:26:00.000Z",
+            },
+            {
+              id: "msg-3",
+              content:
+                "Perfetto! Abbiamo un'ottima selezione di formaggi italiani. Che tipo di formaggio stai cercando?",
+              role: "assistant",
+              timestamp: "2024-06-19T15:26:30.000Z",
+            },
+          ]
 
-    const messages = conversationHistory.map(({ role, content }) => ({ role, content }));
+    const messages = conversationHistory.map(({ role, content }) => ({
+      role,
+      content,
+    }))
 
     const simplifiedPayload = {
       workspaceId: workspaceId,
@@ -235,18 +240,27 @@ export class N8nPayloadBuilder {
               currency: optimizedData.customer.currency,
               address: optimizedData.customer.address || "Via Roma 123, Milano",
               company: optimizedData.customer.company || "",
-              
+
               // 🏢 BUSINESS INFO MERGED HERE
-              businessName: optimizedData.businessInfo?.name || "L'Altra Italia(ESP)",
-              businessType: optimizedData.businessInfo?.businessType || "ECOMMERCE",
+              businessName:
+                optimizedData.businessInfo?.name || "L'Altra Italia(ESP)",
+              businessType:
+                optimizedData.businessInfo?.businessType || "ECOMMERCE",
               plan: optimizedData.businessInfo?.plan || "PREMIUM",
-              whatsappPhoneNumber: optimizedData.businessInfo?.whatsappPhoneNumber || "+34654728753",
+              whatsappPhoneNumber:
+                optimizedData.businessInfo?.whatsappPhoneNumber ||
+                "+34654728753",
               whatsappApiKey: "your-whatsapp-api-key",
               timezone: "Europe/Rome",
-              url: optimizedData.businessInfo?.url || "https://laltroitalia.shop",
-              notificationEmail: optimizedData.businessInfo?.notificationEmail || "admin@laltroitalia.shop",
-              description: optimizedData.businessInfo?.description || "Prodotti alimentari italiani di alta qualità",
-              
+              url:
+                optimizedData.businessInfo?.url || "https://laltroitalia.shop",
+              notificationEmail:
+                optimizedData.businessInfo?.notificationEmail ||
+                "admin@laltroitalia.shop",
+              description:
+                optimizedData.businessInfo?.description ||
+                "Prodotti alimentari italiani di alta qualità",
+
               // 💬 MESSAGES MERGED HERE
               wipMessages: {
                 it: "Sto elaborando la tua richiesta, un momento per favore...",
@@ -256,7 +270,7 @@ export class N8nPayloadBuilder {
                 de: "Ich bearbeite Ihre Anfrage, bitte warten Sie einen Moment...",
                 pt: "Processando sua solicitação, aguarde um momento por favor...",
               },
-              
+
               // 📜 CONVERSATION HISTORY MERGED HERE
               conversationHistory: conversationHistory,
             }
@@ -274,7 +288,7 @@ export class N8nPayloadBuilder {
               currency: "EUR",
               address: "",
               company: "",
-              
+
               // 🏢 FALLBACK BUSINESS INFO
               businessName: "L'Altra Italia(ESP)",
               businessType: "ECOMMERCE",
@@ -285,7 +299,7 @@ export class N8nPayloadBuilder {
               url: "https://laltroitalia.shop",
               notificationEmail: "admin@laltroitalia.shop",
               description: "Prodotti alimentari italiani di alta qualità",
-              
+
               // 💬 FALLBACK MESSAGES
               wipMessages: {
                 it: "Sto elaborando la tua richiesta, un momento per favore...",
@@ -295,7 +309,7 @@ export class N8nPayloadBuilder {
                 de: "Ich bearbeite Ihre Anfrage, bitte warten Sie einen Moment...",
                 pt: "Processando sua solicitação, aguarde um momento por favor...",
               },
-              
+
               // 📜 FALLBACK CONVERSATION HISTORY
               conversationHistory: conversationHistory,
             },
@@ -317,22 +331,28 @@ export class N8nPayloadBuilder {
     botResponse: string
   ) {
     try {
-      logger.info(`[HISTORY-SAVE] 💾 Saving message to history for ${phoneNumber}`)
-      
+      logger.info(
+        `[HISTORY-SAVE] 💾 Saving message to history for ${phoneNumber}`
+      )
+
       // Import MessageRepository dynamically to avoid circular dependencies
-      const { MessageRepository } = await import('../repositories/message.repository')
+      const { MessageRepository } = await import(
+        "../repositories/message.repository"
+      )
       const messageRepository = new MessageRepository()
-      
+
       // Save both the user message and bot response to history
       await messageRepository.saveMessage({
         workspaceId,
         phoneNumber,
         message: userMessage,
         response: botResponse,
-        agentSelected: "N8N_API_DIRECT"
+        agentSelected: "N8N_API_DIRECT",
       })
-      
-      logger.info(`[HISTORY-SAVE] ✅ Successfully saved message to history for ${phoneNumber}`)
+
+      logger.info(
+        `[HISTORY-SAVE] ✅ Successfully saved message to history for ${phoneNumber}`
+      )
       return true
     } catch (error) {
       logger.error(`[HISTORY-SAVE] ❌ Error saving message to history:`, error)
@@ -366,20 +386,36 @@ export class N8nPayloadBuilder {
       console.log("🚨 N8N URL:", n8nWebhookUrl)
       console.log("🚨 N8N Simplified Payload:")
       console.log(JSON.stringify(simplifiedPayload, null, 2))
-      
+
       // 🔍 ANDREA DEBUG: Verifica specificamente businessInfo.isActive
-      console.log("🔍 ANDREA DEBUG - customer.isActive:", simplifiedPayload?.precompiledData?.customer?.isActive)
-      console.log("🔍 ANDREA DEBUG - customer.isActive type:", typeof simplifiedPayload?.precompiledData?.customer?.isActive)
-      console.log("🔍 ANDREA DEBUG - customer.activeChatbot:", simplifiedPayload?.precompiledData?.customer?.activeChatbot)
-      console.log("🔍 ANDREA DEBUG - customer.isBlacklisted:", simplifiedPayload?.precompiledData?.customer?.isBlacklisted)
-      
+      console.log(
+        "🔍 ANDREA DEBUG - customer.isActive:",
+        simplifiedPayload?.precompiledData?.customer?.isActive
+      )
+      console.log(
+        "🔍 ANDREA DEBUG - customer.isActive type:",
+        typeof simplifiedPayload?.precompiledData?.customer?.isActive
+      )
+      console.log(
+        "🔍 ANDREA DEBUG - customer.activeChatbot:",
+        simplifiedPayload?.precompiledData?.customer?.activeChatbot
+      )
+      console.log(
+        "🔍 ANDREA DEBUG - customer.isBlacklisted:",
+        simplifiedPayload?.precompiledData?.customer?.isBlacklisted
+      )
+
       // 🚨 SUPER DEBUG: Mostra tutto il precompiledData
       console.log("🚨 SUPER DEBUG - INTERO precompiledData:")
       console.log(JSON.stringify(simplifiedPayload?.precompiledData, null, 2))
 
       // LOG PRIMA DELLA FETCH
-      console.log("🚨 PRIMA DELLA FETCH A N8N", n8nWebhookUrl, JSON.stringify(simplifiedPayload).substring(0, 200));
-      let response;
+      console.log(
+        "🚨 PRIMA DELLA FETCH A N8N",
+        n8nWebhookUrl,
+        JSON.stringify(simplifiedPayload).substring(0, 200)
+      )
+      let response
       try {
         response = await fetch(n8nWebhookUrl, {
           method: "POST",
@@ -387,26 +423,31 @@ export class N8nPayloadBuilder {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(simplifiedPayload),
-        });
+        })
         // LOG DOPO LA FETCH
-        console.log("🚨 DOPO FETCH, response.ok:", response.ok, "status:", response.status);
+        console.log(
+          "🚨 DOPO FETCH, response.ok:",
+          response.ok,
+          "status:",
+          response.status
+        )
       } catch (error) {
         // LOG ERRORE FETCH
-        console.error("🚨 ERRORE FETCH N8N:", error);
-        throw error;
+        console.error("🚨 ERRORE FETCH N8N:", error)
+        throw error
       }
 
       if (!response.ok) {
         // Leggi il body di errore se presente
-        let errorBody = '';
+        let errorBody = ""
         try {
-          errorBody = await response.text();
+          errorBody = await response.text()
         } catch (e) {
-          errorBody = '[Impossibile leggere il body di errore]';
+          errorBody = "[Impossibile leggere il body di errore]"
         }
-        const errorMsg = `N8N webhook failed with status: ${response.status} ${response.statusText}\nBody: ${errorBody}`;
+        const errorMsg = `N8N webhook failed with status: ${response.status} ${response.statusText}\nBody: ${errorBody}`
         logger.error(`[N8N] ❌ HTTP error sending to N8N:`, errorMsg)
-        throw new Error(errorMsg);
+        throw new Error(errorMsg)
       }
 
       const n8nResponse = await response.json()
@@ -414,43 +455,34 @@ export class N8nPayloadBuilder {
       logger.info(`[N8N] 📝 Response:`, JSON.stringify(n8nResponse, null, 2))
 
       // PATCH: Gestione robusta di array/oggetto
-      let parsedResponse;
+      let parsedResponse
       if (Array.isArray(n8nResponse) && n8nResponse.length > 0) {
-        parsedResponse = n8nResponse[0];
-      } else if (n8nResponse && typeof n8nResponse === 'object') {
-        parsedResponse = n8nResponse;
+        parsedResponse = n8nResponse[0]
+      } else if (n8nResponse && typeof n8nResponse === "object") {
+        parsedResponse = n8nResponse
       } else {
-        parsedResponse = { message: "Errore: risposta N8N non valida" };
+        parsedResponse = { message: "Errore: risposta N8N non valida" }
       }
-      
+
       // DEBUG: Log della risposta parsata
-      console.log("[DEBUG PATCH] Original n8nResponse:", JSON.stringify(n8nResponse, null, 2));
-      console.log("[DEBUG PATCH] Parsed response:", JSON.stringify(parsedResponse, null, 2));
-      console.log("[DEBUG PATCH] parsedResponse.message:", parsedResponse.message);
-      
-      // 💾 SAVE MESSAGE TO HISTORY - Fix for direct API calls
-      // Only save if we have a valid response with a message
-      if (parsedResponse && parsedResponse.message && 
-          simplifiedPayload.workspaceId && 
-          simplifiedPayload.phoneNumber && 
-          simplifiedPayload.messageContent) {
-        
-        logger.info(`[N8N] 💾 Saving message to history after N8N response`)
-        
-        // Save the message pair to history (async, don't wait)
-        this.saveMessageToHistory(
-          simplifiedPayload.workspaceId,
-          simplifiedPayload.phoneNumber,
-          simplifiedPayload.messageContent,
-          parsedResponse.message
-        ).catch(error => {
-          logger.error(`[N8N] ❌ Error in async history save:`, error)
-        })
-      } else {
-        logger.warn(`[N8N] ⚠️ Cannot save to history - missing required data`)
-      }
-      
-      return parsedResponse;
+      console.log(
+        "[DEBUG PATCH] Original n8nResponse:",
+        JSON.stringify(n8nResponse, null, 2)
+      )
+      console.log(
+        "[DEBUG PATCH] Parsed response:",
+        JSON.stringify(parsedResponse, null, 2)
+      )
+      console.log(
+        "[DEBUG PATCH] parsedResponse.message:",
+        parsedResponse.message
+      )
+
+      // ❌ REMOVED DUPLICATE HISTORY SAVE - This was causing message duplication
+      // The message is already saved by the calling controller/service
+      // No need to save it again here to avoid duplicates
+
+      return parsedResponse
     } catch (error: any) {
       logger.error(`[N8N] ❌ Error sending to N8N:`, error)
       // Rilancio l'errore con stack completo e messaggio

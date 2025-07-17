@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -86,11 +86,12 @@ export function WhatsAppChatModal({
   console.log("Workspace check:", {
     currentWorkspaceId,
     hasValidWorkspace,
-    providedWorkspaceId: workspaceId
+    providedWorkspaceId: workspaceId,
   })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const lastSendRef = useRef<number>(0) // Track last sendMessage call
 
   // Load chat from props or localStorage when the modal opens
   useEffect(() => {
@@ -369,13 +370,37 @@ export function WhatsAppChatModal({
   }
 
   const sendMessage = async () => {
-    if (!currentMessage.trim() || isLoading) return
+    console.log("🚀 FRONTEND DEBUG: sendMessage called with:", currentMessage)
+
+    if (!currentMessage.trim() || isLoading) {
+      console.log(
+        "❌ FRONTEND DEBUG: sendMessage blocked - empty message or loading"
+      )
+      return
+    }
+
+    // Prevent double execution with simple debounce
+    const now = Date.now()
+    const lastCall = lastSendRef.current
+    if (now - lastCall < 10000) {
+      // 10 second debounce for testing
+      console.log(
+        "❌ FRONTEND DEBUG: sendMessage blocked - too soon after last call"
+      )
+      return
+    }
+    lastSendRef.current = now
 
     // Check if we have a valid workspace
     if (!hasValidWorkspace) {
       alert("No workspace available. Please select a workspace first.")
       return
     }
+
+    console.log(
+      "✅ FRONTEND DEBUG: sendMessage proceeding with message:",
+      currentMessage
+    )
 
     // Add user message
     const userMessage: Message = {
@@ -399,12 +424,14 @@ export function WhatsAppChatModal({
       // Use provided workspaceId or get from config
       const currentWorkspaceId = getWorkspaceId(workspaceId)
 
+      console.log("🔄 FRONTEND DEBUG: Making API call to:", apiUrl)
       const response = await axios.post(apiUrl, {
         message: userMessage.content,
         phoneNumber: userPhoneNumber,
         workspaceId: currentWorkspaceId,
         sessionId: sessionId, // Include the sessionId in the request
       })
+      console.log("📥 FRONTEND DEBUG: API response received:", response.data)
 
       if (response.data.success) {
         // Update sessionId if provided in the response and not yet set
@@ -543,15 +570,16 @@ export function WhatsAppChatModal({
             <h3 className="text-lg font-semibold mb-4">
               Enter details to start a chat
             </h3>
-            
+
             {!hasValidWorkspace && (
               <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                 <p className="text-sm text-yellow-800">
-                  ⚠️ No workspace available. Please select a workspace first to send messages.
+                  ⚠️ No workspace available. Please select a workspace first to
+                  send messages.
                 </p>
               </div>
             )}
-            
+
             <div className="space-y-6">
               <div>
                 <Label htmlFor="phone-number">Phone Number</Label>
@@ -595,7 +623,11 @@ export function WhatsAppChatModal({
                   isLoading
                 }
               >
-                {isLoading ? "Processing..." : !hasValidWorkspace ? "No Workspace Available" : "Start Chat"}
+                {isLoading
+                  ? "Processing..."
+                  : !hasValidWorkspace
+                  ? "No Workspace Available"
+                  : "Start Chat"}
               </Button>
             </div>
           </div>
@@ -695,16 +727,19 @@ export function WhatsAppChatModal({
               {!hasValidWorkspace && (
                 <div className="flex-1 p-3 bg-yellow-50 border border-yellow-200 rounded-md mr-2">
                   <p className="text-sm text-yellow-800">
-                    No workspace available. Please select a workspace to send messages.
+                    No workspace available. Please select a workspace to send
+                    messages.
                   </p>
                 </div>
               )}
-              
+
               {hasValidWorkspace && (
                 <>
                   <Textarea
                     ref={inputRef}
-                    placeholder={isLoading ? "Please wait..." : "Type a message"}
+                    placeholder={
+                      isLoading ? "Please wait..." : "Type a message"
+                    }
                     value={currentMessage}
                     onChange={(e) => setCurrentMessage(e.target.value)}
                     onKeyDown={handleKeyDown}

@@ -134,7 +134,11 @@ export function ChatPage() {
   const [showPlaygroundDialog, setShowPlaygroundDialog] = useState(false)
 
   const handlePlaygroundClick = () => setShowPlaygroundDialog(true)
-  const handleClosePlayground = () => setShowPlaygroundDialog(false)
+  const handleClosePlayground = () => {
+    setShowPlaygroundDialog(false)
+    // Refresh the chat list when the WhatsApp modal closes
+    refetchChats()
+  }
 
   // Redirect to workspace selection if user has no workspace
   useEffect(() => {
