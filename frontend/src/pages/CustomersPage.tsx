@@ -5,6 +5,7 @@ import { MessageSquare, Pencil, Trash2, Users } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { PageHeader } from "../components/shared/PageHeader"
+import { DataTable } from "../components/shared/DataTable"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
 import {
@@ -17,14 +18,14 @@ import {
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../components/ui/table"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select"
 import { toast } from "../lib/toast"
+import { type ColumnDef } from "@tanstack/react-table"
 
 // Map Client interface to Customer interface for compatibility
 interface Customer {
@@ -48,58 +49,49 @@ const clientToCustomer = (client: Client): Customer => ({
   id: client.id,
   name: client.name,
   phone: client.phone,
-  email: client.email,
-  totalOrders: 0, // This would come from orders API
-  totalSpent: 0, // This would come from orders API
-  lastActive: client.updatedAt,
-  status: client.isActive ? "active" : "inactive", // Use actual isActive field
-  gdprConsent: true, // Assuming GDPR consent for existing clients
-  pushNotificationsConsent: false, // Default value
+  email: client.email || "",
+  totalOrders: 0,
+  totalSpent: 0,
+  lastActive: client.updatedAt || client.createdAt,
+  status: client.isActive ? "active" : "inactive",
+  gdprConsent: client.gdprConsent || false,
+  pushNotificationsConsent: client.pushNotificationsConsent || false,
   activeChatbot: client.activeChatbot || false,
-  discount: client.discount,
-  company: client.company,
+  discount: client.discount || 0,
+  company: client.company || undefined,
 })
 
 export default function CustomersPage() {
-  const { workspace, loading: isWorkspaceLoading } = useWorkspace()
+  const { workspace } = useWorkspace()
+  const navigate = useNavigate()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchValue, setSearchValue] = useState("")
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "active" | "inactive"
-  >("all")
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(
-    null
-  )
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all")
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [formState, setFormState] = useState<
-    Omit<Customer, "id" | "totalOrders" | "totalSpent" | "lastActive"> & {
-      id?: string
-    }
-  >({
+  const [formState, setFormState] = useState({
     name: "",
     phone: "",
     email: "",
-    status: "active",
+    company: "",
+    discount: 0,
     gdprConsent: false,
     pushNotificationsConsent: false,
-    activeChatbot: true,
-    discount: 0,
-    company: "",
+    activeChatbot: false,
   })
-  const navigate = useNavigate()
 
-  // Load customers when workspace changes
+  // Load customers from API
   useEffect(() => {
     const loadCustomers = async () => {
       if (!workspace?.id) return
 
       setIsLoading(true)
       try {
-        const response = await clientsApi.getAllForWorkspace(workspace.id)
-        const customersData = response.clients.map(clientToCustomer)
-        setCustomers(customersData)
+        const clients = await clientsApi.getAllForWorkspace(workspace.id)
+        const customerData = clients.map(clientToCustomer)
+        setCustomers(customerData)
       } catch (error) {
         console.error("Failed to load customers:", error)
         toast.error("Failed to load customers")
@@ -111,35 +103,69 @@ export default function CustomersPage() {
     loadCustomers()
   }, [workspace?.id])
 
+  // Filter customers based on search and status
   const filteredCustomers = customers.filter((customer) => {
-    const matchesSearch =
+    const matchesSearch = searchValue === "" || 
       customer.name.toLowerCase().includes(searchValue.toLowerCase()) ||
       customer.phone.includes(searchValue) ||
-      customer.email.toLowerCase().includes(searchValue.toLowerCase())
-    const matchesStatus =
-      statusFilter === "all" || customer.status === statusFilter
+      customer.email.toLowerCase().includes(searchValue.toLowerCase()) ||
+      (customer.company && customer.company.toLowerCase().includes(searchValue.toLowerCase()))
+
+    const matchesStatus = statusFilter === "all" || customer.status === statusFilter
+
     return matchesSearch && matchesStatus
   })
 
-  const handleEdit = (customerId: string) => {
-    setSelectedCustomerId(customerId)
-    const customer = customers.find((c) => c.id === customerId)
-    if (customer) {
-      setFormState({
-        id: customer.id,
-        name: customer.name,
-        phone: customer.phone,
-        email: customer.email,
-        status: customer.status,
-        gdprConsent: customer.gdprConsent,
-        pushNotificationsConsent: customer.pushNotificationsConsent,
-        activeChatbot: customer.activeChatbot,
-        discount: customer.discount ?? 0,
-        company: customer.company || "",
-      })
-    }
-    setShowEditDialog(true)
-  }
+  // Define columns for DataTable
+  const columns: ColumnDef<Customer>[] = [
+    {
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("name")}</div>
+      ),
+    },
+    {
+      accessorKey: "contact",
+      header: "Contact",
+      cell: ({ row }) => (
+        <div>
+          <p>{row.original.phone}</p>
+          <p className="text-sm text-gray-500">{row.original.email}</p>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "company",
+      header: "Company",
+      cell: ({ row }) => row.original.company || "N/A",
+    },
+    {
+      accessorKey: "discount",
+      header: "Discount",
+      cell: ({ row }) => `${row.original.discount}%`,
+    },
+    {
+      accessorKey: "lastActive",
+      header: "Last Active",
+      cell: ({ row }) => new Date(row.original.lastActive).toLocaleDateString(),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs ${
+            row.original.status === "active"
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {row.original.status === "active" ? "Active" : "Inactive"}
+        </span>
+      ),
+    },
+  ]
 
   const handleAdd = () => {
     setSelectedCustomerId(null)
@@ -147,90 +173,86 @@ export default function CustomersPage() {
       name: "",
       phone: "",
       email: "",
-      status: "active",
+      company: "",
+      discount: 0,
       gdprConsent: false,
       pushNotificationsConsent: false,
-      activeChatbot: true,
-      discount: 0,
-      company: "",
+      activeChatbot: false,
     })
     setShowEditDialog(true)
   }
 
-  const handleFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = e.target
-    if (type === "checkbox") {
-      setFormState((prev) => ({
-        ...prev,
-        [name]: (e.target as HTMLInputElement).checked,
-      }))
-    } else {
-      setFormState((prev) => ({
-        ...prev,
-        [name]: name === "discount" ? Number(value) : value,
-      }))
+  const handleEdit = (customer: Customer) => {
+    setSelectedCustomerId(customer.id)
+    setFormState({
+      name: customer.name,
+      phone: customer.phone,
+      email: customer.email,
+      company: customer.company || "",
+      discount: customer.discount,
+      gdprConsent: customer.gdprConsent,
+      pushNotificationsConsent: customer.pushNotificationsConsent,
+      activeChatbot: customer.activeChatbot,
+    })
+    setShowEditDialog(true)
+  }
+
+  const handleDelete = (customer: Customer) => {
+    setSelectedCustomerId(customer.id)
+    setShowDeleteDialog(true)
+  }
+
+  const handleChat = (customerId: string) => {
+    // Find the customer and navigate to chat
+    const customer = customers.find(c => c.id === customerId)
+    if (customer) {
+      navigate(`/chat?search=${encodeURIComponent(customer.name)}`)
     }
+  }
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target
+    setFormState(prev => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : (name === "discount" ? Number(value) : value)
+    }))
   }
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!workspace?.id) return
-    if (
-      !formState.name ||
-      !formState.email ||
-      !formState.phone ||
-      formState.discount === undefined ||
-      formState.discount === null
-    )
-      return
-    if (formState.discount < 0) return
 
     try {
-      if (selectedCustomerId) {
-        // Edit existing customer
-        const clientData = {
-          name: formState.name,
-          email: formState.email,
-          phone: formState.phone,
-          company: formState.company || "",
-          discount: formState.discount,
-          language: "en", // Default language
-          isActive: formState.status === "active",
-        }
+      const clientData = {
+        name: formState.name,
+        phone: formState.phone,
+        email: formState.email,
+        company: formState.company || undefined,
+        isActive: true, // Always set new customers as active
+        gdprConsent: formState.gdprConsent,
+        pushNotificationsConsent: formState.pushNotificationsConsent,
+        activeChatbot: formState.activeChatbot,
+        discount: formState.discount,
+        workspaceId: workspace.id,
+      }
 
-        const updatedClient = await clientsApi.update(
-          selectedCustomerId,
-          clientData,
-          workspace.id
-        )
-        if (updatedClient) {
-          const updatedCustomer = clientToCustomer(updatedClient)
-          setCustomers((prev) =>
-            prev.map((c) => (c.id === selectedCustomerId ? updatedCustomer : c))
-          )
-          toast.success("Customer updated successfully")
-        }
+      if (selectedCustomerId) {
+        // Update existing customer
+        await clientsApi.update(selectedCustomerId, clientData)
+        setCustomers(prev => prev.map(c => 
+          c.id === selectedCustomerId 
+            ? { ...c, ...formState, status: "active" as const }
+            : c
+        ))
+        toast.success("Customer updated successfully")
       } else {
         // Create new customer
-        const clientData = {
-          name: formState.name,
-          email: formState.email,
-          phone: formState.phone,
-          company: formState.company || "",
-          discount: formState.discount,
-          language: "en", // Default language
-          isActive: formState.status === "active",
-        }
-
-        const newClient = await clientsApi.create(clientData, workspace.id)
-        if (newClient) {
-          const newCustomer = clientToCustomer(newClient)
-          setCustomers((prev) => [newCustomer, ...prev])
-          toast.success("Customer created successfully")
-        }
+        const newClient = await clientsApi.create(clientData)
+        const newCustomer = clientToCustomer(newClient)
+        setCustomers(prev => [...prev, newCustomer])
+        toast.success("Customer created successfully")
       }
+      
       setShowEditDialog(false)
     } catch (error) {
       console.error("Failed to save customer:", error)
@@ -238,19 +260,13 @@ export default function CustomersPage() {
     }
   }
 
-  const handleDelete = (customerId: string) => {
-    setSelectedCustomerId(customerId)
-    setShowDeleteDialog(true)
-  }
-
   const handleDeleteConfirm = async () => {
-    if (!selectedCustomerId || !workspace?.id) return
+    if (!selectedCustomerId) return
 
     try {
-      await clientsApi.delete(selectedCustomerId, workspace.id)
-      setCustomers((prev) => prev.filter((c) => c.id !== selectedCustomerId))
+      await clientsApi.delete(selectedCustomerId)
+      setCustomers(prev => prev.filter(c => c.id !== selectedCustomerId))
       setShowDeleteDialog(false)
-      setSelectedCustomerId(null)
       toast.success("Customer deleted successfully")
     } catch (error) {
       console.error("Failed to delete customer:", error)
@@ -258,15 +274,7 @@ export default function CustomersPage() {
     }
   }
 
-  const handleChat = (customerId: string) => {
-    navigate(`/chat/${customerId}`)
-  }
-
-  if (isWorkspaceLoading || isLoading) {
-    return <div>Loading...</div>
-  }
-
-  if (!workspace?.id) {
+  if (!workspace) {
     return <div>No workspace selected</div>
   }
 
@@ -286,97 +294,46 @@ export default function CustomersPage() {
       <Card className="p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div className="flex gap-4">
-            <select
+            <Select
               value={statusFilter}
-              onChange={(e) =>
-                setStatusFilter(e.target.value as "all" | "active" | "inactive")
-              }
-              className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onValueChange={(value) => setStatusFilter(value as "all" | "active" | "inactive")}
             >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Discount</TableHead>
-              <TableHead>Last Active</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredCustomers.map((customer) => (
-              <TableRow key={customer.id}>
-                <TableCell className="font-medium">{customer.name}</TableCell>
-                <TableCell>
-                  <div>
-                    <p>{customer.phone}</p>
-                    <p className="text-sm text-gray-500">{customer.email}</p>
-                  </div>
-                </TableCell>
-                <TableCell>{customer.company || "N/A"}</TableCell>
-                <TableCell>{customer.discount}%</TableCell>
-                <TableCell>
-                  {new Date(customer.lastActive).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      customer.status === "active"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {customer.status === "active" ? "Active" : "Inactive"}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleChat(customer.id)}
-                      title="Chat with Customer"
-                    >
-                      <MessageSquare className="h-4 w-4 text-blue-500" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(customer.id)}
-                      title="Edit Customer"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(customer.id)}
-                      title="Delete Customer"
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable<Customer>
+          data={filteredCustomers}
+          columns={columns}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          isLoading={isLoading}
+          renderActions={(customer) => (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleChat(customer.id)}
+              title="Chat with Customer"
+            >
+              <MessageSquare className="h-4 w-4 text-blue-500" />
+            </Button>
+          )}
+        />
       </Card>
 
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {selectedCustomerId ? "Edit Customer" : "Add"}
+              {selectedCustomerId ? "Edit Customer" : "Add Customer"}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -399,7 +356,6 @@ export default function CustomersPage() {
                   type="email"
                   value={formState.email}
                   onChange={handleFormChange}
-                  required
                 />
               </div>
               <div>
@@ -407,6 +363,7 @@ export default function CustomersPage() {
                 <Input
                   id="phone"
                   name="phone"
+                  type="tel"
                   value={formState.phone}
                   onChange={handleFormChange}
                   required
@@ -417,7 +374,7 @@ export default function CustomersPage() {
                 <Input
                   id="company"
                   name="company"
-                  value={formState.company || ""}
+                  value={formState.company}
                   onChange={handleFormChange}
                 />
               </div>
@@ -427,24 +384,11 @@ export default function CustomersPage() {
                   id="discount"
                   name="discount"
                   type="number"
-                  min={0}
+                  min="0"
+                  max="100"
                   value={formState.discount}
                   onChange={handleFormChange}
-                  required
                 />
-              </div>
-              <div>
-                <Label htmlFor="status">Status</Label>
-                <select
-                  id="status"
-                  name="status"
-                  value={formState.status}
-                  onChange={handleFormChange}
-                  className="w-full border rounded-md px-2 py-2"
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
               </div>
             </div>
 
@@ -486,7 +430,7 @@ export default function CustomersPage() {
             </div>
             <DialogFooter>
               <Button type="submit">
-                {selectedCustomerId ? "Save Changes" : "Add"}
+                {selectedCustomerId ? "Save Changes" : "Add Customer"}
               </Button>
             </DialogFooter>
           </form>
