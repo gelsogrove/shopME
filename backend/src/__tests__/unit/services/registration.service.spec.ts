@@ -58,8 +58,8 @@ describe("RegistrationService", () => {
       const mockWorkspaceSettings = {
         id: "workspace-123",
         afterRegistrationMessages: {
-          en: "Registration completed successfully. Hello [nome], how can I help you today?",
-          it: "Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?"
+          en: "Thank you for registering, [nome]! How can I help you today? Would you like to see your orders? The offers? Or do you need other information?",
+          it: "Grazie per esserti registrato, [nome]! Come ti posso aiutare oggi? Vuoi vedere i tuoi ordini? Le offerte? O hai bisogno di altre informazioni?"
         }
       }
       
@@ -84,9 +84,9 @@ describe("RegistrationService", () => {
           workspaceId: "workspace-123",
           phoneNumber: "+123456789",
           message: '',
-          response: "Registration completed successfully. Hello John, how can I help you today?",
+          response: "Thank you for registering, John! How can I help you today? Would you like to see your orders? The offers? Or do you need other information?",
           direction: "OUTBOUND",
-          agentSelected: "Registration"
+          agentSelected: "CHATBOX"
         })
       )
       
