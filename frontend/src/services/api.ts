@@ -25,23 +25,30 @@ const getCurrentWorkspaceId = (): string | null => {
 api.interceptors.request.use(
   (config) => {
     console.log(
-      `API Request: ${config.method?.toUpperCase()} ${config.url}`,
-      config.data || {}
+      `📤 API Request: ${config.method?.toUpperCase()} ${config.url}`,
+      {
+        data: config.data || {},
+        headers: config.headers,
+        baseURL: config.baseURL
+      }
     )
 
     // Add x-workspace-id header if not already present and we have a workspace ID
     if (!config.headers["x-workspace-id"]) {
       const workspaceId = getCurrentWorkspaceId()
       if (workspaceId) {
-        console.log(`Adding x-workspace-id header: ${workspaceId}`)
+        console.log(`🔧 Adding x-workspace-id header: ${workspaceId}`)
         config.headers["x-workspace-id"] = workspaceId
+      } else {
+        console.warn(`⚠️ No workspace ID found in sessionStorage for request to ${config.url}`)
       }
     }
 
+    console.log(`📋 Final request headers:`, config.headers)
     return config
   },
   (error) => {
-    console.error("API Request Error:", error)
+    console.error("❌ API Request Error:", error)
     return Promise.reject(error)
   }
 )
@@ -50,15 +57,25 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     console.log(
-      `API Response: ${
+      `📥 API Response: ${
         response.status
       } ${response.config.method?.toUpperCase()} ${response.config.url}`,
-      response.data
+      {
+        data: response.data,
+        status: response.status,
+        headers: response.headers
+      }
     )
     return response
   },
   (error) => {
-    console.error("API Response Error:", error.response || error)
+    console.error("❌ API Response Error:", {
+      error: error.response || error,
+      status: error.response?.status,
+      data: error.response?.data,
+      config: error.config,
+      message: error.message
+    })
 
     // Handle authentication errors (401)
     if (error.response && error.response.status === 401) {

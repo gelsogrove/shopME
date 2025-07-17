@@ -235,4 +235,186 @@ export class ChatController {
       });
     }
   }
+
+  /**
+   * Send a message in a chat session (manual operator mode)
+   * This endpoint is used when isActiveChatbot = false
+   */
+  async sendMessage(req: Request, res: Response): Promise<void> {
+    try {
+      const { sessionId } = req.params;
+      const { content, sender } = req.body;
+      const workspaceId = (req as any).workspaceId;
+
+      if (!sessionId) {
+        res.status(400).json({
+          success: false,
+          error: 'Session ID is required'
+        });
+        return;
+      }
+
+      if (!content || !sender) {
+        res.status(400).json({
+          success: false,
+          error: 'Content and sender are required'
+        });
+        return;
+      }
+
+      if (!workspaceId) {
+        res.status(400).json({
+          success: false,
+          error: 'Workspace ID is required'
+        });
+        return;
+      }
+
+      logger.info(`[CHAT-SEND] 📱 Sending operator message in session ${sessionId}: "${content}"`);
+
+      // Find the chat session and check if chatbot is active
+      const chatSession = await this.prisma.chatSession.findFirst({
+        where: {
+          id: sessionId,
+          workspaceId: workspaceId
+        },
+        include: {
+          customer: true
+        }
+      });
+
+      if (!chatSession) {
+        res.status(404).json({
+          success: false,
+          error: 'Chat session not found in this workspace'
+        });
+        return;
+      }
+
+      // Check if chatbot is disabled (manual operator mode)
+      if (chatSession.customer.activeChatbot === true) {
+        res.status(400).json({
+          success: false,
+          error: 'Cannot send manual message: chatbot is active. Disable chatbot first.'
+        });
+        return;
+      }
+
+      // Save the operator message to chat history with proper metadata
+      // For operator messages, we create only ONE outbound message directly
+      const savedMessage = await this.prisma.message.create({
+        data: {
+          chatSessionId: sessionId,
+          content: content,
+          direction: "OUTBOUND",
+          type: "TEXT",
+          aiGenerated: false,
+          metadata: {
+            isOperatorMessage: true,
+            sentBy: "HUMAN_OPERATOR",
+            agentSelected: "MANUAL_OPERATOR"
+          }
+        }
+      });
+
+      logger.info(`[CHAT-SEND] ✅ Operator message saved to database successfully`);
+
+      // Try to send the message via WhatsApp (non-blocking)
+      try {
+        await this.sendWhatsAppMessage(
+          chatSession.customer.phone || '',
+          content,
+          workspaceId
+        );
+        logger.info(`[CHAT-SEND] ✅ WhatsApp message sent successfully`);
+      } catch (whatsappError) {
+        logger.warn(`[CHAT-SEND] ⚠️ WhatsApp sending failed (message still saved):`, whatsappError.message);
+        // Continue - message is saved even if WhatsApp fails
+      }
+
+      logger.info(`[CHAT-SEND] ✅ Operator message processing completed`);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          id: savedMessage.id,
+          content: content,
+          sender: "user", // This ensures it appears on the right side
+          timestamp: savedMessage.createdAt,
+          direction: "OUTBOUND",
+          metadata: {
+            isOperatorMessage: true,
+            sentBy: "HUMAN_OPERATOR",
+            agentSelected: "MANUAL_OPERATOR"
+          }
+        }
+      });
+
+    } catch (error) {
+      logger.error('[CHAT-SEND] ❌ Error sending operator message:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to send message'
+      });
+    }
+  }
+
+  /**
+   * Send a WhatsApp message (copied from WhatsAppController)
+   */
+  private async sendWhatsAppMessage(
+    phoneNumber: string,
+    message: string,
+    workspaceId: string
+  ): Promise<void> {
+    try {
+      logger.info(`[WHATSAPP-SEND] 📱 Sending message to ${phoneNumber}: "${message}"`);
+
+      // Get workspace WhatsApp settings
+      const workspace = await this.prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        select: {
+          whatsappApiKey: true,
+          whatsappPhoneNumber: true,
+        },
+      });
+
+      if (!workspace || !workspace.whatsappApiKey) {
+        throw new Error(`WhatsApp settings not found for workspace ${workspaceId}`);
+      }
+
+      // Send message via WhatsApp Business API
+      const whatsappApiUrl = `https://graph.facebook.com/v18.0/${workspace.whatsappPhoneNumber}/messages`;
+
+      const whatsappPayload = {
+        messaging_product: "whatsapp",
+        to: phoneNumber.replace("+", ""),
+        type: "text",
+        text: {
+          body: message,
+        },
+      };
+
+      const response = await fetch(whatsappApiUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${workspace.whatsappApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(whatsappPayload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`WhatsApp API error: ${response.status} ${response.statusText} - ${errorData}`);
+      }
+
+      const responseData = await response.json();
+      logger.info(`[WHATSAPP-SEND] ✅ Message sent successfully:`, responseData);
+
+    } catch (error) {
+      logger.error(`[WHATSAPP-SEND] ❌ Error sending WhatsApp message:`, error);
+      throw error;
+    }
+  }
 } 

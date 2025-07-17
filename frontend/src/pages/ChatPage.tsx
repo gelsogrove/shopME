@@ -115,6 +115,7 @@ const formatDate = (dateString: string | null | undefined): string => {
 }
 
 export function ChatPage() {
+  console.log("🟦 ChatPage component loaded - modifiche applicate!")
   const { workspace, loading: isWorkspaceLoading } = useWorkspace()
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
@@ -282,6 +283,7 @@ export function ChatPage() {
           sender: message.direction === "INBOUND" ? "customer" : "user",
           timestamp: message.createdAt,
           agentName: message.metadata?.agentName || undefined,
+          metadata: message.metadata, // 🔧 AGGIUNTO! Ora il metadata viene passato correttamente
         }))
 
         setMessages(transformedMessages)
@@ -560,7 +562,27 @@ export function ChatPage() {
   // Handle submitting a new message
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!messageInput.trim() || !selectedChat || loading) return
+    console.log("🟦 HandleSubmit called", { 
+      messageInput: messageInput.trim(), 
+      selectedChat: selectedChat?.id, 
+      loading,
+      workspace: workspace?.id
+    })
+    
+    if (!messageInput.trim() || !selectedChat || loading) {
+      console.log("❌ Early return - validation failed", {
+        hasMessage: !!messageInput.trim(),
+        hasSelectedChat: !!selectedChat,
+        notLoading: !loading
+      })
+      return
+    }
+
+    if (!workspace?.id) {
+      console.error("❌ No workspace ID available!")
+      toast.error("No workspace selected", { duration: 1000 })
+      return
+    }
 
     // Disable chatbot automatically when agent takes control by typing
     if (activeChatbot) {
@@ -576,30 +598,79 @@ export function ChatPage() {
     try {
       setLoading(true)
 
-      // Add message to UI immediately for better UX
-      const tempMessage: Message = {
-        id: `temp-${Date.now()}`,
-        content: messageInput,
-        sender: "user", // This is an agent (user) message
-        timestamp: new Date().toISOString(),
+      // For operator messages, don't add temporary message to avoid duplication
+      // We'll add the message only when we get the response from the server
+      let tempMessage: Message | null = null
+      
+      if (activeChatbot) {
+        // Only add temp message if chatbot is active (AI responses)
+        tempMessage = {
+          id: `temp-${Date.now()}`,
+          content: messageInput,
+          sender: "user",
+          timestamp: new Date().toISOString(),
+        }
+        setMessages((prev) => [...prev, tempMessage])
       }
 
-      setMessages((prev) => [...prev, tempMessage])
       setMessageInput("") // Clear input field
 
       // Send message to API
       const sessionIdToUse = selectedChat.sessionId || selectedChat.id
-      const response = await api.post(`/chat/${sessionIdToUse}/send`, {
+      
+      // Debug workspace and sessionStorage
+      console.log(`🔍 Debug workspace info:`, {
+        workspace: workspace,
+        workspaceId: workspace?.id,
+        sessionStorageWorkspace: sessionStorage.getItem("currentWorkspace"),
+        sessionId: sessionIdToUse
+      })
+      
+      // Verify headers manually
+      const headers = {
+        'Content-Type': 'application/json',
+        'x-workspace-id': workspace?.id
+      }
+      
+      console.log(`🚀 About to send POST request to /chat/${sessionIdToUse}/send`, {
         content: messageInput,
         sender: "user",
+        sessionIdToUse,
+        workspaceId: workspace?.id,
+        url: `/chat/${sessionIdToUse}/send`,
+        method: 'POST',
+        headers
       })
+      
+      let response;
+      try {
+        response = await api.post(`/chat/${sessionIdToUse}/send`, {
+          content: messageInput,
+          sender: "user",
+        }, {
+          headers: headers
+        })
+        console.log(`✅ POST request successful`, response)
+      } catch (requestError) {
+        console.error(`❌ POST request failed`, {
+          error: requestError,
+          message: requestError?.message,
+          response: requestError?.response,
+          status: requestError?.response?.status,
+          config: requestError?.config,
+          requestHeaders: requestError?.config?.headers
+        })
+        throw requestError // Re-throw to be caught by outer catch
+      }
 
       if (!response.data.success) {
         toast.error("Failed to send message", { duration: 1000 })
-        // Remove the temporary message
-        setMessages((prev) => prev.filter((msg) => msg.id !== tempMessage.id))
+        // Remove the temporary message only if it exists
+        if (tempMessage) {
+          setMessages((prev) => prev.filter((msg) => msg.id !== tempMessage.id))
+        }
       } else {
-        // Replace temp message with actual message from server, making sure to transform it
+        // Handle response differently based on whether we have a temp message or not
         const responseMessages = Array.isArray(response.data.data)
           ? response.data.data
           : [response.data.data]
@@ -610,20 +681,32 @@ export function ChatPage() {
           sender: message.direction === "INBOUND" ? "customer" : "user",
           timestamp: message.createdAt || new Date().toISOString(),
           agentName: message.metadata?.agentName,
+          metadata: message.metadata, // Include full metadata for operator messages
         }))
 
-        // Remove temp message and add transformed ones
-        setMessages((prev) =>
-          prev
-            .filter((msg) => msg.id !== tempMessage.id)
-            .concat(transformedMessages)
-        )
+        if (tempMessage) {
+          // Replace temp message with actual message from server (AI responses)
+          setMessages((prev) =>
+            prev
+              .filter((msg) => msg.id !== tempMessage.id)
+              .concat(transformedMessages)
+          )
+        } else {
+          // Just add the operator message directly (manual operator mode)
+          setMessages((prev) => [...prev, ...transformedMessages])
+        }
 
         // Update chat list to reflect new message
         refetchChats()
       }
     } catch (error) {
-      console.error("Error sending message:", error)
+      console.error("❌ Error sending message:", error)
+      console.error("Error details:", {
+        message: error?.message,
+        response: error?.response?.data,
+        status: error?.response?.status,
+        config: error?.config
+      })
       toast.error("Failed to send message", { duration: 1000 })
     } finally {
       setLoading(false)
@@ -865,14 +948,84 @@ export function ChatPage() {
                     const isCustomerMessage = message.sender === "customer"
 
                     // 🚨 ANDREA'S OPERATOR CONTROL INDICATORS
-                    const isOperatorMessage =
-                      message.metadata?.isOperatorMessage === true
+                    // Correct logic: 
+                    const isChatbotMessage = isAgentMessage && (
+                      message.metadata?.agentSelected?.startsWith("CHATBOT_") ||
+                      message.metadata?.agentSelected === "LLM" ||
+                      message.metadata?.agentSelected === "AI" ||
+                      message.metadata?.agentSelected === "AI_AGENT"
+                    )
+                    
+                    // Only EXPLICIT operator messages should be blue
+                    const isOperatorMessage = isAgentMessage && (
+                      message.metadata?.agentSelected === "MANUAL_OPERATOR" ||
+                      message.metadata?.isOperatorMessage === true ||
+                      message.metadata?.sentBy === "HUMAN_OPERATOR"
+                    )
+                    
+                    // Debug logging for operator messages
+                    if (isAgentMessage && message.metadata?.agentSelected === "MANUAL_OPERATOR") {
+                      console.log("🔍 MANUAL_OPERATOR message detected:", {
+                        content: message.content.substring(0, 30) + "...",
+                        isOperatorMessage,
+                        isChatbotMessage,
+                        agentSelected: message.metadata?.agentSelected,
+                        metadata: message.metadata
+                      })
+                    }
+                    
+                    // Debug log for non-chatbot messages
+                    if (isAgentMessage && !isChatbotMessage && !isOperatorMessage) {
+                      console.log("🔍 Non-chatbot, non-operator message:", {
+                        content: message.content.substring(0, 50) + "...",
+                        agentSelected: message.metadata?.agentSelected,
+                        isOperatorMessage: message.metadata?.isOperatorMessage,
+                        sentBy: message.metadata?.sentBy,
+                        metadata: message.metadata
+                      })
+                    }
+                    
                     const isOperatorControl =
                       message.metadata?.isOperatorControl === true
                     const isManualOperator =
                       message.metadata?.agentSelected === "MANUAL_OPERATOR" ||
                       message.metadata?.agentSelected ===
-                        "MANUAL_OPERATOR_CONTROL"
+                        "MANUAL_OPERATOR_CONTROL" ||
+                      message.metadata?.sentBy === "HUMAN_OPERATOR"
+                    
+                    const getMessageStyle = () => {
+                      // LOG DI DEBUG PER VEDERE I VALORI ESATTI
+                      console.log("🎨 DEBUG MESSAGGIO:", {
+                        id: message.id,
+                        content: message.content.substring(0, 30),
+                        agentSelected: message.metadata?.agentSelected,
+                        agentName: message.agentName,
+                        isAgentMessage,
+                        fullMetadata: message.metadata
+                      })
+                      
+                      if (!isAgentMessage) {
+                        return isOperatorControl
+                          ? "bg-orange-50 text-orange-900 border-l-4 border-orange-400" // Customer under control
+                          : "bg-gray-100 text-gray-800" // Normal customer
+                      }
+                      
+                      // SE C'È IL BADGE CHATBOT → VERDE (controllo anche agentName)
+                      if (message.metadata?.agentSelected === "CHATBOT" ||
+                          message.metadata?.agentSelected?.startsWith("CHATBOT_") ||
+                          message.metadata?.agentSelected === "AI" ||
+                          message.metadata?.agentSelected === "LLM" ||
+                          message.agentName) { // Se ha agentName è un chatbot!
+                        return "bg-green-100 text-green-900 border-l-4 border-green-500" // CHATBOT → VERDE
+                      }
+                      
+                      if (message.metadata?.agentSelected === "MANUAL_OPERATOR") {
+                        return "bg-blue-100 text-blue-900 border-l-4 border-blue-500" // MANUAL_OPERATOR → BLU
+                      }
+                      
+                      // Default fallback
+                      return "bg-gray-100 text-gray-800"
+                    }
 
                     return (
                       <div
@@ -882,15 +1035,7 @@ export function ChatPage() {
                         }`}
                       >
                         <div
-                          className={`p-3 rounded-lg max-w-[75%] relative ${
-                            isAgentMessage
-                              ? isOperatorMessage
-                                ? "bg-blue-100 text-blue-900 border-l-4 border-blue-500" // 👨‍💼 Operator message style
-                                : "bg-green-100 text-green-900" // 🤖 AI message style
-                              : isOperatorControl
-                              ? "bg-orange-50 text-orange-900 border-l-4 border-orange-400" // 📥 Customer message under operator control
-                              : "bg-gray-100 text-gray-800" // Normal customer message
-                          }`}
+                          className={`p-3 rounded-lg max-w-[75%] relative ${getMessageStyle()}`}
                         >
                           {/* 🚨 OPERATOR CONTROL BADGE */}
                           {(isOperatorMessage ||

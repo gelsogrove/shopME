@@ -134,10 +134,11 @@ export class MessageController {
           logger.info(
             `[MESSAGES API] ❌ Unregistered user sent non-greeting message - requiring registration`
           )
-          
+
           // Get registration required message in the user's detected language
-          const registrationRequiredMessage = this.getRegistrationRequiredMessage(detectedLanguage)
-          
+          const registrationRequiredMessage =
+            this.getRegistrationRequiredMessage(detectedLanguage)
+
           res.status(200).json({
             success: false,
             data: {
@@ -166,14 +167,14 @@ export class MessageController {
       )
 
       // Always save inbound message to history, even in manual operator mode
-      const messageRepository = this.messageService.getMessageRepository();
+      const messageRepository = this.messageService.getMessageRepository()
       await messageRepository.saveMessage({
         workspaceId,
         phoneNumber,
         message,
         response: "",
-        agentSelected: "MANUAL_OPERATOR"
-      });
+        agentSelected: "MANUAL_OPERATOR",
+      })
 
       // PATCH: Check if customer has activeChatbot === false (manual operator mode)
       const customer = await prisma.customers.findFirst({
@@ -182,9 +183,11 @@ export class MessageController {
           workspaceId,
           isActive: true,
         },
-      });
+      })
       if (customer && customer.activeChatbot === false) {
-        logger.info(`[MESSAGES API] Manual operator mode active for customer ${customer.id} - skipping N8N/LLM`);
+        logger.info(
+          `[MESSAGES API] Manual operator mode active for customer ${customer.id} - skipping N8N/LLM`
+        )
         // Message is now always saved above
         res.status(200).json({
           success: true,
@@ -200,8 +203,8 @@ export class MessageController {
             customerId: `customer-${phoneNumber.replace("+", "")}`,
             customerLanguage: detectedLanguage,
           },
-        });
-        return;
+        })
+        return
       }
 
       // If we reach here, chatbot is active: call N8N and return AI response
@@ -209,14 +212,16 @@ export class MessageController {
         // Build simplified payload (simulate WhatsApp structure for N8N)
         const n8nWebhookUrl = "http://localhost:5678/webhook/webhook-start"
         const sessionToken = sessionId || `api-session-${phoneNumber}`
-        const N8nPayloadBuilder = require("../../../utils/n8n-payload-builder").N8nPayloadBuilder
-        const simplifiedPayload = await N8nPayloadBuilder.buildSimplifiedPayload(
-          workspaceId,
-          phoneNumber,
-          message,
-          sessionToken,
-          "api"
-        )
+        const N8nPayloadBuilder =
+          require("../../../utils/n8n-payload-builder").N8nPayloadBuilder
+        const simplifiedPayload =
+          await N8nPayloadBuilder.buildSimplifiedPayload(
+            workspaceId,
+            phoneNumber,
+            message,
+            sessionToken,
+            "api"
+          )
         // Send to N8N
         const n8nResponse = await N8nPayloadBuilder.sendToN8N(
           simplifiedPayload,
@@ -224,7 +229,10 @@ export class MessageController {
           "API Chat Controller"
         )
         logger.info(`[N8N] ✅ N8N call completed for ${phoneNumber}`)
-        logger.info(`[N8N-RESPONSE] ✅ Received response from N8N:`, n8nResponse)
+        logger.info(
+          `[N8N-RESPONSE] ✅ Received response from N8N:`,
+          n8nResponse
+        )
         // Parse N8N response
         let messageToSend = null
         if (
@@ -243,7 +251,7 @@ export class MessageController {
             phoneNumber,
             message,
             response: messageToSend,
-            agentSelected: "N8N_SUCCESS"
+            agentSelected: "CHATBOT",
           })
           res.status(200).json({
             success: true,
@@ -253,7 +261,7 @@ export class MessageController {
               phoneNumber: phoneNumber,
               workspaceId: workspaceId,
               timestamp: new Date().toISOString(),
-              metadata: { agentName: "N8N_SUCCESS" },
+              metadata: { agentName: "CHATBOT" },
               detectedLanguage: detectedLanguage,
               sessionId: sessionId,
               customerId: customer ? customer.id : undefined,
@@ -262,13 +270,14 @@ export class MessageController {
           })
         } else {
           // Fallback message
-          const fallbackMessage = "Ho ricevuto la tua richiesta ma non sono riuscito a generare una risposta. Riprova più tardi."
+          const fallbackMessage =
+            "Ho ricevuto la tua richiesta ma non sono riuscito a generare una risposta. Riprova più tardi."
           await messageRepository.saveMessage({
             workspaceId,
             phoneNumber,
             message,
             response: fallbackMessage,
-            agentSelected: "N8N_FALLBACK"
+            agentSelected: "CHATBOT_FALLBACK",
           })
           res.status(200).json({
             success: true,
@@ -278,7 +287,7 @@ export class MessageController {
               phoneNumber: phoneNumber,
               workspaceId: workspaceId,
               timestamp: new Date().toISOString(),
-              metadata: { agentName: "N8N_FALLBACK" },
+              metadata: { agentName: "CHATBOT_FALLBACK" },
               detectedLanguage: detectedLanguage,
               sessionId: sessionId,
               customerId: customer ? customer.id : undefined,
@@ -287,14 +296,17 @@ export class MessageController {
           })
         }
       } catch (error) {
-        logger.error(`[N8N-ERROR] ❌ Error with N8N processing for ${phoneNumber}:`, error)
+        logger.error(
+          `[N8N-ERROR] ❌ Error with N8N processing for ${phoneNumber}:`,
+          error
+        )
         const errorMessage = `❌ Si è verificato un errore durante l'elaborazione del messaggio.\n\n🔍 Dettagli tecnici:\n${error.message}\n\nRiprova più tardi o contatta il supporto.`
         await messageRepository.saveMessage({
           workspaceId,
           phoneNumber,
           message,
           response: errorMessage,
-          agentSelected: "N8N_ERROR"
+          agentSelected: "CHATBOT_ERROR",
         })
         res.status(200).json({
           success: true,
@@ -304,7 +316,7 @@ export class MessageController {
             phoneNumber: phoneNumber,
             workspaceId: workspaceId,
             timestamp: new Date().toISOString(),
-            metadata: { agentName: "N8N_ERROR" },
+            metadata: { agentName: "CHATBOT_ERROR" },
             detectedLanguage: detectedLanguage,
             sessionId: sessionId,
             customerId: customer ? customer.id : undefined,
@@ -312,7 +324,6 @@ export class MessageController {
           },
         })
       }
-
     } catch (error) {
       logger.error("[MESSAGES API] Error processing message:", error)
       res.status(500).json({
@@ -521,7 +532,7 @@ export class MessageController {
         phoneNumber,
         message: incomingMessage,
         response: welcomeMessage,
-        agentSelected: "WELCOME_SYSTEM"
+        agentSelected: "WELCOME_SYSTEM",
       })
 
       logger.info(
@@ -558,15 +569,19 @@ export class MessageController {
       })
 
       if (existingCustomer) {
-        logger.info(`[CUSTOMER-PLACEHOLDER] ✅ Customer already exists: ${existingCustomer.id}`)
-        
+        logger.info(
+          `[CUSTOMER-PLACEHOLDER] ✅ Customer already exists: ${existingCustomer.id}`
+        )
+
         // Update language if it's different from detected one
         if (existingCustomer.language !== language) {
           await prisma.customers.update({
             where: { id: existingCustomer.id },
-            data: { language: language }
+            data: { language: language },
           })
-          logger.info(`[CUSTOMER-PLACEHOLDER] 🌍 Updated customer language to: ${language}`)
+          logger.info(
+            `[CUSTOMER-PLACEHOLDER] 🌍 Updated customer language to: ${language}`
+          )
         }
         return
       }
@@ -577,7 +592,7 @@ export class MessageController {
           phone: phoneNumber,
           workspaceId: workspaceId,
           name: `Unregistered User ${phoneNumber.slice(-4)}`,
-          email: `unregistered_${phoneNumber.replace(/[^0-9]/g, '')}@placeholder.com`,
+          email: `unregistered_${phoneNumber.replace(/[^0-9]/g, "")}@placeholder.com`,
           language: language,
           isActive: false, // Unregistered users are inactive
           activeChatbot: true,
@@ -629,6 +644,9 @@ export class MessageController {
       pt: "Para usar este serviço você deve primeiro se registrar. Escreva 'olá' para receber o link de registro.",
     }
 
-    return registrationRequiredMessages[language] || registrationRequiredMessages["it"]
+    return (
+      registrationRequiredMessages[language] ||
+      registrationRequiredMessages["it"]
+    )
   }
 }

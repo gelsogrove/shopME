@@ -8,6 +8,7 @@ import { AgentPage } from "./pages/AgentPage"
 import { AnalyticsPage } from "./pages/AnalyticsPage"
 import SignupPage from "./pages/auth/SignupPage"
 import { ChatPage } from "./pages/ChatPage"
+import { ChatTestPage } from "./pages/ChatTestPage"
 import ClientsPage from "./pages/ClientsPage"
 import CustomersPage from "./pages/CustomersPage"
 
@@ -67,6 +68,9 @@ export function App() {
           {/* Layout con sidebar */}
           <Route path="/chat" element={<Layout />}>
             <Route index element={<ChatPage />} />
+          </Route>
+          <Route path="/chat-test" element={<Layout />}>
+            <Route index element={<ChatTestPage />} />
           </Route>
           <Route path="/analytics" element={<Layout />}>
             <Route index element={<AnalyticsPage />} />

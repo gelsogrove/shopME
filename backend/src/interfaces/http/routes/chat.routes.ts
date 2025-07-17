@@ -258,6 +258,84 @@ export const chatRouter = (chatController: ChatController): express.Router => {
 
   /**
    * @swagger
+   * /api/chat/{sessionId}/send:
+   *   post:
+   *     summary: Send a message in a chat session (manual operator mode)
+   *     tags: [Chat]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: sessionId
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: ID of the chat session
+   *       - in: header
+   *         name: x-workspace-id
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: ID of the workspace
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - content
+   *               - sender
+   *             properties:
+   *               content:
+   *                 type: string
+   *                 description: Content of the message
+   *               sender:
+   *                 type: string
+   *                 description: Sender of the message (should be "user" for operator)
+   *     responses:
+   *       200:
+   *         description: Message sent successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     id:
+   *                       type: string
+   *                       description: Message ID
+   *                     content:
+   *                       type: string
+   *                       description: Message content
+   *                     sender:
+   *                       type: string
+   *                       description: Message sender
+   *                     timestamp:
+   *                       type: string
+   *                       format: date-time
+   *                       description: Message timestamp
+   *                     direction:
+   *                       type: string
+   *                       description: Message direction (OUTBOUND)
+   *                     metadata:
+   *                       type: object
+   *                       description: Message metadata
+   *       400:
+   *         description: Invalid request or chatbot is active
+   *       404:
+   *         description: Chat session not found
+   *       500:
+   *         description: Server error
+   */
+  router.post('/:sessionId/send', asyncHandler(chatController.sendMessage.bind(chatController)));
+
+  /**
+   * @swagger
    * /api/chat/{sessionId}:
    *   delete:
    *     summary: Delete a chat session and all its messages

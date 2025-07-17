@@ -174,18 +174,28 @@ export class WhatsAppController {
             logger.info(
               `[UNREGISTERED-NON-GREETING] ❌ Unregistered user ${phoneNumber} sent non-greeting message - sending registration required message`
             )
-            
+
             // Detect language from the message and send registration required message
             const detectedLang = this.detectLanguageFromMessage(messageContent)
-            const registrationRequiredMessage = this.getRegistrationRequiredMessage(detectedLang)
-            
+            const registrationRequiredMessage =
+              this.getRegistrationRequiredMessage(detectedLang)
+
             try {
-              await this.sendWhatsAppMessage(phoneNumber, registrationRequiredMessage, workspaceId)
-              logger.info(`[REGISTRATION-REQUIRED] ✅ Registration required message sent to ${phoneNumber}`)
+              await this.sendWhatsAppMessage(
+                phoneNumber,
+                registrationRequiredMessage,
+                workspaceId
+              )
+              logger.info(
+                `[REGISTRATION-REQUIRED] ✅ Registration required message sent to ${phoneNumber}`
+              )
             } catch (error) {
-              logger.error(`[REGISTRATION-REQUIRED] ❌ Error sending registration required message to ${phoneNumber}:`, error)
+              logger.error(
+                `[REGISTRATION-REQUIRED] ❌ Error sending registration required message to ${phoneNumber}:`,
+                error
+              )
             }
-            
+
             res.status(200).send("USER_NOT_REGISTERED")
             return
           }
@@ -195,6 +205,59 @@ export class WhatsAppController {
           `[REGISTERED-USER] ✅ User ${phoneNumber} is registered - proceeding with normal flow`
         )
 
+        // STEP 1.5: 🏢 CHECK WORKSPACE ACTIVE STATUS
+        const workspaceActiveResult =
+          await this.checkWorkspaceActive(workspaceId)
+
+        if (!workspaceActiveResult.isActive) {
+          logger.info(
+            `[WORKSPACE-INACTIVE] ❌ Workspace ${workspaceId} is INACTIVE - sending WIP message`
+          )
+
+          // Detect user language
+          const userLanguage = await this.detectUserLanguage(
+            phoneNumber,
+            messageContent,
+            workspaceId
+          )
+
+          // Get WIP message in user's language
+          const wipMessage = this.getWipMessage(
+            workspaceActiveResult.wipMessages,
+            userLanguage
+          )
+
+          if (wipMessage) {
+            try {
+              // Send WIP message to user
+              await this.sendWhatsAppMessage(
+                phoneNumber,
+                wipMessage,
+                workspaceId
+              )
+              logger.info(
+                `[WORKSPACE-INACTIVE] ✅ WIP message sent to ${phoneNumber}`
+              )
+
+              // Save the interaction for audit trail
+              await this.saveWorkspaceInactiveMessage(
+                phoneNumber,
+                messageContent,
+                wipMessage,
+                workspaceId
+              )
+            } catch (error) {
+              logger.error(
+                `[WORKSPACE-INACTIVE] ❌ Error sending WIP message to ${phoneNumber}:`,
+                error
+              )
+            }
+          }
+
+          res.status(200).send("WORKSPACE_INACTIVE_WIP_SENT")
+          return
+        }
+
         // STEP 2: Security Gateway processing (for registered users only)
         await this.messageService.processMessage(
           phoneNumber,
@@ -202,7 +265,34 @@ export class WhatsAppController {
           workspaceId
         )
 
-        // STEP 2: 🚨 ANDREA'S OPERATOR CONTROL CHECK
+        // STEP 3: 🚨 TASK #23 - CUSTOMER STATUS CHECKS (isActive & isBlacklisted)
+        const customerStatusResult = await this.checkCustomerStatus(
+          phoneNumber,
+          workspaceId
+        )
+
+        // Always save the message regardless of customer status (for audit trail)
+        await this.saveIncomingMessageForStatus(
+          phoneNumber,
+          messageContent,
+          workspaceId,
+          customerStatusResult
+        )
+
+        if (
+          !customerStatusResult.isActive ||
+          customerStatusResult.isBlacklisted
+        ) {
+          logger.info(
+            `[CUSTOMER-STATUS] ❌ Customer ${phoneNumber} is ${!customerStatusResult.isActive ? "INACTIVE" : "BLACKLISTED"} - message saved but NOT forwarding to N8N`
+          )
+
+          // ❌ DO NOT forward to N8N when customer is inactive or blacklisted
+          res.status(200).send("EVENT_RECEIVED_CUSTOMER_INACTIVE")
+          return
+        }
+
+        // STEP 4: 🚨 ANDREA'S OPERATOR CONTROL CHECK
         const operatorControlResult = await this.checkOperatorControl(
           phoneNumber,
           messageContent,
@@ -226,14 +316,14 @@ export class WhatsAppController {
           return
         }
 
-        // STEP 3: 🔑 ANDREA'S SESSION TOKEN GENERATION
+        // STEP 5: 🔑 ANDREA'S SESSION TOKEN GENERATION
         // Generate or renew session token for EVERY WhatsApp message
         const sessionToken = await this.generateSessionTokenForMessage(
           phoneNumber,
           workspaceId
         )
 
-        // STEP 4: 🚀 Forward to N8N with session token AND workspace ID
+        // STEP 6: 🚀 Forward to N8N with session token AND workspace ID
         logger.info(
           `[CHATBOT-ACTIVE] 🤖 Customer ${phoneNumber} chatbot is active - forwarding to N8N with session token`
         )
@@ -283,32 +373,50 @@ export class WhatsAppController {
 
             try {
               // Save the successful message to chat history BEFORE sending
-              const { MessageRepository } = await import('../../../repositories/message.repository')
+              const { MessageRepository } = await import(
+                "../../../repositories/message.repository"
+              )
               const messageRepository = new MessageRepository()
               await messageRepository.saveMessage({
                 workspaceId,
                 phoneNumber,
                 message: messageContent,
                 response: messageToSend,
-                agentSelected: "N8N_SUCCESS"
+                agentSelected: "CHATBOT",
               })
-              logger.info(`[SUCCESS-HISTORY] ✅ Successful message saved to chat history for ${phoneNumber}`)
+              logger.info(
+                `[SUCCESS-HISTORY] ✅ Successful message saved to chat history for ${phoneNumber}`
+              )
 
               // Then send the WhatsApp message
-              await this.sendWhatsAppMessage(phoneNumber, messageToSend, workspaceId)
+              await this.sendWhatsAppMessage(
+                phoneNumber,
+                messageToSend,
+                workspaceId
+              )
 
               logger.info(
                 `[WHATSAPP-SEND] ✅ Message sent successfully to ${phoneNumber}: ${messageToSend}`
               )
             } catch (saveError) {
-              logger.error(`[SUCCESS-HISTORY] ❌ Failed to save successful message to history: ${saveError}`)
-              
+              logger.error(
+                `[SUCCESS-HISTORY] ❌ Failed to save successful message to history: ${saveError}`
+              )
+
               // Still try to send the message even if saving fails
               try {
-                await this.sendWhatsAppMessage(phoneNumber, messageToSend, workspaceId)
-                logger.info(`[WHATSAPP-SEND] ✅ Message sent (without history): ${phoneNumber}`)
+                await this.sendWhatsAppMessage(
+                  phoneNumber,
+                  messageToSend,
+                  workspaceId
+                )
+                logger.info(
+                  `[WHATSAPP-SEND] ✅ Message sent (without history): ${phoneNumber}`
+                )
               } catch (sendError) {
-                logger.error(`[WHATSAPP-SEND] ❌ Failed to send message: ${sendError}`)
+                logger.error(
+                  `[WHATSAPP-SEND] ❌ Failed to send message: ${sendError}`
+                )
               }
             }
           } else {
@@ -317,7 +425,8 @@ export class WhatsAppController {
               n8nResponse
             )
 
-            const fallbackMessage = "Ho ricevuto la tua richiesta ma non sono riuscito a generare una risposta. Riprova più tardi."
+            const fallbackMessage =
+              "Ho ricevuto la tua richiesta ma non sono riuscito a generare una risposta. Riprova più tardi."
 
             logger.info(
               `[WHATSAPP-SEND] 📱 SENDING fallback message to ${phoneNumber}`
@@ -325,32 +434,50 @@ export class WhatsAppController {
 
             try {
               // Save the fallback message to chat history BEFORE sending
-              const { MessageRepository } = await import('../../../repositories/message.repository')
+              const { MessageRepository } = await import(
+                "../../../repositories/message.repository"
+              )
               const messageRepository = new MessageRepository()
               await messageRepository.saveMessage({
                 workspaceId,
                 phoneNumber,
                 message: messageContent,
                 response: fallbackMessage,
-                agentSelected: "N8N_FALLBACK"
+                agentSelected: "N8N_FALLBACK",
               })
-              logger.info(`[FALLBACK-HISTORY] ✅ Fallback message saved to chat history for ${phoneNumber}`)
+              logger.info(
+                `[FALLBACK-HISTORY] ✅ Fallback message saved to chat history for ${phoneNumber}`
+              )
 
               // Then send the WhatsApp message
-              await this.sendWhatsAppMessage(phoneNumber, fallbackMessage, workspaceId)
+              await this.sendWhatsAppMessage(
+                phoneNumber,
+                fallbackMessage,
+                workspaceId
+              )
 
               logger.info(
                 `[WHATSAPP-SEND] ✅ Fallback message sent to ${phoneNumber}`
               )
             } catch (saveError) {
-              logger.error(`[FALLBACK-HISTORY] ❌ Failed to save fallback message to history: ${saveError}`)
-              
+              logger.error(
+                `[FALLBACK-HISTORY] ❌ Failed to save fallback message to history: ${saveError}`
+              )
+
               // Still try to send the message even if saving fails
               try {
-                await this.sendWhatsAppMessage(phoneNumber, fallbackMessage, workspaceId)
-                logger.info(`[WHATSAPP-SEND] ✅ Fallback message sent (without history): ${phoneNumber}`)
+                await this.sendWhatsAppMessage(
+                  phoneNumber,
+                  fallbackMessage,
+                  workspaceId
+                )
+                logger.info(
+                  `[WHATSAPP-SEND] ✅ Fallback message sent (without history): ${phoneNumber}`
+                )
               } catch (sendError) {
-                logger.error(`[WHATSAPP-SEND] ❌ Failed to send fallback message: ${sendError}`)
+                logger.error(
+                  `[WHATSAPP-SEND] ❌ Failed to send fallback message: ${sendError}`
+                )
               }
             }
           }
@@ -369,32 +496,50 @@ export class WhatsAppController {
 
           try {
             // Save the error message to chat history BEFORE sending
-            const { MessageRepository } = await import('../../../repositories/message.repository')
+            const { MessageRepository } = await import(
+              "../../../repositories/message.repository"
+            )
             const messageRepository = new MessageRepository()
             await messageRepository.saveMessage({
               workspaceId,
               phoneNumber,
               message: messageContent,
               response: errorMessage,
-              agentSelected: "N8N_ERROR"
+              agentSelected: "N8N_ERROR",
             })
-            logger.info(`[ERROR-HISTORY] ✅ Error message saved to chat history for ${phoneNumber}`)
+            logger.info(
+              `[ERROR-HISTORY] ✅ Error message saved to chat history for ${phoneNumber}`
+            )
 
             // Then send the WhatsApp message
-            await this.sendWhatsAppMessage(phoneNumber, errorMessage, workspaceId)
+            await this.sendWhatsAppMessage(
+              phoneNumber,
+              errorMessage,
+              workspaceId
+            )
 
             logger.info(
               `[ERROR-SENT] ✅ Error message sent successfully to user: ${phoneNumber}`
             )
           } catch (saveError) {
-            logger.error(`[ERROR-HISTORY] ❌ Failed to save error message to history: ${saveError}`)
-            
+            logger.error(
+              `[ERROR-HISTORY] ❌ Failed to save error message to history: ${saveError}`
+            )
+
             // Still try to send the message even if saving fails
             try {
-              await this.sendWhatsAppMessage(phoneNumber, errorMessage, workspaceId)
-              logger.info(`[ERROR-SENT] ✅ Error message sent (without history): ${phoneNumber}`)
+              await this.sendWhatsAppMessage(
+                phoneNumber,
+                errorMessage,
+                workspaceId
+              )
+              logger.info(
+                `[ERROR-SENT] ✅ Error message sent (without history): ${phoneNumber}`
+              )
             } catch (sendError) {
-              logger.error(`[ERROR-SEND] ❌ Failed to send error message: ${sendError}`)
+              logger.error(
+                `[ERROR-SEND] ❌ Failed to send error message: ${sendError}`
+              )
             }
           }
         }
@@ -422,20 +567,25 @@ export class WhatsAppController {
       )
 
       // Use MessageRepository to handle customer creation
-      const { MessageRepository } = await import('../../../repositories/message.repository')
+      const { MessageRepository } = await import(
+        "../../../repositories/message.repository"
+      )
       const messageRepository = new MessageRepository()
-      
+
       // Find or create customer by triggering saveMessage
       await messageRepository.saveMessage({
         workspaceId,
         phoneNumber,
         message: "system_session_init",
-        response: "session_initialized", 
-        agentSelected: "SESSION_TOKEN_SERVICE"
+        response: "session_initialized",
+        agentSelected: "SESSION_TOKEN_SERVICE",
       })
-      
+
       // Now get the customer that was created
-      const customer = await messageRepository.findCustomerByPhone(phoneNumber, workspaceId)
+      const customer = await messageRepository.findCustomerByPhone(
+        phoneNumber,
+        workspaceId
+      )
 
       // Generate or renew session token
       const sessionToken =
@@ -461,7 +611,277 @@ export class WhatsAppController {
   }
 
   /**
-   * 👨‍💼 ANDREA'S OPERATOR CONTROL CHECK
+   * 🏢 CHECK WORKSPACE ACTIVE STATUS
+   * Verifies if workspace is active and gets WIP messages
+   */
+  private async checkWorkspaceActive(workspaceId: string): Promise<{
+    isActive: boolean
+    wipMessages?: Record<string, string> | null
+    workspace?: any
+  }> {
+    try {
+      logger.info(
+        `[WORKSPACE-CHECK] Checking workspace active status for ${workspaceId}`
+      )
+
+      // Find workspace and get WIP messages
+      const workspace = await prisma.workspace.findUnique({
+        where: {
+          id: workspaceId,
+        },
+        select: {
+          id: true,
+          name: true,
+          isActive: true,
+          wipMessages: true,
+        },
+      })
+
+      if (!workspace) {
+        logger.warn(
+          `[WORKSPACE-CHECK] Workspace ${workspaceId} not found - treating as inactive`
+        )
+        return {
+          isActive: false,
+        }
+      }
+
+      // Check workspace status
+      const isActive = workspace.isActive === true
+
+      logger.info(
+        `[WORKSPACE-CHECK] Workspace ${workspaceId}: isActive=${isActive}`
+      )
+
+      return {
+        isActive,
+        wipMessages: workspace.wipMessages as Record<string, string> | null,
+        workspace,
+      }
+    } catch (error) {
+      logger.error(
+        `[WORKSPACE-CHECK] Error checking workspace ${workspaceId}:`,
+        error
+      )
+      // On error, treat as inactive for safety
+      return {
+        isActive: false,
+      }
+    }
+  }
+
+  /**
+   * � TASK #23 - CUSTOMER STATUS CHECK
+   * Verifies if customer is active and not blacklisted
+   */
+  private async checkCustomerStatus(
+    phoneNumber: string,
+    workspaceId: string
+  ): Promise<{
+    isActive: boolean
+    isBlacklisted: boolean
+    customer?: any
+  }> {
+    try {
+      logger.info(
+        `[CUSTOMER-STATUS] Checking status for ${phoneNumber} in workspace ${workspaceId}`
+      )
+
+      // Find customer by phone number
+      const customer = await prisma.customers.findFirst({
+        where: {
+          phone: phoneNumber,
+          workspaceId: workspaceId,
+        },
+      })
+
+      if (!customer) {
+        logger.info(
+          `[CUSTOMER-STATUS] Customer ${phoneNumber} not found - treating as inactive`
+        )
+        return {
+          isActive: false,
+          isBlacklisted: false,
+        }
+      }
+
+      // Check customer status
+      const isActive = customer.isActive === true
+      const isBlacklisted = customer.isBlacklisted === true
+
+      logger.info(
+        `[CUSTOMER-STATUS] Customer ${phoneNumber}: isActive=${isActive}, isBlacklisted=${isBlacklisted}`
+      )
+
+      return {
+        isActive,
+        isBlacklisted,
+        customer,
+      }
+    } catch (error) {
+      logger.error(
+        `[CUSTOMER-STATUS] Error checking status for ${phoneNumber}:`,
+        error
+      )
+      // On error, treat as inactive for safety
+      return {
+        isActive: false,
+        isBlacklisted: false,
+      }
+    }
+  }
+
+  /**
+   * 🌍 DETECT USER LANGUAGE
+   * Detects user language from customer record or message content
+   */
+  private async detectUserLanguage(
+    phoneNumber: string,
+    messageContent: string,
+    workspaceId: string
+  ): Promise<string> {
+    try {
+      // First try to get language from customer record
+      const customer = await prisma.customers.findFirst({
+        where: {
+          phone: phoneNumber,
+          workspaceId: workspaceId,
+        },
+        select: {
+          language: true,
+        },
+      })
+
+      if (customer?.language) {
+        logger.info(
+          `[LANGUAGE-DETECT] Customer ${phoneNumber} has language: ${customer.language}`
+        )
+        return customer.language.toLowerCase()
+      }
+
+      // Fallback to message detection
+      const detectedLang = this.detectLanguageFromMessage(messageContent)
+      logger.info(
+        `[LANGUAGE-DETECT] Detected language from message: ${detectedLang}`
+      )
+
+      return detectedLang
+    } catch (error) {
+      logger.error(
+        `[LANGUAGE-DETECT] Error detecting language for ${phoneNumber}:`,
+        error
+      )
+      return "en" // Default to English
+    }
+  }
+
+  /**
+   * 📝 GET WIP MESSAGE IN USER LANGUAGE
+   * Gets the WIP message in the user's preferred language
+   */
+  private getWipMessage(
+    wipMessages: Record<string, string> | null | undefined,
+    userLanguage: string
+  ): string | null {
+    try {
+      if (!wipMessages) {
+        logger.warn("[WIP-MESSAGE] No WIP messages configured")
+        return null
+      }
+
+      // Normalize language code
+      const langCode = userLanguage.toLowerCase()
+
+      // Try exact match first
+      if (wipMessages[langCode]) {
+        logger.info(`[WIP-MESSAGE] Found WIP message for language: ${langCode}`)
+        return wipMessages[langCode]
+      }
+
+      // Try common language mappings
+      const languageMappings: Record<string, string> = {
+        es: "es",
+        spanish: "es",
+        it: "it",
+        italian: "it",
+        pt: "pt",
+        portuguese: "pt",
+        en: "en",
+        english: "en",
+      }
+
+      const mappedLang = languageMappings[langCode]
+      if (mappedLang && wipMessages[mappedLang]) {
+        logger.info(
+          `[WIP-MESSAGE] Found WIP message for mapped language: ${mappedLang}`
+        )
+        return wipMessages[mappedLang]
+      }
+
+      // Fallback to English, then Italian, then first available
+      const fallbackOrder = ["en", "it", "es", "pt"]
+      for (const fallbackLang of fallbackOrder) {
+        if (wipMessages[fallbackLang]) {
+          logger.info(`[WIP-MESSAGE] Using fallback language: ${fallbackLang}`)
+          return wipMessages[fallbackLang]
+        }
+      }
+
+      // If nothing found, return first available message
+      const firstMessage = Object.values(wipMessages)[0]
+      if (firstMessage) {
+        logger.info("[WIP-MESSAGE] Using first available WIP message")
+        return firstMessage
+      }
+
+      logger.warn("[WIP-MESSAGE] No WIP message found in any language")
+      return null
+    } catch (error) {
+      logger.error("[WIP-MESSAGE] Error getting WIP message:", error)
+      return null
+    }
+  }
+
+  /**
+   * 💾 SAVE WORKSPACE INACTIVE MESSAGE
+   * Saves the interaction when workspace is inactive
+   */
+  private async saveWorkspaceInactiveMessage(
+    phoneNumber: string,
+    userMessage: string,
+    wipResponse: string,
+    workspaceId: string
+  ): Promise<void> {
+    try {
+      logger.info(`[WORKSPACE-INACTIVE] Saving interaction for ${phoneNumber}`)
+
+      const { MessageRepository } = await import(
+        "../../../repositories/message.repository"
+      )
+      const messageRepository = new MessageRepository()
+
+      await messageRepository.saveMessage({
+        workspaceId,
+        phoneNumber,
+        message: userMessage,
+        response: wipResponse,
+        agentSelected: "WORKSPACE_INACTIVE",
+        direction: "BOTH",
+      })
+
+      logger.info(
+        `[WORKSPACE-INACTIVE] ✅ Interaction saved for ${phoneNumber}`
+      )
+    } catch (error) {
+      logger.error(
+        `[WORKSPACE-INACTIVE] ❌ Error saving interaction for ${phoneNumber}:`,
+        error
+      )
+    }
+  }
+
+  /**
+   * �👨‍💼 ANDREA'S OPERATOR CONTROL CHECK
    * Verifies if customer has activeChatbot = false (operator control)
    */
   private async checkOperatorControl(
@@ -507,6 +927,53 @@ export class WhatsAppController {
       )
       // On error, allow chatbot processing (fail-safe)
       return { isOperatorControl: false }
+    }
+  }
+
+  /**
+   * 💾 SAVE INCOMING MESSAGE FOR STATUS FILTERING
+   * Saves customer message when filtered by isActive/isBlacklisted status
+   */
+  private async saveIncomingMessageForStatus(
+    phoneNumber: string,
+    message: string,
+    workspaceId: string,
+    statusResult: { isActive: boolean; isBlacklisted: boolean; customer?: any }
+  ): Promise<void> {
+    try {
+      const reason = !statusResult.isActive
+        ? "CUSTOMER_INACTIVE"
+        : statusResult.isBlacklisted
+          ? "CUSTOMER_BLACKLISTED"
+          : "UNKNOWN"
+
+      logger.info(
+        `[CUSTOMER-STATUS] Saving incoming message for status filtering: ${phoneNumber} - ${reason}`
+      )
+
+      // Always save message for audit trail, regardless of customer status
+      const { MessageRepository } = await import(
+        "../../../repositories/message.repository"
+      )
+      const messageRepository = new MessageRepository()
+
+      await messageRepository.saveMessage({
+        workspaceId,
+        phoneNumber,
+        message: message,
+        response: "", // No response for filtered customers
+        agentSelected: reason,
+        direction: "INBOUND",
+      })
+
+      logger.info(
+        `[CUSTOMER-STATUS] ✅ Message saved with agent: ${reason} for ${phoneNumber}`
+      )
+    } catch (error) {
+      logger.error(
+        `[CUSTOMER-STATUS] ❌ Error saving message for ${phoneNumber}:`,
+        error
+      )
     }
   }
 
@@ -719,11 +1186,20 @@ export class WhatsAppController {
       // Save operator's outbound message with special flags
       await this.saveOperatorOutboundMessage(phoneNumber, message, workspaceId)
 
-      // TODO: Implement actual WhatsApp API call to send message
-      // For now, just log the action
-      logger.info(
-        `[OPERATOR-MESSAGE] ✅ Message would be sent via WhatsApp API: ${message}`
-      )
+      // ✅ TASK #34: Send actual WhatsApp message
+      try {
+        await this.sendWhatsAppMessage(phoneNumber, message, workspaceId)
+        logger.info(
+          `[OPERATOR-MESSAGE] ✅ WhatsApp message sent successfully to ${phoneNumber}`
+        )
+      } catch (whatsappError) {
+        logger.error(
+          `[OPERATOR-MESSAGE] ❌ Error sending WhatsApp message to ${phoneNumber}:`,
+          whatsappError
+        )
+        // Still return success since message was saved to DB
+        // Operator can retry if needed
+      }
 
       res.json({
         success: true,
@@ -1078,14 +1554,16 @@ export class WhatsAppController {
   ): Promise<void> {
     try {
       // Use MessageRepository to handle customer and chat session creation
-      const { MessageRepository } = await import('../../../repositories/message.repository')
+      const { MessageRepository } = await import(
+        "../../../repositories/message.repository"
+      )
       const messageRepository = new MessageRepository()
       await messageRepository.saveMessage({
         workspaceId,
         phoneNumber,
         message: incomingMessage,
         response: welcomeMessage,
-        agentSelected: "WELCOME_SYSTEM"
+        agentSelected: "WELCOME_SYSTEM",
       })
 
       logger.info(
@@ -1131,7 +1609,10 @@ export class WhatsAppController {
       pt: "Para usar este serviço você deve primeiro se registrar. Escreva 'olá' para receber o link de registro.",
     }
 
-    return registrationRequiredMessages[language] || registrationRequiredMessages["it"]
+    return (
+      registrationRequiredMessages[language] ||
+      registrationRequiredMessages["it"]
+    )
   }
 
   /**
@@ -1157,15 +1638,19 @@ export class WhatsAppController {
       })
 
       if (existingCustomer) {
-        logger.info(`[CUSTOMER-PLACEHOLDER] ✅ Customer already exists: ${existingCustomer.id}`)
-        
+        logger.info(
+          `[CUSTOMER-PLACEHOLDER] ✅ Customer already exists: ${existingCustomer.id}`
+        )
+
         // Update language if it's different from detected one
         if (existingCustomer.language !== language) {
           await prisma.customers.update({
             where: { id: existingCustomer.id },
-            data: { language: language }
+            data: { language: language },
           })
-          logger.info(`[CUSTOMER-PLACEHOLDER] 🌍 Updated customer language to: ${language}`)
+          logger.info(
+            `[CUSTOMER-PLACEHOLDER] 🌍 Updated customer language to: ${language}`
+          )
         }
         return
       }
@@ -1176,7 +1661,7 @@ export class WhatsAppController {
           phone: phoneNumber,
           workspaceId: workspaceId,
           name: `Unregistered User ${phoneNumber.slice(-4)}`,
-          email: `unregistered_${phoneNumber.replace(/[^0-9]/g, '')}@placeholder.com`,
+          email: `unregistered_${phoneNumber.replace(/[^0-9]/g, "")}@placeholder.com`,
           language: language,
           isActive: false, // Unregistered users are inactive
           activeChatbot: true,
@@ -1274,7 +1759,9 @@ export class WhatsAppController {
   ): Promise<void> {
     try {
       // Use MessageRepository to handle customer and chat session creation
-      const { MessageRepository } = await import('../../../repositories/message.repository')
+      const { MessageRepository } = await import(
+        "../../../repositories/message.repository"
+      )
       const messageRepository = new MessageRepository()
       await messageRepository.saveMessage({
         workspaceId,
@@ -1282,7 +1769,7 @@ export class WhatsAppController {
         message: "system_outbound",
         response: message,
         direction: "OUTBOUND",
-        agentSelected: "WHATSAPP_OUTBOUND"
+        agentSelected: "WHATSAPP_OUTBOUND",
       })
 
       logger.info(

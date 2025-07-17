@@ -241,7 +241,7 @@
         "genericAuthType": "httpBasicAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\"\n}",
+        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n  \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\",\n  \"message\": \"{{ $('prepare-data').item.json.chatInput }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequestTool",
