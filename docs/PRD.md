@@ -1371,23 +1371,6 @@ flowchart TD
 - **Channel status**: isActive e activeChatbot flags
 - **WIP status**: Messaggio work-in-progress se canale in manutenzione
 
-#### **📊 Tabella Comportamenti Sistema - Task #23 Implementato**
-
-| Situazione | Salva Messaggio | Invia Risposta | Chiama N8N | Chiama LLM | Tipo Risposta |
-|------------|----------------|----------------|------------|------------|---------------|
-| **Canale Disattivato** | ✅ SÌ | ✅ SÌ | ❌ NO | ❌ NO | **WIP Message** (multilingua) |
-| **Customer Inattivo** | ✅ SÌ | ❌ NO | ❌ NO | ❌ NO | Nessuna risposta |  
-| **Customer Blacklisted** | ✅ SÌ | ❌ NO | ❌ NO | ❌ NO | Nessuna risposta |
-| **Operatore Attivo** | ✅ SÌ | ❌ NO | ❌ NO | ❌ NO | Nessuna risposta |
-| **Tutto OK** | ✅ SÌ | ✅ SÌ | ✅ SÌ | ✅ SÌ | **AI Response** |
-
-**Note Implementazione Task #23:**
-- ✅ **Backend Single Source of Truth**: Tutti i controlli centralizzati nel backend
-- ✅ **Audit Trail Completo**: Ogni messaggio sempre salvato per tracciabilità
-- ✅ **N8N Semplificato**: Filtri rimossi dal workflow, logica solo backend
-- ✅ **Sicurezza Garantita**: Controlli rigorosi prima di attivare AI/LLM
-- ✅ **WIP Multilingua**: Messaggi "Work in Progress" nella lingua dell'utente
-
 ---
 
 ## Table of Contents

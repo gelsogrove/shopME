@@ -1842,24 +1842,42 @@ export default function OrdersPage() {
           clientsApi.getAllForWorkspace(workspace.id),
         ])
 
+        console.log("🔍 DEBUG - Raw responses:")
+        console.log("Orders response:", ordersResponse)
+        console.log("Customers response:", customersResponse)
+
         // Create a map of customers for quick lookup
         const customersMap = new Map()
         if (Array.isArray(customersResponse)) {
           customersResponse.forEach((customer) => {
             customersMap.set(customer.id, customer)
           })
+        } else if (customersResponse && (customersResponse as any)?.clients) {
+          (customersResponse as any).clients.forEach((customer) => {
+            customersMap.set(customer.id, customer)
+          })
         }
+
+        console.log("🔍 DEBUG - Customers map:", customersMap)
 
         // Enrich orders with customer data
         const enrichedOrders = (ordersResponse.orders || []).map((order) => {
           const customerFromMap = customersMap.get(order.customerId)
           const finalCustomer = customerFromMap || order.customer || null
 
+          console.log(`🔍 DEBUG - Order ${order.orderCode}:`)
+          console.log("  - customerId:", order.customerId)
+          console.log("  - customerFromMap:", customerFromMap)
+          console.log("  - order.customer:", order.customer)
+          console.log("  - finalCustomer:", finalCustomer)
+
           return {
             ...order,
             customer: finalCustomer,
           }
         })
+
+        console.log("🔍 DEBUG - Final enriched orders:", enrichedOrders)
 
         // Sort orders by date descending (newest first)
         const sortedOrders = enrichedOrders.sort(
@@ -2043,35 +2061,42 @@ export default function OrdersPage() {
     },
   ]
 
-  // Complete filtering logic with search, status, and date filters
+  // Simple and effective filtering logic
   const filteredOrders = orders.filter((order) => {
-    // 1. Search filter (text search across multiple fields)
+    // 1. Search filter - search in customer name, order code, and company
     if (searchTerm.trim()) {
       const searchValue = searchTerm.toLowerCase().trim()
-
-      // Extract all searchable fields with null safety
-      const name = (order.customer?.name || "").toLowerCase()
-      const company = (order.customer?.company || "").toLowerCase()
-      const orderCode = (order.orderCode || "").toLowerCase()
-      const status = (order.status || "").toLowerCase()
-      const total = formatPrice(
-        order.totalAmount || 0,
-        workspace?.currency
-      ).toLowerCase()
-      const date = new Date(order.createdAt).toLocaleDateString().toLowerCase()
-      const time = new Date(order.createdAt)
-        .toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-        .toLowerCase()
-
-      // Combine all searchable text into one string
-      const allText = `${orderCode} ${name} ${company} ${status} ${total} ${date} ${time}`
-
-      // Simple includes check
-      if (!allText.includes(searchValue)) {
-        return false
+      
+      // Search in customer name (most important)
+      const customerName = order.customer?.name?.toLowerCase() || ""
+      if (customerName.includes(searchValue)) {
+        return true
       }
+      
+      // Search in order code
+      const orderCode = order.orderCode?.toLowerCase() || ""
+      if (orderCode.includes(searchValue)) {
+        return true
+      }
+      
+      // Search in company name
+      const companyName = order.customer?.company?.toLowerCase() || ""
+      if (companyName.includes(searchValue)) {
+        return true
+      }
+      
+      // Search in status
+      const status = order.status?.toLowerCase() || ""
+      if (status.includes(searchValue)) {
+        return true
+      }
+      
+      // If not found in any searchable field, exclude this order
+      return false
     }
 
+    return true // No search term, include all orders for other filters
+  }).filter((order) => {
     // 2. Status filter
     if (statusFilter !== "all" && order.status !== statusFilter) {
       return false
@@ -2105,6 +2130,14 @@ export default function OrdersPage() {
   const sortedOrders = [...filteredOrders].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   )
+
+  // Debug final results
+  console.log("🔍 FINAL DEBUG:")
+  console.log("- searchTerm:", searchTerm)
+  console.log("- orders.length:", orders.length)
+  console.log("- filteredOrders.length:", filteredOrders.length)
+  console.log("- sortedOrders.length:", sortedOrders.length)
+  console.log("- sortedOrders:", sortedOrders)
 
   const handleDeleteConfirm = async () => {
     if (!selectedOrder || !workspace?.id) return
