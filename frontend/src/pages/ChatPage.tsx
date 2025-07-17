@@ -8,12 +8,20 @@ import { useRecentChats } from "@/hooks/useRecentChats"
 import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
 import { useQuery } from "@tanstack/react-query"
-import { Ban, Bot, Loader2, Pencil, Send, ShoppingBag, Trash2 } from "lucide-react"
+import {
+  Ban,
+  Bot,
+  Loader2,
+  Pencil,
+  Send,
+  ShoppingBag,
+  Trash2,
+} from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import remarkGfm from "remark-gfm"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -180,8 +188,8 @@ export function ChatPage() {
   // Select first chat when chats are loaded and no chat is selected, or select the chat matching the client filter if present
   useEffect(() => {
     if (chats.length > 0 && !selectedChat && !clientSearchTerm) {
-      selectChat(chats[0]);
-      return;
+      selectChat(chats[0])
+      return
     }
     // If we have a sessionId, find that specific chat
     if (chats.length > 0 && (!selectedChat || clientSearchTerm)) {
@@ -222,7 +230,9 @@ export function ChatPage() {
       // if (!selectedChat) {
       //   selectChat(chats[0])
       // }
-      console.log("🚨 LOOP PREVENTION: Not auto-selecting first chat to prevent potential loops")
+      console.log(
+        "🚨 LOOP PREVENTION: Not auto-selecting first chat to prevent potential loops"
+      )
     }
   }, [chats, selectedChat, sessionId, clientSearchTerm])
 
@@ -339,7 +349,9 @@ export function ChatPage() {
       if (response.status === 200) {
         setActiveChatbot(status)
         toast.success(
-          `Chatbot ${status ? "enabled" : "disabled"} for ${selectedChat.customerName}`,
+          `Chatbot ${status ? "enabled" : "disabled"} for ${
+            selectedChat.customerName
+          }`,
           { duration: 1000 }
         )
       } else {
@@ -376,7 +388,9 @@ export function ChatPage() {
       // Update unread count in the local state
       setChats((prevChats) =>
         prevChats.map((c) =>
-          (c.sessionId || c.id) === sessionIdToUse ? { ...c, unreadCount: 0 } : c
+          (c.sessionId || c.id) === sessionIdToUse
+            ? { ...c, unreadCount: 0 }
+            : c
         )
       )
 
@@ -407,7 +421,10 @@ export function ChatPage() {
     // Validate that we have a valid sessionId
     const sessionIdToDelete = selectedChat.sessionId || selectedChat.id
     if (!sessionIdToDelete) {
-      console.error("No valid session ID found for chat deletion:", selectedChat)
+      console.error(
+        "No valid session ID found for chat deletion:",
+        selectedChat
+      )
       toast.error("Cannot delete chat: Invalid session ID", { duration: 1000 })
       setShowDeleteDialog(false)
       return
@@ -422,7 +439,9 @@ export function ChatPage() {
         toast.success("Chat deleted successfully", { duration: 1000 })
         // Remove deleted chat from state
         setChats((prev) =>
-          prev.filter((chat) => (chat.sessionId || chat.id) !== sessionIdToDelete)
+          prev.filter(
+            (chat) => (chat.sessionId || chat.id) !== sessionIdToDelete
+          )
         )
         setSelectedChat(null)
         // Remove sessionId from URL
@@ -509,9 +528,9 @@ export function ChatPage() {
 
   // Show orders dialog
   const handleViewOrders = () => {
-    if (!selectedChat?.customerName) return;
-    navigate(`/orders?search=${encodeURIComponent(selectedChat.customerName)}`);
-  };
+    if (!selectedChat?.customerName) return
+    navigate(`/orders?search=${encodeURIComponent(selectedChat.customerName)}`)
+  }
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -624,13 +643,19 @@ export function ChatPage() {
 
     setIsBlocking(true)
     try {
-      const blockResponse = await api.post(`/workspaces/${workspaceId}/customers/${selectedChat.customerId}/block`)
-      
+      const blockResponse = await api.post(
+        `/workspaces/${workspaceId}/customers/${selectedChat.customerId}/block`
+      )
+
       if (blockResponse.status === 200) {
         // Remove the chat from the list
-        setChats((prev) => prev.filter(chat => chat.customerId !== selectedChat.customerId))
+        setChats((prev) =>
+          prev.filter((chat) => chat.customerId !== selectedChat.customerId)
+        )
         setSelectedChat(null)
-        toast.success(`${selectedChat.customerName} has been blocked`, { duration: 1000 })
+        toast.success(`${selectedChat.customerName} has been blocked`, {
+          duration: 1000,
+        })
       }
     } catch (error) {
       console.error("Error blocking user:", error)
@@ -695,7 +720,8 @@ export function ChatPage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="font-medium text-sm flex items-center gap-1">
-                          {chat.customerName} {chat.companyName ? `(${chat.companyName})` : ""}
+                          {chat.customerName}{" "}
+                          {chat.companyName ? `(${chat.companyName})` : ""}
                           {/* Manual operator icon if chatbot is disabled */}
                           {chat.activeChatbot === false && (
                             <span title="Manual Operator Control">
@@ -746,8 +772,13 @@ export function ChatPage() {
                           👨‍💼 <strong>Manual Operator Control Active</strong>
                         </p>
                         <p className="text-xs text-orange-600 mt-1">
-                          AI chatbot is disabled. You are now manually handling this conversation. 
-                          <span className="font-medium"> Customer messages will be saved but won't trigger AI responses.</span>
+                          AI chatbot is disabled. You are now manually handling
+                          this conversation.
+                          <span className="font-medium">
+                            {" "}
+                            Customer messages will be saved but won't trigger AI
+                            responses.
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -832,11 +863,16 @@ export function ChatPage() {
                     // Using the sender field which is properly mapped from direction
                     const isAgentMessage = message.sender === "user"
                     const isCustomerMessage = message.sender === "customer"
-                    
+
                     // 🚨 ANDREA'S OPERATOR CONTROL INDICATORS
-                    const isOperatorMessage = message.metadata?.isOperatorMessage === true
-                    const isOperatorControl = message.metadata?.isOperatorControl === true
-                    const isManualOperator = message.metadata?.agentSelected === 'MANUAL_OPERATOR' || message.metadata?.agentSelected === 'MANUAL_OPERATOR_CONTROL'
+                    const isOperatorMessage =
+                      message.metadata?.isOperatorMessage === true
+                    const isOperatorControl =
+                      message.metadata?.isOperatorControl === true
+                    const isManualOperator =
+                      message.metadata?.agentSelected === "MANUAL_OPERATOR" ||
+                      message.metadata?.agentSelected ===
+                        "MANUAL_OPERATOR_CONTROL"
 
                     return (
                       <div
@@ -848,27 +884,31 @@ export function ChatPage() {
                         <div
                           className={`p-3 rounded-lg max-w-[75%] relative ${
                             isAgentMessage
-                              ? isOperatorMessage 
+                              ? isOperatorMessage
                                 ? "bg-blue-100 text-blue-900 border-l-4 border-blue-500" // 👨‍💼 Operator message style
                                 : "bg-green-100 text-green-900" // 🤖 AI message style
                               : isOperatorControl
-                                ? "bg-orange-50 text-orange-900 border-l-4 border-orange-400" // 📥 Customer message under operator control
-                                : "bg-gray-100 text-gray-800" // Normal customer message
+                              ? "bg-orange-50 text-orange-900 border-l-4 border-orange-400" // 📥 Customer message under operator control
+                              : "bg-gray-100 text-gray-800" // Normal customer message
                           }`}
                         >
                           {/* 🚨 OPERATOR CONTROL BADGE */}
-                          {(isOperatorMessage || isOperatorControl || isManualOperator) && (
+                          {(isOperatorMessage ||
+                            isOperatorControl ||
+                            isManualOperator) && (
                             <div className="absolute -top-2 -right-2">
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-medium ${
-                                isOperatorMessage 
-                                  ? "bg-blue-500 text-white" 
-                                  : "bg-orange-500 text-white"
-                              }`}>
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-medium ${
+                                  isOperatorMessage
+                                    ? "bg-blue-500 text-white"
+                                    : "bg-orange-500 text-white"
+                                }`}
+                              >
                                 👨‍💼 {isOperatorMessage ? "OPERATOR" : "MANUAL"}
                               </span>
                             </div>
                           )}
-                          
+
                           <div className="text-sm break-words">
                             <ReactMarkdown
                               remarkPlugins={[remarkGfm]}
@@ -886,27 +926,29 @@ export function ChatPage() {
                               {message.content}
                             </ReactMarkdown>
                           </div>
-                          
+
                           <div className="flex justify-between items-center mt-1">
                             <span className="text-[10px] opacity-70">
                               {formatDate(message.timestamp)}
                             </span>
-                            
+
                             <div className="flex items-center gap-1">
                               {/* 🤖 AI Agent Badge */}
-                              {isAgentMessage && message.agentName && !isOperatorMessage && (
-                                <span className="text-[10px] font-medium bg-green-200 text-green-800 px-2 py-0.5 rounded ml-2">
-                                  🤖 {message.agentName}
-                                </span>
-                              )}
-                              
+                              {isAgentMessage &&
+                                message.agentName &&
+                                !isOperatorMessage && (
+                                  <span className="text-[10px] font-medium bg-green-200 text-green-800 px-2 py-0.5 rounded ml-2">
+                                    🤖 {message.agentName}
+                                  </span>
+                                )}
+
                               {/* 👨‍💼 Operator Badge */}
                               {isOperatorMessage && (
                                 <span className="text-[10px] font-medium bg-blue-200 text-blue-800 px-2 py-0.5 rounded ml-2">
                                   👨‍💼 Human Operator
                                 </span>
                               )}
-                              
+
                               {/* 📋 Manual Control Badge */}
                               {isOperatorControl && (
                                 <span className="text-[10px] font-medium bg-orange-200 text-orange-800 px-2 py-0.5 rounded ml-2">
@@ -995,12 +1037,14 @@ export function ChatPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Block User</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to block {selectedChat?.customerName}? They will no longer be able to send messages to your chatbot, and their chat will be removed from your chat history.
+              Are you sure you want to block {selectedChat?.customerName}? They
+              will no longer be able to send messages to your chatbot, and their
+              chat will be removed from your chat history.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleBlockUser}
               disabled={isBlocking}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"

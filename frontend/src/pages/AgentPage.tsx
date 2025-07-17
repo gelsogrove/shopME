@@ -17,7 +17,7 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { toast } from "sonner"
+import { toast } from "../lib/toast"
 
 export function AgentPage() {
   const { workspace } = useWorkspace()

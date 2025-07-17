@@ -1,198 +1,33 @@
-# 🚀 SHOPME - STRUCTURED TASK LIST (PRIORITY ORDERED)
-
-> [UPDATE 2025-07-16] Task list cleaned up - removed all completed tasks and added new critical tasks for services management and discount system verification.
-
-## TASK #30
-
-**TITLE**: CF Services Tool - GetAllServices Implementation
-**DESCRIPTION/ROADMAP**:
-
-- Implement CF Services tool endpoint for N8N workflow
-- Create backend API endpoint `POST /api/internal/get-all-services`
-- Return all active services for workspace with proper formatting
-- Integrate with N8N workflow as GetAllServices() tool
-- Add Swagger documentation for the endpoint
-- Test integration with chatbot when user asks for services list
-
-**SPECIAL NOTE**:
-Andrea requires that users can ask "Che servizi avete?" and get a complete list of available services through the N8N workflow.
-
-**STORY POINT**: 3
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #31
-
-**TITLE**: Verify Discount System - Customer + Offer Integration
-**DESCRIPTION/ROADMAP**:
-
-- Test customer discount + offer discount calculation (NON-CUMULATIVE, highest wins)
-- Verify Limoncello price €8.90 with Maria Garcia (10% customer) + Offerta Estiva (20% beverages) = €7.12
-- Ensure ecommerceRagSearch shows correct discounted prices in responses
-- Verify that discount explanation is included in LLM responses
-- Test complete flow: customer query → database discount lookup → price calculation → formatted response
-
-**SPECIAL NOTE**:
-Andrea needs confirmation that the discount system works end-to-end: customer with 10% discount should see €7.12 for Limoncello (20% offer applied as higher discount), not the full price €8.90.
-
-**STORY POINT**: 2
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #32
-
-**TITLE**: Product List Discount Display Verification
-**DESCRIPTION/ROADMAP**:
-
-- Verify getAllProducts endpoint applies customer discounts correctly
-- Ensure product list shows discounted prices when customer has discount
-- Test that offer discounts are applied to product listings
-- Verify that discounted vs original prices are clearly displayed
-- Ensure consistent discount formatting across product list and individual product queries
-
-**SPECIAL NOTE**:
-Andrea wants to ensure that when customers browse the product list, they see their personalized discounted prices, not just the base prices.
-
-**STORY POINT**: 3
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #33
-
-**TITLE**: Agent Prompt - Discount Communication Enhancement
-**DESCRIPTION/ROADMAP**:
-
-- Update agent prompt to explain discount application when customers ask
-- Include logic for communicating both customer discount and active offers
-- Ensure LLM explains which discount was applied (customer vs offer) and why
-- Add examples of discount communication in the prompt
-- Test that customers understand their discount benefits clearly
-
-**SPECIAL NOTE**:
-Andrea wants customers to understand their discount benefits clearly. When they ask about discounts, the agent should explain both their personal discount and any active offers, and which one is being applied.
-
-**STORY POINT**: 2
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #19
-
-**TITLE**: Standardize Shipping Address and Invoice Address Handling
-**DESCRIPTION/ROADMAP**:
-
-- Refactor the edit form so that both Shipping Address and Invoice Address are managed as structured objects (field by field)
-- Use the same field-by-field approach as currently implemented for Invoice Address
-- Update backend models, DTOs, and validation to support structured shipping address
-- Update frontend forms to display and edit shipping address with individual fields (not a single string)
-- Remove any string-based handling for shipping address
-- Test thoroughly to ensure both addresses are saved and displayed correctly
-
-**SPECIAL NOTE**:
-Andrea requires that both addresses are handled in a consistent, structured way for better data quality and user experience. The Invoice Address model is the reference.
-
-**STORY POINT**: 5
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #3
-
-**TITLE**: Extended Session Duration (1 Hour)
-**DESCRIPTION/ROADMAP**:
-
-- Configure JWT with 1 hour expiration (3600 seconds)
-- Implement silent token refresh before expiration
-- Add activity-based session renewal (reset timer on user activity)
-- Create session monitoring and validation
-- Implement graceful session expiry handling
-- Add optional session time indicator
-
-**SPECIAL NOTE**:
-Andrea vuole lavorare 1 ora senza dover rifare il login. Attualmente la sessione scade troppo presto causando interruzioni del lavoro. Implementare refresh automatico silenzioso.
-
-**STORY POINT**: 5
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #4
+## TASK #4 ✅ COMPLETED
 
 **TITLE**: Toast Messages Standardization
 **DESCRIPTION/ROADMAP**:
 
-- Configure Sonner for green success toasts with white text
-- Add appropriate icons: ✓ success, ⚠️ warning, ❌ error
-- Update all components using toast to new styling
-- Ensure consistent styling across entire application
-- Test toast functionality in all scenarios
+- ✅ **COMPLETED**: Configure Sonner for green success toasts with white text
+- ✅ **COMPLETED**: Add appropriate icons: ✓ success, ❌ error, ⚠️ warning, ℹ️ info
+- ✅ **COMPLETED**: Update all components using toast to new styling
+- ✅ **COMPLETED**: Ensure consistent styling across entire application
+- ✅ **COMPLETED**: Test toast functionality in all scenarios
+
+**IMPLEMENTATION COMPLETED**:
+
+- Created standardized toast utility in `/lib/toast.ts` with consistent styling
+- Green success toasts (#22c55e) with white text and ✓ icon
+- Red error toasts (#dc2626) with white text and ❌ icon
+- Yellow warning toasts (#fbbf24) with white text and ⚠️ icon
+- Blue info toasts (#3b82f6) with white text and ℹ️ icon
+- Updated all components to use standardized toast utility:
+  - ChatPage.tsx
+  - ClientsPage.tsx
+  - ProductsPage.tsx
+  - Header.tsx
+  - GdprSettingsTab.tsx
 
 **SPECIAL NOTE**:
-Tutti i toast di successo devono essere verdi con scritta bianca e icone appropriate. Attualmente i toast non seguono un design system coerente.
+Sistema di toast completamente standardizzato! Tutti i toast ora seguono il design system di ShopMe con colori coerenti, testo bianco e icone appropriate.
 
 **STORY POINT**: 3
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #6
-
-**TITLE**: Login Page Design Fixes
-**DESCRIPTION/ROADMAP**:
-
-- Remove "Conversational E-commerce, Reimagined" text from right panel
-- Apply consistent color palette matching main application
-- Update typography to match main app fonts and sizing
-- Replace non-coherent icons with design system icons
-- Redesign right panel content strategy for ShopMe brand
-- Ensure brand consistency throughout login experience
-
-**SPECIAL NOTE**:
-Andrea non gradisce la parte destra del login - né colori, né testo, né icone sono in linea con il resto dell'applicazione. Tutto deve essere coerente con ShopMe.
-
-**STORY POINT**: 5
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #8
-
-**TITLE**: N8N Frontend Integration Removal
-**DESCRIPTION/ROADMAP**:
-
-- Remove N8NPage.tsx and related components
-- Remove /settings/n8n route and navigation
-- Clean up N8N services and API calls from frontend
-- Remove embedded iframe integration
-- Keep only backend N8N workflow functionality
-- Document for future integration when requirements are clearer
-
-**SPECIAL NOTE**:
-L'URL del workflow N8N non è dinamico e non funziona. Andrea preferisce semplificare rimuovendo l'integrazione frontend e mantenendo solo il workflow backend.
-
-**STORY POINT**: 3
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #14
-
-**TITLE**: Automatic Embedding Trigger & Remove Manual Button
-**DESCRIPTION/ROADMAP**:
-
-- Remove the manual embedding button from all relevant sections (documents, products, FAQs, services, etc.)
-- Automatically trigger the embedding process after every add, update, or delete operation
-- Ensure this behavior is consistent across all sessions and entity types
-- No manual intervention required for embedding generation
-
-**SPECIAL NOTE**:
-Andrea requires that embedding is always up-to-date and automatic. The manual embedding button is no longer desired and must be removed everywhere.
-
-**STORY POINT**: 4
-**STATUS**: 🔴 Not Started
+**STATUS**: ✅ COMPLETED - Fully Functional
 
 ================================================================================
 
@@ -337,17 +172,79 @@ Andrea wants clean UI without unnecessary pagination controls when there are few
 **SPECIAL NOTE**:
 Andrea wants to try uploading and managing a legal notice PDF to validate the document handling flow.
 
-**STORY POINT**: 3
 **STATUS**: 🔴 Not Started
 
 ================================================================================
 
+## TASK #26
+
+**TITLE**: Automatic Embedding Trigger on Data Change
+**DESCRIPTION/ROADMAP**:
+
+- Remove the manual embedding button from all relevant sections (documents, products, FAQs, services, etc.)
+- Automatically trigger the embedding process after every add, update, or delete operation
+- Ensure this behavior is consistent across all sessions and entity types
+- No manual intervention required for embedding generation
+- Test thoroughly to confirm embeddings are always up-to-date
+
+**SPECIAL NOTE**:
+Andrea requires a clean and maintainable database. All legacy or unused tables must be removed to avoid confusion and improve performance.hat embedding is always up-to-date and automatic. The manual embedding button is no longer desired and must be removed everywhere.
+
+**STORY POINT**: TBD**STORY POINT**: TBD
+**STATUS**: 🔵 PHASE 2tarted
+
+================================================================================================================================================================
+
+## TASK #23 - N8N workflow does not contain the removed filters
+
+cumentation and technical checklist as needed
+**TITLE**: Remove N8N Filter for isActive and isBlacklisted – Move Logic to Backend (LLM/Workflow Bypass)
+**DESCRIPTION/ROADMAP**:
+
+- Refactor the backend message processing logic so that:- Centralizes business logic in the backend for better maintainability and security
+  - If `customer.isActive === false` **OR** `customer.isBlacklisted === true`, the backend must: or inactive customers
+    - NOT call LLM (no OpenRouter, no AI response)
+    - NOT call N8N (no workflow trigger)of logic
+    - Only save the inbound message to history (using MessageRepository.saveMessage)
+    - Return a 200 OK with `processedMessage: ""` and no error
+- Remove the corresponding filter/condition from the N8N workflow:
+  - Eliminate any N8N node or filter that checks `{{$json.precompiledData.customer.isActive}}` or `{{$json.precompiledData.customer.isBlacklisted}}`checks in the backend only
+  - The backend will be the single source of truth for these checks
+- Ensure that the logic is now identical to how `activeChatbot` is handled (manual operator mode):
+  - If any of these conditions are true, the system is "muted" for AI/automation, but always logs the message
+- Add/Update unit and integration tests to verify:
+  - No LLM/N8N call is made when customer is inactive or blacklisted
+  - Messages are always saved to history
+  - N8N workflow does not contain the removed filters========================================
+- Update documentation and technical checklist as needed
+  (manual operator mode), the message is always saved to the chat history, just like AI/LLM responses. This guarantees full auditability and traceability of all operator actions (operator/manual mode logic).
+  **RATIONALE**:- [ ] On the FAQ page (/faq), if there are 10 or fewer elements, the pagination controls should not be visible. Only show pagination if there are more than 10 items. (FAQ page pagination logic)
+  he 'Add Categories' button to just 'Add' for consistency across all CRUD pages (button text standardization)
+- Centralizes business logic in the backend for better maintainability and security- [ ] On the Offers page (/offers), if there are fewer than 10 elements, the pagination controls should not be visible. Only show pagination if there are more than 10 items. (Offers page pagination logic)
+- Prevents accidental AI/automation triggers for blocked or inactive customers
+- Ensures message history is always complete, regardless of customer status
+- Simplifies N8N workflow and reduces duplication of logic
+  ion
+  **SPECIAL NOTE**:**DESCRIPTION/ROADMAP**:
+
+- This task will remove the filter logic from N8N and enforce all checks in the backend only- Create a legal notice ('Aviso legal') PDF document.
+- Applies to both REST API and WhatsApp/N8N webhook flowstion or appropriate storage).
+- Must be coordinated with N8N workflow update to avoid regressions section (e.g., legal, compliance, or info page).
+  gement works as expected.
+  **STORY POINT**: TBD- Use this as a test case for document/PDF management features.
+  **STATUS**: 🔴 Not Started
+
+================================================================================Andrea wants to try uploading and managing a legal notice PDF to validate the document handling flow.
+
+- [ ] Ensure that when a human operator sends a message (manual operator mode), the message is always saved to the chat history, just like AI/LLM responses. This guarantees full auditability and traceability of all operator actions (operator/manual mode logic).**STATUS**: 🔴 Not Started
+- [ ] On the FAQ page (/faq), if there are 10 or fewer elements, the pagination controls should not be visible. Only show pagination if there are more than 10 items. (FAQ page pagination logic)- [ ] Change the 'Add Categories' button to just 'Add' for consistency across all CRUD pages (button text standardization)- [ ] On the Offers page (/offers), if there are fewer than 10 elements, the pagination controls should not be visible. Only show pagination if there are more than 10 items. (Offers page pagination logic)## TASK #30**TITLE**: Implement 'Aviso legal' PDF Upload and Integration**DESCRIPTION/ROADMAP**:- Create a legal notice ('Aviso legal') PDF document.- Upload the PDF to the system and ensure it is stored correctly (e.g., in the documents section or appropriate storage).- Integrate the PDF so it is accessible from the relevant section (e.g., legal, compliance, or info page).- Test the upload and retrieval process to verify PDF/document management works as expected.- Use this as a test case for document/PDF management features.**SPECIAL NOTE**:Andrea wants to try uploading and managing a legal notice PDF to validate the document handling flow.**STATUS**: 🔴 Not Started
+
 # 📊 PRIORITY SUMMARY
 
-**🔴 CRITICAL/HIGH PRIORITY (Tasks #30-#33)**:
+**🔴 CRITICAL/HIGH PRIORITY (Tasks #30-#32)**:
 
-- Total Story Points: 10
-- Focus: Core discount system verification and services management
+- Total Story Points: 8
+- Focus: Core services management and discount system verification
 - Estimated Duration: 1-2 weeks
 - Priority: Critical for customer experience
 
@@ -369,7 +266,7 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 
 **🔴 CRITICAL SPRINT (1-2 weeks)**:
 
-- Sprint 1: Tasks #30, #31, #32, #33 (10 Story Points) - Discount & Services Verification
+- Sprint 1: Tasks #30, #31, #32 (8 Story Points) - Services & Discount Verification
 
 **🟡 MEDIUM PRIORITY SPRINTS**:
 
@@ -1002,6 +899,26 @@ _Format: Structured Task List v2.0_
 
 # PHASE 2 TASKS
 
+## TASK #3
+
+**TITLE**: Extended Session Duration (1 Hour)
+**DESCRIPTION/ROADMAP**:
+
+- Configure JWT with 1 hour expiration (3600 seconds)
+- Implement silent token refresh before expiration
+- Add activity-based session renewal (reset timer on user activity)
+- Create session monitoring and validation
+- Implement graceful session expiry handling
+- Add optional session time indicator
+
+**SPECIAL NOTE**:
+Andrea vuole lavorare 1 ora senza dover rifare il login. Attualmente la sessione scade troppo presto causando interruzioni del lavoro. Implementare refresh automatico silenzioso.
+
+**STORY POINT**: 5
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
 ## TASK #10
 
 **TITLE**: Advanced WhatsApp Features
@@ -1073,144 +990,10 @@ Andrea requires that the entire application is fully responsive for a seamless u
 - Update documentation and ERD if necessary
 
 **SPECIAL NOTE**:
+**SPECIAL NOTE**:
 Andrea requires a clean and maintainable database. All legacy or unused tables must be removed to avoid confusion and improve performance.
 
 **STORY POINT**: TBD
 **STATUS**: 🔵 PHASE 2
 
 ================================================================================
-
-## TASK #26
-
-**TITLE**: Automatic Embedding Trigger on Data Change
-**DESCRIPTION/ROADMAP**:
-
-- Remove the manual embedding button from all relevant sections (documents, products, FAQs, services, etc.)
-- Automatically trigger the embedding process after every add, update, or delete operation
-- Ensure this behavior is consistent across all sessions and entity types
-- No manual intervention required for embedding generation
-- Test thoroughly to confirm embeddings are always up-to-date
-
-**SPECIAL NOTE**:
-Andrea requires that embedding is always up-to-date and automatic. The manual embedding button is no longer desired and must be removed everywhere.
-
-**STORY POINT**: TBD
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #28 ✅ COMPLETED
-
-**TITLE**: Chat Input Visibility Based on Chatbot Status
-**DESCRIPTION/ROADMAP**:
-
-- Update the frontend chat page so that the textarea and send button are only visible when the chatbot is disabled (`isActiveChatbot = false`).
-- When the chatbot is active, only the AI responds; manual operator input is hidden.
-- Add a clear note in the PRD to document this behavior for future reference.
-
-**SPECIAL NOTE**:
-This ensures operator/manual input is only possible when the chatbot is not active, improving clarity and preventing accidental manual intervention when the AI is in control. PRD and frontend are now aligned.
-
-**STORY POINT**: 1
-**STATUS**: ✅ COMPLETED
-
-================================================================================
-
-## TASK #29 ✅ COMPLETED
-
-**TITLE**: Manual Operator Icon in Chat List
-**DESCRIPTION/ROADMAP**:
-
-- Add a visual icon in the chat list (left panel) to indicate when a chat is in manual operator mode (activeChatbot === false).
-- The icon is orange and appears next to the customer name for immediate visibility.
-- Fixed backend to include activeChatbot field in all chat list endpoints (getRecentChats, getChatSessionsWithUnreadCounts).
-- Updated frontend hook (useRecentChats) to properly map the activeChatbot field from backend response.
-
-**SPECIAL NOTE**:
-This improves operator awareness and makes it easy to identify which chats are under manual control at a glance. Backend and frontend are now fully synchronized for activeChatbot status.
-
-**STORY POINT**: 2
-**STATUS**: ✅ COMPLETED
-
-================================================================================
-
-## TASK #23 ✅ COMPLETED
-
-**TITLE**: Integration Test for WIP Message (Work In Progress)
-**DESCRIPTION/ROADMAP**:
-
-- Add integration test for /api/internal/wip-status/:workspaceId/:phone endpoint
-- Ensure the endpoint returns hasActiveWip and wipData when challengeStatus is true
-- Test both WIP active and inactive cases
-- Use workspaceId filtering in all queries
-- No hardcoded messages: WIP message must come from database
-- Use Basic Auth (admin:admin) for internal API authentication
-
-**SPECIAL NOTE**:
-Test verifies correct backend behavior for WIP/maintenance mode, in compliance with Andrea's critical rules. No layout or UI changes. Test is isolated and does not affect production data.
-
-**STORY POINT**: 2
-**STATUS**: ✅ COMPLETED
-
-================================================================================
-
-## TASK #23
-
-**TITLE**: Remove N8N Filter for isActive and isBlacklisted – Move Logic to Backend (LLM/Workflow Bypass)
-**DESCRIPTION/ROADMAP**:
-
-- Refactor the backend message processing logic so that:
-  - If `customer.isActive === false` **OR** `customer.isBlacklisted === true`, the backend must:
-    - NOT call LLM (no OpenRouter, no AI response)
-    - NOT call N8N (no workflow trigger)
-    - Only save the inbound message to history (using MessageRepository.saveMessage)
-    - Return a 200 OK with `processedMessage: ""` and no error
-- Remove the corresponding filter/condition from the N8N workflow:
-  - Eliminate any N8N node or filter that checks `{{$json.precompiledData.customer.isActive}}` or `{{$json.precompiledData.customer.isBlacklisted}}`
-  - The backend will be the single source of truth for these checks
-- Ensure that the logic is now identical to how `activeChatbot` is handled (manual operator mode):
-  - If any of these conditions are true, the system is "muted" for AI/automation, but always logs the message
-- Add/Update unit and integration tests to verify:
-  - No LLM/N8N call is made when customer is inactive or blacklisted
-  - Messages are always saved to history
-  - N8N workflow does not contain the removed filters
-- Update documentation and technical checklist as needed
-
-**RATIONALE**:
-
-- Centralizes business logic in the backend for better maintainability and security
-- Prevents accidental AI/automation triggers for blocked or inactive customers
-- Ensures message history is always complete, regardless of customer status
-- Simplifies N8N workflow and reduces duplication of logic
-
-**SPECIAL NOTE**:
-
-- This task will remove the filter logic from N8N and enforce all checks in the backend only
-- Applies to both REST API and WhatsApp/N8N webhook flows
-- Must be coordinated with N8N workflow update to avoid regressions
-
-**STORY POINT**: TBD
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-- [ ] Ensure that when a human operator sends a message (manual operator mode), the message is always saved to the chat history, just like AI/LLM responses. This guarantees full auditability and traceability of all operator actions (operator/manual mode logic).
-- [ ] On the FAQ page (/faq), if there are 10 or fewer elements, the pagination controls should not be visible. Only show pagination if there are more than 10 items. (FAQ page pagination logic)
-- [ ] Change the 'Add Categories' button to just 'Add' for consistency across all CRUD pages (button text standardization)
-- [ ] On the Offers page (/offers), if there are fewer than 10 elements, the pagination controls should not be visible. Only show pagination if there are more than 10 items. (Offers page pagination logic)
-
-## TASK #30
-
-**TITLE**: Implement 'Aviso legal' PDF Upload and Integration
-**DESCRIPTION/ROADMAP**:
-
-- Create a legal notice ('Aviso legal') PDF document.
-- Upload the PDF to the system and ensure it is stored correctly (e.g., in the documents section or appropriate storage).
-- Integrate the PDF so it is accessible from the relevant section (e.g., legal, compliance, or info page).
-- Test the upload and retrieval process to verify PDF/document management works as expected.
-- Use this as a test case for document/PDF management features.
-
-**SPECIAL NOTE**:
-Andrea wants to try uploading and managing a legal notice PDF to validate the document handling flow.
-
-**STATUS**: 🔴 Not Started

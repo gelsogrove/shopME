@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/services/api"
 import { Loader2, Save, ShieldCheck } from "lucide-react"
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 export function GdprSettingsTab() {
   const [isLoading, setIsLoading] = useState(false)

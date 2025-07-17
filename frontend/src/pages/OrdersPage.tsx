@@ -47,7 +47,7 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { toast } from "sonner"
+import { toast } from "../lib/toast"
 
 interface Product {
   id: string

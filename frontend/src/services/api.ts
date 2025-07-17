@@ -1,5 +1,5 @@
 import axios from "axios";
-import { toast } from "sonner";
+import { toast } from "../lib/toast";
 
 // Create an axios instance with custom config
 export const api = axios.create({

@@ -20,7 +20,7 @@ import { commonStyles } from "@/styles/common"
 import { getCurrencySymbol } from "@/utils/format"
 import { Package } from "lucide-react"
 import React, { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 export function ProductsPage() {
   const { workspace, loading: isWorkspaceLoading } = useWorkspace()
