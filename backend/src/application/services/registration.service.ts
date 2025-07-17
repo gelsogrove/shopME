@@ -36,7 +36,7 @@ export class RegistrationService {
         logger.error(`Customer with ID ${customerId} not found`);
         return false;
       }
-      
+
       // Get customer language
       const customerLanguage = customer.language || 'English';
       
@@ -77,7 +77,7 @@ export class RegistrationService {
             message: '', // No incoming message
             response: afterRegistrationMessage,
             direction: 'OUTBOUND',
-            agentSelected: 'Registration' // Mark this message as coming from the Registration agent
+            agentSelected: 'CHATBOT' // Mark this message as coming from the CHATBOT agent
           });
           
           logger.info(`After-registration message sent to customer ${customerId}`);
@@ -117,19 +117,22 @@ export class RegistrationService {
    * Get default after-registration message in the specified language
    */
   private getDefaultAfterRegistrationMessage(languageCode: string): string {
-    switch (languageCode) {
-      case 'it':
-        return "Registrazione eseguita con successo. Ciao [nome], in cosa posso esserti utile oggi?";
-      case 'es':
-        return "Registro completado con éxito. Hola [nome], ¿en qué puedo ayudarte hoy?";
-      case 'fr':
-        return "Enregistrement effectué avec succès. Bonjour [nome], en quoi puis-je vous aider aujourd'hui ?";
-      case 'de':
-        return "Registrierung erfolgreich abgeschlossen. Hallo [nome], wie kann ich Ihnen heute helfen?";
-      case 'pt':
-        return "Registro concluído com sucesso. Olá [nome], em que posso ajudá-lo hoje?";
-      default: // English
-        return "Registration completed successfully. Hello [nome], how can I help you today?";
+    if (languageCode === 'it') {
+      return "Grazie per esserti registrato, [nome]! Come ti posso aiutare oggi? Vuoi vedere i tuoi ordini? Le offerte? O hai bisogno di altre informazioni?";
     }
+    if (languageCode === 'es') {
+      return "¡Gracias por registrarte, [nome]! ¿Cómo puedo ayudarte hoy? ¿Quieres ver tus pedidos? ¿Las ofertas? ¿O necesitas otra información?";
+    }
+    if (languageCode === 'fr') {
+      return "Merci de vous être inscrit, [nome] ! Comment puis-je vous aider aujourd'hui ? Voulez-vous voir vos commandes ? Les offres ? Ou avez-vous besoin d'autres informations ?";
+    }
+    if (languageCode === 'de') {
+      return "Danke für Ihre Registrierung, [nome]! Wie kann ich Ihnen heute helfen? Möchten Sie Ihre Bestellungen sehen? Die Angebote? Oder benötigen Sie andere Informationen?";
+    }
+    if (languageCode === 'pt') {
+      return "Obrigado por se registrar, [nome]! Como posso ajudá-lo hoje? Quer ver seus pedidos? As ofertas? Ou precisa de outras informações?";
+    }
+    // Default English
+    return "Thank you for registering, [nome]! How can I help you today? Would you like to see your orders? The offers? Or do you need other information?";
   }
 } 
