@@ -37,12 +37,6 @@ export class RegistrationService {
         return false;
       }
 
-      // Check if chatbot is active for this customer
-      if (customer.activeChatbot === false) {
-        logger.info(`Chatbot is disabled for customer ${customerId}, skipping after-registration message`);
-        return false;
-      }
-      
       // Get customer language
       const customerLanguage = customer.language || 'English';
       

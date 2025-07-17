@@ -351,39 +351,5 @@ describe("RegistrationService", () => {
 
       expect(result).toBe(true)
     })
-
-    it("should not send message if customer has activeChatbot disabled", async () => {
-      // Mock customer with activeChatbot disabled
-      const mockCustomer = {
-        id: "customer-123",
-        name: "Marco Rossi",
-        phone: "+123456789",
-        language: "Italian",
-        workspaceId: "workspace-123",
-        activeChatbot: false, // Chatbot disabled
-        workspace: {
-          id: "workspace-123",
-          name: "Test Workspace"
-        }
-      }
-
-      // Setup mocks
-      mockPrismaClient.customers.findUnique.mockResolvedValue(mockCustomer as any)
-
-      // Call the method
-      const result = await registrationService.sendAfterRegistrationMessage("customer-123")
-
-      // Verify that no message was sent
-      expect(mockPrismaClient.customers.findUnique).toHaveBeenCalledWith({
-        where: { id: "customer-123" },
-        include: { workspace: true }
-      })
-
-      // Should not call getWorkspaceSettings or saveMessage
-      expect(mockMessageRepository.getWorkspaceSettings).not.toHaveBeenCalled()
-      expect(mockMessageRepository.saveMessage).not.toHaveBeenCalled()
-
-      expect(result).toBe(false)
-    })
   })
 }) 
