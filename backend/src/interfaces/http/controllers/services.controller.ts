@@ -138,6 +138,10 @@ export class ServicesController {
       
       logger.info(`Creating service for workspace: ${workspaceId}`);
       const service = await this.serviceService.create(serviceData);
+      
+      // Fire-and-forget: trigger embedding regeneration for Services
+      embeddingService.generateServiceEmbeddings(workspaceId).catch((err) => logger.error('Embedding generation error (create):', err));
+      
       return res.status(201).json(service);
     } catch (error: any) {
       logger.error("Error creating service:", error);
@@ -212,6 +216,9 @@ export class ServicesController {
       
       const service = await this.serviceService.update(id, updateData);
       
+      // Fire-and-forget: trigger embedding regeneration for Services
+      embeddingService.generateServiceEmbeddings(workspaceId).catch((err) => logger.error('Embedding generation error (update):', err));
+      
       return res.json(service);
     } catch (error: any) {
       logger.error(`Error updating service ${req.params.id}:`, error);
@@ -243,6 +250,10 @@ export class ServicesController {
       }
       
       await this.serviceService.delete(id);
+      
+      // Fire-and-forget: trigger embedding regeneration for Services
+      embeddingService.generateServiceEmbeddings(workspaceId).catch((err) => logger.error('Embedding generation error (delete):', err));
+      
       return res.status(204).send();
     } catch (error: any) {
       logger.error(`Error deleting service ${req.params.id}:`, error);

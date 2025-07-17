@@ -5,6 +5,7 @@ import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
+import { toast } from "@/lib/toast"
 import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
 import { useQuery } from "@tanstack/react-query"
@@ -21,7 +22,6 @@ import { useEffect, useRef, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import remarkGfm from "remark-gfm"
-import { toast } from "@/lib/toast"
 import {
   AlertDialog,
   AlertDialogAction,

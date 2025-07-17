@@ -1,23 +1,31 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { UserProfile, changePassword, updateUserProfile } from "@/services/userApi"
+import { useCurrentUser } from "@/hooks/useCurrentUser"
+import {
+  UserProfile,
+  changePassword,
+  updateUserProfile,
+} from "@/services/userApi"
 import { Loader2, User } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "../lib/toast"
 
 export default function ProfilePage() {
-  const { data: userData, isLoading: userLoading, isError: userError } = useCurrentUser();
+  const {
+    data: userData,
+    isLoading: userLoading,
+    isError: userError,
+  } = useCurrentUser()
   const [isLoading, setIsLoading] = useState(false)
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
@@ -25,18 +33,18 @@ export default function ProfilePage() {
     id: "",
     firstName: "",
     lastName: "",
-    email: ""
+    email: "",
   })
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   })
-  
+
   useEffect(() => {
     if (userData) {
-        setUser(userData)
-        setIsPageLoading(false)
+      setUser(userData)
+      setIsPageLoading(false)
     }
   }, [userData])
 
@@ -60,7 +68,7 @@ export default function ProfilePage() {
       const updatedUser = await updateUserProfile({
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.email
+        email: user.email,
       })
       setUser(updatedUser)
       toast.success("Profile updated successfully")
@@ -82,13 +90,13 @@ export default function ProfilePage() {
     try {
       await changePassword({
         currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword
+        newPassword: passwordData.newPassword,
       })
       toast.success("Password changed successfully")
       setPasswordData({
         currentPassword: "",
         newPassword: "",
-        confirmPassword: ""
+        confirmPassword: "",
       })
       setShowPasswordDialog(false)
     } catch (error) {
@@ -105,7 +113,7 @@ export default function ProfilePage() {
         <User className="h-6 w-6 text-muted-foreground" />
         <h1 className="text-3xl font-bold">Profile</h1>
       </div>
-      
+
       {isPageLoading ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -121,7 +129,9 @@ export default function ProfilePage() {
                 </Label>
                 <Input
                   value={user.firstName || ""}
-                  onChange={(e) => handleFieldChange("firstName", e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("firstName", e.target.value)
+                  }
                   className="mt-1"
                 />
               </div>
@@ -132,7 +142,9 @@ export default function ProfilePage() {
                 </Label>
                 <Input
                   value={user.lastName || ""}
-                  onChange={(e) => handleFieldChange("lastName", e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("lastName", e.target.value)
+                  }
                   className="mt-1"
                 />
               </div>
@@ -157,7 +169,7 @@ export default function ProfilePage() {
                 >
                   Change Password
                 </Button>
-                
+
                 <Button
                   variant="default"
                   onClick={handleSave}
@@ -187,7 +199,7 @@ export default function ProfilePage() {
               Enter your current password and a new password below.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="current-password">Current Password</Label>
@@ -195,42 +207,45 @@ export default function ProfilePage() {
                 id="current-password"
                 type="password"
                 value={passwordData.currentPassword}
-                onChange={(e) => handlePasswordFieldChange("currentPassword", e.target.value)}
+                onChange={(e) =>
+                  handlePasswordFieldChange("currentPassword", e.target.value)
+                }
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="new-password">New Password</Label>
               <Input
                 id="new-password"
                 type="password"
                 value={passwordData.newPassword}
-                onChange={(e) => handlePasswordFieldChange("newPassword", e.target.value)}
+                onChange={(e) =>
+                  handlePasswordFieldChange("newPassword", e.target.value)
+                }
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Confirm New Password</Label>
               <Input
                 id="confirm-password"
                 type="password"
                 value={passwordData.confirmPassword}
-                onChange={(e) => handlePasswordFieldChange("confirmPassword", e.target.value)}
+                onChange={(e) =>
+                  handlePasswordFieldChange("confirmPassword", e.target.value)
+                }
               />
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowPasswordDialog(false)}
             >
               Cancel
             </Button>
-            <Button 
-              onClick={handleChangePassword}
-              disabled={isLoading}
-            >
+            <Button onClick={handleChangePassword} disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -245,4 +260,4 @@ export default function ProfilePage() {
       </Dialog>
     </div>
   )
-} 
+}

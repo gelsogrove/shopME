@@ -6,17 +6,17 @@ import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover"
 import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
@@ -38,7 +38,7 @@ type StatusType =
   | "cancelled"
   | "paid"
   | "failed"
-  | "expired";
+  | "expired"
 
 // Definisce il tipo di offerta
 interface Offer {
@@ -49,7 +49,7 @@ interface Offer {
   startDate: Date
   endDate: Date
   isActive: boolean
-  categoryId: string | null  // Currently the backend supports only one category per offer
+  categoryId: string | null // Currently the backend supports only one category per offer
   workspaceId: string
   createdAt: Date
   updatedAt: Date
@@ -58,7 +58,7 @@ interface Offer {
     name: string
   } | null
   categoryName?: string
-  categoryIds?: string[]  // Added to support multiple categories
+  categoryIds?: string[] // Added to support multiple categories
 }
 
 // Tipo per le categorie
@@ -74,7 +74,7 @@ export function OffersPage() {
   const [showAddSheet, setShowAddSheet] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [currentOffer, setCurrentOffer] = useState<Offer | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState("")
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -92,7 +92,9 @@ export function OffersPage() {
       try {
         setIsLoading(true)
         // Carica le offerte
-        const offersResponse = await api.get(`/workspaces/${workspace.id}/offers`)
+        const offersResponse = await api.get(
+          `/workspaces/${workspace.id}/offers`
+        )
         const offersWithDates = offersResponse.data.map((offer: any) => ({
           ...offer,
           startDate: new Date(offer.startDate),
@@ -101,13 +103,17 @@ export function OffersPage() {
           updatedAt: new Date(offer.updatedAt),
         }))
         setOffers(offersWithDates)
-        
+
         // Carica le categorie
-        const categoriesResponse = await api.get(`/workspaces/${workspace.id}/categories`)
+        const categoriesResponse = await api.get(
+          `/workspaces/${workspace.id}/categories`
+        )
         setCategories(categoriesResponse.data)
       } catch (err) {
         console.error("Failed to fetch data:", err)
-        toast.error("Failed to load offers. Please try again.", { duration: 1000 })
+        toast.error("Failed to load offers. Please try again.", {
+          duration: 1000,
+        })
       } finally {
         setIsLoading(false)
       }
@@ -141,34 +147,32 @@ export function OffersPage() {
       cell: ({ row }: { row: { original: Offer } }) => {
         // Check if we have categoryIds (multiple categories)
         if (row.original.categoryIds && row.original.categoryIds.length > 0) {
-          const selectedCategories = categories.filter(
-            cat => row.original.categoryIds?.includes(cat.id)
-          );
-          
+          const selectedCategories = categories.filter((cat) =>
+            row.original.categoryIds?.includes(cat.id)
+          )
+
           if (selectedCategories.length > 0) {
             return (
               <span>
-                {selectedCategories.map(cat => cat.name).join(", ")}
+                {selectedCategories.map((cat) => cat.name).join(", ")}
               </span>
-            );
+            )
           }
         }
-        
+
         // Check if we have a single categoryId
         if (row.original.categoryId) {
           return (
             <span>
-              {row.original.category?.name || row.original.categoryName || "Unknown Category"}
+              {row.original.category?.name ||
+                row.original.categoryName ||
+                "Unknown Category"}
             </span>
-          );
+          )
         }
-        
+
         // No categories selected means all categories
-        return (
-          <span className="text-gray-500 italic">
-            All Categories
-          </span>
-        );
+        return <span className="text-gray-500 italic">All Categories</span>
       },
     },
     {
@@ -189,34 +193,34 @@ export function OffersPage() {
       header: "Status",
       accessorKey: "isActive" as keyof Offer,
       cell: ({ row }: { row: { original: Offer } }) => {
-        const now = new Date();
-        let status = "inactive";
-        let statusText = "Inactive";
-        let className = "bg-gray-100 text-gray-800";
-        
+        const now = new Date()
+        let status = "inactive"
+        let statusText = "Inactive"
+        let className = "bg-gray-100 text-gray-800"
+
         if (row.original.isActive) {
           if (row.original.startDate <= now && row.original.endDate >= now) {
-            status = "active";
-            statusText = "Active";
-            className = "bg-green-100 text-green-800";
+            status = "active"
+            statusText = "Active"
+            className = "bg-green-100 text-green-800"
           } else if (row.original.startDate > now) {
-            status = "scheduled";
-            statusText = "Scheduled";
-            className = "bg-blue-100 text-blue-800";
+            status = "scheduled"
+            statusText = "Scheduled"
+            className = "bg-blue-100 text-blue-800"
           } else if (row.original.endDate < now) {
-            status = "expired";
-            statusText = "Expired";
-            className = "bg-red-100 text-red-800";
+            status = "expired"
+            statusText = "Expired"
+            className = "bg-red-100 text-red-800"
           }
         }
-        
+
         return (
           <span className={`px-2 py-1 rounded-full text-xs ${className}`}>
             {statusText}
           </span>
-        );
+        )
       },
-    }
+    },
   ]
 
   // Gestori degli eventi
@@ -233,36 +237,36 @@ export function OffersPage() {
   }
 
   const handleDeleteConfirm = async () => {
-    if (!currentOffer || !workspace) return;
-    
+    if (!currentOffer || !workspace) return
+
     try {
-      await api.delete(`/workspaces/${workspace.id}/offers/${currentOffer.id}`);
-      setOffers(offers.filter((offer) => offer.id !== currentOffer.id));
-      setShowConfirmDelete(false);
-      setCurrentOffer(null);
-      toast.success("Offer deleted successfully", { duration: 1000 });
+      await api.delete(`/workspaces/${workspace.id}/offers/${currentOffer.id}`)
+      setOffers(offers.filter((offer) => offer.id !== currentOffer.id))
+      setShowConfirmDelete(false)
+      setCurrentOffer(null)
+      toast.success("Offer deleted successfully", { duration: 1000 })
     } catch (error) {
-      console.error("Failed to delete offer:", error);
-      toast.error("Failed to delete offer", { duration: 1000 });
+      console.error("Failed to delete offer:", error)
+      toast.error("Failed to delete offer", { duration: 1000 })
     }
   }
 
-
-
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!workspace) return;
+    e.preventDefault()
+    if (!workspace) return
 
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget)
 
     try {
       // Get all selected category checkboxes
-      const selectedCategories = Array.from(e.currentTarget.querySelectorAll('input[name="category"]:checked'))
-        .map((input) => (input as HTMLInputElement).value);
-      
+      const selectedCategories = Array.from(
+        e.currentTarget.querySelectorAll('input[name="category"]:checked')
+      ).map((input) => (input as HTMLInputElement).value)
+
       // Se nessuna categoria è selezionata, impostiamo categoryIds a null (tutte le categorie)
-      const categoryIds = selectedCategories.length > 0 ? selectedCategories : null;
-      
+      const categoryIds =
+        selectedCategories.length > 0 ? selectedCategories : null
+
       const newOffer = {
         name: formData.get("name") as string,
         description: formData.get("description") as string,
@@ -272,10 +276,13 @@ export function OffersPage() {
         isActive: formData.get("isActive") === "on",
         categoryIds: categoryIds,
         workspaceId: workspace.id,
-      };
+      }
 
-      const response = await api.post(`/workspaces/${workspace.id}/offers`, newOffer);
-      
+      const response = await api.post(
+        `/workspaces/${workspace.id}/offers`,
+        newOffer
+      )
+
       // Converti le date
       const savedOffer = {
         ...response.data,
@@ -283,35 +290,37 @@ export function OffersPage() {
         endDate: new Date(response.data.endDate),
         createdAt: new Date(response.data.createdAt),
         updatedAt: new Date(response.data.updatedAt),
-      };
-      
-      setOffers([...offers, savedOffer]);
-      setShowAddSheet(false);
-      toast.success("Offer created successfully", { duration: 1000 });
-      
+      }
+
+      setOffers([...offers, savedOffer])
+      setShowAddSheet(false)
+      toast.success("Offer created successfully", { duration: 1000 })
+
       // Reset form
-      setStartDate(new Date());
-      setEndDate(new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000));
+      setStartDate(new Date())
+      setEndDate(new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000))
     } catch (error) {
-      console.error("Failed to add offer:", error);
-      toast.error("Failed to create offer", { duration: 1000 });
+      console.error("Failed to add offer:", error)
+      toast.error("Failed to create offer", { duration: 1000 })
     }
   }
 
   const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!currentOffer || !workspace) return;
+    e.preventDefault()
+    if (!currentOffer || !workspace) return
 
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget)
 
     try {
       // Get all selected category checkboxes
-      const selectedCategories = Array.from(e.currentTarget.querySelectorAll('input[name="category"]:checked'))
-        .map((input) => (input as HTMLInputElement).value);
-      
+      const selectedCategories = Array.from(
+        e.currentTarget.querySelectorAll('input[name="category"]:checked')
+      ).map((input) => (input as HTMLInputElement).value)
+
       // Se nessuna categoria è selezionata, impostiamo categoryIds a null (tutte le categorie)
-      const categoryIds = selectedCategories.length > 0 ? selectedCategories : null;
-      
+      const categoryIds =
+        selectedCategories.length > 0 ? selectedCategories : null
+
       const updatedOffer = {
         name: formData.get("name") as string,
         description: formData.get("description") as string,
@@ -320,13 +329,13 @@ export function OffersPage() {
         endDate,
         isActive: formData.get("isActive") === "on",
         categoryIds: categoryIds,
-      };
+      }
 
       const response = await api.put(
         `/offers/${currentOffer.id}?workspaceId=${workspace.id}`,
         updatedOffer
-      );
-      
+      )
+
       // Converti le date
       const savedOffer = {
         ...response.data,
@@ -334,20 +343,20 @@ export function OffersPage() {
         endDate: new Date(response.data.endDate),
         createdAt: new Date(response.data.createdAt),
         updatedAt: new Date(response.data.updatedAt),
-      };
-      
+      }
+
       setOffers(
         offers.map((offer) =>
           offer.id === currentOffer.id ? savedOffer : offer
         )
-      );
-      
-      setShowEditSheet(false);
-      setCurrentOffer(null);
-      toast.success("Offer updated successfully", { duration: 1000 });
+      )
+
+      setShowEditSheet(false)
+      setCurrentOffer(null)
+      toast.success("Offer updated successfully", { duration: 1000 })
     } catch (error) {
-      console.error("Failed to update offer:", error);
-      toast.error("Failed to update offer", { duration: 1000 });
+      console.error("Failed to update offer:", error)
+      toast.error("Failed to update offer", { duration: 1000 })
     }
   }
 
@@ -370,7 +379,9 @@ export function OffersPage() {
           id="description"
           name="description"
           placeholder="Special discounts for summer season"
-          defaultValue={isEdit && currentOffer ? currentOffer.description || "" : ""}
+          defaultValue={
+            isEdit && currentOffer ? currentOffer.description || "" : ""
+          }
           className="min-h-[80px]"
           rows={2}
         />
@@ -385,7 +396,9 @@ export function OffersPage() {
           min="1"
           max="100"
           placeholder="20"
-          defaultValue={isEdit && currentOffer ? currentOffer.discountPercent : ""}
+          defaultValue={
+            isEdit && currentOffer ? currentOffer.discountPercent : ""
+          }
           required
         />
       </div>
@@ -393,7 +406,9 @@ export function OffersPage() {
       <div className="space-y-2">
         <Label htmlFor="categoryId">Apply to Categories</Label>
         <div className="border rounded-md p-4 space-y-2">
-          <p className="text-sm text-gray-500 mb-2">Select categories (leave empty for all categories):</p>
+          <p className="text-sm text-gray-500 mb-2">
+            Select categories (leave empty for all categories):
+          </p>
           <div className="grid grid-cols-1 gap-2 max-h-[150px] overflow-y-auto">
             {categories.map((category) => (
               <div key={category.id} className="flex items-center space-x-2">
@@ -403,14 +418,16 @@ export function OffersPage() {
                   name="category"
                   value={category.id}
                   defaultChecked={
-                    isEdit && 
-                    currentOffer?.categoryIds ? 
-                    currentOffer.categoryIds.includes(category.id) : 
-                    currentOffer?.categoryId === category.id
+                    isEdit && currentOffer?.categoryIds
+                      ? currentOffer.categoryIds.includes(category.id)
+                      : currentOffer?.categoryId === category.id
                   }
                   className="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-600"
                 />
-                <Label htmlFor={`category-${category.id}`} className="text-sm font-normal cursor-pointer">
+                <Label
+                  htmlFor={`category-${category.id}`}
+                  className="text-sm font-normal cursor-pointer"
+                >
                   {category.name}
                 </Label>
               </div>
@@ -515,7 +532,9 @@ export function OffersPage() {
               <SheetClose asChild>
                 <Button variant="outline">Cancel</Button>
               </SheetClose>
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">Create Offer</Button>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                Create Offer
+              </Button>
             </SheetFooter>
           </form>
         </SheetContent>
@@ -533,7 +552,9 @@ export function OffersPage() {
               <SheetClose asChild>
                 <Button variant="outline">Cancel</Button>
               </SheetClose>
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">Save Changes</Button>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                Save Changes
+              </Button>
             </SheetFooter>
           </form>
         </SheetContent>

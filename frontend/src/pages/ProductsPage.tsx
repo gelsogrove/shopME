@@ -5,28 +5,30 @@ import { FormSheet } from "@/components/shared/FormSheet"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
+import { toast } from "@/lib/toast"
 import { categoriesApi } from "@/services/categoriesApi"
 import { productsApi, type Product } from "@/services/productsApi"
 import { commonStyles } from "@/styles/common"
 import { getCurrencySymbol } from "@/utils/format"
 import { Package } from "lucide-react"
 import React, { useEffect, useState } from "react"
-import { toast } from "@/lib/toast"
 
 export function ProductsPage() {
   const { workspace, loading: isWorkspaceLoading } = useWorkspace()
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [categories, setCategories] = useState<Array<{ id: string, name: string }>>([])
+  const [categories, setCategories] = useState<
+    Array<{ id: string; name: string }>
+  >([])
   const [showAddSheet, setShowAddSheet] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -46,11 +48,11 @@ export function ProductsPage() {
       setIsLoading(true)
       try {
         const response = await productsApi.getAllForWorkspace(workspace.id)
-        
+
         if (response && Array.isArray(response.products)) {
-          setProducts(response.products);
+          setProducts(response.products)
         } else {
-          console.error('Invalid API response format:', response)
+          console.error("Invalid API response format:", response)
           setProducts([])
           toast.error("Error in API response format")
         }
@@ -72,7 +74,9 @@ export function ProductsPage() {
       if (!workspace?.id) return
 
       try {
-        const categoriesData = await categoriesApi.getAllForWorkspace(workspace.id)
+        const categoriesData = await categoriesApi.getAllForWorkspace(
+          workspace.id
+        )
         setCategories(categoriesData)
       } catch (error) {
         console.error("Failed to load categories:", error)
@@ -83,69 +87,76 @@ export function ProductsPage() {
     loadCategories()
   }, [workspace?.id])
 
-
-
   // Reset category selection when product changes
   useEffect(() => {
     setSelectedCategoryId(selectedProduct?.categoryId || "none")
   }, [selectedProduct])
 
   // Filter products based on search value
-  const filteredProducts = products.filter((product) =>
-    product.isActive && (
-      product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchValue.toLowerCase()) ||
-      product.category?.name.toLowerCase().includes(searchValue.toLowerCase())
-    )
+  const filteredProducts = products.filter(
+    (product) =>
+      product.isActive &&
+      (product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+        product.description
+          ?.toLowerCase()
+          .includes(searchValue.toLowerCase()) ||
+        product.category?.name
+          .toLowerCase()
+          .includes(searchValue.toLowerCase()))
   )
 
   const columns = [
     { header: "Name", accessorKey: "name" as keyof Product, size: 200 },
-    { 
-      header: "Description", 
-      accessorKey: "description" as keyof Product, 
+    {
+      header: "Description",
+      accessorKey: "description" as keyof Product,
       size: 250,
       cell: ({ row }: { row: { original: Product } }) => {
         const description = row.original.description || "No description"
         const maxLength = 60
         const isTruncated = description.length > maxLength
-        
+
         return (
           <span title={isTruncated ? description : undefined}>
-            {isTruncated ? `${description.substring(0, maxLength)}...` : description}
+            {isTruncated
+              ? `${description.substring(0, maxLength)}...`
+              : description}
           </span>
         )
       },
     },
-    { 
-      header: `Price (${currencySymbol})`, 
-      accessorKey: "price" as keyof Product, 
+    {
+      header: `Price (${currencySymbol})`,
+      accessorKey: "price" as keyof Product,
       size: 120,
       cell: ({ row }: { row: { original: Product } }) => (
         <span className="font-medium">
-          {currencySymbol}{row.original.price.toFixed(2)}
+          {currencySymbol}
+          {row.original.price.toFixed(2)}
         </span>
       ),
     },
-    { 
-      header: "Stock", 
-      accessorKey: "stock" as keyof Product, 
+    {
+      header: "Stock",
+      accessorKey: "stock" as keyof Product,
       size: 80,
       cell: ({ row }: { row: { original: Product } }) => (
-        <span className={`font-medium ${
-          row.original.stock === 0 
-            ? "text-red-600" 
-            : row.original.stock < 10 
-              ? "text-orange-600" 
+        <span
+          className={`font-medium ${
+            row.original.stock === 0
+              ? "text-red-600"
+              : row.original.stock < 10
+              ? "text-orange-600"
               : "text-green-600"
-        }`}>
+          }`}
+        >
           {row.original.stock}
         </span>
       ),
     },
-    { 
-      header: "Category", 
-      accessorKey: "category" as keyof Product, 
+    {
+      header: "Category",
+      accessorKey: "category" as keyof Product,
       size: 150,
       cell: ({ row }: { row: { original: Product } }) => (
         <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
@@ -162,7 +173,7 @@ export function ProductsPage() {
         const product = row.original
         let status = "Active"
         let className = "bg-green-100 text-green-800"
-        
+
         if (!product.isActive) {
           status = "Inactive"
           className = "bg-gray-100 text-gray-800"
@@ -173,7 +184,7 @@ export function ProductsPage() {
           status = "Low Stock"
           className = "bg-orange-100 text-orange-800"
         }
-        
+
         return (
           <span className={`px-2 py-1 rounded-full text-xs ${className}`}>
             {status}
@@ -195,7 +206,7 @@ export function ProductsPage() {
       description: formData.get("description") as string,
       price: parseFloat(formData.get("price") as string),
       stock: parseInt(formData.get("stock") as string, 10),
-      categoryId: formData.get("categoryId") as string || null,
+      categoryId: (formData.get("categoryId") as string) || null,
       isActive: productIsActive,
     }
 
@@ -234,7 +245,7 @@ export function ProductsPage() {
       description: formData.get("description") as string,
       price: parseFloat(formData.get("price") as string),
       stock: parseInt(formData.get("stock") as string, 10),
-      categoryId: formData.get("categoryId") as string || null,
+      categoryId: (formData.get("categoryId") as string) || null,
       isActive: productIsActive,
     }
 
@@ -270,7 +281,9 @@ export function ProductsPage() {
 
     try {
       await productsApi.delete(selectedProduct.id, workspace.id)
-      setProducts((prev) => prev.filter((product) => product.id !== selectedProduct.id))
+      setProducts((prev) =>
+        prev.filter((product) => product.id !== selectedProduct.id)
+      )
       setShowDeleteDialog(false)
       setSelectedProduct(null)
       toast.success("Product deleted successfully")
@@ -301,7 +314,7 @@ export function ProductsPage() {
             required
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="description">Description</Label>
           <Textarea
@@ -312,7 +325,7 @@ export function ProductsPage() {
             defaultValue={product?.description || ""}
           />
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="price">Price ({currencySymbol})</Label>
@@ -327,7 +340,7 @@ export function ProductsPage() {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="stock">Stock Quantity</Label>
             <Input
@@ -341,11 +354,11 @@ export function ProductsPage() {
             />
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="categoryId">Category</Label>
-          <Select 
-            value={selectedCategoryId} 
+          <Select
+            value={selectedCategoryId}
             onValueChange={setSelectedCategoryId}
           >
             <SelectTrigger>
@@ -360,9 +373,13 @@ export function ProductsPage() {
               ))}
             </SelectContent>
           </Select>
-          <input type="hidden" name="categoryId" value={selectedCategoryId === "none" ? "" : selectedCategoryId} />
+          <input
+            type="hidden"
+            name="categoryId"
+            value={selectedCategoryId === "none" ? "" : selectedCategoryId}
+          />
         </div>
-        
+
         <div className="flex items-center justify-between border rounded-lg p-3">
           <div className="space-y-1">
             <Label htmlFor="isActive" className="text-sm font-medium">

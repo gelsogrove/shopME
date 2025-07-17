@@ -13,7 +13,9 @@ import { toast } from "../../lib/toast"
 export function ProductsPage() {
   const { workspace, loading: isLoadingWorkspace } = useWorkspace()
   const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Array<{ value: string; label: string }>>([])
+  const [categories, setCategories] = useState<
+    Array<{ value: string; label: string }>
+  >([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchValue, setSearchValue] = useState("")
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -32,17 +34,19 @@ export function ProductsPage() {
         // Load products
         const productsData = await productsApi.getAllForWorkspace(workspace.id)
         setProducts(productsData.products || [])
-        
+
         // Load categories for the dropdown
-        const categoriesData = await categoriesApi.getAllForWorkspace(workspace.id)
-        const formattedCategories = categoriesData.map(category => ({
+        const categoriesData = await categoriesApi.getAllForWorkspace(
+          workspace.id
+        )
+        const formattedCategories = categoriesData.map((category) => ({
           value: category.id,
-          label: category.name
+          label: category.name,
         }))
         setCategories(formattedCategories)
       } catch (error) {
-        console.error('Error loading data:', error)
-        toast.error('Failed to load data')
+        console.error("Error loading data:", error)
+        toast.error("Failed to load data")
       } finally {
         setIsLoading(false)
       }
@@ -53,17 +57,20 @@ export function ProductsPage() {
     }
   }, [workspace?.id, isLoadingWorkspace])
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchValue.toLowerCase()) ||
-    (product.status || "").toLowerCase().includes(searchValue.toLowerCase())
+  const filteredProducts = products.filter(
+    (product) =>
+      product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchValue.toLowerCase()) ||
+      (product.status || "").toLowerCase().includes(searchValue.toLowerCase())
   )
 
   const columns = [
     { header: "Name", accessorKey: "name" as keyof Product },
-    { header: "Price", 
+    {
+      header: "Price",
       accessorKey: "price" as keyof Product,
-      cell: ({ row }: any) => formatPrice(row.original.price, workspace?.currency)
+      cell: ({ row }: any) =>
+        formatPrice(row.original.price, workspace?.currency),
     },
     { header: "Stock", accessorKey: "stock" as keyof Product },
     { header: "Status", accessorKey: "status" as keyof Product },
@@ -89,10 +96,10 @@ export function ProductsPage() {
       const newProduct = await productsApi.create(workspace.id, data)
       setProducts([...products, newProduct])
       setShowAddDialog(false)
-      toast.success('Product created successfully')
+      toast.success("Product created successfully")
     } catch (error) {
-      console.error('Error creating product:', error)
-      toast.error('Failed to create product')
+      console.error("Error creating product:", error)
+      toast.error("Failed to create product")
     }
   }
 
@@ -117,18 +124,20 @@ export function ProductsPage() {
     }
 
     try {
-      const updatedProduct = await productsApi.update(selectedProduct.id, workspace.id, data)
+      const updatedProduct = await productsApi.update(
+        selectedProduct.id,
+        workspace.id,
+        data
+      )
       setProducts(
-        products.map((p) =>
-          p.id === selectedProduct.id ? updatedProduct : p
-        )
+        products.map((p) => (p.id === selectedProduct.id ? updatedProduct : p))
       )
       setShowEditDialog(false)
       setSelectedProduct(null)
-      toast.success('Product updated successfully')
+      toast.success("Product updated successfully")
     } catch (error) {
-      console.error('Error updating product:', error)
-      toast.error('Failed to update product')
+      console.error("Error updating product:", error)
+      toast.error("Failed to update product")
     }
   }
 
@@ -139,16 +148,16 @@ export function ProductsPage() {
 
   const handleDeleteConfirm = async () => {
     if (!selectedProduct || !workspace?.id) return
-    
+
     try {
       await productsApi.delete(selectedProduct.id, workspace.id)
       setProducts(products.filter((p) => p.id !== selectedProduct.id))
       setShowDeleteDialog(false)
       setSelectedProduct(null)
-      toast.success('Product deleted successfully')
+      toast.success("Product deleted successfully")
     } catch (error) {
-      console.error('Error deleting product:', error)
-      toast.error('Failed to delete product')
+      console.error("Error deleting product:", error)
+      toast.error("Failed to delete product")
     }
   }
 
@@ -231,15 +240,17 @@ export function ProductsPage() {
         open={showEditDialog}
         onOpenChange={setShowEditDialog}
         title="Edit Product"
-        fields={productFields.map(field => ({
+        fields={productFields.map((field) => ({
           ...field,
-          defaultValue: field.name === "categoryId" 
-            ? selectedProduct?.categoryId || ""
-            : field.name === "price"
+          defaultValue:
+            field.name === "categoryId"
+              ? selectedProduct?.categoryId || ""
+              : field.name === "price"
               ? selectedProduct?.price?.toString() || ""
               : field.name === "stock"
-                ? selectedProduct?.stock?.toString() || ""
-                : selectedProduct?.[field.name as keyof Product]?.toString() || ""
+              ? selectedProduct?.stock?.toString() || ""
+              : selectedProduct?.[field.name as keyof Product]?.toString() ||
+                "",
         }))}
         onSubmit={handleEditSubmit}
         isWide
@@ -254,4 +265,4 @@ export function ProductsPage() {
       />
     </div>
   )
-} 
+}

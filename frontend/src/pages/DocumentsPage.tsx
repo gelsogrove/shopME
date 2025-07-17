@@ -21,8 +21,10 @@ export default function DocumentsPage() {
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [editingDocument, setEditingDocument] = useState<Document | null>(null)
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
-  const [editName, setEditName] = useState('')
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
+    null
+  )
+  const [editName, setEditName] = useState("")
   const [editIsActive, setEditIsActive] = useState(false)
 
   // Debug workspace state
@@ -31,15 +33,15 @@ export default function DocumentsPage() {
     console.log("Workspace from hook:", workspace)
     console.log("Workspace ID:", workspace?.id)
     console.log("Is loading:", isLoading)
-    
+
     // Check sessionStorage directly
     const sessionWorkspace = sessionStorage.getItem("currentWorkspace")
     console.log("SessionStorage workspace:", sessionWorkspace)
-    
+
     // Check localStorage as fallback
     const localWorkspace = localStorage.getItem("currentWorkspace")
     console.log("LocalStorage workspace:", localWorkspace)
-    
+
     if (sessionWorkspace) {
       try {
         const parsed = JSON.parse(sessionWorkspace)
@@ -53,20 +55,20 @@ export default function DocumentsPage() {
   const loadDocuments = useCallback(async () => {
     console.log("=== LOAD DOCUMENTS DEBUG ===")
     console.log("Workspace ID for loading:", workspace?.id)
-    
+
     if (!workspace?.id) {
       console.warn("No workspace ID available for loading documents")
       return
     }
-    
+
     try {
       console.log("Calling documentsApi.list with workspaceId:", workspace.id)
       const docs = await documentsApi.list(workspace.id)
       console.log("Documents loaded:", docs)
       setDocuments(docs)
     } catch (error) {
-      console.error('Failed to load documents:', error)
-      toast.error('Failed to load documents')
+      console.error("Failed to load documents:", error)
+      toast.error("Failed to load documents")
     }
   }, [workspace?.id])
 
@@ -74,43 +76,47 @@ export default function DocumentsPage() {
     loadDocuments()
   }, [loadDocuments])
 
-  const filteredDocuments = documents.filter(doc =>
+  const filteredDocuments = documents.filter((doc) =>
     doc.originalName.toLowerCase().includes(searchValue.toLowerCase())
   )
 
   const handleDownload = async (doc: Document) => {
     if (!workspace?.id) {
-      toast.error('Workspace ID is required')
+      toast.error("Workspace ID is required")
       return
     }
-    
+
     try {
       const blob = await documentsApi.download(workspace.id, doc.id)
-      
+
       // Create download link
       const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
+      const link = document.createElement("a")
       link.href = url
       link.download = doc.originalName || doc.filename
       document.body.appendChild(link)
       link.click()
-      
+
       // Cleanup
       window.URL.revokeObjectURL(url)
       document.body.removeChild(link)
-      
-      toast.success('Document downloaded successfully')
+
+      toast.success("Document downloaded successfully")
     } catch (error) {
-      console.error('Failed to download document:', error)
-      toast.error('Failed to download document')
+      console.error("Failed to download document:", error)
+      toast.error("Failed to download document")
     }
   }
 
   const columns = [
-    { header: "Filename", accessorKey: "originalName" as keyof Document, size: 250 },
-    { 
-      header: "File Size", 
-      accessorKey: "fileSize" as keyof Document, 
+    {
+      header: "Filename",
+      accessorKey: "originalName" as keyof Document,
+      size: 250,
+    },
+    {
+      header: "File Size",
+      accessorKey: "fileSize" as keyof Document,
       size: 100,
       cell: ({ row }: { row: { original: Document } }) => (
         <span>{formatFileSize(row.original.fileSize)}</span>
@@ -129,11 +135,13 @@ export default function DocumentsPage() {
       accessorKey: "isActive" as keyof Document,
       size: 100,
       cell: ({ row }: { row: { original: Document } }) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          row.original.isActive 
-            ? "bg-green-100 text-green-800"
-            : "bg-gray-100 text-gray-800"
-        }`}>
+        <span
+          className={`px-2 py-1 rounded-full text-xs ${
+            row.original.isActive
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
           {row.original.isActive ? "Active" : "Inactive"}
         </span>
       ),
@@ -155,14 +163,14 @@ export default function DocumentsPage() {
         originalName: editName,
         isActive: editIsActive,
       })
-      
+
       setShowEditSheet(false)
       setEditingDocument(null)
-      toast.success('Document updated successfully')
+      toast.success("Document updated successfully")
       loadDocuments()
     } catch (error) {
-      console.error('Failed to update document:', error)
-      toast.error('Failed to update document')
+      console.error("Failed to update document:", error)
+      toast.error("Failed to update document")
     }
   }
 
@@ -176,13 +184,13 @@ export default function DocumentsPage() {
 
     try {
       await documentsApi.delete(workspace.id, selectedDocument.id)
-      setDocuments(documents.filter(doc => doc.id !== selectedDocument.id))
+      setDocuments(documents.filter((doc) => doc.id !== selectedDocument.id))
       setShowDeleteDialog(false)
       setSelectedDocument(null)
-      toast.success('Document deleted successfully')
+      toast.success("Document deleted successfully")
     } catch (error) {
-      console.error('Failed to delete document:', error)
-      toast.error('Failed to delete document')
+      console.error("Failed to delete document:", error)
+      toast.error("Failed to delete document")
     }
   }
 
@@ -258,4 +266,4 @@ export default function DocumentsPage() {
       />
     </PageLayout>
   )
-} 
+}

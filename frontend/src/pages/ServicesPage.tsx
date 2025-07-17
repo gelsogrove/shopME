@@ -5,7 +5,12 @@ import { FormSheet } from "@/components/shared/FormSheet"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { Service, servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
@@ -51,15 +56,15 @@ export function ServicesPage() {
 
   const columns = [
     { header: "Name", accessorKey: "name" as keyof Service, size: 200 },
-    { 
-      header: "Description", 
-      accessorKey: "description" as keyof Service, 
+    {
+      header: "Description",
+      accessorKey: "description" as keyof Service,
       size: 400,
       cell: ({ row }: { row: { original: Service } }) => {
-        const description = row.original.description;
-        const maxLength = 80;
-        const isTruncated = description.length > maxLength;
-        
+        const description = row.original.description
+        const maxLength = 80
+        const isTruncated = description.length > maxLength
+
         return (
           <div>
             {isTruncated ? (
@@ -79,8 +84,8 @@ export function ServicesPage() {
               description
             )}
           </div>
-        );
-      }
+        )
+      },
     },
     {
       header: "Price",
@@ -95,11 +100,13 @@ export function ServicesPage() {
       accessorKey: "isActive" as keyof Service,
       size: 100,
       cell: ({ row }: { row: { original: Service } }) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          row.original.isActive 
-            ? "bg-green-100 text-green-800"
-            : "bg-gray-100 text-gray-800"
-        }`}>
+        <span
+          className={`px-2 py-1 rounded-full text-xs ${
+            row.original.isActive
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
           {row.original.isActive ? "Active" : "Inactive"}
         </span>
       ),
@@ -124,7 +131,7 @@ export function ServicesPage() {
       description: formData.get("description") as string,
       price,
       currency: workspace.currency || "EUR",
-      isActive: formData.get("isActive") === "on"
+      isActive: formData.get("isActive") === "on",
     }
 
     try {
@@ -161,7 +168,7 @@ export function ServicesPage() {
       description: formData.get("description") as string,
       price,
       currency: workspace.currency || "EUR",
-      isActive: formData.get("isActive") === "on"
+      isActive: formData.get("isActive") === "on",
     }
 
     try {
@@ -234,7 +241,10 @@ export function ServicesPage() {
           defaultValue={service?.description}
           required
         />
-        <p className="text-xs text-gray-500">Enter a detailed description of the service. You can include features, benefits, and any important information customers should know.</p>
+        <p className="text-xs text-gray-500">
+          Enter a detailed description of the service. You can include features,
+          benefits, and any important information customers should know.
+        </p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="price">Price ({currencySymbol})</Label>
@@ -250,13 +260,15 @@ export function ServicesPage() {
         />
       </div>
       <div className="flex items-center space-x-2">
-        <Switch 
-          id="isActive" 
+        <Switch
+          id="isActive"
           name="isActive"
           defaultChecked={service ? service.isActive : true}
         />
         <Label htmlFor="isActive">Active</Label>
-        <p className="text-xs text-gray-500 ml-2">Only active services will be shown to customers</p>
+        <p className="text-xs text-gray-500 ml-2">
+          Only active services will be shown to customers
+        </p>
       </div>
     </div>
   )

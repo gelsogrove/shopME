@@ -12,7 +12,7 @@
 - **Customer discount logic:** Customer discount field enforced; best discount (customer vs. offer) always applied in RAG search.
 - **Address handling:** Shipping Address and Invoice Address will both be managed as structured objects (field by field) in forms and backend.
 - **Pagination limits:** All paginated lists will show 5 more items per page (default and max).
-- **N8N Custom Functions:** New tasks for "CF Call Operator" and "CF New Order" workflows.
+- **N8N Custom Functions:** Complete documentation of all 6 custom functions with comprehensive business logic and technical details.
 - **Google Translate in RAG:** All non-English content (especially FAQs) will be translated to English before LLM processing.
 - **🎉 OFFERS MANAGEMENT:** Complete offers system implemented with GetActiveOffers N8N tool for chatbot integration.
 
@@ -6372,9 +6372,7 @@ N8N Workflow/
 - importiamo il flusso dentro N8N
 - ci somo file che devono essere cacnellati
 - ci sonon file che non vengono chiamati
--
-
----
+- ***
 
 ### 🏆 **RISULTATO FINALE**
 
@@ -6895,6 +6893,189 @@ Andrea's usage tracking system provides comprehensive LLM cost monitoring with p
 - Optimize customer service operations
 - Understand customer engagement patterns
 - Make data-driven decisions about AI usage
+
+---
+
+## 🔧 **N8N CUSTOM FUNCTIONS - COMPLETE DOCUMENTATION**
+
+ShopMe utilizza 6 funzioni personalizzate nel workflow N8N per fornire un'esperienza di e-commerce completa via WhatsApp. Ogni funzione implementa la **strategia prezzi di Andrea** (sconto più alto vince) e accede direttamente al database per informazioni aggiornate.
+
+### **🔍 RagSearch() - Sistema di Ricerca Semantica Avanzata**
+
+**FUNZIONALITÀ:** Ricerca semantica intelligente che interroga TUTTE le fonti di conoscenza del business e applica automaticamente la strategia prezzi con sconti cliente e offerte attive.
+
+**DATABASE CONSULTATO:**
+
+- **PRODUCTS** - Ricerca prodotti per similitudine semantica con embedding
+- **FAQS** - Cerca domande frequenti e risposte correlate
+- **SERVICES** - Trova servizi disponibili correlati
+- **DOCUMENTS** - Ricerca documenti caricati (PDF, regolamenti, policy)
+- **CUSTOMERS** - Recupera sconto personalizzato del cliente (discount %)
+- **OFFERS** - Controlla offerte attive per categoria/globali con date validità
+- **CATEGORIES** - Verifica associazioni categoria-prodotto per offerte specifiche
+
+**LOGICA BUSINESS:**
+
+- Ricerca parallela su tutti i contenuti
+- **Strategia prezzi NON-CUMULATIVA**: Sconto più alto vince (cliente vs migliore offerta)
+- Calcolo prezzi finali con trasparenza completa (prezzo originale, finale, % sconto, fonte)
+
+**TRIGGER ESEMPI:**
+
+- "Avete mozzarella di bufala?" → Cerca nei PRODUCTS
+- "Quanto costa il servizio di trasporto?" → Cerca nei SERVICES
+- "Come posso pagare?" → Cerca nelle FAQS
+- "Avete sconti attivi?" → Controlla OFFERS e customer.discount
+
+### **📋 GetAllProducts() - Catalogo Completo con Strategia Prezzi**
+
+**FUNZIONALITÀ:** Restituisce l'INTERO catalogo prodotti del workspace con applicazione automatica della strategia prezzi di Andrea.
+
+**DATABASE CONSULTATO:**
+
+- **PRODUCTS** - Tutti i prodotti attivi con prezzi e stock
+- **CUSTOMERS** - Sconto personalizzato cliente
+- **OFFERS** - Offerte attive per calcolo migliore sconto
+- **CATEGORIES** - Informazioni categoria per ogni prodotto
+
+**LOGICA BUSINESS:**
+
+- **NON-CUMULATIVO**: Se cliente 15% e offerta 20% → Applica 20%
+- Trasparenza prezzi: mostra prezzo originale, finale, % sconto e fonte
+- Filtraggio per categoria e ricerca testuale
+- Pagination con limite 50 prodotti
+
+**TRIGGER ESEMPI:**
+
+- "mi fai vedere la lista dei prodotti?" / "catalogo completo" / "menu"
+
+### **🛎️ GetServices() - Catalogo Servizi con Prezzi Personalizzati**
+
+**FUNZIONALITÀ:** Restituisce tutti i servizi disponibili con strategia prezzi di Andrea applicata (confronta sconto cliente vs sconto specifico del servizio).
+
+**DATABASE CONSULTATO:**
+
+- **SERVICES** - Tutti i servizi attivi con prezzi e descrizioni
+- **CUSTOMERS** - Sconto personalizzato cliente
+
+**LOGICA BUSINESS:**
+
+- **Andrea's Logic**: Math.max(customerDiscount, serviceDiscountPercent)
+- Fonte sconto: "customer" | "service" | "none"
+- Prezzo finale calcolato automaticamente
+
+**TRIGGER ESEMPI:**
+
+- "che servizi offrite?" / "servizi disponibili" / "cosa fate oltre ai prodotti?"
+
+### **🏢 GetAllCategories() - Catalogo Categorie Complete**
+
+**FUNZIONALITÀ:** Restituisce tutte le categorie di prodotti con conteggio prodotti per categoria.
+
+**DATABASE CONSULTATO:**
+
+- **CATEGORIES** - Tutte le categorie attive del workspace
+- **PRODUCTS** - Conta prodotti per categoria (solo attivi)
+
+**LOGICA BUSINESS:**
+
+- Organizzazione alfabetica delle categorie
+- Conteggio prodotti attivi per categoria
+- Informazioni per navigazione catalogo
+
+**TRIGGER ESEMPI:**
+
+- "che categorie avete?" / "tipi di prodotti" / "classificazioni prodotti"
+
+### **🏷️ GetActiveOffers() - Offerte e Sconti Attivi**
+
+**FUNZIONALITÀ:** Recupera tutte le offerte attualmente attive con logica di comparazione sconti cliente vs offerte.
+
+**DATABASE CONSULTATO:**
+
+- **OFFERS** - Offerte attive con date validità (startDate <= NOW <= endDate)
+- **CUSTOMERS** - Sconto personalizzato cliente per comparazione
+- **CATEGORIES** - Associazioni offerta-categoria per offerte specifiche
+
+**LOGICA BUSINESS:**
+
+- Filtro temporale automatico per offerte valide
+- **Mostra solo offerte migliori del cliente**: Se cliente ha 15% e offerta 12%, non mostra l'offerta
+- Ranking per sconto più alto
+- Gestione offerte globali e per categoria specifica
+
+**TRIGGER ESEMPI:**
+
+- "avete sconti attivi?" / "che offerte avete?" / "promozioni in corso"
+
+### **🛒 CreateOrder() - Creazione Ordine e Checkout**
+
+**FUNZIONALITÀ:** Crea un link di checkout sicuro quando il cliente esprime intenzione di acquisto, con strategia prezzi completa applicata.
+
+**DATABASE CONSULTATO:**
+
+- **ORDERS** - Crea nuovo ordine con stato "pending"
+- **CUSTOMERS** - Recupera dati cliente e sconto personalizzato
+- **PRODUCTS/SERVICES** - Valida disponibilità e calcola prezzi finali
+- **PRICE_CALCULATION** - Applica logica sconti (cliente vs offerte)
+- **CHECKOUT_TOKENS** - Genera token sicuro con scadenza
+
+**LOGICA BUSINESS:**
+
+- Parsing intelligente del messaggio per estrarre prodotti/quantità
+- Validazione disponibilità e calcolo prezzi con strategia Andrea
+- Generazione link checkout sicuro con token temporaneo (30 minuti)
+- Integrazione con gateway di pagamento
+
+**TRIGGER ESEMPI:**
+
+- "vorrei ordinare 2 mozzarelle e 1 pasta" / "aggiungi al carrello" / "procediamo al checkout"
+
+### **☎️ ContactOperator() - Richiesta Operatore Umano**
+
+**FUNZIONALITÀ:** Disattiva automaticamente il chatbot per il cliente e segnala richiesta di assistenza umana.
+
+**DATABASE CONSULTATO:**
+
+- **CUSTOMERS** - Trova cliente tramite phone e workspaceId
+- **CUSTOMERS UPDATE** - Imposta activeChatbot = false
+
+**LOGICA BUSINESS:**
+
+- Disattivazione immediata del bot per quel cliente
+- Segnalazione automatica al sistema di ticketing
+- Orari operatori: Lunedì-Venerdì 09:00-18:00
+- Modulo urgenze: https://laltrait.com/contacto/
+
+**TRIGGER ESEMPI:**
+
+- "voglio parlare con un operatore" / "serve aiuto umano" / "assistenza umana"
+
+### **🎯 VANTAGGI TECNICI DELLE FUNZIONI N8N**
+
+**Integrazione Seamless:**
+
+- API endpoints dedicati (/api/internal/\*)
+- Autenticazione Basic Auth sicura
+- Gestione errori completa con logging
+
+**Performance Ottimizzate:**
+
+- Query database ottimizzate con indici
+- Pagination automatica per grandi dataset
+- Cache intelligente per dati frequenti
+
+**Business Logic Centralizzata:**
+
+- **Strategia prezzi di Andrea** applicata uniformemente
+- Calcoli prezzi consistenti across tutte le funzioni
+- Trasparenza completa su sconti e offerte
+
+**Monitoring e Analytics:**
+
+- Logging dettagliato per ogni chiamata
+- Tracking usage per cost control
+- Performance metrics per ottimizzazioni
 
 ---
 

@@ -1,14 +1,14 @@
 /**
  * GDPR PAGE - VERSIONE FUNZIONANTE
- * 
+ *
  * ✅ SOLUZIONE TESTATA E FUNZIONANTE
  * Data: 13 Giugno 2025
- * 
+ *
  * STESSO FIX APPLICATO A GdprSettingsTab:
  * - Endpoint corretto: /api/settings/gdpr
  * - Rimozione logica workspace-specific
  * - Backend gestisce workspace via header x-workspace-id
- * 
+ *
  * ⚠️ MANTIENI SINCRONIZZATO CON GdprSettingsTab.tsx
  */
 
@@ -31,10 +31,10 @@ export default function GdprPage() {
       setIsPageLoading(true)
       try {
         const response = await api.get(`/settings/gdpr`)
-        setGdprText(response.data.data?.gdpr || response.data.content || '')
+        setGdprText(response.data.data?.gdpr || response.data.content || "")
       } catch (error) {
-        console.error('Error loading GDPR content:', error)
-        toast.error('Failed to load GDPR content')
+        console.error("Error loading GDPR content:", error)
+        toast.error("Failed to load GDPR content")
       } finally {
         setIsPageLoading(false)
       }
@@ -46,10 +46,10 @@ export default function GdprPage() {
     setIsLoading(true)
     try {
       await api.put(`/settings/gdpr`, { gdpr: gdprText })
-      toast.success('GDPR policy saved successfully')
+      toast.success("GDPR policy saved successfully")
     } catch (error) {
-      console.error('Error saving GDPR policy:', error)
-      toast.error('Failed to save GDPR policy')
+      console.error("Error saving GDPR policy:", error)
+      toast.error("Failed to save GDPR policy")
     } finally {
       setIsLoading(false)
     }
@@ -70,32 +70,41 @@ export default function GdprPage() {
         <div className="col-span-11 col-start-1">
           <div className="flex items-center gap-2 mb-6">
             <ShieldCheck className="h-6 w-6 text-green-600" />
-            <h1 className="text-3xl font-bold text-green-600">Privacy & GDPR Policy</h1>
+            <h1 className="text-3xl font-bold text-green-600">
+              Privacy & GDPR Policy
+            </h1>
           </div>
-          
+
           <Card>
             <CardContent className="p-6 space-y-6">
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Edit your privacy policy and GDPR compliance statement that will be shown to your customers.
+                  Edit your privacy policy and GDPR compliance statement that
+                  will be shown to your customers.
                 </p>
-                
+
                 <Textarea
                   value={gdprText}
                   onChange={(e) => setGdprText(e.target.value)}
                   className="min-h-[400px] font-mono text-sm"
                 />
-                
+
                 <div className="flex justify-end mt-4">
-                  <Button 
-                    onClick={handleSave} 
+                  <Button
+                    onClick={handleSave}
                     disabled={isLoading}
                     className="flex items-center gap-2"
                   >
                     {isLoading ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" />Saving...</>
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
                     ) : (
-                      <><Save className="h-4 w-4" />Save Policy</>
+                      <>
+                        <Save className="h-4 w-4" />
+                        Save Policy
+                      </>
                     )}
                   </Button>
                 </div>
@@ -106,4 +115,4 @@ export default function GdprPage() {
       </div>
     </div>
   )
-} 
+}

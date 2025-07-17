@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
+import { toast } from "@/lib/toast"
 import { api } from "@/services/api"
 import { commonStyles } from "@/styles/common"
 import { useQuery } from "@tanstack/react-query"
@@ -28,7 +29,6 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { toast } from "@/lib/toast"
 
 // Shared interfaces
 export interface ShippingAddress {
