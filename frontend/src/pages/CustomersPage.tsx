@@ -48,15 +48,15 @@ interface Customer {
 const clientToCustomer = (client: Client): Customer => ({
   id: client.id,
   name: client.name,
-  phone: client.phone,
+  phone: client.phone || "",
   email: client.email || "",
   totalOrders: 0,
   totalSpent: 0,
   lastActive: client.updatedAt || client.createdAt,
   status: client.isActive ? "active" : "inactive",
-  gdprConsent: client.gdprConsent || false,
-  pushNotificationsConsent: client.pushNotificationsConsent || false,
-  activeChatbot: client.activeChatbot || false,
+  gdprConsent: false, // Client interface doesn't have this field
+  pushNotificationsConsent: false, // Client interface doesn't have this field
+  activeChatbot: false, // Client interface doesn't have this field
   discount: client.discount || 0,
   company: client.company || undefined,
 })
@@ -224,6 +224,7 @@ export default function CustomersPage() {
 
     try {
       const clientData = {
+        id: selectedCustomerId || "", // Add id for update operations
         name: formState.name,
         phone: formState.phone,
         email: formState.email,
@@ -238,7 +239,7 @@ export default function CustomersPage() {
 
       if (selectedCustomerId) {
         // Update existing customer
-        await clientsApi.update(selectedCustomerId, clientData)
+        await clientsApi.update(selectedCustomerId, workspace.id, clientData)
         setCustomers(prev => prev.map(c => 
           c.id === selectedCustomerId 
             ? { ...c, ...formState, status: "active" as const }
@@ -246,8 +247,9 @@ export default function CustomersPage() {
         ))
         toast.success("Customer updated successfully")
       } else {
-        // Create new customer
-        const newClient = await clientsApi.create(clientData)
+        // Create new customer - remove id for create operations
+        const { id, ...createData } = clientData
+        const newClient = await clientsApi.create(createData)
         const newCustomer = clientToCustomer(newClient)
         setCustomers(prev => [...prev, newCustomer])
         toast.success("Customer created successfully")
@@ -315,7 +317,6 @@ export default function CustomersPage() {
           columns={columns}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          isLoading={isLoading}
           renderActions={(customer) => (
             <Button
               variant="ghost"
