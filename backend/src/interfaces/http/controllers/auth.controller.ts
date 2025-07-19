@@ -37,16 +37,21 @@ import { SignOptions } from "jsonwebtoken"
 import { OtpService } from "../../../application/services/otp.service"
 import { PasswordResetService } from "../../../application/services/password-reset.service"
 import { UserService } from "../../../application/services/user.service"
+import { EmailService } from "../../../application/services/email.service"
 import { config } from "../../../config"
 import logger from "../../../utils/logger"
 import { AppError } from "../middlewares/error.middleware"
 
 export class AuthController {
+  private readonly emailService: EmailService
+
   constructor(
     private readonly userService: UserService,
     private readonly otpService: OtpService,
     private readonly passwordResetService: PasswordResetService
-  ) {}
+  ) {
+    this.emailService = new EmailService()
+  }
 
   private generateToken(user: User): string {
     const signOptions: SignOptions = {
@@ -231,24 +236,39 @@ export class AuthController {
     try {
       const { email } = req.body
 
+      // Get user info for personalized email
+      const user = await this.userService.getByEmail(email)
+      
+      // Always generate token even if user doesn't exist (security best practice)
       const token = await this.passwordResetService.generateResetToken(email)
 
-      // TODO: Send email with reset link
-      // For now, we'll just return the token in the response
-      // In production, you should send this via email and not expose it in the response
+      // Only send email if user exists
+      if (user) {
+        const emailSent = await this.emailService.sendPasswordResetEmail({
+          to: email,
+          resetToken: token,
+          userFirstName: user.firstName
+        })
+
+        if (!emailSent) {
+          logger.error(`Failed to send reset email to: ${email}`)
+        }
+      }
+
+      // Always return the same response for security (don't reveal if email exists)
       res.status(200).json({
-        message: "Password reset instructions sent",
-        token, // Remove this in production
+        message: "If the email exists, password reset instructions will be sent",
+        // Only include token in development for testing
+        ...(process.env.NODE_ENV !== 'production' && { token })
       })
     } catch (error) {
       logger.error("Forgot password error:", error)
       if (error instanceof AppError) {
         throw error
       }
-      // We don't want to expose whether the email exists or not
+      // Always return same message for security
       res.status(200).json({
-        message:
-          "If the email exists, password reset instructions will be sent",
+        message: "If the email exists, password reset instructions will be sent",
       })
     }
   }

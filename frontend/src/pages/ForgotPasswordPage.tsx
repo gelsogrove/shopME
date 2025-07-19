@@ -54,7 +54,7 @@ export function ForgotPasswordPage() {
             )}
             {success && (
               <div className="rounded-md bg-green-50 p-2 text-sm text-green-500">
-                Password reset instructions have been sent to your email
+                If this email is registered, password reset instructions have been sent to your inbox. Please check your email and follow the link to reset your password.
               </div>
             )}
             <div className="space-y-2">
