@@ -629,26 +629,42 @@ export class InternalApiController {
     res.json({
       businessType: "ECOMMERCE",
       products: productResults
-        .map((r) => ({
-          similarity: r.similarity,
-          content: r.content,
-          product: fullProducts.find((p) => p.id === r.id),
-        }))
-        .filter((r) => r.product),
+        .map((r) => {
+          const product = fullProducts.find((p) => p.id === r.id);
+          return product ? {
+            similarity: r.similarity,
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: product.originalPrice || product.price,
+            finalPrice: product.finalPrice || product.price,
+            hasDiscount: product.hasDiscount || false,
+            discountPercent: product.discountPercent || 0,
+            discountSource: product.discountSource,
+            discountName: product.discountName,
+            stock: product.stock,
+            sku: product.sku,
+            category: product.category?.name
+          } : null;
+        })
+        .filter(Boolean),
       faqs: faqResults.map((r) => ({
         similarity: r.similarity,
-        content: r.content,
-        faq: { id: r.id, question: r.sourceName, answer: r.content },
+        id: r.id,
+        question: r.sourceName,
+        answer: r.content
       })),
       services: serviceResults.map((r) => ({
         similarity: r.similarity,
-        content: r.content,
-        service: { id: r.id, name: r.sourceName, description: r.content },
+        id: r.id,
+        name: r.sourceName,
+        description: r.content
       })),
       documents: documentResults.map((r) => ({
         similarity: r.similarity,
-        content: r.content,
-        document: { id: r.documentId, title: r.documentName },
+        id: r.documentId,
+        title: r.documentName,
+        content: r.content
       })),
     })
   }
@@ -690,26 +706,36 @@ export class InternalApiController {
     res.json({
       businessType: "RESTAURANT",
       menuItems: menuResults
-        .map((r) => ({
-          similarity: r.similarity,
-          content: r.content,
-          menuItem: menuItems.find((p) => p.id === r.id),
-        }))
-        .filter((r) => r.menuItem),
+        .map((r) => {
+          const menuItem = menuItems.find((p) => p.id === r.id);
+          return menuItem ? {
+            similarity: r.similarity,
+            id: menuItem.id,
+            name: menuItem.name,
+            description: menuItem.description,
+            price: menuItem.price,
+            category: menuItem.category?.name,
+            stock: menuItem.stock
+          } : null;
+        })
+        .filter(Boolean),
       restaurantInfo: faqResults.map((r) => ({
         similarity: r.similarity,
-        content: r.content,
-        info: { id: r.id, question: r.sourceName, answer: r.content },
+        id: r.id,
+        question: r.sourceName,
+        answer: r.content
       })),
       services: serviceResults.map((r) => ({
         similarity: r.similarity,
-        content: r.content,
-        service: { id: r.id, name: r.sourceName, description: r.content },
+        id: r.id,
+        name: r.sourceName,
+        description: r.content
       })),
       documents: documentResults.map((r) => ({
         similarity: r.similarity,
-        content: r.content,
-        document: { id: r.documentId, title: r.documentName },
+        id: r.documentId,
+        title: r.documentName,
+        content: r.content
       })),
     })
   }
@@ -740,19 +766,22 @@ export class InternalApiController {
       businessType: "CLINIC",
       medicalServices: serviceResults.map((r) => ({
         similarity: r.similarity,
-        content: r.content,
-        service: { id: r.id, name: r.sourceName, description: r.content },
+        id: r.id,
+        name: r.sourceName,
+        description: r.content
       })),
       clinicInfo: faqResults.map((r) => ({
         similarity: r.similarity,
-        content: r.content,
-        info: { id: r.id, question: r.sourceName, answer: r.content },
+        id: r.id,
+        question: r.sourceName,
+        answer: r.content
       })),
       products: [], // No products for clinics
       documents: documentResults.map((r) => ({
         similarity: r.similarity,
-        content: r.content,
-        document: { id: r.documentId, title: r.documentName },
+        id: r.documentId,
+        title: r.documentName,
+        content: r.content
       })),
     })
   }
@@ -783,12 +812,30 @@ export class InternalApiController {
 
     res.json({
       businessType: "GENERIC",
-      content: {
-        products: productResults,
-        faqs: faqResults,
-        services: serviceResults,
-        documents: documentResults,
-      },
+      products: productResults.map((r) => ({
+        similarity: r.similarity,
+        id: r.id,
+        name: r.sourceName,
+        description: r.content
+      })),
+      faqs: faqResults.map((r) => ({
+        similarity: r.similarity,
+        id: r.id,
+        question: r.sourceName,
+        answer: r.content
+      })),
+      services: serviceResults.map((r) => ({
+        similarity: r.similarity,
+        id: r.id,
+        name: r.sourceName,
+        description: r.content
+      })),
+      documents: documentResults.map((r) => ({
+        similarity: r.similarity,
+        id: r.documentId,
+        title: r.documentName,
+        content: r.content
+      })),
     })
   }
 
