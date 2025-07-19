@@ -140,11 +140,11 @@ export class EmbeddingService {
   }
 
   /**
-   * Generate embeddings for FAQ content - using the EXACT same approach as the working integration tests
+   * Generate embeddings for FAQ content - always processes ALL active FAQs
    */
   async generateFAQEmbeddings(workspaceId: string): Promise<{ processed: number; errors: string[] }> {
     try {
-      // Get all active FAQs for workspace - same as working tests
+      // Get all active FAQs for workspace
       const activeFAQs = await prisma.fAQ.findMany({
         where: {
           workspaceId: workspaceId,
@@ -156,27 +156,22 @@ export class EmbeddingService {
         return { processed: 0, errors: ['No active FAQs found to process'] };
       }
 
-      // Check which FAQs already have chunks - using same syntax as tests
-      const faqsToProcess = [];
-      for (const faq of activeFAQs) {
-        const existingChunks = await prisma.fAQChunks.findMany({
-          where: { faqId: faq.id }
-        });
-        
-        if (existingChunks.length === 0) {
-          faqsToProcess.push(faq);
+      // Delete all existing chunks for FAQs in this workspace before regenerating
+      await prisma.fAQChunks.deleteMany({
+        where: {
+          faq: {
+            workspaceId: workspaceId
+          }
         }
-      }
+      });
 
-      if (faqsToProcess.length === 0) {
-        return { processed: 0, errors: ['No active FAQs found to process'] };
-      }
+      console.log(`Deleted existing FAQ chunks for workspace ${workspaceId}`);
 
       let processed = 0;
       const errors: string[] = [];
 
-      // Process each FAQ
-      for (const faq of faqsToProcess) {
+      // Process ALL active FAQs (no filtering based on existing chunks)
+      for (const faq of activeFAQs) {
         try {
           console.log(`Processing FAQ: ${faq.question}`);
           
@@ -291,11 +286,11 @@ export class EmbeddingService {
   }
 
   /**
-   * Generate embeddings for Service content - using the EXACT same approach as the working FAQ integration
+   * Generate embeddings for Service content - always processes ALL active services
    */
   async generateServiceEmbeddings(workspaceId: string): Promise<{ processed: number; errors: string[] }> {
     try {
-      // Get all active Services for workspace - same as working FAQ tests
+      // Get all active Services for workspace
       const activeServices = await prisma.services.findMany({
         where: {
           workspaceId: workspaceId,
@@ -307,27 +302,22 @@ export class EmbeddingService {
         return { processed: 0, errors: ['No active services found to process'] };
       }
 
-      // Check which Services already have chunks - using same syntax as FAQ tests
-      const servicesToProcess = [];
-      for (const service of activeServices) {
-        const existingChunks = await prisma.serviceChunks.findMany({
-          where: { serviceId: service.id }
-        });
-        
-        if (existingChunks.length === 0) {
-          servicesToProcess.push(service);
+      // Delete all existing chunks for Services in this workspace before regenerating
+      await prisma.serviceChunks.deleteMany({
+        where: {
+          service: {
+            workspaceId: workspaceId
+          }
         }
-      }
+      });
 
-      if (servicesToProcess.length === 0) {
-        return { processed: 0, errors: ['No active services found to process'] };
-      }
+      console.log(`Deleted existing Service chunks for workspace ${workspaceId}`);
 
       let processed = 0;
       const errors: string[] = [];
 
-      // Process each Service
-      for (const service of servicesToProcess) {
+      // Process ALL active Services (no filtering based on existing chunks)
+      for (const service of activeServices) {
         try {
           console.log(`Processing Service: ${service.name}`);
           
@@ -442,7 +432,7 @@ export class EmbeddingService {
   }
 
   /**
-   * Generate embeddings for Product content - using the EXACT same approach as FAQ/Service
+   * Generate embeddings for Product content - always processes ALL active products
    */
   async generateProductEmbeddings(workspaceId: string): Promise<{ processed: number; errors: string[] }> {
     try {
@@ -461,27 +451,22 @@ export class EmbeddingService {
         return { processed: 0, errors: ['No active products found to process'] };
       }
 
-      // Check which Products already have chunks
-      const productsToProcess = [];
-      for (const product of activeProducts) {
-        const existingChunks = await prisma.productChunks.findMany({
-          where: { productId: product.id }
-        });
-        
-        if (existingChunks.length === 0) {
-          productsToProcess.push(product);
+      // Delete all existing chunks for Products in this workspace before regenerating
+      await prisma.productChunks.deleteMany({
+        where: {
+          product: {
+            workspaceId: workspaceId
+          }
         }
-      }
+      });
 
-      if (productsToProcess.length === 0) {
-        return { processed: 0, errors: ['No active products found to process'] };
-      }
+      console.log(`Deleted existing Product chunks for workspace ${workspaceId}`);
 
       let processed = 0;
       const errors: string[] = [];
 
-      // Process each Product
-      for (const product of productsToProcess) {
+      // Process ALL active Products (no filtering based on existing chunks)
+      for (const product of activeProducts) {
         try {
           console.log(`Processing Product: ${product.name}`);
           
