@@ -457,6 +457,13 @@ export class InternalApiController {
         )
       }
 
+      // 🌍 TRANSLATE QUERY TO ENGLISH FOR BETTER SEMANTIC SEARCH
+      const translatedQuery = await this.translateQueryToEnglish(query, customerLanguage || 'it');
+      
+      logger.info(
+        `[RAG-SEARCH] Original: "${query}" | Translated: "${translatedQuery}" | Language: ${customerLanguage}`
+      );
+
       // Get workspace to determine business type if not provided
       let targetBusinessType = businessType
       if (!targetBusinessType) {
@@ -466,22 +473,22 @@ export class InternalApiController {
         targetBusinessType = workspace?.businessType || "GENERIC"
       }
 
-      // Route to business-specific RAG search
+      // Route to business-specific RAG search using translated query
       switch (targetBusinessType) {
         case "ECOMMERCE":
-          await this.ecommerceRagSearch(req, res, query, workspaceId)
+          await this.ecommerceRagSearch(req, res, translatedQuery, workspaceId)
           break
         case "RESTAURANT":
-          await this.restaurantRagSearch(req, res, query, workspaceId)
+          await this.restaurantRagSearch(req, res, translatedQuery, workspaceId)
           break
         case "CLINIC":
-          await this.clinicRagSearch(req, res, query, workspaceId)
+          await this.clinicRagSearch(req, res, translatedQuery, workspaceId)
           break
         case "RETAIL":
         case "SERVICES":
         case "GENERIC":
         default:
-          await this.genericRagSearch(req, res, query, workspaceId)
+          await this.genericRagSearch(req, res, translatedQuery, workspaceId)
           break
       }
     } catch (error) {
@@ -555,7 +562,7 @@ export class InternalApiController {
             if (customer) {
               customerDiscount = customer.discount || 0
               logger.info(
-                `[E-COMMERCE-RAG] � Customer found: ${customer.name} (${customer.phone})`
+                `[E-COMMERCE-RAG] 💰 Customer found: ${customer.name} (${customer.phone})`
               )
               logger.info(
                 `[E-COMMERCE-RAG] 💰 Customer discount from DB: ${customerDiscount}%`
@@ -629,26 +636,38 @@ export class InternalApiController {
     res.json({
       businessType: "ECOMMERCE",
       products: productResults
-        .map((r) => ({
-          similarity: r.similarity,
-          content: r.content,
-          product: fullProducts.find((p) => p.id === r.id),
-        }))
-        .filter((r) => r.product),
+        .map((r) => {
+          const product = fullProducts.find((p) => p.id === r.id);
+          return product ? {
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: product.originalPrice || product.price,
+            finalPrice: product.finalPrice || product.price,
+            hasDiscount: product.hasDiscount || false,
+            discountPercent: product.discountPercent || 0,
+            discountSource: product.discountSource,
+            discountName: product.discountName,
+            stock: product.stock,
+            sku: product.sku,
+            category: product.category?.name
+          } : null;
+        })
+        .filter(Boolean),
       faqs: faqResults.map((r) => ({
-        similarity: r.similarity,
-        content: r.content,
-        faq: { id: r.id, question: r.sourceName, answer: r.content },
+        id: r.id,
+        question: r.sourceName,
+        answer: r.content
       })),
       services: serviceResults.map((r) => ({
-        similarity: r.similarity,
-        content: r.content,
-        service: { id: r.id, name: r.sourceName, description: r.content },
+        id: r.id,
+        name: r.sourceName,
+        description: r.content
       })),
       documents: documentResults.map((r) => ({
-        similarity: r.similarity,
-        content: r.content,
-        document: { id: r.documentId, title: r.documentName },
+        id: r.documentId,
+        title: r.documentName,
+        content: r.content
       })),
     })
   }
@@ -690,26 +709,32 @@ export class InternalApiController {
     res.json({
       businessType: "RESTAURANT",
       menuItems: menuResults
-        .map((r) => ({
-          similarity: r.similarity,
-          content: r.content,
-          menuItem: menuItems.find((p) => p.id === r.id),
-        }))
-        .filter((r) => r.menuItem),
+        .map((r) => {
+          const menuItem = menuItems.find((p) => p.id === r.id);
+          return menuItem ? {
+            id: menuItem.id,
+            name: menuItem.name,
+            description: menuItem.description,
+            price: menuItem.price,
+            category: menuItem.category?.name,
+            stock: menuItem.stock
+          } : null;
+        })
+        .filter(Boolean),
       restaurantInfo: faqResults.map((r) => ({
-        similarity: r.similarity,
-        content: r.content,
-        info: { id: r.id, question: r.sourceName, answer: r.content },
+        id: r.id,
+        question: r.sourceName,
+        answer: r.content
       })),
       services: serviceResults.map((r) => ({
-        similarity: r.similarity,
-        content: r.content,
-        service: { id: r.id, name: r.sourceName, description: r.content },
+        id: r.id,
+        name: r.sourceName,
+        description: r.content
       })),
       documents: documentResults.map((r) => ({
-        similarity: r.similarity,
-        content: r.content,
-        document: { id: r.documentId, title: r.documentName },
+        id: r.documentId,
+        title: r.documentName,
+        content: r.content
       })),
     })
   }
@@ -739,20 +764,20 @@ export class InternalApiController {
     res.json({
       businessType: "CLINIC",
       medicalServices: serviceResults.map((r) => ({
-        similarity: r.similarity,
-        content: r.content,
-        service: { id: r.id, name: r.sourceName, description: r.content },
+        id: r.id,
+        name: r.sourceName,
+        description: r.content
       })),
       clinicInfo: faqResults.map((r) => ({
-        similarity: r.similarity,
-        content: r.content,
-        info: { id: r.id, question: r.sourceName, answer: r.content },
+        id: r.id,
+        question: r.sourceName,
+        answer: r.content
       })),
       products: [], // No products for clinics
       documents: documentResults.map((r) => ({
-        similarity: r.similarity,
-        content: r.content,
-        document: { id: r.documentId, title: r.documentName },
+        id: r.documentId,
+        title: r.documentName,
+        content: r.content
       })),
     })
   }
@@ -783,12 +808,26 @@ export class InternalApiController {
 
     res.json({
       businessType: "GENERIC",
-      content: {
-        products: productResults,
-        faqs: faqResults,
-        services: serviceResults,
-        documents: documentResults,
-      },
+      products: productResults.map((r) => ({
+        id: r.id,
+        name: r.sourceName,
+        description: r.content
+      })),
+      faqs: faqResults.map((r) => ({
+        id: r.id,
+        question: r.sourceName,
+        answer: r.content
+      })),
+      services: serviceResults.map((r) => ({
+        id: r.id,
+        name: r.sourceName,
+        description: r.content
+      })),
+      documents: documentResults.map((r) => ({
+        id: r.documentId,
+        title: r.documentName,
+        content: r.content
+      })),
     })
   }
 
@@ -2776,6 +2815,57 @@ ${JSON.stringify(ragResults, null, 2)}`
       res.status(500).json({
         error: "Internal server error getting CF services",
       })
+    }
+  }
+
+  /**
+   * Translate query to English for better semantic search results
+   * Since embeddings work better with consistent language
+   */
+  private async translateQueryToEnglish(query: string, customerLanguage: string): Promise<string> {
+    // If already in English or no customer language specified, return as-is
+    if (!customerLanguage || customerLanguage.toLowerCase().includes('en') || customerLanguage.toLowerCase() === 'english') {
+      return query;
+    }
+
+    try {
+      logger.info(`[RAG-TRANSLATE] Translating "${query}" from ${customerLanguage} to English`);
+      
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "meta-llama/llama-3.1-8b-instruct:free", // Fast, free model for translation
+          messages: [
+            {
+              role: "system",
+              content: "You are a translator. Translate the user's query to English. Return ONLY the translated text, no explanations."
+            },
+            {
+              role: "user", 
+              content: `Translate this to English: "${query}"`
+            }
+          ],
+          max_tokens: 100,
+          temperature: 0.1
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const translatedQuery = data.choices[0]?.message?.content?.trim() || query;
+        logger.info(`[RAG-TRANSLATE] Translation result: "${translatedQuery}"`);
+        return translatedQuery;
+      } else {
+        logger.warn(`[RAG-TRANSLATE] Translation failed, using original query`);
+        return query;
+      }
+    } catch (error) {
+      logger.error(`[RAG-TRANSLATE] Translation error:`, error);
+      return query; // Fallback to original query
     }
   }
 }
