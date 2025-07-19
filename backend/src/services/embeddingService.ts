@@ -140,11 +140,11 @@ export class EmbeddingService {
   }
 
   /**
-   * Generate embeddings for FAQ content - using the EXACT same approach as the working integration tests
+   * Generate embeddings for FAQ content - always processes ALL active FAQs
    */
   async generateFAQEmbeddings(workspaceId: string): Promise<{ processed: number; errors: string[] }> {
     try {
-      // Get all active FAQs for workspace - same as working tests
+      // Get all active FAQs for workspace
       const activeFAQs = await prisma.fAQ.findMany({
         where: {
           workspaceId: workspaceId,
@@ -156,27 +156,22 @@ export class EmbeddingService {
         return { processed: 0, errors: ['No active FAQs found to process'] };
       }
 
-      // Check which FAQs already have chunks - using same syntax as tests
-      const faqsToProcess = [];
-      for (const faq of activeFAQs) {
-        const existingChunks = await prisma.fAQChunks.findMany({
-          where: { faqId: faq.id }
-        });
-        
-        if (existingChunks.length === 0) {
-          faqsToProcess.push(faq);
+      // Delete all existing chunks for FAQs in this workspace before regenerating
+      await prisma.fAQChunks.deleteMany({
+        where: {
+          faq: {
+            workspaceId: workspaceId
+          }
         }
-      }
+      });
 
-      if (faqsToProcess.length === 0) {
-        return { processed: 0, errors: ['No active FAQs found to process'] };
-      }
+      console.log(`Deleted existing FAQ chunks for workspace ${workspaceId}`);
 
       let processed = 0;
       const errors: string[] = [];
 
-      // Process each FAQ
-      for (const faq of faqsToProcess) {
+      // Process ALL active FAQs (no filtering based on existing chunks)
+      for (const faq of activeFAQs) {
         try {
           console.log(`Processing FAQ: ${faq.question}`);
           
