@@ -632,7 +632,6 @@ export class InternalApiController {
         .map((r) => {
           const product = fullProducts.find((p) => p.id === r.id);
           return product ? {
-            similarity: r.similarity,
             id: product.id,
             name: product.name,
             description: product.description,
@@ -649,19 +648,16 @@ export class InternalApiController {
         })
         .filter(Boolean),
       faqs: faqResults.map((r) => ({
-        similarity: r.similarity,
         id: r.id,
         question: r.sourceName,
         answer: r.content
       })),
       services: serviceResults.map((r) => ({
-        similarity: r.similarity,
         id: r.id,
         name: r.sourceName,
         description: r.content
       })),
       documents: documentResults.map((r) => ({
-        similarity: r.similarity,
         id: r.documentId,
         title: r.documentName,
         content: r.content
@@ -709,7 +705,6 @@ export class InternalApiController {
         .map((r) => {
           const menuItem = menuItems.find((p) => p.id === r.id);
           return menuItem ? {
-            similarity: r.similarity,
             id: menuItem.id,
             name: menuItem.name,
             description: menuItem.description,
@@ -720,19 +715,16 @@ export class InternalApiController {
         })
         .filter(Boolean),
       restaurantInfo: faqResults.map((r) => ({
-        similarity: r.similarity,
         id: r.id,
         question: r.sourceName,
         answer: r.content
       })),
       services: serviceResults.map((r) => ({
-        similarity: r.similarity,
         id: r.id,
         name: r.sourceName,
         description: r.content
       })),
       documents: documentResults.map((r) => ({
-        similarity: r.similarity,
         id: r.documentId,
         title: r.documentName,
         content: r.content
@@ -765,20 +757,17 @@ export class InternalApiController {
     res.json({
       businessType: "CLINIC",
       medicalServices: serviceResults.map((r) => ({
-        similarity: r.similarity,
         id: r.id,
         name: r.sourceName,
         description: r.content
       })),
       clinicInfo: faqResults.map((r) => ({
-        similarity: r.similarity,
         id: r.id,
         question: r.sourceName,
         answer: r.content
       })),
       products: [], // No products for clinics
       documents: documentResults.map((r) => ({
-        similarity: r.similarity,
         id: r.documentId,
         title: r.documentName,
         content: r.content
@@ -813,25 +802,21 @@ export class InternalApiController {
     res.json({
       businessType: "GENERIC",
       products: productResults.map((r) => ({
-        similarity: r.similarity,
         id: r.id,
         name: r.sourceName,
         description: r.content
       })),
       faqs: faqResults.map((r) => ({
-        similarity: r.similarity,
         id: r.id,
         question: r.sourceName,
         answer: r.content
       })),
       services: serviceResults.map((r) => ({
-        similarity: r.similarity,
         id: r.id,
         name: r.sourceName,
         description: r.content
       })),
       documents: documentResults.map((r) => ({
-        similarity: r.similarity,
         id: r.documentId,
         title: r.documentName,
         content: r.content
