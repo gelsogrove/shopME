@@ -146,4 +146,6 @@ Andrea requires a clean and maintainable database. All legacy or unused tables m
 - dammi il pdf ? rag?
 
 - usage price sembra statico nella dashboard
-- Ordine
+- Ordine e carrello e pagamento
+- fattura scaricabile
+- wip messge
