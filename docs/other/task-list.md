@@ -16,43 +16,6 @@ Andrea requires a dedicated N8N CF for new order management.
 
 ================================================================================
 
-## TASK #25
-
-**TITLE**: Integrate Google Translate Node for English Conversion in RAG Search
-**DESCRIPTION/ROADMAP**:
-
-- Integrate a Google Translate node into the RAG search workflow
-- Automatically convert any non-English content (especially FAQs) to English before processing
-- Update backend logic to ensure all relevant content is translated to English within the RAG flow
-- Test the system to confirm correct translation and improved search accuracy
-
-**SPECIAL NOTE**:
-Andrea requires that all non-English content, especially FAQs, is automatically translated to English in the RAG search process for better LLM results.
-
-**STORY POINT**: 6
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #27
-
-**TITLE**: Payment Page: Create Order and Handle Shipping Address via Call Function
-**DESCRIPTION/ROADMAP**:
-
-- On payment confirmation, trigger a call function to the backend to create a new order record
-- Manage the shipping address as part of this call function flow
-- Update the call function prompt to include all necessary order and shipping address details
-- Ensure the backend correctly saves the order and shipping address
-- Test the end-to-end flow from payment to order creation and address storage
-
-**SPECIAL NOTE**:
-Andrea requires that the payment page, once payment is confirmed, always triggers a backend call function to create the order and handle the shipping address. The prompt for the call function must be updated to reflect this logic.
-
-**STORY POINT**: 7
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
 ## TASK #38
 
 **TITLE**: Implement 'Aviso legal' PDF Upload and Integration
@@ -177,8 +140,10 @@ Andrea requires a clean and maintainable database. All legacy or unused tables m
 ## NOTE
 
 - SECUIRTY owasp
-- DEPLOYMENT ?
 - prompt con url dinamici?
 - usage price sembra statico
 - dentro il pannello se il token scade? gestione tokem app gestione token n8n getione tokend dell'applicativo
 - dammi il pdf ? rag?
+
+- usage price sembra statico nella dashboard
+- Ordine
