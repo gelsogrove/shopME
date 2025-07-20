@@ -71,6 +71,69 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 
 ================================================================================
 
+## TASK #39
+
+**TITLE**: Checkout Flow con Gestione Stock Completa
+**DESCRIPTION/ROADMAP**:
+
+#### **1. CUSTOM FUNCTION N8N** ✅
+- Implementare `createOrderCheckoutLink(customerId, workspaceId, prodotti[])`
+- Genera token sicuro 1 ora in `secure_tokens`
+- Ritorna URL: `${FRONTEND_URL}/checkout/${token}`
+- **Trigger**: Solo quando utente esprime intent di conferma ordine ("procedo", "ordino", "confermo")
+
+#### **2. PAGINA CHECKOUT** `/checkout/:token` ✅
+- **Design**: Stesso pattern di `/register` (fuori auth, responsiva)
+- **Step 1**: Carrello completo
+  - View prodotti dal token
+  - Edit quantità (max = stock disponibile)
+  - Remove prodotti
+  - Add prodotti: Modal con prodotti attivi (`isActive=true AND stock>0`)
+- **Step 2**: Indirizzi pre-compilati da `customer.address` e `customer.invoiceAddress`
+- **Step 3**: Note + Submit finale
+
+#### **3. SUBMIT CHECKOUT & NOTIFICHE** ✅
+- Crea ordine `status: PENDING` (NO scala stock ancora)
+- **Email Customer**: "Ordine numero X preso in consegna, ti faremo sapere il prima possibile"
+- **Email Admin** (`settings.adminEmail`): "Nuovo ordine da confermare numero X"
+- **WhatsApp in chat**: "✅ Ordine numero X preso in consegna! Ti faremo sapere il prima possibile per la conferma."
+
+#### **4. CONFERMA OPERATORE & NOTIFICHE** ⏳ TODO
+Quando operatore cambia status `PENDING → CONFIRMED`:
+- **Scala stock**: `updateProductStock(productId, -quantity)`
+- **Email Customer**: "🎉 Ordine confermato numero X + dettagli consegna"
+- **Email Admin**: "Ordine X confermato e processato"
+- **WhatsApp in chat**: "🎉 Ordine confermato! Numero ordine: X. Ti contatteremo per i dettagli di consegna."
+
+#### **5. GESTIONE STOCK COMPLETA** ⏳ TODO
+- **NO scala stock su checkout** (rimane disponibile) ✅
+- **Scala stock su conferma**: `PENDING → CONFIRMED` ⏳
+- **Ripristina stock su cancellazione**: `CONFIRMED → CANCELLED` ⏳
+- **getProduct**: Sempre filtrare `isActive=true AND stock>0` ⏳
+
+#### **6. PANNELLO ADMIN - STOCK MANAGEMENT** ⏳ TODO
+- **ProductsPage**: Row rossa per prodotti `stock = 0`
+- **Mostra prodotti esauriti** come "Esaurito" (non nascondere)
+- **Quantità Max Checkout**: Limitata a stock disponibile
+- **Alert visivo**: Evidenziare prodotti a stock zero
+
+#### **7. PROMPT AGENT AGGIORNATO** ⏳ TODO
+- **Raccogliere prodotti** durante conversazione normale
+- **Rilevare intent conferma**: "procedo", "ordino", "confermo", "checkout", "finalizza"
+- **Solo allora** chiamare `createOrderCheckoutLink` con prodotti raccolti
+
+#### **8. TESTING** ⏳ TODO
+- Test unitari scala/ripristina stock su cambio status
+- Test edge cases (stock insufficiente, prodotto disattivato)
+- Test token validation e scadenza
+- Test flusso email e WhatsApp completo
+- Test responsività mobile
+
+**STORY POINT**: 10
+**STATUS**: 🟡 In Progress - Checkout Flow Implementato, TODO: Stock Management + Testing
+
+================================================================================
+
 blockuser
 
 # PHASE 2 TASKS

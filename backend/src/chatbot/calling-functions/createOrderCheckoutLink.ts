@@ -1,8 +1,6 @@
 import logger from '../../utils/logger';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../../lib/prisma';
 import crypto from 'crypto';
-
-const prisma = new PrismaClient();
 
 /**
  * Create Order Checkout Link Calling Function
