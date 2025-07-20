@@ -71,6 +71,11 @@ const CheckoutPage = () => {
     error: ''
   });
 
+  // Add product modal state
+  const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [selectedProductToAdd, setSelectedProductToAdd] = useState<Product | null>(null);
+  const [quantityToAdd, setQuantityToAdd] = useState(1);
+
   // Validate token and get order data
   useEffect(() => {
     const validateToken = async () => {
@@ -119,7 +124,7 @@ const CheckoutPage = () => {
             }));
           }
           
-          // Fetch available products for adding
+          // Fetch available products for adding (only active products with stock > 0)
           const productsResponse = await axios.get(`/api/products?workspaceId=${workspaceId}&active=true&inStock=true`);
           setAvailableProducts(productsResponse.data?.products || []);
         } else {
@@ -171,6 +176,24 @@ const CheckoutPage = () => {
         qty: quantity,
         prezzo: product.price
       }]);
+    }
+  };
+
+  // Handle add product from modal
+  const handleAddProductFromModal = () => {
+    if (selectedProductToAdd && quantityToAdd > 0) {
+      // Check if quantity is available
+      if (quantityToAdd > selectedProductToAdd.stock) {
+        alert(`Solo ${selectedProductToAdd.stock} pezzi disponibili`);
+        return;
+      }
+
+      addProduct(selectedProductToAdd, quantityToAdd);
+      
+      // Reset modal state
+      setShowAddProductModal(false);
+      setSelectedProductToAdd(null);
+      setQuantityToAdd(1);
     }
   };
 
@@ -354,10 +377,7 @@ const CheckoutPage = () => {
               <div className="mb-6">
                 <button 
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  onClick={() => {
-                    // TODO: Open modal to add products
-                    alert('Funzionalità "Aggiungi Prodotto" in arrivo');
-                  }}
+                  onClick={() => setShowAddProductModal(true)}
                 >
                   + Aggiungi Prodotto
                 </button>
@@ -582,6 +602,108 @@ const CheckoutPage = () => {
           )}
         </div>
       </div>
+
+      {/* Add Product Modal */}
+      {showAddProductModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">Aggiungi Prodotto</h3>
+              <button
+                onClick={() => {
+                  setShowAddProductModal(false);
+                  setSelectedProductToAdd(null);
+                  setQuantityToAdd(1);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            {!selectedProductToAdd ? (
+              <div>
+                <p className="text-gray-600 mb-4">Seleziona un prodotto da aggiungere al carrello:</p>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {availableProducts.map((product) => (
+                    <div 
+                      key={product.id} 
+                      className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50"
+                      onClick={() => setSelectedProductToAdd(product)}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-semibold">{product.name}</h4>
+                          <p className="text-sm text-gray-600">{product.description}</p>
+                          <p className="text-lg font-bold text-green-600">€{product.price.toFixed(2)}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-500">Stock: {product.stock}</p>
+                          <p className={`text-xs px-2 py-1 rounded ${
+                            product.stock > 10 
+                              ? 'bg-green-100 text-green-800' 
+                              : product.stock > 0 
+                              ? 'bg-orange-100 text-orange-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {product.stock > 10 ? 'Disponibile' : product.stock > 0 ? 'Pochi pezzi' : 'Esaurito'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="border rounded-lg p-4 mb-4">
+                  <h4 className="font-semibold">{selectedProductToAdd.name}</h4>
+                  <p className="text-sm text-gray-600">{selectedProductToAdd.description}</p>
+                  <p className="text-lg font-bold text-green-600">€{selectedProductToAdd.price.toFixed(2)}</p>
+                  <p className="text-sm text-gray-500">Stock disponibile: {selectedProductToAdd.stock}</p>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">Quantità</label>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => setQuantityToAdd(Math.max(1, quantityToAdd - 1))}
+                      className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
+                    >
+                      -
+                    </button>
+                    <span className="w-12 text-center">{quantityToAdd}</span>
+                    <button
+                      onClick={() => setQuantityToAdd(Math.min(selectedProductToAdd.stock, quantityToAdd + 1))}
+                      className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Totale: €{(selectedProductToAdd.price * quantityToAdd).toFixed(2)}
+                  </p>
+                </div>
+
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setSelectedProductToAdd(null)}
+                    className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+                  >
+                    Indietro
+                  </button>
+                  <button
+                    onClick={handleAddProductFromModal}
+                    className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                  >
+                    Aggiungi al Carrello
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
