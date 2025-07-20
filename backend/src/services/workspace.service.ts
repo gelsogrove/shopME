@@ -124,12 +124,16 @@ export const workspaceService = {
   },
 
   async update(id: string, data: UpdateWorkspaceData) {
-    return prisma.workspace.update({
+    // Separate adminEmail from the rest of the data
+    const { adminEmail, ...workspaceData } = data as UpdateWorkspaceData & { adminEmail?: string }
+
+    // Update workspace data
+    const updatedWorkspace = await prisma.workspace.update({
       where: { id },
       data: {
-        ...data,
-        slug: data.name
-          ? data.name.toLowerCase().replace(/\s+/g, "-")
+        ...workspaceData,
+        slug: workspaceData.name
+          ? workspaceData.name.toLowerCase().replace(/\s+/g, "-")
           : undefined,
       },
       select: {
@@ -153,6 +157,34 @@ export const workspaceService = {
         welcomeMessages: true,
       },
     })
+
+    // Update adminEmail in WhatsappSettings if provided
+    if (adminEmail !== undefined) {
+      await prisma.whatsappSettings.upsert({
+        where: {
+          workspaceId: id,
+        },
+        create: {
+          workspaceId: id,
+          phoneNumber: updatedWorkspace.whatsappPhoneNumber || "",
+          apiKey: updatedWorkspace.whatsappApiKey || "",
+          adminEmail: adminEmail,
+        },
+        update: {
+          adminEmail: adminEmail,
+        },
+      })
+    }
+
+    // Return workspace with adminEmail included
+    const whatsappSettings = await prisma.whatsappSettings.findUnique({
+      where: { workspaceId: id },
+    })
+
+    return {
+      ...updatedWorkspace,
+      adminEmail: whatsappSettings?.adminEmail || null,
+    }
   },
 
   async delete(id: string) {

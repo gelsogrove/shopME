@@ -82,6 +82,9 @@ const getCurrentWorkspace: RequestHandler = async (req, res): Promise<void> => {
         isActive: true,
         isDelete: false,
       },
+      include: {
+        whatsappSettings: true,
+      },
     })
 
     if (!workspace) {
@@ -89,7 +92,13 @@ const getCurrentWorkspace: RequestHandler = async (req, res): Promise<void> => {
       return
     }
 
-    res.json(workspace)
+    // Include adminEmail from whatsappSettings in the response
+    const responseData = {
+      ...workspace,
+      adminEmail: workspace.whatsappSettings?.adminEmail || null,
+    }
+
+    res.json(responseData)
     return
   } catch (error) {
     console.error("Error fetching current workspace:", error)
