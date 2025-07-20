@@ -191,6 +191,9 @@ export class CheckoutController {
       // Send notifications
       await this.sendNotifications(order, customer, workspace);
 
+      // Reset customer cart after successful order
+      await this.resetCustomerCart(customerId, workspaceId);
+
       res.json({
         success: true,
         orderId: order.id,
@@ -396,6 +399,41 @@ Accedi al pannello amministrativo per confermare l'ordine.
 
     } catch (error) {
       logger.error('[CHECKOUT] Error sending WhatsApp notification:', error);
+    }
+  }
+
+  /**
+   * Reset customer cart after successful order
+   */
+  private async resetCustomerCart(customerId: string, workspaceId: string): Promise<void> {
+    try {
+      // Find customer cart
+      const cart = await prisma.carts.findFirst({
+        where: {
+          customerId,
+          workspaceId
+        },
+        include: {
+          items: true
+        }
+      });
+
+      if (cart) {
+        // Delete all cart items
+        await prisma.cartItems.deleteMany({
+          where: {
+            cartId: cart.id
+          }
+        });
+
+        logger.info(`[CHECKOUT] Cart reset for customer ${customerId} - ${cart.items.length} items removed`);
+      } else {
+        logger.info(`[CHECKOUT] No cart found for customer ${customerId} - nothing to reset`);
+      }
+
+    } catch (error) {
+      logger.error('[CHECKOUT] Error resetting customer cart:', error);
+      // Don't throw error - order is already created successfully
     }
   }
 }

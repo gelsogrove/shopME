@@ -94,6 +94,7 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 
 #### **3. SUBMIT CHECKOUT & NOTIFICHE** ✅
 - Crea ordine `status: PENDING` (NO scala stock ancora)
+- **Reset carrello customer** dopo ordine confermato
 - **Email Customer**: "Ordine numero X preso in consegna, ti faremo sapere il prima possibile"
 - **Email Admin** (`settings.adminEmail`): "Nuovo ordine da confermare numero X"
 - **WhatsApp in chat**: "✅ Ordine numero X preso in consegna! Ti faremo sapere il prima possibile per la conferma."
