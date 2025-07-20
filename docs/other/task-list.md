@@ -99,31 +99,37 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 - **Email Admin** (`settings.adminEmail`): "Nuovo ordine da confermare numero X"
 - **WhatsApp in chat**: "✅ Ordine numero X preso in consegna! Ti faremo sapere il prima possibile per la conferma."
 
-#### **4. CONFERMA OPERATORE & NOTIFICHE** ⏳ TODO
+#### **4. CONFERMA OPERATORE & NOTIFICHE** ✅
 Quando operatore cambia status `PENDING → CONFIRMED`:
-- **Scala stock**: `updateProductStock(productId, -quantity)`
-- **Email Customer**: "🎉 Ordine confermato numero X + dettagli consegna"
-- **Email Admin**: "Ordine X confermato e processato"
-- **WhatsApp in chat**: "🎉 Ordine confermato! Numero ordine: X. Ti contatteremo per i dettagli di consegna."
+- **Scala stock**: `updateProductStock(productId, -quantity)` ✅
+- **Email Customer**: "🎉 Ordine confermato numero X + dettagli consegna" ✅
+- **Email Admin**: "Ordine X confermato e processato" ✅
+- **WhatsApp in chat**: "🎉 Ordine confermato! Numero ordine: X. Ti contatteremo per i dettagli di consegna." ✅
 
-#### **5. GESTIONE STOCK COMPLETA** ⏳ TODO
+#### **5. GESTIONE STOCK COMPLETA** ✅
 - **NO scala stock su checkout** (rimane disponibile) ✅
-- **Scala stock su conferma**: `PENDING → CONFIRMED` ⏳
-- **Ripristina stock su cancellazione**: `CONFIRMED → CANCELLED` ⏳
-- **getProduct**: Sempre filtrare `isActive=true AND stock>0` ⏳
+- **Scala stock su conferma**: `PENDING → CONFIRMED` ✅
+- **Ripristina stock su cancellazione**: `CONFIRMED → CANCELLED` ✅
+- **getProduct**: Sempre filtrare `isActive=true AND stock>0` ✅
 
-#### **6. PANNELLO ADMIN - STOCK MANAGEMENT** ⏳ TODO
-- **ProductsPage**: Row rossa per prodotti `stock = 0`
-- **Mostra prodotti esauriti** come "Esaurito" (non nascondere)
-- **Quantità Max Checkout**: Limitata a stock disponibile
-- **Alert visivo**: Evidenziare prodotti a stock zero
+#### **6. PANNELLO ADMIN - STOCK MANAGEMENT** ✅
+- **ProductsPage**: Row rossa per prodotti `stock = 0` ✅
+- **Mostra prodotti esauriti** come "Esaurito" (non nascondere) ✅
+- **Quantità Max Checkout**: Limitata a stock disponibile ✅
+- **Alert visivo**: Evidenziare prodotti a stock zero ✅
 
-#### **7. PROMPT AGENT AGGIORNATO** ⏳ TODO
+#### **7. CHECKOUT UX COMPLETO** ✅
+- **Modal Aggiungi Prodotti**: Implementato con stock validation ✅
+- **Carrello Edit/Remove**: Quantità dinamiche con limiti stock ✅
+- **Form Validation**: Campi obbligatori e controlli ✅
+- **Reset Carrello**: Automatico dopo ordine completato ✅
+
+#### **8. PROMPT AGENT AGGIORNATO** ⏳ TODO
 - **Raccogliere prodotti** durante conversazione normale
 - **Rilevare intent conferma**: "procedo", "ordino", "confermo", "checkout", "finalizza"
 - **Solo allora** chiamare `createOrderCheckoutLink` con prodotti raccolti
 
-#### **8. TESTING** ⏳ TODO
+#### **9. TESTING** ⏳ TODO
 - Test unitari scala/ripristina stock su cambio status
 - Test edge cases (stock insufficiente, prodotto disattivato)
 - Test token validation e scadenza
@@ -131,7 +137,7 @@ Quando operatore cambia status `PENDING → CONFIRMED`:
 - Test responsività mobile
 
 **STORY POINT**: 10
-**STATUS**: 🟡 In Progress - Checkout Flow Implementato, TODO: Stock Management + Testing
+**STATUS**: 🟢 COMPLETATO - Checkout Flow + Stock Management + UI Completi, TODO: Solo Agent Prompt + Testing
 
 ================================================================================
 
