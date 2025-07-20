@@ -263,7 +263,7 @@ ShopMe - Your trusted e-commerce platform
             <li><strong>Data/Ora:</strong> ${new Date().toLocaleString('it-IT')}</li>
         </ul>
         
-        <h3>💬 Riassunto della conversazione:</h3>
+        <h3>🤖 Riassunto AI della conversazione (ultime 24h):</h3>
         <div class="summary-box">
             ${data.chatSummary}
         </div>
@@ -302,7 +302,7 @@ ShopMe - Your trusted e-commerce platform
 - Workspace: ${data.workspaceName || 'N/A'}
 - Data/Ora: ${new Date().toLocaleString('it-IT')}
 
-💬 Riassunto della conversazione:
+🤖 Riassunto AI della conversazione (ultime 24h):
 ${data.chatSummary}
 
 ${chatLink ? `📱 Link alla chat completa: ${chatLink}` : ''}
