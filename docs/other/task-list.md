@@ -16,42 +16,7 @@ Andrea requires a dedicated N8N CF for new order management.
 
 ================================================================================
 
-## TASK #25
 
-**TITLE**: Integrate Google Translate Node for English Conversion in RAG Search
-**DESCRIPTION/ROADMAP**:
-
-- Integrate a Google Translate node into the RAG search workflow
-- Automatically convert any non-English content (especially FAQs) to English before processing
-- Update backend logic to ensure all relevant content is translated to English within the RAG flow
-- Test the system to confirm correct translation and improved search accuracy
-
-**SPECIAL NOTE**:
-Andrea requires that all non-English content, especially FAQs, is automatically translated to English in the RAG search process for better LLM results.
-
-**STORY POINT**: 6
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #27
-
-**TITLE**: Payment Page: Create Order and Handle Shipping Address via Call Function
-**DESCRIPTION/ROADMAP**:
-
-- On payment confirmation, trigger a call function to the backend to create a new order record
-- Manage the shipping address as part of this call function flow
-- Update the call function prompt to include all necessary order and shipping address details
-- Ensure the backend correctly saves the order and shipping address
-- Test the end-to-end flow from payment to order creation and address storage
-
-**SPECIAL NOTE**:
-Andrea requires that the payment page, once payment is confirmed, always triggers a backend call function to create the order and handle the shipping address. The prompt for the call function must be updated to reflect this logic.
-
-**STORY POINT**: 7
-**STATUS**: 🔴 Not Started
-
-================================================================================
 
 ## TASK #38
 
@@ -115,22 +80,102 @@ Funzionalità avanzate WhatsApp per il futuro. Richiede integrazione con WhatsAp
 
 ================================================================================
 
-## TASK #13
+## TASK #13A
 
-**TITLE**: Security & Performance Optimization
+**TITLE**: API Rate Limiting Implementation
 **DESCRIPTION/ROADMAP**:
 
-- Implement comprehensive API rate limiting
-- Add advanced authentication (2FA)
-- Optimize database queries for performance
-- Add frontend performance monitoring
-- Implement security headers and OWASP compliance
-- Add comprehensive error logging and monitoring
+- Implement comprehensive API rate limiting middleware
+- Configure different rate limits per endpoint type (public vs authenticated)
+- Add rate limit headers to API responses
+- Implement Redis-based rate limiting for scalability
+- Add monitoring and alerting for rate limit violations
+- Test rate limiting behavior under load
 
 **SPECIAL NOTE**:
-Task di ottimizzazione generale per sicurezza e performance. Da implementare quando le funzionalità core sono stabili.
+Focused security task for API protection against abuse and DoS attacks.
 
-**STORY POINT**: 13
+**STORY POINT**: 3
+**STATUS**: 🔵 PHASE 2
+
+================================================================================
+
+## TASK #13B
+
+**TITLE**: Advanced Authentication & 2FA
+**DESCRIPTION/ROADMAP**:
+
+- Implement Two-Factor Authentication (2FA) with TOTP
+- Add backup codes for 2FA recovery
+- Implement account lockout after failed login attempts
+- Add password strength requirements and validation
+- Implement secure password reset flow with email verification
+- Add login attempt monitoring and suspicious activity detection
+
+**SPECIAL NOTE**:
+Enhanced authentication security for user accounts protection.
+
+**STORY POINT**: 8
+**STATUS**: 🔵 PHASE 2
+
+================================================================================
+
+## TASK #13C
+
+**TITLE**: Database Performance Optimization
+**DESCRIPTION/ROADMAP**:
+
+- Analyze and optimize slow database queries
+- Add proper database indexes for frequently queried fields
+- Implement query result caching where appropriate
+- Add database connection pooling optimization
+- Implement pagination for large data sets
+- Add database performance monitoring and alerting
+
+**SPECIAL NOTE**:
+Database optimization for improved application performance and scalability.
+
+**STORY POINT**: 5
+**STATUS**: 🔵 PHASE 2
+
+================================================================================
+
+## TASK #13D
+
+**TITLE**: Security Headers & OWASP Compliance
+**DESCRIPTION/ROADMAP**:
+
+- Implement comprehensive security headers (CSP, HSTS, X-Frame-Options, etc.)
+- Add input validation and sanitization across all endpoints
+- Implement CSRF protection
+- Add SQL injection prevention measures
+- Implement XSS protection mechanisms
+- Conduct security audit and fix vulnerabilities
+
+**SPECIAL NOTE**:
+OWASP compliance and security hardening for production readiness.
+
+**STORY POINT**: 5
+**STATUS**: 🔵 PHASE 2
+
+================================================================================
+
+## TASK #13E
+
+**TITLE**: Comprehensive Logging & Monitoring
+**DESCRIPTION/ROADMAP**:
+
+- Implement structured logging with appropriate log levels
+- Add error tracking and alerting system
+- Implement application performance monitoring (APM)
+- Add health check endpoints for system monitoring
+- Implement log aggregation and search capabilities
+- Add metrics collection for business intelligence
+
+**SPECIAL NOTE**:
+Monitoring and observability for production operations and debugging.
+
+**STORY POINT**: 5
 **STATUS**: 🔵 PHASE 2
 
 ================================================================================
