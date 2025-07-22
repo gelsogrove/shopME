@@ -31,6 +31,21 @@
 - **Order list filters:** Filters on the orders page do not work as expected (search, status, date, etc.).
 - **Customer discount in RAG:** Must always apply the best discount (customer or offer) in price calculations.
 
+### 🔥 **Phase 1 Priority Tasks (Token Security)**
+
+**🚨 HIGH PRIORITY:**
+1. **N8N Token Validation API** (Task #28) - Critical for workflow security
+2. **N8N Custom Function Validator** (Task #29) - Blocks N8N token validation
+3. **Enhanced Registration Link Security** (Task #31) - Security vulnerability
+
+**📈 MEDIUM PRIORITY:**
+4. **Public Link Token Validation** (Task #30) - UX and security improvement
+5. **Ordinary Customer Handler** (Task #32) - Business logic differentiation
+6. **Token Testing Suite** (Task #33) - Quality assurance
+
+**🔧 LOW PRIORITY:**
+7. **Database Optimization** (Task #34) - Performance enhancement
+
 ### ⏳ Phase 2 Tasks (Deferred)
 
 - **Advanced WhatsApp Features** (media, templates, bulk, scheduling)
@@ -3176,28 +3191,70 @@ FRONTEND_URL=https://your-domain.com
 - **Delivery Tracking**: Status and read receipt monitoring
 - **Opt-out Management**: Automatic unsubscribe handling
 
-### Temporary Token Security System
+### 🔐 **Advanced Token Security System (Phase 1 - IMPLEMENTED)**
 
-**Current Token Implementation**:
+**Current Token Architecture**:
 
-- ✅ **Registration Tokens**: 1-hour expiration, single-use
-- ✅ **Token Validation**: Database verification
-- ❌ **Multiple Token Types**: Only registration supported
-- ❌ **Advanced Security**: No encryption or IP validation
-- ❌ **Token Management**: No revocation or cleanup
+- ✅ **Session Tokens**: Auto-generated per WhatsApp message, 1-hour expiration
+- ✅ **Registration Tokens**: Customer registration, 1-hour expiration, single-use
+- ✅ **Secure Tokens**: Multi-purpose (checkout, invoice, cart, password_reset, email_verification)
+- ✅ **Auto-Cleanup**: Automatic removal of expired tokens (>1 hour) on every service call
+- ✅ **Token Rotation**: Previous tokens invalidated on new generation
+- ✅ **N8N Integration**: Session tokens passed in payload for secure workflow validation
 
-**Enhanced Token System**:
+#### 🔄 **Session Token Flow (WhatsApp ↔ N8N)**
 
-#### 🔐 **Token Types**
+```
+1. 📱 WhatsApp Message → Backend
+2. 🧹 Auto-cleanup expired tokens (>1 hour)
+3. 🔑 Generate new Session Token (48 chars SHA256)
+4. ❌ Invalidate previous customer session tokens
+5. 💾 Save to secure_tokens table (expires +1 hour)
+6. 🚀 Send to N8N in JSON payload: { sessionToken, workspaceId, ... }
+7. 🛡️ N8N validates token via Backend API
+```
 
-- **Registration Tokens**: Customer registration (enhanced)
-- **Payment Tokens**: Secure payment processing
-- **Invoice Tokens**: Invoice access and download
-- **Cart Tokens**: Guest user cart access
-- **Password Reset Tokens**: Account recovery
-- **Email Verification Tokens**: Address verification
+#### 🗄️ **Database Storage**
+
+```sql
+-- All tokens stored in unified table
+TABLE secure_tokens (
+  id VARCHAR PRIMARY KEY,
+  token VARCHAR(64) UNIQUE,
+  type VARCHAR, -- 'session' | 'registration' | 'checkout' | 'invoice' | ...
+  workspaceId VARCHAR,
+  userId VARCHAR,
+  phoneNumber VARCHAR,
+  payload JSON, -- encrypted metadata
+  expiresAt TIMESTAMP,
+  usedAt TIMESTAMP NULL,
+  createdAt TIMESTAMP
+)
+```
 
 #### 🛡️ **Security Features**
+
+- **Per-Message Security**: New session token for every WhatsApp interaction
+- **Automatic Cleanup**: Database self-maintains, removes tokens >1 hour old
+- **Token Validation**: N8N can verify token authenticity via Backend API
+- **Workspace Isolation**: Tokens scoped to specific workspace
+- **Expiration Control**: All tokens expire within 1 hour maximum
+- **Usage Tracking**: Mark tokens as used to prevent replay attacks
+
+#### 🔧 **Phase 1 Implementation Status**
+
+**✅ COMPLETED:**
+- Session token generation per WhatsApp message
+- Auto-cleanup mechanism in all token services
+- Token transmission to N8N workflows
+- Database optimization and indexing
+
+**🔧 TODO (Phase 1):**
+- N8N validation API endpoint (`/api/internal/validate-session-token`)
+- N8N Custom Function for token validation
+- Link token validation for public pages
+- Enhanced registration link security
+- Ordinary customer handling in N8N
 
 - **Token Encryption**: Encrypted payloads for sensitive data
 - **IP Validation**: Optional IP address verification

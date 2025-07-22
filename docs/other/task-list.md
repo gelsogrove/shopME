@@ -177,8 +177,217 @@ Andrea requires a clean and maintainable database. All legacy or unused tables m
 ## NOTE
 
 - SECUIRTY owasp
-- DEPLOYMENT ?
-- prompt con url dinamici?
-- usage price sembra statico
-- dentro il pannello se il token scade? gestione tokem app gestione token n8n getione tokend dell'applicativo
-- dammi il pdf ? rag?
+================================================================================
+
+## TASK #28
+
+**TITLE**: N8N Token Validation API Endpoint
+**DESCRIPTION/ROADMAP**:
+
+- Create new internal API endpoint: `POST /api/internal/validate-session-token`
+- Accept sessionToken and workspaceId in request body
+- Return validation result with customer data if valid
+- Include proper error handling for expired/invalid tokens
+- Add comprehensive logging for security monitoring
+
+**TECHNICAL REQUIREMENTS**:
+```typescript
+// API Endpoint Implementation
+POST /api/internal/validate-session-token
+Body: { sessionToken: string, workspaceId: string }
+Response: { 
+  valid: boolean, 
+  data?: { customerId, phoneNumber, expiresAt },
+  error?: string 
+}
+```
+
+**STORY POINT**: 3
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #29
+
+**TITLE**: N8N Custom Function - Session Token Validator
+**DESCRIPTION/ROADMAP**:
+
+- Create new N8N Custom Function `validateSessionToken(sessionToken, workspaceId)`
+- Integrate with backend validation API endpoint
+- Throw proper errors for invalid/expired tokens
+- Return customer data for valid tokens
+- Update all relevant N8N workflows to use token validation
+
+**TECHNICAL REQUIREMENTS**:
+```javascript
+// N8N Custom Function
+async function validateSessionToken(sessionToken, workspaceId) {
+  const response = await fetch('http://backend:3001/api/internal/validate-session-token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionToken, workspaceId })
+  })
+  
+  const result = await response.json()
+  if (!result.valid) {
+    throw new Error('Invalid or expired session token')
+  }
+  return result.data
+}
+```
+
+**STORY POINT**: 4
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #30
+
+**TITLE**: Public Link Token Validation Security
+**DESCRIPTION/ROADMAP**:
+
+- Add token validation middleware for all public links (checkout, invoice, cart)
+- Implement frontend token validation before page load
+- Add user-friendly error messages for expired/invalid links
+- Ensure proper redirect flow for invalid tokens
+- Update all link generation to include proper token parameters
+
+**AFFECTED PAGES**:
+- `/checkout?token=...&workspaceId=...`
+- `/invoice?token=...&workspaceId=...` 
+- `/cart?token=...&workspaceId=...`
+- `/register?token=...&workspaceId=...` (enhanced)
+
+**STORY POINT**: 5
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #31
+
+**TITLE**: Enhanced Registration Link Token Security
+**DESCRIPTION/ROADMAP**:
+
+- Strengthen token validation on registration page
+- Add proper error handling for expired registration links
+- Implement token pre-validation before form display
+- Add user feedback for invalid/expired registration attempts
+- Ensure proper cleanup of used registration tokens
+
+**TECHNICAL REQUIREMENTS**:
+```typescript
+// Enhanced validation flow
+useEffect(() => {
+  validateRegistrationToken(token, workspaceId)
+    .then(result => {
+      if (!result.valid) {
+        setError('Link di registrazione scaduto o non valido')
+        setShowForm(false)
+        return
+      }
+      setCustomerData(result.data)
+      setShowForm(true)
+    })
+    .catch(error => {
+      setError('Errore durante la validazione del link')
+    })
+}, [token, workspaceId])
+```
+
+**STORY POINT**: 3
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #32
+
+**TITLE**: N8N Custom Function - Ordinary Customer Handler
+**DESCRIPTION/ROADMAP**:
+
+- Create new N8N Custom Function `handleOrdinaryCustomer(customerData, sessionToken)`
+- Implement business logic differentiation for ordinary vs premium customers
+- Define feature restrictions and permissions for ordinary customers
+- Integrate with existing customer management workflows
+- Add proper logging and monitoring for customer type handling
+
+**BUSINESS LOGIC**:
+```javascript
+// N8N Custom Function
+async function handleOrdinaryCustomer(customerData, sessionToken) {
+  return {
+    customerType: 'ordinary',
+    allowedFeatures: [
+      'basic_chat', 
+      'product_inquiry', 
+      'basic_support'
+    ],
+    restrictions: [
+      'no_priority_support',
+      'limited_discount_access',
+      'basic_feature_set'
+    ],
+    supportLevel: 'standard'
+  }
+}
+```
+
+**STORY POINT**: 4
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #33
+
+**TITLE**: Token Security Testing & Monitoring Suite
+**DESCRIPTION/ROADMAP**:
+
+- Create comprehensive unit tests for all token services
+- Implement integration tests for N8N ↔ Backend token validation
+- Add performance monitoring for token operations
+- Create admin dashboard for token usage statistics
+- Implement security alerts for suspicious token activity
+
+**TEST COVERAGE**:
+- SessionTokenService auto-cleanup functionality
+- Token validation API endpoint
+- N8N Custom Function validation
+- Public link token verification
+- Registration token security flow
+
+**STORY POINT**: 6
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #34
+
+**TITLE**: Database Token Optimization & Indexing
+**DESCRIPTION/ROADMAP**:
+
+- Review and optimize database indexes for token tables
+- Implement database performance monitoring for token operations
+- Add database cleanup job scheduling (backup for auto-cleanup)
+- Create token usage analytics and reporting
+- Optimize query performance for high-volume token operations
+
+**DATABASE OPTIMIZATIONS**:
+```sql
+-- Additional indexes for performance
+CREATE INDEX idx_secure_tokens_workspace_type ON secure_tokens(workspaceId, type);
+CREATE INDEX idx_secure_tokens_phone_expires ON secure_tokens(phoneNumber, expiresAt);
+CREATE INDEX idx_registration_tokens_workspace_expires ON registration_tokens(workspaceId, expiresAt);
+```
+
+**STORY POINT**: 3
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## PHASE 1 BACKLOG ITEMS
+
+**Priority Items:**
+- DEPLOYMENT configuration and environment setup
+- Dynamic URL prompts in N8N workflows  
+- Static usage price review and dynamic pricing implementation
+- Admin panel token management interface
+- PDF generation and RAG integration for documents
