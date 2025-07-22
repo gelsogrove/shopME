@@ -2928,4 +2928,152 @@ ${JSON.stringify(ragResults, null, 2)}`
       })
     }
   }
+
+  /**
+   * 🧾 GET CUSTOMER INVOICES BY TOKEN
+   * Retrieves customer invoices using a secure token
+   */
+  async getCustomerInvoicesByToken(req: Request, res: Response): Promise<void> {
+    try {
+      const { token } = req.params
+
+      if (!token) {
+        res.status(400).json({
+          success: false,
+          error: 'Token is required'
+        })
+        return
+      }
+
+      // Validate invoice token
+      const validation = await this.secureTokenService.validateToken(token, 'invoice')
+      
+      if (!validation.valid) {
+        res.status(401).json({
+          success: false,
+          error: 'Invalid or expired invoice token'
+        })
+        return
+      }
+
+      const { customerId, workspaceId } = validation.payload || {}
+      
+      if (!customerId || !workspaceId) {
+        res.status(400).json({
+          success: false,
+          error: 'Invalid token payload'
+        })
+        return
+      }
+
+      logger.info(`[INVOICES] 📋 Fetching invoices for customer ${customerId} in workspace ${workspaceId}`)
+
+      // Get customer info
+      const customer = await this.prisma.customers.findFirst({
+        where: {
+          id: customerId,
+          workspaceId: workspaceId
+        },
+        include: {
+          workspace: true
+        }
+      })
+
+      if (!customer) {
+        res.status(404).json({
+          success: false,
+          error: 'Customer not found'
+        })
+        return
+      }
+
+      // Get customer orders that can be converted to invoices
+      const orders = await this.prisma.orders.findMany({
+        where: {
+          customerId: customerId,
+          workspaceId: workspaceId,
+          status: {
+            in: ['completed', 'delivered', 'paid']
+          }
+        },
+        include: {
+          orderItems: {
+            include: {
+              product: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      })
+
+      // Convert orders to invoice format
+      const invoices = orders.map(order => ({
+        id: order.id,
+        number: `INV-${order.id.slice(-8).toUpperCase()}`,
+        date: order.createdAt,
+        amount: order.totalAmount,
+        status: order.status === 'paid' ? 'paid' : 
+                order.status === 'completed' ? 'pending' : 'overdue',
+        items: order.orderItems.map(item => ({
+          description: item.product?.name || 'Prodotto',
+          quantity: item.quantity,
+          unitPrice: item.price,
+          amount: (item.quantity * item.price).toFixed(2)
+        })),
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerPhone: customer.phone
+      }))
+
+      // Calculate summary
+      const summary = {
+        totalInvoices: invoices.length,
+        totalPaid: invoices
+          .filter(inv => inv.status === 'paid')
+          .reduce((sum, inv) => sum + parseFloat(inv.amount), 0)
+          .toFixed(2),
+        totalPending: invoices
+          .filter(inv => inv.status === 'pending')
+          .reduce((sum, inv) => sum + parseFloat(inv.amount), 0)
+          .toFixed(2),
+        totalOverdue: invoices
+          .filter(inv => inv.status === 'overdue')
+          .reduce((sum, inv) => sum + parseFloat(inv.amount), 0)
+          .toFixed(2)
+      }
+
+      logger.info(`[INVOICES] ✅ Found ${invoices.length} invoices for customer ${customer.name}`)
+
+      res.status(200).json({
+        success: true,
+        data: {
+          customer: {
+            id: customer.id,
+            name: customer.name,
+            email: customer.email,
+            phone: customer.phone
+          },
+          workspace: {
+            id: customer.workspace.id,
+            name: customer.workspace.name
+          },
+          invoices,
+          summary,
+          tokenInfo: {
+            type: 'invoice',
+            expiresAt: validation.data?.expiresAt,
+            issuedAt: validation.data?.createdAt
+          }
+        }
+      })
+    } catch (error) {
+      logger.error('[INVOICES] Error fetching customer invoices:', error)
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      })
+    }
+  }
 }
