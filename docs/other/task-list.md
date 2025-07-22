@@ -18,6 +18,28 @@ Andrea requires a dedicated N8N CF for new order management.
 
 
 
+## TASK #26
+
+**TITLE**: LLM Usage Cost Tracking per Workspace
+**DESCRIPTION/ROADMAP**:
+
+- Create database field for tracking LLM usage costs per workspace (Euro with 2 decimals)
+- Implement incremental cost tracking: each LLM response = +€0.50
+- Add cost increment logic in WhatsApp message processing pipeline
+- Update workspace model/schema to include usage_cost field (DECIMAL(10,2))
+- Create database migration for new field
+- Implement cost tracking in N8N workflow and/or backend services
+- Add cost display in workspace dashboard/settings
+- Test cost tracking accuracy with multiple LLM interactions
+
+**SPECIAL NOTE**:
+Andrea requires real-time cost tracking for each workspace. Every LLM response should increment workspace cost by €0.50 automatically.
+
+**STORY POINT**: 5
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
 ## TASK #38
 
 **TITLE**: Implement 'Aviso legal' PDF Upload and Integration
