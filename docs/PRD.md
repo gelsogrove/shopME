@@ -35,18 +35,14 @@
 
 **🚨 HIGH PRIORITY:**
 1. **N8N Token Validation API** (Task #28) - Critical for workflow security
-2. **N8N Custom Function Validator** (Task #29) - Blocks N8N token validation
-3. **N8N Invoice Calling Function** (Task #36) - Complete invoice workflow integration
+2. **N8N Invoice Calling Function** (Task #36) - Complete invoice workflow integration
 
 **📈 MEDIUM PRIORITY:**
-4. ✅ **Public Link Token Validation** (Task #30) - COMPLETED ✅
-5. **Enhanced Registration Link Security** (Task #31) - Security vulnerability
-6. **Ordinary Customer Handler** (Task #32) - Business logic differentiation
-7. **Token Testing Suite** (Task #33) - Quality assurance
+3. **Ordinary Customer Handler** (Task #32) - Business logic differentiation
 
 **🔧 LOW PRIORITY:**
-8. **Database Optimization** (Task #34) - Performance enhancement
-9. **Complete Public Pages** (Task #35) - Checkout & Cart implementation
+4. **Database Optimization** (Task #34) - Performance enhancement
+5. **Complete Public Pages** (Task #35) - Checkout & Cart implementation
 
 ### ⏳ Phase 2 Tasks (Deferred)
 
@@ -6889,7 +6885,6 @@ Ogni messaggio WhatsApp passa attraverso il workflow N8N che chiama gli endpoint
 | **GetInvoicesCall** | **Calling Function** | **🚨 HIGH** | **Task #36** | **LLM-integrated invoice requests** |
 | GetCheckoutCall | Calling Function | 📈 Medium | Task #35 | LLM-integrated checkout process |
 | GetCartCall | Calling Function | 📈 Medium | Task #35 | LLM-integrated cart management |
-| ValidateSessionToken | Custom Function | 🚨 HIGH | Task #29 | Token security validation |
 | HandleOrdinaryCustomer | Custom Function | 📈 Medium | Task #32 | Customer type differentiation |
 
 ### **🧾 GetInvoicesCall Implementation Plan**
