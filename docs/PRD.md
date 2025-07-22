@@ -36,15 +36,17 @@
 **🚨 HIGH PRIORITY:**
 1. **N8N Token Validation API** (Task #28) - Critical for workflow security
 2. **N8N Custom Function Validator** (Task #29) - Blocks N8N token validation
-3. **Enhanced Registration Link Security** (Task #31) - Security vulnerability
+3. **N8N Invoice Calling Function** (Task #36) - Complete invoice workflow integration
 
 **📈 MEDIUM PRIORITY:**
-4. **Public Link Token Validation** (Task #30) - UX and security improvement
-5. **Ordinary Customer Handler** (Task #32) - Business logic differentiation
-6. **Token Testing Suite** (Task #33) - Quality assurance
+4. ✅ **Public Link Token Validation** (Task #30) - COMPLETED ✅
+5. **Enhanced Registration Link Security** (Task #31) - Security vulnerability
+6. **Ordinary Customer Handler** (Task #32) - Business logic differentiation
+7. **Token Testing Suite** (Task #33) - Quality assurance
 
 **🔧 LOW PRIORITY:**
-7. **Database Optimization** (Task #34) - Performance enhancement
+8. **Database Optimization** (Task #34) - Performance enhancement
+9. **Complete Public Pages** (Task #35) - Checkout & Cart implementation
 
 ### ⏳ Phase 2 Tasks (Deferred)
 
@@ -988,33 +990,123 @@ Implementare la calling function **ReceiveInvoice** che gestisce richieste di fa
 }
 ```
 
-### **🎨 Pagina Lista Fatture**
+### **🧾 Invoice System - Complete Implementation**
 
-#### **Design Requirements**
+**STATUS**: ✅ **FULLY IMPLEMENTED** (Task #30 Complete)
 
-- ✅ **Stessi colori** della form di registrazione
-- ✅ **Layout simile** alla pagina di registrazione
-- ✅ **Responsive design** mobile-first
-- ✅ **Branding coerente** con il resto del sistema
-
-#### **URL Structure**
+#### **🏗️ Architecture Overview**
 
 ```
-https://domain.com/customer/invoices?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+📱 WhatsApp → 🤖 N8N → 🔐 Backend → 🎨 Frontend → 📋 Invoice Data
 ```
 
-#### **🔑 Token Security**
+#### **🔧 Backend Implementation**
 
+**APIs Implemented**:
 ```typescript
-// TOKEN PAYLOAD EXAMPLE:
+// Token validation for all public pages
+POST /api/internal/validate-secure-token
 {
-  "customerId": "customer-456",
-  "workspaceId": "workspace-123",
-  "purpose": "invoice_list",
-  "iat": 1643723400,
-  "exp": 1643809800  // 24h expiration
+  token: string,
+  type?: 'invoice' | 'checkout' | 'cart' | 'registration',
+  workspaceId?: string
+}
+
+// Get customer invoices by secure token
+GET /api/internal/invoices/:token
+Response: {
+  success: true,
+  data: {
+    customer: { id, name, email, phone },
+    workspace: { id, name },
+    invoices: Invoice[],
+    summary: { totalPaid, totalPending, totalOverdue, totalInvoices },
+    tokenInfo: { expiresAt, issuedAt }
+  }
 }
 ```
+
+**Secure Token Flow**:
+```typescript
+// 1. Generate invoice token (24h validity)
+type: 'invoice',
+payload: {
+  customerId, workspaceId, customerName, 
+  customerPhone, purpose: 'invoice_access'
+}
+
+// 2. Auto-cleanup expired tokens (>1 hour)
+// 3. Database conversion: Orders → Invoices
+```
+
+#### **🎨 Frontend Implementation**
+
+**Invoice Page Features**:
+- ✅ **Token Validation**: Auto-validation with `useInvoiceTokenValidation()`
+- ✅ **Real Data Display**: Orders converted to invoice format
+- ✅ **Customer Info**: Name, email, phone, workspace details  
+- ✅ **Invoice List**: Number, date, amount, status, items breakdown
+- ✅ **Summary Stats**: Total paid, pending, overdue amounts (4-column grid)
+- ✅ **Status Badges**: Paid (green), Pending (yellow), Overdue (red)
+- ✅ **Action Buttons**: View details, Download PDF
+- ✅ **Error Handling**: TokenError component with retry functionality
+- ✅ **Loading States**: TokenLoading for better UX
+- ✅ **Responsive Design**: Mobile-first, consistent with registration page
+
+**URL Structure**:
+```
+https://domain.com/invoice?token=abc123...&workspaceId=ws_456
+```
+
+#### **🤖 N8N Integration**
+
+**Custom Function Implemented**:
+```javascript
+// GetInvoices.js - N8N Custom Function
+GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
+
+Returns:
+{
+  success: true,
+  invoiceListUrl: "https://domain.com/invoice?token=abc123",
+  totalInvoices: 5,
+  totalPaid: "800.00",
+  totalPending: "450.00", 
+  totalOverdue: "0.00",
+  customerName: "Mario Rossi",
+  message: "Ecco le tue fatture! Ho trovato 5 fatture. Clicca il link per visualizzarle.",
+  tokenExpiry: "2024-01-16T10:30:00Z"
+}
+```
+
+**Security Features**:
+- 🔐 **Session Token Validation**: Validates N8N session before generating invoice token
+- 🔒 **Secure Token Generation**: 24-hour invoice access tokens
+- 🛡️ **Error Handling**: Comprehensive error management and logging
+- ⏰ **Auto-Cleanup**: Expired tokens automatically removed
+
+#### **📊 Data Processing**
+
+**Orders → Invoices Conversion**:
+```typescript
+// Backend converts completed/delivered/paid orders to invoices
+orders.map(order => ({
+  id: order.id,
+  number: `INV-${order.id.slice(-8).toUpperCase()}`,
+  date: order.createdAt,
+  amount: order.totalAmount,
+  status: order.status === 'paid' ? 'paid' : 
+          order.status === 'completed' ? 'pending' : 'overdue',
+  items: order.orderItems.map(item => ({
+    description: item.product?.name,
+    quantity: item.quantity,
+    unitPrice: item.price,
+    amount: (item.quantity * item.price).toFixed(2)
+  }))
+}))
+```
+
+#### **🔑 Enhanced Token Security**
 
 #### **Token Flow Completo**
 
@@ -6776,6 +6868,51 @@ Ogni messaggio WhatsApp passa attraverso il workflow N8N che chiama gli endpoint
 - **Maggiore sicurezza** con logica interna
 - **Performance migliorate** senza roundtrip network
 
+## 🤖 **N8N CALLING FUNCTIONS ROADMAP**
+
+### **📋 Current Implementation Status**
+
+| Function | Type | Status | Task |
+|----------|------|---------|------|
+| GetProducts | Custom Function | ✅ Active | Completed |
+| RagSearch | Custom Function | ✅ Active | Completed |
+| CreateOrder | Custom Function | ✅ Active | Completed |
+| GetActiveOffers | Custom Function | ✅ Active | Completed |
+| GetCustomer | Custom Function | ✅ Active | Completed |
+| GetCategories | Custom Function | ✅ Active | Completed |
+| **GetInvoices** | **Custom Function** | **✅ Active** | **Task #30** |
+
+### **🚀 Planned Calling Functions**
+
+| Function | Type | Priority | Task | Purpose |
+|----------|------|----------|------|---------|
+| **GetInvoicesCall** | **Calling Function** | **🚨 HIGH** | **Task #36** | **LLM-integrated invoice requests** |
+| GetCheckoutCall | Calling Function | 📈 Medium | Task #35 | LLM-integrated checkout process |
+| GetCartCall | Calling Function | 📈 Medium | Task #35 | LLM-integrated cart management |
+| ValidateSessionToken | Custom Function | 🚨 HIGH | Task #29 | Token security validation |
+| HandleOrdinaryCustomer | Custom Function | 📈 Medium | Task #32 | Customer type differentiation |
+
+### **🧾 GetInvoicesCall Implementation Plan**
+
+**Purpose**: Convert invoice requests from natural language to structured invoice access
+
+**Integration Flow**:
+```
+Cliente: "Voglio vedere le fatture di marzo" 
+→ LLM Processing 
+→ GetInvoicesCall(filters: {month: 'march'}) 
+→ Backend Invoice API 
+→ Secure Token Generation 
+→ WhatsApp Response with Link
+```
+
+**Technical Requirements** (Task #36):
+- **Backend Calling Function**: `/src/chatbot/calling-functions/getInvoices.ts`
+- **LLM Integration**: Natural language query processing
+- **Filter Support**: Date ranges, amounts, status filtering  
+- **Response Formatting**: WhatsApp-optimized messages
+- **Security**: Session token validation before execution
+
 ---
 
 ## 💰 **USAGE TRACKING & DASHBOARD ANALYTICS**
@@ -7040,7 +7177,53 @@ Andrea's usage tracking system provides comprehensive LLM cost monitoring with p
 
 ## 🔧 **N8N CUSTOM FUNCTIONS - COMPLETE DOCUMENTATION**
 
-ShopMe utilizza 6 funzioni personalizzate nel workflow N8N per fornire un'esperienza di e-commerce completa via WhatsApp. Ogni funzione implementa la **strategia prezzi di Andrea** (sconto più alto vince) e accede direttamente al database per informazioni aggiornate.
+ShopMe utilizza 7 funzioni personalizzate nel workflow N8N per fornire un'esperienza di e-commerce completa via WhatsApp. Ogni funzione implementa la **strategia prezzi di Andrea** (sconto più alto vince) e accede direttamente al database per informazioni aggiornate.
+
+### **🧾 GetInvoices() - Sistema Fatture Elettroniche (NEW)**
+
+**STATUS**: ✅ **IMPLEMENTATO** (Task #30 Complete)
+
+**FUNZIONALITÀ:** Gestisce richieste di fatture elettroniche con generazione di link sicuri per visualizzazione e download. Valida session token e genera token dedicati per l'accesso sicuro alle fatture.
+
+**DATABASE CONSULTATO:**
+
+- **ORDERS** - Ordini completati/consegnati/pagati convertiti in fatture
+- **ORDER_ITEMS** - Dettagli prodotti per ogni fattura
+- **PRODUCTS** - Informazioni prodotti nelle fatture
+- **CUSTOMERS** - Dati cliente e workspace associato
+- **SECURE_TOKENS** - Validazione session token e generazione invoice token
+
+**LOGICA BUSINESS:**
+
+- **Security First**: Valida session token prima di qualsiasi operazione
+- **Token Rotation**: Genera nuovo invoice token (24h validity) per ogni richiesta
+- **Data Conversion**: Orders → Invoices con calcolo status automatico
+- **Summary Statistics**: Totali pagati, in attesa, scaduti per overview rapida
+
+**PARAMETRI:**
+```javascript
+GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
+```
+
+**RESPONSE FORMAT:**
+```javascript
+{
+  success: true,
+  invoiceListUrl: "https://domain.com/invoice?token=abc123",
+  totalInvoices: 5,
+  totalPaid: "800.00",
+  totalPending: "450.00", 
+  totalOverdue: "0.00",
+  customerName: "Mario Rossi",
+  message: "📋 *Le tue fatture*\n\nHo trovato 5 fatture:\n✅ Pagate: €800.00\n⏳ In attesa: €450.00\n\n[Visualizza tutte](link)",
+  tokenExpiry: "2024-01-16T10:30:00Z"
+}
+```
+
+**TRIGGER ESEMPI:**
+- "Vorrei vedere le mie fatture" → Generate secure invoice link
+- "Ho bisogno delle fatture per la contabilità" → Invoice access with summary
+- "Mostrami le fatture di questo mese" → Filtered invoice view
 
 ### **🔍 RagSearch() - Sistema di Ricerca Semantica Avanzata**
 
