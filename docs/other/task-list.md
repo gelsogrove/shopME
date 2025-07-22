@@ -416,6 +416,73 @@ CREATE INDEX idx_registration_tokens_workspace_expires ON registration_tokens(wo
 
 ================================================================================
 
+## TASK #36
+
+**TITLE**: N8N Calling Function - Invoice Management
+**DESCRIPTION/ROADMAP**:
+
+- Create N8N calling function for invoice operations similar to existing order/checkout functions
+- Integrate with backend invoice system and secure token validation
+- Implement invoice search, filtering, and download capabilities
+- Add support for invoice status updates and payment tracking
+- Ensure proper session token validation and error handling
+
+**IMPLEMENTATION REQUIREMENTS**:
+
+**📁 Backend Calling Function:**
+```typescript
+// /backend/src/chatbot/calling-functions/getInvoices.ts
+interface InvoiceFunction {
+  customerId: string
+  workspaceId: string
+  sessionToken: string
+  filters?: {
+    status?: 'paid' | 'pending' | 'overdue'
+    dateFrom?: string
+    dateTo?: string
+    minAmount?: number
+    maxAmount?: number
+  }
+}
+```
+
+**🤖 N8N Integration:**
+- Add GetInvoices as calling function (not just custom function)
+- Support for LLM-based invoice queries ("show me unpaid invoices", "invoices from last month")
+- Integration with existing N8N workflow for seamless chatbot experience
+- Proper response formatting for WhatsApp messages
+
+**📊 Features to Implement:**
+- 🔍 Invoice search and filtering
+- 📋 Invoice list generation with secure links
+- 💰 Payment status tracking
+- 📱 WhatsApp-friendly response formatting
+- 🔐 Session token validation
+- 📤 PDF download link generation
+- 📧 Email invoice sending capability
+
+**TECHNICAL REQUIREMENTS:**
+```javascript
+// N8N Calling Function Response Format
+{
+  success: true,
+  invoiceCount: 5,
+  invoiceListUrl: "https://domain.com/invoice?token=abc123",
+  summary: {
+    totalAmount: "1,250.00",
+    paidAmount: "800.00", 
+    pendingAmount: "450.00"
+  },
+  formattedMessage: "📋 *Le tue fatture*\n\n✅ Pagate: €800.00\n⏳ In attesa: €450.00\n\n[Visualizza tutte le fatture](link)",
+  quickActions: ["download_pdf", "send_email", "view_details"]
+}
+```
+
+**STORY POINT**: 6
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
 ## PHASE 1 BACKLOG ITEMS
 
 **Priority Items:**
