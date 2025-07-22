@@ -2868,4 +2868,64 @@ ${JSON.stringify(ragResults, null, 2)}`
       return query; // Fallback to original query
     }
   }
+
+  /**
+   * 🔐 VALIDATE SECURE TOKEN
+   * Validates token for public links (checkout, invoice, cart, etc.)
+   */
+  async validateSecureToken(req: Request, res: Response): Promise<void> {
+    try {
+      const { token, type, workspaceId } = req.body
+
+      if (!token) {
+        res.status(400).json({
+          valid: false,
+          error: 'Token is required'
+        })
+        return
+      }
+
+      // Validate token using SecureTokenService
+      const validation = await this.secureTokenService.validateToken(token, type)
+      
+      if (!validation.valid) {
+        res.status(401).json({
+          valid: false,
+          error: 'Invalid or expired token'
+        })
+        return
+      }
+
+      // Check workspace match if provided
+      if (workspaceId && validation.data?.workspaceId !== workspaceId) {
+        res.status(403).json({
+          valid: false,
+          error: 'Token workspace mismatch'
+        })
+        return
+      }
+
+      logger.info(`[VALIDATE-TOKEN] ✅ Token validated successfully for type: ${type || 'any'}`)
+
+      res.status(200).json({
+        valid: true,
+        data: {
+          tokenId: validation.data?.id,
+          type: validation.data?.type,
+          workspaceId: validation.data?.workspaceId,
+          userId: validation.data?.userId,
+          phoneNumber: validation.data?.phoneNumber,
+          expiresAt: validation.data?.expiresAt,
+          createdAt: validation.data?.createdAt
+        },
+        payload: validation.payload
+      })
+    } catch (error) {
+      logger.error('[VALIDATE-TOKEN] Error validating secure token:', error)
+      res.status(500).json({
+        valid: false,
+        error: 'Internal server error during token validation'
+      })
+    }
+  }
 }
