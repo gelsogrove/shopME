@@ -259,7 +259,16 @@ async function validateSessionToken(sessionToken, workspaceId) {
 - 🔧 `/cart?token=...&workspaceId=...` (TODO)
 
 **STORY POINT**: 5
-**STATUS**: 🟡 Partially Complete (70%)
+**STATUS**: ✅ Complete (100%)
+
+**COMPLETED IMPLEMENTATIONS:**
+- ✅ Backend API: `POST /api/internal/validate-secure-token`
+- ✅ Backend API: `GET /api/internal/invoices/:token`
+- ✅ Frontend Hook: `useTokenValidation()` and specialized hooks
+- ✅ Frontend Components: `TokenError`, `TokenLoading`
+- ✅ Invoice Page: Complete implementation with real data
+- ✅ Registration Page: Enhanced with new validation system
+- ✅ N8N Custom Function: `GetInvoices()` with token validation
 
 ================================================================================
 
@@ -379,6 +388,30 @@ CREATE INDEX idx_registration_tokens_workspace_expires ON registration_tokens(wo
 ```
 
 **STORY POINT**: 3
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #35
+
+**TITLE**: Complete Public Pages Implementation (Checkout & Cart)
+**DESCRIPTION/ROADMAP**:
+
+- Create checkout page with token validation and payment processing
+- Create cart page with token validation and item management
+- Implement N8N Custom Functions for checkout and cart operations
+- Add routes to frontend routing system
+- Test end-to-end flow for all public pages
+
+**IMPLEMENTATION SCOPE**:
+- 🛒 CheckoutPage.tsx with payment form and order summary
+- 🛍️ CartPage.tsx with cart management and item editing
+- 🤖 N8N CF: GetCheckout() with token validation
+- 🤖 N8N CF: GetCart() with token validation
+- 🛣️ Frontend routing for /checkout and /cart
+- 🧪 Integration testing for complete flow
+
+**STORY POINT**: 8
 **STATUS**: 🔴 Not Started
 
 ================================================================================

@@ -1,7 +1,50 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useInvoiceTokenValidation } from '../hooks/useTokenValidation'
 import { TokenError, TokenLoading } from '../components/ui/TokenError'
+import axios from 'axios'
+
+interface Invoice {
+  id: string
+  number: string
+  date: string
+  amount: string
+  status: 'paid' | 'pending' | 'overdue'
+  items: {
+    description: string
+    quantity: number
+    unitPrice: string
+    amount: string
+  }[]
+  customerName: string
+  customerEmail: string
+  customerPhone: string
+}
+
+interface InvoiceData {
+  customer: {
+    id: string
+    name: string
+    email: string
+    phone: string
+  }
+  workspace: {
+    id: string
+    name: string
+  }
+  invoices: Invoice[]
+  summary: {
+    totalInvoices: number
+    totalPaid: string
+    totalPending: string
+    totalOverdue: string
+  }
+  tokenInfo: {
+    type: string
+    expiresAt: string
+    issuedAt: string
+  }
+}
 
 const InvoicePage: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -11,15 +54,55 @@ const InvoicePage: React.FC = () => {
   // 🔐 Validate invoice token
   const { 
     valid, 
-    loading, 
-    error, 
+    loading: tokenLoading, 
+    error: tokenError, 
     tokenData, 
-    payload,
     validateToken 
   } = useInvoiceTokenValidation(token, workspaceId)
 
+  // 📋 Invoice data state
+  const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null)
+  const [loadingInvoices, setLoadingInvoices] = useState(false)
+  const [invoicesError, setInvoicesError] = useState<string | null>(null)
+
+  // 📋 Fetch invoices when token is validated
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      if (!valid || !token) return
+
+      setLoadingInvoices(true)
+      setInvoicesError(null)
+
+      try {
+        console.log(`[INVOICES] 📋 Fetching invoices with token: ${token.substring(0, 12)}...`)
+        
+        const response = await axios.get(`/api/internal/invoices/${token}`)
+        
+        if (response.data.success) {
+          setInvoiceData(response.data.data)
+          console.log(`[INVOICES] ✅ Found ${response.data.data.invoices.length} invoices`)
+        } else {
+          setInvoicesError(response.data.error || 'Errore nel caricamento fatture')
+        }
+      } catch (error: any) {
+        console.error('[INVOICES] Error fetching invoices:', error)
+        if (error.response?.status === 401) {
+          setInvoicesError('Token scaduto, richiedi un nuovo link')
+        } else if (error.response?.status === 404) {
+          setInvoicesError('Cliente non trovato')
+        } else {
+          setInvoicesError('Errore nel caricamento delle fatture')
+        }
+      } finally {
+        setLoadingInvoices(false)
+      }
+    }
+
+    fetchInvoices()
+  }, [valid, token])
+
   // Show loading state during token validation
-  if (loading) {
+  if (tokenLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <TokenLoading className="max-w-md w-full" />
@@ -28,12 +111,40 @@ const InvoicePage: React.FC = () => {
   }
 
   // Show error if token is invalid
-  if (error || !valid) {
+  if (tokenError || !valid) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <TokenError 
-          error={error || 'Token fattura non valido'}
+          error={tokenError || 'Token fattura non valido'}
           onRetry={validateToken}
+          showRetry={true}
+          className="max-w-md w-full"
+        />
+      </div>
+    )
+  }
+
+  // Show loading state during invoices fetch
+  if (loadingInvoices) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center max-w-md w-full">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <p className="text-blue-700 font-medium">Caricamento fatture...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error if invoices couldn't be loaded
+  if (invoicesError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <TokenError 
+          error={invoicesError}
+          onRetry={() => window.location.reload()}
           showRetry={true}
           className="max-w-md w-full"
         />
@@ -51,13 +162,31 @@ const InvoicePage: React.FC = () => {
             🧾 Fatture Elettroniche
           </h1>
           <p className="text-gray-600">
-            Visualizza e scarica le tue fatture
+            {invoiceData ? `Ciao ${invoiceData.customer.name}, visualizza e scarica le tue fatture` : 'Visualizza e scarica le tue fatture'}
           </p>
           
+          {/* Customer & Workspace Info */}
+          {invoiceData && (
+            <div className="mt-4 flex flex-wrap gap-4 text-sm">
+              <div className="flex items-center text-gray-600">
+                <span className="font-medium">Cliente:</span>
+                <span className="ml-1">{invoiceData.customer.name}</span>
+              </div>
+              <div className="flex items-center text-gray-600">
+                <span className="font-medium">Business:</span>
+                <span className="ml-1">{invoiceData.workspace.name}</span>
+              </div>
+              <div className="flex items-center text-gray-600">
+                <span className="font-medium">Phone:</span>
+                <span className="ml-1">{invoiceData.customer.phone}</span>
+              </div>
+            </div>
+          )}
+          
           {/* Token Info (Debug - remove in production) */}
-          {tokenData && (
+          {invoiceData?.tokenInfo && (
             <div className="mt-4 p-3 bg-green-50 rounded border text-sm text-green-700">
-              ✅ Token valido - Scade: {new Date(tokenData.expiresAt!).toLocaleString()}
+              ✅ Token valido - Scade: {new Date(invoiceData.tokenInfo.expiresAt).toLocaleString()}
             </div>
           )}
         </div>
@@ -69,9 +198,9 @@ const InvoicePage: React.FC = () => {
           </div>
 
           {/* Invoices */}
-          {payload?.invoices ? (
+          {invoiceData?.invoices && invoiceData.invoices.length > 0 ? (
             <div className="divide-y">
-              {payload.invoices.map((invoice: any, index: number) => (
+              {invoiceData.invoices.map((invoice: Invoice, index: number) => (
                 <div key={index} className="p-6 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
@@ -152,8 +281,8 @@ const InvoicePage: React.FC = () => {
         </div>
 
         {/* Summary Stats */}
-        {payload?.summary && (
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {invoiceData?.summary && (
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-lg shadow-sm border p-4">
               <div className="flex items-center">
                 <div className="w-8 h-8 bg-green-100 rounded flex items-center justify-center mr-3">
@@ -161,7 +290,7 @@ const InvoicePage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Totale Pagato</p>
-                  <p className="text-lg font-semibold">€{payload.summary.totalPaid}</p>
+                  <p className="text-lg font-semibold">€{invoiceData.summary.totalPaid}</p>
                 </div>
               </div>
             </div>
@@ -173,7 +302,19 @@ const InvoicePage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">In Attesa</p>
-                  <p className="text-lg font-semibold">€{payload.summary.totalPending}</p>
+                  <p className="text-lg font-semibold">€{invoiceData.summary.totalPending}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm border p-4">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-red-100 rounded flex items-center justify-center mr-3">
+                  <span className="text-red-600 font-bold">⚠️</span>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Scadute</p>
+                  <p className="text-lg font-semibold">€{invoiceData.summary.totalOverdue}</p>
                 </div>
               </div>
             </div>
@@ -185,7 +326,7 @@ const InvoicePage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Totale Fatture</p>
-                  <p className="text-lg font-semibold">{payload.summary.totalInvoices}</p>
+                  <p className="text-lg font-semibold">{invoiceData.summary.totalInvoices}</p>
                 </div>
               </div>
             </div>
