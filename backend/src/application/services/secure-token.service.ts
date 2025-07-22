@@ -59,6 +59,23 @@ export class SecureTokenService {
     ipAddress?: string
   ): Promise<string> {
     try {
+      // 🧹 AUTO-CLEANUP: Remove expired tokens (older than 1 hour) for this workspace
+      const oneHourAgo = new Date()
+      oneHourAgo.setHours(oneHourAgo.getHours() - 1)
+      
+      const cleanupResult = await this.prisma.secureToken.deleteMany({
+        where: {
+          workspaceId,
+          expiresAt: {
+            lt: oneHourAgo
+          }
+        }
+      })
+
+      if (cleanupResult.count > 0) {
+        logger.info(`[SECURE-TOKEN] 🧹 Auto-cleaned ${cleanupResult.count} expired tokens (older than 1 hour) for workspace ${workspaceId}`)
+      }
+
       // Invalidate existing tokens of the same type for the same user/phone
       const whereClause: any = {
         type,

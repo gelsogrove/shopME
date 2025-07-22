@@ -56,6 +56,24 @@ export class SessionTokenService {
     conversationId?: string
   ): Promise<string> {
     try {
+      // 🧹 AUTO-CLEANUP: Remove expired session tokens (older than 1 hour)
+      const oneHourAgo = new Date()
+      oneHourAgo.setHours(oneHourAgo.getHours() - 1)
+      
+      const cleanupResult = await this.prisma.secureToken.deleteMany({
+        where: {
+          type: 'session',
+          workspaceId,
+          expiresAt: {
+            lt: oneHourAgo
+          }
+        }
+      })
+
+      if (cleanupResult.count > 0) {
+        logger.info(`[SESSION-TOKEN] 🧹 Auto-cleaned ${cleanupResult.count} expired session tokens (older than 1 hour) for workspace ${workspaceId}`)
+      }
+
       // Invalidate existing active session tokens for this customer
       await this.prisma.secureToken.updateMany({
         where: {
