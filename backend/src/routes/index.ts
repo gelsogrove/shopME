@@ -32,6 +32,7 @@ import { createOrderRouter } from "../interfaces/http/routes/order.routes"
 
 import { whatsappRouter } from "../interfaces/http/routes/whatsapp.routes"
 import { workspaceRoutes } from "../interfaces/http/routes/workspace.routes"
+import { checkoutRouter } from "../interfaces/http/routes/checkout.routes"
 import logger from "../utils/logger"
 // Add these imports for backward compatibility during migration
 import { PromptsController } from "../controllers/prompts.controller"
@@ -204,6 +205,10 @@ logger.info("Registered internal API routes for N8N integration")
 // Mount analytics routes
 router.use("/analytics", analyticsRoutes);
 logger.info("Registered analytics routes for dashboard metrics")
+
+// Mount checkout routes (public - no auth required)
+router.use("/checkout", checkoutRouter);
+logger.info("Registered checkout routes for order processing")
 
 // Add special route for GDPR default content (to handle frontend request to /gdpr/default)
 router.get("/gdpr/default", authMiddleware, settingsController.getDefaultGdprContent.bind(settingsController))
