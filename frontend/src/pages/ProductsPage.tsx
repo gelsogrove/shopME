@@ -418,6 +418,9 @@ export function ProductsPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
         isLoading={isLoading}
+        getRowClassName={(product: Product) => 
+          product.stock === 0 ? 'bg-red-50 border-l-4 border-red-500' : ''
+        }
       />
 
       <FormSheet

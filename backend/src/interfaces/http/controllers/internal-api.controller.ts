@@ -458,11 +458,14 @@ export class InternalApiController {
       }
 
       // 🌍 TRANSLATE QUERY TO ENGLISH FOR BETTER SEMANTIC SEARCH
-      const translatedQuery = await this.translateQueryToEnglish(query, customerLanguage || 'it');
-      
+      const translatedQuery = await this.translateQueryToEnglish(
+        query,
+        customerLanguage || "it"
+      )
+
       logger.info(
         `[RAG-SEARCH] Original: "${query}" | Translated: "${translatedQuery}" | Language: ${customerLanguage}`
-      );
+      )
 
       // Get workspace to determine business type if not provided
       let targetBusinessType = businessType
@@ -634,40 +637,46 @@ export class InternalApiController {
     }
 
     res.json({
-      businessType: "ECOMMERCE",
       products: productResults
         .map((r) => {
-          const product = fullProducts.find((p) => p.id === r.id);
-          return product ? {
-            id: product.id,
-            name: product.name,
-            description: product.description,
-            price: product.originalPrice || product.price,
-            finalPrice: product.finalPrice || product.price,
-            hasDiscount: product.hasDiscount || false,
-            discountPercent: product.discountPercent || 0,
-            discountSource: product.discountSource,
-            discountName: product.discountName,
-            stock: product.stock,
-            sku: product.sku,
-            category: product.category?.name
-          } : null;
+          const product = fullProducts.find((p) => p.id === r.id)
+          return product
+            ? {
+                id: product.id,
+                name: product.name,
+                description: product.description,
+                price: (product as any).originalPrice || product.price,
+                finalPrice: (product as any).finalPrice || product.price,
+                hasDiscount: (product as any).hasDiscount || false,
+                discountPercent: (product as any).discountPercent || 0,
+                discountSource: (product as any).discountSource,
+                discountName: (product as any).discountName,
+                stock: product.stock,
+                sku: product.sku,
+                category: product.category?.name,
+              }
+            : null
         })
         .filter(Boolean),
-      faqs: faqResults.map((r) => ({
-        id: r.id,
-        question: r.sourceName,
-        answer: r.content
-      })),
+      faqs: await Promise.all(
+        faqResults.map(async (r) => ({
+          id: r.id,
+          question: r.sourceName,
+          answer: await this.translateResponseToCustomerLanguage(
+            r.content,
+            req.body.customerLanguage || "it"
+          ),
+        }))
+      ),
       services: serviceResults.map((r) => ({
         id: r.id,
         name: r.sourceName,
-        description: r.content
+        description: r.content,
       })),
       documents: documentResults.map((r) => ({
         id: r.documentId,
         title: r.documentName,
-        content: r.content
+        content: r.content,
       })),
     })
   }
@@ -710,31 +719,38 @@ export class InternalApiController {
       businessType: "RESTAURANT",
       menuItems: menuResults
         .map((r) => {
-          const menuItem = menuItems.find((p) => p.id === r.id);
-          return menuItem ? {
-            id: menuItem.id,
-            name: menuItem.name,
-            description: menuItem.description,
-            price: menuItem.price,
-            category: menuItem.category?.name,
-            stock: menuItem.stock
-          } : null;
+          const menuItem = menuItems.find((p) => p.id === r.id)
+          return menuItem
+            ? {
+                id: menuItem.id,
+                name: menuItem.name,
+                description: menuItem.description,
+                price: menuItem.price,
+                category: menuItem.category?.name,
+                stock: menuItem.stock,
+              }
+            : null
         })
         .filter(Boolean),
-      restaurantInfo: faqResults.map((r) => ({
-        id: r.id,
-        question: r.sourceName,
-        answer: r.content
-      })),
+      restaurantInfo: await Promise.all(
+        faqResults.map(async (r) => ({
+          id: r.id,
+          question: r.sourceName,
+          answer: await this.translateResponseToCustomerLanguage(
+            r.content,
+            req.body.customerLanguage || "it"
+          ),
+        }))
+      ),
       services: serviceResults.map((r) => ({
         id: r.id,
         name: r.sourceName,
-        description: r.content
+        description: r.content,
       })),
       documents: documentResults.map((r) => ({
         id: r.documentId,
         title: r.documentName,
-        content: r.content
+        content: r.content,
       })),
     })
   }
@@ -766,18 +782,23 @@ export class InternalApiController {
       medicalServices: serviceResults.map((r) => ({
         id: r.id,
         name: r.sourceName,
-        description: r.content
+        description: r.content,
       })),
-      clinicInfo: faqResults.map((r) => ({
-        id: r.id,
-        question: r.sourceName,
-        answer: r.content
-      })),
+      clinicInfo: await Promise.all(
+        faqResults.map(async (r) => ({
+          id: r.id,
+          question: r.sourceName,
+          answer: await this.translateResponseToCustomerLanguage(
+            r.content,
+            req.body.customerLanguage || "it"
+          ),
+        }))
+      ),
       products: [], // No products for clinics
       documents: documentResults.map((r) => ({
         id: r.documentId,
         title: r.documentName,
-        content: r.content
+        content: r.content,
       })),
     })
   }
@@ -797,6 +818,9 @@ export class InternalApiController {
     )
     const documentService = new DocumentService()
 
+    // Get customer language from request
+    const customerLanguage = req.body.customerLanguage || "it"
+
     // Generic search across all available content
     const [productResults, faqResults, serviceResults, documentResults] =
       await Promise.all([
@@ -806,27 +830,35 @@ export class InternalApiController {
         documentService.searchDocuments(query, workspaceId, 5),
       ])
 
+    // Translate FAQ answers to customer's language if needed
+    const translatedFaqs = await Promise.all(
+      faqResults.map(async (r) => ({
+        id: r.id,
+        question: r.sourceName,
+        answer: await this.translateResponseToCustomerLanguage(
+          r.content,
+          customerLanguage
+        ),
+      }))
+    )
+
     res.json({
       businessType: "GENERIC",
       products: productResults.map((r) => ({
         id: r.id,
         name: r.sourceName,
-        description: r.content
+        description: r.content,
       })),
-      faqs: faqResults.map((r) => ({
-        id: r.id,
-        question: r.sourceName,
-        answer: r.content
-      })),
+      faqs: translatedFaqs,
       services: serviceResults.map((r) => ({
         id: r.id,
         name: r.sourceName,
-        description: r.content
+        description: r.content,
       })),
       documents: documentResults.map((r) => ({
         id: r.documentId,
         title: r.documentName,
-        content: r.content
+        content: r.content,
       })),
     })
   }
@@ -2821,51 +2853,171 @@ ${JSON.stringify(ragResults, null, 2)}`
   /**
    * Translate query to English for better semantic search results
    * Since embeddings work better with consistent language
+   * Supports: Italian, Spanish, French, Portuguese
    */
-  private async translateQueryToEnglish(query: string, customerLanguage: string): Promise<string> {
-    // If already in English or no customer language specified, return as-is
-    if (!customerLanguage || customerLanguage.toLowerCase().includes('en') || customerLanguage.toLowerCase() === 'english') {
-      return query;
+  private async translateQueryToEnglish(
+    query: string,
+    customerLanguage: string
+  ): Promise<string> {
+    // Auto-detect if query is already in English by checking common Italian/Spanish/Portuguese words
+    const italianWords =
+      /\b(qual|quale|come|dove|quando|perché|cosa|che|dei|della|delle|del|per|con|una|uno|è|sono|hai|avete|posso|puoi|può)\b/i
+    const spanishWords =
+      /\b(qué|cuál|cómo|dónde|cuándo|por qué|para|con|una|uno|es|son|tienes|tienen|puedo|puedes|puede)\b/i
+    const frenchWords =
+      /\b(qu'est|quel|quelle|comment|où|quand|pourquoi|pour|avec|une|un|est|sont|avez|peux|peut)\b/i
+    const portugueseWords =
+      /\b(qual|quais|como|onde|quando|por que|para|com|uma|um|é|são|tem|têm|posso|pode|você)\b/i
+
+    // If query contains non-English words, translate it
+    const needsTranslation =
+      italianWords.test(query) ||
+      spanishWords.test(query) ||
+      frenchWords.test(query) ||
+      portugueseWords.test(query)
+
+    if (!needsTranslation) {
+      return query
     }
 
     try {
-      logger.info(`[RAG-TRANSLATE] Translating "${query}" from ${customerLanguage} to English`);
-      
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "meta-llama/llama-3.1-8b-instruct:free", // Fast, free model for translation
-          messages: [
-            {
-              role: "system",
-              content: "You are a translator. Translate the user's query to English. Return ONLY the translated text, no explanations."
-            },
-            {
-              role: "user", 
-              content: `Translate this to English: "${query}"`
-            }
-          ],
-          max_tokens: 100,
-          temperature: 0.1
-        })
-      });
+      logger.info(
+        `[RAG-TRANSLATE] Translating "${query}" from ${customerLanguage} to English`
+      )
+
+      const response = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemma-2-9b-it:free", // Fast, free model for translation
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are a translator. Translate the user's query to English. Return ONLY the translated text, no explanations.",
+              },
+              {
+                role: "user",
+                content: `Translate this to English: "${query}"`,
+              },
+            ],
+            max_tokens: 100,
+            temperature: 0.1,
+          }),
+        }
+      )
 
       if (response.ok) {
-        const data = await response.json();
-        const translatedQuery = data.choices[0]?.message?.content?.trim() || query;
-        logger.info(`[RAG-TRANSLATE] Translation result: "${translatedQuery}"`);
-        return translatedQuery;
+        const data = await response.json()
+        const translatedQuery =
+          data.choices[0]?.message?.content?.trim() || query
+        logger.info(`[RAG-TRANSLATE] Translation result: "${translatedQuery}"`)
+        return translatedQuery
       } else {
-        logger.warn(`[RAG-TRANSLATE] Translation failed, using original query`);
-        return query;
+        logger.warn(`[RAG-TRANSLATE] Translation failed, using original query`)
+        return query
       }
     } catch (error) {
-      logger.error(`[RAG-TRANSLATE] Translation error:`, error);
-      return query; // Fallback to original query
+      logger.error(`[RAG-TRANSLATE] Translation error:`, error)
+      return query // Fallback to original query
+    }
+  }
+
+  /**
+   * Translate English response back to customer's language
+   * Used to translate FAQ answers and other content back to Italian/Spanish/French/Portuguese
+   */
+  private async translateResponseToCustomerLanguage(
+    text: string,
+    targetLanguage: string
+  ): Promise<string> {
+    // If target language is English or not specified, return original text
+    if (
+      !targetLanguage ||
+      targetLanguage.toLowerCase() === "en" ||
+      targetLanguage.toLowerCase() === "english"
+    ) {
+      return text
+    }
+
+    // Don't translate if text is too short (likely not meaningful content)
+    if (text.length < 10) {
+      return text
+    }
+
+    try {
+      logger.info(
+        `[RESPONSE-TRANSLATE] Translating response to ${targetLanguage}: "${text.substring(0, 50)}..."`
+      )
+
+      // Map language codes to full language names
+      const languageMap: { [key: string]: string } = {
+        it: "Italian",
+        italian: "Italian",
+        italiano: "Italian",
+        es: "Spanish",
+        spanish: "Spanish",
+        español: "Spanish",
+        fr: "French",
+        french: "French",
+        français: "French",
+        pt: "Portuguese",
+        portuguese: "Portuguese",
+        português: "Portuguese",
+        "pt-br": "Brazilian Portuguese",
+        "pt-pt": "Portuguese",
+      }
+
+      const fullLanguageName =
+        languageMap[targetLanguage.toLowerCase()] || targetLanguage
+
+      const response = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemma-2-9b-it:free",
+            messages: [
+              {
+                role: "system",
+                content: `You are a translator. Translate the text to ${fullLanguageName}. Return ONLY the translated text, no explanations. Keep the same tone and format.`,
+              },
+              {
+                role: "user",
+                content: `Translate this to ${fullLanguageName}: "${text}"`,
+              },
+            ],
+            max_tokens: 200,
+            temperature: 0.1,
+          }),
+        }
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        const translatedText = data.choices[0]?.message?.content?.trim() || text
+        logger.info(
+          `[RESPONSE-TRANSLATE] Translation result: "${translatedText.substring(0, 50)}..."`
+        )
+        return translatedText
+      } else {
+        logger.warn(
+          `[RESPONSE-TRANSLATE] Translation failed, using original text`
+        )
+        return text
+      }
+    } catch (error) {
+      logger.error(`[RESPONSE-TRANSLATE] Translation error:`, error)
+      return text // Fallback to original text
     }
   }
 
