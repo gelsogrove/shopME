@@ -385,12 +385,8 @@ Andrea requires a clean and maintainable database. All legacy or unused tables m
 ## NOTE
 
 - SECUIRTY owasp
+- DEPLOYMENT ?
 - prompt con url dinamici?
 - usage price sembra statico
 - dentro il pannello se il token scade? gestione tokem app gestione token n8n getione tokend dell'applicativo
 - dammi il pdf ? rag?
-
-- usage price sembra statico nella dashboard
-- Ordine e carrello e pagamento
-- fattura scaricabile
-- wip messge
