@@ -270,6 +270,13 @@ model WhatsappSettings {
   webhookUrl  String?
   n8nWebhook  String?   @default("http://localhost:5678/webhook/webhook-start")
   settings    Json?     @default("{}")
+  adminEmail  String?
+  smtpHost    String?   @default("smtp.ethereal.email")
+  smtpPort    Int?      @default(587)
+  smtpSecure  Boolean?  @default(false)
+  smtpUser    String?
+  smtpPass    String?
+  smtpFrom    String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   workspaceId String    @unique

@@ -19,6 +19,7 @@ interface CrudPageContentProps<T> {
   isLoading?: boolean
   renderActions?: (item: T) => React.ReactElement
   renderEmptyState?: ReactNode
+  getRowClassName?: (item: T) => string
 }
 
 /**
@@ -40,6 +41,7 @@ export function CrudPageContent<T>({
   isLoading,
   renderActions,
   renderEmptyState,
+  getRowClassName,
 }: CrudPageContentProps<T>) {
   if (isLoading) {
     return (
@@ -72,6 +74,7 @@ export function CrudPageContent<T>({
             onEdit={onEdit}
             onDelete={onDelete}
             renderActions={renderActions}
+            getRowClassName={getRowClassName}
           />
         </div>
       )}

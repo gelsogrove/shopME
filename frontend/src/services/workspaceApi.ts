@@ -15,6 +15,7 @@ export interface Workspace {
   whatsappApiKey?: string
   n8nWebhook?: string
   n8nWorkflowUrl?: string
+  adminEmail?: string
   createdAt: string
   updatedAt?: string
   isActive: boolean

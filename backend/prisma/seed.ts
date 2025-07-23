@@ -1721,6 +1721,7 @@ async function main() {
           workspaceId: mainWorkspaceId,
           gdpr: defaultGdprText,
           n8nWebhook: "http://localhost:5678/webhook/webhook-start",
+          adminEmail: "andrea_gelsomino@hotmail.com",
         },
       })
       console.log("Impostazioni WhatsApp create per il workspace principale")
@@ -1734,6 +1735,7 @@ async function main() {
           n8nWebhook:
             existingWhatsappSettings.n8nWebhook ||
             "http://localhost:5678/webhook/webhook-start",
+          adminEmail: existingWhatsappSettings.adminEmail || "andrea_gelsomino@hotmail.com",
         },
       })
       console.log(
@@ -1750,6 +1752,7 @@ async function main() {
           apiKey: "dummy-api-key",
           workspaceId: mainWorkspaceId,
           n8nWebhook: "http://localhost:5678/webhook/webhook-start",
+          adminEmail: "andrea_gelsomino@hotmail.com",
         },
       })
       console.log(
@@ -1764,6 +1767,7 @@ async function main() {
           n8nWebhook:
             existingWhatsappSettings.n8nWebhook ||
             "http://localhost:5678/webhook/webhook-start",
+          adminEmail: existingWhatsappSettings.adminEmail || "andrea_gelsomino@hotmail.com",
         },
       })
       console.log(
