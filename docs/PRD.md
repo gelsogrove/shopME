@@ -2280,7 +2280,7 @@ Rispondi in JSON:
 | 🔍 SearchRag           | ✅ COMPLETE | 100%           | HIGH         |
 | 📦 GetAllProducts      | ✅ COMPLETE | 100%           | HIGH         |
 | 🛎️ GetAllServices      | ✅ COMPLETE | 100%           | HIGH         |
-| 👨‍💼 CallOperator        | ⚠️ PARTIAL  | 90%            | MEDIUM       |
+| 👨‍💼 CallOperator        | ✅ COMPLETE | 100%           | MEDIUM       |
 | 📧 ReceiveInvoice      | ❌ MISSING  | 0%             | HIGH         |
 | 💳 PaymentProcessStart | ❌ TODO     | 0%             | HIGH         |
 
@@ -2318,9 +2318,16 @@ Rispondi in JSON:
 3. Generazione link pagamento sicuri
 4. Tracking stato pagamento
 
-#### **Phase 3: Completare CallOperator (MEDIUM PRIORITY)**
+#### **Phase 3: Completare CallOperator (COMPLETATO ✅)**
 
-1. Aggiungere invio email notifica operatore
+✅ **IMPLEMENTATO**: Invio email notifica operatore  
+✅ **IMPLEMENTATO**: Campo adminEmail in WhatsappSettings  
+✅ **IMPLEMENTATO**: Validazione frontend con campo obbligatorio  
+✅ **IMPLEMENTATO**: Template email professionale HTML/testo  
+✅ **IMPLEMENTATO**: Riassunto chat negli ultimi 10 messaggi  
+✅ **IMPLEMENTATO**: Gestione errori graceful e logging  
+
+**Prossimi step (opzionali)**:
 2. Sistema escalation automatica
 3. Template email personalizzabili
 4. Dashboard operatori in tempo reale
@@ -2335,7 +2342,7 @@ Andrea ha creato la **base architecturale perfetta** per un sistema WhatsApp int
 ✅ **Calling Functions Infrastructure** ready
 ✅ **SearchRag** fully operational
 ✅ **GetAllProducts & GetAllServices** complete
-✅ **CallOperator** quasi completo (90%)
+✅ **CallOperator** COMPLETO (100%)
 ✅ **N8N Visual Workflow** for business logic
 ✅ **Session Token System** for security
 ✅ **Multi-business Architecture** ready for expansion
@@ -2345,11 +2352,89 @@ Andrea ha creato la **base architecturale perfetta** per un sistema WhatsApp int
 1. ✅ SearchRag (100%)
 2. ✅ GetAllProducts (100%)
 3. ✅ GetAllServices (100%)
-4. ⚠️ CallOperator (90% - manca email)
+4. ✅ CallOperator (100% - email implementata)
 5. ❌ ReceiveInvoice (0% - con filtro codice ordine)
 6. ❌ PaymentProcessStart (0% - in TODO)
 
 **Il sistema è pronto per gestire qualsiasi tipo di business** con l'implementazione delle 2 funzioni CF mancanti! 🎯
+
+---
+
+## 🔔 **CALLOPERATOR - IMPLEMENTAZIONE COMPLETA**
+
+### 📧 **Sistema Email Notifiche Admin**
+
+**IMPLEMENTATO**: CallOperator ora include un sistema completo di notifiche email quando un utente richiede assistenza operatore.
+
+#### **🛠️ Componenti Implementati:**
+
+1. **📊 Database Schema**
+   - Campo `adminEmail String?` aggiunto a `WhatsappSettings`
+   - Migrazione: `20250720080133_add_admin_email_to_whatsapp_settings`
+   - Seed aggiornato con email predefinita: `andrea_gelsomino@hotmail.com`
+
+2. **🎨 Frontend - Settings Page**
+   - Campo "Admin Email" obbligatorio con validazione
+   - Controllo formato email in tempo reale
+   - Messaggi di errore user-friendly
+   - Descrizione campo per UX ottimale
+
+3. **🔧 Backend API**
+   - `getCurrentWorkspace()` include `adminEmail` da `whatsappSettings`
+   - `updateWorkspace()` gestisce aggiornamento `adminEmail`
+   - Integrazione seamless con architettura esistente
+
+4. **📮 Servizio Email**
+   - Template HTML professionale con branding
+   - Template testo alternativo per compatibilità
+   - Gestione errori graceful (continua anche se email fallisce)
+   - Supporto SMTP configurabile + Ethereal Email per sviluppo
+
+#### **📧 Email Template Features:**
+
+```html
+Oggetto: 🔔 Utente [nome_cliente] vuole parlare con un operatore
+
+Contenuto:
+- ⚠️ Alert visivo per urgenza
+- 📋 Dettagli cliente e workspace  
+- 💬 Riassunto ultimi 10 messaggi (24h)
+- 📱 Link diretto alla chat (preparato)
+- 🎨 Styling professionale responsive
+```
+
+#### **🤖 ContactOperator Function Enhanced:**
+
+```typescript
+// src/chatbot/calling-functions/ContactOperator.ts
+export async function ContactOperator({ phone, workspaceId }) {
+  // 1. Disabilita chatbot per cliente
+  // 2. Recupera dati workspace + adminEmail
+  // 3. Genera riassunto chat ultimi messaggi
+  // 4. Invia email all'admin con dettagli completi
+  // 5. Logging completo per monitoraggio
+  // 6. Gestione errori resiliente
+}
+```
+
+#### **🚀 Funzionalità Operative:**
+
+- **Auto-trigger**: Email inviata automaticamente ad ogni chiamata `CallOperator`
+- **Rich Content**: Include cronologia chat, dettagli cliente, timestamp
+- **Professional Design**: Template HTML con emoji e styling moderno
+- **Error Recovery**: Sistema continua a funzionare anche con SMTP offline
+- **Development Ready**: Supporto Ethereal Email per test senza SMTP
+
+#### **⚙️ Configurazione:**
+
+```env
+# backend/.env
+SMTP_HOST=smtp.ethereal.email
+SMTP_PORT=587
+SMTP_FROM=noreply@shopme.com
+```
+
+**CallOperator è ora PRODUCTION-READY al 100%!** 🎯
 
 - **Executions**: Container volume (n8n_data) → Performance
 - **Settings**: Container volume (n8n_data) → Persistent

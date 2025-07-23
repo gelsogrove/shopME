@@ -17,6 +17,14 @@ export interface ResetPasswordEmailData {
   userFirstName?: string
 }
 
+export interface OperatorNotificationEmailData {
+  to: string
+  customerName: string
+  chatSummary: string
+  chatId?: string
+  workspaceName?: string
+}
+
 export class EmailService {
   private transporter: nodemailer.Transporter
 
@@ -184,6 +192,129 @@ The ShopMe Team
 ---
 This email was sent because a password reset was requested for your ShopMe account.
 ShopMe - Your trusted e-commerce platform
+    `
+  }
+
+  async sendOperatorNotificationEmail(data: OperatorNotificationEmailData): Promise<boolean> {
+    try {
+      const htmlContent = this.generateOperatorNotificationHTML(data)
+      const textContent = this.generateOperatorNotificationText(data)
+
+      const mailOptions = {
+        from: `"ShopMe Operator Alert" <${process.env.SMTP_FROM || 'noreply@shopme.com'}>`,
+        to: data.to,
+        subject: `🔔 Utente ${data.customerName} vuole parlare con un operatore`,
+        html: htmlContent,
+        text: textContent
+      }
+
+      const info = await this.transporter.sendMail(mailOptions)
+      
+      // Log preview URL for development
+      if (process.env.NODE_ENV !== 'production') {
+        logger.info(`Operator notification email sent successfully!`)
+        logger.info(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`)
+      }
+
+      logger.info(`Operator notification email sent to: ${data.to}`)
+      return true
+    } catch (error) {
+      logger.error('Failed to send operator notification email:', error)
+      return false
+    }
+  }
+
+  private generateOperatorNotificationHTML(data: OperatorNotificationEmailData): string {
+    const chatLink = data.chatId 
+      ? `${process.env.FRONTEND_URL || 'http://localhost:5173'}/chat/${data.chatId}`
+      : null
+
+    return `
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Richiesta Assistenza Operatore</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #f59e0b; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+        .button { display: inline-block; background-color: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .button:hover { background-color: #059669; }
+        .summary-box { background-color: #e5e7eb; border-left: 4px solid #6366f1; padding: 15px; margin: 15px 0; border-radius: 0 5px 5px 0; }
+        .urgent { background-color: #fef3cd; border: 1px solid #fbbf24; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔔 Richiesta Assistenza Operatore</h1>
+    </div>
+    <div class="content">
+        <div class="urgent">
+            <strong>⚠️ ATTENZIONE:</strong> L'utente <strong>${data.customerName}</strong> ha richiesto di parlare con un operatore.
+        </div>
+        
+        <h3>📋 Dettagli della richiesta:</h3>
+        <ul>
+            <li><strong>Cliente:</strong> ${data.customerName}</li>
+            <li><strong>Workspace:</strong> ${data.workspaceName || 'N/A'}</li>
+            <li><strong>Data/Ora:</strong> ${new Date().toLocaleString('it-IT')}</li>
+        </ul>
+        
+        <h3>🤖 Riassunto AI della conversazione (ultime 24h):</h3>
+        <div class="summary-box">
+            ${data.chatSummary}
+        </div>
+        
+        ${chatLink ? `
+        <p style="text-align: center;">
+            <a href="${chatLink}" class="button">📱 Visualizza Chat Completa</a>
+        </p>
+        ` : ''}
+        
+        <p><strong>Azione richiesta:</strong> Contattare il cliente il prima possibile per fornire assistenza personalizzata.</p>
+        
+        <p>Cordiali saluti,<br>Sistema di Notifiche ShopMe</p>
+    </div>
+    <div class="footer">
+        <p>Questa email è stata generata automaticamente dal sistema ShopMe quando un cliente ha richiesto assistenza operatore.</p>
+        <p>ShopMe - La tua piattaforma e-commerce di fiducia</p>
+    </div>
+</body>
+</html>
+    `
+  }
+
+  private generateOperatorNotificationText(data: OperatorNotificationEmailData): string {
+    const chatLink = data.chatId 
+      ? `${process.env.FRONTEND_URL || 'http://localhost:5173'}/chat/${data.chatId}`
+      : null
+
+    return `
+🔔 RICHIESTA ASSISTENZA OPERATORE
+
+⚠️ ATTENZIONE: L'utente ${data.customerName} ha richiesto di parlare con un operatore.
+
+📋 Dettagli della richiesta:
+- Cliente: ${data.customerName}
+- Workspace: ${data.workspaceName || 'N/A'}
+- Data/Ora: ${new Date().toLocaleString('it-IT')}
+
+🤖 Riassunto AI della conversazione (ultime 24h):
+${data.chatSummary}
+
+${chatLink ? `📱 Link alla chat completa: ${chatLink}` : ''}
+
+Azione richiesta: Contattare il cliente il prima possibile per fornire assistenza personalizzata.
+
+Cordiali saluti,
+Sistema di Notifiche ShopMe
+
+---
+Questa email è stata generata automaticamente dal sistema ShopMe quando un cliente ha richiesto assistenza operatore.
+ShopMe - La tua piattaforma e-commerce di fiducia
     `
   }
 

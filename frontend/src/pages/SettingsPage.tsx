@@ -49,6 +49,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("general")
   const [errors, setErrors] = useState({
     language: "",
+    adminEmail: "",
   })
   const [workspace, setWorkspace] = useState<Workspace>({
     id: "",
@@ -187,10 +188,17 @@ export default function SettingsPage() {
   const validateFields = () => {
     const newErrors = {
       language: "",
+      adminEmail: "",
     }
 
     if (!workspace.language) {
       newErrors.language = "Please select a language"
+    }
+
+    if (!workspace.adminEmail || workspace.adminEmail.trim() === "") {
+      newErrors.adminEmail = "Admin email is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(workspace.adminEmail)) {
+      newErrors.adminEmail = "Please enter a valid email address"
     }
 
     setErrors(newErrors)
@@ -198,6 +206,11 @@ export default function SettingsPage() {
   }
 
   const handleSave = async () => {
+    // Validate fields before saving
+    if (!validateFields()) {
+      return
+    }
+
     setIsLoading(true)
 
     // Verifica che i messaggi di benvenuto abbiano tutte le lingue necessarie
@@ -346,6 +359,28 @@ export default function SettingsPage() {
                     className="mt-1"
                     type="password"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Admin Email <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={workspace.adminEmail || ""}
+                    onChange={(e) =>
+                      handleFieldChange("adminEmail", e.target.value)
+                    }
+                    className={`mt-1 ${errors.adminEmail ? "border-red-500" : ""}`}
+                    type="email"
+                    placeholder="admin@example.com"
+                    required
+                  />
+                  {errors.adminEmail && (
+                    <p className="text-xs text-red-500 mt-1">{errors.adminEmail}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    This email will receive notifications when users request operator assistance
+                  </p>
                 </div>
 
                 <div className="space-y-2">
