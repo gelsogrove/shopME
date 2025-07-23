@@ -3,12 +3,15 @@ import { Order } from '../../domain/entities/order.entity';
 import { IOrderRepository, OrderFilters } from '../../domain/repositories/order.repository.interface';
 import { OrderRepository } from '../../repositories/order.repository';
 import logger from '../../utils/logger';
+import { StockService } from './stock.service';
 
 export class OrderService {
   private orderRepository: IOrderRepository;
+  private stockService: StockService;
 
-  constructor(orderRepository?: IOrderRepository) {
+  constructor(orderRepository?: IOrderRepository, stockService?: StockService) {
     this.orderRepository = orderRepository || new OrderRepository();
+    this.stockService = stockService || new StockService();
   }
 
   async getAllOrders(workspaceId: string, filters?: OrderFilters) {
@@ -158,7 +161,17 @@ export class OrderService {
         throw new Error(`Invalid status transition from ${order.status} to ${status}`);
       }
 
-      return await this.orderRepository.updateStatus(id, status, workspaceId);
+      const oldStatus = order.status;
+
+      // Update order status
+      const updatedOrder = await this.orderRepository.updateStatus(id, status, workspaceId);
+
+      // Handle stock management and notifications
+      if (updatedOrder) {
+        await this.stockService.handleOrderStatusChange(id, oldStatus, status);
+      }
+
+      return updatedOrder;
     } catch (error) {
       logger.error(`Error in order service updateOrderStatus for order ${id}:`, error);
       throw new Error(`Failed to update order status: ${(error as Error).message}`);

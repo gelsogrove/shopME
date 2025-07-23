@@ -30,6 +30,8 @@ import { ProductsPage } from "./pages/ProductsPage"
 import ProfilePage from "./pages/ProfilePage"
 import RegisterPage from "./pages/register"
 import RegistrationSuccess from "./pages/registration-success"
+import CheckoutPage from "./pages/CheckoutPage"
+import CheckoutSuccessPage from "./pages/checkout-success"
 import { ServicesPage } from "./pages/ServicesPage"
 import { CategoriesPage as SettingsCategoriesPage } from "./pages/settings/CategoriesPage"
 import { ChannelTypesPage } from "./pages/settings/ChannelTypesPage"
@@ -147,6 +149,8 @@ export function App() {
 
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/registration-success" element={<RegistrationSuccess />} />
+        <Route path="/checkout/:token" element={<CheckoutPage />} />
+        <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
         <Route path="/data-protection" element={<DataProtectionPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
