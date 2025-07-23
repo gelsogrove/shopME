@@ -71,6 +71,16 @@ export class ProductRepository implements IProductRepository {
         }
       }
 
+      // Filtro per prodotti in stock
+      if (filters?.inStock === true) {
+        where.stock = { gt: 0 };
+      }
+
+      // Filtro per prodotti attivi
+      if (filters?.active === true) {
+        where.isActive = true;
+      }
+
       const page = filters?.page || 1;
       const limit = filters?.limit || 50;
       const skip = (page - 1) * limit;

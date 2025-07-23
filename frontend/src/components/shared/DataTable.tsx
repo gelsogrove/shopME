@@ -52,6 +52,7 @@ interface DataTableProps<TData> {
   searchPlaceholder?: string
   onSearchChange?: (value: string) => void
   isLoading?: boolean
+  getRowClassName?: (item: TData) => string
 }
 
 export function DataTable<TData>({
@@ -67,6 +68,7 @@ export function DataTable<TData>({
   searchPlaceholder,
   onSearchChange,
   isLoading = false,
+  getRowClassName,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -226,9 +228,14 @@ export function DataTable<TData>({
               </TableHeader>
               <TableBody>
                 {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
+                  table.getRowModel().rows.map((row) => {
+                    const baseClassName = "h-[40px]";
+                    const customClassName = getRowClassName ? getRowClassName(row.original) : "";
+                    const rowClassName = customClassName ? `${baseClassName} ${customClassName}` : baseClassName;
+                    
+                    return (
                     <React.Fragment key={row.id}>
-                      <TableRow className="h-[40px]">
+                      <TableRow className={rowClassName}>
                         {row.getVisibleCells().map((cell) => (
                           <TableCell 
                             key={cell.id} 
@@ -252,7 +259,7 @@ export function DataTable<TData>({
                         </TableRow>
                       )}
                     </React.Fragment>
-                  ))
+                  )})
                 ) : (
                   <TableRow>
                     <TableCell

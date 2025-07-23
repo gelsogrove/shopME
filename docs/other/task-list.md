@@ -71,6 +71,134 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 
 ================================================================================
 
+## TASK #39
+
+**TITLE**: Checkout Flow con Gestione Stock Completa
+**DESCRIPTION/ROADMAP**:
+
+#### **1. CUSTOM FUNCTION N8N** ✅ IMPLEMENTATO
+
+**File**: `backend/src/chatbot/calling-functions/createOrderCheckoutLink.ts`
+
+- Implementa `createOrderCheckoutLink(customerId, workspaceId, prodotti[])`
+- Genera token sicuro crypto SHA256 con scadenza 1 ora
+- Salva in `secure_tokens` table con type='checkout' e payload prodotti
+- Ritorna URL: `${FRONTEND_URL}/checkout/${token}`
+- **Validazioni**: Customer exists, Workspace exists, Prodotti array non vuoto
+- **Trigger**: Solo quando utente esprime intent di conferma ordine
+
+#### **2. PAGINA CHECKOUT COMPLETA** ✅ IMPLEMENTATO
+
+**File**: `frontend/src/pages/CheckoutPage.tsx` + Route `/checkout/:token`
+
+- **Design**: Pattern identico a `/register` (fuori auth, responsive)
+- **Token Validation**: API call a `/api/checkout/token/:token`
+- **Pre-fill Data**: Indirizzi da `customer.address` e `customer.invoiceAddress`
+
+**STEP 1 - Carrello Avanzato**:
+
+- View prodotti dal token con quantità/prezzo
+- Edit quantità (max = stock disponibile) con controlli real-time
+- Remove prodotti con conferma
+- **Add Modal**: Prodotti attivi filtrati `isActive=true AND stock>0`
+  - Lista prodotti con stock indicators
+  - Selezione quantità con limiti stock
+  - Validazione disponibilità prima aggiunta
+
+**STEP 2 - Indirizzi Smart**:
+
+- Pre-compilazione automatica da customer data
+- Checkbox "Stesso indirizzo fatturazione"
+- Validazione campi obbligatori
+
+**STEP 3 - Conferma & Submit**:
+
+- Riepilogo completo ordine
+- Campo note aggiuntive
+- Submit con loading states
+
+#### **3. API BACKEND COMPLETO** ✅ IMPLEMENTATO
+
+**Files**: `backend/src/interfaces/http/routes/checkout.routes.ts` + `checkout.controller.ts`
+
+- **GET `/api/checkout/token/:token`**: Validazione token + return customer/prodotti data
+- **POST `/api/checkout/submit`**: Creazione ordine completa con notifiche
+- **Order Creation**: Status PENDING, OrderCode auto-gen `ORD-YYYYMMDD-XXX`
+- **Cart Reset**: Automatic cartItems cleanup dopo submit
+- **Error Handling**: Comprehensive con status codes appropriati
+
+#### **4. NOTIFICHE MULTI-CHANNEL** ✅ IMPLEMENTATO
+
+**Su Submit Checkout**:
+
+- **Email Customer** (text semplice): "Ordine X preso in consegna, verrai contattato"
+- **Email Admin** (`settings.adminEmail`): "Nuovo ordine X da confermare"
+- **WhatsApp** (salva in chat): "✅ Ordine X preso in consegna! Ti faremo sapere il prima possibile"
+
+**Su Conferma Operatore** (`PENDING → CONFIRMED`):
+
+- **Email Customer**: "🎉 Ordine X confermato! Ti contatteremo per consegna"
+- **Email Admin**: "Ordine X confermato e processato"
+- **WhatsApp**: "🎉 Ordine confermato! Numero X. Ti contatteremo per dettagli consegna"
+
+#### **5. STOCK SERVICE COMPLETO** ✅ IMPLEMENTATO
+
+**File**: `backend/src/application/services/stock.service.ts`
+
+- **NO scala stock su checkout** (rimane disponibile per altri)
+- **Auto-scala su conferma**: `PENDING → CONFIRMED` con validazione stock
+- **Auto-ripristina su cancellazione**: `CONFIRMED/SHIPPED → CANCELLED`
+- **Stock Logging**: Audit trail di tutte le modifiche stock
+- **Insufficient Stock Handling**: Graceful degradation con warnings
+
+#### **6. ADMIN PANEL AGGIORNATO** ✅ IMPLEMENTATO
+
+**Files**: `frontend/src/pages/ProductsPage.tsx` + `DataTable.tsx` + `CrudPageContent.tsx`
+
+- **Row Rosse Stock 0**: Styling condizionale `bg-red-50 border-l-4 border-red-500`
+- **Status Indicators**: "Out of Stock", "Low Stock", "Available" con colori
+- **Product Filtering**: API params `?active=true&inStock=true`
+- **Stock Display**: Numerico con color coding (rosso/arancione/verde)
+
+#### **7. PRODUCT API FILTERING** ✅ IMPLEMENTATO
+
+**Files**: `backend/src/repositories/product.repository.ts` + `product.controller.ts`
+
+- **New Filters**: `ProductFilters.inStock` e `ProductFilters.active`
+- **Repository Logic**: `WHERE stock > 0 AND isActive = true`
+- **Controller Params**: Query string parsing per `active=true&inStock=true`
+- **Checkout Integration**: Modal prodotti usa filtri automaticamente
+
+#### **8. UX/UI COMPLETO** ✅ IMPLEMENTATO
+
+**Features Avanzate**:
+
+- **Progress Steps**: Visual 1→2→3 con colori dinamici
+- **Loading States**: Spinners, disabled buttons, skeleton screens
+- **Error Handling**: Toast notifications, form validation, retry logic
+- **Responsive**: Mobile-first design, touch-friendly controls
+- **Accessibility**: Proper labels, focus management, screen reader support
+
+#### **9. PROMPT AGENT INTEGRATION** ⏳ TODO
+
+- **Raccogliere prodotti** durante conversazione normale
+- **Rilevare intent conferma**: "procedo", "ordino", "confermo", "checkout", "finalizza"
+- **Solo allora** chiamare `createOrderCheckoutLink` con prodotti raccolti
+
+#### **10. TESTING SUITE** ⏳ TODO
+
+- Test unitari scala/ripristina stock su cambio status
+- Test edge cases (stock insufficiente, prodotto disattivato)
+- Test token validation e scadenza
+- Test flusso email e WhatsApp completo
+- Test responsività mobile
+- Integration tests end-to-end
+
+**STORY POINT**: 10
+**STATUS**: 🟢 COMPLETATO - Checkout Flow + Stock Management + UI Completi, TODO: Solo Agent Prompt + Testing
+
+================================================================================
+
 blockuser
 
 # PHASE 2 TASKS
@@ -115,22 +243,102 @@ Funzionalità avanzate WhatsApp per il futuro. Richiede integrazione con WhatsAp
 
 ================================================================================
 
-## TASK #13
+## TASK #13A
 
-**TITLE**: Security & Performance Optimization
+**TITLE**: API Rate Limiting Implementation
 **DESCRIPTION/ROADMAP**:
 
-- Implement comprehensive API rate limiting
-- Add advanced authentication (2FA)
-- Optimize database queries for performance
-- Add frontend performance monitoring
-- Implement security headers and OWASP compliance
-- Add comprehensive error logging and monitoring
+- Implement comprehensive API rate limiting middleware
+- Configure different rate limits per endpoint type (public vs authenticated)
+- Add rate limit headers to API responses
+- Implement Redis-based rate limiting for scalability
+- Add monitoring and alerting for rate limit violations
+- Test rate limiting behavior under load
 
 **SPECIAL NOTE**:
-Task di ottimizzazione generale per sicurezza e performance. Da implementare quando le funzionalità core sono stabili.
+Focused security task for API protection against abuse and DoS attacks.
 
-**STORY POINT**: 13
+**STORY POINT**: 3
+**STATUS**: 🔵 PHASE 2
+
+================================================================================
+
+## TASK #13B
+
+**TITLE**: Advanced Authentication & 2FA
+**DESCRIPTION/ROADMAP**:
+
+- Implement Two-Factor Authentication (2FA) with TOTP
+- Add backup codes for 2FA recovery
+- Implement account lockout after failed login attempts
+- Add password strength requirements and validation
+- Implement secure password reset flow with email verification
+- Add login attempt monitoring and suspicious activity detection
+
+**SPECIAL NOTE**:
+Enhanced authentication security for user accounts protection.
+
+**STORY POINT**: 8
+**STATUS**: 🔵 PHASE 2
+
+================================================================================
+
+## TASK #13C
+
+**TITLE**: Database Performance Optimization
+**DESCRIPTION/ROADMAP**:
+
+- Analyze and optimize slow database queries
+- Add proper database indexes for frequently queried fields
+- Implement query result caching where appropriate
+- Add database connection pooling optimization
+- Implement pagination for large data sets
+- Add database performance monitoring and alerting
+
+**SPECIAL NOTE**:
+Database optimization for improved application performance and scalability.
+
+**STORY POINT**: 5
+**STATUS**: 🔵 PHASE 2
+
+================================================================================
+
+## TASK #13D
+
+**TITLE**: Security Headers & OWASP Compliance
+**DESCRIPTION/ROADMAP**:
+
+- Implement comprehensive security headers (CSP, HSTS, X-Frame-Options, etc.)
+- Add input validation and sanitization across all endpoints
+- Implement CSRF protection
+- Add SQL injection prevention measures
+- Implement XSS protection mechanisms
+- Conduct security audit and fix vulnerabilities
+
+**SPECIAL NOTE**:
+OWASP compliance and security hardening for production readiness.
+
+**STORY POINT**: 5
+**STATUS**: 🔵 PHASE 2
+
+================================================================================
+
+## TASK #13E
+
+**TITLE**: Comprehensive Logging & Monitoring
+**DESCRIPTION/ROADMAP**:
+
+- Implement structured logging with appropriate log levels
+- Add error tracking and alerting system
+- Implement application performance monitoring (APM)
+- Add health check endpoints for system monitoring
+- Implement log aggregation and search capabilities
+- Add metrics collection for business intelligence
+
+**SPECIAL NOTE**:
+Monitoring and observability for production operations and debugging.
+
+**STORY POINT**: 5
 **STATUS**: 🔵 PHASE 2
 
 ================================================================================
@@ -177,201 +385,8 @@ Andrea requires a clean and maintainable database. All legacy or unused tables m
 ## NOTE
 
 - SECUIRTY owasp
-================================================================================
-
-## TASK #28
-
-**TITLE**: N8N Token Validation API Endpoint
-**DESCRIPTION/ROADMAP**:
-
-- Create new internal API endpoint: `POST /api/internal/validate-session-token`
-- Accept sessionToken and workspaceId in request body
-- Return validation result with customer data if valid
-- Include proper error handling for expired/invalid tokens
-- Add comprehensive logging for security monitoring
-
-**TECHNICAL REQUIREMENTS**:
-```typescript
-// API Endpoint Implementation
-POST /api/internal/validate-session-token
-Body: { sessionToken: string, workspaceId: string }
-Response: { 
-  valid: boolean, 
-  data?: { customerId, phoneNumber, expiresAt },
-  error?: string 
-}
-```
-
-**STORY POINT**: 3
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-
-
-
-
-
-
-## TASK #32
-
-**TITLE**: N8N Custom Function - Ordinary Customer Handler
-**DESCRIPTION/ROADMAP**:
-
-- Create new N8N Custom Function `handleOrdinaryCustomer(customerData, sessionToken)`
-- Implement business logic differentiation for ordinary vs premium customers
-- Define feature restrictions and permissions for ordinary customers
-- Integrate with existing customer management workflows
-- Add proper logging and monitoring for customer type handling
-
-**BUSINESS LOGIC**:
-```javascript
-// N8N Custom Function
-async function handleOrdinaryCustomer(customerData, sessionToken) {
-  return {
-    customerType: 'ordinary',
-    allowedFeatures: [
-      'basic_chat', 
-      'product_inquiry', 
-      'basic_support'
-    ],
-    restrictions: [
-      'no_priority_support',
-      'limited_discount_access',
-      'basic_feature_set'
-    ],
-    supportLevel: 'standard'
-  }
-}
-```
-
-**STORY POINT**: 4
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-
-
-## TASK #34
-
-**TITLE**: Database Token Optimization & Indexing
-**DESCRIPTION/ROADMAP**:
-
-- Review and optimize database indexes for token tables
-- Implement database performance monitoring for token operations
-- Add database cleanup job scheduling (backup for auto-cleanup)
-- Create token usage analytics and reporting
-- Optimize query performance for high-volume token operations
-
-**DATABASE OPTIMIZATIONS**:
-```sql
--- Additional indexes for performance
-CREATE INDEX idx_secure_tokens_workspace_type ON secure_tokens(workspaceId, type);
-CREATE INDEX idx_secure_tokens_phone_expires ON secure_tokens(phoneNumber, expiresAt);
-CREATE INDEX idx_registration_tokens_workspace_expires ON registration_tokens(workspaceId, expiresAt);
-```
-
-**STORY POINT**: 3
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #35
-
-**TITLE**: Complete Public Pages Implementation (Checkout & Cart)
-**DESCRIPTION/ROADMAP**:
-
-- Create checkout page with token validation and payment processing
-- Create cart page with token validation and item management
-- Implement N8N Custom Functions for checkout and cart operations
-- Add routes to frontend routing system
-- Test end-to-end flow for all public pages
-
-**IMPLEMENTATION SCOPE**:
-- 🛒 CheckoutPage.tsx with payment form and order summary
-- 🛍️ CartPage.tsx with cart management and item editing
-- 🤖 N8N CF: GetCheckout() with token validation
-- 🤖 N8N CF: GetCart() with token validation
-- 🛣️ Frontend routing for /checkout and /cart
-- 🧪 Integration testing for complete flow
-
-**STORY POINT**: 8
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #36
-
-**TITLE**: N8N Calling Function - Invoice Management
-**DESCRIPTION/ROADMAP**:
-
-- Create N8N calling function for invoice operations similar to existing order/checkout functions
-- Integrate with backend invoice system and secure token validation
-- Implement invoice search, filtering, and download capabilities
-- Add support for invoice status updates and payment tracking
-- Ensure proper session token validation and error handling
-
-**IMPLEMENTATION REQUIREMENTS**:
-
-**📁 Backend Calling Function:**
-```typescript
-// /backend/src/chatbot/calling-functions/getInvoices.ts
-interface InvoiceFunction {
-  customerId: string
-  workspaceId: string
-  sessionToken: string
-  filters?: {
-    status?: 'paid' | 'pending' | 'overdue'
-    dateFrom?: string
-    dateTo?: string
-    minAmount?: number
-    maxAmount?: number
-  }
-}
-```
-
-**🤖 N8N Integration:**
-- Add GetInvoices as calling function (not just custom function)
-- Support for LLM-based invoice queries ("show me unpaid invoices", "invoices from last month")
-- Integration with existing N8N workflow for seamless chatbot experience
-- Proper response formatting for WhatsApp messages
-
-**📊 Features to Implement:**
-- 🔍 Invoice search and filtering
-- 📋 Invoice list generation with secure links
-- 💰 Payment status tracking
-- 📱 WhatsApp-friendly response formatting
-- 🔐 Session token validation
-- 📤 PDF download link generation
-- 📧 Email invoice sending capability
-
-**TECHNICAL REQUIREMENTS:**
-```javascript
-// N8N Calling Function Response Format
-{
-  success: true,
-  invoiceCount: 5,
-  invoiceListUrl: "https://domain.com/invoice?token=abc123",
-  summary: {
-    totalAmount: "1,250.00",
-    paidAmount: "800.00", 
-    pendingAmount: "450.00"
-  },
-  formattedMessage: "📋 *Le tue fatture*\n\n✅ Pagate: €800.00\n⏳ In attesa: €450.00\n\n[Visualizza tutte le fatture](link)",
-  quickActions: ["download_pdf", "send_email", "view_details"]
-}
-```
-
-**STORY POINT**: 6
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## PHASE 1 BACKLOG ITEMS
-
-**Priority Items:**
-- DEPLOYMENT configuration and environment setup
-- Dynamic URL prompts in N8N workflows  
-- Static usage price review and dynamic pricing implementation
-- Admin panel token management interface
-- PDF generation and RAG integration for documents
+- DEPLOYMENT ?
+- prompt con url dinamici?
+- usage price sembra statico
+- dentro il pannello se il token scade? gestione tokem app gestione token n8n getione tokend dell'applicativo
+- dammi il pdf ? rag?
