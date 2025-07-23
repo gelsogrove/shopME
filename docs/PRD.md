@@ -13,8 +13,21 @@
 - **Address handling:** Shipping Address and Invoice Address will both be managed as structured objects (field by field) in forms and backend.
 - **Pagination limits:** All paginated lists will show 5 more items per page (default and max).
 - **N8N Custom Functions:** Complete documentation of all 6 custom functions with comprehensive business logic and technical details.
-- **Google Translate in RAG:** All non-English content (especially FAQs) will be translated to English before LLM processing.
+- **Google Translate in RAG:** ✅ **COMPLETED** - Sistema traduzione multilingue bidirezionale implementato con OpenRouter (google/gemma-2-9b-it:free). Supporta IT/ES/FR/PT con auto-rilevamento e traduzione real-time di query e risposte FAQ.
 - **🎉 OFFERS MANAGEMENT:** Complete offers system implemented with GetActiveOffers N8N tool for chatbot integration.
+
+### ✅ NEW: Sistema Multilingue Bidirezionale (July 2025)
+
+- **Traduzione Intelligente**: Auto-rilevamento linguaggio con regex patterns avanzati per IT/ES/FR/PT
+- **Ricerca Semantica Ottimizzata**: Query tradotte in inglese per embeddings più accurati
+- **UX Multilingue**: Risposte FAQ tradotte in tempo reale nella lingua del cliente
+- **OpenRouter Integration**: Modello google/gemma-2-9b-it:free per traduzioni veloci e gratuite
+- **Fallback Robusto**: Sistema mantiene funzionalità anche se traduzione non disponibile
+- **Copertura Completa**: Funziona per prodotti, FAQ, servizi, documenti in SearchRag
+- **Performance Ottimizzata**: Due chiamate LLM per query multilingue (query→EN, response→customer_lang)
+- **Esempi di Funzionamento**:
+  - "qual è la politica dei resi?" → "What is the return policy?" → trova FAQ → "Sì, hai 16 giorni..."
+  - "¿cuál es la política de devoluciones?" → "What is the return policy?" → trova FAQ → "Tienes 16 días..."
 
 ### ✅ NEW: Offers Management System (July 2025)
 
@@ -6985,14 +6998,23 @@ Andrea's usage tracking system provides comprehensive LLM cost monitoring with p
 
 ShopMe utilizza 6 funzioni personalizzate nel workflow N8N per fornire un'esperienza di e-commerce completa via WhatsApp. Ogni funzione implementa la **strategia prezzi di Andrea** (sconto più alto vince) e accede direttamente al database per informazioni aggiornate.
 
-### **🔍 RagSearch() - Sistema di Ricerca Semantica Avanzata**
+### **🔍 RagSearch() - Sistema di Ricerca Semantica Multilingue Avanzata**
 
-**FUNZIONALITÀ:** Ricerca semantica intelligente che interroga TUTTE le fonti di conoscenza del business e applica automaticamente la strategia prezzi con sconti cliente e offerte attive.
+**FUNZIONALITÀ:** Ricerca semantica intelligente con **traduzione automatica bidirezionale** che interroga TUTTE le fonti di conoscenza del business e applica automaticamente la strategia prezzi con sconti cliente e offerte attive.
+
+**🌍 SISTEMA TRADUZIONE MULTILINGUE:**
+
+- **Auto-rilevamento lingua**: Regex patterns per IT/ES/FR/PT
+- **Traduzione query**: Lingua cliente → Inglese (per ricerca semantica ottimale)
+- **Traduzione risposta**: Inglese → Lingua cliente (per UX perfetta)
+- **Modello AI**: OpenRouter + google/gemma-2-9b-it:free (veloce e gratuito)
+- **Lingue supportate**: Italiano, Spagnolo, Francese, Portoghese
+- **Fallback intelligente**: Se traduzione fallisce, mantiene testo originale
 
 **DATABASE CONSULTATO:**
 
 - **PRODUCTS** - Ricerca prodotti per similitudine semantica con embedding
-- **FAQS** - Cerca domande frequenti e risposte correlate
+- **FAQS** - Cerca domande frequenti e risposte correlate (tradotte in tempo reale)
 - **SERVICES** - Trova servizi disponibili correlati
 - **DOCUMENTS** - Ricerca documenti caricati (PDF, regolamenti, policy)
 - **CUSTOMERS** - Recupera sconto personalizzato del cliente (discount %)
@@ -7001,16 +7023,27 @@ ShopMe utilizza 6 funzioni personalizzate nel workflow N8N per fornire un'esperi
 
 **LOGICA BUSINESS:**
 
-- Ricerca parallela su tutti i contenuti
+- **Flusso multilingue**: Query multilingue → Traduzione EN → Ricerca semantica → Risultati EN → Traduzione lingua cliente
+- Ricerca parallela su tutti i contenuti con traduzione real-time
 - **Strategia prezzi NON-CUMULATIVA**: Sconto più alto vince (cliente vs migliore offerta)
 - Calcolo prezzi finali con trasparenza completa (prezzo originale, finale, % sconto, fonte)
+- **Embeddings ottimizzati**: Ricerca in inglese per risultati semantici migliori
 
-**TRIGGER ESEMPI:**
+**TRIGGER ESEMPI MULTILINGUE:**
 
-- "Avete mozzarella di bufala?" → Cerca nei PRODUCTS
-- "Quanto costa il servizio di trasporto?" → Cerca nei SERVICES
-- "Come posso pagare?" → Cerca nelle FAQS
-- "Avete sconti attivi?" → Controlla OFFERS e customer.discount
+- **Italiano**: "Avete mozzarella di bufala?" → Traduce → Cerca → "Sì, abbiamo mozzarella di bufala..."
+- **Spagnolo**: "¿Cuál es la política de devoluciones?" → Traduce → Cerca → "Tienes 16 días desde la recepción..."
+- **Francese**: "Quels sont vos services de livraison?" → Traduce → Cerca → "Nous offrons la livraison..."
+- **Portoghese**: "Quais são os produtos em promoção?" → Traduce → Cerca → "Temos as seguintes ofertas..."
+- **Inglese**: "What's your return policy?" → No traduzione → Cerca direttamente
+
+**🎯 VANTAGGI SISTEMA MULTILINGUE:**
+
+- **UX Globale**: Cliente scrive nella sua lingua, riceve risposta nella sua lingua
+- **Accuratezza semantica**: Ricerca in inglese per embeddings ottimali
+- **Performance**: Traduzione veloce con modello free OpenRouter
+- **Copertura**: 4 lingue europee principali + inglese
+- **Affidabilità**: Fallback a testo originale se traduzione non disponibile
 
 ### **📋 GetAllProducts() - Catalogo Completo con Strategia Prezzi**
 

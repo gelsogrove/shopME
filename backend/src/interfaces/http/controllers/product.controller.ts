@@ -30,10 +30,11 @@ export class ProductController {
       const { 
         search, 
         categoryId,
-   
         status, 
         page, 
-        limit 
+        limit,
+        active,
+        inStock
       } = req.query;
       
       const pageNumber = page ? parseInt(page as string) : undefined;
@@ -46,7 +47,9 @@ export class ProductController {
           categoryId: categoryId as string,
           status: status as string,
           page: pageNumber,
-          limit: limitNumber
+          limit: limitNumber,
+          active: active === 'true',
+          inStock: inStock === 'true'
         }
       );
       
