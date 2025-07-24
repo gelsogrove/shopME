@@ -12,6 +12,9 @@ export function SignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [gdprAccepted, setGdprAccepted] = useState(false)
   const [error, setError] = useState("")
   const navigate = useNavigate()
 
@@ -24,11 +27,15 @@ export function SignupPage() {
       return
     }
 
+    if (!gdprAccepted) {
+      setError("You must accept the GDPR policy to register.");
+      return;
+    }
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, firstName, lastName, gdprAccepted }),
       })
 
       const data = await response.json()
@@ -60,6 +67,26 @@ export function SignupPage() {
             )}
             <div className="space-y-2">
               <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="First Name"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Last Name"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -87,6 +114,16 @@ export function SignupPage() {
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none"
                 required
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={gdprAccepted}
+                onChange={(e) => setGdprAccepted(e.target.checked)}
+                id="gdpr"
+                required
+              />
+              <label htmlFor="gdpr" className="text-sm">I accept the GDPR policy</label>
             </div>
             <button
               type="submit"

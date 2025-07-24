@@ -29,6 +29,12 @@ const HomePage = () => {
                 >
                   Data Protection
                 </Link>
+                <Link
+                  to="/auth/forgot-password"
+                  className="px-4 py-2 border border-yellow-400 text-sm font-medium rounded-md shadow-sm text-yellow-900 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                >
+                  Forgot Password
+                </Link>
               </div>
             </div>
           </div>

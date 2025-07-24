@@ -1,3 +1,16 @@
+# PHASE 1 TASKS
+- usage voglo che per ogni risposta dell llm o operatore ci siano 0.5 centesimi di recharging ?
+
+- ⏳ ** : mail a contact operator ?**
+
+- ⏳ **TODO: ma il filtro posso toglierlo**
+- ⏳ **TODO: n8n**
+- dammi il pdf ? rag?
+- CF pdf
+- `/auth/forgot-password`
+- `/auth/reset-password`
+
+
 ## TASK #24
 
 **TITLE**: N8N - CF New Order
@@ -185,6 +198,10 @@ blockuser
 
 # PHASE 2 TASKS
 
+- prompt con url dinamici?
+- ⏳ **TODO: token viene passato?**
+- - dentro il pannello se il token scade? 
+
 ## TASK #3
 
 **TITLE**: Extended Session Duration (1 Hour)
@@ -366,26 +383,9 @@ Andrea requires a clean and maintainable database. All legacy or unused tables m
 
 ## NOTE
 
-<<<<<<< HEAD
-- usage ?
-- ⏳ **TODO: mail a contact operator ?**
-- ⏳ **TODO: token viene passato?**
-- ⏳ **TODO: ma il filtro posso toglierlo**
-- ⏳ **TODO: n8n**
 
-=======
-- SECUIRTY owasp
-- DEPLOYMENT ?
->>>>>>> 9e884ca9896368a1f9c2130c779e9ccfc6dab8a2
-- prompt con url dinamici?
 
-- dentro il pannello se il token scade? gestione tokem app gestione token n8n getione tokend dell'applicativo
-- dammi il pdf ? rag?
-<<<<<<< HEAD
 
-- ✅ **RISOLTO: usage price sembra statico nella dashboard**
-- Ordine e carrello e pagamento
-- fattura scaricabile
-- wip messge
-=======
->>>>>>> 9e884ca9896368a1f9c2130c779e9ccfc6dab8a2
+
+
+
