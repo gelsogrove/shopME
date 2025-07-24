@@ -33,6 +33,23 @@ export class TokenService {
     workspaceId: string
   ): Promise<string> {
     try {
+      // 🧹 AUTO-CLEANUP: Remove expired registration tokens (older than 1 hour) for this workspace
+      const oneHourAgo = new Date()
+      oneHourAgo.setHours(oneHourAgo.getHours() - 1)
+      
+      const cleanupResult = await this.prisma.registrationToken.deleteMany({
+        where: {
+          workspaceId,
+          expiresAt: {
+            lt: oneHourAgo
+          }
+        }
+      })
+
+      if (cleanupResult.count > 0) {
+        logger.info(`[REGISTRATION-TOKEN] 🧹 Auto-cleaned ${cleanupResult.count} expired registration tokens (older than 1 hour) for workspace ${workspaceId}`)
+      }
+
       // First, invalidate any existing tokens for this phone number
       await this.prisma.registrationToken.updateMany({
         where: {

@@ -269,7 +269,7 @@ function CartItemEditSheet({
       // Update local order data to reflect changes
       order.totalAmount = newTotalAmount
 
-      toast.success("Changes saved successfully")
+      // Note: success message will be shown by handleOrderSave
     } catch (error) {
       console.error("Error saving cart:", error)
 

@@ -77,6 +77,18 @@ router.post(
   internalApiController.welcomeUser.bind(internalApiController)
 )
 
+// 🔐 Token validation for public links
+router.post(
+  "/validate-secure-token",
+  internalApiController.validateSecureToken.bind(internalApiController)
+)
+
+// 🧾 Get customer invoices by token
+router.get(
+  "/invoices/:token",
+  internalApiController.getCustomerInvoicesByToken.bind(internalApiController)
+)
+
 // Registration link generation for new users
 router.post(
   "/generate-registration-link",
