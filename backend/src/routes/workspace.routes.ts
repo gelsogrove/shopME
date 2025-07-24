@@ -1,9 +1,10 @@
 import { RequestHandler, Router } from "express"
+import { WorkspaceService } from "../application/services/workspace.service"
 import { workspaceController } from "../controllers/workspace.controller"
-import { prisma } from "../lib/prisma"
 import { wrapController } from "../utils/controller-wrapper"
 
 const router = Router()
+const workspaceService = new WorkspaceService()
 
 /**
  * @swagger
@@ -75,27 +76,40 @@ const router = Router()
  */
 const getCurrentWorkspace: RequestHandler = async (req, res): Promise<void> => {
   try {
-    // For now, return the first active workspace
-    // TODO: Update this to use the actual current workspace from the session
-    const workspace = await prisma.workspace.findFirst({
-      where: {
-        isActive: true,
-        isDelete: false,
-      },
-      include: {
-        whatsappSettings: true,
-      },
-    })
+    // Get all workspaces using the service (which includes adminEmail)
+    const workspaces = await workspaceService.getAll()
+
+    // Find the first active workspace
+    const workspace = workspaces.find((w) => w.isActive && !w.isDelete)
 
     if (!workspace) {
       res.status(404).json({ error: "No active workspace found" })
       return
     }
 
-    // Include adminEmail from whatsappSettings in the response
+    // The workspace from service already includes adminEmail
     const responseData = {
-      ...workspace,
-      adminEmail: workspace.whatsappSettings?.adminEmail || null,
+      id: workspace.id,
+      name: workspace.name,
+      slug: workspace.slug,
+      description: workspace.description,
+      whatsappPhoneNumber: workspace.whatsappPhoneNumber,
+      whatsappApiToken: workspace.whatsappApiToken,
+      webhookUrl: workspace.webhookUrl,
+      notificationEmail: workspace.notificationEmail,
+      adminEmail: workspace.adminEmail, // This should now be included
+      language: workspace.language,
+      currency: workspace.currency,
+      messageLimit: workspace.messageLimit,
+      blocklist: workspace.blocklist,
+      welcomeMessages: workspace.welcomeMessages,
+      wipMessages: workspace.wipMessages,
+      challengeStatus: workspace.challengeStatus,
+      isActive: workspace.isActive,
+      isDelete: workspace.isDelete,
+      url: workspace.url,
+      createdAt: workspace.createdAt,
+      updatedAt: workspace.updatedAt,
     }
 
     res.json(responseData)
@@ -123,8 +137,10 @@ const getCurrentWorkspace: RequestHandler = async (req, res): Promise<void> => {
  *               items:
  *                 $ref: '#/components/schemas/Workspace'
  */
-router.get("/current", getCurrentWorkspace)
 router.get("/", wrapController(workspaceController.getAll))
+
+// IMPORTANT: /current must come BEFORE /:id to avoid conflict
+router.get("/current", getCurrentWorkspace)
 
 /**
  * @swagger
@@ -241,13 +257,13 @@ router.put("/:id", wrapController(workspaceController.update))
  *     description: |
  *       Permanently deletes a workspace and ALL related data including:
  *       - Products and categories
- *       - Customers and chat sessions  
+ *       - Customers and chat sessions
  *       - Services and offers
  *       - Documents and FAQ chunks
  *       - Agent configurations and prompts
  *       - User-workspace relationships
  *       - WhatsApp settings
- *       
+ *
  *       **WARNING**: This operation is irreversible and complies with GDPR Article 17 (Right to erasure).
  *       All data will be permanently removed with no recovery option.
  *     tags: [Workspaces]

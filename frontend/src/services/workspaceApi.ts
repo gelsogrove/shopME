@@ -1,4 +1,3 @@
-import { API_URL } from "@/config"
 import { api } from "./api"
 
 export interface Language {
@@ -59,6 +58,7 @@ export interface UpdateWorkspaceData {
   whatsappPhoneNumber?: string
   n8nWebhook?: string
   n8nWorkflowUrl?: string
+  adminEmail?: string
   language?: string
   isActive?: boolean
   isDelete?: boolean
@@ -99,34 +99,27 @@ const transformWorkspaceRequest = (
  * Get the current workspace from session storage or API
  */
 export async function getCurrentWorkspace(): Promise<Workspace> {
-  // First check if we have the workspace in session storage
-  const storedWorkspace = sessionStorage.getItem("currentWorkspace")
-  
-  if (storedWorkspace) {
-    try {
-      return JSON.parse(storedWorkspace)
-    } catch (error) {
-      console.error("Failed to parse stored workspace:", error)
-    }
-  }
-  
-  // If not in storage, fetch from API
-  const response = await fetch(`${API_URL}/workspaces/current`, {
-    credentials: "include",
-  })
-  
-  if (!response.ok) {
+  try {
+    // Clear any cached workspace data to ensure fresh data
+    sessionStorage.removeItem("currentWorkspace")
+
+    // Use the configured API instance with proper authentication
+    const response = await api.get("/workspaces/current")
+
+    console.log("Fresh workspace data from API:", response.data)
+    console.log("adminEmail in fresh data:", response.data.adminEmail)
+
+    const workspace = transformWorkspaceResponse(response.data)
+
+    // Store in session storage for future use
+    sessionStorage.setItem("currentWorkspace", JSON.stringify(workspace))
+
+    return workspace
+  } catch (error) {
+    console.error("Error getting current workspace:", error)
     throw new Error("Failed to fetch current workspace")
   }
-  
-  const workspace = await response.json()
-  
-  // Store in session storage for future use
-  sessionStorage.setItem("currentWorkspace", JSON.stringify(workspace))
-  
-  return workspace
 }
-
 export const getWorkspaces = async (): Promise<Workspace[]> => {
   try {
     // Get user from localStorage to check authentication

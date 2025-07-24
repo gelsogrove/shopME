@@ -1142,12 +1142,12 @@ ${JSON.stringify(ragResults, null, 2)}`
               data: {
                 workspaceId: workspaceId,
                 clientId: customer.id,
-                price: 0.005, // 0.5 cents as requested by Andrea
+                price: 0.05, // €0.50 per LLM response as per TASK #26
               },
             })
 
             logger.info(
-              `[USAGE-TRACKING] 💰 €0.005 tracked for customer ${customer.name} (${phoneNumber})`
+              `[USAGE-TRACKING] 💰 €0.50 tracked for customer ${customer.name} (${phoneNumber})`
             )
           } else {
             logger.info(

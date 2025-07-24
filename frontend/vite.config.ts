@@ -1,18 +1,18 @@
-import react from "@vitejs/plugin-react";
-import path from "path";
-import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react"
+import path from "path"
+import { defineConfig } from "vite"
 
 // Lista dei moduli mancanti che devono essere trattati come esterni
 const externalModules = [
-  '@tanstack/react-query',
-  'react-hook-form',
-  'react-hot-toast',
-  'sonner',
-  '@hookform/resolvers/zod',
-  'react-day-picker',
-  'cmdk',
-  'vaul'
-];
+  "@tanstack/react-query",
+  "react-hook-form",
+  "react-hot-toast",
+  "sonner",
+  "@hookform/resolvers/zod",
+  "react-day-picker",
+  "cmdk",
+  "vaul",
+]
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -31,14 +31,26 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
-          proxy.on('error', (err, _req, _res) => {
+          proxy.on("error", (err, _req, _res) => {
             // Production: Silent error handling
-            if (process.env.NODE_ENV === 'development') {
-              console.error('Proxy error:', err);
+            if (process.env.NODE_ENV === "development") {
+              console.error("Proxy error:", err)
             }
-          });
+          })
         },
-      }
+      },
+      "/workspaces": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, _options) => {
+          proxy.on("error", (err, _req, _res) => {
+            if (process.env.NODE_ENV === "development") {
+              console.error("Proxy error:", err)
+            }
+          })
+        },
+      },
     },
   },
   assetsInclude: ["**/*.svg"],
@@ -46,17 +58,24 @@ export default defineConfig({
     rollupOptions: {
       onwarn(warning, warn) {
         // Ignora warnings TypeScript e importazioni non risolte
-        if (warning.code?.startsWith('TS') || warning.code === 'UNRESOLVED_IMPORT') {
-          return;
+        if (
+          warning.code?.startsWith("TS") ||
+          warning.code === "UNRESOLVED_IMPORT"
+        ) {
+          return
         }
-        warn(warning);
+        warn(warning)
       },
       external: externalModules,
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
-          utils: ['clsx', 'tailwind-merge', 'class-variance-authority']
+          vendor: ["react", "react-dom"],
+          ui: [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-select",
+          ],
+          utils: ["clsx", "tailwind-merge", "class-variance-authority"],
         },
       },
     },
@@ -64,6 +83,6 @@ export default defineConfig({
     sourcemap: true,
     emptyOutDir: true,
     reportCompressedSize: false,
-    chunkSizeWarningLimit: 1000
-  }
+    chunkSizeWarningLimit: 1000,
+  },
 })

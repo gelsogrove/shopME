@@ -1,5 +1,3 @@
-import { useWorkspace } from "@/hooks/use-workspace"
-import { useRecentChats } from "@/hooks/useRecentChats"
 import { cn } from "@/lib/utils"
 import {
   BarChart3,
@@ -29,12 +27,9 @@ interface SidebarLink {
 }
 
 export function Sidebar() {
-  const { data: allChats = [] } = useRecentChats()
-  const totalUnreadMessages = allChats.reduce(
-    (acc, chat) => acc + (chat.unreadCount || 0),
-    0
-  )
-  const { workspace } = useWorkspace()
+  // Temporarily removed hooks to test single API call
+  const totalUnreadMessages = 0
+  const workspace = null
   const location = useLocation()
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({
     products: false // Inizialmente chiuso

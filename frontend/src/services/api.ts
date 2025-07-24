@@ -33,6 +33,13 @@ api.interceptors.request.use(
       }
     )
 
+    // Add Authorization header with JWT token if available
+    const token = localStorage.getItem("token")
+    if (token && !config.headers["Authorization"]) {
+      console.log(`🔐 Adding Authorization header with JWT token`)
+      config.headers["Authorization"] = `Bearer ${token}`
+    }
+
     // Add x-workspace-id header if not already present and we have a workspace ID
     if (!config.headers["x-workspace-id"]) {
       const workspaceId = getCurrentWorkspaceId()

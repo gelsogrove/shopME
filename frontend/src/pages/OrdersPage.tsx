@@ -83,6 +83,7 @@ function CartItemEditSheet({
   const [editingItems, setEditingItems] = useState<any[]>([])
   const [showAddProduct, setShowAddProduct] = useState(false)
   const [showAddService, setShowAddService] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState("")
   const [selectedServiceId, setSelectedServiceId] = useState("")
   const [productQuantity, setProductQuantity] = useState(1)
@@ -216,8 +217,9 @@ function CartItemEditSheet({
   }
 
   const handleSave = async () => {
-    if (!order || !workspace?.id) return
+    if (!order || !workspace?.id || isSaving) return
 
+    setIsSaving(true)
     try {
       // Calculate new total amount
       const newTotalAmount = editingItems.reduce(
@@ -228,11 +230,13 @@ function CartItemEditSheet({
       // Validate we have items and total
       if (editingItems.length === 0) {
         toast.error("Cannot save an empty cart")
+        setIsSaving(false)
         return
       }
 
       if (newTotalAmount <= 0) {
         toast.error("Cart total must be greater than zero")
+        setIsSaving(false)
         return
       }
 
@@ -296,6 +300,8 @@ function CartItemEditSheet({
 
       toast.error("Failed to update cart: " + errorMessage)
       // DON'T close the slide on error - let user try again
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -691,10 +697,11 @@ function CartItemEditSheet({
                     </Button>
                     <Button
                       onClick={handleSave}
+                      disabled={isSaving}
                       size="default"
-                      className="bg-green-600 hover:bg-green-700 text-white px-8"
+                      className="bg-green-600 hover:bg-green-700 text-white px-8 disabled:opacity-50"
                     >
-                      Save Changes
+                      {isSaving ? "Saving..." : "Save Changes"}
                     </Button>
                   </div>
                 </div>
