@@ -2,6 +2,7 @@ import { GDPRDialog } from '@/components/ui/gdpr-dialog';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTokenValidation } from '../hooks/useTokenValidation';
 
 const RegisterPage = () => {
   const [searchParams] = useSearchParams();
@@ -12,9 +13,19 @@ const RegisterPage = () => {
   
   const [workspaceName, setWorkspaceName] = useState('');
   const [loading, setLoading] = useState(true);
-  const [validatingToken, setValidatingToken] = useState(true);
-  const [tokenValid, setTokenValid] = useState(false);
-  const [tokenError, setTokenError] = useState('');
+  
+  // 🔐 Use new token validation hook
+  const { 
+    valid: tokenValid, 
+    loading: validatingToken, 
+    error: tokenError,
+    tokenData 
+  } = useTokenValidation({
+    token,
+    type: 'registration',
+    workspaceId,
+    autoValidate: true
+  });
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -56,72 +67,42 @@ const RegisterPage = () => {
     { code: 'GBP', name: 'British Pound (£)' }
   ];
   
-  // Validate token and get workspace name
+  // 🔐 Enhanced token validation with workspace info
   useEffect(() => {
-    const validateToken = async () => {
-      console.log('[Register] Starting token validation');
-      console.log('[Register] Params:', { token, phone, workspaceId });
-      if (!token || !phone || !workspaceId) {
-        setTokenError('Missing registration information. Please use the link sent to you via WhatsApp.');
-        setValidatingToken(false);
-        return;
-      }
-      
-      try {
-        // Validate token
-        console.log("[Register] Token value:", token); // DEBUG: log the token value
-        console.log(`[Register] Calling /registration/token/${token}`);
-        const tokenResponse = await axios.get(`/api/registration/token/${token}`);
-        console.log('[Register] Token API response:', tokenResponse.data);
-        
-        if (tokenResponse.data?.valid && 
-            tokenResponse.data?.phoneNumber === phone && 
-            tokenResponse.data?.workspaceId === workspaceId) {
-          setTokenValid(true);
-          
-          // Try to get workspace name
-          try {
-            console.log(`[Register] Fetching workspace info for id: ${workspaceId}`);
-            const workspaceResponse = await axios.get(`/api/workspaces/${workspaceId}`);
-            console.log('[Register] Workspace API response:', workspaceResponse.data);
-            if (workspaceResponse.data?.name) {
-              setWorkspaceName(workspaceResponse.data.name);
-            }
-          } catch (error) {
-            console.error('[Register] Error fetching workspace info:', error);
-            // Non-fatal error, continue with registration
+    const fetchWorkspaceInfo = async () => {
+      if (tokenValid && workspaceId) {
+        try {
+          console.log(`[Register] Fetching workspace info for id: ${workspaceId}`);
+          const workspaceResponse = await axios.get(`/api/workspaces/${workspaceId}`);
+          console.log('[Register] Workspace API response:', workspaceResponse.data);
+          if (workspaceResponse.data?.name) {
+            setWorkspaceName(workspaceResponse.data.name);
           }
-          
-          // Set language based on browser if possible
-          const browserLanguage = navigator.language.split('-')[0];
-          const languageMatch = languages.find(l => 
-            l.code.toLowerCase() === browserLanguage.toLowerCase() || 
-            l.name.toLowerCase().includes(browserLanguage.toLowerCase())
-          );
-          
-          if (languageMatch) {
-            setFormData(prev => ({
-              ...prev,
-              language: languageMatch.code
-            }));
-            console.log('[Register] Browser language detected:', browserLanguage, '->', languageMatch.code);
-          }
-        } else {
-          console.warn('[Register] Invalid or expired registration link. Token response:', tokenResponse.data);
-          setTokenError('Invalid or expired registration link. Please request a new one via WhatsApp.');
+        } catch (error) {
+          console.error('[Register] Error fetching workspace info:', error);
+          // Non-fatal error, continue with registration
         }
-      } catch (error) {
-        console.error('[Register] Token validation error:', error);
-        setTokenError('This registration link has expired. Please request a new one via WhatsApp.');
-      } finally {
-        setValidatingToken(false);
-        setLoading(false);
-        console.log('[Register] Token validation finished');
+        
+        // Set language based on browser if possible
+        const browserLanguage = navigator.language.split('-')[0];
+        const languageMatch = languages.find(l => 
+          l.code.toLowerCase() === browserLanguage.toLowerCase() || 
+          l.name.toLowerCase().includes(browserLanguage.toLowerCase())
+        );
+        
+        if (languageMatch) {
+          setFormData(prev => ({
+            ...prev,
+            language: languageMatch.code
+          }));
+          console.log('[Register] Browser language detected:', browserLanguage, '->', languageMatch.code);
+        }
       }
+      setLoading(false);
     };
     
-    validateToken();
-  }, [token, phone, workspaceId]);
+    fetchWorkspaceInfo();
+  }, [tokenValid, workspaceId]);
   
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
