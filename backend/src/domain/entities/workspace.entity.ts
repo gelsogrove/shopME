@@ -11,6 +11,7 @@ export interface WorkspaceProps {
   webhookUrl?: string | null
   n8nWorkflowUrl?: string | null
   notificationEmail?: string | null
+  adminEmail?: string | null
   language?: string
   currency?: string
   messageLimit?: number
@@ -64,6 +65,10 @@ export class Workspace extends Entity<WorkspaceProps> {
 
   get notificationEmail(): string | null | undefined {
     return this.props.notificationEmail
+  }
+
+  get adminEmail(): string | null | undefined {
+    return this.props.adminEmail
   }
 
   get language(): string {

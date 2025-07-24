@@ -20,7 +20,33 @@ export class WorkspaceController {
     try {
       logger.info("Getting all workspaces")
       const workspaces = await this.workspaceService.getAll()
-      return res.json(workspaces)
+
+      // Serialize workspaces to plain objects with all properties
+      const serializedWorkspaces = workspaces.map((workspace) => ({
+        id: workspace.id,
+        name: workspace.name,
+        slug: workspace.slug,
+        description: workspace.description,
+        whatsappPhoneNumber: workspace.whatsappPhoneNumber,
+        whatsappApiToken: workspace.whatsappApiToken,
+        webhookUrl: workspace.webhookUrl,
+        notificationEmail: workspace.notificationEmail,
+        adminEmail: workspace.adminEmail, // Explicitly include adminEmail
+        language: workspace.language,
+        currency: workspace.currency,
+        messageLimit: workspace.messageLimit,
+        blocklist: workspace.blocklist,
+        welcomeMessages: workspace.welcomeMessages,
+        wipMessages: workspace.wipMessages,
+        challengeStatus: workspace.challengeStatus,
+        isActive: workspace.isActive,
+        isDelete: workspace.isDelete,
+        url: workspace.url,
+        createdAt: workspace.createdAt,
+        updatedAt: workspace.updatedAt,
+      }))
+
+      return res.json(serializedWorkspaces)
     } catch (error) {
       logger.error("Error fetching workspaces:", error)
       return next(error)
@@ -50,7 +76,32 @@ export class WorkspaceController {
           return res.status(404).json({ message: "Workspace not found" })
         }
 
-        return res.json(workspace)
+        // Serialize workspace to plain object with all properties
+        const serializedWorkspace = {
+          id: workspace.id,
+          name: workspace.name,
+          slug: workspace.slug,
+          description: workspace.description,
+          whatsappPhoneNumber: workspace.whatsappPhoneNumber,
+          whatsappApiToken: workspace.whatsappApiToken,
+          webhookUrl: workspace.webhookUrl,
+          notificationEmail: workspace.notificationEmail,
+          adminEmail: workspace.adminEmail, // Explicitly include adminEmail
+          language: workspace.language,
+          currency: workspace.currency,
+          messageLimit: workspace.messageLimit,
+          blocklist: workspace.blocklist,
+          welcomeMessages: workspace.welcomeMessages,
+          wipMessages: workspace.wipMessages,
+          challengeStatus: workspace.challengeStatus,
+          isActive: workspace.isActive,
+          isDelete: workspace.isDelete,
+          url: workspace.url,
+          createdAt: workspace.createdAt,
+          updatedAt: workspace.updatedAt,
+        }
+
+        return res.json(serializedWorkspace)
       } catch (serviceError) {
         logger.error(`Service error fetching workspace ${id}:`, serviceError)
         // Restituisci un errore più specifico basato sull'errore del servizio

@@ -1,28 +1,28 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DashboardAnalytics } from '@/services/analyticsApi';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { DashboardAnalytics } from "@/services/analyticsApi"
 import {
-    Euro,
-    MessageCircle,
-    Minus,
-    ShoppingCart,
-    TrendingDown,
-    TrendingUp,
-    Users
-} from 'lucide-react';
-import React from 'react';
+  Euro,
+  MessageCircle,
+  Minus,
+  ShoppingCart,
+  TrendingDown,
+  TrendingUp,
+  Users,
+} from "lucide-react"
+import React from "react"
 
 interface MetricsOverviewProps {
-  analytics: DashboardAnalytics;
-  previousPeriodAnalytics?: DashboardAnalytics;
+  analytics: DashboardAnalytics
+  previousPeriodAnalytics?: DashboardAnalytics
 }
 
 interface MetricCardProps {
-  title: string;
-  value: number;
-  icon: React.ReactNode;
-  formatter: (value: number) => string;
-  trend?: number;
-  description?: string;
+  title: string
+  value: number
+  icon: React.ReactNode
+  formatter: (value: number) => string
+  trend?: number
+  description?: string
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({
@@ -31,17 +31,21 @@ const MetricCard: React.FC<MetricCardProps> = ({
   icon,
   formatter,
   trend,
-  description
+  description,
 }) => {
   const getTrendIcon = () => {
-    if (trend === undefined || trend === 0) return <Minus className="h-3 w-3" />;
-    return trend > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />;
-  };
+    if (trend === undefined || trend === 0) return <Minus className="h-3 w-3" />
+    return trend > 0 ? (
+      <TrendingUp className="h-3 w-3" />
+    ) : (
+      <TrendingDown className="h-3 w-3" />
+    )
+  }
 
   const getTrendColor = () => {
-    if (trend === undefined || trend === 0) return 'text-gray-500';
-    return trend > 0 ? 'text-green-600' : 'text-red-600';
-  };
+    if (trend === undefined || trend === 0) return "text-gray-500"
+    return trend > 0 ? "text-green-600" : "text-red-600"
+  }
 
   return (
     <Card>
@@ -52,11 +56,13 @@ const MetricCard: React.FC<MetricCardProps> = ({
       <CardContent>
         <div className="text-2xl font-bold">{formatter(value)}</div>
         {trend !== undefined && (
-          <div className={`flex items-center space-x-1 text-xs ${getTrendColor()}`}>
+          <div
+            className={`flex items-center space-x-1 text-xs ${getTrendColor()}`}
+          >
             {getTrendIcon()}
             <span>
               {Math.abs(trend).toFixed(1)}%
-              {trend > 0 ? ' in più' : trend < 0 ? ' in meno' : ' invariato'}
+              {trend > 0 ? " in più" : trend < 0 ? " in meno" : " invariato"}
             </span>
           </div>
         )}
@@ -65,51 +71,51 @@ const MetricCard: React.FC<MetricCardProps> = ({
         )}
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
 export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
   analytics,
-  previousPeriodAnalytics
+  previousPeriodAnalytics,
 }) => {
   // Calculate trends if previous period data is available
   const calculateTrend = (current: number, previous: number): number => {
-    if (previous === 0) return current > 0 ? 100 : 0;
-    return ((current - previous) / previous) * 100;
-  };
+    if (previous === 0) return current > 0 ? 100 : 0
+    return ((current - previous) / previous) * 100
+  }
 
   const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('it-IT', {
-      style: 'currency',
-      currency: 'EUR',
+    return new Intl.NumberFormat("it-IT", {
+      style: "currency",
+      currency: "EUR",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
-  };
+      maximumFractionDigits: 0,
+    }).format(value)
+  }
 
   const formatNumber = (value: number): string => {
-    return new Intl.NumberFormat('it-IT').format(value);
-  };
+    return new Intl.NumberFormat("it-IT").format(value)
+  }
 
   const formatDuration = (minutes: number): string => {
-    if (minutes < 60) return `${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return `${hours}h ${remainingMinutes}m`;
-  };
+    if (minutes < 60) return `${minutes}m`
+    const hours = Math.floor(minutes / 60)
+    const remainingMinutes = minutes % 60
+    return `${hours}h ${remainingMinutes}m`
+  }
 
   const formatPercentage = (value: number): string => {
-    return `${value.toFixed(1)}%`;
-  };
+    return `${value.toFixed(1)}%`
+  }
 
   const formatUsageCost = (value: number): string => {
-    return new Intl.NumberFormat('it-IT', {
-      style: 'currency',
-      currency: 'EUR',
+    return new Intl.NumberFormat("it-IT", {
+      style: "currency",
+      currency: "EUR",
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value);
-  };
+      maximumFractionDigits: 2,
+    }).format(value)
+  }
 
   const metrics = [
     {
@@ -117,42 +123,54 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
       value: analytics.overview.totalOrders,
       icon: <ShoppingCart className="h-4 w-4 text-muted-foreground" />,
       formatter: formatNumber,
-      trend: previousPeriodAnalytics 
-        ? calculateTrend(analytics.overview.totalOrders, previousPeriodAnalytics.overview.totalOrders)
+      trend: previousPeriodAnalytics
+        ? calculateTrend(
+            analytics.overview.totalOrders,
+            previousPeriodAnalytics.overview.totalOrders
+          )
         : undefined,
-      description: "Numero totale di ordini ricevuti"
+      description: "Numero totale di ordini ricevuti",
     },
     {
       title: "Clienti",
       value: analytics.overview.totalCustomers,
       icon: <Users className="h-4 w-4 text-muted-foreground" />,
       formatter: formatNumber,
-      trend: previousPeriodAnalytics 
-        ? calculateTrend(analytics.overview.totalCustomers, previousPeriodAnalytics.overview.totalCustomers)
+      trend: previousPeriodAnalytics
+        ? calculateTrend(
+            analytics.overview.totalCustomers,
+            previousPeriodAnalytics.overview.totalCustomers
+          )
         : undefined,
-      description: "Numero di clienti attivi"
+      description: "Numero di clienti attivi",
     },
     {
       title: "Messaggi",
       value: analytics.overview.totalMessages,
       icon: <MessageCircle className="h-4 w-4 text-muted-foreground" />,
       formatter: formatNumber,
-      trend: previousPeriodAnalytics 
-        ? calculateTrend(analytics.overview.totalMessages, previousPeriodAnalytics.overview.totalMessages)
+      trend: previousPeriodAnalytics
+        ? calculateTrend(
+            analytics.overview.totalMessages,
+            previousPeriodAnalytics.overview.totalMessages
+          )
         : undefined,
-      description: "Messaggi scambiati con i clienti"
+      description: "Messaggi scambiati con i clienti",
     },
     {
       title: "Costo LLM",
       value: analytics.overview.usageCost,
       icon: <Euro className="h-4 w-4 text-orange-500" />,
       formatter: formatUsageCost,
-      trend: previousPeriodAnalytics 
-        ? calculateTrend(analytics.overview.usageCost, previousPeriodAnalytics.overview.usageCost)
+      trend: previousPeriodAnalytics
+        ? calculateTrend(
+            analytics.overview.usageCost,
+            previousPeriodAnalytics.overview.usageCost
+          )
         : undefined,
-      description: "€0.005 per risposta LLM (Andrea's tracking)"
-    }
-  ];
+      description: "€0.50 per risposta LLM (TASK #26 updated pricing)",
+    },
+  ]
 
   // Engagement metrics removed as requested by Andrea
 
@@ -178,5 +196,5 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
 
       {/* Engagement Metrics section removed as requested by Andrea */}
     </div>
-  );
-};
+  )
+}

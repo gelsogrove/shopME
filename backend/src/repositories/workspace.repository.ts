@@ -35,6 +35,7 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
       isActive: data.isActive,
       isDelete: data.isDelete,
       url: data.url,
+      adminEmail: data.whatsappSettings?.adminEmail || null,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     })
@@ -78,6 +79,9 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
         where: {
           isDelete: false,
         },
+        include: {
+          whatsappSettings: true,
+        },
         orderBy: { createdAt: "asc" },
       })
 
@@ -100,6 +104,9 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
     try {
       const workspace = await this.prisma.workspace.findUnique({
         where: { id },
+        include: {
+          whatsappSettings: true,
+        },
       })
 
       if (!workspace) {
@@ -241,9 +248,39 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
         delete dbData.whatsappApiToken
       }
 
+      // Handle adminEmail - should be saved in whatsappSettings, not workspace
+      let adminEmail: string | undefined
+      if (dbData.adminEmail !== undefined) {
+        adminEmail = dbData.adminEmail
+        delete dbData.adminEmail
+      }
+
       const updatedWorkspace = await this.prisma.workspace.update({
         where: { id },
-        data: dbData,
+        data: {
+          ...dbData,
+          // Update whatsappSettings if adminEmail is provided
+          ...(adminEmail !== undefined && {
+            whatsappSettings: {
+              upsert: {
+                create: {
+                  phoneNumber: data.whatsappPhoneNumber || "placeholder",
+                  apiKey:
+                    dbData.whatsappApiKey ||
+                    data.whatsappApiToken ||
+                    "placeholder",
+                  adminEmail: adminEmail,
+                },
+                update: {
+                  adminEmail: adminEmail,
+                },
+              },
+            },
+          }),
+        },
+        include: {
+          whatsappSettings: true,
+        },
       })
 
       logger.debug(`Updated workspace with ID ${id}`)

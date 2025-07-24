@@ -1,6 +1,5 @@
 import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { useWorkspace } from "@/hooks/use-workspace"
 import { Chat } from "@/types/chat"
 // Importiamo l'icona WhatsAppIcon che creiamo internamente
 import { memo, useEffect, useState } from "react"
@@ -13,7 +12,21 @@ const MemoizedHeader = memo(Header)
 const MemoizedSidebar = memo(Sidebar)
 
 export function Layout() {
-  const { workspace } = useWorkspace()
+  // Get workspace from sessionStorage instead of API call
+  const [workspace, setWorkspace] = useState<any>(null)
+  
+  // Load workspace from sessionStorage
+  useEffect(() => {
+    const cachedWorkspace = sessionStorage.getItem("currentWorkspace")
+    if (cachedWorkspace) {
+      try {
+        setWorkspace(JSON.parse(cachedWorkspace))
+      } catch (error) {
+        console.error("Error parsing workspace from sessionStorage:", error)
+      }
+    }
+  }, [])
+
   const [showPlaygroundDialog, setShowPlaygroundDialog] = useState(false)
   const [savedChat, setSavedChat] = useState<Chat | null>(null)
 

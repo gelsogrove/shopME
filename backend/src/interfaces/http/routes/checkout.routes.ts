@@ -1,9 +1,9 @@
-import { Router } from 'express';
-import { CheckoutController } from '../controllers/checkout.controller';
-import { asyncHandler } from '../../../middlewares/async.middleware';
+import { Router } from "express"
+import { asyncMiddleware } from "../../../middlewares/async.middleware"
+import { CheckoutController } from "../controllers/checkout.controller"
 
-const router = Router();
-const checkoutController = new CheckoutController();
+const router = Router()
+const checkoutController = new CheckoutController()
 
 /**
  * @swagger
@@ -39,7 +39,10 @@ const checkoutController = new CheckoutController();
  *       500:
  *         description: Server error
  */
-router.get('/token/:token', asyncHandler(checkoutController.validateToken.bind(checkoutController)));
+router.get(
+  "/token/:token",
+  asyncMiddleware(checkoutController.validateToken.bind(checkoutController))
+)
 
 /**
  * @swagger
@@ -108,6 +111,9 @@ router.get('/token/:token', asyncHandler(checkoutController.validateToken.bind(c
  *       500:
  *         description: Server error
  */
-router.post('/submit', asyncHandler(checkoutController.submitOrder.bind(checkoutController)));
+router.post(
+  "/submit",
+  asyncMiddleware(checkoutController.submitOrder.bind(checkoutController))
+)
 
-export { router as checkoutRouter };
+export { router as checkoutRouter }

@@ -16,24 +16,6 @@ Andrea requires a dedicated N8N CF for new order management.
 
 ================================================================================
 
-## TASK #25
-
-**TITLE**: Integrate Google Translate Node for English Conversion in RAG Search
-**DESCRIPTION/ROADMAP**:
-
-- Integrate a Google Translate node into the RAG search workflow
-- Automatically convert any non-English content (especially FAQs) to English before processing
-- Update backend logic to ensure all relevant content is translated to English within the RAG flow
-- Test the system to confirm correct translation and improved search accuracy
-
-**SPECIAL NOTE**:
-Andrea requires that all non-English content, especially FAQs, is automatically translated to English in the RAG search process for better LLM results.
-
-**STORY POINT**: 6
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
 ## TASK #27
 
 **TITLE**: Payment Page: Create Order and Handle Shipping Address via Call Function
@@ -384,13 +366,18 @@ Andrea requires a clean and maintainable database. All legacy or unused tables m
 
 ## NOTE
 
-- SECUIRTY owasp
+- usage ?
+- ⏳ **TODO: mail a contact operator ?**
+- ⏳ **TODO: token viene passato?**
+- ⏳ **TODO: ma il filtro posso toglierlo**
+- ⏳ **TODO: n8n**
+
 - prompt con url dinamici?
-- usage price sembra statico
+
 - dentro il pannello se il token scade? gestione tokem app gestione token n8n getione tokend dell'applicativo
 - dammi il pdf ? rag?
 
-- usage price sembra statico nella dashboard
+- ✅ **RISOLTO: usage price sembra statico nella dashboard**
 - Ordine e carrello e pagamento
 - fattura scaricabile
 - wip messge

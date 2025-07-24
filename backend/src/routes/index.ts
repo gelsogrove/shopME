@@ -19,21 +19,26 @@ import { createAgentRouter } from "../interfaces/http/routes/agent.routes"
 import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
 import { chatRouter } from "../interfaces/http/routes/chat.routes"
-import { customersRouter, workspaceCustomersRouter } from "../interfaces/http/routes/customers.routes"
+import {
+  customersRouter,
+  workspaceCustomersRouter,
+} from "../interfaces/http/routes/customers.routes"
 
 import { faqsRouter } from "../interfaces/http/routes/faqs.routes"
 import { createLanguagesRouter } from "../interfaces/http/routes/languages.routes"
 import { messagesRouter } from "../interfaces/http/routes/messages.routes"
 import { offersRouter } from "../interfaces/http/routes/offers.routes"
+import { createOrderRouter } from "../interfaces/http/routes/order.routes"
 import createRegistrationRouter from "../interfaces/http/routes/registration.routes"
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import createSettingsRouter from "../interfaces/http/routes/settings.routes"
-import { createOrderRouter } from "../interfaces/http/routes/order.routes"
 
+import { checkoutRouter } from "../interfaces/http/routes/checkout.routes"
 import { whatsappRouter } from "../interfaces/http/routes/whatsapp.routes"
 import { workspaceRoutes } from "../interfaces/http/routes/workspace.routes"
-import { checkoutRouter } from "../interfaces/http/routes/checkout.routes"
+// Import the legacy workspace routes that has the /current endpoint
 import logger from "../utils/logger"
+import workspaceRoutesLegacy from "./workspace.routes"
 // Add these imports for backward compatibility during migration
 import { PromptsController } from "../controllers/prompts.controller"
 import { SettingsController } from "../interfaces/http/controllers/settings.controller"
@@ -96,7 +101,11 @@ const chatController = new ChatController()
 const messageController = new MessageController()
 const productController = new ProductController()
 const userController = new UserController(userService)
-const authController = new AuthController(userService, otpService, passwordResetService)
+const authController = new AuthController(
+  userService,
+  otpService,
+  passwordResetService
+)
 const promptsController = new PromptsController()
 const faqController = new FaqController()
 const whatsappController = new WhatsAppController()
@@ -112,17 +121,25 @@ router.use("/messages", messagesRouter(messageController))
 router.use("/users", createUserRouter())
 // Mount customer routes on both legacy and workspace paths to ensure backward compatibility
 router.use("/", customersRouter(customersController))
-// Utilizziamo il router specifico per workspaces 
+// Utilizziamo il router specifico per workspaces
 router.use("/workspaces", workspaceCustomersRouter(customersController))
+// Mount workspace routes (includes the /current endpoint) with authentication FIRST
+router.use("/workspaces", authMiddleware, workspaceRoutesLegacy)
 router.use("/workspaces", workspaceRoutes)
 // Mount agent routes with workspace parameter properly configured
-router.use("/workspaces/:workspaceId/agent", (req, res, next) => {
-  // Ensure workspaceId is available in params
-  if (req.params.workspaceId) {
-    logger.debug(`Agent route: workspaceId from params: ${req.params.workspaceId}`);
-  }
-  next();
-}, createAgentRouter())
+router.use(
+  "/workspaces/:workspaceId/agent",
+  (req, res, next) => {
+    // Ensure workspaceId is available in params
+    if (req.params.workspaceId) {
+      logger.debug(
+        `Agent route: workspaceId from params: ${req.params.workspaceId}`
+      )
+    }
+    next()
+  },
+  createAgentRouter()
+)
 logger.info("Registered agent router with workspace routes only")
 
 // Add a simple test route to debug workspace ID extraction
@@ -132,9 +149,9 @@ router.get("/workspaces/:workspaceId/test", authMiddleware, (req, res) => {
     workspaceId: req.params.workspaceId,
     originalUrl: req.originalUrl,
     params: req.params,
-    user: req.user ? { userId: (req.user as any).userId } : null
-  });
-});
+    user: req.user ? { userId: (req.user as any).userId } : null,
+  })
+})
 
 // For backward compatibility during migration
 router.use("/prompts", createPromptsRouter(promptsController))
@@ -157,17 +174,14 @@ router.use("/workspaces/:workspaceId/services", servicesRouterInstance)
 // router.use("/services", servicesRouterInstance) // REMOVED: legacy route, now only workspace scoped
 logger.info("Registered services router with workspace routes")
 
-
-
 // Mount FAQs router
-const faqsRouterInstance = faqsRouter();
-router.use("/workspaces/:workspaceId/faqs", faqsRouterInstance);
-router.use("/faqs", faqsRouterInstance);
-logger.info("Registered FAQs router with workspace routes");
+const faqsRouterInstance = faqsRouter()
+router.use("/workspaces/:workspaceId/faqs", faqsRouterInstance)
+router.use("/faqs", faqsRouterInstance)
+logger.info("Registered FAQs router with workspace routes")
 
 router.use("/settings", createSettingsRouter())
 router.use("/languages", createLanguagesRouter())
-
 
 // Mount offers routes
 const offersRouterInstance = offersRouter()
@@ -182,53 +196,68 @@ router.use("/orders", ordersRouterInstance)
 logger.info("Registered orders router with workspace routes")
 
 // Mount WhatsApp router
-const whatsappInstance = whatsappRouter(whatsappController);
+const whatsappInstance = whatsappRouter(whatsappController)
 // Mount all whatsapp routes (webhook routes are now defined in app.ts)
-router.use("/whatsapp", whatsappInstance);
+router.use("/whatsapp", whatsappInstance)
 logger.info("Registered WhatsApp router with auth-protected endpoints")
 
 // Mount document routes with debug middleware
-router.use("/workspaces/:workspaceId/documents", (req, res, next) => {
-  console.log('=== DOCUMENT ROUTES DEBUG ===');
-  console.log('URL:', req.originalUrl);
-  console.log('Method:', req.method);
-  console.log('Params:', req.params);
-  console.log('WorkspaceId:', req.params.workspaceId);
-  next();
-}, documentRoutes);
+router.use(
+  "/workspaces/:workspaceId/documents",
+  (req, res, next) => {
+    console.log("=== DOCUMENT ROUTES DEBUG ===")
+    console.log("URL:", req.originalUrl)
+    console.log("Method:", req.method)
+    console.log("Params:", req.params)
+    console.log("WorkspaceId:", req.params.workspaceId)
+    next()
+  },
+  documentRoutes
+)
 logger.info("Registered document router with workspace and upload endpoints")
 
 // Mount internal API routes for N8N integration
-router.use("/internal", internalApiRoutes);
+router.use("/internal", internalApiRoutes)
 logger.info("Registered internal API routes for N8N integration")
 
 // Mount analytics routes
-router.use("/analytics", analyticsRoutes);
+router.use("/analytics", analyticsRoutes)
 logger.info("Registered analytics routes for dashboard metrics")
 
 // Mount checkout routes (public - no auth required)
-router.use("/checkout", checkoutRouter);
+router.use("/checkout", checkoutRouter)
 logger.info("Registered checkout routes for order processing")
 
 // Add special route for GDPR default content (to handle frontend request to /gdpr/default)
-router.get("/gdpr/default", authMiddleware, settingsController.getDefaultGdprContent.bind(settingsController))
+router.get(
+  "/gdpr/default",
+  authMiddleware,
+  settingsController.getDefaultGdprContent.bind(settingsController)
+)
 logger.info("Registered /gdpr/default route for backward compatibility")
 
 // Mount Swagger documentation
-router.get('/docs/swagger.json', (req, res) => {
+router.get("/docs/swagger.json", (req, res) => {
   try {
-    const { swaggerSpec } = require('../config/swagger');
-    res.setHeader('Content-Type', 'application/json');
-    res.json(swaggerSpec);
+    const { swaggerSpec } = require("../config/swagger")
+    res.setHeader("Content-Type", "application/json")
+    res.json(swaggerSpec)
   } catch (error) {
-    logger.error('Error serving swagger.json:', error);
-    res.status(500).json({ error: 'Failed to load swagger documentation' });
+    logger.error("Error serving swagger.json:", error)
+    res.status(500).json({ error: "Failed to load swagger documentation" })
   }
 })
 
 // Health check
 router.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok", timestamp: new Date().toISOString(), version: "1.0.0", apiVersion: "v1" })
+  res
+    .status(200)
+    .json({
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      version: "1.0.0",
+      apiVersion: "v1",
+    })
 })
 
 // Simple test route for workspace agent debugging
@@ -238,9 +267,9 @@ router.get("/workspaces/:workspaceId/agent-test", (req, res) => {
     message: "Test route working",
     workspaceId: req.params.workspaceId,
     originalUrl: req.originalUrl,
-    params: req.params
-  });
-});
+    params: req.params,
+  })
+})
 
 logger.info("API routes setup complete")
 

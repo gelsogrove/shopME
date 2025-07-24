@@ -8,8 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useWorkspace } from "@/hooks/use-workspace"
-import { useCurrentUser } from "@/hooks/useCurrentUser"
 import { toast } from "@/lib/toast"
 import { api } from "@/services/api"
 import {
@@ -28,14 +26,39 @@ import { useNavigate } from "react-router-dom"
 
 export function Header() {
   const navigate = useNavigate()
-  const { workspace } = useWorkspace()
+  // Get workspace from sessionStorage instead of API call
+  const [workspace, setWorkspace] = useState<any>(null)
   const [phoneNumber, setPhoneNumber] = useState<string>("")
   const [workspaceType, setWorkspaceType] = useState<string>("")
   const [channelName, setChannelName] = useState<string>("")
   const [userName, setUserName] = useState<string>("")
   const [userEmail, setUserEmail] = useState<string>("")
   const [userInitials, setUserInitials] = useState<string>("")
-  const { data: userData, isLoading, isError } = useCurrentUser()
+  // Get user data from localStorage instead of API call
+  const [userData, setUserData] = useState<any>(null)
+
+  // Load workspace and user data from storage
+  useEffect(() => {
+    // Load workspace
+    const cachedWorkspace = sessionStorage.getItem("currentWorkspace")
+    if (cachedWorkspace) {
+      try {
+        setWorkspace(JSON.parse(cachedWorkspace))
+      } catch (error) {
+        console.error("Error parsing workspace from sessionStorage:", error)
+      }
+    }
+
+    // Load user data
+    const cachedUser = localStorage.getItem("user")
+    if (cachedUser) {
+      try {
+        setUserData(JSON.parse(cachedUser))
+      } catch (error) {
+        console.error("Error parsing user from localStorage:", error)
+      }
+    }
+  }, [])
 
   // Get plan display info
   const getPlanDisplayInfo = (plan?: string) => {
