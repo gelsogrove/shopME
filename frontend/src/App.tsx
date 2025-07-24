@@ -57,6 +57,8 @@ export function App() {
           <Route path="reset-password" element={<ResetPasswordPage />} />
           <Route path="verify-otp" element={<VerifyOtpPage />} />
         </Route>
+        {/* Direct route for /forgot-password to avoid 404 */}
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         {/* Development/Test Routes */}
         <Route path="/message-test" element={<MessageTestPage />} />
@@ -148,6 +150,7 @@ export function App() {
         <Route path="/login" element={<Navigate to="/auth/login" replace />} />
 
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/signup" element={<RegisterPage />} />
         <Route path="/registration-success" element={<RegistrationSuccess />} />
         <Route path="/checkout/:token" element={<CheckoutPage />} />
         <Route path="/checkout-success" element={<CheckoutSuccessPage />} />

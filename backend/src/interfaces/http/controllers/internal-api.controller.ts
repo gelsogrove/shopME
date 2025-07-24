@@ -287,10 +287,12 @@ const prisma = new PrismaClient()
  *                   type: array
  */
 export class InternalApiController {
-  private secureTokenService: SecureTokenService
+  private secureTokenService: SecureTokenService;
+  private prisma: PrismaClient;
 
   constructor(private messageRepository: MessageRepository) {
-    this.secureTokenService = new SecureTokenService()
+    this.secureTokenService = new SecureTokenService();
+    this.prisma = new PrismaClient();
   }
 
   /**
@@ -3032,18 +3034,21 @@ ${JSON.stringify(ragResults, null, 2)}`
       if (!token) {
         res.status(400).json({
           valid: false,
-          error: 'Token is required'
+          error: "Token is required",
         })
         return
       }
 
       // Validate token using SecureTokenService
-      const validation = await this.secureTokenService.validateToken(token, type)
-      
+      const validation = await this.secureTokenService.validateToken(
+        token,
+        type
+      )
+
       if (!validation.valid) {
         res.status(401).json({
           valid: false,
-          error: 'Invalid or expired token'
+          error: "Invalid or expired token",
         })
         return
       }
@@ -3052,12 +3057,14 @@ ${JSON.stringify(ragResults, null, 2)}`
       if (workspaceId && validation.data?.workspaceId !== workspaceId) {
         res.status(403).json({
           valid: false,
-          error: 'Token workspace mismatch'
+          error: "Token workspace mismatch",
         })
         return
       }
 
-      logger.info(`[VALIDATE-TOKEN] ✅ Token validated successfully for type: ${type || 'any'}`)
+      logger.info(
+        `[VALIDATE-TOKEN] ✅ Token validated successfully for type: ${type || "any"}`
+      )
 
       res.status(200).json({
         valid: true,
@@ -3068,15 +3075,15 @@ ${JSON.stringify(ragResults, null, 2)}`
           userId: validation.data?.userId,
           phoneNumber: validation.data?.phoneNumber,
           expiresAt: validation.data?.expiresAt,
-          createdAt: validation.data?.createdAt
+          createdAt: validation.data?.createdAt,
         },
-        payload: validation.payload
+        payload: validation.payload,
       })
     } catch (error) {
-      logger.error('[VALIDATE-TOKEN] Error validating secure token:', error)
+      logger.error("[VALIDATE-TOKEN] Error validating secure token:", error)
       res.status(500).json({
         valid: false,
-        error: 'Internal server error during token validation'
+        error: "Internal server error during token validation",
       })
     }
   }
@@ -3092,49 +3099,54 @@ ${JSON.stringify(ragResults, null, 2)}`
       if (!token) {
         res.status(400).json({
           success: false,
-          error: 'Token is required'
+          error: "Token is required",
         })
         return
       }
 
       // Validate invoice token
-      const validation = await this.secureTokenService.validateToken(token, 'invoice')
-      
+      const validation = await this.secureTokenService.validateToken(
+        token,
+        "invoice"
+      )
+
       if (!validation.valid) {
         res.status(401).json({
           success: false,
-          error: 'Invalid or expired invoice token'
+          error: "Invalid or expired invoice token",
         })
         return
       }
 
       const { customerId, workspaceId } = validation.payload || {}
-      
+
       if (!customerId || !workspaceId) {
         res.status(400).json({
           success: false,
-          error: 'Invalid token payload'
+          error: "Invalid token payload",
         })
         return
       }
 
-      logger.info(`[INVOICES] 📋 Fetching invoices for customer ${customerId} in workspace ${workspaceId}`)
+      logger.info(
+        `[INVOICES] 📋 Fetching invoices for customer ${customerId} in workspace ${workspaceId}`
+      )
 
       // Get customer info
       const customer = await this.prisma.customers.findFirst({
         where: {
           id: customerId,
-          workspaceId: workspaceId
+          workspaceId: workspaceId,
         },
         include: {
-          workspace: true
-        }
+          workspace: true,
+        },
       })
 
       if (!customer) {
         res.status(404).json({
           success: false,
-          error: 'Customer not found'
+          error: "Customer not found",
         })
         return
       }
@@ -3145,58 +3157,64 @@ ${JSON.stringify(ragResults, null, 2)}`
           customerId: customerId,
           workspaceId: workspaceId,
           status: {
-            in: ['completed', 'delivered', 'paid']
-          }
+            in: ["DELIVERED"], // Only DELIVERED is a valid completed status
+          },
         },
         include: {
-          orderItems: {
+          items: {
             include: {
-              product: true
-            }
-          }
+              product: true,
+            },
+          },
         },
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: "desc",
+        },
       })
 
       // Convert orders to invoice format
-      const invoices = orders.map(order => ({
+      const invoices = orders.map((order) => ({
         id: order.id,
         number: `INV-${order.id.slice(-8).toUpperCase()}`,
         date: order.createdAt,
         amount: order.totalAmount,
-        status: order.status === 'paid' ? 'paid' : 
-                order.status === 'completed' ? 'pending' : 'overdue',
-        items: order.orderItems.map(item => ({
-          description: item.product?.name || 'Prodotto',
+        status:
+          order.status === "DELIVERED"
+            ? "paid"
+            : order.status === "PENDING"
+              ? "pending"
+              : "overdue",
+        items: order.items.map((item) => ({
+          description: item.product?.name || "Prodotto",
           quantity: item.quantity,
-          unitPrice: item.price,
-          amount: (item.quantity * item.price).toFixed(2)
+          unitPrice: item.product?.price ?? 0,
+          amount: ((item.quantity ?? 1) * (item.product?.price ?? 0)).toFixed(2),
         })),
         customerName: customer.name,
         customerEmail: customer.email,
-        customerPhone: customer.phone
+        customerPhone: customer.phone,
       }))
 
       // Calculate summary
       const summary = {
         totalInvoices: invoices.length,
         totalPaid: invoices
-          .filter(inv => inv.status === 'paid')
-          .reduce((sum, inv) => sum + parseFloat(inv.amount), 0)
+          .filter((inv) => inv.status === "paid")
+          .reduce((sum, inv) => sum + inv.amount, 0)
           .toFixed(2),
         totalPending: invoices
-          .filter(inv => inv.status === 'pending')
-          .reduce((sum, inv) => sum + parseFloat(inv.amount), 0)
+          .filter((inv) => inv.status === "pending")
+          .reduce((sum, inv) => sum + inv.amount, 0)
           .toFixed(2),
         totalOverdue: invoices
-          .filter(inv => inv.status === 'overdue')
-          .reduce((sum, inv) => sum + parseFloat(inv.amount), 0)
-          .toFixed(2)
+          .filter((inv) => inv.status === "overdue")
+          .reduce((sum, inv) => sum + inv.amount, 0)
+          .toFixed(2),
       }
 
-      logger.info(`[INVOICES] ✅ Found ${invoices.length} invoices for customer ${customer.name}`)
+      logger.info(
+        `[INVOICES] ✅ Found ${invoices.length} invoices for customer ${customer.name}`
+      )
 
       res.status(200).json({
         success: true,
@@ -3205,26 +3223,26 @@ ${JSON.stringify(ragResults, null, 2)}`
             id: customer.id,
             name: customer.name,
             email: customer.email,
-            phone: customer.phone
+            phone: customer.phone,
           },
           workspace: {
             id: customer.workspace.id,
-            name: customer.workspace.name
+            name: customer.workspace.name,
           },
           invoices,
           summary,
           tokenInfo: {
-            type: 'invoice',
+            type: "invoice",
             expiresAt: validation.data?.expiresAt,
-            issuedAt: validation.data?.createdAt
-          }
-        }
+            issuedAt: validation.data?.createdAt,
+          },
+        },
       })
     } catch (error) {
-      logger.error('[INVOICES] Error fetching customer invoices:', error)
+      logger.error("[INVOICES] Error fetching customer invoices:", error)
       res.status(500).json({
         success: false,
-        error: 'Internal server error'
+        error: "Internal server error",
       })
     }
   }
