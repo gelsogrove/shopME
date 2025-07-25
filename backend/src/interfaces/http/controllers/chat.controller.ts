@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import { MessageRepository } from '../../../repositories/message.repository';
+import { usageService } from '../../../services/usage.service';
 import logger from '../../../utils/logger';
 
 export class ChatController {
@@ -318,6 +319,19 @@ export class ChatController {
       });
 
       logger.info(`[CHAT-SEND] ✅ Operator message saved to database successfully`);
+
+      // Track usage cost for manual operator response (€0.005)
+      try {
+        await usageService.trackUsage({
+          workspaceId: workspaceId,
+          clientId: chatSession.customer.id,
+          price: 0.005
+        });
+        logger.info(`[CHAT-SEND] 💰 Usage tracked for operator response: €0.005`);
+      } catch (usageError) {
+        logger.warn(`[CHAT-SEND] ⚠️ Usage tracking failed (message still saved):`, usageError.message);
+        // Continue - message is saved even if usage tracking fails
+      }
 
       // Try to send the message via WhatsApp (non-blocking)
       try {

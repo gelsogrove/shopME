@@ -538,6 +538,31 @@ export class MessageRepository {
           )
           botResponse = existingBotMessage // Return existing response instead of creating new one
         } else {
+          console.log(`[DEBUG-TRACKING] 🔍 About to track usage for customer: ${customer.id}, workspace: ${workspaceId}`)
+          
+          // 💰 USAGE TRACKING: Track €0.005 before saving AI response to history
+          try {
+            const { usageService } = await import("../services/usage.service")
+            console.log(`[DEBUG-TRACKING] 🔍 usageService imported successfully`)
+            
+            await usageService.trackUsage({
+              clientId: customer.id,
+              workspaceId: workspaceId,
+              price: 0.005
+            })
+            
+            console.log(`[DEBUG-TRACKING] ✅ usageService.trackUsage called successfully`)
+            logger.info(
+              `[USAGE-TRACKING] 💰 €0.005 tracked before saving AI response for customer ${customer.name} (${data.phoneNumber})`
+            )
+          } catch (trackingError) {
+            console.error(`[DEBUG-TRACKING] ❌ Tracking error:`, trackingError)
+            logger.warn(
+              `[USAGE-TRACKING] ❌ Failed to track usage, but conversation will still be saved:`,
+              trackingError.message
+            )
+          }
+
           botResponse = await this.prisma.message.create({
             data: {
               chatSessionId: session.id,

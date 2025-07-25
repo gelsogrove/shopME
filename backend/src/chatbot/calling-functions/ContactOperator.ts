@@ -7,7 +7,7 @@ import logger from "../../utils/logger"
  *
  * This function is used to handle operator intervention requests from users.
  * When called, it sets the 'activeChatbot' field to false for the customer matching the given phone and workspaceId.
- * It also sends an email notification to the admin with a chat summary.
+ * It also sends an email notification to the operator (adminEmail) with AI-generated chat summary.
  * It returns a confirmation message to the user: "Certo, verrà contattato il prima possibile dal nostro operatore."
  *
  * Parameters:
@@ -17,7 +17,7 @@ import logger from "../../utils/logger"
  * Usage:
  *   - Used by N8N or the chatbot when a user requests to speak with a human operator.
  *   - After this call, the chatbot will no longer respond to the user until reactivated manually.
- *   - An email notification is sent to the admin with chat summary.
+ *   - An email notification is sent to the operator (adminEmail) with AI-generated chat summary.
  */
 export async function ContactOperator({
   phone,
@@ -38,6 +38,11 @@ export async function ContactOperator({
 
     if (!customer) {
       throw new Error("Customer not found")
+    }
+
+    // Check if customer has email
+    if (!customer.email) {
+      logger.warn(`Customer ${customer.name || phone} has no email - continuing without email requirement`)
     }
 
     // Get workspace and admin email
@@ -75,49 +80,54 @@ export async function ContactOperator({
       take: 10, // Limit to 10 recent messages
     })
 
-    // Create message summary for the operator
-    const messageSummary =
-      recentMessages.length > 0
-        ? recentMessages
-            .slice(0, 5) // Last 5 messages
-            .reverse() // Show chronological order
-            .map(
-              (msg) =>
-                `${msg.direction === "INBOUND" ? "Cliente" : "Bot"}: ${msg.content}`
-            )
-            .join("\n")
-        : "Nessun messaggio recente disponibile"
+    // Create AI-powered message summary for the operator
+    const conversationText = recentMessages.length > 0
+      ? recentMessages
+          .slice(0, 10) // Last 10 messages for AI analysis
+          .reverse() // Show chronological order
+          .map(
+            (msg) =>
+              `${msg.direction === "INBOUND" ? "Cliente" : "Bot"}: ${msg.content}`
+          )
+          .join("\n")
+      : "Nessuna conversazione recente disponibile"
+
+    // Generate AI summary of the conversation for the operator
+    const aiSummary = await generateAIChatSummary(conversationText, customer.name || phone)
 
     const emailContent = `
 🚨 RICHIESTA OPERATORE UMANO
 
 📱 Cliente: ${customer.name} (${phone})
+📧 Email cliente: ${customer.email || 'N/A'}
 🌐 Workspace: ${workspaceId}
 ⏰ Data richiesta: ${new Date().toLocaleString("it-IT")}
 
-📄 ULTIME CONVERSAZIONI:
-${messageSummary}
+📄 RIASSUNTO AI CONVERSAZIONE (ultimo giorno):
+${aiSummary}
 
 ℹ️ Il chatbot è stato automaticamente disattivato per questo cliente.
-📞 Contattare il cliente al più presto possibile.
+📞 Contattare il cliente al numero ${phone} ${customer.email ? `o via email ${customer.email}` : ''} il prima possibile.
     `
 
-    // Send email notification to admin if email is configured
+    // Send email notification to operator (adminEmail) if configured
     const adminEmail = workspace.whatsappSettings?.adminEmail
     if (adminEmail) {
       const emailService = new EmailService()
 
       try {
         await emailService.sendOperatorNotificationEmail({
-          to: adminEmail,
+          to: adminEmail, // Send to operator (admin)
           customerName: customer.name || phone,
-          chatSummary: messageSummary,
+          chatSummary: aiSummary, // Use AI-generated summary
           workspaceName: workspace.name,
+          subject: `🔔 Cliente ${customer.name || phone} richiede assistenza operatore`,
+          fromEmail: 'noreply@shopme.com', // Fixed sender email
           // TODO: Add chatId if chat system is available
         })
 
         logger.info(
-          `Operator notification email sent to ${adminEmail} for customer ${customer.name || phone}`
+          `Operator notification email sent to admin ${adminEmail} for customer ${customer.name || phone}`
         )
       } catch (emailError) {
         logger.error(

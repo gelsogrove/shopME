@@ -1,15 +1,21 @@
 # PHASE 1 TASKS
-- usage voglo che per ogni risposta dell llm o operatore ci siano 0.5 centesimi di recharging ?
 
-- ⏳ ** : mail a contact operator ?**
+- ✅ **COMPLETATO: N8N integration usage tracking automatico** - €0.005 tracking integrato in MessageRepository.saveMessage() prima del salvataggio nello storico
+- ⏳ **TODO: TESTARE tracking usage** - Dashboard mostra sempre €3.88, servono nuovi messaggi AI per vedere incremento €0.005
+- ✅ **COMPLETATO: Mail a contact operator** - CF ContactOperator aggiornato con AI summary e email all'operatore
 
 - ⏳ **TODO: ma il filtro posso toglierlo**
-- ⏳ **TODO: n8n**
-- dammi il pdf ? rag?
+- ⏳ **TODO: n8n TOKEN**
+- ⏳ **TODO: Integrare TrackUsage nel workflow N8N** - CF pronto, serve integrazione nel workflow
 - CF pdf
-- `/auth/forgot-password`
-- `/auth/reset-password`
-
+- SISTEMARE IL PRD
+- TEST DEVONO ESSERE FUNZIONANTI
+- sistema di invoice ?
+- docker name possiamo cambiarlo da shopme_n8n_unifend a shopme_n8
+- Posso fare qualcos'altro per lei nel frattempo? (da togliere)
+- Analytics Dashboard- defailt 1 mese e poi dobbiamo capire i costi mensili mostrarli
+- pulizia metodi
+- mettere campo debug-mode per evtare di far salire il contatore
 
 ## TASK #24
 
@@ -196,11 +202,13 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 
 blockuser
 
+-
+
 # PHASE 2 TASKS
 
 - prompt con url dinamici?
 - ⏳ **TODO: token viene passato?**
-- - dentro il pannello se il token scade? 
+- - dentro il pannello se il token scade?
 
 ## TASK #3
 
@@ -382,10 +390,3 @@ Andrea requires a clean and maintainable database. All legacy or unused tables m
 ================================================================================
 
 ## NOTE
-
-
-
-
-
-
-

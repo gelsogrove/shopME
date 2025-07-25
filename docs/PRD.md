@@ -2511,22 +2511,56 @@ Contenuto:
 ```typescript
 // src/chatbot/calling-functions/ContactOperator.ts
 export async function ContactOperator({ phone, workspaceId }) {
-  // 1. Disabilita chatbot per cliente
-  // 2. Recupera dati workspace + adminEmail
-  // 3. Genera riassunto chat ultimi messaggi
-  // 4. Invia email all'admin con dettagli completi
-  // 5. Logging completo per monitoraggio
-  // 6. Gestione errori resiliente
+  // 1. Trova cliente tramite telefono e workspaceId
+  // 2. Disabilita chatbot per cliente (activeChatbot = false)
+  // 3. Recupera workspace e adminEmail dalle impostazioni WhatsApp
+  // 4. Raccoglie ultimi 10 messaggi delle ultime 24h per contesto
+  // 5. Genera riassunto AI intelligente della conversazione
+  // 6. Invia email all'operatore (adminEmail) con tutti i dettagli
+  // 7. Gestione errori resiliente con fallback
+  // 8. Logging completo per monitoraggio
 }
 ```
 
-#### **🚀 Funzionalità Operative:**
+#### **🚀 Funzionalità Operative Aggiornate:**
 
-- **Auto-trigger**: Email inviata automaticamente ad ogni chiamata `CallOperator`
-- **Rich Content**: Include cronologia chat, dettagli cliente, timestamp
-- **Professional Design**: Template HTML con emoji e styling moderno
-- **Error Recovery**: Sistema continua a funzionare anche con SMTP offline
-- **Development Ready**: Supporto Ethereal Email per test senza SMTP
+- **Destinatario Email**: `adminEmail` (operatore) invece del cliente
+- **Mittente Email**: `noreply@shopme.com` (fisso, professionale)
+- **Subject**: `"🔔 Cliente [NOME] richiede assistenza operatore"` (italiano)
+- **AI Summary**: Riassunto intelligente conversazione ultimo giorno (10 messaggi)
+- **Email Content**: Dati cliente completi + riassunto AI + istruzioni contatto
+- **Error Recovery**: Continua anche con email/AI failure, logging completo
+- **Graceful Degradation**: Funziona anche senza email cliente
+
+#### **📧 Email Template per Operatore:**
+
+```
+🚨 RICHIESTA OPERATORE UMANO
+
+📱 Cliente: Mario Rossi (+393451234567)
+📧 Email cliente: mario@example.com
+🌐 Workspace: Test Shop
+⏰ Data richiesta: 25/07/2025, 14:30:22
+
+📄 RIASSUNTO AI CONVERSAZIONE (ultimo giorno):
+Il cliente Mario ha chiesto informazioni sui prodotti lattiero-caseari. 
+Conversazione cordiale e professionale. Ha mostrato interesse per 
+mozzarella di bufala e ha domandato sui tempi di spedizione. 
+Consiglio: Contattare per fornire catalogo dettagliato e offerte speciali.
+
+ℹ️ Il chatbot è stato automaticamente disattivato per questo cliente.
+📞 Contattare il cliente al numero +393451234567 o via email mario@example.com il prima possibile.
+```
+
+#### **🧪 Test Coverage Completo:**
+
+- ✅ Test unitari con Jest e mocking completo
+- ✅ Scenari successo: email inviata, AI summary generato
+- ✅ Gestione errori: cliente/workspace non trovato, email failure
+- ✅ Edge cases: cliente senza email, AI service down, adminEmail mancante
+- ✅ Mock per Prisma, EmailService, AI API, logger
+- ✅ Validazione parametri input e output
+- ✅ Copertura 100% delle funzionalità principali
 
 #### **⚙️ Configurazione:**
 

@@ -1026,8 +1026,7 @@ RESPONSE INSTRUCTIONS:
         `[LLM-PROCESS] OpenRouter response received, tokens used: ${data.usage?.total_tokens || 0}`
       )
 
-      // 💰 USAGE TRACKING: Now handled in saveMessage (Andrea's Logic)
-      // No need to track here - tracking happens when N8N saves final conversation
+      // 💰 USAGE TRACKING: Now handled in MessageRepository.saveMessage() when N8N calls /internal/save-message
 
       res.json({
         response: formattedResponse,
@@ -1105,6 +1104,8 @@ ${JSON.stringify(ragResults, null, 2)}`
    */
   async saveMessage(req: Request, res: Response): Promise<void> {
     try {
+      console.log('[SAVE-MESSAGE] 📥 Request received:', JSON.stringify(req.body, null, 2))
+      
       const { phoneNumber, workspaceId, message, response } = req.body
 
       if (!phoneNumber || !workspaceId || !message) {
@@ -1112,7 +1113,9 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      // Save the conversation
+      console.log(`[SAVE-MESSAGE] 📝 Processing message from ${phoneNumber}, response: "${response ? response.substring(0, 50) + '...' : 'NO RESPONSE'}"`)
+
+      // Save the conversation using MessageRepository (includes €0.005 tracking)
       const savedMessage = await this.messageRepository.saveMessage({
         workspaceId,
         phoneNumber,
@@ -1121,48 +1124,8 @@ ${JSON.stringify(ragResults, null, 2)}`
         direction: "INBOUND",
       })
 
-      // 💰 TRACK USAGE - Andrea's Direct Integration (No Public Endpoint)
-      // Only if there's a response (LLM generated content) and it's a registered customer
-      if (response && response.trim()) {
-        try {
-          // Get customer by phone to validate registration
-          const { PrismaClient } = await import("@prisma/client")
-          const prisma = new PrismaClient()
-
-          const customer = await prisma.customers.findFirst({
-            where: {
-              phone: phoneNumber,
-              workspaceId: workspaceId,
-              activeChatbot: true, // Only active customers
-            },
-            select: { id: true, name: true },
-          })
-
-          // Track usage only for registered customers
-          if (customer) {
-            await prisma.usage.create({
-              data: {
-                workspaceId: workspaceId,
-                clientId: customer.id,
-                price: 0.05, // €0.50 per LLM response as per TASK #26
-              },
-            })
-
-            logger.info(
-              `[USAGE-TRACKING] 💰 €0.50 tracked for customer ${customer.name} (${phoneNumber})`
-            )
-          } else {
-            logger.info(
-              `[USAGE-TRACKING] ⚪ No tracking - customer ${phoneNumber} not registered or inactive`
-            )
-          }
-
-          await prisma.$disconnect()
-        } catch (usageError) {
-          logger.error(`[USAGE-TRACKING] ❌ Error tracking usage:`, usageError)
-          // Don't fail the main request if usage tracking fails
-        }
-      }
+      // 💰 USAGE TRACKING: Now handled in MessageRepository.saveMessage() (Andrea's Logic)
+      console.log('[SAVE-MESSAGE] ✅ Message saved via MessageRepository (tracking included)')
 
       res.json({ success: true })
     } catch (error) {

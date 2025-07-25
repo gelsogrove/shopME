@@ -78,17 +78,17 @@ export const usageService = {
         return
       }
 
-      // Create usage record with €0.50 cost per LLM response
+      // Create usage record with €0.005 cost per LLM or operator response (0.5 centesimi)
       await prisma.usage.create({
         data: {
           workspaceId: data.workspaceId,
           clientId: data.clientId,
-          price: data.price || 0.5, // €0.50 per LLM response as per TASK #26
+          price: data.price || 0.005, // €0.005 per response (0.5 centesimi)
         },
       })
 
       console.log(
-        `[USAGE-TRACKING] ✅ Usage recorded: €${data.price || 0.5} for customer ${customer.name} (${customer.phone})`
+        `[USAGE-TRACKING] ✅ Usage recorded: €${data.price ?? 0.005} for customer ${customer.name} (${customer.phone})`
       )
     } catch (error) {
       console.error(`[USAGE-TRACKING] ❌ Error tracking usage:`, error)

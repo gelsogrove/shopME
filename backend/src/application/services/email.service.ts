@@ -23,6 +23,8 @@ export interface OperatorNotificationEmailData {
   chatSummary: string
   chatId?: string
   workspaceName?: string
+  subject?: string
+  fromEmail?: string
 }
 
 export class EmailService {
@@ -33,9 +35,9 @@ export class EmailService {
   }
 
   private setupTransporter() {
-    // Default configuration for development (using Ethereal Email for testing)
+    // SMTP configuration - REQUIRES real credentials
     const config: EmailConfig = {
-      host: process.env.SMTP_HOST || 'smtp.ethereal.email',
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
       secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
       auth: {
@@ -44,36 +46,14 @@ export class EmailService {
       }
     }
 
-    // If no SMTP credentials in production, create test account
-    if (!config.auth.user && process.env.NODE_ENV !== 'production') {
-      this.createTestAccount()
-      return
+    // Validate SMTP credentials
+    if (!config.auth.user || !config.auth.pass) {
+      logger.error('SMTP credentials not configured! Please set SMTP_USER and SMTP_PASS in .env file')
+      throw new Error('SMTP credentials required for email service')
     }
 
     this.transporter = nodemailer.createTransport(config)
-    logger.info('Email service initialized with SMTP configuration')
-  }
-
-  private async createTestAccount() {
-    try {
-      // Create test account for development
-      const testAccount = await nodemailer.createTestAccount()
-      
-      this.transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass
-        }
-      })
-
-      logger.info(`Test email account created: ${testAccount.user}`)
-      logger.info(`Preview emails at: https://ethereal.email`)
-    } catch (error) {
-      logger.error('Failed to create test email account:', error)
-    }
+    logger.info(`Email service initialized with SMTP: ${config.host}:${config.port}`)
   }
 
   async sendPasswordResetEmail(data: ResetPasswordEmailData): Promise<boolean> {
@@ -96,13 +76,7 @@ export class EmailService {
 
       const info = await this.transporter.sendMail(mailOptions)
       
-      // Log preview URL for development
-      if (process.env.NODE_ENV !== 'production') {
-        logger.info(`Email sent successfully!`)
-        logger.info(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`)
-      }
-
-      logger.info(`Password reset email sent to: ${data.to}`)
+      logger.info(`Password reset email sent successfully to: ${data.to}`)
       return true
     } catch (error) {
       logger.error('Failed to send password reset email:', error)
@@ -201,22 +175,16 @@ ShopMe - Your trusted e-commerce platform
       const textContent = this.generateOperatorNotificationText(data)
 
       const mailOptions = {
-        from: `"ShopMe Operator Alert" <${process.env.SMTP_FROM || 'noreply@shopme.com'}>`,
+        from: `"ShopMe Support" <${data.fromEmail || process.env.SMTP_FROM || 'noreply@shopme.com'}>`,
         to: data.to,
-        subject: `🔔 Utente ${data.customerName} vuole parlare con un operatore`,
+        subject: data.subject || `🔔 Utente ${data.customerName} vuole parlare con un operatore`,
         html: htmlContent,
         text: textContent
       }
 
       const info = await this.transporter.sendMail(mailOptions)
       
-      // Log preview URL for development
-      if (process.env.NODE_ENV !== 'production') {
-        logger.info(`Operator notification email sent successfully!`)
-        logger.info(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`)
-      }
-
-      logger.info(`Operator notification email sent to: ${data.to}`)
+      logger.info(`Operator notification email sent successfully to: ${data.to}`)
       return true
     } catch (error) {
       logger.error('Failed to send operator notification email:', error)
