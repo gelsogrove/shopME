@@ -1484,6 +1484,13 @@ flowchart TD
 
 - **Spam detection**: 10+ messaggi in 30 secondi → auto-blacklist
 - **Blacklist check**: Verifica customer.isBlacklisted
+- **🚨 BLACKLIST TOTALE**: Cliente con `isBlacklisted = true`:
+  - ❌ **NON viene salvato nessun messaggio** nel database (niente storico)
+  - ❌ **NON viene inviato nulla** a N8N (nessuna elaborazione)
+  - ❌ **NON viene applicato tracking** dei costi (€0.005)
+  - ❌ **NON riceve risposta** dall'AI chatbot
+  - ✅ **Webhook conferma ricezione** (cliente non sa di essere blacklisted)
+  - 🔍 **Blacklist silenziosa**: Cliente pensa che i messaggi siano consegnati ma non vengono mai processati
 - **Channel status**: isActive e activeChatbot flags
 - **WIP status**: Messaggio work-in-progress se canale in manutenzione
 
@@ -1618,6 +1625,7 @@ The ShopMe platform implements an intelligent conversational flow that handles n
 
 - ✅ **Two-LLM Processing**: Separate LLMs for data analysis (T=0.3) and conversation (T=0.7)
 - ✅ **Usage Tracking**: Automatic €0.005 cost tracking per LLM response
+- ✅ **Blacklist Totale**: Cliente blacklisted → nessun salvataggio, nessuna elaborazione, invisibile
 - ✅ **Spam Detection**: 10+ messages/30sec → auto-blacklist
 - ✅ **Token Security**: Secure links for registration, invoices, checkout
 - ✅ **Unified RAG**: Search across products, FAQs, services, documents simultaneously
@@ -1845,7 +1853,7 @@ interface N8NCredentialsFix {
 
 - ✅ **API Rate Limiting**: Controllo chiamate per workspace
 - ✅ **Spam Detection**: 10 messaggi in 30 secondi → auto-blacklist
-- ✅ **Blacklist Check**: Verifica customer.isBlacklisted e workspace.blocklist
+- ✅ **Blacklist Check TOTALE**: Cliente `isBlacklisted = true` → nessun salvataggio, nessuna elaborazione, blacklist silenziosa
 
 #### **🎨 N8N Visual Workflow Layer (Business Logic):**
 
