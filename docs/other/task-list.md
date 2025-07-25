@@ -1,21 +1,24 @@
+# Phase 0 task
+
+- test di integrazione cancellare tutti
+- mettere campo debug-mode per evtare di far salire il contatore
+- Posso fare qualcos'altro per lei nel frattempo? (da togliere)
+- SISTEMARE IL PRD
+- dentro settinggs il campo blacklist puo' sparire
+- controllare flusso blacklost sopratutto che non savli dati nel DB ci deve essre un test per questo e il PRD DEVE ESSERE AGGIORNATO
+-
+- Analytics Dashboard- defailt 1 mese e poi dobbiamo capire i costi mensili mostrarli
+- nel campo di cljent devo poter vedere i campi GDPR Push Chatbot blacklist pre modificarli
+
 # PHASE 1 TASKS
 
-- ✅ **COMPLETATO: N8N integration usage tracking automatico** - €0.005 tracking integrato in MessageRepository.saveMessage() prima del salvataggio nello storico
-- ⏳ **TODO: TESTARE tracking usage** - Dashboard mostra sempre €3.88, servono nuovi messaggi AI per vedere incremento €0.005
-- ✅ **COMPLETATO: Mail a contact operator** - CF ContactOperator aggiornato con AI summary e email all'operatore
-
-- ⏳ **TODO: ma il filtro posso toglierlo**
-- ⏳ **TODO: n8n TOKEN**
-- ⏳ **TODO: Integrare TrackUsage nel workflow N8N** - CF pronto, serve integrazione nel workflow
-- CF pdf
-- SISTEMARE IL PRD
-- TEST DEVONO ESSERE FUNZIONANTI
+- devo verificare la mail
+- mettere customer.blacklist a true nella chata
+- ⏳ **TODO: Icona blacklist nella lista clienti** - Cliente blacklisted deve avere icona visiva nella lista
 - sistema di invoice ?
 - docker name possiamo cambiarlo da shopme_n8n_unifend a shopme_n8
-- Posso fare qualcos'altro per lei nel frattempo? (da togliere)
-- Analytics Dashboard- defailt 1 mese e poi dobbiamo capire i costi mensili mostrarli
-- pulizia metodi
-- mettere campo debug-mode per evtare di far salire il contatore
+- CF pdf
+- TEST DEVONO ESSERE FUNZIONANTI
 
 ## TASK #24
 
