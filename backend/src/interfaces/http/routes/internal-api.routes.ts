@@ -2,6 +2,7 @@ import { Router } from "express"
 import { MessageRepository } from "../../../repositories/message.repository"
 import { InternalApiController } from "../controllers/internal-api.controller"
 import { n8nAuthMiddleware } from "../middlewares/n8n-auth.middleware"
+import n8nUsageRoutes from "./n8n-usage.routes"
 
 const router = Router()
 const messageRepository = new MessageRepository()
@@ -16,6 +17,9 @@ router.get(
 
 // Apply authentication middleware to all other internal API routes
 router.use(n8nAuthMiddleware)
+
+// N8N Usage Tracking Routes
+router.use("/n8n", n8nUsageRoutes)
 
 /**
  * N8N Internal API Routes with Multi-Business Support

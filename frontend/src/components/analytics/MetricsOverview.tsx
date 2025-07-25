@@ -168,7 +168,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             previousPeriodAnalytics.overview.usageCost
           )
         : undefined,
-      description: "€0.50 per risposta LLM (TASK #26 updated pricing)",
+      description: "€0.005 per risposta LLM (0.5 centesimi)",
     },
   ]
 

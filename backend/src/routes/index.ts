@@ -250,14 +250,12 @@ router.get("/docs/swagger.json", (req, res) => {
 
 // Health check
 router.get("/health", (req, res) => {
-  res
-    .status(200)
-    .json({
-      status: "ok",
-      timestamp: new Date().toISOString(),
-      version: "1.0.0",
-      apiVersion: "v1",
-    })
+  res.status(200).json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    version: "1.0.0",
+    apiVersion: "v1",
+  })
 })
 
 // Simple test route for workspace agent debugging
