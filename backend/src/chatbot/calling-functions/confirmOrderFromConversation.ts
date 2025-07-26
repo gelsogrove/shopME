@@ -82,13 +82,13 @@ export async function confirmOrderFromConversation(
     let totalAmount = 0
 
     for (const prodotto of prodottiSelezionati) {
-      // Cerca prodotto per nome o codice
+      // Cerca prodotto per nome o SKU
       const dbProduct = await prisma.products.findFirst({
         where: {
           workspaceId,
           OR: [
             { name: { contains: prodotto.nome, mode: 'insensitive' } },
-            { code: prodotto.codice },
+            { sku: prodotto.codice },
             { description: { contains: prodotto.nome, mode: 'insensitive' } }
           ],
           isActive: true
@@ -109,7 +109,7 @@ export async function confirmOrderFromConversation(
       const totalPrice = unitPrice * prodotto.quantita
 
       prodottiConPrezzo.push({
-        codice: dbProduct.code,
+        codice: dbProduct.sku || dbProduct.id,
         descrizione: dbProduct.name,
         qty: prodotto.quantita,
         prezzo: unitPrice,
