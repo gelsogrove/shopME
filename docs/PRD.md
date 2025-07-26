@@ -7418,6 +7418,67 @@ GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
 
 - "vorrei ordinare 2 mozzarelle e 1 pasta" / "aggiungi al carrello" / "procediamo al checkout"
 
+### **🚀 NEW: Conversational Order Flow - Flusso Ordine Conversazionale**
+
+**STRATEGIA IBRIDA:** Combinazione tra chat libera e checkout web per esperienza utente ottimale.
+
+**FLUSSO COMPLETO:**
+
+```
+1. Cliente: "Voglio maglietta rossa"
+   ↓
+2. LLM: "✅ Maglietta rossa aggiunta alla selezione"
+   ↓
+3. Cliente: "Aggiungi anche jeans blu"
+   ↓
+4. LLM: "✅ Jeans blu aggiunto alla selezione"
+   ↓
+5. Cliente: "Basta così"
+   ↓
+6. LLM: "Vuoi confermare l'ordine con questi prodotti?"
+   ↓
+7. Cliente: "Sì"
+   ↓
+8. LLM chiama confirmOrderFromConversation():
+   - Raccoglie prodotti dalla conversazione corrente
+   - Crea token sicuro con prodotti selezionati
+   - Genera URL checkout personalizzato
+   ↓
+9. LLM: "🛒 Riepilogo Ordine:
+          • Maglietta rossa: €25.00
+          • Jeans blu: €80.00
+          💰 Totale: €105.00
+          🔗 Completa qui: shopme.com/checkout/abc123token"
+   ↓
+10. Cliente clicca → vai al web per completare checkout
+```
+
+**VANTAGGI CHIAVE:**
+
+- **Chat Libera**: Nessun comando specifico, conversazione naturale
+- **Tracciamento Intelligente**: LLM mantiene memoria prodotti selezionati
+- **Checkout Web**: Interfaccia completa per indirizzo, pagamento, conferma
+- **Token Sicuro**: Validità 1 ora, prevenzione frodi
+- **Seamless UX**: Transizione fluida chat → web
+
+**DIFFERENZE CON FLUSSI ESISTENTI:**
+
+| Aspetto | Cart Traditional | Checkout Link | **Conversational Flow** |
+|---------|------------------|---------------|-------------------------|
+| **Input** | add_to_cart() calls | Prodotti specifici | **Chat libera** |
+| **Memoria** | Database cart | Parameter espliciti | **Conversazione LLM** |
+| **Trigger** | "Ordina carrello" | Comando diretto | **"Confermi l'ordine?"** |
+| **Output** | Ordine immediato | Token + URL | **Token + URL** |
+| **Completamento** | Subito | Form web | **Form web** |
+
+**IMPLEMENTAZIONE TECNICA:**
+
+- **Funzione**: `confirmOrderFromConversation(customerId, workspaceId, conversationContext)`
+- **Parsing**: Estrazione automatica prodotti dai messaggi recenti
+- **Validazione**: Controllo stock e prezzi real-time
+- **Token**: Generazione sicura con payload conversazione
+- **Fallback**: Gestione errori con richiesta chiarimenti
+
 ### **☎️ ContactOperator() - Richiesta Operatore Umano**
 
 **FUNZIONALITÀ:** Disattiva automaticamente il chatbot per il cliente e segnala richiesta di assistenza umana.
