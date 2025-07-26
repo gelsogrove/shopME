@@ -1,9 +1,6 @@
 # PHASE 1 TASKS
 
-- ⏳ **TODO: TESTARE tracking usage** - Dashboard mostra sempre €3.88, servono nuovi messaggi AI per vedere incremento €0.005
-- ⏳ **TODO: ma il filtro posso toglierlo**
-- ⏳ **TODO: n8n TOKEN**
-- ⏳ **TODO: Integrare TrackUsage nel workflow N8N** - CF pronto, serve integrazione nel workflow
+- ⏳ **TODO: n8n TOKEN** - Da chiarire quale token specifico manca
 - CF pdf
 - SISTEMARE IL PRD
 - TEST DEVONO ESSERE FUNZIONANTI
