@@ -1,6 +1,6 @@
 # PHASE 1 TASKS
 
-- ⏳ **TODO: n8n TOKEN** - Da chiarire quale token specifico manca
+- ⏳ **TODO: n8n TOKEN** - Configurazione manuale token in N8N (Andrea)
 - CF pdf
 - SISTEMARE IL PRD
 - TEST DEVONO ESSERE FUNZIONANTI
