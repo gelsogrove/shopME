@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client"
-import { createCheckoutLink } from "../../chatbot/calling-functions/createCheckoutLink"
+
+import { confirmOrderFromConversation } from "../../chatbot/calling-functions/confirmOrderFromConversation"
 import { getAllCategories } from "../../chatbot/calling-functions/getAllCategories"
 import { getAllProducts } from "../../chatbot/calling-functions/getAllProducts"
 import { MessageRepository } from "../../repositories/message.repository"
@@ -81,6 +82,17 @@ export class FunctionHandlerService {
             data: await this.createOrder(customer.id, workspaceId),
           }
 
+        case "confirmOrderFromConversation":
+          return {
+            functionName,
+            data: await confirmOrderFromConversation({
+              customerId: customer.id,
+              workspaceId,
+              conversationContext: params.conversationContext || "",
+              prodottiSelezionati: params.prodottiSelezionati || []
+            }),
+          }
+
         case "get_cart_info":
           return {
             functionName,
@@ -141,16 +153,7 @@ export class FunctionHandlerService {
             data: await this.searchDocuments(params.query, workspaceId),
           }
 
-        case "create_checkout_link":
-          return {
-            functionName,
-            data: await this.handleCreateCheckoutLink(
-              phoneNumber,
-              workspaceId,
-              customer?.id,
-              params.message
-            ),
-          }
+
 
         case "get_all_categories":
           return {
@@ -1003,44 +1006,7 @@ export class FunctionHandlerService {
     }
   }
 
-  /**
-   * Handles checkout link creation (PRD Implementation)
-   */
-  private async handleCreateCheckoutLink(
-    phoneNumber: string,
-    workspaceId: string,
-    customerId?: string,
-    message?: string
-  ): Promise<any> {
-    try {
-      logger.info(`[CHECKOUT_HANDLER] Processing checkout for ${phoneNumber}`)
-      
-      const result = await createCheckoutLink({
-        phoneNumber,
-        workspaceId,
-        customerId,
-        message: message || "checkout"
-      })
-      
-      logger.info(`[CHECKOUT_HANDLER] Checkout link created successfully`)
-      
-      return {
-        success: true,
-        checkout_url: result.checkoutUrl,
-        checkout_token: result.checkoutToken,
-        response_message: result.response,
-        expires_at: result.expiresAt
-      }
-      
-    } catch (error) {
-      logger.error(`[CHECKOUT_HANDLER] Error creating checkout link:`, error)
-      return {
-        success: false,
-        error: "Si è verificato un errore nella creazione del link checkout",
-        fallback_message: "Per finalizzare l'ordine, contatta il nostro servizio clienti."
-      }
-    }
-  }
+
 
   /**
    * Handles get all categories (PRD Implementation)

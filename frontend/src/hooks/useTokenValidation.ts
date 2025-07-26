@@ -5,6 +5,8 @@ interface TokenValidationResult {
   valid: boolean
   loading: boolean
   error: string | null
+  errorType?: string
+  expiresAt?: string
   tokenData: {
     tokenId?: string
     type?: string
@@ -37,6 +39,8 @@ export const useTokenValidation = ({
   const [valid, setValid] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorType, setErrorType] = useState<string | undefined>(undefined)
+  const [expiresAt, setExpiresAt] = useState<string | undefined>(undefined)
   const [tokenData, setTokenData] = useState<any>(null)
   const [payload, setPayload] = useState<any>(null)
 
@@ -50,6 +54,8 @@ export const useTokenValidation = ({
 
     setLoading(true)
     setError(null)
+    setErrorType(undefined)
+    setExpiresAt(undefined)
 
     try {
       console.log(`[TOKEN-VALIDATION] Validating token for type: ${type || 'any'}`)
@@ -68,6 +74,8 @@ export const useTokenValidation = ({
       } else {
         setValid(false)
         setError(response.data.error || 'Token non valido')
+        setErrorType(response.data.errorType)
+        setExpiresAt(response.data.expiresAt)
         console.warn('[TOKEN-VALIDATION] ❌ Token validation failed:', response.data.error)
       }
     } catch (err: any) {
@@ -97,6 +105,8 @@ export const useTokenValidation = ({
     valid,
     loading,
     error,
+    errorType,
+    expiresAt,
     tokenData,
     payload,
     validateToken
@@ -107,12 +117,80 @@ export const useTokenValidation = ({
  * 🛒 Specialized hook for checkout token validation
  */
 export const useCheckoutTokenValidation = (token: string | null, workspaceId?: string) => {
-  return useTokenValidation({
-    token,
-    type: 'checkout',
-    workspaceId,
-    autoValidate: true
-  })
+  const [valid, setValid] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [errorType, setErrorType] = useState<string | undefined>(undefined)
+  const [expiresAt, setExpiresAt] = useState<string | undefined>(undefined)
+  const [tokenData, setTokenData] = useState<any>(null)
+  const [payload, setPayload] = useState<any>(null)
+
+  const validateToken = async () => {
+    if (!token) {
+      setError('Token mancante nel link')
+      setValid(false)
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    setErrorType(undefined)
+    setExpiresAt(undefined)
+
+    try {
+      console.log(`[CHECKOUT-TOKEN-VALIDATION] Validating checkout token`)
+      
+      // Use dedicated checkout endpoint
+      const response = await axios.get(`/api/checkout/token/${token}`)
+
+      if (response.data.valid) {
+        setValid(true)
+        setTokenData(response.data)
+        setPayload(response.data.prodotti)
+        console.log('[CHECKOUT-TOKEN-VALIDATION] ✅ Token validated successfully')
+      } else {
+        setValid(false)
+        setError(response.data.error || 'Token checkout non valido')
+        setErrorType(response.data.errorType)
+        setExpiresAt(response.data.expiresAt)
+        console.warn('[CHECKOUT-TOKEN-VALIDATION] ❌ Token validation failed:', response.data.error)
+      }
+    } catch (err: any) {
+      console.error('[CHECKOUT-TOKEN-VALIDATION] Error validating token:', err)
+      
+      if (err.response?.status === 400) {
+        setError(err.response.data.error || 'Link scaduto o non valido')
+        setErrorType(err.response.data.errorType)
+        setExpiresAt(err.response.data.expiresAt)
+      } else if (err.response?.status === 403) {
+        setError('Link non autorizzato per questo workspace')
+      } else {
+        setError('Errore durante la validazione del link')
+      }
+      setValid(false)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Auto-validate on mount
+  useEffect(() => {
+    if (token) {
+      validateToken()
+    }
+  }, [token])
+
+  return {
+    valid,
+    loading,
+    error,
+    errorType,
+    expiresAt,
+    tokenData,
+    payload,
+    validateToken
+  }
 }
 
 /**

@@ -9,7 +9,7 @@ const CheckoutPage: React.FC = () => {
   const workspaceId = searchParams.get("workspaceId")
 
   // 🔐 Validate checkout token
-  const { valid, loading, error, tokenData, payload, validateToken } =
+  const { valid, loading, error, errorType, expiresAt, tokenData, payload, validateToken } =
     useCheckoutTokenValidation(token, workspaceId)
 
   // Show loading state during token validation
@@ -27,6 +27,8 @@ const CheckoutPage: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <TokenError
           error={error || "Token checkout non valido"}
+          errorType={errorType}
+          expiresAt={expiresAt}
           onRetry={validateToken}
           showRetry={true}
           className="max-w-md w-full"

@@ -1188,6 +1188,47 @@ export class MessageRepository {
           },
         },
         {
+          name: "confirmOrderFromConversation",
+          description:
+            "Conferma ordine dalla conversazione corrente e genera link checkout sicuro. Da chiamare quando il cliente conferma di voler procedere con l'ordine dei prodotti discussi nella chat.",
+          parameters: {
+            type: "object",
+            properties: {
+              conversationContext: {
+                type: "string",
+                description: "Ultimi messaggi della conversazione per contesto",
+              },
+              prodottiSelezionati: {
+                type: "array",
+                description: "Prodotti identificati nella conversazione che il cliente vuole ordinare",
+                items: {
+                  type: "object",
+                  properties: {
+                    nome: { 
+                      type: "string", 
+                      description: "Nome del prodotto come menzionato dal cliente" 
+                    },
+                    quantita: { 
+                      type: "number", 
+                      description: "Quantità richiesta dal cliente" 
+                    },
+                    descrizione: { 
+                      type: "string", 
+                      description: "Descrizione aggiuntiva se fornita" 
+                    },
+                    codice: { 
+                      type: "string", 
+                      description: "Codice prodotto se menzionato" 
+                    },
+                  },
+                  required: ["nome", "quantita"],
+                },
+              },
+            },
+            required: ["prodottiSelezionati"],
+          },
+        },
+        {
           name: "get_cart_info",
           description:
             "Retrieves information about the user's current shopping cart",
@@ -1301,21 +1342,7 @@ export class MessageRepository {
             required: ["question"],
           },
         },
-        {
-          name: "create_checkout_link",
-          description:
-            "Creates a secure checkout link when user wants to finalize an order",
-          parameters: {
-            type: "object",
-            properties: {
-              message: {
-                type: "string",
-                description: "User's message indicating checkout intent",
-              },
-            },
-            required: ["message"],
-          },
-        },
+
         {
           name: "get_all_categories",
           description:

@@ -70,7 +70,8 @@ Analizza il messaggio del cliente e determina quale calling function utilizzare:
 
 CALLING FUNCTIONS DISPONIBILI:
 - search_rag: Ricerca prodotti, FAQ, servizi, informazioni
-- create_order: Creazione ordini, carrello, checkout
+- create_order: Creazione ordini dal carrello (immediato)
+- confirmOrderFromConversation: Conferma ordini dalla chat libera → checkout web
 - contact_operator: Richiesta assistenza umana
 
 - create_ticket: Segnalazioni, problemi tecnici

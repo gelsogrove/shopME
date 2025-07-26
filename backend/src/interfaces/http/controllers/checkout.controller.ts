@@ -21,25 +21,55 @@ export class CheckoutController {
         return
       }
 
-      // Find token in database
-      const secureToken = await prisma.secureToken.findFirst({
+      // Find token in database (check if exists first)
+      const tokenExists = await prisma.secureToken.findFirst({
         where: {
           token,
           type: "checkout",
-          usedAt: null,
-          expiresAt: {
-            gt: new Date(),
-          },
         },
       })
 
-      if (!secureToken || !secureToken.payload) {
+      if (!tokenExists) {
         res.status(400).json({
           valid: false,
-          error: "Invalid or expired token",
+          error: "Token non valido",
+          errorType: "INVALID_TOKEN"
         })
         return
       }
+
+      // Check if token was already used
+      if (tokenExists.usedAt) {
+        res.status(400).json({
+          valid: false,
+          error: "Link già utilizzato",
+          errorType: "ALREADY_USED"
+        })
+        return
+      }
+
+      // Check if token is expired
+      if (tokenExists.expiresAt <= new Date()) {
+        res.status(400).json({
+          valid: false,
+          error: "Link scaduto (validità 1 ora)",
+          errorType: "EXPIRED_TOKEN",
+          expiresAt: tokenExists.expiresAt
+        })
+        return
+      }
+
+      // Check payload validity
+      if (!tokenExists.payload) {
+        res.status(400).json({
+          valid: false,
+          error: "Token corrotto",
+          errorType: "CORRUPTED_TOKEN"
+        })
+        return
+      }
+
+      const secureToken = tokenExists
 
       // Get customer and workspace data
       const payload = secureToken.payload as any
