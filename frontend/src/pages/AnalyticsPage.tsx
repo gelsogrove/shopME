@@ -1,63 +1,152 @@
-import { DateRangeSelector, PeriodPreset, getDateRangeFromPeriod } from "@/components/analytics/DateRangeSelector";
-import { HistoricalChart } from "@/components/analytics/HistoricalChart";
-import { MetricsOverview } from "@/components/analytics/MetricsOverview";
-import { TemporalComparisonChart } from "@/components/analytics/TemporalComparisonChart";
-import { TopPerformers } from "@/components/analytics/TopPerformers";
+import { MonthlyNavigator } from "@/components/analytics/MonthlyNavigator";
+import { TwelveMonthTrend } from "@/components/analytics/TwelveMonthTrend";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspace } from "@/hooks/use-workspace";
-import {
-    AnalyticsResponse,
-    DashboardAnalytics,
-    getDashboardAnalytics
-} from "@/services/analyticsApi";
 import { AlertCircle, BarChart3 } from "lucide-react";
 import { useEffect, useState } from 'react';
 
+// Types for the new monthly analytics
+interface MonthlyData {
+  year: number;
+  month: number;
+  monthName: string;
+  totalSales: number;
+  totalOrders: number;
+  topProduct: {
+    name: string;
+    revenue: number;
+    unitsSold: number;
+  } | null;
+  topCustomer: {
+    name: string;
+    totalSpent: number;
+    orders: number;
+  } | null;
+  topService: {
+    name: string;
+    usage: number;
+    revenue: number;
+  } | null;
+  aiUsage: {
+    cost: number;
+    messages: number;
+  };
+}
+
+interface MonthlyTrendData {
+  month: string;
+  year: number;
+  totalSales: number;
+  totalOrders: number;
+  activeCustomers: number;
+  aiUsageCost: number;
+  aiMessages: number;
+}
+
 export function AnalyticsPage() {
   const { workspace: currentWorkspace } = useWorkspace();
-  const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
+  const [currentMonthData, setCurrentMonthData] = useState<MonthlyData | null>(null);
+  const [trendData, setTrendData] = useState<MonthlyTrendData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [trendLoading, setTrendLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPeriod, setSelectedPeriod] = useState<PeriodPreset>('month'); // Default to current month
 
-  const loadAnalytics = async (period: PeriodPreset) => {
+  // Mock API functions - replace with real API calls
+  const loadMonthlyData = async (year: number, month: number) => {
     if (!currentWorkspace?.id) return;
 
     try {
       setLoading(true);
       setError(null);
       
-      const dateRange = getDateRangeFromPeriod(period);
-      const response: AnalyticsResponse = await getDashboardAnalytics(
-        currentWorkspace.id,
-        dateRange
-      );
+      // Mock data generation - replace with actual API call
+      const mockData: MonthlyData = {
+        year,
+        month,
+        monthName: new Date(year, month).toLocaleDateString('en-US', { month: 'long' }),
+        totalSales: Math.random() * 10000 + 5000,
+        totalOrders: Math.floor(Math.random() * 100) + 50,
+        topProduct: {
+          name: "Pizza Napoletana Artigianale",
+          revenue: Math.random() * 2000 + 1000,
+          unitsSold: Math.floor(Math.random() * 50) + 25
+        },
+        topCustomer: {
+          name: "Mario Rossi",
+          totalSpent: Math.random() * 1000 + 500,
+          orders: Math.floor(Math.random() * 10) + 5
+        },
+        topService: {
+          name: "Express Delivery",
+          usage: Math.floor(Math.random() * 20) + 10,
+          revenue: Math.random() * 300 + 150
+        },
+        aiUsage: {
+          cost: Math.random() * 50 + 20,
+          messages: Math.floor(Math.random() * 5000) + 2000
+        }
+      };
 
-      if (response.success) {
-        setAnalytics(response.data);
-      } else {
-        setError('Failed to load analytics data');
-      }
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setCurrentMonthData(mockData);
     } catch (err) {
-      console.error('Analytics loading error:', err);
-      setError('Error loading analytics data');
+      console.error('Monthly analytics loading error:', err);
+      setError('Error loading monthly analytics data');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadAnalytics(selectedPeriod);
-  }, [currentWorkspace?.id, selectedPeriod]);
+  const loadTrendData = async () => {
+    if (!currentWorkspace?.id) return;
 
-  const handlePeriodChange = (period: PeriodPreset) => {
-    setSelectedPeriod(period);
+    try {
+      setTrendLoading(true);
+      
+      // Mock 12-month trend data - replace with actual API call
+      const mockTrendData: MonthlyTrendData[] = [];
+      const now = new Date();
+      
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i);
+        mockTrendData.push({
+          month: date.toLocaleDateString('en-US', { month: 'short' }),
+          year: date.getFullYear(),
+          totalSales: Math.random() * 8000 + 4000,
+          totalOrders: Math.floor(Math.random() * 80) + 40,
+          activeCustomers: Math.floor(Math.random() * 30) + 20,
+          aiUsageCost: Math.random() * 40 + 15,
+          aiMessages: Math.floor(Math.random() * 4000) + 1500
+        });
+      }
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setTrendData(mockTrendData);
+    } catch (err) {
+      console.error('Trend data loading error:', err);
+    } finally {
+      setTrendLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentWorkspace?.id) {
+      loadTrendData();
+    }
+  }, [currentWorkspace?.id]);
+
+  const handleMonthChange = (year: number, month: number) => {
+    loadMonthlyData(year, month);
   };
 
   const handleRetry = () => {
-    loadAnalytics(selectedPeriod);
+    const now = new Date();
+    loadMonthlyData(now.getFullYear(), now.getMonth());
+    loadTrendData();
   };
 
   if (!currentWorkspace) {
@@ -99,66 +188,23 @@ export function AnalyticsPage() {
             Analytics Dashboard
           </h1>
           <p className="text-gray-600 mt-1">
-            Monitor your business performance and growth metrics
+            Month-by-month performance analysis with 12-month business trends
           </p>
         </div>
-
-        {/* Period Selector */}
-        <DateRangeSelector
-          selectedPeriod={selectedPeriod}
-          onPeriodChange={handlePeriodChange}
-        />
       </div>
 
-      {loading ? (
-        // Loading State
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <Card key={i}>
-                <CardHeader className="pb-2">
-                  <Skeleton className="h-4 w-24" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-8 w-16 mb-2" />
-                  <Skeleton className="h-3 w-20" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-48" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-64 w-full" />
-            </CardContent>
-          </Card>
-        </div>
-      ) : analytics ? (
-        // Data Loaded
-        <div className="space-y-6">
-          {/* Metrics Overview */}
-          <MetricsOverview analytics={analytics} />
+      {/* Monthly Navigator */}
+      <MonthlyNavigator
+        onMonthChange={handleMonthChange}
+        currentData={currentMonthData}
+        loading={loading}
+      />
 
-          {/* Temporal Comparison Charts */}
-          <TemporalComparisonChart analytics={analytics} />
-
-          {/* Historical Chart */}
-          <HistoricalChart analytics={analytics} />
-
-          {/* Top Performers */}
-          <TopPerformers analytics={analytics} />
-        </div>
-      ) : (
-        // No Data State
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No analytics data available</p>
-          </div>
-        </div>
-      )}
+      {/* 12-Month Trend Chart */}
+      <TwelveMonthTrend
+        data={trendData}
+        loading={trendLoading}
+      />
     </div>
   );
 }
