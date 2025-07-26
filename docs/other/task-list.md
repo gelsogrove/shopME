@@ -74,19 +74,28 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 
 ## TASK #39
 
-**TITLE**: Checkout Flow con Gestione Stock Completa
+**TITLE**: ✅ COMPLETATO - Conversational Order Flow Implementato
 **DESCRIPTION/ROADMAP**:
 
 #### **1. CUSTOM FUNCTION N8N** ✅ IMPLEMENTATO
 
-**File**: `backend/src/chatbot/calling-functions/createOrderCheckoutLink.ts`
+**File**: `backend/src/chatbot/calling-functions/confirmOrderFromConversation.ts` ✅
 
-- Implementa `createOrderCheckoutLink(customerId, workspaceId, prodotti[])`
-- Genera token sicuro crypto SHA256 con scadenza 1 ora
-- Salva in `secure_tokens` table con type='checkout' e payload prodotti
-- Ritorna URL: `${FRONTEND_URL}/checkout/${token}`
-- **Validazioni**: Customer exists, Workspace exists, Prodotti array non vuoto
-- **Trigger**: Solo quando utente esprime intent di conferma ordine
+- ✅ Implementata `confirmOrderFromConversation()` 
+- ✅ Estrae prodotti dalla conversazione corrente (no carrello)
+- ✅ Validazione prodotti nel database con ricerca fuzzy
+- ✅ Genera token sicuro con type='conversational_order_checkout'
+- ✅ Integrata in function-handler e message-repository
+- ✅ Compatibile con checkout controller esistente
+
+**ESEMPIO FLUSSO COMPLETO**:
+```
+1. Cliente: "Voglio maglietta rossa" → LLM traccia mentalmente
+2. Cliente: "E jeans blu" → LLM aggiunge alla lista mentale  
+3. Cliente: "Confermo l'ordine" → LLM chiama confirmOrderFromConversation()
+4. Sistema: genera token + URL checkout 
+5. Cliente: clicca link → completa checkout web
+```
 
 #### **2. PAGINA CHECKOUT COMPLETA** ✅ IMPLEMENTATO
 
