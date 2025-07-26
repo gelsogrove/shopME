@@ -23,7 +23,7 @@ services:
   # 🚀 N8N - Workflow Automation Platform (Unified Configuration)
   n8n:
     image: n8nio/n8n:latest
-    container_name: shopme_n8n_unified
+    container_name: shopme_n8n
     restart: unless-stopped
     ports:
       - "5678:5678"
