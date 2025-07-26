@@ -42,6 +42,7 @@ export class WorkspaceController {
         isActive: workspace.isActive,
         isDelete: workspace.isDelete,
         url: workspace.url,
+        debugMode: workspace.debugMode,
         createdAt: workspace.createdAt,
         updatedAt: workspace.updatedAt,
       }))
@@ -97,6 +98,7 @@ export class WorkspaceController {
           isActive: workspace.isActive,
           isDelete: workspace.isDelete,
           url: workspace.url,
+          debugMode: workspace.debugMode,
           createdAt: workspace.createdAt,
           updatedAt: workspace.updatedAt,
         }

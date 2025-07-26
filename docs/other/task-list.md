@@ -8,7 +8,7 @@
 
 
 - pulizia metodi
-- mettere campo debug-mode per evtare di far salire il contatore
+
 
 ## TASK #24
 
