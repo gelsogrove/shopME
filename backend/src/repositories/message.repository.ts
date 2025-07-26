@@ -540,21 +540,35 @@ export class MessageRepository {
         } else {
           console.log(`[DEBUG-TRACKING] 🔍 About to track usage for customer: ${customer.id}, workspace: ${workspaceId}`)
           
-          // 💰 USAGE TRACKING: Track €0.005 before saving AI response to history
+          // 💰 USAGE TRACKING: Check debugMode before tracking €0.005
           try {
-            const { usageService } = await import("../services/usage.service")
-            console.log(`[DEBUG-TRACKING] 🔍 usageService imported successfully`)
-            
-            await usageService.trackUsage({
-              clientId: customer.id,
-              workspaceId: workspaceId,
-              price: 0.005
+            // Get workspace to check debugMode setting
+            const workspace = await this.prisma.workspace.findUnique({
+              where: { id: workspaceId },
+              select: { debugMode: true }
             })
-            
-            console.log(`[DEBUG-TRACKING] ✅ usageService.trackUsage called successfully`)
-            logger.info(
-              `[USAGE-TRACKING] 💰 €0.005 tracked before saving AI response for customer ${customer.name} (${data.phoneNumber})`
-            )
+
+                         if (!(workspace?.debugMode ?? true)) {
+              // debugMode is false, track usage normally
+              const { usageService } = await import("../services/usage.service")
+              console.log(`[DEBUG-TRACKING] 🔍 usageService imported successfully`)
+              
+              await usageService.trackUsage({
+                clientId: customer.id,
+                workspaceId: workspaceId,
+                price: 0.005
+              })
+              
+              console.log(`[DEBUG-TRACKING] ✅ usageService.trackUsage called successfully`)
+              logger.info(
+                `[USAGE-TRACKING] 💰 €0.005 tracked before saving AI response for customer ${customer.name} (${data.phoneNumber})`
+              )
+            } else {
+              // debugMode is true, skip tracking
+              logger.info(
+                `[DEBUG-MODE] 🚫 Usage tracking skipped - debug mode enabled for workspace ${workspaceId}`
+              )
+            }
           } catch (trackingError) {
             console.error(`[DEBUG-TRACKING] ❌ Tracking error:`, trackingError)
             logger.warn(

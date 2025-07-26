@@ -314,12 +314,60 @@ GET /api/usage/export/{workspaceId}?format=csv
 - ✅ **Workspace isolation**: `workspaceId` validation
 - ✅ **Error handling**: Non blocca il flusso principale
 
+### **🛠️ Debug Mode Configuration**
+
+**IMPLEMENTATO**: Campo `debugMode` per disabilitare usage tracking durante testing/debug.
+
+#### **🔧 Technical Implementation**
+
+```typescript
+// Database Schema (WorkspaceSettings)
+interface WorkspaceSettings {
+  debugMode: boolean; // @default(true) - Always true by default
+  // ... other settings
+}
+
+// Usage Tracking Logic
+if (!workspaceSettings.debugMode) {
+  await usageService.trackUsage({
+    clientId: customer.id,
+    workspaceId: workspaceId,
+    price: 0.005 // €0.005 per LLM response
+  });
+} else {
+  logger.info('[DEBUG-MODE] Usage tracking skipped - debug mode enabled');
+}
+```
+
+#### **🎨 Settings Interface**
+
+- **Location**: `/settings` page in workspace settings section
+- **Control**: Toggle/checkbox for "Debug Mode"
+- **Description**: "When enabled, usage costs (€0.005) are not tracked. Use for testing purposes."
+- **Default**: Always `true` (enabled by default)
+- **Scope**: Per workspace (isolated configuration)
+
+#### **🎯 Use Cases**
+
+- **Development**: Avoid accumulating costs during feature development
+- **Testing**: Skip tracking during automated testing and QA
+- **Demo**: Clean cost tracking for client demonstrations
+- **Debug**: Isolate functionality issues without cost implications
+
+#### **🛡️ Business Rules**
+
+- **Default Behavior**: `debugMode: true` (no tracking) for all new workspaces
+- **Production Safe**: Safe to use in production for testing scenarios
+- **Workspace Isolated**: Each workspace controls its own debug mode
+- **Audit Trail**: Debug mode status logged for transparency
+
 ### **🎯 Vantaggi Architettura Andrea**
 
 1. **Performance**: Zero overhead di chiamate HTTP extra
 2. **Reliability**: Single point of failure = maggiore stabilità
 3. **Security**: Nessun endpoint pubblico esposto
 4. **Maintainability**: Un solo posto da mantenere
+5. **Debug Flexibility**: Usage tracking can be disabled per workspace for testing
 
 ---
 
