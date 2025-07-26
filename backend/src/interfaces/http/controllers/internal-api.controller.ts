@@ -3069,10 +3069,11 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      // Validate invoice token
+      // Validate invoice token with workspace isolation
       const validation = await this.secureTokenService.validateToken(
         token,
-        "invoice"
+        "invoice",
+        undefined // workspaceId will be extracted from token payload
       )
 
       if (!validation.valid) {
