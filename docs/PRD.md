@@ -4082,34 +4082,64 @@ const TOAST_CONFIG = {
 
 **Period Options Available**:
 
-- **Last Week**: Previous 7 days of data
-- **Last 3 Months**: Previous 90 days (Default selection)
-- **Last 6 Months**: Previous 180 days
-- **Last Year**: Previous 365 days
+- **Last Month**: From 1st of current month to today (Default selection)
+- **Last Week**: From Monday of current week to today
+- **Last 3 Months**: From 1st of 3 months ago to today
+- **Last 6 Months**: From 1st of 6 months ago to today
+- **Last Year**: From 1st of 12 months ago to today
 
-**Default Setting**: 3 months as requested by Andrea for optimal data analysis balance.
+**Default Setting**: Last Month as requested by Andrea for real-time current month analysis.
+
+**Calendar-Based Logic**: All periods use calendar-based calculations instead of fixed day offsets:
+- **Last Month**: 1st January → 26th January (if today is 26th Jan)
+- **Last Week**: Monday → Wednesday (if today is Wednesday)
+- **Last 3 Months**: 1st November → 26th January (if today is 26th Jan)
 
 **Technical Implementation**:
 
 ```typescript
 // Period Selector Configuration
-type PeriodPreset = "week" | "3months" | "6months" | "1year"
+type PeriodPreset = "month" | "week" | "3months" | "6months" | "1year"
 
 const periodOptions = [
-  { value: "week", label: "Last Week", description: "Last 7 days" },
-  { value: "3months", label: "Last 3 Months", description: "Last 90 days" }, // Default
-  { value: "6months", label: "Last 6 Months", description: "Last 180 days" },
-  { value: "1year", label: "Last Year", description: "Last 365 days" },
+  { value: "month", label: "Last Month", description: "From 1st of month to today" }, // Default
+  { value: "week", label: "Last Week", description: "From Monday to today" },
+  { value: "3months", label: "Last 3 Months", description: "From 1st of 3 months ago" },
+  { value: "6months", label: "Last 6 Months", description: "From 1st of 6 months ago" },
+  { value: "1year", label: "Last Year", description: "From 1st of 12 months ago" },
 ]
+
+// Calendar-based calculation functions
+const getStartOfMonth = () => new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+const getStartOfWeek = () => {
+  const today = new Date()
+  const dayOfWeek = today.getDay()
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+  return new Date(today.getTime() + mondayOffset * 24 * 60 * 60 * 1000)
+}
 ```
 
-**Benefits of New Period Selector**:
+#### **📊 New Analytics Features (Task: Analytics)**
+
+**Enhanced Dashboard Capabilities**:
+
+- **📈 Temporal Comparison Charts**: Visual comparison graphs showing trends across previous months
+- **🏆 Top Performers Section**: 
+  - **Top Product** for selected period with performance metrics
+  - **Top Customer** for selected period with engagement stats
+- **💰 Monthly Cost Display**: Clear visualization of monthly costs with €0.005 tracking
+- **📊 Business Trend Analysis**: Comprehensive business performance overview
+
+**Benefits of Enhanced Analytics**:
 
 - **Simplified UX**: No complex calendar navigation required
 - **Common Use Cases**: Pre-defined periods cover 95% of analytics needs
 - **Faster Selection**: One-click period changes vs multi-step date selection
 - **Mobile Friendly**: Dropdown works better on smaller screens
 - **Business Logic**: Periods align with standard business reporting cycles
+- **Temporal Insights**: Clear visualization of business growth trends
+- **Performance Tracking**: Identify top-performing products and customers
+- **Cost Transparency**: Real-time cost monitoring and projections
 
 **Login Page Design Issues**:
 

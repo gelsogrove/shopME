@@ -9,7 +9,7 @@ import { DateRange } from '@/services/analyticsApi';
 import { CalendarIcon } from 'lucide-react';
 import React from 'react';
 
-export type PeriodPreset = 'week' | '3months' | '6months' | '1year';
+export type PeriodPreset = 'month' | 'week' | '3months' | '6months' | '1year';
 
 interface DateRangeSelectorProps {
   selectedPeriod: PeriodPreset;
@@ -17,31 +17,56 @@ interface DateRangeSelectorProps {
 }
 
 const periodOptions = [
-  { value: 'week' as PeriodPreset, label: 'Last Week', description: 'Last 7 days' },
-  { value: '3months' as PeriodPreset, label: 'Last 3 Months', description: 'Last 90 days' },
-  { value: '6months' as PeriodPreset, label: 'Last 6 Months', description: 'Last 180 days' },
-  { value: '1year' as PeriodPreset, label: 'Last Year', description: 'Last 365 days' }
+  { value: 'month' as PeriodPreset, label: 'Last Month', description: 'From 1st of month to today' },
+  { value: 'week' as PeriodPreset, label: 'Last Week', description: 'From Monday to today' },
+  { value: '3months' as PeriodPreset, label: 'Last 3 Months', description: 'From 1st of 3 months ago' },
+  { value: '6months' as PeriodPreset, label: 'Last 6 Months', description: 'From 1st of 6 months ago' },
+  { value: '1year' as PeriodPreset, label: 'Last Year', description: 'From 1st of 12 months ago' }
 ];
+
+// Calendar-based calculation functions
+const getStartOfMonth = (): Date => {
+  const today = new Date();
+  return new Date(today.getFullYear(), today.getMonth(), 1);
+};
+
+const getStartOfWeek = (): Date => {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + mondayOffset);
+  return monday;
+};
 
 export const getDateRangeFromPeriod = (period: PeriodPreset): DateRange => {
   const endDate = new Date();
-  const startDate = new Date();
+  let startDate: Date;
 
   switch (period) {
+    case 'month':
+      // From 1st of current month to today
+      startDate = getStartOfMonth();
+      break;
     case 'week':
-      startDate.setDate(endDate.getDate() - 7);
+      // From Monday of current week to today
+      startDate = getStartOfWeek();
       break;
     case '3months':
-      startDate.setMonth(endDate.getMonth() - 3);
+      // From 1st of 3 months ago to today
+      startDate = new Date(endDate.getFullYear(), endDate.getMonth() - 3, 1);
       break;
     case '6months':
-      startDate.setMonth(endDate.getMonth() - 6);
+      // From 1st of 6 months ago to today
+      startDate = new Date(endDate.getFullYear(), endDate.getMonth() - 6, 1);
       break;
     case '1year':
-      startDate.setFullYear(endDate.getFullYear() - 1);
+      // From 1st of 12 months ago to today
+      startDate = new Date(endDate.getFullYear(), endDate.getMonth() - 12, 1);
       break;
     default:
-      startDate.setMonth(endDate.getMonth() - 3); // Default to 3 months
+      // Default to current month
+      startDate = getStartOfMonth();
   }
 
   return { startDate, endDate };

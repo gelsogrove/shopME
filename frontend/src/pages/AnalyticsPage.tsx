@@ -1,6 +1,8 @@
 import { DateRangeSelector, PeriodPreset, getDateRangeFromPeriod } from "@/components/analytics/DateRangeSelector";
 import { HistoricalChart } from "@/components/analytics/HistoricalChart";
 import { MetricsOverview } from "@/components/analytics/MetricsOverview";
+import { TemporalComparisonChart } from "@/components/analytics/TemporalComparisonChart";
+import { TopPerformers } from "@/components/analytics/TopPerformers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,7 +20,7 @@ export function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPeriod, setSelectedPeriod] = useState<PeriodPreset>('3months'); // Default to 3 months
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodPreset>('month'); // Default to current month
 
   const loadAnalytics = async (period: PeriodPreset) => {
     if (!currentWorkspace?.id) return;
