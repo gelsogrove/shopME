@@ -92,11 +92,11 @@ See `docs/other/task-list.md` for the full, up-to-date structured task list, inc
 
 ### **Q3: LLM di Formattazione in N8N**
 
-**A:** ✅ **IMPLEMENTATO - TWO-LLM ARCHITECTURE**
+**A:** ✅ **IMPLEMENTATO - SINGLE LLM ARCHITECTURE**
 
-- **LLM 1 (RAG Processor)**: Analizza e filtra dati grezzi dal database (T=0.3)
-- **LLM 2 (Formatter)**: Crea risposta conversazionale naturale (T=0.7)
+- **LLM Agent (OpenRouter)**: Gestisce RAG search e genera risposta conversazionale
 - Configurazione dinamica dalla tabella `agentConfig` (prompt, temperatura, token, modello)
+- Integrato con N8N Agent Node per gestione completa del workflow
 
 ### **Q4: Calling Functions con Token di Protezione**
 
@@ -120,7 +120,7 @@ See `docs/other/task-list.md` for the full, up-to-date structured task list, inc
 **A:** ✅ **IMPLEMENTATO COMPLETAMENTE**
 
 - **Flusso attivo**: SÌ - workflow creato automaticamente e impostato `active: true`
-- **Workflow completo**: SÌ - Two-LLM Architecture (LLM 1: RAG + LLM 2: Formatter)
+- **Workflow completo**: SÌ - Single LLM Agent con RAG integration
 - **Credenziali**: SÌ - Basic Auth automaticamente configurato per Internal API
 - **Owner account**: SÌ - `admin@shopme.com / Venezia44`
 - **Script**: `scripts/n8n_import-optimized-workflow.sh` - setup completamente automatico
