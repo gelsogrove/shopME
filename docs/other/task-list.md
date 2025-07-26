@@ -5,7 +5,7 @@
 - SISTEMARE IL PRD
 - TEST DEVONO ESSERE FUNZIONANTI
 - sistema di invoice ?
-- docker name possiamo cambiarlo da shopme_n8n_unifend a shopme_n8
+
 - Posco fare qualcos'altro per lei nel frattempo? (da togliere)
 - Analytics Dashboard- defailt 1 mese e poi dobbiamo capire i costi mensili mostrarli
 - pulizia metodi
