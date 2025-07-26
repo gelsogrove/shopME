@@ -6,8 +6,7 @@
 - TEST DEVONO ESSERE FUNZIONANTI
 - sistema di invoice ?
 
-- Posco fare qualcos'altro per lei nel frattempo? (da togliere)
-- Analytics Dashboard- defailt 1 mese e poi dobbiamo capire i costi mensili mostrarli
+
 - pulizia metodi
 - mettere campo debug-mode per evtare di far salire il contatore
 
