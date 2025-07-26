@@ -196,7 +196,7 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 - Integration tests end-to-end
 
 **STORY POINT**: 10
-**STATUS**: 🟢 COMPLETATO - Checkout Flow + Stock Management + UI Completi, TODO: Solo Agent Prompt + Testing
+**STATUS**: ✅ COMPLETATO - Checkout Flow + Stock Management + UI + Backend APIs + Notifiche Completi
 
 ================================================================================
 
