@@ -12,7 +12,7 @@ import {
     DashboardAnalytics,
     getDashboardAnalytics
 } from "@/services/analyticsApi";
-import { Activity, AlertCircle, BarChart3, TrendingUp } from "lucide-react";
+import { AlertCircle, BarChart3 } from "lucide-react";
 import { useEffect, useState } from 'react';
 
 export function AnalyticsPage() {
@@ -141,109 +141,14 @@ export function AnalyticsPage() {
           {/* Metrics Overview */}
           <MetricsOverview analytics={analytics} />
 
+          {/* Temporal Comparison Charts */}
+          <TemporalComparisonChart analytics={analytics} />
+
           {/* Historical Chart */}
           <HistoricalChart analytics={analytics} />
 
-          {/* Additional Analytics Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Top Products */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-green-600" />
-                  Top Products
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {analytics.topProducts && analytics.topProducts.length > 0 ? (
-                  <div className="space-y-3">
-                    {analytics.topProducts.slice(0, 5).map((product, index) => (
-                      <div key={product.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center text-xs font-bold text-green-700">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{product.name}</p>
-                            <p className="text-sm text-gray-500">{product.totalSold} sold</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-green-600">
-                            {new Intl.NumberFormat('en-US', {
-                              style: 'currency',
-                              currency: 'EUR',
-                              minimumFractionDigits: 0
-                            }).format(product.revenue)}
-                          </p>
-                          <p className="text-xs text-gray-500">Stock: {product.stock}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <TrendingUp className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">No product sales data available</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Top Customers */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-blue-600" />
-                  Top Customers
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {analytics.topCustomers && analytics.topCustomers.length > 0 ? (
-                  <div className="space-y-3">
-                    {analytics.topCustomers.slice(0, 5).map((customer, index) => (
-                      <div key={customer.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-700">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{customer.name}</p>
-                            <p className="text-sm text-gray-500">{customer.email}</p>
-                            {customer.company && (
-                              <p className="text-xs text-gray-400">{customer.company}</p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-blue-600">
-                            {new Intl.NumberFormat('en-US', {
-                              style: 'currency',
-                              currency: 'EUR',
-                              minimumFractionDigits: 0
-                            }).format(customer.totalSpent)}
-                          </p>
-                          <p className="text-xs text-gray-500">{customer.totalOrders} orders</p>
-                          <p className="text-xs text-gray-400">
-                            Avg: {new Intl.NumberFormat('en-US', {
-                              style: 'currency',
-                              currency: 'EUR',
-                              minimumFractionDigits: 0
-                            }).format(customer.averageOrderValue)}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Activity className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">No customer data available</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          {/* Top Performers */}
+          <TopPerformers analytics={analytics} />
         </div>
       ) : (
         // No Data State

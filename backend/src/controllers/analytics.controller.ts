@@ -13,7 +13,7 @@ export class AnalyticsController {
    * /api/analytics/{workspaceId}/dashboard:
    *   get:
    *     summary: Get dashboard analytics data
-   *     description: Retrieve analytics data for dashboard with optional date range filtering. Default shows last 3 complete months excluding current month.
+   *     description: Retrieve analytics data for dashboard with optional date range filtering. Default shows current month (1st of month to today).
    *     tags: [Analytics]
    *     security:
    *       - bearerAuth: []
@@ -73,7 +73,7 @@ export class AnalyticsController {
       const { workspaceId } = req.params;
       const { startDate, endDate } = req.query;
 
-      // Default to last 3 complete months (excluding current month)
+      // Default to current month (1st of month to today) as per new requirements
       const defaultDateRange = this.getDefaultDateRange();
       
       const dateFrom = startDate ? new Date(startDate as string) : defaultDateRange.startDate;
@@ -92,7 +92,7 @@ export class AnalyticsController {
           startDate: dateFrom,
           endDate: dateTo,
           isDefault: !startDate && !endDate,
-          note: !startDate && !endDate ? 'Default range: last 3 complete months (excluding current month)' : null
+          note: !startDate && !endDate ? 'Default range: current month (1st of month to today)' : null
         }
       });
     } catch (error) {
@@ -198,18 +198,18 @@ export class AnalyticsController {
   };
 
   /**
-   * Calculate default date range: last 3 complete months excluding current month
+   * Calculate default date range: current month (1st of month to today)
    */
   private getDefaultDateRange(): { startDate: Date; endDate: Date } {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth(); // 0-based (0 = January)
 
-    // End of previous month (last day)
-    const endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
+    // Start of current month (first day)
+    const startDate = new Date(currentYear, currentMonth, 1, 0, 0, 0, 0);
     
-    // Start of 3 months before the previous month (first day)
-    const startDate = new Date(currentYear, currentMonth - 3, 1, 0, 0, 0, 0);
+    // End date is today
+    const endDate = new Date();
 
     return { startDate, endDate };
   }
