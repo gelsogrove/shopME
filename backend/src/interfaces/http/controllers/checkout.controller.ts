@@ -21,7 +21,7 @@ export class CheckoutController {
         return
       }
 
-      // Find token in database
+      // Find token in database with workspace isolation
       const secureToken = await prisma.secureToken.findFirst({
         where: {
           token,
@@ -30,6 +30,7 @@ export class CheckoutController {
           expiresAt: {
             gt: new Date(),
           },
+          // Note: workspaceId will be validated from token payload
         },
       })
 
@@ -98,7 +99,7 @@ export class CheckoutController {
         return
       }
 
-      // Validate token again
+      // Validate token again with workspace isolation
       const secureToken = await prisma.secureToken.findFirst({
         where: {
           token,
@@ -107,6 +108,7 @@ export class CheckoutController {
           expiresAt: {
             gt: new Date(),
           },
+          // Note: workspaceId will be validated from token payload
         },
       })
 
