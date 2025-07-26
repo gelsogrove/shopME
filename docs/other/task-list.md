@@ -1,21 +1,14 @@
 # PHASE 1 TASKS
 
-- ✅ **COMPLETATO: N8N integration usage tracking automatico** - €0.005 tracking integrato in MessageRepository.saveMessage() prima del salvataggio nello storico
-- ⏳ **TODO: TESTARE tracking usage** - Dashboard mostra sempre €3.88, servono nuovi messaggi AI per vedere incremento €0.005
-- ✅ **COMPLETATO: Mail a contact operator** - CF ContactOperator aggiornato con AI summary e email all'operatore
-
-- ⏳ **TODO: ma il filtro posso toglierlo**
-- ⏳ **TODO: n8n TOKEN**
-- ⏳ **TODO: Integrare TrackUsage nel workflow N8N** - CF pronto, serve integrazione nel workflow
+- ⏳ **TODO: n8n TOKEN** - Configurazione manuale token in N8N (Andrea)
 - CF pdf
 - SISTEMARE IL PRD
-- TEST DEVONO ESSERE FUNZIONANTI
+
 - sistema di invoice ?
-- docker name possiamo cambiarlo da shopme_n8n_unifend a shopme_n8
-- Posso fare qualcos'altro per lei nel frattempo? (da togliere)
-- Analytics Dashboard- defailt 1 mese e poi dobbiamo capire i costi mensili mostrarli
+
+
 - pulizia metodi
-- mettere campo debug-mode per evtare di far salire il contatore
+
 
 ## TASK #24
 
@@ -69,134 +62,6 @@ Andrea requires that the payment page, once payment is confirmed, always trigger
 Andrea wants to try uploading and managing a legal notice PDF to validate the document handling flow.
 
 **STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #39
-
-**TITLE**: Checkout Flow con Gestione Stock Completa
-**DESCRIPTION/ROADMAP**:
-
-#### **1. CUSTOM FUNCTION N8N** ✅ IMPLEMENTATO
-
-**File**: `backend/src/chatbot/calling-functions/createOrderCheckoutLink.ts`
-
-- Implementa `createOrderCheckoutLink(customerId, workspaceId, prodotti[])`
-- Genera token sicuro crypto SHA256 con scadenza 1 ora
-- Salva in `secure_tokens` table con type='checkout' e payload prodotti
-- Ritorna URL: `${FRONTEND_URL}/checkout/${token}`
-- **Validazioni**: Customer exists, Workspace exists, Prodotti array non vuoto
-- **Trigger**: Solo quando utente esprime intent di conferma ordine
-
-#### **2. PAGINA CHECKOUT COMPLETA** ✅ IMPLEMENTATO
-
-**File**: `frontend/src/pages/CheckoutPage.tsx` + Route `/checkout/:token`
-
-- **Design**: Pattern identico a `/register` (fuori auth, responsive)
-- **Token Validation**: API call a `/api/checkout/token/:token`
-- **Pre-fill Data**: Indirizzi da `customer.address` e `customer.invoiceAddress`
-
-**STEP 1 - Carrello Avanzato**:
-
-- View prodotti dal token con quantità/prezzo
-- Edit quantità (max = stock disponibile) con controlli real-time
-- Remove prodotti con conferma
-- **Add Modal**: Prodotti attivi filtrati `isActive=true AND stock>0`
-  - Lista prodotti con stock indicators
-  - Selezione quantità con limiti stock
-  - Validazione disponibilità prima aggiunta
-
-**STEP 2 - Indirizzi Smart**:
-
-- Pre-compilazione automatica da customer data
-- Checkbox "Stesso indirizzo fatturazione"
-- Validazione campi obbligatori
-
-**STEP 3 - Conferma & Submit**:
-
-- Riepilogo completo ordine
-- Campo note aggiuntive
-- Submit con loading states
-
-#### **3. API BACKEND COMPLETO** ✅ IMPLEMENTATO
-
-**Files**: `backend/src/interfaces/http/routes/checkout.routes.ts` + `checkout.controller.ts`
-
-- **GET `/api/checkout/token/:token`**: Validazione token + return customer/prodotti data
-- **POST `/api/checkout/submit`**: Creazione ordine completa con notifiche
-- **Order Creation**: Status PENDING, OrderCode auto-gen `ORD-YYYYMMDD-XXX`
-- **Cart Reset**: Automatic cartItems cleanup dopo submit
-- **Error Handling**: Comprehensive con status codes appropriati
-
-#### **4. NOTIFICHE MULTI-CHANNEL** ✅ IMPLEMENTATO
-
-**Su Submit Checkout**:
-
-- **Email Customer** (text semplice): "Ordine X preso in consegna, verrai contattato"
-- **Email Admin** (`settings.adminEmail`): "Nuovo ordine X da confermare"
-- **WhatsApp** (salva in chat): "✅ Ordine X preso in consegna! Ti faremo sapere il prima possibile"
-
-**Su Conferma Operatore** (`PENDING → CONFIRMED`):
-
-- **Email Customer**: "🎉 Ordine X confermato! Ti contatteremo per consegna"
-- **Email Admin**: "Ordine X confermato e processato"
-- **WhatsApp**: "🎉 Ordine confermato! Numero X. Ti contatteremo per dettagli consegna"
-
-#### **5. STOCK SERVICE COMPLETO** ✅ IMPLEMENTATO
-
-**File**: `backend/src/application/services/stock.service.ts`
-
-- **NO scala stock su checkout** (rimane disponibile per altri)
-- **Auto-scala su conferma**: `PENDING → CONFIRMED` con validazione stock
-- **Auto-ripristina su cancellazione**: `CONFIRMED/SHIPPED → CANCELLED`
-- **Stock Logging**: Audit trail di tutte le modifiche stock
-- **Insufficient Stock Handling**: Graceful degradation con warnings
-
-#### **6. ADMIN PANEL AGGIORNATO** ✅ IMPLEMENTATO
-
-**Files**: `frontend/src/pages/ProductsPage.tsx` + `DataTable.tsx` + `CrudPageContent.tsx`
-
-- **Row Rosse Stock 0**: Styling condizionale `bg-red-50 border-l-4 border-red-500`
-- **Status Indicators**: "Out of Stock", "Low Stock", "Available" con colori
-- **Product Filtering**: API params `?active=true&inStock=true`
-- **Stock Display**: Numerico con color coding (rosso/arancione/verde)
-
-#### **7. PRODUCT API FILTERING** ✅ IMPLEMENTATO
-
-**Files**: `backend/src/repositories/product.repository.ts` + `product.controller.ts`
-
-- **New Filters**: `ProductFilters.inStock` e `ProductFilters.active`
-- **Repository Logic**: `WHERE stock > 0 AND isActive = true`
-- **Controller Params**: Query string parsing per `active=true&inStock=true`
-- **Checkout Integration**: Modal prodotti usa filtri automaticamente
-
-#### **8. UX/UI COMPLETO** ✅ IMPLEMENTATO
-
-**Features Avanzate**:
-
-- **Progress Steps**: Visual 1→2→3 con colori dinamici
-- **Loading States**: Spinners, disabled buttons, skeleton screens
-- **Error Handling**: Toast notifications, form validation, retry logic
-- **Responsive**: Mobile-first design, touch-friendly controls
-- **Accessibility**: Proper labels, focus management, screen reader support
-
-#### **9. PROMPT AGENT INTEGRATION** ⏳ TODO
-
-- **Raccogliere prodotti** durante conversazione normale
-- **Rilevare intent conferma**: "procedo", "ordino", "confermo", "checkout", "finalizza"
-- **Solo allora** chiamare `createOrderCheckoutLink` con prodotti raccolti
-
-#### **10. TESTING SUITE** ⏳ TODO
-
-- Test unitari scala/ripristina stock su cambio status
-- Test edge cases (stock insufficiente, prodotto disattivato)
-- Test token validation e scadenza
-- Test flusso email e WhatsApp completo
-- Test responsività mobile
-- Integration tests end-to-end
-
-**STORY POINT**: 10
-**STATUS**: 🟢 COMPLETATO - Checkout Flow + Stock Management + UI Completi, TODO: Solo Agent Prompt + Testing
 
 ================================================================================
 

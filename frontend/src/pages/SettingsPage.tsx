@@ -41,6 +41,7 @@ interface WorkspaceData {
   adminEmail: string
   currency: string
   isActive: boolean
+  debugMode: boolean
   blocklist: string
   welcomeMessages: {
     en: string
@@ -72,6 +73,7 @@ export default function SettingsPage() {
     adminEmail: "",
     currency: "EUR",
     isActive: true,
+    debugMode: true,
     blocklist: "",
     welcomeMessages: {
       en: "Hello! Thank you for contacting us. How can we help you today?",
@@ -131,6 +133,7 @@ export default function SettingsPage() {
           adminEmail: workspace.adminEmail || "",
           currency: workspace.currency || "EUR",
           isActive: workspace.isActive ?? true,
+          debugMode: workspace.debugMode ?? true,
           blocklist: workspace.blocklist || "",
           welcomeMessages,
           wipMessages,
@@ -254,17 +257,41 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>General Settings</span>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Active</span>
-              <Switch
-                checked={formData.isActive}
-                onCheckedChange={(checked) => handleFieldChange("isActive", checked)}
-              />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Active</span>
+                <Switch
+                  checked={formData.isActive}
+                  onCheckedChange={(checked) => handleFieldChange("isActive", checked)}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Debug Mode</span>
+                <Switch
+                  checked={formData.debugMode}
+                  onCheckedChange={(checked) => handleFieldChange("debugMode", checked)}
+                />
+              </div>
             </div>
           </CardTitle>
         </CardHeader>
         
         <CardContent className="space-y-6">
+          {/* Debug Mode Info */}
+          {formData.debugMode && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center text-white text-xs font-bold mt-0.5">!</div>
+                <div>
+                  <h4 className="text-sm font-medium text-yellow-800">Debug Mode Enabled</h4>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    When enabled, usage costs (€0.005) are not tracked. Use for testing purposes.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Workspace Name */}
           <div className="space-y-2">
             <Label htmlFor="name">Workspace Name</Label>

@@ -21,6 +21,7 @@ export interface WorkspaceProps {
   challengeStatus?: boolean
   isActive?: boolean
   isDelete?: boolean
+  debugMode?: boolean
   url?: string | null
   createdAt?: Date
   updatedAt?: Date
@@ -107,6 +108,10 @@ export class Workspace extends Entity<WorkspaceProps> {
     return this.props.isDelete ?? false
   }
 
+  get debugMode(): boolean {
+    return this.props.debugMode ?? true
+  }
+
   get url(): string | null | undefined {
     return this.props.url
   }
@@ -133,6 +138,7 @@ export class Workspace extends Entity<WorkspaceProps> {
       messageLimit: props.messageLimit ?? 50,
       isActive: props.isActive ?? true,
       isDelete: props.isDelete ?? false,
+      debugMode: props.debugMode ?? true,
       challengeStatus: props.challengeStatus ?? false,
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? new Date(),
@@ -195,6 +201,7 @@ export class Workspace extends Entity<WorkspaceProps> {
       challengeStatus: this.challengeStatus,
       isActive: this.isActive,
       isDelete: this.isDelete,
+      debugMode: this.debugMode,
       url: this.url,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
