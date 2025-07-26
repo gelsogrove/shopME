@@ -3,7 +3,7 @@
 - ⏳ **TODO: n8n TOKEN** - Configurazione manuale token in N8N (Andrea)
 - CF pdf
 - SISTEMARE IL PRD
-- TEST DEVONO ESSERE FUNZIONANTI
+
 - sistema di invoice ?
 
 
