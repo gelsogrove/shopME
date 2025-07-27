@@ -2,9 +2,11 @@ import React from 'react'
 
 interface TokenErrorProps {
   error: string
+  errorType?: string
   onRetry?: () => void
   showRetry?: boolean
   className?: string
+  expiresAt?: string
 }
 
 /**
@@ -13,47 +15,108 @@ interface TokenErrorProps {
  */
 export const TokenError: React.FC<TokenErrorProps> = ({ 
   error, 
+  errorType,
   onRetry, 
   showRetry = false,
-  className = ""
+  className = "",
+  expiresAt
 }) => {
+  
+  // Determine icon and colors based on error type
+  const getErrorConfig = () => {
+    switch (errorType) {
+      case 'EXPIRED_TOKEN':
+        return {
+          icon: '⏰',
+          title: 'Link Scaduto',
+          bgColor: 'bg-orange-50',
+          borderColor: 'border-orange-200',
+          textColor: 'text-orange-800',
+          messageColor: 'text-orange-700',
+          suggestions: [
+            '• Il link aveva validità di 1 ora',
+            '• Torna su WhatsApp per richiedere un nuovo link',
+            '• I tuoi prodotti sono ancora disponibili'
+          ]
+        }
+      case 'ALREADY_USED':
+        return {
+          icon: '✅',
+          title: 'Link Già Utilizzato',
+          bgColor: 'bg-blue-50',
+          borderColor: 'border-blue-200',
+          textColor: 'text-blue-800',
+          messageColor: 'text-blue-700',
+          suggestions: [
+            '• Questo link è già stato usato per completare un ordine',
+            '• Controlla la tua email per la conferma',
+            '• Per un nuovo ordine, torna su WhatsApp'
+          ]
+        }
+      case 'INVALID_TOKEN':
+        return {
+          icon: '🚫',
+          title: 'Link Non Valido',
+          bgColor: 'bg-red-50',
+          borderColor: 'border-red-200',
+          textColor: 'text-red-800',
+          messageColor: 'text-red-700',
+          suggestions: [
+            '• Controlla di aver copiato tutto il link',
+            '• Il link potrebbe essere corrotto',
+            '• Richiedi un nuovo link via WhatsApp'
+          ]
+        }
+      default:
+        return {
+          icon: '⚠️',
+          title: 'Errore Link',
+          bgColor: 'bg-red-50',
+          borderColor: 'border-red-200',
+          textColor: 'text-red-800',
+          messageColor: 'text-red-700',
+          suggestions: [
+            '• Controlla di aver copiato tutto il link',
+            '• Richiedi un nuovo link via WhatsApp',
+            '• Verifica che il link non sia scaduto'
+          ]
+        }
+    }
+  }
+  
+  const config = getErrorConfig()
   return (
-    <div className={`bg-red-50 border border-red-200 rounded-lg p-6 text-center ${className}`}>
+    <div className={`${config.bgColor} border ${config.borderColor} rounded-lg p-6 text-center ${className}`}>
       <div className="flex flex-col items-center space-y-4">
         {/* Error Icon */}
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-          <svg 
-            className="w-8 h-8 text-red-600" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 18.5c-.77.833.192 2.5 1.732 2.5z" 
-            />
-          </svg>
+        <div className="text-6xl">
+          {config.icon}
         </div>
         
         {/* Error Title */}
-        <h3 className="text-lg font-semibold text-red-800">
-          Link non valido
+        <h3 className={`text-lg font-semibold ${config.textColor}`}>
+          {config.title}
         </h3>
         
         {/* Error Message */}
-        <p className="text-red-700 max-w-md">
+        <p className={`${config.messageColor} max-w-md font-medium`}>
           {error}
         </p>
         
+        {/* Expiration Time for Expired Tokens */}
+        {errorType === 'EXPIRED_TOKEN' && expiresAt && (
+          <div className={`text-sm ${config.messageColor} bg-white bg-opacity-50 rounded-lg px-4 py-2`}>
+            <p>⏰ Scaduto il: {new Date(expiresAt).toLocaleString('it-IT')}</p>
+          </div>
+        )}
+        
         {/* Suggestions */}
-        <div className="text-sm text-red-600 max-w-md">
-          <p className="mb-2">Cosa puoi fare:</p>
+        <div className={`text-sm ${config.messageColor} max-w-md`}>
+          <p className="mb-2 font-medium">Cosa puoi fare:</p>
           <ul className="text-left space-y-1">
-            <li>• Controlla di aver copiato tutto il link</li>
-            <li>• Richiedi un nuovo link via WhatsApp</li>
-            <li>• Verifica che il link non sia scaduto</li>
+            {config.suggestions.map((suggestion, index) => (
+              <li key={index}>{suggestion}</li>
+            ))}
           </ul>
         </div>
         
