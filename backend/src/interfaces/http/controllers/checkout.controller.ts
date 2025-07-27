@@ -33,7 +33,7 @@ export class CheckoutController {
         res.status(400).json({
           valid: false,
           error: "Token non valido",
-          errorType: "INVALID_TOKEN"
+          errorType: "INVALID_TOKEN",
         })
         return
       }
@@ -43,7 +43,7 @@ export class CheckoutController {
         res.status(400).json({
           valid: false,
           error: "Link già utilizzato",
-          errorType: "ALREADY_USED"
+          errorType: "ALREADY_USED",
         })
         return
       }
@@ -54,7 +54,7 @@ export class CheckoutController {
           valid: false,
           error: "Link scaduto (validità 1 ora)",
           errorType: "EXPIRED_TOKEN",
-          expiresAt: tokenExists.expiresAt
+          expiresAt: tokenExists.expiresAt,
         })
         return
       }
@@ -64,7 +64,7 @@ export class CheckoutController {
         res.status(400).json({
           valid: false,
           error: "Token corrotto",
-          errorType: "CORRUPTED_TOKEN"
+          errorType: "CORRUPTED_TOKEN",
         })
         return
       }
@@ -128,7 +128,7 @@ export class CheckoutController {
         return
       }
 
-      // Validate token again
+      // Validate token again with workspace isolation
       const secureToken = await prisma.secureToken.findFirst({
         where: {
           token,
@@ -137,6 +137,7 @@ export class CheckoutController {
           expiresAt: {
             gt: new Date(),
           },
+          // Note: workspaceId will be validated from token payload
         },
       })
 
