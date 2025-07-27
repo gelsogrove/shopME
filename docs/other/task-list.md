@@ -13,6 +13,18 @@
 # PHASE 1 TASKS
 
 <<<<<<< HEAD
+
+- ⏳ **TODO: n8n TOKEN** - Configurazione manuale token in N8N (Andrea)
+- CF pdf
+- SISTEMARE IL PRD
+
+- sistema di invoice ?
+
+- pulizia metodi
+
+=======
+<<<<<<< HEAD
+
 - ✅ **COMPLETATO: N8N integration usage tracking automatico** - €0.005 tracking integrato in MessageRepository.saveMessage() prima del salvataggio nello storico
 - ⏳ **TODO: TESTARE tracking usage** - Dashboard mostra sempre €3.88, servono nuovi messaggi AI per vedere incremento €0.005
 - ✅ **COMPLETATO: Mail a contact operator** - CF ContactOperator aggiornato con AI summary e email all'operatore
@@ -23,16 +35,16 @@
 - 🆕 **TODO: Integrare confirmOrderFromConversation in N8N** - CF pronto, serve configurazione manuale in workflow
 - CF pdf
 - SISTEMARE IL PRD
-- TEST DEVONO ESSERE FUNZIONANTI
-=======
+- # TEST DEVONO ESSERE FUNZIONANTI
 - devo verificare la mail
 - mettere customer.blacklist a true nella chata
 - ⏳ **TODO: Icona blacklist nella lista clienti** - Cliente blacklisted deve avere icona visiva nella lista
->>>>>>> main
+  > > > > > > > main
 - sistema di invoice ?
 - docker name possiamo cambiarlo da shopme_n8n_unifend a shopme_n8
 - CF pdf
 - TEST DEVONO ESSERE FUNZIONANTI
+  > > > > > > > main
 
 ## TASK #24
 
@@ -89,6 +101,8 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 
 ================================================================================
 
+# <<<<<<< HEAD
+
 ## TASK #39
 
 **TITLE**: ✅ COMPLETATO - Conversational Order Flow Implementato
@@ -98,7 +112,7 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 
 **File**: `backend/src/chatbot/calling-functions/confirmOrderFromConversation.ts` ✅
 
-- ✅ Implementata `confirmOrderFromConversation()` 
+- ✅ Implementata `confirmOrderFromConversation()`
 - ✅ Estrae prodotti dalla conversazione corrente (no carrello)
 - ✅ Validazione prodotti nel database con ricerca fuzzy
 - ✅ Genera token sicuro con type='conversational_order_checkout'
@@ -106,11 +120,12 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 - ✅ Compatibile con checkout controller esistente
 
 **ESEMPIO FLUSSO COMPLETO**:
+
 ```
 1. Cliente: "Voglio maglietta rossa" → LLM traccia mentalmente
-2. Cliente: "E jeans blu" → LLM aggiunge alla lista mentale  
+2. Cliente: "E jeans blu" → LLM aggiunge alla lista mentale
 3. Cliente: "Confermo l'ordine" → LLM chiama confirmOrderFromConversation()
-4. Sistema: genera token + URL checkout 
+4. Sistema: genera token + URL checkout
 5. Cliente: clicca link → completa checkout web
 ```
 
@@ -226,7 +241,8 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 
 ================================================================================
 
-blockuser
+> > > > > > > main
+> > > > > > > blockuser
 
 -
 
@@ -446,7 +462,7 @@ La nuova calling function `confirmOrderFromConversation` è stata implementata e
    - Testare il conversational order flow completo:
      - Cliente: "Voglio maglietta rossa"
      - Bot: "✅ Maglietta aggiunta alla selezione"
-     - Cliente: "Confermo l'ordine"  
+     - Cliente: "Confermo l'ordine"
      - Bot: Chiama `confirmOrderFromConversation()` → Genera token + URL
 
 4. **Validazione Response**:
@@ -463,11 +479,13 @@ La nuova calling function `confirmOrderFromConversation` è stata implementata e
      - Errori database
 
 **ENDPOINT BACKEND**:
+
 - Function Handler: `/api/internal/function-call`
 - Function Name: `confirmOrderFromConversation`
 - Method: POST
 
 **TESTING CHECKLIST**:
+
 - [ ] Function apparisca in lista N8N functions
 - [ ] Parametri vengano passati correttamente
 - [ ] Response del backend venga gestita dal workflow
@@ -476,8 +494,9 @@ La nuova calling function `confirmOrderFromConversation` è stata implementata e
 - [ ] Link checkout apra pagina funzionante
 
 **FILES COINVOLTI**:
+
 - ✅ `backend/src/chatbot/calling-functions/confirmOrderFromConversation.ts` - Implementato
-- ✅ `backend/src/application/services/function-handler.service.ts` - Integrato 
+- ✅ `backend/src/application/services/function-handler.service.ts` - Integrato
 - ✅ `backend/src/repositories/message.repository.ts` - Function aggiunta
 - 🔧 **N8N Workflow Configuration** - DA CONFIGURARE MANUALMENTE
 
