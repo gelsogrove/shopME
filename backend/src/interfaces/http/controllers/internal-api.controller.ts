@@ -445,7 +445,8 @@ export class InternalApiController {
       if (sessionToken) {
         const validation = await this.secureTokenService.validateToken(
           sessionToken,
-          "session"
+          "session",
+          workspaceId
         )
         if (!validation.valid) {
           logger.warn(
@@ -3002,10 +3003,11 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      // Validate token using SecureTokenService
+      // Validate token using SecureTokenService with workspace isolation
       const validation = await this.secureTokenService.validateToken(
         token,
-        type
+        type,
+        workspaceId
       )
 
       if (!validation.valid) {
@@ -3067,10 +3069,11 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      // Validate invoice token
+      // Validate invoice token with workspace isolation
       const validation = await this.secureTokenService.validateToken(
         token,
-        "invoice"
+        "invoice",
+        undefined // workspaceId will be extracted from token payload
       )
 
       if (!validation.valid) {
