@@ -1,7 +1,7 @@
 import { useWorkspace } from "@/hooks/use-workspace"
 import { clientsApi, type Client } from "@/services/clientsApi"
 import { commonStyles } from "@/styles/common"
-import { MessageSquare, Pencil, Trash2, Users } from "lucide-react"
+import { MessageSquare, Pencil, Trash2, Users, UserX } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { PageHeader } from "../components/shared/PageHeader"
@@ -42,6 +42,7 @@ interface Customer {
   activeChatbot: boolean
   discount: number
   company?: string
+  isBlacklisted: boolean
 }
 
 // Convert Client to Customer format
@@ -59,6 +60,7 @@ const clientToCustomer = (client: Client): Customer => ({
   activeChatbot: false, // Client interface doesn't have this field
   discount: client.discount || 0,
   company: client.company || undefined,
+  isBlacklisted: client.isBlacklisted || false,
 })
 
 export default function CustomersPage() {
@@ -122,7 +124,17 @@ export default function CustomersPage() {
       accessorKey: "name",
       header: "Name",
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("name")}</div>
+        <div className="flex items-center gap-2">
+          <div className="font-medium">{row.getValue("name")}</div>
+          {row.original.isBlacklisted && (
+            <div 
+              className="flex items-center" 
+              title="Cliente in blacklist - Non riceve messaggi"
+            >
+              <UserX className="h-4 w-4 text-red-500" />
+            </div>
+          )}
+        </div>
       ),
     },
     {
@@ -163,6 +175,24 @@ export default function CustomersPage() {
         >
           {row.original.status === "active" ? "Active" : "Inactive"}
         </span>
+      ),
+    },
+    {
+      accessorKey: "isBlacklisted",
+      header: "Blacklist",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          {row.original.isBlacklisted ? (
+            <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+              <UserX className="h-3 w-3" />
+              Yes
+            </span>
+          ) : (
+            <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+              No
+            </span>
+          )}
+        </div>
       ),
     },
   ]
