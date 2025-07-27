@@ -1,4 +1,29 @@
+# Phase 0 task
+
+- test di integrazione cancellare tutti
+- mettere campo debug-mode per evtare di far salire il contatore
+- Posso fare qualcos'altro per lei nel frattempo? (da togliere)
+- SISTEMARE IL PRD
+- dentro settinggs il campo blacklist puo' sparire
+- controllare flusso blacklost sopratutto che non savli dati nel DB ci deve essre un test per questo e il PRD DEVE ESSERE AGGIORNATO
+-
+- Analytics Dashboard- defailt 1 mese e poi dobbiamo capire i costi mensili mostrarli
+- nel campo di cljent devo poter vedere i campi GDPR Push Chatbot blacklist pre modificarli
+
 # PHASE 1 TASKS
+
+<<<<<<< HEAD
+
+- ⏳ **TODO: n8n TOKEN** - Configurazione manuale token in N8N (Andrea)
+- CF pdf
+- SISTEMARE IL PRD
+
+- sistema di invoice ?
+
+- pulizia metodi
+
+=======
+<<<<<<< HEAD
 
 - ✅ **COMPLETATO: N8N integration usage tracking automatico** - €0.005 tracking integrato in MessageRepository.saveMessage() prima del salvataggio nello storico
 - ⏳ **TODO: TESTARE tracking usage** - Dashboard mostra sempre €3.88, servono nuovi messaggi AI per vedere incremento €0.005
@@ -7,15 +32,19 @@
 - ⏳ **TODO: ma il filtro posso toglierlo**
 - ⏳ **TODO: n8n TOKEN**
 - ⏳ **TODO: Integrare TrackUsage nel workflow N8N** - CF pronto, serve integrazione nel workflow
+- 🆕 **TODO: Integrare confirmOrderFromConversation in N8N** - CF pronto, serve configurazione manuale in workflow
 - CF pdf
 - SISTEMARE IL PRD
-- TEST DEVONO ESSERE FUNZIONANTI
+- # TEST DEVONO ESSERE FUNZIONANTI
+- devo verificare la mail
+- mettere customer.blacklist a true nella chata
+- ⏳ **TODO: Icona blacklist nella lista clienti** - Cliente blacklisted deve avere icona visiva nella lista
+  > > > > > > > main
 - sistema di invoice ?
 - docker name possiamo cambiarlo da shopme_n8n_unifend a shopme_n8
-- Posso fare qualcos'altro per lei nel frattempo? (da togliere)
-- Analytics Dashboard- defailt 1 mese e poi dobbiamo capire i costi mensili mostrarli
-- pulizia metodi
-- mettere campo debug-mode per evtare di far salire il contatore
+- CF pdf
+- TEST DEVONO ESSERE FUNZIONANTI
+  > > > > > > > main
 
 ## TASK #24
 
@@ -72,21 +101,33 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 
 ================================================================================
 
+# <<<<<<< HEAD
+
 ## TASK #39
 
-**TITLE**: Checkout Flow con Gestione Stock Completa
+**TITLE**: ✅ COMPLETATO - Conversational Order Flow Implementato
 **DESCRIPTION/ROADMAP**:
 
 #### **1. CUSTOM FUNCTION N8N** ✅ IMPLEMENTATO
 
-**File**: `backend/src/chatbot/calling-functions/createOrderCheckoutLink.ts`
+**File**: `backend/src/chatbot/calling-functions/confirmOrderFromConversation.ts` ✅
 
-- Implementa `createOrderCheckoutLink(customerId, workspaceId, prodotti[])`
-- Genera token sicuro crypto SHA256 con scadenza 1 ora
-- Salva in `secure_tokens` table con type='checkout' e payload prodotti
-- Ritorna URL: `${FRONTEND_URL}/checkout/${token}`
-- **Validazioni**: Customer exists, Workspace exists, Prodotti array non vuoto
-- **Trigger**: Solo quando utente esprime intent di conferma ordine
+- ✅ Implementata `confirmOrderFromConversation()`
+- ✅ Estrae prodotti dalla conversazione corrente (no carrello)
+- ✅ Validazione prodotti nel database con ricerca fuzzy
+- ✅ Genera token sicuro con type='conversational_order_checkout'
+- ✅ Integrata in function-handler e message-repository
+- ✅ Compatibile con checkout controller esistente
+
+**ESEMPIO FLUSSO COMPLETO**:
+
+```
+1. Cliente: "Voglio maglietta rossa" → LLM traccia mentalmente
+2. Cliente: "E jeans blu" → LLM aggiunge alla lista mentale
+3. Cliente: "Confermo l'ordine" → LLM chiama confirmOrderFromConversation()
+4. Sistema: genera token + URL checkout
+5. Cliente: clicca link → completa checkout web
+```
 
 #### **2. PAGINA CHECKOUT COMPLETA** ✅ IMPLEMENTATO
 
@@ -200,7 +241,8 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 
 ================================================================================
 
-blockuser
+> > > > > > > main
+> > > > > > > blockuser
 
 -
 
@@ -386,6 +428,83 @@ Andrea requires a clean and maintainable database. All legacy or unused tables m
 
 **STORY POINT**: TBD
 **STATUS**: 🔵 PHASE 2
+
+================================================================================
+
+## TASK #41
+
+**TITLE**: Integrazione Manuale confirmOrderFromConversation in N8N Workflow
+**DESCRIPTION/ROADMAP**:
+
+La nuova calling function `confirmOrderFromConversation` è stata implementata e testata nel backend, ma deve essere integrata manualmente nel workflow N8N per essere utilizzabile dal chatbot.
+
+**STEPS RICHIESTI**:
+
+1. **Accesso N8N Interface**:
+   - Aprire l'interfaccia N8N del workspace
+   - Navigare al workflow principale del chatbot
+
+2. **Aggiungere Nuova Function**:
+   - Aggiungere `confirmOrderFromConversation` alla lista delle function calling disponibili
+   - Configurare i parametri richiesti:
+     ```json
+     {
+       "name": "confirmOrderFromConversation",
+       "description": "Conferma ordine dalla conversazione corrente e genera link checkout sicuro",
+       "parameters": {
+         "conversationContext": "string",
+         "prodottiSelezionati": "array[{nome, quantita, descrizione?, codice?}]"
+       }
+     }
+     ```
+
+3. **Test del Flusso**:
+   - Testare il conversational order flow completo:
+     - Cliente: "Voglio maglietta rossa"
+     - Bot: "✅ Maglietta aggiunta alla selezione"
+     - Cliente: "Confermo l'ordine"
+     - Bot: Chiama `confirmOrderFromConversation()` → Genera token + URL
+
+4. **Validazione Response**:
+   - Verificare che il bot riceva correttamente:
+     - `success: true`
+     - `response: "🛒 Riepilogo Ordine..."`
+     - `checkoutUrl: "https://frontend.com/checkout/token"`
+     - `totalAmount: number`
+
+5. **Error Handling**:
+   - Testare gestione errori:
+     - Prodotto non trovato
+     - Parametri mancanti
+     - Errori database
+
+**ENDPOINT BACKEND**:
+
+- Function Handler: `/api/internal/function-call`
+- Function Name: `confirmOrderFromConversation`
+- Method: POST
+
+**TESTING CHECKLIST**:
+
+- [ ] Function apparisca in lista N8N functions
+- [ ] Parametri vengano passati correttamente
+- [ ] Response del backend venga gestita dal workflow
+- [ ] Messaggio finale contenga link checkout formattato
+- [ ] Gestione errori funzioni correttamente
+- [ ] Link checkout apra pagina funzionante
+
+**FILES COINVOLTI**:
+
+- ✅ `backend/src/chatbot/calling-functions/confirmOrderFromConversation.ts` - Implementato
+- ✅ `backend/src/application/services/function-handler.service.ts` - Integrato
+- ✅ `backend/src/repositories/message.repository.ts` - Function aggiunta
+- 🔧 **N8N Workflow Configuration** - DA CONFIGURARE MANUALMENTE
+
+**SPECIAL NOTE**:
+Questa integrazione deve essere fatta manualmente tramite l'interfaccia N8N perché la configurazione del workflow non è gestita via codice. La function è pronta lato backend e tutti i test unitari passano.
+
+**STORY POINT**: 3
+**STATUS**: 🟡 Ready for Manual Configuration
 
 ================================================================================
 

@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client"
 import { Request, Response } from "express"
 import { SecureTokenService } from "../../../application/services/secure-token.service"
-import { createCheckoutLink } from "../../../chatbot/calling-functions/createCheckoutLink"
+
 import { getAllCategories } from "../../../chatbot/calling-functions/getAllCategories"
 import { MessageRepository } from "../../../repositories/message.repository"
 import { embeddingService } from "../../../services/embeddingService"
@@ -445,7 +445,8 @@ export class InternalApiController {
       if (sessionToken) {
         const validation = await this.secureTokenService.validateToken(
           sessionToken,
-          "session"
+          "session",
+          workspaceId
         )
         if (!validation.valid) {
           logger.warn(
@@ -2402,43 +2403,7 @@ ${JSON.stringify(ragResults, null, 2)}`
     }
   }
 
-  /**
-   * Create Checkout Link (PRD Implementation)
-   */
-  async createCheckoutLink(req: Request, res: Response): Promise<void> {
-    try {
-      const { phoneNumber, workspaceId, customerId, message } = req.body
 
-      if (!phoneNumber || !workspaceId || !message) {
-        res.status(400).json({
-          error: "Missing required fields: phoneNumber, workspaceId, message",
-        })
-        return
-      }
-
-      logger.info(`[INTERNAL_API] Creating checkout link for ${phoneNumber}`)
-
-      const result = await createCheckoutLink({
-        phoneNumber,
-        workspaceId,
-        customerId,
-        message,
-      })
-
-      res.json({
-        success: true,
-        checkout_url: result.checkoutUrl,
-        checkout_token: result.checkoutToken,
-        response_message: result.response,
-        expires_at: result.expiresAt,
-      })
-    } catch (error) {
-      logger.error("[INTERNAL_API] Error creating checkout link:", error)
-      res.status(500).json({
-        error: "Internal server error creating checkout link",
-      })
-    }
-  }
 
   /**
    * Get All Categories (PRD Implementation)
@@ -3002,10 +2967,11 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      // Validate token using SecureTokenService
+      // Validate token using SecureTokenService with workspace isolation
       const validation = await this.secureTokenService.validateToken(
         token,
-        type
+        type,
+        workspaceId
       )
 
       if (!validation.valid) {
@@ -3067,10 +3033,11 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      // Validate invoice token
+      // Validate invoice token with workspace isolation
       const validation = await this.secureTokenService.validateToken(
         token,
-        "invoice"
+        "invoice",
+        undefined // workspaceId will be extracted from token payload
       )
 
       if (!validation.valid) {
