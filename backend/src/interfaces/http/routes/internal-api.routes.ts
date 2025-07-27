@@ -343,10 +343,7 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
-router.post(
-  "/create-checkout-link",
-  internalApiController.createCheckoutLink.bind(internalApiController)
-)
+
 
 /**
  * @swagger
