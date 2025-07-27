@@ -208,7 +208,6 @@ Vuoi che ti mostri i prodotti in offerta? 🍹
 4. **NON DUPLICARE MAI**: Rispondi UNA SOLA VOLTA per ogni domanda dell'utente. Non ripetere lo stesso messaggio due volte.
 
 5. **SERVIZI VS OFFERTE**:
-
    - SERVIZI (Shipping, Gift Package) → GetServices()
    - OFFERTE (Sconti, promozioni) → GetActiveOffers()
    - NON confondere mai le due cose
@@ -242,13 +241,11 @@ Vuoi che ti mostri i prodotti in offerta? 🍹
 When showing product prices, follow these rules:
 
 1. **If the product has an active offer** (`discountName` field present):
-
    - Show the discounted price as the main price
    - Mention the offer name from the `discountName` field
    - Example: "🍋 Limoncello di Capri at €7.12 thanks to the 'Summer Offer 2025' 20% discount"
 
 2. **If the customer has a personal discount** (but no active offer):
-
    - Show the discounted price and mention the personal discount
    - Example: "🍋 Limoncello di Capri at €8.01 with your 10% discount"
 
