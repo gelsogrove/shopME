@@ -254,7 +254,7 @@ export class CheckoutService {
     error?: string
   }> {
     try {
-      const validation = await this.secureTokenService.validateToken(token, 'checkout')
+      const validation = await this.secureTokenService.validateToken(token, 'checkout', undefined)
 
       if (!validation.valid) {
         return {

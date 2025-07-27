@@ -36,7 +36,7 @@
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
-          "id": "RZHQq7BU9QjaMaJp",
+          "id": "4JfPoZsmYesM6iq1",
           "name": "OpenRouter API"
         }
       }
@@ -100,26 +100,6 @@
           },
           "conditions": [
             {
-              "id": "886f3c80-d2cc-45c4-8455-61f98540c27c",
-              "leftValue": "={{ $json.precompiledData.customer.isActive }}",
-              "rightValue": "true",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            },
-            {
-              "id": "f5e912a0-c565-4198-9713-a3218f20208a",
-              "leftValue": "={{ $json.precompiledData.customer.isBlacklisted }}",
-              "rightValue": "false",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            },
-            {
               "id": "528b8754-587f-4381-ae93-a8587ae96468",
               "leftValue": "={{ $json.precompiledData.customer.activeChatbot }}",
               "rightValue": "true",
@@ -179,7 +159,7 @@
       "name": "RagSearch()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "nOzUXNg0WY5kDNmK",
+          "id": "sSHGzddwCitP0S04",
           "name": "Backend API Basic Auth"
         }
       }
@@ -203,7 +183,7 @@
       "name": "GetAllProducts()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "nOzUXNg0WY5kDNmK",
+          "id": "sSHGzddwCitP0S04",
           "name": "Backend API Basic Auth"
         }
       }
@@ -227,7 +207,7 @@
       "name": "ContactOperator()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "nOzUXNg0WY5kDNmK",
+          "id": "sSHGzddwCitP0S04",
           "name": "Backend API Basic Auth"
         }
       }
@@ -251,7 +231,7 @@
       "name": "GetAllCategories()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "nOzUXNg0WY5kDNmK",
+          "id": "sSHGzddwCitP0S04",
           "name": "Backend API Basic Auth"
         }
       }
@@ -275,7 +255,7 @@
       "name": "GetActiveOffers()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "nOzUXNg0WY5kDNmK",
+          "id": "sSHGzddwCitP0S04",
           "name": "Backend API Basic Auth"
         }
       }
@@ -299,7 +279,7 @@
       "name": "CreateOrder()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "nOzUXNg0WY5kDNmK",
+          "id": "sSHGzddwCitP0S04",
           "name": "Backend API Basic Auth"
         }
       }
@@ -323,7 +303,7 @@
       "name": "GetServices()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "nOzUXNg0WY5kDNmK",
+          "id": "sSHGzddwCitP0S04",
           "name": "Backend API Basic Auth"
         }
       }
@@ -544,11 +524,11 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "d7db9897-6ab6-49c7-8ffa-bbcdeb1d0a5c",
+  "versionId": "3b125fc7-d6f5-4aa6-9c0a-292a55fdb610",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
   },
-  "id": "k4VSXZIXJDydea9j",
+  "id": "dL7aNbCbEeWLNJZ2",
   "tags": []
 }
