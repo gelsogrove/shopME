@@ -92,11 +92,11 @@ See `docs/other/task-list.md` for the full, up-to-date structured task list, inc
 
 ### **Q3: LLM di Formattazione in N8N**
 
-**A:** ✅ **IMPLEMENTATO - TWO-LLM ARCHITECTURE**
+**A:** ✅ **IMPLEMENTATO - SINGLE LLM ARCHITECTURE**
 
-- **LLM 1 (RAG Processor)**: Analizza e filtra dati grezzi dal database (T=0.3)
-- **LLM 2 (Formatter)**: Crea risposta conversazionale naturale (T=0.7)
+- **LLM Agent (OpenRouter)**: Gestisce RAG search e genera risposta conversazionale
 - Configurazione dinamica dalla tabella `agentConfig` (prompt, temperatura, token, modello)
+- Integrato con N8N Agent Node per gestione completa del workflow
 
 ### **Q4: Calling Functions con Token di Protezione**
 
@@ -120,7 +120,7 @@ See `docs/other/task-list.md` for the full, up-to-date structured task list, inc
 **A:** ✅ **IMPLEMENTATO COMPLETAMENTE**
 
 - **Flusso attivo**: SÌ - workflow creato automaticamente e impostato `active: true`
-- **Workflow completo**: SÌ - Two-LLM Architecture (LLM 1: RAG + LLM 2: Formatter)
+- **Workflow completo**: SÌ - Single LLM Agent con RAG integration
 - **Credenziali**: SÌ - Basic Auth automaticamente configurato per Internal API
 - **Owner account**: SÌ - `admin@shopme.com / Venezia44`
 - **Script**: `scripts/n8n_import-optimized-workflow.sh` - setup completamente automatico
@@ -1224,156 +1224,6 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
 
 ---
 
-## 🧠 **TWO-LLM ARCHITECTURE - COMPLETE IMPLEMENTATION**
-
-### **🎯 Andrea's Single Responsibility Principle**
-
-#### **🔍 LLM 1: RAG PROCESSOR**
-
-**RESPONSABILITÀ**: Analizzare e organizzare dati grezzi dal database
-
-- **INPUT**: Lista grezza (10 prodotti, 4 FAQ, 2 servizi, etc.)
-- **COMPITO**: Filtrare, analizzare relevanza, organizzare informazioni
-- **OUTPUT**: JSON strutturato con dati più rilevanti
-- **TEMPERATURA**: 0.3 (bassa per analisi precisa)
-
-#### **🎨 LLM 2: FORMATTER**
-
-**RESPONSABILITÀ**: Creare risposta conversazionale per l'utente
-
-- **INPUT**: Dati processati da LLM 1 + storico conversazione + agent config
-- **COMPITO**: Formattare risposta naturale, personalizzata, linguaggio corretto
-- **OUTPUT**: Risposta finale conversazionale per WhatsApp
-- **TEMPERATURA**: 0.7 (alta per creatività conversazionale)
-
-### **🔄 Flusso Completo Two-LLM**
-
-#### **🎯 ARCHITETTURA RAG: 2 FASI DISTINTE**
-
-```mermaid
-flowchart TD
-    A["🌐 UTENTE<br/>WhatsApp: 'tempi di consegna'"] --> B["📬 N8N WEBHOOK<br/>shopme-whatsapp-workflow.json"]
-
-    B --> C["🔧 prepare-data<br/>Estrae parametri per LLM"]
-    C --> D["🤖 AI AGENT<br/>LangChain Agent Node"]
-
-    D --> E["🛠️ RagSearch() TOOL<br/>HTTP Request Tool"]
-    E --> F["🔗 BACKEND API<br/>POST /api/internal/rag-search"]
-
-    F --> G["📊 COMBINAZIONE BACKEND<br/>Parallel Search + Merge"]
-    G --> H["📤 RISPOSTA RAG<br/>products + faqs + services + docs"]
-
-    H --> E
-    E --> D
-
-    D --> I["🧠 LLM OPENROUTER<br/>gpt-4o-mini + Agent Prompt"]
-    I --> J["💬 RISPOSTA FINALE<br/>Combinazione intelligente"]
-
-    J --> K["📱 WHATSAPP<br/>Messaggio combinato"]
-
-    style F fill:#e1f5fe
-    style G fill:#f3e5f5
-    style I fill:#fff9c4
-    style J fill:#e8f5e8
-
-    classDef n8nBox fill:#ff9800,stroke:#f57c00,stroke-width:2px,color:#fff
-    class B,C,D,E,I n8nBox
-
-    classDef backendBox fill:#4caf50,stroke:#388e3c,stroke-width:2px,color:#fff
-    class F,G,H backendBox
-```
-
-#### **🔄 Flusso Dettagliato con ASCII**
-
-```
-📝 DOMANDA UTENTE: "avete mozzarelle? quanto costa la spedizione?"
-         |
-         v
-    ┌─────────────────┐
-    │ 🔍 RAG SEARCH   │ ──> Cerca in database:
-    │ (Database Only) │     • product_chunks + products table
-    │                 │     • faq_chunks + faq table
-    │                 │     • service_chunks + services table
-    │                 │     • document_chunks + documents table
-    └─────────────────┘
-         |
-         v
-    ┌─────────────────┐
-    │ 📊 RAW RESULTS  │ ──> Lista grezza di 10+ elementi:
-    │ (Unprocessed)   │     • 5 prodotti con similarity scores
-    │                 │     • 3 FAQ con similarity scores
-    │                 │     • 2 servizi con similarity scores
-    └─────────────────┘
-         |
-         v
-    ┌─────────────────┐
-    │ 🧠 LLM 1:       │ ──> Analizza e filtra dati grezzi:
-    │ RAG PROCESSOR   │     • Seleziona più rilevanti per query
-    │ (T=0.3, Focus)  │     • Organizza in JSON strutturato
-    │                 │     • Rimuove duplicati/irrilevanti
-    └─────────────────┘
-         |
-         v
-    ┌─────────────────┐
-    │ 📋 PROCESSED    │ ──> Dati organizzati e filtrati:
-    │ DATA (Clean)    │     • 2 mozzarelle più rilevanti
-    │                 │     • 1 FAQ spedizione pertinente
-    │                 │     • Informazioni essenziali
-    └─────────────────┘
-         |
-         v
-    ┌─────────────────┐
-    │ 🎨 LLM 2:       │ ──> Crea risposta conversazionale:
-    │ FORMATTER       │     • Usa dati processati da LLM 1
-    │ (T=0.7, Creative) │  • Aggiunge storico conversazione
-    │                 │     • Applica stile agente dal DB
-    │                 │     • Risponde in lingua cliente
-    └─────────────────┘
-         |
-         v
-    ┌─────────────────┐
-    │ 💬 RISPOSTA     │ ──> "Ciao! 🧀 Abbiamo 2 mozzarelle:
-    │ FINALE          │     • Mozzarella di Bufala DOP €8.50
-    │ (Conversational)│     • Mozzarella Classica €6.90
-    │                 │     Spedizione €4.99, gratis sopra €50.
-    │                 │     Quale preferisci? 😊"
-    └─────────────────┘
-```
-
-### **🎯 Vantaggi Two-LLM Architecture**
-
-#### **🔧 Single Responsibility Benefits:**
-
-1. **LLM 1 (Processor)**: Focalizzato solo su analisi dati
-
-   - Temperature bassa (0.3) per precision
-   - Nessuna creatività, solo logica
-   - Output JSON strutturato e prevedibile
-
-2. **LLM 2 (Formatter)**: Focalizzato solo su conversazione
-   - Temperature alta (0.7) per naturalezza
-   - Creatività conversazionale
-   - Stile personalizzato per cliente
-
-#### **📊 Quality Improvements:**
-
-- **Meno allucinazioni**: LLM 1 filtra solo dati reali
-- **Risposte più accurate**: Separazione logica vs creatività
-- **Performance migliore**: Ogni LLM ottimizzato per il suo compito
-- **Debug più facile**: Errori isolati per responsabilità
-
-#### **🔄 Cost Efficiency:**
-
-- **LLM 1**: Pochi token, focus su struttura
-- **LLM 2**: Più token solo per creatività necessaria
-- **Totale**: Spesso meno costoso di un singolo LLM sovraccarico
-
-### **⚙️ Configurazione Dinamica**
-
-**IMPORTANTE**: Prompt, temperatura, token e modello arrivano dalla tabella `agentConfig` - tutto dinamico!
-
----
-
 ## 📊 **COMPLETE MESSAGE PROCESSING FLOW**
 
 ### **🔄 Schema ASCII del Flow Completo**
@@ -1430,14 +1280,14 @@ flowchart TD
          v                 v              v
     ┌─────────────┐  ┌─────────────┐ ┌─────────────────┐
     │ 🔗 TOKEN +  │  │ ⏳ ATTENDI  │ │ 🤖 RAG SEARCH + │
-    │ REGISTRA    │  │ REGISTRA    │ │ 🎨 TWO-LLM PROC │
+    │ REGISTRA    │  │ REGISTRA    │ │ 🤖 LLM PROCESSING │
     └─────────────┘  └─────────────┘ └─────────────────┘
          |                              |
          v                              v
     ┌─────────────┐                ┌─────────────────┐
     │ 🤖 RAG +    │                │ 💬 RISPOSTA     │
-    │ 🎨 TWO-LLM  │                │ DISCORSIVA      │
-    │ PROCESSOR   │                │ + 💰 USAGE      │
+│ LLM AGENT   │                │ DISCORSIVA      │
+│ PROCESSING  │                │ + 💰 USAGE      │
     └─────────────┘                └─────────────────┘
          |
          v
@@ -1457,7 +1307,7 @@ flowchart TD
 - ⚠️ = MESSAGGIO WIP AUTOMATICO
 - 🎉 = MESSAGGIO BENVENUTO (da settings)
 - 🤖 = ELABORAZIONE RAG SEARCH
-- 🎨 = TWO-LLM PROCESSING (Processor + Formatter)
+- 🤖 = LLM AGENT PROCESSING (RAG + Response Generation)
 - ⏳ = ATTENDI REGISTRAZIONE (loop welcome)
 - 🔗 = LINK CON TOKEN SICURO
 - 🛒 = FINALIZZAZIONE ORDINE/CHECKOUT
@@ -1477,7 +1327,7 @@ flowchart TD
 
 - Check ultima conversazione (>2 ore = "Bentornato {NOME}")
 - RAG search unificato (prodotti, FAQ, servizi, documenti)
-- Two-LLM processing per risposta ottimale
+- Single LLM processing con RAG integration
 - Usage tracking automatico (€0.005)
 
 #### **Controlli di Sicurezza**
@@ -1506,10 +1356,8 @@ flowchart TD
   - [Invoice List Page](#pagina-lista-fatture)
   - [Database Schema](#database-schema)
   - [Security Requirements](#security-requirements)
-- [Two-LLM Architecture](#two-llm-architecture---complete-implementation)
-  - [Single Responsibility Principle](#andreas-single-responsibility-principle)
-  - [Complete Flow](#flusso-completo-two-llm)
-  - [Architecture Benefits](#vantaggi-two-llm-architecture)
+- [N8N LLM Integration](#n8n-visual-workflow-integration)
+  - [Single LLM Architecture](#single-llm-architecture-with-rag)
 - [Complete Message Processing Flow](#complete-message-processing-flow)
   - [Flow Diagram](#schema-ascii-del-flow-completo)
   - [Message Types](#gestione-messaggi-specifici)
@@ -1612,11 +1460,11 @@ All sensitive operations are handled securely through temporary links with secur
 
 ### WhatsApp Chatbot Flow - Complete Documentation
 
-The ShopMe platform implements an intelligent conversational flow that handles new and registered users with comprehensive security controls, blacklist management, and **Two-LLM Architecture** for optimal response generation. The system uses **Andrea's Single Responsibility Principle** with LLM 1 (RAG Processor) for data analysis and LLM 2 (Formatter) for conversational responses.
+The ShopMe platform implements an intelligent conversational flow that handles new and registered users with comprehensive security controls, blacklist management, and **Single LLM Agent Architecture** for optimal response generation. The system uses a unified OpenRouter LLM Agent with RAG integration for complete conversational responses.
 
 **Key Features:**
 
-- ✅ **Two-LLM Processing**: Separate LLMs for data analysis (T=0.3) and conversation (T=0.7)
+- ✅ **Single LLM Agent**: N8N OpenRouter LLM with RAG integration for complete response generation
 - ✅ **Usage Tracking**: Automatic €0.005 cost tracking per LLM response
 - ✅ **Spam Detection**: 10+ messages/30sec → auto-blacklist
 - ✅ **Token Security**: Secure links for registration, invoices, checkout
@@ -1635,19 +1483,17 @@ The platform implements a revolutionary unified RAG (Retrieval-Augmented Generat
 3. **Stock Verification**: Real-time availability checking for products
 4. **Welcome Back Integration**: Seamless user experience with personalized greetings
 
-#### **🔧 LOCAL EMBEDDING SYSTEM - COMPLETE INDEPENDENCE**
+#### **🔧 LOCAL EMBEDDING SYSTEM - IN DEVELOPMENT**
 
-**ZERO EXTERNAL DEPENDENCIES FOR EMBEDDINGS:**
+**LOCAL EMBEDDINGS WITH XENOVA TRANSFORMERS:**
 
 - **Model**: `Xenova/all-MiniLM-L6-v2` - 384 dimensions
-- **Processing**: 100% local using `@xenova/transformers` library
-- **Cost**: No API costs, no external service dependencies
-- **Performance**: Fast local processing, no network latency
-- **Privacy**: All embeddings generated on-premise, no data leaves server
-- **Chunking**: Intelligent text splitting (2000 chars max, 200 overlap, sentence-aware)
-- **Similarity Thresholds**: FAQ (0.3), Products (0.5), Services (0.6), Documents (0.4)
-- **Generation**: Automatic during seed process + manual triggers via admin interface
-- **Storage**: PostgreSQL JSONB format for optimal vector search performance
+- **Library**: `@xenova/transformers` library integrated
+- **Status**: ⚠️ **DEVELOPMENT/TESTING** - Currently mocked in test environment
+- **Chunking**: Intelligent text splitting (1500 chars max, 300 overlap)
+- **Similarity Thresholds**: FAQ (0.5), Products (0.3), Services (0.3), Documents (0.3)
+- **Storage**: PostgreSQL JSONB format for vector storage
+- **Note**: Production readiness needs verification
 
 #### **Search Flow:**
 
@@ -1677,11 +1523,10 @@ User Query: "hai la mozzarella fresca? quanto costa la spedizione?"
      |
      v
 ┌─────────────────────────────────────────────────────────────┐
-│ TWO-LLM ARCHITECTURE - COMPLETE PROCESSING                 │
+│ SINGLE LLM AGENT - RAG PROCESSING                          │
 ├─────────────────────────────────────────────────────────────┤
-│ LLM 1 (Processor): Analyze raw data → structured JSON      │
-│ LLM 2 (Formatter): Create conversational response          │
-│ Input: All search results + customer context + history     │
+│ LLM Agent: Process RAG data + Generate conversation        │
+│ Input: Search results + customer context + agent config    │
 │ Output: Natural conversation + Usage tracking (€0.005)     │
 └─────────────────────────────────────────────────────────────┘
      |
@@ -1695,10 +1540,10 @@ Vuoi procedere con l'ordine? 😊"
 
 #### **Technical Implementation:**
 
-- **Embedding Model**: `Xenova/all-MiniLM-L6-v2` (local, no API costs)
+- **Embedding Model**: `Xenova/all-MiniLM-L6-v2` (local implementation in development)
 - **Similarity Calculation**: Cosine similarity with configurable thresholds
 - **Database Integration**: All queries filtered by `workspaceId` for data isolation
-- **Error Handling**: Graceful fallbacks for missing embeddings or API failures
+- **Status**: Currently mocked in tests, production implementation needs verification
 
 ## 🚀 N8N Visual Workflow Integration
 
@@ -2832,7 +2677,7 @@ POST / api / internal / conversation - history // Recupero storico chat
 - **`embeddingService.ts`**: Shared service for chunking, embedding generation, and similarity calculation
 - **`documentService.ts`**: PDF upload and processing management (uses shared EmbeddingService)
 - **`searchService.ts`**: Unified multi-source RAG search across Documents, FAQs, and Services
-- Integration with OpenRouter for embedding generation
+- Local embedding generation with Xenova transformers (in development)
 
 #### Security Controls
 
@@ -2999,7 +2844,7 @@ await documentService.processDocument(documentId)
 1. **Upload**: PDF saved to `/uploads/documents/`
 2. **Text Extraction**: Text extraction with pdf-parse
 3. **Chunking**: Division into 1000-character chunks (100 overlap)
-4. **Embeddings**: Generation with text-embedding-ada-002 (OpenRouter)
+4. **Embeddings**: Local generation with Xenova/all-MiniLM-L6-v2 (in development)
 5. **Storage**: Embedding storage in PostgreSQL (JSONB)
 
 **2. Semantic Search**
@@ -3127,7 +2972,7 @@ CREATE TABLE document_chunks (
 WHATSAPP_VERIFY_TOKEN=your-verify-token
 WHATSAPP_ACCESS_TOKEN=your-access-token
 
-# OpenRouter for embeddings
+# Local embeddings with Xenova (in development)
 OPENROUTER_API_KEY=your-openrouter-key
 
 # Database
@@ -3686,7 +3531,7 @@ The system implements a comprehensive RAG (Retrieval-Augmented Generation) pipel
 
 - Upload and processing of PDF documents up to 5MB
 - Automatic text extraction and chunking (1000 characters per chunk with 100 character overlap)
-- Vector embeddings generated using OpenRouter's `text-embedding-3-small` model
+- Vector embeddings generated using local Xenova/all-MiniLM-L6-v2 model (in development)
 - Storage in `document_chunks` table with embedding vectors
 
 **2. FAQ (Frequently Asked Questions)**
@@ -3742,7 +3587,7 @@ FAQ Controller
 1. **Identifies Content to Process**: Finds all active, non-embedded content
 2. **Text Preparation**: Combines relevant fields (question+answer for FAQs, name+description for Services)
 3. **Chunk Creation**: Splits content into optimal chunks for embedding using shared `EmbeddingService`
-4. **API Processing**: Calls OpenRouter API to generate vector embeddings via shared service
+4. **API Processing**: Generates local vector embeddings via shared service (in development)
 5. **Database Storage**: Saves chunks with embeddings to respective `*_chunks` tables
 6. **Status Updates**: Updates content status to indicate embedding completion
 
@@ -6902,7 +6747,7 @@ Ogni messaggio WhatsApp passa attraverso il workflow N8N che chiama gli endpoint
 - **1 N8N Internal Service** → SecureTokenService (più efficiente)
 - **3 Legacy Functions** → Files vuoti/deprecated
 - **11 Internal API Endpoints** → Attivi (1 deprecated)
-- **2 OpenRouter Calls** → LLM diretti per Two-LLM Architecture
+- **1 OpenRouter Call** → Single LLM Agent per conversazione completa
 
 **🎯 ARCHITETTURA MIGLIORATA DA ANDREA:**
 

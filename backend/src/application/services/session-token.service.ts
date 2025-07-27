@@ -134,19 +134,23 @@ export class SessionTokenService {
   }
 
   /**
-   * Validate session token and get session data
+   * Validate session token and get session data with workspace isolation
    */
-  async validateSessionToken(token: string): Promise<SessionTokenValidation> {
+  async validateSessionToken(token: string, workspaceId?: string): Promise<SessionTokenValidation> {
     try {
-      const sessionToken = await this.prisma.secureToken.findFirst({
-        where: {
-          token,
-          type: 'session',
-          usedAt: null,
-          expiresAt: {
-            gt: new Date() // Must not be expired
-          }
+      const whereClause: any = {
+        token,
+        type: 'session',
+        usedAt: null,
+        expiresAt: {
+          gt: new Date() // Must not be expired
         }
+      }
+
+      if (workspaceId) whereClause.workspaceId = workspaceId
+
+      const sessionToken = await this.prisma.secureToken.findFirst({
+        where: whereClause
       })
 
       if (!sessionToken) {
@@ -192,16 +196,20 @@ export class SessionTokenService {
   }
 
   /**
-   * Check if session token needs renewal (less than 15 minutes left)
+   * Check if session token needs renewal (less than 15 minutes left) with workspace isolation
    */
-  async needsRenewal(token: string): Promise<boolean> {
+  async needsRenewal(token: string, workspaceId?: string): Promise<boolean> {
     try {
+      const whereClause: any = {
+        token,
+        type: 'session',
+        usedAt: null
+      }
+
+      if (workspaceId) whereClause.workspaceId = workspaceId
+
       const sessionToken = await this.prisma.secureToken.findFirst({
-        where: {
-          token,
-          type: 'session',
-          usedAt: null
-        }
+        where: whereClause
       })
 
       if (!sessionToken) {

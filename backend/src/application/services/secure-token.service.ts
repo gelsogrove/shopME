@@ -127,11 +127,12 @@ export class SecureTokenService {
   }
 
   /**
-   * Validate a token
+   * Validate a token with workspace isolation
    */
   async validateToken(
     token: string,
     type?: string,
+    workspaceId?: string,
     requiredPayload?: any
   ): Promise<{ valid: boolean; data?: any; payload?: any }> {
     try {
@@ -144,6 +145,7 @@ export class SecureTokenService {
       }
 
       if (type) whereClause.type = type
+      if (workspaceId) whereClause.workspaceId = workspaceId
 
       const secureToken = await this.prisma.secureToken.findFirst({
         where: whereClause,
