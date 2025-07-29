@@ -1,12 +1,12 @@
-import { Router } from 'express';
-import { AnalyticsController } from '../controllers/analytics.controller';
-import { authMiddleware } from '../interfaces/http/middlewares/auth.middleware';
+import { Router } from "express"
+import { AnalyticsController } from "../controllers/analytics.controller"
+import { authMiddleware } from "../interfaces/http/middlewares/auth.middleware"
 
-const router = Router();
-const analyticsController = new AnalyticsController();
+const router = Router()
+const analyticsController = new AnalyticsController()
 
 // Protect all analytics routes with authentication
-router.use(authMiddleware);
+router.use(authMiddleware)
 
 /**
  * GET /api/analytics/:workspaceId/dashboard
@@ -14,13 +14,33 @@ router.use(authMiddleware);
  * Query params: startDate, endDate (optional)
  * Default: last 3 months excluding current month
  */
-router.get('/:workspaceId/dashboard', analyticsController.getDashboardData);
+router.get("/:workspaceId/dashboard", analyticsController.getDashboardData)
 
 /**
  * GET /api/analytics/:workspaceId/detailed
  * Get detailed metrics for a specific metric type
  * Query params: startDate, endDate (required), metric (required)
  */
-router.get('/:workspaceId/detailed', analyticsController.getDetailedMetrics);
+router.get("/:workspaceId/detailed", analyticsController.getDetailedMetrics)
 
-export default router;
+/**
+ * GET /api/analytics/:workspaceId/monthly-top-customers
+ * Get monthly top customers breakdown
+ * Query params: startDate, endDate (required)
+ */
+router.get(
+  "/:workspaceId/monthly-top-customers",
+  analyticsController.getMonthlyTopCustomers
+)
+
+/**
+ * GET /api/analytics/:workspaceId/monthly-top-clients
+ * Get monthly top clients breakdown
+ * Query params: startDate, endDate (required)
+ */
+router.get(
+  "/:workspaceId/monthly-top-clients",
+  analyticsController.getMonthlyTopClients
+)
+
+export default router

@@ -13,6 +13,7 @@ import {
   Ban,
   Bot,
   Loader2,
+  Lock,
   Pencil,
   Send,
   ShoppingBag,
@@ -87,6 +88,7 @@ interface Chat {
   isFavorite: boolean
   messages?: Message[]
   activeChatbot?: boolean
+  isBlacklisted?: boolean
 }
 
 const formatDate = (dateString: string | null | undefined): string => {
@@ -562,18 +564,18 @@ export function ChatPage() {
   // Handle submitting a new message
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("🟦 HandleSubmit called", { 
-      messageInput: messageInput.trim(), 
-      selectedChat: selectedChat?.id, 
+    console.log("🟦 HandleSubmit called", {
+      messageInput: messageInput.trim(),
+      selectedChat: selectedChat?.id,
       loading,
-      workspace: workspace?.id
+      workspace: workspace?.id,
     })
-    
+
     if (!messageInput.trim() || !selectedChat || loading) {
       console.log("❌ Early return - validation failed", {
         hasMessage: !!messageInput.trim(),
         hasSelectedChat: !!selectedChat,
-        notLoading: !loading
+        notLoading: !loading,
       })
       return
     }
@@ -601,7 +603,7 @@ export function ChatPage() {
       // For operator messages, don't add temporary message to avoid duplication
       // We'll add the message only when we get the response from the server
       let tempMessage: Message | null = null
-      
+
       if (activeChatbot) {
         // Only add temp message if chatbot is active (AI responses)
         tempMessage = {
@@ -617,39 +619,46 @@ export function ChatPage() {
 
       // Send message to API
       const sessionIdToUse = selectedChat.sessionId || selectedChat.id
-      
+
       // Debug workspace and sessionStorage
       console.log(`🔍 Debug workspace info:`, {
         workspace: workspace,
         workspaceId: workspace?.id,
         sessionStorageWorkspace: sessionStorage.getItem("currentWorkspace"),
-        sessionId: sessionIdToUse
+        sessionId: sessionIdToUse,
       })
-      
+
       // Verify headers manually
       const headers = {
-        'Content-Type': 'application/json',
-        'x-workspace-id': workspace?.id
+        "Content-Type": "application/json",
+        "x-workspace-id": workspace?.id,
       }
-      
-      console.log(`🚀 About to send POST request to /chat/${sessionIdToUse}/send`, {
-        content: messageInput,
-        sender: "user",
-        sessionIdToUse,
-        workspaceId: workspace?.id,
-        url: `/chat/${sessionIdToUse}/send`,
-        method: 'POST',
-        headers
-      })
-      
-      let response;
-      try {
-        response = await api.post(`/chat/${sessionIdToUse}/send`, {
+
+      console.log(
+        `🚀 About to send POST request to /chat/${sessionIdToUse}/send`,
+        {
           content: messageInput,
           sender: "user",
-        }, {
-          headers: headers
-        })
+          sessionIdToUse,
+          workspaceId: workspace?.id,
+          url: `/chat/${sessionIdToUse}/send`,
+          method: "POST",
+          headers,
+        }
+      )
+
+      let response
+      try {
+        response = await api.post(
+          `/chat/${sessionIdToUse}/send`,
+          {
+            content: messageInput,
+            sender: "user",
+          },
+          {
+            headers: headers,
+          }
+        )
         console.log(`✅ POST request successful`, response)
       } catch (requestError) {
         console.error(`❌ POST request failed`, {
@@ -658,7 +667,7 @@ export function ChatPage() {
           response: requestError?.response,
           status: requestError?.response?.status,
           config: requestError?.config,
-          requestHeaders: requestError?.config?.headers
+          requestHeaders: requestError?.config?.headers,
         })
         throw requestError // Re-throw to be caught by outer catch
       }
@@ -705,7 +714,7 @@ export function ChatPage() {
         message: error?.message,
         response: error?.response?.data,
         status: error?.response?.status,
-        config: error?.config
+        config: error?.config,
       })
       toast.error("Failed to send message", { duration: 1000 })
     } finally {
@@ -720,29 +729,44 @@ export function ChatPage() {
     }
   }, [messages])
 
-  // Handle blocking a user
+  // Handle blocking/unblocking a user
   const handleBlockUser = async () => {
     if (!selectedChat || !workspaceId) return
 
+    const isCurrentlyBlocked = selectedChat.isBlacklisted
+    const action = isCurrentlyBlocked ? "unblock" : "block"
+
     setIsBlocking(true)
     try {
-      const blockResponse = await api.post(
-        `/workspaces/${workspaceId}/customers/${selectedChat.customerId}/block`
+      const response = await api.post(
+        `/workspaces/${workspaceId}/customers/${selectedChat.customerId}/${action}`
       )
 
-      if (blockResponse.status === 200) {
-        // Remove the chat from the list
+      if (response.status === 200) {
+        // Update the chat in the list with new blocked status
         setChats((prev) =>
-          prev.filter((chat) => chat.customerId !== selectedChat.customerId)
+          prev.map((chat) =>
+            chat.customerId === selectedChat.customerId
+              ? { ...chat, isBlacklisted: !isCurrentlyBlocked }
+              : chat
+          )
         )
-        setSelectedChat(null)
-        toast.success(`${selectedChat.customerName} has been blocked`, {
-          duration: 1000,
-        })
+
+        // Update selected chat
+        setSelectedChat((prev) =>
+          prev ? { ...prev, isBlacklisted: !isCurrentlyBlocked } : null
+        )
+
+        toast.success(
+          `${selectedChat.customerName} has been ${isCurrentlyBlocked ? "unblocked" : "blocked"}`,
+          {
+            duration: 1000,
+          }
+        )
       }
     } catch (error) {
-      console.error("Error blocking user:", error)
-      toast.error("Failed to block user", { duration: 1000 })
+      console.error(`Error ${action}ing user:`, error)
+      toast.error(`Failed to ${action} user`, { duration: 1000 })
     } finally {
       setIsBlocking(false)
       setShowBlockDialog(false)
@@ -805,6 +829,12 @@ export function ChatPage() {
                         <h3 className="font-medium text-sm flex items-center gap-1">
                           {chat.customerName}{" "}
                           {chat.companyName ? `(${chat.companyName})` : ""}
+                          {/* Blocked user indicator */}
+                          {chat.isBlacklisted && (
+                            <span title="Customer is blocked">
+                              <Lock className="h-4 w-4 text-red-500" />
+                            </span>
+                          )}
                           {/* Manual operator icon if chatbot is disabled */}
                           {chat.activeChatbot === false && (
                             <span title="Manual Operator Control">
@@ -869,6 +899,33 @@ export function ChatPage() {
                 </div>
               )}
 
+              {/* 🚫 CUSTOMER BLOCKED BANNER */}
+              {selectedChat.isBlacklisted && (
+                <div className="bg-red-100 border-l-4 border-red-500 p-3 mb-2">
+                  <div className="flex items-center">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <Ban className="h-5 w-5 text-red-500" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm text-red-700 font-medium">
+                          🚫 <strong>Customer is Blocked</strong>
+                        </p>
+                        <p className="text-xs text-red-600 mt-1">
+                          This customer has been blacklisted. New messages are
+                          blocked.
+                          <span className="font-medium">
+                            {" "}
+                            You can view existing messages but cannot send new
+                            ones.
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Chat Header */}
               <div className="flex justify-between items-center pb-2 border-b h-[60px]">
                 <div>
@@ -920,11 +977,32 @@ export function ChatPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowBlockDialog(true)}
-                    className="hover:bg-orange-50 h-7 px-2 py-0"
-                    title="Block User"
+                    className={
+                      selectedChat?.isBlacklisted
+                        ? "hover:bg-green-50 h-7 px-2 py-0"
+                        : "hover:bg-orange-50 h-7 px-2 py-0"
+                    }
+                    title={
+                      selectedChat?.isBlacklisted
+                        ? "Unblock User"
+                        : "Block User"
+                    }
                   >
-                    <Ban className="h-3 w-3 text-orange-600 mr-1" />
-                    <span className="text-orange-600 text-xs">Block user</span>
+                    {selectedChat?.isBlacklisted ? (
+                      <>
+                        <Lock className="h-3 w-3 text-green-600 mr-1" />
+                        <span className="text-green-600 text-xs">
+                          Unblock user
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Ban className="h-3 w-3 text-orange-600 mr-1" />
+                        <span className="text-orange-600 text-xs">
+                          Block user
+                        </span>
+                      </>
+                    )}
                   </Button>
                   <Button
                     id="delete-chat-button"
@@ -948,43 +1026,52 @@ export function ChatPage() {
                     const isCustomerMessage = message.sender === "customer"
 
                     // 🚨 ANDREA'S OPERATOR CONTROL INDICATORS
-                    // Correct logic: 
-                    const isChatbotMessage = isAgentMessage && (
-                      message.metadata?.agentSelected?.startsWith("CHATBOT_") ||
-                      message.metadata?.agentSelected === "LLM" ||
-                      message.metadata?.agentSelected === "AI" ||
-                      message.metadata?.agentSelected === "AI_AGENT"
-                    )
-                    
+                    // Correct logic:
+                    const isChatbotMessage =
+                      isAgentMessage &&
+                      (message.metadata?.agentSelected?.startsWith(
+                        "CHATBOT_"
+                      ) ||
+                        message.metadata?.agentSelected === "LLM" ||
+                        message.metadata?.agentSelected === "AI" ||
+                        message.metadata?.agentSelected === "AI_AGENT")
+
                     // Only EXPLICIT operator messages should be blue
-                    const isOperatorMessage = isAgentMessage && (
-                      message.metadata?.agentSelected === "MANUAL_OPERATOR" ||
-                      message.metadata?.isOperatorMessage === true ||
-                      message.metadata?.sentBy === "HUMAN_OPERATOR"
-                    )
-                    
+                    const isOperatorMessage =
+                      isAgentMessage &&
+                      (message.metadata?.agentSelected === "MANUAL_OPERATOR" ||
+                        message.metadata?.isOperatorMessage === true ||
+                        message.metadata?.sentBy === "HUMAN_OPERATOR")
+
                     // Debug logging for operator messages
-                    if (isAgentMessage && message.metadata?.agentSelected === "MANUAL_OPERATOR") {
+                    if (
+                      isAgentMessage &&
+                      message.metadata?.agentSelected === "MANUAL_OPERATOR"
+                    ) {
                       console.log("🔍 MANUAL_OPERATOR message detected:", {
                         content: message.content.substring(0, 30) + "...",
                         isOperatorMessage,
                         isChatbotMessage,
                         agentSelected: message.metadata?.agentSelected,
-                        metadata: message.metadata
+                        metadata: message.metadata,
                       })
                     }
-                    
+
                     // Debug log for non-chatbot messages
-                    if (isAgentMessage && !isChatbotMessage && !isOperatorMessage) {
+                    if (
+                      isAgentMessage &&
+                      !isChatbotMessage &&
+                      !isOperatorMessage
+                    ) {
                       console.log("🔍 Non-chatbot, non-operator message:", {
                         content: message.content.substring(0, 50) + "...",
                         agentSelected: message.metadata?.agentSelected,
                         isOperatorMessage: message.metadata?.isOperatorMessage,
                         sentBy: message.metadata?.sentBy,
-                        metadata: message.metadata
+                        metadata: message.metadata,
                       })
                     }
-                    
+
                     const isOperatorControl =
                       message.metadata?.isOperatorControl === true
                     const isManualOperator =
@@ -992,7 +1079,7 @@ export function ChatPage() {
                       message.metadata?.agentSelected ===
                         "MANUAL_OPERATOR_CONTROL" ||
                       message.metadata?.sentBy === "HUMAN_OPERATOR"
-                    
+
                     const getMessageStyle = () => {
                       // LOG DI DEBUG PER VEDERE I VALORI ESATTI
                       console.log("🎨 DEBUG MESSAGGIO:", {
@@ -1001,28 +1088,35 @@ export function ChatPage() {
                         agentSelected: message.metadata?.agentSelected,
                         agentName: message.agentName,
                         isAgentMessage,
-                        fullMetadata: message.metadata
+                        fullMetadata: message.metadata,
                       })
-                      
+
                       if (!isAgentMessage) {
                         return isOperatorControl
                           ? "bg-orange-50 text-orange-900 border-l-4 border-orange-400" // Customer under control
                           : "bg-gray-100 text-gray-800" // Normal customer
                       }
-                      
+
                       // SE C'È IL BADGE CHATBOT → VERDE (controllo anche agentName)
-                      if (message.metadata?.agentSelected === "CHATBOT" ||
-                          message.metadata?.agentSelected?.startsWith("CHATBOT_") ||
-                          message.metadata?.agentSelected === "AI" ||
-                          message.metadata?.agentSelected === "LLM" ||
-                          message.agentName) { // Se ha agentName è un chatbot!
+                      if (
+                        message.metadata?.agentSelected === "CHATBOT" ||
+                        message.metadata?.agentSelected?.startsWith(
+                          "CHATBOT_"
+                        ) ||
+                        message.metadata?.agentSelected === "AI" ||
+                        message.metadata?.agentSelected === "LLM" ||
+                        message.agentName
+                      ) {
+                        // Se ha agentName è un chatbot!
                         return "bg-green-100 text-green-900 border-l-4 border-green-500" // CHATBOT → VERDE
                       }
-                      
-                      if (message.metadata?.agentSelected === "MANUAL_OPERATOR") {
+
+                      if (
+                        message.metadata?.agentSelected === "MANUAL_OPERATOR"
+                      ) {
                         return "bg-blue-100 text-blue-900 border-l-4 border-blue-500" // MANUAL_OPERATOR → BLU
                       }
-                      
+
                       // Default fallback
                       return "bg-gray-100 text-gray-800"
                     }
@@ -1120,7 +1214,11 @@ export function ChatPage() {
                   <Textarea
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
-                    placeholder="Type your message..."
+                    placeholder={
+                      selectedChat?.isBlacklisted
+                        ? "Cannot send messages to blocked customer"
+                        : "Type your message..."
+                    }
                     className="min-h-[40px] resize-none text-xs"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
@@ -1128,13 +1226,13 @@ export function ChatPage() {
                         handleSubmit(e)
                       }
                     }}
-                    disabled={loading}
+                    disabled={loading || selectedChat?.isBlacklisted}
                   />
                   <Button
                     onClick={(e) => handleSubmit(e)}
                     className="self-end h-8 w-8 p-0"
                     size="sm"
-                    disabled={loading}
+                    disabled={loading || selectedChat?.isBlacklisted}
                   >
                     {loading ? (
                       <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1180,11 +1278,13 @@ export function ChatPage() {
       <AlertDialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Block User</AlertDialogTitle>
+            <AlertDialogTitle>
+              {selectedChat?.isBlacklisted ? "Unblock User" : "Block User"}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to block {selectedChat?.customerName}? They
-              will no longer be able to send messages to your chatbot, and their
-              chat will be removed from your chat history.
+              {selectedChat?.isBlacklisted
+                ? `Are you sure you want to unblock ${selectedChat?.customerName}? They will be able to send messages to your chatbot again.`
+                : `Are you sure you want to block ${selectedChat?.customerName}? They will no longer be able to send messages to your chatbot.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1192,15 +1292,23 @@ export function ChatPage() {
             <AlertDialogAction
               onClick={handleBlockUser}
               disabled={isBlocking}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              className={
+                selectedChat?.isBlacklisted
+                  ? "bg-green-600 hover:bg-green-700 focus:ring-green-600"
+                  : "bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              }
             >
               {isBlocking ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Blocking...
+                  {selectedChat?.isBlacklisted
+                    ? "Unblocking..."
+                    : "Blocking..."}
                 </>
+              ) : selectedChat?.isBlacklisted ? (
+                "Unblock"
               ) : (
-                "Block User"
+                "Block"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -1736,7 +1736,9 @@ async function main() {
           n8nWebhook:
             existingWhatsappSettings.n8nWebhook ||
             "http://localhost:5678/webhook/webhook-start",
-          adminEmail: existingWhatsappSettings.adminEmail || "andrea_gelsomino@hotmail.com",
+          adminEmail:
+            existingWhatsappSettings.adminEmail ||
+            "andrea_gelsomino@hotmail.com",
         },
       })
       console.log(
@@ -1768,7 +1770,9 @@ async function main() {
           n8nWebhook:
             existingWhatsappSettings.n8nWebhook ||
             "http://localhost:5678/webhook/webhook-start",
-          adminEmail: existingWhatsappSettings.adminEmail || "andrea_gelsomino@hotmail.com",
+          adminEmail:
+            existingWhatsappSettings.adminEmail ||
+            "andrea_gelsomino@hotmail.com",
         },
       })
       console.log(
@@ -1999,6 +2003,7 @@ async function main() {
         timestamp: new Date().toISOString(),
         messageType: "welcome",
         language: "it",
+        agentSelected: "CHATBOT",
       },
     },
   ]
@@ -2040,6 +2045,7 @@ async function main() {
         timestamp: new Date().toISOString(),
         messageType: "welcome",
         language: "es",
+        agentSelected: "CHATBOT",
       },
     },
   ]

@@ -128,25 +128,52 @@ export class MessageRepository {
    *
    * @param chatSessionId The chat session ID
    * @param workspaceId Optional workspace ID to filter
-   * @returns The messages for the chat session
+   * @returns The messages for the chat session (all messages, blacklist status affects only new message sending)
    */
   async getChatSessionMessages(chatSessionId: string, workspaceId?: string) {
     try {
       // First get the chat session to verify workspace
-      if (workspaceId) {
-        const session = await this.prisma.chatSession.findFirst({
-          where: {
-            id: chatSessionId,
-            workspaceId: workspaceId,
+      const session = await this.prisma.chatSession.findFirst({
+        where: {
+          id: chatSessionId,
+          ...(workspaceId ? { workspaceId: workspaceId } : {}),
+        },
+        select: {
+          id: true,
+          customerId: true,
+          customer: {
+            select: {
+              isBlacklisted: true,
+              phone: true,
+            },
           },
-          select: { id: true },
-        })
+        },
+      })
 
-        if (!session) {
-          logger.warn(
-            `getChatSessionMessages: Chat session ${chatSessionId} not found in workspace ${workspaceId}`
+      if (!session) {
+        logger.warn(
+          `getChatSessionMessages: Chat session ${chatSessionId} not found${workspaceId ? ` in workspace ${workspaceId}` : ""}`
+        )
+        return []
+      }
+
+      // Log blacklist status but still return messages (blacklist only affects new message sending)
+      if (session.customer?.isBlacklisted) {
+        logger.info(
+          `getChatSessionMessages: Customer ${session.customer.phone} (${session.customerId}) is blacklisted - showing existing messages but new messages will be blocked`
+        )
+      }
+
+      // Check workspace blocklist if workspaceId is provided (for logging)
+      if (workspaceId && session.customer?.phone) {
+        const isBlacklisted = await this.isCustomerBlacklisted(
+          session.customer.phone,
+          workspaceId
+        )
+        if (isBlacklisted) {
+          logger.info(
+            `getChatSessionMessages: Customer ${session.customer.phone} is in workspace blocklist - showing existing messages but new messages will be blocked`
           )
-          return []
         }
       }
 
@@ -314,6 +341,26 @@ export class MessageRepository {
       if (!data.message) {
         logger.error("saveMessage: Message content is required")
         throw new Error("Message content is required")
+      }
+
+      // Check if customer is blacklisted before saving any message
+      const existingCustomer = await this.prisma.customers.findFirst({
+        where: {
+          phone: data.phoneNumber,
+          workspaceId: data.workspaceId,
+        },
+        select: {
+          id: true,
+          isBlacklisted: true,
+          name: true,
+        },
+      })
+
+      if (existingCustomer?.isBlacklisted) {
+        logger.warn(
+          `saveMessage: Customer ${existingCustomer.name} (${data.phoneNumber}) is blacklisted - message blocked`
+        )
+        throw new Error("Customer is blacklisted - messages are not allowed")
       }
 
       // Verify workspace ID
@@ -538,28 +585,34 @@ export class MessageRepository {
           )
           botResponse = existingBotMessage // Return existing response instead of creating new one
         } else {
-          console.log(`[DEBUG-TRACKING] 🔍 About to track usage for customer: ${customer.id}, workspace: ${workspaceId}`)
-          
+          console.log(
+            `[DEBUG-TRACKING] 🔍 About to track usage for customer: ${customer.id}, workspace: ${workspaceId}`
+          )
+
           // 💰 USAGE TRACKING: Check debugMode before tracking €0.005
           try {
             // Get workspace to check debugMode setting
             const workspace = await this.prisma.workspace.findUnique({
               where: { id: workspaceId },
-              select: { debugMode: true }
+              select: { debugMode: true },
             })
 
-                         if (!(workspace?.debugMode ?? true)) {
+            if (!(workspace?.debugMode ?? true)) {
               // debugMode is false, track usage normally
               const { usageService } = await import("../services/usage.service")
-              console.log(`[DEBUG-TRACKING] 🔍 usageService imported successfully`)
-              
+              console.log(
+                `[DEBUG-TRACKING] 🔍 usageService imported successfully`
+              )
+
               await usageService.trackUsage({
                 clientId: customer.id,
                 workspaceId: workspaceId,
-                price: 0.005
+                price: 0.005,
               })
-              
-              console.log(`[DEBUG-TRACKING] ✅ usageService.trackUsage called successfully`)
+
+              console.log(
+                `[DEBUG-TRACKING] ✅ usageService.trackUsage called successfully`
+              )
               logger.info(
                 `[USAGE-TRACKING] 💰 €0.005 tracked before saving AI response for customer ${customer.name} (${data.phoneNumber})`
               )
@@ -746,11 +799,13 @@ export class MessageRepository {
    */
   async getChatSessionsWithUnreadCounts(limit = 20, workspaceId?: string) {
     try {
-      // Get all chat sessions
+      // Get all chat sessions, including those with blacklisted customers
+      // We want to show all chats but mark blacklisted ones visually
       // @ts-ignore - Prisma types issue
       const chatSessions = await this.prisma.chatSession.findMany({
         where: {
           ...(workspaceId ? { workspaceId } : {}),
+          // Removed isBlacklisted filter - we want to show all chats
         },
         include: {
           customer: {
@@ -760,6 +815,7 @@ export class MessageRepository {
               email: true,
               phone: true,
               activeChatbot: true, // Include activeChatbot for chat list icon
+              isBlacklisted: true, // Include to show blacklist status in UI
               // Remove avatar as it doesn't exist in the schema
             },
           },
@@ -786,6 +842,7 @@ export class MessageRepository {
         take: limit,
       })
 
+      // Return all sessions - we'll show blacklisted status in UI instead of hiding
       // Map sessions to include unread count and activeChatbot
       return chatSessions.map((session) => ({
         ...session,
@@ -1214,25 +1271,27 @@ export class MessageRepository {
               },
               prodottiSelezionati: {
                 type: "array",
-                description: "Prodotti identificati nella conversazione che il cliente vuole ordinare",
+                description:
+                  "Prodotti identificati nella conversazione che il cliente vuole ordinare",
                 items: {
                   type: "object",
                   properties: {
-                    nome: { 
-                      type: "string", 
-                      description: "Nome del prodotto come menzionato dal cliente" 
+                    nome: {
+                      type: "string",
+                      description:
+                        "Nome del prodotto come menzionato dal cliente",
                     },
-                    quantita: { 
-                      type: "number", 
-                      description: "Quantità richiesta dal cliente" 
+                    quantita: {
+                      type: "number",
+                      description: "Quantità richiesta dal cliente",
                     },
-                    descrizione: { 
-                      type: "string", 
-                      description: "Descrizione aggiuntiva se fornita" 
+                    descrizione: {
+                      type: "string",
+                      description: "Descrizione aggiuntiva se fornita",
                     },
-                    codice: { 
-                      type: "string", 
-                      description: "Codice prodotto se menzionato" 
+                    codice: {
+                      type: "string",
+                      description: "Codice prodotto se menzionato",
                     },
                   },
                   required: ["nome", "quantita"],

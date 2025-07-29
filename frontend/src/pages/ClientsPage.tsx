@@ -68,6 +68,7 @@ export interface Client {
   push_notifications_consent?: boolean
   activeChatbot?: boolean
   invoiceAddress?: InvoiceAddress
+  isBlacklisted?: boolean
 }
 
 const availableLanguages = ["Spanish", "English", "Italian"]
@@ -160,6 +161,7 @@ export default function ClientsPage(): JSX.Element {
         activeChatbot:
           customer.activeChatbot !== undefined ? customer.activeChatbot : true,
         invoiceAddress: customer.invoiceAddress || undefined,
+        isBlacklisted: customer.isBlacklisted || false,
       }))
 
       // Sort clients by ID in descending order (newer clients at the top)
@@ -452,6 +454,21 @@ export default function ClientsPage(): JSX.Element {
             {row.original.activeChatbot !== false ? "Auto" : "Manual"}
           </span>
         </div>
+      ),
+    },
+    {
+      header: "Blocked",
+      accessorKey: "isBlacklisted",
+      cell: ({ row }) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            row.original.isBlacklisted
+              ? "bg-red-100 text-red-800"
+              : "bg-green-100 text-green-800"
+          }`}
+        >
+          {row.original.isBlacklisted ? "YES" : "NO"}
+        </span>
       ),
     },
     {

@@ -20,7 +20,10 @@ fi
 
 if [ -f "$ENV_FILE" ]; then
     echo "📄 Carico OPENROUTER_API_KEY da $ENV_FILE..."
-    export $(grep -v '^#' "$ENV_FILE" | grep -v '^$' | xargs)
+    # Esporta solo le variabili valide, ignora commenti e righe malformate
+    set -o allexport
+    source <(grep -v '^#' "$ENV_FILE" | grep -v '^$' | grep '=' || true)
+    set +o allexport
     echo "✅ API Key caricata: ${OPENROUTER_API_KEY:0:20}..."
 else
     echo "❌ File .env non trovato"
