@@ -1,11 +1,12 @@
 import { useWorkspace } from "@/hooks/use-workspace"
 import { clientsApi, type Client } from "@/services/clientsApi"
 import { commonStyles } from "@/styles/common"
-import { MessageSquare, Pencil, Trash2, Users, UserX } from "lucide-react"
+import { type ColumnDef } from "@tanstack/react-table"
+import { MessageSquare, Users, UserX } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { PageHeader } from "../components/shared/PageHeader"
 import { DataTable } from "../components/shared/DataTable"
+import { PageHeader } from "../components/shared/PageHeader"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
 import {
@@ -25,7 +26,6 @@ import {
   SelectValue,
 } from "../components/ui/select"
 import { toast } from "../lib/toast"
-import { type ColumnDef } from "@tanstack/react-table"
 
 // Map Client interface to Customer interface for compatibility
 interface Customer {
@@ -69,8 +69,12 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchValue, setSearchValue] = useState("")
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all")
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "active" | "inactive"
+  >("all")
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(
+    null
+  )
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [formState, setFormState] = useState({
@@ -82,6 +86,7 @@ export default function CustomersPage() {
     gdprConsent: false,
     pushNotificationsConsent: false,
     activeChatbot: false,
+    isBlacklisted: false,
   })
 
   // Load customers from API
@@ -107,13 +112,16 @@ export default function CustomersPage() {
 
   // Filter customers based on search and status
   const filteredCustomers = customers.filter((customer) => {
-    const matchesSearch = searchValue === "" || 
+    const matchesSearch =
+      searchValue === "" ||
       customer.name.toLowerCase().includes(searchValue.toLowerCase()) ||
       customer.phone.includes(searchValue) ||
       customer.email.toLowerCase().includes(searchValue.toLowerCase()) ||
-      (customer.company && customer.company.toLowerCase().includes(searchValue.toLowerCase()))
+      (customer.company &&
+        customer.company.toLowerCase().includes(searchValue.toLowerCase()))
 
-    const matchesStatus = statusFilter === "all" || customer.status === statusFilter
+    const matchesStatus =
+      statusFilter === "all" || customer.status === statusFilter
 
     return matchesSearch && matchesStatus
   })
@@ -127,8 +135,8 @@ export default function CustomersPage() {
         <div className="flex items-center gap-2">
           <div className="font-medium">{row.getValue("name")}</div>
           {row.original.isBlacklisted && (
-            <div 
-              className="flex items-center" 
+            <div
+              className="flex items-center"
               title="Cliente in blacklist - Non riceve messaggi"
             >
               <UserX className="h-4 w-4 text-red-500" />
@@ -208,6 +216,7 @@ export default function CustomersPage() {
       gdprConsent: false,
       pushNotificationsConsent: false,
       activeChatbot: false,
+      isBlacklisted: false,
     })
     setShowEditDialog(true)
   }
@@ -223,6 +232,7 @@ export default function CustomersPage() {
       gdprConsent: customer.gdprConsent,
       pushNotificationsConsent: customer.pushNotificationsConsent,
       activeChatbot: customer.activeChatbot,
+      isBlacklisted: customer.isBlacklisted,
     })
     setShowEditDialog(true)
   }
@@ -234,7 +244,7 @@ export default function CustomersPage() {
 
   const handleChat = (customerId: string) => {
     // Find the customer and navigate to chat
-    const customer = customers.find(c => c.id === customerId)
+    const customer = customers.find((c) => c.id === customerId)
     if (customer) {
       navigate(`/chat?search=${encodeURIComponent(customer.name)}`)
     }
@@ -242,9 +252,14 @@ export default function CustomersPage() {
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
-    setFormState(prev => ({
+    setFormState((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : (name === "discount" ? Number(value) : value)
+      [name]:
+        type === "checkbox"
+          ? checked
+          : name === "discount"
+            ? Number(value)
+            : value,
     }))
   }
 
@@ -270,21 +285,23 @@ export default function CustomersPage() {
       if (selectedCustomerId) {
         // Update existing customer
         await clientsApi.update(selectedCustomerId, workspace.id, clientData)
-        setCustomers(prev => prev.map(c => 
-          c.id === selectedCustomerId 
-            ? { ...c, ...formState, status: "active" as const }
-            : c
-        ))
+        setCustomers((prev) =>
+          prev.map((c) =>
+            c.id === selectedCustomerId
+              ? { ...c, ...formState, status: "active" as const }
+              : c
+          )
+        )
         toast.success("Customer updated successfully")
       } else {
         // Create new customer - remove id for create operations
         const { id, ...createData } = clientData
         const newClient = await clientsApi.create(createData)
         const newCustomer = clientToCustomer(newClient)
-        setCustomers(prev => [...prev, newCustomer])
+        setCustomers((prev) => [...prev, newCustomer])
         toast.success("Customer created successfully")
       }
-      
+
       setShowEditDialog(false)
     } catch (error) {
       console.error("Failed to save customer:", error)
@@ -297,7 +314,7 @@ export default function CustomersPage() {
 
     try {
       await clientsApi.delete(selectedCustomerId)
-      setCustomers(prev => prev.filter(c => c.id !== selectedCustomerId))
+      setCustomers((prev) => prev.filter((c) => c.id !== selectedCustomerId))
       setShowDeleteDialog(false)
       toast.success("Customer deleted successfully")
     } catch (error) {
@@ -328,7 +345,9 @@ export default function CustomersPage() {
           <div className="flex gap-4">
             <Select
               value={statusFilter}
-              onValueChange={(value) => setStatusFilter(value as "all" | "active" | "inactive")}
+              onValueChange={(value) =>
+                setStatusFilter(value as "all" | "active" | "inactive")
+              }
             >
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="All Status" />
@@ -456,6 +475,23 @@ export default function CustomersPage() {
                   className="text-sm font-medium text-gray-700"
                 >
                   Push Notifications
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="isBlacklisted"
+                  name="isBlacklisted"
+                  checked={formState.isBlacklisted}
+                  onChange={handleFormChange}
+                  className="rounded border-gray-300 text-red-600 shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50"
+                />
+                <Label
+                  htmlFor="isBlacklisted"
+                  className="text-sm font-medium text-red-700"
+                >
+                  Block Customer
                 </Label>
               </div>
             </div>

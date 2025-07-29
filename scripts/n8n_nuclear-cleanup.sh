@@ -22,7 +22,10 @@ if [ ! -f "$ENV_FILE" ] && [ -f "../backend/.env" ]; then
 fi
 if [ -f "$ENV_FILE" ]; then
     echo "📄 Carico variabili d'ambiente da $ENV_FILE..."
-    export $(grep -v '^#' "$ENV_FILE" | grep -v '^$' | xargs)
+    # Esporta solo le variabili valide, ignora commenti e righe malformate
+    set -o allexport
+    source <(grep -v '^#' "$ENV_FILE" | grep -v '^$' | grep '=' || true)
+    set +o allexport
     echo "✅ Variabili d'ambiente caricate!"
     
     if [ -n "$OPENROUTER_API_KEY" ]; then

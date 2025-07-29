@@ -1,5 +1,5 @@
-import nodemailer from 'nodemailer'
-import logger from '../../utils/logger'
+import nodemailer from "nodemailer"
+import logger from "../../utils/logger"
 
 export interface EmailConfig {
   host: string
@@ -37,54 +37,65 @@ export class EmailService {
   private setupTransporter() {
     // SMTP configuration - REQUIRES real credentials
     const config: EmailConfig = {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: parseInt(process.env.SMTP_PORT || "587"),
+      secure: process.env.SMTP_SECURE === "true", // true for 465, false for other ports
       auth: {
-        user: process.env.SMTP_USER || '',
-        pass: process.env.SMTP_PASS || ''
-      }
+        user: process.env.SMTP_USER || "",
+        pass: process.env.SMTP_PASS || "",
+      },
     }
 
     // Validate SMTP credentials
     if (!config.auth.user || !config.auth.pass) {
-      logger.error('SMTP credentials not configured! Please set SMTP_USER and SMTP_PASS in .env file')
-      throw new Error('SMTP credentials required for email service')
+      logger.error(
+        "SMTP credentials not configured! Please set SMTP_USER and SMTP_PASS in .env file"
+      )
+      throw new Error("SMTP credentials required for email service")
     }
 
     this.transporter = nodemailer.createTransport(config)
-    logger.info(`Email service initialized with SMTP: ${config.host}:${config.port}`)
+    logger.info(
+      `Email service initialized with SMTP: ${config.host}:${config.port}`
+    )
   }
 
   async sendPasswordResetEmail(data: ResetPasswordEmailData): Promise<boolean> {
     try {
-      const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/reset-password?token=${data.resetToken}`
-      
+      const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/auth/reset-password?token=${data.resetToken}`
+
       const htmlContent = this.generateResetEmailHTML({
         resetUrl,
-        userFirstName: data.userFirstName || 'User',
-        expiryTime: '1 hour'
+        userFirstName: data.userFirstName || "User",
+        expiryTime: "1 hour",
       })
 
       const mailOptions = {
-        from: `"ShopMe Support" <${process.env.SMTP_FROM || 'noreply@shopme.com'}>`,
+        from: `"ShopMe Support" <${process.env.SMTP_FROM || "noreply@shopme.com"}>`,
         to: data.to,
-        subject: 'Reset Your Password - ShopMe',
+        subject: "Reset Your Password - ShopMe",
         html: htmlContent,
-        text: this.generateResetEmailText(resetUrl, data.userFirstName || 'User')
+        text: this.generateResetEmailText(
+          resetUrl,
+          data.userFirstName || "User"
+        ),
       }
 
       const info = await this.transporter.sendMail(mailOptions)
-      
+
       logger.info(`Password reset email sent successfully to: ${data.to}`)
       return true
     } catch (error) {
-      logger.error('Failed to send password reset email:', error)
+      logger.error("Failed to send password reset email:", error)
       return false
     }
   }
 
-  private generateResetEmailHTML(data: { resetUrl: string, userFirstName: string, expiryTime: string }): string {
+  private generateResetEmailHTML(data: {
+    resetUrl: string
+    userFirstName: string
+    expiryTime: string
+  }): string {
     return `
 <!DOCTYPE html>
 <html lang="en">
@@ -136,7 +147,7 @@ export class EmailService {
         <p>Best regards,<br>The ShopMe Team</p>
     </div>
     <div class="footer">
-        <p>This email was sent to ${data.resetUrl.split('?')[0].includes('localhost') ? 'you' : data.resetUrl} because a password reset was requested for your ShopMe account.</p>
+        <p>This email was sent to ${data.resetUrl.split("?")[0].includes("localhost") ? "you" : data.resetUrl} because a password reset was requested for your ShopMe account.</p>
         <p>ShopMe - Your trusted e-commerce platform</p>
     </div>
 </body>
@@ -144,7 +155,10 @@ export class EmailService {
     `
   }
 
-  private generateResetEmailText(resetUrl: string, userFirstName: string): string {
+  private generateResetEmailText(
+    resetUrl: string,
+    userFirstName: string
+  ): string {
     return `
 Hello ${userFirstName},
 
@@ -169,32 +183,40 @@ ShopMe - Your trusted e-commerce platform
     `
   }
 
-  async sendOperatorNotificationEmail(data: OperatorNotificationEmailData): Promise<boolean> {
+  async sendOperatorNotificationEmail(
+    data: OperatorNotificationEmailData
+  ): Promise<boolean> {
     try {
       const htmlContent = this.generateOperatorNotificationHTML(data)
       const textContent = this.generateOperatorNotificationText(data)
 
       const mailOptions = {
-        from: `"ShopMe Support" <${data.fromEmail || process.env.SMTP_FROM || 'noreply@shopme.com'}>`,
+        from: `"ShopMe Support" <${data.fromEmail || process.env.SMTP_FROM || "noreply@shopme.com"}>`,
         to: data.to,
-        subject: data.subject || `🔔 Utente ${data.customerName} vuole parlare con un operatore`,
+        subject:
+          data.subject ||
+          `🔔 Utente ${data.customerName} vuole parlare con un operatore`,
         html: htmlContent,
-        text: textContent
+        text: textContent,
       }
 
       const info = await this.transporter.sendMail(mailOptions)
-      
-      logger.info(`Operator notification email sent successfully to: ${data.to}`)
+
+      logger.info(
+        `Operator notification email sent successfully to: ${data.to}`
+      )
       return true
     } catch (error) {
-      logger.error('Failed to send operator notification email:', error)
+      logger.error("Failed to send operator notification email:", error)
       return false
     }
   }
 
-  private generateOperatorNotificationHTML(data: OperatorNotificationEmailData): string {
-    const chatLink = data.chatId 
-      ? `${process.env.FRONTEND_URL || 'http://localhost:5173'}/chat/${data.chatId}`
+  private generateOperatorNotificationHTML(
+    data: OperatorNotificationEmailData
+  ): string {
+    const chatLink = data.chatId
+      ? `${process.env.FRONTEND_URL || "http://localhost:5173"}/chat/${data.chatId}`
       : null
 
     return `
@@ -227,8 +249,8 @@ ShopMe - Your trusted e-commerce platform
         <h3>📋 Dettagli della richiesta:</h3>
         <ul>
             <li><strong>Cliente:</strong> ${data.customerName}</li>
-            <li><strong>Workspace:</strong> ${data.workspaceName || 'N/A'}</li>
-            <li><strong>Data/Ora:</strong> ${new Date().toLocaleString('it-IT')}</li>
+            <li><strong>Workspace:</strong> ${data.workspaceName || "N/A"}</li>
+            <li><strong>Data/Ora:</strong> ${new Date().toLocaleString("it-IT")}</li>
         </ul>
         
         <h3>🤖 Riassunto AI della conversazione (ultime 24h):</h3>
@@ -236,11 +258,15 @@ ShopMe - Your trusted e-commerce platform
             ${data.chatSummary}
         </div>
         
-        ${chatLink ? `
+        ${
+          chatLink
+            ? `
         <p style="text-align: center;">
             <a href="${chatLink}" class="button">📱 Visualizza Chat Completa</a>
         </p>
-        ` : ''}
+        `
+            : ""
+        }
         
         <p><strong>Azione richiesta:</strong> Contattare il cliente il prima possibile per fornire assistenza personalizzata.</p>
         
@@ -255,9 +281,11 @@ ShopMe - Your trusted e-commerce platform
     `
   }
 
-  private generateOperatorNotificationText(data: OperatorNotificationEmailData): string {
-    const chatLink = data.chatId 
-      ? `${process.env.FRONTEND_URL || 'http://localhost:5173'}/chat/${data.chatId}`
+  private generateOperatorNotificationText(
+    data: OperatorNotificationEmailData
+  ): string {
+    const chatLink = data.chatId
+      ? `${process.env.FRONTEND_URL || "http://localhost:5173"}/chat/${data.chatId}`
       : null
 
     return `
@@ -267,13 +295,13 @@ ShopMe - Your trusted e-commerce platform
 
 📋 Dettagli della richiesta:
 - Cliente: ${data.customerName}
-- Workspace: ${data.workspaceName || 'N/A'}
-- Data/Ora: ${new Date().toLocaleString('it-IT')}
+- Workspace: ${data.workspaceName || "N/A"}
+- Data/Ora: ${new Date().toLocaleString("it-IT")}
 
 🤖 Riassunto AI della conversazione (ultime 24h):
 ${data.chatSummary}
 
-${chatLink ? `📱 Link alla chat completa: ${chatLink}` : ''}
+${chatLink ? `📱 Link alla chat completa: ${chatLink}` : ""}
 
 Azione richiesta: Contattare il cliente il prima possibile per fornire assistenza personalizzata.
 
@@ -289,10 +317,10 @@ ShopMe - La tua piattaforma e-commerce di fiducia
   async verifyConnection(): Promise<boolean> {
     try {
       await this.transporter.verify()
-      logger.info('Email service connection verified successfully')
+      logger.info("Email service connection verified successfully")
       return true
     } catch (error) {
-      logger.error('Email service connection failed:', error)
+      logger.error("Email service connection failed:", error)
       return false
     }
   }

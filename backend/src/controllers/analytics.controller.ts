@@ -1,11 +1,11 @@
-import { Request, Response } from 'express';
-import { AnalyticsService } from '../application/services/analytics.service';
+import { Request, Response } from "express"
+import { AnalyticsService } from "../application/services/analytics.service"
 
 export class AnalyticsController {
-  private analyticsService: AnalyticsService;
+  private analyticsService: AnalyticsService
 
   constructor() {
-    this.analyticsService = new AnalyticsService();
+    this.analyticsService = new AnalyticsService()
   }
 
   /**
@@ -70,20 +70,24 @@ export class AnalyticsController {
    */
   getDashboardData = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { workspaceId } = req.params;
-      const { startDate, endDate } = req.query;
+      const { workspaceId } = req.params
+      const { startDate, endDate } = req.query
 
       // Default to last 3 complete months (excluding current month)
-      const defaultDateRange = this.getDefaultDateRange();
-      
-      const dateFrom = startDate ? new Date(startDate as string) : defaultDateRange.startDate;
-      const dateTo = endDate ? new Date(endDate as string) : defaultDateRange.endDate;
+      const defaultDateRange = this.getDefaultDateRange()
+
+      const dateFrom = startDate
+        ? new Date(startDate as string)
+        : defaultDateRange.startDate
+      const dateTo = endDate
+        ? new Date(endDate as string)
+        : defaultDateRange.endDate
 
       const analyticsData = await this.analyticsService.getDashboardAnalytics(
         workspaceId,
         dateFrom,
         dateTo
-      );
+      )
 
       res.json({
         success: true,
@@ -92,18 +96,21 @@ export class AnalyticsController {
           startDate: dateFrom,
           endDate: dateTo,
           isDefault: !startDate && !endDate,
-          note: !startDate && !endDate ? 'Default range: last 3 complete months (excluding current month)' : null
-        }
-      });
+          note:
+            !startDate && !endDate
+              ? "Default range: last 3 complete months (excluding current month)"
+              : null,
+        },
+      })
     } catch (error) {
-      console.error('Error getting dashboard data:', error);
+      console.error("Error getting dashboard data:", error)
       res.status(500).json({
         success: false,
-        message: 'Failed to get dashboard analytics data',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+        message: "Failed to get dashboard analytics data",
+        error: error instanceof Error ? error.message : "Unknown error",
+      })
     }
-  };
+  }
 
   /**
    * @swagger
@@ -165,15 +172,15 @@ export class AnalyticsController {
    */
   getDetailedMetrics = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { workspaceId } = req.params;
-      const { startDate, endDate, metric } = req.query;
+      const { workspaceId } = req.params
+      const { startDate, endDate, metric } = req.query
 
       if (!startDate || !endDate) {
         res.status(400).json({
           success: false,
-          message: 'Start date and end date are required for detailed metrics'
-        });
-        return;
+          message: "Start date and end date are required for detailed metrics",
+        })
+        return
       }
 
       const detailedData = await this.analyticsService.getDetailedMetrics(
@@ -181,37 +188,180 @@ export class AnalyticsController {
         new Date(startDate as string),
         new Date(endDate as string),
         metric as string
-      );
+      )
 
       res.json({
         success: true,
-        data: detailedData
-      });
+        data: detailedData,
+      })
     } catch (error) {
-      console.error('Error getting detailed metrics:', error);
+      console.error("Error getting detailed metrics:", error)
       res.status(500).json({
         success: false,
-        message: 'Failed to get detailed metrics',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+        message: "Failed to get detailed metrics",
+        error: error instanceof Error ? error.message : "Unknown error",
+      })
     }
-  };
+  }
+
+  /**
+   * @swagger
+   * /api/analytics/{workspaceId}/monthly-top-customers:
+   *   get:
+   *     summary: Get monthly top customers breakdown
+   *     description: Retrieve top customers for each month in the specified date range
+   *     tags: [Analytics]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         required: true
+   *         description: The workspace ID
+   *         schema:
+   *           type: string
+   *       - in: query
+   *         name: startDate
+   *         required: true
+   *         description: Start date for filtering (ISO 8601 format)
+   *         schema:
+   *           type: string
+   *           format: date-time
+   *       - in: query
+   *         name: endDate
+   *         required: true
+   *         description: End date for filtering (ISO 8601 format)
+   *         schema:
+   *           type: string
+   *           format: date-time
+   *     responses:
+   *       200:
+   *         description: Monthly top customers data
+   *       400:
+   *         description: Bad request
+   *       401:
+   *         description: Unauthorized
+   *       500:
+   *         description: Server error
+   */
+  getMonthlyTopCustomers = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { workspaceId } = req.params
+      const { startDate, endDate } = req.query
+
+      if (!startDate || !endDate) {
+        res.status(400).json({
+          success: false,
+          message: "Start date and end date are required",
+        })
+        return
+      }
+
+      const monthlyData = await this.analyticsService.getMonthlyTopCustomers(
+        workspaceId,
+        new Date(startDate as string),
+        new Date(endDate as string)
+      )
+
+      res.json(monthlyData)
+    } catch (error) {
+      console.error("Error getting monthly top customers:", error)
+      res.status(500).json({
+        success: false,
+        message: "Failed to get monthly top customers",
+        error: error instanceof Error ? error.message : "Unknown error",
+      })
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/analytics/{workspaceId}/monthly-top-clients:
+   *   get:
+   *     summary: Get monthly top clients breakdown
+   *     description: Retrieve top clients for each month in the specified date range
+   *     tags: [Analytics]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         required: true
+   *         description: The workspace ID
+   *         schema:
+   *           type: string
+   *       - in: query
+   *         name: startDate
+   *         required: true
+   *         description: Start date for filtering (ISO 8601 format)
+   *         schema:
+   *           type: string
+   *           format: date-time
+   *       - in: query
+   *         name: endDate
+   *         required: true
+   *         description: End date for filtering (ISO 8601 format)
+   *         schema:
+   *           type: string
+   *           format: date-time
+   *     responses:
+   *       200:
+   *         description: Monthly top clients data
+   *       400:
+   *         description: Bad request
+   *       401:
+   *         description: Unauthorized
+   *       500:
+   *         description: Server error
+   */
+  getMonthlyTopClients = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { workspaceId } = req.params
+      const { startDate, endDate } = req.query
+
+      if (!startDate || !endDate) {
+        res.status(400).json({
+          success: false,
+          message: "Start date and end date are required",
+        })
+        return
+      }
+
+      const monthlyData = await this.analyticsService.getMonthlyTopClients(
+        workspaceId,
+        new Date(startDate as string),
+        new Date(endDate as string)
+      )
+
+      res.json(monthlyData)
+    } catch (error) {
+      console.error("Error getting monthly top clients:", error)
+      res.status(500).json({
+        success: false,
+        message: "Failed to get monthly top clients",
+        error: error instanceof Error ? error.message : "Unknown error",
+      })
+    }
+  }
 
   /**
    * Calculate default date range: last 3 complete months excluding current month
    */
   private getDefaultDateRange(): { startDate: Date; endDate: Date } {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth(); // 0-based (0 = January)
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth() // 0-based (0 = January)
 
     // End of previous month (last day)
-    const endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
-    
-    // Start of 3 months before the previous month (first day)
-    const startDate = new Date(currentYear, currentMonth - 3, 1, 0, 0, 0, 0);
+    const endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999)
 
-    return { startDate, endDate };
+    // Start of 3 months before the previous month (first day)
+    const startDate = new Date(currentYear, currentMonth - 3, 1, 0, 0, 0, 0)
+
+    return { startDate, endDate }
   }
 }
 
@@ -267,7 +417,7 @@ export class AnalyticsController {
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/CustomerAnalytics'
- *     
+ *
  *     MonthlyData:
  *       type: object
  *       properties:
@@ -283,7 +433,7 @@ export class AnalyticsController {
  *         label:
  *           type: string
  *           description: Display label (e.g., "Jan 2024")
- *     
+ *
  *     ProductAnalytics:
  *       type: object
  *       properties:
@@ -302,7 +452,7 @@ export class AnalyticsController {
  *         stock:
  *           type: number
  *           description: Current stock level
- * 
+ *
  *     CustomerAnalytics:
  *       type: object
  *       properties:
@@ -333,7 +483,7 @@ export class AnalyticsController {
  *         averageOrderValue:
  *           type: number
  *           description: Average order value
- * 
+ *
  * tags:
  *   - name: Analytics
  *     description: Analytics and dashboard metrics endpoints

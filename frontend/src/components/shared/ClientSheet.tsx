@@ -16,6 +16,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Client } from "@/pages/ClientsPage"
 import { Loader2 } from "lucide-react"
@@ -84,6 +85,8 @@ export function ClientSheet({
   const [country, setCountry] = useState("")
   const [pushNotificationsConsent, setPushNotificationsConsent] =
     useState(false)
+  const [isBlacklisted, setIsBlacklisted] = useState(false)
+  const [activeChatbot, setActiveChatbot] = useState(true)
 
   // Invoice address state
   const [invoiceFirstName, setInvoiceFirstName] = useState("")
@@ -163,6 +166,10 @@ export function ClientSheet({
       setPushNotificationsConsent(
         fetchedClient.push_notifications_consent || false
       )
+      setIsBlacklisted(fetchedClient.isBlacklisted || false)
+      setActiveChatbot(
+        fetchedClient.activeChatbot !== undefined ? fetchedClient.activeChatbot : true
+      )
 
       // Set invoice address data
       if (fetchedClient.invoiceAddress) {
@@ -199,6 +206,8 @@ export function ClientSheet({
       setZip("")
       setCountry("")
       setPushNotificationsConsent(false)
+      setIsBlacklisted(false)
+      setActiveChatbot(true)
 
       // Reset invoice address fields
       setInvoiceFirstName("")
@@ -268,6 +277,8 @@ export function ClientSheet({
       notes,
       address: JSON.stringify({ street, city, zip, country }),
       push_notifications_consent: pushNotificationsConsent,
+      isBlacklisted: isBlacklisted,
+      activeChatbot: activeChatbot,
       invoiceAddress: {
         firstName: invoiceFirstName,
         lastName: invoiceLastName,
@@ -649,6 +660,48 @@ export function ClientSheet({
                       onChange={(e) => setInvoiceVatNumber(e.target.value)}
                       placeholder="IT12345678901"
                     />
+                  </div>
+                </div>
+
+                {/* SETTINGS TOGGLES */}
+                <div className="space-y-4 border-2 border-gray-200 bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-medium text-gray-800">
+                    ⚙️ Settings
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center justify-between space-x-2">
+                      <Label htmlFor="pushNotificationsConsent" className="text-sm font-medium">
+                        Push Notifications
+                      </Label>
+                      <Switch
+                        id="pushNotificationsConsent"
+                        checked={pushNotificationsConsent}
+                        onCheckedChange={setPushNotificationsConsent}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between space-x-2">
+                      <Label htmlFor="activeChatbot" className="text-sm font-medium text-blue-700">
+                        🤖 Active Chatbot
+                      </Label>
+                      <Switch
+                        id="activeChatbot"
+                        checked={activeChatbot}
+                        onCheckedChange={setActiveChatbot}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between space-x-2">
+                      <Label htmlFor="isBlacklisted" className="text-sm font-medium text-red-700">
+                        🚫 Block Customer
+                      </Label>
+                      <Switch
+                        id="isBlacklisted"
+                        checked={isBlacklisted}
+                        onCheckedChange={setIsBlacklisted}
+                      />
+                    </div>
                   </div>
                 </div>
 

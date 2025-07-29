@@ -23,6 +23,7 @@ export interface Workspace {
   language: string
   messageLimit?: number
   challengeStatus: boolean
+  debugMode?: boolean
   wipMessages?:
     | {
         en: string
@@ -72,6 +73,7 @@ export const transformWorkspaceResponse = (workspace: any): Workspace => {
     language: workspace.language || "en",
     messageLimit: workspace.messageLimit || 50,
     challengeStatus: workspace.challengeStatus || false,
+    debugMode: workspace.debugMode ?? true,
     blocklist: workspace.blocklist || "",
     url: workspace.url || "",
     wipMessages:

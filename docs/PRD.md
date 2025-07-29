@@ -47,15 +47,13 @@
 ### 🔥 **Phase 1 Priority Tasks (Token Security)**
 
 **🚨 HIGH PRIORITY:**
+
 1. **N8N Token Validation API** (Task #28) - Critical for workflow security
 2. **N8N Invoice Calling Function** (Task #36) - Complete invoice workflow integration
 
-**📈 MEDIUM PRIORITY:**
-3. **Ordinary Customer Handler** (Task #32) - Business logic differentiation
+**📈 MEDIUM PRIORITY:** 3. **Ordinary Customer Handler** (Task #32) - Business logic differentiation
 
-**🔧 LOW PRIORITY:**
-4. **Database Optimization** (Task #34) - Performance enhancement
-5. **Complete Public Pages** (Task #35) - Checkout & Cart implementation
+**🔧 LOW PRIORITY:** 4. **Database Optimization** (Task #34) - Performance enhancement 5. **Complete Public Pages** (Task #35) - Checkout & Cart implementation
 
 ### ⏳ Phase 2 Tasks (Deferred)
 
@@ -323,7 +321,7 @@ GET /api/usage/export/{workspaceId}?format=csv
 ```typescript
 // Database Schema (WorkspaceSettings)
 interface WorkspaceSettings {
-  debugMode: boolean; // @default(true) - Always true by default
+  debugMode: boolean // @default(true) - Always true by default
   // ... other settings
 }
 
@@ -332,10 +330,10 @@ if (!workspaceSettings.debugMode) {
   await usageService.trackUsage({
     clientId: customer.id,
     workspaceId: workspaceId,
-    price: 0.005 // €0.005 per LLM response
-  });
+    price: 0.005, // €0.005 per LLM response
+  })
 } else {
-  logger.info('[DEBUG-MODE] Usage tracking skipped - debug mode enabled');
+  logger.info("[DEBUG-MODE] Usage tracking skipped - debug mode enabled")
 }
 ```
 
@@ -502,7 +500,7 @@ interface OrdersTable {
     "Status", // Badge colorato con stato
     "Items", // Numero prodotti in ordine
     "Total", // Prezzo totale formattato
-    "Actions" // View, Edit, Delete buttons
+    "Actions", // View, Edit, Delete buttons
   ]
 
   features: {
@@ -525,7 +523,7 @@ interface OrdersTable {
     bulkActions: ["changeStatus", "exportSelected", "deleteSelected"]
     filterActions: [
       "clearAllFilters", // NUOVO: Reset tutti i filtri
-      "saveFilterPreset" // NUOVO: Salva combinazione filtri
+      "saveFilterPreset", // NUOVO: Salva combinazione filtri
     ]
   }
 }
@@ -544,7 +542,7 @@ interface OrdersPageFilters {
       "Confirmed",
       "Shipped",
       "Delivered",
-      "Cancelled"
+      "Cancelled",
     ]
     multiple: boolean // Allow multiple status selection
     clearable: boolean // Easy clear option
@@ -770,17 +768,29 @@ Il servizio stock gestisce automaticamente tutte le operazioni di inventario att
 ```typescript
 class StockService {
   // STOCK OPERATIONS
-  async handleOrderStatusChange(orderId: string, oldStatus: string, newStatus: string): Promise<void>
+  async handleOrderStatusChange(
+    orderId: string,
+    oldStatus: string,
+    newStatus: string
+  ): Promise<void>
   async scaleStockForConfirmedOrder(order: Order): Promise<void>
   async restoreStockForCancelledOrder(order: Order): Promise<void>
-  
+
   // STOCK VALIDATION
-  async checkStockAvailability(productId: string, quantity: number): Promise<boolean>
+  async checkStockAvailability(
+    productId: string,
+    quantity: number
+  ): Promise<boolean>
   async getOutOfStockProducts(workspaceId: string): Promise<Product[]>
-  
+
   // NOTIFICATIONS
   async sendConfirmationNotifications(order: Order): Promise<void>
-  async logStockChange(productId: string, workspaceId: string, change: number, reason: string): Promise<void>
+  async logStockChange(
+    productId: string,
+    workspaceId: string,
+    change: number,
+    reason: string
+  ): Promise<void>
 }
 ```
 
@@ -806,19 +816,23 @@ class StockService {
 // Durante il checkout, stock rimane disponibile
 await prisma.orders.create({
   data: {
-    status: "PENDING",           // Stock NON scalato
+    status: "PENDING", // Stock NON scalato
     // ... order data
-  }
+  },
 })
 
 // Validazione disponibilità ma senza riservazione
-const stockAvailable = await stockService.checkStockAvailability(productId, quantity)
+const stockAvailable = await stockService.checkStockAvailability(
+  productId,
+  quantity
+)
 if (!stockAvailable) {
   throw new Error("Stock insufficiente")
 }
 ```
 
 **Vantaggi**:
+
 - ✅ **No overselling**: Stock verificato in real-time
 - ✅ **Disponibilità parallela**: Altri clienti possono ordinare stesso prodotto
 - ✅ **Flessibilità**: Ordini pending non bloccano inventario
@@ -902,25 +916,28 @@ async restoreStockForCancelledOrder(order: Order): Promise<void> {
 ```typescript
 // Stock-based styling
 const getStockStatus = (stock: number) => {
-  if (stock === 0) return {
-    label: "Out of Stock",
-    className: "bg-red-50 border-l-4 border-red-500",
-    badge: "bg-red-100 text-red-800"
-  }
-  if (stock <= 5) return {
-    label: "Low Stock",
-    className: "bg-orange-50 border-l-4 border-orange-500",
-    badge: "bg-orange-100 text-orange-800"
-  }
+  if (stock === 0)
+    return {
+      label: "Out of Stock",
+      className: "bg-red-50 border-l-4 border-red-500",
+      badge: "bg-red-100 text-red-800",
+    }
+  if (stock <= 5)
+    return {
+      label: "Low Stock",
+      className: "bg-orange-50 border-l-4 border-orange-500",
+      badge: "bg-orange-100 text-orange-800",
+    }
   return {
     label: "Available",
     className: "",
-    badge: "bg-green-100 text-green-800"
+    badge: "bg-green-100 text-green-800",
   }
 }
 ```
 
 **Features**:
+
 - ✅ **Row rosse**: Prodotti con stock 0 evidenziati in rosso
 - ✅ **Status badges**: "Out of Stock", "Low Stock", "Available" con colori
 - ✅ **Stock display**: Numero unità con color coding
@@ -941,11 +958,11 @@ interface ProductFilters {
 // Repository implementation
 async findProducts(filters: ProductFilters): Promise<Product[]> {
   const where: any = { workspaceId }
-  
+
   if (filters.active) where.isActive = true
   if (filters.inStock) where.stock = { gt: 0 }
   if (filters.category) where.categoryId = filters.category
-  
+
   return prisma.products.findMany({ where })
 }
 ```
@@ -960,12 +977,12 @@ async findProducts(filters: ProductFilters): Promise<Product[]> {
 // Add Product Modal con stock verification
 const handleAddProductFromModal = async () => {
   const stockAvailable = await checkProductStock(selectedProduct.id, quantityToAdd)
-  
+
   if (!stockAvailable) {
     toast.error(`Stock insufficiente. Disponibili: ${selectedProduct.stock} unità`)
     return
   }
-  
+
   addProductToCart(selectedProduct, quantityToAdd)
 }
 
@@ -981,6 +998,7 @@ const handleAddProductFromModal = async () => {
 ```
 
 **Features**:
+
 - ✅ **Stock limits**: Quantità massima limitata da stock disponibile
 - ✅ **Real-time check**: Verifica disponibilità prima aggiunta
 - ✅ **User feedback**: Toast notifications per stock insufficiente
@@ -994,18 +1012,10 @@ const handleAddProductFromModal = async () => {
 
 ```typescript
 // Customer notification
-await this.sendCustomerConfirmationEmail(
-  customer.email,
-  order,
-  customer.name
-)
+await this.sendCustomerConfirmationEmail(customer.email, order, customer.name)
 
 // Admin notification
-await this.sendAdminConfirmationEmail(
-  adminEmail,
-  order,
-  customer
-)
+await this.sendAdminConfirmationEmail(adminEmail, order, customer)
 
 // WhatsApp message
 await this.sendWhatsAppConfirmation(
@@ -1019,26 +1029,28 @@ await this.sendWhatsAppConfirmation(
 
 ```typescript
 // Customer email
-`🎉 Il tuo ordine ${order.orderCode} è stato confermato!
+;`🎉 Il tuo ordine ${order.orderCode} è stato confermato!
 Il nostro team ti contatterà per i dettagli di consegna.
 
 Prodotti:
-${order.items.map(item => 
-  `- ${item.quantity}x ${item.productVariant?.descrizione} (€${item.unitPrice})`
-).join('\n')}
+${order.items
+  .map(
+    (item) =>
+      `- ${item.quantity}x ${item.productVariant?.descrizione} (€${item.unitPrice})`
+  )
+  .join("\n")}
 
 Totale: €${order.totalAmount.toFixed(2)}`
-
-// Admin email  
+// Admin email
 `Ordine confermato e processato:
 Ordine: ${order.orderCode}
 Cliente: ${customer.name}
 Totale: €${order.totalAmount.toFixed(2)}
 
 Prodotti (stock aggiornato):
-${order.items.map(item => 
-  `- ${item.quantity}x ${item.productVariant?.descrizione}`
-).join('\n')}`
+${order.items
+  .map((item) => `- ${item.quantity}x ${item.productVariant?.descrizione}`)
+  .join("\n")}`
 ```
 
 ### **📊 Stock Analytics & Monitoring**
@@ -1079,7 +1091,7 @@ async logStockChange(
   logger.info(
     `[STOCK_LOG] Product ${productId}: ${change > 0 ? "+" : ""}${change} (${reason})`
   )
-  
+
   // Future: Implement stock_movements table
   // await prisma.stockLog.create({
   //   data: { productId, workspaceId, change, reason, orderId }
@@ -1096,22 +1108,22 @@ async logStockChange(
 const stockValidationRules = {
   // Cannot sell more than available
   maxQuantity: (productStock: number) => productStock,
-  
+
   // Cannot set negative stock
   minStock: 0,
-  
+
   // Stock changes require audit trail
   requiresLogging: true,
-  
+
   // Insufficient stock handling
   gracefulDegradation: true, // Continue processing, log warning
-  
+
   // Status change validation
   statusTransitionRules: {
-    'PENDING → CONFIRMED': 'CHECK_AND_SCALE_STOCK',
-    'CONFIRMED → CANCELLED': 'RESTORE_STOCK',
-    'SHIPPED → CANCELLED': 'RESTORE_STOCK'
-  }
+    "PENDING → CONFIRMED": "CHECK_AND_SCALE_STOCK",
+    "CONFIRMED → CANCELLED": "RESTORE_STOCK",
+    "SHIPPED → CANCELLED": "RESTORE_STOCK",
+  },
 }
 ```
 
@@ -1123,7 +1135,7 @@ if (product.stock < item.quantity) {
   logger.warn(
     `Insufficient stock for product ${product.name}: ${product.stock} < ${item.quantity}`
   )
-  
+
   // Continue with other products instead of failing completely
   continue
 }
@@ -1146,16 +1158,16 @@ CREATE INDEX idx_orders_status_date ON orders(status, created_at DESC);
 // Transaction-based stock updates to prevent race conditions
 await prisma.$transaction(async (tx) => {
   const product = await tx.products.findUnique({
-    where: { id: productId }
+    where: { id: productId },
   })
-  
+
   if (product.stock < quantity) {
-    throw new Error('Insufficient stock')
+    throw new Error("Insufficient stock")
   }
-  
+
   await tx.products.update({
     where: { id: productId },
-    data: { stock: product.stock - quantity }
+    data: { stock: product.stock - quantity },
   })
 })
 ```
@@ -1168,10 +1180,10 @@ await prisma.$transaction(async (tx) => {
 interface StockDashboard {
   totalProducts: number
   inStockProducts: number
-  lowStockProducts: number        // stock <= 5
-  outOfStockProducts: number      // stock = 0
-  totalStockValue: number         // sum(stock * price)
-  
+  lowStockProducts: number // stock <= 5
+  outOfStockProducts: number // stock = 0
+  totalStockValue: number // sum(stock * price)
+
   recentMovements: StockMovement[]
   topSellingProducts: Product[]
   restockAlerts: Product[]
@@ -1181,6 +1193,7 @@ interface StockDashboard {
 #### **📈 Future Enhancements**
 
 **Phase 2 Features**:
+
 - ✅ **Stock forecasting**: Predictive analytics per restock
 - ✅ **Automatic reorder points**: Alert quando stock < soglia
 - ✅ **Supplier integration**: Ordini automatici fornitori
@@ -1193,7 +1206,7 @@ interface StockDashboard {
 #### **✅ Business Advantages**
 
 1. **Accuracy**: Stock sempre accurato e real-time
-2. **No Overselling**: Impossibile vendere prodotti non disponibili  
+2. **No Overselling**: Impossibile vendere prodotti non disponibili
 3. **Automatic**: Zero intervention manuale per stock management
 4. **Audit Trail**: Completa tracciabilità movimenti stock
 5. **Flexibility**: Stock non bloccato durante checkout
@@ -1520,6 +1533,7 @@ Implementare la calling function **ReceiveInvoice** che gestisce richieste di fa
 #### **🔧 Backend Implementation**
 
 **APIs Implemented**:
+
 ```typescript
 // Token validation for all public pages
 POST /api/internal/validate-secure-token
@@ -1544,11 +1558,12 @@ Response: {
 ```
 
 **Secure Token Flow**:
+
 ```typescript
 // 1. Generate invoice token (24h validity)
 type: 'invoice',
 payload: {
-  customerId, workspaceId, customerName, 
+  customerId, workspaceId, customerName,
   customerPhone, purpose: 'invoice_access'
 }
 
@@ -1559,9 +1574,10 @@ payload: {
 #### **🎨 Frontend Implementation**
 
 **Invoice Page Features**:
+
 - ✅ **Token Validation**: Auto-validation with `useInvoiceTokenValidation()`
 - ✅ **Real Data Display**: Orders converted to invoice format
-- ✅ **Customer Info**: Name, email, phone, workspace details  
+- ✅ **Customer Info**: Name, email, phone, workspace details
 - ✅ **Invoice List**: Number, date, amount, status, items breakdown
 - ✅ **Summary Stats**: Total paid, pending, overdue amounts (4-column grid)
 - ✅ **Status Badges**: Paid (green), Pending (yellow), Overdue (red)
@@ -1571,6 +1587,7 @@ payload: {
 - ✅ **Responsive Design**: Mobile-first, consistent with registration page
 
 **URL Structure**:
+
 ```
 https://domain.com/invoice?token=abc123...&workspaceId=ws_456
 ```
@@ -1578,6 +1595,7 @@ https://domain.com/invoice?token=abc123...&workspaceId=ws_456
 #### **🤖 N8N Integration**
 
 **Custom Function Implemented**:
+
 ```javascript
 // GetInvoices.js - N8N Custom Function
 GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
@@ -1588,7 +1606,7 @@ Returns:
   invoiceListUrl: "https://domain.com/invoice?token=abc123",
   totalInvoices: 5,
   totalPaid: "800.00",
-  totalPending: "450.00", 
+  totalPending: "450.00",
   totalOverdue: "0.00",
   customerName: "Mario Rossi",
   message: "Ecco le tue fatture! Ho trovato 5 fatture. Clicca il link per visualizzarle.",
@@ -1597,6 +1615,7 @@ Returns:
 ```
 
 **Security Features**:
+
 - 🔐 **Session Token Validation**: Validates N8N session before generating invoice token
 - 🔒 **Secure Token Generation**: 24-hour invoice access tokens
 - 🛡️ **Error Handling**: Comprehensive error management and logging
@@ -1605,21 +1624,26 @@ Returns:
 #### **📊 Data Processing**
 
 **Orders → Invoices Conversion**:
+
 ```typescript
 // Backend converts completed/delivered/paid orders to invoices
-orders.map(order => ({
+orders.map((order) => ({
   id: order.id,
   number: `INV-${order.id.slice(-8).toUpperCase()}`,
   date: order.createdAt,
   amount: order.totalAmount,
-  status: order.status === 'paid' ? 'paid' : 
-          order.status === 'completed' ? 'pending' : 'overdue',
-  items: order.orderItems.map(item => ({
+  status:
+    order.status === "paid"
+      ? "paid"
+      : order.status === "completed"
+        ? "pending"
+        : "overdue",
+  items: order.orderItems.map((item) => ({
     description: item.product?.name,
     quantity: item.quantity,
     unitPrice: item.price,
-    amount: (item.quantity * item.price).toFixed(2)
-  }))
+    amount: (item.quantity * item.price).toFixed(2),
+  })),
 }))
 ```
 
@@ -2789,12 +2813,9 @@ Rispondi in JSON:
 ✅ **IMPLEMENTATO**: Validazione frontend con campo obbligatorio  
 ✅ **IMPLEMENTATO**: Template email professionale HTML/testo  
 ✅ **IMPLEMENTATO**: Riassunto chat negli ultimi 10 messaggi  
-✅ **IMPLEMENTATO**: Gestione errori graceful e logging  
+✅ **IMPLEMENTATO**: Gestione errori graceful e logging
 
-**Prossimi step (opzionali)**:
-2. Sistema escalation automatica
-3. Template email personalizzabili
-4. Dashboard operatori in tempo reale
+**Prossimi step (opzionali)**: 2. Sistema escalation automatica 3. Template email personalizzabili 4. Dashboard operatori in tempo reale
 
 ### 🎉 **ANDREA'S ACHIEVEMENT**
 
@@ -2857,14 +2878,10 @@ Andrea ha creato la **base architecturale perfetta** per un sistema WhatsApp int
 #### **📧 Email Template Features:**
 
 ```html
-Oggetto: 🔔 Utente [nome_cliente] vuole parlare con un operatore
-
-Contenuto:
-- ⚠️ Alert visivo per urgenza
-- 📋 Dettagli cliente e workspace  
-- 💬 Riassunto ultimi 10 messaggi (24h)
-- 📱 Link diretto alla chat (preparato)
-- 🎨 Styling professionale responsive
+Oggetto: 🔔 Utente [nome_cliente] vuole parlare con un operatore Contenuto: - ⚠️
+Alert visivo per urgenza - 📋 Dettagli cliente e workspace - 💬 Riassunto ultimi
+10 messaggi (24h) - 📱 Link diretto alla chat (preparato) - 🎨 Styling
+professionale responsive
 ```
 
 #### **🤖 ContactOperator Function Enhanced:**
@@ -2904,9 +2921,9 @@ export async function ContactOperator({ phone, workspaceId }) {
 ⏰ Data richiesta: 25/07/2025, 14:30:22
 
 📄 RIASSUNTO AI CONVERSAZIONE (ultimo giorno):
-Il cliente Mario ha chiesto informazioni sui prodotti lattiero-caseari. 
-Conversazione cordiale e professionale. Ha mostrato interesse per 
-mozzarella di bufala e ha domandato sui tempi di spedizione. 
+Il cliente Mario ha chiesto informazioni sui prodotti lattiero-caseari.
+Conversazione cordiale e professionale. Ha mostrato interesse per
+mozzarella di bufala e ha domandato sui tempi di spedizione.
 Consiglio: Contattare per fornire catalogo dettagliato e offerte speciali.
 
 ℹ️ Il chatbot è stato automaticamente disattivato per questo cliente.
@@ -3740,12 +3757,14 @@ TABLE secure_tokens (
 #### 🔧 **Phase 1 Implementation Status**
 
 **✅ COMPLETED:**
+
 - Session token generation per WhatsApp message
 - Auto-cleanup mechanism in all token services
 - Token transmission to N8N workflows
 - Database optimization and indexing
 
 **🔧 TODO (Phase 1):**
+
 - N8N validation API endpoint (`/api/internal/validate-session-token`)
 - N8N Custom Function for token validation
 - Link token validation for public pages
@@ -4368,14 +4387,12 @@ C4Container
 The ShopMe frontend is built with a modern React architecture:
 
 - **Core Technologies**:
-
   - React 18+ with functional components and hooks
   - TypeScript for type safety and improved developer experience
   - Tailwind CSS for utility-first styling approach
   - Next.js for server-side rendering and optimized performance
 
 - **Key Frontend Components**:
-
   - Component library with atomic design principles
   - Responsive layouts for all device types
   - Custom hooks for business logic reuse
@@ -4543,7 +4560,6 @@ interface UserAvatarDesign {
 The backend follows a Domain-Driven Design (DDD) architecture:
 
 - **Core Technologies**:
-
   - Node.js with Express framework
   - TypeScript for type safety across the stack
   - Prisma ORM for database access
@@ -4551,14 +4567,12 @@ The backend follows a Domain-Driven Design (DDD) architecture:
   - Redis for caching and session management
 
 - **Layer Separation**:
-
   - **Domain Layer**: Core business entities and rules
   - **Application Layer**: Use cases and application services
   - **Infrastructure Layer**: Technical implementations and external services
   - **Interfaces Layer**: API controllers and routes
 
 - **Key Design Principles**:
-
   - Business domain at the center of design
   - Clear boundaries between layers
   - Repository pattern for data access
@@ -5304,13 +5318,11 @@ We protect all API endpoints with smart rate limiting:
 #### Authentication API
 
 - `POST /api/auth/login`
-
   - **Description**: Authenticates a user and returns tokens
   - **Body**: `{ email, password }`
   - **Returns**: Access token and refresh token
 
 - `POST /api/auth/refresh`
-
   - **Description**: Refreshes an expired access token
   - **Body**: (Uses refresh token from HTTP-only cookie)
   - **Returns**: New access token
@@ -5322,13 +5334,11 @@ We protect all API endpoints with smart rate limiting:
 #### Workspace API
 
 - `GET /api/workspaces`
-
   - **Description**: Lists workspaces accessible to the user
   - **Parameters**: `page`, `limit`, `status`
   - **Returns**: Paginated workspace list
 
 - `POST /api/workspaces`
-
   - **Description**: Creates a new workspace
   - **Body**: Workspace details
   - **Returns**: Created workspace details
@@ -5340,7 +5350,6 @@ We protect all API endpoints with smart rate limiting:
 #### Products API
 
 - `GET /api/products`
-
   - **Description**: Lists products
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5350,18 +5359,15 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated product list
 
 - `POST /api/products`
-
   - **Description**: Creates a new product
   - **Body**: Product details with category and workspace information
   - **Returns**: Created product
 
 - `GET /api/products/:id`
-
   - **Description**: Gets details of a specific product
   - **Returns**: Complete product information including variants and images
 
 - `PUT /api/products/:id`
-
   - **Description**: Updates a product
   - **Body**: Fields to update
   - **Returns**: Updated product
@@ -5373,13 +5379,11 @@ We protect all API endpoints with smart rate limiting:
 #### Categories API
 
 - `GET /api/categories`
-
   - **Description**: Lists categories
   - **Parameters**: `workspace_id`, `parent_id`, `status`, `page`, `limit`
   - **Returns**: Paginated category list
 
 - `POST /api/categories`
-
   - **Description**: Creates a new category
   - **Body**: Category details with parent info
   - **Returns**: Created category
@@ -5391,13 +5395,11 @@ We protect all API endpoints with smart rate limiting:
 #### Customers API
 
 - `GET /api/customers`
-
   - **Description**: Lists customers
   - **Parameters**: `workspace_id`, various filters, pagination
   - **Returns**: Paginated customer list
 
 - `GET /api/customers/:id`
-
   - **Description**: Gets customer profile
   - **Returns**: Customer details with order history
 
@@ -5409,7 +5411,6 @@ We protect all API endpoints with smart rate limiting:
 #### Offers API
 
 - `GET /api/offers`
-
   - **Description**: Retrieves offers and promotions list
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5418,7 +5419,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: List of offers with details
 
 - `POST /api/offers`
-
   - **Description**: Creates a new offer
   - **Body**:
     - `name`: Offer name
@@ -5442,7 +5442,6 @@ We protect all API endpoints with smart rate limiting:
 #### Orders API
 
 - `GET /api/orders`
-
   - **Description**: Lists orders
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5453,7 +5452,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated order list with basic details
 
 - `POST /api/orders`
-
   - **Description**: Creates a new order
   - **Body**:
     - `customer_id`: Customer making the order
@@ -5464,13 +5462,11 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Created order with payment link
 
 - `GET /api/orders/:id`
-
   - **Description**: Gets detailed information about an order
   - **Parameters**: `id` (required): Order ID
   - `Returns\*\*: Complete order information including items, payment status, and history
 
 - `PUT /api/orders/:id/status`
-
   - **Description**: Updates order status
   - **Body**: `status`: New order status
   - **Returns**: Updated order with current status
@@ -5483,7 +5479,6 @@ We protect all API endpoints with smart rate limiting:
 #### Conversations API
 
 - `GET /api/conversations`
-
   - **Description**: Lists customer conversations
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5494,19 +5489,16 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated conversation list
 
 - `GET /api/conversations/:id`
-
   - **Description**: Gets details of a specific conversation
   - **Parameters**: `id` (required): Conversation ID
   - **Returns**: Conversation with messages
 
 - `PUT /api/conversations/:id/status`
-
   - **Description**: Updates conversation status (e.g., open, closed)
   - **Body**: `status`: New conversation status
   - **Returns**: Updated conversation status
 
 - `GET /api/conversations/:id/messages`
-
   - **Description**: Gets messages from a conversation
   - **Parameters**:
     - `id` (required): Conversation ID
@@ -5521,7 +5513,6 @@ We protect all API endpoints with smart rate limiting:
 #### Documents API
 
 - `GET /api/documents`
-
   - **Description**: Lists uploaded documents
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5530,25 +5521,21 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated document list with metadata
 
 - `POST /api/documents/upload`
-
   - **Description**: Uploads a new PDF document
   - **Body**: Multipart form data with PDF file
   - **Returns**: Created document with upload confirmation
 
 - `POST /api/documents/:id/process`
-
   - **Description**: Processes document for text extraction and embedding generation
   - **Parameters**: `id` (required): Document ID
   - **Returns**: Processing status and job information
 
 - `GET /api/documents/:id`
-
   - **Description**: Gets details of a specific document
   - **Parameters**: `id` (required): Document ID
   - **Returns**: Complete document information including processing status
 
 - `DELETE /api/documents/:id`
-
   - **Description**: Deletes a document and its associated chunks
   - **Parameters**: `id` (required): Document ID
   - **Returns**: Deletion confirmation
@@ -5564,7 +5551,6 @@ We protect all API endpoints with smart rate limiting:
 #### Analytics API
 
 - `GET /api/analytics/overview`
-
   - **Description**: Gets high-level analytics for a workspace
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5572,7 +5558,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Key metrics summary
 
 - `GET /api/analytics/sales`
-
   - **Description**: Gets sales analytics
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5581,7 +5566,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Sales data for the requested period
 
 - `GET /api/analytics/customers`
-
   - **Description**: Gets customer analytics
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5600,13 +5584,11 @@ We protect all API endpoints with smart rate limiting:
 ##### Shopping Cart API
 
 - `GET /api/cart/:customerId`
-
   - **Description**: Gets customer's current shopping cart
   - **Parameters**: `customerId` (required): Customer identifier
   - **Returns**: Cart contents with products, quantities, and total amount
 
 - `POST /api/cart/add`
-
   - **Description**: Adds product to customer's cart
   - **Body**:
     - `customerId`: Customer identifier
@@ -5616,7 +5598,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Updated cart contents
 
 - `PUT /api/cart/update`
-
   - **Description**: Updates product quantity in cart
   - **Body**:
     - `customerId`: Customer identifier
@@ -5632,7 +5613,6 @@ We protect all API endpoints with smart rate limiting:
 ##### Order Management API
 
 - `GET /api/orders/advanced`
-
   - **Description**: Advanced order listing with comprehensive filters
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5648,7 +5628,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Comprehensive paginated order list with customer details
 
 - `POST /api/orders/create`
-
   - **Description**: Creates a comprehensive order with full checkout process
   - **Body**:
     - `customerId`: Customer placing the order
@@ -5661,13 +5640,11 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Created order with unique order code and payment intent
 
 - `GET /api/orders/:orderCode/details`
-
   - **Description**: Gets comprehensive order details by order code
   - **Parameters**: `orderCode` (required): Unique order code
   - **Returns**: Complete order information including items, customer, shipping, payment status
 
 - `PUT /api/orders/:orderCode/confirm`
-
   - **Description**: Confirms order after payment verification
   - **Parameters**: `orderCode` (required): Order code to confirm
   - **Body**:
@@ -5676,7 +5653,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Confirmed order with updated status
 
 - `PUT /api/orders/:orderCode/status`
-
   - **Description**: Updates order status with tracking information
   - **Parameters**: `orderCode` (required): Order code
   - **Body**:
@@ -5696,7 +5672,6 @@ We protect all API endpoints with smart rate limiting:
 ##### Payment Processing API
 
 - `POST /api/payments/intent`
-
   - **Description**: Creates payment intent for order
   - **Body**:
     - `orderCode`: Order for payment
@@ -5707,7 +5682,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Payment intent with secure payment URL
 
 - `POST /api/payments/confirm`
-
   - **Description**: Confirms payment completion
   - **Body**:
     - `paymentIntentId`: Payment intent identifier
@@ -5716,7 +5690,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Payment confirmation with order update
 
 - `GET /api/payments/:orderCode/status`
-
   - **Description**: Gets real-time payment status for order
   - **Parameters**: `orderCode` (required): Order code
   - **Returns**: Current payment status and transaction details
@@ -5733,7 +5706,6 @@ We protect all API endpoints with smart rate limiting:
 ##### Shipping & Address API
 
 - `POST /api/shipping/calculate`
-
   - **Description**: Calculates shipping costs for order
   - **Body**:
     - `items`: Array of products with quantities and weights
@@ -5742,7 +5714,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Available shipping options with costs and delivery times
 
 - `POST /api/shipping/address/validate`
-
   - **Description**: Validates and standardizes shipping address
   - **Body**:
     - `address`: Address to validate
@@ -5750,7 +5721,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Validated address with corrections and suggestions
 
 - `GET /api/shipping/methods`
-
   - **Description**: Gets available shipping methods for workspace
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5758,7 +5728,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Available shipping methods with pricing
 
 - `POST /api/shipping/create`
-
   - **Description**: Creates shipping label and tracking
   - **Body**:
     - `orderCode`: Order to ship
@@ -5774,7 +5743,6 @@ We protect all API endpoints with smart rate limiting:
 ##### Invoice & PDF API
 
 - `POST /api/invoices/generate`
-
   - **Description**: Generates professional PDF invoice for order
   - **Body**:
     - `orderCode`: Order to invoice
@@ -5783,14 +5751,12 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Generated invoice details with PDF download URL
 
 - `GET /api/invoices/:orderCode/download`
-
   - **Description**: Downloads PDF invoice using secure temporary link
   - **Parameters**: `orderCode` (required): Order code
   - **Query**: `token` (required): Secure download token
   - **Returns**: PDF file download
 
 - `GET /api/invoices`
-
   - **Description**: Lists all invoices for workspace with advanced filtering
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5801,7 +5767,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated invoice list with download links
 
 - `GET /api/invoices/:invoiceId/details`
-
   - **Description**: Gets detailed invoice information
   - **Parameters**: `invoiceId` (required): Invoice identifier
   - **Returns**: Complete invoice details with payment history
@@ -5817,7 +5782,6 @@ We protect all API endpoints with smart rate limiting:
 ##### Order Analytics & Reports API
 
 - `GET /api/orders/analytics/summary`
-
   - **Description**: Gets comprehensive order analytics summary
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5826,7 +5790,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Order metrics including revenue, volume, average order value
 
 - `GET /api/orders/analytics/products`
-
   - **Description**: Gets product performance analytics from orders
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5835,7 +5798,6 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Top-selling products with quantities and revenue
 
 - `GET /api/orders/analytics/customers`
-
   - **Description**: Gets customer ordering behavior analytics
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5854,13 +5816,11 @@ We protect all API endpoints with smart rate limiting:
 #### Settings API
 
 - `GET /api/settings`
-
   - **Description**: Gets workspace settings
   - **Parameters**: `workspace_id` (required): Workspace identifier
   - **Returns**: All workspace settings
 
 - `PUT /api/settings`
-
   - **Description**: Updates workspace settings
   - **Parameters**: `workspace_id` (required): Workspace identifier
   - **Body**: Object containing settings to update
@@ -5871,7 +5831,6 @@ We protect all API endpoints with smart rate limiting:
     - Blocked users cannot send messages and are filtered out from conversations
 
 - `GET /api/settings/templates`
-
   - **Description**: Gets message templates
   - **Parameters**: `workspace_id` (required): Workspace identifier
   - **Returns**: Available message templates
@@ -5884,14 +5843,12 @@ We protect all API endpoints with smart rate limiting:
 #### Media API
 
 - `POST /api/media/upload`
-
   - **Description**: Uploads a media file
   - **Body**: Multipart form with file
   - **Parameters**: `workspace_id` (required): Workspace identifier
   - **Returns**: Uploaded file details with URL
 
 - `GET /api/media`
-
   - **Description**: Lists media files
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5907,7 +5864,6 @@ We protect all API endpoints with smart rate limiting:
 #### Agent Configuration API
 
 - `GET /api/agent-config`
-
   - **Description**: Gets AI agent configuration
   - **Parameters**: `workspace_id`
   - **Returns**: Current AI configuration
@@ -5920,7 +5876,6 @@ We protect all API endpoints with smart rate limiting:
 #### WhatsApp Integration API
 
 - `POST /api/whatsapp/webhook`
-
   - **Description**: Webhook for incoming WhatsApp messages
   - **Body**: Message payload from WhatsApp Business API
   - **Returns**: Acknowledgment of receipt
@@ -6716,28 +6671,24 @@ Backend/
 #### ✅ **COSA FA N8N:**
 
 1. **Business Logic Checks**
-
    - Workspace Active Verification
    - Chatbot Status Verification
    - Channel Availability Checks
    - Customer Blacklist Verification
 
 2. **User Experience Management**
-
    - New vs Existing Customer Detection
    - Welcome Message Logic
    - Language Preference Handling
    - Conversation Context Management
 
 3. **AI Processing Pipeline**
-
    - Checkout Intent Detection
    - RAG Search Coordination
    - OpenRouter LLM Calls (DIRECT)
    - Response Formatting & Enhancement
 
 4. **External System Integration**
-
    - WhatsApp Message Sending
    - Security Token Generation
    - Third-party API Calls
@@ -7276,43 +7227,45 @@ Ogni messaggio WhatsApp passa attraverso il workflow N8N che chiama gli endpoint
 
 ### **📋 Current Implementation Status**
 
-| Function | Type | Status | Task |
-|----------|------|---------|------|
-| GetProducts | Custom Function | ✅ Active | Completed |
-| RagSearch | Custom Function | ✅ Active | Completed |
-| CreateOrder | Custom Function | ✅ Active | Completed |
-| GetActiveOffers | Custom Function | ✅ Active | Completed |
-| GetCustomer | Custom Function | ✅ Active | Completed |
-| GetCategories | Custom Function | ✅ Active | Completed |
+| Function        | Type                | Status        | Task         |
+| --------------- | ------------------- | ------------- | ------------ |
+| GetProducts     | Custom Function     | ✅ Active     | Completed    |
+| RagSearch       | Custom Function     | ✅ Active     | Completed    |
+| CreateOrder     | Custom Function     | ✅ Active     | Completed    |
+| GetActiveOffers | Custom Function     | ✅ Active     | Completed    |
+| GetCustomer     | Custom Function     | ✅ Active     | Completed    |
+| GetCategories   | Custom Function     | ✅ Active     | Completed    |
 | **GetInvoices** | **Custom Function** | **✅ Active** | **Task #30** |
 
 ### **🚀 Planned Calling Functions**
 
-| Function | Type | Priority | Task | Purpose |
-|----------|------|----------|------|---------|
-| **GetInvoicesCall** | **Calling Function** | **🚨 HIGH** | **Task #36** | **LLM-integrated invoice requests** |
-| GetCheckoutCall | Calling Function | 📈 Medium | Task #35 | LLM-integrated checkout process |
-| GetCartCall | Calling Function | 📈 Medium | Task #35 | LLM-integrated cart management |
-| HandleOrdinaryCustomer | Custom Function | 📈 Medium | Task #32 | Customer type differentiation |
+| Function               | Type                 | Priority    | Task         | Purpose                             |
+| ---------------------- | -------------------- | ----------- | ------------ | ----------------------------------- |
+| **GetInvoicesCall**    | **Calling Function** | **🚨 HIGH** | **Task #36** | **LLM-integrated invoice requests** |
+| GetCheckoutCall        | Calling Function     | 📈 Medium   | Task #35     | LLM-integrated checkout process     |
+| GetCartCall            | Calling Function     | 📈 Medium   | Task #35     | LLM-integrated cart management      |
+| HandleOrdinaryCustomer | Custom Function      | 📈 Medium   | Task #32     | Customer type differentiation       |
 
 ### **🧾 GetInvoicesCall Implementation Plan**
 
 **Purpose**: Convert invoice requests from natural language to structured invoice access
 
 **Integration Flow**:
+
 ```
-Cliente: "Voglio vedere le fatture di marzo" 
-→ LLM Processing 
-→ GetInvoicesCall(filters: {month: 'march'}) 
-→ Backend Invoice API 
-→ Secure Token Generation 
+Cliente: "Voglio vedere le fatture di marzo"
+→ LLM Processing
+→ GetInvoicesCall(filters: {month: 'march'})
+→ Backend Invoice API
+→ Secure Token Generation
 → WhatsApp Response with Link
 ```
 
 **Technical Requirements** (Task #36):
+
 - **Backend Calling Function**: `/src/chatbot/calling-functions/getInvoices.ts`
 - **LLM Integration**: Natural language query processing
-- **Filter Support**: Date ranges, amounts, status filtering  
+- **Filter Support**: Date ranges, amounts, status filtering
 - **Response Formatting**: WhatsApp-optimized messages
 - **Security**: Session token validation before execution
 
@@ -7604,18 +7557,20 @@ ShopMe utilizza 7 funzioni personalizzate nel workflow N8N per fornire un'esperi
 - **Summary Statistics**: Totali pagati, in attesa, scaduti per overview rapida
 
 **PARAMETRI:**
+
 ```javascript
 GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
 ```
 
 **RESPONSE FORMAT:**
+
 ```javascript
 {
   success: true,
   invoiceListUrl: "https://domain.com/invoice?token=abc123",
   totalInvoices: 5,
   totalPaid: "800.00",
-  totalPending: "450.00", 
+  totalPending: "450.00",
   totalOverdue: "0.00",
   customerName: "Mario Rossi",
   message: "📋 *Le tue fatture*\n\nHo trovato 5 fatture:\n✅ Pagate: €800.00\n⏳ In attesa: €450.00\n\n[Visualizza tutte](link)",
@@ -7624,6 +7579,7 @@ GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
 ```
 
 **TRIGGER ESEMPI:**
+
 - "Vorrei vedere le mie fatture" → Generate secure invoice link
 - "Ho bisogno delle fatture per la contabilità" → Invoice access with summary
 - "Mostrami le fatture di questo mese" → Filtered invoice view
@@ -7824,13 +7780,13 @@ GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
 
 **DIFFERENZE CON FLUSSI ESISTENTI:**
 
-| Aspetto | Cart Traditional | Checkout Link | **Conversational Flow** |
-|---------|------------------|---------------|-------------------------|
-| **Input** | add_to_cart() calls | Prodotti specifici | **Chat libera** |
-| **Memoria** | Database cart | Parameter espliciti | **Conversazione LLM** |
-| **Trigger** | "Ordina carrello" | Comando diretto | **"Confermi l'ordine?"** |
-| **Output** | Ordine immediato | Token + URL | **Token + URL** |
-| **Completamento** | Subito | Form web | **Form web** |
+| Aspetto           | Cart Traditional    | Checkout Link       | **Conversational Flow**  |
+| ----------------- | ------------------- | ------------------- | ------------------------ |
+| **Input**         | add_to_cart() calls | Prodotti specifici  | **Chat libera**          |
+| **Memoria**       | Database cart       | Parameter espliciti | **Conversazione LLM**    |
+| **Trigger**       | "Ordina carrello"   | Comando diretto     | **"Confermi l'ordine?"** |
+| **Output**        | Ordine immediato    | Token + URL         | **Token + URL**          |
+| **Completamento** | Subito              | Form web            | **Form web**             |
 
 **IMPLEMENTAZIONE TECNICA:**
 

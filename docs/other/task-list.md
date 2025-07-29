@@ -1,50 +1,25 @@
 # Phase 0 task
 
-- test di integrazione cancellare tutti
-- mettere campo debug-mode per evtare di far salire il contatore
-- Posso fare qualcos'altro per lei nel frattempo? (da togliere)
-- SISTEMARE IL PRD
-- dentro settinggs il campo blacklist puo' sparire
-- controllare flusso blacklost sopratutto che non savli dati nel DB ci deve essre un test per questo e il PRD DEVE ESSERE AGGIORNATO
--
+- controllare flusso blacklost sopratutto che non savli dati nel DB ci deve essre un test per questo e il
 - Analytics Dashboard- defailt 1 mese e poi dobbiamo capire i costi mensili mostrarli
-- nel campo di cljent devo poter vedere i campi GDPR Push Chatbot blacklist pre modificarli
+- nel campo di cljent devo poter editare i booleaan
+- devo verificare la mail
+- test funzioantni
 
 # PHASE 1 TASKS
 
-<<<<<<< HEAD
+- CF pdf
 
 - ⏳ **TODO: n8n TOKEN** - Configurazione manuale token in N8N (Andrea)
 - CF pdf
-- SISTEMARE IL PRD
 
 - sistema di invoice ?
-
-- pulizia metodi
-
-=======
-<<<<<<< HEAD
-
-- ✅ **COMPLETATO: N8N integration usage tracking automatico** - €0.005 tracking integrato in MessageRepository.saveMessage() prima del salvataggio nello storico
-- ⏳ **TODO: TESTARE tracking usage** - Dashboard mostra sempre €3.88, servono nuovi messaggi AI per vedere incremento €0.005
-- ✅ **COMPLETATO: Mail a contact operator** - CF ContactOperator aggiornato con AI summary e email all'operatore
-
-- ⏳ **TODO: ma il filtro posso toglierlo**
 - ⏳ **TODO: n8n TOKEN**
 - ⏳ **TODO: Integrare TrackUsage nel workflow N8N** - CF pronto, serve integrazione nel workflow
 - 🆕 **TODO: Integrare confirmOrderFromConversation in N8N** - CF pronto, serve configurazione manuale in workflow
 - CF pdf
-- SISTEMARE IL PRD
-- # TEST DEVONO ESSERE FUNZIONANTI
-- devo verificare la mail
-- mettere customer.blacklist a true nella chata
-- ⏳ **TODO: Icona blacklist nella lista clienti** - Cliente blacklisted deve avere icona visiva nella lista
-  > > > > > > > main
+
 - sistema di invoice ?
-- docker name possiamo cambiarlo da shopme_n8n_unifend a shopme_n8
-- CF pdf
-- TEST DEVONO ESSERE FUNZIONANTI
-  > > > > > > > main
 
 ## TASK #24
 
@@ -100,8 +75,6 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 **STATUS**: 🔴 Not Started
 
 ================================================================================
-
-# <<<<<<< HEAD
 
 ## TASK #39
 

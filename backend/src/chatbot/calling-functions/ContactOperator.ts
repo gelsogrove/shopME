@@ -42,7 +42,9 @@ export async function ContactOperator({
 
     // Check if customer has email
     if (!customer.email) {
-      logger.warn(`Customer ${customer.name || phone} has no email - continuing without email requirement`)
+      logger.warn(
+        `Customer ${customer.name || phone} has no email - continuing without email requirement`
+      )
     }
 
     // Get workspace and admin email
@@ -81,25 +83,29 @@ export async function ContactOperator({
     })
 
     // Create AI-powered message summary for the operator
-    const conversationText = recentMessages.length > 0
-      ? recentMessages
-          .slice(0, 10) // Last 10 messages for AI analysis
-          .reverse() // Show chronological order
-          .map(
-            (msg) =>
-              `${msg.direction === "INBOUND" ? "Cliente" : "Bot"}: ${msg.content}`
-          )
-          .join("\n")
-      : "Nessuna conversazione recente disponibile"
+    const conversationText =
+      recentMessages.length > 0
+        ? recentMessages
+            .slice(0, 10) // Last 10 messages for AI analysis
+            .reverse() // Show chronological order
+            .map(
+              (msg) =>
+                `${msg.direction === "INBOUND" ? "Cliente" : "Bot"}: ${msg.content}`
+            )
+            .join("\n")
+        : "Nessuna conversazione recente disponibile"
 
     // Generate AI summary of the conversation for the operator
-    const aiSummary = await generateAIChatSummary(conversationText, customer.name || phone)
+    const aiSummary = await generateAIChatSummary(
+      conversationText,
+      customer.name || phone
+    )
 
     const emailContent = `
 🚨 RICHIESTA OPERATORE UMANO
 
 📱 Cliente: ${customer.name} (${phone})
-📧 Email cliente: ${customer.email || 'N/A'}
+📧 Email cliente: ${customer.email || "N/A"}
 🌐 Workspace: ${workspaceId}
 ⏰ Data richiesta: ${new Date().toLocaleString("it-IT")}
 
@@ -107,7 +113,7 @@ export async function ContactOperator({
 ${aiSummary}
 
 ℹ️ Il chatbot è stato automaticamente disattivato per questo cliente.
-📞 Contattare il cliente al numero ${phone} ${customer.email ? `o via email ${customer.email}` : ''} il prima possibile.
+📞 Contattare il cliente al numero ${phone} ${customer.email ? `o via email ${customer.email}` : ""} il prima possibile.
     `
 
     // Send email notification to operator (adminEmail) if configured
@@ -122,7 +128,7 @@ ${aiSummary}
           chatSummary: aiSummary, // Use AI-generated summary
           workspaceName: workspace.name,
           subject: `🔔 Cliente ${customer.name || phone} richiede assistenza operatore`,
-          fromEmail: 'noreply@shopme.com', // Fixed sender email
+          fromEmail: "noreply@shopme.com", // Fixed sender email
           // TODO: Add chatId if chat system is available
         })
 
