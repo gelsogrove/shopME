@@ -168,7 +168,9 @@ export function ClientSheet({
       )
       setIsBlacklisted(fetchedClient.isBlacklisted || false)
       setActiveChatbot(
-        fetchedClient.activeChatbot !== undefined ? fetchedClient.activeChatbot : true
+        fetchedClient.activeChatbot !== undefined
+          ? fetchedClient.activeChatbot
+          : true
       )
 
       // Set invoice address data
@@ -668,10 +670,13 @@ export function ClientSheet({
                   <h3 className="text-lg font-medium text-gray-800">
                     ⚙️ Settings
                   </h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center justify-between space-x-2">
-                      <Label htmlFor="pushNotificationsConsent" className="text-sm font-medium">
+                      <Label
+                        htmlFor="pushNotificationsConsent"
+                        className="text-sm font-medium"
+                      >
                         Push Notifications
                       </Label>
                       <Switch
@@ -682,7 +687,10 @@ export function ClientSheet({
                     </div>
 
                     <div className="flex items-center justify-between space-x-2">
-                      <Label htmlFor="activeChatbot" className="text-sm font-medium text-blue-700">
+                      <Label
+                        htmlFor="activeChatbot"
+                        className="text-sm font-medium text-blue-700"
+                      >
                         🤖 Active Chatbot
                       </Label>
                       <Switch
@@ -693,7 +701,10 @@ export function ClientSheet({
                     </div>
 
                     <div className="flex items-center justify-between space-x-2">
-                      <Label htmlFor="isBlacklisted" className="text-sm font-medium text-red-700">
+                      <Label
+                        htmlFor="isBlacklisted"
+                        className="text-sm font-medium text-red-700"
+                      >
                         🚫 Block Customer
                       </Label>
                       <Switch
