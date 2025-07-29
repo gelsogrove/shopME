@@ -36,7 +36,7 @@
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
-          "id": "4JfPoZsmYesM6iq1",
+          "id": "C49k0CYPoAMmFonb",
           "name": "OpenRouter API"
         }
       }
@@ -142,7 +142,7 @@
     },
     {
       "parameters": {
-        "toolDescription": "🔍 **RAGSEARCH() - SISTEMA DI RICERCA SEMANTICA AVANZATA CON STRATEGIA PREZZI**\n\n**COSA FA QUESTA FUNZIONE:**\nRicerca semantica intelligente che interroga TUTTE le fonti di conoscenza del business (prodotti, FAQ, servizi, documenti) e applica automaticamente la strategia prezzi con sconti cliente e offerte attive.\n\n**TABELLE DATABASE CONSULTATE:**\n📊 **PRODUCTS** - Ricerca prodotti per similitudine semantica con embedding\n❓ **FAQS** - Cerca domande frequenti e risposte correlate alla query\n🔧 **SERVICES** - Trova servizi disponibili correlati alla richiesta\n📄 **DOCUMENTS** - Ricerca documenti caricati (PDF, regolamenti, policy)\n👤 **CUSTOMERS** - Recupera sconto personalizzato del cliente (discount %)\n🏷️ **OFFERS** - Controlla offerte attive per categoria/globali con date validità\n🏢 **CATEGORIES** - Verifica associazioni categoria-prodotto per offerte specifiche\n\n**FLUSSO DI ESECUZIONE:**\n1️⃣ **Ricerca Parallela**: Embedding search su products/faqs/services/documents\n2️⃣ **Recupero Customer**: Estrae discount% dalla tabella customers\n3️⃣ **Calcolo Offerte**: Trova offerte attive (startDate <= NOW <= endDate)\n4️⃣ **Strategia Prezzi NON-CUMULATIVA**: Sconto più alto vince (cliente vs migliore offerta)\n5️⃣ **Calcolo Finale**: Applica sconto vincente e calcola prezzi finali\n\n**STRATEGIA PREZZI (Andrea's Logic):**\n💰 **NON-CUMULATIVO**: Se cliente ha 10% e Black Friday 20% → Usa 20%\n🏆 **Migliore Vince**: Confronta sconto cliente vs migliore offerta attiva\n📅 **Time-Based**: Quando Black Friday finisce → Torna a sconto cliente 10%\n🎯 **Per Categoria**: Offerte specifiche per categoria vs offerte globali\n\n**ESEMPI DI QUERY CHE ATTIVANO RAGSEARCH:**\n- \"Avete mozzarella di bufala?\" → Cerca nei PRODUCTS\n- \"Quanto costa il servizio di trasporto?\" → Cerca nei SERVICES  \n- \"Che regole devo seguire per il trasporto?\" → Cerca nei DOCUMENTS\n- \"Come posso pagare?\" → Cerca nelle FAQS\n- \"What kind of wine do you have?\" → Multilingua su PRODUCTS\n- \"Avete sconti attivi?\" → Controlla OFFERS e customer.discount\n\n**OUTPUT STRUTTURATO:**\n```json\n{\n  \"businessType\": \"ECOMMERCE\",\n  \"products\": [{\n    \"similarity\": 0.85,\n    \"product\": {\n      \"name\": \"Mozzarella Bufala DOP\",\n      \"originalPrice\": 9.99,\n      \"finalPrice\": 7.99,\n      \"hasDiscount\": true,\n      \"discountPercent\": 20,\n      \"discountSource\": \"offer\",\n      \"discountName\": \"Black Friday 2024\"\n    }\n  }],\n  \"faqs\": [...],\n  \"services\": [...],\n  \"documents\": [...]\n}\n```",
+        "toolDescription": "🔍 **RAGSEARCH() - SISTEMA DI RICERCA SEMANTICA AVANZATA CON STRATEGIA PREZZI**\n\n**COSA FA QUESTA FUNZIONE:**\nRicerca semantica intelligente che interroga TUTTE le fonti di conoscenza del business (prodotti, FAQ, servizi, documenti) e applica automaticamente la strategia prezzi con sconti cliente e offerte attive.\n\n**TABELLE DATABASE CONSULTATE:**\n📊 **PRODUCTS** - Ricerca prodotti per similitudine semantica con embedding\n❓ **FAQS** - Cerca domande frequenti e risposte correlate alla query\n🔧 **SERVICES** - Trova servizi disponibili correlati alla richiesta\n📄 **DOCUMENTS** - Ricerca documenti caricati (PDF, regolamenti, policy)\n👤 **CUSTOMERS** - Recupera sconto personalizzato del cliente (discount %)\n🏷️ **OFFERS** - Controlla offerte attive per categoria/globali con date validità\n🏢 **CATEGORIES** - Verifica associazioni categoria-prodotto per offerte specifiche\n\n**FLUSSO DI ESECUZIONE:**\n1️⃣ **Ricerca Parallela**: Embedding search su products/faqs/services/documents\n2️⃣ **Recupero Customer**: Estrae discount% dalla tabella customers\n3️⃣ **Calcolo Offerte**: Trova offerte attive (startDate <= NOW <= endDate)\n4️⃣ **Strategia Prezzi NON-CUMULATIVA**: Sconto più alto vince (cliente vs migliore offerta)\n5️⃣ **Calcolo Finale**: Applica sconto vincente e calcola prezzi finali\n\n**STRATEGIA PREZZI (Andrea's Logic):**\n💰 **NON-CUMULATIVO**: Se cliente ha 10% e Black Friday 20% → Usa 20%\n🏆 **Migliore Vince**: Confronta sconto cliente vs migliore offerta attiva\n📅 **Time-Based**: Quando Black Friday finisce → Torna a sconto cliente 10%\n🎯 **Per Categoria**: Offerte specifiche per categoria vs offerte globali\n\n**ESEMPI DI QUERY CHE ATTIVANO RAGSEARCH:**\n- \"Avete mozzarella di bufala?\" → Cerca nei PRODUCTS\n- \"Quanto costa il servizio di trasporto?\" → Cerca nei SERVICES  \n- \"Che regole devo seguire per il trasporto?\" → Cerca nei DOCUMENTS\n- \"Come posso pagare?\" → Cerca nelle FAQS\n- \"What kind of wine do you have?\" → Multilingua su PRODUCTS\n- \"Avete sconti attivi?\" → Controlla OFFERS e customer.discount\n\n**OUTPUT STRUTTURATO:**\n```json\n{\n  \"businessType\": \"ECOMMERCE\",\n  \"products\": [{\n    \"similarity\": 0.85,\n    \"product\": {\n      \"name\": \"Mozzarella Bufala DOP\",\n      \"originalPrice\": 9.99,\n      \"finalPrice\": 7.99,\n      \"hasDiscount\": true,\n      \"discountPercent\": 20,\n      \"discountSource\": \"offer\",\n      \"discountName\": \"Black Friday 2024\"\n    }\n  }],\n  \"faqs\": [...],\n  \"services\": [...],\n  \"documents\": [...]\n}\n```\n\nIMPORTANTE\nSemantic search for products, FAQs, services, and documents. The query must be in English. The agent translates user queries before calling this function.\n\n\n",
         "method": "POST",
         "url": "=http://host.docker.internal:3001/api/internal/rag-search",
         "authentication": "genericCredentialType",
@@ -154,12 +154,12 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [580, 480],
+      "position": [480, 460],
       "id": "9194a962-fa10-4e33-95bb-e140344ba816",
       "name": "RagSearch()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "sSHGzddwCitP0S04",
+          "id": "O1pWJ6rdDXo8ppZj",
           "name": "Backend API Basic Auth"
         }
       }
@@ -178,12 +178,12 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [760, 480],
+      "position": [640, 460],
       "id": "0f33aa9d-9736-4406-947b-d3af2be2ad9b",
       "name": "GetAllProducts()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "sSHGzddwCitP0S04",
+          "id": "O1pWJ6rdDXo8ppZj",
           "name": "Backend API Basic Auth"
         }
       }
@@ -202,12 +202,12 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [940, 480],
+      "position": [820, 460],
       "id": "e8fcd67f-1a3d-49a6-a7b7-ca2c3dd80971",
       "name": "ContactOperator()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "sSHGzddwCitP0S04",
+          "id": "O1pWJ6rdDXo8ppZj",
           "name": "Backend API Basic Auth"
         }
       }
@@ -226,12 +226,12 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1120, 480],
+      "position": [1000, 460],
       "id": "923290cb-6bd5-4442-af75-1803db7ba433",
       "name": "GetAllCategories()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "sSHGzddwCitP0S04",
+          "id": "O1pWJ6rdDXo8ppZj",
           "name": "Backend API Basic Auth"
         }
       }
@@ -250,36 +250,12 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1280, 480],
+      "position": [1180, 460],
       "id": "217d48bf-0eda-4995-b34d-af46b925bc0b",
       "name": "GetActiveOffers()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "sSHGzddwCitP0S04",
-          "name": "Backend API Basic Auth"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "toolDescription": "🛒 **CREATEORDER() - CREAZIONE ORDINE E CHECKOUT**\n\n**COSA FA QUESTA FUNZIONE:**\nCrea un link di checkout sicuro per il cliente quando esprime intenzione di acquisto. Genera un token univoco e un URL di pagamento con tutti i prodotti/servizi richiesti e prezzi finali applicando la strategia sconti di Andrea.\n\n**TABELLE DATABASE CONSULTATE:**\n🛒 **ORDERS** - Crea nuovo ordine con stato \"pending\"\n👤 **CUSTOMERS** - Recupera dati cliente e sconto personalizzato\n📊 **PRODUCTS/SERVICES** - Valida disponibilità e calcola prezzi finali\n💰 **PRICE_CALCULATION** - Applica logica sconti (cliente vs offerte)\n🔐 **CHECKOUT_TOKENS** - Genera token sicuro con scadenza\n\n**FLUSSO DI ESECUZIONE:**\n1️⃣ **Parsing Richiesta**: Analizza messaggio cliente per estrarre prodotti/quantità\n2️⃣ **Validazione Prodotti**: Controlla disponibilità e calcola prezzi\n3️⃣ **Applicazione Sconti**: Usa strategia Andrea (miglior sconto vince)\n4️⃣ **Creazione Ordine**: Salva ordine con stato \"pending\"\n5️⃣ **Generazione Checkout**: Crea link sicuro con token e scadenza\n6️⃣ **Risposta Cliente**: Fornisce link per completare pagamento\n\n**STRATEGIA PREZZI (Andrea's Logic):**\n💰 **NON-CUMULATIVO**: Applica il miglior sconto tra cliente e offerte\n🏆 **MIGLIORE VINCE**: customer.discount vs offers.discountPercent\n📱 **CHECKOUT SICURO**: Token temporaneo con scadenza 30 minuti\n💳 **PAGAMENTO**: Integrazione con gateway di pagamento\n\n**ESEMPI DI QUERY CHE ATTIVANO CREATEORDER:**\n**ITALIANO:**\n- \"vorrei ordinare 2 mozzarelle e 1 pasta\"\n- \"aggiungi al carrello\"\n- \"fammi un ordine\"\n- \"voglio comprare questo\"\n- \"procediamo al checkout\"\n- \"come posso pagare?\"\n\n**ENGLISH:**\n- \"I want to order 2 cheeses\"\n- \"add to cart\"\n- \"I'd like to buy this\"\n- \"proceed to checkout\"\n\n**SPANISH:**\n- \"quiero pedir 2 quesos\"\n- \"añadir al carrito\"\n- \"proceder al checkout\"\n\n**OUTPUT STRUTTURATO:**\n```json\n{\n  \"success\": true,\n  \"checkout_url\": \"https://laltrait.com/checkout/abc123def456\",\n  \"checkout_token\": \"abc123def456\",\n  \"expires_at\": \"2024-12-01T15:30:00Z\",\n  \"response_message\": \"🛒 Perfetto! Ho preparato il tuo ordine:\\n\\n🧀 Mozzarella Bufala DOP x2 - €15.98 (sconto 20%)\\n🍝 Pasta Gragnano IGP x1 - €3.99\\n\\n💰 Totale: €19.97 (risparmi €4.00!)\\n\\n🔗 Completa l'ordine qui: https://laltrait.com/checkout/abc123def456\\n⏰ Link valido per 30 minuti\"\n}\n```\n\n**IMPORTANTE:** Sempre confermare prodotti e quantità prima di creare il checkout. Link scade automaticamente dopo 30 minuti per sicurezza.",
-        "method": "POST",
-        "url": "=http://host.docker.internal:3001/api/internal/create-checkout-link",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpBasicAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"phoneNumber\": \"{{ $('prepare-data').item.json.phone }}\",\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n  \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\",\n  \"message\": \"{{ $('prepare-data').item.json.chatInput }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequestTool",
-      "typeVersion": 4.2,
-      "position": [1660, 360],
-      "id": "e0fa8b8f-0b34-4479-a832-63610a029d53",
-      "name": "CreateOrder()",
-      "credentials": {
-        "httpBasicAuth": {
-          "id": "sSHGzddwCitP0S04",
+          "id": "O1pWJ6rdDXo8ppZj",
           "name": "Backend API Basic Auth"
         }
       }
@@ -298,12 +274,36 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1460, 460],
+      "position": [1360, 460],
       "id": "a0221ba1-1f54-49e9-ab37-c58795f2887e",
       "name": "GetServices()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "sSHGzddwCitP0S04",
+          "id": "O1pWJ6rdDXo8ppZj",
+          "name": "Backend API Basic Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "📝 **CREATEORDER() - CREAZIONE ORDINE CON PRODOTTI E SERVIZI**\n\n**COSA FA QUESTA FUNZIONE:**  \nCrea un nuovo ordine per il cliente, includendo sia prodotti che servizi, con quantità e prezzo per ciascun item.\n\n**COME CHIAMARE LA FUNZIONE:**  \n- Passa un array `items` che può contenere sia prodotti che servizi.  \n- Ogni item deve avere almeno: `type` (\"product\" o \"service\"), `id`, `name`, `quantity`, `unitPrice`.  \n- Puoi aggiungere altri campi come `notes` se necessario.\n\n**ESEMPIO DI BODY:**\n```json\n{\n  \"workspaceId\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n  \"customerId\": \"test-customer-123\",\n  \"items\": [\n    {\n      \"type\": \"product\",\n      \"id\": \"prod-001\",\n      \"name\": \"Mozzarella Bufala DOP\",\n      \"quantity\": 2,\n      \"unitPrice\": 7.99\n    },\n    {\n      \"type\": \"service\",\n      \"id\": \"serv-001\",\n      \"name\": \"Trasporto Refrigerato\",\n      \"quantity\": 1,\n      \"unitPrice\": 12.75\n    }\n  ],\n  \"notes\": \"Consegna urgente, lasciare alla porta.\"\n}\n\nIMPORTANTE: \n\n\nSpecifica sempre type per ogni item. Puoi aggiungere notes o altri dati utili.\n\n**This function must only be called after the user has explicitly confirmed the order with a clear confirmation phrase (e.g. 'Confirm order', 'Confermo ordine', 'Order now'). The assistant must always show the updated order summary and ask for confirmation after any changes or questions. Do NOT call this function for generic order intent or before confirmation.**\n\n \n\n\nOUTPUT\n\n{\n  \"success\": true,\n  \"orderId\": \"ord-12345\",\n  \"message\": \"Ordine creato con successo!\"\n}\n\n",
+        "method": "POST",
+        "url": "=http://host.docker.internal:3001/api/internal/create-order",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=  {\n    \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n     \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\"\n  }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [1540, 460],
+      "id": "63d6e134-19ad-48b1-8849-c21528e8aaee",
+      "name": "CreateOrder()",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "O1pWJ6rdDXo8ppZj",
           "name": "Backend API Basic Auth"
         }
       }
@@ -518,17 +518,28 @@
           }
         ]
       ]
+    },
+    "CreateOrder()": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "3b125fc7-d6f5-4aa6-9c0a-292a55fdb610",
+  "versionId": "0e57627a-d1b1-41a6-8cdb-be7fc1e4ddc5",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
   },
-  "id": "dL7aNbCbEeWLNJZ2",
+  "id": "IZWZFxqBTj0EQCtM",
   "tags": []
 }
