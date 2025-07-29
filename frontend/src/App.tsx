@@ -10,7 +10,6 @@ import SignupPage from "./pages/auth/SignupPage"
 import { ChatPage } from "./pages/ChatPage"
 import { ChatTestPage } from "./pages/ChatTestPage"
 import ClientsPage from "./pages/ClientsPage"
-import CustomersPage from "./pages/CustomersPage"
 
 import DataProtectionPage from "./pages/data-protection"
 import DocumentsPage from "./pages/DocumentsPage"
@@ -87,9 +86,6 @@ export function App() {
           <Route path="/clients" element={<Layout />}>
             <Route index element={<ClientsPage />} />
             <Route path=":id" element={<ClientsPage />} />
-          </Route>
-          <Route path="/customers" element={<Layout />}>
-            <Route index element={<CustomersPage />} />
           </Route>
           <Route path="/orders" element={<Layout />}>
             <Route index element={<OrdersPage />} />

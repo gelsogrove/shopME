@@ -36,83 +36,6 @@ const prisma = new PrismaClient()
  *           type: string
  *         description:
  *           type: string
- *           nullable: true
- *     ChannelStatus:
- *       type: object
- *       properties:
- *         isActive:
- *           type: boolean
- *           nullable: true
- *         workspaceName:
- *           type: string
- *         businessType:
- *           $ref: '#/components/schemas/BusinessType'
- *         reason:
- *           type: string
- *     RAGSearchRequest:
- *       type: object
- *       required:
- *         - query
- *         - workspaceId
- *       properties:
- *         query:
- *           type: string
- *           description: Search query for RAG
- *         workspaceId:
- *           type: string
- *           description: Workspace ID
- *         businessType:
- *           $ref: '#/components/schemas/BusinessType'
- *     RAGSearchResponse:
- *       type: object
- *       properties:
- *         businessType:
- *           $ref: '#/components/schemas/BusinessType'
- *         products:
- *           type: array
- *           items:
- *             type: object
- *             properties:
- *               id:
- *                 type: string
- *                 description: Product ID
- *               name:
- *                 type: string
- *                 description: Product name
- *               description:
- *                 type: string
- *                 description: Product description
- *               price:
- *                 type: number
- *                 description: Discounted price (final price shown to customer)
- *               originalPrice:
- *                 type: number
- *                 description: Original price before discount
- *               discountPercent:
- *                 type: number
- *                 description: Discount percent applied (0 if none)
- *               discountSource:
- *                 type: string
- *                 description: Source of discount ("customer" or "offer")
- *               formatted:
- *                 type: string
- *                 description: Formatted price string with discount details
- *               stock:
- *                 type: number
- *                 description: Units in stock
- *               category:
- *                 type: string
- *                 description: Product category
- *         faqs:
- *           type: array
- *           items:
- *             type: object
- *         services:
- *           type: array
- *           items:
- *             type: object
- *         documents:
- *           type: array
  *           items:
  *             type: object
  *     LLMProcessRequest:
@@ -3174,6 +3097,43 @@ ${JSON.stringify(ragResults, null, 2)}`
         success: false,
         error: "Internal server error",
       })
+    }
+  }
+
+  /**
+   * POST /internal/create-order
+   * Crea un ordine via N8N Custom Function
+   * Body: { workspaceId, customerId }
+   */
+  async createOrderInternal(req: Request, res: Response): Promise<void> {
+    try {
+      const { workspaceId, customerId } = req.body
+      if (!workspaceId || !customerId) {
+        res.status(400).json({
+          success: false,
+          error: "workspaceId e customerId sono obbligatori",
+          example: {
+            workspaceId: "clzd8x8z20000356cqhpe6yu0",
+            customerId: "cus_123456"
+          }
+        })
+        return
+      }
+      // TODO: Integrare con la logica reale di creazione ordine
+      // Per ora mock: restituisco successo e i parametri ricevuti
+      res.status(200).json({
+        success: true,
+        message: `Ordine creato per customerId ${customerId} in workspace ${workspaceId}`,
+        workspaceId,
+        customerId,
+        order: {
+          id: "mock-order-id",
+          orderCode: "ORD-0001"
+        }
+      })
+    } catch (error) {
+      logger.error("[INTERNAL-API] Errore creazione ordine:", error)
+      res.status(500).json({ success: false, error: "Internal server error" })
     }
   }
 }

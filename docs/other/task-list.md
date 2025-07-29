@@ -1,62 +1,12 @@
 # Phase 0 task
 
-- controllare flusso blacklost sopratutto che non savli dati nel DB ci deve essre un test per questo e il
-- Analytics Dashboard- defailt 1 mese e poi dobbiamo capire i costi mensili mostrarli
-- nel campo di cljent devo poter editare i booleaan
-- devo verificare la mail
-- test funzioantni
-
 # PHASE 1 TASKS
 
-- CF pdf
-
-- ⏳ **TODO: n8n TOKEN** - Configurazione manuale token in N8N (Andrea)
-- CF pdf
-
+- devo verificare la mail
+- faq?
+- ordini ?
 - sistema di invoice ?
-- ⏳ **TODO: n8n TOKEN**
-- ⏳ **TODO: Integrare TrackUsage nel workflow N8N** - CF pronto, serve integrazione nel workflow
-- 🆕 **TODO: Integrare confirmOrderFromConversation in N8N** - CF pronto, serve configurazione manuale in workflow
-- CF pdf
-
-- sistema di invoice ?
-
-## TASK #24
-
-**TITLE**: N8N - CF New Order
-**DESCRIPTION/ROADMAP**:
-
-- Implement a new N8N Custom Function (CF) for the "New Order" workflow
-- Integrate with backend as needed
-- Ensure proper error handling and logging
-- Test the workflow end-to-end
-
-**SPECIAL NOTE**:
-Andrea requires a dedicated N8N CF for new order management.
-
-**STORY POINT**: 5
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #27
-
-**TITLE**: Payment Page: Create Order and Handle Shipping Address via Call Function
-**DESCRIPTION/ROADMAP**:
-
-- On payment confirmation, trigger a call function to the backend to create a new order record
-- Manage the shipping address as part of this call function flow
-- Update the call function prompt to include all necessary order and shipping address details
-- Ensure the backend correctly saves the order and shipping address
-- Test the end-to-end flow from payment to order creation and address storage
-
-**SPECIAL NOTE**:
-Andrea requires that the payment page, once payment is confirmed, always triggers a backend call function to create the order and handle the shipping address. The prompt for the call function must be updated to reflect this logic.
-
-**STORY POINT**: 7
-**STATUS**: 🔴 Not Started
-
-================================================================================
+- PDF
 
 ## TASK #38
 
@@ -76,154 +26,11 @@ Andrea wants to try uploading and managing a legal notice PDF to validate the do
 
 ================================================================================
 
-## TASK #39
-
-**TITLE**: ✅ COMPLETATO - Conversational Order Flow Implementato
-**DESCRIPTION/ROADMAP**:
-
-#### **1. CUSTOM FUNCTION N8N** ✅ IMPLEMENTATO
-
-**File**: `backend/src/chatbot/calling-functions/confirmOrderFromConversation.ts` ✅
-
-- ✅ Implementata `confirmOrderFromConversation()`
-- ✅ Estrae prodotti dalla conversazione corrente (no carrello)
-- ✅ Validazione prodotti nel database con ricerca fuzzy
-- ✅ Genera token sicuro con type='conversational_order_checkout'
-- ✅ Integrata in function-handler e message-repository
-- ✅ Compatibile con checkout controller esistente
-
-**ESEMPIO FLUSSO COMPLETO**:
-
-```
-1. Cliente: "Voglio maglietta rossa" → LLM traccia mentalmente
-2. Cliente: "E jeans blu" → LLM aggiunge alla lista mentale
-3. Cliente: "Confermo l'ordine" → LLM chiama confirmOrderFromConversation()
-4. Sistema: genera token + URL checkout
-5. Cliente: clicca link → completa checkout web
-```
-
-#### **2. PAGINA CHECKOUT COMPLETA** ✅ IMPLEMENTATO
-
-**File**: `frontend/src/pages/CheckoutPage.tsx` + Route `/checkout/:token`
-
-- **Design**: Pattern identico a `/register` (fuori auth, responsive)
-- **Token Validation**: API call a `/api/checkout/token/:token`
-- **Pre-fill Data**: Indirizzi da `customer.address` e `customer.invoiceAddress`
-
-**STEP 1 - Carrello Avanzato**:
-
-- View prodotti dal token con quantità/prezzo
-- Edit quantità (max = stock disponibile) con controlli real-time
-- Remove prodotti con conferma
-- **Add Modal**: Prodotti attivi filtrati `isActive=true AND stock>0`
-  - Lista prodotti con stock indicators
-  - Selezione quantità con limiti stock
-  - Validazione disponibilità prima aggiunta
-
-**STEP 2 - Indirizzi Smart**:
-
-- Pre-compilazione automatica da customer data
-- Checkbox "Stesso indirizzo fatturazione"
-- Validazione campi obbligatori
-
-**STEP 3 - Conferma & Submit**:
-
-- Riepilogo completo ordine
-- Campo note aggiuntive
-- Submit con loading states
-
-#### **3. API BACKEND COMPLETO** ✅ IMPLEMENTATO
-
-**Files**: `backend/src/interfaces/http/routes/checkout.routes.ts` + `checkout.controller.ts`
-
-- **GET `/api/checkout/token/:token`**: Validazione token + return customer/prodotti data
-- **POST `/api/checkout/submit`**: Creazione ordine completa con notifiche
-- **Order Creation**: Status PENDING, OrderCode auto-gen `ORD-YYYYMMDD-XXX`
-- **Cart Reset**: Automatic cartItems cleanup dopo submit
-- **Error Handling**: Comprehensive con status codes appropriati
-
-#### **4. NOTIFICHE MULTI-CHANNEL** ✅ IMPLEMENTATO
-
-**Su Submit Checkout**:
-
-- **Email Customer** (text semplice): "Ordine X preso in consegna, verrai contattato"
-- **Email Admin** (`settings.adminEmail`): "Nuovo ordine X da confermare"
-- **WhatsApp** (salva in chat): "✅ Ordine X preso in consegna! Ti faremo sapere il prima possibile"
-
-**Su Conferma Operatore** (`PENDING → CONFIRMED`):
-
-- **Email Customer**: "🎉 Ordine X confermato! Ti contatteremo per consegna"
-- **Email Admin**: "Ordine X confermato e processato"
-- **WhatsApp**: "🎉 Ordine confermato! Numero X. Ti contatteremo per dettagli consegna"
-
-#### **5. STOCK SERVICE COMPLETO** ✅ IMPLEMENTATO
-
-**File**: `backend/src/application/services/stock.service.ts`
-
-- **NO scala stock su checkout** (rimane disponibile per altri)
-- **Auto-scala su conferma**: `PENDING → CONFIRMED` con validazione stock
-- **Auto-ripristina su cancellazione**: `CONFIRMED/SHIPPED → CANCELLED`
-- **Stock Logging**: Audit trail di tutte le modifiche stock
-- **Insufficient Stock Handling**: Graceful degradation con warnings
-
-#### **6. ADMIN PANEL AGGIORNATO** ✅ IMPLEMENTATO
-
-**Files**: `frontend/src/pages/ProductsPage.tsx` + `DataTable.tsx` + `CrudPageContent.tsx`
-
-- **Row Rosse Stock 0**: Styling condizionale `bg-red-50 border-l-4 border-red-500`
-- **Status Indicators**: "Out of Stock", "Low Stock", "Available" con colori
-- **Product Filtering**: API params `?active=true&inStock=true`
-- **Stock Display**: Numerico con color coding (rosso/arancione/verde)
-
-#### **7. PRODUCT API FILTERING** ✅ IMPLEMENTATO
-
-**Files**: `backend/src/repositories/product.repository.ts` + `product.controller.ts`
-
-- **New Filters**: `ProductFilters.inStock` e `ProductFilters.active`
-- **Repository Logic**: `WHERE stock > 0 AND isActive = true`
-- **Controller Params**: Query string parsing per `active=true&inStock=true`
-- **Checkout Integration**: Modal prodotti usa filtri automaticamente
-
-#### **8. UX/UI COMPLETO** ✅ IMPLEMENTATO
-
-**Features Avanzate**:
-
-- **Progress Steps**: Visual 1→2→3 con colori dinamici
-- **Loading States**: Spinners, disabled buttons, skeleton screens
-- **Error Handling**: Toast notifications, form validation, retry logic
-- **Responsive**: Mobile-first design, touch-friendly controls
-- **Accessibility**: Proper labels, focus management, screen reader support
-
-#### **9. PROMPT AGENT INTEGRATION** ⏳ TODO
-
-- **Raccogliere prodotti** durante conversazione normale
-- **Rilevare intent conferma**: "procedo", "ordino", "confermo", "checkout", "finalizza"
-- **Solo allora** chiamare `createOrderCheckoutLink` con prodotti raccolti
-
-#### **10. TESTING SUITE** ⏳ TODO
-
-- Test unitari scala/ripristina stock su cambio status
-- Test edge cases (stock insufficiente, prodotto disattivato)
-- Test token validation e scadenza
-- Test flusso email e WhatsApp completo
-- Test responsività mobile
-- Integration tests end-to-end
-
-**STORY POINT**: 10
-**STATUS**: 🟢 COMPLETATO - Checkout Flow + Stock Management + UI Completi, TODO: Solo Agent Prompt + Testing
-
-================================================================================
-
-> > > > > > > main
-> > > > > > > blockuser
-
--
-
 # PHASE 2 TASKS
 
 - prompt con url dinamici?
-- ⏳ **TODO: token viene passato?**
-- - dentro il pannello se il token scade?
+- token viene passato a n8n ?
+- dentro il pannello di admin se il token scade cosa succede?
 
 ## TASK #3
 
@@ -402,83 +209,27 @@ Andrea requires a clean and maintainable database. All legacy or unused tables m
 **STORY POINT**: TBD
 **STATUS**: 🔵 PHASE 2
 
-================================================================================
+## TASK #19
 
-## TASK #41
+Configurazione manuale token in N8N poi deve arrivare alle chiamate
+di CF e validare il token se non va bisogna ritornare un messaggio
+di errore chiaro per il cliente
 
-**TITLE**: Integrazione Manuale confirmOrderFromConversation in N8N Workflow
+## TASK #27
+
+**TITLE**: Payment Page: Create Order and Handle Shipping Address via Call Function
 **DESCRIPTION/ROADMAP**:
 
-La nuova calling function `confirmOrderFromConversation` è stata implementata e testata nel backend, ma deve essere integrata manualmente nel workflow N8N per essere utilizzabile dal chatbot.
-
-**STEPS RICHIESTI**:
-
-1. **Accesso N8N Interface**:
-   - Aprire l'interfaccia N8N del workspace
-   - Navigare al workflow principale del chatbot
-
-2. **Aggiungere Nuova Function**:
-   - Aggiungere `confirmOrderFromConversation` alla lista delle function calling disponibili
-   - Configurare i parametri richiesti:
-     ```json
-     {
-       "name": "confirmOrderFromConversation",
-       "description": "Conferma ordine dalla conversazione corrente e genera link checkout sicuro",
-       "parameters": {
-         "conversationContext": "string",
-         "prodottiSelezionati": "array[{nome, quantita, descrizione?, codice?}]"
-       }
-     }
-     ```
-
-3. **Test del Flusso**:
-   - Testare il conversational order flow completo:
-     - Cliente: "Voglio maglietta rossa"
-     - Bot: "✅ Maglietta aggiunta alla selezione"
-     - Cliente: "Confermo l'ordine"
-     - Bot: Chiama `confirmOrderFromConversation()` → Genera token + URL
-
-4. **Validazione Response**:
-   - Verificare che il bot riceva correttamente:
-     - `success: true`
-     - `response: "🛒 Riepilogo Ordine..."`
-     - `checkoutUrl: "https://frontend.com/checkout/token"`
-     - `totalAmount: number`
-
-5. **Error Handling**:
-   - Testare gestione errori:
-     - Prodotto non trovato
-     - Parametri mancanti
-     - Errori database
-
-**ENDPOINT BACKEND**:
-
-- Function Handler: `/api/internal/function-call`
-- Function Name: `confirmOrderFromConversation`
-- Method: POST
-
-**TESTING CHECKLIST**:
-
-- [ ] Function apparisca in lista N8N functions
-- [ ] Parametri vengano passati correttamente
-- [ ] Response del backend venga gestita dal workflow
-- [ ] Messaggio finale contenga link checkout formattato
-- [ ] Gestione errori funzioni correttamente
-- [ ] Link checkout apra pagina funzionante
-
-**FILES COINVOLTI**:
-
-- ✅ `backend/src/chatbot/calling-functions/confirmOrderFromConversation.ts` - Implementato
-- ✅ `backend/src/application/services/function-handler.service.ts` - Integrato
-- ✅ `backend/src/repositories/message.repository.ts` - Function aggiunta
-- 🔧 **N8N Workflow Configuration** - DA CONFIGURARE MANUALMENTE
+- On payment confirmation, trigger a call function to the backend to create a new order record
+- Manage the shipping address as part of this call function flow
+- Update the call function prompt to include all necessary order and shipping address details
+- Ensure the backend correctly saves the order and shipping address
+- Test the end-to-end flow from payment to order creation and address storage
 
 **SPECIAL NOTE**:
-Questa integrazione deve essere fatta manualmente tramite l'interfaccia N8N perché la configurazione del workflow non è gestita via codice. La function è pronta lato backend e tutti i test unitari passano.
+Andrea requires that the payment page, once payment is confirmed, always triggers a backend call function to create the order and handle the shipping address. The prompt for the call function must be updated to reflect this logic.
 
-**STORY POINT**: 3
-**STATUS**: 🟡 Ready for Manual Configuration
+**STORY POINT**: 7
+**STATUS**: 🔴 Not Started
 
 ================================================================================
-
-## NOTE
