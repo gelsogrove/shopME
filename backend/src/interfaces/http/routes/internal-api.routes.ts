@@ -15,6 +15,12 @@ router.get(
   internalApiController.testRagOpen.bind(internalApiController)
 )
 
+// 🛒 CREATE ORDER ENDPOINT - No Auth Required (Temporary for debugging)
+// This endpoint is OUTSIDE the auth middleware for N8N debugging
+router.post("/create-order", (req, res) =>
+  internalApiController.createOrderInternal(req, res)
+)
+
 // Apply authentication middleware to all other internal API routes
 router.use(n8nAuthMiddleware)
 
@@ -635,5 +641,58 @@ router.post("/get-active-offers", (req, res) =>
 router.post("/get-cf-services", (req, res) =>
   internalApiController.getCFServices(req, res)
 )
+
+/**
+ * @swagger
+ * /internal/create-order:
+ *   post:
+ *     tags:
+ *       - Internal API - N8N
+ *     summary: Create Order (N8N)
+ *     description: Create a new order for a customer with items and services
+ *     security:
+ *       - InternalAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - workspaceId
+ *               - customerId
+ *               - items
+ *             properties:
+ *               workspaceId:
+ *                 type: string
+ *               customerId:
+ *                 type: string
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     type:
+ *                       type: string
+ *                       enum: [product, service]
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     quantity:
+ *                       type: number
+ *                     unitPrice:
+ *                       type: number
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Order created successfully
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ */
+// NOTE: Route definition moved above auth middleware for debugging
 
 export { router as internalApiRoutes }

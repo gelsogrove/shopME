@@ -3180,12 +3180,15 @@ ${JSON.stringify(ragResults, null, 2)}`
   /**
    * POST /internal/create-order
    * Crea un ordine via N8N Custom Function
-   * Body: { workspaceId, customerId }
+   * Body: { workspaceId, customerId, items?, totalAmount?, notes? }
    */
   async createOrderInternal(req: Request, res: Response): Promise<void> {
     try {
-      const { workspaceId, customerId } = req.body
-      if (!workspaceId || !customerId) {
+      const { workspaceId, customerId, customerid, items, totalAmount, notes, shippingAddress, billingAddress } = req.body
+      // Supporta sia customerId che customerid per compatibilità con N8N
+      const finalCustomerId = customerId || customerid
+      
+      if (!workspaceId || !finalCustomerId) {
         res.status(400).json({
           success: false,
           error: "workspaceId e customerId sono obbligatori",
@@ -3196,21 +3199,132 @@ ${JSON.stringify(ragResults, null, 2)}`
         })
         return
       }
-      // TODO: Integrare con la logica reale di creazione ordine
-      // Per ora mock: restituisco successo e i parametri ricevuti
+
+      logger.info(`[CREATE-ORDER] Creating order for customer ${finalCustomerId} in workspace ${workspaceId}`)
+
+      // Verifica che il customer esista
+      const customer = await this.prisma.customers.findFirst({
+        where: {
+          id: finalCustomerId,
+          workspaceId: workspaceId
+        }
+      })
+
+      if (!customer) {
+        res.status(404).json({
+          success: false,
+          error: "Customer not found in the specified workspace",
+        })
+        return
+      }
+
+      // Genera un orderCode univoco
+      const orderCode = await this.generateOrderCode()
+
+      // Se non ci sono items specifici, crea un ordine placeholder
+      let orderItems = items || []
+      let finalTotalAmount = totalAmount || 0
+
+      // Se non ci sono items, crea un ordine vuoto con importo 0
+      if (!orderItems || orderItems.length === 0) {
+        logger.info(`[CREATE-ORDER] Creating empty order for customer ${customer.name}`)
+        finalTotalAmount = 0
+        orderItems = []
+      }
+
+      // Crea l'ordine reale nel database
+      const order = await this.prisma.orders.create({
+        data: {
+          orderCode,
+          status: "PENDING",
+          totalAmount: finalTotalAmount,
+          shippingAmount: 0,
+          taxAmount: 0,
+          discountAmount: 0,
+          shippingAddress: shippingAddress || null,
+          billingAddress: billingAddress || null,
+          notes: notes || `Ordine creato tramite N8N per ${customer.name}`,
+          customerId: finalCustomerId,
+          workspaceId: workspaceId,
+          items: {
+            create: orderItems.map((item: any) => ({
+              itemType: item.type || "PRODUCT",
+              quantity: item.quantity || 1,
+              unitPrice: item.unitPrice || 0,
+              totalPrice: (item.quantity || 1) * (item.unitPrice || 0),
+              productId: item.productId || null,
+              serviceId: item.serviceId || null,
+              // Memorizza il productCode nel productVariant come JSON se fornito
+              productVariant: item.productCode ? { 
+                productCode: item.productCode,
+                name: item.name || null
+              } : null,
+            })),
+          },
+        },
+        include: {
+          items: {
+            include: {
+              product: true,
+              service: true,
+            }
+          },
+          customer: true,
+        },
+      })
+
+      logger.info(`[CREATE-ORDER] ✅ Order created successfully: ${orderCode} for customer ${customer.name}`)
+
       res.status(200).json({
         success: true,
-        message: `Ordine creato per customerId ${customerId} in workspace ${workspaceId}`,
+        message: `Ordine creato per ${customer.name} in workspace ${workspaceId}`,
         workspaceId,
-        customerId,
+        customerId: finalCustomerId,
         order: {
-          id: "mock-order-id",
-          orderCode: "ORD-0001"
+          id: order.id,
+          orderCode: order.orderCode,
+          status: order.status,
+          totalAmount: order.totalAmount,
+          itemsCount: order.items.length,
+          customerName: customer.name,
+          createdAt: order.createdAt,
         }
       })
     } catch (error) {
-      logger.error("[INTERNAL-API] Errore creazione ordine:", error)
-      res.status(500).json({ success: false, error: "Internal server error" })
+      logger.error("[CREATE-ORDER] ❌ Errore creazione ordine:", error)
+      res.status(500).json({ 
+        success: false, 
+        error: "Internal server error",
+        message: error instanceof Error ? error.message : "Unknown error"
+      })
     }
+  }
+
+  /**
+   * Generate unique order code (same logic as checkout controller)
+   */
+  private async generateOrderCode(): Promise<string> {
+    const today = new Date()
+    const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "")
+
+    // Find the last order of today
+    const lastOrder = await this.prisma.orders.findFirst({
+      where: {
+        orderCode: {
+          startsWith: `ORD-${dateStr}-`,
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    })
+
+    let sequence = 1
+    if (lastOrder) {
+      const lastSequence = parseInt(lastOrder.orderCode.split("-")[2])
+      sequence = lastSequence + 1
+    }
+
+    return `ORD-${dateStr}-${sequence.toString().padStart(3, "0")}`
   }
 }
