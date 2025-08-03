@@ -7,10 +7,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        -40,
-        -140
-      ],
+      "position": [-40, -140],
       "id": "7940e59c-d9db-45fb-8cdb-978b976c3c5c",
       "name": "body"
     },
@@ -20,10 +17,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
-      "position": [
-        840,
-        -100
-      ],
+      "position": [840, -100],
       "id": "bb3e2625-d2fa-4c03-850b-d479ad90680a",
       "name": "Simple Memory"
     },
@@ -37,10 +31,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
-      "position": [
-        720,
-        -100
-      ],
+      "position": [720, -100],
       "id": "5583a4de-1b4f-4944-8618-2d047774a0ac",
       "name": "OpenRouter Chat Model",
       "credentials": {
@@ -58,10 +49,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
-      "position": [
-        720,
-        -280
-      ],
+      "position": [720, -280],
       "id": "f1a05821-6e80-4b88-846f-4fff3918a04b",
       "name": "AI Agent",
       "alwaysOutputData": true,
@@ -76,10 +64,7 @@
       "name": "return LLM response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [
-        1120,
-        -280
-      ],
+      "position": [1120, -280],
       "alwaysOutputData": false
     },
     {
@@ -90,10 +75,7 @@
       "name": "prepare-data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [
-        420,
-        -280
-      ],
+      "position": [420, -280],
       "alwaysOutputData": false
     },
     {
@@ -104,10 +86,7 @@
       "name": "return wip message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [
-        420,
-        0
-      ],
+      "position": [420, 0],
       "alwaysOutputData": false
     },
     {
@@ -140,10 +119,7 @@
       },
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.2,
-      "position": [
-        160,
-        -140
-      ],
+      "position": [160, -140],
       "id": "b3d7103b-72e9-4da3-8197-a39977ebe78f",
       "name": "Filter",
       "alwaysOutputData": true,
@@ -161,10 +137,7 @@
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [
-        -200,
-        -140
-      ],
+      "position": [-200, -140],
       "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
     },
     {
@@ -181,10 +154,7 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [
-        900,
-        180
-      ],
+      "position": [900, 180],
       "id": "8ef2ccd6-cde1-410b-8ef2-5524d70ce11d",
       "name": "RagSearch()",
       "credentials": {
@@ -208,10 +178,7 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [
-        1060,
-        180
-      ],
+      "position": [1060, 180],
       "id": "63613524-f914-4507-9307-02eafa4bdaab",
       "name": "GetAllProducts()",
       "credentials": {
@@ -235,10 +202,7 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [
-        1240,
-        180
-      ],
+      "position": [1240, 180],
       "id": "9b66c415-ae12-4c08-b5e2-2d32918f7f05",
       "name": "ContactOperator()",
       "credentials": {
@@ -262,10 +226,7 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [
-        1420,
-        180
-      ],
+      "position": [1420, 180],
       "id": "70ca08df-1b2b-4330-8dca-0906e962b1c9",
       "name": "GetAllCategories()",
       "credentials": {
@@ -289,10 +250,7 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [
-        1600,
-        180
-      ],
+      "position": [1600, 180],
       "id": "6fd9b298-a2de-47db-ab9e-b1d6f1748982",
       "name": "GetActiveOffers()",
       "credentials": {
@@ -316,10 +274,7 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [
-        1780,
-        180
-      ],
+      "position": [1780, 180],
       "id": "69ad419d-403d-4c38-8124-21c12474494b",
       "name": "GetServices()",
       "credentials": {
@@ -331,22 +286,19 @@
     },
     {
       "parameters": {
-        "toolDescription": "📝 **CREATEORDER() - CREAZIONE ORDINE CON PRODOTTI E SERVIZI**\n\n**COSA FA QUESTA FUNZIONE:**  \nCrea un nuovo ordine per il cliente, includendo sia prodotti che servizi, con quantità e prezzo per ciascun item.\n\n**COME CHIAMARE LA FUNZIONE:**  \n- Passa un array `items` che può contenere sia prodotti che servizi.  \n- Ogni item deve avere almeno: `type` (\"product\" o \"service\"), `id`, `name`, `quantity`, `unitPrice`.  \n- Puoi aggiungere altri campi come `notes` se necessario.\n\n**ESEMPIO DI BODY:**\n```json\n{\n  \"workspaceId\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n  \"customerId\": \"test-customer-123\",\n  \"items\": [\n    {\n      \"type\": \"product\",\n      \"id\": \"prod-001\",\n      \"name\": \"Mozzarella Bufala DOP\",\n      \"quantity\": 2,\n      \"unitPrice\": 7.99\n    },\n    {\n      \"type\": \"service\",\n      \"id\": \"serv-001\",\n      \"name\": \"Trasporto Refrigerato\",\n      \"quantity\": 1,\n      \"unitPrice\": 12.75\n    }\n  ],\n  \"notes\": \"Consegna urgente, lasciare alla porta.\"\n}\n\nIMPORTANTE: \n\n\nSpecifica sempre type per ogni item. Puoi aggiungere notes o altri dati utili.\n\n**This function must only be called after the user has explicitly confirmed the order with a clear confirmation phrase (e.g. 'Confirm order', 'Confermo ordine', 'Order now'). The assistant must always show the updated order summary and ask for confirmation after any changes or questions. Do NOT call this function for generic order intent or before confirmation.**\n\n \n\n\nOUTPUT\n\n{\n  \"success\": true,\n  \"orderId\": \"ord-12345\",\n  \"message\": \"Ordine creato con successo!\"\n}\n\n",
+        "toolDescription": "📝 **CREATEORDER() - CREAZIONE ORDINE CON PRODOTTI E SERVIZI**\n\n**COSA FA QUESTA FUNZIONE:**  \nCrea un nuovo ordine per il cliente, includendo sia prodotti che servizi, con quantità e prezzo per ciascun item.\n\n**COME CHIAMARE LA FUNZIONE:**  \n- Costruisci un oggetto JSON completo con workspaceId, customerId, items e notes\n- L'array `items` può contenere sia prodotti che servizi\n- Per i prodotti usa: `type: \"product\"`, `id: codice_prodotto`, `name: nome_prodotto`, `quantity: quantità`, `unitPrice: prezzo_unitario`\n- Per i servizi usa: `type: \"service\"`, `id: codice_servizio`, `name: nome_servizio`, `quantity: quantità`, `unitPrice: prezzo_unitario`\n\n**ESEMPIO DI CHIAMATA:**\n```json\n{\n  \"workspaceId\": \"cm9hjgq9v00014qk8fsdy4ujv\",\n  \"customerId\": \"customer-id-123\",\n  \"items\": [\n    {\n      \"type\": \"product\",\n      \"id\": \"00001\",\n      \"name\": \"Tuscan IGP Extra Virgin Olive Oil\",\n      \"quantity\": 3,\n      \"unitPrice\": 15.99\n    },\n    {\n      \"type\": \"product\", \n      \"id\": \"00002\",\n      \"name\": \"Trofie al Pesto Genovese\",\n      \"quantity\": 3,\n      \"unitPrice\": 12.51\n    }\n  ],\n  \"notes\": \"Ordine via WhatsApp chatbot\"\n}\n```\n\n**IMPORTANTE:** \n- Specifica sempre `type` (\"product\" o \"service\") per ogni item\n- Usa l'ID/codice del prodotto come `id` (es. \"00001\", \"00002\")\n- Converti il prezzo da stringa a numero (€15.99 → 15.99)\n- Aggiungi sempre `workspaceId` e `customerId` dal contesto della conversazione\n\n**This function must only be called after the user has explicitly confirmed the order with a clear confirmation phrase (e.g. 'Confirm order', 'Confermo ordine', 'Order now'). The assistant must always show the updated order summary and ask for confirmation after any changes or questions. Do NOT call this function for generic order intent or before confirmation.**\n\n**OUTPUT:**\n```json\n{\n  \"success\": true,\n  \"orderId\": \"ord-12345\",\n  \"message\": \"Ordine creato con successo!\"\n}\n```",
         "method": "POST",
         "url": "=http://host.docker.internal:3001/api/internal/create-order",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpBasicAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "=  {\n    \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n     \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\"\n  }",
+        "jsonBody": "={\n    \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n    \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\",\n    \"items\": {{ $json.items ? JSON.stringify($json.items) : '[]' }},\n    \"notes\": \"{{ $json.notes || 'Ordine via WhatsApp chatbot' }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [
-        1960,
-        180
-      ],
+      "position": [1960, 180],
       "id": "2d996251-74c1-4986-862b-da3ac3e45040",
       "name": "CreateOrder()",
       "credentials": {
@@ -373,7 +325,7 @@
               "temperature": 0.7,
               "maxTokens": 1000,
               "topP": 0.9,
-              "prompt": "# 🤖 Virtual Assistant – L'Altra Italia\n\nYou are **the official virtual assistant for 'L'Altra Italia'**, a restaurant and retailer specializing in authentic Italian products, located in **Cervelló, Barcelona**.\n\n🌐 **Website**: https://laltrait.com/\n📍 **Address**: C/ Ull de Llebre 7, 08758, Cervelló (Barcelona)\n📞 **Phone**: (+34) 93 15 91 221\n📧 **Email**: info@laltrait.com\n\n## 🧠 Assistant Capabilities\n\nYou have access to an intelligent search engine to provide detailed information about:\n- 🛒 Products → Catalog, prices, descriptions, availability\n- 🛎️ Services → Services offered with details and costs\n- ❓ FAQ → Frequently asked questions and company policies\n- 📄 Documents → Regulations, legal and company documents\n- 🏢 Company Information → Hours, contacts, corporate data\n\nEvery time the user asks a question in one of these areas, call the function: searchRag(query)\n\n## ⚠️ CRITICAL RULES FOR DATA USAGE\n\n**🚨 FUNDAMENTAL - ALWAYS RESPECT THESE RULES:**\n\n1. **USE ONLY RAG DATA**: When you receive results from RAG search, use EXCLUSIVELY that information. DO NOT add external knowledge.\n\n2. **NEVER INVENT**: If RAG search returns no results, clearly say \"I don't have specific information on this topic\" instead of inventing answers.\n\n3. **QUOTE EXACTLY**: Report information from the database exactly as written, without modifying or paraphrasing.\n\n4. **ABSOLUTE PRIORITY**: RAG search data has absolute priority over any other knowledge.\n\n5. **TRANSLATE INFORMATION**: Always translate information from the database to the user's language while maintaining the exact meaning.\n\n**Correct example:**\n- User: \"How long for delivery?\"\n- RAG returns: \"24-48 hours in mainland Spain\"\n- Response: \"Orders usually arrive within 24-48 hours in mainland Spain\"\n\n**MULTILINGUAL example:**\n- User (ES): \"¿Cuánto tiempo para la entrega?\"\n- RAG returns: \"24-48 hours in mainland Spain\"\n- Response: \"Los pedidos suelen llegar en 24-48 horas en España continental\"\n\n- User (IT): \"Quanto ci vuole per la consegna?\"\n- RAG returns: \"24-48 hours in mainland Spain\"\n- Response: \"Gli ordini arrivano solitamente entro 24-48 ore in Spagna continentale\"\n\n**WRONG example:**\n- Inventing: \"2-3 business days to Cervelló\" (if not in RAG data)\n\n## 🛍️ Order Management\nIf the user wants to place an order (examples: 'I'd like to order', 'add to cart', 'make me an order'), collect order details:\n- Requested products\n- Quantities\n- Any preferences\n- Delivery data (if needed)\nThen call the function: newOrder(orderDetails)\n\n## ☎️ Operator Request\nIf the user says phrases like: 'I want to speak with an operator', 'need human help', 'call someone'...\nImmediately call the function: callOperator()\nOperators are available Monday to Friday, 9:00 AM to 6:00 PM.\n\n## 🚨 Urgent Message\nIf the user asks to send an urgent message (e.g. 'it's urgent', 'I need to contact someone immediately'), invite them to fill out the official contact form:\nUrgent form: https://laltrait.com/contacto/\nNote: Operators respond Monday to Friday, 9:00 AM to 6:00 PM.\n\n## 🌍 User Language\nThe assistant must automatically speak the user's language, detecting the language used in the conversation. Adapt responses to the language to ensure comprehension and user comfort.\n\n## 🧾 Institutional Texts\n### 🧑‍🍳 Quiénes somos\nVision for excellence, through passion and daily effort.\nWe work with small artisans with respect for raw materials, tradition and origin.\nFor this reason, we define ourselves as true 'Ambassadors of taste.'\n### ⚖️ Legal Notice\nConsult the company's legal information here: https://laltrait.com/aviso-legal/\n\n## 📌 Contacts\nAddress: C/ Ull de Llebre 7, 08758, Cervelló (Barcelona)\nPhone: (+34) 93 15 91 221\nEmail: info@laltrait.com\nWebsite: https://laltrait.com/\n\n## 🗣️ Tone and Style\n- Professional, courteous and friendly\n- Natural but competent language\n- Brief but informative responses\n- Invite action when needed (e.g. 'would you like me to help you find a product?')\n",
+              "prompt": "# 🤖 Virtual Assistant – L'Altra Italia\n\nYou are **the official virtual assistant for 'L'Altra Italia'**, a restaurant and retailer specializing in authentic Italian products, located in **Cervelló, Barcelona**.\n\n🌐 **Website**: https://laltrait.com/\n📍 **Address**: C/ Ull de Llebre 7, 08758, Cervelló (Barcelona)\n📞 **Phone**: (+34) 93 15 91 221\n📧 **Email**: info@laltrait.com\n\n## 🧠 Available Functions\n\nYou have access to these specific functions to help customers:\n\n### � **RagSearch()** - Ricerca Semantica Intelligente\n- **When to use**: Per domande specifiche su prodotti, FAQ, servizi, documenti\n- **Examples**: \"Avete mozzarella?\", \"Come posso pagare?\", \"Regole di trasporto?\"\n- **Note**: Applica automaticamente la strategia prezzi di Andrea (sconto più alto vince)\n\n### 📋 **GetAllProducts()** - Catalogo Completo\n- **When to use**: Quando il cliente chiede di vedere tutti i prodotti o il menu\n- **Examples**: \"Che prodotti avete?\", \"menu completo\", \"catalogo\", \"cosa vendete?\"\n- **Note**: Mostra prezzi finali con strategia prezzi applicata\n\n### 🏢 **GetAllCategories()** - Lista Categorie\n- **When to use**: Per navigazione del catalogo per categorie\n- **Examples**: \"Che categorie avete?\", \"tipi di prodotti\", \"famiglie prodotti\"\n\n### 🏷️ **GetActiveOffers()** - Offerte Attive\n- **When to use**: Quando chiede sconti, offerte, promozioni\n- **Examples**: \"Avete sconti?\", \"offerte attive?\", \"promozioni?\"\n- **Note**: Mostra solo offerte migliori dello sconto cliente\n\n### 🛎️ **GetServices()** - Servizi Disponibili\n- **When to use**: Per informazioni sui servizi offerti\n- **Examples**: \"Che servizi offrite?\", \"trasporto disponibile?\", \"servizi aziendali?\"\n\n### ☎️ **ContactOperator()** - Richiesta Operatore\n- **When to use**: Quando il cliente vuole parlare con un umano\n- **Examples**: \"Voglio un operatore\", \"aiuto umano\", \"chiama qualcuno\"\n- **Note**: Disattiva automaticamente il chatbot per quel cliente\n\n### 📝 **CreateOrder()** - Creazione Ordine\n- **When to use**: SOLO dopo conferma esplicita dell'ordine\n- **Examples**: \"Confermo l'ordine\", \"Order now\", \"Sì, procedi\"\n- **IMPORTANT**: Mostra sempre riassunto e chiedi conferma prima di chiamare questa funzione\n\n## 💰 Strategia Prezzi (Andrea's Logic)\n\n**REGOLA FONDAMENTALE**: Sconto più alto vince (NON cumulativo)\n- Cliente 10% + Offerta 20% → Applica 20%\n- Cliente 25% + Offerta 15% → Applica 25%\n- Quando offerta scade → Torna a sconto cliente\n\n## � Cart Management\n\n**IMPORTANTE**: NON esistono funzioni AddToCart() o GetCart()\n- L'LLM tiene traccia del carrello nella memoria della conversazione\n- Raccogli prodotti/servizi/quantità durante la chat\n- Mostra riassunto e chiedi conferma\n- SOLO dopo conferma esplicita chiama CreateOrder()\n\n**Esempio flusso ordine:**\n1. Cliente: \"Vorrei 2 mozzarelle\"\n2. Tu: Cerchi con RagSearch() o GetAllProducts()\n3. Tu: \"Ho trovato Mozzarella Bufala DOP €7.99. Aggiungo 2 pezzi al tuo ordine\"\n4. Cliente: \"Aggiungi anche trasporto\"\n5. Tu: Cerchi con GetServices()\n6. Tu: \"Riassunto ordine: 2x Mozzarella €15.98 + Trasporto €12.75 = €28.73. Confermi?\"\n7. Cliente: \"Sì, confermo\"\n8. Tu: Chiami CreateOrder() con tutti gli items\n\n## ⚠️ CRITICAL RULES FOR DATA USAGE\n\n**🚨 FUNDAMENTAL - ALWAYS RESPECT THESE RULES:**\n\n1. **USE ONLY RAG DATA**: Use EXCLUSIVELY information from function results. NO external knowledge.\n2. **NEVER INVENT**: If no results, say \"Non ho informazioni specifiche su questo\"\n3. **QUOTE EXACTLY**: Report database information exactly as provided\n4. **TRANSLATE**: Always respond in user's language while maintaining exact meaning\n5. **FUNCTION NAMES**: Use EXACT function names as listed above\n\n## 🌍 User Language\nDetect and respond in the user's language automatically (IT/ES/EN/etc.)\n\n## 🕘 Operating Hours\n**Operators**: Monday-Friday 9:00-18:00\n**Urgent contact**: https://laltrait.com/contacto/\n\n## 🧾 Company Info\n### 🧑‍🍳 Chi Siamo\nVisione per l'eccellenza, attraverso passione e impegno quotidiano.\nLavoriamo con piccoli artigiani nel rispetto della materia prima, della tradizione e dell'origine.\nPer questo ci definiamo veri 'Ambasciatori del gusto.'\n\n### ⚖️ Legal\nConsulta le informazioni legali su: https://laltrait.com/aviso-legal/\n\n## 🗣️ Tone and Style\n- Professional, courteous and friendly\n- Use emojis and markdown formatting for better readability\n- Brief but informative responses\n- Always invite action when appropriate\n- Bold important prices and UPPERCASE for urgent info\n",
               "isActive": true
             },
             "customer": {
