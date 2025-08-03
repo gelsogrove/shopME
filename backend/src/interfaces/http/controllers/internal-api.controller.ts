@@ -36,6 +36,83 @@ const prisma = new PrismaClient()
  *           type: string
  *         description:
  *           type: string
+ *           nullable: true
+ *     ChannelStatus:
+ *       type: object
+ *       properties:
+ *         isActive:
+ *           type: boolean
+ *           nullable: true
+ *         workspaceName:
+ *           type: string
+ *         businessType:
+ *           $ref: '#/components/schemas/BusinessType'
+ *         reason:
+ *           type: string
+ *     RAGSearchRequest:
+ *       type: object
+ *       required:
+ *         - query
+ *         - workspaceId
+ *       properties:
+ *         query:
+ *           type: string
+ *           description: Search query for RAG
+ *         workspaceId:
+ *           type: string
+ *           description: Workspace ID
+ *         businessType:
+ *           $ref: '#/components/schemas/BusinessType'
+ *     RAGSearchResponse:
+ *       type: object
+ *       properties:
+ *         businessType:
+ *           $ref: '#/components/schemas/BusinessType'
+ *         products:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 description: Product ID
+ *               name:
+ *                 type: string
+ *                 description: Product name
+ *               description:
+ *                 type: string
+ *                 description: Product description
+ *               price:
+ *                 type: number
+ *                 description: Discounted price (final price shown to customer)
+ *               originalPrice:
+ *                 type: number
+ *                 description: Original price before discount
+ *               discountPercent:
+ *                 type: number
+ *                 description: Discount percent applied (0 if none)
+ *               discountSource:
+ *                 type: string
+ *                 description: Source of discount ("customer" or "offer")
+ *               formatted:
+ *                 type: string
+ *                 description: Formatted price string with discount details
+ *               stock:
+ *                 type: number
+ *                 description: Units in stock
+ *               category:
+ *                 type: string
+ *                 description: Product category
+ *         faqs:
+ *           type: array
+ *           items:
+ *             type: object
+ *         services:
+ *           type: array
+ *           items:
+ *             type: object
+ *         documents:
+ *           type: array
  *           items:
  *             type: object
  *     LLMProcessRequest:

@@ -36,6 +36,7 @@ export function ProductsPage() {
   const [searchValue, setSearchValue] = useState("")
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("none")
   const [productIsActive, setProductIsActive] = useState(true)
+  const [productCode, setProductCode] = useState("")
 
   // Get currency symbol based on workspace settings
   const currencySymbol = getCurrencySymbol(workspace?.currency)
@@ -90,6 +91,7 @@ export function ProductsPage() {
   // Reset category selection when product changes
   useEffect(() => {
     setSelectedCategoryId(selectedProduct?.categoryId || "none")
+    // Rimuovo il reset del productCode da qui per evitare conflitti
   }, [selectedProduct])
 
   // Filter products based on search value
@@ -97,6 +99,7 @@ export function ProductsPage() {
     (product) =>
       product.isActive &&
       (product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+        product.code?.toLowerCase().includes(searchValue.toLowerCase()) ||
         product.description
           ?.toLowerCase()
           .includes(searchValue.toLowerCase()) ||
@@ -107,6 +110,7 @@ export function ProductsPage() {
 
   const columns = [
     { header: "Name", accessorKey: "name" as keyof Product, size: 200 },
+    { header: "Code", accessorKey: "code" as keyof Product, size: 100 },
     {
       header: "Description",
       accessorKey: "description" as keyof Product,
@@ -203,6 +207,7 @@ export function ProductsPage() {
 
     const productData = {
       name: formData.get("name") as string,
+      code: productCode, // Usa lo state invece del FormData
       description: formData.get("description") as string,
       price: parseFloat(formData.get("price") as string),
       stock: parseInt(formData.get("stock") as string, 10),
@@ -219,6 +224,7 @@ export function ProductsPage() {
       console.log("Marco - Product created successfully:", newProduct)
       setProducts((prev) => [newProduct, ...prev])
       setShowAddSheet(false)
+      setProductCode("") // Reset del productCode dopo il submit
       toast.success("Product created successfully")
     } catch (error) {
       console.error("Marco - Failed to add product:", error)
@@ -230,6 +236,7 @@ export function ProductsPage() {
     setSelectedProduct(product)
     setSelectedCategoryId(product.categoryId || "none")
     setProductIsActive(product.isActive ?? true)
+    setProductCode(product.code || "")
     setShowEditSheet(true)
   }
 
@@ -242,6 +249,7 @@ export function ProductsPage() {
 
     const productData = {
       name: formData.get("name") as string,
+      code: productCode, // Usa lo state invece del FormData
       description: formData.get("description") as string,
       price: parseFloat(formData.get("price") as string),
       stock: parseInt(formData.get("stock") as string, 10),
@@ -264,6 +272,7 @@ export function ProductsPage() {
 
       setShowEditSheet(false)
       setSelectedProduct(null)
+      setProductCode("") // Reset del productCode dopo il submit
       toast.success("Product updated successfully")
     } catch (error) {
       console.error("Failed to update product:", error)
@@ -313,6 +322,23 @@ export function ProductsPage() {
             defaultValue={product?.name}
             required
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="code">Product Code</Label>
+          <Input
+            id="code"
+            name="code"
+            placeholder="Enter product code (e.g., 00001)"
+            value={productCode}
+            onChange={(e) => {
+              const value = e.target.value.slice(0, 5) // Limita a 5 caratteri
+              setProductCode(value)
+            }}
+            maxLength={5}
+            required
+          />
+          <p className="text-xs text-gray-500">Maximum 5 characters</p>
         </div>
 
         <div className="space-y-2">
@@ -410,6 +436,7 @@ export function ProductsPage() {
         onAdd={() => {
           setSelectedCategoryId("none")
           setProductIsActive(true)
+          setProductCode("")
           setShowAddSheet(true)
         }}
         addButtonText="Add"
@@ -418,8 +445,8 @@ export function ProductsPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
         isLoading={isLoading}
-        getRowClassName={(product: Product) => 
-          product.stock === 0 ? 'bg-red-50 border-l-4 border-red-500' : ''
+        getRowClassName={(product: Product) =>
+          product.stock === 0 ? "bg-red-50 border-l-4 border-red-500" : ""
         }
       />
 

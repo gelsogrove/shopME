@@ -98,6 +98,7 @@ class TestProductService extends ProductService {
       {
         id: 'product-1',
         name: 'Test Product',
+        code: '00001',
         categoryId,
         workspaceId: workspaceId || 'workspace-1'
       } as any
@@ -132,6 +133,7 @@ describe('ProductService', () => {
   const mockProduct = new Product({
     id: productId,
     name: 'Test Product',
+    code: '00001',
     description: 'Test Description',
     price: 100,
     stock: 10,

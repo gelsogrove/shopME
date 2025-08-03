@@ -11,6 +11,7 @@ export interface Category {
 export interface Product {
   id: string
   name: string
+  code: string | null
   description: string
   price: number
   stock: number
@@ -36,6 +37,7 @@ export interface Product {
 
 export interface CreateProductData {
   name: string
+  code?: string
   description?: string
   price: number
   stock?: number
@@ -46,6 +48,7 @@ export interface CreateProductData {
 
 export interface UpdateProductData {
   name?: string
+  code?: string
   description?: string
   price?: number
   stock?: number

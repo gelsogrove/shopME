@@ -66,6 +66,7 @@ export function ProductsPage() {
 
   const columns = [
     { header: "Name", accessorKey: "name" as keyof Product },
+    { header: "Code", accessorKey: "code" as keyof Product },
     {
       header: "Price",
       accessorKey: "price" as keyof Product,
@@ -85,6 +86,7 @@ export function ProductsPage() {
 
     const data = {
       name: formData.get("name") as string,
+      code: formData.get("code") as string,
       description: formData.get("description") as string,
       price: parseFloat(formData.get("price") as string),
       stock: parseInt(formData.get("stock") as string),
@@ -117,6 +119,7 @@ export function ProductsPage() {
 
     const data = {
       name: formData.get("name") as string,
+      code: formData.get("code") as string,
       description: formData.get("description") as string,
       price: parseFloat(formData.get("price") as string),
       stock: parseInt(formData.get("stock") as string),
@@ -174,6 +177,12 @@ export function ProductsPage() {
     {
       name: "name",
       label: "Name",
+      type: "text" as const,
+      required: true,
+    },
+    {
+      name: "code",
+      label: "Code",
       type: "text" as const,
       required: true,
     },
