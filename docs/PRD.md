@@ -3992,10 +3992,19 @@ La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo
 
 - Multi-category organization
 - Text-based product descriptions (WhatsApp optimized)
+- Product code system for unique identification
 - Variant management (size, color, etc.)
 - Inventory tracking
 - Discount and promotion configuration
 - Bulk import/export functionality
+
+**Product Code System**:
+- **Unique Product Codes**: Each product has a unique code (e.g., "00001", "00002") for easy identification
+- **Code Format**: 5-digit format with leading zeros (00001-99999)
+- **Required Field**: Product code is mandatory when creating new products
+- **Search Integration**: Products can be searched by code in addition to name and description
+- **Cart Operations**: Product codes are used in cart management and order processing
+- **WhatsApp Integration**: Product codes are referenced in chatbot conversations for precise product identification
 
 **Note**: Product images have been removed from the system to optimize for WhatsApp's text-based interface. The platform now focuses on detailed product descriptions and text-based shopping experiences, which align better with conversational commerce patterns.
 

@@ -1,5 +1,5 @@
 {
-  "name": "My workflow",
+  "name": "My workflow 2",
   "nodes": [
     {
       "parameters": {
@@ -7,8 +7,11 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-460, 140],
-      "id": "42ec1ad6-740b-4ca4-9826-91af92a4ed7c",
+      "position": [
+        -40,
+        -140
+      ],
+      "id": "7940e59c-d9db-45fb-8cdb-978b976c3c5c",
       "name": "body"
     },
     {
@@ -17,8 +20,11 @@
       },
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
-      "position": [420, 180],
-      "id": "bf4ec0d5-ace6-4ca8-9afb-8ad358b039cb",
+      "position": [
+        840,
+        -100
+      ],
+      "id": "bb3e2625-d2fa-4c03-850b-d479ad90680a",
       "name": "Simple Memory"
     },
     {
@@ -31,8 +37,11 @@
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
-      "position": [300, 180],
-      "id": "5d58d00e-d63a-4063-8969-ec550395c814",
+      "position": [
+        720,
+        -100
+      ],
+      "id": "5583a4de-1b4f-4944-8618-2d047774a0ac",
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
@@ -49,8 +58,11 @@
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
-      "position": [300, 0],
-      "id": "bb8a1844-1a90-46a1-bab5-c70ccdff7dec",
+      "position": [
+        720,
+        -280
+      ],
+      "id": "f1a05821-6e80-4b88-846f-4fff3918a04b",
       "name": "AI Agent",
       "alwaysOutputData": true,
       "notesInFlow": false,
@@ -60,33 +72,42 @@
       "parameters": {
         "jsCode": "return {\n  message:  $input.first().json.output\n}"
       },
-      "id": "4f72c8e6-b7ee-43af-9199-a7ebab5ebc8d",
+      "id": "bbf58943-029e-40a9-8b1f-446e09dfb6b8",
       "name": "return LLM response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [700, 0],
+      "position": [
+        1120,
+        -280
+      ],
       "alwaysOutputData": false
     },
     {
       "parameters": {
-        "jsCode": "//const agentConfig =$input.first().json.original.precompiledData.agentConfig\n//const conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\n\nconst messageContent= $input.first().json.messageContent\nconst sessionToken=  $input.first().json.sessionToken\n//const workspaceId = $input.first().json.original.precompiledData.agentConfig.workspaceId\nconst language =   $input.first().json.precompiledData.customer.language\nconst customerid = $input.first().json.precompiledData.customer.id\n  \nconst temperature = $input.first().json.precompiledData.agentConfig.temperature\nconst maxTokens = $input.first().json.precompiledData.agentConfig.maxTokens\nconst model = $input.first().json.precompiledData.agentConfig.model\nconst conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\nconst prompt = $input.first().json.precompiledData.agentConfig.prompt\nconst phone = $input.first().json.precompiledData.customer.phone\nconst discount = $input.first().json.precompiledData.customer.discount | 0\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature,\n      maxTokens,\n      model,\n      messages: conversationHistory,\n      sessionId: sessionToken,\n      language, \n      workspaceId: $input.first().json.workspaceId,\n      customerid,\n      prompt,\n      phone\n    },\n \n  }\n];\n"
+        "jsCode": "//const agentConfig =$input.first().json.original.precompiledData.agentConfig\n//const conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\n\nconst messageContent= $input.first().json.messageContent\n\n//const workspaceId = $input.first().json.original.precompiledData.agentConfig.workspaceId\nconst language =   $input.first().json.precompiledData.customer.language\nconst customerid = $input.first().json.precompiledData.customer.id\n  \nconst temperature = $input.first().json.precompiledData.agentConfig.temperature\nconst maxTokens = $input.first().json.precompiledData.agentConfig.maxTokens\nconst model = $input.first().json.precompiledData.agentConfig.model\nconst conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\nconst prompt = $input.first().json.precompiledData.agentConfig.prompt\nconst phone = $input.first().json.precompiledData.customer.phone\nconst sessionToken=  phone\nconst discount = $input.first().json.precompiledData.customer.discount | 0\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature,\n      maxTokens,\n      model,\n      messages: conversationHistory,\n      sessionId: sessionToken,\n      language, \n      workspaceId: $input.first().json.workspaceId,\n      customerid,\n      prompt,\n      phone\n    },\n \n  }\n];\n"
       },
-      "id": "2dd30af1-75ac-4563-b54a-4a5b5c39afdb",
+      "id": "cf035930-ca87-40c8-b95a-3f8b6ea2e78a",
       "name": "prepare-data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [0, 0],
+      "position": [
+        420,
+        -280
+      ],
       "alwaysOutputData": false
     },
     {
       "parameters": {
         "jsCode": "const languageRaw = $input.first().json.precompiledData.customer.language || 'en';\nconst language = languageRaw.toLowerCase();\n\nlet messageWip = 'WIP_' + language; // fallback generico\n\nconst wipMessages = $input.first().json.wipMessages;\n\nif (language === 'it') {\n    messageWip = wipMessages.it;\n} else if (language === 'es') {\n    messageWip = wipMessages.es;\n} else if (language === 'en') {\n    messageWip = wipMessages.en;\n} else if (language === 'pt') {\n    messageWip = wipMessages.pt;\n} else if (wipMessages[language]) {\n    messageWip = wipMessages[language]; // supporto per altre lingue future\n}\n\nreturn [\n  {\n    json: {\n      message: messageWip\n    }\n  }\n];\n"
       },
-      "id": "f7af54c6-c29e-40f0-ab59-259b0fbec711",
+      "id": "2990aedf-e593-468a-af96-efa696dc6e9f",
       "name": "return wip message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [0, 280],
+      "position": [
+        420,
+        0
+      ],
       "alwaysOutputData": false
     },
     {
@@ -119,8 +140,11 @@
       },
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.2,
-      "position": [-260, 140],
-      "id": "76d817d8-4eb2-49b4-864a-8a57ed24e9ff",
+      "position": [
+        160,
+        -140
+      ],
+      "id": "b3d7103b-72e9-4da3-8197-a39977ebe78f",
       "name": "Filter",
       "alwaysOutputData": true,
       "executeOnce": true,
@@ -133,11 +157,14 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "c1927584-d3e6-4e2d-9a59-a63fa7151a42",
+      "id": "910befb9-0ab0-4c73-ba03-42c80cd306b7",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [-620, 140],
+      "position": [
+        -200,
+        -140
+      ],
       "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
     },
     {
@@ -154,8 +181,11 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [480, 460],
-      "id": "9194a962-fa10-4e33-95bb-e140344ba816",
+      "position": [
+        900,
+        180
+      ],
+      "id": "8ef2ccd6-cde1-410b-8ef2-5524d70ce11d",
       "name": "RagSearch()",
       "credentials": {
         "httpBasicAuth": {
@@ -178,8 +208,11 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [640, 460],
-      "id": "0f33aa9d-9736-4406-947b-d3af2be2ad9b",
+      "position": [
+        1060,
+        180
+      ],
+      "id": "63613524-f914-4507-9307-02eafa4bdaab",
       "name": "GetAllProducts()",
       "credentials": {
         "httpBasicAuth": {
@@ -202,8 +235,11 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [820, 460],
-      "id": "e8fcd67f-1a3d-49a6-a7b7-ca2c3dd80971",
+      "position": [
+        1240,
+        180
+      ],
+      "id": "9b66c415-ae12-4c08-b5e2-2d32918f7f05",
       "name": "ContactOperator()",
       "credentials": {
         "httpBasicAuth": {
@@ -226,8 +262,11 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1000, 460],
-      "id": "923290cb-6bd5-4442-af75-1803db7ba433",
+      "position": [
+        1420,
+        180
+      ],
+      "id": "70ca08df-1b2b-4330-8dca-0906e962b1c9",
       "name": "GetAllCategories()",
       "credentials": {
         "httpBasicAuth": {
@@ -250,8 +289,11 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1180, 460],
-      "id": "217d48bf-0eda-4995-b34d-af46b925bc0b",
+      "position": [
+        1600,
+        180
+      ],
+      "id": "6fd9b298-a2de-47db-ab9e-b1d6f1748982",
       "name": "GetActiveOffers()",
       "credentials": {
         "httpBasicAuth": {
@@ -274,8 +316,11 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1360, 460],
-      "id": "a0221ba1-1f54-49e9-ab37-c58795f2887e",
+      "position": [
+        1780,
+        180
+      ],
+      "id": "69ad419d-403d-4c38-8124-21c12474494b",
       "name": "GetServices()",
       "credentials": {
         "httpBasicAuth": {
@@ -298,8 +343,11 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1540, 460],
-      "id": "63d6e134-19ad-48b1-8849-c21528e8aaee",
+      "position": [
+        1960,
+        180
+      ],
+      "id": "2d996251-74c1-4986-862b-da3ac3e45040",
       "name": "CreateOrder()",
       "credentials": {
         "httpBasicAuth": {
@@ -535,11 +583,10 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "0e57627a-d1b1-41a6-8cdb-be7fc1e4ddc5",
+  "versionId": "b8c72811-47e7-4763-a5c1-13de6cd25bdc",
   "meta": {
-    "templateCredsSetupCompleted": true,
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
   },
-  "id": "IZWZFxqBTj0EQCtM",
+  "id": "7cbaUdwSLz5QVOxf",
   "tags": []
 }
