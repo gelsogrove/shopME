@@ -1,45 +1,42 @@
-import { ProductStatus } from '@prisma/client';
-import { Request, Response } from 'express';
-import { ProductService } from '../../../application/services/product.service';
-import { prisma } from '../../../lib/prisma';
-import { embeddingService } from '../../../services/embeddingService';
-import logger from '../../../utils/logger';
-import { canAddProduct, getPlanLimitErrorMessage, PlanType } from '../../../utils/planLimits';
+import { ProductStatus } from "@prisma/client"
+import { Request, Response } from "express"
+import { ProductService } from "../../../application/services/product.service"
+import { prisma } from "../../../lib/prisma"
+import { embeddingService } from "../../../services/embeddingService"
+import logger from "../../../utils/logger"
+import {
+  canAddProduct,
+  getPlanLimitErrorMessage,
+  PlanType,
+} from "../../../utils/planLimits"
 
 export class ProductController {
-  private productService: ProductService;
+  private productService: ProductService
 
   constructor(productService?: ProductService) {
-    this.productService = productService || new ProductService();
+    this.productService = productService || new ProductService()
   }
 
   getAllProducts = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const workspaceIdParam = req.params.workspaceId;
-      const workspaceIdQuery = req.query.workspaceId as string;
-      const effectiveWorkspaceId = workspaceIdParam || workspaceIdQuery;
-      
+      const workspaceIdParam = req.params.workspaceId
+      const workspaceIdQuery = req.query.workspaceId as string
+      const effectiveWorkspaceId = workspaceIdParam || workspaceIdQuery
+
       if (!effectiveWorkspaceId) {
-        logger.error('WorkspaceId mancante nella richiesta');
-        return res.status(400).json({ 
-          message: 'WorkspaceId is required',
-          error: 'Missing workspaceId parameter' 
-        });
+        logger.error("WorkspaceId mancante nella richiesta")
+        return res.status(400).json({
+          message: "WorkspaceId is required",
+          error: "Missing workspaceId parameter",
+        })
       }
-      
-      const { 
-        search, 
-        categoryId,
-        status, 
-        page, 
-        limit,
-        active,
-        inStock
-      } = req.query;
-      
-      const pageNumber = page ? parseInt(page as string) : undefined;
-      const limitNumber = limit ? parseInt(limit as string) : undefined;
-      
+
+      const { search, categoryId, status, page, limit, active, inStock } =
+        req.query
+
+      const pageNumber = page ? parseInt(page as string) : undefined
+      const limitNumber = limit ? parseInt(limit as string) : undefined
+
       const result = await this.productService.getAllProducts(
         effectiveWorkspaceId,
         {
@@ -48,329 +45,402 @@ export class ProductController {
           status: status as string,
           page: pageNumber,
           limit: limitNumber,
-          active: active === 'true',
-          inStock: inStock === 'true'
+          active: active === "true",
+          inStock: inStock === "true",
         }
-      );
-      
+      )
+
       return res.json({
         products: result.products,
         pagination: {
           total: result.total,
           page: result.page,
-          totalPages: result.totalPages
-        }
-      });
+          totalPages: result.totalPages,
+        },
+      })
     } catch (error) {
-      logger.error('Error fetching products:', error);
-      return res.status(500).json({ 
-        message: 'An error occurred while fetching products',
-        error: (error as Error).message 
-      });
+      logger.error("Error fetching products:", error)
+      return res.status(500).json({
+        message: "An error occurred while fetching products",
+        error: (error as Error).message,
+      })
     }
-  };
+  }
 
   getProductById = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { id } = req.params;
-      const workspaceIdParam = req.params.workspaceId;
-      const workspaceIdQuery = req.query.workspaceId as string;
-      const workspaceId = workspaceIdParam || workspaceIdQuery;
-      
-      if (!workspaceId) {
-        return res.status(400).json({ 
-          message: 'WorkspaceId is required',
-          error: 'Missing workspaceId parameter' 
-        });
-      }
-      
-      const product = await this.productService.getProductById(id, workspaceId);
-      if (!product) {
-        return res.status(404).json({ message: 'Product not found' });
-      }
-      return res.json(product);
-    } catch (error) {
-      logger.error(`Error getting product by ID:`, error);
-      return res.status(500).json({ 
-        message: 'An error occurred while fetching the product',
-        error: (error as Error).message 
-      });
-    }
-  };
+      const { id } = req.params
+      const workspaceIdParam = req.params.workspaceId
+      const workspaceIdQuery = req.query.workspaceId as string
+      const workspaceId = workspaceIdParam || workspaceIdQuery
 
-  getProductsByCategory = async (req: Request, res: Response): Promise<Response> => {
-    try {
-      const { categoryId } = req.params;
-      const workspaceIdParam = req.params.workspaceId;
-      const workspaceIdQuery = req.query.workspaceId as string;
-      const workspaceId = workspaceIdParam || workspaceIdQuery;
-      
       if (!workspaceId) {
-        return res.status(400).json({ 
-          message: 'WorkspaceId is required',
-          error: 'Missing workspaceId parameter' 
-        });
+        return res.status(400).json({
+          message: "WorkspaceId is required",
+          error: "Missing workspaceId parameter",
+        })
       }
-      
-      const products = await this.productService.getProductsByCategory(categoryId, workspaceId);
-      return res.json(products);
+
+      const product = await this.productService.getProductById(id, workspaceId)
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" })
+      }
+      return res.json(product)
     } catch (error) {
-      logger.error(`Error getting products by category:`, error);
-      return res.status(500).json({ 
-        message: 'An error occurred while fetching products by category',
-        error: (error as Error).message 
-      });
+      logger.error(`Error getting product by ID:`, error)
+      return res.status(500).json({
+        message: "An error occurred while fetching the product",
+        error: (error as Error).message,
+      })
     }
-  };
+  }
+
+  getProductsByCategory = async (
+    req: Request,
+    res: Response
+  ): Promise<Response> => {
+    try {
+      const { categoryId } = req.params
+      const workspaceIdParam = req.params.workspaceId
+      const workspaceIdQuery = req.query.workspaceId as string
+      const workspaceId = workspaceIdParam || workspaceIdQuery
+
+      if (!workspaceId) {
+        return res.status(400).json({
+          message: "WorkspaceId is required",
+          error: "Missing workspaceId parameter",
+        })
+      }
+
+      const products = await this.productService.getProductsByCategory(
+        categoryId,
+        workspaceId
+      )
+      return res.json(products)
+    } catch (error) {
+      logger.error(`Error getting products by category:`, error)
+      return res.status(500).json({
+        message: "An error occurred while fetching products by category",
+        error: (error as Error).message,
+      })
+    }
+  }
 
   createProduct = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const workspaceIdParam = req.params.workspaceId;
-      const workspaceIdQuery = req.query.workspaceId as string;
-      const workspaceId = workspaceIdParam || workspaceIdQuery;
-      
-      const productData = req.body;
-      
+      const workspaceIdParam = req.params.workspaceId
+      const workspaceIdQuery = req.query.workspaceId as string
+      const workspaceId = workspaceIdParam || workspaceIdQuery
+
+      const productData = req.body
+
       if (!workspaceId) {
-        return res.status(400).json({ 
-          message: 'WorkspaceId is required',
-          error: 'Missing workspaceId parameter' 
-        });
+        return res.status(400).json({
+          message: "WorkspaceId is required",
+          error: "Missing workspaceId parameter",
+        })
       }
 
       // Check workspace plan and current product count
       const workspace = await prisma.workspace.findUnique({
         where: { id: workspaceId },
-        select: { plan: true }
-      });
+        select: { plan: true },
+      })
 
       if (!workspace) {
         return res.status(404).json({
-          message: 'Workspace not found',
-          error: 'Invalid workspaceId'
-        });
+          message: "Workspace not found",
+          error: "Invalid workspaceId",
+        })
       }
 
       // Count current active products
       const currentProductCount = await prisma.products.count({
         where: {
           workspaceId: workspaceId,
-          isActive: true
-        }
-      });
+          isActive: true,
+        },
+      })
 
       // Check if user can add another product based on their plan
-      const planType = workspace.plan as PlanType;
+      const planType = workspace.plan as PlanType
       if (!canAddProduct(planType, currentProductCount)) {
         return res.status(403).json({
-          message: 'Plan limit reached',
-          error: getPlanLimitErrorMessage(planType, 'products')
-        });
+          message: "Plan limit reached",
+          error: getPlanLimitErrorMessage(planType, "products"),
+        })
       }
-      
+
       if (!productData.workspaceId) {
-        productData.workspaceId = workspaceId;
+        productData.workspaceId = workspaceId
       }
-      
-      const product = await this.productService.createProduct(productData);
+
+      const product = await this.productService.createProduct(productData)
       // Fire-and-forget: trigger embedding regeneration for products
-      embeddingService.generateProductEmbeddings(workspaceId).catch((err) => logger.error('Embedding generation error (create):', err));
-      
-      return res.status(201).json(product);
+      embeddingService
+        .generateProductEmbeddings(workspaceId)
+        .catch((err) =>
+          logger.error("Embedding generation error (create):", err)
+        )
+
+      return res.status(201).json(product)
     } catch (error) {
-      logger.error('Error creating product:', error);
-      return res.status(error.message?.includes('required') ? 400 : 500).json({ 
-        message: 'An error occurred while creating the product',
-        error: (error as Error).message 
-      });
+      logger.error("Error creating product:", error)
+      return res.status(error.message?.includes("required") ? 400 : 500).json({
+        message: "An error occurred while creating the product",
+        error: (error as Error).message,
+      })
     }
-  };
+  }
 
   updateProduct = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { id } = req.params;
-      const workspaceIdParam = req.params.workspaceId;
-      const workspaceIdQuery = req.query.workspaceId as string;
-      const workspaceId = workspaceIdParam || workspaceIdQuery;
-      
+      const { id } = req.params
+      const workspaceIdParam = req.params.workspaceId
+      const workspaceIdQuery = req.query.workspaceId as string
+      const workspaceId = workspaceIdParam || workspaceIdQuery
+
       if (!workspaceId) {
-        return res.status(400).json({ 
-          message: 'WorkspaceId is required',
-          error: 'Missing workspaceId parameter' 
-        });
+        return res.status(400).json({
+          message: "WorkspaceId is required",
+          error: "Missing workspaceId parameter",
+        })
       }
-      
-      const productData = req.body;
-      
+
+      const productData = req.body
+
       // Validate required fields for update
-      if (!productData.name || productData.name.trim() === '') {
-        return res.status(400).json({ 
-          message: 'Product name is required',
-          error: 'Missing required field: name' 
-        });
+      if (!productData.name || productData.name.trim() === "") {
+        return res.status(400).json({
+          message: "Product name is required",
+          error: "Missing required field: name",
+        })
       }
-      
-      if (productData.price === undefined || productData.price === null || isNaN(productData.price) || productData.price < 0) {
-        return res.status(400).json({ 
-          message: 'Valid product price is required',
-          error: 'Missing or invalid field: price' 
-        });
+
+      if (
+        productData.price === undefined ||
+        productData.price === null ||
+        isNaN(productData.price) ||
+        productData.price < 0
+      ) {
+        return res.status(400).json({
+          message: "Valid product price is required",
+          error: "Missing or invalid field: price",
+        })
       }
-      
-      const updatedProduct = await this.productService.updateProduct(id, productData, workspaceId);
+
+      const updatedProduct = await this.productService.updateProduct(
+        id,
+        productData,
+        workspaceId
+      )
       if (!updatedProduct) {
-        return res.status(404).json({ message: 'Product not found' });
+        return res.status(404).json({ message: "Product not found" })
       }
+
       // Fire-and-forget: trigger embedding regeneration for products
-      embeddingService.generateProductEmbeddings(workspaceId).catch((err) => logger.error('Embedding generation error (update):', err));
-      
-      return res.json(updatedProduct);
+      logger.info(
+        `🔄 Product updated, triggering embedding regeneration for workspace: ${workspaceId}, Product ID: ${id}`
+      )
+      embeddingService
+        .generateProductEmbeddings(workspaceId)
+        .then((result) => {
+          logger.info(
+            `✅ Product embedding regeneration completed for workspace ${workspaceId}: processed ${result.processed} products, errors: ${result.errors.length}`
+          )
+          if (result.errors.length > 0) {
+            logger.warn(
+              `⚠️ Product embedding regeneration warnings:`,
+              result.errors
+            )
+          }
+        })
+        .catch((err) => {
+          logger.error(
+            `❌ Product embedding regeneration failed for workspace ${workspaceId}:`,
+            err
+          )
+        })
+
+      return res.json(updatedProduct)
     } catch (error) {
-      logger.error('Error updating product:', error);
-      return res.status(error.message?.includes('negative') ? 400 : 500).json({ 
-        message: 'An error occurred while updating the product',
-        error: (error as Error).message 
-      });
+      logger.error("Error updating product:", error)
+      return res.status(error.message?.includes("negative") ? 400 : 500).json({
+        message: "An error occurred while updating the product",
+        error: (error as Error).message,
+      })
     }
-  };
+  }
 
   deleteProduct = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { id } = req.params;
-      const workspaceIdParam = req.params.workspaceId;
-      const workspaceIdQuery = req.query.workspaceId as string;
-      const workspaceId = workspaceIdParam || workspaceIdQuery;
-      
+      const { id } = req.params
+      const workspaceIdParam = req.params.workspaceId
+      const workspaceIdQuery = req.query.workspaceId as string
+      const workspaceId = workspaceIdParam || workspaceIdQuery
+
       if (!workspaceId) {
-        return res.status(400).json({ 
-          message: 'WorkspaceId is required',
-          error: 'Missing workspaceId parameter' 
-        });
+        return res.status(400).json({
+          message: "WorkspaceId is required",
+          error: "Missing workspaceId parameter",
+        })
       }
-      
+
       // Check if the product exists before deleting it
-      const existingProduct = await this.productService.getProductById(id, workspaceId);
+      const existingProduct = await this.productService.getProductById(
+        id,
+        workspaceId
+      )
       if (!existingProduct) {
-        return res.status(404).json({ message: 'Product not found' });
+        return res.status(404).json({ message: "Product not found" })
       }
-      
-      await this.productService.deleteProduct(id, workspaceId);
+
+      await this.productService.deleteProduct(id, workspaceId)
       // Fire-and-forget: trigger embedding regeneration for products
-      embeddingService.generateProductEmbeddings(workspaceId).catch((err) => logger.error('Embedding generation error (delete):', err));
-      
-      return res.status(200).json({ message: 'Product deleted successfully' });
-    } catch (error) {
-      logger.error('Error deleting product:', error);
-      return res.status(500).json({ 
-        message: 'An error occurred while deleting the product',
-        error: (error as Error).message 
-      });
-    }
-  };
+      embeddingService
+        .generateProductEmbeddings(workspaceId)
+        .catch((err) =>
+          logger.error("Embedding generation error (delete):", err)
+        )
 
-  updateProductStock = async (req: Request, res: Response): Promise<Response> => {
+      return res.status(200).json({ message: "Product deleted successfully" })
+    } catch (error) {
+      logger.error("Error deleting product:", error)
+      return res.status(500).json({
+        message: "An error occurred while deleting the product",
+        error: (error as Error).message,
+      })
+    }
+  }
+
+  updateProductStock = async (
+    req: Request,
+    res: Response
+  ): Promise<Response> => {
     try {
-      const { id } = req.params;
-      const { stock } = req.body;
-      const workspaceIdParam = req.params.workspaceId;
-      const workspaceIdQuery = req.query.workspaceId as string;
-      const workspaceId = workspaceIdParam || workspaceIdQuery;
-      
+      const { id } = req.params
+      const { stock } = req.body
+      const workspaceIdParam = req.params.workspaceId
+      const workspaceIdQuery = req.query.workspaceId as string
+      const workspaceId = workspaceIdParam || workspaceIdQuery
+
       if (!workspaceId) {
-        return res.status(400).json({ 
-          message: 'WorkspaceId is required',
-          error: 'Missing workspaceId parameter' 
-        });
+        return res.status(400).json({
+          message: "WorkspaceId is required",
+          error: "Missing workspaceId parameter",
+        })
       }
-      
+
       if (stock === undefined || stock === null) {
-        return res.status(400).json({ 
-          message: 'Stock value is required',
-          error: 'Missing stock parameter' 
-        });
+        return res.status(400).json({
+          message: "Stock value is required",
+          error: "Missing stock parameter",
+        })
       }
-      
-      const updatedProduct = await this.productService.updateProductStock(id, stock, workspaceId);
-      
-      if (!updatedProduct) {
-        return res.status(404).json({ message: 'Product not found' });
-      }
-      
-      return res.json(updatedProduct);
-    } catch (error) {
-      logger.error('Error updating product stock:', error);
-      return res.status(error.message?.includes('negative') ? 400 : 500).json({ 
-        message: 'An error occurred while updating product stock',
-        error: (error as Error).message 
-      });
-    }
-  };
 
-  updateProductStatus = async (req: Request, res: Response): Promise<Response> => {
-    try {
-      const { id } = req.params;
-      const { status } = req.body;
-      const workspaceIdParam = req.params.workspaceId;
-      const workspaceIdQuery = req.query.workspaceId as string;
-      const workspaceId = workspaceIdParam || workspaceIdQuery;
-      
-      if (!workspaceId) {
-        return res.status(400).json({ 
-          message: 'WorkspaceId is required',
-          error: 'Missing workspaceId parameter' 
-        });
-      }
-      
-      if (!status || !Object.values(ProductStatus).includes(status as ProductStatus)) {
-        return res.status(400).json({ 
-          message: 'Valid status is required',
-          error: 'Missing or invalid status parameter',
-          validStatuses: Object.values(ProductStatus)
-        });
-      }
-      
-      const updatedProduct = await this.productService.updateProductStatus(id, status as ProductStatus, workspaceId);
-      
-      if (!updatedProduct) {
-        return res.status(404).json({ message: 'Product not found' });
-      }
-      
-      return res.json(updatedProduct);
-    } catch (error) {
-      logger.error('Error updating product status:', error);
-      return res.status(500).json({ 
-        message: 'An error occurred while updating product status',
-        error: (error as Error).message 
-      });
-    }
-  };
+      const updatedProduct = await this.productService.updateProductStock(
+        id,
+        stock,
+        workspaceId
+      )
 
-  getProductsWithDiscounts = async (req: Request, res: Response): Promise<Response> => {
-    try {
-      const workspaceIdParam = req.params.workspaceId;
-      const workspaceIdQuery = req.query.workspaceId as string;
-      const workspaceId = workspaceIdParam || workspaceIdQuery;
-      
-      const { customerDiscount } = req.query;
-      const discountValue = customerDiscount ? parseFloat(customerDiscount as string) : undefined;
-      
-      if (!workspaceId) {
-        return res.status(400).json({ 
-          message: 'WorkspaceId is required',
-          error: 'Missing workspaceId parameter' 
-        });
+      if (!updatedProduct) {
+        return res.status(404).json({ message: "Product not found" })
       }
-      
-      const products = await this.productService.getProductsWithDiscounts(workspaceId, discountValue);
-      return res.json(products);
+
+      return res.json(updatedProduct)
     } catch (error) {
-      logger.error('Error fetching products with discounts:', error);
-      return res.status(500).json({ 
-        message: 'An error occurred while fetching products with discounts',
-        error: (error as Error).message 
-      });
+      logger.error("Error updating product stock:", error)
+      return res.status(error.message?.includes("negative") ? 400 : 500).json({
+        message: "An error occurred while updating product stock",
+        error: (error as Error).message,
+      })
     }
-  };
+  }
+
+  updateProductStatus = async (
+    req: Request,
+    res: Response
+  ): Promise<Response> => {
+    try {
+      const { id } = req.params
+      const { status } = req.body
+      const workspaceIdParam = req.params.workspaceId
+      const workspaceIdQuery = req.query.workspaceId as string
+      const workspaceId = workspaceIdParam || workspaceIdQuery
+
+      if (!workspaceId) {
+        return res.status(400).json({
+          message: "WorkspaceId is required",
+          error: "Missing workspaceId parameter",
+        })
+      }
+
+      if (
+        !status ||
+        !Object.values(ProductStatus).includes(status as ProductStatus)
+      ) {
+        return res.status(400).json({
+          message: "Valid status is required",
+          error: "Missing or invalid status parameter",
+          validStatuses: Object.values(ProductStatus),
+        })
+      }
+
+      const updatedProduct = await this.productService.updateProductStatus(
+        id,
+        status as ProductStatus,
+        workspaceId
+      )
+
+      if (!updatedProduct) {
+        return res.status(404).json({ message: "Product not found" })
+      }
+
+      return res.json(updatedProduct)
+    } catch (error) {
+      logger.error("Error updating product status:", error)
+      return res.status(500).json({
+        message: "An error occurred while updating product status",
+        error: (error as Error).message,
+      })
+    }
+  }
+
+  getProductsWithDiscounts = async (
+    req: Request,
+    res: Response
+  ): Promise<Response> => {
+    try {
+      const workspaceIdParam = req.params.workspaceId
+      const workspaceIdQuery = req.query.workspaceId as string
+      const workspaceId = workspaceIdParam || workspaceIdQuery
+
+      const { customerDiscount } = req.query
+      const discountValue = customerDiscount
+        ? parseFloat(customerDiscount as string)
+        : undefined
+
+      if (!workspaceId) {
+        return res.status(400).json({
+          message: "WorkspaceId is required",
+          error: "Missing workspaceId parameter",
+        })
+      }
+
+      const products = await this.productService.getProductsWithDiscounts(
+        workspaceId,
+        discountValue
+      )
+      return res.json(products)
+    } catch (error) {
+      logger.error("Error fetching products with discounts:", error)
+      return res.status(500).json({
+        message: "An error occurred while fetching products with discounts",
+        error: (error as Error).message,
+      })
+    }
+  }
 
   /**
    * Generate embeddings for all active products in a workspace
@@ -409,34 +479,36 @@ export class ProductController {
    */
   async generateEmbeddings(req: Request, res: Response): Promise<Response> {
     try {
-      const workspaceIdParam = req.params.workspaceId;
-      const workspaceIdQuery = req.query.workspaceId as string;
-      const workspaceId = workspaceIdParam || workspaceIdQuery;
-      
+      const workspaceIdParam = req.params.workspaceId
+      const workspaceIdQuery = req.query.workspaceId as string
+      const workspaceId = workspaceIdParam || workspaceIdQuery
+
       if (!workspaceId) {
-        return res.status(400).json({ 
-          message: 'WorkspaceId is required',
-          error: 'Missing workspaceId parameter' 
-        });
+        return res.status(400).json({
+          message: "WorkspaceId is required",
+          error: "Missing workspaceId parameter",
+        })
       }
 
-      logger.info(`Starting product embedding generation for workspace: ${workspaceId}`);
+      logger.info(
+        `Starting product embedding generation for workspace: ${workspaceId}`
+      )
 
-      const result = await embeddingService.generateProductEmbeddings(workspaceId);
+      const result =
+        await embeddingService.generateProductEmbeddings(workspaceId)
 
       return res.status(200).json({
-        message: 'Product embedding generation completed',
+        message: "Product embedding generation completed",
         processed: result.processed,
-        errors: result.errors
-      });
-
+        errors: result.errors,
+      })
     } catch (error) {
-      logger.error('Error generating product embeddings:', error);
-      
+      logger.error("Error generating product embeddings:", error)
+
       return res.status(500).json({
-        message: 'Failed to generate product embeddings',
-        error: (error as Error).message
-      });
+        message: "Failed to generate product embeddings",
+        error: (error as Error).message,
+      })
     }
   }
-} 
+}

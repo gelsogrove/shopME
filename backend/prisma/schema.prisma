@@ -34,24 +34,23 @@ model Workspace {
   afterRegistrationMessages Json?             @default("{\"de\": \"Danke für Ihre Registrierung, [nome]! Wie kann ich Ihnen heute helfen? Möchten Sie Ihre Bestellungen sehen? Die Angebote? Oder benötigen Sie andere Informationen?\", \"en\": \"Thank you for registering, [nome]! How can I help you today? Would you like to see your orders? The offers? Or do you need other information?\", \"es\": \"¡Gracias por registrarte, [nome]! ¿Cómo puedo ayudarte hoy? ¿Quieres ver tus pedidos? ¿Las ofertas? ¿O necesitas otra información?\", \"fr\": \"Merci de vous être inscrit, [nome] ! Comment puis-je vous aider aujourd'hui ? Voulez-vous voir vos commandes ? Les offres ? Ou avez-vous besoin d'autres informations ?\", \"it\": \"Grazie per esserti registrato, [nome]! Come ti posso aiutare oggi? Vuoi vedere i tuoi ordini? Le offerte? O hai bisogno di altre informazioni?\", \"pt\": \"Obrigado por se registrar, [nome]! Como posso ajudá-lo hoje? Quer ver seus pedidos? As ofertas? Ou precisa de outras informações?\"}")
   debugMode                 Boolean           @default(true)
   prompts                   Prompts[]
+  users                     UserWorkspace[]
+  agentConfigs              AgentConfig[]
   carts                     Carts[]
   categories                Categories[]
   chatSessions              ChatSession[]
   customers                 Customers[]
   documents                 Documents[]
   faqs                      FAQ[]
+  gdprContent               GdprContent?
   languages                 Languages[]
   offers                    Offers[]
   orders                    Orders[]
   products                  Products[]
-  services                  Services[]
-  agentConfigs              AgentConfig[]
-
-  users                     UserWorkspace[]
-  whatsappSettings          WhatsappSettings?
   secureTokens              SecureToken[]
-  gdprContent               GdprContent?
+  services                  Services[]
   usage                     Usage[]
+  whatsappSettings          WhatsappSettings?
 }
 
 model Categories {
@@ -87,25 +86,25 @@ model Languages {
 }
 
 model Products {
-  id          String        @id @default(uuid())
+  id          String          @id @default(uuid())
   name        String
-  code        String?       // Product code for identification
+  code        String?
   description String?
   price       Float
-  stock       Int           @default(0)
+  stock       Int             @default(0)
   sku         String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  isActive    Boolean       @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  isActive    Boolean         @default(true)
   workspaceId String
   categoryId  String?
-  slug        String        @unique
-  status      ProductStatus @default(ACTIVE)
+  slug        String          @unique
+  status      ProductStatus   @default(ACTIVE)
   cartItems   CartItems[]
   orderItems  OrderItems[]
   chunks      ProductChunks[]
-  category    Categories?   @relation(fields: [categoryId], references: [id])
-  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
+  category    Categories?     @relation(fields: [categoryId], references: [id])
+  workspace   Workspace       @relation(fields: [workspaceId], references: [id])
 
   @@map("products")
 }
@@ -143,25 +142,25 @@ model Customers {
 }
 
 model Orders {
-  id              String         @id @default(uuid())
-  orderCode       String         @unique
-  status          OrderStatus    @default(PENDING)
+  id              String          @id @default(uuid())
+  orderCode       String          @unique
+  status          OrderStatus     @default(PENDING)
   paymentMethod   PaymentMethod?
   totalAmount     Float
-  shippingAmount  Float?         @default(0)
-  taxAmount       Float?         @default(0)
+  shippingAmount  Float?          @default(0)
+  taxAmount       Float?          @default(0)
   shippingAddress Json?
   billingAddress  Json?
   notes           String?
   discountCode    String?
-  discountAmount  Float?         @default(0)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  discountAmount  Float?          @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
   customerId      String
   workspaceId     String
   items           OrderItems[]
-  customer        Customers      @relation(fields: [customerId], references: [id])
-  workspace       Workspace      @relation(fields: [workspaceId], references: [id])
+  customer        Customers       @relation(fields: [customerId], references: [id])
+  workspace       Workspace       @relation(fields: [workspaceId], references: [id])
   paymentDetails  PaymentDetails?
 
   @@map("orders")
@@ -169,7 +168,7 @@ model Orders {
 
 model OrderItems {
   id             String    @id @default(uuid())
-  itemType       ItemType  @default(PRODUCT) // PRODUCT or SERVICE
+  itemType       ItemType  @default(PRODUCT)
   quantity       Int       @default(1)
   unitPrice      Float
   totalPrice     Float
@@ -177,8 +176,8 @@ model OrderItems {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   orderId        String
-  productId      String?   // Optional for services
-  serviceId      String?   // Optional for products
+  productId      String?
+  serviceId      String?
   order          Orders    @relation(fields: [orderId], references: [id])
   product        Products? @relation(fields: [productId], references: [id])
   service        Services? @relation(fields: [serviceId], references: [id])
@@ -247,9 +246,9 @@ model User {
   twoFactorSecret String?
   gdprAccepted    DateTime?
   phoneNumber     String?
+  workspaces      UserWorkspace[]
   otpTokens       OtpToken[]
   passwordResets  PasswordReset[]
-  workspaces      UserWorkspace[]
 
   @@map("users")
 }
@@ -258,7 +257,6 @@ model UserWorkspace {
   userId      String
   workspaceId String
   role        String
-
   user        User      @relation(fields: [userId], references: [id])
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
@@ -289,16 +287,16 @@ model WhatsappSettings {
 }
 
 model PaymentDetails {
-  id               String        @id @default(uuid())
+  id               String   @id @default(uuid())
   provider         String
-  status           String        @default("PENDING")
+  status           String   @default("PENDING")
   amount           Float
-  currency         String        @default("EUR")
-  providerResponse Json?         @default("{}")
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  orderId          String        @unique
-  order            Orders        @relation(fields: [orderId], references: [id])
+  currency         String   @default("EUR")
+  providerResponse Json?    @default("{}")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  orderId          String   @unique
+  order            Orders   @relation(fields: [orderId], references: [id])
 
   @@map("payment_details")
 }
@@ -379,14 +377,14 @@ model RegistrationToken {
 model SecureToken {
   id          String    @id @default(uuid())
   token       String    @unique
-  type        String    // registration, checkout, invoice, cart, password_reset, email_verification
+  type        String
   workspaceId String
   userId      String?
   phoneNumber String?
-  payload     Json?     // encrypted sensitive data
+  payload     Json?
   expiresAt   DateTime
   usedAt      DateTime?
-  ipAddress   String?   // optional security
+  ipAddress   String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
@@ -406,33 +404,33 @@ model Language {
 }
 
 model Services {
-  id          String         @id @default(cuid())
+  id          String          @id @default(cuid())
   name        String
   description String
   price       Float
-  currency    String         @default("EUR")
-  isActive    Boolean        @default(true)
+  currency    String          @default("EUR")
+  isActive    Boolean         @default(true)
   workspaceId String
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  duration    Int            @default(60)
-  workspace   Workspace      @relation(fields: [workspaceId], references: [id])
-  chunks      ServiceChunks[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  duration    Int             @default(60)
   orderItems  OrderItems[]
+  chunks      ServiceChunks[]
+  workspace   Workspace       @relation(fields: [workspaceId], references: [id])
 
   @@map("services")
 }
 
 model FAQ {
-  id          String    @id @default(cuid())
+  id          String      @id @default(cuid())
   question    String
   answer      String
-  isActive    Boolean   @default(true)
+  isActive    Boolean     @default(true)
   workspaceId String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   chunks      FAQChunks[]
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id])
 
   @@map("faqs")
 }
@@ -520,15 +518,15 @@ model ServiceChunks {
 }
 
 model ProductChunks {
-  id         String   @id @default(uuid())
-  productId  String
-  content    String
-  chunkIndex Int
-  embedding  Json?
+  id          String   @id @default(uuid())
+  productId   String
+  content     String
+  chunkIndex  Int
+  embedding   Json?
   workspaceId String
-  language   String   @default("en")
-  createdAt  DateTime @default(now())
-  product    Products @relation(fields: [productId], references: [id], onDelete: Cascade)
+  language    String   @default("en")
+  createdAt   DateTime @default(now())
+  product     Products @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
   @@index([chunkIndex])
@@ -571,9 +569,8 @@ model Usage {
   clientId    String
   price       Float     @default(0.005)
   createdAt   DateTime  @default(now())
-  
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
   customer    Customers @relation(fields: [clientId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   @@index([workspaceId])
   @@index([clientId])
@@ -614,8 +611,6 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
 }
-
-
 
 enum PaymentMethod {
   CREDIT_CARD
@@ -659,12 +654,12 @@ enum PlanType {
 }
 
 enum BusinessType {
-  ECOMMERCE     // Products/services shop (current ShopMe)
-  RESTAURANT    // Food delivery, reservations, menu
-  CLINIC        // Medical appointments, services
-  RETAIL        // Physical store with inventory
-  SERVICES      // Pure service business
-  GENERIC       // Fallback for undefined business types
+  ECOMMERCE
+  RESTAURANT
+  CLINIC
+  RETAIL
+  SERVICES
+  GENERIC
 }
 
 enum ItemType {

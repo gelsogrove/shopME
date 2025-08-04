@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { FaqController } from "../controllers/faq.controller";
-import { authMiddleware } from "../middlewares/auth.middleware";
-import { workspaceValidationMiddleware } from "../middlewares/workspace-validation.middleware";
+import { Router } from "express"
+import { FaqController } from "../controllers/faq.controller"
+import { authMiddleware } from "../middlewares/auth.middleware"
+import { workspaceValidationMiddleware } from "../middlewares/workspace-validation.middleware"
 
 /**
  * @swagger
@@ -41,14 +41,14 @@ import { workspaceValidationMiddleware } from "../middlewares/workspace-validati
  */
 
 export const faqsRouter = (): Router => {
-  const router = Router({ mergeParams: true });
-  const controller = new FaqController();
+  const router = Router({ mergeParams: true })
+  const controller = new FaqController()
 
   // All routes require authentication
-  router.use(authMiddleware);
-  
+  router.use(authMiddleware)
+
   // All routes require workspace validation
-  router.use(workspaceValidationMiddleware);
+  router.use(workspaceValidationMiddleware)
 
   /**
    * @swagger
@@ -75,8 +75,8 @@ export const faqsRouter = (): Router => {
    *               items:
    *                 $ref: '#/components/schemas/FAQ'
    */
-  router.get("/", controller.getAllFaqs.bind(controller));
-  
+  router.get("/", controller.getAllFaqs.bind(controller))
+
   /**
    * @swagger
    * /api/workspaces/{workspaceId}/faqs:
@@ -120,7 +120,7 @@ export const faqsRouter = (): Router => {
    *             schema:
    *               $ref: '#/components/schemas/FAQ'
    */
-  router.post("/", controller.createFaq.bind(controller));
+  router.post("/", controller.createFaq.bind(controller))
 
   /**
    * @swagger
@@ -153,8 +153,8 @@ export const faqsRouter = (): Router => {
    *       404:
    *         description: FAQ not found
    */
-  router.get("/:id", controller.getFaqById.bind(controller));
-  
+  router.get("/:id", controller.getFaqById.bind(controller))
+
   /**
    * @swagger
    * /api/workspaces/{workspaceId}/faqs/{id}:
@@ -202,8 +202,8 @@ export const faqsRouter = (): Router => {
    *       404:
    *         description: FAQ not found
    */
-  router.put("/:id", controller.updateFaq.bind(controller));
-  
+  router.put("/:id", controller.updateFaq.bind(controller))
+
   /**
    * @swagger
    * /api/workspaces/{workspaceId}/faqs/{id}:
@@ -231,7 +231,7 @@ export const faqsRouter = (): Router => {
    *       404:
    *         description: FAQ not found
    */
-  router.delete("/:id", controller.deleteFaq.bind(controller));
+  router.delete("/:id", controller.deleteFaq.bind(controller))
 
   /**
    * @swagger
@@ -278,9 +278,36 @@ export const faqsRouter = (): Router => {
    *       500:
    *         description: Failed to generate FAQ embeddings
    */
-  router.post("/generate-embeddings", controller.generateEmbeddings.bind(controller));
+  router.post(
+    "/generate-embeddings",
+    controller.generateEmbeddings.bind(controller)
+  )
 
+  /**
+   * @swagger
+   * /api/workspaces/{workspaceId}/faqs/test-embedding-regeneration:
+   *   post:
+   *     summary: Test FAQ embedding regeneration (debugging endpoint)
+   *     tags: [FAQs]
+   *     parameters:
+   *       - in: path
+   *         name: workspaceId
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: Workspace ID
+   *     responses:
+   *       200:
+   *         description: FAQ embedding regeneration test completed
+   *       400:
+   *         description: Workspace ID is required
+   *       500:
+   *         description: Failed to test FAQ embedding regeneration
+   */
+  router.post(
+    "/test-embedding-regeneration",
+    controller.testEmbeddingRegeneration.bind(controller)
+  )
 
-
-  return router;
-}; 
+  return router
+}

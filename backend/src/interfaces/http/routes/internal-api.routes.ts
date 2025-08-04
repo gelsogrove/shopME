@@ -21,6 +21,12 @@ router.post("/create-order", (req, res) =>
   internalApiController.createOrderInternal(req, res)
 )
 
+// 🧪 TEST EMBEDDING REGENERATION - No Auth Required (Andrea's Testing)
+// This endpoint is OUTSIDE the auth middleware for testing embedding regeneration
+router.post("/test-regenerate-embeddings", 
+  internalApiController.testRegenerateEmbeddings.bind(internalApiController)
+)
+
 // Apply authentication middleware to all other internal API routes
 router.use(n8nAuthMiddleware)
 
@@ -349,7 +355,6 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
-
 
 /**
  * @swagger
