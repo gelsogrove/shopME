@@ -13,7 +13,7 @@
     },
     {
       "parameters": {
-        "contextWindowLength": 10
+        "contextWindowLength": 15
       },
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
@@ -36,7 +36,7 @@
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
-          "id": "C49k0CYPoAMmFonb",
+          "id": "Wvd5WVo0dL4nIU7l",
           "name": "OpenRouter API"
         }
       }
@@ -159,7 +159,7 @@
       "name": "RagSearch()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "O1pWJ6rdDXo8ppZj",
+          "id": "ekFApRxENAQ8RWOv",
           "name": "Backend API Basic Auth"
         }
       }
@@ -183,7 +183,7 @@
       "name": "GetAllProducts()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "O1pWJ6rdDXo8ppZj",
+          "id": "ekFApRxENAQ8RWOv",
           "name": "Backend API Basic Auth"
         }
       }
@@ -207,7 +207,7 @@
       "name": "ContactOperator()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "O1pWJ6rdDXo8ppZj",
+          "id": "ekFApRxENAQ8RWOv",
           "name": "Backend API Basic Auth"
         }
       }
@@ -231,7 +231,7 @@
       "name": "GetAllCategories()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "O1pWJ6rdDXo8ppZj",
+          "id": "ekFApRxENAQ8RWOv",
           "name": "Backend API Basic Auth"
         }
       }
@@ -255,7 +255,7 @@
       "name": "GetActiveOffers()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "O1pWJ6rdDXo8ppZj",
+          "id": "ekFApRxENAQ8RWOv",
           "name": "Backend API Basic Auth"
         }
       }
@@ -279,7 +279,7 @@
       "name": "GetServices()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "O1pWJ6rdDXo8ppZj",
+          "id": "ekFApRxENAQ8RWOv",
           "name": "Backend API Basic Auth"
         }
       }
@@ -303,7 +303,7 @@
       "name": "CreateOrder()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "O1pWJ6rdDXo8ppZj",
+          "id": "ekFApRxENAQ8RWOv",
           "name": "Backend API Basic Auth"
         }
       }
@@ -535,10 +535,10 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "b8c72811-47e7-4763-a5c1-13de6cd25bdc",
+  "versionId": "49e27ce0-1ce8-4cf8-9ee2-2ede254c8fd3",
   "meta": {
     "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
   },
-  "id": "7cbaUdwSLz5QVOxf",
+  "id": "l3TOCVN1E88I1H45",
   "tags": []
 }

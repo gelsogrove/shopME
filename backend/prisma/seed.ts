@@ -253,32 +253,28 @@ async function cleanAndImportN8NWorkflow() {
   console.log("============================\n")
 }
 
-// Function to seed default document
-async function seedDefaultDocument() {
-  console.log("Seeding default document...")
+// Function to seed Aviso Legal document
+async function seedAvisoLegalDocument() {
+  console.log("Seeding Aviso Legal document...")
 
   try {
     // Check if document already exists
     const existingDocument = await prisma.documents.findFirst({
       where: {
         workspaceId: mainWorkspaceId,
-        originalName: "international-transportation-law.pdf",
+        originalName: "aviso-legal.pdf",
       },
     })
 
     if (existingDocument) {
-      console.log("Default document already exists, skipping...")
+      console.log("Aviso Legal document already exists, skipping...")
       return
     }
 
     // Copy PDF from samples to uploads directory
-    const sourcePath = path.join(
-      __dirname,
-      "samples",
-      "international-transportation-law.pdf"
-    )
+    const sourcePath = path.join(__dirname, "samples", "aviso-legal.pdf")
     const targetDir = path.join(__dirname, "..", "uploads", "documents")
-    const filename = `${Date.now()}-international-transportation-law.pdf`
+    const filename = `${Date.now()}-aviso-legal.pdf`
     const targetPath = path.join(targetDir, filename)
 
     // Ensure uploads directory exists
@@ -311,7 +307,7 @@ async function seedDefaultDocument() {
     const document = await prisma.documents.create({
       data: {
         filename: filename,
-        originalName: "international-transportation-law.pdf",
+        originalName: "aviso-legal.pdf",
         filePath: targetPath, // Use absolute path for processing
         fileSize: stats.size,
         mimeType: "application/pdf",
@@ -325,10 +321,10 @@ async function seedDefaultDocument() {
     // Note: Embedding generation is skipped in seed due to memory constraints
     // The document will be in UPLOADED status and can be processed manually via API
     console.log(
-      "Document created successfully - embeddings can be generated via API"
+      "Aviso Legal document created successfully - embeddings can be generated via API"
     )
   } catch (error) {
-    console.error("Error seeding default document:", error)
+    console.error("Error seeding Aviso Legal document:", error)
   }
 }
 
@@ -1528,7 +1524,11 @@ async function main() {
         await prisma.products.create({
           data: {
             name: product.name,
-            code: product.code || `000${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+            code:
+              product.code ||
+              `000${Math.floor(Math.random() * 1000)
+                .toString()
+                .padStart(3, "0")}`,
             description: product.description,
             price: product.price,
             stock: product.stock,
@@ -2525,8 +2525,8 @@ async function main() {
     `💰 Total cost simulation: €${(usageData.length * 0.005).toFixed(4)}`
   )
 
-  // Seed default document
-  await seedDefaultDocument()
+  // Seed Aviso Legal document
+  await seedAvisoLegalDocument()
 
   // PHASE 1: Embedding Generation
   console.log("\n🧠 PHASE 1: EMBEDDING GENERATION")

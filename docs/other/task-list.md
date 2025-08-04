@@ -3,28 +3,74 @@
 # PHASE 1 TASKS
 
 - devo verificare la mail
-- faq?
 - ordini ?
 - sistema di invoice ?
-- PDF
+- i testi in italiano li abbiamo tolti tutti?
+- che modello stiamo usando?
+- abbiamo una memoria consistente?
 
 ## TASK #38
 
 **TITLE**: Implement 'Aviso legal' PDF Upload and Integration
 **DESCRIPTION/ROADMAP**:
 
-- Create a legal notice ('Aviso legal') PDF document
-- Upload the PDF to the system and ensure it is stored correctly (e.g., in the documents section or appropriate storage)
-- Integrate the PDF so it is accessible from the relevant section (e.g., legal, compliance, or info page)
-- Test the upload and retrieval process to verify PDF/document management works as expected
-- Use this as a test case for document/PDF management features
+- ✅ Create a legal notice ('Aviso legal') PDF document → Aviso Legal PDF added
+- ✅ Upload the PDF to the system and ensure it is stored correctly (e.g., in the documents section or appropriate storage)
+- ✅ Integrate the PDF so it is accessible from the relevant section (e.g., legal, compliance, or info page)
+- ✅ Test the upload and retrieval process to verify PDF/document management works as expected
+- ✅ Use this as a test case for document/PDF management features
 
 **SPECIAL NOTE**:
 Andrea wants to try uploading and managing a legal notice PDF to validate the document handling flow.
 
-**STATUS**: 🔴 Not Started
+**IMPLEMENTATION NOTES**:
 
-================================================================================
+- Added `aviso-legal.pdf` to `/backend/prisma/samples/`
+- Created `seedAvisoLegalDocument()` function following existing pattern
+- Document will be automatically copied to uploads directory with timestamp
+- Embeddings/chunks will be generated automatically during seed process
+- Available via existing document management APIs
+
+**STATUS**: ✅ Completed
+
+## TASK #39
+
+**TITLE**: Fix FAQ Embedding Auto-Regeneration Bug
+**DESCRIPTION/ROADMAP**:
+
+- 🔴 **CRITICAL BUG**: When saving/updating entries, embeddings are NOT automatically regenerated
+- User modified FAQ delivery time from "24-48 hours" to "3-6 days" but system still returns old information
+- ✅ **ROOT CAUSE IDENTIFIED**: Problem affects ALL entity types (FAQ, Products, Services, Documents)
+- ✅ **ENHANCED LOGGING**: Added comprehensive logging to track embedding regeneration process for ALL entities
+- ✅ **FAQ CONTROLLER**: Fixed silent error handling, added detailed logging
+- ✅ **PRODUCT CONTROLLER**: Fixed silent error handling, added detailed logging
+- ✅ **SERVICE CONTROLLER**: Fixed silent error handling, added detailed logging
+- ✅ **DOCUMENT CONTROLLER**: Fixed silent error handling, added detailed logging
+- ✅ **EMBEDDING SERVICES**: Enhanced logging for Products and Services embedding generation
+- ✅ **DEBUG ENDPOINT**: Added test endpoint `/test-embedding-regeneration` for manual testing
+- ✅ **COMPILATION**: All changes compile successfully
+- 🔴 **TESTING**: Need to test actual embedding regeneration flow with real data
+- 🔴 **VALIDATION**: Confirm that updated content reflects in chatbot responses
+
+**SPECIAL NOTE**:
+Andrea discovered this critical bug affects the entire RAG search system - ANY content updates (FAQ, Products, Services, Documents) don't reflect in chatbot responses because embeddings are stale. This breaks the core functionality.
+
+**REPRODUCTION STEPS**:
+
+1. Modify any content entry (FAQ, Product description, Service details, Document)
+2. Save the changes
+3. Ask chatbot about the modified content
+4. System returns old information instead of updated content
+
+**DEBUGGING PROGRESS**:
+
+- ✅ Enhanced logging across ALL controllers and embedding services
+- ✅ Fixed silent error handling that was hiding embedding regeneration failures
+- ✅ Added comprehensive debugging information for troubleshooting
+- 🔴 Need to test with real server and validate the complete flow
+
+**STORY POINT**: 3
+**STATUS**: 🔴 CRITICAL BUG - Ready for Testing
 
 # PHASE 2 TASKS
 

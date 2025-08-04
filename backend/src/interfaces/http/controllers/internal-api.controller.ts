@@ -287,12 +287,12 @@ const prisma = new PrismaClient()
  *                   type: array
  */
 export class InternalApiController {
-  private secureTokenService: SecureTokenService;
-  private prisma: PrismaClient;
+  private secureTokenService: SecureTokenService
+  private prisma: PrismaClient
 
   constructor(private messageRepository: MessageRepository) {
-    this.secureTokenService = new SecureTokenService();
-    this.prisma = new PrismaClient();
+    this.secureTokenService = new SecureTokenService()
+    this.prisma = new PrismaClient()
   }
 
   /**
@@ -1105,8 +1105,11 @@ ${JSON.stringify(ragResults, null, 2)}`
    */
   async saveMessage(req: Request, res: Response): Promise<void> {
     try {
-      console.log('[SAVE-MESSAGE] 📥 Request received:', JSON.stringify(req.body, null, 2))
-      
+      console.log(
+        "[SAVE-MESSAGE] 📥 Request received:",
+        JSON.stringify(req.body, null, 2)
+      )
+
       const { phoneNumber, workspaceId, message, response } = req.body
 
       if (!phoneNumber || !workspaceId || !message) {
@@ -1114,7 +1117,9 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      console.log(`[SAVE-MESSAGE] 📝 Processing message from ${phoneNumber}, response: "${response ? response.substring(0, 50) + '...' : 'NO RESPONSE'}"`)
+      console.log(
+        `[SAVE-MESSAGE] 📝 Processing message from ${phoneNumber}, response: "${response ? response.substring(0, 50) + "..." : "NO RESPONSE"}"`
+      )
 
       // Save the conversation using MessageRepository (includes €0.005 tracking)
       const savedMessage = await this.messageRepository.saveMessage({
@@ -1126,7 +1131,9 @@ ${JSON.stringify(ragResults, null, 2)}`
       })
 
       // 💰 USAGE TRACKING: Now handled in MessageRepository.saveMessage() (Andrea's Logic)
-      console.log('[SAVE-MESSAGE] ✅ Message saved via MessageRepository (tracking included)')
+      console.log(
+        "[SAVE-MESSAGE] ✅ Message saved via MessageRepository (tracking included)"
+      )
 
       res.json({ success: true })
     } catch (error) {
@@ -1790,6 +1797,41 @@ ${JSON.stringify(ragResults, null, 2)}`
   }
 
   /**
+   * 🧪 TEST EMBEDDING REGENERATION - No Auth Required (Andrea's Testing)
+   * POST /internal/test-regenerate-embeddings
+   */
+  async testRegenerateEmbeddings(req: Request, res: Response): Promise<void> {
+    try {
+      const HARDCODED_WORKSPACE_ID = "clzd8x8z20000356cqhpe6yu0"
+      
+      logger.info(`[TEST-EMBEDDING-REGEN] 🔄 Starting FAQ embedding regeneration for workspace: ${HARDCODED_WORKSPACE_ID}`)
+
+      // Import embedding service dynamically to avoid circular dependencies
+      const { EmbeddingService } = await import('../../../services/embeddingService')
+      const embeddingService = new EmbeddingService()
+
+      // Regenerate FAQ embeddings
+      await embeddingService.generateFAQEmbeddings(HARDCODED_WORKSPACE_ID)
+      
+      logger.info(`[TEST-EMBEDDING-REGEN] ✅ FAQ embedding regeneration completed`)
+
+      res.json({
+        status: "success",
+        message: "FAQ embeddings regenerated successfully",
+        workspaceId: HARDCODED_WORKSPACE_ID,
+        timestamp: new Date().toISOString(),
+        note: "🔓 Test endpoint - embeddings regenerated"
+      })
+    } catch (error: any) {
+      logger.error("[TEST-EMBEDDING-REGEN] ❌ Error:", error)
+      res.status(500).json({
+        error: "Internal server error",
+        message: error.message,
+      })
+    }
+  }
+
+  /**
    * 🧪 GET ENDPOINT - Simple RAG Search with Query Parameter (Andrea's Request)
    * GET /internal/test-simple-search?search=avete le mozzarelle&workspaceId=xxx
    */
@@ -2402,8 +2444,6 @@ ${JSON.stringify(ragResults, null, 2)}`
         .json({ error: "Internal server error", message: error.message })
     }
   }
-
-
 
   /**
    * Get All Categories (PRD Implementation)
@@ -3118,7 +3158,9 @@ ${JSON.stringify(ragResults, null, 2)}`
           description: item.product?.name || "Prodotto",
           quantity: item.quantity,
           unitPrice: item.product?.price ?? 0,
-          amount: ((item.quantity ?? 1) * (item.product?.price ?? 0)).toFixed(2),
+          amount: ((item.quantity ?? 1) * (item.product?.price ?? 0)).toFixed(
+            2
+          ),
         })),
         customerName: customer.name,
         customerEmail: customer.email,
@@ -3184,30 +3226,41 @@ ${JSON.stringify(ragResults, null, 2)}`
    */
   async createOrderInternal(req: Request, res: Response): Promise<void> {
     try {
-      const { workspaceId, customerId, customerid, items, totalAmount, notes, shippingAddress, billingAddress } = req.body
+      const {
+        workspaceId,
+        customerId,
+        customerid,
+        items,
+        totalAmount,
+        notes,
+        shippingAddress,
+        billingAddress,
+      } = req.body
       // Supporta sia customerId che customerid per compatibilità con N8N
       const finalCustomerId = customerId || customerid
-      
+
       if (!workspaceId || !finalCustomerId) {
         res.status(400).json({
           success: false,
           error: "workspaceId e customerId sono obbligatori",
           example: {
             workspaceId: "clzd8x8z20000356cqhpe6yu0",
-            customerId: "cus_123456"
-          }
+            customerId: "cus_123456",
+          },
         })
         return
       }
 
-      logger.info(`[CREATE-ORDER] Creating order for customer ${finalCustomerId} in workspace ${workspaceId}`)
+      logger.info(
+        `[CREATE-ORDER] Creating order for customer ${finalCustomerId} in workspace ${workspaceId}`
+      )
 
       // Verifica che il customer esista
       const customer = await this.prisma.customers.findFirst({
         where: {
           id: finalCustomerId,
-          workspaceId: workspaceId
-        }
+          workspaceId: workspaceId,
+        },
       })
 
       if (!customer) {
@@ -3227,7 +3280,9 @@ ${JSON.stringify(ragResults, null, 2)}`
 
       // Se non ci sono items, crea un ordine vuoto con importo 0
       if (!orderItems || orderItems.length === 0) {
-        logger.info(`[CREATE-ORDER] Creating empty order for customer ${customer.name}`)
+        logger.info(
+          `[CREATE-ORDER] Creating empty order for customer ${customer.name}`
+        )
         finalTotalAmount = 0
         orderItems = []
       }
@@ -3255,10 +3310,12 @@ ${JSON.stringify(ragResults, null, 2)}`
               productId: item.productId || null,
               serviceId: item.serviceId || null,
               // Memorizza il productCode nel productVariant come JSON se fornito
-              productVariant: item.productCode ? { 
-                productCode: item.productCode,
-                name: item.name || null
-              } : null,
+              productVariant: item.productCode
+                ? {
+                    productCode: item.productCode,
+                    name: item.name || null,
+                  }
+                : null,
             })),
           },
         },
@@ -3267,13 +3324,15 @@ ${JSON.stringify(ragResults, null, 2)}`
             include: {
               product: true,
               service: true,
-            }
+            },
           },
           customer: true,
         },
       })
 
-      logger.info(`[CREATE-ORDER] ✅ Order created successfully: ${orderCode} for customer ${customer.name}`)
+      logger.info(
+        `[CREATE-ORDER] ✅ Order created successfully: ${orderCode} for customer ${customer.name}`
+      )
 
       res.status(200).json({
         success: true,
@@ -3288,14 +3347,14 @@ ${JSON.stringify(ragResults, null, 2)}`
           itemsCount: order.items.length,
           customerName: customer.name,
           createdAt: order.createdAt,
-        }
+        },
       })
     } catch (error) {
       logger.error("[CREATE-ORDER] ❌ Errore creazione ordine:", error)
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error"
+        message: error instanceof Error ? error.message : "Unknown error",
       })
     }
   }
