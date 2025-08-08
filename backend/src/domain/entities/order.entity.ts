@@ -60,6 +60,7 @@ export class Order {
   updatedAt: Date;
   customer?: Customer;
   items?: OrderItem[];
+  trackingNumber?: string | null;
 
   constructor(data: Partial<Order>) {
     this.id = data.id || '';
@@ -80,6 +81,7 @@ export class Order {
     this.updatedAt = data.updatedAt || new Date();
     this.customer = data.customer;
     this.items = data.items || [];
+    this.trackingNumber = data.trackingNumber || null;
   }
 
   private generateOrderCode(): string {
