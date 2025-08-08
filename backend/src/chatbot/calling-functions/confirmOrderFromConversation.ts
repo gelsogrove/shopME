@@ -38,7 +38,8 @@ export interface ConfirmOrderFromConversationResult {
 export async function confirmOrderFromConversation(
   params: ConfirmOrderFromConversationParams
 ): Promise<ConfirmOrderFromConversationResult> {
-  const { customerId, workspaceId, conversationContext, prodottiSelezionati } = params
+  const { customerId, workspaceId, conversationContext, prodottiSelezionati } =
+    params
 
   logger.info(
     `[CONFIRM_ORDER_CONVERSATION] Processing order confirmation for customer ${customerId}`
@@ -53,8 +54,9 @@ export async function confirmOrderFromConversation(
     if (!prodottiSelezionati || prodottiSelezionati.length === 0) {
       return {
         success: false,
-        response: "Non ho identificato prodotti nella nostra conversazione. Puoi specificare cosa vuoi ordinare?",
-        error: "No products identified in conversation"
+        response:
+          "Non ho identificato prodotti nella nostra conversazione. Puoi specificare cosa vuoi ordinare?",
+        error: "No products identified in conversation",
       }
     }
 
@@ -87,12 +89,12 @@ export async function confirmOrderFromConversation(
         where: {
           workspaceId,
           OR: [
-            { name: { contains: prodotto.nome, mode: 'insensitive' } },
+            { name: { contains: prodotto.nome, mode: "insensitive" } },
             { sku: prodotto.codice },
-            { description: { contains: prodotto.nome, mode: 'insensitive' } }
+            { description: { contains: prodotto.nome, mode: "insensitive" } },
           ],
-          isActive: true
-        }
+          isActive: true,
+        },
       })
 
       if (!dbProduct) {
@@ -100,7 +102,7 @@ export async function confirmOrderFromConversation(
         return {
           success: false,
           response: `Non riesco a trovare il prodotto "${prodotto.nome}" nel catalogo. Puoi verificare il nome?`,
-          error: `Product not found: ${prodotto.nome}`
+          error: `Product not found: ${prodotto.nome}`,
         }
       }
 
@@ -109,11 +111,11 @@ export async function confirmOrderFromConversation(
       const totalPrice = unitPrice * prodotto.quantita
 
       prodottiConPrezzo.push({
-        codice: dbProduct.sku || dbProduct.id,
+        codice: dbProduct.ProductCode || dbProduct.sku || dbProduct.id,
         descrizione: dbProduct.name,
         qty: prodotto.quantita,
         prezzo: unitPrice,
-        productId: dbProduct.id
+        productId: dbProduct.id,
       })
 
       totalAmount += totalPrice
@@ -135,7 +137,7 @@ export async function confirmOrderFromConversation(
             customerId,
             prodotti: prodottiConPrezzo,
             type: "conversational_order_checkout",
-            conversationContext: conversationContext.substring(0, 1000) // Limita dimensione
+            conversationContext: conversationContext.substring(0, 1000), // Limita dimensione
           })
         ) as any,
         expiresAt,
@@ -180,7 +182,7 @@ ${checkoutUrl}
       checkoutToken,
       checkoutUrl,
       expiresAt,
-      totalAmount
+      totalAmount,
     }
   } catch (error) {
     logger.error(
@@ -189,8 +191,9 @@ ${checkoutUrl}
     )
     return {
       success: false,
-      response: "Si è verificato un errore durante la creazione dell'ordine. Riprova o contatta l'assistenza.",
-      error: (error as Error).message
+      response:
+        "Si è verificato un errore durante la creazione dell'ordine. Riprova o contatta l'assistenza.",
+      error: (error as Error).message,
     }
   }
 }
@@ -231,25 +234,26 @@ export const confirmOrderFromConversationFunction = {
       },
       prodottiSelezionati: {
         type: "array",
-        description: "Prodotti identificati nella conversazione che il cliente vuole ordinare",
+        description:
+          "Prodotti identificati nella conversazione che il cliente vuole ordinare",
         items: {
           type: "object",
           properties: {
-            nome: { 
-              type: "string", 
-              description: "Nome del prodotto come menzionato dal cliente" 
+            nome: {
+              type: "string",
+              description: "Nome del prodotto come menzionato dal cliente",
             },
-            quantita: { 
-              type: "number", 
-              description: "Quantità richiesta dal cliente" 
+            quantita: {
+              type: "number",
+              description: "Quantità richiesta dal cliente",
             },
-            descrizione: { 
-              type: "string", 
-              description: "Descrizione aggiuntiva se fornita" 
+            descrizione: {
+              type: "string",
+              description: "Descrizione aggiuntiva se fornita",
             },
-            codice: { 
-              type: "string", 
-              description: "Codice prodotto se menzionato" 
+            codice: {
+              type: "string",
+              description: "Codice prodotto se menzionato",
             },
           },
           required: ["nome", "quantita"],

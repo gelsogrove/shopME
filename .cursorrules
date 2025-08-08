@@ -1,6 +1,7 @@
 # Cursor Rules for AI4Devs Final Project
 
 ## 🚨 REGOLE CRITICHE - PRIORITÀ ASSOLUTA - SEMPRE RISPETTARE
+
 ⚠️ **QUESTE REGOLE HANNO PRECEDENZA SU TUTTO IL RESTO:**
 
 1. **CHIAMAMI SEMPRE ANDREA** - Mai dimenticare il nome
@@ -12,6 +13,7 @@
 7. **WORKSPACE ISOLATION** - Sempre filtrare per workspaceId in ogni query
 
 ## ✅ CHECKLIST OBBLIGATORIA PRIMA DI COMPLETARE QUALSIASI TASK:
+
 - [ ] Ho chiamato Andrea per nome?
 - [ ] Swagger è aggiornato dopo modifiche API?
 - [ ] Test passano tutti?
@@ -22,11 +24,10 @@
 - [ ] Non ti inventare nulla , chiedi sempre prima, se non e' in PRD o in task list, chiedi prima
 - [ ] Prima il PRD poi i test poi il codice (scala della veritá)
 
-
 ## 🧠 Core Development Rules
 
- - Address me **by name (Andrea)** in chats and discussions (e.g., "Hello Andrea", "Andrea, what do you think?")
- - contex: @/terraform @/backend @/frontend  @/scripts 
+- Address me **by name (Andrea)** in chats and discussions (e.g., "Hello Andrea", "Andrea, what do you think?")
+- contex: @/terraform @/backend @/frontend @/scripts
 - Focus **only** on code areas **relevant to the assigned task**
 - **DO NOT INVENT** anything outside of the assigned scope
 - **Keep solutions simple** and avoid unnecessary complexity
@@ -42,6 +43,7 @@
 ## 🔒 CRITICAL BACKUP RULE FOR .ENV FILES
 
 ⚠️ **MANDATORY BACKUP BEFORE ANY .ENV INTERACTION:**
+
 - **BEFORE** reading, checking, or interacting with ANY `.env` file, **ALWAYS** create a backup first
 - **COMMAND TO RUN FIRST:** `cp .env .env.backup.$(date +%Y%m%d_%H%M%S)`
 - **NEVER** touch `.env` files without creating a timestamped backup
@@ -51,6 +53,7 @@
 ## 🚨 CRITICAL PDF FILE PROTECTION RULE
 
 ⚠️ **NEVER DELETE OR MODIFY THE PDF FILE:**
+
 - **NEVER** delete, modify, or touch `backend/prisma/temp/international-transportation-law.pdf`
 - **NEVER** remove files from `backend/prisma/temp/` directory
 - **NEVER** modify the seed script to remove PDF file creation
@@ -61,6 +64,7 @@
 ## 🚨 CRITICAL DATABASE-ONLY CONFIGURATION RULE
 
 ⚠️ **NEVER CREATE HARDCODED CONFIGURATION FALLBACKS:**
+
 - **NEVER** create hardcoded default prompts, models, or agent configurations
 - **NEVER** use fallback values like `DEFAULT_PROMPT` or `initialConfig` in frontend/backend
 - **ALL CONFIGURATION MUST COME FROM DATABASE** - no exceptions
@@ -99,13 +103,16 @@
 ## 📚 Architecture Notes
 
 ### LLM Workflow
+
 The user's input is processed through a two-stage LLM workflow:
+
 1. **First LLM**: Decides the target calling function
 2. **Second LLM**: Has history and formats the final user response
 
 > **Note**: This is the **only static point** in the workflow. If the flow **does not follow** this structure, we must discuss it or **modify the agent's prompt** inside the **SEED**.
 
 ### Project Structure
+
 - Don't create `package.json` in root - use `backend` or `frontend` folders for installing packages
 - **DON'T CREATE any files IN ROOT** - use `temp` or use `/prompts` if needed
 
@@ -115,13 +122,14 @@ The user's input is processed through a two-stage LLM workflow:
 - **DO NOT add new tasks** to the task list - only mark existing ones as completed or update their status
 - Keep track of progress and document changes properly
 - Get always the full context from @backend @frontend and @final
-- Get the context from the test unit, integration, integration for having a better understanding 
+- Get the context from the test unit, integration, integration for having a better understanding
 - **DOPO OGNI MODIFICA API: aggiorna immediatamente swagger.json**
 - **PRIMA DI DIRE "FATTO": verifica che swagger sia aggiornato e funzionante**
 
 ## 📚 Documentation References
 
 All project documentation is located under:
+
 - **Task List**: `prompts/04_task-list.md`
 - **PRD Document**: `prompts/docs/PRD.md`
 - **LangChain Documentation**: `prompts/docs/langchain.md`
@@ -129,11 +137,11 @@ All project documentation is located under:
 - **OWASP Security**: `prompts/docs/owasp.md`
 - **Agent Prompt**: `prompts/docs/prompt_agent.md`
 - IF YOU WANT TO SEE WHAT WE HAVE IN THE DB USE FOR EXAMPLES:
-docker exec -it shopmefy-db psql -U shopmefy -d shopmefy -c "SELECT COUNT(*) FROM document_chunks;"
-- **DO NOT invent npm run commands!** 
-- mocks have to stay inside  __mocks__ folder inside unit or integration folder
-AI4Devs-finalproject/backend/__tests__/unit/mock
-AI4Devs-finalproject/backend/__tests__/integration/mock
+  docker exec -it shopmefy-db psql -U shopmefy -d shopmefy -c "SELECT COUNT(\*) FROM document_chunks;"
+- **DO NOT invent npm run commands!**
+- mocks have to stay inside **mocks** folder inside unit or integration folder
+  AI4Devs-finalproject/backend/**tests**/unit/mock
+  AI4Devs-finalproject/backend/**tests**/integration/mock
 
 ## 📁 Folder Structure Compliance
 
@@ -146,10 +154,11 @@ AI4Devs-finalproject/backend/__tests__/integration/mock
 - Use **kebab-case** for directories, **camelCase** for TypeScript files, **PascalCase** for React components
 
 ### 🏗️ Root Project Structure
+
 ```
 AI4Devs-finalproject/
 ├── 📁 backend/                     # Backend Node.js application
-├── 📁 frontend/                    # Frontend React application  
+├── 📁 frontend/                    # Frontend React application
 ├── 📁 scripts/                     # Project automation scripts
 ├── 📁 prompts/                     # Documentation and prompts
 ├── 📄 docker-compose.yml           # Docker services configuration
@@ -158,6 +167,7 @@ AI4Devs-finalproject/
 ```
 
 ### 🔧 Backend Structure (`/backend/`)
+
 ```
 backend/
 ├── 📁 src/                         # Source code
@@ -190,6 +200,7 @@ backend/
 ```
 
 ### ⚛️ Frontend Structure (`/frontend/`)
+
 ```
 frontend/
 ├── 📁 src/                         # Source code
@@ -221,18 +232,21 @@ frontend/
 ```
 
 ### 🚫 Forbidden Patterns
+
 **DO NOT CREATE:**
+
 - `package.json` in project root
 - Test files outside `__tests__/` or `__test__/` directories
 - Files directly in `src/` without proper subdirectories
 - Mixed naming conventions
 
 ### ✅ Mandatory Naming Rules
+
 - **Directories**: kebab-case (`document-service`, `user-controller`)
 - **TypeScript files**: camelCase (`userService.ts`, `documentController.ts`)
 - **React components**: PascalCase (`UserProfile.tsx`, `DocumentList.tsx`)
 - **Test files**: `*.spec.ts` (unit), `*.integration.spec.ts` (integration), `*.cy.js` (E2E)
-- system has to be sync , swagger, seed code, test BE FE Readme prompts folder when you finish a job ask me do you need to update this section too ? 
+- system has to be sync , swagger, seed code, test BE FE Readme prompts folder when you finish a job ask me do you need to update this section too ?
 - when i say PRD you have to consider this file `/docs/PRD.md`
 - write code comments always in English
 - non aprire troppi terminal, se non richiesto
@@ -240,22 +254,22 @@ frontend/
 - when you are in the correct terminal, always check the context of the terminal, if you are in the wrong terminal, ask me to switch to the correct terminal
 - when you are in the correct terminal, always check the context of the terminal, if you are in the wrong terminal, ask me to switch to the correct terminal
 
-
-
 - chiamami per nome , mi chiamo Andrea
-- Ricordati che PRD ha la verita assoluta poi la verita e' sui test e poi sul codice 
+- Ricordati che PRD ha la verita assoluta poi la verita e' sui test e poi sul codice
 - tutti i file .md devono stare detro docs tranne readme.md
 - dobbiamo evitare di mettere su git le credenziali
-- calling function dentro  shop/backend/src/chatbot/calling-functions
+- calling function dentro shop/backend/src/chatbot/calling-functions
 - non voglio package.json in root
-- non fare nessun file .js MAI MAI 
-- se si modifica un api devi aggionare Swagger  
-- Nessun hardcode introdotto miraccomando !! 
-- Layout non modificarlo  senza  il mio permesso
+- non fare nessun file .js MAI MAI
+- se si modifica un api devi aggionare Swagger
+- Nessun hardcode introdotto miraccomando !!
+- Layout non modificarlo senza il mio permesso
 - gli script devono essere sempre in /scripts/
-- test di BE vanno sotto /Users/gelso/workspace/AI/shop/backend/src/__tests__  dentro unit o integration
+- test di BE vanno sotto /Users/gelso/workspace/AI/shop/backend/src/**tests** dentro unit o integration
 - Rifletti ragione confronta leggi in ordine PRD test prima di effettuare un'azione se scrivo qualcosa che non e' in linea blocca l'utente
 - i server si riavviano da soli non c'e' bisogno di aprire mille terminali usa sempre lo stesso terminal
- - utilizzare la buona practica per BE usa DDD per Fe se necessario crea componenti riutilizzabili
+- utilizzare la buona practica per BE usa DDD per Fe se necessario crea componenti riutilizzabili
 
- - questo e' il file della task list /docs/other/task-list.md
+- questo e' il file della task list /docs/other/task-list.md
+- gli scripts vanno nellac artella di scripts
+- quando fai uno script per aggiornare temporaneo poi va cencellato

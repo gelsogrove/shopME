@@ -16,5 +16,8 @@
   "workspaces": [
     "backend",
     "frontend"
-  ]
+  ],
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  }
 }

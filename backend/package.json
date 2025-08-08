@@ -54,6 +54,7 @@
     "qrcode": "^1.5.4",
     "sharp": "^0.34.2",
     "speakeasy": "^2.0.0",
+    "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^11.1.0",
     "winston": "^3.11.0",
@@ -72,7 +73,6 @@
     "@types/nodemailer": "^6.4.17",
     "@types/qrcode": "^1.5.5",
     "@types/speakeasy": "^2.0.10",
-
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",

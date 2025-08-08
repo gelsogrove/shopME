@@ -191,7 +191,7 @@ export class ProductRepository implements IProductRepository {
       const createdProduct = await this.prisma.products.create({
         data: {
           name: product.name,
-          code: product.code,
+          ProductCode: product.ProductCode,
           description: product.description,
           price: product.price,
           stock: product.stock,
@@ -226,7 +226,7 @@ export class ProductRepository implements IProductRepository {
         },
         data: {
           name: product.name,
-          code: product.code,
+          ProductCode: product.ProductCode,
           description: product.description,
           price: product.price,
           stock: product.stock,
@@ -350,7 +350,7 @@ export class ProductRepository implements IProductRepository {
     return new Product({
       id: data.id,
       name: data.name,
-      code: data.code,
+      ProductCode: data.ProductCode,
       description: data.description,
       price: data.price,
       stock: data.stock,

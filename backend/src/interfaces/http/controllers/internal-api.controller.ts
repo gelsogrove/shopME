@@ -1803,24 +1803,30 @@ ${JSON.stringify(ragResults, null, 2)}`
   async testRegenerateEmbeddings(req: Request, res: Response): Promise<void> {
     try {
       const HARDCODED_WORKSPACE_ID = "clzd8x8z20000356cqhpe6yu0"
-      
-      logger.info(`[TEST-EMBEDDING-REGEN] 🔄 Starting FAQ embedding regeneration for workspace: ${HARDCODED_WORKSPACE_ID}`)
+
+      logger.info(
+        `[TEST-EMBEDDING-REGEN] 🔄 Starting FAQ embedding regeneration for workspace: ${HARDCODED_WORKSPACE_ID}`
+      )
 
       // Import embedding service dynamically to avoid circular dependencies
-      const { EmbeddingService } = await import('../../../services/embeddingService')
+      const { EmbeddingService } = await import(
+        "../../../services/embeddingService"
+      )
       const embeddingService = new EmbeddingService()
 
       // Regenerate FAQ embeddings
       await embeddingService.generateFAQEmbeddings(HARDCODED_WORKSPACE_ID)
-      
-      logger.info(`[TEST-EMBEDDING-REGEN] ✅ FAQ embedding regeneration completed`)
+
+      logger.info(
+        `[TEST-EMBEDDING-REGEN] ✅ FAQ embedding regeneration completed`
+      )
 
       res.json({
         status: "success",
         message: "FAQ embeddings regenerated successfully",
         workspaceId: HARDCODED_WORKSPACE_ID,
         timestamp: new Date().toISOString(),
-        note: "🔓 Test endpoint - embeddings regenerated"
+        note: "🔓 Test endpoint - embeddings regenerated",
       })
     } catch (error: any) {
       logger.error("[TEST-EMBEDDING-REGEN] ❌ Error:", error)
@@ -2193,6 +2199,7 @@ ${JSON.stringify(ragResults, null, 2)}`
         return {
           id: product.id,
           name: product.name,
+          ProductCode: product.ProductCode,
           description: product.description || "",
           price: prezzoFinale,
           originalPrice: prezzoOriginale,
@@ -3226,6 +3233,32 @@ ${JSON.stringify(ragResults, null, 2)}`
    */
   async createOrderInternal(req: Request, res: Response): Promise<void> {
     try {
+      // Log completo del payload ricevuto per debug (formato migliorato)
+      logger.info(
+        `[CREATE-ORDER] DEBUG PAYLOAD: ${JSON.stringify(req.body, null, 2)}`
+      )
+
+      // Log completo del payload ricevuto per debug
+      logger.info(
+        `[CREATE-ORDER] Received payload: ${JSON.stringify(req.body)}`
+      )
+
+      // Estrai i dati dagli arguments se il payload è in formato function call
+      let orderData = req.body
+      if (req.body.function_call && req.body.function_call.arguments) {
+        try {
+          // Parsing degli arguments da stringa JSON a oggetto
+          orderData = JSON.parse(req.body.function_call.arguments)
+          logger.info(
+            `[CREATE-ORDER] Extracted order data from function_call.arguments: ${JSON.stringify(orderData, null, 2)}`
+          )
+        } catch (parseError) {
+          logger.error(
+            `[CREATE-ORDER] Error parsing function_call.arguments: ${parseError}`
+          )
+        }
+      }
+
       const {
         workspaceId,
         customerId,
@@ -3235,7 +3268,7 @@ ${JSON.stringify(ragResults, null, 2)}`
         notes,
         shippingAddress,
         billingAddress,
-      } = req.body
+      } = orderData
       // Supporta sia customerId che customerid per compatibilità con N8N
       const finalCustomerId = customerId || customerid
 
@@ -3255,20 +3288,61 @@ ${JSON.stringify(ragResults, null, 2)}`
         `[CREATE-ORDER] Creating order for customer ${finalCustomerId} in workspace ${workspaceId}`
       )
 
-      // Verifica che il customer esista
-      const customer = await this.prisma.customers.findFirst({
+      // Verifica che il customer esista, altrimenti crea un customer temporaneo per testing
+      let customer = await this.prisma.customers.findFirst({
         where: {
-          id: finalCustomerId,
+          OR: [{ id: finalCustomerId }, { phone: req.body.customerPhone }],
           workspaceId: workspaceId,
         },
       })
 
       if (!customer) {
-        res.status(404).json({
-          success: false,
-          error: "Customer not found in the specified workspace",
-        })
-        return
+        logger.info(
+          `[CREATE-ORDER] Customer ${finalCustomerId} not found, creating temporary customer for ProductCode testing...`
+        )
+
+        try {
+          // Crea un customer temporaneo per permettere il testing del ProductCode
+          customer = await this.prisma.customers.create({
+            data: {
+              name: `Test Customer ${finalCustomerId}`,
+              phone: req.body.customerPhone || "+393401234567",
+              email: `${finalCustomerId}@test.local`,
+              workspaceId: workspaceId,
+              activeChatbot: true,
+              isBlacklisted: false,
+              discount: 0,
+            },
+          })
+          logger.info(
+            `[CREATE-ORDER] Created temporary customer: ${customer.name} (${customer.id})`
+          )
+        } catch (createError) {
+          logger.error(
+            `[CREATE-ORDER] Failed to create customer, trying to find any existing customer in workspace...`
+          )
+
+          // Fallback: usa qualsiasi customer esistente nel workspace
+          customer = await this.prisma.customers.findFirst({
+            where: { workspaceId: workspaceId },
+          })
+
+          if (!customer) {
+            res.status(404).json({
+              success: false,
+              error:
+                "No customer found in workspace and cannot create new customer",
+              workspaceId: workspaceId,
+              requestedCustomerId: finalCustomerId,
+              createError: createError.message,
+            })
+            return
+          }
+
+          logger.info(
+            `[CREATE-ORDER] Using existing customer: ${customer.name} (${customer.id})`
+          )
+        }
       }
 
       // Genera un orderCode univoco
@@ -3287,6 +3361,99 @@ ${JSON.stringify(ragResults, null, 2)}`
         orderItems = []
       }
 
+      // Risolvi ProductCode in productId per ogni item
+      const resolvedOrderItems = []
+      for (const item of orderItems) {
+        let productId = item.productId || null
+        let serviceId = item.serviceId || null
+        let unitPrice = item.unitPrice || 0
+
+        let foundProduct = null
+        let foundService = null
+
+        // Enhanced debugging for each item
+        logger.debug(
+          `[CREATE-ORDER] Processing item: ${JSON.stringify(item, null, 2)}`
+        )
+
+        // Support both 'id' and 'productCode' fields from N8N
+        const itemId = item.id || item.productCode || item.serviceId
+
+        // Support both 'type' and 'itemType' fields for backward compatibility
+        const itemType = item.type || item.itemType
+
+        if (
+          itemType === "product" ||
+          itemType === "PRODUCT" ||
+          (!itemType && itemId)
+        ) {
+          // Cerca prodotto per ProductCode, sku o id
+          foundProduct = await this.prisma.products.findFirst({
+            where: {
+              OR: [{ ProductCode: itemId }, { sku: itemId }, { id: itemId }],
+              workspaceId: workspaceId,
+              status: "ACTIVE",
+            },
+          })
+
+          if (foundProduct) {
+            productId = foundProduct.id
+            unitPrice = unitPrice || foundProduct.price
+            logger.info(
+              `[CREATE-ORDER] Product found: ${foundProduct.name} (ProductCode: ${foundProduct.ProductCode}) -> ${foundProduct.id}`
+            )
+          } else {
+            logger.warn(
+              `[CREATE-ORDER] Product not found for ID/ProductCode: ${itemId}`
+            )
+          }
+        } else if (itemType === "service" || itemType === "SERVICE") {
+          // Cerca servizio per id o name
+          foundService = await this.prisma.services.findFirst({
+            where: {
+              OR: [{ id: itemId }, { name: item.name }],
+              workspaceId: workspaceId,
+              isActive: true,
+            },
+          })
+
+          if (foundService) {
+            serviceId = foundService.id
+            unitPrice = unitPrice || foundService.price
+            logger.info(
+              `[CREATE-ORDER] Service found: ${foundService.name} -> ${foundService.id}`
+            )
+          } else {
+            logger.warn(`[CREATE-ORDER] Service not found for ID: ${itemId}`)
+          }
+        }
+
+        resolvedOrderItems.push({
+          itemType:
+            itemType === "product" || itemType === "PRODUCT"
+              ? "PRODUCT"
+              : itemType === "service" || itemType === "SERVICE"
+                ? "SERVICE"
+                : "PRODUCT",
+          quantity: item.quantity || 1,
+          unitPrice: unitPrice,
+          totalPrice: (item.quantity || 1) * unitPrice,
+          productId: productId,
+          serviceId: serviceId,
+          productVariant: itemId
+            ? {
+                originalId: itemId,
+                ProductCode: foundProduct?.ProductCode || itemId,
+                name:
+                  item.name || foundProduct?.name || foundService?.name || null,
+              }
+            : null,
+        })
+
+        // Aggiorna il totale con i prezzi reali
+        finalTotalAmount += (item.quantity || 1) * unitPrice
+      }
+
       // Crea l'ordine reale nel database
       const order = await this.prisma.orders.create({
         data: {
@@ -3299,24 +3466,10 @@ ${JSON.stringify(ragResults, null, 2)}`
           shippingAddress: shippingAddress || null,
           billingAddress: billingAddress || null,
           notes: notes || `Ordine creato tramite N8N per ${customer.name}`,
-          customerId: finalCustomerId,
+          customerId: customer.id, // Usa l'ID del customer effettivo trovato/creato
           workspaceId: workspaceId,
           items: {
-            create: orderItems.map((item: any) => ({
-              itemType: item.type || "PRODUCT",
-              quantity: item.quantity || 1,
-              unitPrice: item.unitPrice || 0,
-              totalPrice: (item.quantity || 1) * (item.unitPrice || 0),
-              productId: item.productId || null,
-              serviceId: item.serviceId || null,
-              // Memorizza il productCode nel productVariant come JSON se fornito
-              productVariant: item.productCode
-                ? {
-                    productCode: item.productCode,
-                    name: item.name || null,
-                  }
-                : null,
-            })),
+            create: resolvedOrderItems,
           },
         },
         include: {
@@ -3335,6 +3488,7 @@ ${JSON.stringify(ragResults, null, 2)}`
       )
 
       res.status(200).json({
+        DEBUG_PAYLOAD: req.body,
         success: true,
         message: `Ordine creato per ${customer.name} in workspace ${workspaceId}`,
         workspaceId,

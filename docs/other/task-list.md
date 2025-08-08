@@ -1,84 +1,194 @@
-# Phase 0 task
 
-# PHASE 1 TASKS
+## TOP ACTION TASKS
 
-- devo verificare la mail
-- ordini ?
-- sistema di invoice ?
-- i testi in italiano li abbiamo tolti tutti?
-- che modello stiamo usando?
-- abbiamo una memoria consistente?
+## TASK #1
 
-## TASK #38
-
-**TITLE**: Implement 'Aviso legal' PDF Upload and Integration
+**TITLE**: PRD Audit and Update
 **DESCRIPTION/ROADMAP**:
 
-- ✅ Create a legal notice ('Aviso legal') PDF document → Aviso Legal PDF added
-- ✅ Upload the PDF to the system and ensure it is stored correctly (e.g., in the documents section or appropriate storage)
-- ✅ Integrate the PDF so it is accessible from the relevant section (e.g., legal, compliance, or info page)
-- ✅ Test the upload and retrieval process to verify PDF/document management works as expected
-- ✅ Use this as a test case for document/PDF management features
+- Review `docs/PRD.md` for cart auto-extraction, cart reset, workspace isolation, CFs, and model config.
+- Ensure all content is in English and matches implementation.
 
 **SPECIAL NOTE**:
-Andrea wants to try uploading and managing a legal notice PDF to validate the document handling flow.
+PRD is the source of truth; align with tests and code.
 
-**IMPLEMENTATION NOTES**:
+**STORY POINT**: 2
+**STATUS**: 🔴 Not Started
 
-- Added `aviso-legal.pdf` to `/backend/prisma/samples/`
-- Created `seedAvisoLegalDocument()` function following existing pattern
-- Document will be automatically copied to uploads directory with timestamp
-- Embeddings/chunks will be generated automatically during seed process
-- Available via existing document management APIs
+================================================================================
 
-**STATUS**: ✅ Completed
+## TASK #2
 
-## TASK #39
-
-**TITLE**: Fix FAQ Embedding Auto-Regeneration Bug
+**TITLE**: Testing Gap Analysis and Coverage
 **DESCRIPTION/ROADMAP**:
 
-- 🔴 **CRITICAL BUG**: When saving/updating entries, embeddings are NOT automatically regenerated
-- User modified FAQ delivery time from "24-48 hours" to "3-6 days" but system still returns old information
-- ✅ **ROOT CAUSE IDENTIFIED**: Problem affects ALL entity types (FAQ, Products, Services, Documents)
-- ✅ **ENHANCED LOGGING**: Added comprehensive logging to track embedding regeneration process for ALL entities
-- ✅ **FAQ CONTROLLER**: Fixed silent error handling, added detailed logging
-- ✅ **PRODUCT CONTROLLER**: Fixed silent error handling, added detailed logging
-- ✅ **SERVICE CONTROLLER**: Fixed silent error handling, added detailed logging
-- ✅ **DOCUMENT CONTROLLER**: Fixed silent error handling, added detailed logging
-- ✅ **EMBEDDING SERVICES**: Enhanced logging for Products and Services embedding generation
-- ✅ **DEBUG ENDPOINT**: Added test endpoint `/test-embedding-regeneration` for manual testing
-- ✅ **COMPILATION**: All changes compile successfully
-- 🔴 **TESTING**: Need to test actual embedding regeneration flow with real data
-- 🔴 **VALIDATION**: Confirm that updated content reflects in chatbot responses
+- Identify critical areas: cart flow, CFs, N8N payload mapping, workspace isolation, auth, rate limits.
+- Add missing unit/integration tests.
 
 **SPECIAL NOTE**:
-Andrea discovered this critical bug affects the entire RAG search system - ANY content updates (FAQ, Products, Services, Documents) don't reflect in chatbot responses because embeddings are stale. This breaks the core functionality.
-
-**REPRODUCTION STEPS**:
-
-1. Modify any content entry (FAQ, Product description, Service details, Document)
-2. Save the changes
-3. Ask chatbot about the modified content
-4. System returns old information instead of updated content
-
-**DEBUGGING PROGRESS**:
-
-- ✅ Enhanced logging across ALL controllers and embedding services
-- ✅ Fixed silent error handling that was hiding embedding regeneration failures
-- ✅ Added comprehensive debugging information for troubleshooting
-- 🔴 Need to test with real server and validate the complete flow
+Prioritize high-risk flows affecting customers.
 
 **STORY POINT**: 3
-**STATUS**: 🔴 CRITICAL BUG - Ready for Testing
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #3
+
+**TITLE**: Enforce workspaceId Everywhere (+ Tests)
+**DESCRIPTION/ROADMAP**:
+
+- Ensure every API/CF includes and validates `workspaceId`.
+- Filter all reads/writes by `workspaceId` (products, orders, etc.).
+- Add tests detecting missing `workspaceId` usage.
+
+**SPECIAL NOTE**:
+Multiple WhatsApp channels must not mix data; isolation is mandatory.
+
+**STORY POINT**: 3
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #4
+
+**TITLE**: PromptAgent Cart Coherence (Live Updates)
+**DESCRIPTION/ROADMAP**:
+
+- Update `prompt_agent` so chat cart and CreateOrder `items` are always consistent.
+- Keep configuration from DB; no static fallbacks.
+
+**SPECIAL NOTE**:
+Focus on preventing empty `items` arrays despite visible cart content.
+
+**STORY POINT**: 3
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #5
+
+**TITLE**: Clear Cart State After Order (Hidden System Message)
+**DESCRIPTION/ROADMAP**:
+
+- In N8N, add a hidden system message after successful order creation to clear cart memory.
+- Delay the system message by ~5 seconds to avoid race conditions.
+- Ensure the message is invisible to the end user.
+
+**SPECIAL NOTE**:
+Trigger only on success; never on cancel/failure.
+
+**STORY POINT**: 2
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #6
+
+**TITLE**: Automate N8N Seed Login and Workspace Activation
+**DESCRIPTION/ROADMAP**:
+
+- Make N8N authentication and workspace activation fully automatic during seed/start.
+- Apply a surgical change to the existing script (no regressions to the current flow).
+- Persist session (cookie/token) and auto-activate the single active workspace from DB.
+
+**SPECIAL NOTE**:
+No hardcoded IDs; read the only active workspace from DB. Flow must stay idempotent.
+
+**STORY POINT**: 3
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #7
+
+**TITLE**: Scripts Hygiene and Cleanup
+**DESCRIPTION/ROADMAP**:
+
+- Keep only scripts actually used (referenced in `backend/package.json` or seed flow).
+- Delete temporary/debug scripts under `/scripts/` that are no longer needed.
+
+**SPECIAL NOTE**:
+No archive; remove if unused.
+
+**STORY POINT**: 2
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #8
+
+**TITLE**: Calling Functions for Past Orders (History & Reorder)
+**DESCRIPTION/ROADMAP**:
+
+- Add CFs to list past orders and repeat a previous order.
+- Integrate with N8N and update Swagger.
+
+**SPECIAL NOTE**:
+Respect workspace isolation in all queries.
+
+**STORY POINT**: 5
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #9
+
+**TITLE**: Model Configuration Audit and Dynamic Selection
+**DESCRIPTION/ROADMAP**:
+
+- Verify current model and enable dynamic selection via DB (agent config) through N8N.
+- Avoid static defaults; error clearly if missing.
+
+**SPECIAL NOTE**:
+All agent prompts/models must come from DB.
+
+**STORY POINT**: 2
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #10
+
+**TITLE**: FE/BE Dead Code Cleanup
+**DESCRIPTION/ROADMAP**:
+
+- Remove unused files/exports in frontend and backend without changing layout/UX.
+- Keep code style and lint rules consistent.
+
+**SPECIAL NOTE**:
+Do not alter existing UI/graphics.
+
+**STORY POINT**: 2
+**STATUS**: 🔴 Not Started
+
+================================================================================
+
+## TASK #11
+
+**TITLE**: Shipment Tracking Spike (DHL Demo)
+**DESCRIPTION/ROADMAP**:
+
+- Explore DHL demo (`tracking-id` URL param) for a simple tracking UX.
+- Proposal: add `trackingCode` to orders (seed default `1234567890`) and respond with link when user asks "dov'è la merce".
+- Fallback: provide generic tracking page if order context is unclear.
+
+**SPECIAL NOTE**:
+Spike only; no schema changes without approval.
+
+**STORY POINT**: 3 (Spike)
+**STATUS**: 🔴 Not Started
+
+================================================================================
 
 # PHASE 2 TASKS
 
-- prompt con url dinamici?
+- prompt_agent con url dinamici?
 - token viene passato a n8n ?
-- dentro il pannello di admin se il token scade cosa succede?
+- auth dentro le API ?
+- fammi l'ultimo ordine 
 
-## TASK #3
+## TASK #223
 
 **TITLE**: Extended Session Duration (1 Hour)
 **DESCRIPTION/ROADMAP**:
@@ -98,7 +208,7 @@ Andrea vuole lavorare 1 ora senza dover rifare il login. Attualmente la sessione
 
 ================================================================================
 
-## TASK #10
+## TASK #120
 
 **TITLE**: Advanced WhatsApp Features
 **DESCRIPTION/ROADMAP**:
@@ -118,7 +228,7 @@ Funzionalità avanzate WhatsApp per il futuro. Richiede integrazione con WhatsAp
 
 ================================================================================
 
-## TASK #13A
+## TASK #133
 
 **TITLE**: API Rate Limiting Implementation
 **DESCRIPTION/ROADMAP**:
@@ -138,7 +248,7 @@ Focused security task for API protection against abuse and DoS attacks.
 
 ================================================================================
 
-## TASK #13B
+## TASK #134
 
 **TITLE**: Advanced Authentication & 2FA
 **DESCRIPTION/ROADMAP**:
@@ -158,7 +268,7 @@ Enhanced authentication security for user accounts protection.
 
 ================================================================================
 
-## TASK #13C
+## TASK #135
 
 **TITLE**: Database Performance Optimization
 **DESCRIPTION/ROADMAP**:
@@ -178,7 +288,7 @@ Database optimization for improved application performance and scalability.
 
 ================================================================================
 
-## TASK #13D
+## TASK #136
 
 **TITLE**: Security Headers & OWASP Compliance
 **DESCRIPTION/ROADMAP**:
@@ -198,7 +308,7 @@ OWASP compliance and security hardening for production readiness.
 
 ================================================================================
 
-## TASK #13E
+## TASK #137
 
 **TITLE**: Comprehensive Logging & Monitoring
 **DESCRIPTION/ROADMAP**:
@@ -236,25 +346,6 @@ Andrea requires that the entire application is fully responsive for a seamless u
 
 ================================================================================
 
-## TASK #18
-
-**TITLE**: Database Cleanup: Remove Unused Tables
-**DESCRIPTION/ROADMAP**:
-
-- Identify all tables in the database that are no longer used by the application
-- Remove unused tables from the Prisma schema
-- Create and run proper Prisma migrations to drop these tables
-- Ensure no code references or dependencies remain for removed tables
-- Test the system thoroughly to confirm no regressions or errors
-- Update documentation and ERD if necessary
-
-**SPECIAL NOTE**:
-**SPECIAL NOTE**:
-Andrea requires a clean and maintainable database. All legacy or unused tables must be removed to avoid confusion and improve performance.
-
-**STORY POINT**: TBD
-**STATUS**: 🔵 PHASE 2
-
 ## TASK #19
 
 Configurazione manuale token in N8N poi deve arrivare alle chiamate
@@ -279,3 +370,5 @@ Andrea requires that the payment page, once payment is confirmed, always trigger
 **STATUS**: 🔴 Not Started
 
 ================================================================================
+
+ma il wip funzioan?

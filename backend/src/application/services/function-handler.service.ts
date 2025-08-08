@@ -51,7 +51,11 @@ export class FunctionHandlerService {
         case "get_product_info":
           return {
             functionName,
-            data: await this.getProductInfo(params.product_name, workspaceId, customer),
+            data: await this.getProductInfo(
+              params.product_name,
+              workspaceId,
+              customer
+            ),
           }
 
         case "get_event_by_date":
@@ -82,6 +86,16 @@ export class FunctionHandlerService {
             data: await this.createOrder(customer.id, workspaceId),
           }
 
+        case "CreateOrder":
+          return {
+            functionName,
+            data: await this.createOrderFromItems(
+              customer.id,
+              workspaceId,
+              params
+            ),
+          }
+
         case "confirmOrderFromConversation":
           return {
             functionName,
@@ -89,7 +103,7 @@ export class FunctionHandlerService {
               customerId: customer.id,
               workspaceId,
               conversationContext: params.conversationContext || "",
-              prodottiSelezionati: params.prodottiSelezionati || []
+              prodottiSelezionati: params.prodottiSelezionati || [],
             }),
           }
 
@@ -152,8 +166,6 @@ export class FunctionHandlerService {
             functionName,
             data: await this.searchDocuments(params.query, workspaceId),
           }
-
-
 
         case "get_all_categories":
           return {
@@ -243,22 +255,28 @@ export class FunctionHandlerService {
       const product = products[0]
 
       // Calcola il prezzo scontato usando il servizio prezzi
-      const { PriceCalculationService } = await import("./price-calculation.service")
+      const { PriceCalculationService } = await import(
+        "./price-calculation.service"
+      )
       const priceService = new PriceCalculationService(this.prisma)
       const customerDiscount = customer?.discount || 0
-      const priceResult = await priceService.calculatePricesWithDiscounts(workspaceId, [product.id], customerDiscount)
-      const priceData = priceResult.products.find(p => p.id === product.id)
+      const priceResult = await priceService.calculatePricesWithDiscounts(
+        workspaceId,
+        [product.id],
+        customerDiscount
+      )
+      const priceData = priceResult.products.find((p) => p.id === product.id)
 
-      const hasDiscount = (priceData?.appliedDiscount || 0) > 0;
-      const prezzoFinale = priceData?.finalPrice ?? product.price;
-      const prezzoOriginale = priceData?.originalPrice ?? product.price;
-      const scontoPercentuale = priceData?.appliedDiscount || 0;
-      const scontoTipo = priceData?.discountSource || null;
-      let formatted = `Prezzo: €${prezzoFinale.toFixed(2)}`;
+      const hasDiscount = (priceData?.appliedDiscount || 0) > 0
+      const prezzoFinale = priceData?.finalPrice ?? product.price
+      const prezzoOriginale = priceData?.originalPrice ?? product.price
+      const scontoPercentuale = priceData?.appliedDiscount || 0
+      const scontoTipo = priceData?.discountSource || null
+      let formatted = `Prezzo: €${prezzoFinale.toFixed(2)}`
       if (hasDiscount) {
-        formatted += ` (scontato del ${scontoPercentuale}%, prezzo pieno €${prezzoOriginale.toFixed(2)}`;
-        if (scontoTipo) formatted += `, fonte: ${scontoTipo}`;
-        formatted += ")";
+        formatted += ` (scontato del ${scontoPercentuale}%, prezzo pieno €${prezzoOriginale.toFixed(2)}`
+        if (scontoTipo) formatted += `, fonte: ${scontoTipo}`
+        formatted += ")"
       }
       return {
         nome: product.name,
@@ -294,8 +312,8 @@ export class FunctionHandlerService {
       endOfDay.setHours(23, 59, 59, 999)
 
       // Events functionality has been removed from the system
-      logger.info("Events functionality has been removed from the system");
-      return [];
+      logger.info("Events functionality has been removed from the system")
+      return []
     } catch (error) {
       logger.error("Error fetching events:", error)
       return []
@@ -503,6 +521,167 @@ export class FunctionHandlerService {
   }
 
   /**
+   * Crea un ordine direttamente da una lista di items (per N8N CreateOrder)
+   */
+  private async createOrderFromItems(
+    customerId: string,
+    workspaceId: string,
+    params: any
+  ): Promise<any> {
+    try {
+      console.log(
+        "🛒 CreateOrderFromItems chiamata con parametri:",
+        JSON.stringify(params, null, 2)
+      )
+
+      const { items, notes } = params
+
+      if (!items || items.length === 0) {
+        return {
+          success: false,
+          error: "❌ Nessun item fornito per l'ordine",
+        }
+      }
+
+      // Calcolo totale ordine e validazione items
+      let totalAmount = 0
+      const validatedItems = []
+
+      for (const item of items) {
+        if (item.type === "product") {
+          // Cerca prodotto per ProductCode, sku o id
+          const product = await this.prisma.products.findFirst({
+            where: {
+              OR: [{ ProductCode: item.id }, { sku: item.id }, { id: item.id }],
+              workspaceId: workspaceId,
+              status: "ACTIVE",
+            },
+          })
+
+          if (!product) {
+            return {
+              success: false,
+              error: `❌ Prodotto non trovato: ${item.name} (${item.id})`,
+            }
+          }
+
+          if (product.stock < item.quantity) {
+            return {
+              success: false,
+              error: `❌ Stock insufficiente per ${product.name}. Disponibili: ${product.stock}, richiesti: ${item.quantity}`,
+            }
+          }
+
+          validatedItems.push({
+            productId: product.id,
+            serviceId: null,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: item.quantity * item.unitPrice,
+            itemType: "PRODUCT",
+          })
+
+          totalAmount += item.quantity * item.unitPrice
+        } else if (item.type === "service") {
+          // Cerca servizio
+          const service = await this.prisma.services.findFirst({
+            where: {
+              OR: [{ id: item.id }, { name: item.name }],
+              workspaceId: workspaceId,
+              isActive: true,
+            },
+          })
+
+          if (!service) {
+            return {
+              success: false,
+              error: `❌ Servizio non trovato: ${item.name}`,
+            }
+          }
+
+          validatedItems.push({
+            productId: null,
+            serviceId: service.id,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: item.quantity * item.unitPrice,
+            itemType: "SERVICE",
+          })
+
+          totalAmount += item.quantity * item.unitPrice
+        }
+      }
+
+      // Crea l'ordine
+      const order = await this.prisma.orders.create({
+        data: {
+          status: "PENDING",
+          totalAmount: totalAmount,
+          orderCode: `ORD-${Date.now()}`,
+          customerId,
+          workspaceId,
+          notes: notes || "Ordine da WhatsApp",
+          items: {
+            create: validatedItems,
+          },
+        },
+        include: {
+          items: {
+            include: {
+              product: true,
+              service: true,
+            },
+          },
+        },
+      })
+
+      // Aggiorna stock prodotti
+      for (const item of validatedItems) {
+        if (item.productId) {
+          await this.prisma.products.update({
+            where: { id: item.productId },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
+            },
+          })
+        }
+      }
+
+      console.log("✅ Ordine creato con successo:", {
+        orderId: order.id,
+        customerId: customerId,
+        totalAmount: totalAmount,
+        itemsCount: validatedItems.length,
+      })
+
+      return {
+        success: true,
+        message: `✅ Ordine creato con successo! ID: ${order.id}`,
+        order_id: order.id,
+        orderCode: order.orderCode,
+        total: order.totalAmount,
+        status: order.status,
+        checkoutUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/checkout/order/${order.id}`,
+        items: order.items.map((item) => ({
+          nome: item.product?.name || item.service?.name,
+          ProductCode: item.product?.ProductCode || item.product?.sku || "N/A",
+          quantità: item.quantity,
+          prezzo_unitario: item.unitPrice,
+          subtotale: item.totalPrice,
+        })),
+      }
+    } catch (error) {
+      console.error("❌ Errore createOrderFromItems:", error)
+      return {
+        success: false,
+        error: "❌ Errore interno del server durante la creazione dell'ordine",
+      }
+    }
+  }
+
+  /**
    * Ottiene le informazioni sul carrello dell'utente
    */
   private async getCartInfo(
@@ -555,6 +734,8 @@ export class FunctionHandlerService {
         total += subtotal
 
         return {
+          codice:
+            item.product.ProductCode || item.product.sku || item.product.id,
           nome: item.product.name,
           quantità: item.quantity,
           prezzo_unitario: item.product.price,
@@ -862,27 +1043,35 @@ export class FunctionHandlerService {
         }
       }
 
-      const { PriceCalculationService } = await import("./price-calculation.service");
-      const priceService = new PriceCalculationService(this.prisma);
-      const productIds = products.map((p) => p.id);
-      const priceResult = await priceService.calculatePricesWithDiscounts(workspaceId, productIds, 0); // No customer discount in generic list
-      const priceMap = new Map(priceResult.products.map(p => [p.id, p]));
+      const { PriceCalculationService } = await import(
+        "./price-calculation.service"
+      )
+      const priceService = new PriceCalculationService(this.prisma)
+      const productIds = products.map((p) => p.id)
+      const priceResult = await priceService.calculatePricesWithDiscounts(
+        workspaceId,
+        productIds,
+        0
+      ) // No customer discount in generic list
+      const priceMap = new Map(priceResult.products.map((p) => [p.id, p]))
 
       return {
         found: true,
         count: products.length,
         products: products.map((product) => {
-          const priceData = priceMap.get(product.id) as ProductWithPrice | undefined;
-          const hasDiscount = (priceData?.appliedDiscount || 0) > 0;
-          const prezzoFinale = priceData?.finalPrice ?? product.price;
-          const prezzoOriginale = priceData?.originalPrice ?? product.price;
-          const scontoPercentuale = priceData?.appliedDiscount || 0;
-          const scontoTipo = priceData?.discountSource || null;
-          let formatted = `Prezzo: €${prezzoFinale.toFixed(2)}`;
+          const priceData = priceMap.get(product.id) as
+            | ProductWithPrice
+            | undefined
+          const hasDiscount = (priceData?.appliedDiscount || 0) > 0
+          const prezzoFinale = priceData?.finalPrice ?? product.price
+          const prezzoOriginale = priceData?.originalPrice ?? product.price
+          const scontoPercentuale = priceData?.appliedDiscount || 0
+          const scontoTipo = priceData?.discountSource || null
+          let formatted = `Prezzo: €${prezzoFinale.toFixed(2)}`
           if (hasDiscount) {
-            formatted += ` (scontato del ${scontoPercentuale}%, prezzo pieno €${prezzoOriginale.toFixed(2)}`;
-            if (scontoTipo) formatted += `, fonte: ${scontoTipo}`;
-            formatted += ")";
+            formatted += ` (scontato del ${scontoPercentuale}%, prezzo pieno €${prezzoOriginale.toFixed(2)}`
+            if (scontoTipo) formatted += `, fonte: ${scontoTipo}`
+            formatted += ")"
           }
           return {
             nome: product.name,
@@ -891,9 +1080,10 @@ export class FunctionHandlerService {
             scontoPercentuale,
             scontoTipo,
             categoria: product.category?.name || "",
-            disponibilità: product.stock > 0 ? "Disponibile" : "Non disponibile",
+            disponibilità:
+              product.stock > 0 ? "Disponibile" : "Non disponibile",
             formatted,
-          };
+          }
         }),
       }
     } catch (error) {
@@ -961,52 +1151,56 @@ export class FunctionHandlerService {
     workspaceId: string
   ): Promise<any> {
     try {
-      logger.info(`Searching documents for query: "${query}" in workspace: ${workspaceId}`)
+      logger.info(
+        `Searching documents for query: "${query}" in workspace: ${workspaceId}`
+      )
 
       if (!query || query.trim().length === 0) {
         return {
           error: "Search query cannot be empty",
-          results: []
+          results: [],
         }
       }
 
       // Use the document service to search
-      const searchResults = await documentService.searchDocuments(query, workspaceId, 5)
+      const searchResults = await documentService.searchDocuments(
+        query,
+        workspaceId,
+        5
+      )
 
       if (!searchResults || searchResults.length === 0) {
         return {
           message: "No relevant information found in the uploaded documents",
           query: query,
-          results: []
+          results: [],
         }
       }
 
       // Format results for the agent
-      const formattedResults = searchResults.map(result => ({
+      const formattedResults = searchResults.map((result) => ({
         content: result.content,
         document_name: result.documentName,
         similarity_score: Math.round(result.similarity * 100) / 100, // Round to 2 decimal places
-        source: `Document: ${result.documentName}`
+        source: `Document: ${result.documentName}`,
       }))
 
       return {
         query: query,
         found_results: formattedResults.length,
         results: formattedResults,
-        message: `Found ${formattedResults.length} relevant sections in the documents`
+        message: `Found ${formattedResults.length} relevant sections in the documents`,
       }
-
     } catch (error) {
       logger.error(`Error searching documents:`, error)
       return {
         error: "Failed to search documents",
-        message: "There was an error searching through the documents. Please try again later.",
-        results: []
+        message:
+          "There was an error searching through the documents. Please try again later.",
+        results: [],
       }
     }
   }
-
-
 
   /**
    * Handles get all categories (PRD Implementation)
@@ -1019,29 +1213,31 @@ export class FunctionHandlerService {
   ): Promise<any> {
     try {
       logger.info(`[CATEGORIES_HANDLER] Getting categories for ${phoneNumber}`)
-      
+
       const result = await getAllCategories({
         phoneNumber,
         workspaceId,
         customerId,
-        message: message || "categorie"
+        message: message || "categorie",
       })
-      
-      logger.info(`[CATEGORIES_HANDLER] Found ${result.totalCategories} categories`)
-      
+
+      logger.info(
+        `[CATEGORIES_HANDLER] Found ${result.totalCategories} categories`
+      )
+
       return {
         success: true,
         total_categories: result.totalCategories,
         categories: result.categories,
-        response_message: result.response
+        response_message: result.response,
       }
-      
     } catch (error) {
       logger.error(`[CATEGORIES_HANDLER] Error getting categories:`, error)
       return {
         success: false,
         error: "Si è verificato un errore nel recupero delle categorie",
-        fallback_message: "Per vedere le categorie disponibili, contatta il nostro servizio clienti."
+        fallback_message:
+          "Per vedere le categorie disponibili, contatta il nostro servizio clienti.",
       }
     }
   }
@@ -1056,32 +1252,36 @@ export class FunctionHandlerService {
     message?: string
   ): Promise<any> {
     try {
-      logger.info(`[GET_ALL_PRODUCTS_HANDLER] Getting all products for ${phoneNumber}`)
-      
+      logger.info(
+        `[GET_ALL_PRODUCTS_HANDLER] Getting all products for ${phoneNumber}`
+      )
+
       // Use the dedicated getAllProducts calling function
       const result = await getAllProducts({
         phoneNumber,
         workspaceId,
         customerId,
-        message: message || "Lista prodotti"
+        message: message || "Lista prodotti",
       })
-      
-      logger.info(`[GET_ALL_PRODUCTS_HANDLER] Found ${result.totalProducts} products`)
-      
+
+      logger.info(
+        `[GET_ALL_PRODUCTS_HANDLER] Found ${result.totalProducts} products`
+      )
+
       return {
         success: true,
         response: result.response,
         products: result.products,
-        totalProducts: result.totalProducts
+        totalProducts: result.totalProducts,
       }
-      
     } catch (error) {
       logger.error(`[GET_ALL_PRODUCTS_HANDLER] Error getting products:`, error)
       return {
         success: false,
-        response: "Si è verificato un errore nel recupero dei prodotti. Per favore riprova più tardi o contatta il nostro servizio clienti.",
+        response:
+          "Si è verificato un errore nel recupero dei prodotti. Per favore riprova più tardi o contatta il nostro servizio clienti.",
         products: [],
-        totalProducts: 0
+        totalProducts: 0,
       }
     }
   }

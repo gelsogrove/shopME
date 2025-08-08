@@ -328,7 +328,7 @@ export function WhatsAppChatModal({
         const botMessage: Message = {
           id: (Date.now() + 200).toString(),
           content: response.data.data.processedMessage,
-          sender: "customer",
+          sender: "user",
           timestamp: new Date(),
         }
 
@@ -344,7 +344,7 @@ export function WhatsAppChatModal({
           id: (Date.now() + 200).toString(),
           content:
             "Sorry, there was an error processing your message. Please try again later.",
-          sender: "customer",
+          sender: "user",
           timestamp: new Date(),
         }
 
@@ -358,7 +358,7 @@ export function WhatsAppChatModal({
         id: (Date.now() + 200).toString(),
         content:
           "Sorry, there was an error processing your message. Please try again later.",
-        sender: "customer",
+        sender: "user",
         timestamp: new Date(),
       }
 
@@ -406,7 +406,7 @@ export function WhatsAppChatModal({
     const userMessage: Message = {
       id: Date.now().toString(),
       content: currentMessage,
-      sender: "user",
+      sender: "customer",
       timestamp: new Date(),
     }
 
@@ -463,7 +463,7 @@ export function WhatsAppChatModal({
           const botMessage: Message = {
             id: (Date.now() + 1).toString(),
             content: response.data.data.processedMessage,
-            sender: "customer",
+            sender: "user",
             timestamp: new Date(),
           }
 
@@ -481,7 +481,7 @@ export function WhatsAppChatModal({
           id: (Date.now() + 1).toString(),
           content:
             "Sorry, there was an error processing your message. Please try again later.",
-          sender: "customer",
+          sender: "user",
           timestamp: new Date(),
         }
 
@@ -495,7 +495,7 @@ export function WhatsAppChatModal({
         id: (Date.now() + 1).toString(),
         content:
           "Sorry, there was an error processing your message. Please try again later.",
-        sender: "customer",
+        sender: "user",
         timestamp: new Date(),
       }
 
@@ -535,9 +535,15 @@ export function WhatsAppChatModal({
         }
       }}
     >
-      <DialogContent
-        className="sm:max-w-[600px] md:max-w-[700px] p-0 overflow-hidden [&>button]:hidden h-[850px] flex flex-col"
-        aria-describedby="whatsapp-dialog-description"
+            <DialogContent
+        className="w-[600px] max-w-[90vw] p-0 overflow-hidden [&>button]:hidden h-[850px] flex flex-col"
+        data-state={isOpen ? "open" : "closed"}
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+        }}
       >
         <DialogTitle className="sr-only">WhatsApp Chat</DialogTitle>
         <DialogDescription id="whatsapp-dialog-description" className="sr-only">
@@ -679,29 +685,29 @@ export function WhatsAppChatModal({
                   </div>
                 ))}
                 {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="bg-white border border-gray-200 rounded-2xl rounded-br-md shadow-sm px-4 py-2 max-w-[90%]">
-                      <div className="flex items-center">
-                        <span className="text-xs text-gray-500 mr-2">
+                  <div className="flex justify-end mb-2">
+                    <div className="bg-green-100 text-green-900 rounded-2xl rounded-bl-md shadow-sm px-4 py-3 max-w-[90%]">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-green-700 font-medium">
                           typing
                         </span>
                         <div className="flex space-x-1">
                           <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            className="w-2 h-2 bg-green-600 rounded-full animate-bounce"
                             style={{
                               animationDelay: "0ms",
                               animationDuration: "0.8s",
                             }}
                           ></div>
                           <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            className="w-2 h-2 bg-green-600 rounded-full animate-bounce"
                             style={{
                               animationDelay: "150ms",
                               animationDuration: "0.8s",
                             }}
                           ></div>
                           <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            className="w-2 h-2 bg-green-600 rounded-full animate-bounce"
                             style={{
                               animationDelay: "300ms",
                               animationDuration: "0.8s",
@@ -709,7 +715,7 @@ export function WhatsAppChatModal({
                           ></div>
                         </div>
                       </div>
-                      <div className="text-right text-xs text-gray-500 mt-1">
+                      <div className="text-right text-xs text-green-700 mt-1">
                         {new Date().toLocaleTimeString([], {
                           hour: "2-digit",
                           minute: "2-digit",
