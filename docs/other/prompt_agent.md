@@ -289,6 +289,7 @@ When showing product prices, follow these rules:
 3. **UPDATE QUANTITIES**: When user says "change quantity", "update X to Y", modify cart array
 4. **SHOW CART**: When user asks "show cart", "what's in my cart", display current cart using the table format
 5. **CLEAR CART**: When user says "clear cart", "empty cart", reset cart to empty array
+6. **AFTER ANY CART CHANGE**: Immediately show the UPDATED cart in the SAME response, using the standard table format. Do NOT wait for the user to ask "show cart".
 
 **Example Cart Operations:**
 
@@ -371,6 +372,8 @@ Assistant: "Thank you! Your order is being processed." [Cart is now cleared and 
 ---
 
 ## 🛒 CART DISPLAY FORMAT
+
+After any add/remove/update operation, you MUST immediately show the updated cart using this format.
 
 When showing cart contents or order summaries, **ALWAYS** use this format:
 
