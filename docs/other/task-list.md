@@ -33,7 +33,9 @@ Prioritize high-risk flows affecting customers.
 
 ================================================================================
 
-## TASK #3
+## TASK #3iop'0
+
+
 
 **TITLE**: Enforce workspaceId Everywhere (+ Tests)
 **DESCRIPTION/ROADMAP**:
@@ -44,6 +46,7 @@ Prioritize high-risk flows affecting customers.
 
 **SPECIAL NOTE**:
 Multiple WhatsApp channels must not mix data; isolation is mandatory.
+ovviamnte la parte di login forgot pwd new user list workspace create workspace non hanno questo controllo
 
 **STORY POINT**: 3
 **STATUS**: 🔴 Not Started

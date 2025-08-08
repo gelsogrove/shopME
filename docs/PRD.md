@@ -56,6 +56,38 @@
 - **Error Handling:** Ultimate fallback creates debug item for troubleshooting failed extractions
 - **Production Ready:** Tested with multiple cart scenarios and edge cases
 
+### ✅ NEW: Post-Order Cart Reset Policy (August 2025)
+
+- **Goal:** Guarantee that, after a successful order creation, the agent cart memory is cleared to avoid accidental reorders or stale items.
+- **Mechanism:**
+  - N8N sends a hidden "system" message to the LLM instructing it to clear all cart state from memory.
+  - The message is sent only on SUCCESS (never on cancel/failure).
+  - A short delay of ~5 seconds is applied before sending to avoid racing with the final confirmation message.
+- **User Experience:** The system message is invisible to the user; no UI output is generated.
+- **Acceptance Criteria:**
+  - Immediately after order confirmation, a user prompt like "show my cart" yields empty/no items.
+  - No residual cart content is present in subsequent LLM responses unless the user explicitly adds new items.
+- **Implementation Notes (N8N):**
+  - Add a "Wait" node (5000 ms) after the order creation step.
+  - Add a "Code" or "Set" node to construct a system message: { role: "system", content: "Clear all cart-related memory/state now." }.
+  - Ensure this message is appended only to the LLM context and not delivered to the user output channel.
+
+### ✅ Workspace Isolation Policy (Mandatory)
+
+- **Principle:** Every data operation MUST be isolated by `workspaceId`. This applies to all APIs, calling functions, repositories, and background jobs.
+- **Rules:**
+  - All reads and writes include `workspaceId` in filters (products, services, FAQs, documents, orders, messages, usage, etc.).
+  - Only active (isActive = true) and non-deleted (isDelete = false, if present) workspaces can return data in list APIs.
+  - Cross-workspace data access is forbidden; return a clear error if `workspaceId` is missing or invalid.
+  - Tests MUST cover workspace isolation for controllers, services, repositories, and calling functions.
+- **Security Impact:** Prevents data leakage across multiple WhatsApp channels and businesses.
+
+### ✅ Agent Model Configuration - DB-Driven
+
+- **Source of Truth:** Agent configuration (prompt, temperature, topP, maxTokens, model) MUST come from the database (`agentConfig`).
+- **No Static Fallbacks:** If configuration is missing, return a clear error; do not inject hardcoded defaults.
+- **Per-Workspace:** Model and parameters can vary by workspace and must be respected at runtime by N8N and backend endpoints.
+
 ### 🐞 Known Bugs
 
 - **Order list filters:** Filters on the orders page do not work as expected (search, status, date, etc.).
@@ -758,14 +790,12 @@ const allowedTransitions = {
   cancelled: [],              // Terminal state
   refunded: []               // Terminal state
 }
-
 // AUTOMATIC ACTIONS:
 - CONFIRMED → Decrease stock
 - CANCELLED → Restore stock
 - SHIPPED → Send tracking email
 - DELIVERED → Request review
 ```
-
 ---
 
 ## 📦 **STOCK MANAGEMENT SYSTEM - COMPLETE IMPLEMENTATION**
@@ -1464,6 +1494,59 @@ interface OrdersAnalytics {
 }
 ```
 
+#### New Calling Functions: PastOrders and Reorder
+
+- **PastOrders (History):**
+  - Input: `{ customerId, workspaceId, limit?: number, fromDate?: ISODate, toDate?: ISODate }`
+  - Output: `{ success, orders: Array<{ orderId, orderCode, createdAt, totalAmount, itemsCount, status }> }`
+  - Behavior: Returns recent orders for the requesting customer in the given workspace, ordered by date DESC.
+  - Security: Requires valid `workspaceId` and customer identity; enforce isolation.
+- **Reorder (Repeat Past Order):**
+  - Input: `{ customerId, workspaceId, orderId | orderCode }`
+  - Output: `{ success, newOrderId, newOrderCode, items, totalAmount, message }`
+  - Behavior: Creates a new order with the same items as the referenced order (validating current stock/prices). Does NOT copy cancelled/refunded items.
+  - Validation: Skip unavailable products; recalculate totals; log any differences due to price/stock changes.
+  - Security: Same isolation requirements; respond with clear errors if cross-workspace access is attempted.
+- **Status:** Planned. Implementation will include Swagger updates, unit/integration tests, and N8N nodes wiring for conversational triggers.
+
+### **📊 Analytics & Reporting**
+
+#### **Orders Analytics Dashboard**
+
+```typescript
+interface OrdersAnalytics {
+  // KEY METRICS
+  totalOrders: number
+  totalRevenue: number
+  averageOrderValue: number
+  conversionRate: number
+
+  // TRENDS
+  ordersGrowth: number // % vs previous period
+  revenueGrowth: number // % vs previous period
+
+  // TOP PERFORMERS
+  topProducts: ProductPerformance[]
+  topCustomers: CustomerPerformance[]
+
+  // STATUS BREAKDOWN
+  statusDistribution: {
+    pending: number
+    confirmed: number
+    shipped: number
+    delivered: number
+    cancelled: number
+  }
+
+  // TIME ANALYSIS
+  peakHours: HourlyData[]
+  seasonalTrends: MonthlyData[]
+
+  // GEOGRAPHICAL
+  shippingHeatmap: RegionData[]
+}
+```
+
 ### **⚡ Performance Optimizations**
 
 #### **Database Performance**
@@ -1559,7 +1642,6 @@ POST /api/internal/validate-secure-token
   type?: 'invoice' | 'checkout' | 'cart' | 'registration',
   workspaceId?: string
 }
-
 // Get customer invoices by secure token
 GET /api/internal/invoices/:token
 Response: {
@@ -2348,9 +2430,7 @@ curl -X POST http://localhost:5678/webhook/whatsapp-flow \
   }
 }
 ```
-
 #### **Node 2: Channel Active Check**
-
 ```json
 {
   "type": "http_request",
@@ -3102,809 +3182,7 @@ POST / api / internal / conversation - history // Recupero storico chat
          v
 📤 RESPONSE BACK TO SHOPME BACKEND → WhatsApp
 ```
-
 ### **Legacy Flow (for comparison)**
-
-```
-📱 MESSAGGIO WHATSAPP
-         |
-         v
-    ┌─────────────────┐
-    │ CANALE ATTIVO?  │ ──NO──> ❌ STOP DIALOGO
-    │ (isActive)      │
-    └─────────────────┘
-         |YES
-         v
-    ┌─────────────────┐
-    │ CHATBOT ATTIVO? │ ──NO──> 👨‍💼 CONTROLLO OPERATORE
-    │ (activeChatbot) │         (salva msg, no AI response)
-    └─────────────────┘
-         |YES
-         v
-    ┌─────────────────┐
-    │ USER BLACKLIST? │ ──YES─> ❌ BLOCCA CONVERSAZIONE
-    └─────────────────┘
-         |NO
-         v
-    ┌─────────────────┐
-    │ CANALE IN WIP?  │ ──YES─> ⚠️ MESSAGGIO WIP
-    └─────────────────┘
-         |NO
-         v
-    ┌─────────────────┐
-    │ NUOVO UTENTE?   │
-    └─────────────────┘
-         |              |
-       YES|              |NO
-         v              v
-    ┌─────────────┐  ┌─────────────────┐
-    │ SALUTO?     │  │ >2 ORE ULTIMA   │ ──YES─> 👋 BENTORNATO {NOME}
-    │ Ciao/Hello  │  │ CONVERSAZIONE?  │
-    └─────────────┘  └─────────────────┘
-         |YES              |NO
-         v                 v
-    ┌─────────────┐  ┌─────────────────┐
-    │ 🎉 WELCOME  │  │ 🤖 CHAT LIBERA  │
-    │ + REG LINK  │  │ UTENTE + RAG    │
-    └─────────────┘  └─────────────────┘
-         |
-         v
-    ┌─────────────┐
-    │ 🔗 TOKEN +  │
-    │ REGISTRA    │
-    └─────────────┘
-         |
-         v
-    ┌─────────────┐
-    │ 🤖 CHAT     │
-    │ LIBERA RAG  │
-    └─────────────┘
-```
-
-## 🔑 LEGENDA
-
-- ❌ = STOP/BLOCCO
-- 👨‍💼 = CONTROLLO OPERATORE
-- ⚠️ = MESSAGGIO AUTOMATICO
-- 🎉 = MESSAGGIO BENVENUTO
-- 🤖 = ELABORAZIONE AI/RAG
-- 🔗 = LINK CON TOKEN
-- 🛒 = FINALIZZAZIONE ORDINE/CHECKOUT
-- 💬 = CONVERSAZIONE NORMALE
-
-#### System Architecture Components with N8N Visual Workflow
-
-**1. WhatsApp Webhook Handler** (`whatsapp.controller.ts`)
-
-- Receives messages from Meta API
-- Validates webhook with verification token
-- Handles both GET (verification) and POST (messages)
-
-**2. Backend Security Pre-Processing** (`message.service.ts`)
-
-- **Security-only message processing**
-- API rate limiting and spam detection
-- Blacklist checks and workspace validation
-- Delegates business logic to N8N
-
-**3. N8N Visual Workflow Engine**
-
-- **Multi-business workflow with dynamic routing**
-- Business type detection (ECOMMERCE, RESTAURANT, CLINIC, etc.)
-- Visual workflow editor for non-technical users
-- Real-time execution monitoring and metrics
-
-**4. Internal API Endpoints** (`internal-api.controller.ts`)
-
-- **N8N-to-Backend communication layer**
-- Business type detection endpoint
-- RAG search with business-specific logic
-- LLM processing with agent configuration
-- Message saving and conversation history
-
-**5. Business-Aware RAG Architecture**
-
-- **Multi-business type semantic search**
-- Dynamic search strategies per business type
-- Context-aware LLM prompts
-- Unified results formatting
-
-**6. N8N Admin Interface** (`/settings/n8n`)
-
-- **Embedded workflow management**
-- Real-time status monitoring
-- Workflow import/export functionality
-- Container management and health checks
-
-**6. Token Service** (`token.service.ts`)
-
-- Secure registration token management
-- Token validation and expiration
-- Prevents token reuse
-
-**7. Document Management Services**
-
-- **`embeddingService.ts`**: Shared service for chunking, embedding generation, and similarity calculation
-- **`documentService.ts`**: PDF upload and processing management (uses shared EmbeddingService)
-- **`searchService.ts`**: Unified multi-source RAG search across Documents, FAQs, and Services
-- Local embedding generation with Xenova transformers (in development)
-
-#### Security Controls
-
-**1. Blacklist Management**
-
-```typescript
-// Check in customer.isBlacklisted and workspace.blocklist
-const isBlacklisted = await this.messageRepository.isCustomerBlacklisted(
-  phoneNumber,
-  workspaceId
-)
-```
-
-**Implementation:**
-
-- `isBlacklisted` field in Customer model
-- `blocklist` list in Workspace model (newline-separated numbers)
-- Dual control: customer-level and workspace-level
-
-**2. Registration Tokens**
-
-```typescript
-// Generate secure token with expiration
-const token = await this.tokenService.createRegistrationToken(
-  phoneNumber,
-  workspaceId
-)
-```
-
-**Features:**
-
-- Cryptographically secure tokens (crypto.randomBytes)
-- 1-hour expiration
-- Single use (marked as used after registration)
-- Phone + workspace validation
-
-**3. Channel WIP Status**
-
-```typescript
-if (!workspaceSettings.isActive) {
-  return wipMessages[userLang] || wipMessages["en"]
-}
-```
-
-**4. Spam Detection Service**
-
-**Overview**
-The system implements a dedicated spam detection service that automatically identifies and blocks abusive behavior patterns. This service operates as a separate layer in the message processing pipeline to ensure system stability and prevent resource abuse.
-
-**Service Architecture**
-
-```typescript
-// Future implementation: Dedicated SpamDetectionService
-class SpamDetectionService {
-  async checkSpamBehavior(
-    phoneNumber: string,
-    workspaceId: string
-  ): Promise<SpamCheckResult>
-  async addToAutoBlacklist(
-    phoneNumber: string,
-    workspaceId: string,
-    reason: string
-  ): Promise<void>
-  async getSpamStatistics(workspaceId: string): Promise<SpamStats>
-  async removeFromBlacklist(
-    phoneNumber: string,
-    workspaceId: string
-  ): Promise<void>
-}
-```
-
-**Current Implementation (MessageService Integration)**
-
-```typescript
-// Spam check: 10 messages in 30 seconds
-const spamCheck = await this.checkSpamBehavior(phoneNumber, workspaceId)
-if (spamCheck.isSpam) {
-  await this.addToAutoBlacklist(phoneNumber, workspaceId, "AUTO_SPAM")
-  return null // Block immediately
-}
-```
-
-**Detection Algorithm:**
-
-- **Threshold**: 10 messages in 30-second sliding window
-- **Scope**: Per phone number per workspace
-- **Message Type**: Only INBOUND messages (user messages, not bot responses)
-- **Time Window**: Sliding 30-second window (not fixed intervals)
-
-**Auto-Blacklist Implementation:**
-
-- **Dual Blocking**: Customer-level (`isBlacklisted = true`) + Workspace-level (`blocklist` field)
-- **Immediate Effect**: No response sent when spam detected
-- **Duration**: Unlimited (manual admin unlock only)
-- **Audit Trail**: Comprehensive logging for compliance and debugging
-
-**Future Service Enhancements:**
-
-- **Rate Limiting**: API call limits per workspace
-- **Pattern Recognition**: Advanced spam pattern detection
-- **Whitelist Management**: Trusted phone number management
-- **Analytics Dashboard**: Spam detection statistics and trends
-- **Configurable Thresholds**: Per-workspace spam detection settings
-- **Appeal Process**: Customer appeal and review workflow
-
-**Integration Points:**
-
-- **Message Flow**: Integrated before blacklist check in message processing
-- **Admin Interface**: Manual blacklist management in customer admin panel
-- **Monitoring**: Real-time spam detection alerts and notifications
-- **Reporting**: Spam detection reports for workspace administrators
-
-**5. Operator Manual Control (activeChatbot)**
-
-```typescript
-// Check if operator has taken manual control
-if (customer && !customer.activeChatbot) {
-  // Save message but don't generate bot response
-  await this.messageRepository.saveMessage({
-    workspaceId,
-    phoneNumber,
-    message,
-    response: "",
-    agentSelected: "Manual Operator Control",
-  })
-  return "" // No bot response
-}
-```
-
-**Manual Control Implementation:**
-
-- **Field**: `activeChatbot` boolean in Customer model (default: true)
-- **Control**: Operators can disable chatbot via Chat History interface
-- **Behavior**: When disabled, bot saves messages but doesn't respond
-- **UI Indicator**: Bot icon changes color (green=auto, gray=manual)
-- **Toggle**: Real-time switch in chat interface with confirmation dialog
-
-#### Multilingual Management
-
-**Language Detection**
-
-```typescript
-const greetingLang = this.detectGreeting(message)
-// Supports: it, en, es, pt
-```
-
-**Configurable Messages**
-
-- **Welcome Messages**: Configured per workspace in 4 languages
-- **WIP Messages**: Multilingual maintenance messages
-- **Fallback**: English as default language
-
-#### RAG Integration (Retrieval-Augmented Generation)
-
-**1. Document Processing Pipeline**
-
-```typescript
-// Upload → Extract Text → Chunk → Generate Embeddings
-await documentService.processDocument(documentId)
-```
-
-**Phases:**
-
-1. **Upload**: PDF saved to `/uploads/documents/`
-2. **Text Extraction**: Text extraction with pdf-parse
-3. **Chunking**: Division into 1000-character chunks (100 overlap)
-4. **Embeddings**: Local generation with Xenova/all-MiniLM-L6-v2 (in development)
-5. **Storage**: Embedding storage in PostgreSQL (JSONB)
-
-**2. Semantic Search**
-
-```typescript
-const searchResults = await documentService.searchDocuments(
-  query,
-  workspaceId,
-  limit
-)
-```
-
-**Algorithm:**
-
-- User query embedding generation
-- Cosine similarity calculation with existing chunks
-- Relevance sorting
-- Top-K results return
-
-**3. Context Enrichment**
-
-```typescript
-// Context enrichment for LLM
-const enrichedContext = {
-  userMessage: message,
-  documentContext: searchResults,
-  chatHistory: previousMessages,
-}
-```
-
-#### Function Calling System
-
-**Intelligent Router**
-The system uses an LLM to determine which function to call:
-
-```markdown
-# Available Functions:
-
-1. get_product_info(product_name)
-2. get_service_info(service_name)
-3. welcome_user()
-4. create_order()
-5. get_cart_info()
-6. add_to_cart(product_name, quantity)
-7. search_documents(query) # RAG Integration
-```
-
-**Two-Phase Workflow**
-
-1. **First LLM**: Determines target function
-2. **Second LLM**: Formats final response with context
-
-#### User State Management
-
-**New User**
-
-```typescript
-if (!customer) {
-  if (!greetingLang) {
-    return null // Don't respond to non-greetings
-  }
-  // Send welcome message with registration link
-}
-```
-
-**Registered User**
-
-```typescript
-if (customer) {
-  // Check last activity
-  if (lastActivity > 2hours) {
-    sendWelcomeBack(customer.name)
-  }
-  // Process message normally
-}
-```
-
-#### Database Schema
-
-**Main Tables**
-
-```sql
--- Customers
-CREATE TABLE customers (
-  id TEXT PRIMARY KEY,
-  phone TEXT,
-  name TEXT,
-  isBlacklisted BOOLEAN DEFAULT false,
-  workspaceId TEXT,
-  language TEXT,
-  -- ... other fields
-);
-
--- Registration Tokens
-CREATE TABLE registration_tokens (
-  token TEXT PRIMARY KEY,
-  phoneNumber TEXT,
-  workspaceId TEXT,
-  expiresAt TIMESTAMP,
-  usedAt TIMESTAMP
-);
-
--- Documents & Chunks for RAG
-CREATE TABLE documents (
-  id TEXT PRIMARY KEY,
-  filename TEXT,
-  status DocumentStatus,
-  workspaceId TEXT
-);
-
-CREATE TABLE document_chunks (
-  id TEXT PRIMARY KEY,
-  documentId TEXT,
-  content TEXT,
-  embedding JSONB -- Number array for similarity search
-);
-```
-
-#### Environment Configuration
-
-**Required Variables**
-
-```env
-# WhatsApp
-WHATSAPP_VERIFY_TOKEN=your-verify-token
-WHATSAPP_ACCESS_TOKEN=your-access-token
-
-# Local embeddings with Xenova (in development)
-OPENROUTER_API_KEY=your-openrouter-key
-
-# Database
-DATABASE_URL=postgresql://...
-
-# Frontend for registration links
-FRONTEND_URL=https://your-domain.com
-```
-
-#### Confirmed Specifications
-
-**1. Blacklist Management**
-
-- ✅ **Population**: `blocklist` field in workspace Settings (manual) + auto-blacklist for spam
-- ✅ **Auto-blacklist**: 10 messages in 30 seconds → automatic block
-- ✅ **Timeout**: Unlimited until manual admin unlock
-
-**2. User Registration**
-
-- ✅ **Minimum data**: Existing registration form (first name, last name, company, phone)
-- ✅ **Email verification**: Not implemented (phone only)
-- ✅ **GDPR**: Checkbox with text from `http://localhost:3000/gdpr`
-
-**3. RAG and Knowledge Base**
-
-- ✅ **Supported formats**: PDF only
-- ✅ **Maximum size**: 5 MB
-- ✅ **Embedding updates**: Manual via "Generate Embeddings" button in admin
-- ✅ **Query cache**: Not implemented
-
-**4. Performance and Scalability**
-
-- ✅ **Rate limiting**: 100 calls every 10 minutes (anti-attack protection)
-- ✅ **Queue system**: Not necessary
-- ✅ **CDN**: Not implemented
-- ✅ **Database sharding**: Not necessary
-
-**5. Security**
-
-- ✅ **E2E encryption**: Not priority (management via external links)
-- ✅ **Audit log**: Not implemented
-- ✅ **2FA**: Planned for future releases (not priority)
-
-**6. Business Logic**
-
-- ✅ **Payments**: Planned for future releases
-- ✅ **Multi-step orders**: Not priority
-- ✅ **Proactive notifications**: Not priority
-- ✅ **Analytics**: Existing chat history sufficient
-
-**7. UX and Conversational Design**
-
-- ✅ **Media support**: Not implemented
-- ✅ **Quick replies**: Not implemented
-- ✅ **Operator handoff**: ✅ **IMPLEMENTED** - Toggle in chat for operator control
-- ✅ **Sentiment analysis**: Not priority
-
-#### Development Roadmap
-
-**🚀 Immediate Priority (To Implement)**
-
-1. **Auto-Blacklist Spam Detection**: 10 messages in 30 seconds → automatic block
-2. **API Rate Limiting**: 100 calls every 10 minutes for anti-attack protection
-3. **GDPR Integration**: Dynamic link to `/gdpr` in registration form
-
-**🎯 High Priority (Future Releases)**
-
-1. **Payment Integration**: Complete checkout via WhatsApp
-2. **2FA Security**: Two-factor authentication for critical operations
-3. **Enhanced Document Management**: PDF management improvements (5MB limit)
-
-**📈 Medium Priority (Extended Roadmap)**
-
-1. **Multi-channel**: Extension to Telegram, Facebook Messenger
-2. **Voice Support**: Voice message handling
-3. **AI Training**: Fine-tuning models on specific conversations
-4. **Media Support**: Images and audio in chat
-
-**🔮 Low Priority (Future Vision)**
-
-1. **Chatbot Builder**: Drag-and-drop interface for flows
-2. **A/B Testing**: Automatic testing of message variants
-3. **Integration Hub**: Connectors for external CRM/ERP
-4. **Mobile App**: Dedicated app for chatbot management
-
-**🚀 Immediate Priority (Critical Security & Core Features)**
-
-1. **Security Audit & Vulnerability Assessment**: Comprehensive OWASP compliance, JWT enhancement, audit logging
-2. **WhatsApp Message Templates & Rich Media**: Advanced messaging with templates, media support, bulk messaging
-3. **Temporary Token System**: Secure links for payments, invoices, cart access with comprehensive token management
-4. **Plan-Based AI Prompt System**: Dynamic prompts based on subscription tier with upgrade messaging
-5. **Auto-Blacklist Spam Detection**: 10 messages in 30 seconds → automatic block
-6. **API Rate Limiting**: 100 calls every 10 minutes for anti-attack protection
-
-**🎯 High Priority (Business Features)**
-
-1. **Product Pricing with Discounts**: Customer vs product discount calculation system
-2. **Customer Chat History Seeding**: Realistic demo data with conversation flows
-3. **Block User Integration**: Add blocked users to workspace phone number blocklist
-4. **Landing Page Multi-Language**: Professional homepage with EN/IT/ES support
-5. **Enhanced Document Management**: PDF management improvements (5MB limit)
-
-**📈 Medium Priority (Extended Features)**
-
-1. **Database Schema Updates**: Support for new security features
-2. **Workspace-Specific GDPR**: Per-workspace GDPR text management
-3. **Pay-Per-Use Billing System**: Usage-based billing with Stripe integration
-4. **Professional Plan Contact Sales**: Lead management and operator assignment
-
-**🔮 Low Priority (Future Vision)**
-
-1. **Multi-Channel WhatsApp**: Multiple WhatsApp numbers per workspace
-2. **Performance Optimization**: Monitoring, caching, and scalability improvements
-3. **Chatbot Builder**: Drag-and-drop interface for flows
-4. **Integration Hub**: Connectors for external CRM/ERP
-
-### Security Implementation (OWASP)
-
-**Current Security Status**:
-
-- ✅ **JWT Authentication**: Implemented with workspace integration
-- ✅ **Basic Rate Limiting**: Auth endpoints protected
-- ✅ **Input Validation**: Basic Prisma validation
-- ✅ **HTTPS Enforcement**: Production environment
-- ❌ **Comprehensive Security Audit**: Needed
-- ❌ **Advanced Token Management**: Missing refresh tokens, blacklisting
-- ❌ **Security Monitoring**: No audit logging or intrusion detection
-
-**Planned Security Enhancements**:
-
-#### 🔐 **Authentication & Authorization**
-
-- **JWT Token Security**: Token rotation, blacklisting, secure storage
-- **Session Management**: Timeout controls, concurrent session limits
-- **2FA Enhancement**: Backup codes, recovery options
-- **Account Lockout**: Progressive delays for failed attempts
-- **Password Security**: Strong policies, history tracking
-
-#### 🛡️ **Data Protection**
-
-- **Input Validation**: Comprehensive validation for all inputs
-- **SQL Injection Prevention**: Parameterized queries, sanitization
-- **XSS Protection**: Content Security Policy, output encoding
-- **CSRF Protection**: Anti-CSRF tokens for state changes
-- **File Upload Security**: Virus scanning, type validation
-
-#### 🔍 **Security Monitoring**
-
-- **Audit Logging**: All security events (login, data access, changes)
-- **Intrusion Detection**: Suspicious pattern monitoring
-- **Security Headers**: OWASP recommended headers
-- **Vulnerability Scanning**: Regular automated scans
-- **Penetration Testing**: External security assessments
-
-#### 📊 **Compliance**
-
-- **GDPR Compliance**: Data processing documentation, consent management
-- **Security Policies**: Incident response procedures
-- **Risk Assessment**: Security risk documentation
-- **Security Training**: Developer awareness programs
-
-### WhatsApp Advanced Messaging System
-
-**Current Messaging Capabilities**:
-
-- ✅ **Basic Message Sending**: Text messages via webhook
-- ✅ **Welcome Messages**: Multi-language registration links
-- ✅ **WIP Messages**: Maintenance mode notifications
-- ❌ **Message Templates**: No template system
-- ❌ **Rich Media**: No image/document support
-- ❌ **Bulk Messaging**: No broadcast capabilities
-
-**Planned Messaging Enhancements**:
-
-#### 📝 **Template System**
-
-- **Template Library**: Pre-built scenarios (welcome, order confirmation, support)
-- **Custom Templates**: Workspace-specific template creation
-- **Variable Substitution**: Dynamic content (customer name, order details)
-- **Multi-language Templates**: All supported languages (IT, EN, ES, PT)
-- **Template Categories**: Marketing, transactional, support organization
-
-#### 🎨 **Rich Message Features**
-
-- **Media Support**: Images, documents, audio via WhatsApp
-- **Interactive Buttons**: Quick reply buttons for actions
-- **List Messages**: Structured product catalogs, menus
-- **Location Sharing**: Business locations, delivery addresses
-- **Contact Cards**: Business contact information sharing
-
-#### 📤 **Bulk Messaging**
-
-- **Customer Segmentation**: Targeted group messaging
-- **Broadcast Lists**: Marketing campaign management
-- **Message Scheduling**: Optimal delivery timing
-- **Delivery Tracking**: Status and read receipt monitoring
-- **Opt-out Management**: Automatic unsubscribe handling
-
-### 🔐 **Advanced Token Security System (Phase 1 - IMPLEMENTED)**
-
-**Current Token Architecture**:
-
-- ✅ **Session Tokens**: Auto-generated per WhatsApp message, 1-hour expiration
-- ✅ **Registration Tokens**: Customer registration, 1-hour expiration, single-use
-- ✅ **Secure Tokens**: Multi-purpose (checkout, invoice, cart, password_reset, email_verification)
-- ✅ **Auto-Cleanup**: Automatic removal of expired tokens (>1 hour) on every service call
-- ✅ **Token Rotation**: Previous tokens invalidated on new generation
-- ✅ **N8N Integration**: Session tokens passed in payload for secure workflow validation
-
-#### 🔄 **Session Token Flow (WhatsApp ↔ N8N)**
-
-```
-1. 📱 WhatsApp Message → Backend
-2. 🧹 Auto-cleanup expired tokens (>1 hour)
-3. 🔑 Generate new Session Token (48 chars SHA256)
-4. ❌ Invalidate previous customer session tokens
-5. 💾 Save to secure_tokens table (expires +1 hour)
-6. 🚀 Send to N8N in JSON payload: { sessionToken, workspaceId, ... }
-7. 🛡️ N8N validates token via Backend API
-```
-
-#### 🗄️ **Database Storage**
-
-```sql
--- All tokens stored in unified table
-TABLE secure_tokens (
-  id VARCHAR PRIMARY KEY,
-  token VARCHAR(64) UNIQUE,
-  type VARCHAR, -- 'session' | 'registration' | 'checkout' | 'invoice' | ...
-  workspaceId VARCHAR,
-  userId VARCHAR,
-  phoneNumber VARCHAR,
-  payload JSON, -- encrypted metadata
-  expiresAt TIMESTAMP,
-  usedAt TIMESTAMP NULL,
-  createdAt TIMESTAMP
-)
-```
-
-#### 🛡️ **Security Features**
-
-- **Per-Message Security**: New session token for every WhatsApp interaction
-- **Automatic Cleanup**: Database self-maintains, removes tokens >1 hour old
-- **Token Validation**: N8N can verify token authenticity via Backend API
-- **Workspace Isolation**: Tokens scoped to specific workspace
-- **Expiration Control**: All tokens expire within 1 hour maximum
-- **Usage Tracking**: Mark tokens as used to prevent replay attacks
-
-#### 🔧 **Phase 1 Implementation Status**
-
-**✅ COMPLETED:**
-
-- Session token generation per WhatsApp message
-- Auto-cleanup mechanism in all token services
-- Token transmission to N8N workflows
-- Database optimization and indexing
-
-**🔧 TODO (Phase 1):**
-
-- N8N validation API endpoint (`/api/internal/validate-session-token`)
-- N8N Custom Function for token validation
-- Link token validation for public pages
-- Enhanced registration link security
-- Ordinary customer handling in N8N
-
-- **Token Encryption**: Encrypted payloads for sensitive data
-- **IP Validation**: Optional IP address verification
-- **Device Fingerprinting**: Fraud prevention tracking
-- **Rate Limiting**: Token generation abuse prevention
-- **Audit Logging**: Complete token lifecycle tracking
-
-#### ⏰ **Lifecycle Management**
-
-- **Configurable Expiration**: Different times per token type
-- **Single-Use Tokens**: Automatic invalidation after use
-- **Token Rotation**: Extended session support
-- **Manual Revocation**: Administrative token invalidation
-- **Automatic Cleanup**: Expired token removal
-
-### Plan-Based AI Prompt System
-
-**Current AI Configuration**:
-
-- ✅ **Single Prompt System**: One prompt per workspace
-- ✅ **Agent Configuration**: Temperature, tokens, model settings
-- ❌ **Plan-Based Prompts**: No subscription tier differentiation
-- ❌ **Upgrade Messaging**: No plan upgrade suggestions
-- ❌ **Dynamic Loading**: Static prompt configuration
-
-**Enhanced Prompt System**:
-
-#### 🤖 **Plan-Specific Prompts**
-
-**Free Plan Features**:
-
-- Basic product information only
-- Frequent upgrade messaging
-- No human support access
-- Limited order processing
-
-**Basic Plan Features**:
-
-- Full product catalog access
-- Standard order processing
-- Moderate upgrade messaging
-- No human support (upgrade required)
-
-**Professional Plan Features**:
-
-- Advanced AI capabilities
-- Human support integration
-- Priority response handling
-- Advanced analytics mentions
-
-**Enterprise Plan Features**:
-
-- Custom AI personality
-- Immediate priority support
-- Advanced integrations
-- White-label messaging options
-
-#### 🔄 **Dynamic Implementation**
-
-- **Plan Detection**: Automatic workspace plan identification
-- **Prompt Loading**: Database-driven prompt selection
-- **Real-time Updates**: Immediate prompt changes on plan upgrades
-- **Fallback System**: Default prompts for missing configurations
-- **Performance Caching**: Optimized prompt loading
-
-#### 📊 **Analytics & Optimization**
-
-- **Conversion Tracking**: Plan upgrades from AI interactions
-- **Prompt Performance**: Response quality by plan tier
-- **A/B Testing**: Different prompt strategy comparison
-- **User Satisfaction**: Plan-based satisfaction tracking
-
-## DIALOG EXAMPLES
-
-### SofIA - Gusto Italiano Assistant Implementation
-
-**Business Context**: The following examples demonstrate the implemented SofIA assistant for "Gusto Italiano", an authentic Italian specialty foods store. SofIA represents the default agent configuration that showcases the platform's capabilities for food retail businesses.
-
-**Agent Profile**:
-
-- **Name**: SofIA (Smart Food Italian Assistant)
-- **Business**: Gusto Italiano - Authentic Italian Specialty Foods Store
-- **Personality**: Warm, passionate, expert in Italian cuisine
-- **Languages**: Responds in user's language (IT, EN, ES, PT)
-- **Function Calling**: Intelligent routing to getProducts(), getServices(), getFAQs(), getDocuments(), getCompanyInfo()
-
-### Registro de Nuevo Usuario
-
-**Cliente**: "Ciao!"
-
-**SofIA**: "Ciao! 👋 Benvenuto a Gusto Italiano!
-
-Sono SofIA, la tua assistente virtuale appassionata, e sono qui per aiutarti a scoprire i tesori autentici della cucina italiana! 🇮🇹✨
-
-Per offrirti la migliore esperienza e poter processare i tuoi ordini, ti chiedo di registrarti. Ho creato un link di registrazione sicuro per te:
-
-🔗 [https://gustoitaliano.com/registro/token_u7d9f3a1b5]
-
-Questo link è personale e scade in 1 ora per motivi di sicurezza.
-
-Dopo la registrazione, potrò aiutarti con la nostra selezione di prodotti italiani autentici! 🍝🧀🍷"
-
-**Cliente**: [Completes registration]
-
-**SofIA**: "Perfetto! Grazie per esserti registrato! 🎉
-
-La tua account è stata creata correttamente. Siamo specializzati in prodotti alimentari italiani autentici - dalle paste artigianali ai formaggi stagionati, dai vini pregiati agli oli extravergini di oliva.
-
-Come posso assisterti oggi? Stai cercando qualcosa di particolare? 😊"
-
-### Descubrimiento y Compra de Productos
-
-**Cliente**: "Che prodotti avete?"
-
-**SofIA**: _[FUNCTION CALL: getProducts()]_
-
-"Che meraviglia! 🤩 Abbiamo una selezione fantastica di autentici prodotti italiani che ti faranno innamorare della vera cucina italiana!
-
 Ecco i nostri tesori culinari:
 
 **🍝 PASTA & CEREALI:**
@@ -4656,9 +3934,7 @@ model UserWorkspace {
   @@id([userId, workspaceId])
 }
 ```
-
 **Seed Script Behavior:**
-
 1. **Complete Database Cleanup**: Removes ALL data from ALL tables
 2. **Admin User Creation**: Creates admin user with credentials from .env
 3. **Main Workspace Creation**: Creates the primary workspace with fixed ID
@@ -5443,7 +4719,6 @@ We protect all API endpoints with smart rate limiting:
     - `status` (optional): Filter by active, upcoming, or expired
     - `page`, `limit` (optional): Pagination parameters
   - **Returns**: List of offers with details
-
 - `POST /api/offers`
   - **Description**: Creates a new offer
   - **Body**:
@@ -5459,7 +4734,6 @@ We protect all API endpoints with smart rate limiting:
     - `usage_limit`: Maximum redemptions allowed
     - `code`: Promo code (optional)
   - **Returns**: Created offer details
-
 - `GET /api/offers/:id`
   - **Description**: Gets details of a specific offer
   - **Parameters**: `id` (required): Offer ID
@@ -5920,7 +5194,6 @@ The platform follows OWASP security guidelines:
 - Secure authentication and authorization
 - Data encryption in transit and at rest
 - Regular security audits
--
 
 ### Testing Strategy
 
@@ -6600,7 +5873,7 @@ ShopMe implements a comprehensive **hard delete system** for workspace managemen
 
 #### Implementation Details
 
-```typescript
+```
 // Hard delete in cascading order to avoid foreign key constraints
 await prisma.$transaction(async (tx) => {
   // 1. Delete dependent data first (chunks, items, etc.)
@@ -6947,7 +6220,7 @@ N8N Workflow/
 #### **9. 🤖 PROMPT AGENTE DAL DATABASE**
 
 - - `getAgentConfig()` estrae tutto dal database
-- - Prompt, model, temperature, maxTokens da DB
+- - Prompt, model, temperatures, maxTokens da DB
 - - Zero hardcode, tutto dinamico
 
 ---
@@ -7027,7 +6300,7 @@ Andrea ha progettato un sistema di Session Token rivoluzionario che **genera un 
 
 #### **1. Auto-Generation per ogni messaggio**
 
-```typescript
+```
 // Chiamato per OGNI messaggio WhatsApp
 const sessionToken = await sessionTokenService.createOrRenewSessionToken(
   workspaceId,
@@ -7036,7 +6309,6 @@ const sessionToken = await sessionTokenService.createOrRenewSessionToken(
   conversationId
 )
 ```
-
 #### **2. Sicurezza Avanzata**
 
 - **Token Unico**: SHA256 di 48 caratteri
@@ -7046,7 +6318,7 @@ const sessionToken = await sessionTokenService.createOrRenewSessionToken(
 
 #### **3. Payload Crittografato**
 
-```json
+```
 {
   "workspaceId": "workspace-123",
   "customerId": "customer-456",
@@ -7056,7 +6328,6 @@ const sessionToken = await sessionTokenService.createOrRenewSessionToken(
   "createdAt": "2024-01-15T10:00:00Z"
 }
 ```
-
 ### **🔗 TOKEN TYPES SUPPORTATI**
 
 | Type           | Durata | Utilizzo               | Endpoint                                   |
@@ -7855,7 +7126,6 @@ GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
 - Query database ottimizzate con indici
 - Pagination automatica per grandi dataset
 - Cache intelligente per dati frequenti
-
 **Business Logic Centralizzata:**
 
 - **Strategia prezzi di Andrea** applicata uniformemente
