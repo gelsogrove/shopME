@@ -1,38 +1,6 @@
 
 ## TOP ACTION TASKS
 
-## TASK #1
-
-**TITLE**: PRD Audit and Update
-**DESCRIPTION/ROADMAP**:
-
-- Review `docs/PRD.md` for cart auto-extraction, cart reset, workspace isolation, CFs, and model config.
-- Ensure all content is in English and matches implementation.
-
-**SPECIAL NOTE**:
-PRD is the source of truth; align with tests and code.
-
-**STORY POINT**: 2
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
-## TASK #2
-
-**TITLE**: Testing Gap Analysis and Coverage
-**DESCRIPTION/ROADMAP**:
-
-- Identify critical areas: cart flow, CFs, N8N payload mapping, workspace isolation, auth, rate limits.
-- Add missing unit/integration tests.
-
-**SPECIAL NOTE**:
-Prioritize high-risk flows affecting customers.
-
-**STORY POINT**: 3
-**STATUS**: 🔴 Not Started
-
-================================================================================
-
 ## TASK #3iop'0
 
 
@@ -51,7 +19,7 @@ ovviamnte la parte di login forgot pwd new user list workspace create workspace 
 **STORY POINT**: 3
 **STATUS**: 🔴 Not Started
 
-================================================================================
+===============================================================================
 
 ## TASK #4
 
@@ -67,7 +35,7 @@ Focus on preventing empty `items` arrays despite visible cart content.
 **STORY POINT**: 3
 **STATUS**: 🔴 Not Started
 
-================================================================================
+===============================================================================
 
 ## TASK #5
 
@@ -84,7 +52,7 @@ Trigger only on success; never on cancel/failure.
 **STORY POINT**: 2
 **STATUS**: 🔴 Not Started
 
-================================================================================
+===============================================================================
 
 ## TASK #6
 
@@ -101,7 +69,7 @@ No hardcoded IDs; read the only active workspace from DB. Flow must stay idempot
 **STORY POINT**: 3
 **STATUS**: 🔴 Not Started
 
-================================================================================
+===============================================================================
 
 ## TASK #7
 
@@ -117,7 +85,7 @@ No archive; remove if unused.
 **STORY POINT**: 2
 **STATUS**: 🔴 Not Started
 
-================================================================================
+===============================================================================
 
 ## TASK #8
 
@@ -133,7 +101,7 @@ Respect workspace isolation in all queries.
 **STORY POINT**: 5
 **STATUS**: 🔴 Not Started
 
-================================================================================
+===============================================================================
 
 ## TASK #9
 
@@ -149,7 +117,7 @@ All agent prompts/models must come from DB.
 **STORY POINT**: 2
 **STATUS**: 🔴 Not Started
 
-================================================================================
+===============================================================================
 
 ## TASK #10
 
@@ -165,7 +133,7 @@ Do not alter existing UI/graphics.
 **STORY POINT**: 2
 **STATUS**: 🔴 Not Started
 
-================================================================================
+===============================================================================
 
 ## TASK #11
 
@@ -182,7 +150,7 @@ Spike only; no schema changes without approval.
 **STORY POINT**: 3 (Spike)
 **STATUS**: 🔴 Not Started
 
-================================================================================
+===============================================================================
 
 # PHASE 2 TASKS
 
@@ -209,7 +177,7 @@ Andrea vuole lavorare 1 ora senza dover rifare il login. Attualmente la sessione
 **STORY POINT**: 5
 **STATUS**: 🔴 Not Started
 
-================================================================================
+===============================================================================
 
 ## TASK #120
 
@@ -229,7 +197,7 @@ Funzionalità avanzate WhatsApp per il futuro. Richiede integrazione con WhatsAp
 **STORY POINT**: 21
 **STATUS**: 🔵 PHASE 2
 
-================================================================================
+===============================================================================
 
 ## TASK #133
 
@@ -249,7 +217,7 @@ Focused security task for API protection against abuse and DoS attacks.
 **STORY POINT**: 3
 **STATUS**: 🔵 PHASE 2
 
-================================================================================
+===============================================================================
 
 ## TASK #134
 
@@ -269,7 +237,7 @@ Enhanced authentication security for user accounts protection.
 **STORY POINT**: 8
 **STATUS**: 🔵 PHASE 2
 
-================================================================================
+===============================================================================
 
 ## TASK #135
 
@@ -289,7 +257,7 @@ Database optimization for improved application performance and scalability.
 **STORY POINT**: 5
 **STATUS**: 🔵 PHASE 2
 
-================================================================================
+===============================================================================
 
 ## TASK #136
 
@@ -309,7 +277,7 @@ OWASP compliance and security hardening for production readiness.
 **STORY POINT**: 5
 **STATUS**: 🔵 PHASE 2
 
-================================================================================
+===============================================================================
 
 ## TASK #137
 
@@ -329,7 +297,7 @@ Monitoring and observability for production operations and debugging.
 **STORY POINT**: 5
 **STATUS**: 🔵 PHASE 2
 
-================================================================================
+===============================================================================
 
 ## TASK #15
 
@@ -347,7 +315,7 @@ Andrea requires that the entire application is fully responsive for a seamless u
 **STORY POINT**: TBD
 **STATUS**: 🔵 PHASE 2
 
-================================================================================
+===============================================================================
 
 ## TASK #19
 
@@ -372,6 +340,6 @@ Andrea requires that the payment page, once payment is confirmed, always trigger
 **STORY POINT**: 7
 **STATUS**: 🔴 Not Started
 
-================================================================================
+===============================================================================
 
 ma il wip funzioan?
