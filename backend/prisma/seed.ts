@@ -21,7 +21,7 @@
  * ⚠️ NON MODIFICARE CREDENZIALI SENZA AGGIORNARE .env
  */
 
-import { OrderStatus, PrismaClient } from "@prisma/client"
+import { PrismaClient } from "@prisma/client"
 import * as bcrypt from "bcrypt"
 import dotenv from "dotenv"
 import fs from "fs"
@@ -179,75 +179,196 @@ async function generateEmbeddingsAfterSeed() {
 }
 
 async function cleanAndImportN8NWorkflow() {
-  console.log("\n🔄 N8N Complete Cleanup & Import:")
+  console.log("\n🔄 N8N Complete Cleanup & Import (idempotent ensure):")
   console.log("============================")
 
+  const fs = require("fs")
+  const path = require("path")
+  const { exec } = require("child_process")
+  const { promisify } = require("util")
+  const execAsync = promisify(exec)
+
+  const N8N_URL = process.env.N8N_URL || "http://localhost:5678"
+  const OWNER_EMAIL = process.env.N8N_OWNER_EMAIL || "admin@shopme.com"
+  const OWNER_PASSWORD = process.env.N8N_OWNER_PASSWORD || "Venezia44"
+  const COOKIES_FILE = "/tmp/n8n_seed_cookies.txt"
+
+  // Path to the workflow file
+  const workflowPath = path.join(
+    __dirname,
+    "../../n8n/workflows/shopme-whatsapp-workflow.json"
+  )
+
   try {
-    const fs = require("fs")
-    const path = require("path")
-    const { exec } = require("child_process")
-    const { promisify } = require("util")
-    const execAsync = promisify(exec)
-
-    // Path to the workflow file
-    const workflowPath = path.join(
-      __dirname,
-      "../../n8n/workflows/shopme-whatsapp-workflow.json"
-    )
-
     if (!fs.existsSync(workflowPath)) {
       console.log("⚠️ N8N workflow file not found:", workflowPath)
       return
     }
 
-    console.log(
-      "🗑️ Complete cleanup: removing workflows AND credentials to prevent duplicates..."
+    // 0) Health check
+    try {
+      const { stdout: healthStatusRaw } = await execAsync(
+        `curl -s -o /dev/null -w "%{http_code}" "${N8N_URL}/healthz"`
+      )
+      const healthStatus = (healthStatusRaw || "").trim()
+      if (healthStatus !== "200") {
+        console.log(`⚠️ N8N health check failed (status ${healthStatus}). Skipping ensure.`)
+        // Fall back to nuclear script
+        throw new Error("N8N not healthy")
+      }
+    } catch (e) {
+      throw e
+    }
+
+    // 1) Login (or owner setup if fresh)
+    const loginCmd = `curl -s -c ${COOKIES_FILE} -X POST -H "Content-Type: application/json" -d '{"emailOrLdapLoginId":"${OWNER_EMAIL}","password":"${OWNER_PASSWORD}"}' "${N8N_URL}/rest/login"`
+    const { stdout: loginOut } = await execAsync(loginCmd)
+    if (/error|Unauthorized|401/i.test(loginOut || "")) {
+      console.log("ℹ️ Login failed, attempting owner setup...")
+      const setupPayload = JSON.stringify({
+        email: OWNER_EMAIL,
+        password: OWNER_PASSWORD,
+        firstName: "Admin",
+        lastName: "ShopMe",
+      })
+      const setupCmd = `curl -s -X POST -H "Content-Type: application/json" -d '${setupPayload}' "${N8N_URL}/rest/owner/setup"`
+      const { stdout: setupOut } = await execAsync(setupCmd)
+      if (/error|Error/i.test(setupOut || "")) {
+        console.log("❌ Owner setup failed:", setupOut)
+        throw new Error("Owner setup failed")
+      }
+      // Try login again
+      const { stdout: loginOut2 } = await execAsync(loginCmd)
+      if (/error|Unauthorized|401/i.test(loginOut2 || "")) {
+        console.log("❌ Login failed after setup:", loginOut2)
+        throw new Error("Login failed")
+      }
+    }
+    console.log("✅ N8N login successful")
+
+    // 2) Fetch existing workflows
+    const { stdout: workflowsJson } = await execAsync(
+      `curl -s -b ${COOKIES_FILE} "${N8N_URL}/rest/workflows"`
     )
+    let workflows: any[] = []
+    try {
+      const parsed = JSON.parse(workflowsJson || "{}")
+      workflows = Array.isArray(parsed?.data) ? parsed.data : []
+    } catch (e) {
+      workflows = []
+    }
 
-    // Execute the N8N cleanup and import script
+    let workflowId: string | null = null
+
+    if (workflows.length >= 1) {
+      // Use first workflow found (expecting single-workflow setup)
+      workflowId = workflows[0].id
+      console.log(`ℹ️ Found existing workflow: ${workflowId}`)
+
+      // Ensure active
+      const { stdout: patchOut } = await execAsync(
+        `curl -s -b ${COOKIES_FILE} -X PATCH -H "Content-Type: application/json" -d '{"active": true}' "${N8N_URL}/rest/workflows/${workflowId}"`
+      )
+      if (/error|Error/i.test(patchOut || "")) {
+        console.log("⚠️ Activation via PATCH reported warning:", patchOut)
+      } else {
+        console.log("✅ Workflow activated (PATCH)")
+      }
+    } else {
+      // 3) Import workflow with active=true
+      const tmpFile = "/tmp/shopme-workflow-seed.json"
+      try {
+        const wfRaw = fs.readFileSync(workflowPath, "utf8")
+        const wfObj = JSON.parse(wfRaw)
+        wfObj.active = true
+        fs.writeFileSync(tmpFile, JSON.stringify(wfObj))
+
+        const { stdout: createOut } = await execAsync(
+          `curl -s -b ${COOKIES_FILE} -X POST -H "Content-Type: application/json" --data-binary @${tmpFile} "${N8N_URL}/rest/workflows"`
+        )
+
+        try {
+          const created = JSON.parse(createOut || "{}")
+          workflowId = created?.id || created?.data?.id || null
+        } catch (_) {
+          workflowId = null
+        }
+        if (!workflowId) {
+          console.log("❌ Workflow import failed:", createOut)
+          throw new Error("Workflow import failed")
+        }
+        console.log(`✅ Workflow imported with ID: ${workflowId}`)
+      } finally {
+        try { fs.unlinkSync(tmpFile) } catch (_) {}
+      }
+    }
+
+    // 4) Verify activation and webhook registration
+    if (workflowId) {
+      // Verify state
+      const { stdout: statusOut } = await execAsync(
+        `curl -s -b ${COOKIES_FILE} "${N8N_URL}/rest/workflows/${workflowId}"`
+      )
+      try {
+        const statusObj = JSON.parse(statusOut || "{}")
+        const isActive = !!(statusObj?.active ?? statusObj?.data?.active)
+        console.log(`📊 Workflow active status: ${isActive}`)
+      } catch (_) {}
+
+      // Test webhook
+      await new Promise((r) => setTimeout(r, 1500))
+      const testPayload = JSON.stringify({
+        test: "activation_check",
+        workspaceId: mainWorkspaceId,
+      })
+      const { stdout: webhookOut, stderr: webhookErr } = await execAsync(
+        `curl -s -X POST -H "Content-Type: application/json" -d '${testPayload}' "${N8N_URL}/webhook/webhook-start"`
+      )
+      const webhookResp = (webhookOut || webhookErr || "").toString()
+      if (/not registered/i.test(webhookResp)) {
+        console.log("⚠️ Webhook not yet registered; it may take a moment after activation.")
+      } else {
+        console.log("✅ Webhook responds (activation confirmed)")
+      }
+    }
+
+    // Cleanup cookies
+    try { fs.unlinkSync(COOKIES_FILE) } catch (_) {}
+
+    console.log("============================\n")
+    return
+  } catch (error) {
+    console.error("❌ Idempotent N8N ensure failed:", error?.message || error)
+    console.log("💡 Falling back to nuclear cleanup script (one-time reset)...")
+  }
+
+  // Fallback to existing nuclear script flow (original implementation)
+  try {
+    const { exec } = require("child_process")
+    const { promisify } = require("util")
+    const execAsync = promisify(exec)
     const scriptsPath = path.join(__dirname, "../../scripts")
-
-    // Check if the nuclear cleanup script exists
     const nuclearScript = path.join(scriptsPath, "n8n_nuclear-cleanup.sh")
 
     if (fs.existsSync(nuclearScript)) {
       console.log("🚀 Running N8N NUCLEAR cleanup to prevent any duplicates...")
-
-      try {
-        // Make script executable
-        await execAsync(`chmod +x "${nuclearScript}"`)
-
-        // Run the nuclear cleanup script that completely resets N8N
-        const { stdout, stderr } = await execAsync(`"${nuclearScript}"`, {
-          cwd: scriptsPath,
-          timeout: 180000, // 180 seconds timeout for nuclear cleanup (includes docker restart and setup)
-        })
-
-        if (stdout) {
-          console.log("📥 N8N Nuclear Cleanup Output:", stdout)
-        }
-
-        if (stderr && !stderr.includes("Warning")) {
-          console.log("⚠️ N8N Nuclear Cleanup Warnings:", stderr)
-        }
-
-        console.log(
-          "✅ N8N nuclear cleanup and workflow import completed successfully"
-        )
-      } catch (execError) {
-        console.error(
-          "❌ Error running N8N nuclear cleanup script:",
-          execError.message
-        )
-        console.log("💡 You can manually run: scripts/n8n_nuclear-cleanup.sh")
+      await execAsync(`chmod +x "${nuclearScript}"`)
+      const { stdout, stderr } = await execAsync(`"${nuclearScript}"`, {
+        cwd: scriptsPath,
+        timeout: 180000,
+      })
+      if (stdout) console.log("📥 N8N Nuclear Cleanup Output:", stdout)
+      if (stderr && !stderr.includes("Warning")) {
+        console.log("⚠️ N8N Nuclear Cleanup Warnings:", stderr)
       }
+      console.log("✅ N8N nuclear cleanup and workflow import completed successfully")
     } else {
       console.log("⚠️ N8N nuclear cleanup script not found:", nuclearScript)
       console.log("💡 Please ensure scripts/n8n_nuclear-cleanup.sh exists")
     }
-  } catch (error) {
-    console.error("❌ Error in N8N workflow management:", error.message)
-    console.log("💡 N8N workflow import can be done manually if needed")
+  } catch (execError) {
+    console.error("❌ Error running fallback N8N nuclear cleanup:", execError.message)
+    console.log("💡 You can manually run: scripts/n8n_nuclear-cleanup.sh")
   }
 
   console.log("============================\n")
@@ -2092,9 +2213,9 @@ async function main() {
 
   if (availableProducts.length > 0) {
     // Create multiple orders with different statuses
-    const ordersData = [
+    const ordersData: any[] = [
       {
-        status: OrderStatus.PENDING,
+        status: "PENDING",
         paymentStatus: "PENDING",
         paymentMethod: "CREDIT_CARD",
         totalAmount: 89.5,
@@ -2150,7 +2271,7 @@ async function main() {
         ],
       },
       {
-        status: OrderStatus.PROCESSING,
+        status: "PROCESSING",
         paymentStatus: "PAID",
         paymentMethod: "PAYPAL",
         totalAmount: 156.75,
@@ -2193,7 +2314,7 @@ async function main() {
         ],
       },
       {
-        status: OrderStatus.DELIVERED,
+        status: "DELIVERED",
         paymentStatus: "PAID",
         paymentMethod: "BANK_TRANSFER",
         totalAmount: 245.99,
@@ -2243,7 +2364,7 @@ async function main() {
         ],
       },
       {
-        status: OrderStatus.CANCELLED,
+        status: "CANCELLED",
         paymentStatus: "REFUNDED",
         paymentMethod: "CREDIT_CARD",
         totalAmount: 67.48,
@@ -2325,7 +2446,7 @@ async function main() {
             orderCode: `${10001 + i}`, // 5-digit numeric codes starting from 10001
             customerId: customerId,
             workspaceId: mainWorkspaceId,
-            status: orderData.status,
+            status: orderData.status as any,
             totalAmount: orderData.totalAmount,
             shippingAddress: shippingAddresses[customerId],
             createdAt: orderDate,
