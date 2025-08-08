@@ -180,6 +180,27 @@ export class OrderRepository implements IOrderRepository {
     }
   }
 
+  async findLatestProcessingByCustomer(customerId: string, workspaceId: string): Promise<Order | null> {
+    try {
+      const data = await this.prisma.orders.findFirst({
+        where: {
+          customerId,
+          workspaceId,
+          status: OrderStatus.PROCESSING
+        },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          customer: true,
+          items: { include: { product: true } }
+        }
+      })
+      return data ? this.mapToDomainEntity(data) : null
+    } catch (error) {
+      logger.error(`Error in findLatestProcessingByCustomer for customer ${customerId}:`, error)
+      return null
+    }
+  }
+
   async create(order: Order): Promise<Order> {
     try {
       const createdOrder = await this.prisma.orders.create({
