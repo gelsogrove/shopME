@@ -88,7 +88,7 @@ model Languages {
 model Products {
   id          String          @id @default(uuid())
   name        String
-  code        String?
+  ProductCode String?
   description String?
   price       Float
   stock       Int             @default(0)

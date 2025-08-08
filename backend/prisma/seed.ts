@@ -1193,7 +1193,7 @@ async function main() {
     // Prodotti dal seed.ts originale
     {
       name: "Gragnano IGP Pasta - Spaghetti",
-      code: "00001",
+      ProductCode: "00001",
       description:
         "Traditional spaghetti from Gragnano, made with selected durum wheat semolina. Bronze drawn for the perfect texture.",
       price: 4.99,
@@ -1205,7 +1205,7 @@ async function main() {
     },
     {
       name: "Homemade Tagliatelle",
-      code: "00002",
+      ProductCode: "00002",
       description:
         "Freshly made egg tagliatelle, perfect for rich meat sauces and ragù.",
       price: 6.99,
@@ -1217,7 +1217,7 @@ async function main() {
     },
     {
       name: "Parmigiano Reggiano DOP 24 months",
-      code: "00003",
+      ProductCode: "00003",
       description:
         "Authentic Parmigiano Reggiano DOP aged 24 months. Intense flavor with a granular texture.",
       price: 29.99,
@@ -1229,7 +1229,7 @@ async function main() {
     },
     {
       name: "Mozzarella di Bufala Campana DOP",
-      code: "00004",
+      ProductCode: "00004",
       description:
         "Fresh buffalo mozzarella DOP from Campania. Soft texture and delicate milk flavor.",
       price: 9.99,
@@ -1524,15 +1524,14 @@ async function main() {
         await prisma.products.create({
           data: {
             name: product.name,
-            code:
-              product.code ||
+            ProductCode:
+              product.ProductCode ||
               `000${Math.floor(Math.random() * 1000)
                 .toString()
                 .padStart(3, "0")}`,
             description: product.description,
             price: product.price,
             stock: product.stock,
-
             status: "ACTIVE" as any, // Casting to any per evitare errori di tipo
             slug: `${product.slug}-${Date.now()}`, // Generiamo slug unici
             workspaceId: mainWorkspaceId,
