@@ -246,6 +246,87 @@ async function cleanAndImportN8NWorkflow() {
     }
     console.log("✅ N8N login successful")
 
+    // 1.5) Ensure credentials exist (Backend API Basic Auth + OpenRouter API)
+    let backendCredId: string | null = null
+    let openrouterCredId: string | null = null
+
+    const { stdout: credsJson } = await execAsync(
+      `curl -s -b ${COOKIES_FILE} "${N8N_URL}/rest/credentials"`
+    )
+    try {
+      const parsed = JSON.parse(credsJson || "{}")
+      const list = Array.isArray(parsed?.data) ? parsed.data : []
+      const backend = list.find((c: any) => c.type === "httpBasicAuth")
+      const openrouter = list.find((c: any) => c.type === "openRouterApi")
+      backendCredId = backend?.id || null
+      openrouterCredId = openrouter?.id || null
+    } catch (_) {}
+
+    if (!backendCredId) {
+      const backendPayload = JSON.stringify({
+        name: "Backend API Basic Auth",
+        type: "httpBasicAuth",
+        data: { user: "admin", password: "admin" },
+      })
+      const { stdout: backendCreate } = await execAsync(
+        `curl -s -b ${COOKIES_FILE} -X POST -H "Content-Type: application/json" -d '${backendPayload}' "${N8N_URL}/rest/credentials"`
+      )
+      try {
+        const created = JSON.parse(backendCreate || "{}")
+        backendCredId = created?.id || created?.data?.id || null
+      } catch (_) {}
+      console.log(`🔐 Backend credential ensured: ${backendCredId}`)
+    } else {
+      console.log(`🔐 Backend credential exists: ${backendCredId}`)
+    }
+
+    if (!openrouterCredId) {
+      const apiKey = process.env.OPENROUTER_API_KEY || ""
+      if (!apiKey) {
+        console.log("⚠️ OPENROUTER_API_KEY not provided; OpenRouter node may fail until configured")
+      } else {
+        const orPayload = JSON.stringify({
+          name: "OpenRouter API",
+          type: "openRouterApi",
+          data: { apiKey },
+        })
+        const { stdout: orCreate } = await execAsync(
+          `curl -s -b ${COOKIES_FILE} -X POST -H "Content-Type: application/json" -d '${orPayload}' "${N8N_URL}/rest/credentials"`
+        )
+        try {
+          const created = JSON.parse(orCreate || "{}")
+          openrouterCredId = created?.id || created?.data?.id || null
+        } catch (_) {}
+        console.log(`🔐 OpenRouter credential ensured: ${openrouterCredId}`)
+      }
+    } else {
+      console.log(`🔐 OpenRouter credential exists: ${openrouterCredId}`)
+    }
+
+    // Helper to inject credentials into workflow nodes by name
+    const injectCredentials = (wfObj: any) => {
+      if (!wfObj || !Array.isArray(wfObj.nodes)) return wfObj
+      wfObj.nodes = wfObj.nodes.map((node: any) => {
+        const name: string = node?.name || ""
+        if (backendCredId && (name === "RagSearch()" || name === "GetAllProducts()")) {
+          node.credentials = node.credentials || {}
+          node.credentials.httpBasicAuth = {
+            id: backendCredId,
+            name: "Backend API Basic Auth",
+          }
+        }
+        if (openrouterCredId && /OpenRouter/i.test(name)) {
+          node.credentials = node.credentials || {}
+          node.credentials.openRouterApi = {
+            id: openrouterCredId,
+            name: "OpenRouter API",
+          }
+        }
+        return node
+      })
+      return wfObj
+    }
+
     // 2) Fetch existing workflows
     const { stdout: workflowsJson } = await execAsync(
       `curl -s -b ${COOKIES_FILE} "${N8N_URL}/rest/workflows"`
@@ -265,22 +346,38 @@ async function cleanAndImportN8NWorkflow() {
       workflowId = workflows[0].id
       console.log(`ℹ️ Found existing workflow: ${workflowId}`)
 
-      // Ensure active
-      const { stdout: patchOut } = await execAsync(
-        `curl -s -b ${COOKIES_FILE} -X PATCH -H "Content-Type: application/json" -d '{"active": true}' "${N8N_URL}/rest/workflows/${workflowId}"`
+      // Fetch, inject credentials and ensure active
+      const { stdout: wfGet } = await execAsync(
+        `curl -s -b ${COOKIES_FILE} "${N8N_URL}/rest/workflows/${workflowId}"`
       )
-      if (/error|Error/i.test(patchOut || "")) {
-        console.log("⚠️ Activation via PATCH reported warning:", patchOut)
+      let wfObj: any = null
+      try {
+        const parsed = JSON.parse(wfGet || "{}")
+        wfObj = parsed?.data || parsed || {}
+      } catch (_) {
+        wfObj = {}
+      }
+      wfObj = injectCredentials(wfObj)
+      wfObj.active = true
+
+      const putPayload = JSON.stringify(wfObj)
+      const { stdout: putOut } = await execAsync(
+        `curl -s -b ${COOKIES_FILE} -X PUT -H "Content-Type: application/json" -d '${putPayload.replace(/'/g, "'\''")}' "${N8N_URL}/rest/workflows/${workflowId}"`
+      )
+      if (/error|Error/i.test(putOut || "")) {
+        console.log("⚠️ Activation/update via PUT reported warning:", putOut)
       } else {
-        console.log("✅ Workflow activated (PATCH)")
+        console.log("✅ Workflow updated and activated (PUT)")
       }
     } else {
-      // 3) Import workflow with active=true
+      // 3) Import workflow with active=true and credentials injected
       const tmpFile = "/tmp/shopme-workflow-seed.json"
       try {
         const wfRaw = fs.readFileSync(workflowPath, "utf8")
-        const wfObj = JSON.parse(wfRaw)
-        wfObj.active = true
+        let wfObj = {}
+        try { wfObj = JSON.parse(wfRaw) } catch { wfObj = {} }
+        ;(wfObj as any).active = true
+        wfObj = injectCredentials(wfObj)
         fs.writeFileSync(tmpFile, JSON.stringify(wfObj))
 
         const { stdout: createOut } = await execAsync(
@@ -303,7 +400,7 @@ async function cleanAndImportN8NWorkflow() {
       }
     }
 
-    // 4) Verify activation and webhook registration
+    // 4) Verify activation, webhook and node credentials presence
     if (workflowId) {
       // Verify state
       const { stdout: statusOut } = await execAsync(
@@ -311,8 +408,15 @@ async function cleanAndImportN8NWorkflow() {
       )
       try {
         const statusObj = JSON.parse(statusOut || "{}")
-        const isActive = !!(statusObj?.active ?? statusObj?.data?.active)
+        const wf = statusObj?.data || statusObj
+        const isActive = !!wf?.active
         console.log(`📊 Workflow active status: ${isActive}`)
+        if (Array.isArray(wf?.nodes)) {
+          const nodeSummary = wf.nodes
+            .filter((n: any) => /RagSearch\(\)|GetAllProducts\(\)|OpenRouter/i.test(n?.name || ""))
+            .map((n: any) => ({ name: n.name, creds: Object.keys(n.credentials || {}) }))
+          console.log(`🔎 Node credentials summary: ${JSON.stringify(nodeSummary)}`)
+        }
       } catch (_) {}
 
       // Test webhook
