@@ -86,6 +86,9 @@ export class OrderService {
       orderData.shippingAmount = orderData.shippingAmount || 0;
       orderData.taxAmount = orderData.taxAmount || 0;
       orderData.discountAmount = orderData.discountAmount || 0;
+      
+      // Default tracking number for demo if not provided
+      orderData.trackingNumber = orderData.trackingNumber || '1234567890';
 
       // Generate order code if not provided
       if (!orderData.orderCode) {

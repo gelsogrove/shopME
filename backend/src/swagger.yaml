@@ -1264,17 +1264,21 @@ paths:
               required:
                 - workspaceId
                 - customerId
-              properties:
-                workspaceId:
-                  type: string
-                  description: ID of the workspace
-                  example: "cm9hjgq9v00014qk8fsdy4ujv"
-                customerId:
-                  type: string
-                  description: ID of the customer placing the order
-                  example: "customer123"
-                items:
-                  type: array
+                              properties:
+                  workspaceId:
+                    type: string
+                    description: ID of the workspace
+                    example: "cm9hjgq9v00014qk8fsdy4ujv"
+                  customerId:
+                    type: string
+                    description: ID of the customer placing the order
+                    example: "customer123"
+                  trackingNumber:
+                    type: string
+                    description: Optional tracking number for shipment (defaults to demo value if not provided)
+                    example: "1234567890"
+                  items:
+                    type: array
                   description: |
                     Array of order items. Can be provided by LLM or auto-extracted from conversation.
                     Supports both itemType/productCode and type/id formats for backward compatibility.

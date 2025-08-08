@@ -772,6 +772,12 @@ function OrderDetailsSheet({
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-500">
+                    Tracking Number
+                  </Label>
+                  <p>{order.trackingNumber || "-"}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">
                     Order Date
                   </Label>
                   <p>
@@ -782,26 +788,6 @@ function OrderDetailsSheet({
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">
-                    Shipping Address
-                  </Label>
-                  <p>
-                    {order.shippingAddress
-                      ? `${
-                          order.shippingAddress.street ||
-                          order.shippingAddress.address ||
-                          ""
-                        }, ${order.shippingAddress.city || ""}, ${
-                          order.shippingAddress.zipCode ||
-                          order.shippingAddress.postalCode ||
-                          ""
-                        }, ${order.shippingAddress.country || ""}`
-                          .replace(/^,\s*|,\s*$/g, "")
-                          .replace(/,\s*,/g, ",")
-                      : "Not specified"}
                   </p>
                 </div>
               </div>
@@ -967,6 +953,7 @@ function OrderCrudSheet({
     taxAmount: 0,
     discountAmount: 0,
     notes: "",
+    trackingNumber: "",
   })
 
   // Load customers, products, and services
@@ -1045,6 +1032,7 @@ function OrderCrudSheet({
         taxAmount: order.taxAmount || 0,
         discountAmount: order.discountAmount || 0,
         notes: order.notes || "",
+        trackingNumber: order.trackingNumber || "",
       })
       setOrderItems([...(order.items || [])])
     } else if (mode === "create") {
@@ -1058,6 +1046,7 @@ function OrderCrudSheet({
         taxAmount: 0,
         discountAmount: 0,
         notes: "",
+        trackingNumber: "1234567890",
       })
       setOrderItems([])
     }
@@ -1350,26 +1339,45 @@ function OrderCrudSheet({
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="totalAmount">Total Amount *</Label>
-                <Input
-                  id="totalAmount"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  value={formData.totalAmount.toFixed(2)}
-                  onChange={(e) => {
-                    const value = parseFloat(e.target.value) || 0
-                    if (value > 0) {
-                      setFormData((prev) => ({ ...prev, totalAmount: value }))
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="trackingNumber">Tracking Number</Label>
+                  <Input
+                    id="trackingNumber"
+                    value={formData.trackingNumber}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        trackingNumber: e.target.value,
+                      }))
                     }
-                  }}
-                  placeholder="0.00"
-                  required
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Final price including all taxes and fees
-                </p>
+                    placeholder="1234567890"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Optional. Leave as default for demo.
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="totalAmount">Total Amount *</Label>
+                  <Input
+                    id="totalAmount"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={formData.totalAmount.toFixed(2)}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0
+                      if (value > 0) {
+                        setFormData((prev) => ({ ...prev, totalAmount: value }))
+                      }
+                    }}
+                    placeholder="0.00"
+                    required
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Final price including all taxes and fees
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

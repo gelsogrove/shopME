@@ -200,7 +200,9 @@ export class OrderRepository implements IOrderRepository {
           trackingNumber: order.trackingNumber || null,  // optional
           items: {
             create: order.items?.map(item => ({
+              itemType: item.itemType || 'PRODUCT',
               productId: item.productId,
+              serviceId: item.serviceId || null,
               quantity: item.quantity,
               unitPrice: item.unitPrice,
               totalPrice: item.totalPrice,
