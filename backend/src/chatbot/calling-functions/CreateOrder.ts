@@ -130,14 +130,18 @@ export async function CreateOrder(
     }
 
     // Creazione ordine
+    const orderCode = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`
     const order = await prisma.orders.create({
       data: {
+        orderCode,
         customerId: customerId,
         workspaceId: workspaceId,
         status: "PENDING",
         totalAmount: totalAmount,
+        shippingAmount: 0,
+        taxAmount: 0,
+        discountAmount: 0,
         notes: notes || "",
-        orderDate: new Date(),
         items: {
           create: validatedItems,
         },
