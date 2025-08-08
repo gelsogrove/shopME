@@ -13,6 +13,7 @@ export interface Config {
   cors: {
     origin: string
   }
+  dhlTrackingBaseUrl: string
 }
 
 export const config: Config = {
@@ -30,4 +31,14 @@ export const config: Config = {
   cors: {
     origin: process.env.CORS_ORIGIN || "http://localhost:5173",
   },
+  dhlTrackingBaseUrl:
+    process.env.DHL_TRACKING_BASE_URL ||
+    "https://www.dhl.com/global-en/home/tracking/tracking-express.html",
+}
+
+export const buildDhlTrackingUrl = (trackingNumber?: string | null): string | null => {
+  if (!trackingNumber) return null
+  const base = config.dhlTrackingBaseUrl
+  const sep = base.includes("?") ? "&" : "?"
+  return `${base}${sep}tracking-id=${encodeURIComponent(trackingNumber)}`
 }
