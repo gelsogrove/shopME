@@ -197,6 +197,7 @@ export class OrderRepository implements IOrderRepository {
           notes: order.notes,
           discountCode: order.discountCode,
           discountAmount: order.discountAmount,
+          trackingNumber: order.trackingNumber || null,  // optional
           items: {
             create: order.items?.map(item => ({
               productId: item.productId,
@@ -238,6 +239,7 @@ export class OrderRepository implements IOrderRepository {
         notes: order.notes,
         discountCode: order.discountCode,
         discountAmount: order.discountAmount,
+        trackingNumber: order.trackingNumber ?? undefined,
         updatedAt: new Date()
       };
 
@@ -421,37 +423,38 @@ export class OrderRepository implements IOrderRepository {
   }
 
   private mapToDomainEntity(data: any): Order {
-    return new Order({
-      id: data.id,
-      orderCode: data.orderCode,
-      customerId: data.customerId,
-      workspaceId: data.workspaceId,
-      status: data.status,
-      // Payment status removed
-      paymentMethod: data.paymentMethod,
-      totalAmount: data.totalAmount,
-      shippingAmount: data.shippingAmount,
-      taxAmount: data.taxAmount,
-      shippingAddress: data.shippingAddress,
-      billingAddress: data.billingAddress,
-      notes: data.notes,
-      discountCode: data.discountCode,
-      discountAmount: data.discountAmount,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
-      customer: data.customer,
-      items: data.items?.map((item: any) => ({
-        id: item.id,
-        orderId: item.orderId,
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        totalPrice: item.totalPrice,
-        productVariant: item.productVariant,
-        product: item.product,
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt
-      })) || []
-    });
+          return new Order({
+        id: data.id,
+        orderCode: data.orderCode,
+        customerId: data.customerId,
+        workspaceId: data.workspaceId,
+        status: data.status,
+        // Payment status removed
+        paymentMethod: data.paymentMethod,
+        totalAmount: data.totalAmount,
+        shippingAmount: data.shippingAmount,
+        taxAmount: data.taxAmount,
+        shippingAddress: data.shippingAddress,
+        billingAddress: data.billingAddress,
+        notes: data.notes,
+        discountCode: data.discountCode,
+        discountAmount: data.discountAmount,
+        trackingNumber: data.trackingNumber,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+        customer: data.customer,
+        items: data.items?.map((item: any) => ({
+          id: item.id,
+          orderId: item.orderId,
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.totalPrice,
+          productVariant: item.productVariant,
+          product: item.product,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt
+        })) || []
+      });
   }
 }
