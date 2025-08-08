@@ -115,7 +115,8 @@
 
 ## 📋 Task List Reference
 
-See `docs/other/task-list.md` for the full, up-to-date structured task list, including all completed, active, bug, and phase 2 tasks.
+- Minimal Phase 1 checklist: `docs/task-list.md`
+- Full, up-to-date structured list (completed, active, bugs, Phase 2): `docs/other/task-list.md`
 
 ---
 
