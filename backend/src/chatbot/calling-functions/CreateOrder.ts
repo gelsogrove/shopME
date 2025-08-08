@@ -130,14 +130,29 @@ export async function CreateOrder(
     }
 
     // Creazione ordine
+    const generatedOrderCode = await (async () => {
+      const today = new Date()
+      const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "")
+      const lastOrder = await prisma.orders.findFirst({
+        where: { orderCode: { startsWith: `ORD-${dateStr}-` } },
+        orderBy: { createdAt: "desc" },
+      })
+      let sequence = 1
+      if (lastOrder) {
+        const lastSequence = parseInt(lastOrder.orderCode.split("-")[2])
+        sequence = lastSequence + 1
+      }
+      return `ORD-${dateStr}-${sequence.toString().padStart(3, "0")}`
+    })()
+
     const order = await prisma.orders.create({
       data: {
-        customerId: customerId,
-        workspaceId: workspaceId,
+        customer: { connect: { id: customerId } },
+        workspace: { connect: { id: workspaceId } },
+        orderCode: generatedOrderCode,
         status: "PENDING",
         totalAmount: totalAmount,
         notes: notes || "",
-        orderDate: new Date(),
         items: {
           create: validatedItems,
         },
