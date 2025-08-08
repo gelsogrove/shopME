@@ -145,7 +145,7 @@ export async function CreateOrder(
         status: "PENDING",
         totalAmount: totalAmount,
         notes: notes || "",
-        trackingNumber: "1234567890",
+        // trackingNumber left undefined unless provided upstream
         customer: { connect: { id: customerId } },
         workspace: { connect: { id: workspaceId } },
         items: {

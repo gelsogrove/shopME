@@ -1046,7 +1046,7 @@ function OrderCrudSheet({
         taxAmount: 0,
         discountAmount: 0,
         notes: "",
-        trackingNumber: "1234567890",
+        trackingNumber: "",
       })
       setOrderItems([])
     }
