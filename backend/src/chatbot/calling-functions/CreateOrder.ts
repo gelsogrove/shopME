@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, ItemType } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
@@ -130,16 +130,39 @@ export async function CreateOrder(
     }
 
     // Creazione ordine
+    const itemsCreateData = validatedItems.map((v) => {
+      if (v.productId) {
+        return {
+          itemType: ItemType.PRODUCT,
+          quantity: v.quantity,
+          unitPrice: v.unitPrice,
+          totalPrice: v.totalPrice,
+          product: { connect: { id: v.productId } },
+        }
+      } else {
+        return {
+          itemType: ItemType.SERVICE,
+          quantity: v.quantity,
+          unitPrice: v.unitPrice,
+          totalPrice: v.totalPrice,
+          service: { connect: { id: v.serviceId! } },
+        }
+      }
+    })
+
+    // Genera un orderCode semplice e univoco
+    const orderCode = `ORD-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+
     const order = await prisma.orders.create({
       data: {
-        customerId: customerId,
-        workspaceId: workspaceId,
+        orderCode,
+        customer: { connect: { id: customerId } },
+        workspace: { connect: { id: workspaceId } },
         status: "PENDING",
         totalAmount: totalAmount,
         notes: notes || "",
-        orderDate: new Date(),
         items: {
-          create: validatedItems,
+          create: itemsCreateData,
         },
       },
       include: {
