@@ -2328,6 +2328,7 @@ async function main() {
             status: orderData.status,
             totalAmount: orderData.totalAmount,
             shippingAddress: shippingAddresses[customerId],
+            trackingNumber: "1234567890",
             createdAt: orderDate,
           },
         })
@@ -2419,6 +2420,7 @@ async function main() {
           status: randomStatus as any,
           totalAmount: randomAmount,
           shippingAddress: shippingAddresses[randomCustomerId],
+          trackingNumber: "1234567890",
           createdAt: orderDate,
         },
       })

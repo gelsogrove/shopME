@@ -3540,4 +3540,33 @@ ${JSON.stringify(ragResults, null, 2)}`
 
     return `ORD-${dateStr}-${sequence.toString().padStart(3, "0")}`
   }
+
+  /**
+   * Get tracking link for latest processing order
+   */
+  async getTrackingLink(req: Request, res: Response) {
+    try {
+      const { workspaceId, customerId } = req.body || {}
+      if (!workspaceId || !customerId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields',
+          required: ['workspaceId', 'customerId'],
+        })
+      }
+      const { OrderService } = await import('../../../application/services/order.service')
+      const service = new OrderService()
+      const result = await service.getLatestProcessingTracking(workspaceId, customerId)
+      if (!result) {
+        return res.status(200).json({
+          success: true,
+          message: 'No processing orders with tracking available',
+          tracking: null,
+        })
+      }
+      return res.status(200).json({ success: true, ...result })
+    } catch (error) {
+      return res.status(500).json({ success: false, error: 'Internal server error' })
+    }
+  }
 }

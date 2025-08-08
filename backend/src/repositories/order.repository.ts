@@ -180,6 +180,27 @@ export class OrderRepository implements IOrderRepository {
     }
   }
 
+  async findLatestProcessingByCustomer(customerId: string, workspaceId: string): Promise<Order | null> {
+    try {
+      const data = await this.prisma.orders.findFirst({
+        where: {
+          customerId,
+          workspaceId,
+          status: OrderStatus.PROCESSING
+        },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          customer: true,
+          items: { include: { product: true } }
+        }
+      })
+      return data ? this.mapToDomainEntity(data) : null
+    } catch (error) {
+      logger.error(`Error in findLatestProcessingByCustomer for customer ${customerId}:`, error)
+      return null
+    }
+  }
+
   async create(order: Order): Promise<Order> {
     try {
       const createdOrder = await this.prisma.orders.create({
@@ -197,9 +218,12 @@ export class OrderRepository implements IOrderRepository {
           notes: order.notes,
           discountCode: order.discountCode,
           discountAmount: order.discountAmount,
+          trackingNumber: order.trackingNumber || null,  // optional
           items: {
             create: order.items?.map(item => ({
+              itemType: item.itemType || 'PRODUCT',
               productId: item.productId,
+              serviceId: item.serviceId || null,
               quantity: item.quantity,
               unitPrice: item.unitPrice,
               totalPrice: item.totalPrice,
@@ -238,6 +262,7 @@ export class OrderRepository implements IOrderRepository {
         notes: order.notes,
         discountCode: order.discountCode,
         discountAmount: order.discountAmount,
+        trackingNumber: order.trackingNumber ?? undefined,
         updatedAt: new Date()
       };
 
@@ -421,37 +446,38 @@ export class OrderRepository implements IOrderRepository {
   }
 
   private mapToDomainEntity(data: any): Order {
-    return new Order({
-      id: data.id,
-      orderCode: data.orderCode,
-      customerId: data.customerId,
-      workspaceId: data.workspaceId,
-      status: data.status,
-      // Payment status removed
-      paymentMethod: data.paymentMethod,
-      totalAmount: data.totalAmount,
-      shippingAmount: data.shippingAmount,
-      taxAmount: data.taxAmount,
-      shippingAddress: data.shippingAddress,
-      billingAddress: data.billingAddress,
-      notes: data.notes,
-      discountCode: data.discountCode,
-      discountAmount: data.discountAmount,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
-      customer: data.customer,
-      items: data.items?.map((item: any) => ({
-        id: item.id,
-        orderId: item.orderId,
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        totalPrice: item.totalPrice,
-        productVariant: item.productVariant,
-        product: item.product,
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt
-      })) || []
-    });
+          return new Order({
+        id: data.id,
+        orderCode: data.orderCode,
+        customerId: data.customerId,
+        workspaceId: data.workspaceId,
+        status: data.status,
+        // Payment status removed
+        paymentMethod: data.paymentMethod,
+        totalAmount: data.totalAmount,
+        shippingAmount: data.shippingAmount,
+        taxAmount: data.taxAmount,
+        shippingAddress: data.shippingAddress,
+        billingAddress: data.billingAddress,
+        notes: data.notes,
+        discountCode: data.discountCode,
+        discountAmount: data.discountAmount,
+        trackingNumber: data.trackingNumber,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+        customer: data.customer,
+        items: data.items?.map((item: any) => ({
+          id: item.id,
+          orderId: item.orderId,
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.totalPrice,
+          productVariant: item.productVariant,
+          product: item.product,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt
+        })) || []
+      });
   }
 }
