@@ -406,6 +406,7 @@ model Language {
 
 model Services {
   id          String          @id @default(cuid())
+  code        String          @unique
   name        String
   description String
   price       Float

@@ -3605,6 +3605,77 @@ flowchart TB
     class User,Operator user
 ```
 
+### 🤖 **N8N WORKFLOW & PROMPT MANAGEMENT ARCHITECTURE**
+
+**🚨 CRITICAL TECHNICAL SPECIFICATION: N8N PROMPT IMPORT SYSTEM**
+
+The N8N workflow does NOT contain the actual chatbot prompt text. Instead, it imports the prompt dynamically from the repository file system using a sophisticated template variable system.
+
+#### **📂 Prompt Source Architecture**
+
+**Primary Prompt File:**
+- **Location:** `/docs/other/prompt_agent.md`
+- **Format:** Markdown with comprehensive AI agent instructions
+- **Content:** Complete chatbot behavior, function calling rules, formatting guidelines, business logic
+- **Maintenance:** Single source of truth for all chatbot behavior modifications
+
+#### **🔄 N8N Dynamic Prompt Import Process**
+
+**File:** `/n8n/workflows/shopme-whatsapp-workflow.json`
+
+**Critical Code Section:**
+```json
+{
+  "parameters": {
+    "options": {
+      "systemMessage": "={{ $json.prompt }}\n[additional dynamic variables...]"
+    }
+  },
+  "type": "@n8n/n8n-nodes-langchain.agent"
+}
+```
+
+**Template Variable Resolution:**
+1. **`{{ $json.prompt }}`** → Dynamically resolves to content from `prompt_agent.md`
+2. **`{{ $json.language }}`** → Customer language (IT/ES/EN/PT)
+3. **`{{ $('Filter').item.json.precompiledData.customer.name }}`** → Customer name
+4. **`{{ $('Filter').item.json.precompiledData.customer.businessName }}`** → Business name
+5. **`{{ $('Filter').item.json.precompiledData.customer.discount }}`** → Customer discount %
+
+#### **🛠️ Why This Architecture?**
+
+**Advantages:**
+- **Single Source of Truth:** All prompt modifications happen in `prompt_agent.md`
+- **Version Control:** Prompt changes tracked in Git with full history
+- **Development Efficiency:** No need to edit complex N8N JSON for prompt updates
+- **Dynamic Personalization:** Customer data injected at runtime
+- **Separation of Concerns:** Business logic (prompt) separate from workflow logic (N8N)
+
+**Critical Implementation Rules:**
+1. **NEVER modify systemMessage directly in N8N workflow JSON**
+2. **ALL chatbot behavior changes must be made in `prompt_agent.md`**
+3. **N8N workflow only handles technical routing and API calls**
+4. **Prompt updates are immediately active without N8N workflow changes**
+
+#### **🔧 Technical Integration Points**
+
+**Backend Integration:**
+- N8N calls backend APIs with customer context
+- Backend loads `prompt_agent.md` content
+- Content passed to N8N via `$json.prompt` variable
+- N8N injects customer-specific variables at runtime
+
+**Deployment Process:**
+1. Update `prompt_agent.md` with new chatbot behavior
+2. Commit changes to repository
+3. Changes automatically available to N8N workflow
+4. No N8N workflow redeployment required
+
+**🚨 DEVELOPER WARNING:**
+Modifying the `systemMessage` directly in the N8N workflow JSON will be overridden by the dynamic `{{ $json.prompt }}` template. All chatbot modifications MUST be made in `/docs/other/prompt_agent.md`.
+
+---
+
 ### C4 Model
 
 #### System Context Diagram
