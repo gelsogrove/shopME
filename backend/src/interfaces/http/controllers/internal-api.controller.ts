@@ -3568,21 +3568,21 @@ ${JSON.stringify(ragResults, null, 2)}`
       // Import and execute the GetShipmentTrackingLink function
       const { GetShipmentTrackingLink } = await import('../../../chatbot/calling-functions/GetShipmentTrackingLink');
       
-      const result = await GetShipmentTrackingLink.execute({
+      const result = await GetShipmentTrackingLink({
         workspaceId,
         customerId
       });
 
-      if (result.success) {
+      if (result) {
         res.json({
           success: true,
-          data: (result as any).data,
-          message: result.message
+          data: result,
+          message: `Tracking info found for order ${result.orderCode}`
         });
       } else {
         res.json({
           success: false,
-          message: result.message
+          message: "No processing orders with tracking available"
         });
       }
 
