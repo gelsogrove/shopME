@@ -2753,6 +2753,58 @@ async function main() {
     `💰 Total cost simulation: €${(usageData.length * 0.005).toFixed(4)}`
   )
 
+  // 🚚 CREATE PROCESSING ORDER FOR TRACKING TEST
+  console.log("\n🚚 CREATING PROCESSING ORDER FOR TRACKING TEST")
+  console.log("=============================================")
+  
+  try {
+    // Ensure we have a PROCESSING order for tracking test
+    const processingOrder = await prisma.orders.create({
+      data: {
+        orderCode: "TRACKING-TEST-001",
+        customerId: testCustomer.id, // Use the dynamic customerId from seed
+        workspaceId: mainWorkspaceId,
+        status: "PROCESSING",
+        totalAmount: 49.99,
+        shippingAddress: {
+          name: "Mario Rossi",
+          street: "Via Roma 123",
+          city: "Milano",
+          postalCode: "20121",
+          province: "MI",
+          country: "Italia",
+          phone: "+39 02 1234567",
+        },
+        trackingNumber: "DHL1234567890", // Specific tracking for test
+        createdAt: new Date(),
+      },
+    })
+
+    // Add items to the processing order
+    const mozzarellaProduct = availableProducts.find(p => p.name.includes("Mozzarella"))
+    if (mozzarellaProduct) {
+      await prisma.orderItems.create({
+        data: {
+          orderId: processingOrder.id,
+          productId: mozzarellaProduct.id,
+          quantity: 2,
+          unitPrice: 24.99,
+          totalPrice: 49.98,
+        },
+      })
+    }
+
+    console.log(`✅ Created PROCESSING order for tracking test:`)
+    console.log(`   📦 Order ID: ${processingOrder.id}`)
+    console.log(`   📋 Order Code: ${processingOrder.orderCode}`)
+    console.log(`   🚚 Tracking: ${processingOrder.trackingNumber}`)
+    console.log(`   👤 Customer: Mario Rossi (+39123456789)`)
+    console.log(`   💰 Total: €${processingOrder.totalAmount}`)
+    console.log(`   🔗 DHL Link: https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=DHL1234567890`)
+  } catch (error) {
+    console.error("❌ Error creating processing order for tracking test:", error)
+  }
+
   // Seed Aviso Legal document
   await seedAvisoLegalDocument()
 
