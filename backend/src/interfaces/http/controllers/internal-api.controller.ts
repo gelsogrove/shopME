@@ -3514,6 +3514,47 @@ ${JSON.stringify(ragResults, null, 2)}`
   }
 
   /**
+   * Get shipment tracking link for the latest processing order
+   * 📦 N8N GetShipmentTrackingLink Function Integration
+   */
+  async getShipmentTrackingLink(req: Request, res: Response) {
+    try {
+      const { workspaceId, customerId } = req.body;
+
+      logger.info(`[GET-SHIPMENT-TRACKING] 📦 Request for customer ${customerId} in workspace ${workspaceId}`);
+
+      // Import and execute the GetShipmentTrackingLink function
+      const { GetShipmentTrackingLink } = await import('../../../chatbot/calling-functions/GetShipmentTrackingLink');
+      
+      const result = await GetShipmentTrackingLink.execute({
+        workspaceId,
+        customerId
+      });
+
+      if (result.success) {
+        res.json({
+          success: true,
+          data: (result as any).data,
+          message: result.message
+        });
+      } else {
+        res.json({
+          success: false,
+          message: result.message
+        });
+      }
+
+    } catch (error) {
+      logger.error("[GET-SHIPMENT-TRACKING] ❌ Error getting tracking link:", error);
+      res.status(500).json({
+        success: false,
+        error: "Internal server error",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  /**
    * Generate unique order code (same logic as checkout controller)
    */
   private async generateOrderCode(): Promise<string> {

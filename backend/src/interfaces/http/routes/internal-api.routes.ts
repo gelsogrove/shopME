@@ -154,6 +154,12 @@ router.post(
   internalApiController.getAllServices.bind(internalApiController)
 )
 
+// 📦 GET SHIPMENT TRACKING LINK - For N8N GetShipmentTrackingLink Tool 
+router.post(
+  "/orders/tracking-link",
+  internalApiController.getShipmentTrackingLink.bind(internalApiController)
+)
+
 /**
  * @swagger
  * /internal/get-all-products:
