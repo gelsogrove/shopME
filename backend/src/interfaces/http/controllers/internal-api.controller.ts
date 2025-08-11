@@ -2024,6 +2024,28 @@ ${JSON.stringify(ragResults, null, 2)}`
           linkUrl = `${cartBaseUrl}/cart?token=${token}`
           break
 
+        case "orders":
+          // Create JWT token for accessing order history
+          const jwtPayload = {
+            clientId: customerId,
+            workspaceId: targetWorkspaceId,
+            scope: "orders:list",
+            iat: Math.floor(Date.now() / 1000),
+            exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour
+          }
+
+          // TODO: Implement actual JWT signing
+          // For now, create a simple token for testing
+          token = Buffer.from(JSON.stringify(jwtPayload)).toString('base64')
+
+          expiresAt = new Date()
+          expiresAt.setHours(expiresAt.getHours() + 1)
+
+          // Build orders URL using workspace URL
+          const ordersBaseUrl = customer.workspace.url || "https://app.example.com"
+          linkUrl = `${ordersBaseUrl}/orders?token=${token}`
+          break
+
         default:
           res.status(400).json({ error: `Unsupported action: ${action}` })
           return
