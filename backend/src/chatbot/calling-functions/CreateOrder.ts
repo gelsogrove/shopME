@@ -1,4 +1,4 @@
-import { PrismaClient, ItemType } from "@prisma/client"
+import { ItemType, PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
@@ -155,11 +155,14 @@ export async function CreateOrder(
 
     const order = await prisma.orders.create({
       data: {
-        orderCode,
-        customer: { connect: { id: customerId } },
-        workspace: { connect: { id: workspaceId } },
+        orderCode: orderCode,
+        customerId: customerId,
+        workspaceId: workspaceId,
         status: "PENDING",
         totalAmount: totalAmount,
+        shippingAmount: 0,
+        taxAmount: 0,
+        discountAmount: 0,
         notes: notes || "",
         items: {
           create: itemsCreateData,
