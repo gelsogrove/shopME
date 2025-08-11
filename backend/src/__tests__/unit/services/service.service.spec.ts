@@ -55,6 +55,7 @@ describe('ServiceService', () => {
           id: '1', 
           name: 'Service 1', 
           description: 'Description 1',
+          code: 'SRV001',
           price: 100,
           currency: 'EUR',
           duration: 60,
@@ -67,6 +68,7 @@ describe('ServiceService', () => {
           id: '2', 
           name: 'Service 2', 
           description: 'Description 2',
+          code: 'SRV002',
           price: 150,
           currency: 'USD',
           duration: 90,
@@ -119,6 +121,7 @@ describe('ServiceService', () => {
         id, 
         name: 'Service', 
         description: 'Description',
+        code: 'SRV004',
         price: 100,
         currency: 'EUR',
         duration: 60,
@@ -162,6 +165,7 @@ describe('ServiceService', () => {
       const serviceData = {
         name: 'New Service',
         description: 'New Description',
+        code: 'SRV001',
         price: 200,
         currency: 'EUR',
         duration: 120,
@@ -195,6 +199,7 @@ describe('ServiceService', () => {
       // Arrange
       const serviceData = {
         name: 'New Service',
+        code: 'SRV002',
         price: 200,
         duration: 60,
         workspaceId
@@ -203,6 +208,7 @@ describe('ServiceService', () => {
       const expectedService = {
         id: 'new-id',
         name: 'New Service',
+        code: 'SRV002',
         price: 200,
         currency: 'EUR',
         duration: 60,
@@ -244,6 +250,7 @@ describe('ServiceService', () => {
         id,
         name: 'Existing Service',
         description: 'Existing Description',
+        code: 'SRV003',
         price: 100,
         currency: 'EUR',
         duration: 60,
@@ -298,6 +305,7 @@ describe('ServiceService', () => {
         id,
         name: 'Existing Service',
         description: 'Existing Description',
+        code: 'SRV005',
         price: 100,
         currency: 'EUR',
         duration: 60,
@@ -327,6 +335,7 @@ describe('ServiceService', () => {
         id,
         name: 'Service to Delete',
         description: 'Will be deleted',
+        code: 'SRV006',
         price: 100,
         currency: 'EUR',
         duration: 60,

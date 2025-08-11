@@ -61,7 +61,7 @@ export async function CreateOrder(
 
     // Calcolo totale ordine
     let totalAmount = 0
-    const validatedItems = []
+    const validatedItems: any[] = []
 
     for (const item of items) {
       if (item.type === "product") {
@@ -91,8 +91,9 @@ export async function CreateOrder(
         }
 
         validatedItems.push({
-          productId: product.id,
-          serviceId: null,
+          itemType: "PRODUCT",
+          product: { connect: { id: product.id } },
+          service: undefined,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           totalPrice: item.quantity * item.unitPrice,
@@ -118,8 +119,9 @@ export async function CreateOrder(
         }
 
         validatedItems.push({
-          productId: null,
-          serviceId: service.id,
+          itemType: "SERVICE",
+          product: undefined,
+          service: { connect: { id: service.id } },
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           totalPrice: item.quantity * item.unitPrice,
@@ -127,6 +129,13 @@ export async function CreateOrder(
 
         totalAmount += item.quantity * item.unitPrice
       }
+    }
+
+    // Helper per order code a 5 cifre
+    const generateOrderCode = () => {
+      const min = 10000
+      const max = 99999
+      return String(Math.floor(Math.random() * (max - min + 1)) + min)
     }
 
     // Creazione ordine
