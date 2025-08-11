@@ -9,6 +9,7 @@ export class Service {
   id: string;
   name: string;
   description?: string;
+  code: string;
   price: number;
   currency: string;
   duration: number;
@@ -47,6 +48,10 @@ export class Service {
     }
     
     if (!this.workspaceId) {
+      return false;
+    }
+    
+    if (!this.code || this.code.trim() === '') {
       return false;
     }
     

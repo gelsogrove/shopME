@@ -31,4 +31,5 @@ export interface IOrderRepository {
   getOrdersByDateRange(workspaceId: string, startDate: Date, endDate: Date): Promise<Order[]>;
   getOrdersCount(workspaceId: string, filters?: OrderFilters): Promise<number>;
   getTotalRevenue(workspaceId: string, filters?: OrderFilters): Promise<number>;
+  findLatestProcessingByCustomer(customerId: string, workspaceId: string): Promise<Order | null>;
 }
