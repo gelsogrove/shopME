@@ -3568,21 +3568,21 @@ ${JSON.stringify(ragResults, null, 2)}`
       // Import and execute the GetShipmentTrackingLink function
       const { GetShipmentTrackingLink } = await import('../../../chatbot/calling-functions/GetShipmentTrackingLink');
       
-      const result = await GetShipmentTrackingLink.execute({
+      const result = await GetShipmentTrackingLink({
         workspaceId,
         customerId
       });
 
-      if (result.success) {
+      if (result) {
         res.json({
           success: true,
-          data: (result as any).data,
-          message: result.message
+          data: result,
+          message: `Tracking info found for order ${result.orderCode}`
         });
       } else {
         res.json({
           success: false,
-          message: result.message
+          message: "No processing orders with tracking available"
         });
       }
 
@@ -3625,7 +3625,194 @@ ${JSON.stringify(ragResults, null, 2)}`
   }
 
   /**
-   * Get tracking link for latest processing order
+   * 📦 GET CUSTOMER ORDERS BY TOKEN
+   * Returns orders list for a customer using a secure token (type: 'orders')
+   */
+  async getCustomerOrdersByToken(req: Request, res: Response): Promise<void> {
+    try {
+      const { token } = req.params
+      if (!token) {
+        res.status(400).json({ success: false, error: "Token is required" })
+        return
+      }
+
+      const validation = await this.secureTokenService.validateToken(token, "orders")
+      if (!validation.valid) {
+        res.status(401).json({ success: false, error: "Invalid or expired orders token" })
+        return
+      }
+
+      const { customerId, workspaceId } = validation.payload || {}
+      if (!customerId || !workspaceId) {
+        res.status(400).json({ success: false, error: "Invalid token payload" })
+        return
+      }
+
+      const customer = await this.prisma.customers.findFirst({
+        where: { id: customerId, workspaceId },
+        include: { workspace: true },
+      })
+      if (!customer) {
+        res.status(404).json({ success: false, error: "Customer not found" })
+        return
+      }
+
+      const orders = await this.prisma.orders.findMany({
+        where: { customerId, workspaceId },
+        include: {
+          items: { include: { product: true, service: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      })
+
+      const mapped = orders.map((o) => ({
+        id: o.id,
+        orderCode: o.orderCode,
+        date: o.createdAt,
+        status: o.status,
+        totalAmount: o.totalAmount,
+        itemsCount: o.items.length,
+        invoiceUrl: `/api/internal/orders/${o.orderCode}/invoice?token=${token}`,
+        ddtUrl: `/api/internal/orders/${o.orderCode}/ddt?token=${token}`,
+      }))
+
+      res.status(200).json({
+        success: true,
+        data: {
+          customer: { id: customer.id, name: customer.name, phone: customer.phone, email: customer.email },
+          workspace: { id: customer.workspace.id, name: customer.workspace.name },
+          orders: mapped,
+          tokenInfo: { type: "orders", expiresAt: validation.data?.expiresAt, issuedAt: validation.data?.createdAt },
+        },
+      })
+    } catch (error) {
+      logger.error("[ORDERS] Error fetching customer orders:", error)
+      res.status(500).json({ success: false, error: "Internal server error" })
+    }
+  }
+
+  /**
+   * 📦 GET ORDER DETAIL BY TOKEN
+   * Returns a single order detail if the token is valid for the same customer/workspace
+   */
+  async getOrderDetailByToken(req: Request, res: Response): Promise<void> {
+    try {
+      const { token, orderCode } = req.params as { token: string; orderCode: string }
+      if (!token || !orderCode) {
+        res.status(400).json({ success: false, error: "Token and orderCode are required" })
+        return
+      }
+
+      const validation = await this.secureTokenService.validateToken(token, "orders")
+      if (!validation.valid) {
+        res.status(401).json({ success: false, error: "Invalid or expired orders token" })
+        return
+      }
+
+      const { customerId, workspaceId } = validation.payload || {}
+      if (!customerId || !workspaceId) {
+        res.status(400).json({ success: false, error: "Invalid token payload" })
+        return
+      }
+
+      // Optional: if token payload restricts to a specific orderCode
+      if (validation.payload?.orderCode && validation.payload.orderCode !== orderCode) {
+        res.status(403).json({ success: false, error: "Token not authorized for this order" })
+        return
+      }
+
+      const order = await this.prisma.orders.findFirst({
+        where: { orderCode, customerId, workspaceId },
+        include: {
+          items: { include: { product: true, service: true } },
+          customer: true,
+        },
+      })
+
+      if (!order) {
+        res.status(404).json({ success: false, error: "Order not found" })
+        return
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          order: {
+            id: order.id,
+            orderCode: order.orderCode,
+            date: order.createdAt,
+            status: order.status,
+            totalAmount: order.totalAmount,
+            items: order.items.map((it) => ({
+              id: it.id,
+              itemType: it.itemType,
+              name: it.product?.name || it.service?.name || "Item",
+              quantity: it.quantity,
+              unitPrice: it.unitPrice,
+              totalPrice: it.totalPrice,
+            })),
+            invoiceUrl: `/api/internal/orders/${order.orderCode}/invoice?token=${token}`,
+            ddtUrl: `/api/internal/orders/${order.orderCode}/ddt?token=${token}`,
+          },
+          customer: { id: order.customer.id, name: order.customer.name },
+          tokenInfo: { type: "orders", expiresAt: validation.data?.expiresAt, issuedAt: validation.data?.createdAt },
+        },
+      })
+    } catch (error) {
+      logger.error("[ORDERS] Error fetching order detail:", error)
+      res.status(500).json({ success: false, error: "Internal server error" })
+    }
+  }
+
+  /**
+   * 🧾 DOWNLOAD INVOICE (stub)
+   */
+  async downloadInvoiceByOrderCode(req: Request, res: Response): Promise<void> {
+    try {
+      const { orderCode } = req.params
+      const { token } = req.query as { token?: string }
+      if (!token) {
+        res.status(400).json({ success: false, error: "Token required" })
+        return
+      }
+      const validation = await this.secureTokenService.validateToken(token, "orders")
+      if (!validation.valid) {
+        res.status(401).json({ success: false, error: "Invalid or expired token" })
+        return
+      }
+      // TODO: return real PDF stream; for now return JSON with placeholder
+      res.status(501).json({ success: false, error: "Invoice download not implemented yet" })
+    } catch (error) {
+      logger.error("[ORDERS] Error downloading invoice:", error)
+      res.status(500).json({ success: false, error: "Internal server error" })
+    }
+  }
+
+  /**
+   * 📄 DOWNLOAD DDT (stub)
+   */
+  async downloadDdtByOrderCode(req: Request, res: Response): Promise<void> {
+    try {
+      const { orderCode } = req.params
+      const { token } = req.query as { token?: string }
+      if (!token) {
+        res.status(400).json({ success: false, error: "Token required" })
+        return
+      }
+      const validation = await this.secureTokenService.validateToken(token, "orders")
+      if (!validation.valid) {
+        res.status(401).json({ success: false, error: "Invalid or expired token" })
+        return
+      }
+      res.status(501).json({ success: false, error: "DDT download not implemented yet" })
+    } catch (error) {
+      logger.error("[ORDERS] Error downloading DDT:", error)
+      res.status(500).json({ success: false, error: "Internal server error" })
+    }
+  }
+
+  /**
+   * 📦 Get tracking link for latest processing order
    */
   async getTrackingLink(req: Request, res: Response) {
     try {

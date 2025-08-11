@@ -42,6 +42,9 @@ import SurveysPage from "./pages/SurveysPage"
 import { VerifyOtpPage } from "./pages/VerifyOtpPage"
 import { WorkspacePage } from "./pages/WorkspacePage"
 import { WorkspaceSelectionPage } from "./pages/WorkspaceSelectionPage"
+import React, { Suspense, lazy } from "react"
+
+const OrdersPublicPage = lazy(() => import("./pages/OrdersPublicPage"))
 
 export function App() {
   return (
@@ -151,6 +154,25 @@ export function App() {
         <Route path="/checkout/:token" element={<CheckoutPage />} />
         <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
         <Route path="/data-protection" element={<DataProtectionPage />} />
+
+        {/* Public Orders pages via secure token */}
+        <Route
+          path="/orders"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-gray-100 flex items-center justify-center p-4"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>}>
+              <OrdersPublicPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/orders/:orderCode"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-gray-100 flex items-center justify-center p-4"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>}>
+              <OrdersPublicPage />
+            </Suspense>
+          }
+        />
+
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

@@ -139,14 +139,29 @@ export async function CreateOrder(
     }
 
     // Creazione ordine
+    const generatedOrderCode = await (async () => {
+      const today = new Date()
+      const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "")
+      const lastOrder = await prisma.orders.findFirst({
+        where: { orderCode: { startsWith: `ORD-${dateStr}-` } },
+        orderBy: { createdAt: "desc" },
+      })
+      let sequence = 1
+      if (lastOrder) {
+        const lastSequence = parseInt(lastOrder.orderCode.split("-")[2])
+        sequence = lastSequence + 1
+      }
+      return `ORD-${dateStr}-${sequence.toString().padStart(3, "0")}`
+    })()
+
     const itemsCreateData = validatedItems.map((v) => {
-      if (v.productId) {
+      if (v.itemType === "PRODUCT") {
         return {
           itemType: ItemType.PRODUCT,
           quantity: v.quantity,
           unitPrice: v.unitPrice,
           totalPrice: v.totalPrice,
-          product: { connect: { id: v.productId } },
+          product: v.product,
         }
       } else {
         return {
@@ -154,19 +169,16 @@ export async function CreateOrder(
           quantity: v.quantity,
           unitPrice: v.unitPrice,
           totalPrice: v.totalPrice,
-          service: { connect: { id: v.serviceId! } },
+          service: v.service,
         }
       }
     })
 
-    // Genera un orderCode semplice e univoco
-    const orderCode = `ORD-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
-
     const order = await prisma.orders.create({
       data: {
-        orderCode: orderCode,
-        customerId: customerId,
-        workspaceId: workspaceId,
+        customer: { connect: { id: customerId } },
+        workspace: { connect: { id: workspaceId } },
+        orderCode: generatedOrderCode,
         status: "PENDING",
         totalAmount: totalAmount,
         shippingAmount: 0,
@@ -190,9 +202,9 @@ export async function CreateOrder(
 
     // Aggiorna stock prodotti
     for (const item of validatedItems) {
-      if (item.productId) {
+      if (item.itemType === "PRODUCT" && item.product?.connect?.id) {
         await prisma.products.update({
-          where: { id: item.productId },
+          where: { id: item.product.connect.id },
           data: {
             stock: {
               decrement: item.quantity,
