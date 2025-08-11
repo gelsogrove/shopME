@@ -162,6 +162,7 @@ model Orders {
   customer        Customers       @relation(fields: [customerId], references: [id])
   workspace       Workspace       @relation(fields: [workspaceId], references: [id])
   paymentDetails  PaymentDetails?
+  trackingNumber  String?         // Added optional tracking number
 
   @@map("orders")
 }
@@ -405,6 +406,7 @@ model Language {
 
 model Services {
   id          String          @id @default(cuid())
+  code        String          @unique
   name        String
   description String
   price       Float

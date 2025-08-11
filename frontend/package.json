@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "clean": "rm -rf dist",
-    "dev": "npm run clean && vite",
-    "build": "npm run clean && vite build",
+    "dev": "npm run clean && npx vite",
+    "build": "npm run clean && npx vite build",
     "lint": "echo 'Linting skipped for development'",
-    "preview": "vite preview",
+    "preview": "npx vite preview",
     "start:mcp": "npx @agentdeskai/browser-tools-server@latest"
   },
   "dependencies": {

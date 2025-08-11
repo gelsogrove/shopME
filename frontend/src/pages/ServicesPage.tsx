@@ -128,6 +128,7 @@ export function ServicesPage() {
 
     const data = {
       name: formData.get("name") as string,
+      code: formData.get("code") as string,
       description: formData.get("description") as string,
       price,
       currency: workspace.currency || "EUR",
@@ -165,6 +166,7 @@ export function ServicesPage() {
 
     const data = {
       name: formData.get("name") as string,
+      code: formData.get("code") as string,
       description: formData.get("description") as string,
       price,
       currency: workspace.currency || "EUR",
@@ -230,6 +232,21 @@ export function ServicesPage() {
           defaultValue={service?.name}
           required
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="code">Service Code</Label>
+        <Input
+          id="code"
+          name="code"
+          placeholder="e.g., SHP001, GFT001, DLV001"
+          defaultValue={service?.code}
+          required
+          pattern="[A-Z]{3}[0-9]{3}"
+          title="Code must be 3 uppercase letters followed by 3 numbers (e.g., SHP001)"
+        />
+        <p className="text-xs text-gray-500">
+          Unique service code. Format: 3 uppercase letters + 3 numbers (e.g., SHP001 for Shipping, GFT001 for Gift Package)
+        </p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>

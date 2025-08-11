@@ -35,6 +35,53 @@ router.use(n8nAuthMiddleware)
 router.use("/n8n", n8nUsageRoutes)
 
 /**
+ * @swagger
+ * /internal/orders/tracking-link:
+ *   post:
+ *     tags: [Internal API]
+ *     summary: Get tracking link for customer's latest processing order
+ *     security:
+ *       - N8NAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [workspaceId, customerId]
+ *             properties:
+ *               workspaceId:
+ *                 type: string
+ *               customerId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Tracking info found or not available
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 orderId:
+ *                   type: string
+ *                 orderCode:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *                 trackingNumber:
+ *                   type: string
+ *                   nullable: true
+ *                 trackingUrl:
+ *                   type: string
+ *                   nullable: true
+ *       400:
+ *         description: Missing required fields
+ */
+router.post('/orders/tracking-link', (req, res) => internalApiController.getTrackingLink(req, res))
+
+/**
  * N8N Internal API Routes with Multi-Business Support
  * Protected by INTERNAL_API_SECRET authentication
  */
@@ -170,6 +217,12 @@ router.post(
 router.post(
   "/get-all-services",
   internalApiController.getAllServices.bind(internalApiController)
+)
+
+// 📦 GET SHIPMENT TRACKING LINK - For N8N GetShipmentTrackingLink Tool 
+router.post(
+  "/orders/tracking-link",
+  internalApiController.getShipmentTrackingLink.bind(internalApiController)
 )
 
 /**
