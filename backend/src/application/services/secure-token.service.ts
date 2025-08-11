@@ -50,7 +50,7 @@ export class SecureTokenService {
    * Create a secure token
    */
   async createToken(
-    type: 'registration' | 'checkout' | 'invoice' | 'cart' | 'password_reset' | 'email_verification',
+    type: 'registration' | 'checkout' | 'invoice' | 'cart' | 'password_reset' | 'email_verification' | 'orders',
     workspaceId: string,
     payload?: any,
     expiresIn: string = '1h',

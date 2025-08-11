@@ -654,11 +654,21 @@ export function WhatsAppChatModal({
                     <div
                       className={
                         message.sender === "customer"
-                          ? "bg-white border border-gray-200 rounded-2xl rounded-br-md shadow-sm px-5 py-3 max-w-[600px] mb-2"
-                          : "bg-green-100 text-green-900 rounded-2xl rounded-bl-md shadow-sm px-5 py-3 max-w-[600px] mb-2"
+                          ? "bg-white border border-gray-200 rounded-2xl rounded-br-md shadow-sm px-3 py-3 max-w-[85%] sm:max-w-[400px] mb-2 word-wrap break-words overflow-wrap-anywhere"
+                          : "bg-green-100 text-green-900 rounded-2xl rounded-bl-md shadow-sm px-3 py-3 max-w-[85%] sm:max-w-[400px] mb-2 word-wrap break-words overflow-wrap-anywhere"
                       }
                     >
-                      <span className="break-words whitespace-pre-line text-sm">
+                      <span 
+                        className="break-words whitespace-pre-line text-sm block leading-relaxed overflow-wrap-anywhere hyphens-auto"
+                        style={{
+                          wordWrap: 'break-word',
+                          overflowWrap: 'anywhere',
+                          hyphens: 'auto',
+                          wordBreak: 'break-word',
+                          whiteSpace: 'pre-wrap',
+                          maxWidth: '100%'
+                        }}
+                      >
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{

@@ -10,6 +10,10 @@ export class ServiceDTO extends BaseDTO {
   name: string;
 
   @IsString()
+  @IsNotEmpty()
+  code: string;
+
+  @IsString()
   @IsOptional()
   description?: string;
 
@@ -43,6 +47,10 @@ export class CreateServiceDTO {
   name: string;
 
   @IsString()
+  @IsNotEmpty()
+  code: string;
+
+  @IsString()
   @IsOptional()
   description?: string;
 
@@ -74,6 +82,10 @@ export class UpdateServiceDTO {
   @IsString()
   @IsOptional()
   name?: string;
+
+  @IsString()
+  @IsOptional()
+  code?: string;
 
   @IsString()
   @IsOptional()

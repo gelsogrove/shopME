@@ -263,4 +263,34 @@ export class OrderService {
       throw new Error(`Failed to get order analytics: ${(error as Error).message}`);
     }
   }
+
+  async getLatestProcessingTracking(workspaceId: string, customerId: string): Promise<{
+    orderId: string
+    orderCode: string
+    status: OrderStatus
+    trackingNumber: string | null
+    trackingUrl: string | null
+  } | null> {
+    try {
+      if (!workspaceId || !customerId) {
+        throw new Error('workspaceId and customerId are required')
+      }
+      const order = await this.orderRepository.findLatestProcessingByCustomer(customerId, workspaceId)
+      if (!order) {
+        return null
+      }
+      const { buildDhlTrackingUrl } = await import('../../config')
+      const trackingUrl = buildDhlTrackingUrl(order.trackingNumber)
+      return {
+        orderId: order.id,
+        orderCode: order.orderCode,
+        status: order.status,
+        trackingNumber: order.trackingNumber || null,
+        trackingUrl,
+      }
+    } catch (error) {
+      logger.error('Error in getLatestProcessingTracking:', error)
+      throw error
+    }
+  }
 }

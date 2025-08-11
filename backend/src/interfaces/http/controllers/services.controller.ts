@@ -73,6 +73,7 @@ export class ServicesController {
 
       const {
         name,
+        code,
         description = "",
         price,
         currency = "EUR",
@@ -83,6 +84,10 @@ export class ServicesController {
       // Validate required fields
       if (!name) {
         return res.status(400).json({ error: "Name is required" })
+      }
+
+      if (!code) {
+        return res.status(400).json({ error: "Code is required" })
       }
 
       // Check workspace plan and current service count
@@ -151,6 +156,7 @@ export class ServicesController {
 
       const serviceData = {
         name,
+        code,
         description,
         price: numericPrice,
         duration: numericDuration,
@@ -197,7 +203,7 @@ export class ServicesController {
           .json({ error: "Service not found in specified workspace" })
       }
 
-      const { name, description, price, currency, duration, isActive } =
+      const { name, code, description, price, currency, duration, isActive } =
         req.body
 
       // Process numeric fields and validate data
@@ -205,6 +211,7 @@ export class ServicesController {
 
       // Add fields only if they are provided to avoid null overwrites
       if (name !== undefined) updateData.name = name
+      if (code !== undefined) updateData.code = code
       if (description !== undefined) updateData.description = description
       if (currency !== undefined) updateData.currency = currency
       if (isActive !== undefined) updateData.isActive = isActive
