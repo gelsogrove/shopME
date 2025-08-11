@@ -19,6 +19,10 @@ const mockPrisma = {
 
 jest.mock('@prisma/client', () => ({
   PrismaClient: jest.fn(() => mockPrisma),
+  ItemType: {
+    PRODUCT: 'PRODUCT',
+    SERVICE: 'SERVICE',
+  },
 }))
 
 import { CreateOrder } from '../../../chatbot/calling-functions/CreateOrder'
@@ -79,24 +83,36 @@ describe('CreateOrder calling function', () => {
     expect(mockPrisma.orders.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
+          orderCode: expect.any(String),
           customerId: 'cust-1',
           workspaceId: 'ws-1',
           status: 'PENDING',
           totalAmount: 10.0,
+          shippingAmount: 0,
+          taxAmount: 0,
+          discountAmount: 0,
+          notes: 'Ordine di prova',
           items: expect.objectContaining({
             create: expect.arrayContaining([
               expect.objectContaining({
-                productId: 'prod-1',
-                serviceId: null,
+                itemType: 'PRODUCT',
                 quantity: 2,
                 unitPrice: 5.0,
                 totalPrice: 10.0,
+                product: expect.objectContaining({
+                  connect: expect.objectContaining({ id: 'prod-1' }),
+                }),
               }),
             ]),
           }),
         }),
         include: expect.objectContaining({
-          items: expect.any(Object),
+          items: expect.objectContaining({
+            include: expect.objectContaining({
+              product: true,
+              service: true,
+            }),
+          }),
           customer: true,
         }),
       })

@@ -155,6 +155,7 @@ export async function CreateOrder(
 
     const order = await prisma.orders.create({
       data: {
+        orderCode: orderCode,
         customerId: customerId,
         workspaceId: workspaceId,
         status: "PENDING",
