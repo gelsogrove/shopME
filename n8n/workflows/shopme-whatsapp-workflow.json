@@ -262,6 +262,30 @@
     },
     {
       "parameters": {
+        "toolDescription": "🚚 **GETSHIPMENTTRACKINGLINK() - TRACKING SPEDIZIONE DHL**\n\n**COSA FA QUESTA FUNZIONE:**\nRecupera il link di tracking DHL per l'ultimo ordine in elaborazione del cliente. Fornisce informazioni complete sulla spedizione con link cliccabile per il monitoraggio in tempo reale.\n\n**TABELLE DATABASE CONSULTATE:**\n📦 **ORDERS** - Ultimo ordine con status PROCESSING del cliente\n🚚 **TRACKING_INFO** - Informazioni tracking number e link DHL\n👤 **CUSTOMERS** - Verifica cliente e workspace associato\n\n**FLUSSO DI ESECUZIONE:**\n1️⃣ **Recupero Cliente**: Verifica customerId e workspaceId\n2️⃣ **Ricerca Ordine**: Trova ultimo ordine con status PROCESSING\n3️⃣ **Estrazione Tracking**: Recupera trackingNumber se disponibile\n4️⃣ **Generazione Link**: Costruisce link DHL con tracking number\n5️⃣ **Formattazione**: Struttura risposta con link cliccabile\n\n**ESEMPI DI QUERY CHE ATTIVANO GETSHIPMENTTRACKINGLINK:**\n**ITALIANO:**\n- \"dov'è la mia merce?\"\n- \"dove è il mio ordine?\"\n- \"tracking spedizione\"\n- \"dove è il pacco?\"\n- \"numero tracking\"\n- \"stato spedizione\"\n- \"quando arriva?\"\n\n**ENGLISH:**\n- \"where is my order?\"\n- \"shipment tracking\"\n- \"tracking number\"\n- \"where is my package?\"\n- \"delivery status\"\n- \"when will it arrive?\"\n\n**SPANISH:**\n- \"¿dónde está mi pedido?\"\n- \"seguimiento de envío\"\n- \"número de seguimiento\"\n- \"¿dónde está mi paquete?\"\n- \"estado de entrega\"\n\n**OUTPUT STRUTTURATO:**\n```json\n{\n  \"success\": true,\n  \"orderId\": \"ord123\",\n  \"orderCode\": \"ORD-2025-001\",\n  \"status\": \"PROCESSING\",\n  \"trackingNumber\": \"1234567890\",\n  \"trackingUrl\": \"https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=1234567890\",\n  \"message\": \"Il tuo ordine ORD-2025-001 è in elaborazione. Tracking: https://www.dhl.com/...\"\n}\n```\n\n**IMPORTANTE:** Restituisce null se non ci sono ordini in elaborazione o se il tracking number non è ancora disponibile.",
+        "method": "POST",
+        "url": "=http://host.docker.internal:3001/api/internal/orders/tracking-link",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n  \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [1780, 180],
+      "id": "tracking-tool-001",
+      "name": "GetShipmentTrackingLink()",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "ekFApRxENAQ8RWOv",
+          "name": "Backend API Basic Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
         "toolDescription": "🛎️ **GETSERVICES() - CATALOGO SERVIZI CON PREZZI PERSONALIZZATI**\n\n**COSA FA QUESTA FUNZIONE:**\nRestituisce tutti i servizi disponibili nel workspace con applicazione automatica della strategia prezzi di Andrea. Confronta sconto cliente vs sconto specifico del servizio e applica il migliore.\n\n**TABELLE DATABASE CONSULTATE:**\n🛎️ **SERVICES** - Tutti i servizi attivi con prezzi e descrizioni\n👤 **CUSTOMERS** - Sconto personalizzato cliente (discount %)\n💰 **PRICE_LOGIC** - Calcolo automatico prezzi finali\n\n**FLUSSO DI ESECUZIONE:**\n1️⃣ **Recupero Servizi**: Trova tutti i servizi attivi del workspace\n2️⃣ **Recupero Cliente**: Estrae sconto cliente se customerId fornito\n3️⃣ **Logica Andrea**: Confronta customer.discount vs service.discountPercent\n4️⃣ **Calcolo Prezzi**: Applica sconto più alto (NON-cumulativo)\n5️⃣ **Formattazione**: Struttura risposta con prezzi finali\n\n**STRATEGIA PREZZI (Andrea's Logic):**\n💰 **NON-CUMULATIVO**: Se cliente 10% e servizio 15% → Usa 15%\n🏆 **MIGLIORE VINCE**: Math.max(customerDiscount, serviceDiscountPercent)\n📊 **TRASPARENZA**: Mostra prezzo originale, finale, % e fonte sconto\n🎯 **FONTE SCONTO**: \"customer\" | \"service\" | \"none\"\n\n**ESEMPI DI QUERY CHE ATTIVANO GETSERVICES:**\n**ITALIANO:**\n- \"che servizi offrite?\"\n- \"quali servizi avete?\"\n- \"lista dei servizi\"\n- \"servizi disponibili\"\n- \"servizi aziendali\"\n- \"cosa fate oltre ai prodotti?\"\n\n**ENGLISH:**\n- \"what services do you offer?\"\n- \"show me your services\"\n- \"available services\"\n- \"what services do you provide?\"\n\n**SPANISH:**\n- \"¿qué servicios ofrecen?\"\n- \"servicios disponibles\"\n- \"lista de servicios\"\n\n**OUTPUT STRUTTURATO:**\n```json\n{\n  \"success\": true,\n  \"customerInfo\": {\n    \"name\": \"Mario Rossi\",\n    \"discount\": 10\n  },\n  \"services\": [{\n    \"name\": \"Trasporto Refrigerato\",\n    \"description\": \"Consegna con mezzi refrigerati\",\n    \"price\": 12.75,\n    \"originalPrice\": 15.00,\n    \"discountPercent\": 15,\n    \"discountSource\": \"service\",\n    \"formatted\": \"Prezzo: €12.75 (scontato del 15%, prezzo pieno €15.00, fonte: service)\",\n    \"available\": true,\n    \"customerDiscount\": 10,\n    \"serviceDiscount\": 15,\n    \"bestDiscount\": 15\n  }],\n  \"discountLogic\": {\n    \"note\": \"Andrea's Logic: Highest discount wins (applied to services)\",\n    \"customerDiscount\": 10\n  }\n}\n```\n\n**IMPORTANTE:** Ogni servizio mostra il prezzo finale con il miglior sconto disponibile tra cliente e servizio specifico.",
         "method": "POST",
         "url": "=http://host.docker.internal:3001/api/internal/get-all-services",
@@ -301,6 +325,54 @@
       "position": [1960, 180],
       "id": "2d996251-74c1-4986-862b-da3ac3e45040",
       "name": "CreateOrder()",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "ekFApRxENAQ8RWOv",
+          "name": "Backend API Basic Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "🚚 **GETSHIPMENTTRACKINGLINK() - TRACKING SPEDIZIONE DHL**\n\n**COSA FA QUESTA FUNZIONE:**\nRecupera il link di tracking DHL per l'ultimo ordine in elaborazione del cliente. Fornisce informazioni complete sulla spedizione con link cliccabile per il monitoraggio in tempo reale.\n\n**TABELLE DATABASE CONSULTATE:**\n📦 **ORDERS** - Ultimo ordine con status PROCESSING del cliente\n🚚 **TRACKING_INFO** - Informazioni tracking number e link DHL\n👤 **CUSTOMERS** - Verifica cliente e workspace associato\n\n**FLUSSO DI ESECUZIONE:**\n1️⃣ **Recupero Cliente**: Verifica customerId e workspaceId\n2️⃣ **Ricerca Ordine**: Trova ultimo ordine con status PROCESSING\n3️⃣ **Estrazione Tracking**: Recupera trackingNumber se disponibile\n4️⃣ **Generazione Link**: Costruisce link DHL con tracking number\n5️⃣ **Formattazione**: Struttura risposta con link cliccabile\n\n**ESEMPI DI QUERY CHE ATTIVANO GETSHIPMENTTRACKINGLINK:**\n**ITALIANO:**\n- \"dov'è la mia merce?\"\n- \"dove è il mio ordine?\"\n- \"tracking spedizione\"\n- \"dove è il pacco?\"\n- \"numero tracking\"\n- \"stato spedizione\"\n- \"quando arriva?\"\n\n**ENGLISH:**\n- \"where is my order?\"\n- \"shipment tracking\"\n- \"tracking number\"\n- \"where is my package?\"\n- \"delivery status\"\n- \"when will it arrive?\"\n\n**SPANISH:**\n- \"¿dónde está mi pedido?\"\n- \"seguimiento de envío\"\n- \"número de seguimiento\"\n- \"¿dónde está mi paquete?\"\n- \"estado de entrega\"\n\n**OUTPUT STRUTTURATO:**\n```json\n{\n  \"success\": true,\n  \"orderId\": \"ord123\",\n  \"orderCode\": \"ORD-2025-001\",\n  \"status\": \"PROCESSING\",\n  \"trackingNumber\": \"1234567890\",\n  \"trackingUrl\": \"https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=1234567890\",\n  \"message\": \"Il tuo ordine ORD-2025-001 è in elaborazione. Tracking: https://www.dhl.com/...\"\n}\n```\n\n**IMPORTANTE:** Restituisce null se non ci sono ordini in elaborazione o se il tracking number non è ancora disponibile.",
+        "method": "POST",
+        "url": "=http://host.docker.internal:3001/api/internal/orders/tracking-link",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n  \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [2140, 180],
+      "id": "tracking-tool-002",
+      "name": "GetShipmentTrackingLink()",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "ekFApRxENAQ8RWOv",
+          "name": "Backend API Basic Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "🚚 **GETSHIPMENTTRACKINGLINK() - TRACKING SPEDIZIONE DHL**\n\n**COSA FA QUESTA FUNZIONE:**\nRecupera il link di tracking DHL per l'ultimo ordine in elaborazione del cliente. Fornisce informazioni complete sulla spedizione con link cliccabile per il monitoraggio in tempo reale.\n\n**TABELLE DATABASE CONSULTATE:**\n📦 **ORDERS** - Ultimo ordine con status PROCESSING del cliente\n🚚 **TRACKING_INFO** - Informazioni tracking number e link DHL\n👤 **CUSTOMERS** - Verifica cliente e workspace associato\n\n**FLUSSO DI ESECUZIONE:**\n1️⃣ **Recupero Cliente**: Verifica customerId e workspaceId\n2️⃣ **Ricerca Ordine**: Trova ultimo ordine con status PROCESSING\n3️⃣ **Estrazione Tracking**: Recupera trackingNumber se disponibile\n4️⃣ **Generazione Link**: Costruisce link DHL con tracking number\n5️⃣ **Formattazione**: Struttura risposta con link cliccabile\n\n**ESEMPI DI QUERY CHE ATTIVANO GETSHIPMENTTRACKINGLINK:**\n**ITALIANO:**\n- \"dov'è la mia merce?\"\n- \"dove è il mio ordine?\"\n- \"tracking spedizione\"\n- \"dove è il pacco?\"\n- \"numero tracking\"\n- \"stato spedizione\"\n- \"quando arriva?\"\n\n**ENGLISH:**\n- \"where is my order?\"\n- \"shipment tracking\"\n- \"tracking number\"\n- \"where is my package?\"\n- \"delivery status\"\n- \"when will it arrive?\"\n\n**SPANISH:**\n- \"¿dónde está mi pedido?\"\n- \"seguimiento de envío\"\n- \"número de seguimiento\"\n- \"¿dónde está mi paquete?\"\n- \"estado de entrega\"\n\n**OUTPUT STRUTTURATO:**\n```json\n{\n  \"success\": true,\n  \"orderId\": \"ord123\",\n  \"orderCode\": \"ORD-2025-001\",\n  \"status\": \"PROCESSING\",\n  \"trackingNumber\": \"1234567890\",\n  \"trackingUrl\": \"https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=1234567890\",\n  \"message\": \"Il tuo ordine ORD-2025-001 è in elaborazione. Tracking: https://www.dhl.com/...\"\n}\n```\n\n**IMPORTANTE:** Restituisce null se non ci sono ordini in elaborazione o se il tracking number non è ancora disponibile.",
+        "method": "POST",
+        "url": "=http://host.docker.internal:3001/api/internal/orders/tracking-link",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n  \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [2140, 180],
+      "id": "tracking-tool-001",
+      "name": "GetShipmentTrackingLink()",
       "credentials": {
         "httpBasicAuth": {
           "id": "ekFApRxENAQ8RWOv",
@@ -520,6 +592,28 @@
       ]
     },
     "CreateOrder()": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetShipmentTrackingLink()": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetShipmentTrackingLink()": {
       "ai_tool": [
         [
           {

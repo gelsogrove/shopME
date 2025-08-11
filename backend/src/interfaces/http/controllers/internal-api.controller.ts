@@ -2042,7 +2042,7 @@ ${JSON.stringify(ragResults, null, 2)}`
           expiresAt.setHours(expiresAt.getHours() + 1)
 
           // Build orders URL using workspace URL
-          const ordersBaseUrl = customer.workspace.url || "https://app.example.com"
+          const ordersBaseUrl = customer.workspace.url || process.env.FRONTEND_URL || "http://localhost:3000"
           linkUrl = `${ordersBaseUrl}/orders?token=${token}`
           break
 
