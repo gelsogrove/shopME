@@ -89,7 +89,7 @@ Contatta il nostro staff per maggiori informazioni sui prodotti disponibili.`;
     const priceMap = new Map(priceResult.products.map(p => [p.id, p]));
 
     // Formatta i prodotti per la risposta
-    const productList = Object.entries(productsByCategory).map(([categoryName, categoryProducts]) => {
+    const productList = (Object.entries(productsByCategory) as Array<[string, typeof products]>).map(([categoryName, categoryProducts]) => {
       const productItems = categoryProducts.map((product, index) => {
         const priceData = priceMap.get(product.id) as ProductWithPrice | undefined;
         const hasDiscount = (priceData?.appliedDiscount || 0) > 0;
