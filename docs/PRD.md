@@ -115,7 +115,8 @@
 
 ## 📋 Task List Reference
 
-See `docs/other/task-list.md` for the full, up-to-date structured task list, including all completed, active, bug, and phase 2 tasks.
+- Minimal Phase 1 checklist: `docs/task-list.md`
+- Full, up-to-date structured list (completed, active, bugs, Phase 2): `docs/other/task-list.md`
 
 ---
 
@@ -423,6 +424,35 @@ if (!workspaceSettings.debugMode) {
 ### **🎯 Overview**
 
 Sistema completo di gestione ordini e carrello enterprise-grade che sostituisce l'attuale implementazione "oscena" con un'interfaccia consistente, funzionalità CRUD complete e business logic robusta.
+
+### **🔗 Accesso Ordini via Link Sicuro (TTL 1h)**
+
+- **Intento generico (lista ordini / fattura / DDT senza numero ordine)**
+  - Risposta: link a pagina lista ordini del cliente in ordine di data decrescente, con stato e totale
+  - URL esempio: `https://app.example.com/orders?token=...`
+  - Validità: token firmato (JWT HS256), TTL 1 ora; scaduto → pagina non accessibile
+  - Dal dettaglio ordine sono disponibili: download Fattura (PDF) e DDT (PDF)
+
+- **Intento specifico (con numero ordine)**
+  - Risposta: link diretto al dettaglio dell'ordine
+  - URL esempio: `https://app.example.com/orders/ORD-123?token=...`
+
+- **Token JWT (sicurezza)**
+  - Claim minimi: `clientId`, `workspaceId`, `scope`
+    - Lista: `orders:list`
+    - Dettaglio: `orders:detail` + `orderCode`
+  - Opzionali: `jti` (revoca/one-time), binding soft (user-agent/IP)
+  - Niente dati sensibili nel payload
+
+- **Frontend**
+  - `OrdersListPage`: lista in ordine data decrescente, stato, totale; click → dettaglio
+  - `OrderDetailPage`: dettaglio ordine con pulsanti download Fattura e DDT
+
+- **Backend (tutti validano token e workspace)**
+  - `GET /api/orders` → lista ordini per `clientId`
+  - `GET /api/orders/:orderCode` → dettaglio ordine
+  - `GET /api/orders/:orderCode/invoice` → download fattura
+  - `GET /api/orders/:orderCode/ddt` → download DDT
 
 ### **❌ Problemi Attuali**
 
@@ -1659,7 +1689,7 @@ Response: {
 **Secure Token Flow**:
 
 ```typescript
-// 1. Generate invoice token (24h validity)
+// 1. Generate invoice token (1h validity)
 type: 'invoice',
 payload: {
   customerId, workspaceId, customerName,

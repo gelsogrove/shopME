@@ -153,6 +153,24 @@ router.get(
   internalApiController.getCustomerInvoicesByToken.bind(internalApiController)
 )
 
+// 📦 Orders via secure token
+router.get(
+  "/orders/:token",
+  internalApiController.getCustomerOrdersByToken.bind(internalApiController)
+)
+router.get(
+  "/orders/:token/:orderCode",
+  internalApiController.getOrderDetailByToken.bind(internalApiController)
+)
+router.get(
+  "/orders/:orderCode/invoice",
+  internalApiController.downloadInvoiceByOrderCode.bind(internalApiController)
+)
+router.get(
+  "/orders/:orderCode/ddt",
+  internalApiController.downloadDdtByOrderCode.bind(internalApiController)
+)
+
 // Registration link generation for new users
 router.post(
   "/generate-registration-link",
