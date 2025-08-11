@@ -4,6 +4,7 @@ export interface Service {
   id: string
   name: string
   description: string
+  code: string
   price: number
   currency: string
   duration: number
@@ -24,6 +25,7 @@ export interface SearchResult {
 export interface CreateServiceData {
   name: string
   description: string
+  code: string
   price: number
   currency?: string
   isActive?: boolean
@@ -32,6 +34,7 @@ export interface CreateServiceData {
 export interface UpdateServiceData {
   name?: string
   description?: string
+  code?: string
   price?: number
   currency?: string
   isActive?: boolean
@@ -43,6 +46,7 @@ const mockServices: Service[] = [
     id: 'mock-service-1',
     name: 'Base Website Design',
     description: 'Professional website design with responsive layout, optimized for mobile and desktop. Includes up to 5 pages and basic SEO optimization.',
+    code: 'WEB001',
     price: 999,
     currency: '€',
     duration: 0,
@@ -55,6 +59,7 @@ const mockServices: Service[] = [
     id: 'mock-service-2',
     name: 'E-commerce Setup',
     description: 'Complete e-commerce solution with product catalog, shopping cart, and payment gateway integration. Includes product setup for up to 20 items.',
+    code: 'ECM001',
     price: 1499,
     currency: '€',
     duration: 0,
@@ -67,6 +72,7 @@ const mockServices: Service[] = [
     id: 'mock-service-3',
     name: 'SEO Optimization',
     description: 'Comprehensive SEO service to improve search engine rankings. Includes keyword research, on-page optimization, and monthly reporting.',
+    code: 'SEO001',
     price: 699,
     currency: '€',
     duration: 0,

@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client"
+import { ItemType, PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
@@ -61,7 +61,7 @@ export async function CreateOrder(
 
     // Calcolo totale ordine
     let totalAmount = 0
-    const validatedItems = []
+    const validatedItems: any[] = []
 
     for (const item of items) {
       if (item.type === "product") {
@@ -91,8 +91,9 @@ export async function CreateOrder(
         }
 
         validatedItems.push({
-          productId: product.id,
-          serviceId: null,
+          itemType: "PRODUCT",
+          product: { connect: { id: product.id } },
+          service: undefined,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           totalPrice: item.quantity * item.unitPrice,
@@ -118,8 +119,9 @@ export async function CreateOrder(
         }
 
         validatedItems.push({
-          productId: null,
-          serviceId: service.id,
+          itemType: "SERVICE",
+          product: undefined,
+          service: { connect: { id: service.id } },
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           totalPrice: item.quantity * item.unitPrice,
@@ -129,17 +131,62 @@ export async function CreateOrder(
       }
     }
 
+    // Helper per order code a 5 cifre
+    const generateOrderCode = () => {
+      const min = 10000
+      const max = 99999
+      return String(Math.floor(Math.random() * (max - min + 1)) + min)
+    }
+
     // Creazione ordine
+    const generatedOrderCode = await (async () => {
+      const today = new Date()
+      const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "")
+      const lastOrder = await prisma.orders.findFirst({
+        where: { orderCode: { startsWith: `ORD-${dateStr}-` } },
+        orderBy: { createdAt: "desc" },
+      })
+      let sequence = 1
+      if (lastOrder) {
+        const lastSequence = parseInt(lastOrder.orderCode.split("-")[2])
+        sequence = lastSequence + 1
+      }
+      return `ORD-${dateStr}-${sequence.toString().padStart(3, "0")}`
+    })()
+
+    const itemsCreateData = validatedItems.map((v) => {
+      if (v.itemType === "PRODUCT") {
+        return {
+          itemType: ItemType.PRODUCT,
+          quantity: v.quantity,
+          unitPrice: v.unitPrice,
+          totalPrice: v.totalPrice,
+          product: v.product,
+        }
+      } else {
+        return {
+          itemType: ItemType.SERVICE,
+          quantity: v.quantity,
+          unitPrice: v.unitPrice,
+          totalPrice: v.totalPrice,
+          service: v.service,
+        }
+      }
+    })
+
     const order = await prisma.orders.create({
       data: {
-        customerId: customerId,
-        workspaceId: workspaceId,
+        customer: { connect: { id: customerId } },
+        workspace: { connect: { id: workspaceId } },
+        orderCode: generatedOrderCode,
         status: "PENDING",
         totalAmount: totalAmount,
+        shippingAmount: 0,
+        taxAmount: 0,
+        discountAmount: 0,
         notes: notes || "",
-        orderDate: new Date(),
         items: {
-          create: validatedItems,
+          create: itemsCreateData,
         },
       },
       include: {
@@ -155,9 +202,9 @@ export async function CreateOrder(
 
     // Aggiorna stock prodotti
     for (const item of validatedItems) {
-      if (item.productId) {
+      if (item.itemType === "PRODUCT" && item.product?.connect?.id) {
         await prisma.products.update({
-          where: { id: item.productId },
+          where: { id: item.product.connect.id },
           data: {
             stock: {
               decrement: item.quantity,
