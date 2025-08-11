@@ -108,12 +108,14 @@ export interface Order {
   updatedAt: string
   customer?: Customer
   items?: OrderItem[]
+  trackingNumber?: string | null
 }
 
 export interface Service {
   id: string
   name: string
   description: string
+  code: string
   price: number
   currency: string
   duration: number
@@ -144,6 +146,7 @@ export interface CreateOrderData {
   discountCode?: string
   discountAmount?: number
   paymentMethod?: PaymentMethod
+  trackingNumber?: string | null
 }
 
 // Update order data interface
@@ -167,6 +170,7 @@ export interface UpdateOrderData {
     totalPrice: number
     productVariant?: any
   }[]
+  trackingNumber?: string | null
 }
 
 // Filters interface

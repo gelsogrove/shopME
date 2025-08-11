@@ -2358,6 +2358,7 @@ ${JSON.stringify(ragResults, null, 2)}`
 
         return {
           id: service.id,
+          code: service.code,
           name: service.name,
           description: service.description || "",
           price: finalPrice,
@@ -3014,46 +3015,87 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      // Validate token using SecureTokenService with workspace isolation
+      // First, try SecureTokenService
       const validation = await this.secureTokenService.validateToken(
         token,
         type,
         workspaceId
       )
 
-      if (!validation.valid) {
-        res.status(401).json({
-          valid: false,
-          error: "Invalid or expired token",
+      if (validation.valid) {
+        // Check workspace match if provided
+        if (workspaceId && validation.data?.workspaceId !== workspaceId) {
+          res.status(403).json({
+            valid: false,
+            error: "Token workspace mismatch",
+          })
+          return
+        }
+
+        logger.info(
+          `[VALIDATE-TOKEN] ✅ SecureToken validated successfully for type: ${type || "any"}`
+        )
+
+        res.status(200).json({
+          valid: true,
+          data: {
+            tokenId: validation.data?.id,
+            type: validation.data?.type,
+            workspaceId: validation.data?.workspaceId,
+            userId: validation.data?.userId,
+            phoneNumber: validation.data?.phoneNumber,
+            expiresAt: validation.data?.expiresAt,
+            createdAt: validation.data?.createdAt,
+          },
+          payload: validation.payload,
         })
         return
       }
 
-      // Check workspace match if provided
-      if (workspaceId && validation.data?.workspaceId !== workspaceId) {
-        res.status(403).json({
-          valid: false,
-          error: "Token workspace mismatch",
-        })
-        return
+      // If SecureToken validation failed and type is registration, try RegistrationToken
+      if (type === 'registration') {
+        try {
+          const registrationToken = await prisma.registrationToken.findFirst({
+            where: {
+              token,
+              workspaceId,
+              expiresAt: {
+                gt: new Date(),
+              },
+              usedAt: null,
+            },
+          })
+
+          if (registrationToken) {
+            logger.info(
+              `[VALIDATE-TOKEN] ✅ RegistrationToken validated successfully for token: ${token.substring(0, 10)}...`
+            )
+
+            res.status(200).json({
+              valid: true,
+              data: {
+                tokenId: registrationToken.id,
+                type: 'registration',
+                workspaceId: registrationToken.workspaceId,
+                phoneNumber: registrationToken.phoneNumber,
+                expiresAt: registrationToken.expiresAt,
+                createdAt: registrationToken.createdAt,
+              },
+              payload: {
+                phoneNumber: registrationToken.phoneNumber,
+              },
+            })
+            return
+          }
+        } catch (regError) {
+          logger.error("[VALIDATE-TOKEN] Error checking RegistrationToken:", regError)
+        }
       }
 
-      logger.info(
-        `[VALIDATE-TOKEN] ✅ Token validated successfully for type: ${type || "any"}`
-      )
-
-      res.status(200).json({
-        valid: true,
-        data: {
-          tokenId: validation.data?.id,
-          type: validation.data?.type,
-          workspaceId: validation.data?.workspaceId,
-          userId: validation.data?.userId,
-          phoneNumber: validation.data?.phoneNumber,
-          expiresAt: validation.data?.expiresAt,
-          createdAt: validation.data?.createdAt,
-        },
-        payload: validation.payload,
+      // Both validation methods failed
+      res.status(401).json({
+        valid: false,
+        error: "Invalid or expired token",
       })
     } catch (error) {
       logger.error("[VALIDATE-TOKEN] Error validating secure token:", error)
@@ -3514,6 +3556,47 @@ ${JSON.stringify(ragResults, null, 2)}`
   }
 
   /**
+   * Get shipment tracking link for the latest processing order
+   * 📦 N8N GetShipmentTrackingLink Function Integration
+   */
+  async getShipmentTrackingLink(req: Request, res: Response) {
+    try {
+      const { workspaceId, customerId } = req.body;
+
+      logger.info(`[GET-SHIPMENT-TRACKING] 📦 Request for customer ${customerId} in workspace ${workspaceId}`);
+
+      // Import and execute the GetShipmentTrackingLink function
+      const { GetShipmentTrackingLink } = await import('../../../chatbot/calling-functions/GetShipmentTrackingLink');
+      
+      const result = await GetShipmentTrackingLink.execute({
+        workspaceId,
+        customerId
+      });
+
+      if (result.success) {
+        res.json({
+          success: true,
+          data: (result as any).data,
+          message: result.message
+        });
+      } else {
+        res.json({
+          success: false,
+          message: result.message
+        });
+      }
+
+    } catch (error) {
+      logger.error("[GET-SHIPMENT-TRACKING] ❌ Error getting tracking link:", error);
+      res.status(500).json({
+        success: false,
+        error: "Internal server error",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  /**
    * Generate unique order code (same logic as checkout controller)
    */
   private async generateOrderCode(): Promise<string> {
@@ -3725,6 +3808,35 @@ ${JSON.stringify(ragResults, null, 2)}`
     } catch (error) {
       logger.error("[ORDERS] Error downloading DDT:", error)
       res.status(500).json({ success: false, error: "Internal server error" })
+    }
+  }
+
+  /**
+   * 📦 Get tracking link for latest processing order
+   */
+  async getTrackingLink(req: Request, res: Response) {
+    try {
+      const { workspaceId, customerId } = req.body || {}
+      if (!workspaceId || !customerId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields',
+          required: ['workspaceId', 'customerId'],
+        })
+      }
+      const { OrderService } = await import('../../../application/services/order.service')
+      const service = new OrderService()
+      const result = await service.getLatestProcessingTracking(workspaceId, customerId)
+      if (!result) {
+        return res.status(200).json({
+          success: true,
+          message: 'No processing orders with tracking available',
+          tracking: null,
+        })
+      }
+      return res.status(200).json({ success: true, ...result })
+    } catch (error) {
+      return res.status(500).json({ success: false, error: 'Internal server error' })
     }
   }
 }
