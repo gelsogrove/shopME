@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { Request, Response } from "express"
+import { OrderService } from "../../../application/services/order.service"
 import { SecureTokenService } from "../../../application/services/secure-token.service"
 
 import { getAllCategories } from "../../../chatbot/calling-functions/getAllCategories"
@@ -1894,10 +1895,22 @@ ${JSON.stringify(ragResults, null, 2)}`
    */
   async generateToken(req: Request, res: Response): Promise<void> {
     try {
-      const { customerId, action, metadata, workspaceId } = req.body
+      // Be resilient to non-JSON bodies coming from external tools
+      let incomingBody: any = req.body
+      if (typeof incomingBody === "string") {
+        try {
+          incomingBody = JSON.parse(incomingBody)
+        } catch (e) {
+          // ignore parse error, will validate below
+        }
+      }
+      if (!incomingBody || typeof incomingBody !== "object") {
+        incomingBody = {}
+      }
+      const { customerId, action, metadata, workspaceId, phone } = incomingBody
 
-      if (!customerId || !action) {
-        res.status(400).json({ error: "customerId and action are required" })
+      if (!action) {
+        res.status(400).json({ error: "action is required" })
         return
       }
 
@@ -1905,9 +1918,32 @@ ${JSON.stringify(ragResults, null, 2)}`
         `[INTERNAL-API] Generating ${action} token for customer ${customerId}`
       )
 
+      // Resolve customer by id or phone within workspace
+      let resolvedCustomerId: string | undefined = customerId
+      let resolvedWorkspaceId: string | undefined = workspaceId
+
+      if (!resolvedCustomerId && phone) {
+        const byPhone = await prisma.customers.findFirst({
+          where: {
+            phone,
+            ...(resolvedWorkspaceId ? { workspaceId: resolvedWorkspaceId } : {}),
+          },
+          include: { workspace: true },
+        })
+        if (byPhone) {
+          resolvedCustomerId = byPhone.id
+          resolvedWorkspaceId = byPhone.workspaceId
+        }
+      }
+
+      if (!resolvedCustomerId) {
+        res.status(400).json({ error: "customerId or phone is required" })
+        return
+      }
+
       // Get customer details
       const customer = await prisma.customers.findUnique({
-        where: { id: customerId },
+        where: { id: resolvedCustomerId },
         include: { workspace: true },
       })
 
@@ -1917,7 +1953,7 @@ ${JSON.stringify(ragResults, null, 2)}`
       }
 
       // Validate workspace if provided
-      const targetWorkspaceId = workspaceId || customer.workspaceId
+      const targetWorkspaceId = resolvedWorkspaceId || customer.workspaceId
       if (customer.workspaceId !== targetWorkspaceId) {
         res
           .status(403)
@@ -1934,7 +1970,7 @@ ${JSON.stringify(ragResults, null, 2)}`
         case "checkout":
           // Create checkout token using SecureTokenService
           const checkoutPayload = {
-            customerId,
+            customerId: resolvedCustomerId,
             workspaceId: targetWorkspaceId,
             customerName: customer.name,
             customerPhone: customer.phone,
@@ -1947,7 +1983,7 @@ ${JSON.stringify(ragResults, null, 2)}`
             targetWorkspaceId,
             checkoutPayload,
             "1h",
-            customerId,
+            resolvedCustomerId,
             customer.phone
           )
 
@@ -1965,7 +2001,7 @@ ${JSON.stringify(ragResults, null, 2)}`
         case "invoice":
           // Create invoice token
           const invoicePayload = {
-            customerId,
+            customerId: resolvedCustomerId,
             workspaceId: targetWorkspaceId,
             customerName: customer.name,
             customerPhone: customer.phone,
@@ -1978,7 +2014,7 @@ ${JSON.stringify(ragResults, null, 2)}`
             targetWorkspaceId,
             invoicePayload,
             "24h",
-            customerId,
+            resolvedCustomerId,
             customer.phone
           )
 
@@ -1996,7 +2032,7 @@ ${JSON.stringify(ragResults, null, 2)}`
         case "cart":
           // Create cart token
           const cartPayload = {
-            customerId,
+            customerId: resolvedCustomerId,
             workspaceId: targetWorkspaceId,
             customerName: customer.name,
             customerPhone: customer.phone,
@@ -2009,7 +2045,7 @@ ${JSON.stringify(ragResults, null, 2)}`
             targetWorkspaceId,
             cartPayload,
             "2h",
-            customerId,
+            resolvedCustomerId,
             customer.phone
           )
 
@@ -2025,25 +2061,31 @@ ${JSON.stringify(ragResults, null, 2)}`
           break
 
         case "orders":
-          // Create JWT token for accessing order history
-          const jwtPayload = {
-            clientId: customerId,
+          // Persisted secure token for orders page (required by FE validator)
+          const ordersPayload = {
+            customerId: resolvedCustomerId,
             workspaceId: targetWorkspaceId,
-            scope: "orders:list",
-            iat: Math.floor(Date.now() / 1000),
-            exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour
+            createdAt: new Date().toISOString(),
           }
 
-          // TODO: Implement actual JWT signing
-          // For now, create a simple token for testing
-          token = Buffer.from(JSON.stringify(jwtPayload)).toString('base64')
+          token = await this.secureTokenService.createToken(
+            "orders",
+            targetWorkspaceId,
+            ordersPayload,
+            "1h",
+            resolvedCustomerId,
+            customer.phone
+          )
 
           expiresAt = new Date()
           expiresAt.setHours(expiresAt.getHours() + 1)
 
           // Build orders URL using workspace URL
-          const ordersBaseUrl = customer.workspace.url || process.env.FRONTEND_URL || "http://localhost:3000"
-          linkUrl = `${ordersBaseUrl}/orders?token=${token}`
+          const ordersBaseUrl =
+            customer.workspace.url || process.env.FRONTEND_URL || "http://localhost:3000"
+          // Include phone in link as requested by Andrea, plus token
+          const phoneParam = encodeURIComponent(customer.phone || "")
+          linkUrl = `${ordersBaseUrl}/orders-public?token=${token}&phone=${phoneParam}`
           break
 
         default:
@@ -2057,12 +2099,12 @@ ${JSON.stringify(ragResults, null, 2)}`
         expiresAt,
         linkUrl,
         action,
-        customerId,
+        customerId: resolvedCustomerId,
         workspaceId: targetWorkspaceId,
       })
 
       logger.info(
-        `[INTERNAL-API] Generated ${action} token: ${token.substring(0, 12)}... for customer ${customerId}`
+        `[INTERNAL-API] Generated ${action} token: ${token.substring(0, 12)}... for customer ${resolvedCustomerId}`
       )
     } catch (error) {
       logger.error("[INTERNAL-API] Generate token error:", error)
@@ -2270,6 +2312,215 @@ ${JSON.stringify(ragResults, null, 2)}`
         error: "Internal server error",
         message: error.message,
       })
+    }
+  }
+
+  /**
+   * PUBLIC: Get orders by phone (no auth, external page)
+   * GET /public/orders?phone=+39...&workspaceId=...
+   */
+  async getPublicOrders(req: Request, res: Response): Promise<void> {
+    try {
+      const rawPhone = (req.query.phone as string) || ""
+      const trimmedPhone = rawPhone.trim()
+      const candidatePhones = Array.from(
+        new Set([
+          trimmedPhone,
+          trimmedPhone.startsWith("+") ? trimmedPhone : `+${trimmedPhone}`,
+          trimmedPhone.replace(/\s+/g, ""),
+          (trimmedPhone.startsWith("+") ? trimmedPhone : `+${trimmedPhone}`).replace(/\s+/g, ""),
+        ])
+      ).filter(Boolean)
+      let workspaceId = (req.query.workspaceId as string) || ""
+
+      if (candidatePhones.length === 0) {
+        res.status(400).json({ success: false, error: "phone is required" })
+        return
+      }
+
+      // If workspaceId is missing, try to resolve uniquely by phone
+      if (!workspaceId) {
+        const matches = await this.prisma.customers.findMany({
+          where: { phone: { in: candidatePhones } },
+          select: { id: true, workspaceId: true },
+        })
+        if (matches.length === 0) {
+          res.status(404).json({ success: false, error: "Customer not found" })
+          return
+        }
+        if (matches.length > 1) {
+          res
+            .status(400)
+            .json({
+              success: false,
+              error: "Multiple customers found for this phone. workspaceId is required",
+            })
+          return
+        }
+        workspaceId = matches[0].workspaceId
+      }
+
+      // Resolve customer by phone within the resolved workspace
+      const customer = await this.prisma.customers.findFirst({
+        where: { phone: { in: candidatePhones }, workspaceId },
+        include: { workspace: true },
+      })
+
+      if (!customer) {
+        res.status(404).json({ success: false, error: "Customer not found" })
+        return
+      }
+
+      const targetWorkspaceId = customer.workspaceId
+
+      const orders = await this.prisma.orders.findMany({
+        where: { customerId: customer.id, workspaceId: targetWorkspaceId },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          orderCode: true,
+          status: true,
+          paymentDetails: { select: { status: true } },
+          totalAmount: true,
+          createdAt: true,
+        },
+      })
+
+      res.json({
+        success: true,
+        data: {
+          customer: { id: customer.id, name: customer.name, phone: customer.phone },
+          workspace: { id: targetWorkspaceId, name: customer.workspace?.name || "" },
+          orders: orders.map((o) => ({
+            id: o.id,
+            orderCode: o.orderCode,
+            date: o.createdAt.toISOString(),
+            status: o.status,
+            paymentStatus: o.paymentDetails?.status ?? "PENDING",
+            totalAmount: o.totalAmount,
+            itemsCount: 0,
+            invoiceUrl: `/api/internal/orders/${o.orderCode}/invoice`,
+            ddtUrl: `/api/internal/orders/${o.orderCode}/ddt`,
+          })),
+        },
+      })
+    } catch (error: any) {
+      logger.error("[PUBLIC-ORDERS] Error:", error)
+      res.status(500).json({ success: false, error: "Internal server error" })
+    }
+  }
+
+  /**
+   * PUBLIC: Get single order detail by orderCode and phone
+   * GET /public/orders/:orderCode?phone=+39...&workspaceId=...
+   */
+  async getPublicOrderDetail(req: Request, res: Response): Promise<void> {
+    try {
+      const { orderCode } = req.params
+      const rawPhone = (req.query.phone as string) || ""
+      const trimmedPhone = rawPhone.trim()
+      const candidatePhones = Array.from(
+        new Set([
+          trimmedPhone,
+          trimmedPhone.startsWith("+") ? trimmedPhone : `+${trimmedPhone}`,
+          trimmedPhone.replace(/\s+/g, ""),
+          (trimmedPhone.startsWith("+") ? trimmedPhone : `+${trimmedPhone}`).replace(/\s+/g, ""),
+        ])
+      ).filter(Boolean)
+      let workspaceId = (req.query.workspaceId as string) || ""
+
+      if (!orderCode || candidatePhones.length === 0) {
+        res
+          .status(400)
+          .json({ success: false, error: "orderCode and phone are required" })
+        return
+      }
+
+      if (!workspaceId) {
+        const matches = await this.prisma.customers.findMany({
+          where: { phone: { in: candidatePhones } },
+          select: { id: true, workspaceId: true },
+        })
+        if (matches.length === 0) {
+          res.status(404).json({ success: false, error: "Customer not found" })
+          return
+        }
+        if (matches.length > 1) {
+          res
+            .status(400)
+            .json({
+              success: false,
+              error: "Multiple customers found for this phone. workspaceId is required",
+            })
+          return
+        }
+        workspaceId = matches[0].workspaceId
+      }
+
+      const customer = await this.prisma.customers.findFirst({
+        where: { phone: { in: candidatePhones }, workspaceId },
+        include: { workspace: true },
+      })
+      if (!customer) {
+        res.status(404).json({ success: false, error: "Customer not found" })
+        return
+      }
+
+      const order = await this.prisma.orders.findFirst({
+        where: {
+          orderCode,
+          workspaceId: customer.workspaceId,
+          customerId: customer.id,
+        },
+        include: {
+          items: {
+            include: {
+              product: { select: { name: true, ProductCode: true } },
+              service: { select: { name: true, code: true } },
+            },
+          },
+          paymentDetails: true,
+        },
+      })
+
+      if (!order) {
+        res.status(404).json({ success: false, error: "Order not found" })
+        return
+      }
+
+      res.json({
+        success: true,
+        data: {
+          order: {
+            id: order.id,
+            orderCode: order.orderCode,
+            date: order.createdAt.toISOString(),
+            status: order.status,
+            paymentStatus: order.paymentDetails?.status ?? "PENDING",
+            paymentProvider: order.paymentDetails?.provider ?? null,
+            shippingAmount: order.shippingAmount ?? 0,
+            taxAmount: order.taxAmount ?? 0,
+            shippingAddress: order.shippingAddress ?? null,
+            trackingNumber: order.trackingNumber ?? null,
+            totalAmount: order.totalAmount,
+            items: order.items.map((it) => ({
+              id: it.id,
+              itemType: it.itemType,
+              name: (it.product?.name || it.service?.name || "Item"),
+              code: (it.product?.ProductCode || it.service?.code || null),
+              quantity: it.quantity,
+              unitPrice: it.unitPrice,
+              totalPrice: it.totalPrice,
+            })),
+            invoiceUrl: `/api/internal/orders/${order.orderCode}/invoice`,
+            ddtUrl: `/api/internal/orders/${order.orderCode}/ddt`,
+          },
+          customer: { id: customer.id, name: customer.name },
+        },
+      })
+    } catch (error: any) {
+      logger.error("[PUBLIC-ORDER-DETAIL] Error:", error)
+      res.status(500).json({ success: false, error: "Internal server error" })
     }
   }
 
@@ -3615,6 +3866,67 @@ ${JSON.stringify(ragResults, null, 2)}`
         error: "Internal server error",
         message: error instanceof Error ? error.message : "Unknown error",
       });
+    }
+  }
+
+  /**
+   * Get all customer orders sorted by createdAt DESC
+   * Body: { workspaceId: string, customerId: string, orderCode?: string }
+   */
+  async getOrdersList(req: Request, res: Response): Promise<void> {
+    try {
+      const { workspaceId, customerId, orderCode } = req.body || {}
+
+      if (!workspaceId || !customerId) {
+        res.status(400).json({
+          success: false,
+          message: 'workspaceId and customerId are required'
+        })
+        return
+      }
+
+      // Verify customer belongs to workspace (workspace isolation)
+      const customer = await this.prisma.customers.findFirst({
+        where: { id: customerId, workspaceId }
+      })
+      if (!customer) {
+        res.status(404).json({
+          success: false,
+          message: 'Customer not found in this workspace'
+        })
+        return
+      }
+
+      // Fetch orders using repository/service (already sorted desc)
+      const orderService = new OrderService()
+      const orders = await orderService.getOrdersByCustomerId(customerId, workspaceId)
+
+      const ordersDto = orders.map(o => ({
+        orderCode: o.orderCode,
+        createdAt: o.createdAt,
+        status: o.status,
+        totalAmount: o.totalAmount
+      }))
+
+      const response: any = {
+        success: true,
+        total: ordersDto.length,
+        orders: ordersDto
+      }
+
+      if (orderCode) {
+        const exists = ordersDto.find(o => o.orderCode === orderCode)
+        response.orderRequested = orderCode
+        response.orderExists = Boolean(exists)
+      }
+
+      res.json(response)
+    } catch (error) {
+      logger.error('[GET-ORDERS-LIST] ❌ Error:', error)
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error'
+      })
     }
   }
 

@@ -5,9 +5,6 @@ Calling Functions for Past Orders (History & Reorder)
   - CFs to list past orders and reorder; integrate with N8N; update Swagger; respect workspace isolation.
 
 
-
-- [x] TRACKING NUMBER ANCORA NON FUNZIONA CI VUOLE UNA FUNZIONE N8N CHE FACCIA UNA CALL FUNCTION RITORNO IL CODICE DEL RTACKING NUMBER PRESENTE NELL'ORDINE E RITORNI IL LINK DI DHL (COSA DICE IL PRD ??) ✅ **COMPLETED** - GetShipmentTrackingLink tool added to N8N workflow
-
 - [] GLI ORDNI NON VANNO prima di far partire qualsiasi task ne parliamo
 
 - [] LE MAIL NON VANNO dobbiamo capiro isnieme e' fuori dal codice mi sa inogni modo non so se quando si fa un ordine arriva una mail

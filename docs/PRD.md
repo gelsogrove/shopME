@@ -1,3 +1,43 @@
+## Public Orders (Phone-based External Links)
+
+### Goal
+Allow customers to access their full orders history and specific order details via an external public link, without logging in, filtered strictly by phone number and workspaceId.
+
+### Final Flow
+- The chatbot or N8N provides a URL in the form:
+  - List: `http://localhost:3000/orders-public?phone=+39...&workspaceId=...`
+  - Detail: `http://localhost:3000/orders-public/{orderCode}?phone=+39...&workspaceId=...`
+- The frontend page `OrdersPublicPage` renders without the internal platform layout and fetches data from public backend endpoints using only `phone` and `workspaceId`.
+
+### Backend
+- Endpoints (no auth):
+  - `GET /api/internal/public/orders?phone=...&workspaceId=...`
+  - `GET /api/internal/public/orders/:orderCode?phone=...&workspaceId=...`
+- Behavior:
+  - Resolves `customerId` by exact phone match inside the specified `workspaceId`.
+  - Normalizes common phone input variants (with/without `+`, spaces).
+  - Returns orders in `createdAt` DESC order for list; returns full order detail for single order including invoice and DDT URLs.
+  - Enforces workspace isolation on all queries.
+
+### Frontend
+- Route: `/orders-public` and `/orders-public/:orderCode` (no platform layout)
+- Page: `OrdersPublicPage.tsx`
+  - Reads `phone` and optional `workspaceId` from URL.
+  - Calls the backend endpoints above; does not use or require tokens.
+  - For each order, provides links to invoice and DDT downloads.
+
+### N8N Calling Function: GetOrdersListLink()
+- Purpose: Reply with the correct external URLs for orders list or a specific order.
+- Output examples:
+  - List: `http://localhost:3000/orders-public?phone={{phone}}&workspaceId={{workspaceId}}`
+  - Detail: `http://localhost:3000/orders-public/2001?phone={{phone}}&workspaceId={{workspaceId}}`
+- Note: No token is used for this flow.
+
+### Security and Constraints
+- No hardcoded fallbacks. All configuration and data from DB.
+- Strict `workspaceId` filtering for every DB query to preserve isolation.
+- If multiple customers share the same phone across different workspaces and `workspaceId` is omitted, backend returns an error requiring `workspaceId`.
+
 # ShopMe - WhatsApp E-commerce Platform PRD
 
 ---

@@ -101,8 +101,8 @@ export class SecureTokenService {
       const hours = parseInt(expiresIn.replace('h', '')) || 1
       expiresAt.setHours(expiresAt.getHours() + hours)
 
-      // Encrypt payload if provided
-      const encryptedPayload = payload ? this.encryptPayload(payload) : null
+      // Store payload as JSON (no encryption) to ensure compatibility and avoid runtime crypto issues
+      const encryptedPayload = payload ?? null
 
       // Save token to database
       await this.prisma.secureToken.create({

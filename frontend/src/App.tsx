@@ -38,11 +38,11 @@ import { LanguagesPage } from "./pages/settings/LanguagesPage"
 
 import { ProductsPage as SettingsProductsPage } from "./pages/settings/ProductsPage"
 
+import { Suspense, lazy } from "react"
 import SurveysPage from "./pages/SurveysPage"
 import { VerifyOtpPage } from "./pages/VerifyOtpPage"
 import { WorkspacePage } from "./pages/WorkspacePage"
 import { WorkspaceSelectionPage } from "./pages/WorkspaceSelectionPage"
-import React, { Suspense, lazy } from "react"
 
 const OrdersPublicPage = lazy(() => import("./pages/OrdersPublicPage"))
 
@@ -155,9 +155,9 @@ export function App() {
         <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
         <Route path="/data-protection" element={<DataProtectionPage />} />
 
-        {/* Public Orders pages via secure token */}
+        {/* Public Orders pages via secure token (external, no platform layout) */}
         <Route
-          path="/orders"
+          path="/orders-public"
           element={
             <Suspense fallback={<div className="min-h-screen bg-gray-100 flex items-center justify-center p-4"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>}>
               <OrdersPublicPage />
@@ -165,7 +165,7 @@ export function App() {
           }
         />
         <Route
-          path="/orders/:orderCode"
+          path="/orders-public/:orderCode"
           element={
             <Suspense fallback={<div className="min-h-screen bg-gray-100 flex items-center justify-center p-4"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>}>
               <OrdersPublicPage />
