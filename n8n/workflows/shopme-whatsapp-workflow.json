@@ -262,6 +262,35 @@
     },
     {
       "parameters": {
+        "toolDescription": "🔗 **GETORDERSLISTLINK() - LINK PUBBLICO STORICO ORDINI (PHONE-BASED)**\n\n**COSA FA QUESTA FUNZIONE:**\nRestituisce il link pubblico locale per visualizzare lo storico ordini filtrato SOLO dal numero di telefono (il backend risolve il customerId). Nessun token.\n\n**COME RISPONDERE:**\n- Lista: http://localhost:3000/orders-public?phone={{ $('prepare-data').item.json.phone }}&workspaceId={{ $('prepare-data').item.json.workspaceId }}\n- Dettaglio: http://localhost:3000/orders-public/2001?phone={{ $('prepare-data').item.json.phone }}&workspaceId={{ $('prepare-data').item.json.workspaceId }}\n\n**TRIGGER ESEMPI:**\n- \"dammi la lista ordini\", \"i miei ordini\", \"order history\"\n- \"dammi l’ordine 2001\"\n",
+        "method": "GET",
+        "url": "=http://host.docker.internal:3001/api/internal/public/orders",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": false,
+        "specifyBody": "json",
+        "queryParametersUi": {
+          "parameter": [
+            { "name": "phone", "value": "={{ $('prepare-data').item.json.phone }}" },
+            { "name": "workspaceId", "value": "={{ $('prepare-data').item.json.workspaceId }}" }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [1960, 360],
+      "id": "orders-link-tool-001",
+      "name": "GetOrdersListLink()",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "ekFApRxENAQ8RWOv",
+          "name": "Backend API Basic Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
         "toolDescription": "🚚 **GETSHIPMENTTRACKINGLINK() - TRACKING SPEDIZIONE DHL**\n\n**COSA FA QUESTA FUNZIONE:**\nRecupera il link di tracking DHL per l'ultimo ordine in elaborazione del cliente. Fornisce informazioni complete sulla spedizione con link cliccabile per il monitoraggio in tempo reale.\n\n**TABELLE DATABASE CONSULTATE:**\n📦 **ORDERS** - Ultimo ordine con status PROCESSING del cliente\n🚚 **TRACKING_INFO** - Informazioni tracking number e link DHL\n👤 **CUSTOMERS** - Verifica cliente e workspace associato\n\n**FLUSSO DI ESECUZIONE:**\n1️⃣ **Recupero Cliente**: Verifica customerId e workspaceId\n2️⃣ **Ricerca Ordine**: Trova ultimo ordine con status PROCESSING\n3️⃣ **Estrazione Tracking**: Recupera trackingNumber se disponibile\n4️⃣ **Generazione Link**: Costruisce link DHL con tracking number\n5️⃣ **Formattazione**: Struttura risposta con link cliccabile\n\n**ESEMPI DI QUERY CHE ATTIVANO GETSHIPMENTTRACKINGLINK:**\n**ITALIANO:**\n- \"dov'è la mia merce?\"\n- \"dove è il mio ordine?\"\n- \"tracking spedizione\"\n- \"dove è il pacco?\"\n- \"numero tracking\"\n- \"stato spedizione\"\n- \"quando arriva?\"\n\n**ENGLISH:**\n- \"where is my order?\"\n- \"shipment tracking\"\n- \"tracking number\"\n- \"where is my package?\"\n- \"delivery status\"\n- \"when will it arrive?\"\n\n**SPANISH:**\n- \"¿dónde está mi pedido?\"\n- \"seguimiento de envío\"\n- \"número de seguimiento\"\n- \"¿dónde está mi paquete?\"\n- \"estado de entrega\"\n\n**OUTPUT STRUTTURATO:**\n```json\n{\n  \"success\": true,\n  \"orderId\": \"ord123\",\n  \"orderCode\": \"ORD-2025-001\",\n  \"status\": \"PROCESSING\",\n  \"trackingNumber\": \"1234567890\",\n  \"trackingUrl\": \"https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=1234567890\",\n  \"message\": \"Il tuo ordine ORD-2025-001 è in elaborazione. Tracking: https://www.dhl.com/...\"\n}\n```\n\n**IMPORTANTE:** Restituisce null se non ci sono ordini in elaborazione o se il tracking number non è ancora disponibile.",
         "method": "POST",
         "url": "=http://host.docker.internal:3001/api/internal/orders/tracking-link",
@@ -570,6 +599,17 @@
       ]
     },
     "GetActiveOffers()": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetOrdersListLink()": {
       "ai_tool": [
         [
           {

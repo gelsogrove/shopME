@@ -2136,6 +2136,8 @@ async function main() {
   console.log(
     `Test customer 1 created: ${testCustomer.name} (${testCustomer.email})`
   )
+  console.log(`➡️ testCustomer.id: ${testCustomer.id}`)
+  console.log(`➡️ workspaceId: ${mainWorkspaceId}`)
 
   // Create second test customer - Maria Garcia
   const testCustomer2 = await prisma.customers.create({
@@ -2798,7 +2800,8 @@ async function main() {
     console.log(`   📦 Order ID: ${processingOrder.id}`)
     console.log(`   📋 Order Code: ${processingOrder.orderCode}`)
     console.log(`   🚚 Tracking: ${processingOrder.trackingNumber}`)
-    console.log(`   👤 Customer: Mario Rossi (+39123456789)`)
+    console.log(`   👤 CustomerId: ${testCustomer.id}`)
+    console.log(`   💼 WorkspaceId: ${mainWorkspaceId}`)
     console.log(`   💰 Total: €${processingOrder.totalAmount}`)
     console.log(`   🔗 DHL Link: https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=DHL1234567890`)
   } catch (error) {

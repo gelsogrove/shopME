@@ -1,6 +1,5 @@
 import { Router } from "express"
 import { MessageRepository } from "../../../repositories/message.repository"
-import logger from "../../../utils/logger"
 import { InternalApiController } from "../controllers/internal-api.controller"
 import { n8nAuthMiddleware } from "../middlewares/n8n-auth.middleware"
 import n8nUsageRoutes from "./n8n-usage.routes"
@@ -27,6 +26,72 @@ router.post("/create-order", (req, res) =>
 router.post(
   "/test-regenerate-embeddings",
   internalApiController.testRegenerateEmbeddings.bind(internalApiController)
+)
+
+// 🌐 PUBLIC ORDERS PAGES (NO AUTH)
+/**
+ * @swagger
+ * /internal/public/orders:
+ *   get:
+ *     tags: [Public]
+ *     summary: Get customer orders by phone for public page
+ *     description: Returns orders list filtered by phone and workspaceId for external Orders page.
+ *     parameters:
+ *       - in: query
+ *         name: phone
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: workspaceId
+ *         required: false
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Orders list
+ *       400:
+ *         description: Missing phone
+ *       404:
+ *         description: Customer not found
+ */
+router.get(
+  "/public/orders",
+  internalApiController.getPublicOrders.bind(internalApiController)
+)
+/**
+ * @swagger
+ * /internal/public/orders/{orderCode}:
+ *   get:
+ *     tags: [Public]
+ *     summary: Get order detail by orderCode and phone for public page
+ *     parameters:
+ *       - in: path
+ *         name: orderCode
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: phone
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: workspaceId
+ *         required: false
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Order detail
+ *       400:
+ *         description: Missing required params
+ *       404:
+ *         description: Order or customer not found
+ */
+router.get(
+  "/public/orders/:orderCode",
+  internalApiController.getPublicOrderDetail.bind(internalApiController)
 )
 
 // Apply authentication middleware to all other internal API routes
@@ -227,6 +292,39 @@ router.post(
 router.post(
   "/orders/tracking-link",
   internalApiController.getShipmentTrackingLink.bind(internalApiController)
+)
+
+// 🧾 GET ORDERS LIST (Backend-only for LLM reply)
+/**
+ * @swagger
+ * /internal/get-orders-list:
+ *   post:
+ *     tags: [Internal API]
+ *     summary: Get all customer orders (createdAt DESC)
+ *     security:
+ *       - N8NAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [workspaceId, customerId]
+ *             properties:
+ *               workspaceId:
+ *                 type: string
+ *               customerId:
+ *                 type: string
+ *               orderCode:
+ *                 type: string
+ *                 description: Optional order code to highlight in response
+ *     responses:
+ *       200:
+ *         description: Orders list
+ */
+router.post(
+  "/get-orders-list",
+  internalApiController.getOrdersList.bind(internalApiController)
 )
 
 /**
