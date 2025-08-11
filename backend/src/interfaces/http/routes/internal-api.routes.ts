@@ -1,5 +1,6 @@
 import { Router } from "express"
 import { MessageRepository } from "../../../repositories/message.repository"
+import logger from "../../../utils/logger"
 import { InternalApiController } from "../controllers/internal-api.controller"
 import { n8nAuthMiddleware } from "../middlewares/n8n-auth.middleware"
 import n8nUsageRoutes from "./n8n-usage.routes"
@@ -80,6 +81,9 @@ router.use("/n8n", n8nUsageRoutes)
  *         description: Missing required fields
  */
 router.post('/orders/tracking-link', (req, res) => internalApiController.getTrackingLink(req, res))
+
+// Generate secure tokens for various purposes
+router.post('/generate-token', (req, res) => internalApiController.generateToken(req, res))
 
 /**
  * N8N Internal API Routes with Multi-Business Support
@@ -718,6 +722,113 @@ router.post("/get-active-offers", (req, res) =>
 router.post("/get-cf-services", (req, res) =>
   internalApiController.getCFServices(req, res)
 )
+
+/**
+ * @swagger
+ * /internal/get-orders-list:
+ *   post:
+ *     tags:
+ *       - Internal API - N8N
+ *     summary: Get Orders List (N8N)
+ *     description: Generate secure link for customer to view their order history
+ *     security:
+ *       - InternalAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - workspaceId
+ *               - customerId
+ *             properties:
+ *               workspaceId:
+ *                 type: string
+ *                 description: ID of the workspace
+ *                 example: "cm9hjgq9v00014qk8fsdy4ujv"
+ *               customerId:
+ *                 type: string
+ *                 description: ID of the customer
+ *                 example: "customer123"
+ *     responses:
+ *       200:
+ *         description: Orders list link generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 response:
+ *                   type: string
+ *                   description: User-friendly response message
+ *                   example: "Ecco il link per vedere tutti i tuoi ordini (5 ordini totali). Da questa pagina potrai scaricare fatture e DDT: https://app.example.com/orders?token=abc123 (valido fino alle 16:30)"
+ *                 ordersListUrl:
+ *                   type: string
+ *                   description: Secure URL for orders list
+ *                   example: "https://app.example.com/orders?token=abc123"
+ *                 token:
+ *                   type: string
+ *                   description: Generated secure token
+ *                   example: "abc123def456ghi789"
+ *                 expiresAt:
+ *                   type: string
+ *                   format: date-time
+ *                   description: Token expiration time
+ *                   example: "2024-01-16T15:30:00Z"
+ *       400:
+ *         description: Bad request - missing parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 response:
+ *                   type: string
+ *                   example: "Parametri mancanti: workspaceId e customerId sono obbligatori"
+ *                 error:
+ *                   type: string
+ *                   example: "Missing required parameters: workspaceId and customerId"
+ *       404:
+ *         description: Customer not found or no orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 response:
+ *                   type: string
+ *                   example: "Non hai ancora effettuato nessun ordine. Il tuo storico ordini è vuoto."
+ *                 error:
+ *                   type: string
+ *                   example: "No orders found for customer"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 response:
+ *                   type: string
+ *                   example: "Si è verificato un errore durante la generazione del link per gli ordini. Riprova più tardi."
+ *                 error:
+ *                   type: string
+ *                   example: "Database connection error"
+ */
+
 
 /**
  * @swagger

@@ -1213,6 +1213,131 @@ paths:
                     type: string
                     example: "Internal server error getting active offers"
 
+  /internal/generate-token:
+    post:
+      tags:
+        - Internal API
+      summary: Generate secure tokens for various purposes (checkout, invoice, cart, orders)
+      description: |
+        Generates secure tokens for accessing different parts of the system via secure links.
+        This endpoint is called by N8N workflow when creating secure links for customers.
+
+        **Authentication**: Requires Basic Auth (admin:admin) for N8N workflow compatibility.
+
+        **Supported Actions**:
+        - `checkout`: Creates checkout link with cart data (1h validity)
+        - `invoice`: Creates invoice access link (24h validity)
+        - `cart`: Creates cart access link (2h validity)
+        - `orders`: Creates orders history access link (1h validity)
+
+        **Token Security**:
+        - Tokens are encrypted and stored in database
+        - Auto-cleanup of expired tokens
+        - Workspace isolation enforced
+        - Customer-specific access control
+      security:
+        - basicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - customerId
+                - action
+              properties:
+                customerId:
+                  type: string
+                  description: ID of the customer
+                  example: "customer123"
+                action:
+                  type: string
+                  enum: [checkout, invoice, cart, orders]
+                  description: Type of token to generate
+                  example: "orders"
+                workspaceId:
+                  type: string
+                  description: ID of the workspace (optional, uses customer's workspace if not provided)
+                  example: "cm9hjgq9v00014qk8fsdy4ujv"
+                metadata:
+                  type: object
+                  description: Additional metadata for the token
+                  example: { "orderCode": "ORD-2025-001" }
+      responses:
+        "200":
+          description: Token generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  token:
+                    type: string
+                    description: Generated secure token
+                    example: "abc123def456ghi789"
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: Token expiration time
+                    example: "2024-01-16T10:30:00Z"
+                  linkUrl:
+                    type: string
+                    description: Complete URL with token
+                    example: "https://app.example.com/orders?token=abc123def456ghi789"
+                  action:
+                    type: string
+                    example: "orders"
+                  customerId:
+                    type: string
+                    example: "customer123"
+                  workspaceId:
+                    type: string
+                    example: "cm9hjgq9v00014qk8fsdy4ujv"
+        "400":
+          description: Bad request - missing required fields or unsupported action
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "customerId and action are required"
+        "404":
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Customer not found"
+        "403":
+          description: Customer does not belong to this workspace
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Customer does not belong to this workspace"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+
   /internal/orders:
     post:
       tags:

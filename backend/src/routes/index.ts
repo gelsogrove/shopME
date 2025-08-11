@@ -195,6 +195,11 @@ router.use("/workspaces/:workspaceId/orders", ordersRouterInstance)
 router.use("/orders", ordersRouterInstance)
 logger.info("Registered orders router with workspace routes")
 
+// Mount public orders routes (JWT-based)
+import ordersPublicRoutes from "../interfaces/http/routes/orders.routes"
+router.use("/orders", ordersPublicRoutes)
+logger.info("Registered public orders routes with JWT authentication")
+
 // Mount WhatsApp router
 const whatsappInstance = whatsappRouter(whatsappController)
 // Mount all whatsapp routes (webhook routes are now defined in app.ts)
