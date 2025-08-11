@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "dotenv -c .env.development -- tsnd --respawn src/index.ts",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "start": "node dist/src/index.js",
     "seed": "ts-node prisma/seed.ts",
     "start:prod": "node dist/src/index.js",
