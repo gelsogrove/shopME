@@ -1670,6 +1670,7 @@ async function main() {
   // Create services for the main workspace (reduced to 2 services as requested)
   const services = [
     {
+      code: "SHP001",
       name: "Shipping",
       description:
         "Premium shipping service with tracking and guaranteed delivery within 3-5 business days.",
@@ -1677,6 +1678,7 @@ async function main() {
       currency: "EUR",
     },
     {
+      code: "GFT001",
       name: "Gift Package",
       description:
         "Luxury gift wrapping service with personalized message and premium packaging materials.",
@@ -1689,7 +1691,7 @@ async function main() {
   for (const service of services) {
     const existingService = await prisma.services.findFirst({
       where: {
-        name: service.name,
+        code: service.code,
         workspaceId: mainWorkspaceId,
       },
     })
@@ -1702,7 +1704,7 @@ async function main() {
         },
       })
       console.log(
-        `Service created: ${service.name} for workspace ${createdWorkspaces[0].name}`
+        `Service created: ${service.name} (${service.code}) for workspace ${createdWorkspaces[0].name}`
       )
     } else {
       // Update existing service
@@ -1714,7 +1716,7 @@ async function main() {
         },
       })
       console.log(
-        `Service updated: ${service.name} for workspace ${createdWorkspaces[0].name}`
+        `Service updated: ${service.name} (${service.code}) for workspace ${createdWorkspaces[0].name}`
       )
     }
   }

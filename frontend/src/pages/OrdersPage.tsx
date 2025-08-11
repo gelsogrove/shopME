@@ -95,6 +95,9 @@ function CartItemEditSheet({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(
     order?.paymentMethod || null
   )
+  const [trackingNumber, setTrackingNumber] = useState<string>(
+    order?.trackingNumber || ""
+  )
 
   useEffect(() => {
     if (open && order) {
@@ -104,6 +107,7 @@ function CartItemEditSheet({
       // Set initial order status and payment method
       setOrderStatus(order.status)
       setPaymentMethod(order.paymentMethod)
+      setTrackingNumber(order.trackingNumber || "")
 
       // Load products and services
       const loadData = async () => {
@@ -245,6 +249,7 @@ function CartItemEditSheet({
         totalAmount: newTotalAmount,
         status: orderStatus,
         paymentMethod: paymentMethod,
+        trackingNumber: trackingNumber,
         items: editingItems.map((item) => ({
           itemType: item.itemType || (item.serviceId ? "SERVICE" : "PRODUCT"),
           productId: item.productId,
@@ -333,9 +338,6 @@ function CartItemEditSheet({
           <SheetTitle className="text-2xl font-bold text-gray-900">
             Edit Order {order.orderCode}
           </SheetTitle>
-          <SheetDescription className="text-gray-600">
-            Manage products, services, and order details
-          </SheetDescription>
         </SheetHeader>
 
         <div className="space-y-10">
@@ -432,6 +434,22 @@ function CartItemEditSheet({
                     </Badge>
                   </div>
                 </div>
+              </div>
+
+              {/* Tracking Number field */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">
+                  Tracking Number
+                </Label>
+                <Input
+                  value={trackingNumber}
+                  onChange={(e) => setTrackingNumber(e.target.value)}
+                  placeholder="1234567890"
+                  className="max-w-md"
+                />
+                <p className="text-sm text-gray-500">
+                  Optional. Leave blank if not available.
+                </p>
               </div>
 
               <div className="text-sm text-gray-500">
@@ -1207,7 +1225,7 @@ function OrderCrudSheet({
         <SheetHeader>
           <SheetTitle>
             {mode === "edit"
-              ? `Edit Order ${order?.orderCode}`
+              ? `Order: ${order?.orderCode}`
               : "Create New Order"}
           </SheetTitle>
         </SheetHeader>
@@ -1769,8 +1787,8 @@ function OrderCrudSheet({
               {isLoading
                 ? "Saving..."
                 : mode === "create"
-                ? "Create Order"
-                : "Save Changes"}
+                  ? "Create Order"
+                  : "Save Changes"}
             </Button>
           </div>
         </form>
@@ -1868,7 +1886,7 @@ export default function OrdersPage() {
             customersMap.set(customer.id, customer)
           })
         } else if (customersResponse && (customersResponse as any)?.clients) {
-          (customersResponse as any).clients.forEach((customer) => {
+          ;(customersResponse as any).clients.forEach((customer) => {
             customersMap.set(customer.id, customer)
           })
         }
@@ -2077,69 +2095,71 @@ export default function OrdersPage() {
   ]
 
   // Simple and effective filtering logic
-  const filteredOrders = orders.filter((order) => {
-    // 1. Search filter - search in customer name, order code, and company
-    if (searchTerm.trim()) {
-      const searchValue = searchTerm.toLowerCase().trim()
-      
-      // Search in customer name (most important)
-      const customerName = order.customer?.name?.toLowerCase() || ""
-      if (customerName.includes(searchValue)) {
-        return true
-      }
-      
-      // Search in order code
-      const orderCode = order.orderCode?.toLowerCase() || ""
-      if (orderCode.includes(searchValue)) {
-        return true
-      }
-      
-      // Search in company name
-      const companyName = order.customer?.company?.toLowerCase() || ""
-      if (companyName.includes(searchValue)) {
-        return true
-      }
-      
-      // Search in status
-      const status = order.status?.toLowerCase() || ""
-      if (status.includes(searchValue)) {
-        return true
-      }
-      
-      // If not found in any searchable field, exclude this order
-      return false
-    }
+  const filteredOrders = orders
+    .filter((order) => {
+      // 1. Search filter - search in customer name, order code, and company
+      if (searchTerm.trim()) {
+        const searchValue = searchTerm.toLowerCase().trim()
 
-    return true // No search term, include all orders for other filters
-  }).filter((order) => {
-    // 2. Status filter
-    if (statusFilter !== "all" && order.status !== statusFilter) {
-      return false
-    }
+        // Search in customer name (most important)
+        const customerName = order.customer?.name?.toLowerCase() || ""
+        if (customerName.includes(searchValue)) {
+          return true
+        }
 
-    // 3. Date range filter
-    if (dateFromFilter || dateToFilter) {
-      const orderDate = new Date(order.createdAt)
+        // Search in order code
+        const orderCode = order.orderCode?.toLowerCase() || ""
+        if (orderCode.includes(searchValue)) {
+          return true
+        }
 
-      if (dateFromFilter) {
-        const fromDate = new Date(dateFromFilter)
-        fromDate.setHours(0, 0, 0, 0)
-        if (orderDate < fromDate) {
-          return false
+        // Search in company name
+        const companyName = order.customer?.company?.toLowerCase() || ""
+        if (companyName.includes(searchValue)) {
+          return true
+        }
+
+        // Search in status
+        const status = order.status?.toLowerCase() || ""
+        if (status.includes(searchValue)) {
+          return true
+        }
+
+        // If not found in any searchable field, exclude this order
+        return false
+      }
+
+      return true // No search term, include all orders for other filters
+    })
+    .filter((order) => {
+      // 2. Status filter
+      if (statusFilter !== "all" && order.status !== statusFilter) {
+        return false
+      }
+
+      // 3. Date range filter
+      if (dateFromFilter || dateToFilter) {
+        const orderDate = new Date(order.createdAt)
+
+        if (dateFromFilter) {
+          const fromDate = new Date(dateFromFilter)
+          fromDate.setHours(0, 0, 0, 0)
+          if (orderDate < fromDate) {
+            return false
+          }
+        }
+
+        if (dateToFilter) {
+          const toDate = new Date(dateToFilter)
+          toDate.setHours(23, 59, 59, 999)
+          if (orderDate > toDate) {
+            return false
+          }
         }
       }
 
-      if (dateToFilter) {
-        const toDate = new Date(dateToFilter)
-        toDate.setHours(23, 59, 59, 999)
-        if (orderDate > toDate) {
-          return false
-        }
-      }
-    }
-
-    return true
-  })
+      return true
+    })
 
   // Always sort filteredOrders by date descending
   const sortedOrders = [...filteredOrders].sort(

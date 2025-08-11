@@ -2358,6 +2358,7 @@ ${JSON.stringify(ragResults, null, 2)}`
 
         return {
           id: service.id,
+          code: service.code,
           name: service.name,
           description: service.description || "",
           price: finalPrice,
@@ -3014,46 +3015,87 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      // Validate token using SecureTokenService with workspace isolation
+      // First, try SecureTokenService
       const validation = await this.secureTokenService.validateToken(
         token,
         type,
         workspaceId
       )
 
-      if (!validation.valid) {
-        res.status(401).json({
-          valid: false,
-          error: "Invalid or expired token",
+      if (validation.valid) {
+        // Check workspace match if provided
+        if (workspaceId && validation.data?.workspaceId !== workspaceId) {
+          res.status(403).json({
+            valid: false,
+            error: "Token workspace mismatch",
+          })
+          return
+        }
+
+        logger.info(
+          `[VALIDATE-TOKEN] ✅ SecureToken validated successfully for type: ${type || "any"}`
+        )
+
+        res.status(200).json({
+          valid: true,
+          data: {
+            tokenId: validation.data?.id,
+            type: validation.data?.type,
+            workspaceId: validation.data?.workspaceId,
+            userId: validation.data?.userId,
+            phoneNumber: validation.data?.phoneNumber,
+            expiresAt: validation.data?.expiresAt,
+            createdAt: validation.data?.createdAt,
+          },
+          payload: validation.payload,
         })
         return
       }
 
-      // Check workspace match if provided
-      if (workspaceId && validation.data?.workspaceId !== workspaceId) {
-        res.status(403).json({
-          valid: false,
-          error: "Token workspace mismatch",
-        })
-        return
+      // If SecureToken validation failed and type is registration, try RegistrationToken
+      if (type === 'registration') {
+        try {
+          const registrationToken = await prisma.registrationToken.findFirst({
+            where: {
+              token,
+              workspaceId,
+              expiresAt: {
+                gt: new Date(),
+              },
+              usedAt: null,
+            },
+          })
+
+          if (registrationToken) {
+            logger.info(
+              `[VALIDATE-TOKEN] ✅ RegistrationToken validated successfully for token: ${token.substring(0, 10)}...`
+            )
+
+            res.status(200).json({
+              valid: true,
+              data: {
+                tokenId: registrationToken.id,
+                type: 'registration',
+                workspaceId: registrationToken.workspaceId,
+                phoneNumber: registrationToken.phoneNumber,
+                expiresAt: registrationToken.expiresAt,
+                createdAt: registrationToken.createdAt,
+              },
+              payload: {
+                phoneNumber: registrationToken.phoneNumber,
+              },
+            })
+            return
+          }
+        } catch (regError) {
+          logger.error("[VALIDATE-TOKEN] Error checking RegistrationToken:", regError)
+        }
       }
 
-      logger.info(
-        `[VALIDATE-TOKEN] ✅ Token validated successfully for type: ${type || "any"}`
-      )
-
-      res.status(200).json({
-        valid: true,
-        data: {
-          tokenId: validation.data?.id,
-          type: validation.data?.type,
-          workspaceId: validation.data?.workspaceId,
-          userId: validation.data?.userId,
-          phoneNumber: validation.data?.phoneNumber,
-          expiresAt: validation.data?.expiresAt,
-          createdAt: validation.data?.createdAt,
-        },
-        payload: validation.payload,
+      // Both validation methods failed
+      res.status(401).json({
+        valid: false,
+        error: "Invalid or expired token",
       })
     } catch (error) {
       logger.error("[VALIDATE-TOKEN] Error validating secure token:", error)

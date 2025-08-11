@@ -115,6 +115,7 @@ export interface Service {
   id: string
   name: string
   description: string
+  code: string
   price: number
   currency: string
   duration: number

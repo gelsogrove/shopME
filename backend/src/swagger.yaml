@@ -1264,58 +1264,58 @@ paths:
               required:
                 - workspaceId
                 - customerId
-                              properties:
-                  workspaceId:
-                    type: string
-                    description: ID of the workspace
-                    example: "cm9hjgq9v00014qk8fsdy4ujv"
-                  customerId:
-                    type: string
-                    description: ID of the customer placing the order
-                    example: "customer123"
+              properties:
+                workspaceId:
+                  type: string
+                  description: ID of the workspace
+                  example: "cm9hjgq9v00014qk8fsdy4ujv"
+                customerId:
+                  type: string
+                  description: ID of the customer placing the order
+                  example: "customer123"
                   trackingNumber:
                     type: string
                     description: Optional tracking number for shipment
                     example: "1Z999AA10123456784"
                   items:
                     type: array
-                  description: |
-                    Array of order items. Can be provided by LLM or auto-extracted from conversation.
-                    Supports both itemType/productCode and type/id formats for backward compatibility.
-                  items:
-                    type: object
-                    properties:
-                      itemType:
-                        type: string
-                        enum: [PRODUCT, SERVICE, ERROR]
-                        description: Type of item (primary format)
-                        example: "PRODUCT"
-                      type:
-                        type: string
-                        enum: [PRODUCT, SERVICE, ERROR]
-                        description: Type of item (fallback compatibility)
-                        example: "PRODUCT"
-                      productCode:
-                        type: string
-                        description: Product code (primary format)
-                        example: "00004"
-                      id:
-                        type: string
-                        description: Product ID (fallback compatibility)
-                        example: "00004"
-                      name:
-                        type: string
-                        description: Product name as displayed in cart
-                        example: "Mozzarella di Bufala Campana DOP"
-                      quantity:
-                        type: integer
-                        description: Quantity ordered
-                        example: 4
-                      unitPrice:
-                        type: number
-                        format: float
-                        description: Unit price per item
-                        example: 9.99
+                    description: |
+                      Array of order items. Can be provided by LLM or auto-extracted from conversation.
+                      Supports both itemType/productCode and type/id formats for backward compatibility.
+                    items:
+                      type: object
+                      properties:
+                        itemType:
+                          type: string
+                          enum: [PRODUCT, SERVICE, ERROR]
+                          description: Type of item (primary format)
+                          example: "PRODUCT"
+                        type:
+                          type: string
+                          enum: [PRODUCT, SERVICE, ERROR]
+                          description: Type of item (fallback compatibility)
+                          example: "PRODUCT"
+                        productCode:
+                          type: string
+                          description: Product code (primary format)
+                          example: "00004"
+                        id:
+                          type: string
+                          description: Product ID (fallback compatibility)
+                          example: "00004"
+                        name:
+                          type: string
+                          description: Product name as displayed in cart
+                          example: "Mozzarella di Bufala Campana DOP"
+                        quantity:
+                          type: integer
+                          description: Quantity ordered
+                          example: 4
+                        unitPrice:
+                          type: number
+                          format: float
+                          description: Unit price per item
+                          example: 9.99
                 notes:
                   type: string
                   description: Additional order notes
