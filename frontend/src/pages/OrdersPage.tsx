@@ -8,42 +8,43 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select"
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { clientsApi } from "@/services/clientsApi"
 import {
-  ordersApi,
-  type ItemType,
-  type Order,
-  type OrderStatus,
-  type PaymentMethod,
+    ordersApi,
+    type ItemType,
+    type Order,
+    type OrderStatus,
+    type PaymentMethod,
 } from "@/services/ordersApi"
 import { productsApi } from "@/services/productsApi"
 import { servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
 import { formatPrice } from "@/utils/format"
 import {
-  FileText,
-  Package,
-  Pencil,
-  Plus,
-  ShoppingCart,
-  Trash2,
-  Truck,
-  Wrench,
+    Eye,
+    FileText,
+    Package,
+    Pencil,
+    Plus,
+    ShoppingCart,
+    Trash2,
+    Truck,
+    Wrench,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
@@ -696,24 +697,6 @@ function CartItemEditSheet({
                   </div>
                   <div className="flex gap-3">
                     <Button
-                      variant="outline"
-                      size="sm"
-                      disabled
-                      className="flex items-center gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Download Invoice
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled
-                      className="flex items-center gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Download DDT
-                    </Button>
-                    <Button
                       onClick={handleSave}
                       disabled={isSaving}
                       size="default"
@@ -732,207 +715,7 @@ function CartItemEditSheet({
   )
 }
 
-// Order Details Sheet Component
-function OrderDetailsSheet({
-  order,
-  open,
-  onClose,
-}: {
-  order: Order | null
-  open: boolean
-  onClose: () => void
-}): JSX.Element | null {
-  const { workspace } = useWorkspace()
 
-  if (!order) return null
-
-  return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="right" className="max-w-[70%] overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle className="text-2xl font-bold">
-            Order {order.orderCode}
-          </SheetTitle>
-          <SheetDescription>
-            View complete order details and information
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="space-y-6 mt-6">
-          {/* Order Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">
-                    Status
-                  </Label>
-                  <Badge variant={getStatusBadgeVariant(order.status)}>
-                    {order.status}
-                  </Badge>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">
-                    Total Amount
-                  </Label>
-                  <p className="font-medium">
-                    {formatPrice(order.totalAmount, workspace?.currency)}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">
-                    Payment Method
-                  </Label>
-                  <p>{order.paymentMethod || "Not specified"}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">
-                    Tracking Number
-                  </Label>
-                  <p>{order.trackingNumber || "-"}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">
-                    Order Date
-                  </Label>
-                  <p>
-                    {new Date(order.createdAt).toLocaleDateString("en-GB", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Customer Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p>
-                  <strong>Name:</strong> {order.customer?.name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {order.customer?.email}
-                </p>
-                {order.customer?.phone && (
-                  <p>
-                    <strong>Phone:</strong> {order.customer.phone}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Order Items */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[200px]">
-                <table className="w-full">
-                  <thead>
-                    <tr>
-                      <th className="text-left font-medium">Type</th>
-                      <th className="text-left font-medium">Item</th>
-                      <th className="text-right font-medium">Price</th>
-                      <th className="text-right font-medium">Quantity</th>
-                      <th className="text-right font-medium">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {order.items?.map((item) => (
-                      <tr key={item.id}>
-                        <td className="py-2">
-                          <Badge variant="outline" className="text-xs">
-                            {item.itemType === "PRODUCT"
-                              ? "Product"
-                              : "Service"}
-                          </Badge>
-                        </td>
-                        <td className="py-2">
-                          {item.itemType === "PRODUCT"
-                            ? item.product?.name || `Product ${item.productId}`
-                            : item.service?.name || `Service ${item.serviceId}`}
-                        </td>
-                        <td className="py-2 text-right">
-                          {formatPrice(item.unitPrice, workspace?.currency)}
-                        </td>
-                        <td className="py-2 text-center">
-                          {item.itemType === "SERVICE" ? "1" : item.quantity}
-                        </td>
-                        <td className="py-2 text-right">
-                          {formatPrice(item.totalPrice, workspace?.currency)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
-          {/* Shipping Address (multiline, like Invoice Address) */}
-          <Card className="border border-gray-200 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                <Truck className="h-5 w-5 text-green-600" />
-                Shipping Address
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {order.shippingAddress ? (
-                <div className="space-y-1 text-gray-700">
-                  {/* Street/Address */}
-                  <div>
-                    {order.shippingAddress.street ||
-                      order.shippingAddress.address ||
-                      ""}
-                  </div>
-                  {/* City */}
-                  <div>{order.shippingAddress.city || ""}</div>
-                  {/* Postal Code */}
-                  <div>
-                    {order.shippingAddress.zipCode ||
-                      order.shippingAddress.postalCode ||
-                      ""}
-                  </div>
-                  {/* Country */}
-                  <div>{order.shippingAddress.country || ""}</div>
-                </div>
-              ) : (
-                <span className="text-gray-500 italic">Not specified</span>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Notes */}
-          {order.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>{order.notes}</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
-  )
-}
 
 // Order CRUD Sheet Component
 function OrderCrudSheet({
@@ -1856,6 +1639,7 @@ export default function OrdersPage() {
   const [dateToFilter, setDateToFilter] = useState<Date | undefined>(undefined)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isCartEditOpen, setIsCartEditOpen] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -1935,6 +1719,8 @@ export default function OrdersPage() {
     setSelectedOrder(order)
     setIsEditOpen(true)
   }
+
+
 
   const handleCartEdit = (order: Order) => {
     setSelectedOrder(order)
@@ -2231,9 +2017,18 @@ export default function OrdersPage() {
     }
   }
 
-  // Custom actions for orders - Edit and Delete only
+  // Custom actions for orders - View Details, Edit and Delete
   const renderOrderActions = (order: Order) => (
     <div className="flex gap-1 justify-end">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => handleViewDetails(order)}
+        title="View Order Details"
+        className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-700"
+      >
+        <Eye className={`${commonStyles.actionIcon} text-blue-500`} />
+      </Button>
       <Button
         variant="ghost"
         size="sm"
@@ -2310,12 +2105,7 @@ export default function OrdersPage() {
           </div>
         }
       />
-      {/* Order Details Sheet */}
-      <OrderDetailsSheet
-        order={selectedOrder}
-        open={isDetailsOpen}
-        onClose={() => setIsDetailsOpen(false)}
-      />
+
       {/* Order Edit Sheet */}
       <OrderCrudSheet
         order={selectedOrder}

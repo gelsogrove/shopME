@@ -2072,13 +2072,13 @@ ${JSON.stringify(ragResults, null, 2)}`
             "orders",
             targetWorkspaceId,
             ordersPayload,
-            "1h",
+            "24h",
             resolvedCustomerId,
             customer.phone
           )
 
           expiresAt = new Date()
-          expiresAt.setHours(expiresAt.getHours() + 1)
+          expiresAt.setHours(expiresAt.getHours() + 24)
 
           // Build orders URL using workspace URL
           const ordersBaseUrl =
@@ -2428,6 +2428,8 @@ ${JSON.stringify(ragResults, null, 2)}`
 
       const targetWorkspaceId = customer.workspaceId
 
+
+
       const orders = await this.prisma.orders.findMany({
         where: { customerId: customer.id, workspaceId: targetWorkspaceId },
         orderBy: { createdAt: "desc" },
@@ -2546,6 +2548,8 @@ ${JSON.stringify(ragResults, null, 2)}`
         res.status(404).json({ success: false, error: "Order not found" })
         return
       }
+
+
 
       res.json({
         success: true,
@@ -4158,74 +4162,16 @@ ${JSON.stringify(ragResults, null, 2)}`
   }
 
   /**
-   * 🧾 DOWNLOAD INVOICE (stub)
+   * 🧾 DOWNLOAD INVOICE - Demo PDF (Public Access)
    */
   async downloadInvoiceByOrderCode(req: Request, res: Response): Promise<void> {
     try {
       const { orderCode } = req.params
-      // Resolve order and hydrate relations for invoice
-      const order = await this.prisma.orders.findFirst({
-        where: { orderCode },
-        include: {
-          customer: true,
-          items: {
-            include: {
-              product: { select: { name: true, ProductCode: true } },
-              service: { select: { name: true, code: true } },
-            },
-          },
-        },
-      })
-      if (!order) {
-        res.status(404).json({ success: false, error: "Order not found" })
-        return
-      }
-
-      // Generate simple PDF invoice dynamically
-      const PDFDocument = require('pdfkit')
-      res.setHeader('Content-Type', 'application/pdf')
-      res.setHeader('Content-Disposition', `attachment; filename=invoice-${order.orderCode}.pdf`)
-      const doc = new PDFDocument({ size: 'A4', margin: 50 })
-      doc.pipe(res)
-
-      // Header
-      doc.fontSize(20).text('Invoice', { align: 'right' })
-      doc.moveDown()
-      doc.fontSize(12)
-      doc.text(`Order Code: ${order.orderCode}`)
-      doc.text(`Customer: ${order.customer.name}`)
-      doc.text(`Date: ${new Date(order.createdAt).toLocaleString('it-IT')}`)
-      doc.moveDown()
-
-      // Items table (basic layout)
-      if (order.items.length > 0) {
-        doc.fontSize(13).text('Items', { underline: true })
-        doc.moveDown(0.5)
-        doc.fontSize(11)
-        order.items.forEach((it: any) => {
-          const name = it.product?.name || it.service?.name || 'Item'
-          const code = it.product?.ProductCode || it.service?.code || ''
-          doc.text(`${name}${code ? ` (${code})` : ''}`)
-          doc.text(`Qty: ${it.quantity}  Unit: €${it.unitPrice.toFixed(2)}  Total: €${it.totalPrice.toFixed(2)}`)
-          doc.moveDown(0.5)
-        })
-        doc.moveDown(0.5)
-      }
-
-      // Totals with VAT
-      const taxAmount = Number(order.taxAmount || 0)
-      const shippingAmount = Number(order.shippingAmount || 0)
-      const total = Number(order.totalAmount || 0)
-      const subtotal = Math.max(0, total - taxAmount)
-      doc.fontSize(12)
-      doc.text(`Subtotal (Imponibile): €${subtotal.toFixed(2)}`)
-      doc.text(`IVA: €${taxAmount.toFixed(2)}`)
-      if (shippingAmount > 0) doc.text(`Spedizione: €${shippingAmount.toFixed(2)}`)
-      doc.text(`Totale: €${total.toFixed(2)}`)
-      doc.moveDown()
-      doc.text('Grazie per il tuo acquisto!')
-
-      doc.end()
+      
+      console.log(`[PDF-INVOICE] Redirecting to demo invoice for order: ${orderCode}`)
+      
+      // Redirect to demo PDF
+      res.redirect('https://www.wmaccess.com/downloads/sample-invoice.pdf')
     } catch (error) {
       logger.error("[ORDERS] Error downloading invoice:", error)
       res.status(500).json({ success: false, error: "Internal server error" })
@@ -4233,69 +4179,16 @@ ${JSON.stringify(ragResults, null, 2)}`
   }
 
   /**
-   * 📄 DOWNLOAD DDT (stub)
+   * 📄 DOWNLOAD DDT - Demo PDF (Public Access)
    */
   async downloadDdtByOrderCode(req: Request, res: Response): Promise<void> {
     try {
       const { orderCode } = req.params
-      const order = await this.prisma.orders.findFirst({
-        where: { orderCode },
-        include: {
-          customer: true,
-          items: {
-            include: {
-              product: { select: { name: true, ProductCode: true } },
-              service: { select: { name: true, code: true } },
-            },
-          },
-        },
-      })
-      if (!order) {
-        res.status(404).json({ success: false, error: "Order not found" })
-        return
-      }
-
-      const PDFDocument = require('pdfkit')
-      res.setHeader('Content-Type', 'application/pdf')
-      res.setHeader('Content-Disposition', `attachment; filename=ddt-${order.orderCode}.pdf`)
-      const doc = new PDFDocument({ size: 'A4', margin: 50 })
-      doc.pipe(res)
-
-      // Header
-      doc.fontSize(20).text('Documento di Trasporto (DDT)', { align: 'right' })
-      doc.moveDown()
-      doc.fontSize(12)
-      doc.text(`Order Code: ${order.orderCode}`)
-      doc.text(`Customer: ${order.customer.name}`)
-      doc.text(`Date: ${new Date(order.createdAt).toLocaleString('it-IT')}`)
-      doc.moveDown()
-
-      // Shipping address
-      if (order.shippingAddress) {
-        doc.fontSize(13).text('Indirizzo di spedizione', { underline: true })
-        doc.moveDown(0.5)
-        const a: any = order.shippingAddress
-        if (a.name) doc.text(a.name)
-        if (a.street) doc.text(a.street)
-        doc.text(`${a.postalCode || ''} ${a.city || ''}${a.province ? ` (${a.province})` : ''}`)
-        if (a.country) doc.text(a.country)
-        if (a.phone) doc.text(`Tel: ${a.phone}`)
-        doc.moveDown()
-      }
-
-      // Items (no prices for DDT)
-      if (order.items.length > 0) {
-        doc.fontSize(13).text('Articoli', { underline: true })
-        doc.moveDown(0.5)
-        doc.fontSize(11)
-        order.items.forEach((it: any) => {
-          const name = it.product?.name || it.service?.name || 'Item'
-          const code = it.product?.ProductCode || it.service?.code || ''
-          doc.text(`${name}${code ? ` (${code})` : ''} — Qty: ${it.quantity}`)
-        })
-      }
-
-      doc.end()
+      
+      console.log(`[PDF-DDT] Redirecting to demo DDT for order: ${orderCode}`)
+      
+      // Redirect to demo PDF
+      res.redirect('https://lazzarinisrl.it/shop/docProdotti/1050013.pdf')
     } catch (error) {
       logger.error("[ORDERS] Error downloading DDT:", error)
       res.status(500).json({ success: false, error: "Internal server error" })

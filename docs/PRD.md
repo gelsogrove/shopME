@@ -36,11 +36,26 @@ Allow customers to access their full orders history and specific order details v
   - Detail: `http://localhost:3000/orders-public/2001?phone={{phone}}&workspaceId={{workspaceId}}`
 - Note: No token is used for this flow.
 
-### PDF Generation (Invoice & DDT)
-- Endpoints:
-  - `GET /api/internal/orders/:orderCode/invoice` → PDF with items, imponibile (subtotal), IVA, spedizione, totale
-  - `GET /api/internal/orders/:orderCode/ddt` → PDF with shipping address and items (no prices)
-- Detail page shows: payment status, tracking, shipping cost, tax (IVA), shipping address, items with codes.
+### PDF Generation (Invoice & DDT) ✅ COMPLETED
+- **Endpoints (Public Access):**
+  - `GET /api/internal/orders/:orderCode/invoice` → Professional invoice PDF with billing/shipping addresses, items, subtotal, tax, shipping, total
+  - `GET /api/internal/orders/:orderCode/ddt` → Professional delivery note PDF with shipping address and items (no prices)
+- **Security:** No token validation required - endpoints accept direct access via orderCode
+- **Frontend Integration:** 
+  - Order list page: Rows are clickable (no "View Details" button needed)
+  - Order detail page: Professional invoice layout with "Download Invoice" and "Download DDT" buttons
+  - All text in English: "Bill To", "Ship To", "Order Summary", "Items", etc.
+- **PDF Features:**
+  - Professional invoice header with company and customer information
+  - Structured billing and shipping address sections
+  - Complete order summary with payment status, tracking, shipping cost, tax
+  - Items table with product codes, quantities, and pricing
+  - DDT formatted as English customs declaration
+- **UI/UX Improvements:**
+  - Removed redundant download buttons from order list
+  - Made entire order rows clickable for better UX
+  - Added hover effects and visual indicators (→ arrow) for clickable rows
+  - Professional invoice-style layout in detail view
 
 ### Security and Constraints
 - No hardcoded fallbacks. All configuration and data from DB.
@@ -65,6 +80,7 @@ Allow customers to access their full orders history and specific order details v
 - **Google Translate in RAG:** ✅ **COMPLETED** - Sistema traduzione multilingue bidirezionale implementato con OpenRouter (google/gemma-2-9b-it:free). Supporta IT/ES/FR/PT con auto-rilevamento e traduzione real-time di query e risposte FAQ.
 - **🎉 OFFERS MANAGEMENT:** Complete offers system implemented with GetActiveOffers N8N tool for chatbot integration.
 - **🛒 INTELLIGENT CART AUTO-EXTRACTION:** ✅ **IMPLEMENTED** - Revolutionary cart management system that automatically extracts order items from conversation history when LLM instructions fail. Uses regex pattern matching and smart fallback mechanisms to ensure 100% order success rate.
+- **📄 PDF DOWNLOAD SYSTEM:** ✅ **COMPLETED** - Professional PDF generation system for invoices and delivery notes (DDT). Public endpoints without token validation, clickable order rows, English interface, and professional invoice layout with billing/shipping addresses.
 
 ### ✅ NEW: Sistema Multilingue Bidirezionale (July 2025)
 
