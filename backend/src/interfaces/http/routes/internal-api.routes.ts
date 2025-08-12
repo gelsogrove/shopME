@@ -105,7 +105,7 @@ router.use("/n8n", n8nUsageRoutes)
  * /internal/orders/tracking-link:
  *   post:
  *     tags: [Internal API]
- *     summary: Get tracking link for customer's latest processing order
+ *     summary: Get ShopMe tracking link for customer's latest processing order
  *     security:
  *       - N8NAuth: []
  *     requestBody:
@@ -122,7 +122,7 @@ router.use("/n8n", n8nUsageRoutes)
  *                 type: string
  *     responses:
  *       200:
- *         description: Tracking info found or not available
+ *         description: ShopMe tracking link generated or not available
  *         content:
  *           application/json:
  *             schema:
@@ -141,11 +141,13 @@ router.use("/n8n", n8nUsageRoutes)
  *                   nullable: true
  *                 trackingUrl:
  *                   type: string
+ *                   description: ShopMe orders-public page URL with security token
  *                   nullable: true
  *       400:
  *         description: Missing required fields
  */
-router.post('/orders/tracking-link', (req, res) => internalApiController.getTrackingLink(req, res))
+// REMOVED: Duplicate route that was returning DHL links
+// router.post('/orders/tracking-link', (req, res) => internalApiController.getTrackingLink(req, res))
 
 // Generate secure tokens for various purposes
 router.post('/generate-token', (req, res) => internalApiController.generateToken(req, res))

@@ -1,6 +1,7 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
+import { useTokenValidation } from '../hooks/useTokenValidation'
 
 interface OrderListItem {
   id: string
@@ -88,11 +89,24 @@ const OrdersPublicPage: React.FC = () => {
   const phone = searchParams.get('phone') || ''
   const workspaceId = searchParams.get('workspaceId') || undefined
   const orderCodeQuery = searchParams.get('orderCode') || ''
+  const token = searchParams.get('token') || null
 
   const [listData, setListData] = useState<OrdersListResponse | null>(null)
   const [detailData, setDetailData] = useState<OrderDetailResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // 🔐 Token validation for secure access
+  const { 
+    valid: tokenValid, 
+    loading: tokenLoading, 
+    error: tokenError 
+  } = useTokenValidation({
+    token,
+    type: 'orders',
+    workspaceId,
+    autoValidate: true
+  })
 
   const allowedStatuses = ['ALL','PENDING','CONFIRMED','PROCESSING','SHIPPED','DELIVERED','CANCELLED']
   const allowedPayments = ['ALL','PAID','PENDING','FAILED','COMPLETED','DECLINED']
@@ -113,6 +127,12 @@ const OrdersPublicPage: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
+      // 🔐 Check token validation first
+      if (token && !tokenValid && !tokenLoading) {
+        setError('Link non valido o scaduto. Richiedi un nuovo link di tracking.')
+        return
+      }
+
       if (!phone) {
         setError('Numero di telefono mancante')
         return
@@ -142,7 +162,7 @@ const OrdersPublicPage: React.FC = () => {
       }
     }
     load()
-  }, [phone, workspaceId, orderCode])
+  }, [phone, workspaceId, orderCode, token, tokenValid, tokenLoading])
 
   // Auto-scroll to specific order from query param on list view
   useEffect(() => {
@@ -156,6 +176,37 @@ const OrdersPublicPage: React.FC = () => {
     }
   }, [orderCode, listData, orderCodeQuery])
 
+  // 🔐 Show token validation loading
+  if (tokenLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center max-w-md w-full">
+          <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-blue-700 font-medium">Verifica link di sicurezza...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // 🔐 Show token validation error
+  if (token && !tokenValid && !tokenLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center max-w-md w-full">
+          <div className="text-6xl mb-2">🔒</div>
+          <h3 className="text-lg font-semibold text-red-800 mb-1">Accesso Negato</h3>
+          <p className="text-red-700 font-medium mb-3">{tokenError || 'Link non valido o scaduto'}</p>
+          <div className="text-sm text-red-700 mb-4">
+            <p className="font-medium mb-1">Cosa puoi fare:</p>
+            <ul className="text-left space-y-1">
+              <li>• Richiedi un nuovo link di tracking via WhatsApp</li>
+              <li>• Contatta il supporto se il problema persiste</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

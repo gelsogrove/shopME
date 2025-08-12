@@ -64,7 +64,7 @@ You have access to an intelligent search engine to provide detailed information 
 - What to do:
   - **IMMEDIATELY** call `GetShipmentTrackingLink(workspaceId, customerId)`
   - **NEVER** reply without calling the function first
-  - If it returns a trackingUrl, reply with the clickable DHL link
+  - If it returns a trackingUrl, reply with the clickable ShopMe order page link
   - If no processing order or no tracking number, reply that tracking is not yet available
 
 **Endpoint (internal via N8N):**
