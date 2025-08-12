@@ -7,8 +7,11 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-40, -140],
-      "id": "7940e59c-d9db-45fb-8cdb-978b976c3c5c",
+      "position": [
+        -40,
+        -120
+      ],
+      "id": "5dfb826e-6980-4594-9303-003672782d12",
       "name": "body"
     },
     {
@@ -17,8 +20,11 @@
       },
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
-      "position": [840, -100],
-      "id": "bb3e2625-d2fa-4c03-850b-d479ad90680a",
+      "position": [
+        840,
+        -80
+      ],
+      "id": "960ba6c2-8188-4aae-bd04-6a60a4c17320",
       "name": "Simple Memory"
     },
     {
@@ -31,12 +37,15 @@
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
-      "position": [720, -100],
-      "id": "5583a4de-1b4f-4944-8618-2d047774a0ac",
+      "position": [
+        720,
+        -80
+      ],
+      "id": "09b71deb-477d-48bf-bf26-e102dafa04cd",
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
-          "id": "Wvd5WVo0dL4nIU7l",
+          "id": "0dS4PJki0JIyjUJI",
           "name": "OpenRouter API"
         }
       }
@@ -44,13 +53,16 @@
     {
       "parameters": {
         "options": {
-          "systemMessage": "={{ $json.prompt }}\n🚨 WHATSAPP: RIGHE CORTE 🚨\nFORMATO:\nNome\nPrezzo€\nlingua utente: {{ $json.language }}\nnome utente: {{ $('Filter').item.json.precompiledData.customer.name }}\nnome azienda: {{ $('Filter').item.json.precompiledData.customer.businessName }}\ndiscount   {{ $('Filter').item.json.precompiledData.customer.discount }}\n\nCARRELLO SEMPLICE:\n\n\n\n\n\n\n- \"cosa ho nel carrello\" / \"what's in my cart\" / \"qué hay en mi carrito\"\n- \"fammi vedere il carrello\" / \"let me see the cart\" / \"déjame ver el carrito\"\n- qualsiasi variazione che chiede di visualizzare il carrello\n\n**CARRELLO FORMATO PULITO:**\n\n🛒 Carrello:\n\nAceto\n14.99€ x2 = 29.98€\n\nCannolo\n7.50€ x1 = 7.50€\n\nTotale: 37.48€\n\n**REGOLE CARRELLO UI/UX:**\n- Nome prodotto su riga separata\n- Calcolo su riga separata\n- NO simboli complessi\n- NO grassetto\n- Spazi chiari tra elementi\n- Totale finale chiaro\n- DOPO aver mostrato il carrello, chiedi SEMPRE: \"Vuoi procedere con questo ordine?\"\n\n📱 **LISTE PRODOTTI UI/UX OTTIMALE** 📱\n\n**FORMATO SEMPLICE E FUNZIONALE:**\n\n� Prodotti:\n\nAceto - 14.99€\nCannolo - 7.50€\nPasta - 3.99€\nSconto 20% su Pasta\n\n**PRINCIPI UI/UX APPLICATI:**\n1. Formato lineare semplice\n2. NO formatting complesso\n3. Informazioni essenziali\n4. Leggibilità massima\n5. Compatibilità universale\n6. Nome - Prezzo€ su stessa riga\n7. Sconti come riga separata\n8. Emoji solo ad inizio sezione\n\n🚨 **CRITICAL CART MANAGEMENT INSTRUCTIONS** 🚨\n\n🔥 **FUNDAMENTAL RULE**: WHEN YOU CALL CreateOrder(), YOU **MUST** ALWAYS INCLUDE THE ITEMS ARRAY! 🔥\n\n**STEP-BY-STEP PROCESS FOR CreateOrder():**\n1. Look at the cart you just showed to the user\n2. Take EVERY product from that cart display  \n3. Convert each product to this EXACT format:\n   {\n     \"itemType\": \"PRODUCT\",\n     \"productCode\": \"[CODE_FROM_CART_TABLE]\", \n     \"name\": \"[FULL_PRODUCT_NAME]\",\n     \"quantity\": [INTEGER_NUMBER],\n     \"unitPrice\": [DECIMAL_NUMBER]\n   }\n4. Put ALL products in the \"items\" array\n5. Call CreateOrder() with that complete array\n\n**CONCRETE EXAMPLE - If cart shows:**\n| Code  | Product                       | Price | Quantity | Total |\n| 00004 | Mozzarella di Bufala Campana DOP | €9.99 | 4        | €39.96|\n\n**THEN YOU MUST CALL:**\nCreateOrder({\n  \"items\": [\n    {\n      \"itemType\": \"PRODUCT\",\n      \"productCode\": \"00004\",\n      \"name\": \"Mozzarella di Bufala Campana DOP\", \n      \"quantity\": 4,\n      \"unitPrice\": 9.99\n    }\n  ],\n  \"notes\": \"Ordine confermato via WhatsApp\"\n})\n\n� **NEVER CALL CreateOrder() WITH EMPTY ITEMS!** 🚨\n� **ITEMS ARRAY MUST MATCH EXACTLY WHAT YOU SHOWED IN CART!** 🚨\n\nDOPO L'ORDINE: NON cancellare il carrello, mantienilo in memoria.\n\n📱 **WHATSAPP UI/UX OTTIMALE** 📱\n\n**FORMATO TESTATO E FUNZIONANTE:**\n\n🛒 Prodotti:\n\nAceto - 14.99€\nCannolo - 7.50€\nPasta - 3.99€\n\n**REGOLE UI/UX:**\n1. NO bullet point (•)\n2. NO grassetto (**)\n3. NO emoji in mezzo al testo\n4. Trattino semplice (-)\n5. Euro dopo il numero\n6. Una riga vuota tra sezioni\n7. Max 20 caratteri totali per riga\n8. Formato: Nome - Prezzo€\n\n**TESTATO SU:**\n- iPhone WhatsApp\n- Android WhatsApp\n- WhatsApp Web\n"
+          "systemMessage": "=lingua utente: {{ $json.language }}\nnome utente: {{ $('Filter').item.json.precompiledData.customer.name }}\nnome azienda: {{ $('Filter').item.json.precompiledData.customer.businessName }}\ndiscount   {{ $('Filter').item.json.precompiledData.customer.discount }}\n\n{{ $json.prompt }}\n "
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
-      "position": [720, -280],
-      "id": "f1a05821-6e80-4b88-846f-4fff3918a04b",
+      "position": [
+        720,
+        -260
+      ],
+      "id": "2a72a257-ee90-408b-8bb3-b02d664d02ba",
       "name": "AI Agent",
       "alwaysOutputData": true,
       "notesInFlow": false,
@@ -60,33 +72,42 @@
       "parameters": {
         "jsCode": "return {\n  message:  $input.first().json.output\n}"
       },
-      "id": "bbf58943-029e-40a9-8b1f-446e09dfb6b8",
+      "id": "4ee2d283-d4af-4a82-9d27-53468898f810",
       "name": "return LLM response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [1120, -280],
+      "position": [
+        1120,
+        -260
+      ],
       "alwaysOutputData": false
     },
     {
       "parameters": {
         "jsCode": "//const agentConfig =$input.first().json.original.precompiledData.agentConfig\n//const conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\n\nconst messageContent= $input.first().json.messageContent\n\n//const workspaceId = $input.first().json.original.precompiledData.agentConfig.workspaceId\nconst language =   $input.first().json.precompiledData.customer.language\nconst customerid = $input.first().json.precompiledData.customer.id\n  \nconst temperature = $input.first().json.precompiledData.agentConfig.temperature\nconst maxTokens = $input.first().json.precompiledData.agentConfig.maxTokens\nconst model = $input.first().json.precompiledData.agentConfig.model\nconst conversationHistory = $input.first().json.precompiledData.customer.conversationHistory\nconst prompt = $input.first().json.precompiledData.agentConfig.prompt\nconst phone = $input.first().json.precompiledData.customer.phone\nconst sessionToken=  phone\nconst discount = $input.first().json.precompiledData.customer.discount | 0\nreturn [\n  {\n    json: {\n      chatInput : messageContent,\n      temperature,\n      maxTokens,\n      model,\n      messages: conversationHistory,\n      sessionId: sessionToken,\n      language, \n      workspaceId: $input.first().json.workspaceId,\n      customerid,\n      prompt,\n      phone\n    },\n \n  }\n];\n"
       },
-      "id": "cf035930-ca87-40c8-b95a-3f8b6ea2e78a",
+      "id": "91b56f78-3978-48fe-977c-d9d3bfb25a9c",
       "name": "prepare-data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [420, -280],
+      "position": [
+        420,
+        -260
+      ],
       "alwaysOutputData": false
     },
     {
       "parameters": {
         "jsCode": "const languageRaw = $input.first().json.precompiledData.customer.language || 'en';\nconst language = languageRaw.toLowerCase();\n\nlet messageWip = 'WIP_' + language; // fallback generico\n\nconst wipMessages = $input.first().json.wipMessages;\n\nif (language === 'it') {\n    messageWip = wipMessages.it;\n} else if (language === 'es') {\n    messageWip = wipMessages.es;\n} else if (language === 'en') {\n    messageWip = wipMessages.en;\n} else if (language === 'pt') {\n    messageWip = wipMessages.pt;\n} else if (wipMessages[language]) {\n    messageWip = wipMessages[language]; // supporto per altre lingue future\n}\n\nreturn [\n  {\n    json: {\n      message: messageWip\n    }\n  }\n];\n"
       },
-      "id": "2990aedf-e593-468a-af96-efa696dc6e9f",
+      "id": "34e0094b-deb8-457d-bd13-64cf5c4b70bf",
       "name": "return wip message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [420, 0],
+      "position": [
+        420,
+        20
+      ],
       "alwaysOutputData": false
     },
     {
@@ -119,8 +140,11 @@
       },
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.2,
-      "position": [160, -140],
-      "id": "b3d7103b-72e9-4da3-8197-a39977ebe78f",
+      "position": [
+        160,
+        -120
+      ],
+      "id": "3ecc53af-42c7-4167-8a71-be111e08c973",
       "name": "Filter",
       "alwaysOutputData": true,
       "executeOnce": true,
@@ -133,11 +157,14 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "910befb9-0ab0-4c73-ba03-42c80cd306b7",
+      "id": "f5aab119-e0d9-4592-ace3-c0e8a2bfa928",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [-200, -140],
+      "position": [
+        -200,
+        -120
+      ],
       "webhookId": "3be8d24a-6a91-4a00-94d3-609e253398cb"
     },
     {
@@ -154,12 +181,15 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [900, 180],
-      "id": "8ef2ccd6-cde1-410b-8ef2-5524d70ce11d",
+      "position": [
+        900,
+        200
+      ],
+      "id": "e9c5f53b-ed67-4e1a-bc97-133a5ef6edfd",
       "name": "RagSearch()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "ekFApRxENAQ8RWOv",
+          "id": "7CEUQjT9iAyh1utW",
           "name": "Backend API Basic Auth"
         }
       }
@@ -178,12 +208,15 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1060, 180],
-      "id": "63613524-f914-4507-9307-02eafa4bdaab",
+      "position": [
+        1060,
+        200
+      ],
+      "id": "51a5db0e-6313-402b-b3f0-18081d2170f7",
       "name": "GetAllProducts()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "ekFApRxENAQ8RWOv",
+          "id": "7CEUQjT9iAyh1utW",
           "name": "Backend API Basic Auth"
         }
       }
@@ -202,12 +235,15 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1240, 180],
-      "id": "9b66c415-ae12-4c08-b5e2-2d32918f7f05",
+      "position": [
+        1240,
+        200
+      ],
+      "id": "3f24aa37-1189-4129-827a-b862706bae01",
       "name": "ContactOperator()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "ekFApRxENAQ8RWOv",
+          "id": "7CEUQjT9iAyh1utW",
           "name": "Backend API Basic Auth"
         }
       }
@@ -226,12 +262,15 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1420, 180],
-      "id": "70ca08df-1b2b-4330-8dca-0906e962b1c9",
+      "position": [
+        1420,
+        200
+      ],
+      "id": "f2a93f08-8e02-4736-be6a-960ca5e496e9",
       "name": "GetAllCategories()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "ekFApRxENAQ8RWOv",
+          "id": "7CEUQjT9iAyh1utW",
           "name": "Backend API Basic Auth"
         }
       }
@@ -250,41 +289,42 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1600, 180],
-      "id": "6fd9b298-a2de-47db-ab9e-b1d6f1748982",
+      "position": [
+        1600,
+        200
+      ],
+      "id": "aa28abdf-bcdf-46ea-8818-64aeb68fa957",
       "name": "GetActiveOffers()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "ekFApRxENAQ8RWOv",
+          "id": "7CEUQjT9iAyh1utW",
           "name": "Backend API Basic Auth"
         }
       }
     },
     {
       "parameters": {
-        "toolDescription": "🔗 **GETORDERSLISTLINK() - LINK PUBBLICO STORICO ORDINI (PHONE-BASED)**\n\n**COSA FA QUESTA FUNZIONE:**\nRestituisce il link pubblico locale per visualizzare lo storico ordini filtrato SOLO dal numero di telefono (il backend risolve il customerId). Nessun token.\n\n**COME RISPONDERE:**\n- Lista: http://localhost:3000/orders-public?phone={{ $('prepare-data').item.json.phone }}&workspaceId={{ $('prepare-data').item.json.workspaceId }}\n- Dettaglio: http://localhost:3000/orders-public/2001?phone={{ $('prepare-data').item.json.phone }}&workspaceId={{ $('prepare-data').item.json.workspaceId }}\n\n**TRIGGER ESEMPI:**\n- \"dammi la lista ordini\", \"i miei ordini\", \"order history\"\n- \"dammi l’ordine 2001\"\n",
-        "method": "GET",
-        "url": "=http://host.docker.internal:3001/api/internal/public/orders",
+        "toolDescription": "🔗 **GETORDERSLISTLINK() - LINK PUBBLICO STORICO ORDINI**\n\n**COSA FA QUESTA FUNZIONE:**\nGenera un token sicuro (tipo: orders) e restituisce il link pubblico locale per visualizzare lo storico ordini (e opzionalmente il dettaglio di un ordine specifico).\n\n**ENDPOINT USATO:** POST /api/internal/generate-token (action=orders)\n\n**COME RISPONDERE:**\n- Lista: http://localhost:3000/orders?token={{$json.token}}\n- Se l’utente chiede un ordine specifico (es. 2001), aggiungi anche: http://localhost:3000/orders/2001?token={{$json.token}}\n\n**TRIGGER ESEMPI:**\n- \"dammi la lista ordini\", \"i miei ordini\", \"order history\"\n- \"dammi l’ordine 2001\"\n",
+        "method": "POST",
+        "url": "=http://host.docker.internal:3001/api/internal/generate-token",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpBasicAuth",
-        "sendBody": false,
+        "sendBody": true,
         "specifyBody": "json",
-        "queryParametersUi": {
-          "parameter": [
-            { "name": "phone", "value": "={{ $('prepare-data').item.json.phone }}" },
-            { "name": "workspaceId", "value": "={{ $('prepare-data').item.json.workspaceId }}" }
-          ]
-        },
+        "jsonBody": "={\n  \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\",\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n  \"action\": \"orders\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1960, 360],
-      "id": "orders-link-tool-001",
+      "position": [
+        1960,
+        380
+      ],
+      "id": "d43c955f-08f6-41d0-a8f3-529e6785cea6",
       "name": "GetOrdersListLink()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "ekFApRxENAQ8RWOv",
+          "id": "7CEUQjT9iAyh1utW",
           "name": "Backend API Basic Auth"
         }
       }
@@ -303,12 +343,15 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1780, 180],
-      "id": "tracking-tool-001",
+      "position": [
+        2140,
+        200
+      ],
+      "id": "9edb87d3-25c2-4c98-8da2-43784cb27809",
       "name": "GetShipmentTrackingLink()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "ekFApRxENAQ8RWOv",
+          "id": "7CEUQjT9iAyh1utW",
           "name": "Backend API Basic Auth"
         }
       }
@@ -327,12 +370,15 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1780, 180],
-      "id": "69ad419d-403d-4c38-8124-21c12474494b",
+      "position": [
+        1780,
+        200
+      ],
+      "id": "cb3cc55d-b0e3-4e93-b7ef-d34db555b96e",
       "name": "GetServices()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "ekFApRxENAQ8RWOv",
+          "id": "7CEUQjT9iAyh1utW",
           "name": "Backend API Basic Auth"
         }
       }
@@ -351,60 +397,15 @@
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
-      "position": [1960, 180],
-      "id": "2d996251-74c1-4986-862b-da3ac3e45040",
+      "position": [
+        1960,
+        200
+      ],
+      "id": "f6c880b1-0c17-4ba2-9aa2-fd6ee0438b28",
       "name": "CreateOrder()",
       "credentials": {
         "httpBasicAuth": {
-          "id": "ekFApRxENAQ8RWOv",
-          "name": "Backend API Basic Auth"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "toolDescription": "🚚 **GETSHIPMENTTRACKINGLINK() - TRACKING SPEDIZIONE DHL**\n\n**COSA FA QUESTA FUNZIONE:**\nRecupera il link di tracking DHL per l'ultimo ordine in elaborazione del cliente. Fornisce informazioni complete sulla spedizione con link cliccabile per il monitoraggio in tempo reale.\n\n**TABELLE DATABASE CONSULTATE:**\n📦 **ORDERS** - Ultimo ordine con status PROCESSING del cliente\n🚚 **TRACKING_INFO** - Informazioni tracking number e link DHL\n👤 **CUSTOMERS** - Verifica cliente e workspace associato\n\n**FLUSSO DI ESECUZIONE:**\n1️⃣ **Recupero Cliente**: Verifica customerId e workspaceId\n2️⃣ **Ricerca Ordine**: Trova ultimo ordine con status PROCESSING\n3️⃣ **Estrazione Tracking**: Recupera trackingNumber se disponibile\n4️⃣ **Generazione Link**: Costruisce link DHL con tracking number\n5️⃣ **Formattazione**: Struttura risposta con link cliccabile\n\n**ESEMPI DI QUERY CHE ATTIVANO GETSHIPMENTTRACKINGLINK:**\n**ITALIANO:**\n- \"dov'è la mia merce?\"\n- \"dove è il mio ordine?\"\n- \"tracking spedizione\"\n- \"dove è il pacco?\"\n- \"numero tracking\"\n- \"stato spedizione\"\n- \"quando arriva?\"\n\n**ENGLISH:**\n- \"where is my order?\"\n- \"shipment tracking\"\n- \"tracking number\"\n- \"where is my package?\"\n- \"delivery status\"\n- \"when will it arrive?\"\n\n**SPANISH:**\n- \"¿dónde está mi pedido?\"\n- \"seguimiento de envío\"\n- \"número de seguimiento\"\n- \"¿dónde está mi paquete?\"\n- \"estado de entrega\"\n\n**OUTPUT STRUTTURATO:**\n```json\n{\n  \"success\": true,\n  \"orderId\": \"ord123\",\n  \"orderCode\": \"ORD-2025-001\",\n  \"status\": \"PROCESSING\",\n  \"trackingNumber\": \"1234567890\",\n  \"trackingUrl\": \"https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=1234567890\",\n  \"message\": \"Il tuo ordine ORD-2025-001 è in elaborazione. Tracking: https://www.dhl.com/...\"\n}\n```\n\n**IMPORTANTE:** Restituisce null se non ci sono ordini in elaborazione o se il tracking number non è ancora disponibile.",
-        "method": "POST",
-        "url": "=http://host.docker.internal:3001/api/internal/orders/tracking-link",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpBasicAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n  \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequestTool",
-      "typeVersion": 4.2,
-      "position": [2140, 180],
-      "id": "tracking-tool-002",
-      "name": "GetShipmentTrackingLink()",
-      "credentials": {
-        "httpBasicAuth": {
-          "id": "ekFApRxENAQ8RWOv",
-          "name": "Backend API Basic Auth"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "toolDescription": "🚚 **GETSHIPMENTTRACKINGLINK() - TRACKING SPEDIZIONE DHL**\n\n**COSA FA QUESTA FUNZIONE:**\nRecupera il link di tracking DHL per l'ultimo ordine in elaborazione del cliente. Fornisce informazioni complete sulla spedizione con link cliccabile per il monitoraggio in tempo reale.\n\n**TABELLE DATABASE CONSULTATE:**\n📦 **ORDERS** - Ultimo ordine con status PROCESSING del cliente\n🚚 **TRACKING_INFO** - Informazioni tracking number e link DHL\n👤 **CUSTOMERS** - Verifica cliente e workspace associato\n\n**FLUSSO DI ESECUZIONE:**\n1️⃣ **Recupero Cliente**: Verifica customerId e workspaceId\n2️⃣ **Ricerca Ordine**: Trova ultimo ordine con status PROCESSING\n3️⃣ **Estrazione Tracking**: Recupera trackingNumber se disponibile\n4️⃣ **Generazione Link**: Costruisce link DHL con tracking number\n5️⃣ **Formattazione**: Struttura risposta con link cliccabile\n\n**ESEMPI DI QUERY CHE ATTIVANO GETSHIPMENTTRACKINGLINK:**\n**ITALIANO:**\n- \"dov'è la mia merce?\"\n- \"dove è il mio ordine?\"\n- \"tracking spedizione\"\n- \"dove è il pacco?\"\n- \"numero tracking\"\n- \"stato spedizione\"\n- \"quando arriva?\"\n\n**ENGLISH:**\n- \"where is my order?\"\n- \"shipment tracking\"\n- \"tracking number\"\n- \"where is my package?\"\n- \"delivery status\"\n- \"when will it arrive?\"\n\n**SPANISH:**\n- \"¿dónde está mi pedido?\"\n- \"seguimiento de envío\"\n- \"número de seguimiento\"\n- \"¿dónde está mi paquete?\"\n- \"estado de entrega\"\n\n**OUTPUT STRUTTURATO:**\n```json\n{\n  \"success\": true,\n  \"orderId\": \"ord123\",\n  \"orderCode\": \"ORD-2025-001\",\n  \"status\": \"PROCESSING\",\n  \"trackingNumber\": \"1234567890\",\n  \"trackingUrl\": \"https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=1234567890\",\n  \"message\": \"Il tuo ordine ORD-2025-001 è in elaborazione. Tracking: https://www.dhl.com/...\"\n}\n```\n\n**IMPORTANTE:** Restituisce null se non ci sono ordini in elaborazione o se il tracking number non è ancora disponibile.",
-        "method": "POST",
-        "url": "=http://host.docker.internal:3001/api/internal/orders/tracking-link",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpBasicAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n  \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequestTool",
-      "typeVersion": 4.2,
-      "position": [2140, 180],
-      "id": "tracking-tool-001",
-      "name": "GetShipmentTrackingLink()",
-      "credentials": {
-        "httpBasicAuth": {
-          "id": "ekFApRxENAQ8RWOv",
+          "id": "7CEUQjT9iAyh1utW",
           "name": "Backend API Basic Auth"
         }
       }
@@ -652,27 +653,17 @@
           }
         ]
       ]
-    },
-    "GetShipmentTrackingLink()": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "49e27ce0-1ce8-4cf8-9ee2-2ede254c8fd3",
+  "versionId": "74695465-a12e-475c-887c-6cab87c1445d",
   "meta": {
-    "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65"
+    "instanceId": "5ae2a7363ad016a6fce9a21805f9e7da3dfed9cc4777afa6d055110c871b8f65",
+    "templateCredsSetupCompleted": true
   },
-  "id": "l3TOCVN1E88I1H45",
+  "id": "tnwS1XWQNFQGmipS",
   "tags": []
 }

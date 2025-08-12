@@ -23,6 +23,8 @@ Allow customers to access their full orders history and specific order details v
 - Route: `/orders-public` and `/orders-public/:orderCode` (no platform layout)
 - Page: `OrdersPublicPage.tsx`
   - Reads `phone` and optional `workspaceId` from URL.
+  - Supports optional filters via query params: `status`, `payment`, `from`, `to`.
+  - Supports `orderCode` query param to auto-expand a specific order in the list view.
   - Calls the backend endpoints above; does not use or require tokens.
   - For each order, provides links to invoice and DDT downloads.
 
@@ -30,8 +32,15 @@ Allow customers to access their full orders history and specific order details v
 - Purpose: Reply with the correct external URLs for orders list or a specific order.
 - Output examples:
   - List: `http://localhost:3000/orders-public?phone={{phone}}&workspaceId={{workspaceId}}`
+  - Filtered: `http://localhost:3000/orders-public?phone={{phone}}&workspaceId={{workspaceId}}&status=PENDING&payment=PENDING`
   - Detail: `http://localhost:3000/orders-public/2001?phone={{phone}}&workspaceId={{workspaceId}}`
 - Note: No token is used for this flow.
+
+### PDF Generation (Invoice & DDT)
+- Endpoints:
+  - `GET /api/internal/orders/:orderCode/invoice` → PDF with items, imponibile (subtotal), IVA, spedizione, totale
+  - `GET /api/internal/orders/:orderCode/ddt` → PDF with shipping address and items (no prices)
+- Detail page shows: payment status, tracking, shipping cost, tax (IVA), shipping address, items with codes.
 
 ### Security and Constraints
 - No hardcoded fallbacks. All configuration and data from DB.
