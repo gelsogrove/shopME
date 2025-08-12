@@ -93,7 +93,7 @@ const OrdersPublicPage: React.FC = () => {
   const [detailData, setDetailData] = useState<OrderDetailResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+
   const allowedStatuses = ['ALL','PENDING','CONFIRMED','PROCESSING','SHIPPED','DELIVERED','CANCELLED']
   const allowedPayments = ['ALL','PAID','PENDING','FAILED','COMPLETED','DECLINED']
   const initialStatus = (() => {
@@ -144,12 +144,11 @@ const OrdersPublicPage: React.FC = () => {
     load()
   }, [phone, workspaceId, orderCode])
 
-  // Auto-expand specific order from query param on list view
+  // Auto-scroll to specific order from query param on list view
   useEffect(() => {
     if (!orderCode && listData && orderCodeQuery) {
       const target = listData.orders.find((o) => o.orderCode === orderCodeQuery)
       if (target) {
-        setExpanded((prev) => ({ ...prev, [target.id]: true }))
         // Smooth scroll to the order row
         const el = document.getElementById(`order-${target.orderCode}`)
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -196,69 +195,108 @@ const OrdersPublicPage: React.FC = () => {
       <div className="min-h-screen bg-gray-100">
         <div className="max-w-3xl mx-auto py-8 px-4">
           <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-lg p-6 text-white">
-            <h1 className="text-2xl font-bold">Dettaglio Ordine {o.orderCode}</h1>
-            <p className="opacity-90">Stato: {o.status} • Data: {formatDate(o.date)}</p>
+            <h1 className="text-2xl font-bold">Order Details {o.orderCode}</h1>
+            <p className="opacity-90">Status: {o.status} • Date: {formatDate(o.date)}</p>
           </div>
           <div className="bg-white rounded-b-lg shadow-sm border p-6 space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
-              <div><span className="font-semibold">Totale:</span> {formatCurrency(o.totalAmount)}</div>
-              <div><span className="font-semibold">Pagamento:</span> {o.paymentStatus || 'PENDING'}</div>
-              {o.trackingNumber && (
+            {/* Invoice Header */}
+            <div className="border-b border-gray-200 pb-4">
+              <div className="flex justify-between items-start">
                 <div>
-                  <span className="font-semibold">Tracking:</span>{' '}
-                  <a
-                    href={`https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=${encodeURIComponent(o.trackingNumber)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    {o.trackingNumber}
-                  </a>
+                  <h1 className="text-2xl font-bold text-gray-900">INVOICE</h1>
+                  <p className="text-gray-600">Order #{o.orderCode}</p>
+                  <p className="text-gray-600">Date: {formatDate(o.date)}</p>
                 </div>
-              )}
-              {(o.shippingAmount ?? 0) > 0 && (
-                <div><span className="font-semibold">Spedizione:</span> {formatCurrency(o.shippingAmount || 0)}</div>
-              )}
-              {(o.taxAmount ?? 0) > 0 && (
-                <div><span className="font-semibold">Tasse:</span> {formatCurrency(o.taxAmount || 0)}</div>
-              )}
-            </div>
-            {o.shippingAddress && (
-              <div className="text-sm text-gray-700">
-                <h3 className="font-semibold mb-2">Indirizzo di spedizione</h3>
-                <div className="bg-gray-50 border border-gray-200 rounded p-3">
-                  {o.shippingAddress.name && <div className="font-medium">{o.shippingAddress.name}</div>}
-                  {o.shippingAddress.street && <div>{o.shippingAddress.street}</div>}
-                  <div>
-                    {o.shippingAddress.postalCode ? `${o.shippingAddress.postalCode} ` : ''}
-                    {o.shippingAddress.city || ''}
-                    {o.shippingAddress.province ? ` (${o.shippingAddress.province})` : ''}
-                  </div>
-                  {o.shippingAddress.country && <div>{o.shippingAddress.country}</div>}
-                  {o.shippingAddress.phone && <div className="text-gray-500">Tel: {o.shippingAddress.phone}</div>}
+                <div className="text-right">
+                  <div className="text-lg font-semibold text-gray-900">{formatCurrency(o.totalAmount)}</div>
+                  <div className="text-sm text-gray-600">Total Amount</div>
                 </div>
               </div>
-            )}
-            <div>
-              <h2 className="text-lg font-semibold mb-3">Articoli</h2>
-              <div className="divide-y">
-                {o.items.map((it) => (
-                  <div key={it.id} className="py-3 flex items-center justify-between">
+            </div>
+
+            {/* Billing and Shipping Addresses */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-900 mb-2">Bill To</h3>
+                <div className="text-sm text-gray-700">
+                  <div className="font-medium">{detailData.customer.name}</div>
+                  <div>Customer ID: {detailData.customer.id}</div>
+                </div>
+              </div>
+              {o.shippingAddress && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-gray-900 mb-2">Ship To</h3>
+                  <div className="text-sm text-gray-700">
+                    {o.shippingAddress.name && <div className="font-medium">{o.shippingAddress.name}</div>}
+                    {o.shippingAddress.street && <div>{o.shippingAddress.street}</div>}
                     <div>
-                      <div className="font-medium">{it.name}{it.code ? ` (${it.code})` : ''}</div>
-                      <div className="text-sm text-gray-500">{it.itemType} • Qty {it.quantity}</div>
+                      {o.shippingAddress.postalCode ? `${o.shippingAddress.postalCode} ` : ''}
+                      {o.shippingAddress.city || ''}
+                      {o.shippingAddress.province ? ` (${o.shippingAddress.province})` : ''}
                     </div>
-                    <div className="text-right">
-                      <div className="text-gray-600">{formatCurrency(it.unitPrice)} x {it.quantity}</div>
-                      <div className="font-semibold">{formatCurrency(it.totalPrice)}</div>
-                    </div>
+                    {o.shippingAddress.country && <div>{o.shippingAddress.country}</div>}
+                    {o.shippingAddress.phone && <div>Phone: {o.shippingAddress.phone}</div>}
                   </div>
-                ))}
+                </div>
+              )}
+            </div>
+
+            {/* Order Summary */}
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div><span className="font-semibold">Status:</span> {o.status}</div>
+                <div><span className="font-semibold">Payment:</span> {o.paymentStatus || 'PENDING'}</div>
+                {o.trackingNumber && (
+                  <div>
+                    <span className="font-semibold">Tracking:</span>{' '}
+                    <a
+                      href={`https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=${encodeURIComponent(o.trackingNumber)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      {o.trackingNumber}
+                    </a>
+                  </div>
+                )}
+                {(o.shippingAmount ?? 0) > 0 && (
+                  <div><span className="font-semibold">Shipping:</span> {formatCurrency(o.shippingAmount || 0)}</div>
+                )}
+              </div>
+            </div>
+
+            {/* Items Table */}
+            <div>
+              <h2 className="text-lg font-semibold mb-3">Items</h2>
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="text-left p-3 text-sm font-medium text-gray-700">Item</th>
+                      <th className="text-right p-3 text-sm font-medium text-gray-700">Unit Price</th>
+                      <th className="text-right p-3 text-sm font-medium text-gray-700">Qty</th>
+                      <th className="text-right p-3 text-sm font-medium text-gray-700">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {o.items.map((it) => (
+                      <tr key={it.id} className="hover:bg-gray-50">
+                        <td className="p-3">
+                          <div className="font-medium">{it.name}</div>
+                          <div className="text-sm text-gray-500">{it.itemType}{it.code ? ` • ${it.code}` : ''}</div>
+                        </td>
+                        <td className="p-3 text-right text-gray-600">{formatCurrency(it.unitPrice)}</td>
+                        <td className="p-3 text-right text-gray-600">{it.quantity}</td>
+                        <td className="p-3 text-right font-semibold">{formatCurrency(it.totalPrice)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
-              <a href={o.invoiceUrl} className="w-full sm:w-auto inline-flex justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md">Scarica Fattura</a>
-              <a href={o.ddtUrl} className="w-full sm:w-auto inline-flex justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md">Scarica DDT</a>
+              <a href={o.invoiceUrl} className="w-full sm:w-auto inline-flex justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md">Download Invoice</a>
+              <a href={o.ddtUrl} className="w-full sm:w-auto inline-flex justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md">Download DDT</a>
             </div>
           </div>
         </div>
@@ -280,7 +318,7 @@ const OrdersPublicPage: React.FC = () => {
       <div className="min-h-screen bg-gray-100">
         <div className="max-w-4xl mx-auto py-8 px-4">
           <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-lg p-6 text-white">
-            <h1 className="text-2xl font-bold">I tuoi ordini</h1>
+            <h1 className="text-2xl font-bold">Your Orders</h1>
             <p className="opacity-90">{listData.customer.name} • {listData.workspace.name}</p>
           </div>
           <div className="bg-white rounded-b-lg shadow-sm border p-6">
@@ -322,9 +360,9 @@ const OrdersPublicPage: React.FC = () => {
             <div className="divide-y">
               {displayOrders.map((o) => (
                 <div key={o.id} id={`order-${o.orderCode}`} className="py-4">
-                  <button
-                    onClick={() => setExpanded((prev) => ({ ...prev, [o.id]: !prev[o.id] }))}
-                    className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between text-left"
+                  <a
+                    href={`${window.location.origin}/orders-public/${o.orderCode}?phone=${encodeURIComponent(phone)}${workspaceId ? `&workspaceId=${encodeURIComponent(workspaceId)}` : ''}`}
+                    className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between text-left hover:bg-gray-50 p-3 rounded-lg transition-colors cursor-pointer"
                   >
                     <div className="space-y-1">
                       <div className="text-lg font-semibold">{o.orderCode}</div>
@@ -339,18 +377,9 @@ const OrdersPublicPage: React.FC = () => {
                       <span className={`text-xs px-2 py-1 rounded border ${statusColor(o.status)}`}>{o.status}</span>
                       <span className={`text-xs px-2 py-1 rounded border ${paymentColor(o.paymentStatus)}`}>{(o.paymentStatus || 'PENDING').toUpperCase()}</span>
                       <span className="font-semibold">{formatCurrency(o.totalAmount)}</span>
+                      <div className="text-xs text-gray-400">→</div>
                     </div>
-                  </button>
-
-                  {expanded[o.id] && (
-                    <div className="mt-3 pl-4 border-l">
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <a href={o.invoiceUrl} className="inline-flex justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md">Scarica Fattura</a>
-                        <a href={o.ddtUrl} className="inline-flex justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md">Scarica DDT</a>
-                        <a href={`${window.location.origin}/orders-public/${o.orderCode}?phone=${encodeURIComponent(phone)}${workspaceId ? `&workspaceId=${encodeURIComponent(workspaceId)}` : ''}`} className="inline-flex justify-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md border">Vedi Dettaglio</a>
-                      </div>
-                    </div>
-                  )}
+                  </a>
                 </div>
               ))}
             </div>
