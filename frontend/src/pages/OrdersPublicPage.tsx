@@ -9,6 +9,8 @@ interface OrderListItem {
   status: string
   paymentStatus?: string
   totalAmount: number
+  taxAmount?: number
+  shippingAmount?: number
   itemsCount: number
   invoiceUrl: string
   ddtUrl: string
@@ -85,16 +87,29 @@ const OrdersPublicPage: React.FC = () => {
   const { orderCode } = useParams<{ orderCode?: string }>()
   const phone = searchParams.get('phone') || ''
   const workspaceId = searchParams.get('workspaceId') || undefined
+  const orderCodeQuery = searchParams.get('orderCode') || ''
 
   const [listData, setListData] = useState<OrdersListResponse | null>(null)
   const [detailData, setDetailData] = useState<OrderDetailResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
-  const [statusFilter, setStatusFilter] = useState<string>('ALL')
-  const [paymentFilter, setPaymentFilter] = useState<string>('ALL')
-  const [fromDate, setFromDate] = useState<string>('')
-  const [toDate, setToDate] = useState<string>('')
+  const allowedStatuses = ['ALL','PENDING','CONFIRMED','PROCESSING','SHIPPED','DELIVERED','CANCELLED']
+  const allowedPayments = ['ALL','PAID','PENDING','FAILED','COMPLETED','DECLINED']
+  const initialStatus = (() => {
+    const s = (searchParams.get('status') || '').toUpperCase()
+    return allowedStatuses.includes(s) ? s : 'ALL'
+  })()
+  const initialPayment = (() => {
+    const p = (searchParams.get('payment') || '').toUpperCase()
+    return allowedPayments.includes(p) ? p : 'ALL'
+  })()
+  const initialFrom = searchParams.get('from') || ''
+  const initialTo = searchParams.get('to') || ''
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatus)
+  const [paymentFilter, setPaymentFilter] = useState<string>(initialPayment)
+  const [fromDate, setFromDate] = useState<string>(initialFrom)
+  const [toDate, setToDate] = useState<string>(initialTo)
 
   useEffect(() => {
     const load = async () => {
@@ -128,6 +143,19 @@ const OrdersPublicPage: React.FC = () => {
     }
     load()
   }, [phone, workspaceId, orderCode])
+
+  // Auto-expand specific order from query param on list view
+  useEffect(() => {
+    if (!orderCode && listData && orderCodeQuery) {
+      const target = listData.orders.find((o) => o.orderCode === orderCodeQuery)
+      if (target) {
+        setExpanded((prev) => ({ ...prev, [target.id]: true }))
+        // Smooth scroll to the order row
+        const el = document.getElementById(`order-${target.orderCode}`)
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }
+  }, [orderCode, listData, orderCodeQuery])
 
 
   if (loading) {
@@ -293,7 +321,7 @@ const OrdersPublicPage: React.FC = () => {
             </div>
             <div className="divide-y">
               {displayOrders.map((o) => (
-                <div key={o.id} className="py-4">
+                <div key={o.id} id={`order-${o.orderCode}`} className="py-4">
                   <button
                     onClick={() => setExpanded((prev) => ({ ...prev, [o.id]: !prev[o.id] }))}
                     className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between text-left"
@@ -301,6 +329,11 @@ const OrdersPublicPage: React.FC = () => {
                     <div className="space-y-1">
                       <div className="text-lg font-semibold">{o.orderCode}</div>
                       <div className="text-sm text-gray-500">{formatDate(o.date)}</div>
+                      <div className="text-xs text-gray-500">
+                        Imponibile: {formatCurrency(Math.max(0, (o.totalAmount || 0) - (o.taxAmount || 0)))}
+                        { (o.taxAmount || 0) > 0 && <> • IVA: {formatCurrency(o.taxAmount || 0)}</> }
+                        { (o.shippingAmount || 0) > 0 && <> • Sped.: {formatCurrency(o.shippingAmount || 0)}</> }
+                      </div>
                     </div>
                     <div className="mt-3 sm:mt-0 flex items-center gap-3">
                       <span className={`text-xs px-2 py-1 rounded border ${statusColor(o.status)}`}>{o.status}</span>

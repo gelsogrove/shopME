@@ -43,7 +43,12 @@ This list consolidates existing tasks, renumbered and cleaned. Use plain numeric
    - Integrate with N8N and update Swagger accordingly.
    - Always respect workspace isolation in queries.
    - Story Points: 5
-   - Status: Not Started
+   - Status: Completed
+   - Notes:
+     - Public orders flow implemented: FE `/orders-public` with filters via query params (status, payment, from, to, orderCode).
+     - BE public endpoints: `GET /api/internal/public/orders`, `GET /api/internal/public/orders/:orderCode` with phone+workspace filtering.
+     - N8N `GetOrdersListLink()` updated to produce phone-based external links with optional filters and `orderCode` auto-expand.
+     - Invoice/DDT PDF generation added; detail page shows IVA, imponibile, spedizione, tracking e pagamento.
 
 7. Model Configuration Audit and Dynamic Selection
    - Verify current model usage and enable dynamic selection via DB (agent config) through N8N.

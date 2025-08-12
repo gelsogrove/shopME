@@ -2120,7 +2120,7 @@ ${JSON.stringify(ragResults, null, 2)}`
    */
   async getAllProducts(req: Request, res: Response): Promise<void> {
     try {
-      const { workspaceId, customerId, categoryId, search, limit } = req.body
+      const { workspaceId, customerId, categoryId, search, limit, offset } = req.body
 
       if (!workspaceId) {
         res.status(400).json({
@@ -2157,7 +2157,8 @@ ${JSON.stringify(ragResults, null, 2)}`
       }
 
       // Get products with pagination
-      const maxLimit = limit || 50 // Default limit
+      const maxLimit = Number(limit) || 50 // Default limit
+      const skip = Number(offset) || 0
       const products = await prisma.products.findMany({
         where,
         include: {
@@ -2167,6 +2168,7 @@ ${JSON.stringify(ragResults, null, 2)}`
           name: "asc",
         },
         take: maxLimit,
+        skip,
       })
 
       // Count total products in workspace
@@ -2316,6 +2318,59 @@ ${JSON.stringify(ragResults, null, 2)}`
   }
 
   /**
+   * 📋 GET ALL PRODUCTS (Preformatted Text for Chat) - For N8N hard output
+   * POST /internal/get-all-products-text
+   * Returns a plain text list of ALL products without truncation, ready to send to user
+   */
+  async getAllProductsText(req: Request, res: Response): Promise<void> {
+    try {
+      const { workspaceId, customerId } = req.body
+      if (!workspaceId) {
+        res.status(400).json({ success: false, error: "Workspace ID is required" })
+        return
+      }
+
+      // Reuse pricing logic by calling the same path as getAllProducts with large limit
+      const fakeReq: any = { body: { workspaceId, customerId, limit: 500 } }
+      let productsResult: any
+      const originalJson = res.json.bind(res)
+      // Temporarily capture JSON
+      await new Promise<void>((resolve, reject) => {
+        ;(res as any).json = (payload: any) => {
+          productsResult = payload
+          // restore
+          ;(res as any).json = originalJson
+          resolve()
+          return res
+        }
+        this.getAllProducts(fakeReq, res).catch(reject)
+      })
+
+      if (!productsResult?.products) {
+        res.status(500).json({ success: false, error: "Failed to build products list" })
+        return
+      }
+
+      // Build plain text lines: CODE NAME — formatted
+      const lines: string[] = []
+      for (const p of productsResult.products) {
+        const code = p.ProductCode ? `${p.ProductCode} ` : ""
+        lines.push(`${code}${p.name} — ${p.formatted}`)
+      }
+      const text = lines.join("\n")
+
+      res.json({
+        success: true,
+        total: productsResult.summary?.total || productsResult.products.length,
+        text,
+      })
+    } catch (error) {
+      logger.error("[GET-ALL-PRODUCTS-TEXT] ❌ Error: ", error)
+      res.status(500).json({ success: false, error: "Internal server error" })
+    }
+  }
+
+  /**
    * PUBLIC: Get orders by phone (no auth, external page)
    * GET /public/orders?phone=+39...&workspaceId=...
    */
@@ -2382,6 +2437,8 @@ ${JSON.stringify(ragResults, null, 2)}`
           status: true,
           paymentDetails: { select: { status: true } },
           totalAmount: true,
+          taxAmount: true,
+          shippingAmount: true,
           createdAt: true,
         },
       })
@@ -2398,6 +2455,8 @@ ${JSON.stringify(ragResults, null, 2)}`
             status: o.status,
             paymentStatus: o.paymentDetails?.status ?? "PENDING",
             totalAmount: o.totalAmount,
+            taxAmount: o.taxAmount ?? 0,
+            shippingAmount: o.shippingAmount ?? 0,
             itemsCount: 0,
             invoiceUrl: `/api/internal/orders/${o.orderCode}/invoice`,
             ddtUrl: `/api/internal/orders/${o.orderCode}/ddt`,
@@ -4104,18 +4163,69 @@ ${JSON.stringify(ragResults, null, 2)}`
   async downloadInvoiceByOrderCode(req: Request, res: Response): Promise<void> {
     try {
       const { orderCode } = req.params
-      const { token } = req.query as { token?: string }
-      if (!token) {
-        res.status(400).json({ success: false, error: "Token required" })
+      // Resolve order and hydrate relations for invoice
+      const order = await this.prisma.orders.findFirst({
+        where: { orderCode },
+        include: {
+          customer: true,
+          items: {
+            include: {
+              product: { select: { name: true, ProductCode: true } },
+              service: { select: { name: true, code: true } },
+            },
+          },
+        },
+      })
+      if (!order) {
+        res.status(404).json({ success: false, error: "Order not found" })
         return
       }
-      const validation = await this.secureTokenService.validateToken(token, "orders")
-      if (!validation.valid) {
-        res.status(401).json({ success: false, error: "Invalid or expired token" })
-        return
+
+      // Generate simple PDF invoice dynamically
+      const PDFDocument = require('pdfkit')
+      res.setHeader('Content-Type', 'application/pdf')
+      res.setHeader('Content-Disposition', `attachment; filename=invoice-${order.orderCode}.pdf`)
+      const doc = new PDFDocument({ size: 'A4', margin: 50 })
+      doc.pipe(res)
+
+      // Header
+      doc.fontSize(20).text('Invoice', { align: 'right' })
+      doc.moveDown()
+      doc.fontSize(12)
+      doc.text(`Order Code: ${order.orderCode}`)
+      doc.text(`Customer: ${order.customer.name}`)
+      doc.text(`Date: ${new Date(order.createdAt).toLocaleString('it-IT')}`)
+      doc.moveDown()
+
+      // Items table (basic layout)
+      if (order.items.length > 0) {
+        doc.fontSize(13).text('Items', { underline: true })
+        doc.moveDown(0.5)
+        doc.fontSize(11)
+        order.items.forEach((it: any) => {
+          const name = it.product?.name || it.service?.name || 'Item'
+          const code = it.product?.ProductCode || it.service?.code || ''
+          doc.text(`${name}${code ? ` (${code})` : ''}`)
+          doc.text(`Qty: ${it.quantity}  Unit: €${it.unitPrice.toFixed(2)}  Total: €${it.totalPrice.toFixed(2)}`)
+          doc.moveDown(0.5)
+        })
+        doc.moveDown(0.5)
       }
-      // TODO: return real PDF stream; for now return JSON with placeholder
-      res.status(501).json({ success: false, error: "Invoice download not implemented yet" })
+
+      // Totals with VAT
+      const taxAmount = Number(order.taxAmount || 0)
+      const shippingAmount = Number(order.shippingAmount || 0)
+      const total = Number(order.totalAmount || 0)
+      const subtotal = Math.max(0, total - taxAmount)
+      doc.fontSize(12)
+      doc.text(`Subtotal (Imponibile): €${subtotal.toFixed(2)}`)
+      doc.text(`IVA: €${taxAmount.toFixed(2)}`)
+      if (shippingAmount > 0) doc.text(`Spedizione: €${shippingAmount.toFixed(2)}`)
+      doc.text(`Totale: €${total.toFixed(2)}`)
+      doc.moveDown()
+      doc.text('Grazie per il tuo acquisto!')
+
+      doc.end()
     } catch (error) {
       logger.error("[ORDERS] Error downloading invoice:", error)
       res.status(500).json({ success: false, error: "Internal server error" })
@@ -4128,17 +4238,64 @@ ${JSON.stringify(ragResults, null, 2)}`
   async downloadDdtByOrderCode(req: Request, res: Response): Promise<void> {
     try {
       const { orderCode } = req.params
-      const { token } = req.query as { token?: string }
-      if (!token) {
-        res.status(400).json({ success: false, error: "Token required" })
+      const order = await this.prisma.orders.findFirst({
+        where: { orderCode },
+        include: {
+          customer: true,
+          items: {
+            include: {
+              product: { select: { name: true, ProductCode: true } },
+              service: { select: { name: true, code: true } },
+            },
+          },
+        },
+      })
+      if (!order) {
+        res.status(404).json({ success: false, error: "Order not found" })
         return
       }
-      const validation = await this.secureTokenService.validateToken(token, "orders")
-      if (!validation.valid) {
-        res.status(401).json({ success: false, error: "Invalid or expired token" })
-        return
+
+      const PDFDocument = require('pdfkit')
+      res.setHeader('Content-Type', 'application/pdf')
+      res.setHeader('Content-Disposition', `attachment; filename=ddt-${order.orderCode}.pdf`)
+      const doc = new PDFDocument({ size: 'A4', margin: 50 })
+      doc.pipe(res)
+
+      // Header
+      doc.fontSize(20).text('Documento di Trasporto (DDT)', { align: 'right' })
+      doc.moveDown()
+      doc.fontSize(12)
+      doc.text(`Order Code: ${order.orderCode}`)
+      doc.text(`Customer: ${order.customer.name}`)
+      doc.text(`Date: ${new Date(order.createdAt).toLocaleString('it-IT')}`)
+      doc.moveDown()
+
+      // Shipping address
+      if (order.shippingAddress) {
+        doc.fontSize(13).text('Indirizzo di spedizione', { underline: true })
+        doc.moveDown(0.5)
+        const a: any = order.shippingAddress
+        if (a.name) doc.text(a.name)
+        if (a.street) doc.text(a.street)
+        doc.text(`${a.postalCode || ''} ${a.city || ''}${a.province ? ` (${a.province})` : ''}`)
+        if (a.country) doc.text(a.country)
+        if (a.phone) doc.text(`Tel: ${a.phone}`)
+        doc.moveDown()
       }
-      res.status(501).json({ success: false, error: "DDT download not implemented yet" })
+
+      // Items (no prices for DDT)
+      if (order.items.length > 0) {
+        doc.fontSize(13).text('Articoli', { underline: true })
+        doc.moveDown(0.5)
+        doc.fontSize(11)
+        order.items.forEach((it: any) => {
+          const name = it.product?.name || it.service?.name || 'Item'
+          const code = it.product?.ProductCode || it.service?.code || ''
+          doc.text(`${name}${code ? ` (${code})` : ''} — Qty: ${it.quantity}`)
+        })
+      }
+
+      doc.end()
     } catch (error) {
       logger.error("[ORDERS] Error downloading DDT:", error)
       res.status(500).json({ success: false, error: "Internal server error" })

@@ -282,6 +282,12 @@ router.post(
   internalApiController.getAllProducts.bind(internalApiController)
 )
 
+// Preformatted plain text list for N8N direct sending (no truncation by LLM)
+router.post(
+  "/get-all-products-text",
+  (req, res) => internalApiController.getAllProductsText(req, res)
+)
+
 // 🛍️ GET ALL SERVICES - For N8N getAllServices Tool (Andrea's Request)
 router.post(
   "/get-all-services",
