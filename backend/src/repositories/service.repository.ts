@@ -27,12 +27,15 @@ export class ServiceRepository implements IServiceRepository {
   }
   
   /**
-   * Find a single service by ID
+   * Find a single service by ID and workspace
    */
-  async findById(id: string): Promise<Service | null> {
+  async findById(id: string, workspaceId: string): Promise<Service | null> {
     try {
-      const service = await prisma.services.findUnique({
-        where: { id }
+      const service = await prisma.services.findFirst({
+        where: { 
+          id,
+          workspaceId 
+        }
       });
       
       return service ? new Service(service) : null;
@@ -43,15 +46,16 @@ export class ServiceRepository implements IServiceRepository {
   }
   
   /**
-   * Find services by IDs
+   * Find services by IDs and workspace
    */
-  async findByIds(ids: string[]): Promise<Service[]> {
+  async findByIds(ids: string[], workspaceId: string): Promise<Service[]> {
     try {
       const services = await prisma.services.findMany({
         where: {
           id: {
             in: ids
-          }
+          },
+          workspaceId
         }
       });
       
@@ -81,14 +85,18 @@ export class ServiceRepository implements IServiceRepository {
   /**
    * Update an existing service
    */
-  async update(id: string, data: Partial<Service>): Promise<Service | null> {
+  async update(id: string, workspaceId: string, data: Partial<Service>): Promise<Service | null> {
     try {
-      const service = await prisma.services.update({
-        where: { id },
+      await prisma.services.updateMany({
+        where: { 
+          id,
+          workspaceId 
+        },
         data: data as any
       });
       
-      return new Service(service);
+      // Get updated service
+      return this.findById(id, workspaceId);
     } catch (error) {
       logger.error(`Error updating service ${id}:`, error);
       return null;
@@ -98,13 +106,16 @@ export class ServiceRepository implements IServiceRepository {
   /**
    * Hard delete a service
    */
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, workspaceId: string): Promise<boolean> {
     try {
-      await prisma.services.delete({
-        where: { id }
+      const result = await prisma.services.deleteMany({
+        where: { 
+          id,
+          workspaceId 
+        }
       });
       
-      return true;
+      return result.count > 0;
     } catch (error) {
       logger.error(`Error deleting service ${id}:`, error);
       return false;

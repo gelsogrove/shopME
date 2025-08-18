@@ -4563,4 +4563,3 @@ ${JSON.stringify(ragResults, null, 2)}`
     }
   }
 }
-}

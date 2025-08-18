@@ -29,9 +29,9 @@ export class FaqService {
   /**
    * Get a FAQ by ID
    */
-  async getById(id: string): Promise<FAQ | null> {
+  async getById(id: string, workspaceId: string): Promise<FAQ | null> {
     try {
-      return await this.faqRepository.findById(id);
+      return await this.faqRepository.findById(id, workspaceId);
     } catch (error) {
       logger.error(`Error getting FAQ with id ${id}:`, error);
       throw error;
@@ -67,10 +67,10 @@ export class FaqService {
   /**
    * Update an existing FAQ
    */
-  async update(id: string, data: Partial<FAQ>): Promise<FAQ | null> {
+  async update(id: string, workspaceId: string, data: Partial<FAQ>): Promise<FAQ | null> {
     try {
       // Check if FAQ exists
-      const existingFAQ = await this.faqRepository.findById(id);
+      const existingFAQ = await this.faqRepository.findById(id, workspaceId);
       if (!existingFAQ) {
         throw new Error("FAQ not found");
       }
@@ -87,7 +87,7 @@ export class FaqService {
       }
       
       // Update the FAQ
-      return await this.faqRepository.update(id, data);
+      return await this.faqRepository.update(id, workspaceId, data);
     } catch (error) {
       logger.error(`Error updating FAQ with id ${id}:`, error);
       throw error;
@@ -97,16 +97,16 @@ export class FaqService {
   /**
    * Delete a FAQ
    */
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, workspaceId: string): Promise<boolean> {
     try {
       // Check if FAQ exists
-      const faq = await this.faqRepository.findById(id);
+      const faq = await this.faqRepository.findById(id, workspaceId);
       if (!faq) {
         throw new Error("FAQ not found");
       }
       
       // Delete the FAQ
-      return await this.faqRepository.delete(id);
+      return await this.faqRepository.delete(id, workspaceId);
     } catch (error) {
       logger.error(`Error deleting FAQ with id ${id}:`, error);
       throw error;

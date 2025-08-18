@@ -11,14 +11,14 @@ export interface IServiceRepository {
   findAll(workspaceId: string, active?: boolean): Promise<Service[]>;
   
   /**
-   * Find a single service by ID
+   * Find a single service by ID and workspace
    */
-  findById(id: string): Promise<Service | null>;
+  findById(id: string, workspaceId: string): Promise<Service | null>;
   
   /**
-   * Find services by IDs
+   * Find services by IDs and workspace
    */
-  findByIds(ids: string[]): Promise<Service[]>;
+  findByIds(ids: string[], workspaceId: string): Promise<Service[]>;
   
   /**
    * Create a new service
@@ -28,10 +28,10 @@ export interface IServiceRepository {
   /**
    * Update an existing service
    */
-  update(id: string, data: Partial<Service>): Promise<Service | null>;
+  update(id: string, workspaceId: string, data: Partial<Service>): Promise<Service | null>;
   
   /**
    * Delete a service
    */
-  delete(id: string): Promise<boolean>;
+  delete(id: string, workspaceId: string): Promise<boolean>;
 } 

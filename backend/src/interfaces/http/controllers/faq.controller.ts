@@ -92,9 +92,13 @@ export class FaqController {
    */
   async getFaqById(req: Request, res: Response): Promise<Response> {
     try {
-      const { id } = req.params
+      const { id, workspaceId } = req.params
 
-      const faq = await this.faqService.getById(id)
+      if (!workspaceId) {
+        return res.status(400).json({ error: "Workspace ID is required" })
+      }
+
+      const faq = await this.faqService.getById(id, workspaceId)
 
       if (!faq) {
         return res.status(404).json({ error: "FAQ not found" })
@@ -219,45 +223,42 @@ export class FaqController {
    */
   async updateFaq(req: Request, res: Response): Promise<Response> {
     try {
-      const { id } = req.params
+      const { id, workspaceId } = req.params
       const { question, answer, isActive } = req.body
 
-      const faq = await this.faqService.update(id, {
+      if (!workspaceId) {
+        return res.status(400).json({ error: "Workspace ID is required" })
+      }
+
+      const faq = await this.faqService.update(id, workspaceId, {
         question,
         answer,
         isActive,
       })
 
       // Fire-and-forget: trigger embedding regeneration for FAQs
-      const workspaceIdForUpdate = faq?.workspaceId || req.params.workspaceId
-      if (workspaceIdForUpdate) {
-        logger.info(
-          `🔄 FAQ updated, triggering embedding regeneration for workspace: ${workspaceIdForUpdate}, FAQ ID: ${id}`
-        )
-        embeddingService
-          .generateFAQEmbeddings(workspaceIdForUpdate)
-          .then((result) => {
-            logger.info(
-              `✅ FAQ embedding regeneration completed for workspace ${workspaceIdForUpdate}: processed ${result.processed} FAQs, errors: ${result.errors.length}`
+      logger.info(
+        `🔄 FAQ updated, triggering embedding regeneration for workspace: ${workspaceId}, FAQ ID: ${id}`
+      )
+      embeddingService
+        .generateFAQEmbeddings(workspaceId)
+        .then((result) => {
+          logger.info(
+            `✅ FAQ embedding regeneration completed for workspace ${workspaceId}: processed ${result.processed} FAQs, errors: ${result.errors.length}`
+          )
+          if (result.errors.length > 0) {
+            logger.warn(
+              `⚠️ FAQ embedding regeneration warnings:`,
+              result.errors
             )
-            if (result.errors.length > 0) {
-              logger.warn(
-                `⚠️ FAQ embedding regeneration warnings:`,
-                result.errors
-              )
-            }
-          })
-          .catch((err) => {
-            logger.error(
-              `❌ FAQ embedding regeneration failed for workspace ${workspaceIdForUpdate}:`,
-              err
-            )
-          })
-      } else {
-        logger.warn(
-          `⚠️ Cannot trigger FAQ embedding regeneration: workspaceId not found. FAQ: ${faq?.id}, params.workspaceId: ${req.params.workspaceId}`
-        )
-      }
+          }
+        })
+        .catch((err) => {
+          logger.error(
+            `❌ FAQ embedding regeneration failed for workspace ${workspaceId}:`,
+            err
+          )
+        })
       return res.json(faq)
     } catch (error: any) {
       logger.error(`Error updating FAQ ${req.params.id}:`, error)
@@ -304,22 +305,20 @@ export class FaqController {
    */
   async deleteFaq(req: Request, res: Response): Promise<Response> {
     try {
-      const { id } = req.params
+      const { id, workspaceId } = req.params
+
+      if (!workspaceId) {
+        return res.status(400).json({ error: "Workspace ID is required" })
+      }
 
       try {
-        await this.faqService.delete(id)
+        await this.faqService.delete(id, workspaceId)
         // Fire-and-forget: trigger embedding regeneration for FAQs
-        const deletedFaq = await this.faqService.getById(id) // Might be null after delete
-        const workspaceIdForDelete = deletedFaq
-          ? deletedFaq.workspaceId
-          : req.params.workspaceId
-        if (workspaceIdForDelete) {
-          embeddingService
-            .generateFAQEmbeddings(workspaceIdForDelete)
-            .catch((err) =>
-              logger.error("Embedding generation error (delete):", err)
-            )
-        }
+        embeddingService
+          .generateFAQEmbeddings(workspaceId)
+          .catch((err) =>
+            logger.error("Embedding generation error (delete):", err)
+          )
         return res.status(204).send()
       } catch (error: any) {
         if (error.message === "FAQ not found") {
