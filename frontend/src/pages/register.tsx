@@ -1,4 +1,5 @@
 import { GDPRDialog } from '@/components/ui/gdpr-dialog';
+import { logger } from "@/lib/logger"
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';

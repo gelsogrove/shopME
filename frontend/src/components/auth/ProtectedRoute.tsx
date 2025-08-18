@@ -1,4 +1,5 @@
 import { useCurrentUser } from "@/hooks/useCurrentUser"
+import { logger } from "@/lib/logger"
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Navigate, Outlet, useLocation } from "react-router-dom"

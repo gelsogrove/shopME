@@ -1,4 +1,5 @@
 import { useWorkspace } from "@/hooks/use-workspace"
+import { logger } from "@/lib/logger"
 import { api } from "@/services/api"
 import { useState } from "react"
 

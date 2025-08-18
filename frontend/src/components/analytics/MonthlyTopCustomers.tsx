@@ -1,10 +1,11 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useWorkspace } from "@/hooks/use-workspace"
+import { logger } from "@/lib/logger"
 import {
-  DateRange,
-  getMonthlyTopCustomers,
-  MonthlyTopCustomer,
+    DateRange,
+    getMonthlyTopCustomers,
+    MonthlyTopCustomer,
 } from "@/services/analyticsApi"
 import { Calendar, TrendingUp, Users } from "lucide-react"
 import React, { useEffect, useState } from "react"
@@ -68,7 +69,7 @@ export const MonthlyTopCustomers: React.FC<MonthlyTopCustomersProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5 text-blue-600" />
-            Top Customers per Mese
+            Top Customers by Month
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -88,7 +89,7 @@ export const MonthlyTopCustomers: React.FC<MonthlyTopCustomersProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5 text-blue-600" />
-            Top Customers per Mese
+            Top Customers by Month
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -106,7 +107,7 @@ export const MonthlyTopCustomers: React.FC<MonthlyTopCustomersProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5 text-blue-600" />
-          Top Customers per Mese
+          Top Customers by Month
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -129,7 +130,7 @@ export const MonthlyTopCustomers: React.FC<MonthlyTopCustomersProps> = ({
 
                 {monthData.customers.length > 0 ? (
                   <div className="space-y-3">
-                    {monthData.customers.slice(0, 5).map((customer, index) => (
+                    {monthData.customers.slice(0, 3).map((customer, index) => (
                       <div
                         key={customer.id}
                         className="flex items-center justify-between p-3 bg-blue-50 rounded-lg"
@@ -161,10 +162,10 @@ export const MonthlyTopCustomers: React.FC<MonthlyTopCustomersProps> = ({
                             }).format(customer.totalSpent)}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {customer.totalOrders} ordini
+                            {customer.totalOrders} orders
                           </p>
                           <p className="text-xs text-gray-400">
-                            Medio:{" "}
+                            Avg:{" "}
                             {new Intl.NumberFormat("en-US", {
                               style: "currency",
                               currency: "EUR",
@@ -179,7 +180,7 @@ export const MonthlyTopCustomers: React.FC<MonthlyTopCustomersProps> = ({
                   <div className="text-center py-4">
                     <TrendingUp className="h-6 w-6 text-gray-400 mx-auto mb-2" />
                     <p className="text-gray-500 text-sm">
-                      Nessun customer attivo questo mese
+                      No active customers this month
                     </p>
                   </div>
                 )}
@@ -190,7 +191,7 @@ export const MonthlyTopCustomers: React.FC<MonthlyTopCustomersProps> = ({
           <div className="text-center py-8">
             <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
             <p className="text-gray-500">
-              Nessun dato disponibile per il periodo selezionato
+              No data available for the selected period
             </p>
           </div>
         )}

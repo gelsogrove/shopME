@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger"
 import { api } from "./api"
 
 export interface Language {
@@ -131,10 +132,33 @@ export const getWorkspaces = async (): Promise<Workspace[]> => {
     }
 
     const response = await api.get("/workspaces")
-    logger.info("API Response - getWorkspaces:", response.data)
-    return response.data.map(transformWorkspaceResponse)
+    logger.info("🔍 API Response - getWorkspaces:", response.data)
+    logger.info("📊 Response type:", typeof response.data)
+    logger.info("📊 Is array:", Array.isArray(response.data))
+    
+    // Handle different response structures
+    let workspacesData = response.data
+    if (response.data && response.data.data && Array.isArray(response.data.data)) {
+      workspacesData = response.data.data
+      logger.info("📦 Extracted workspaces from data.data:", workspacesData)
+    } else if (response.data && Array.isArray(response.data)) {
+      workspacesData = response.data
+      logger.info("📦 Using response.data directly:", workspacesData)
+    } else {
+      logger.error("❌ Unexpected response structure:", response.data)
+      throw new Error("Invalid response structure")
+    }
+    
+    if (!Array.isArray(workspacesData)) {
+      logger.error("❌ Workspaces data is not an array:", workspacesData)
+      throw new Error("Workspaces data is not an array")
+    }
+    
+    const transformedWorkspaces = workspacesData.map(transformWorkspaceResponse)
+    logger.info("✅ Transformed workspaces:", transformedWorkspaces)
+    return transformedWorkspaces
   } catch (error) {
-    logger.error("Error getting workspaces:", error)
+    logger.error("❌ Error getting workspaces:", error)
     if (error instanceof Error) {
       throw error
     }

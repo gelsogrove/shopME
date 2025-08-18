@@ -13,6 +13,7 @@
  */
 
 import { Button } from "@/components/ui/button"
+import { logger } from "@/lib/logger"
 import { Card, CardContent } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/services/api"

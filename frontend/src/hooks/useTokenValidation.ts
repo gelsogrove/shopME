@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { useEffect, useState } from 'react'
+import { logger } from '../lib/logger'
 
 interface TokenValidationResult {
   valid: boolean

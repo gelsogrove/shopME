@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button"
+import { logger } from "@/lib/logger"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  Dialog,
+    Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -11,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Select,
+    Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -21,7 +22,7 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/lib/toast"
 import {
-  deleteWorkspace,
+    deleteWorkspace,
   getCurrentWorkspace,
   updateWorkspace,
 } from "@/services/workspaceApi"

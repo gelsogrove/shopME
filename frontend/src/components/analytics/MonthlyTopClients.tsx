@@ -1,10 +1,11 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useWorkspace } from "@/hooks/use-workspace"
+import { logger } from "@/lib/logger"
 import {
-  DateRange,
-  getMonthlyTopClients,
-  MonthlyTopClient,
+    DateRange,
+    getMonthlyTopClients,
+    MonthlyTopClient,
 } from "@/services/analyticsApi"
 import { Building2, Calendar, TrendingUp } from "lucide-react"
 import React, { useEffect, useState } from "react"
@@ -43,18 +44,18 @@ export const MonthlyTopClients: React.FC<MonthlyTopClientsProps> = ({
 
   const getMonthName = (month: string) => {
     const monthNames = [
-      "Gennaio",
-      "Febbraio",
-      "Marzo",
-      "Aprile",
-      "Maggio",
-      "Giugno",
-      "Luglio",
-      "Agosto",
-      "Settembre",
-      "Ottobre",
-      "Novembre",
-      "Dicembre",
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ]
     return monthNames[parseInt(month) - 1] || month
   }
@@ -65,7 +66,7 @@ export const MonthlyTopClients: React.FC<MonthlyTopClientsProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-purple-600" />
-            Top Clients per Mese
+            Top Clients by Month
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -85,7 +86,7 @@ export const MonthlyTopClients: React.FC<MonthlyTopClientsProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-purple-600" />
-            Top Clients per Mese
+            Top Clients by Month
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -103,7 +104,7 @@ export const MonthlyTopClients: React.FC<MonthlyTopClientsProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Building2 className="h-5 w-5 text-purple-600" />
-          Top Clients per Mese
+          Top Clients by Month
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -126,7 +127,7 @@ export const MonthlyTopClients: React.FC<MonthlyTopClientsProps> = ({
 
                 {monthData.clients.length > 0 ? (
                   <div className="space-y-3">
-                    {monthData.clients.slice(0, 5).map((client, index) => (
+                    {monthData.clients.slice(0, 3).map((client, index) => (
                       <div
                         key={client.id}
                         className="flex items-center justify-between p-3 bg-purple-50 rounded-lg"
@@ -158,10 +159,10 @@ export const MonthlyTopClients: React.FC<MonthlyTopClientsProps> = ({
                             }).format(client.totalSpent)}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {client.totalOrders} ordini
+                            {client.totalOrders} orders
                           </p>
                           <p className="text-xs text-gray-400">
-                            Medio:{" "}
+                            Avg:{" "}
                             {new Intl.NumberFormat("en-US", {
                               style: "currency",
                               currency: "EUR",
@@ -176,7 +177,7 @@ export const MonthlyTopClients: React.FC<MonthlyTopClientsProps> = ({
                   <div className="text-center py-4">
                     <TrendingUp className="h-6 w-6 text-gray-400 mx-auto mb-2" />
                     <p className="text-gray-500 text-sm">
-                      Nessun client attivo questo mese
+                      No active clients this month
                     </p>
                   </div>
                 )}
@@ -187,7 +188,7 @@ export const MonthlyTopClients: React.FC<MonthlyTopClientsProps> = ({
           <div className="text-center py-8">
             <Building2 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
             <p className="text-gray-500">
-              Nessun dato disponibile per il periodo selezionato
+              No data available for the selected period
             </p>
           </div>
         )}

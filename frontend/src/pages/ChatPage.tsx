@@ -5,33 +5,34 @@ import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
+import { logger } from "@/lib/logger"
 import { toast } from "@/lib/toast"
 import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
 import { useQuery } from "@tanstack/react-query"
 import {
-  Ban,
-  Bot,
-  Loader2,
-  Lock,
-  Pencil,
-  Send,
-  ShoppingBag,
-  Trash2,
+    Ban,
+    Bot,
+    Loader2,
+    Lock,
+    Pencil,
+    Send,
+    ShoppingBag,
+    Trash2,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import remarkGfm from "remark-gfm"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "../components/ui/alert-dialog"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
@@ -533,7 +534,7 @@ export function ChatPage() {
   // Show orders dialog
   const handleViewOrders = () => {
     if (!selectedChat?.customerName) return
-    navigate(`/orders?search=${encodeURIComponent(selectedChat.customerName)}`)
+                navigate(`/admin/orders?search=${encodeURIComponent(selectedChat.customerName)}`)
   }
 
   // Format date for display

@@ -1,7 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { logger } from "@/lib/logger"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
+    DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -11,7 +12,7 @@ import {
 import { toast } from "@/lib/toast"
 import { api } from "@/services/api"
 import {
-  ArrowLeftRight,
+    ArrowLeftRight,
   Bot,
   CreditCard,
   LogOut,

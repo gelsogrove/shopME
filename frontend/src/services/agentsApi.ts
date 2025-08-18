@@ -1,4 +1,5 @@
 import { Agent, CreateAgentData, UpdateAgentData } from "@/types/agent"
+import { logger } from "@/lib/logger"
 import { api } from "./api"
 
 export type { Agent, CreateAgentData, UpdateAgentData }

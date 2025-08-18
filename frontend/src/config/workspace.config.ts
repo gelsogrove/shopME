@@ -3,6 +3,7 @@
  * This allows for easier management of workspace IDs across the application
  */
 import { api } from "../services/api";
+import { logger } from "@/lib/logger"
 
 interface Workspace {
   id: string;

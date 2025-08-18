@@ -1,8 +1,9 @@
 import { PageLayout } from "@/components/layout/PageLayout"
+import { logger } from "@/lib/logger"
 import { PageHeader } from "@/components/shared/PageHeader"
 import MarkdownEditor from "@/components/ui/markdown-editor"
 import {
-  Tooltip,
+    Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,

@@ -1,7 +1,7 @@
 import {
-  DateRangeSelector,
-  PeriodPreset,
-  getDateRangeFromPeriod,
+    DateRangeSelector,
+    PeriodPreset,
+    getDateRangeFromPeriod,
 } from "@/components/analytics/DateRangeSelector"
 import { HistoricalChart } from "@/components/analytics/HistoricalChart"
 import { MetricsOverview } from "@/components/analytics/MetricsOverview"
@@ -11,10 +11,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useWorkspace } from "@/hooks/use-workspace"
+import { logger } from "@/lib/logger"
 import {
-  AnalyticsResponse,
-  DashboardAnalytics,
-  getDashboardAnalytics,
+    AnalyticsResponse,
+    DashboardAnalytics,
+    getDashboardAnalytics,
 } from "@/services/analyticsApi"
 import { Activity, AlertCircle, BarChart3, TrendingUp } from "lucide-react"
 import { useEffect, useState } from "react"

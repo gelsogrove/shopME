@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { logger } from "@/lib/logger"
 import {
-  AlertTriangle,
-  Globe,
-  MessageSquare,
-  ShoppingCart,
-  Zap,
+      AlertTriangle,
+    Globe,
+    MessageSquare,
+    ShoppingCart,
+    Zap,
 } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -38,7 +39,7 @@ export function LoginPage() {
     defaultValues: {
       email: isDev ? "admin@shopme.com" : "",
       password: isDev ? "venezia44" : "",
-    } satisfies Partial<LoginForm>,
+    } as LoginForm,
   })
 
   const onSubmit = async (data: LoginForm) => {

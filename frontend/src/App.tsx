@@ -92,7 +92,7 @@ export function App() {
             <Route index element={<ClientsPage />} />
             <Route path=":id" element={<ClientsPage />} />
           </Route>
-          <Route path="/orders" element={<Layout />}>
+          <Route path="/admin/orders" element={<Layout />}>
             <Route index element={<OrdersPage />} />
           </Route>
           <Route path="/documents" element={<Layout />}>
@@ -144,23 +144,9 @@ export function App() {
           </Route>
         </Route>
 
-        {/* Root redirect to login */}
-        <Route path="/" element={<Navigate to="/auth/login" replace />} />
-
-        {/* Legacy login redirect */}
-        <Route path="/login" element={<Navigate to="/auth/login" replace />} />
-
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/signup" element={<RegisterPage />} />
-        <Route path="/registration-success" element={<RegistrationSuccess />} />
-        <Route path="/checkout/:token" element={<CheckoutPage />} />
-        <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
-        <Route path="/order-summary/:token" element={<OrderSummaryPage />} />
-        <Route path="/data-protection" element={<DataProtectionPage />} />
-
         {/* Public Orders pages via secure token (external, no platform layout) */}
         <Route
-          path="/orders-public"
+          path="/orders"
           element={
             <Suspense fallback={<div className="min-h-screen bg-gray-100 flex items-center justify-center p-4"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>}>
               <OrdersPublicPage />
@@ -168,7 +154,7 @@ export function App() {
           }
         />
         <Route
-          path="/orders-public/:orderCode"
+          path="/orders/:orderCode"
           element={
             <Suspense fallback={<div className="min-h-screen bg-gray-100 flex items-center justify-center p-4"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>}>
               <OrdersPublicPage />
@@ -185,6 +171,20 @@ export function App() {
             </Suspense>
           }
         />
+
+        {/* Root redirect to login */}
+        <Route path="/" element={<Navigate to="/auth/login" replace />} />
+
+        {/* Legacy login redirect */}
+        <Route path="/login" element={<Navigate to="/auth/login" replace />} />
+
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/signup" element={<RegisterPage />} />
+        <Route path="/registration-success" element={<RegistrationSuccess />} />
+        <Route path="/checkout/:token" element={<CheckoutPage />} />
+        <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
+        <Route path="/order-summary/:token" element={<OrderSummaryPage />} />
+        <Route path="/data-protection" element={<DataProtectionPage />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

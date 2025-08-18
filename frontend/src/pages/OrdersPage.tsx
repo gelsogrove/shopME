@@ -1,4 +1,5 @@
 import { PageLayout } from "@/components/layout/PageLayout"
+import { logger } from "@/lib/logger"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { Badge } from "@/components/ui/badge"
@@ -7,14 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Select,
+    Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
 import {
-  Sheet,
+    Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle
@@ -23,7 +24,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { clientsApi } from "@/services/clientsApi"
 import {
-  ordersApi,
+    ordersApi,
   type ItemType,
   type Order,
   type OrderStatus,
@@ -34,7 +35,7 @@ import { servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
 import { formatPrice } from "@/utils/format"
 import {
-  Eye,
+    Eye,
   FileText,
   Package,
   Pencil,

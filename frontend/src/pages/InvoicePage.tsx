@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { logger } from "@/lib/logger"
 import { useSearchParams } from 'react-router-dom'
 import { useInvoiceTokenValidation } from '../hooks/useTokenValidation'
 import { TokenError, TokenLoading } from '../components/ui/TokenError'
