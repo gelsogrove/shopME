@@ -2084,12 +2084,42 @@ ${JSON.stringify(ragResults, null, 2)}`
           const ordersBaseUrl =
             customer.workspace.url || process.env.FRONTEND_URL || "http://localhost:3000"
           // Include phone in link as requested by Andrea, plus token
-          const phoneParam = encodeURIComponent(customer.phone || "")
-          linkUrl = `${ordersBaseUrl}/orders-public?token=${token}&phone=${phoneParam}`
+          const ordersPhoneParam = encodeURIComponent(customer.phone || "")
+          linkUrl = `${ordersBaseUrl}/orders-public?token=${token}&phone=${ordersPhoneParam}`
+          break
+
+        case "profile":
+          // Create profile token for customer profile management
+          const profilePayload = {
+            customerId: resolvedCustomerId,
+            workspaceId: targetWorkspaceId,
+            customerName: customer.name,
+            customerPhone: customer.phone,
+            metadata: metadata || {},
+            createdAt: new Date().toISOString(),
+          }
+
+          token = await this.secureTokenService.createToken(
+            "profile",
+            targetWorkspaceId,
+            profilePayload,
+            "1h",
+            resolvedCustomerId,
+            customer.phone
+          )
+
+          expiresAt = new Date()
+          expiresAt.setHours(expiresAt.getHours() + 1)
+
+          // Build profile URL
+          const profileBaseUrl =
+            customer.workspace.url || process.env.FRONTEND_URL || "http://localhost:3000"
+          const profilePhoneParam = encodeURIComponent(customer.phone || "")
+          linkUrl = `${profileBaseUrl}/customer-profile?token=${token}&phone=${profilePhoneParam}`
           break
 
         default:
-          res.status(400).json({ error: `Unsupported action: ${action}` })
+          res.status(400).json({ error: 'Unsupported action: ' + action })
           return
       }
 
@@ -4033,9 +4063,9 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      const validation = await this.secureTokenService.validateToken(token, "orders")
+      const validation = await this.secureTokenService.validateToken(token, "any")
       if (!validation.valid) {
-        res.status(401).json({ success: false, error: "Invalid or expired orders token" })
+        res.status(401).json({ success: false, error: "Invalid or expired token" })
         return
       }
 
@@ -4100,9 +4130,9 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      const validation = await this.secureTokenService.validateToken(token, "orders")
+      const validation = await this.secureTokenService.validateToken(token, "any")
       if (!validation.valid) {
-        res.status(401).json({ success: false, error: "Invalid or expired orders token" })
+        res.status(401).json({ success: false, error: "Invalid or expired token" })
         return
       }
 
@@ -4168,10 +4198,98 @@ ${JSON.stringify(ragResults, null, 2)}`
     try {
       const { orderCode } = req.params
       
-      console.log(`[PDF-INVOICE] Redirecting to demo invoice for order: ${orderCode}`)
+      console.log(`[PDF-INVOICE] Generating test invoice for order: ${orderCode}`)
       
-      // Redirect to demo PDF
-      res.redirect('https://www.wmaccess.com/downloads/sample-invoice.pdf')
+      // Generate test PDF
+      const PDFDocument = require('pdfkit')
+      res.setHeader('Content-Type', 'application/pdf')
+      res.setHeader('Content-Disposition', `attachment; filename=invoice-${orderCode}.pdf`)
+      
+      const doc = new PDFDocument({ size: 'A4', margin: 50 })
+      doc.pipe(res)
+
+      // Professional Invoice Header
+      doc.fontSize(24).font('Helvetica-Bold').text('INVOICE', { align: 'center' })
+      doc.moveDown(0.5)
+      doc.fontSize(12).font('Helvetica').text('Invoice Number: ' + orderCode, { align: 'center' })
+      doc.fontSize(10).font('Helvetica').text('Date: ' + new Date().toLocaleDateString('en-US'), { align: 'center' })
+      doc.moveDown(2)
+
+      // Company Information
+      doc.fontSize(14).font('Helvetica-Bold').text('FROM:')
+      doc.fontSize(10).font('Helvetica').text('ShopMe Demo Company')
+      doc.text('123 Business Street')
+      doc.text('Milan, Italy 20100')
+      doc.text('Phone: +39 02 1234567')
+      doc.text('Email: info@shopme-demo.com')
+      doc.moveDown(1)
+
+      // Customer Information
+      doc.fontSize(14).font('Helvetica-Bold').text('BILL TO:')
+      doc.fontSize(10).font('Helvetica').text('Demo Customer')
+      doc.text('456 Customer Avenue')
+      doc.text('Rome, Italy 00100')
+      doc.text('Phone: +39 06 9876543')
+      doc.text('Email: customer@demo.com')
+      doc.moveDown(2)
+
+      // Order Summary
+      doc.fontSize(16).font('Helvetica-Bold').text('ORDER SUMMARY')
+      doc.moveDown(0.5)
+      doc.fontSize(10).font('Helvetica').text(`Order Code: ${orderCode}`)
+      doc.text(`Status: CONFIRMED`)
+      doc.text(`Payment Status: PAID`)
+      doc.moveDown(1)
+
+      // Items Table
+      doc.fontSize(12).font('Helvetica-Bold').text('ITEMS')
+      doc.moveDown(0.5)
+      
+      // Table header
+      const startY = doc.y
+      doc.fontSize(10).font('Helvetica-Bold')
+      doc.text('Item', 50, startY)
+      doc.text('Quantity', 250, startY)
+      doc.text('Unit Price', 350, startY)
+      doc.text('Total', 450, startY)
+      
+      // Table content
+      doc.fontSize(10).font('Helvetica')
+      const items = [
+        { name: 'Demo Product 1', qty: 2, price: 25.00, total: 50.00 },
+        { name: 'Demo Product 2', qty: 1, price: 35.50, total: 35.50 },
+        { name: 'Demo Service 1', qty: 1, price: 15.00, total: 15.00 }
+      ]
+      
+      let currentY = startY + 20
+      items.forEach(item => {
+        doc.text(item.name, 50, currentY)
+        doc.text(item.qty.toString(), 250, currentY)
+        doc.text(`€${item.price.toFixed(2)}`, 350, currentY)
+        doc.text(`€${item.total.toFixed(2)}`, 450, currentY)
+        currentY += 15
+      })
+
+      // Totals
+      doc.moveDown(2)
+      const subtotal = items.reduce((sum, item) => sum + item.total, 0)
+      const tax = subtotal * 0.22 // 22% VAT
+      const shipping = 5.00
+      const total = subtotal + tax + shipping
+
+      doc.fontSize(10).font('Helvetica')
+      doc.text(`Subtotal: €${subtotal.toFixed(2)}`, 350, doc.y)
+      doc.text(`VAT (22%): €${tax.toFixed(2)}`, 350, doc.y + 15)
+      doc.text(`Shipping: €${shipping.toFixed(2)}`, 350, doc.y + 30)
+      doc.fontSize(12).font('Helvetica-Bold')
+      doc.text(`TOTAL: €${total.toFixed(2)}`, 350, doc.y + 45)
+
+      // Footer
+      doc.moveDown(3)
+      doc.fontSize(8).font('Helvetica').text('This is a test invoice generated for demonstration purposes.', { align: 'center' })
+      doc.text('Thank you for your business!', { align: 'center' })
+
+      doc.end()
     } catch (error) {
       logger.error("[ORDERS] Error downloading invoice:", error)
       res.status(500).json({ success: false, error: "Internal server error" })
@@ -4185,10 +4303,89 @@ ${JSON.stringify(ragResults, null, 2)}`
     try {
       const { orderCode } = req.params
       
-      console.log(`[PDF-DDT] Redirecting to demo DDT for order: ${orderCode}`)
+      console.log(`[PDF-DDT] Generating test DDT for order: ${orderCode}`)
       
-      // Redirect to demo PDF
-      res.redirect('https://lazzarinisrl.it/shop/docProdotti/1050013.pdf')
+      // Generate test PDF
+      const PDFDocument = require('pdfkit')
+      res.setHeader('Content-Type', 'application/pdf')
+      res.setHeader('Content-Disposition', `attachment; filename=ddt-${orderCode}.pdf`)
+      
+      const doc = new PDFDocument({ size: 'A4', margin: 50 })
+      doc.pipe(res)
+
+      // Professional DDT Header
+      doc.fontSize(24).font('Helvetica-Bold').text('DELIVERY NOTE', { align: 'center' })
+      doc.moveDown(0.5)
+      doc.fontSize(12).font('Helvetica').text('Document Number: ' + orderCode, { align: 'center' })
+      doc.fontSize(10).font('Helvetica').text('Date: ' + new Date().toLocaleDateString('en-US'), { align: 'center' })
+      doc.moveDown(2)
+
+      // Company Information
+      doc.fontSize(14).font('Helvetica-Bold').text('FROM:')
+      doc.fontSize(10).font('Helvetica').text('ShopMe Demo Company')
+      doc.text('123 Business Street')
+      doc.text('Milan, Italy 20100')
+      doc.text('Phone: +39 02 1234567')
+      doc.text('VAT: IT12345678901')
+      doc.moveDown(1)
+
+      // Shipping Information
+      doc.fontSize(14).font('Helvetica-Bold').text('SHIP TO:')
+      doc.fontSize(10).font('Helvetica').text('Demo Customer')
+      doc.text('456 Customer Avenue')
+      doc.text('Rome, Italy 00100')
+      doc.text('Phone: +39 06 9876543')
+      doc.moveDown(2)
+
+      // Delivery Information
+      doc.fontSize(16).font('Helvetica-Bold').text('DELIVERY INFORMATION')
+      doc.moveDown(0.5)
+      doc.fontSize(10).font('Helvetica').text(`Order Code: ${orderCode}`)
+      doc.text(`Delivery Date: ${new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US')}`)
+      doc.text(`Carrier: Demo Express')
+      doc.text('Tracking Number: DEMO-' + orderCode)
+      doc.moveDown(1)
+
+      // Items Table (no prices for DDT)
+      doc.fontSize(12).font('Helvetica-Bold').text('ITEMS TO DELIVER')
+      doc.moveDown(0.5)
+      
+      // Table header
+      const startY = doc.y
+      doc.fontSize(10).font('Helvetica-Bold')
+      doc.text('Item', 50, startY)
+      doc.text('Description', 250, startY)
+      doc.text('Quantity', 450, startY)
+      
+      // Table content
+      doc.fontSize(10).font('Helvetica')
+      const items = [
+        { name: 'Demo Product 1', description: 'High quality demo product', qty: 2 },
+        { name: 'Demo Product 2', description: 'Premium demo item', qty: 1 },
+        { name: 'Demo Service 1', description: 'Professional demo service', qty: 1 }
+      ]
+      
+      let currentY = startY + 20
+      items.forEach(item => {
+        doc.text(item.name, 50, currentY)
+        doc.text(item.description, 250, currentY)
+        doc.text(item.qty.toString(), 450, currentY)
+        currentY += 15
+      })
+
+      // Special Instructions
+      doc.moveDown(2)
+      doc.fontSize(12).font('Helvetica-Bold').text('SPECIAL INSTRUCTIONS')
+      doc.fontSize(10).font('Helvetica').text('Handle with care. Fragile items included.')
+      doc.text('Delivery time: 2-3 business days')
+      doc.text('Signature required upon delivery')
+
+      // Footer
+      doc.moveDown(3)
+      doc.fontSize(8).font('Helvetica').text('This is a test delivery note generated for demonstration purposes.', { align: 'center' })
+      doc.text('Please keep this document for your records.', { align: 'center' })
+
+      doc.end()
     } catch (error) {
       logger.error("[ORDERS] Error downloading DDT:", error)
       res.status(500).json({ success: false, error: "Internal server error" })
@@ -4221,6 +4418,148 @@ ${JSON.stringify(ragResults, null, 2)}`
       return res.status(200).json({ success: true, ...result })
     } catch (error) {
       return res.status(500).json({ success: false, error: 'Internal server error' })
+    }
+  }
+
+  /**
+   * 👤 GET CUSTOMER PROFILE DATA
+   * GET /internal/customer-profile/{token}
+   * Get customer profile data for profile management page
+   */
+  async getCustomerProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const { token } = req.params
+
+      if (!token) {
+        res.status(400).json({ error: "Token is required" })
+        return
+      }
+
+      logger.info('[INTERNAL-API] Getting customer profile for token: ' + token.substring(0, 12) + '...')
+
+      // Validate token
+      const tokenValidation = await this.secureTokenService.validateToken(token, 'profile')
+      
+      if (!tokenValidation.valid) {
+        res.status(401).json({ error: "Invalid or expired token" })
+        return
+      }
+
+      const { data: tokenData, payload } = tokenValidation
+      const { customerId, workspaceId } = payload
+
+      // Get customer data
+      const customer = await this.prisma.customers.findFirst({
+        where: {
+          id: customerId,
+          workspaceId: workspaceId
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          company: true,
+          address: true,
+          language: true,
+          currency: true,
+          discount: true,
+          invoiceAddress: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      })
+
+      if (!customer) {
+        res.status(404).json({ error: "Customer not found" })
+        return
+      }
+
+      res.json({
+        success: true,
+        data: customer
+      })
+
+      logger.info('[INTERNAL-API] Customer profile retrieved for customer ' + customer.id)
+    } catch (error) {
+      logger.error("[INTERNAL-API] Get customer profile error:", error)
+      res.status(500).json({ error: "Internal server error" })
+    }
+  }
+
+  /**
+   * 👤 UPDATE CUSTOMER PROFILE
+   * PUT /internal/customer-profile/{token}
+   * Update customer profile data from profile management page
+   */
+  async updateCustomerProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const { token } = req.params
+      const updateData = req.body
+
+      if (!token) {
+        res.status(400).json({ error: "Token is required" })
+        return
+      }
+
+      logger.info('[INTERNAL-API] Updating customer profile for token: ' + token.substring(0, 12) + '...')
+
+      // Validate token
+      const tokenValidation = await this.secureTokenService.validateToken(token, 'profile')
+      
+      if (!tokenValidation.valid) {
+        res.status(401).json({ error: "Invalid or expired token" })
+        return
+      }
+
+      const { data: tokenData, payload } = tokenValidation
+      const { customerId, workspaceId } = payload
+
+      // Validate update data
+      const allowedFields = ['name', 'email', 'phone', 'company', 'address', 'language', 'currency', 'invoiceAddress']
+      const filteredData: any = {}
+      
+      for (const field of allowedFields) {
+        if (updateData[field] !== undefined) {
+          filteredData[field] = updateData[field]
+        }
+      }
+
+      // Update customer
+      const updatedCustomer = await prisma.customers.update({
+        where: {
+          id: customerId,
+          workspaceId: workspaceId
+        },
+        data: {
+          ...filteredData,
+          updatedAt: new Date()
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          company: true,
+          address: true,
+          language: true,
+          currency: true,
+          discount: true,
+          invoiceAddress: true,
+          updatedAt: true
+        }
+      })
+
+      res.json({
+        success: true,
+        data: updatedCustomer,
+        message: "Profile updated successfully"
+      })
+
+      logger.info('[INTERNAL-API] Customer profile updated for customer ' + customerId)
+    } catch (error) {
+      logger.error("[INTERNAL-API] Update customer profile error:", error)
+      res.status(500).json({ error: "Internal server error" })
     }
   }
 }

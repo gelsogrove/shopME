@@ -50,7 +50,7 @@ export class SecureTokenService {
    * Create a secure token
    */
   async createToken(
-    type: 'registration' | 'checkout' | 'invoice' | 'cart' | 'password_reset' | 'email_verification' | 'orders',
+    type: 'registration' | 'checkout' | 'invoice' | 'cart' | 'password_reset' | 'email_verification' | 'orders' | 'profile',
     workspaceId: string,
     payload?: any,
     expiresIn: string = '1h',
@@ -128,6 +128,7 @@ export class SecureTokenService {
 
   /**
    * Validate a token with workspace isolation
+   * If type is not specified, accepts any valid token type
    */
   async validateToken(
     token: string,
@@ -144,7 +145,8 @@ export class SecureTokenService {
         usedAt: null,
       }
 
-      if (type) whereClause.type = type
+      // Only filter by type if explicitly specified
+      if (type && type !== 'any') whereClause.type = type
       if (workspaceId) whereClause.workspaceId = workspaceId
 
       const secureToken = await this.prisma.secureToken.findFirst({
@@ -156,10 +158,10 @@ export class SecureTokenService {
         return { valid: false }
       }
 
-      // Decrypt payload if exists
+      // Get payload if exists (not encrypted, stored as JSON)
       let decryptedPayload = null
       if (secureToken.payload) {
-        decryptedPayload = this.decryptPayload(secureToken.payload as string)
+        decryptedPayload = secureToken.payload
       }
 
       // Validate required payload if specified

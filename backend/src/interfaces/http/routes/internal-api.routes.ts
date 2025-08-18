@@ -302,6 +302,127 @@ router.post(
   internalApiController.getShipmentTrackingLink.bind(internalApiController)
 )
 
+// 👤 CUSTOMER PROFILE MANAGEMENT
+/**
+ * @swagger
+ * /internal/customer-profile/{token}:
+ *   get:
+ *     tags: [Internal API]
+ *     summary: Get customer profile data for profile management page
+ *     security:
+ *       - N8NAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Profile access token
+ *     responses:
+ *       200:
+ *         description: Customer profile data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     phone:
+ *                       type: string
+ *                     company:
+ *                       type: string
+ *                     address:
+ *                       type: string
+ *                     language:
+ *                       type: string
+ *                     currency:
+ *                       type: string
+ *                     discount:
+ *                       type: number
+ *                     invoiceAddress:
+ *                       type: object
+ *       401:
+ *         description: Invalid or expired token
+ *       404:
+ *         description: Customer not found
+ */
+router.get(
+  "/customer-profile/:token",
+  internalApiController.getCustomerProfile.bind(internalApiController)
+)
+
+/**
+ * @swagger
+ * /internal/customer-profile/{token}:
+ *   put:
+ *     tags: [Internal API]
+ *     summary: Update customer profile data from profile management page
+ *     security:
+ *       - N8NAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Profile access token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               company:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               language:
+ *                 type: string
+ *               currency:
+ *                 type: string
+ *               invoiceAddress:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Invalid or expired token
+ *       404:
+ *         description: Customer not found
+ */
+router.put(
+  "/customer-profile/:token",
+  internalApiController.updateCustomerProfile.bind(internalApiController)
+)
+
 // 🧾 GET ORDERS LIST (Backend-only for LLM reply)
 /**
  * @swagger

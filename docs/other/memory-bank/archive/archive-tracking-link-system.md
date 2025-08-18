@@ -167,11 +167,11 @@
 - `docs/other/prompt_agent.md` - Bot instructions update
 
 ### **Memory Bank**
-- `memory-bank/tasks.md` - Task tracking
-- `memory-bank/activeContext.md` - Context management
-- `memory-bank/creative/creative-tracking-link-system.md` - Design decisions
-- `memory-bank/reflection/reflection-tracking-link-system.md` - Implementation reflection
-- `memory-bank/archive/archive-tracking-link-system.md` - Final archive
+- `docs/memory-bank/tasks.md` - Task tracking
+- `docs/memory-bank/activeContext.md` - Context management
+- `docs/memory-bank/creative/creative-tracking-link-system.md` - Design decisions
+- `docs/memory-bank/reflection/reflection-tracking-link-system.md` - Implementation reflection
+- `docs/memory-bank/archive/archive-tracking-link-system.md` - Final archive
 
 ---
 
