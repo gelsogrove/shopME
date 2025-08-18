@@ -30,15 +30,9 @@ class ServiceService {
    */
   async getById(id: string, workspaceId: string): Promise<Service | null> {
     try {
-      const service = await this.serviceRepository.findById(id);
+      const service = await this.serviceRepository.findById(id, workspaceId);
       
       if (!service) {
-        return null;
-      }
-      
-      // Verify the service belongs to the specified workspace
-      if (service.workspaceId !== workspaceId) {
-        logger.warn(`Service ${id} does not belong to workspace ${workspaceId}`);
         return null;
       }
       
@@ -52,9 +46,9 @@ class ServiceService {
   /**
    * Get services by IDs
    */
-  async getByIds(ids: string[]): Promise<Service[]> {
+  async getByIds(ids: string[], workspaceId: string): Promise<Service[]> {
     try {
-      return await this.serviceRepository.findByIds(ids);
+      return await this.serviceRepository.findByIds(ids, workspaceId);
     } catch (error) {
       logger.error("Error getting services by ids:", error);
       throw error;
@@ -87,10 +81,10 @@ class ServiceService {
   /**
    * Update a service
    */
-  async update(id: string, data: Partial<Service>): Promise<Service> {
+  async update(id: string, workspaceId: string, data: Partial<Service>): Promise<Service> {
     try {
       // Check if service exists
-      const existingService = await this.serviceRepository.findById(id);
+      const existingService = await this.serviceRepository.findById(id, workspaceId);
       if (!existingService) {
         throw new Error('Service not found');
       }
@@ -109,7 +103,7 @@ class ServiceService {
         throw new Error('Invalid service data');
       }
       
-      const updated = await this.serviceRepository.update(id, data);
+      const updated = await this.serviceRepository.update(id, workspaceId, data);
       if (!updated) {
         throw new Error('Service not found');
       }
@@ -124,15 +118,15 @@ class ServiceService {
   /**
    * Hard delete a service
    */
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, workspaceId: string): Promise<boolean> {
     try {
       // Check if service exists first
-      const existingService = await this.serviceRepository.findById(id);
+      const existingService = await this.serviceRepository.findById(id, workspaceId);
       if (!existingService) {
         throw new Error('Service not found');
       }
       
-      return await this.serviceRepository.delete(id);
+      return await this.serviceRepository.delete(id, workspaceId);
     } catch (error) {
       logger.error(`Error deleting service ${id}:`, error);
       throw error;

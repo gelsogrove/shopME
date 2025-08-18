@@ -24,12 +24,15 @@ export class FaqRepository implements IFaqRepository {
   }
   
   /**
-   * Find a single FAQ by ID
+   * Find a single FAQ by ID and workspace
    */
-  async findById(id: string): Promise<FAQ | null> {
+  async findById(id: string, workspaceId: string): Promise<FAQ | null> {
     try {
-      const faq = await prisma.fAQ.findUnique({
-        where: { id }
+      const faq = await prisma.fAQ.findFirst({
+        where: { 
+          id,
+          workspaceId 
+        }
       });
       
       return faq ? new FAQ(faq) : null;
@@ -58,14 +61,18 @@ export class FaqRepository implements IFaqRepository {
   /**
    * Update an existing FAQ
    */
-  async update(id: string, data: Partial<FAQ>): Promise<FAQ | null> {
+  async update(id: string, workspaceId: string, data: Partial<FAQ>): Promise<FAQ | null> {
     try {
-      const faq = await prisma.fAQ.update({
-        where: { id },
+      await prisma.fAQ.updateMany({
+        where: { 
+          id,
+          workspaceId 
+        },
         data: data as any
       });
       
-      return new FAQ(faq);
+      // Get updated FAQ
+      return this.findById(id, workspaceId);
     } catch (error) {
       logger.error(`Error updating FAQ ${id}:`, error);
       return null;
@@ -75,13 +82,16 @@ export class FaqRepository implements IFaqRepository {
   /**
    * Delete a FAQ
    */
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, workspaceId: string): Promise<boolean> {
     try {
-      await prisma.fAQ.delete({
-        where: { id }
+      const result = await prisma.fAQ.deleteMany({
+        where: { 
+          id,
+          workspaceId 
+        }
       });
       
-      return true;
+      return result.count > 0;
     } catch (error) {
       logger.error(`Error deleting FAQ ${id}:`, error);
       return false;

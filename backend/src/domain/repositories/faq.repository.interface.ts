@@ -11,9 +11,9 @@ export interface IFaqRepository {
   findAll(workspaceId: string): Promise<FAQ[]>;
   
   /**
-   * Find a single FAQ by ID
+   * Find a single FAQ by ID and workspace
    */
-  findById(id: string): Promise<FAQ | null>;
+  findById(id: string, workspaceId: string): Promise<FAQ | null>;
   
   /**
    * Create a new FAQ
@@ -23,10 +23,10 @@ export interface IFaqRepository {
   /**
    * Update an existing FAQ
    */
-  update(id: string, data: Partial<FAQ>): Promise<FAQ | null>;
+  update(id: string, workspaceId: string, data: Partial<FAQ>): Promise<FAQ | null>;
   
   /**
    * Delete a FAQ
    */
-  delete(id: string): Promise<boolean>;
+  delete(id: string, workspaceId: string): Promise<boolean>;
 } 
