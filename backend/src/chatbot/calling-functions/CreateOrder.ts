@@ -1,6 +1,6 @@
-import logger from "../../utils/logger"
 import { ItemType } from "@prisma/client"
 import { prisma } from "../../lib/prisma"
+import logger from "../../utils/logger"
 
 export interface CreateOrderParams {
   workspaceId: string
