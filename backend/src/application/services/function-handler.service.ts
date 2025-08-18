@@ -372,7 +372,7 @@ export class FunctionHandlerService {
       if (!workspaceSettings || !workspaceSettings.welcomeMessages) {
         return {
           greeting: "Benvenuto!",
-          workspace_name: "il nostro servizio",
+          workspace_name: "our service",
           time_of_day: this.getTimeBasedGreeting(customer?.language || "it"),
         }
       }
@@ -409,7 +409,7 @@ export class FunctionHandlerService {
         return {
           greeting:
             welcomeMessages[userLang] || welcomeMessages["en"] || "Benvenuto!",
-          workspace_name: workspaceSettings.name || "il nostro servizio",
+          workspace_name: workspaceSettings.name || "our service",
           time_of_day: this.getTimeBasedGreeting(userLang),
           registration_url: registrationUrl,
           needs_registration: true,
@@ -421,15 +421,15 @@ export class FunctionHandlerService {
         greeting:
           welcomeMessages[userLang] || welcomeMessages["en"] || "Benvenuto!",
         customer_name: customer.name,
-        workspace_name: workspaceSettings.name || "il nostro servizio",
+        workspace_name: workspaceSettings.name || "our service",
         time_of_day: this.getTimeBasedGreeting(userLang),
       }
     } catch (error) {
       logger.error("Error generating welcome message:", error)
       return {
-        greeting: "Benvenuto!",
+        greeting: "Welcome!",
         error:
-          "Si è verificato un errore nella generazione del messaggio di benvenuto.",
+          "An error occurred while generating the welcome message.",
       }
     }
   }
@@ -457,7 +457,7 @@ export class FunctionHandlerService {
       if (!cart || cart.items.length === 0) {
         return {
           success: false,
-          error: "Il carrello è vuoto",
+          error: "The cart is empty",
           cart_empty: true,
         }
       }
@@ -513,10 +513,10 @@ export class FunctionHandlerService {
       }
     } catch (error) {
       logger.error("Error creating order:", error)
-      return {
-        success: false,
-        error: "Si è verificato un errore nella creazione dell'ordine",
-      }
+              return {
+          success: false,
+          error: "An error occurred while creating the order",
+        }
     }
   }
 
@@ -539,7 +539,7 @@ export class FunctionHandlerService {
       if (!items || items.length === 0) {
         return {
           success: false,
-          error: "❌ Nessun item fornito per l'ordine",
+          error: "❌ No items provided for the order",
         }
       }
 
@@ -561,7 +561,7 @@ export class FunctionHandlerService {
           if (!product) {
             return {
               success: false,
-              error: `❌ Prodotto non trovato: ${item.name} (${item.id})`,
+              error: `❌ Product not found: ${item.name} (${item.id})`,
             }
           }
 
@@ -595,7 +595,7 @@ export class FunctionHandlerService {
           if (!service) {
             return {
               success: false,
-              error: `❌ Servizio non trovato: ${item.name}`,
+              error: `❌ Service not found: ${item.name}`,
             }
           }
 
@@ -817,7 +817,7 @@ export class FunctionHandlerService {
         if (!orders || orders.length === 0) {
           return {
             found: false,
-            error: "Nessun ordine trovato",
+            error: "No orders found",
           }
         }
 
@@ -865,7 +865,7 @@ export class FunctionHandlerService {
       if (!products || products.length === 0) {
         return {
           success: false,
-          error: "Prodotto non trovato",
+          error: "Product not found",
           product_not_found: true,
         }
       }
@@ -959,7 +959,7 @@ export class FunctionHandlerService {
       if (!cart || cart.items.length === 0) {
         return {
           success: false,
-          error: "Carrello vuoto o non trovato",
+          error: "Cart is empty or not found",
           cart_empty: true,
         }
       }
@@ -972,7 +972,7 @@ export class FunctionHandlerService {
       if (matchingItems.length === 0) {
         return {
           success: false,
-          error: "Prodotto non trovato nel carrello",
+          error: "Product not found in cart",
         }
       }
 
@@ -1235,9 +1235,9 @@ export class FunctionHandlerService {
       logger.error(`[CATEGORIES_HANDLER] Error getting categories:`, error)
       return {
         success: false,
-        error: "Si è verificato un errore nel recupero delle categorie",
+        error: "An error occurred while retrieving categories",
         fallback_message:
-          "Per vedere le categorie disponibili, contatta il nostro servizio clienti.",
+          "To see available categories, contact our customer service.",
       }
     }
   }
@@ -1279,7 +1279,7 @@ export class FunctionHandlerService {
       return {
         success: false,
         response:
-          "Si è verificato un errore nel recupero dei prodotti. Per favore riprova più tardi o contatta il nostro servizio clienti.",
+          "An error occurred while retrieving products. Please try again later or contact our customer service.",
         products: [],
         totalProducts: 0,
       }

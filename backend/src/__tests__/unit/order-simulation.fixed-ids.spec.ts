@@ -10,6 +10,7 @@
 
 import { confirmOrderFromConversation } from '../../chatbot/calling-functions/confirmOrderFromConversation'
 import { CreateOrder } from '../../chatbot/calling-functions/CreateOrder'
+import { logger } from '../../utils/logger'
 
 // Fixed IDs from seed.ts
 const FIXED_WORKSPACE_ID = 'cm9hjgq9v00014qk8fsdy4ujv'
@@ -22,6 +23,7 @@ describe('Order Simulation with Fixed IDs', () => {
       const conversationContext = {
         customerId: FIXED_CUSTOMER_ID,
         workspaceId: FIXED_WORKSPACE_ID,
+        conversationContext: "User wants to buy 2 fresh mozzarellas and 1 bottle of red wine",
         conversationHistory: [
           {
             role: 'user',
@@ -119,6 +121,7 @@ describe('Order Simulation with Fixed IDs', () => {
       const conversationContext = {
         customerId: FIXED_CUSTOMER_ID,
         workspaceId: FIXED_WORKSPACE_ID,
+        conversationContext: "User wants to buy 1 mozzarella and book urgent delivery",
         conversationHistory: [
           {
             role: 'user',
@@ -176,6 +179,7 @@ describe('Order Simulation with Fixed IDs', () => {
       const conversationContext = {
         customerId: FIXED_CUSTOMER_ID,
         workspaceId: FIXED_WORKSPACE_ID,
+        conversationContext: "User wants to confirm empty order",
         conversationHistory: [
           {
             role: 'user',
@@ -187,7 +191,7 @@ describe('Order Simulation with Fixed IDs', () => {
 
       const result = await confirmOrderFromConversation(conversationContext)
       expect(result.success).toBe(false)
-      expect(result.response).toContain('Non ho identificato prodotti')
+      expect(result.response).toContain('I have not identified products')
     })
 
     it('should handle insufficient stock', async () => {

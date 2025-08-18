@@ -97,9 +97,9 @@ Dimmi quale categoria ti interessa o scrivi il nome di un prodotto specifico! �
   } catch (error) {
     logger.error(`[GET_ALL_CATEGORIES] Error getting categories:`, error);
     
-    const errorMessage = `Si è verificato un errore nel recupero delle categorie. 😞
+    const errorMessage = `An error occurred while retrieving categories. 😞
 
-Per favore riprova più tardi o contatta il nostro servizio clienti.`;
+Please try again later or contact our customer service.`;
 
     return {
       response: errorMessage,

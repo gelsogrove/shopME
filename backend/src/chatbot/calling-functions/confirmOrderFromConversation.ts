@@ -18,8 +18,8 @@ export interface ConversationProduct {
 export interface ConfirmOrderFromConversationParams {
   customerId: string
   workspaceId: string
-  conversationContext: string // Ultimi messaggi della conversazione
-  prodottiSelezionati?: ConversationProduct[] // Prodotti identificati dal LLM
+  conversationContext: string // Latest conversation messages
+  prodottiSelezionati?: ConversationProduct[] // Products identified by LLM
 }
 
 export interface ConfirmOrderFromConversationResult {
@@ -46,7 +46,7 @@ export async function confirmOrderFromConversation(
   )
 
   try {
-    // Validazione parametri
+    // Parameter validation
     if (!customerId || !workspaceId) {
       throw new Error("Missing required parameters: customerId or workspaceId")
     }
@@ -60,7 +60,7 @@ export async function confirmOrderFromConversation(
       }
     }
 
-    // Verifica che customer e workspace esistano
+    // Verify that customer and workspace exist
     const customer = await prisma.customers.findFirst({
       where: { id: customerId, workspaceId },
     })
@@ -79,7 +79,7 @@ export async function confirmOrderFromConversation(
       throw new Error(`Workspace ${workspaceId} not found`)
     }
 
-    // Cerca prodotti nel database e calcola prezzi
+    // Search products in database and calculate prices
     const prodottiConPrezzo = []
     let totalAmount = 0
 
@@ -121,11 +121,11 @@ export async function confirmOrderFromConversation(
       totalAmount += totalPrice
     }
 
-    // Genera token sicuro
+    // Generate secure token
     const checkoutToken = generateSecureToken()
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 ora
+          const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
 
-    // Salva token nel database con i prodotti
+          // Save token in database with products
     await prisma.secureToken.create({
       data: {
         token: checkoutToken,
@@ -148,31 +148,31 @@ export async function confirmOrderFromConversation(
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000"
     const checkoutUrl = `${frontendUrl}/checkout/${checkoutToken}`
 
-    // Crea messaggio di riepilogo
-    const checkoutMessage = `🛒 **Riepilogo Ordine**
+    // Create order summary message
+    const checkoutMessage = `🛒 **Order Summary**
 
 ${prodottiConPrezzo
   .map(
     (item) =>
-      `• ${item.descrizione} (${item.codice})\n  Quantità: ${item.qty} x €${item.prezzo.toFixed(2)} = €${(item.prezzo * item.qty).toFixed(2)}`
+      `• ${item.descrizione} (${item.codice})\n  Quantity: ${item.qty} x €${item.prezzo.toFixed(2)} = €${(item.prezzo * item.qty).toFixed(2)}`
   )
   .join("\n\n")}
 
-💰 **Totale: €${totalAmount.toFixed(2)}**
+💰 **Total: €${totalAmount.toFixed(2)}**
 
-🔗 **Finalizza il tuo ordine:**
+🔗 **Complete your order:**
 ${checkoutUrl}
 
-⏰ Link valido per 1 ora
-🔐 Checkout sicuro
+⏰ Link valid for 1 hour
+🔐 Secure checkout
 
-📝 Nel checkout potrai:
-• Verificare i prodotti selezionati
-• Inserire l'indirizzo di spedizione
-• Scegliere il metodo di pagamento
-• Confermare definitivamente l'ordine
+📝 In checkout you can:
+• Verify selected products
+• Enter shipping address
+• Choose payment method
+• Finally confirm the order
 
-🧹 **Nota**: Il tuo carrello è stato pulito per evitare ordini duplicati.`
+🧹 **Note**: Your cart has been cleared to avoid duplicate orders.`
 
     logger.info(
       `[CONFIRM_ORDER_CONVERSATION] Checkout link created: ${checkoutToken}, Total: €${totalAmount}`
@@ -216,13 +216,13 @@ function generateSecureToken(): string {
 export const confirmOrderFromConversationFunction = {
   name: "confirmOrderFromConversation",
   description:
-    "Conferma ordine dalla conversazione corrente e genera link checkout sicuro. Da chiamare quando il cliente conferma di voler procedere con l'ordine dei prodotti discussi nella chat.",
+    "Confirm order from current conversation and generate secure checkout link. To be called when the customer confirms they want to proceed with the order of products discussed in the chat.",
   parameters: {
     type: "object",
     properties: {
       customerId: {
         type: "string",
-        description: "ID del cliente che conferma l'ordine",
+        description: "ID of the customer confirming the order",
       },
       workspaceId: {
         type: "string",
@@ -235,13 +235,13 @@ export const confirmOrderFromConversationFunction = {
       prodottiSelezionati: {
         type: "array",
         description:
-          "Prodotti identificati nella conversazione che il cliente vuole ordinare",
+          "Products identified in the conversation that the customer wants to order",
         items: {
           type: "object",
           properties: {
             nome: {
               type: "string",
-              description: "Nome del prodotto come menzionato dal cliente",
+              description: "Product name as mentioned by the customer",
             },
             quantita: {
               type: "number",
