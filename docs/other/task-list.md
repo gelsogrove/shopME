@@ -2,6 +2,16 @@
 
 This list consolidates existing tasks, renumbered and cleaned. Use plain numeric IDs; no TA- prefixes. Keep UI/layout unchanged unless explicitly approved.
 
+### ✅ Completed Tasks
+
+**AI Dev Tasks System - Removed** ✅ COMPLETED
+- Installed and tested AI Dev Tasks workflow system
+- Determined it was not needed for current workflow
+- Removed to simplify project structure
+- Continuing with existing memory-bank + task-list system
+- Story Points: 1
+- Status: ✅ COMPLETED (Removed)
+
 ### Top Action Tasks
 
 1. Enforce workspaceId Everywhere (+ Tests)
@@ -12,33 +22,48 @@ This list consolidates existing tasks, renumbered and cleaned. Use plain numeric
    - Story Points: 3
    - Status: Not Started
 
-2. PromptAgent Cart Coherence (Live Updates)
+2. Customer Profile Management Page ✅ COMPLETED
+   - Implement secure customer profile management page accessible via WhatsApp bot
+   - Token-based authentication with 1-hour expiration
+   - Form validation and error handling
+   - Database integration for profile updates
+   - UI/UX consistency with existing application
+   - Story Points: 8
+   - Status: ✅ COMPLETED
+   - Notes:
+     - Backend: API endpoints for profile retrieval and update
+     - Frontend: CustomerProfilePublicPage with ProfileForm component
+     - WhatsApp: GetCustomerProfileLink() calling function integrated
+     - Security: Token validation and workspace isolation
+     - Documentation: Swagger and PRD updated
+
+3. PromptAgent Cart Coherence (Live Updates)
    - Ensure chat cart and `CreateOrder.items` remain consistent at all times.
    - Keep configuration strictly from DB; no static fallbacks.
    - Focus on preventing empty `items` arrays when the cart shows content.
    - Story Points: 3
    - Status: Not Started
 
-3. Clear Cart State After Order (Hidden System Message)
+4. Clear Cart State After Order (Hidden System Message)
    - In N8N, after successful order creation, send a hidden system message to clear cart memory.
    - Delay by ~5 seconds to avoid race conditions; never send on cancel/failure.
    - Story Points: 2
    - Status: Not Started
 
-4. Automate N8N Seed Login and Workspace Activation
+5. Automate N8N Seed Login and Workspace Activation
    - Make N8N authentication and workspace activation automatic during seed/start.
    - Persist session (cookie/token). Auto-activate the single active workspace from DB.
    - No hardcoded IDs; the flow must be idempotent.
    - Story Points: 3
    - Status: Not Started
 
-5. Scripts Hygiene and Cleanup
+6. Scripts Hygiene and Cleanup
    - Keep only scripts actually used (referenced in backend scripts or seed flow).
    - Remove temporary/debug scripts under `/scripts/` that are no longer needed.
    - Story Points: 2
    - Status: Not Started
 
-6. Calling Functions for Past Orders (History & Reorder)
+7. Calling Functions for Past Orders (History & Reorder)
    - Add calling functions to list past orders and to repeat a previous order.
    - Integrate with N8N and update Swagger accordingly.
    - Always respect workspace isolation in queries.
@@ -50,33 +75,33 @@ This list consolidates existing tasks, renumbered and cleaned. Use plain numeric
      - N8N `GetOrdersListLink()` updated to produce phone-based external links with optional filters and `orderCode` auto-expand.
      - Invoice/DDT PDF generation added; detail page shows IVA, imponibile, spedizione, tracking e pagamento.
 
-7. Model Configuration Audit and Dynamic Selection
+8. Model Configuration Audit and Dynamic Selection
    - Verify current model usage and enable dynamic selection via DB (agent config) through N8N.
    - Avoid static defaults; return a clear error if missing.
    - Story Points: 2
    - Status: Not Started
 
-8. FE/BE Dead Code Cleanup
+9. FE/BE Dead Code Cleanup
    - Remove unused files/exports in frontend and backend without altering layout/UX.
    - Keep code style and lint rules consistent.
    - Story Points: 2
    - Status: Not Started
 
-9. Shipment Tracking Spike (DHL Demo)
-   - Explore a simple tracking UX using a `tracking-id` URL param.
-   - If order context exists, reply with tracking link; otherwise provide a generic tracking page.
-   - Spike only; no schema changes without explicit approval.
-   - Story Points: 3 (Spike)
-   - Status: Not Started
+10. Shipment Tracking Spike (DHL Demo)
+    - Explore a simple tracking UX using a `tracking-id` URL param.
+    - If order context exists, reply with tracking link; otherwise provide a generic tracking page.
+    - Spike only; no schema changes without explicit approval.
+    - Story Points: 3 (Spike)
+    - Status: Not Started
 
-10. Payment Page: Create Order and Handle Shipping Address via Calling Function
+11. Payment Page: Create Order and Handle Shipping Address via Calling Function
     - On payment confirmation, trigger a calling function to create an order and persist the shipping address.
     - Update the CF prompt to include all required order and shipping details.
     - Ensure backend saves correctly and test the end-to-end flow.
     - Story Points: 7
     - Status: Not Started
 
-11. Token to N8N and Validation in Calling Functions
+12. Token to N8N and Validation in Calling Functions
     - Configure manual token in N8N and propagate it to CF calls.
     - Validate token on incoming CF calls; return a clear error to the user if invalid.
     - Status: Not Started

@@ -7306,4 +7306,87 @@ GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
 
 ---
 
+## 👤 Customer Profile Management System
+
+### Goal
+Allow customers to securely view and edit their personal data through a token-protected web page, accessible via WhatsApp bot requests.
+
+### Final Flow
+- Customer asks WhatsApp bot to modify personal data (email, phone, address)
+- Bot provides secure URL: `http://localhost:3000/customer-profile?token={SECURE_TOKEN}&phone={PHONE_NUMBER}`
+- Customer accesses page with 1-hour token validation
+- Customer can view and edit personal information
+- Changes are saved securely to database
+
+### Backend Implementation
+- **Token Generation**: `POST /api/internal/generate-token` with `action: "profile"`
+- **Profile Retrieval**: `GET /api/internal/customer-profile/:token`
+- **Profile Update**: `PUT /api/internal/customer-profile/:token`
+- **Security**: 1-hour token expiration, workspace isolation
+
+### Frontend Implementation
+- **Route**: `/customer-profile` (public access, no platform layout)
+- **Page**: `CustomerProfilePublicPage.tsx`
+- **Form**: `ProfileForm.tsx` with validation
+- **Token Validation**: `useTokenValidation` hook
+
+### WhatsApp Bot Integration
+- **Function**: `GetCustomerProfileLink(workspaceId, customerId)`
+- **Triggers**: "voglio cambiare la mia mail", "modifica telefono", "cambia indirizzo"
+- **Response**: Secure profile management link
+
+### Data Fields
+- **Personal**: Name, Email, Phone, Company, Address
+- **Preferences**: Language, Currency
+- **Invoice Address**: Separate billing address with VAT number
+- **Security**: All data filtered by workspaceId
+
+### Security Features
+- **Universal Token System**: Single token valid for all customer services (profile, orders, tracking)
+- **Token-based Access**: 1-hour expiration with workspace isolation
+- **Form Validation**: Client and server-side validation
+- **Audit Trail**: All changes logged with timestamps
+- **Simplified UX**: No need to generate separate tokens for different services
+
+### UI/UX Features
+- **Responsive Design**: Mobile-optimized interface
+- **Form Validation**: Real-time error feedback
+- **Loading States**: Proper loading indicators
+- **Success Messages**: Clear feedback on save
+- **Error Handling**: Graceful error display
+- **Bidirectional Navigation**: Seamless navigation between profile and orders pages
+- **Universal Token System**: Single token for all customer services
+
+### Integration Points
+- **N8N Workflow**: `GetCustomerProfileLink()` calling function
+- **Prompt Agent**: Updated with profile management triggers
+- **Database**: Customer profile CRUD operations
+- **Universal Token Service**: Single token valid for all customer services
+- **Cross-Service Navigation**: Seamless navigation between profile and orders
+
+### Acceptance Criteria
+- ✅ Secure web page for customer profile management
+- ✅ 1-hour token access protection
+- ✅ WhatsApp bot integration for profile requests
+- ✅ UI/UX consistency with existing application
+- ✅ Form validation and error handling
+- ✅ Database integration for profile updates
+- ✅ Swagger documentation updated
+- ✅ PRD documentation updated
+
+### Technology Stack
+- **Backend**: Node.js, Express, Prisma, PostgreSQL
+- **Frontend**: React, TypeScript, TailwindCSS
+- **Integration**: N8N Workflow, WhatsApp API
+- **Security**: SecureTokenService, Token validation
+
+### Status: ✅ COMPLETED
+- **Implementation**: Full backend and frontend with universal token system
+- **Testing**: Build successful, API endpoints working, cross-service navigation tested
+- **Documentation**: Swagger and PRD updated
+- **Integration**: WhatsApp bot ready for production
+- **UX Enhancement**: Simplified token system for better user experience
+
+---
+
 ## UI Screenshots

@@ -103,7 +103,7 @@ const OrdersPublicPage: React.FC = () => {
     error: tokenError 
   } = useTokenValidation({
     token,
-    type: 'orders',
+    type: 'any',
     workspaceId,
     autoValidate: true
   })
@@ -246,8 +246,21 @@ const OrdersPublicPage: React.FC = () => {
       <div className="min-h-screen bg-gray-100">
         <div className="max-w-3xl mx-auto py-8 px-4">
           <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-lg p-6 text-white">
-            <h1 className="text-2xl font-bold">Order Details {o.orderCode}</h1>
-            <p className="opacity-90">Status: {o.status} • Date: {formatDate(o.date)}</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className="text-2xl font-bold">Order Details {o.orderCode}</h1>
+                <p className="opacity-90">Status: {o.status} • Date: {formatDate(o.date)}</p>
+              </div>
+              <button 
+                onClick={() => {
+                  const profileUrl = `/customer-profile?token=${token}&phone=${encodeURIComponent(phone)}`
+                  window.location.href = profileUrl
+                }}
+                className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                View Profile
+              </button>
+            </div>
           </div>
           <div className="bg-white rounded-b-lg shadow-sm border p-6 space-y-6">
             {/* Invoice Header */}
@@ -369,8 +382,21 @@ const OrdersPublicPage: React.FC = () => {
       <div className="min-h-screen bg-gray-100">
         <div className="max-w-4xl mx-auto py-8 px-4">
           <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-lg p-6 text-white">
-            <h1 className="text-2xl font-bold">Your Orders</h1>
-            <p className="opacity-90">{listData.customer.name} • {listData.workspace.name}</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className="text-2xl font-bold">Your Orders</h1>
+                <p className="opacity-90">{listData.customer.name} • {listData.workspace.name}</p>
+              </div>
+              <button 
+                onClick={() => {
+                  const profileUrl = `/customer-profile?token=${token}&phone=${encodeURIComponent(phone)}`
+                  window.location.href = profileUrl
+                }}
+                className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                View Profile
+              </button>
+            </div>
           </div>
           <div className="bg-white rounded-b-lg shadow-sm border p-6">
             {/* Filters */}
