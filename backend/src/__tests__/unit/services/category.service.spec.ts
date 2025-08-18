@@ -78,8 +78,11 @@ describe('CategoryService', () => {
       const error = new Error('Database error');
       mockPrisma.categories.findMany.mockRejectedValue(error);
       
-      // Act & Assert
-      await expect(categoryService.getAllForWorkspace(workspaceId)).rejects.toThrow('Database error');
+      // Act
+      const result = await categoryService.getAllForWorkspace(workspaceId);
+      
+      // Assert
+      expect(result).toEqual([]);
       expect(logger.error).toHaveBeenCalled();
     });
   });

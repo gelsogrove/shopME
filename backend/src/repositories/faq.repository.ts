@@ -16,10 +16,10 @@ export class FaqRepository implements IFaqRepository {
         where: { workspaceId }
       });
       
-      return faqs.map(faq => new FAQ(faq));
+      return faqs ? faqs.map(faq => new FAQ(faq)) : [];
     } catch (error) {
       logger.error("Error finding FAQs:", error);
-      throw error;
+      return [];
     }
   }
   

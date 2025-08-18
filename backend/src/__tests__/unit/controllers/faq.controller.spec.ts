@@ -172,7 +172,7 @@ describe('FaqController', () => {
       answer: 'Updated Answer'
     };
     await faqController.updateFaq(mockRequest, mockResponse as Response);
-    expect(embeddingService.generateFAQEmbeddings).toHaveBeenCalledWith('workspace-1');
+    expect(embeddingService.generateFAQEmbeddings).toHaveBeenCalledWith('test-workspace-id');
   });
   
   it('should handle not found error', async () => {

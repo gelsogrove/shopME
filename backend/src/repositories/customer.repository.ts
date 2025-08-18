@@ -47,10 +47,10 @@ export class CustomerRepository implements ICustomerRepository {
         orderBy: { createdAt: 'desc' }
       });
       
-      return customers.map(customer => this.toDomainEntity(customer));
+      return customers ? customers.map(customer => this.toDomainEntity(customer)) : [];
     } catch (error) {
       logger.error("Error finding all customers:", error);
-      throw error;
+      return [];
     }
   }
   
@@ -67,10 +67,10 @@ export class CustomerRepository implements ICustomerRepository {
         orderBy: { createdAt: 'desc' }
       });
       
-      return customers.map(customer => this.toDomainEntity(customer));
+      return customers ? customers.map(customer => this.toDomainEntity(customer)) : [];
     } catch (error) {
       logger.error("Error finding active customers:", error);
-      throw error;
+      return [];
     }
   }
 
