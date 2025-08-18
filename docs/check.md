@@ -11,9 +11,9 @@ docs: /Users/gelso/workspace/AI/shop/docs
 task: /Users/gelso/workspace/AI/shop/docs/memory-bank/tasks.md
 
 
-********REPORT********
+********REPORT FORMAT********
 
-- [ ] crea un report check_report.md copiando questa struttura e mettendo icone dentro [] oer capire cosa e' andato bene o male e quello male metti commento. o se c'e' una domanda rispondi con commento
+crea un report check_report.md copiando questa struttura e mettendo icone dentro [] oer capire cosa e' andato bene o male e quello male metti commento. o se c'e' una domanda rispondi con commento ma us questo formato! te lo dico prima peche' non lo fai mai... 
 
 
 ********STAR********
@@ -121,5 +121,6 @@ se hai dubbi chiedi.
 
 - [ ] Stato del progetto in percentuale ?
 
+- [ ] cosa ne pensi del prompt_agent ?
 
 - [ ] Prossimi task?

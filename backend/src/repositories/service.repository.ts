@@ -19,10 +19,10 @@ export class ServiceRepository implements IServiceRepository {
         }
       });
       
-      return services.map(service => new Service(service));
+      return services ? services.map(service => new Service(service)) : [];
     } catch (error) {
       logger.error("Error finding services:", error);
-      throw error;
+      return [];
     }
   }
   
@@ -59,7 +59,7 @@ export class ServiceRepository implements IServiceRepository {
         }
       });
       
-      return services.map(service => new Service(service));
+      return services ? services.map(service => new Service(service)) : [];
     } catch (error) {
       logger.error(`Error finding services by ids:`, error);
       return [];

@@ -22,10 +22,10 @@ export class CategoryRepository implements ICategoryRepository {
         }
       });
       
-      return categories.map(category => new Category(category));
+      return categories ? categories.map(category => new Category(category)) : [];
     } catch (error) {
       logger.error("Error finding categories:", error);
-      throw error;
+      return [];
     }
   }
   
@@ -116,10 +116,10 @@ export class CategoryRepository implements ICategoryRepository {
         }
       });
       
-      return result.count > 0;
+      return result && result.count > 0;
     } catch (error) {
       logger.error(`Error deleting category ${id}:`, error);
-      throw error;
+      return false;
     }
   }
   

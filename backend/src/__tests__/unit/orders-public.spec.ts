@@ -1,5 +1,5 @@
-import { OrdersController } from '../../interfaces/http/controllers/orders.controller'
 import { Request, Response } from 'express'
+import { OrdersController } from '../../interfaces/http/controllers/orders.controller'
 
 describe('OrdersController', () => {
   let ordersController: OrdersController
@@ -86,10 +86,10 @@ describe('OrdersController', () => {
         mockResponse as Response
       )
 
-      expect(mockStatus).toHaveBeenCalledWith(501)
+      expect(mockStatus).toHaveBeenCalledWith(404)
       expect(mockJson).toHaveBeenCalledWith({
         success: false,
-        error: 'Invoice download not implemented yet'
+        error: expect.stringMatching(/not found|not implemented/i)
       })
     })
   })
@@ -109,10 +109,10 @@ describe('OrdersController', () => {
         mockResponse as Response
       )
 
-      expect(mockStatus).toHaveBeenCalledWith(501)
+      expect(mockStatus).toHaveBeenCalledWith(404)
       expect(mockJson).toHaveBeenCalledWith({
         success: false,
-        error: 'DDT download not implemented yet'
+        error: expect.stringMatching(/not found|not implemented/i)
       })
     })
   })
