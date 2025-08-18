@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { agentService } from "../services/agent.service";
+import logger from "../utils/logger";
 
 export const agentController = {
   /**

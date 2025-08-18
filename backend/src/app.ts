@@ -142,11 +142,7 @@ app.use(
   swaggerUi.setup(swaggerSpec, {
     explorer: true,
     customCss: ".swagger-ui .topbar { display: none }",
-    customSiteTitle: "ShopMe API Documentation",
-    docExpansion: "list",
-    deepLinking: true,
-    displayOperationId: true,
-    filter: true,
+    customSiteTitle: "ShopMe API Documentation"
   })
 )
 

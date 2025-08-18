@@ -1,3 +1,5 @@
+import logger from '../../utils/logger'
+
 describe('🚨 CRITICAL: Workspace Isolation Method Signature Validation', () => {
   
   describe('🔐 ServiceRepository Method Signatures', () => {

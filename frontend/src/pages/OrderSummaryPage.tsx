@@ -6,7 +6,6 @@ import { Badge } from "../components/ui/badge"
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Label } from "../components/ui/label"
-import { Separator } from "../components/ui/separator"
 
 interface OrderItem {
   itemType: 'PRODUCT' | 'SERVICE'
@@ -377,7 +376,6 @@ const OrderSummaryPage: React.FC = () => {
                     <span className="font-bold text-lg">€{totalAmount.toFixed(2)}</span>
                   </div>
                   
-                  <Separator />
                   
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600">
