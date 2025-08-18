@@ -3,6 +3,7 @@ import { Request, Response } from "express"
 import { OrderService } from "../../../application/services/order.service"
 import { SecureTokenService } from "../../../application/services/secure-token.service"
 
+import crypto from "crypto"
 import { getAllCategories } from "../../../chatbot/calling-functions/getAllCategories"
 import { MessageRepository } from "../../../repositories/message.repository"
 import { embeddingService } from "../../../services/embeddingService"
@@ -1106,7 +1107,7 @@ ${JSON.stringify(ragResults, null, 2)}`
    */
   async saveMessage(req: Request, res: Response): Promise<void> {
     try {
-      console.log(
+      logger.info(
         "[SAVE-MESSAGE] 📥 Request received:",
         JSON.stringify(req.body, null, 2)
       )
@@ -1118,7 +1119,7 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      console.log(
+      logger.info(
         `[SAVE-MESSAGE] 📝 Processing message from ${phoneNumber}, response: "${response ? response.substring(0, 50) + "..." : "NO RESPONSE"}"`
       )
 
@@ -1132,7 +1133,7 @@ ${JSON.stringify(ragResults, null, 2)}`
       })
 
       // 💰 USAGE TRACKING: Now handled in MessageRepository.saveMessage() (Andrea's Logic)
-      console.log(
+      logger.info(
         "[SAVE-MESSAGE] ✅ Message saved via MessageRepository (tracking included)"
       )
 
@@ -3921,6 +3922,8 @@ ${JSON.stringify(ragResults, null, 2)}`
     }
   }
 
+
+
   /**
    * Get shipment tracking link for the latest processing order
    * 📦 N8N GetShipmentTrackingLink Function Integration
@@ -4198,7 +4201,7 @@ ${JSON.stringify(ragResults, null, 2)}`
     try {
       const { orderCode } = req.params
       
-      console.log(`[PDF-INVOICE] Generating test invoice for order: ${orderCode}`)
+      logger.info(`[PDF-INVOICE] Generating test invoice for order: ${orderCode}`)
       
       // Generate test PDF
       const PDFDocument = require('pdfkit')
@@ -4303,7 +4306,7 @@ ${JSON.stringify(ragResults, null, 2)}`
     try {
       const { orderCode } = req.params
       
-      console.log(`[PDF-DDT] Generating test DDT for order: ${orderCode}`)
+      logger.info(`[PDF-DDT] Generating test DDT for order: ${orderCode}`)
       
       // Generate test PDF
       const PDFDocument = require('pdfkit')
@@ -4342,7 +4345,7 @@ ${JSON.stringify(ragResults, null, 2)}`
       doc.moveDown(0.5)
       doc.fontSize(10).font('Helvetica').text(`Order Code: ${orderCode}`)
       doc.text(`Delivery Date: ${new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US')}`)
-      doc.text(`Carrier: Demo Express')
+      doc.text(`Carrier: Demo Express`)
       doc.text('Tracking Number: DEMO-' + orderCode)
       doc.moveDown(1)
 
@@ -4561,5 +4564,226 @@ ${JSON.stringify(ragResults, null, 2)}`
       logger.error("[INTERNAL-API] Update customer profile error:", error)
       res.status(500).json({ error: "Internal server error" })
     }
+  }
+
+  /**
+   * 🛒 CONFIRM ORDER FROM CONVERSATION
+   * POST /internal/confirm-order-conversation
+   * Parse conversation context and generate checkout token
+   */
+  async confirmOrderFromConversation(req: Request, res: Response): Promise<void> {
+    try {
+      const { conversationContext, workspaceId, customerId } = req.body
+
+      if (!conversationContext || !workspaceId || !customerId) {
+        res.status(400).json({ 
+          error: "Missing required parameters: conversationContext, workspaceId, customerId" 
+        })
+        return
+      }
+
+      logger.info('[INTERNAL-API] Processing order confirmation for customer: ' + customerId)
+
+      // Parse conversation context using internal LLM
+      const parsedItems = await this.parseConversationToItems(conversationContext, workspaceId)
+
+      if (!parsedItems || parsedItems.length === 0) {
+        res.status(400).json({ 
+          error: "No products or services found in conversation context" 
+        })
+        return
+      }
+
+      // Calculate total amount
+      const totalAmount = parsedItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0)
+
+      // Generate secure checkout token
+      const checkoutToken = this.generateSecureToken()
+
+      // Save token to database
+      await prisma.secureToken.create({
+        data: {
+          token: checkoutToken,
+          type: "checkout",
+          workspaceId: workspaceId,
+          payload: {
+            customerId,
+            items: parsedItems,
+            totalAmount,
+            type: "checkout",
+            conversationContext
+          },
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+        }
+      })
+
+      const checkoutUrl = `http://localhost:3000/order-summary/${checkoutToken}`
+
+      res.json({
+        success: true,
+        response: `Perfetto! Ho preparato il tuo ordine. Clicca qui per rivedere e confermare: ${checkoutUrl}`,
+        checkoutToken,
+        checkoutUrl,
+        totalAmount,
+        items: parsedItems
+      })
+
+      logger.info('[INTERNAL-API] Order confirmation processed for customer: ' + customerId)
+    } catch (error) {
+      logger.error("[INTERNAL-API] Confirm order from conversation error:", error)
+      res.status(500).json({ error: "Internal server error" })
+    }
+  }
+
+  /**
+   * 🧠 Parse conversation context to extract products/services
+   */
+  private async parseConversationToItems(conversationContext: string, workspaceId: string): Promise<any[]> {
+    try {
+      const prompt = `
+Analizza la seguente conversazione e estrai tutti i prodotti e servizi menzionati con le relative quantità.
+
+Conversazione:
+${conversationContext}
+
+Regole:
+1. Cerca solo prodotti e servizi reali dal database
+2. Estrai nome, quantità e prezzo unitario
+3. Restituisci un array JSON con questa struttura:
+[
+  {
+    "itemType": "PRODUCT" o "SERVICE",
+    "name": "Nome del prodotto/servizio",
+    "quantity": numero,
+    "unitPrice": prezzo_unitario
+  }
+]
+
+Risposta solo in JSON, niente altro testo.
+`
+
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'openai/gpt-4o-mini',
+          messages: [
+            { role: 'system', content: 'Sei un assistente che analizza conversazioni per estrarre prodotti e servizi.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.3,
+          max_tokens: 500
+        })
+      })
+
+      const data = await response.json()
+      const content = data.choices[0]?.message?.content
+
+      if (!content) {
+        throw new Error('No response from LLM')
+      }
+
+      // Parse JSON response
+      const items = JSON.parse(content)
+
+      // Validate items against database
+      const validatedItems = []
+      for (const item of items) {
+        if (item.itemType === 'PRODUCT') {
+          const product = await prisma.products.findFirst({
+            where: {
+              workspaceId,
+              name: { contains: item.name, mode: 'insensitive' },
+              isActive: true
+            }
+          })
+          if (product) {
+            validatedItems.push({
+              ...item,
+              unitPrice: product.price
+            })
+          }
+        } else if (item.itemType === 'SERVICE') {
+          const service = await prisma.services.findFirst({
+            where: {
+              workspaceId,
+              name: { contains: item.name, mode: 'insensitive' },
+              isActive: true
+            }
+          })
+          if (service) {
+            validatedItems.push({
+              ...item,
+              unitPrice: service.price
+            })
+          }
+        }
+      }
+
+      return validatedItems
+    } catch (error) {
+      logger.error('[INTERNAL-API] Parse conversation error:', error)
+      return []
+    }
+  }
+
+  /**
+   * 📋 GET CHECKOUT DATA
+   * GET /internal/checkout/{token}
+   * Get checkout data from secure token
+   */
+  async getCheckoutData(req: Request, res: Response): Promise<void> {
+    try {
+      const { token } = req.params
+
+      if (!token) {
+        res.status(400).json({ error: "Token is required" })
+        return
+      }
+
+      logger.info('[INTERNAL-API] Getting checkout data for token: ' + token.substring(0, 12) + '...')
+
+      // Find token in database
+      const tokenData = await prisma.secureToken.findFirst({
+        where: {
+          token: token,
+          type: "checkout",
+          expiresAt: {
+            gt: new Date()
+          }
+        }
+      })
+
+      if (!tokenData) {
+        res.status(404).json({ error: "Token not found or expired" })
+        return
+      }
+
+      const payload = tokenData.payload as any
+
+      res.json({
+        success: true,
+        customerId: payload.customerId,
+        items: payload.items || [],
+        totalAmount: payload.totalAmount || 0,
+        type: payload.type,
+        conversationContext: payload.conversationContext
+      })
+
+      logger.info('[INTERNAL-API] Checkout data retrieved for token ' + token.substring(0, 12) + '...')
+    } catch (error) {
+      logger.error("[INTERNAL-API] Get checkout data error:", error)
+      res.status(500).json({ error: "Internal server error" })
+    }
+  }
+
+  /**
+   * 🔐 Generate secure token for checkout
+   */
+  private generateSecureToken(): string {
+    return crypto.randomBytes(32).toString('hex')
   }
 }

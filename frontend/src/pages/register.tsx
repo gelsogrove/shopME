@@ -72,14 +72,14 @@ const RegisterPage = () => {
     const fetchWorkspaceInfo = async () => {
       if (tokenValid && workspaceId) {
         try {
-          console.log(`[Register] Fetching workspace info for id: ${workspaceId}`);
+          logger.info(`[Register] Fetching workspace info for id: ${workspaceId}`);
           const workspaceResponse = await axios.get(`/api/workspaces/${workspaceId}`);
-          console.log('[Register] Workspace API response:', workspaceResponse.data);
+          logger.info('[Register] Workspace API response:', workspaceResponse.data);
           if (workspaceResponse.data?.name) {
             setWorkspaceName(workspaceResponse.data.name);
           }
         } catch (error) {
-          console.error('[Register] Error fetching workspace info:', error);
+          logger.error('[Register] Error fetching workspace info:', error);
           // Non-fatal error, continue with registration
         }
         
@@ -95,7 +95,7 @@ const RegisterPage = () => {
             ...prev,
             language: languageMatch.code
           }));
-          console.log('[Register] Browser language detected:', browserLanguage, '->', languageMatch.code);
+          logger.info('[Register] Browser language detected:', browserLanguage, '->', languageMatch.code);
         }
       }
       setLoading(false);
@@ -226,7 +226,7 @@ const RegisterPage = () => {
         throw new Error('Registration failed');
       }
     } catch (error: any) {
-      console.error('Registration error:', error);
+      logger.error('Registration error:', error);
       setSubmitStatus({
         loading: false,
         success: false,

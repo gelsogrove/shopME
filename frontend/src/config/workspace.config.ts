@@ -74,7 +74,7 @@ export const fetchWorkspace = async (workspaceId: string): Promise<Workspace | n
   } catch (error) {
     // Only log in development mode
     if (import.meta.env.DEV) {
-      console.error('Error fetching workspace:', error);
+      logger.error('Error fetching workspace:', error);
     }
     return null;
   }
@@ -104,7 +104,7 @@ export const fetchDefaultWorkspace = async (): Promise<Workspace | null> => {
   } catch (error) {
     // Only log in development mode
     if (import.meta.env.DEV) {
-    console.error('Error fetching default workspace:', error);
+    logger.error('Error fetching default workspace:', error);
     }
     return null;
   }

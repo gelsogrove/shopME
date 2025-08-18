@@ -1,7 +1,7 @@
+import logger from "../utils/logger"
 import { Offer } from "../domain/entities/offer.entity"
 import { IOfferRepository } from "../domain/repositories/offer.repository.interface"
 import { prisma } from "../lib/prisma"
-import logger from "../utils/logger"
 
 // Interface for extended offer data with categoryIds
 interface ExtendedOfferData extends Record<string, any> {

@@ -39,9 +39,9 @@ const authMiddlewareAsync = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    console.log('=== AUTH MIDDLEWARE START ===');
-    console.log('Request URL:', req.originalUrl);
-    console.log('Request method:', req.method);
+    logger.info('=== AUTH MIDDLEWARE START ===');
+    logger.info('Request URL:', req.originalUrl);
+    logger.info('Request method:', req.method);
     
     // In ambiente di test, verifichiamo la presenza di header speciali
     if (isTestEnvironment && isIntegrationTest) {
@@ -79,15 +79,15 @@ const authMiddlewareAsync = async (
     
     // Fallback to Authorization header for backward compatibility
     if (!token) {
-      console.log("No token in cookies, checking headers");
+      logger.info("No token in cookies, checking headers");
       const authHeader = req.headers.authorization;
       if (!authHeader) {
-        console.log("No authorization header");
+        logger.info("No authorization header");
         throw new AppError(401, "Authentication required");
       }
       
       if (!authHeader.startsWith("Bearer ")) {
-        console.log("Authorization header doesn't start with 'Bearer '");
+        logger.info("Authorization header doesn't start with 'Bearer '");
         throw new AppError(401, "Invalid authorization format");
       }
       
@@ -95,24 +95,24 @@ const authMiddlewareAsync = async (
       
       // Check if token is empty after 'Bearer '
       if (!token || token.trim() === '') {
-        console.log("Empty token in authorization header");
+        logger.info("Empty token in authorization header");
         throw new AppError(401, "Empty authorization token");
       }
     }
     
     if (!token) {
-      console.log("No token found in cookies or headers");
+      logger.info("No token found in cookies or headers");
       throw new AppError(401, "Authentication required");
     }
     
     try {
-      console.log(`Verifying token: ${token.substring(0, 10)}...`);
+      logger.info(`Verifying token: ${token.substring(0, 10)}...`);
       const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload;
-      console.log('Token decoded successfully:', { userId: decoded.userId, email: decoded.email });
+      logger.info('Token decoded successfully:', { userId: decoded.userId, email: decoded.email });
       
       // Make sure we have a userId
       if (!decoded.userId && !decoded.id) {
-        console.log("Token doesn't have userId or id field");
+        logger.info("Token doesn't have userId or id field");
         throw new AppError(401, "Invalid token format");
       }
       
@@ -130,11 +130,11 @@ const authMiddlewareAsync = async (
         });
 
         if (!user) {
-          console.log(`User ${decoded.userId} not found in database`);
+          logger.info(`User ${decoded.userId} not found in database`);
           throw new AppError(401, "User not found");
         }
 
-        console.log('User found in database:', user.email);
+        logger.info('User found in database:', user.email);
 
         // Load user workspaces
         const userWorkspaces = await prisma.userWorkspace.findMany({
@@ -150,7 +150,7 @@ const authMiddlewareAsync = async (
           }
         });
 
-        console.log(`Loaded ${userWorkspaces.length} workspaces for user`);
+        logger.info(`Loaded ${userWorkspaces.length} workspaces for user`);
 
         // Add workspaces to user object
         decoded.workspaces = userWorkspaces.map(uw => ({
@@ -170,14 +170,14 @@ const authMiddlewareAsync = async (
       }
       
       req.user = decoded;
-      console.log('=== AUTH MIDDLEWARE SUCCESS ===');
+      logger.info('=== AUTH MIDDLEWARE SUCCESS ===');
       return next();
     } catch (error) {
-      console.log("Token verification failed:", error.message);
+      logger.info("Token verification failed:", error.message);
       throw new AppError(401, "Invalid token");
     }
   } catch (error) {
-    console.log("Auth middleware error:", error.message);
+    logger.info("Auth middleware error:", error.message);
     if (error instanceof AppError) {
       throw error;
     }

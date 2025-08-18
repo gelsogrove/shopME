@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { Router } from 'express';
 import { documentController, upload } from '../controllers/documentController';
 import { workspaceValidationMiddleware } from '../interfaces/http/middlewares/workspace-validation.middleware';
@@ -277,8 +278,8 @@ router.post('/search', documentController.searchDocuments.bind(documentControlle
 
 // Test endpoint for debugging
 router.post('/test-embedding', (req, res) => {
-  console.log('Test endpoint called!');
-  console.log('req.params:', req.params);
+  logger.info('Test endpoint called!');
+  logger.info('req.params:', req.params);
   res.json({ success: true, message: 'Test endpoint works', params: req.params });
 });
 

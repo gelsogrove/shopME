@@ -110,7 +110,7 @@ export function OffersPage() {
         )
         setCategories(categoriesResponse.data)
       } catch (err) {
-        console.error("Failed to fetch data:", err)
+        logger.error("Failed to fetch data:", err)
         toast.error("Failed to load offers. Please try again.", {
           duration: 1000,
         })
@@ -246,7 +246,7 @@ export function OffersPage() {
       setCurrentOffer(null)
       toast.success("Offer deleted successfully", { duration: 1000 })
     } catch (error) {
-      console.error("Failed to delete offer:", error)
+      logger.error("Failed to delete offer:", error)
       toast.error("Failed to delete offer", { duration: 1000 })
     }
   }
@@ -300,7 +300,7 @@ export function OffersPage() {
       setStartDate(new Date())
       setEndDate(new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000))
     } catch (error) {
-      console.error("Failed to add offer:", error)
+      logger.error("Failed to add offer:", error)
       toast.error("Failed to create offer", { duration: 1000 })
     }
   }
@@ -355,7 +355,7 @@ export function OffersPage() {
       setCurrentOffer(null)
       toast.success("Offer updated successfully", { duration: 1000 })
     } catch (error) {
-      console.error("Failed to update offer:", error)
+      logger.error("Failed to update offer:", error)
       toast.error("Failed to update offer", { duration: 1000 })
     }
   }

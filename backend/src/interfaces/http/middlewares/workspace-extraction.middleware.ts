@@ -11,13 +11,13 @@ export const workspaceExtractionMiddleware = (
   next: NextFunction
 ): void => {
   try {
-    console.log('🔥🔥🔥 WORKSPACE EXTRACTION MIDDLEWARE CALLED 🔥🔥🔥');
-    console.log('=== WORKSPACE EXTRACTION MIDDLEWARE ===');
-    console.log('Prima estrazione:', req.params.workspaceId, (req as any).workspaceId, req.originalUrl);
+    logger.info('🔥🔥🔥 WORKSPACE EXTRACTION MIDDLEWARE CALLED 🔥🔥🔥');
+    logger.info('=== WORKSPACE EXTRACTION MIDDLEWARE ===');
+    logger.info('Prima estrazione:', req.params.workspaceId, (req as any).workspaceId, req.originalUrl);
     // If workspaceId is already in params, we're good
     if (req.params.workspaceId) {
       logger.debug(`Workspace ID already in params: ${req.params.workspaceId}`);
-      console.log('WorkspaceId già presente in params:', req.params.workspaceId);
+      logger.info('WorkspaceId già presente in params:', req.params.workspaceId);
       return next();
     }
 
@@ -30,9 +30,9 @@ export const workspaceExtractionMiddleware = (
       logger.debug(`Extracted workspace ID from URL: ${workspaceId}`);
       req.params.workspaceId = workspaceId;
       (req as any).workspaceId = workspaceId;
-      console.log('Estratto workspaceId:', workspaceId);
+      logger.info('Estratto workspaceId:', workspaceId);
     }
-    console.log('Dopo estrazione:', req.params.workspaceId, (req as any).workspaceId);
+    logger.info('Dopo estrazione:', req.params.workspaceId, (req as any).workspaceId);
     next();
   } catch (error) {
     logger.error('Error in workspace extraction middleware:', error);

@@ -17,7 +17,7 @@ const DataProtectionPage = () => {
         setContent(response.data);
         setError(null);
       } catch (err) {
-        console.error('Error fetching data protection content:', err);
+        logger.error('Error fetching data protection content:', err);
         setError('Failed to load content. Please try again later.');
       } finally {
         setLoading(false);

@@ -35,7 +35,7 @@ export function ServicesPage() {
       const data = await servicesApi.getServices(workspace.id)
       setServices(data)
     } catch (error) {
-      console.error("Error loading services:", error)
+      logger.error("Error loading services:", error)
       toast.error("Failed to load services")
     } finally {
       setIsLoading(false)
@@ -141,7 +141,7 @@ export function ServicesPage() {
       setShowAddSheet(false)
       toast.success("Service created successfully")
     } catch (error) {
-      console.error("Error creating service:", error)
+      logger.error("Error creating service:", error)
       toast.error("Failed to create service")
     }
   }
@@ -186,7 +186,7 @@ export function ServicesPage() {
       setSelectedService(null)
       toast.success("Service updated successfully")
     } catch (error) {
-      console.error("Error updating service:", error)
+      logger.error("Error updating service:", error)
       toast.error("Failed to update service")
     }
   }
@@ -206,7 +206,7 @@ export function ServicesPage() {
       setSelectedService(null)
       toast.success("Service deleted successfully")
     } catch (error) {
-      console.error("Error deleting service:", error)
+      logger.error("Error deleting service:", error)
       toast.error("Failed to delete service")
     }
   }

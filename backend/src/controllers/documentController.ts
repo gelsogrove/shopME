@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { Request, Response } from "express"
 import { v4 as uuidv4 } from "uuid"
 import { documentService } from "../services/documentService"
@@ -71,7 +72,7 @@ export class DocumentController {
       require("../services/embeddingService")
         .embeddingService.generateDocumentEmbeddings(workspaceId)
         .catch((err) =>
-          console.error("Embedding generation error (create):", err)
+          logger.error("Embedding generation error (create):", err)
         )
 
       res.status(201).json({
@@ -87,7 +88,7 @@ export class DocumentController {
         },
       })
     } catch (error) {
-      console.error("Error uploading document:", error)
+      logger.error("Error uploading document:", error)
       res.status(500).json({
         success: false,
         message: "Failed to upload document",
@@ -123,7 +124,7 @@ export class DocumentController {
         },
       })
     } catch (error) {
-      console.error("Error processing document:", error)
+      logger.error("Error processing document:", error)
       res.status(500).json({
         success: false,
         message: "Failed to process document",
@@ -138,21 +139,21 @@ export class DocumentController {
    */
   async getDocumentsByWorkspace(req: Request, res: Response) {
     try {
-      console.log("=== DEBUGGING getDocumentsByWorkspace ===")
-      console.log("req.params:", req.params)
-      console.log("req.originalUrl:", req.originalUrl)
+      logger.info("=== DEBUGGING getDocumentsByWorkspace ===")
+      logger.info("req.params:", req.params)
+      logger.info("req.originalUrl:", req.originalUrl)
 
       const { workspaceId } = req.params
 
       if (!workspaceId) {
-        console.log("ERROR: workspaceId is missing from req.params")
+        logger.info("ERROR: workspaceId is missing from req.params")
         return res.status(400).json({
           success: false,
           message: "Workspace ID is required",
         })
       }
 
-      console.log(`Getting documents for workspace: ${workspaceId}`)
+      logger.info(`Getting documents for workspace: ${workspaceId}`)
 
       const documents = await documentService.getDocuments(workspaceId)
 
@@ -162,7 +163,7 @@ export class DocumentController {
         data: documents,
       })
     } catch (error) {
-      console.error("Error getting documents by workspace:", error)
+      logger.error("Error getting documents by workspace:", error)
       res.status(500).json({
         success: false,
         message: "Failed to get documents",
@@ -194,7 +195,7 @@ export class DocumentController {
         data: documents,
       })
     } catch (error) {
-      console.error("Error getting documents:", error)
+      logger.error("Error getting documents:", error)
       res.status(500).json({
         success: false,
         message: "Failed to get documents",
@@ -241,7 +242,7 @@ export class DocumentController {
         },
       })
     } catch (error) {
-      console.error("Error searching documents:", error)
+      logger.error("Error searching documents:", error)
       res.status(500).json({
         success: false,
         message: "Failed to search documents",
@@ -275,7 +276,7 @@ export class DocumentController {
         require("../services/embeddingService")
           .embeddingService.generateDocumentEmbeddings(workspaceIdForDelete)
           .catch((err) =>
-            console.error("Embedding generation error (delete):", err)
+            logger.error("Embedding generation error (delete):", err)
           )
       }
 
@@ -287,7 +288,7 @@ export class DocumentController {
         },
       })
     } catch (error) {
-      console.error("Error deleting document:", error)
+      logger.error("Error deleting document:", error)
       res.status(500).json({
         success: false,
         message: "Failed to delete document",
@@ -326,7 +327,7 @@ export class DocumentController {
         data: document,
       })
     } catch (error) {
-      console.error("Error getting document by ID:", error)
+      logger.error("Error getting document by ID:", error)
       res.status(500).json({
         success: false,
         message: "Failed to get document",
@@ -380,7 +381,7 @@ export class DocumentController {
       const fileStream = require("fs").createReadStream(document.filePath)
       fileStream.pipe(res)
     } catch (error) {
-      console.error("Error downloading document:", error)
+      logger.error("Error downloading document:", error)
       res.status(500).json({
         success: false,
         message: "Failed to download document",
@@ -446,30 +447,30 @@ export class DocumentController {
         req.body.workspaceId ||
         req.query.workspaceId
       if (workspaceIdForUpdate) {
-        console.log(
+        logger.info(
           `🔄 Document updated, triggering embedding regeneration for workspace: ${workspaceIdForUpdate}, Document ID: ${id}`
         )
         require("../services/embeddingService")
           .embeddingService.generateDocumentEmbeddings(workspaceIdForUpdate)
           .then((result) => {
-            console.log(
+            logger.info(
               `✅ Document embedding regeneration completed for workspace ${workspaceIdForUpdate}: processed ${result.processed} documents, errors: ${result.errors.length}`
             )
             if (result.errors.length > 0) {
-              console.warn(
+              logger.warn(
                 `⚠️ Document embedding regeneration warnings:`,
                 result.errors
               )
             }
           })
           .catch((err) => {
-            console.error(
+            logger.error(
               `❌ Document embedding regeneration failed for workspace ${workspaceIdForUpdate}:`,
               err
             )
           })
       } else {
-        console.warn(
+        logger.warn(
           `⚠️ Cannot trigger document embedding regeneration: workspaceId not found. Document: ${updatedDocument?.id}`
         )
       }
@@ -480,7 +481,7 @@ export class DocumentController {
         data: updatedDocument,
       })
     } catch (error) {
-      console.error("Error updating document:", error)
+      logger.error("Error updating document:", error)
       res.status(500).json({
         success: false,
         message: "Failed to update document",
@@ -495,23 +496,23 @@ export class DocumentController {
    */
   async generateEmbeddings(req: Request, res: Response) {
     try {
-      console.log("=== DEBUGGING generateEmbeddings ===")
-      console.log("req.params:", req.params)
-      console.log("req.originalUrl:", req.originalUrl)
-      console.log("req.url:", req.url)
-      console.log("req.baseUrl:", req.baseUrl)
+      logger.info("=== DEBUGGING generateEmbeddings ===")
+      logger.info("req.params:", req.params)
+      logger.info("req.originalUrl:", req.originalUrl)
+      logger.info("req.url:", req.url)
+      logger.info("req.baseUrl:", req.baseUrl)
 
       const { workspaceId } = req.params
 
       if (!workspaceId) {
-        console.log("ERROR: workspaceId is missing from req.params")
+        logger.info("ERROR: workspaceId is missing from req.params")
         return res.status(400).json({
           success: false,
           message: "Workspace ID is required",
         })
       }
 
-      console.log(`Starting embedding generation for workspace: ${workspaceId}`)
+      logger.info(`Starting embedding generation for workspace: ${workspaceId}`)
 
       const result =
         await documentService.generateEmbeddingsForActiveDocuments(workspaceId)
@@ -527,7 +528,7 @@ export class DocumentController {
         },
       })
     } catch (error) {
-      console.error("Error generating embeddings:", error)
+      logger.error("Error generating embeddings:", error)
       res.status(500).json({
         success: false,
         message: "Failed to generate embeddings",

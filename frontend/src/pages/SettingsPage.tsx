@@ -112,7 +112,7 @@ export default function SettingsPage() {
   // Popola il form quando i dati del workspace sono disponibili
   useEffect(() => {
     if (workspace) {
-      console.log("Populating form with workspace data:", workspace)
+      logger.info("Populating form with workspace data:", workspace)
 
       // Default messages - definiti staticamente per evitare loop
       const defaultWelcomeMessages = {
@@ -138,7 +138,7 @@ export default function SettingsPage() {
               ? JSON.parse(workspace.welcomeMessages)
               : workspace.welcomeMessages
         } catch (e) {
-          console.error("Error parsing welcome messages:", e)
+          logger.error("Error parsing welcome messages:", e)
         }
       }
 
@@ -151,7 +151,7 @@ export default function SettingsPage() {
               ? JSON.parse(workspace.wipMessages)
               : workspace.wipMessages
         } catch (e) {
-          console.error("Error parsing WIP messages:", e)
+          logger.error("Error parsing WIP messages:", e)
         }
       }
 
@@ -173,7 +173,7 @@ export default function SettingsPage() {
   // Gestisci errori del workspace
   useEffect(() => {
     if (isError && workspaceError) {
-      console.error("Workspace loading error:", workspaceError)
+      logger.error("Workspace loading error:", workspaceError)
       toast.error("Failed to load workspace settings")
     }
   }, [isError, workspaceError])
@@ -184,7 +184,7 @@ export default function SettingsPage() {
       return updateWorkspace(formData.id, updateData)
     },
     onSuccess: (updatedWorkspace) => {
-      console.log("Workspace updated:", updatedWorkspace)
+      logger.info("Workspace updated:", updatedWorkspace)
 
       // Update cached workspace data
       sessionStorage.setItem(
@@ -198,7 +198,7 @@ export default function SettingsPage() {
       toast.success("Settings saved successfully")
     },
     onError: (error) => {
-      console.error("Error saving settings:", error)
+      logger.error("Error saving settings:", error)
       toast.error("Failed to save settings")
     },
   })
@@ -276,7 +276,7 @@ export default function SettingsPage() {
       toast.success("Workspace deleted successfully")
       navigate("/workspace-selection")
     } catch (error) {
-      console.error("Error deleting workspace:", error)
+      logger.error("Error deleting workspace:", error)
       toast.error("Failed to delete workspace")
     } finally {
       setIsLoading(false)

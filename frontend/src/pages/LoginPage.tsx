@@ -52,7 +52,7 @@ export function LoginPage() {
     try {
       // Usa await esplicitamente e salva la risposta
       const response = await auth.login(data)
-      console.log("Login successful:", response.data)
+      logger.info("Login successful:", response.data)
 
       if (response.data && response.data.user) {
         localStorage.setItem("user", JSON.stringify(response.data.user))
@@ -65,7 +65,7 @@ export function LoginPage() {
         throw new Error("Invalid response format from the server.")
       }
     } catch (err: any) {
-      console.error("Login error:", err)
+      logger.error("Login error:", err)
 
       // Mostra messaggio di errore dettagliato
       const errorMsg =

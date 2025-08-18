@@ -2099,7 +2099,7 @@ async function main() {
   await prisma.customers.deleteMany({
     where: {
       workspaceId: mainWorkspaceId,
-      email: { in: ["test.customer@shopme.com", "maria.garcia@shopme.com"] },
+      email: { in: ["test.customer@shopme.com", "maria.garcia@shopme.com", "test-customer-123@shopme.com"] },
     },
   })
   console.log("Deleted existing test customers")
@@ -2168,6 +2168,40 @@ async function main() {
       },
     },
   })
+
+  // Create test customer for MCP testing - test-customer-123
+  const testCustomerMCP = await prisma.customers.create({
+    data: {
+      id: "test-customer-123", // Fixed ID for MCP testing
+      name: "Test Customer MCP",
+      email: "test-customer-123@shopme.com",
+      phone: "+393451234567",
+      address: "Test Address for MCP",
+      company: "MCP Test Company",
+      language: "it",
+      currency: "EUR",
+      workspaceId: mainWorkspaceId,
+      activeChatbot: true,
+      privacy_accepted_at: new Date(),
+      push_notifications_consent: true,
+      push_notifications_consent_at: new Date(),
+      invoiceAddress: {
+        firstName: "Test",
+        lastName: "Customer",
+        company: "MCP Test Company",
+        address: "Test Address",
+        city: "Test City",
+        postalCode: "12345",
+        country: "Italy",
+        vatNumber: "IT12345678901",
+        phone: "+393451234567",
+        email: "test-customer-123@shopme.com",
+      },
+    },
+  })
+  console.log(
+    `Test customer MCP created: ${testCustomerMCP.name} (ID: ${testCustomerMCP.id})`
+  )
   console.log(
     `Test customer 2 created: ${testCustomer2.name} (${testCustomer2.email})`
   )

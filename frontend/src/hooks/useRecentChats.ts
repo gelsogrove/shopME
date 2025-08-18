@@ -15,7 +15,7 @@ export function useRecentChats() {
             const workspace = JSON.parse(workspaceData)
             workspaceId = workspace.id
           } catch (e) {
-            console.error("Error parsing workspace data:", e)
+            logger.error("Error parsing workspace data:", e)
           }
         }
 
@@ -53,7 +53,7 @@ export function useRecentChats() {
 
         throw new Error("Error loading chats - API response not successful")
       } catch (error) {
-        console.error("Error in useRecentChats:", error)
+        logger.error("Error in useRecentChats:", error)
         throw error
       }
     },

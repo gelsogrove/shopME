@@ -53,12 +53,12 @@ export function ProductsPage() {
         if (response && Array.isArray(response.products)) {
           setProducts(response.products)
         } else {
-          console.error("Invalid API response format:", response)
+          logger.error("Invalid API response format:", response)
           setProducts([])
           toast.error("Error in API response format")
         }
       } catch (error) {
-        console.error("Failed to load products:", error)
+        logger.error("Failed to load products:", error)
         setProducts([])
         toast.error("Failed to load products")
       } finally {
@@ -80,7 +80,7 @@ export function ProductsPage() {
         )
         setCategories(categoriesData)
       } catch (error) {
-        console.error("Failed to load categories:", error)
+        logger.error("Failed to load categories:", error)
         toast.error("Failed to load categories")
       }
     }
@@ -216,18 +216,18 @@ export function ProductsPage() {
     }
 
     // Debug logging
-    console.log("Marco - Form data being sent:", productData)
-    console.log("Marco - Workspace ID:", workspace.id)
+    logger.info("Marco - Form data being sent:", productData)
+    logger.info("Marco - Workspace ID:", workspace.id)
 
     try {
       const newProduct = await productsApi.create(workspace.id, productData)
-      console.log("Marco - Product created successfully:", newProduct)
+      logger.info("Marco - Product created successfully:", newProduct)
       setProducts((prev) => [newProduct, ...prev])
       setShowAddSheet(false)
       setProductCode("") // Reset del productCode dopo il submit
       toast.success("Product created successfully")
     } catch (error) {
-      console.error("Marco - Failed to add product:", error)
+      logger.error("Marco - Failed to add product:", error)
       toast.error("Failed to create product")
     }
   }
@@ -275,7 +275,7 @@ export function ProductsPage() {
       setProductCode("") // Reset del productCode dopo il submit
       toast.success("Product updated successfully")
     } catch (error) {
-      console.error("Failed to update product:", error)
+      logger.error("Failed to update product:", error)
       toast.error("Failed to update product")
     }
   }
@@ -297,7 +297,7 @@ export function ProductsPage() {
       setSelectedProduct(null)
       toast.success("Product deleted successfully")
     } catch (error) {
-      console.error("Failed to delete product:", error)
+      logger.error("Failed to delete product:", error)
       toast.error("Failed to delete product")
     }
   }

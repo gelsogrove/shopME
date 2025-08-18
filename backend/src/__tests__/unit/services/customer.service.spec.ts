@@ -26,8 +26,8 @@ describe("CustomerService", () => {
   });
 
   describe("delete", () => {
-    const customerId = "test-customer-id";
-    const workspaceId = "test-workspace-id";
+    const customerId = "test-customer-123"; // Fixed ID from seed
+    const workspaceId = "cm9hjgq9v00014qk8fsdy4ujv"; // Fixed ID from seed
     const mockCustomer = {
       id: customerId,
       name: "Test Customer",
@@ -123,8 +123,8 @@ describe("CustomerService", () => {
   });
 
   describe("update", () => {
-    const customerId = "test-customer-id";
-    const workspaceId = "test-workspace-id";
+    const customerId = "test-customer-123"; // Fixed ID from seed
+    const workspaceId = "cm9hjgq9v00014qk8fsdy4ujv"; // Fixed ID from seed
     const mockCustomer = {
       id: customerId,
       name: "Test Customer",

@@ -36,7 +36,7 @@ export function ProtectedRoute() {
               return
             }
           } catch (e) {
-            console.error("Error parsing user data from localStorage:", e)
+            logger.error("Error parsing user data from localStorage:", e)
           }
         }
 
@@ -49,7 +49,7 @@ export function ProtectedRoute() {
           setIsAuthenticated(false)
         }
       } catch (error) {
-        console.error("Error verifying authentication:", error)
+        logger.error("Error verifying authentication:", error)
 
         // Solo dopo alcuni tentativi falliti imposta l'autenticazione a false
         if (retryCount >= 2) {

@@ -13,10 +13,10 @@ export function ChatTestPage() {
     setTestResult("")
     
     try {
-      console.log("🧪 TEST: Starting chat send test")
+      logger.info("🧪 TEST: Starting chat send test")
       
       // Test 1: Check workspace
-      console.log("🧪 TEST 1: Workspace check", {
+      logger.info("🧪 TEST 1: Workspace check", {
         workspace: workspace,
         workspaceId: workspace?.id,
         sessionStorage: sessionStorage.getItem("currentWorkspace")
@@ -29,7 +29,7 @@ export function ChatTestPage() {
       
       // Test 2: Check sessionStorage
       const storedWorkspace = sessionStorage.getItem("currentWorkspace")
-      console.log("🧪 TEST 2: SessionStorage check", storedWorkspace)
+      logger.info("🧪 TEST 2: SessionStorage check", storedWorkspace)
       
       // Test 3: Manual API call with detailed logging
       const sessionId = "test-session-123"
@@ -38,7 +38,7 @@ export function ChatTestPage() {
         'x-workspace-id': workspace.id
       }
       
-      console.log("🧪 TEST 3: Making API call", {
+      logger.info("🧪 TEST 3: Making API call", {
         url: `/chat/${sessionId}/send`,
         method: 'POST',
         headers,
@@ -53,11 +53,11 @@ export function ChatTestPage() {
         sender: "user"
       }, { headers })
       
-      console.log("🧪 TEST 3: Success!", response)
+      logger.info("🧪 TEST 3: Success!", response)
       setTestResult(`✅ SUCCESS: ${JSON.stringify(response.data, null, 2)}`)
       
     } catch (error: any) {
-      console.error("🧪 TEST: Error", error)
+      logger.error("🧪 TEST: Error", error)
       const errorDetails = {
         message: error.message,
         status: error.response?.status,

@@ -28,8 +28,8 @@ export class AgentController {
       // Always include SQL query for debugging
       const sqlQuery = `SELECT "id" FROM "Workspace" WHERE "id" = '${workspaceId}' LIMIT 1;`;
       
-      console.log('Agent controller - workspaceId:', workspaceId);
-      console.log('Agent controller - sources:', { paramId, customId, headerId, userId });
+      logger.info('Agent controller - workspaceId:', workspaceId);
+      logger.info('Agent controller - sources:', { paramId, customId, headerId, userId });
       
       if (!workspaceId) {
         return res.status(400).json({
@@ -53,11 +53,11 @@ export class AgentController {
       logger.info(`Getting all agents for workspace ${workspaceId}`);
       
       const agents = await this.agentService.getAllForWorkspace(workspaceId);
-      console.log('=== AGENT CONTROLLER SUCCESS ===');
-      console.log(`Found ${Array.isArray(agents) ? agents.length : 0} agents for workspace ${workspaceId}`);
+      logger.info('=== AGENT CONTROLLER SUCCESS ===');
+      logger.info(`Found ${Array.isArray(agents) ? agents.length : 0} agents for workspace ${workspaceId}`);
       return res.json(agents);
     } catch (error) {
-      console.log('=== AGENT CONTROLLER ERROR ===', error);
+      logger.info('=== AGENT CONTROLLER ERROR ===', error);
       logger.error('Error fetching agents:', error);
       return next(error);
     }
@@ -136,8 +136,8 @@ export class AgentController {
       // Try to get workspaceId from multiple sources
       let workspaceId = paramId || customId || headerId;
       
-      console.log('Agent update - workspaceId:', workspaceId);
-      console.log('Agent update - sources:', { paramId, customId, headerId });
+      logger.info('Agent update - workspaceId:', workspaceId);
+      logger.info('Agent update - sources:', { paramId, customId, headerId });
       
       if (!workspaceId) {
         return res.status(400).json({

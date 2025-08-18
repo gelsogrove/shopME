@@ -1,3 +1,4 @@
+import logger from "../../../utils/logger"
 import { Request, Response } from "express"
 import { usageService } from "../../../services/usage.service"
 
@@ -6,13 +7,13 @@ export class UsageController {
 
   public trackUsage = async (req: Request, res: Response): Promise<void> => {
     try {
-      console.log("[UsageController] 📊 N8N chiamando track-usage:", req.body)
+      logger.info("[UsageController] 📊 N8N chiamando track-usage:", req.body)
 
       const { customerId, workspaceId, type = "ai_response" } = req.body
 
       // Validazione parametri
       if (!customerId || !workspaceId) {
-        console.error("[UsageController] ❌ Parametri mancanti:", {
+        logger.error("[UsageController] ❌ Parametri mancanti:", {
           customerId,
           workspaceId,
         })
@@ -23,7 +24,7 @@ export class UsageController {
         return
       }
 
-      console.log(
+      logger.info(
         "[UsageController] 🎯 Tracking usage per customer:",
         customerId
       )
@@ -35,7 +36,7 @@ export class UsageController {
         price: 0.005,
       })
 
-      console.log("[UsageController] ✅ Usage tracked successfully:", {
+      logger.info("[UsageController] ✅ Usage tracked successfully:", {
         customerId,
         workspaceId,
         type,
@@ -50,7 +51,7 @@ export class UsageController {
         },
       })
     } catch (error) {
-      console.error("[UsageController] ❌ Errore tracking usage:", error)
+      logger.error("[UsageController] ❌ Errore tracking usage:", error)
       res.status(500).json({
         success: false,
         error: "Errore interno durante tracking usage",

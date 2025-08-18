@@ -12,12 +12,12 @@ export const workspaceValidationMiddleware = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    console.log('=== WORKSPACE VALIDATION DEBUG ===');
-    console.log('Request URL:', req.originalUrl);
-    console.log('Request method:', req.method);
-    console.log('Request params:', req.params);
-    console.log('Request query:', req.query);
-    console.log('Request headers workspace-related:', {
+    logger.info('=== WORKSPACE VALIDATION DEBUG ===');
+    logger.info('Request URL:', req.originalUrl);
+    logger.info('Request method:', req.method);
+    logger.info('Request params:', req.params);
+    logger.info('Request query:', req.query);
+    logger.info('Request headers workspace-related:', {
       'x-workspace-id': req.headers['x-workspace-id'],
       'workspace-id': req.headers['workspace-id']
     });
@@ -33,7 +33,7 @@ export const workspaceValidationMiddleware = async (
       let urlMatch = req.originalUrl.match(/\/workspaces\/([^\/\?]+)/);
       if (urlMatch && urlMatch[1]) {
         workspaceIdFromParams = urlMatch[1];
-        console.log('🔧 EXTRACTED workspaceId from /workspaces/ pattern:', workspaceIdFromParams);
+        logger.info('🔧 EXTRACTED workspaceId from /workspaces/ pattern:', workspaceIdFromParams);
         // Also set it in params for downstream middleware
         req.params.workspaceId = workspaceIdFromParams;
       } else {
@@ -41,14 +41,14 @@ export const workspaceValidationMiddleware = async (
         urlMatch = req.originalUrl.match(/\/settings\/([^\/\?]+)\/gdpr/);
         if (urlMatch && urlMatch[1]) {
           workspaceIdFromParams = urlMatch[1];
-          console.log('🔧 EXTRACTED workspaceId from /settings/{workspaceId}/gdpr pattern:', workspaceIdFromParams);
+          logger.info('🔧 EXTRACTED workspaceId from /settings/{workspaceId}/gdpr pattern:', workspaceIdFromParams);
           // Also set it in params for downstream middleware
           req.params.workspaceId = workspaceIdFromParams;
         }
       }
     }
     
-    console.log('Workspace ID sources:', {
+    logger.info('Workspace ID sources:', {
       fromParams: workspaceIdFromParams,
       fromQuery: workspaceIdFromQuery,
       fromHeaders: workspaceIdFromHeaders
@@ -56,10 +56,10 @@ export const workspaceValidationMiddleware = async (
 
     const workspaceId = workspaceIdFromParams || workspaceIdFromQuery || workspaceIdFromHeaders;
     
-    console.log('Final workspaceId:', workspaceId);
+    logger.info('Final workspaceId:', workspaceId);
 
     if (!workspaceId || workspaceId.trim() === '') {
-      console.log('❌ Workspace ID is missing or empty');
+      logger.info('❌ Workspace ID is missing or empty');
       
       // Create debug response with all the information
       const debugResponse = {
@@ -87,21 +87,21 @@ export const workspaceValidationMiddleware = async (
       return;
     }
 
-    console.log('✅ Workspace ID found:', workspaceId);
+    logger.info('✅ Workspace ID found:', workspaceId);
 
     // Check if workspace exists in database
-    console.log('Checking workspace in database...');
+    logger.info('Checking workspace in database...');
     const workspace = await prisma.workspace.findUnique({
       where: { id: workspaceId },
       select: { id: true, name: true, isActive: true, isDelete: true }
     });
 
     const sqlQuery = `SELECT id, name, isActive, isDelete FROM workspace WHERE id = '${workspaceId}'`;
-    console.log('SQL Query executed:', sqlQuery);
-    console.log('Workspace found:', workspace);
+    logger.info('SQL Query executed:', sqlQuery);
+    logger.info('Workspace found:', workspace);
 
     if (!workspace) {
-      console.log('❌ Workspace not found in database');
+      logger.info('❌ Workspace not found in database');
       
       const debugResponse = {
         message: "Workspace not found",
@@ -118,7 +118,7 @@ export const workspaceValidationMiddleware = async (
     }
 
     if (workspace.isDelete || !workspace.isActive) {
-      console.log('❌ Workspace is deleted or inactive');
+      logger.info('❌ Workspace is deleted or inactive');
       
       const debugResponse = {
         message: "Workspace is not available",
@@ -135,7 +135,7 @@ export const workspaceValidationMiddleware = async (
       return;
     }
 
-    console.log('✅ Workspace validation passed');
+    logger.info('✅ Workspace validation passed');
     
     // Store workspace info in request
     (req as any).workspace = workspace;
@@ -143,7 +143,7 @@ export const workspaceValidationMiddleware = async (
     
     next();
   } catch (error) {
-    console.error('Workspace validation error:', error);
+    logger.error('Workspace validation error:', error);
     logger.error('Workspace validation middleware error:', error);
     
     const debugResponse = {

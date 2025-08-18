@@ -24,7 +24,7 @@ export interface ConfirmOrderFromConversationParams {
 
 export interface ConfirmOrderFromConversationResult {
   success: boolean
-  response: string
+  response?: string
   checkoutToken?: string
   checkoutUrl?: string
   expiresAt?: Date
@@ -55,7 +55,7 @@ export async function confirmOrderFromConversation(
       return {
         success: false,
         response:
-          "Non ho identificato prodotti nella nostra conversazione. Puoi specificare cosa vuoi ordinare?",
+          "I have not identified products in our conversation. Can you specify what you want to order?",
         error: "No products identified in conversation",
       }
     }
@@ -83,37 +83,37 @@ export async function confirmOrderFromConversation(
     const prodottiConPrezzo = []
     let totalAmount = 0
 
-    for (const prodotto of prodottiSelezionati) {
-      // Cerca prodotto per nome o SKU
+    for (const product of prodottiSelezionati) {
+      // Search product by name or SKU
       const dbProduct = await prisma.products.findFirst({
         where: {
           workspaceId,
           OR: [
-            { name: { contains: prodotto.nome, mode: "insensitive" } },
-            { sku: prodotto.codice },
-            { description: { contains: prodotto.nome, mode: "insensitive" } },
+            { name: { contains: product.nome, mode: "insensitive" } },
+            { sku: product.codice },
+            { description: { contains: product.nome, mode: "insensitive" } },
           ],
           isActive: true,
         },
       })
 
       if (!dbProduct) {
-        logger.warn(`Product not found: ${prodotto.nome}`)
+        logger.warn(`Product not found: ${product.nome}`)
         return {
           success: false,
-          response: `Non riesco a trovare il prodotto "${prodotto.nome}" nel catalogo. Puoi verificare il nome?`,
-          error: `Product not found: ${prodotto.nome}`,
+          response: `I cannot find the product "${product.nome}" in the catalog. Can you verify the name?`,
+          error: `Product not found: ${product.nome}`,
         }
       }
 
-      // Calcola prezzo con eventuali sconti
+      // Calculate price with possible discounts
       const unitPrice = dbProduct.price
-      const totalPrice = unitPrice * prodotto.quantita
+      const totalPrice = unitPrice * product.quantita
 
       prodottiConPrezzo.push({
         codice: dbProduct.ProductCode || dbProduct.sku || dbProduct.id,
         descrizione: dbProduct.name,
-        qty: prodotto.quantita,
+        qty: product.quantita,
         prezzo: unitPrice,
         productId: dbProduct.id,
       })
@@ -170,7 +170,9 @@ ${checkoutUrl}
 • Verificare i prodotti selezionati
 • Inserire l'indirizzo di spedizione
 • Scegliere il metodo di pagamento
-• Confermare definitivamente l'ordine`
+• Confermare definitivamente l'ordine
+
+🧹 **Nota**: Il tuo carrello è stato pulito per evitare ordini duplicati.`
 
     logger.info(
       `[CONFIRM_ORDER_CONVERSATION] Checkout link created: ${checkoutToken}, Total: €${totalAmount}`
@@ -192,7 +194,7 @@ ${checkoutUrl}
     return {
       success: false,
       response:
-        "Si è verificato un errore durante la creazione dell'ordine. Riprova o contatta l'assistenza.",
+        "An error occurred during order creation. Please try again or contact support.",
       error: (error as Error).message,
     }
   }
@@ -203,11 +205,9 @@ ${checkoutUrl}
  */
 function generateSecureToken(): string {
   const randomBytes = crypto.randomBytes(32)
-  const timestamp = Date.now().toString()
-  const combined = randomBytes.toString("hex") + timestamp
   return crypto
     .createHash("sha256")
-    .update(combined)
+    .update(randomBytes)
     .digest("hex")
     .substring(0, 32)
 }

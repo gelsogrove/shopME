@@ -9,13 +9,13 @@ export type { Agent, CreateAgentData, UpdateAgentData }
 export const getAgent = async (workspaceId: string): Promise<Agent> => {
   try {
     const response = await api.get<Agent[]>(`/workspaces/${workspaceId}/agents`)
-    console.log("getAgent response:", response.data)
+    logger.info("getAgent response:", response.data)
     if (response.data && response.data.length > 0) {
       return response.data[0]
     }
     throw new Error("No agent found")
   } catch (error) {
-    console.error("Error getting agent:", error)
+    logger.error("Error getting agent:", error)
     throw error
   }
 }
@@ -28,7 +28,7 @@ export const getAgentById = async (workspaceId: string, agentId: string): Promis
     const response = await api.get<Agent>(`/workspaces/${workspaceId}/agents/${agentId}`)
     return response.data
   } catch (error) {
-    console.error("Error getting agent by ID:", error)
+    logger.error("Error getting agent by ID:", error)
     throw error
   }
 }
@@ -38,15 +38,15 @@ export const getAgentById = async (workspaceId: string, agentId: string): Promis
  */
 export const createAgent = async (workspaceId: string, data: CreateAgentData): Promise<Agent> => {
   try {
-    console.log("Creating agent with payload:", {
+    logger.info("Creating agent with payload:", {
       workspaceId,
       ...data
     })
     const response = await api.post<Agent>(`/workspaces/${workspaceId}/agents`, data)
-    console.log("createAgent response:", response.data)
+    logger.info("createAgent response:", response.data)
     return response.data
   } catch (error) {
-    console.error("Error creating agent:", error)
+    logger.error("Error creating agent:", error)
     throw error
   }
 }
@@ -60,7 +60,7 @@ export const updateAgent = async (
   data: UpdateAgentData
 ): Promise<Agent> => {
   try {
-    console.log("Updating agent with payload:", {
+    logger.info("Updating agent with payload:", {
       workspaceId,
       agentId,
       ...data
@@ -69,10 +69,10 @@ export const updateAgent = async (
       `/workspaces/${workspaceId}/agents/${agentId}`,
       data
     )
-    console.log("updateAgent response:", response.data)
+    logger.info("updateAgent response:", response.data)
     return response.data
   } catch (error) {
-    console.error("Error updating agent:", error)
+    logger.error("Error updating agent:", error)
     throw error
   }
 } 

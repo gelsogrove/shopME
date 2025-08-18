@@ -58,7 +58,7 @@ export const useTokenValidation = ({
     setExpiresAt(undefined)
 
     try {
-      console.log(`[TOKEN-VALIDATION] Validating token for type: ${type || 'any'}`)
+      logger.info(`[TOKEN-VALIDATION] Validating token for type: ${type || 'any'}`)
       
       const response = await axios.post('/api/internal/validate-secure-token', {
         token,
@@ -70,16 +70,16 @@ export const useTokenValidation = ({
         setValid(true)
         setTokenData(response.data.data)
         setPayload(response.data.payload)
-        console.log('[TOKEN-VALIDATION] ✅ Token validated successfully')
+        logger.info('[TOKEN-VALIDATION] ✅ Token validated successfully')
       } else {
         setValid(false)
         setError(response.data.error || 'Token non valido')
         setErrorType(response.data.errorType)
         setExpiresAt(response.data.expiresAt)
-        console.warn('[TOKEN-VALIDATION] ❌ Token validation failed:', response.data.error)
+        logger.warn('[TOKEN-VALIDATION] ❌ Token validation failed:', response.data.error)
       }
     } catch (err: any) {
-      console.error('[TOKEN-VALIDATION] Error validating token:', err)
+      logger.error('[TOKEN-VALIDATION] Error validating token:', err)
       
       if (err.response?.status === 401) {
         setError('Link scaduto o non valido')
@@ -139,7 +139,7 @@ export const useCheckoutTokenValidation = (token: string | null, workspaceId?: s
     setExpiresAt(undefined)
 
     try {
-      console.log(`[CHECKOUT-TOKEN-VALIDATION] Validating checkout token`)
+      logger.info(`[CHECKOUT-TOKEN-VALIDATION] Validating checkout token`)
       
       // Use dedicated checkout endpoint
       const response = await axios.get(`/api/checkout/token/${token}`)
@@ -148,16 +148,16 @@ export const useCheckoutTokenValidation = (token: string | null, workspaceId?: s
         setValid(true)
         setTokenData(response.data)
         setPayload(response.data.prodotti)
-        console.log('[CHECKOUT-TOKEN-VALIDATION] ✅ Token validated successfully')
+        logger.info('[CHECKOUT-TOKEN-VALIDATION] ✅ Token validated successfully')
       } else {
         setValid(false)
         setError(response.data.error || 'Token checkout non valido')
         setErrorType(response.data.errorType)
         setExpiresAt(response.data.expiresAt)
-        console.warn('[CHECKOUT-TOKEN-VALIDATION] ❌ Token validation failed:', response.data.error)
+        logger.warn('[CHECKOUT-TOKEN-VALIDATION] ❌ Token validation failed:', response.data.error)
       }
     } catch (err: any) {
-      console.error('[CHECKOUT-TOKEN-VALIDATION] Error validating token:', err)
+      logger.error('[CHECKOUT-TOKEN-VALIDATION] Error validating token:', err)
       
       if (err.response?.status === 400) {
         setError(err.response.data.error || 'Link scaduto o non valido')

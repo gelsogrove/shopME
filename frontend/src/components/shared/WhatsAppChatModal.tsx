@@ -75,7 +75,7 @@ export function WhatsAppChatModal({
   const currentWorkspaceId = getWorkspaceId(workspaceId)
   const hasValidWorkspace = currentWorkspaceId !== null
 
-  console.log("WhatsAppChatModal props:", {
+  logger.info("WhatsAppChatModal props:", {
     isOpen,
     channelName,
     phoneNumber,
@@ -83,7 +83,7 @@ export function WhatsAppChatModal({
     selectedChat,
   })
 
-  console.log("Workspace check:", {
+  logger.info("Workspace check:", {
     currentWorkspaceId,
     hasValidWorkspace,
     providedWorkspaceId: workspaceId,
@@ -98,7 +98,7 @@ export function WhatsAppChatModal({
     if (isOpen) {
       // Priority 1: Use the chat passed from props if available
       if (selectedChat) {
-        console.log("Using selectedChat from props:", selectedChat)
+        logger.info("Using selectedChat from props:", selectedChat)
         setLocalSelectedChat(selectedChat)
 
         // If the selectedChat has a sessionId, use it
@@ -117,7 +117,7 @@ export function WhatsAppChatModal({
         const savedChatJson = localStorage.getItem("selectedChat")
         if (savedChatJson) {
           const savedChat = JSON.parse(savedChatJson) as Chat
-          console.log("Using selectedChat from localStorage:", savedChat)
+          logger.info("Using selectedChat from localStorage:", savedChat)
           setLocalSelectedChat(savedChat)
 
           // If the savedChat has a sessionId, use it
@@ -129,12 +129,12 @@ export function WhatsAppChatModal({
           return
         }
       } catch (error) {
-        console.error("Error reading selectedChat from localStorage:", error)
+        logger.error("Error reading selectedChat from localStorage:", error)
       }
 
       // If the sessionId was set but not the chat, try to use that
       if (globalSessionId) {
-        console.log("Using previously stored sessionId:", globalSessionId)
+        logger.info("Using previously stored sessionId:", globalSessionId)
         setSessionId(globalSessionId)
       }
     }
@@ -143,7 +143,7 @@ export function WhatsAppChatModal({
   // Initialize chat when a local selected chat is available
   useEffect(() => {
     if (isOpen && localSelectedChat) {
-      console.log("Initializing chat with chat:", localSelectedChat)
+      logger.info("Initializing chat with chat:", localSelectedChat)
       setUserPhoneNumber(localSelectedChat.customerPhone)
       setChatStarted(true)
       fetchMessagesForSelectedChat(localSelectedChat)
@@ -153,7 +153,7 @@ export function WhatsAppChatModal({
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
-      console.log("Modal closed, resetting component state")
+      logger.info("Modal closed, resetting component state")
       setTimeout(() => {
         // Reset solo gli stati necessari, mantenendo la conversazione
         setIsLoading(false)
@@ -166,7 +166,7 @@ export function WhatsAppChatModal({
       }, 300)
     } else if (isOpen && !localSelectedChat && !selectedChat) {
       // Handle case where modal opens without a selected chat
-      console.log("Modal opened without any chat")
+      logger.info("Modal opened without any chat")
       setUserPhoneNumber(phoneNumber || "")
       // Focus input field when chat opens without selected chat
       setTimeout(() => {
@@ -180,7 +180,7 @@ export function WhatsAppChatModal({
   // Fetch messages for the selected chat
   const fetchMessagesForSelectedChat = async (chat: Chat) => {
     if (!chat || !chat.sessionId) {
-      console.error(
+      logger.error(
         "No chat or sessionId provided to fetchMessagesForSelectedChat"
       )
       return
@@ -189,15 +189,15 @@ export function WhatsAppChatModal({
     // Get workspaceId for API call
     const currentWorkspaceId = getWorkspaceId(workspaceId)
     if (!currentWorkspaceId) {
-      console.error("No workspace ID available for fetching messages")
+      logger.error("No workspace ID available for fetching messages")
       return
     }
 
-    console.log("Fetching messages for chat:", chat.sessionId)
+    logger.info("Fetching messages for chat:", chat.sessionId)
     setIsLoading(true)
     try {
       const response = await api.get(`/chat/${chat.sessionId}/messages`)
-      console.log("API response for messages:", response.data)
+      logger.info("API response for messages:", response.data)
 
       if (response.data.success) {
         // Transform backend messages to frontend format for the playground
@@ -209,14 +209,14 @@ export function WhatsAppChatModal({
           timestamp: new Date(message.createdAt),
         }))
 
-        console.log(
+        logger.info(
           `Loaded ${chatMessages.length} messages for chat:`,
           chat.sessionId
         )
         setMessages(chatMessages)
       }
     } catch (error) {
-      console.error("Error loading messages for selected chat:", error)
+      logger.error("Error loading messages for selected chat:", error)
     } finally {
       setIsLoading(false)
     }
@@ -300,7 +300,7 @@ export function WhatsAppChatModal({
       if (response.data.success) {
         // Save sessionId if provided in the response
         if (response.data.data.sessionId) {
-          console.log("Setting new session ID:", response.data.data.sessionId)
+          logger.info("Setting new session ID:", response.data.data.sessionId)
           setSessionId(response.data.data.sessionId)
 
           // Update our global variable to persist across modal closings
@@ -337,7 +337,7 @@ export function WhatsAppChatModal({
         setMessages([userMessage, botMessage]) // Include both user message and bot response
       } else {
         // Handle API error response
-        console.error("API Error:", response.data.error)
+        logger.error("API Error:", response.data.error)
 
         // Add an error message to the chat
         const errorMessage: Message = {
@@ -351,7 +351,7 @@ export function WhatsAppChatModal({
         setMessages((prev) => [...prev, errorMessage])
       }
     } catch (error) {
-      console.error("Error calling message API:", error)
+      logger.error("Error calling message API:", error)
 
       // Add an error message to the chat in case of exception
       const errorMessage: Message = {
@@ -370,10 +370,10 @@ export function WhatsAppChatModal({
   }
 
   const sendMessage = async () => {
-    console.log("🚀 FRONTEND DEBUG: sendMessage called with:", currentMessage)
+    logger.info("🚀 FRONTEND DEBUG: sendMessage called with:", currentMessage)
 
     if (!currentMessage.trim() || isLoading) {
-      console.log(
+      logger.info(
         "❌ FRONTEND DEBUG: sendMessage blocked - empty message or loading"
       )
       return
@@ -384,7 +384,7 @@ export function WhatsAppChatModal({
     const lastCall = lastSendRef.current
     if (now - lastCall < 10000) {
       // 10 second debounce for testing
-      console.log(
+      logger.info(
         "❌ FRONTEND DEBUG: sendMessage blocked - too soon after last call"
       )
       return
@@ -397,7 +397,7 @@ export function WhatsAppChatModal({
       return
     }
 
-    console.log(
+    logger.info(
       "✅ FRONTEND DEBUG: sendMessage proceeding with message:",
       currentMessage
     )
@@ -424,19 +424,19 @@ export function WhatsAppChatModal({
       // Use provided workspaceId or get from config
       const currentWorkspaceId = getWorkspaceId(workspaceId)
 
-      console.log("🔄 FRONTEND DEBUG: Making API call to:", apiUrl)
+      logger.info("🔄 FRONTEND DEBUG: Making API call to:", apiUrl)
       const response = await axios.post(apiUrl, {
         message: userMessage.content,
         phoneNumber: userPhoneNumber,
         workspaceId: currentWorkspaceId,
         sessionId: sessionId, // Include the sessionId in the request
       })
-      console.log("📥 FRONTEND DEBUG: API response received:", response.data)
+      logger.info("📥 FRONTEND DEBUG: API response received:", response.data)
 
       if (response.data.success) {
         // Update sessionId if provided in the response and not yet set
         if (response.data.data.sessionId && !sessionId) {
-          console.log("Updating sessionId:", response.data.data.sessionId)
+          logger.info("Updating sessionId:", response.data.data.sessionId)
           setSessionId(response.data.data.sessionId)
 
           // Update our global variable to persist across modal closings
@@ -470,11 +470,11 @@ export function WhatsAppChatModal({
           // Add bot response to chat history
           setMessages((prev) => [...prev, botMessage])
         } else {
-          console.log("Empty response from API, not adding bot message")
+          logger.info("Empty response from API, not adding bot message")
         }
       } else {
         // Handle API error response
-        console.error("API Error:", response.data.error)
+        logger.error("API Error:", response.data.error)
 
         // Add an error message to the chat
         const errorMessage: Message = {
@@ -488,7 +488,7 @@ export function WhatsAppChatModal({
         setMessages((prev) => [...prev, errorMessage])
       }
     } catch (error) {
-      console.error("Error calling message API:", error)
+      logger.error("Error calling message API:", error)
 
       // Add an error message to the chat in case of exception
       const errorMessage: Message = {

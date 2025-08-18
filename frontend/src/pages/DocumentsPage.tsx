@@ -29,45 +29,45 @@ export default function DocumentsPage() {
 
   // Debug workspace state
   useEffect(() => {
-    console.log("=== DOCUMENTS PAGE WORKSPACE DEBUG ===")
-    console.log("Workspace from hook:", workspace)
-    console.log("Workspace ID:", workspace?.id)
-    console.log("Is loading:", isLoading)
+    logger.info("=== DOCUMENTS PAGE WORKSPACE DEBUG ===")
+    logger.info("Workspace from hook:", workspace)
+    logger.info("Workspace ID:", workspace?.id)
+    logger.info("Is loading:", isLoading)
 
     // Check sessionStorage directly
     const sessionWorkspace = sessionStorage.getItem("currentWorkspace")
-    console.log("SessionStorage workspace:", sessionWorkspace)
+    logger.info("SessionStorage workspace:", sessionWorkspace)
 
     // Check localStorage as fallback
     const localWorkspace = localStorage.getItem("currentWorkspace")
-    console.log("LocalStorage workspace:", localWorkspace)
+    logger.info("LocalStorage workspace:", localWorkspace)
 
     if (sessionWorkspace) {
       try {
         const parsed = JSON.parse(sessionWorkspace)
-        console.log("Parsed sessionStorage workspace:", parsed)
+        logger.info("Parsed sessionStorage workspace:", parsed)
       } catch (e) {
-        console.error("Error parsing sessionStorage workspace:", e)
+        logger.error("Error parsing sessionStorage workspace:", e)
       }
     }
   }, [workspace, isLoading])
 
   const loadDocuments = useCallback(async () => {
-    console.log("=== LOAD DOCUMENTS DEBUG ===")
-    console.log("Workspace ID for loading:", workspace?.id)
+    logger.info("=== LOAD DOCUMENTS DEBUG ===")
+    logger.info("Workspace ID for loading:", workspace?.id)
 
     if (!workspace?.id) {
-      console.warn("No workspace ID available for loading documents")
+      logger.warn("No workspace ID available for loading documents")
       return
     }
 
     try {
-      console.log("Calling documentsApi.list with workspaceId:", workspace.id)
+      logger.info("Calling documentsApi.list with workspaceId:", workspace.id)
       const docs = await documentsApi.list(workspace.id)
-      console.log("Documents loaded:", docs)
+      logger.info("Documents loaded:", docs)
       setDocuments(docs)
     } catch (error) {
-      console.error("Failed to load documents:", error)
+      logger.error("Failed to load documents:", error)
       toast.error("Failed to load documents")
     }
   }, [workspace?.id])
@@ -103,7 +103,7 @@ export default function DocumentsPage() {
 
       toast.success("Document downloaded successfully")
     } catch (error) {
-      console.error("Failed to download document:", error)
+      logger.error("Failed to download document:", error)
       toast.error("Failed to download document")
     }
   }
@@ -169,7 +169,7 @@ export default function DocumentsPage() {
       toast.success("Document updated successfully")
       loadDocuments()
     } catch (error) {
-      console.error("Failed to update document:", error)
+      logger.error("Failed to update document:", error)
       toast.error("Failed to update document")
     }
   }
@@ -189,7 +189,7 @@ export default function DocumentsPage() {
       setSelectedDocument(null)
       toast.success("Document deleted successfully")
     } catch (error) {
-      console.error("Failed to delete document:", error)
+      logger.error("Failed to delete document:", error)
       toast.error("Failed to delete document")
     }
   }

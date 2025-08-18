@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { PrismaClient } from "@prisma/client"
 
 export interface DashboardAnalytics {
@@ -123,7 +124,7 @@ export class AnalyticsService {
         topCustomers,
       }
     } catch (error) {
-      console.error("Analytics error:", error)
+      logger.error("Analytics error:", error)
       throw error
     }
   }
@@ -287,7 +288,7 @@ export class AnalyticsService {
         stock: product.stock || 0,
       }))
     } catch (error) {
-      console.error("Error getting top products:", error)
+      logger.error("Error getting top products:", error)
       return []
     }
   }
@@ -348,7 +349,7 @@ export class AnalyticsService {
         averageOrderValue: Number(customer.average_order_value) || 0,
       }))
     } catch (error) {
-      console.error("Error getting top customers:", error)
+      logger.error("Error getting top customers:", error)
       return []
     }
   }
@@ -568,7 +569,7 @@ export class AnalyticsService {
 
       return monthlyData
     } catch (error) {
-      console.error("Error getting monthly top customers:", error)
+      logger.error("Error getting monthly top customers:", error)
       throw error
     }
   }
@@ -612,7 +613,7 @@ export class AnalyticsService {
 
       return monthlyData
     } catch (error) {
-      console.error("Error getting monthly top clients:", error)
+      logger.error("Error getting monthly top clients:", error)
       throw error
     }
   }
@@ -695,7 +696,7 @@ export class AnalyticsService {
         averageOrderValue: Number(client.average_order_value) || 0,
       }))
     } catch (error) {
-      console.error("Error fetching top clients:", error)
+      logger.error("Error fetching top clients:", error)
       return []
     }
   }

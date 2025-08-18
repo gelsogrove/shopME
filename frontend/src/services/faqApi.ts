@@ -64,9 +64,9 @@ export const getFAQs = async (workspaceId: string): Promise<FAQ[]> => {
     const response = await api.get(`/workspaces/${workspaceId}/faqs`)
     return response.data
   } catch (error) {
-    console.error("Error getting FAQs:", error)
+    logger.error("Error getting FAQs:", error)
     // For development/testing, return mock FAQs
-    console.warn("Returning mock FAQs data")
+    logger.warn("Returning mock FAQs data")
     return mockFAQs
   }
 }
@@ -82,7 +82,7 @@ export const getFAQById = async (
     const response = await api.get(`/workspaces/${workspaceId}/faqs/${id}`)
     return response.data
   } catch (error) {
-    console.error("Error getting FAQ:", error)
+    logger.error("Error getting FAQ:", error)
     const mockFaq = mockFAQs.find((faq) => faq.id === id)
     if (mockFaq) return mockFaq
     throw error
@@ -100,9 +100,9 @@ export const createFAQ = async (
     const response = await api.post(`/workspaces/${workspaceId}/faqs`, data)
     return response.data
   } catch (error) {
-    console.error("Error creating FAQ:", error)
+    logger.error("Error creating FAQ:", error)
     // For development/testing, return a mock FAQ
-    console.warn("Returning mock created FAQ data")
+    logger.warn("Returning mock created FAQ data")
     const newFaq: FAQ = {
       id: `mock-faq-${Date.now()}`,
       question: data.question,
@@ -132,9 +132,9 @@ export const updateFAQ = async (
     )
     return response.data
   } catch (error) {
-    console.error("Error updating FAQ:", error)
+    logger.error("Error updating FAQ:", error)
     // For development/testing, update a mock FAQ
-    console.warn("Updating mock FAQ data")
+    logger.warn("Updating mock FAQ data")
     const index = mockFAQs.findIndex((faq) => faq.id === id)
     if (index !== -1) {
       mockFAQs[index] = {
@@ -158,9 +158,9 @@ export const deleteFAQ = async (
   try {
     await api.delete(`/workspaces/${workspaceId}/faqs/${id}`)
   } catch (error) {
-    console.error("Error deleting FAQ:", error)
+    logger.error("Error deleting FAQ:", error)
     // For development/testing, delete a mock FAQ
-    console.warn("Deleting mock FAQ data")
+    logger.warn("Deleting mock FAQ data")
     const index = mockFAQs.findIndex((faq) => faq.id === id)
     if (index !== -1) {
       mockFAQs.splice(index, 1)
@@ -177,7 +177,7 @@ export const generateEmbeddings = async (workspaceId: string): Promise<{ process
     const response = await api.post(`/workspaces/${workspaceId}/faqs/generate-embeddings`)
     return response.data.data || response.data
   } catch (error) {
-    console.error("Error generating FAQ embeddings:", error)
+    logger.error("Error generating FAQ embeddings:", error)
     throw error
   }
 }

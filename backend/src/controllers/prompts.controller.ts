@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { NextFunction, Request, Response } from "express"
 import { promptsService } from "../services/prompts.service"
 
@@ -59,7 +60,7 @@ export class PromptsController {
       const { id } = req.params
       
       // Esplicito log dei dati ricevuti nel body
-      console.log(`Prompt update request received for id ${id}:`, req.body)
+      logger.info(`Prompt update request received for id ${id}:`, req.body)
       
       // Assicuriamoci che isActive sia interpretato correttamente anche se viene inviato come stringa
       let data = { ...req.body };
@@ -69,9 +70,9 @@ export class PromptsController {
         if (typeof data.isActive === 'string') {
           data.isActive = data.isActive.toLowerCase() === 'true';
         }
-        console.log(`isActive value processed as ${data.isActive} (${typeof data.isActive})`)
+        logger.info(`isActive value processed as ${data.isActive} (${typeof data.isActive})`)
       } else {
-        console.log(`isActive not included in update data`)
+        logger.info(`isActive not included in update data`)
       }
       
       const updatedPrompt = await promptsService.update(id, data)
@@ -132,7 +133,7 @@ export class PromptsController {
   async duplicatePrompt(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params
-      console.log(`Duplicate request received for prompt ${id}`)
+      logger.info(`Duplicate request received for prompt ${id}`)
       
       const duplicatedPrompt = await promptsService.duplicate(id)
       
@@ -142,7 +143,7 @@ export class PromptsController {
       
       res.json(duplicatedPrompt)
     } catch (error) {
-      console.error(`Error duplicating prompt ${req.params.id}:`, error)
+      logger.error(`Error duplicating prompt ${req.params.id}:`, error)
       next(error)
     }
   }

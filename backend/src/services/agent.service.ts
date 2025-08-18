@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
@@ -46,7 +47,7 @@ export const agentService = {
    * Get all agents for a workspace
    */
   async getAllForWorkspace(workspaceId: string) {
-    console.log(`[agentService] Getting all agents for workspace ${workspaceId}`);
+    logger.info(`[agentService] Getting all agents for workspace ${workspaceId}`);
     
     try {
       const results = await prisma.prompts.findMany({
@@ -58,12 +59,12 @@ export const agentService = {
         ],
       });
 
-      console.log(`[agentService] Found ${results.length} agents for workspace ${workspaceId}`);
+      logger.info(`[agentService] Found ${results.length} agents for workspace ${workspaceId}`);
       
       // Return results directly as schema now matches API
       return results;
     } catch (error) {
-      console.error(`[agentService] Error getting agents for workspace ${workspaceId}:`, error);
+      logger.error(`[agentService] Error getting agents for workspace ${workspaceId}:`, error);
       throw error;
     }
   },
@@ -72,7 +73,7 @@ export const agentService = {
    * Get an agent by ID
    */
   async getById(id: string, workspaceId: string) {
-    console.log(`[agentService] Getting agent ${id} from workspace ${workspaceId}`);
+    logger.info(`[agentService] Getting agent ${id} from workspace ${workspaceId}`);
     
     try {
       const result = await prisma.prompts.findFirst({
@@ -83,14 +84,14 @@ export const agentService = {
       });
 
       if (!result) {
-        console.log(`[agentService] Agent ${id} not found in workspace ${workspaceId}`);
+        logger.info(`[agentService] Agent ${id} not found in workspace ${workspaceId}`);
         return null;
       }
       
-      console.log(`[agentService] Found agent ${id} in workspace ${workspaceId}:`, result);
+      logger.info(`[agentService] Found agent ${id} in workspace ${workspaceId}:`, result);
       return result;
     } catch (error) {
-      console.error(`[agentService] Error getting agent ${id} from workspace ${workspaceId}:`, error);
+      logger.error(`[agentService] Error getting agent ${id} from workspace ${workspaceId}:`, error);
       throw error;
     }
   },
@@ -101,7 +102,7 @@ export const agentService = {
    */
   async create(data: CreateAgentData) {
     const { workspaceId, isRouter = false, model, ...restData } = data;
-    console.log(`[agentService] Creating agent for workspace ${workspaceId}, isRouter: ${isRouter}`);
+    logger.info(`[agentService] Creating agent for workspace ${workspaceId}, isRouter: ${isRouter}`);
     
     try {
       // Se si sta tentando di creare un router agent e ne esiste già uno, blocca
@@ -110,7 +111,7 @@ export const agentService = {
           where: { workspaceId, isRouter: true },
         });
         if (existingRouter) {
-          console.log(`[agentService] A router agent already exists for workspace ${workspaceId}`);
+          logger.info(`[agentService] A router agent already exists for workspace ${workspaceId}`);
           throw new Error("A router agent already exists for this workspace");
         }
       }
@@ -119,7 +120,7 @@ export const agentService = {
       return prisma.$transaction(async (tx) => {
         // If this agent should be router, set isRouter to false for all other agents
         if (isRouter) {
-          console.log(`[agentService] Setting all other agents' isRouter to false for workspace ${workspaceId}`);
+          logger.info(`[agentService] Setting all other agents' isRouter to false for workspace ${workspaceId}`);
           await tx.prompts.updateMany({
             where: {
               workspaceId,
@@ -140,16 +141,16 @@ export const agentService = {
         };
 
         // Create the new agent
-        console.log(`[agentService] Creating new agent with data:`, processedData);
+        logger.info(`[agentService] Creating new agent with data:`, processedData);
         const created = await tx.prompts.create({
           data: processedData
         });
 
-        console.log(`[agentService] Agent created successfully with ID ${created.id}`);
+        logger.info(`[agentService] Agent created successfully with ID ${created.id}`);
         return created;
       });
     } catch (error) {
-      console.error(`[agentService] Error creating agent for workspace ${workspaceId}:`, error);
+      logger.error(`[agentService] Error creating agent for workspace ${workspaceId}:`, error);
       throw error;
     }
   },
@@ -159,17 +160,17 @@ export const agentService = {
    * If isRouter is set to true, set all other agents' isRouter to false
    */
   async update(id: string, workspaceId: string, data: UpdateAgentData) {
-    console.log(`[agentService] Updating agent ${id} for workspace ${workspaceId}`);
+    logger.info(`[agentService] Updating agent ${id} for workspace ${workspaceId}`);
     
     try {
       // Verifica solo che l'agente esista
       const agent = await prisma.prompts.findFirst({ where: { id, workspaceId } });
       if (!agent) {
-        console.log(`[agentService] Agent ${id} not found in workspace ${workspaceId}`);
+        logger.info(`[agentService] Agent ${id} not found in workspace ${workspaceId}`);
         return null;
       }
       
-      console.log(`[agentService] Found agent to update:`, agent);
+      logger.info(`[agentService] Found agent to update:`, agent);
       
       // Rimuovi isRouter e model dai dati di aggiornamento
       const { isRouter, model, ...dataWithoutExcluded } = data;
@@ -181,19 +182,19 @@ export const agentService = {
         department: agent.isRouter ? null : (data.department || agent.department)
       };
 
-      console.log(`[agentService] Processed update data:`, processedData);
+      logger.info(`[agentService] Processed update data:`, processedData);
 
       // Regular update (without changing router status)
-      console.log(`[agentService] Regular update for agent ${id}`);
+      logger.info(`[agentService] Regular update for agent ${id}`);
       const updated = await prisma.prompts.update({
         where: { id },
         data: processedData,
       });
 
-      console.log(`[agentService] Agent ${id} updated successfully`);
+      logger.info(`[agentService] Agent ${id} updated successfully`);
       return updated;
     } catch (error) {
-      console.error(`[agentService] Error updating agent ${id}:`, error);
+      logger.error(`[agentService] Error updating agent ${id}:`, error);
       throw error;
     }
   },
@@ -202,26 +203,26 @@ export const agentService = {
    * Delete an agent
    */
   async delete(id: string, workspaceId: string) {
-    console.log(`[agentService] Deleting agent ${id} from workspace ${workspaceId}`);
+    logger.info(`[agentService] Deleting agent ${id} from workspace ${workspaceId}`);
     
     try {
       // Verifica solo che l'agente esista
       const agent = await prisma.prompts.findFirst({ where: { id, workspaceId } });
       if (!agent) {
-        console.log(`[agentService] Agent ${id} not found in workspace ${workspaceId}`);
+        logger.info(`[agentService] Agent ${id} not found in workspace ${workspaceId}`);
         throw new Error("Agent not found");
       }
       
-      console.log(`[agentService] Deleting agent ${id}`);
+      logger.info(`[agentService] Deleting agent ${id}`);
       
       const result = await prisma.prompts.delete({
         where: { id },
       });
       
-      console.log(`[agentService] Agent ${id} deleted successfully`);
+      logger.info(`[agentService] Agent ${id} deleted successfully`);
       return result;
     } catch (error) {
-      console.error(`[agentService] Error deleting agent ${id}:`, error);
+      logger.error(`[agentService] Error deleting agent ${id}:`, error);
       throw error;
     }
   },

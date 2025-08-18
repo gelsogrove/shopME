@@ -108,7 +108,7 @@ export default function VerifyOtpPage() {
           navigate("/clients")
         }
       } catch (workspaceError) {
-        console.warn("Could not fetch workspaces, redirecting to workspace selection:", workspaceError)
+        logger.warn("Could not fetch workspaces, redirecting to workspace selection:", workspaceError)
         // If there's an error fetching workspaces, redirect to workspace selection
         navigate("/clients")
       }

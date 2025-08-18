@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { NextFunction, Request, Response } from "express";
 import { usageService } from "../services/usage.service";
 
@@ -118,7 +119,7 @@ export const usageController = {
       const { workspaceId } = req.params;
       const { startDate, endDate, clientId } = req.query;
 
-      console.log(`[USAGE-CONTROLLER] 📊 Getting usage stats for workspace ${workspaceId}`);
+      logger.info(`[USAGE-CONTROLLER] 📊 Getting usage stats for workspace ${workspaceId}`);
 
       // Parse dates if provided
       const parsedStartDate = startDate ? new Date(startDate as string) : undefined;
@@ -131,7 +132,7 @@ export const usageController = {
         clientId: clientId as string | undefined,
       });
 
-      console.log(`[USAGE-CONTROLLER] ✅ Stats retrieved: €${stats.totalCost.toFixed(4)}, ${stats.totalMessages} messages`);
+      logger.info(`[USAGE-CONTROLLER] ✅ Stats retrieved: €${stats.totalCost.toFixed(4)}, ${stats.totalMessages} messages`);
 
       res.json({
         success: true,
@@ -146,7 +147,7 @@ export const usageController = {
         },
       });
     } catch (error) {
-      console.error(`[USAGE-CONTROLLER] ❌ Error getting usage stats:`, error);
+      logger.error(`[USAGE-CONTROLLER] ❌ Error getting usage stats:`, error);
       next(error);
     }
   },
@@ -160,14 +161,14 @@ export const usageController = {
       const { workspaceId } = req.params;
       const { days = "30" } = req.query;
 
-      console.log(`[USAGE-CONTROLLER] 📋 Getting usage summary for workspace ${workspaceId}, last ${days} days`);
+      logger.info(`[USAGE-CONTROLLER] 📋 Getting usage summary for workspace ${workspaceId}, last ${days} days`);
 
       const summary = await usageService.getUsageSummary(
         workspaceId,
         parseInt(days as string, 10)
       );
 
-      console.log(`[USAGE-CONTROLLER] ✅ Summary retrieved: €${summary.totalCost.toFixed(4)} total`);
+      logger.info(`[USAGE-CONTROLLER] ✅ Summary retrieved: €${summary.totalCost.toFixed(4)} total`);
 
       res.json({
         success: true,
@@ -179,7 +180,7 @@ export const usageController = {
         },
       });
     } catch (error) {
-      console.error(`[USAGE-CONTROLLER] ❌ Error getting usage summary:`, error);
+      logger.error(`[USAGE-CONTROLLER] ❌ Error getting usage summary:`, error);
       next(error);
     }
   },
@@ -230,7 +231,7 @@ export const usageController = {
       const { workspaceId } = req.params;
       const { period = "30" } = req.query;
 
-      console.log(`[USAGE-CONTROLLER] 🎯 Getting dashboard data for workspace ${workspaceId}`);
+      logger.info(`[USAGE-CONTROLLER] 🎯 Getting dashboard data for workspace ${workspaceId}`);
 
       const days = parseInt(period as string, 10);
       const endDate = new Date();
@@ -268,7 +269,7 @@ export const usageController = {
         },
       };
 
-      console.log(`[USAGE-CONTROLLER] ✅ Dashboard data compiled for workspace ${workspaceId}`);
+      logger.info(`[USAGE-CONTROLLER] ✅ Dashboard data compiled for workspace ${workspaceId}`);
 
       res.json({
         success: true,
@@ -284,7 +285,7 @@ export const usageController = {
         },
       });
     } catch (error) {
-      console.error(`[USAGE-CONTROLLER] ❌ Error getting dashboard data:`, error);
+      logger.error(`[USAGE-CONTROLLER] ❌ Error getting dashboard data:`, error);
       next(error);
     }
   },
@@ -298,7 +299,7 @@ export const usageController = {
       const { workspaceId } = req.params;
       const { startDate, endDate, format = "csv" } = req.query;
 
-      console.log(`[USAGE-CONTROLLER] 📤 Exporting usage data for workspace ${workspaceId}`);
+      logger.info(`[USAGE-CONTROLLER] 📤 Exporting usage data for workspace ${workspaceId}`);
 
       const parsedStartDate = startDate 
         ? new Date(startDate as string) 
@@ -342,9 +343,9 @@ export const usageController = {
         });
       }
 
-      console.log(`[USAGE-CONTROLLER] ✅ Data exported for workspace ${workspaceId}`);
+      logger.info(`[USAGE-CONTROLLER] ✅ Data exported for workspace ${workspaceId}`);
     } catch (error) {
-      console.error(`[USAGE-CONTROLLER] ❌ Error exporting usage data:`, error);
+      logger.error(`[USAGE-CONTROLLER] ❌ Error exporting usage data:`, error);
       next(error);
     }
   },

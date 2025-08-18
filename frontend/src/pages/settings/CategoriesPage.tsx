@@ -26,7 +26,7 @@ export function CategoriesPage() {
         const data = await categoriesApi.getAllForWorkspace(workspace.id)
         setCategories(data)
       } catch (error) {
-        console.error("Error loading categories:", error)
+        logger.error("Error loading categories:", error)
         toast.error("Failed to load categories")
       } finally {
         setIsLoading(false)
@@ -67,7 +67,7 @@ export function CategoriesPage() {
       setShowAddDialog(false)
       toast.success("Category created successfully")
     } catch (error) {
-      console.error("Error creating category:", error)
+      logger.error("Error creating category:", error)
       toast.error("Failed to create category")
     }
   }
@@ -104,7 +104,7 @@ export function CategoriesPage() {
       setSelectedCategory(null)
       toast.success("Category updated successfully")
     } catch (error) {
-      console.error("Error updating category:", error)
+      logger.error("Error updating category:", error)
       toast.error("Failed to update category")
     }
   }
@@ -124,7 +124,7 @@ export function CategoriesPage() {
       setSelectedCategory(null)
       toast.success("Category deleted successfully")
     } catch (error) {
-      console.error("Error deleting category:", error)
+      logger.error("Error deleting category:", error)
       toast.error("Failed to delete category")
     }
   }

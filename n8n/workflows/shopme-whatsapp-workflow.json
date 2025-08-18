@@ -383,26 +383,27 @@
         }
       }
     },
+
     {
       "parameters": {
-        "toolDescription": "📝 **CREATEORDER() - CREAZIONE ORDINE CON PRODOTTI E SERVIZI**\n\n🚨🚨🚨 **ULTRA CRITICAL: YOU MUST BUILD THE ITEMS ARRAY FROM YOUR CART MEMORY!** 🚨🚨🚨\n\n**STEP 1: LOOK AT YOUR CART MEMORY**\nBefore calling this function, look at what you just showed the user in the cart.\n\n**STEP 2: BUILD ITEMS ARRAY**\nTake EVERY product from your cart memory and create this structure:\n\n**STEP 3: CALL WITH COMPLETE ARRAY**\nNEVER call this function with empty items! ALWAYS include all cart products!\n\n**🎯 REAL EXAMPLE - If you showed user:**\n```\n🛒 Il tuo carrello:\nCodice | Prodotto | Prezzo | Quantità | Totale\n00004 | Mozzarella di Bufala Campana DOP | €9.99 | 4 | €39.96\n💰 Totale carrello: €39.96\n```\n\n**🔥 THEN YOU MUST CALL EXACTLY LIKE THIS:**\n```json\nCreateOrder({\n  \"items\": [\n    {\n      \"itemType\": \"PRODUCT\",\n      \"productCode\": \"00004\", \n      \"name\": \"Mozzarella di Bufala Campana DOP\",\n      \"quantity\": 4,\n      \"unitPrice\": 9.99\n    }\n  ],\n  \"notes\": \"Ordine confermato via WhatsApp\"\n})\n```\n\n🚨 **IF YOU HAVE SHOWN A CART, YOU MUST INCLUDE THOSE EXACT ITEMS!** 🚨\n🚨 **NEVER CALL WITH EMPTY ITEMS IF CART HAD PRODUCTS!** 🚨\n🚨 **ITEMS ARRAY = EXACT COPY OF WHAT YOU SHOWED IN CART!** 🚨\n\n**💡 THE MAGIC FORMULA:**\n1. Cart shown to user = Items you must pass to CreateOrder()\n2. If cart has 4 mozzarelle = CreateOrder() must have 4 mozzarelle\n3. NEVER lose the cart contents when calling this function!\n\n**This function must only be called after explicit user confirmation.**",
+        "toolDescription": "🛒 **CONFIRMORDERFROMCONVERSATION() - CONFERMA ORDINE DALLA CONVERSAZIONE**\n\n**COSA FA QUESTA FUNZIONE:**\nPassa ultimi 10 messaggi al backend per parsing automatico di prodotti e servizi, generando link checkout sicuro.\n\n**PARAMETRI RICHIESTI:**\n- conversationContext: Ultimi 10 messaggi della conversazione (utente + LLM)\n- workspaceId: ID del workspace\n- customerId: ID del cliente\n\n**OUTPUT:**\n- checkoutToken: Token sicuro per accesso frontend\n- checkoutUrl: URL per pagina riepilogo ordine\n- totalAmount: Totale calcolato\n- response: Messaggio di conferma per utente\n\n**ESEMPI DI ATTIVAZIONE:**\n- \"Sì, confermo l'ordine\"\n- \"Procedi con l'ordine\"\n- \"Va bene, ordina\"\n- \"Conferma\"\n\n**IMPORTANTE:**\n- Passa ultimi 10 messaggi per parsing completo\n- Backend farà parsing automatico con LLM interno\n- Genera token sicuro per frontend interattivo\n- Frontend permette aggiunta/rimozione prodotti prima conferma finale",
         "method": "POST",
-        "url": "=http://host.docker.internal:3001/api/internal/create-order",
+        "url": "=http://host.docker.internal:3001/api/internal/confirm-order-conversation",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpBasicAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ \n  {\n    \"workspaceId\": $('prepare-data').item.json.workspaceId,\n    \"customerId\": $('prepare-data').item.json.customerid,\n    \n    // INTELLIGENT CART AUTO-EXTRACTION SYSTEM\n    // Strategy: LLM instructions alone failed consistently\n    // Solution: Smart fallback that parses conversation history for cart data\n    \"items\": $json.items && Array.isArray($json.items) && $json.items.length > 0 ? \n      // PRIMARY: Use LLM-provided items if available and valid\n      $json.items : \n      \n      // FALLBACK: Intelligent cart extraction from conversation history\n      (() => {\n        console.log('LLM failed to provide items - starting auto-extraction from conversation history');\n        \n        // Get last 10 messages from conversation for cart pattern matching\n        const messages = $('prepare-data').item.json.messages || [];\n        const lastMessages = messages.slice(-10);\n        console.log(`Scanning ${lastMessages.length} recent messages for cart patterns`);\n        \n        // Scan messages in reverse order (most recent first)\n        for (const msg of lastMessages.reverse()) {\n          const content = msg.content || '';\n          \n          // REGEX PATTERN: Matches cart table format\n          // Expected: \"00004 | Mozzarella di Bufala Campana DOP | €9.99 | 4 | €39.96\"\n          // Groups: (code) | (name) | €(unitPrice) | (quantity) | €(totalPrice)\n          const cartMatch = content.match(/([A-Z0-9]{5,6})\\s*[|\\s]+([^|]+)\\s*[|\\s]+€([0-9.]+)\\s*[|\\s]+([0-9]+)\\s*[|\\s]+€([0-9.]+)/g);\n          \n          if (cartMatch && cartMatch.length > 0) {\n            console.log(`Found ${cartMatch.length} cart items in message: ${content.substring(0, 100)}...`);\n            \n            // Extract and transform each cart line into backend-compatible format\n            const items = cartMatch.map(line => {\n              const parts = line.match(/([A-Z0-9]{5,6})\\s*[|\\s]+([^|]+?)\\s*[|\\s]+€([0-9.]+)\\s*[|\\s]+([0-9]+)\\s*[|\\s]+€([0-9.]+)/);\n              \n              if (parts) {\n                const extractedItem = {\n                  \"itemType\": \"PRODUCT\",                    // Backend expects this field\n                  \"productCode\": parts[1].trim(),          // Extract: \"00004\"\n                  \"name\": parts[2].trim(),                 // Extract: \"Mozzarella di Bufala Campana DOP\"\n                  \"quantity\": parseInt(parts[4]),          // Extract: 4 (convert to number)\n                  \"unitPrice\": parseFloat(parts[3])        // Extract: 9.99 (convert to decimal)\n                };\n                console.log(`Extracted item: ${JSON.stringify(extractedItem)}`);\n                return extractedItem;\n              }\n              \n              console.log(`Failed to parse cart line: ${line}`);\n              return null;\n            }).filter(item => item !== null);\n            \n            if (items.length > 0) {\n              console.log(`Successfully extracted ${items.length} items from conversation history`);\n              return items;\n            }\n          }\n        }\n        \n        // ULTIMATE FALLBACK: Create error item for debugging\n        console.log('CRITICAL: No cart patterns found in conversation history');\n        return [{\n          \"itemType\": \"ERROR\",\n          \"productCode\": \"EMPTY\", \n          \"name\": \"ERRORE: Array items vuoto - LLM non ha costruito carrello e auto-extraction fallita\",\n          \"quantity\": 1,\n          \"unitPrice\": 0.01\n        }];\n      })(),\n      \n    \"notes\": $json.notes || \"Ordine via WhatsApp chatbot con sistema auto-extraction\"\n  }\n}}",
+        "jsonBody": "={\n  \"conversationContext\": \"{{ $('prepare-data').item.json.messages }}\",\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n  \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.2,
       "position": [
-        1960,
+        2120,
         200
       ],
-      "id": "f6c880b1-0c17-4ba2-9aa2-fd6ee0438b28",
-      "name": "CreateOrder()",
+      "id": "confirm-order-conversation-node",
+      "name": "confirmOrderFromConversation()",
       "credentials": {
         "httpBasicAuth": {
           "id": "7CEUQjT9iAyh1utW",
@@ -632,7 +633,8 @@
         ]
       ]
     },
-    "CreateOrder()": {
+
+    "confirmOrderFromConversation()": {
       "ai_tool": [
         [
           {

@@ -64,27 +64,27 @@ class DocumentsApi {
    * Get all documents for a workspace
    */
   async list(workspaceId: string): Promise<Document[]> {
-    console.log("=== DOCUMENTS API LIST DEBUG ===")
-    console.log("Called with workspaceId:", workspaceId)
+    logger.info("=== DOCUMENTS API LIST DEBUG ===")
+    logger.info("Called with workspaceId:", workspaceId)
     
     if (!workspaceId) {
-      console.error("No workspaceId provided to documentsApi.list")
+      logger.error("No workspaceId provided to documentsApi.list")
       throw new Error("WorkspaceId is required")
     }
     
     const url = `/workspaces/${workspaceId}/documents`
-    console.log("Making API call to:", url)
+    logger.info("Making API call to:", url)
     
     try {
       const response = await api.get(url)
-      console.log("API response status:", response.status)
-      console.log("API response data:", response.data)
+      logger.info("API response status:", response.status)
+      logger.info("API response data:", response.data)
       
       const documents = response.data.data || response.data
-      console.log("Returning documents:", documents)
+      logger.info("Returning documents:", documents)
       return documents
     } catch (error) {
-      console.error("API call failed:", error)
+      logger.error("API call failed:", error)
       throw error
     }
   }

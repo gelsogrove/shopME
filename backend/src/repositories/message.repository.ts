@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import {
   MessageDirection,
   MessageType,
@@ -6,7 +7,6 @@ import {
 } from "@prisma/client"
 import * as dotenv from "dotenv"
 import OpenAI from "openai"
-import logger from "../utils/logger"
 
 // Load environment variables
 dotenv.config()
@@ -41,13 +41,13 @@ function isOpenAIConfigured() {
 
   const apiKey = process.env.OPENAI_API_KEY
   // Log for debugging
-  console.log(
+  logger.info(
     `API key check - key present: ${!!apiKey}, key length: ${
       apiKey ? apiKey.length : 0
     }`
   )
   if (apiKey) {
-    console.log(`API key prefix: ${apiKey.substring(0, 10)}...`)
+    logger.info(`API key prefix: ${apiKey.substring(0, 10)}...`)
   }
   return apiKey && apiKey.length > 10 && apiKey !== "your-api-key-here"
 }
@@ -585,7 +585,7 @@ export class MessageRepository {
           )
           botResponse = existingBotMessage // Return existing response instead of creating new one
         } else {
-          console.log(
+          logger.info(
             `[DEBUG-TRACKING] 🔍 About to track usage for customer: ${customer.id}, workspace: ${workspaceId}`
           )
 
@@ -600,7 +600,7 @@ export class MessageRepository {
             if (!(workspace?.debugMode ?? true)) {
               // debugMode is false, track usage normally
               const { usageService } = await import("../services/usage.service")
-              console.log(
+              logger.info(
                 `[DEBUG-TRACKING] 🔍 usageService imported successfully`
               )
 
@@ -610,7 +610,7 @@ export class MessageRepository {
                 price: 0.005,
               })
 
-              console.log(
+              logger.info(
                 `[DEBUG-TRACKING] ✅ usageService.trackUsage called successfully`
               )
               logger.info(
@@ -623,7 +623,7 @@ export class MessageRepository {
               )
             }
           } catch (trackingError) {
-            console.error(`[DEBUG-TRACKING] ❌ Tracking error:`, trackingError)
+            logger.error(`[DEBUG-TRACKING] ❌ Tracking error:`, trackingError)
             logger.warn(
               `[USAGE-TRACKING] ❌ Failed to track usage, but conversation will still be saved:`,
               trackingError.message
@@ -851,7 +851,7 @@ export class MessageRepository {
         messages: undefined, // Remove messages array
       }))
     } catch (error) {
-      console.error("Error getting chat sessions with unread counts:", error)
+      logger.error("Error getting chat sessions with unread counts:", error)
       return []
     }
   }

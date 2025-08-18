@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client"
+import logger from "../utils/logger"
 
 const prisma = new PrismaClient()
 
@@ -49,7 +50,7 @@ export const usageService = {
    */
   async trackUsage(data: UsageData): Promise<void> {
     try {
-      console.log(
+      logger.info(
         `[USAGE-TRACKING] 💰 Adding usage record for workspace ${data.workspaceId}, client ${data.clientId}`
       )
 
@@ -65,14 +66,14 @@ export const usageService = {
       })
 
       if (!customer) {
-        console.log(
+        logger.warn(
           `[USAGE-TRACKING] ❌ Customer ${data.clientId} not found - no usage tracked`
         )
         return
       }
 
       if (customer.workspaceId !== data.workspaceId) {
-        console.log(
+        logger.warn(
           `[USAGE-TRACKING] ❌ Customer ${data.clientId} belongs to different workspace - no usage tracked`
         )
         return
@@ -87,11 +88,11 @@ export const usageService = {
         },
       })
 
-      console.log(
+      logger.info(
         `[USAGE-TRACKING] ✅ Usage recorded: €${data.price ?? 0.005} for customer ${customer.name} (${customer.phone})`
       )
     } catch (error) {
-      console.error(`[USAGE-TRACKING] ❌ Error tracking usage:`, error)
+      logger.error(`[USAGE-TRACKING] ❌ Error tracking usage:`, error)
       // Don't throw error to avoid disrupting the main LLM flow
     }
   },
@@ -107,7 +108,7 @@ export const usageService = {
       const end = endDate || new Date()
       const start = startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
-      console.log(
+      logger.info(
         `[USAGE-STATS] 📊 Getting usage stats for workspace ${workspaceId} from ${start} to ${end}`
       )
 
@@ -261,7 +262,7 @@ export const usageService = {
         growth,
       }
 
-      console.log(
+      logger.info(
         `[USAGE-STATS] ✅ Stats calculated: €${totalCost.toFixed(4)} total, ${totalMessages} messages`
       )
 
@@ -274,7 +275,7 @@ export const usageService = {
         monthlyComparison,
       }
     } catch (error) {
-      console.error(`[USAGE-STATS] ❌ Error getting usage stats:`, error)
+      logger.error(`[USAGE-STATS] ❌ Error getting usage stats:`, error)
       throw new Error(`Failed to get usage statistics: ${error.message}`)
     }
   },
@@ -319,7 +320,7 @@ export const usageService = {
         averageDailyMessages,
       }
     } catch (error) {
-      console.error(`[USAGE-SUMMARY] ❌ Error getting usage summary:`, error)
+      logger.error(`[USAGE-SUMMARY] ❌ Error getting usage summary:`, error)
       throw new Error(`Failed to get usage summary: ${error.message}`)
     }
   },

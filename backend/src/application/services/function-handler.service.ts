@@ -529,7 +529,7 @@ export class FunctionHandlerService {
     params: any
   ): Promise<any> {
     try {
-      console.log(
+      logger.info(
         "🛒 CreateOrderFromItems chiamata con parametri:",
         JSON.stringify(params, null, 2)
       )
@@ -649,7 +649,7 @@ export class FunctionHandlerService {
         }
       }
 
-      console.log("✅ Ordine creato con successo:", {
+      logger.info("✅ Ordine creato con successo:", {
         orderId: order.id,
         customerId: customerId,
         totalAmount: totalAmount,
@@ -673,7 +673,7 @@ export class FunctionHandlerService {
         })),
       }
     } catch (error) {
-      console.error("❌ Errore createOrderFromItems:", error)
+      logger.error("❌ Errore createOrderFromItems:", error)
       return {
         success: false,
         error: "❌ Errore interno del server durante la creazione dell'ordine",

@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { Request, Response } from "express"
 import { AnalyticsService } from "../application/services/analytics.service"
 
@@ -103,7 +104,7 @@ export class AnalyticsController {
         },
       })
     } catch (error) {
-      console.error("Error getting dashboard data:", error)
+      logger.error("Error getting dashboard data:", error)
       res.status(500).json({
         success: false,
         message: "Failed to get dashboard analytics data",
@@ -195,7 +196,7 @@ export class AnalyticsController {
         data: detailedData,
       })
     } catch (error) {
-      console.error("Error getting detailed metrics:", error)
+      logger.error("Error getting detailed metrics:", error)
       res.status(500).json({
         success: false,
         message: "Failed to get detailed metrics",
@@ -268,7 +269,7 @@ export class AnalyticsController {
 
       res.json(monthlyData)
     } catch (error) {
-      console.error("Error getting monthly top customers:", error)
+      logger.error("Error getting monthly top customers:", error)
       res.status(500).json({
         success: false,
         message: "Failed to get monthly top customers",
@@ -338,7 +339,7 @@ export class AnalyticsController {
 
       res.json(monthlyData)
     } catch (error) {
-      console.error("Error getting monthly top clients:", error)
+      logger.error("Error getting monthly top clients:", error)
       res.status(500).json({
         success: false,
         message: "Failed to get monthly top clients",

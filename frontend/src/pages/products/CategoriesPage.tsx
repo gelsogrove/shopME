@@ -59,7 +59,7 @@ export default function CategoriesPage() {
       }))
       setCategories(formattedCategories || [])
     } catch (error) {
-      console.error("Error loading categories:", error)
+      logger.error("Error loading categories:", error)
       toast.error("Failed to load categories")
     } finally {
       setLoading(false)
@@ -107,7 +107,7 @@ export default function CategoriesPage() {
       setShowAddSheet(false)
       await loadCategories()
     } catch (error) {
-      console.error("Error adding category:", error)
+      logger.error("Error adding category:", error)
       toast.error("Failed to add category")
     }
   }
@@ -147,7 +147,7 @@ export default function CategoriesPage() {
       setSelectedCategory(null)
       await loadCategories()
     } catch (error) {
-      console.error("Error updating category:", error)
+      logger.error("Error updating category:", error)
       toast.error("Failed to update category")
     }
   }
@@ -166,7 +166,7 @@ export default function CategoriesPage() {
       setHasAssociatedProducts(hasProducts)
       setShowDeleteDialog(true)
     } catch (error) {
-      console.error("Error checking if category has products:", error)
+      logger.error("Error checking if category has products:", error)
       toast.error("Failed to check category products")
     }
   }
@@ -190,7 +190,7 @@ export default function CategoriesPage() {
       setSelectedCategory(null)
       await loadCategories()
     } catch (error) {
-      console.error("Error deleting category:", error)
+      logger.error("Error deleting category:", error)
       toast.error("Failed to delete category")
     }
   }

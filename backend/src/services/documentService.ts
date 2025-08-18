@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
 import { PDFExtract } from 'pdf.js-extract';
@@ -48,7 +49,7 @@ export class DocumentService {
 
       return document;
     } catch (error) {
-      console.error('Error creating document:', error);
+      logger.error('Error creating document:', error);
       throw new Error('Failed to create document record');
     }
   }
@@ -88,7 +89,7 @@ export class DocumentService {
         });
       });
     } catch (error) {
-      console.error('Error extracting text from PDF:', error);
+      logger.error('Error extracting text from PDF:', error);
       throw new Error('Failed to extract text from PDF');
     }
   }
@@ -139,7 +140,7 @@ export class DocumentService {
             }
           });
         } catch (chunkError) {
-          console.error(`Error processing chunk ${chunk.chunkIndex}:`, chunkError);
+          logger.error(`Error processing chunk ${chunk.chunkIndex}:`, chunkError);
           // Continue with other chunks even if one fails
         }
       }
@@ -151,7 +152,7 @@ export class DocumentService {
       });
 
     } catch (error) {
-      console.error('Error processing document:', error);
+      logger.error('Error processing document:', error);
       
       // Update document status to ERROR
       await prisma.documents.update({
@@ -205,7 +206,7 @@ export class DocumentService {
               documentName: chunk.document.originalName
             });
           } catch (similarityError) {
-            console.error('Error calculating similarity for chunk:', chunk.id, similarityError);
+            logger.error('Error calculating similarity for chunk:', chunk.id, similarityError);
           }
         }
       }
@@ -216,7 +217,7 @@ export class DocumentService {
         .slice(0, limit);
 
     } catch (error) {
-      console.error('Error searching documents:', error);
+      logger.error('Error searching documents:', error);
       throw new Error('Failed to search documents');
     }
   }
@@ -236,7 +237,7 @@ export class DocumentService {
         }
       });
     } catch (error) {
-      console.error('Error getting documents:', error);
+      logger.error('Error getting documents:', error);
       throw new Error('Failed to get documents');
     }
   }
@@ -265,7 +266,7 @@ export class DocumentService {
       });
 
     } catch (error) {
-      console.error('Error deleting document:', error);
+      logger.error('Error deleting document:', error);
       throw new Error('Failed to delete document');
     }
   }
@@ -286,7 +287,7 @@ export class DocumentService {
 
       return document;
     } catch (error) {
-      console.error('Error getting document by ID:', error);
+      logger.error('Error getting document by ID:', error);
       throw new Error('Failed to get document');
     }
   }
@@ -308,7 +309,7 @@ export class DocumentService {
 
       return updatedDocument;
     } catch (error) {
-      console.error('Error updating document:', error);
+      logger.error('Error updating document:', error);
       throw new Error('Failed to update document');
     }
   }
@@ -337,7 +338,7 @@ export class DocumentService {
       // Process each document
       for (const document of activeDocuments) {
         try {
-          console.log(`Processing document: ${document.originalName}`);
+          logger.info(`Processing document: ${document.originalName}`);
           
           // Update status to PROCESSING
           await prisma.documents.update({
@@ -359,7 +360,7 @@ export class DocumentService {
           const chunkTexts = chunks.map(chunk => chunk.content);
 
           // Generate embeddings in batch using shared service
-          console.log(`Generating embeddings for ${chunks.length} chunks...`);
+          logger.info(`Generating embeddings for ${chunks.length} chunks...`);
           const embeddings: number[][] = [];
           
           // Process chunks in batches to avoid rate limits
@@ -394,10 +395,10 @@ export class DocumentService {
           });
 
           processed++;
-          console.log(`Successfully processed document: ${document.originalName}`);
+          logger.info(`Successfully processed document: ${document.originalName}`);
 
         } catch (error) {
-          console.error(`Error processing document ${document.originalName}:`, error);
+          logger.error(`Error processing document ${document.originalName}:`, error);
           
           // Update document status to ERROR
           await prisma.documents.update({
@@ -412,7 +413,7 @@ export class DocumentService {
       return { processed, errors };
 
     } catch (error) {
-      console.error('Error in generateEmbeddingsForActiveDocuments:', error);
+      logger.error('Error in generateEmbeddingsForActiveDocuments:', error);
       throw new Error('Failed to generate embeddings for active documents');
     }
   }

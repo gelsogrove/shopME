@@ -32,7 +32,7 @@ const MessageTestPage: React.FC = () => {
       }
     } catch (err: any) {
       setError(`Error: ${err.message}`);
-      console.error("Error sending message:", err);
+      logger.error("Error sending message:", err);
     } finally {
       setLoading(false);
     }

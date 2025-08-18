@@ -28,12 +28,12 @@ export interface UpdateCategoryData {
  */
 export const getAllForWorkspace = async (workspaceId: string): Promise<Category[]> => {
   try {
-    console.log('Fetching categories for workspace:', workspaceId);
+    logger.info('Fetching categories for workspace:', workspaceId);
     const response = await api.get(`/workspaces/${workspaceId}/categories`);
-    console.log('Categories response:', response.data);
+    logger.info('Categories response:', response.data);
     return response.data || [];
   } catch (error) {
-    console.error('Error fetching categories:', error);
+    logger.error('Error fetching categories:', error);
     return [];
   }
 }
@@ -46,7 +46,7 @@ export const getById = async (id: string, workspaceId: string): Promise<Category
     const response = await api.get(`/workspaces/${workspaceId}/categories/${id}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching category:', error);
+    logger.error('Error fetching category:', error);
     return null;
   }
 }
@@ -59,7 +59,7 @@ export const hasProducts = async (id: string, workspaceId: string): Promise<bool
     const response = await api.get(`/workspaces/${workspaceId}/categories/${id}/products`);
     return Array.isArray(response.data) && response.data.length > 0;
   } catch (error) {
-    console.error('Error checking if category has products:', error);
+    logger.error('Error checking if category has products:', error);
     // In case of error, we assume that the category has products to prevent deletion
     return true;
   }
@@ -73,7 +73,7 @@ export const create = async (workspaceId: string, data: { name: string; descript
     const response = await api.post(`/workspaces/${workspaceId}/categories`, data);
     return response.data;
   } catch (error) {
-    console.error('Error creating category:', error);
+    logger.error('Error creating category:', error);
     throw error;
   }
 }
@@ -82,16 +82,16 @@ export const create = async (workspaceId: string, data: { name: string; descript
  * Update an existing category
  */
 export const update = async (id: string, workspaceId: string, data: UpdateCategoryData): Promise<Category> => {
-  console.log(`API Call - update: PUT /workspaces/${workspaceId}/categories/${id}`, data);
+  logger.info(`API Call - update: PUT /workspaces/${workspaceId}/categories/${id}`, data);
   try {
     const response = await api.put(`/workspaces/${workspaceId}/categories/${id}`, data);
-    console.log("API Response (update):", response.status, response.data);
+    logger.info("API Response (update):", response.status, response.data);
     return response.data;
   } catch (error: any) {
-    console.error("API Error (update):", error);
+    logger.error("API Error (update):", error);
     if (error.response) {
-      console.error(`Error status: ${error.response.status}`);
-      console.error("Error data:", error.response.data);
+      logger.error(`Error status: ${error.response.status}`);
+      logger.error("Error data:", error.response.data);
     }
     throw error;
   }
@@ -101,15 +101,15 @@ export const update = async (id: string, workspaceId: string, data: UpdateCatego
  * Delete a category
  */
 export const delete_ = async (id: string, workspaceId: string): Promise<void> => {
-  console.log(`API Call - delete: DELETE /workspaces/${workspaceId}/categories/${id}`);
+  logger.info(`API Call - delete: DELETE /workspaces/${workspaceId}/categories/${id}`);
   try {
     const response = await api.delete(`/workspaces/${workspaceId}/categories/${id}`);
-    console.log("API Response (delete):", response.status, response.data);
+    logger.info("API Response (delete):", response.status, response.data);
   } catch (error: any) {
-    console.error("API Error (delete):", error);
+    logger.error("API Error (delete):", error);
     if (error.response) {
-      console.error(`Error status: ${error.response.status}`);
-      console.error("Error data:", error.response.data);
+      logger.error(`Error status: ${error.response.status}`);
+      logger.error("Error data:", error.response.data);
     }
     throw error;
   }

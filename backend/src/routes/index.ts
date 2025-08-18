@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { PrismaClient } from "@prisma/client"
 import { NextFunction, Request, Response, Router } from "express"
 import { OtpService } from "../application/services/otp.service"
@@ -37,7 +38,6 @@ import { checkoutRouter } from "../interfaces/http/routes/checkout.routes"
 import { whatsappRouter } from "../interfaces/http/routes/whatsapp.routes"
 import { workspaceRoutes } from "../interfaces/http/routes/workspace.routes"
 // Import the legacy workspace routes that has the /current endpoint
-import logger from "../utils/logger"
 import workspaceRoutesLegacy from "./workspace.routes"
 // Add these imports for backward compatibility during migration
 import { PromptsController } from "../controllers/prompts.controller"
@@ -210,11 +210,11 @@ logger.info("Registered WhatsApp router with auth-protected endpoints")
 router.use(
   "/workspaces/:workspaceId/documents",
   (req, res, next) => {
-    console.log("=== DOCUMENT ROUTES DEBUG ===")
-    console.log("URL:", req.originalUrl)
-    console.log("Method:", req.method)
-    console.log("Params:", req.params)
-    console.log("WorkspaceId:", req.params.workspaceId)
+    logger.info("=== DOCUMENT ROUTES DEBUG ===")
+    logger.info("URL:", req.originalUrl)
+    logger.info("Method:", req.method)
+    logger.info("Params:", req.params)
+    logger.info("WorkspaceId:", req.params.workspaceId)
     next()
   },
   documentRoutes

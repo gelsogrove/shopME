@@ -259,7 +259,7 @@ export class ServicesController {
           .json({ error: "No valid fields provided for update" })
       }
 
-      const service = await this.serviceService.update(id, updateData)
+      const service = await this.serviceService.update(id, workspaceId, updateData)
 
       // Fire-and-forget: trigger embedding regeneration for Services
       logger.info(
@@ -317,7 +317,7 @@ export class ServicesController {
           .json({ error: "Service not found in specified workspace" })
       }
 
-      await this.serviceService.delete(id)
+      await this.serviceService.delete(id, workspaceId)
 
       // Fire-and-forget: trigger embedding regeneration for Services
       embeddingService

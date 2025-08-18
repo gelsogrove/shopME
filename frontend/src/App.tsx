@@ -24,6 +24,7 @@ import NotFoundPage from "./pages/not-found"
 import NotificationsPage from "./pages/NotificationsPage"
 import { OffersPage } from "./pages/OffersPage"
 import OrdersPage from "./pages/OrdersPage"
+import OrderSummaryPage from "./pages/OrderSummaryPage"
 import PlansPage from "./pages/PlansPage"
 import CategoriesPage from "./pages/products/CategoriesPage"
 import { ProductsPage } from "./pages/ProductsPage"
@@ -154,6 +155,7 @@ export function App() {
         <Route path="/registration-success" element={<RegistrationSuccess />} />
         <Route path="/checkout/:token" element={<CheckoutPage />} />
         <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
+        <Route path="/order-summary/:token" element={<OrderSummaryPage />} />
         <Route path="/data-protection" element={<DataProtectionPage />} />
 
         {/* Public Orders pages via secure token (external, no platform layout) */}

@@ -153,10 +153,10 @@ export class N8nPayloadBuilder {
     )
 
     // 🚨 ANDREA DEBUG: Verifica cosa arriva DAL DATABASE
-    console.log("🚨 ANDREA DEBUG - optimizedData.businessInfo from DB:")
-    console.log(JSON.stringify(optimizedData.businessInfo, null, 2))
-    console.log("🚨 ANDREA DEBUG - optimizedData.customer from DB:")
-    console.log(JSON.stringify(optimizedData.customer, null, 2))
+    logger.info("🚨 ANDREA DEBUG - optimizedData.businessInfo from DB:")
+    logger.info(JSON.stringify(optimizedData.businessInfo, null, 2))
+    logger.info("🚨 ANDREA DEBUG - optimizedData.customer from DB:")
+    logger.info(JSON.stringify(optimizedData.customer, null, 2))
 
     // 🚀 NEW CONSOLIDATED PAYLOAD STRUCTURE - Following updated webhook-payload-example.json
     const conversationHistory =
@@ -382,35 +382,35 @@ export class N8nPayloadBuilder {
 
       // 🚨 DEBUG: Alert prima della chiamata a N8N
       logger.info(`🚨 DEBUG: RUN POST N8N (from ${source})`)
-      console.log(`🚨 DEBUG: RUN POST N8N (from ${source}) - ALERT EQUIVALENTE`)
-      console.log("🚨 N8N URL:", n8nWebhookUrl)
-      console.log("🚨 N8N Simplified Payload:")
-      console.log(JSON.stringify(simplifiedPayload, null, 2))
+      logger.info(`🚨 DEBUG: RUN POST N8N (from ${source}) - ALERT EQUIVALENTE`)
+      logger.info("🚨 N8N URL:", n8nWebhookUrl)
+      logger.info("🚨 N8N Simplified Payload:")
+      logger.info(JSON.stringify(simplifiedPayload, null, 2))
 
       // 🔍 ANDREA DEBUG: Verifica specificamente businessInfo.isActive
-      console.log(
+      logger.info(
         "🔍 ANDREA DEBUG - customer.isActive:",
         simplifiedPayload?.precompiledData?.customer?.isActive
       )
-      console.log(
+      logger.info(
         "🔍 ANDREA DEBUG - customer.isActive type:",
         typeof simplifiedPayload?.precompiledData?.customer?.isActive
       )
-      console.log(
+      logger.info(
         "🔍 ANDREA DEBUG - customer.activeChatbot:",
         simplifiedPayload?.precompiledData?.customer?.activeChatbot
       )
-      console.log(
+      logger.info(
         "🔍 ANDREA DEBUG - customer.isBlacklisted:",
         simplifiedPayload?.precompiledData?.customer?.isBlacklisted
       )
 
       // 🚨 SUPER DEBUG: Mostra tutto il precompiledData
-      console.log("🚨 SUPER DEBUG - INTERO precompiledData:")
-      console.log(JSON.stringify(simplifiedPayload?.precompiledData, null, 2))
+      logger.info("🚨 SUPER DEBUG - INTERO precompiledData:")
+      logger.info(JSON.stringify(simplifiedPayload?.precompiledData, null, 2))
 
       // LOG PRIMA DELLA FETCH
-      console.log(
+      logger.info(
         "🚨 PRIMA DELLA FETCH A N8N",
         n8nWebhookUrl,
         JSON.stringify(simplifiedPayload).substring(0, 200)
@@ -425,7 +425,7 @@ export class N8nPayloadBuilder {
           body: JSON.stringify(simplifiedPayload),
         })
         // LOG DOPO LA FETCH
-        console.log(
+        logger.info(
           "🚨 DOPO FETCH, response.ok:",
           response.ok,
           "status:",
@@ -433,7 +433,7 @@ export class N8nPayloadBuilder {
         )
       } catch (error) {
         // LOG ERRORE FETCH
-        console.error("🚨 ERRORE FETCH N8N:", error)
+        logger.error("🚨 ERRORE FETCH N8N:", error)
         throw error
       }
 
@@ -465,15 +465,15 @@ export class N8nPayloadBuilder {
       }
 
       // DEBUG: Log della risposta parsata
-      console.log(
+      logger.info(
         "[DEBUG PATCH] Original n8nResponse:",
         JSON.stringify(n8nResponse, null, 2)
       )
-      console.log(
+      logger.info(
         "[DEBUG PATCH] Parsed response:",
         JSON.stringify(parsedResponse, null, 2)
       )
-      console.log(
+      logger.info(
         "[DEBUG PATCH] parsedResponse.message:",
         parsedResponse.message
       )

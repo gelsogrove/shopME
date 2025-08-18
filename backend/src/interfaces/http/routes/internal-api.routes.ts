@@ -1110,4 +1110,101 @@ router.post("/get-cf-services", (req, res) =>
  */
 // NOTE: Route definition moved above auth middleware for debugging
 
+/**
+ * @swagger
+ * /internal/confirm-order-conversation:
+ *   post:
+ *     tags:
+ *       - Internal API - N8N
+ *     summary: Confirm Order From Conversation (N8N)
+ *     description: Parse conversation context and generate checkout token for order confirmation
+ *     security:
+ *       - InternalAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - conversationContext
+ *               - workspaceId
+ *               - customerId
+ *             properties:
+ *               conversationContext:
+ *                 type: string
+ *                 description: Last 10 messages from conversation (user + LLM)
+ *               workspaceId:
+ *                 type: string
+ *               customerId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Checkout token generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 response:
+ *                   type: string
+ *                   description: Summary message for user
+ *                 checkoutToken:
+ *                   type: string
+ *                   description: Secure token for frontend access
+ *                 checkoutUrl:
+ *                   type: string
+ *                   description: Frontend URL for order summary
+ *                 totalAmount:
+ *                   type: number
+ *                   description: Calculated total amount
+ *                 items:
+ *                   type: array
+ *                   description: Parsed items with prices
+ *       400:
+ *         description: Missing parameters or no items found
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Customer not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post(
+  "/confirm-order-conversation",
+  internalApiController.confirmOrderFromConversation.bind(internalApiController)
+)
+
+/**
+ * @swagger
+ * /internal/checkout/{token}:
+ *   get:
+ *     tags:
+ *       - Internal API - N8N
+ *     summary: Get Checkout Data (Frontend)
+ *     description: Get checkout data from secure token for frontend
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Checkout data retrieved successfully
+ *       400:
+ *         description: Token is required
+ *       404:
+ *         description: Token not found or expired
+ *       500:
+ *         description: Internal server error
+ */
+router.get(
+  "/checkout/:token",
+  internalApiController.getCheckoutData.bind(internalApiController)
+)
+
 export { router as internalApiRoutes }

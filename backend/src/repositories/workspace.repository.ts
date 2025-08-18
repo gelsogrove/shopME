@@ -1,7 +1,7 @@
+import logger from "../utils/logger"
 import { PrismaClient } from "@prisma/client"
 import { Workspace, WorkspaceProps } from "../domain/entities/workspace.entity"
 import { WorkspaceRepositoryInterface } from "../domain/repositories/workspace.repository.interface"
-import logger from "../utils/logger"
 
 export class WorkspaceRepository implements WorkspaceRepositoryInterface {
   private prisma: PrismaClient

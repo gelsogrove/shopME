@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { DocumentService } from './documentService';
 import { embeddingService } from './embeddingService';
 
@@ -91,7 +92,7 @@ export class SearchService {
         .slice(0, limit);
 
     } catch (error) {
-      console.error('Error in unified search:', error);
+      logger.error('Error in unified search:', error);
       throw new Error('Failed to perform unified search');
     }
   }
