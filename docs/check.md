@@ -1,23 +1,26 @@
-check da fare
+**** CURSOR NON CAMBIARE QUEESTO FILE !!! *******
+
+CHECKS!!
 
 Workspace ID: cm9hjgq9v00014qk8fsdy4ujv  
 Customer ID: test-customer-123  
 
 
+- fai la build prima di partire e guarda se vanno i test
 
-- un utente se non e' registrato non puo' accedere alla piattaforma gli verra sempre fuori un link di regstazione
+- un utente se non e' registrato non puo' accedere alla piattaforma e gli verra sempre fuori un link di regstazione ad ogni messaggio ?
 
-- se un utente e' bloccato non c'e' nessuna risposta
+- se un utente e' bloccato non c'e' nessuna risposta giusto?
 
-- se un untente ha il flag chatBot is active non risponde e l'operatore dovra rispondere manualmente fino a che non mette a false il flag
+- se un untente ha il flag IschatBotActive (mi sembra si chiami cosi) non risponde e l'operatore dovra rispondere manualmente fino a che non mette a false il flag, giusto?
 
--se il channel non e' attivo deve ritornare un wip message
+-se il channel non e' attivo deve ritornare un wip message in lingua dell'utente giusto? abbiamo un test?
 
-- se un utente scrive Ciao la risposta sara' in italiano e cosi via per Spagnolo inglese e portoghere
+- se un utente scrive "Ciao" la risposta del welcome message sara' in italiano e cosi via per Spagnolo inglese e portoghere 
 
-- se un utente cheide la lista dei podotti llm deve ritorare lista prodotti
+- se un utente cheide la lista dei podotti LLM deve ritorare lista prodotti chuamando la CF relazionata
 
-- se un untente chiede di aggiunger un prodtto al carrello deve funzionare e ritonare il carrello
+- se un untente chiede di aggiungere un prodtto al carrello deve funzionare e ritonare il carrello sempre quando si modifica un elemento del carrello
 
 - se un utente chiede di confermarae un ordine si deve apreire un link dove potra cofermare
 
@@ -70,10 +73,13 @@ Customer ID: test-customer-123
 - miglioramenti di FE ? 
 - miglioramenti di BE ? 
 - Codice inutilizzato da cancellare ?
-- fa la build il backend e il frontentd ? 
+- non voglio file di backup o temporanei in generale cancellali tutti anche se nascosti
+
+
 - Puoui vedere se il PRD e' aggiornato ed e' in linea con quello sviluppato ?
+- ci sono test in skip da risolvere?
+- fa la build il backend e il frontentd ? 
 - vanno i test unitari ?
 - il prd e' aggoirnato dopo i cambi ?
 - swagger e' aggiornato ?
-- non voglio file di backup o temporanei in generale cancellali tutti anche se nascosti
-
+ - memory bank e attiva e mi dice il prossimo passo ?

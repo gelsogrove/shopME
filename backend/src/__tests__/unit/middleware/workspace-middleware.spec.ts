@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { WorkspaceContextDTO } from '../../../application/dtos/workspace-context.dto';
 import { workspaceContextMiddleware } from '../../../interfaces/http/middlewares/workspace-context.middleware';
+import logger from '../../../utils/logger';
 
 // Mock the logger to prevent console output during tests
 jest.mock('../../../utils/logger', () => ({
