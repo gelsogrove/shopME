@@ -34,7 +34,7 @@ export function useWorkspace() {
       try {
         return JSON.parse(cachedWorkspaceString)
       } catch (err) {
-        console.warn("Error parsing cached workspace:", err)
+        logger.warn("Error parsing cached workspace:", err)
       }
     }
     return null
@@ -164,7 +164,7 @@ export function useWorkspace() {
 
   // Add function to set current workspace
   const setCurrentWorkspace = (newWorkspace: Workspace) => {
-    console.log("Setting current workspace:", newWorkspace)
+    logger.info("Setting current workspace:", newWorkspace)
     setWorkspace(newWorkspace)
     sessionStorage.setItem("currentWorkspace", JSON.stringify(newWorkspace))
   }
@@ -176,7 +176,7 @@ export function useWorkspace() {
       const activeWorkspace = workspaces.find((w: Workspace) => w.isActive) || workspaces[0]
       
       if (activeWorkspace) {
-        console.log("Setting active workspace:", activeWorkspace)
+        logger.info("Setting active workspace:", activeWorkspace)
         setWorkspace(activeWorkspace)
         // Cache the workspace in sessionStorage
         sessionStorage.setItem("currentWorkspace", JSON.stringify(activeWorkspace))

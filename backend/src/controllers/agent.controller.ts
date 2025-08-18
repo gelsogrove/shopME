@@ -6,12 +6,12 @@ export const agentController = {
    * Get all agents for a workspace
    */
   async getAllForWorkspace(req: Request, res: Response, next: NextFunction) {
-    console.log('=== OLD AGENT CONTROLLER getAllForWorkspace ===');
-    console.log('Request URL:', req.originalUrl);
-    console.log('Request method:', req.method);
-    console.log('Request params:', req.params);
-    console.log('Request query:', req.query);
-    console.log('Request headers workspace-related:', {
+    logger.info('=== OLD AGENT CONTROLLER getAllForWorkspace ===');
+    logger.info('Request URL:', req.originalUrl);
+    logger.info('Request method:', req.method);
+    logger.info('Request params:', req.params);
+    logger.info('Request query:', req.query);
+    logger.info('Request headers workspace-related:', {
       'x-workspace-id': req.headers['x-workspace-id'],
       'workspace-id': req.headers['workspace-id']
     });
@@ -19,8 +19,8 @@ export const agentController = {
     // Get workspaceId from params or user context
     let workspaceId = req.params.workspaceId;
     
-    console.log('workspaceId from params:', workspaceId);
-    console.log('req.user:', req.user);
+    logger.info('workspaceId from params:', workspaceId);
+    logger.info('req.user:', req.user);
     
     // If workspaceId is not provided in the params (direct /agent route)
     if (!workspaceId) {
@@ -29,11 +29,11 @@ export const agentController = {
         const user = req.user as any;
         workspaceId = user?.workspaceId;
         
-        console.log('workspaceId from user context:', workspaceId);
+        logger.info('workspaceId from user context:', workspaceId);
         
         // If still no workspace ID, return error instead of using fallback
         if (!workspaceId) {
-          console.log("❌ No workspaceId found in params or user context");
+          logger.info("❌ No workspaceId found in params or user context");
           
           // Create comprehensive debug response
           const debugResponse = {
@@ -60,9 +60,9 @@ export const agentController = {
           return res.status(400).json(debugResponse);
         }
         
-        console.log(`✅ No workspaceId in params, using ${workspaceId} from user context`);
+        logger.info(`✅ No workspaceId in params, using ${workspaceId} from user context`);
       } catch (error) {
-        console.error("Failed to get workspace ID:", error);
+        logger.error("Failed to get workspace ID:", error);
         
         const debugResponse = {
           message: "Workspace ID is required",
@@ -79,16 +79,16 @@ export const agentController = {
       }
     }
     
-    console.log(`✅ Getting all agents for workspace ${workspaceId}`);
-    console.log("Request params:", req.params);
-    console.log("Request headers:", req.headers);
+    logger.info(`✅ Getting all agents for workspace ${workspaceId}`);
+    logger.info("Request params:", req.params);
+    logger.info("Request headers:", req.headers);
     
     try {
       const agents = await agentService.getAllForWorkspace(workspaceId)
-      console.log(`Found ${agents.length} agents for workspace ${workspaceId}`);
+      logger.info(`Found ${agents.length} agents for workspace ${workspaceId}`);
       res.json(agents)
     } catch (error) {
-      console.error(`Error getting agents for workspace ${workspaceId}:`, error);
+      logger.error(`Error getting agents for workspace ${workspaceId}:`, error);
       next(error)
     }
   },
@@ -109,31 +109,31 @@ export const agentController = {
         
         // If still no workspace ID, return error instead of using fallback
         if (!workspaceId) {
-          console.log("No workspaceId found in params or user context");
+          logger.info("No workspaceId found in params or user context");
           return res.status(400).json({ message: "Workspace ID is required" });
         }
         
-        console.log(`No workspaceId in params, using ${workspaceId} from user context`);
+        logger.info(`No workspaceId in params, using ${workspaceId} from user context`);
       } catch (error) {
-        console.error("Failed to get workspace ID:", error);
+        logger.error("Failed to get workspace ID:", error);
         return res.status(400).json({ message: "Workspace ID is required" });
       }
     }
     
-    console.log(`Getting agent ${id} from workspace ${workspaceId}`);
+    logger.info(`Getting agent ${id} from workspace ${workspaceId}`);
     
     try {
       const agent = await agentService.getById(id, workspaceId)
       
       if (!agent) {
-        console.log(`Agent ${id} not found in workspace ${workspaceId}`);
+        logger.info(`Agent ${id} not found in workspace ${workspaceId}`);
         return res.status(404).json({ message: "Agent not found" })
       }
       
-      console.log(`Found agent ${id} in workspace ${workspaceId}`);
+      logger.info(`Found agent ${id} in workspace ${workspaceId}`);
       res.json(agent)
     } catch (error) {
-      console.error(`Error getting agent ${id} from workspace ${workspaceId}:`, error);
+      logger.error(`Error getting agent ${id} from workspace ${workspaceId}:`, error);
       next(error)
     }
   },
@@ -153,19 +153,19 @@ export const agentController = {
         
         // If still no workspace ID, return error instead of using fallback
         if (!workspaceId) {
-          console.log("No workspaceId found in params or user context");
+          logger.info("No workspaceId found in params or user context");
           return res.status(400).json({ message: "Workspace ID is required" });
         }
         
-        console.log(`No workspaceId in params, using ${workspaceId} from user context`);
+        logger.info(`No workspaceId in params, using ${workspaceId} from user context`);
       } catch (error) {
-        console.error("Failed to get workspace ID:", error);
+        logger.error("Failed to get workspace ID:", error);
         return res.status(400).json({ message: "Workspace ID is required" });
       }
     }
     
-    console.log(`Creating agent for workspace ${workspaceId}`);
-    console.log("Request body:", req.body);
+    logger.info(`Creating agent for workspace ${workspaceId}`);
+    logger.info("Request body:", req.body);
     
     try {
       const agentData = {
@@ -173,12 +173,12 @@ export const agentController = {
         workspaceId
       }
       
-      console.log("Agent data to be created:", agentData);
+      logger.info("Agent data to be created:", agentData);
       const agent = await agentService.create(agentData)
-      console.log(`Agent created successfully with ID ${agent.id}`);
+      logger.info(`Agent created successfully with ID ${agent.id}`);
       res.status(201).json(agent)
     } catch (error) {
-      console.error(`Error creating agent for workspace ${workspaceId}:`, error);
+      logger.error(`Error creating agent for workspace ${workspaceId}:`, error);
       
       // Check if this is a conflict error (duplicate router agent)
       if (error.message && error.message.includes("router agent already exists")) {
@@ -208,19 +208,19 @@ export const agentController = {
           
           // If still no workspace ID, return error instead of using fallback
           if (!workspaceId) {
-            console.log("No workspaceId found in params or user context");
+            logger.info("No workspaceId found in params or user context");
             return res.status(400).json({ message: "Workspace ID is required" });
           }
           
-          console.log(`No workspaceId in params, using ${workspaceId} from user context`);
+          logger.info(`No workspaceId in params, using ${workspaceId} from user context`);
         } catch (error) {
-          console.error("Failed to get workspace ID:", error);
+          logger.error("Failed to get workspace ID:", error);
           return res.status(400).json({ message: "Workspace ID is required" });
         }
       }
       
       // Esplicito log dei dati ricevuti nel body
-      console.log(`Agent update request received for id ${id}:`, req.body)
+      logger.info(`Agent update request received for id ${id}:`, req.body)
       
       // Assicuriamoci che isRouter sia interpretato correttamente anche se viene inviato come stringa
       let data = { ...req.body };
@@ -230,23 +230,23 @@ export const agentController = {
         if (typeof data.isRouter === 'string') {
           data.isRouter = data.isRouter.toLowerCase() === 'true';
         }
-        console.log(`isRouter value processed as ${data.isRouter} (${typeof data.isRouter})`)
+        logger.info(`isRouter value processed as ${data.isRouter} (${typeof data.isRouter})`)
       } else {
-        console.log(`isRouter not included in update data`)
+        logger.info(`isRouter not included in update data`)
       }
       
-      console.log("Agent data to be updated:", data);
+      logger.info("Agent data to be updated:", data);
       const updatedAgent = await agentService.update(id, workspaceId, data)
       
       if (!updatedAgent) {
-        console.log(`Agent ${id} not found for update`);
+        logger.info(`Agent ${id} not found for update`);
         return res.status(404).json({ message: "Agent not found" })
       }
       
-      console.log(`Agent ${id} updated successfully`);
+      logger.info(`Agent ${id} updated successfully`);
       res.json(updatedAgent)
     } catch (error) {
-      console.error(`Error updating agent:`, error);
+      logger.error(`Error updating agent:`, error);
       
       // Check if this is a conflict error (duplicate router agent)
       if (error.message && error.message.includes("router agent already exists")) {
@@ -276,35 +276,35 @@ export const agentController = {
           
           // If still no workspace ID, return error instead of using fallback
           if (!workspaceId) {
-            console.log("No workspaceId found in params or user context");
+            logger.info("No workspaceId found in params or user context");
             return res.status(400).json({ message: "Workspace ID is required" });
           }
           
-          console.log(`No workspaceId in params, using ${workspaceId} from user context`);
+          logger.info(`No workspaceId in params, using ${workspaceId} from user context`);
         } catch (error) {
-          console.error("Failed to get workspace ID:", error);
+          logger.error("Failed to get workspace ID:", error);
           return res.status(400).json({ message: "Workspace ID is required" });
         }
       }
       
-      console.log(`Deleting agent ${id} from workspace ${workspaceId}`);
+      logger.info(`Deleting agent ${id} from workspace ${workspaceId}`);
       
       try {
         const deleted = await agentService.delete(id, workspaceId)
         
         if (!deleted) {
-          console.log(`Agent ${id} not found for deletion`);
+          logger.info(`Agent ${id} not found for deletion`);
           return res.status(404).json({ message: "Agent not found" })
         }
         
-        console.log(`Agent ${id} deleted successfully`);
+        logger.info(`Agent ${id} deleted successfully`);
         res.status(204).send()
       } catch (error) {
-        console.error(`Error deleting agent ${id}:`, error);
+        logger.error(`Error deleting agent ${id}:`, error);
         next(error)
       }
     } catch (error) {
-      console.error("Error in delete agent controller:", error);
+      logger.error("Error in delete agent controller:", error);
       next(error)
     }
   }

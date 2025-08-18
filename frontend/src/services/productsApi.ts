@@ -61,7 +61,7 @@ export interface UpdateProductData {
 // Helper to process product data
 const processProductData = (product: any) => {
   // Log per il debug
-  console.log('Processing product data:', product);
+  logger.info('Processing product data:', product);
   
   // Remove any image-related properties that might come from the API
   if (product) {
@@ -96,9 +96,9 @@ export const getAllForWorkspace = async (
   totalPages: number 
 }> => {
   try {
-    console.log('Chiamata getAllForWorkspace con workspaceId:', workspaceId);
+    logger.info('Chiamata getAllForWorkspace con workspaceId:', workspaceId);
     if (!workspaceId) {
-      console.error('WorkspaceId mancante in getAllForWorkspace');
+      logger.error('WorkspaceId mancante in getAllForWorkspace');
       return {
         products: [],
         total: 0,
@@ -135,14 +135,14 @@ export const getAllForWorkspace = async (
     
     const queryString = queryParams.toString();
     const requestUrl = `/workspaces/${workspaceId}/products${queryString ? `?${queryString}` : ''}`;
-    console.log('API request URL:', requestUrl);
+    logger.info('API request URL:', requestUrl);
     
     const response = await api.get(requestUrl);
-    console.log('Products API response status:', response.status);
-    console.log('Products API response data:', response.data);
+    logger.info('Products API response status:', response.status);
+    logger.info('Products API response data:', response.data);
     
     if (!response.data) {
-      console.error('Risposta API vuota');
+      logger.error('Risposta API vuota');
       return {
         products: [],
         total: 0,
@@ -171,7 +171,7 @@ export const getAllForWorkspace = async (
     }
     
     // Se non è né un array né ha il nodo products, ritorniamo vuoto
-    console.error('Formato risposta API non riconosciuto:', response.data);
+    logger.error('Formato risposta API non riconosciuto:', response.data);
     return {
       products: [],
       total: 0,
@@ -179,7 +179,7 @@ export const getAllForWorkspace = async (
       totalPages: 0
     };
   } catch (error) {
-    console.error('Error getting products:', error);
+    logger.error('Error getting products:', error);
     // In caso di errore, ritorna un oggetto vuoto standard
     return {
       products: [],
@@ -198,7 +198,7 @@ export const getById = async (id: string, workspaceId: string): Promise<Product>
     const response = await api.get(`/workspaces/${workspaceId}/products/${id}`)
     return processProductData(response.data)
   } catch (error) {
-    console.error('Error getting product:', error)
+    logger.error('Error getting product:', error)
     throw error
   }
 }
@@ -211,7 +211,7 @@ export const getByCategory = async (categoryId: string, workspaceId: string): Pr
     const response = await api.get(`/workspaces/${workspaceId}/categories/${categoryId}/products`)
     return response.data
   } catch (error) {
-    console.error('Error getting products by category:', error)
+    logger.error('Error getting products by category:', error)
     throw error
   }
 }
@@ -222,16 +222,16 @@ export const getByCategory = async (categoryId: string, workspaceId: string): Pr
 export const create = async (workspaceId: string, data: CreateProductData): Promise<Product> => {
   try {
     // Log dei dati che stiamo inviando
-    console.log('Marco - Creating product with data:', data);
-    console.log('Marco - Workspace ID:', workspaceId);
-    console.log('Marco - API URL will be:', `/workspaces/${workspaceId}/products`);
+    logger.info('Marco - Creating product with data:', data);
+    logger.info('Marco - Workspace ID:', workspaceId);
+    logger.info('Marco - API URL will be:', `/workspaces/${workspaceId}/products`);
     
     const response = await api.post(`/workspaces/${workspaceId}/products`, data)
-    console.log('Marco - API response:', response);
+    logger.info('Marco - API response:', response);
     return processProductData(response.data)
   } catch (error) {
-    console.error('Marco - Error creating product:', error)
-    console.error('Marco - Error details:', error.response?.data || error.message)
+    logger.error('Marco - Error creating product:', error)
+    logger.error('Marco - Error details:', error.response?.data || error.message)
     throw error
   }
 }
@@ -242,12 +242,12 @@ export const create = async (workspaceId: string, data: CreateProductData): Prom
 export const update = async (id: string, workspaceId: string, data: UpdateProductData): Promise<Product> => {
   try {
     // Log dei dati che stiamo inviando
-    console.log('Updating product with data:', data);
+    logger.info('Updating product with data:', data);
     
     const response = await api.put(`/workspaces/${workspaceId}/products/${id}`, data)
     return processProductData(response.data)
   } catch (error) {
-    console.error('Error updating product:', error)
+    logger.error('Error updating product:', error)
     throw error
   }
 }
@@ -259,7 +259,7 @@ export const delete_ = async (id: string, workspaceId: string): Promise<void> =>
   try {
     await api.delete(`/workspaces/${workspaceId}/products/${id}`)
   } catch (error) {
-    console.error('Error deleting product:', error)
+    logger.error('Error deleting product:', error)
     throw error
   }
 }
@@ -272,7 +272,7 @@ export const updateStock = async (id: string, workspaceId: string, stock: number
     const response = await api.patch(`/workspaces/${workspaceId}/products/${id}/stock`, { stock })
     return response.data
   } catch (error) {
-    console.error('Error updating product stock:', error)
+    logger.error('Error updating product stock:', error)
     throw error
   }
 }
@@ -281,7 +281,7 @@ export const generateEmbeddings = async (workspaceId: string): Promise<void> => 
   try {
     await api.post(`/workspaces/${workspaceId}/products/generate-embeddings`)
   } catch (error) {
-    console.error('Error generating product embeddings:', error)
+    logger.error('Error generating product embeddings:', error)
     throw error
   }
 }

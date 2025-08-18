@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { Prisma, PrismaClient, ProductStatus } from "@prisma/client"
 import { Product } from "../domain/entities/product.entity"
 import {
@@ -5,7 +6,6 @@ import {
   PaginatedProducts,
   ProductFilters,
 } from "../domain/repositories/product.repository.interface"
-import logger from "../utils/logger"
 
 // Definizione dell'interfaccia Offer
 interface Offer {

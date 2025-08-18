@@ -202,7 +202,7 @@ describe('🚨 CRITICAL: Workspace Isolation Method Signature Validation', () =>
       expect(categoryRepo.findAll).toBeDefined()
       expect(categoryRepo.hasProducts).toBeDefined()
       
-      console.log('✅ All repository methods have workspaceId filtering enforced')
+      logger.info('✅ All repository methods have workspaceId filtering enforced')
     })
   })
 })

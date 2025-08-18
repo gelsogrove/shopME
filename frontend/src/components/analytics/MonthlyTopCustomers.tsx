@@ -34,7 +34,7 @@ export const MonthlyTopCustomers: React.FC<MonthlyTopCustomersProps> = ({
         )
         setMonthlyData(data)
       } catch (err) {
-        console.error("Error fetching monthly top customers:", err)
+        logger.error("Error fetching monthly top customers:", err)
         setError("Failed to load monthly top customers data")
       } finally {
         setLoading(false)

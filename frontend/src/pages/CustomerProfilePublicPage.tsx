@@ -55,18 +55,18 @@ const CustomerProfilePublicPage: React.FC = () => {
       setProfileError(null)
 
       try {
-        console.log(`[PROFILE] 📋 Fetching profile with token: ${token.substring(0, 12)}...`)
+        logger.info(`[PROFILE] 📋 Fetching profile with token: ${token.substring(0, 12)}...`)
         
         const response = await axios.get(`/api/internal/customer-profile/${token}`)
         
         if (response.data.success) {
           setProfileData(response.data.data)
-          console.log(`[PROFILE] ✅ Profile data loaded for customer ${response.data.data.name}`)
+          logger.info(`[PROFILE] ✅ Profile data loaded for customer ${response.data.data.name}`)
         } else {
           setProfileError(response.data.error || 'Errore nel caricamento profilo')
         }
       } catch (error: any) {
-        console.error('[PROFILE] Error fetching profile:', error)
+        logger.error('[PROFILE] Error fetching profile:', error)
         if (error.response?.status === 401) {
           setProfileError('Token scaduto, richiedi un nuovo link')
         } else if (error.response?.status === 404) {
@@ -89,19 +89,19 @@ const CustomerProfilePublicPage: React.FC = () => {
     setSaving(true)
 
     try {
-      console.log(`[PROFILE] 💾 Saving profile updates...`)
+      logger.info(`[PROFILE] 💾 Saving profile updates...`)
       
       const response = await axios.put(`/api/internal/customer-profile/${token}`, updatedData)
       
       if (response.data.success) {
         setProfileData(response.data.data)
         toast.success('Profilo aggiornato con successo!')
-        console.log(`[PROFILE] ✅ Profile updated successfully`)
+        logger.info(`[PROFILE] ✅ Profile updated successfully`)
       } else {
         toast.error(response.data.error || 'Errore nel salvataggio')
       }
     } catch (error: any) {
-      console.error('[PROFILE] Error saving profile:', error)
+      logger.error('[PROFILE] Error saving profile:', error)
       if (error.response?.status === 401) {
         toast.error('Token scaduto, richiedi un nuovo link')
       } else {
@@ -115,11 +115,11 @@ const CustomerProfilePublicPage: React.FC = () => {
   // 🔗 Navigate to orders
   // 📋 Handle view orders
   const handleViewOrders = () => {
-    console.log('[PROFILE] View Orders clicked, using current token:', token)
+    logger.info('[PROFILE] View Orders clicked, using current token:', token)
     
     // Use current token and redirect to orders page
     const ordersUrl = `/orders-public?token=${token}&phone=${encodeURIComponent(phone)}`
-    console.log('[PROFILE] Redirecting to orders:', ordersUrl)
+    logger.info('[PROFILE] Redirecting to orders:', ordersUrl)
     window.location.href = ordersUrl
   }
 

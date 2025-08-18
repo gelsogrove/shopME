@@ -74,18 +74,18 @@ const InvoicePage: React.FC = () => {
       setInvoicesError(null)
 
       try {
-        console.log(`[INVOICES] 📋 Fetching invoices with token: ${token.substring(0, 12)}...`)
+        logger.info(`[INVOICES] 📋 Fetching invoices with token: ${token.substring(0, 12)}...`)
         
         const response = await axios.get(`/api/internal/invoices/${token}`)
         
         if (response.data.success) {
           setInvoiceData(response.data.data)
-          console.log(`[INVOICES] ✅ Found ${response.data.data.invoices.length} invoices`)
+          logger.info(`[INVOICES] ✅ Found ${response.data.data.invoices.length} invoices`)
         } else {
           setInvoicesError(response.data.error || 'Errore nel caricamento fatture')
         }
       } catch (error: any) {
-        console.error('[INVOICES] Error fetching invoices:', error)
+        logger.error('[INVOICES] Error fetching invoices:', error)
         if (error.response?.status === 401) {
           setInvoicesError('Token scaduto, richiedi un nuovo link')
         } else if (error.response?.status === 404) {

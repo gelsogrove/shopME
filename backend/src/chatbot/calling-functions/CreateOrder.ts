@@ -1,19 +1,17 @@
-import { ItemType, PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
-
-export interface OrderItem {
-  type: "product" | "service"
-  id: string
-  name: string
-  quantity: number
-  unitPrice: number
-}
+import logger from "../../utils/logger"
+import { ItemType } from "@prisma/client"
+import { prisma } from "../../lib/prisma"
 
 export interface CreateOrderParams {
   workspaceId: string
   customerId: string
-  items: OrderItem[]
+  items: Array<{
+    itemType: "PRODUCT" | "SERVICE"
+    id: string
+    name: string
+    quantity: number
+    unitPrice: number
+  }>
   notes?: string
 }
 
@@ -29,7 +27,7 @@ export async function CreateOrder(
   params: CreateOrderParams
 ): Promise<CreateOrderResult> {
   try {
-    console.log(
+    logger.info(
       "🛒 CreateOrder chiamata con parametri:",
       JSON.stringify(params, null, 2)
     )
@@ -64,13 +62,17 @@ export async function CreateOrder(
     const validatedItems: any[] = []
 
     for (const item of items) {
-      if (item.type === "product") {
-        // Verifica prodotto esiste e ha stock
+      if (item.itemType === "PRODUCT") {
+        // Cerca prodotto nel database
         const product = await prisma.products.findFirst({
           where: {
-            OR: [{ ProductCode: item.id }, { sku: item.id }, { id: item.id }],
             workspaceId: workspaceId,
-            status: "ACTIVE",
+            OR: [
+              { id: item.id },
+              { ProductCode: item.id },
+              { sku: item.id },
+            ],
+            isActive: true,
           },
         })
 
@@ -82,30 +84,31 @@ export async function CreateOrder(
           }
         }
 
+        // Verifica stock
         if (product.stock < item.quantity) {
           return {
             success: false,
-            message: `❌ Stock insufficiente per ${product.name}. Disponibili: ${product.stock}, richiesti: ${item.quantity}`,
+            message: `❌ Stock insufficiente per ${item.name}. Disponibile: ${product.stock}`,
             error: "INSUFFICIENT_STOCK",
           }
         }
 
+        const totalPrice = item.unitPrice * item.quantity
+        totalAmount += totalPrice
+
         validatedItems.push({
           itemType: "PRODUCT",
-          product: { connect: { id: product.id } },
-          service: undefined,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          totalPrice: item.quantity * item.unitPrice,
+          totalPrice: totalPrice,
+          product: { connect: { id: product.id } },
         })
-
-        totalAmount += item.quantity * item.unitPrice
-      } else if (item.type === "service") {
-        // Verifica servizio esiste
+      } else if (item.itemType === "SERVICE") {
+        // Cerca servizio nel database
         const service = await prisma.services.findFirst({
           where: {
-            OR: [{ id: item.id }, { name: item.name }],
             workspaceId: workspaceId,
+            OR: [{ id: item.id }, { name: item.name }],
             isActive: true,
           },
         })
@@ -118,40 +121,32 @@ export async function CreateOrder(
           }
         }
 
+        const totalPrice = item.unitPrice * item.quantity
+        totalAmount += totalPrice
+
         validatedItems.push({
           itemType: "SERVICE",
-          product: undefined,
-          service: { connect: { id: service.id } },
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          totalPrice: item.quantity * item.unitPrice,
+          totalPrice: totalPrice,
+          service: { connect: { id: service.id } },
         })
-
-        totalAmount += item.quantity * item.unitPrice
       }
     }
 
-    // Helper per order code a 5 cifre
-    const generateOrderCode = () => {
-      const min = 10000
-      const max = 99999
-      return String(Math.floor(Math.random() * (max - min + 1)) + min)
-    }
-
-    // Creazione ordine
+    // Genera codice ordine univoco
     const generatedOrderCode = await (async () => {
-      const today = new Date()
-      const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "")
-      const lastOrder = await prisma.orders.findFirst({
-        where: { orderCode: { startsWith: `ORD-${dateStr}-` } },
-        orderBy: { createdAt: "desc" },
+      const date = new Date()
+      const dateStr = date.toISOString().slice(0, 10).replace(/-/g, "")
+      const sequence = await prisma.orders.count({
+        where: {
+          workspaceId: workspaceId,
+          createdAt: {
+            gte: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+          },
+        },
       })
-      let sequence = 1
-      if (lastOrder) {
-        const lastSequence = parseInt(lastOrder.orderCode.split("-")[2])
-        sequence = lastSequence + 1
-      }
-      return `ORD-${dateStr}-${sequence.toString().padStart(3, "0")}`
+      return `ORD-${dateStr}-${(sequence + 1).toString().padStart(3, "0")}`
     })()
 
     const itemsCreateData = validatedItems.map((v) => {
@@ -217,8 +212,9 @@ export async function CreateOrder(
     // Genera checkout URL (opzionale per ordini WhatsApp)
     const checkoutUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/checkout/order/${order.id}`
 
-    console.log("✅ Ordine creato con successo:", {
+    logger.info("✅ Ordine creato con successo:", {
       orderId: order.id,
+      orderCode: generatedOrderCode,
       customerId: customer.id,
       customerName: customer.name,
       totalAmount: totalAmount,
@@ -227,12 +223,12 @@ export async function CreateOrder(
 
     return {
       success: true,
-      message: `✅ Ordine creato con successo! ID: ${order.id}`,
+      message: `✅ Ordine creato con successo! Codice: ${generatedOrderCode}`,
       orderId: order.id,
       checkoutUrl: checkoutUrl,
     }
   } catch (error) {
-    console.error("❌ Errore CreateOrder:", error)
+    logger.error("❌ Errore CreateOrder:", error)
     return {
       success: false,
       message: "❌ Errore interno del server durante la creazione dell'ordine",
@@ -306,18 +302,18 @@ Crea un nuovo ordine per il cliente, includendo sia prodotti che servizi, con qu
         items: {
           type: "object",
           properties: {
-            type: {
+            itemType: {
               type: "string",
-              enum: ["product", "service"],
-              description: "Tipo di item: product o service",
+              enum: ["PRODUCT", "SERVICE"],
+              description: "Tipo di item (PRODUCT o SERVICE)",
             },
             id: {
               type: "string",
-              description: "ProductCode, SKU o ID dell'item",
+              description: "ID del prodotto o servizio",
             },
             name: {
               type: "string",
-              description: "Nome descrittivo dell'item",
+              description: "Nome del prodotto o servizio",
             },
             quantity: {
               type: "number",
@@ -328,7 +324,7 @@ Crea un nuovo ordine per il cliente, includendo sia prodotti che servizi, con qu
               description: "Prezzo unitario",
             },
           },
-          required: ["type", "id", "name", "quantity", "unitPrice"],
+          required: ["itemType", "id", "name", "quantity", "unitPrice"],
         },
       },
       notes: {
@@ -338,4 +334,6 @@ Crea un nuovo ordine per il cliente, includendo sia prodotti che servizi, con qu
     },
     required: ["workspaceId", "customerId", "items"],
   },
+  handler: CreateOrder,
 }
+

@@ -1043,7 +1043,7 @@ export class WhatsAppController {
       logger.info(
         `[OPERATOR-CONTROL] ✅ Message saved for operator review: ${phoneNumber}`
       )
-      console.log("🚨 DEBUG: SALVATO (OPERATOR MESSAGE)")
+      logger.info("🚨 DEBUG: SALVATO (OPERATOR MESSAGE)")
     } catch (error) {
       logger.error(
         `[OPERATOR-CONTROL] ❌ Error saving message for operator:`,
@@ -1284,7 +1284,7 @@ export class WhatsAppController {
       logger.info(
         `[OPERATOR-MESSAGE] ✅ Operator message saved to DB: ${phoneNumber}`
       )
-      console.log("🚨 DEBUG: SALVATO (OPERATOR OUTBOUND MESSAGE)")
+      logger.info("🚨 DEBUG: SALVATO (OPERATOR OUTBOUND MESSAGE)")
     } catch (error) {
       logger.error(
         `[OPERATOR-MESSAGE] ❌ Error saving operator message:`,
@@ -1525,7 +1525,7 @@ export class WhatsAppController {
         fullMessage
       )
       logger.info(`[WELCOME-MESSAGE] ✅ Chat history saved`)
-      console.log("🚨 DEBUG: SALVATO (WELCOME MESSAGE)")
+      logger.info("🚨 DEBUG: SALVATO (WELCOME MESSAGE)")
 
       // TODO: Send actual WhatsApp message (requires WhatsApp Business API setup)
       logger.info(
@@ -1569,7 +1569,7 @@ export class WhatsAppController {
       logger.info(
         `[WELCOME-HISTORY] Messages saved to chat history for ${phoneNumber}`
       )
-      console.log("🚨 DEBUG: SALVATO (WELCOME HISTORY MESSAGES)")
+      logger.info("🚨 DEBUG: SALVATO (WELCOME HISTORY MESSAGES)")
     } catch (error) {
       logger.error(
         `[WELCOME-HISTORY] Error saving welcome messages to history:`,

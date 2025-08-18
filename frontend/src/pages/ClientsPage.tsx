@@ -92,7 +92,7 @@ const parseAddress = (addressStr?: string | null): ShippingAddress => {
     }
   } catch (e) {
     // Se non è JSON, lo trattiamo come indirizzo semplice
-    console.warn("Failed to parse address as JSON:", addressStr)
+    logger.warn("Failed to parse address as JSON:", addressStr)
   }
 
   // Default o fallback se il parsing fallisce
@@ -186,7 +186,7 @@ export default function ClientsPage(): JSX.Element {
       )
 
       if (clientToEdit) {
-        console.log("Opening client edit form for:", clientToEdit.name)
+        logger.info("Opening client edit form for:", clientToEdit.name)
         setSelectedClient(clientToEdit)
         setClientSheetMode("edit")
         setClientSheetOpen(true)
@@ -224,7 +224,7 @@ export default function ClientsPage(): JSX.Element {
         setClientSheetOpen(false)
       }
     } catch (error) {
-      console.error("Error creating client:", error)
+      logger.error("Error creating client:", error)
       toast.error("Failed to create client", { duration: 1000 })
     }
   }
@@ -245,9 +245,9 @@ export default function ClientsPage(): JSX.Element {
     if (!workspace?.id) return
 
     try {
-      console.log("Updating customer with data:", customerData)
-      console.log("Customer ID:", clientId)
-      console.log("Workspace ID:", workspace.id)
+      logger.info("Updating customer with data:", customerData)
+      logger.info("Customer ID:", clientId)
+      logger.info("Workspace ID:", workspace.id)
 
       // Import the API functions
       const { update } = await import("@/services/clientsApi")
@@ -255,7 +255,7 @@ export default function ClientsPage(): JSX.Element {
       // Update client using the clientsApi
       const updatedCustomer = await update(clientId, workspace.id, customerData)
 
-      console.log("Response from update API:", updatedCustomer)
+      logger.info("Response from update API:", updatedCustomer)
 
       if (updatedCustomer) {
         // Update client in state with correct format and preserve existing data not returned by API
@@ -267,7 +267,7 @@ export default function ClientsPage(): JSX.Element {
         setSelectedClient(null)
       }
     } catch (error: any) {
-      console.error("Error updating client:", error)
+      logger.error("Error updating client:", error)
       toast.error(
         error instanceof Error ? error.message : "Failed to update client",
         { duration: 1000 }
@@ -292,7 +292,7 @@ export default function ClientsPage(): JSX.Element {
       // If no existing chat is found, navigate to the chat page with client name as search filter
       navigate(`/chat?client=${encodeURIComponent(client.name)}`)
     } catch (error) {
-      console.error("Error finding chat for client:", error)
+      logger.error("Error finding chat for client:", error)
       // Navigate to chat page with client name as search filter even if there's an error
       navigate(`/chat?client=${encodeURIComponent(client.name)}`)
     }
@@ -334,7 +334,7 @@ export default function ClientsPage(): JSX.Element {
       setShowDeleteDialog(false)
       setClientToDelete(null)
     } catch (error) {
-      console.error("Error deleting client:", error)
+      logger.error("Error deleting client:", error)
       toast.error("Failed to delete client", { duration: 1000 })
     }
   }

@@ -311,8 +311,8 @@ describe('🚨 CRITICAL: Workspace Isolation Security Tests', () => {
       expect(customerWithoutWorkspace).not.toBeNull()
       
       // Log warning about missing workspace filter
-      console.warn('🚨 SECURITY WARNING: Customer query without workspaceId filter!')
-      console.warn('Found customer:', customerWithoutWorkspace?.id, 'in workspace:', customerWithoutWorkspace?.workspaceId)
+      logger.warn('🚨 SECURITY WARNING: Customer query without workspaceId filter!')
+      logger.warn('Found customer:', customerWithoutWorkspace?.id, 'in workspace:', customerWithoutWorkspace?.workspaceId)
     })
   })
 
@@ -372,7 +372,7 @@ describe('🚨 CRITICAL: Workspace Isolation Security Tests', () => {
       // Detect mismatch
       expect(validation.data?.workspaceId).not.toBe(validation.payload?.workspaceId)
       
-      console.warn('🚨 SECURITY WARNING: Token and payload workspaceId mismatch!')
+      logger.warn('🚨 SECURITY WARNING: Token and payload workspaceId mismatch!')
     })
   })
 })

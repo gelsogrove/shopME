@@ -28,7 +28,7 @@ export function AgentPage() {
   // Redirect to workspace selection if user has no workspace
   useEffect(() => {
     if (!workspace) {
-      console.log(
+      logger.info(
         "No workspace found in AgentPage, redirecting to workspace selection"
       )
       navigate("/clients")
@@ -37,32 +37,32 @@ export function AgentPage() {
 
   // Debug workspace changes
   useEffect(() => {
-    console.log("=== WORKSPACE CHANGE DEBUG ===")
-    console.log("Workspace:", workspace)
-    console.log("Workspace ID:", workspace?.id)
-    console.log("Workspace name:", workspace?.name)
-    console.log("Workspace isActive:", workspace?.isActive)
+    logger.info("=== WORKSPACE CHANGE DEBUG ===")
+    logger.info("Workspace:", workspace)
+    logger.info("Workspace ID:", workspace?.id)
+    logger.info("Workspace name:", workspace?.name)
+    logger.info("Workspace isActive:", workspace?.isActive)
 
     // Check sessionStorage
     const sessionWorkspace = sessionStorage.getItem("currentWorkspace")
-    console.log("SessionStorage workspace:", sessionWorkspace)
+    logger.info("SessionStorage workspace:", sessionWorkspace)
     if (sessionWorkspace) {
       try {
         const parsedWorkspace = JSON.parse(sessionWorkspace)
-        console.log("Parsed sessionStorage workspace:", parsedWorkspace)
+        logger.info("Parsed sessionStorage workspace:", parsedWorkspace)
       } catch (e) {
-        console.error("Error parsing sessionStorage workspace:", e)
+        logger.error("Error parsing sessionStorage workspace:", e)
       }
     }
   }, [workspace])
 
   // Debug agent changes
   useEffect(() => {
-    console.log("=== AGENT CHANGE DEBUG ===")
-    console.log("Agent:", agent)
-    console.log("Agent ID:", agent?.id)
-    console.log("Agent name:", agent?.name)
-    console.log("Agent workspaceId:", agent?.workspaceId)
+    logger.info("=== AGENT CHANGE DEBUG ===")
+    logger.info("Agent:", agent)
+    logger.info("Agent ID:", agent?.id)
+    logger.info("Agent name:", agent?.name)
+    logger.info("Agent workspaceId:", agent?.workspaceId)
   }, [agent])
 
   // Load the agent when workspace is available
@@ -73,24 +73,24 @@ export function AgentPage() {
       try {
         setIsLoading(true)
         setError(null)
-        console.log("=== AGENT PAGE LOAD DEBUG ===")
-        console.log("Loading agent for workspace:", workspace.id)
-        console.log("Workspace object:", workspace)
+        logger.info("=== AGENT PAGE LOAD DEBUG ===")
+        logger.info("Loading agent for workspace:", workspace.id)
+        logger.info("Workspace object:", workspace)
 
         const agentData = await getAgent(workspace.id)
-        console.log("=== AGENT DATA RECEIVED ===")
-        console.log("Agent data loaded:", agentData)
+        logger.info("=== AGENT DATA RECEIVED ===")
+        logger.info("Agent data loaded:", agentData)
         if (!agentData) {
           setAgent(null)
           setIsLoading(false)
           return
         }
-        console.log("Agent ID:", agentData?.id)
-        console.log("Agent name:", agentData?.name)
-        console.log("Agent content length:", agentData?.content?.length)
-        console.log("Agent temperature:", agentData?.temperature)
-        console.log("Agent model:", agentData?.model)
-        console.log("Agent max_tokens:", agentData?.max_tokens)
+        logger.info("Agent ID:", agentData?.id)
+        logger.info("Agent name:", agentData?.name)
+        logger.info("Agent content length:", agentData?.content?.length)
+        logger.info("Agent temperature:", agentData?.temperature)
+        logger.info("Agent model:", agentData?.model)
+        logger.info("Agent max_tokens:", agentData?.max_tokens)
 
         setAgent(agentData)
 
@@ -99,12 +99,12 @@ export function AgentPage() {
         setModelValue(agentData.model || "openai/gpt-4.1-mini")
         setMaxTokensValue(agentData.max_tokens || 1000)
 
-        console.log("=== FORM VALUES SET ===")
-        console.log("Temperature:", agentData.temperature || 0.7)
-        console.log("Model:", agentData.model || "openai/gpt-4.1-mini")
-        console.log("Max tokens:", agentData.max_tokens || 1000)
+        logger.info("=== FORM VALUES SET ===")
+        logger.info("Temperature:", agentData.temperature || 0.7)
+        logger.info("Model:", agentData.model || "openai/gpt-4.1-mini")
+        logger.info("Max tokens:", agentData.max_tokens || 1000)
       } catch (error) {
-        console.error("=== AGENT LOAD ERROR ===", error)
+        logger.error("=== AGENT LOAD ERROR ===", error)
         toast.error("Failed to load agent", { duration: 1000 })
       } finally {
         setIsLoading(false)
@@ -119,18 +119,18 @@ export function AgentPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    console.log("=== HANDLE SUBMIT DEBUG ===")
-    console.log("Agent:", agent)
-    console.log("Agent ID:", agent?.id)
-    console.log("Agent name:", agent?.name)
-    console.log("Workspace:", workspace)
-    console.log("Workspace ID:", workspace?.id)
-    console.log("Workspace name:", workspace?.name)
+    logger.info("=== HANDLE SUBMIT DEBUG ===")
+    logger.info("Agent:", agent)
+    logger.info("Agent ID:", agent?.id)
+    logger.info("Agent name:", agent?.name)
+    logger.info("Workspace:", workspace)
+    logger.info("Workspace ID:", workspace?.id)
+    logger.info("Workspace name:", workspace?.name)
 
     if (!agent || !workspace) {
-      console.error("=== MISSING DATA ERROR ===")
-      console.error("Agent is null:", !agent)
-      console.error("Workspace is null:", !workspace)
+      logger.error("=== MISSING DATA ERROR ===")
+      logger.error("Agent is null:", !agent)
+      logger.error("Workspace is null:", !workspace)
       toast.error("Missing agent or workspace data", { duration: 1000 })
       return
     }
@@ -139,11 +139,11 @@ export function AgentPage() {
     const content = agent.content || ""
     const model = modelValue
 
-    console.log("=== FORM DATA ===")
-    console.log("Content length:", content?.length)
-    console.log("Model:", model)
-    console.log("Temperature:", tempValue)
-    console.log("Max tokens:", maxTokensValue)
+    logger.info("=== FORM DATA ===")
+    logger.info("Content length:", content?.length)
+    logger.info("Model:", model)
+    logger.info("Temperature:", tempValue)
+    logger.info("Max tokens:", maxTokensValue)
 
     // Validate required fields
     if (!content.trim()) {
@@ -153,8 +153,8 @@ export function AgentPage() {
 
     try {
       setIsSaving(true)
-      console.log("=== UPDATING AGENT ===")
-      console.log("Updating agent with data:", {
+      logger.info("=== UPDATING AGENT ===")
+      logger.info("Updating agent with data:", {
         id: agent.id,
         workspaceId: workspace.id,
         name: agent.name,
@@ -172,12 +172,12 @@ export function AgentPage() {
         max_tokens: maxTokensValue,
       })
 
-      console.log("=== UPDATE SUCCESS ===")
-      console.log("Agent updated successfully:", updatedAgent)
+      logger.info("=== UPDATE SUCCESS ===")
+      logger.info("Agent updated successfully:", updatedAgent)
       setAgent(updatedAgent)
       toast.success("Agent updated successfully", { duration: 1000 })
     } catch (error) {
-      console.error("=== UPDATE ERROR ===", error)
+      logger.error("=== UPDATE ERROR ===", error)
       toast.error("Failed to update agent. Please try again.", {
         duration: 1000,
       })

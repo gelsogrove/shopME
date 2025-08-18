@@ -135,14 +135,14 @@ describe('Workspace Context Middleware', () => {
     // Mock WorkspaceContextDTO.fromRequest to return null
     (WorkspaceContextDTO.fromRequest as jest.Mock).mockReturnValue(null);
 
-    console.log('Before middleware call - null workspaceId');
+    logger.info('Before middleware call - null workspaceId');
     
     // Act
     await workspaceContextMiddleware(mockRequest as Request, mockResponse as Response, nextFunction);
     
-    console.log('After middleware call - null workspaceId');
-    console.log('Status called with:', (mockResponse.status as jest.Mock).mock.calls);
-    console.log('JSON called with:', (mockResponse.json as jest.Mock).mock.calls);
+    logger.info('After middleware call - null workspaceId');
+    logger.info('Status called with:', (mockResponse.status as jest.Mock).mock.calls);
+    logger.info('JSON called with:', (mockResponse.json as jest.Mock).mock.calls);
     
     // Assert
     expect(nextFunction).not.toHaveBeenCalled();
@@ -160,14 +160,14 @@ describe('Workspace Context Middleware', () => {
     const mockDto = { workspaceId: 'invalid-workspace-id', isValid: jest.fn().mockReturnValue(false) };
     (WorkspaceContextDTO.fromRequest as jest.Mock).mockReturnValue(mockDto);
 
-    console.log('Before middleware call - invalid workspaceId');
+    logger.info('Before middleware call - invalid workspaceId');
     
     // Act
     await workspaceContextMiddleware(mockRequest as Request, mockResponse as Response, nextFunction);
     
-    console.log('After middleware call - invalid workspaceId');
-    console.log('Status called with:', (mockResponse.status as jest.Mock).mock.calls);
-    console.log('JSON called with:', (mockResponse.json as jest.Mock).mock.calls);
+    logger.info('After middleware call - invalid workspaceId');
+    logger.info('Status called with:', (mockResponse.status as jest.Mock).mock.calls);
+    logger.info('JSON called with:', (mockResponse.json as jest.Mock).mock.calls);
     
     // Assert
     expect(nextFunction).not.toHaveBeenCalled();

@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { UserRole } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
 import { verify } from 'jsonwebtoken';
@@ -39,7 +40,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     const userId = decoded.id || decoded.userId;
     
     if (!userId) {
-      console.error('No user ID found in token:', decoded);
+      logger.error('No user ID found in token:', decoded);
       return res.status(401).json({ message: 'Invalid token format' });
     }
 
@@ -73,7 +74,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     // Get workspaceId from query params or headers
     const workspaceId = (req.query?.workspaceId as string) || (req.headers?.["x-workspace-id"] as string) || req.params?.workspaceId;
     
-    console.log('workspaceId extraction in auth middleware:', {
+    logger.info('workspaceId extraction in auth middleware:', {
       fromQuery: req.query?.workspaceId,
       fromHeaders: req.headers?.["x-workspace-id"],
       fromParams: req.params?.workspaceId,
@@ -91,7 +92,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     
     next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
+    logger.error('Auth middleware error:', error);
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
 }; 

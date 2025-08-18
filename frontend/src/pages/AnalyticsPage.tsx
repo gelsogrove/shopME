@@ -45,7 +45,7 @@ export function AnalyticsPage() {
         setError("Failed to load analytics data")
       }
     } catch (err) {
-      console.error("Analytics loading error:", err)
+      logger.error("Analytics loading error:", err)
       setError("Error loading analytics data")
     } finally {
       setLoading(false)

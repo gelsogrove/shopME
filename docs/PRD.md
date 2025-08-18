@@ -81,6 +81,7 @@ Allow customers to access their full orders history and specific order details v
 - **🎉 OFFERS MANAGEMENT:** Complete offers system implemented with GetActiveOffers N8N tool for chatbot integration.
 - **🛒 INTELLIGENT CART AUTO-EXTRACTION:** ✅ **IMPLEMENTED** - Revolutionary cart management system that automatically extracts order items from conversation history when LLM instructions fail. Uses regex pattern matching and smart fallback mechanisms to ensure 100% order success rate.
 - **📄 PDF DOWNLOAD SYSTEM:** ✅ **COMPLETED** - Professional PDF generation system for invoices and delivery notes (DDT). Public endpoints without token validation, clickable order rows, English interface, and professional invoice layout with billing/shipping addresses.
+- **🛒 CONVERSATIONAL ORDER FLOW:** ✅ **COMPLETED** - Sistema completo di generazione ordini da conversazione WhatsApp. Implementato `confirmOrderFromConversation()` con parsing LLM automatico, frontend interattivo `OrderSummaryPage`, e integrazione N8N completa. Test di integrazione tutti superati con successo.
 
 ### ✅ NEW: Sistema Multilingue Bidirezionale (July 2025)
 
@@ -125,17 +126,19 @@ Allow customers to access their full orders history and specific order details v
 
 - **Goal:** Guarantee that, after a successful order creation, the agent cart memory is cleared to avoid accidental reorders or stale items.
 - **Mechanism:**
-  - N8N sends a hidden "system" message to the LLM instructing it to clear all cart state from memory.
-  - The message is sent only on SUCCESS (never on cancel/failure).
-  - A short delay of ~5 seconds is applied before sending to avoid racing with the final confirmation message.
-- **User Experience:** The system message is invisible to the user; no UI output is generated.
+  - **SIMPLE APPROACH**: After calling confirmOrderFromConversation() and generating the checkout link, the LLM automatically clears the cart array to empty [].
+  - **PROMPT-BASED**: The cleanup is handled directly in the prompt_agent.md instructions.
+  - **IMMEDIATE**: Cart is cleared immediately after generating the checkout link, not after order completion.
+- **User Experience:** The user is informed that the cart has been cleared to prevent duplicate orders.
 - **Acceptance Criteria:**
-  - Immediately after order confirmation, a user prompt like "show my cart" yields empty/no items.
+  - Immediately after generating checkout link, a user prompt like "show my cart" yields empty/no items.
   - No residual cart content is present in subsequent LLM responses unless the user explicitly adds new items.
-- **Implementation Notes (N8N):**
-  - Add a "Wait" node (5000 ms) after the order creation step.
-  - Add a "Code" or "Set" node to construct a system message: { role: "system", content: "Clear all cart-related memory/state now." }.
-  - Ensure this message is appended only to the LLM context and not delivered to the user output channel.
+  - User is informed that cart was cleared for safety.
+- **Implementation Notes:**
+  - Added rule #7 in prompt_agent.md: "After calling confirmOrderFromConversation(), IMMEDIATELY clear the cart array to empty []"
+  - No complex N8N workflow changes needed.
+  - No backend database changes required.
+  - Simple, reliable, and maintainable solution.
 
 ### ✅ Workspace Isolation Policy (Mandatory)
 
@@ -7198,40 +7201,64 @@ GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
 
 - "vorrei ordinare 2 mozzarelle e 1 pasta" / "aggiungi al carrello" / "procediamo al checkout"
 
-### **🚀 NEW: Conversational Order Flow - Flusso Ordine Conversazionale**
+### **🚀 NEW: Conversational Order Flow - Flusso Ordine Conversazionale** ✅ **IMPLEMENTED**
 
 **STRATEGIA IBRIDA:** Combinazione tra chat libera e checkout web per esperienza utente ottimale.
 
-**FLUSSO COMPLETO:**
+**FLUSSO COMPLETO IMPLEMENTATO:**
 
 ```
-1. Cliente: "Voglio maglietta rossa"
+1. Cliente: "Voglio 2 mozzarelle"
    ↓
-2. LLM: "✅ Maglietta rossa aggiunta alla selezione"
+2. LLM: "✅ Ho trovato Mozzarella di Bufala Campana DOP €9.99. Aggiungo 2 pezzi al tuo ordine"
    ↓
-3. Cliente: "Aggiungi anche jeans blu"
+3. Cliente: "Sì, confermo l'ordine"
    ↓
-4. LLM: "✅ Jeans blu aggiunto alla selezione"
+4. LLM chiama confirmOrderFromConversation():
+   - Passa ultimi 10 messaggi come conversationContext
+   - Backend fa parsing automatico con LLM interno
+   - Genera token sicuro con prodotti parsati
+   - Crea URL checkout interattivo
    ↓
-5. Cliente: "Basta così"
+5. LLM: "🛒 Perfetto! Ho preparato il tuo ordine. Clicca qui per rivedere e confermare: 
+          http://localhost:3000/order-summary/abc123token"
    ↓
-6. LLM: "Vuoi confermare l'ordine con questi prodotti?"
-   ↓
-7. Cliente: "Sì"
-   ↓
-8. LLM chiama confirmOrderFromConversation():
-   - Raccoglie prodotti dalla conversazione corrente
-   - Crea token sicuro con prodotti selezionati
-   - Genera URL checkout personalizzato
-   ↓
-9. LLM: "🛒 Riepilogo Ordine:
-          • Maglietta rossa: €25.00
-          • Jeans blu: €80.00
-          💰 Totale: €105.00
-          🔗 Completa qui: shopme.com/checkout/abc123token"
-   ↓
-10. Cliente clicca → vai al web per completare checkout
+6. Cliente clicca → OrderSummaryPage interattiva
+   - Visualizza prodotti parsati dalla conversazione
+   - Permette aggiungere/rimuovere prodotti e servizi
+   - Calcola totale in tempo reale
+   - Conferma finale → crea ordine nel DB
 ```
+
+**ARCHITETTURA IMPLEMENTATA:**
+
+**Backend (✅ COMPLETED):**
+- **Endpoint**: `POST /api/internal/confirm-order-conversation`
+- **Parsing**: LLM interno (OpenRouter) analizza conversationContext
+- **Validazione**: Controlla prodotti/servizi contro database
+- **Token**: Genera secureToken con TTL 1 ora
+- **URL**: `http://localhost:3000/order-summary/{token}`
+
+**Frontend (✅ COMPLETED):**
+- **Route**: `/order-summary/:token`
+- **Component**: `OrderSummaryPage.tsx`
+- **Features**: 
+  - Carica dati da `/api/internal/checkout/:token`
+  - Interfaccia interattiva per modificare quantità
+  - Aggiungere prodotti/servizi dal catalogo
+  - Calcolo totale real-time
+  - Conferma finale → crea ordine
+
+**N8N Integration (✅ COMPLETED):**
+- **Function**: `confirmOrderFromConversation()` aggiunta al workflow
+- **Prompt**: Aggiornato per usare solo questa funzione
+- **Logic**: Passa ultimi 10 messaggi per parsing automatico
+
+**TEST DI INTEGRAZIONE (✅ SUCCESS):**
+- ✅ Backend endpoint funziona correttamente
+- ✅ Frontend checkout recupera dati dal token
+- ✅ N8N workflow aggiornato e pronto
+- ✅ Parsing LLM automatico dei prodotti dalla conversazione
 
 **VANTAGGI CHIAVE:**
 
@@ -7251,13 +7278,62 @@ GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
 | **Output**        | Ordine immediato    | Token + URL         | **Token + URL**          |
 | **Completamento** | Subito              | Form web            | **Form web**             |
 
-**IMPLEMENTAZIONE TECNICA:**
+**IMPLEMENTAZIONE TECNICA DETTAGLIATA:**
 
-- **Funzione**: `confirmOrderFromConversation(customerId, workspaceId, conversationContext)`
-- **Parsing**: Estrazione automatica prodotti dai messaggi recenti
-- **Validazione**: Controllo stock e prezzi real-time
-- **Token**: Generazione sicura con payload conversazione
-- **Fallback**: Gestione errori con richiesta chiarimenti
+**Backend Controller (`internal-api.controller.ts`):**
+```typescript
+async confirmOrderFromConversation(req: Request, res: Response): Promise<void> {
+  const { conversationContext, workspaceId, customerId } = req.body;
+  
+  // Parse conversation using internal LLM
+  const parsedItems = await this.parseConversationToItems(conversationContext, workspaceId);
+  
+  // Generate secure token
+  const checkoutToken = this.generateSecureToken();
+  
+  // Save to database with 1-hour TTL
+  await prisma.secureToken.create({
+    data: {
+      token: checkoutToken,
+      type: "checkout",
+      workspaceId: workspaceId,
+      payload: { customerId, items: parsedItems, totalAmount, conversationContext },
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000)
+    }
+  });
+  
+  res.json({
+    success: true,
+    checkoutToken,
+    checkoutUrl: `http://localhost:3000/order-summary/${checkoutToken}`,
+    totalAmount,
+    items: parsedItems
+  });
+}
+```
+
+**LLM Parsing Service:**
+- **Model**: `openai/gpt-4o-mini` via OpenRouter
+- **Temperature**: 0.3 per parsing accurato
+- **Prompt**: Analizza conversazione e estrae prodotti/servizi con quantità
+- **Validation**: Controlla prodotti contro database per prezzi reali
+- **Fallback**: Gestione errori con logging completo
+
+**Frontend Component (`OrderSummaryPage.tsx`):**
+- **State Management**: React hooks per items, totalAmount, loading
+- **API Integration**: Fetch da `/api/internal/checkout/:token`
+- **Interactive Features**: 
+  - Quantity controls per ogni item
+  - Remove item functionality
+  - Add product/service buttons (modal integration ready)
+  - Real-time total calculation
+- **Final Confirmation**: Chiama `/api/internal/create-order` con items finali
+
+**Security & Validation:**
+- **Token TTL**: 1 ora automatica scadenza
+- **Workspace Isolation**: Tutte le query filtrano per workspaceId
+- **Input Validation**: Controllo parametri obbligatori
+- **Error Handling**: Gestione completa errori con logging
 
 ### **☎️ ContactOperator() - Richiesta Operatore Umano**
 

@@ -15,7 +15,7 @@ const getCurrentWorkspaceId = (): string | null => {
       const workspace = JSON.parse(workspaceData)
       return workspace.id
     } catch (e) {
-      console.error("Error parsing workspace data:", e)
+      logger.error("Error parsing workspace data:", e)
     }
   }
   return null
@@ -24,7 +24,7 @@ const getCurrentWorkspaceId = (): string | null => {
 // Add a request interceptor to handle authentication
 api.interceptors.request.use(
   (config) => {
-    console.log(
+    logger.info(
       `📤 API Request: ${config.method?.toUpperCase()} ${config.url}`,
       {
         data: config.data || {},
@@ -36,7 +36,7 @@ api.interceptors.request.use(
     // Add Authorization header with JWT token if available
     const token = localStorage.getItem("token")
     if (token && !config.headers["Authorization"]) {
-      console.log(`🔐 Adding Authorization header with JWT token`)
+      logger.info(`🔐 Adding Authorization header with JWT token`)
       config.headers["Authorization"] = `Bearer ${token}`
     }
 
@@ -44,18 +44,18 @@ api.interceptors.request.use(
     if (!config.headers["x-workspace-id"]) {
       const workspaceId = getCurrentWorkspaceId()
       if (workspaceId) {
-        console.log(`🔧 Adding x-workspace-id header: ${workspaceId}`)
+        logger.info(`🔧 Adding x-workspace-id header: ${workspaceId}`)
         config.headers["x-workspace-id"] = workspaceId
       } else {
-        console.warn(`⚠️ No workspace ID found in sessionStorage for request to ${config.url}`)
+        logger.warn(`⚠️ No workspace ID found in sessionStorage for request to ${config.url}`)
       }
     }
 
-    console.log(`📋 Final request headers:`, config.headers)
+    logger.info(`📋 Final request headers:`, config.headers)
     return config
   },
   (error) => {
-    console.error("❌ API Request Error:", error)
+    logger.error("❌ API Request Error:", error)
     return Promise.reject(error)
   }
 )
@@ -63,7 +63,7 @@ api.interceptors.request.use(
 // Add a response interceptor to handle errors
 api.interceptors.response.use(
   (response) => {
-    console.log(
+    logger.info(
       `📥 API Response: ${
         response.status
       } ${response.config.method?.toUpperCase()} ${response.config.url}`,
@@ -76,7 +76,7 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
-    console.error("❌ API Response Error:", {
+    logger.error("❌ API Response Error:", {
       error: error.response || error,
       status: error.response?.status,
       data: error.response?.data,

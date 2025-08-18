@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client"
+import logger from "../utils/logger"
 
 const prisma = new PrismaClient()
 
@@ -52,10 +53,10 @@ export const promptsService = {
    */
   async create(data: CreatePromptData) {
     const { workspaceId } = data
-    console.log(`Creating prompt for workspace ${workspaceId}`)
+    logger.info(`Creating prompt for workspace ${workspaceId}`)
 
     // Create the new prompt
-    console.log(`Creating new prompt with data:`, data)
+    logger.info(`Creating new prompt with data:`, data)
     return prisma.prompts.create({
       data
     })
@@ -65,19 +66,19 @@ export const promptsService = {
    * Update a prompt
    */
   async update(id: string, data: UpdatePromptData) {
-    console.log(`Updating prompt ${id} with data:`, data)
+    logger.info(`Updating prompt ${id} with data:`, data)
     
     const prompt = await prisma.prompts.findUnique({
       where: { id }
     })
 
     if (!prompt) {
-      console.log(`Prompt ${id} not found`)
+      logger.warn(`Prompt ${id} not found`)
       return null
     }
 
     // Regular update without changing activation of other prompts
-    console.log(`Regular update for prompt ${id}`)
+    logger.info(`Regular update for prompt ${id}`)
     return prisma.prompts.update({
       where: { id },
       data,
@@ -88,7 +89,7 @@ export const promptsService = {
    * Delete a prompt
    */
   async delete(id: string) {
-    console.log(`Deleting prompt ${id}`)
+    logger.info(`Deleting prompt ${id}`)
     return prisma.prompts.delete({
       where: { id },
     })
@@ -98,19 +99,19 @@ export const promptsService = {
    * Activate a prompt (without deactivating others)
    */
   async activate(id: string) {
-    console.log(`Activating prompt ${id}`)
+    logger.info(`Activating prompt ${id}`)
     
     const prompt = await prisma.prompts.findUnique({
       where: { id }
     })
 
     if (!prompt) {
-      console.log(`Prompt ${id} not found`)
+      logger.warn(`Prompt ${id} not found`)
       return null
     }
 
     // Simply activate this prompt
-    console.log(`Setting prompt ${id} as active`)
+    logger.info(`Setting prompt ${id} as active`)
     return prisma.prompts.update({
       where: { id },
       data: {
@@ -123,14 +124,14 @@ export const promptsService = {
    * Duplicate a prompt
    */
   async duplicate(id: string) {
-    console.log(`Duplicating prompt ${id}`)
+    logger.info(`Duplicating prompt ${id}`)
     
     const prompt = await prisma.prompts.findUnique({
       where: { id }
     })
 
     if (!prompt) {
-      console.log(`Prompt ${id} not found`)
+      logger.warn(`Prompt ${id} not found`)
       return null
     }
 

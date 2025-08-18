@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
@@ -116,7 +117,7 @@ export class EmbeddingService {
       // Convert to array format
       return Array.from(embedding.data)
     } catch (error) {
-      console.error("Error generating local embedding:", error)
+      logger.error("Error generating local embedding:", error)
       throw error
     }
   }
@@ -153,7 +154,7 @@ export class EmbeddingService {
     workspaceId: string
   ): Promise<{ processed: number; errors: string[] }> {
     try {
-      console.log(
+      logger.info(
         `🔄 Starting FAQ embedding generation for workspace: ${workspaceId}`
       )
 
@@ -165,12 +166,12 @@ export class EmbeddingService {
         },
       })
 
-      console.log(
+      logger.info(
         `📋 Found ${activeFAQs.length} active FAQs for workspace ${workspaceId}`
       )
 
       if (activeFAQs.length === 0) {
-        console.log(`⚠️ No active FAQs found for workspace ${workspaceId}`)
+        logger.info(`⚠️ No active FAQs found for workspace ${workspaceId}`)
         return { processed: 0, errors: ["No active FAQs found to process"] }
       }
 
@@ -183,7 +184,7 @@ export class EmbeddingService {
         },
       })
 
-      console.log(
+      logger.info(
         `🗑️ Deleted ${deletedChunks.count} existing FAQ chunks for workspace ${workspaceId}`
       )
 
@@ -193,7 +194,7 @@ export class EmbeddingService {
       // Process ALL active FAQs (no filtering based on existing chunks)
       for (const faq of activeFAQs) {
         try {
-          console.log(`Processing FAQ: ${faq.question}`)
+          logger.info(`Processing FAQ: ${faq.question}`)
 
           // Combine question and answer for embedding
           const faqContent = `Question: ${faq.question}\nAnswer: ${faq.answer}`
@@ -221,7 +222,7 @@ export class EmbeddingService {
               // Small delay to avoid rate limiting
               await new Promise((resolve) => setTimeout(resolve, 100))
             } catch (chunkError) {
-              console.error(
+              logger.error(
                 `Error processing chunk ${chunk.chunkIndex} for FAQ ${faq.id}:`,
                 chunkError
               )
@@ -232,23 +233,23 @@ export class EmbeddingService {
           }
 
           processed++
-          console.log(
+          logger.info(
             `✅ Successfully processed FAQ ${processed}/${activeFAQs.length}: ${faq.question}`
           )
         } catch (error) {
-          console.error(`❌ Error processing FAQ ${faq.question}:`, error)
+          logger.error(`❌ Error processing FAQ ${faq.question}:`, error)
           errors.push(
             `FAQ "${faq.question}": ${error instanceof Error ? error.message : "Unknown error"}`
           )
         }
       }
 
-      console.log(
+      logger.info(
         `🎉 FAQ embedding generation completed for workspace ${workspaceId}: processed ${processed}/${activeFAQs.length} FAQs, errors: ${errors.length}`
       )
       return { processed, errors }
     } catch (error) {
-      console.error(
+      logger.error(
         `💥 Critical error in generateFAQEmbeddings for workspace ${workspaceId}:`,
         error
       )
@@ -306,7 +307,7 @@ export class EmbeddingService {
               sourceType: "faq",
             })
           } catch (similarityError) {
-            console.error(
+            logger.error(
               "Error calculating similarity for FAQ chunk:",
               chunk.id,
               similarityError
@@ -322,7 +323,7 @@ export class EmbeddingService {
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, limit)
     } catch (error) {
-      console.error("Error searching FAQs:", error)
+      logger.error("Error searching FAQs:", error)
       throw new Error("Failed to search FAQs")
     }
   }
@@ -334,7 +335,7 @@ export class EmbeddingService {
     workspaceId: string
   ): Promise<{ processed: number; errors: string[] }> {
     try {
-      console.log(
+      logger.info(
         `🔄 Starting Service embedding generation for workspace: ${workspaceId}`
       )
 
@@ -346,12 +347,12 @@ export class EmbeddingService {
         },
       })
 
-      console.log(
+      logger.info(
         `📋 Found ${activeServices.length} active services for workspace ${workspaceId}`
       )
 
       if (activeServices.length === 0) {
-        console.log(`⚠️ No active services found for workspace ${workspaceId}`)
+        logger.info(`⚠️ No active services found for workspace ${workspaceId}`)
         return { processed: 0, errors: ["No active services found to process"] }
       }
 
@@ -364,7 +365,7 @@ export class EmbeddingService {
         },
       })
 
-      console.log(
+      logger.info(
         `Deleted existing Service chunks for workspace ${workspaceId}`
       )
 
@@ -374,7 +375,7 @@ export class EmbeddingService {
       // Process ALL active Services (no filtering based on existing chunks)
       for (const service of activeServices) {
         try {
-          console.log(`Processing Service: ${service.name}`)
+          logger.info(`Processing Service: ${service.name}`)
 
           // Combine name and description for embedding
           const serviceContent = `Service: ${service.name}\nDescription: ${service.description}\nPrice: ${service.price} ${service.currency}\nDuration: ${service.duration} minutes`
@@ -402,7 +403,7 @@ export class EmbeddingService {
               // Small delay to avoid rate limiting
               await new Promise((resolve) => setTimeout(resolve, 100))
             } catch (chunkError) {
-              console.error(
+              logger.error(
                 `Error processing chunk ${chunk.chunkIndex} for Service ${service.id}:`,
                 chunkError
               )
@@ -413,9 +414,9 @@ export class EmbeddingService {
           }
 
           processed++
-          console.log(`Successfully processed Service: ${service.name}`)
+          logger.info(`Successfully processed Service: ${service.name}`)
         } catch (error) {
-          console.error(`Error processing Service ${service.name}:`, error)
+          logger.error(`Error processing Service ${service.name}:`, error)
           errors.push(
             `Service "${service.name}": ${error instanceof Error ? error.message : "Unknown error"}`
           )
@@ -424,7 +425,7 @@ export class EmbeddingService {
 
       return { processed, errors }
     } catch (error) {
-      console.error("Error in generateServiceEmbeddings:", error)
+      logger.error("Error in generateServiceEmbeddings:", error)
       throw new Error("Failed to generate service embeddings")
     }
   }
@@ -479,7 +480,7 @@ export class EmbeddingService {
               sourceType: "service",
             })
           } catch (similarityError) {
-            console.error(
+            logger.error(
               "Error calculating similarity for Service chunk:",
               chunk.id,
               similarityError
@@ -495,7 +496,7 @@ export class EmbeddingService {
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, limit)
     } catch (error) {
-      console.error("Error searching Services:", error)
+      logger.error("Error searching Services:", error)
       throw new Error("Failed to search services")
     }
   }
@@ -507,7 +508,7 @@ export class EmbeddingService {
     workspaceId: string
   ): Promise<{ processed: number; errors: string[] }> {
     try {
-      console.log(
+      logger.info(
         `🔄 Starting Product embedding generation for workspace: ${workspaceId}`
       )
 
@@ -522,12 +523,12 @@ export class EmbeddingService {
         },
       })
 
-      console.log(
+      logger.info(
         `📋 Found ${activeProducts.length} active products for workspace ${workspaceId}`
       )
 
       if (activeProducts.length === 0) {
-        console.log(`⚠️ No active products found for workspace ${workspaceId}`)
+        logger.info(`⚠️ No active products found for workspace ${workspaceId}`)
         return { processed: 0, errors: ["No active products found to process"] }
       }
 
@@ -540,7 +541,7 @@ export class EmbeddingService {
         },
       })
 
-      console.log(
+      logger.info(
         `Deleted existing Product chunks for workspace ${workspaceId}`
       )
 
@@ -550,7 +551,7 @@ export class EmbeddingService {
       // Process ALL active Products (no filtering based on existing chunks)
       for (const product of activeProducts) {
         try {
-          console.log(`Processing Product: ${product.name}`)
+          logger.info(`Processing Product: ${product.name}`)
 
           // Create rich content for embedding with multilingual keywords
           const productContent = `
@@ -593,7 +594,7 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
               // Small delay to avoid rate limiting
               await new Promise((resolve) => setTimeout(resolve, 100))
             } catch (chunkError) {
-              console.error(
+              logger.error(
                 `Error processing chunk ${chunk.chunkIndex} for Product ${product.id}:`,
                 chunkError
               )
@@ -604,9 +605,9 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
           }
 
           processed++
-          console.log(`Successfully processed Product: ${product.name}`)
+          logger.info(`Successfully processed Product: ${product.name}`)
         } catch (error) {
-          console.error(`Error processing Product ${product.name}:`, error)
+          logger.error(`Error processing Product ${product.name}:`, error)
           errors.push(
             `Product "${product.name}": ${error instanceof Error ? error.message : "Unknown error"}`
           )
@@ -615,7 +616,7 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
 
       return { processed, errors }
     } catch (error) {
-      console.error("Error in generateProductEmbeddings:", error)
+      logger.error("Error in generateProductEmbeddings:", error)
       throw new Error("Failed to generate product embeddings")
     }
   }
@@ -630,14 +631,14 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
   ): Promise<EmbeddingSearchResult[]> {
     try {
       // Generate embedding for search query
-      console.log(`[EMBEDDING] Generating embedding for query: "${query}"`)
+      logger.info(`[EMBEDDING] Generating embedding for query: "${query}"`)
       const queryEmbedding = await this.generateEmbedding(query)
-      console.log(
+      logger.info(
         `[EMBEDDING] Query embedding generated: ${queryEmbedding.length} dimensions`
       )
 
       // Get all Product chunks for the workspace
-      console.log(
+      logger.info(
         `[EMBEDDING] Searching in product chunks for workspace: ${workspaceId}`
       )
       const chunks = await prisma.productChunks.findMany({
@@ -666,7 +667,7 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
           },
         },
       })
-      console.log(`[EMBEDDING] Found ${chunks.length} product chunks to search`)
+      logger.info(`[EMBEDDING] Found ${chunks.length} product chunks to search`)
 
       // Calculate similarity for each chunk
       const results: EmbeddingSearchResult[] = []
@@ -688,7 +689,7 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
               sourceType: "product",
             })
           } catch (similarityError) {
-            console.error(
+            logger.error(
               "Error calculating similarity for Product chunk:",
               chunk.id,
               similarityError
@@ -704,18 +705,18 @@ ${this.generateMultilingualTerms(product.name, product.category?.name)}
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, limit)
 
-      console.log(
+      logger.info(
         `[EMBEDDING] Found ${results.length} total results, ${filteredResults.length} above threshold ${MINIMUM_SIMILARITY}`
       )
       if (filteredResults.length > 0) {
-        console.log(
+        logger.info(
           `[EMBEDDING] Top result: "${filteredResults[0].sourceName}" with similarity ${filteredResults[0].similarity.toFixed(3)}`
         )
       }
 
       return filteredResults
     } catch (error) {
-      console.error("Error searching Products:", error)
+      logger.error("Error searching Products:", error)
       throw new Error("Failed to search products")
     }
   }

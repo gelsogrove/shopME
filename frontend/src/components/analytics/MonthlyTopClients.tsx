@@ -31,7 +31,7 @@ export const MonthlyTopClients: React.FC<MonthlyTopClientsProps> = ({
         const data = await getMonthlyTopClients(currentWorkspace.id, dateRange)
         setMonthlyData(data)
       } catch (err) {
-        console.error("Error fetching monthly top clients:", err)
+        logger.error("Error fetching monthly top clients:", err)
         setError("Failed to load monthly top clients data")
       } finally {
         setLoading(false)

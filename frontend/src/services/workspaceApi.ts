@@ -108,8 +108,8 @@ export async function getCurrentWorkspace(): Promise<Workspace> {
     // Use the configured API instance with proper authentication
     const response = await api.get("/workspaces/current")
 
-    console.log("Fresh workspace data from API:", response.data)
-    console.log("adminEmail in fresh data:", response.data.adminEmail)
+    logger.info("Fresh workspace data from API:", response.data)
+    logger.info("adminEmail in fresh data:", response.data.adminEmail)
 
     const workspace = transformWorkspaceResponse(response.data)
 
@@ -118,7 +118,7 @@ export async function getCurrentWorkspace(): Promise<Workspace> {
 
     return workspace
   } catch (error) {
-    console.error("Error getting current workspace:", error)
+    logger.error("Error getting current workspace:", error)
     throw new Error("Failed to fetch current workspace")
   }
 }
@@ -131,10 +131,10 @@ export const getWorkspaces = async (): Promise<Workspace[]> => {
     }
 
     const response = await api.get("/workspaces")
-    console.log("API Response - getWorkspaces:", response.data)
+    logger.info("API Response - getWorkspaces:", response.data)
     return response.data.map(transformWorkspaceResponse)
   } catch (error) {
-    console.error("Error getting workspaces:", error)
+    logger.error("Error getting workspaces:", error)
     if (error instanceof Error) {
       throw error
     }
@@ -154,12 +154,12 @@ export const getLanguages = async (): Promise<Language[]> => {
         "x-workspace-id": workspace.id,
       },
     })
-    console.log("API Response - getLanguages:", response.data)
+    logger.info("API Response - getLanguages:", response.data)
     // Extract languages array from response
     const languages = response.data.languages || []
     return languages
   } catch (error) {
-    console.error("Error getting languages:", error)
+    logger.error("Error getting languages:", error)
     throw new Error("Failed to get languages. Please try again.")
   }
 }
@@ -172,10 +172,10 @@ export const createWorkspace = async (
       "/workspaces",
       transformWorkspaceRequest(data)
     )
-    console.log("API Response - createWorkspace:", response.data)
+    logger.info("API Response - createWorkspace:", response.data)
     return transformWorkspaceResponse(response.data)
   } catch (error) {
-    console.error("Error creating workspace:", error)
+    logger.error("Error creating workspace:", error)
     throw new Error("Failed to create workspace. Please try again.")
   }
 }
@@ -189,49 +189,49 @@ export const updateWorkspace = async (
       `/workspaces/${id}`,
       transformWorkspaceRequest(data)
     )
-    console.log("API Response - updateWorkspace:", response.data)
+    logger.info("API Response - updateWorkspace:", response.data)
 
     // Store the save timestamp
     sessionStorage.setItem("lastWorkspaceSave", Date.now().toString())
 
     return transformWorkspaceResponse(response.data)
   } catch (error) {
-    console.error("Error updating workspace:", error)
+    logger.error("Error updating workspace:", error)
     throw new Error("Failed to update workspace. Please try again.")
   }
 }
 
 export const deleteWorkspace = async (id: string): Promise<void> => {
   if (!id) {
-    console.error("Delete workspace failed: No workspace ID provided")
+    logger.error("Delete workspace failed: No workspace ID provided")
     throw new Error("No workspace ID provided")
   }
 
-  console.log("Attempting to delete workspace with ID:", id)
+  logger.info("Attempting to delete workspace with ID:", id)
   try {
     // Get user token to ensure we're authenticated
     const userStr = localStorage.getItem("user")
     if (!userStr) {
-      console.error("Delete workspace failed: User not authenticated")
+      logger.error("Delete workspace failed: User not authenticated")
       throw new Error("User not authenticated")
     }
 
     // Make the DELETE request with detailed logging
-    console.log("Sending DELETE request to:", `/workspaces/${id}`)
+    logger.info("Sending DELETE request to:", `/workspaces/${id}`)
     const response = await api.delete(`/workspaces/${id}`)
 
-    console.log("Delete workspace response status:", response.status)
-    console.log("Delete workspace response data:", response.data)
+    logger.info("Delete workspace response status:", response.status)
+    logger.info("Delete workspace response data:", response.data)
 
     // Clear the workspace from sessionStorage to prevent issues
     sessionStorage.removeItem("currentWorkspace")
 
     return
   } catch (error: any) {
-    console.error("Delete workspace failed:", error)
+    logger.error("Delete workspace failed:", error)
     if (error.response) {
-      console.error("Error response status:", error.response.status)
-      console.error("Error response data:", error.response.data)
+      logger.error("Error response status:", error.response.status)
+      logger.error("Error response data:", error.response.data)
     }
     throw error
   }

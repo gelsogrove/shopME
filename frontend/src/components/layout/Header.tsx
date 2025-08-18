@@ -45,7 +45,7 @@ export function Header() {
       try {
         setWorkspace(JSON.parse(cachedWorkspace))
       } catch (error) {
-        console.error("Error parsing workspace from sessionStorage:", error)
+        logger.error("Error parsing workspace from sessionStorage:", error)
       }
     }
 
@@ -55,7 +55,7 @@ export function Header() {
       try {
         setUserData(JSON.parse(cachedUser))
       } catch (error) {
-        console.error("Error parsing user from localStorage:", error)
+        logger.error("Error parsing user from localStorage:", error)
       }
     }
   }, [])
@@ -123,7 +123,7 @@ export function Header() {
 
       setUserInitials(initials)
     } catch (error) {
-      console.error("Failed to load user profile:", error)
+      logger.error("Failed to load user profile:", error)
       setUserName("User")
       setUserInitials("U")
     }
@@ -147,7 +147,7 @@ export function Header() {
 
       navigate("/auth/login")
     } catch (error) {
-      console.error("Error logging out:", error)
+      logger.error("Error logging out:", error)
       toast.error("Failed to logout")
     }
   }

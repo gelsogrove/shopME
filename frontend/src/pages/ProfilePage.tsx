@@ -73,7 +73,7 @@ export default function ProfilePage() {
       setUser(updatedUser)
       toast.success("Profile updated successfully")
     } catch (error) {
-      console.error("Error updating profile:", error)
+      logger.error("Error updating profile:", error)
       toast.error("Failed to update profile")
     } finally {
       setIsLoading(false)
@@ -100,7 +100,7 @@ export default function ProfilePage() {
       })
       setShowPasswordDialog(false)
     } catch (error) {
-      console.error("Error changing password:", error)
+      logger.error("Error changing password:", error)
       toast.error("Failed to change password")
     } finally {
       setIsLoading(false)

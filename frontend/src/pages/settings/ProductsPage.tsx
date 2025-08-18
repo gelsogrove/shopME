@@ -45,7 +45,7 @@ export function ProductsPage() {
         }))
         setCategories(formattedCategories)
       } catch (error) {
-        console.error("Error loading data:", error)
+        logger.error("Error loading data:", error)
         toast.error("Failed to load data")
       } finally {
         setIsLoading(false)
@@ -100,7 +100,7 @@ export function ProductsPage() {
       setShowAddDialog(false)
       toast.success("Product created successfully")
     } catch (error) {
-      console.error("Error creating product:", error)
+      logger.error("Error creating product:", error)
       toast.error("Failed to create product")
     }
   }
@@ -139,7 +139,7 @@ export function ProductsPage() {
       setSelectedProduct(null)
       toast.success("Product updated successfully")
     } catch (error) {
-      console.error("Error updating product:", error)
+      logger.error("Error updating product:", error)
       toast.error("Failed to update product")
     }
   }
@@ -159,7 +159,7 @@ export function ProductsPage() {
       setSelectedProduct(null)
       toast.success("Product deleted successfully")
     } catch (error) {
-      console.error("Error deleting product:", error)
+      logger.error("Error deleting product:", error)
       toast.error("Failed to delete product")
     }
   }

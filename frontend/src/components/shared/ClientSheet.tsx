@@ -107,12 +107,12 @@ export function ClientSheet({
 
   // Debug dell'apertura
   useEffect(() => {
-    console.log("ClientSheet open state changed:", { open, client })
+    logger.info("ClientSheet open state changed:", { open, client })
   }, [open])
 
   // Reset form when client changes
   useEffect(() => {
-    console.log(
+    logger.info(
       "ClientSheet useEffect triggered for client/availableLanguages",
       { client, open, availableLanguages }
     )
@@ -226,8 +226,8 @@ export function ClientSheet({
 
   // Add a separate effect for the open state to better debug the issue
   useEffect(() => {
-    console.log("ClientSheet open state changed:", open)
-    console.log("Current client data:", client)
+    logger.info("ClientSheet open state changed:", open)
+    logger.info("Current client data:", client)
   }, [open])
 
   // Fetch client if client is a string (ID)
@@ -307,12 +307,12 @@ export function ClientSheet({
   }
 
   // Make sure to render even if not open
-  console.log("ClientSheet render", { open, mode, client })
+  logger.info("ClientSheet render", { open, mode, client })
 
   // Set default language if languages are available but current language is empty
   useEffect(() => {
     if (availableLanguages && availableLanguages.length > 0 && !language) {
-      console.log(
+      logger.info(
         "Setting default language from availableLanguages",
         availableLanguages[0]
       )

@@ -35,7 +35,7 @@ export function FAQPage() {
       const data = await faqApi.getFAQs(workspace.id)
       setFaqs(data)
     } catch (error) {
-      console.error("Error loading FAQs:", error)
+      logger.error("Error loading FAQs:", error)
       toast.error("Failed to load FAQs")
     } finally {
       setIsLoading(false)
@@ -126,7 +126,7 @@ export function FAQPage() {
       setShowAddSheet(false)
       toast.success("FAQ created successfully")
     } catch (error) {
-      console.error("Error creating FAQ:", error)
+      logger.error("Error creating FAQ:", error)
       toast.error("Failed to create FAQ")
     }
   }
@@ -160,7 +160,7 @@ export function FAQPage() {
       setSelectedFAQ(null)
       toast.success("FAQ updated successfully")
     } catch (error) {
-      console.error("Error updating FAQ:", error)
+      logger.error("Error updating FAQ:", error)
       toast.error("Failed to update FAQ")
     }
   }
@@ -180,7 +180,7 @@ export function FAQPage() {
       setSelectedFAQ(null)
       toast.success("FAQ deleted successfully")
     } catch (error) {
-      console.error("Error deleting FAQ:", error)
+      logger.error("Error deleting FAQ:", error)
       toast.error("Failed to delete FAQ")
     }
   }

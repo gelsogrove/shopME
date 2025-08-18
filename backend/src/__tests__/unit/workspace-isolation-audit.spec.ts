@@ -80,9 +80,9 @@ describe('🚨 CRITICAL: Workspace Isolation Security Audit', () => {
       expect(serviceFromA).not.toBeNull()
       expect(serviceFromB).not.toBeNull()
       
-      console.warn('🚨 SECURITY VULNERABILITY: ServiceRepository.findById does not filter by workspaceId!')
-      console.warn('Service from workspace A accessible from workspace B:', serviceFromA?.name)
-      console.warn('Service from workspace B accessible from workspace A:', serviceFromB?.name)
+      logger.warn('🚨 SECURITY VULNERABILITY: ServiceRepository.findById does not filter by workspaceId!')
+      logger.warn('Service from workspace A accessible from workspace B:', serviceFromA?.name)
+      logger.warn('Service from workspace B accessible from workspace A:', serviceFromB?.name)
     })
 
     test('❌ findByIds should NOT work without workspaceId filter', async () => {
@@ -92,8 +92,8 @@ describe('🚨 CRITICAL: Workspace Isolation Security Audit', () => {
       // Both services are accessible from any workspace - SECURITY RISK!
       expect(services).toHaveLength(2)
       
-      console.warn('🚨 SECURITY VULNERABILITY: ServiceRepository.findByIds does not filter by workspaceId!')
-      console.warn('Services accessible across workspaces:', services.map(s => s.name))
+      logger.warn('🚨 SECURITY VULNERABILITY: ServiceRepository.findByIds does not filter by workspaceId!')
+      logger.warn('Services accessible across workspaces:', services.map(s => s.name))
     })
 
     test('✅ findAll should work with workspaceId filter', async () => {
@@ -152,9 +152,9 @@ describe('🚨 CRITICAL: Workspace Isolation Security Audit', () => {
       expect(faqFromA).not.toBeNull()
       expect(faqFromB).not.toBeNull()
       
-      console.warn('🚨 SECURITY VULNERABILITY: FaqRepository.findById does not filter by workspaceId!')
-      console.warn('FAQ from workspace A accessible from workspace B:', faqFromA?.question)
-      console.warn('FAQ from workspace B accessible from workspace A:', faqFromB?.question)
+      logger.warn('🚨 SECURITY VULNERABILITY: FaqRepository.findById does not filter by workspaceId!')
+      logger.warn('FAQ from workspace A accessible from workspace B:', faqFromA?.question)
+      logger.warn('FAQ from workspace B accessible from workspace A:', faqFromB?.question)
     })
 
     test('✅ findAll should work with workspaceId filter', async () => {

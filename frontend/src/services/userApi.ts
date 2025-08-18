@@ -24,7 +24,7 @@ export const getUserProfile = async (): Promise<UserProfile> => {
     const response = await api.get("/auth/me")
     return response.data.user
   } catch (error) {
-    console.error("Error getting user profile:", error)
+    logger.error("Error getting user profile:", error)
     throw error
   }
 }
@@ -35,7 +35,7 @@ export const updateUserProfile = async (data: UpdateProfileData): Promise<UserPr
     const response = await api.put("/users/profile", data)
     return response.data
   } catch (error) {
-    console.error("Error updating user profile:", error)
+    logger.error("Error updating user profile:", error)
     throw error
   }
 }
@@ -45,7 +45,7 @@ export const changePassword = async (data: ChangePasswordData): Promise<void> =>
   try {
     await api.post("/users/change-password", data)
   } catch (error) {
-    console.error("Error changing password:", error)
+    logger.error("Error changing password:", error)
     throw error
   }
 } 

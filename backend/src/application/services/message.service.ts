@@ -268,14 +268,14 @@ export class MessageService {
       )
 
       // 🚨 DEBUG: Alert prima della chiamata a N8N
-      console.log("🚨 DEBUG: RUN POST N8N (from message service)")
+      logger.info("🚨 DEBUG: RUN POST N8N (from message service)")
 
       // 🚀 NOW CALL N8N DIRECTLY using centralized builder
       try {
         // 🚨 FIXED N8N URL - hardcoded for now
         const n8nWebhookUrl = "http://localhost:5678/webhook-test/webhook-start"
 
-        console.log("🚨 N8N URL FISSO:", n8nWebhookUrl)
+        logger.info("🚨 N8N URL FISSO:", n8nWebhookUrl)
 
         // Generate a session token for this API call
         const sessionToken =
@@ -301,7 +301,7 @@ export class MessageService {
 
         return n8nResponse?.message || "Message processed successfully"
       } catch (n8nError) {
-        console.log("🚨 N8N ERROR:", n8nError)
+        logger.info("🚨 N8N ERROR:", n8nError)
         logger.error(`[N8N] ❌ Error calling N8N:`, n8nError)
         return "Error processing message with N8N"
       }

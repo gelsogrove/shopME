@@ -25,13 +25,13 @@ export default function MarkdownEditor({
   
   // Aggiungiamo un log per tracciare il valore iniziale
   useEffect(() => {
-    console.log("MarkdownEditor initial value:", value ? (value.length > 30 ? value.substring(0, 30) + "..." : value) : "(empty)");
-    console.log("hidePlayground value:", hidePlayground);
+    logger.info("MarkdownEditor initial value:", value ? (value.length > 30 ? value.substring(0, 30) + "..." : value) : "(empty)");
+    logger.info("hidePlayground value:", hidePlayground);
   }, []);
   
   // Update local value when prop value changes
   useEffect(() => {
-    console.log("MarkdownEditor value changed:", value ? (value.length > 30 ? value.substring(0, 30) + "..." : value) : "(empty)");
+    logger.info("MarkdownEditor value changed:", value ? (value.length > 30 ? value.substring(0, 30) + "..." : value) : "(empty)");
     setLocalValue(value);
   }, [value]);
   
@@ -39,13 +39,13 @@ export default function MarkdownEditor({
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.value = localValue;
-      console.log("Updated textarea with localValue:", localValue ? (localValue.length > 30 ? localValue.substring(0, 30) + "..." : localValue) : "(empty)");
+      logger.info("Updated textarea with localValue:", localValue ? (localValue.length > 30 ? localValue.substring(0, 30) + "..." : localValue) : "(empty)");
     }
   }, [localValue]);
 
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
-    console.log("MarkdownEditor handleChange:", newValue ? (newValue.length > 30 ? newValue.substring(0, 30) + "..." : newValue) : "(empty)");
+    logger.info("MarkdownEditor handleChange:", newValue ? (newValue.length > 30 ? newValue.substring(0, 30) + "..." : newValue) : "(empty)");
     setLocalValue(newValue);
     onChange(newValue);
   }
@@ -137,7 +137,7 @@ export default function MarkdownEditor({
           name={name} 
           value={localValue} 
           id={`${name}-hidden-input`}
-          onChange={() => console.log(`Hidden input for ${name} changed to:`, localValue ? (localValue.length > 30 ? localValue.substring(0, 30) + "..." : localValue) : "(empty)")}
+          onChange={() => logger.info(`Hidden input for ${name} changed to:`, localValue ? (localValue.length > 30 ? localValue.substring(0, 30) + "..." : localValue) : "(empty)")}
         />
       )}
     </div>

@@ -206,9 +206,9 @@ export const getAllForWorkspace = async (
   totalPages: number
 }> => {
   try {
-    console.log("Getting orders for workspace:", workspaceId)
+    logger.info("Getting orders for workspace:", workspaceId)
     if (!workspaceId) {
-      console.error("WorkspaceId missing in getAllForWorkspace")
+      logger.error("WorkspaceId missing in getAllForWorkspace")
       return {
         orders: [],
         total: 0,
@@ -255,14 +255,14 @@ export const getAllForWorkspace = async (
     const requestUrl = `/workspaces/${workspaceId}/orders${
       queryString ? `?${queryString}` : ""
     }`
-    console.log("Orders API request URL:", requestUrl)
+    logger.info("Orders API request URL:", requestUrl)
 
     const response = await api.get(requestUrl)
-    console.log("Orders API response:", response.data)
+    logger.info("Orders API response:", response.data)
 
     return response.data
   } catch (error) {
-    console.error("Error getting orders:", error)
+    logger.error("Error getting orders:", error)
     return {
       orders: [],
       total: 0,
@@ -283,7 +283,7 @@ export const getById = async (
     const response = await api.get(`/orders/${id}`)
     return response.data
   } catch (error) {
-    console.error("Error getting order:", error)
+    logger.error("Error getting order:", error)
     throw error
   }
 }
@@ -299,7 +299,7 @@ export const getByCode = async (
     const response = await api.get(`/orders/code/${orderCode}`)
     return response.data
   } catch (error) {
-    console.error("Error getting order by code:", error)
+    logger.error("Error getting order by code:", error)
     throw error
   }
 }
@@ -315,7 +315,7 @@ export const getByCustomer = async (
     const response = await api.get(`/orders/customer/${customerId}`)
     return response.data
   } catch (error) {
-    console.error("Error getting orders by customer:", error)
+    logger.error("Error getting orders by customer:", error)
     throw error
   }
 }
@@ -328,14 +328,14 @@ export const create = async (
   data: CreateOrderData
 ): Promise<Order> => {
   try {
-    console.log("Creating order with data:", data)
-    console.log("Workspace ID:", workspaceId)
+    logger.info("Creating order with data:", data)
+    logger.info("Workspace ID:", workspaceId)
 
     const response = await api.post(`/orders`, data)
-    console.log("Order creation response:", response.data)
+    logger.info("Order creation response:", response.data)
     return response.data
   } catch (error) {
-    console.error("Error creating order:", error)
+    logger.error("Error creating order:", error)
     throw error
   }
 }
@@ -349,12 +349,12 @@ export const update = async (
   data: UpdateOrderData
 ): Promise<Order> => {
   try {
-    console.log("Updating order with data:", data)
+    logger.info("Updating order with data:", data)
 
     const response = await api.put(`/orders/${id}`, data)
     return response.data
   } catch (error) {
-    console.error("Error updating order:", error)
+    logger.error("Error updating order:", error)
     throw error
   }
 }
@@ -369,7 +369,7 @@ export const delete_ = async (
   try {
     await api.delete(`/orders/${id}`)
   } catch (error) {
-    console.error("Error deleting order:", error)
+    logger.error("Error deleting order:", error)
     throw error
   }
 }
@@ -386,7 +386,7 @@ export const updateStatus = async (
     const response = await api.patch(`/orders/${id}/status`, { status })
     return response.data
   } catch (error) {
-    console.error("Error updating order status:", error)
+    logger.error("Error updating order status:", error)
     throw error
   }
 }
@@ -421,7 +421,7 @@ export const getAnalytics = async (
     const response = await api.get(requestUrl)
     return response.data
   } catch (error) {
-    console.error("Error getting order analytics:", error)
+    logger.error("Error getting order analytics:", error)
     throw error
   }
 }
@@ -440,7 +440,7 @@ export const getByDateRange = async (
     )
     return response.data
   } catch (error) {
-    console.error("Error getting orders by date range:", error)
+    logger.error("Error getting orders by date range:", error)
     throw error
   }
 }

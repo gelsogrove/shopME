@@ -91,7 +91,7 @@ export const getServices = async (workspaceId: string): Promise<Service[]> => {
     const response = await api.get(`/workspaces/${workspaceId}/services`)
     return response.data
   } catch (error) {
-    console.error('Error getting services:', error)
+    logger.error('Error getting services:', error)
     throw error
   }
 }
@@ -104,7 +104,7 @@ export const getServiceById = async (workspaceId: string, id: string): Promise<S
     const response = await api.get(`/workspaces/${workspaceId}/services/${id}`)
     return response.data
   } catch (error) {
-    console.error('Error getting service:', error)
+    logger.error('Error getting service:', error)
     throw error
   }
 }
@@ -117,7 +117,7 @@ export const createService = async (workspaceId: string, data: CreateServiceData
     const response = await api.post(`/workspaces/${workspaceId}/services`, data)
     return response.data
   } catch (error) {
-    console.error('Error creating service:', error)
+    logger.error('Error creating service:', error)
     throw error
   }
 }
@@ -134,7 +134,7 @@ export const updateService = async (
     const response = await api.put(`/workspaces/${workspaceId}/services/${id}`, data)
     return response.data
   } catch (error) {
-    console.error('Error updating service:', error)
+    logger.error('Error updating service:', error)
     throw error
   }
 }
@@ -146,7 +146,7 @@ export const deleteService = async (workspaceId: string, id: string): Promise<vo
   try {
     await api.delete(`/workspaces/${workspaceId}/services/${id}`)
   } catch (error) {
-    console.error('Error deleting service:', error)
+    logger.error('Error deleting service:', error)
     throw error
   }
 }

@@ -121,7 +121,7 @@ function CartItemEditSheet({
           setProducts(productsRes?.products || [])
           setServices(servicesRes || [])
         } catch (error) {
-          console.error("Error loading data:", error)
+          logger.error("Error loading data:", error)
           toast.error("Failed to load products and services")
         }
       }
@@ -275,7 +275,7 @@ function CartItemEditSheet({
 
       // Note: success message will be shown by handleOrderSave
     } catch (error) {
-      console.error("Error saving cart:", error)
+      logger.error("Error saving cart:", error)
 
       // Parse the error more carefully
       let errorMessage = "Please try again."
@@ -761,7 +761,7 @@ function OrderCrudSheet({
       if (!workspace?.id) return
 
       try {
-        console.log("🔄 OrderCrudSheet - Starting to load data...")
+        logger.info("🔄 OrderCrudSheet - Starting to load data...")
 
         const [customersResponse, productsResponse, servicesResponse] =
           await Promise.all([
@@ -770,12 +770,12 @@ function OrderCrudSheet({
             servicesApi.getServices(workspace.id),
           ])
 
-        console.log("🔍 OrderCrudSheet - Raw API responses:")
-        console.log("  - customersResponse:", customersResponse)
-        console.log("  - customersResponse type:", typeof customersResponse)
-        console.log("  - customersResponse.length:", customersResponse?.length)
-        console.log("  - productsResponse:", productsResponse)
-        console.log("  - servicesResponse:", servicesResponse)
+        logger.info("🔍 OrderCrudSheet - Raw API responses:")
+        logger.info("  - customersResponse:", customersResponse)
+        logger.info("  - customersResponse type:", typeof customersResponse)
+        logger.info("  - customersResponse.length:", customersResponse?.length)
+        logger.info("  - productsResponse:", productsResponse)
+        logger.info("  - servicesResponse:", servicesResponse)
 
         // Handle different response formats for customers
         const customersArray = Array.isArray(customersResponse)
@@ -788,27 +788,27 @@ function OrderCrudSheet({
         setProducts(productsResponse.products || [])
         setServices(servicesResponse || [])
 
-        console.log("✅ OrderCrudSheet - Data loaded successfully:")
-        console.log("  - Customers set:", customersArray.length, "items")
-        console.log(
+        logger.info("✅ OrderCrudSheet - Data loaded successfully:")
+        logger.info("  - Customers set:", customersArray.length, "items")
+        logger.info(
           "  - Products set:",
           (productsResponse.products || []).length,
           "items"
         )
-        console.log(
+        logger.info(
           "  - Services set:",
           (servicesResponse || []).length,
           "items"
         )
 
         if (customersArray.length === 0) {
-          console.warn(
+          logger.warn(
             "⚠️ No customers found - this might be why dropdown is empty"
           )
           toast.warning("No customers found. Please add customers first.")
         }
       } catch (error) {
-        console.error("❌ Error loading OrderCrudSheet data:", error)
+        logger.error("❌ Error loading OrderCrudSheet data:", error)
         toast.error("Failed to load form data")
       }
     }
@@ -990,7 +990,7 @@ function OrderCrudSheet({
         )
       }
     } catch (error) {
-      console.error("Error saving order:", error)
+      logger.error("Error saving order:", error)
       toast.error(`Failed to ${mode} order. Please try again.`)
     } finally {
       setIsLoading(false)
@@ -1657,9 +1657,9 @@ export default function OrdersPage() {
           clientsApi.getAllForWorkspace(workspace.id),
         ])
 
-        console.log("🔍 DEBUG - Raw responses:")
-        console.log("Orders response:", ordersResponse)
-        console.log("Customers response:", customersResponse)
+        logger.info("🔍 DEBUG - Raw responses:")
+        logger.info("Orders response:", ordersResponse)
+        logger.info("Customers response:", customersResponse)
 
         // Create a map of customers for quick lookup
         const customersMap = new Map()
@@ -1673,18 +1673,18 @@ export default function OrdersPage() {
           })
         }
 
-        console.log("🔍 DEBUG - Customers map:", customersMap)
+        logger.info("🔍 DEBUG - Customers map:", customersMap)
 
         // Enrich orders with customer data
         const enrichedOrders = (ordersResponse.orders || []).map((order) => {
           const customerFromMap = customersMap.get(order.customerId)
           const finalCustomer = customerFromMap || order.customer || null
 
-          console.log(`🔍 DEBUG - Order ${order.orderCode}:`)
-          console.log("  - customerId:", order.customerId)
-          console.log("  - customerFromMap:", customerFromMap)
-          console.log("  - order.customer:", order.customer)
-          console.log("  - finalCustomer:", finalCustomer)
+          logger.info(`🔍 DEBUG - Order ${order.orderCode}:`)
+          logger.info("  - customerId:", order.customerId)
+          logger.info("  - customerFromMap:", customerFromMap)
+          logger.info("  - order.customer:", order.customer)
+          logger.info("  - finalCustomer:", finalCustomer)
 
           return {
             ...order,
@@ -1692,7 +1692,7 @@ export default function OrdersPage() {
           }
         })
 
-        console.log("🔍 DEBUG - Final enriched orders:", enrichedOrders)
+        logger.info("🔍 DEBUG - Final enriched orders:", enrichedOrders)
 
         // Sort orders by date descending (newest first)
         const sortedOrders = enrichedOrders.sort(
@@ -1702,7 +1702,7 @@ export default function OrdersPage() {
 
         setOrders(sortedOrders)
       } catch (error) {
-        console.error("Error loading data:", error)
+        logger.error("Error loading data:", error)
         toast.error("Failed to load data")
       } finally {
         setIsLoading(false)
@@ -1951,12 +1951,12 @@ export default function OrdersPage() {
   )
 
   // Debug final results
-  console.log("🔍 FINAL DEBUG:")
-  console.log("- searchTerm:", searchTerm)
-  console.log("- orders.length:", orders.length)
-  console.log("- filteredOrders.length:", filteredOrders.length)
-  console.log("- sortedOrders.length:", sortedOrders.length)
-  console.log("- sortedOrders:", sortedOrders)
+  logger.info("🔍 FINAL DEBUG:")
+  logger.info("- searchTerm:", searchTerm)
+  logger.info("- orders.length:", orders.length)
+  logger.info("- filteredOrders.length:", filteredOrders.length)
+  logger.info("- sortedOrders.length:", sortedOrders.length)
+  logger.info("- sortedOrders:", sortedOrders)
 
   const handleDeleteConfirm = async () => {
     if (!selectedOrder || !workspace?.id) return
@@ -1968,7 +1968,7 @@ export default function OrdersPage() {
       setSelectedOrder(null)
       toast.success("Order deleted successfully")
     } catch (error) {
-      console.error("Error deleting order:", error)
+      logger.error("Error deleting order:", error)
       toast.error(
         "Failed to delete order. " + (error as any)?.response?.data?.message ||
           "Please try again."
@@ -2010,7 +2010,7 @@ export default function OrdersPage() {
         const response = await ordersApi.getAllForWorkspace(workspace.id, {})
         setOrders(response.orders)
       } catch (error) {
-        console.error("Background sync failed:", error)
+        logger.error("Background sync failed:", error)
       }
     }
   }

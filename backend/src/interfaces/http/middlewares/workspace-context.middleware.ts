@@ -21,16 +21,16 @@ export const workspaceContextMiddleware = (
   next: NextFunction
 ) => {
   try {
-    console.log('Middleware - Before extracting workspace context');
+    logger.info('Middleware - Before extracting workspace context');
     
     // Extract workspace context from request using the DTO factory method
     const workspaceContext = WorkspaceContextDTO.fromRequest(req);
     
-    console.log('Middleware - After extracting workspace context:', workspaceContext);
+    logger.info('Middleware - After extracting workspace context:', workspaceContext);
 
     // Check if workspaceContext exists and is valid
     if (!workspaceContext) {
-      console.log('Middleware - workspaceContext is null');
+      logger.info('Middleware - workspaceContext is null');
       // Safely log parameters without accessing potentially undefined properties
       const paramsStr = req.params ? JSON.stringify(req.params) : 'undefined';
       const headerId = req.headers ? req.headers["x-workspace-id"] : 'undefined';
@@ -40,18 +40,18 @@ export const workspaceContextMiddleware = (
 
     // Check if workspaceContext is valid
     if (!workspaceContext.isValid()) {
-      console.log('Middleware - workspaceContext is invalid');
+      logger.info('Middleware - workspaceContext is invalid');
       logger.warn(`Invalid workspace context: ${JSON.stringify(workspaceContext)}`);
       return res.status(400).json({ error: "Invalid workspace ID format" });
     }
 
-    console.log('Middleware - workspaceContext is valid');
+    logger.info('Middleware - workspaceContext is valid');
     
     // Attach workspace context to request for downstream use
     req.workspaceContext = workspaceContext;
     next();
   } catch (error) {
-    console.log('Middleware - Error caught:', error);
+    logger.info('Middleware - Error caught:', error);
     logger.error(`Error in workspace context middleware: ${error}`);
     return res.status(500).json({ error: "Internal server error" });
   }

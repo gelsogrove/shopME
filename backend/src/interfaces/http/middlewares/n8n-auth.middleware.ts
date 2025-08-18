@@ -1,3 +1,4 @@
+import logger from "../../../utils/logger"
 import { NextFunction, Request, Response } from "express"
 
 /**
@@ -10,6 +11,6 @@ export const n8nAuthMiddleware = (
   next: NextFunction
 ) => {
   // TEMPORARY: Skip auth for testing ProductCode fix
-  console.log("⚠️ SKIPPING AUTH FOR TESTING - Andrea requested this")
+  logger.info("⚠️ SKIPPING AUTH FOR TESTING - Andrea requested this")
   return next()
 }

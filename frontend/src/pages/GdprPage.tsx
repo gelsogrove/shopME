@@ -33,7 +33,7 @@ export default function GdprPage() {
         const response = await api.get(`/settings/gdpr`)
         setGdprText(response.data.data?.gdpr || response.data.content || "")
       } catch (error) {
-        console.error("Error loading GDPR content:", error)
+        logger.error("Error loading GDPR content:", error)
         toast.error("Failed to load GDPR content")
       } finally {
         setIsPageLoading(false)
@@ -48,7 +48,7 @@ export default function GdprPage() {
       await api.put(`/settings/gdpr`, { gdpr: gdprText })
       toast.success("GDPR policy saved successfully")
     } catch (error) {
-      console.error("Error saving GDPR policy:", error)
+      logger.error("Error saving GDPR policy:", error)
       toast.error("Failed to save GDPR policy")
     } finally {
       setIsLoading(false)

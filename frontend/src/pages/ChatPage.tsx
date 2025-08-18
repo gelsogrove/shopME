@@ -117,7 +117,7 @@ const formatDate = (dateString: string | null | undefined): string => {
 }
 
 export function ChatPage() {
-  console.log("🟦 ChatPage component loaded - modifiche applicate!")
+  logger.info("🟦 ChatPage component loaded - modifiche applicate!")
   const { workspace, loading: isWorkspaceLoading } = useWorkspace()
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
@@ -154,7 +154,7 @@ export function ChatPage() {
   // Redirect to workspace selection if user has no workspace
   useEffect(() => {
     if (!isWorkspaceLoading && !workspace) {
-      console.log("No workspace found, redirecting to workspace selection")
+      logger.info("No workspace found, redirecting to workspace selection")
       navigate("/clients")
     }
   }, [isWorkspaceLoading, workspace, navigate])
@@ -233,7 +233,7 @@ export function ChatPage() {
       // if (!selectedChat) {
       //   selectChat(chats[0])
       // }
-      console.log(
+      logger.info(
         "🚨 LOOP PREVENTION: Not auto-selecting first chat to prevent potential loops"
       )
     }
@@ -251,7 +251,7 @@ export function ChatPage() {
 
   // Log available languages whenever they change
   useEffect(() => {
-    console.log("Available languages in ChatPage:", availableLanguages)
+    logger.info("Available languages in ChatPage:", availableLanguages)
   }, [availableLanguages])
 
   // Fetch selected chat details
@@ -274,7 +274,7 @@ export function ChatPage() {
     try {
       setLoadingChat(true)
       const sessionIdToUse = chat.sessionId || chat.id
-      console.log("Fetching messages for chat with sessionId:", sessionIdToUse)
+      logger.info("Fetching messages for chat with sessionId:", sessionIdToUse)
       const response = await api.get(`/chat/${sessionIdToUse}/messages`)
       if (response.data.success) {
         // Transform backend messages to frontend format
@@ -293,7 +293,7 @@ export function ChatPage() {
         toast.error("Failed to load chat messages", { duration: 1000 })
       }
     } catch (error) {
-      console.error("Error loading messages:", error)
+      logger.error("Error loading messages:", error)
       toast.error("Failed to load chat messages", { duration: 1000 })
     } finally {
       setLoadingChat(false)
@@ -313,7 +313,7 @@ export function ChatPage() {
       // Update the activeChatbot state based on the customer data
       setActiveChatbot(customerData.activeChatbot !== false) // Default to true if undefined
     } catch (error) {
-      console.error("Error fetching customer details:", error)
+      logger.error("Error fetching customer details:", error)
     }
   }
 
@@ -362,7 +362,7 @@ export function ChatPage() {
         toast.error("Failed to update chatbot status", { duration: 1000 })
       }
     } catch (error) {
-      console.error("Error updating chatbot status:", error)
+      logger.error("Error updating chatbot status:", error)
       toast.error("Failed to update chatbot status", { duration: 1000 })
     } finally {
       setLoading(false)
@@ -403,11 +403,11 @@ export function ChatPage() {
         .post(`/chat/${sessionIdToUse}/read`)
         .then((response) => {
           if (!response.data.success) {
-            console.error("Failed to mark messages as read")
+            logger.error("Failed to mark messages as read")
           }
         })
         .catch((err) => {
-          console.error("Error marking messages as read:", err)
+          logger.error("Error marking messages as read:", err)
         })
     }
   }
@@ -425,7 +425,7 @@ export function ChatPage() {
     // Validate that we have a valid sessionId
     const sessionIdToDelete = selectedChat.sessionId || selectedChat.id
     if (!sessionIdToDelete) {
-      console.error(
+      logger.error(
         "No valid session ID found for chat deletion:",
         selectedChat
       )
@@ -436,7 +436,7 @@ export function ChatPage() {
 
     try {
       setLoading(true)
-      console.log("Deleting chat with sessionId:", sessionIdToDelete)
+      logger.info("Deleting chat with sessionId:", sessionIdToDelete)
       const response = await api.delete(`/chat/${sessionIdToDelete}`)
 
       if (response.data.success) {
@@ -461,7 +461,7 @@ export function ChatPage() {
         )
       }
     } catch (error) {
-      console.error("Error deleting chat:", error)
+      logger.error("Error deleting chat:", error)
       toast.error(
         error instanceof Error ? error.message : "Failed to delete chat",
         { duration: 1000 }
@@ -489,7 +489,7 @@ export function ChatPage() {
       const customerId = clientId || selectedChat?.customerId
 
       // Log customerData for debugging
-      console.log("Customer data to save:", customerData)
+      logger.info("Customer data to save:", customerData)
 
       // Endpoint for the customer update
       const endpoint = `/workspaces/${workspaceId}/customers/${customerId}`
@@ -520,7 +520,7 @@ export function ChatPage() {
         )
       }
     } catch (error) {
-      console.error("Error updating customer:", error)
+      logger.error("Error updating customer:", error)
       toast.error(
         error instanceof Error ? error.message : "Failed to update customer",
         { duration: 1000 }
@@ -564,7 +564,7 @@ export function ChatPage() {
   // Handle submitting a new message
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("🟦 HandleSubmit called", {
+    logger.info("🟦 HandleSubmit called", {
       messageInput: messageInput.trim(),
       selectedChat: selectedChat?.id,
       loading,
@@ -572,7 +572,7 @@ export function ChatPage() {
     })
 
     if (!messageInput.trim() || !selectedChat || loading) {
-      console.log("❌ Early return - validation failed", {
+      logger.info("❌ Early return - validation failed", {
         hasMessage: !!messageInput.trim(),
         hasSelectedChat: !!selectedChat,
         notLoading: !loading,
@@ -581,7 +581,7 @@ export function ChatPage() {
     }
 
     if (!workspace?.id) {
-      console.error("❌ No workspace ID available!")
+      logger.error("❌ No workspace ID available!")
       toast.error("No workspace selected", { duration: 1000 })
       return
     }
@@ -621,7 +621,7 @@ export function ChatPage() {
       const sessionIdToUse = selectedChat.sessionId || selectedChat.id
 
       // Debug workspace and sessionStorage
-      console.log(`🔍 Debug workspace info:`, {
+      logger.info(`🔍 Debug workspace info:`, {
         workspace: workspace,
         workspaceId: workspace?.id,
         sessionStorageWorkspace: sessionStorage.getItem("currentWorkspace"),
@@ -634,7 +634,7 @@ export function ChatPage() {
         "x-workspace-id": workspace?.id,
       }
 
-      console.log(
+      logger.info(
         `🚀 About to send POST request to /chat/${sessionIdToUse}/send`,
         {
           content: messageInput,
@@ -659,9 +659,9 @@ export function ChatPage() {
             headers: headers,
           }
         )
-        console.log(`✅ POST request successful`, response)
+        logger.info(`✅ POST request successful`, response)
       } catch (requestError) {
-        console.error(`❌ POST request failed`, {
+        logger.error(`❌ POST request failed`, {
           error: requestError,
           message: requestError?.message,
           response: requestError?.response,
@@ -709,8 +709,8 @@ export function ChatPage() {
         refetchChats()
       }
     } catch (error) {
-      console.error("❌ Error sending message:", error)
-      console.error("Error details:", {
+      logger.error("❌ Error sending message:", error)
+      logger.error("Error details:", {
         message: error?.message,
         response: error?.response?.data,
         status: error?.response?.status,
@@ -765,7 +765,7 @@ export function ChatPage() {
         )
       }
     } catch (error) {
-      console.error(`Error ${action}ing user:`, error)
+      logger.error(`Error ${action}ing user:`, error)
       toast.error(`Failed to ${action} user`, { duration: 1000 })
     } finally {
       setIsBlocking(false)
@@ -1048,7 +1048,7 @@ export function ChatPage() {
                       isAgentMessage &&
                       message.metadata?.agentSelected === "MANUAL_OPERATOR"
                     ) {
-                      console.log("🔍 MANUAL_OPERATOR message detected:", {
+                      logger.info("🔍 MANUAL_OPERATOR message detected:", {
                         content: message.content.substring(0, 30) + "...",
                         isOperatorMessage,
                         isChatbotMessage,
@@ -1063,7 +1063,7 @@ export function ChatPage() {
                       !isChatbotMessage &&
                       !isOperatorMessage
                     ) {
-                      console.log("🔍 Non-chatbot, non-operator message:", {
+                      logger.info("🔍 Non-chatbot, non-operator message:", {
                         content: message.content.substring(0, 50) + "...",
                         agentSelected: message.metadata?.agentSelected,
                         isOperatorMessage: message.metadata?.isOperatorMessage,
@@ -1082,7 +1082,7 @@ export function ChatPage() {
 
                     const getMessageStyle = () => {
                       // LOG DI DEBUG PER VEDERE I VALORI ESATTI
-                      console.log("🎨 DEBUG MESSAGGIO:", {
+                      logger.info("🎨 DEBUG MESSAGGIO:", {
                         id: message.id,
                         content: message.content.substring(0, 30),
                         agentSelected: message.metadata?.agentSelected,

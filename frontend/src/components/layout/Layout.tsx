@@ -22,7 +22,7 @@ export function Layout() {
       try {
         setWorkspace(JSON.parse(cachedWorkspace))
       } catch (error) {
-        console.error("Error parsing workspace from sessionStorage:", error)
+        logger.error("Error parsing workspace from sessionStorage:", error)
       }
     }
   }, [])
@@ -36,11 +36,11 @@ export function Layout() {
       const savedChatJson = localStorage.getItem("selectedChat")
       if (savedChatJson) {
         const chat = JSON.parse(savedChatJson)
-        console.log("Loaded chat from localStorage:", chat)
+        logger.info("Loaded chat from localStorage:", chat)
         setSavedChat(chat)
       }
     } catch (error) {
-      console.error("Error loading chat from localStorage:", error)
+      logger.error("Error loading chat from localStorage:", error)
     }
   }, [])
 
@@ -52,13 +52,13 @@ export function Layout() {
         try {
           if (e.newValue) {
             const chat = JSON.parse(e.newValue)
-            console.log("Chat in localStorage updated:", chat)
+            logger.info("Chat in localStorage updated:", chat)
             setSavedChat(chat)
           } else {
             setSavedChat(null)
           }
         } catch (error) {
-          console.error("Error parsing chat from localStorage:", error)
+          logger.error("Error parsing chat from localStorage:", error)
         }
       }
     }
@@ -74,12 +74,12 @@ export function Layout() {
         const latestChat = JSON.parse(latestChatJson)
         // Only update if different from current savedChat
         if (!savedChat || savedChat.sessionId !== latestChat.sessionId) {
-          console.log("Updating to latest chat from localStorage:", latestChat)
+          logger.info("Updating to latest chat from localStorage:", latestChat)
           setSavedChat(latestChat)
         }
       }
     } catch (error) {
-      console.error("Error reading latest chat from localStorage:", error)
+      logger.error("Error reading latest chat from localStorage:", error)
     }
 
     setShowPlaygroundDialog(true)

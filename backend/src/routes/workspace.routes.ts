@@ -1,3 +1,4 @@
+import logger from "../utils/logger"
 import { RequestHandler, Router } from "express"
 import { WorkspaceService } from "../application/services/workspace.service"
 import { workspaceController } from "../controllers/workspace.controller"
@@ -115,7 +116,7 @@ const getCurrentWorkspace: RequestHandler = async (req, res): Promise<void> => {
     res.json(responseData)
     return
   } catch (error) {
-    console.error("Error fetching current workspace:", error)
+    logger.error("Error fetching current workspace:", error)
     res.status(500).json({ error: "Failed to fetch current workspace" })
     return
   }

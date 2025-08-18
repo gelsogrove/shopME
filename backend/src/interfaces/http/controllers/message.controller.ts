@@ -31,11 +31,11 @@ export class MessageController {
       } = req.body
 
       // 🚨 DEBUG: Log del payload ricevuto
-      console.log("🚨 DEBUG: PAYLOAD RICEVUTO DAL FRONTEND:")
-      console.log("🚨 Message:", message)
-      console.log("🚨 PhoneNumber:", phoneNumber)
-      console.log("🚨 WorkspaceId:", workspaceId)
-      console.log("🚨 Full Body:", JSON.stringify(req.body, null, 2))
+      logger.info("🚨 DEBUG: PAYLOAD RICEVUTO DAL FRONTEND:")
+      logger.info("🚨 Message:", message)
+      logger.info("🚨 PhoneNumber:", phoneNumber)
+      logger.info("🚨 WorkspaceId:", workspaceId)
+      logger.info("🚨 Full Body:", JSON.stringify(req.body, null, 2))
 
       // Validate required fields
       if (!message || typeof message !== "string") {

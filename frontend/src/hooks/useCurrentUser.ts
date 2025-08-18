@@ -15,7 +15,7 @@ export function useCurrentUser() {
           try {
             cachedUser = JSON.parse(userStr)
           } catch (e) {
-            console.error('Error parsing user data from localStorage')
+            logger.error('Error parsing user data from localStorage')
             // Clear invalid cached data
             localStorage.removeItem('user')
           }
@@ -31,7 +31,7 @@ export function useCurrentUser() {
       } catch (error) {
         // Clear invalid cached data on authentication errors
         if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 404)) {
-          console.warn('Authentication failed, clearing cached data')
+          logger.warn('Authentication failed, clearing cached data')
           localStorage.removeItem('user')
           sessionStorage.removeItem('currentWorkspace')
         }
@@ -39,7 +39,7 @@ export function useCurrentUser() {
         // Se siamo nella pagina settings, non propagare errori di autenticazione
         // per evitare redirect indesiderati
         if (window.location.pathname.includes('/settings')) {
-          console.warn('Auth error in settings page, using cached data if available')
+          logger.warn('Auth error in settings page, using cached data if available')
           
           // Cerca di recuperare i dati utente dal localStorage
           const userStr = localStorage.getItem('user')
@@ -47,7 +47,7 @@ export function useCurrentUser() {
             try {
               return JSON.parse(userStr)
             } catch (e) {
-              console.error('Error parsing user data from localStorage')
+              logger.error('Error parsing user data from localStorage')
               localStorage.removeItem('user')
             }
           }

@@ -9,6 +9,10 @@ import time
 BACKEND_URL = "http://localhost:3001"
 N8N_URL = "http://localhost:5678"
 
+# REAL WORKSPACE AND CUSTOMER IDs FROM DATABASE
+REAL_WORKSPACE_ID = "cm9hjgq9v00014qk8fsdy4ujv"  # From seed.ts
+REAL_CUSTOMER_ID = "test-customer-123"  # From seed.ts
+
 def test_orders_dialogue():
     """Test the complete orders dialogue flow"""
     
@@ -21,9 +25,9 @@ def test_orders_dialogue():
     token_response = requests.post(
         f"{BACKEND_URL}/api/internal/generate-token",
         json={
-            "customerId": "test-customer-123",
+            "customerId": REAL_CUSTOMER_ID,
             "action": "orders",
-            "workspaceId": "test-workspace-456"
+            "workspaceId": REAL_WORKSPACE_ID
         },
         auth=("admin", "admin"),
         headers={"Content-Type": "application/json"}
@@ -65,8 +69,8 @@ def test_orders_dialogue():
             f"{N8N_URL}/webhook/orders-dialogue",
             json={
                 "message": "mi dai la lista degli ordini effettuati?",
-                "customerId": "test-customer-123",
-                "workspaceId": "test-workspace-456"
+                "customerId": REAL_CUSTOMER_ID,
+                "workspaceId": REAL_WORKSPACE_ID
             },
             headers={"Content-Type": "application/json"}
         )
