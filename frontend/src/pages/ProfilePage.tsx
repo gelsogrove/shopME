@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button"
+import { logger } from "@/lib/logger"
 import { Card, CardContent } from "@/components/ui/card"
 import {
-  Dialog,
+    Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -12,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useCurrentUser } from "@/hooks/useCurrentUser"
 import {
-  UserProfile,
+    UserProfile,
   changePassword,
   updateUserProfile,
 } from "@/services/userApi"

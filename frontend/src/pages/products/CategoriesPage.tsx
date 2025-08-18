@@ -1,4 +1,5 @@
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { logger } from "@/lib/logger"
 import { DataTable } from "@/components/shared/DataTable"
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
 import { PageHeader } from "@/components/shared/PageHeader"
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Sheet,
+    Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -15,7 +16,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
 import {
-  categoriesApi,
+    categoriesApi,
   type Category as ApiCategory,
 } from "@/services/categoriesApi"
 import { Tag } from "lucide-react"

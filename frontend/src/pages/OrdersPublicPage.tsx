@@ -438,7 +438,7 @@ const OrdersPublicPage: React.FC = () => {
               {displayOrders.map((o) => (
                 <div key={o.id} id={`order-${o.orderCode}`} className="py-4">
                   <a
-                    href={`${window.location.origin}/orders-public/${o.orderCode}?phone=${encodeURIComponent(phone)}${workspaceId ? `&workspaceId=${encodeURIComponent(workspaceId)}` : ''}`}
+                    href={`${window.location.origin}/orders/${o.orderCode}?phone=${encodeURIComponent(phone)}${workspaceId ? `&workspaceId=${encodeURIComponent(workspaceId)}` : ''}`}
                     className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between text-left hover:bg-gray-50 p-3 rounded-lg transition-colors cursor-pointer"
                   >
                     <div className="space-y-1">

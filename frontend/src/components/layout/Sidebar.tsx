@@ -1,16 +1,16 @@
 import { cn } from "@/lib/utils"
 import {
-  BarChart3,
-  FileText,
-  HelpCircle,
-  LucideIcon,
-  MessageSquare,
-  Package2,
-  Percent,
-  ShoppingCart,
-  Tag,
-  Users,
-  Wrench
+    BarChart3,
+    FileText,
+    HelpCircle,
+    LucideIcon,
+    MessageSquare,
+    Package2,
+    Percent,
+    ShoppingCart,
+    Tag,
+    Users,
+    Wrench
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
@@ -102,7 +102,7 @@ export function Sidebar() {
       icon: FileText,
     },
     {
-      href: "/orders",
+              href: "/admin/orders",
       label: "Orders",
       icon: ShoppingCart,
     } 

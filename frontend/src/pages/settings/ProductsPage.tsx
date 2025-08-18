@@ -1,4 +1,5 @@
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { logger } from "@/lib/logger"
 import { DataTable } from "@/components/shared/DataTable"
 import { FormDialog } from "@/components/shared/FormDialog"
 import { PageHeader } from "@/components/shared/PageHeader"

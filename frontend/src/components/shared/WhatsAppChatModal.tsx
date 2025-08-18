@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
+import { logger } from "@/lib/logger"
 import {
-  Dialog,
+    Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,

@@ -1,4 +1,5 @@
 import { PageLayout } from "@/components/layout/PageLayout"
+import { logger } from "@/lib/logger"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { FormSheet } from "@/components/shared/FormSheet"
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import {
-  Tooltip,
+    Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,

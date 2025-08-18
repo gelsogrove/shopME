@@ -1,8 +1,9 @@
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { logger } from "@/lib/logger"
 import { AuthLogo } from "@/components/ui/auth-logo"
 import { Button } from "@/components/ui/button"
 import {
-    Card,
+      Card,
     CardContent,
     CardDescription,
     CardFooter,
@@ -10,7 +11,7 @@ import {
     CardTitle,
 } from "@/components/ui/card"
 import {
-    Form,
+      Form,
     FormControl,
     FormField,
     FormItem,

@@ -1,4 +1,5 @@
 import { Edit2, LayoutTemplate } from 'lucide-react'
+import { logger } from "@/lib/logger"
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'

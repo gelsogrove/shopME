@@ -1,4 +1,5 @@
 import { api } from '@/services/api'
+import { logger } from "@/lib/logger"
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 

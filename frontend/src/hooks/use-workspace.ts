@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import axios from "axios"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { logger } from "@/lib/logger"
 import { useToast } from "./use-toast"
 
 export interface Workspace {
@@ -52,9 +53,28 @@ export function useWorkspace() {
     queryKey: ['workspaces'],
     queryFn: async () => {
       try {
+        logger.info("🔍 Fetching workspaces...")
         const response = await api.get("/workspaces")
-        return response.data as Workspace[]
+        logger.info("📥 Workspaces API response:", response.data)
+        logger.info("📊 Response type:", typeof response.data)
+        logger.info("📊 Is array:", Array.isArray(response.data))
+        
+        // Handle different response structures
+        let workspaces = response.data
+        if (response.data && response.data.data) {
+          workspaces = response.data.data
+          logger.info("📦 Extracted workspaces from data.data:", workspaces)
+        }
+        
+        if (!Array.isArray(workspaces)) {
+          logger.error("❌ Workspaces is not an array:", workspaces)
+          throw new Error("Invalid workspaces data format")
+        }
+        
+        logger.info("✅ Returning workspaces:", workspaces)
+        return workspaces as Workspace[]
       } catch (err: any) {
+        logger.error("❌ Error fetching workspaces:", err)
         if (axios.isAxiosError(err) && err.response?.status === 401) {
           navigate("/auth/login")
         }

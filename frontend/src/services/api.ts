@@ -1,5 +1,6 @@
 import axios from "axios"
 import { toast } from "../lib/toast"
+import { logger } from "@/lib/logger"
 
 // Create an axios instance with custom config
 export const api = axios.create({

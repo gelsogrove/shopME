@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger"
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -118,7 +119,7 @@ const CustomerProfilePublicPage: React.FC = () => {
     logger.info('[PROFILE] View Orders clicked, using current token:', token)
     
     // Use current token and redirect to orders page
-    const ordersUrl = `/orders-public?token=${token}&phone=${encodeURIComponent(phone)}`
+            const ordersUrl = `/orders?token=${token}&phone=${encodeURIComponent(phone)}`
     logger.info('[PROFILE] Redirecting to orders:', ordersUrl)
     window.location.href = ordersUrl
   }

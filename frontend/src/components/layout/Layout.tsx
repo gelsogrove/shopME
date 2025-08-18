@@ -1,4 +1,5 @@
 import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
+import { logger } from "@/lib/logger"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Chat } from "@/types/chat"
 // Importiamo l'icona WhatsAppIcon che creiamo internamente

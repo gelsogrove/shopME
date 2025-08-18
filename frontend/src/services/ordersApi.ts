@@ -1,4 +1,5 @@
 import { api } from "@/services/api"
+import { logger } from "@/lib/logger"
 
 // Enums aligned with backend
 export type OrderStatus =
