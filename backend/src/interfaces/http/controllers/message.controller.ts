@@ -636,7 +636,7 @@ export class MessageController {
    */
   private getRegistrationRequiredMessage(language: string): string {
     const registrationRequiredMessages = {
-      it: "Per utilizzare questo servizio devi prima registrarti. Scrivi 'ciao' per ricevere il link di registrazione.",
+              it: "To use this service you must first register. Write 'hello' to receive the registration link.",
       es: "Para usar este servicio primero debes registrarte. Escribe 'hola' para recibir el enlace de registro.",
       en: "To use this service you must first register. Write 'hello' to receive the registration link.",
       fr: "Pour utiliser ce service, vous devez d'abord vous inscrire. Écrivez 'bonjour' pour recevoir le lien d'inscription.",

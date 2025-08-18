@@ -1468,7 +1468,7 @@ export class WhatsAppController {
       logger.info(`[WELCOME-MESSAGE] ✅ Customer placeholder created/verified`)
 
       // Get welcome message based on detected language
-      let welcomeMessage = "Ciao! Benvenuto nel nostro servizio WhatsApp."
+      let welcomeMessage = "Hello! Welcome to our WhatsApp service."
 
       if (
         workspace.welcomeMessages &&
@@ -1601,7 +1601,7 @@ export class WhatsAppController {
    */
   private getRegistrationRequiredMessage(language: string): string {
     const registrationRequiredMessages = {
-      it: "Per utilizzare questo servizio devi prima registrarti. Scrivi 'ciao' per ricevere il link di registrazione.",
+              it: "To use this service you must first register. Write 'hello' to receive the registration link.",
       es: "Para usar este servicio primero debes registrarte. Escribe 'hola' para recibir el enlace de registro.",
       en: "To use this service you must first register. Write 'hello' to receive the registration link.",
       fr: "Pour utiliser ce service, vous devez d'abord vous inscrire. Écrivez 'bonjour' pour recevoir le lien d'inscription.",

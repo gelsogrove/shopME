@@ -79,7 +79,7 @@ export async function CreateOrder(
         if (!product) {
           return {
             success: false,
-            message: `❌ Prodotto non trovato: ${item.name}`,
+            message: `❌ Product not found: ${item.name}`,
             error: "PRODUCT_NOT_FOUND",
           }
         }
@@ -116,7 +116,7 @@ export async function CreateOrder(
         if (!service) {
           return {
             success: false,
-            message: `❌ Servizio non trovato: ${item.name}`,
+            message: `❌ Service not found: ${item.name}`,
             error: "SERVICE_NOT_FOUND",
           }
         }
@@ -212,7 +212,7 @@ export async function CreateOrder(
     // Genera checkout URL (opzionale per ordini WhatsApp)
     const checkoutUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/checkout/order/${order.id}`
 
-    logger.info("✅ Ordine creato con successo:", {
+    logger.info("✅ Order created successfully:", {
       orderId: order.id,
       orderCode: generatedOrderCode,
       customerId: customer.id,
@@ -223,7 +223,7 @@ export async function CreateOrder(
 
     return {
       success: true,
-      message: `✅ Ordine creato con successo! Codice: ${generatedOrderCode}`,
+      message: `✅ Order created successfully! Code: ${generatedOrderCode}`,
       orderId: order.id,
       checkoutUrl: checkoutUrl,
     }

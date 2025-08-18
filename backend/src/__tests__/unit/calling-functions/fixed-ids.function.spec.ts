@@ -28,6 +28,7 @@ describe('Calling Functions with Fixed IDs', () => {
       const conversationContext = {
         customerId: FIXED_CUSTOMER_ID,
         workspaceId: FIXED_WORKSPACE_ID,
+        conversationContext: "User wants to buy 2 fresh mozzarellas",
         conversationHistory: [
           {
             role: 'user',
@@ -62,6 +63,7 @@ describe('Calling Functions with Fixed IDs', () => {
       const conversationContext = {
         customerId: FIXED_CUSTOMER_ID,
         workspaceId: FIXED_WORKSPACE_ID,
+        conversationContext: "User wants to confirm order",
         conversationHistory: [
           {
             role: 'user',
@@ -74,7 +76,7 @@ describe('Calling Functions with Fixed IDs', () => {
       const result = await confirmOrderFromConversation(conversationContext)
 
       expect(result.success).toBe(false)
-      expect(result.response).toContain('carrello vuoto')
+      expect(result.response).toContain('cart is empty')
     })
   })
 
@@ -99,7 +101,7 @@ describe('Calling Functions with Fixed IDs', () => {
 
       expect(result.success).toBe(true)
       expect(result.orderId).toBeDefined()
-      expect(result.message).toContain('Ordine creato con successo')
+      expect(result.message).toContain('Order created successfully')
     })
 
     it('should handle insufficient stock', async () => {
@@ -129,6 +131,7 @@ describe('Calling Functions with Fixed IDs', () => {
       const conversationContext = {
         customerId: FIXED_CUSTOMER_ID,
         workspaceId: 'invalid-workspace-id',
+        conversationContext: "Invalid workspace test",
         conversationHistory: [],
         identifiedProducts: []
       }

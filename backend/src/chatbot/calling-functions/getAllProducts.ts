@@ -154,9 +154,9 @@ Dimmi quale prodotto ti interessa o scrivi il nome specifico per maggiori dettag
   } catch (error) {
     logger.error(`[GET_ALL_PRODUCTS] Error getting products:`, error);
     
-    const errorMessage = `Si è verificato un errore nel recupero dei prodotti. 😞
+    const errorMessage = `An error occurred while retrieving products. 😞
 
-Per favore riprova più tardi o contatta il nostro servizio clienti.`;
+Please try again later or contact our customer service.`;
 
     return {
       response: errorMessage,
