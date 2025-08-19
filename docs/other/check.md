@@ -135,5 +135,5 @@ se hai dubbi chiedi.
 
 - [ ] 55 cosa ne pensi del prompt_agent ?
 
-- [ ] 56 Prossimi task?
+- [ ] 56 Prossimi task o bug in ordine di priorita?
  
