@@ -52,7 +52,7 @@ export async function CreateOrder(
     if (!customer) {
       return {
         success: false,
-        message: "❌ Cliente non trovato",
+        message: "❌ Customer not found",
         error: "CUSTOMER_NOT_FOUND",
       }
     }
@@ -228,10 +228,10 @@ export async function CreateOrder(
       checkoutUrl: checkoutUrl,
     }
   } catch (error) {
-    logger.error("❌ Errore CreateOrder:", error)
+          logger.error("❌ CreateOrder error:", error)
     return {
       success: false,
-      message: "❌ Errore interno del server durante la creazione dell'ordine",
+              message: "❌ Internal server error during order creation",
       error: "INTERNAL_ERROR",
     }
   }

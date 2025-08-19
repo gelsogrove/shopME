@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
+import { config } from '../../../config';
 import { MessageRepository } from '../../../repositories/message.repository';
 import { usageService } from '../../../services/usage.service';
 import logger from '../../../utils/logger';
@@ -325,9 +326,9 @@ export class ChatController {
         await usageService.trackUsage({
           workspaceId: workspaceId,
           clientId: chatSession.customer.id,
-          price: 0.005
+          price: config.llm.defaultPrice
         });
-        logger.info(`[CHAT-SEND] 💰 Usage tracked for operator response: €0.005`);
+                  logger.info(`[CHAT-SEND] 💰 Usage tracked for operator response: €${config.llm.defaultPrice}`);
       } catch (usageError) {
         logger.warn(`[CHAT-SEND] ⚠️ Usage tracking failed (message still saved):`, usageError.message);
         // Continue - message is saved even if usage tracking fails

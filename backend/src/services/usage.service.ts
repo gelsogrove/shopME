@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client"
+import { config } from "../config"
 import logger from "../utils/logger"
 
 const prisma = new PrismaClient()
@@ -84,12 +85,12 @@ export const usageService = {
         data: {
           workspaceId: data.workspaceId,
           clientId: data.clientId,
-          price: data.price || 0.005, // €0.005 per response (0.5 centesimi)
+          price: data.price || config.llm.defaultPrice, // Default LLM price from configuration
         },
       })
 
       logger.info(
-        `[USAGE-TRACKING] ✅ Usage recorded: €${data.price ?? 0.005} for customer ${customer.name} (${customer.phone})`
+        `[USAGE-TRACKING] ✅ Usage recorded: €${data.price ?? config.llm.defaultPrice} for customer ${customer.name} (${customer.phone})`
       )
     } catch (error) {
       logger.error(`[USAGE-TRACKING] ❌ Error tracking usage:`, error)

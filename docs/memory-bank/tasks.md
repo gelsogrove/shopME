@@ -1,97 +1,304 @@
 # 🧠 MEMORY BANK - TASKS
 
-## 📋 CURRENT TASK: Email System Investigation & Debug
+## 📋 CURRENT TASK: Debug Mode Settings Bug Fix
 
-**Task ID**: EMAIL-SYSTEM-DEBUG-001  
-**Date**: 2025-01-27  
+**Task ID**: DEBUG-MODE-BUG-001  
+**Date**: 2025-08-19  
 **Mode**: INVESTIGATE (System Analysis)  
 **Complexity**: Level 2 (Simple Enhancement)  
 **Priority**: 🚨 **CRITICAL**  
 
 ### 🎯 OBJECTIVE
-Investigate and fix email system issues - determine why emails are not being sent and where they should be delivered.
+Investigate and fix debug mode settings bug - debugMode cannot be saved when set to false in settings page.
 
 ### 📊 CURRENT STATUS
 - **Phase**: INVESTIGATE Mode - System Analysis
 - **Progress**: 0% (Task initiated)
-- **Next Step**: Analyze email configuration and delivery issues
+- **Next Step**: Analyze debug mode settings save functionality
 
 ### 🔍 INVESTIGATION REQUIREMENTS
 
-#### 📧 EMAIL SYSTEM COMPONENTS TO CHECK
-1. **SMTP Configuration**:
-   - Check backend/.env SMTP settings
-   - Verify SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
-   - Test SMTP connection
+#### 🔧 DEBUG MODE SETTINGS COMPONENTS TO CHECK
+1. **Frontend Settings Page**:
+   - Check /settings page debug mode toggle
+   - Verify form submission and validation
+   - Check API call to update workspace
 
-2. **Email Service Implementation**:
-   - Review EmailService.ts implementation
-   - Check email templates and formatting
-   - Verify error handling and logging
+2. **Backend Workspace Controller**:
+   - Review workspace update endpoint
+   - Check debugMode field handling
+   - Verify database update logic
 
-3. **Email Triggers**:
-   - ContactOperator function email notifications
-   - Order confirmation emails
-   - Registration confirmation emails
-   - Password reset emails
+3. **Database Schema**:
+   - Verify debugMode field exists in Workspace table
+   - Check field type and constraints
+   - Verify default value handling
 
-4. **Email Destinations**:
-   - Where emails should be sent (admin@shopme.com?)
-   - Customer email addresses
-   - Workspace admin email settings
+4. **API Integration**:
+   - Check workspace update API endpoint
+   - Verify request/response format
+   - Check error handling
 
 #### 🔍 DEBUGGING STEPS
-1. **Configuration Check**:
-   - Verify .env email settings
-   - Check if using Ethereal Email for development
-   - Confirm SMTP credentials are valid
+1. **Frontend Check**:
+   - Test debug mode toggle in /settings page
+   - Check browser console for errors
+   - Verify API request is sent correctly
 
-2. **Service Testing**:
-   - Test email service directly
-   - Check email service logs
-   - Verify email templates are loading
+2. **Backend Check**:
+   - Test workspace update endpoint directly
+   - Check server logs for errors
+   - Verify database update query
 
-3. **Integration Testing**:
-   - Test ContactOperator email trigger
-   - Verify email is sent when operator is requested
-   - Check email delivery status
+3. **Database Check**:
+   - Query Workspace table directly
+   - Check debugMode field value
+   - Verify field constraints
 
-4. **Error Analysis**:
-   - Check email service error logs
-   - Verify network connectivity
-   - Test with different email providers
+4. **Integration Check**:
+   - Test complete flow: toggle → save → refresh
+   - Check if value persists after page reload
+   - Verify API response format
 
 ### 📋 SPECIFIC CHECKS REQUIRED
 
 #### 🔧 TECHNICAL INVESTIGATION
-- [ ] **SMTP Configuration**: Check backend/.env email settings
-- [ ] **Email Service**: Review EmailService.ts implementation
-- [ ] **ContactOperator**: Verify email notification in ContactOperator function
-- [ ] **Email Templates**: Check HTML/text templates
-- [ ] **Error Logging**: Review email service error handling
-- [ ] **Network**: Test SMTP connection and firewall settings
+- [ ] **Frontend Settings**: Check /settings page debug mode toggle
+- [ ] **API Call**: Verify workspace update API request
+- [ ] **Backend Controller**: Review workspace update endpoint
+- [ ] **Database Update**: Check debugMode field update query
+- [ ] **Error Handling**: Review error logs and responses
+- [ ] **Validation**: Check form validation and data types
 
-#### 📧 EMAIL FLOW ANALYSIS
-- [ ] **Trigger Points**: Where emails should be sent
-- [ ] **Recipients**: Who should receive emails
-- [ ] **Content**: What email content should be sent
-- [ ] **Frequency**: How often emails should be sent
-- [ ] **Priority**: Which emails are critical vs optional
+#### 🔧 DEBUG MODE FLOW ANALYSIS
+- [ ] **Toggle Action**: User clicks debug mode toggle
+- [ ] **Form Submission**: Settings form is submitted
+- [ ] **API Request**: Frontend calls workspace update API
+- [ ] **Backend Processing**: Controller processes update request
+- [ ] **Database Update**: debugMode field is updated
+- [ ] **Response**: Success/error response to frontend
 
 #### 🛠️ FIX REQUIREMENTS
-- [ ] **Configuration Fix**: Update SMTP settings if needed
-- [ ] **Service Fix**: Fix EmailService implementation if broken
-- [ ] **Template Fix**: Update email templates if needed
-- [ ] **Integration Fix**: Fix email triggers in calling functions
-- [ ] **Testing**: Verify email delivery works
+- [ ] **Frontend Fix**: Fix debug mode toggle if broken
+- [ ] **API Fix**: Fix workspace update endpoint if needed
+- [ ] **Database Fix**: Fix debugMode field update if needed
+- [ ] **Validation Fix**: Fix form validation if needed
+- [ ] **Testing**: Verify debug mode toggle works correctly
 
 ### 🎯 SUCCESS METRICS
-- [ ] Email service configuration verified
-- [ ] ContactOperator emails working
-- [ ] Order confirmation emails working
-- [ ] Registration emails working
-- [ ] All email templates functional
-- [ ] Email delivery confirmed
+- [ ] Debug mode toggle works correctly
+- [ ] Settings save functionality works
+- [ ] debugMode field updates in database
+- [ ] Usage tracking works when debugMode is false
+- [ ] All settings persist after page reload
+- [ ] No console errors in browser
+
+---
+
+## 🚨 BUG #2: Orders Public Link 404 Error
+
+**Task ID**: ORDERS-PUBLIC-404-BUG-001  
+**Date**: 2025-08-19  
+**Priority**: 🚨 **CRITICAL**  
+
+### 🎯 OBJECTIVE
+Fix orders public link that returns 404 Page Not Found when accessed via WhatsApp.
+
+### 📊 CURRENT STATUS
+- **Issue**: Links return 404:
+  - `http://localhost:3000/orders-public?token=...` (lista ordini)
+  - `http://localhost:3000/orders-public/10002?phone=...&token=...` (ordine specifico)
+- **Root Cause**: Route mismatch - backend generates `/orders-public` but frontend has `/orders`
+- **Expected**: Should show customer's orders with download options
+- **Impact**: Customers cannot view their orders via WhatsApp
+
+### 🔍 INVESTIGATION REQUIREMENTS
+
+#### 🔧 TECHNICAL INVESTIGATION
+- [ ] **Frontend Route**: Check if `/orders-public` route exists
+- [ ] **Token Validation**: Verify token validation logic
+- [ ] **Phone Parameter**: Check phone parameter handling
+- [ ] **Component**: Verify OrdersPublicPage component exists
+- [ ] **Routing**: Check App.tsx routing configuration
+
+#### 🔧 ORDERS PUBLIC FLOW ANALYSIS
+- [ ] **Link Generation**: N8N generates secure token link
+- [ ] **Frontend Access**: Customer clicks link in WhatsApp
+- [ ] **Token Validation**: Frontend validates token
+- [ ] **Orders Display**: Show customer's orders
+- [ ] **Download Options**: Invoice and DDT download buttons
+
+#### 🛠️ FIX REQUIREMENTS
+- [ ] **Route Fix**: Add `/orders-public` and `/orders-public/:orderCode` routes to match backend
+- [ ] **OR**: Change backend to generate `/orders` and `/orders/:orderCode` instead
+- [ ] **Component Fix**: Verify OrdersPublicPage component works with both routes
+- [ ] **Token Fix**: Fix token validation if needed
+- [ ] **Phone Fix**: Fix phone parameter handling if needed
+- [ ] **Testing**: Verify both orders public links work correctly
+
+---
+
+## 🚨 BUG #3: Wrong Email Update Link
+
+**Task ID**: EMAIL-UPDATE-LINK-BUG-001  
+**Date**: 2025-08-19  
+**Priority**: 🚨 **CRITICAL**  
+
+### 🎯 OBJECTIVE
+Fix wrong email update link generated by LLM - currently points to incorrect URL.
+
+### 📊 CURRENT STATUS
+- **Issue**: LLM generates wrong link: `https://laltrait.com/profile-management`
+- **Expected**: Should generate correct secure token link for email update
+- **Impact**: Customers cannot update their email address
+
+### 🔍 INVESTIGATION REQUIREMENTS
+
+#### 🔧 TECHNICAL INVESTIGATION
+- [ ] **LLM Response**: Check LLM prompt for email update link generation
+- [ ] **Link Generation**: Verify secure token generation for profile updates
+- [ ] **Backend Endpoint**: Check if profile update endpoint exists
+- [ ] **Frontend Route**: Verify profile update page exists
+- [ ] **Token Security**: Check token validation for profile updates
+
+#### 🔧 EMAIL UPDATE FLOW ANALYSIS
+- [ ] **Customer Request**: Customer asks to change email
+- [ ] **LLM Processing**: LLM should generate secure token link
+- [ ] **Link Generation**: Backend creates secure token for profile update
+- [ ] **Frontend Access**: Customer clicks link to update profile
+- [ ] **Email Update**: Customer updates email in secure form
+
+#### 🛠️ FIX REQUIREMENTS
+- [ ] **LLM Fix**: Update LLM prompt to generate correct secure token link
+- [ ] **Backend Fix**: Create profile update secure token endpoint if missing
+- [ ] **Frontend Fix**: Create profile update page if missing
+- [ ] **Link Fix**: Ensure correct URL format and token validation
+- [ ] **Testing**: Verify email update flow works correctly
+
+---
+
+## 🚨 BUG #4: Invoice Download Link 404 Error
+
+**Task ID**: INVOICE-DOWNLOAD-404-BUG-001  
+**Date**: 2025-08-19  
+**Priority**: 🚨 **CRITICAL**  
+
+### 🎯 OBJECTIVE
+Fix invoice download link that returns 404 - customers cannot download invoices from orders.
+
+### 📊 CURRENT STATUS
+- **Issue**: LLM generates broken link for invoice download: `http://localhost:3000/orders-public/10002?phone=...&token=...`
+- **Root Cause**: Same as BUG #2 - route mismatch between backend and frontend
+- **Expected**: Should show order details with invoice/DDT download buttons
+- **Impact**: Customers cannot download invoices and DDT documents
+
+### 🔍 INVESTIGATION REQUIREMENTS
+
+#### 🔧 TECHNICAL INVESTIGATION
+- [ ] **LLM Response**: Check LLM prompt for invoice download link generation
+- [ ] **Link Generation**: Verify secure token generation for order details
+- [ ] **Backend Endpoint**: Check if order details endpoint exists
+- [ ] **Frontend Route**: Verify order details page with download buttons
+- [ ] **Download Buttons**: Check if invoice/DDT download functionality exists
+
+#### 🔧 INVOICE DOWNLOAD FLOW ANALYSIS
+- [ ] **Customer Request**: Customer asks for invoice download
+- [ ] **LLM Processing**: LLM generates secure token link for order
+- [ ] **Link Generation**: Backend creates secure token for order access
+- [ ] **Frontend Access**: Customer clicks link to view order details
+- [ ] **Download Action**: Customer clicks invoice/DDT download buttons
+
+#### 🛠️ FIX REQUIREMENTS
+- [ ] **Route Fix**: Fix `/orders-public/:orderCode` route (same as BUG #2)
+- [ ] **LLM Fix**: Ensure LLM generates correct working links
+- [ ] **Download Fix**: Verify invoice/DDT download buttons work
+- [ ] **Token Fix**: Fix token validation for order access
+- [ ] **Testing**: Verify invoice download flow works correctly
+
+---
+
+## 🚨 BUG #5: LLM Not Calling Products Function for Category Requests
+
+**Task ID**: LLM-CATEGORY-PRODUCTS-BUG-001  
+**Date**: 2025-08-19  
+**Priority**: 🚨 **CRITICAL**  
+
+### 🎯 OBJECTIVE
+Fix LLM not calling products function when customer asks for specific category products (e.g., "dammi lista formaggi").
+
+### 📊 CURRENT STATUS
+- **Issue**: LLM shows category list but doesn't call function to show products when request is in Italian
+- **Example**: 
+  - ❌ "dammi lista formaggi" → LLM shows categories but doesn't show Cheese products
+  - ✅ "dammi i prodotti di Cheese" → LLM calls function and shows Cheese products
+- **Root Cause**: Language mapping issue - Italian category names not properly mapped
+- **Expected**: LLM should call RagSearch() or GetAllProducts() regardless of language
+- **Impact**: Italian-speaking customers cannot see products from specific categories
+
+### 🔍 INVESTIGATION REQUIREMENTS
+
+#### 🔧 TECHNICAL INVESTIGATION
+- [ ] **LLM Prompt**: Check if LLM prompt includes instructions for Italian category names
+- [ ] **Function Calling**: Verify LLM knows when to call RagSearch() vs GetAllProducts()
+- [ ] **Category Mapping**: Check Italian category name mapping (formaggi → Cheese)
+- [ ] **Language Detection**: Verify LLM properly handles Italian category requests
+- [ ] **Function Triggers**: Check what triggers LLM to call product functions in different languages
+
+#### 🔧 CATEGORY PRODUCTS FLOW ANALYSIS
+- [ ] **Customer Request**: "dammi lista formaggi" (Italian)
+- [ ] **LLM Processing**: Should recognize this as category-specific request in Italian
+- [ ] **Language Mapping**: Should map "formaggi" to "Cheese" category
+- [ ] **Function Call**: Should call RagSearch() with "formaggi" or "Cheese" query
+- [ ] **Product Display**: Should show Cheese category products
+- [ ] **Response**: Should list specific cheese products with prices
+
+#### 🛠️ FIX REQUIREMENTS
+- [ ] **Prompt Fix**: Update LLM prompt to handle Italian category names
+- [ ] **Language Mapping**: Fix Italian category name mapping (formaggi → Cheese)
+- [ ] **Function Logic**: Ensure LLM calls appropriate function for Italian category requests
+- [ ] **Response Fix**: Ensure LLM shows products, not just category list
+- [ ] **Testing**: Verify Italian category-specific product requests work correctly
+
+---
+
+## 🚨 BUG #6: LLM Not Processing Orders - Fake Processing Messages
+
+**Task ID**: LLM-ORDER-PROCESSING-BUG-001  
+**Date**: 2025-08-19  
+**Priority**: 🚨 **CRITICAL**  
+
+### 🎯 OBJECTIVE
+Fix LLM not actually processing orders when customer confirms - only shows fake processing messages.
+
+### 📊 CURRENT STATUS
+- **Issue**: LLM says "sto elaborando l'ordine" but doesn't call order creation function
+- **Example**: Customer says "si" to confirm order → LLM shows processing messages but no actual order
+- **Expected**: LLM should call confirmOrderFromConversation() or CreateOrder() function
+- **Impact**: Customers cannot complete orders via WhatsApp
+
+### 🔍 INVESTIGATION REQUIREMENTS
+
+#### 🔧 TECHNICAL INVESTIGATION
+- [ ] **LLM Prompt**: Check if LLM prompt includes instructions for order confirmation
+- [ ] **Function Calling**: Verify LLM knows when to call order creation functions
+- [ ] **Order Triggers**: Check what triggers LLM to call confirmOrderFromConversation()
+- [ ] **Response Logic**: Verify LLM response logic for order confirmations
+- [ ] **Cart Processing**: Check if cart data is properly passed to order functions
+
+#### 🔧 ORDER PROCESSING FLOW ANALYSIS
+- [ ] **Customer Confirmation**: Customer says "si" or confirms order
+- [ ] **LLM Processing**: Should recognize this as order confirmation
+- [ ] **Function Call**: Should call confirmOrderFromConversation() or CreateOrder()
+- [ ] **Order Creation**: Should create order in database
+- [ ] **Checkout Link**: Should generate secure checkout link
+- [ ] **Response**: Should provide checkout link to customer
+
+#### 🛠️ FIX REQUIREMENTS
+- [ ] **Prompt Fix**: Update LLM prompt to handle order confirmations properly
+- [ ] **Function Logic**: Ensure LLM calls order creation functions when customer confirms
+- [ ] **Order Processing**: Fix order creation and checkout link generation
+- [ ] **Response Fix**: Ensure LLM provides actual checkout link, not fake messages
+- [ ] **Testing**: Verify order processing flow works correctly
 
 ### 📊 PROJECT STATUS: **95% COMPLETE** ✅
 
@@ -101,222 +308,29 @@ Investigate and fix email system issues - determine why emails are not being sen
 
 ---
 
-## 🐛 **BUG FIXES - PRIORITY 1**
+### 🐛 **BUG FIXES - PRIORITY 1** (Da fare subito)
 
-### BUG #1: N8N Workflow Calling Functions Fix
-**Task ID**: N8N-WORKFLOW-FIX-001  
-**Date**: 2025-01-27  
-**Mode**: IMPLEMENT  
-**Complexity**: Level 2 (Simple Enhancement)  
-**Priority**: 🚨 **CRITICAL**  
+1. **🚨 BUG #1: N8N Workflow Calling Functions Fix** - CRITICAL
+   - Fix workflow N8N per usare calling functions correttamente
 
-#### 🎯 OBJECTIVE
-Fix N8N workflow to properly use calling functions instead of bypassing them with "return LLM response" node.
+2. **🔶 BUG #2: Analytics LLM Usage Cost Display Fix** - MEDIUM
+   - **PROBLEM IDENTIFIED**: Database has 762 usage records (€3.87 total) for workspace `cm9hjgq9v00014qk8fsdy4ujv` with dates 2025-05-21 to 2025-08-19
+   - **ROOT CAUSE**: Frontend uses different workspace than the one with data
+   - **SOLUTION**: Set correct workspace in sessionStorage via browser console
+   - **STATUS**: ✅ **FIXED** - Ready for testing
+   - **TESTING**: Execute workspace script in browser console and refresh analytics page
+   - **MEMORY**: Solution stored in Memory Bank, no .js files created
 
-#### 📊 CURRENT STATUS
-- **Phase**: IMPLEMENT Mode
-- **Progress**: 0% (Task identified)
-- **Next Step**: Remove problematic node and ensure calling functions are used
+3. **🔶 BUG #3: Analytics Last Month Data Fix** - MEDIUM
+   - Aggiungere dati "Last Month" mancanti nella pagina Analytics
 
-#### 🔍 TECHNICAL REQUIREMENTS
-- Remove "return LLM response" node from N8N workflow
-- Ensure AI Agent uses calling functions properly
-- Connect AI Agent directly to final response
-- Verify calling functions are configured correctly
+4. **✅ BUG #4: Top Customers Translation Fix** - COMPLETATO
 
-#### 🎯 SUCCESS METRICS
-- [ ] N8N workflow uses calling functions
-- [ ] No direct LLM response bypass
-- [ ] All calling functions working properly
-- [ ] Workflow activated and functional
+5. **🔶 BUG #5: Address Change Functionality Fix** - MEDIUM
+   - Fix funzionalità cambio indirizzo che non funziona
 
----
-
-### BUG #2: Analytics LLM Usage Cost Display Fix
-**Task ID**: USAGE-PAGE-FIX-002  
-**Date**: 2025-01-27  
-**Mode**: INVESTIGATE → IMPLEMENT  
-**Complexity**: Level 2 (Simple Enhancement)  
-**Priority**: 🔶 **MEDIUM**  
-
-#### 🎯 OBJECTIVE
-Fix Analytics page "Costo LLM" section that may display incorrect/hardcoded values instead of real LLM usage cost data.
-
-#### 📊 CURRENT STATUS
-- **Phase**: INVESTIGATE Mode
-- **Progress**: 0% (Task identified)
-- **Next Step**: Investigate LLM usage cost calculation and display
-
-#### 📍 LOCATION DETAILS
-- **Page**: `/analytics` (http://localhost:3000/analytics)
-- **Section**: "Metriche Principali" → "Costo LLM"
-- **Component**: `frontend/src/components/analytics/MetricsOverview.tsx`
-- **API**: `/api/analytics/{workspaceId}/dashboard`
-- **Backend**: `backend/src/controllers/analytics.controller.ts`
-
-#### 🔍 INVESTIGATION REQUIREMENTS
-- Check Analytics API endpoint implementation
-- Verify LLM usage cost calculation logic in backend
-- Review frontend usage data fetching from `analyticsApi.ts`
-- Identify if "3,91" or similar values are hardcoded
-- Check database for usage tracking data
-- Verify cost calculation: €0.005 per LLM response
-
-#### 🛠️ IMPLEMENTATION REQUIREMENTS
-- Fix LLM usage cost calculation if needed
-- Ensure real-time cost display based on actual usage
-- Update API if calculation logic is incorrect
-- Test with different usage scenarios
-- Verify cost formatting in `formatUsageCost` function
-
-#### 🎯 SUCCESS METRICS
-- [ ] "Costo LLM" shows real usage cost
-- [ ] Cost calculation based on actual LLM responses
-- [ ] No hardcoded values in display
-- [ ] Cost updates correctly with usage
-- [ ] Proper currency formatting (€0.005 per response)
-
----
-
-### BUG #3: Analytics Last Month Data Fix
-**Task ID**: ANALYTICS-LAST-MONTH-FIX-003  
-**Date**: 2025-01-27  
-**Mode**: INVESTIGATE → IMPLEMENT  
-**Complexity**: Level 2 (Simple Enhancement)  
-**Priority**: 🔶 **MEDIUM**  
-
-#### 🎯 OBJECTIVE
-Add missing "Last Month" data to Analytics page at http://localhost:3000/analytics.
-
-#### 📊 CURRENT STATUS
-- **Phase**: INVESTIGATE Mode
-- **Progress**: 0% (Task identified)
-- **Next Step**: Identify why Last Month data is missing
-
-#### 🔍 INVESTIGATION REQUIREMENTS
-- Check Analytics API implementation
-- Verify date range calculations
-- Review frontend analytics components
-- Identify missing data source
-
-#### 🛠️ IMPLEMENTATION REQUIREMENTS
-- Implement Last Month data calculation
-- Add Last Month section to analytics
-- Ensure proper date filtering
-- Test with historical data
-
-#### 🎯 SUCCESS METRICS
-- [ ] Last Month data displayed
-- [ ] Data calculation correct
-- [ ] UI properly updated
-- [ ] All analytics sections working
-
----
-
-### BUG #4: Top Customers Translation Fix
-**Task ID**: TOP-CUSTOMERS-TRANSLATION-FIX-004  
-**Date**: 2025-01-27  
-**Mode**: IMPLEMENT  
-**Complexity**: Level 1 (Quick Bug Fix)  
-**Priority**: 🔷 **LOW**  
-
-#### 🎯 OBJECTIVE
-Translate "Top Customers per Mese" to English in the Analytics page and limit to top 3 customers.
-
-#### 📊 CURRENT STATUS
-- **Phase**: ✅ **COMPLETED**
-- **Progress**: 100% (Task completed)
-- **Next Step**: Task completed successfully
-
-#### 🛠️ IMPLEMENTATION REQUIREMENTS
-- ✅ Change "Top Customers per Mese" to "Top Customers by Month"
-- ✅ Limit display to top 3 customers (slice(0, 3))
-- ✅ Translate "ordini" to "orders"
-- ✅ Translate "Medio" to "Avg"
-- ✅ Translate "Nessun client attivo questo mese" to "No active clients this month"
-- ✅ Translate "Nessun dato disponibile per il periodo selezionato" to "No data available for the selected period"
-- ✅ Translate month names from Italian to English
-- ✅ Update all related text in the component
-- ✅ Ensure consistency with other translations
-- ✅ Test UI display
-
-#### 🎯 SUCCESS METRICS
-- ✅ Text translated to English
-- ✅ Only top 3 customers shown
-- ✅ UI displays correctly
-- ✅ No Italian text remaining
-- ✅ Consistent with other components
-- ✅ Month names translated to English
-
----
-
-### BUG #5: Address Change Functionality Fix
-**Task ID**: ADDRESS-CHANGE-FIX-005  
-**Date**: 2025-01-27  
-**Mode**: INVESTIGATE → IMPLEMENT  
-**Complexity**: Level 2 (Simple Enhancement)  
-**Priority**: 🔶 **MEDIUM**  
-
-#### 🎯 OBJECTIVE
-Fix address change functionality that is not working properly.
-
-#### 📊 CURRENT STATUS
-- **Phase**: INVESTIGATE Mode
-- **Progress**: 0% (Task identified)
-- **Next Step**: Identify why address change doesn't work
-
-#### 🔍 INVESTIGATION REQUIREMENTS
-- Check address change API endpoints
-- Verify frontend form implementation
-- Review validation logic
-- Test current functionality
-
-#### 🛠️ IMPLEMENTATION REQUIREMENTS
-- Fix address change API if needed
-- Update frontend form if needed
-- Ensure proper validation
-- Test complete flow
-
-#### 🎯 SUCCESS METRICS
-- [ ] Address change works properly
-- [ ] Form validation correct
-- [ ] Data saved correctly
-- [ ] User feedback working
-
----
-
-### BUG #6: Skipped Tests Resolution
-**Task ID**: SKIPPED-TESTS-FIX-006  
-**Date**: 2025-01-27  
-**Mode**: INVESTIGATE → IMPLEMENT  
-**Complexity**: Level 2 (Simple Enhancement)  
-**Priority**: 🔶 **MEDIUM**  
-
-#### 🎯 OBJECTIVE
-Resolve 1 test suite and 10 tests currently in skip status (workspace-isolation-audit.spec.ts).
-
-#### 📊 CURRENT STATUS
-- **Phase**: INVESTIGATE Mode
-- **Progress**: 0% (Task identified)
-- **Next Step**: Analyze why tests are skipped
-
-#### 🔍 INVESTIGATION REQUIREMENTS
-- Review workspace-isolation-audit.spec.ts
-- Identify why tests are skipped
-- Check database setup requirements
-- Analyze test dependencies
-
-#### 🛠️ IMPLEMENTATION REQUIREMENTS
-- Fix test setup if needed
-- Resolve database dependencies
-- Update test configuration
-- Ensure all tests run properly
-
-#### 🎯 SUCCESS METRICS
-- [ ] All skipped tests resolved
-- [ ] Test suite runs completely
-- [ ] No test failures
-- [ ] Coverage maintained
+6. **🔶 BUG #6: Skipped Tests Resolution** - MEDIUM
+   - Risolvere 1 test suite e 10 test in skip status
 
 ---
 

@@ -121,7 +121,7 @@ export class ChatbotMain {
     } catch (error) {
       logger.error(`[CHATBOT] Error in main flow:`, error);
       return {
-        response: "Mi dispiace, si è verificato un errore. Riprova più tardi.",
+        response: "Sorry, an error occurred. Please try again later.",
         metadata: {
           agentSelected: 'ERROR',
           flowStep: 'ERROR'

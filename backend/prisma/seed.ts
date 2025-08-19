@@ -842,7 +842,7 @@ async function main() {
         currency: "EUR",
         url: "http://localhost:3000",
         n8nWorkflowUrl: "http://localhost:5678/webhook/webhook-start",
-        plan: "FREE",
+
         wipMessages: {
           en: "Work in progress. Please contact us later.",
           it: "Lavori in corso. Contattaci più tardi.",
@@ -993,7 +993,7 @@ async function main() {
         currency: "EUR",
         url: "http://localhost:3000",
         n8nWorkflowUrl: "http://localhost:5678/webhook/webhook-start",
-        plan: "FREE",
+
         wipMessages: {
           en: "Work in progress. Please contact us later.",
           it: "Lavori in corso. Contattaci più tardi.",

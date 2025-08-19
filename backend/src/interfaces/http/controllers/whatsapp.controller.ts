@@ -488,7 +488,7 @@ export class WhatsAppController {
           )
 
           // Send error message to user in chat (with full error details for debugging)
-          const errorMessage = `❌ Si è verificato un errore durante l'elaborazione del messaggio.\n\n🔍 Dettagli tecnici:\n${error.message}\n\nRiprova più tardi o contatta il supporto.`
+          const errorMessage = `❌ An error occurred during message processing.\n\n🔍 Technical details:\n${error.message}\n\nPlease try again later or contact support.`
 
           logger.info(
             `[ERROR-SEND] 📱 SENDING error message to ${phoneNumber}: ${errorMessage}`

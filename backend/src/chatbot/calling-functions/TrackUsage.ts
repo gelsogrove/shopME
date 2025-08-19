@@ -1,3 +1,4 @@
+import { config } from "../../config"
 import { usageService } from "../../services/usage.service"
 import logger from "../../utils/logger"
 
@@ -65,21 +66,21 @@ export async function TrackUsage({
     await usageService.trackUsage({
       workspaceId: workspaceId,
       clientId: customer.id,
-      price: 0.005 // €0.005 per response (0.5 centesimi)
+      price: config.llm.defaultPrice // Default LLM price from configuration
     })
 
-    logger.info(`[TrackUsage] ✅ Usage tracked successfully: €0.005 for customer ${customer.name} (${customer.phone})`)
+    logger.info(`[TrackUsage] ✅ Usage tracked successfully: €${config.llm.defaultPrice} for customer ${customer.name} (${customer.phone})`)
 
     return {
       success: true,
-      message: `Usage tracked: €0.005 for ${responseType} response`,
+      message: `Usage tracked: €${config.llm.defaultPrice} for ${responseType} response`,
       tracked: true,
       customer: {
         id: customer.id,
         name: customer.name,
         phone: customer.phone
       },
-      cost: 0.005
+      cost: config.llm.defaultPrice
     }
 
   } catch (error) {
@@ -87,8 +88,8 @@ export async function TrackUsage({
     
     return {
       success: false,
-      message: "Errore nel tracking dell'usage",
-      error: error instanceof Error ? error.message : "Errore sconosciuto"
+              message: "Error tracking usage",
+              error: error instanceof Error ? error.message : "Unknown error"
     }
   }
 }

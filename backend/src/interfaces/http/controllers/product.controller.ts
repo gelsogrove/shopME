@@ -4,11 +4,7 @@ import { ProductService } from "../../../application/services/product.service"
 import { prisma } from "../../../lib/prisma"
 import { embeddingService } from "../../../services/embeddingService"
 import logger from "../../../utils/logger"
-import {
-  canAddProduct,
-  getPlanLimitErrorMessage,
-  PlanType,
-} from "../../../utils/planLimits"
+
 
 export class ProductController {
   private productService: ProductService
@@ -141,33 +137,16 @@ export class ProductController {
         })
       }
 
-      // Check workspace plan and current product count
+      // Check workspace exists
       const workspace = await prisma.workspace.findUnique({
         where: { id: workspaceId },
-        select: { plan: true },
+        select: { id: true },
       })
 
       if (!workspace) {
         return res.status(404).json({
           message: "Workspace not found",
           error: "Invalid workspaceId",
-        })
-      }
-
-      // Count current active products
-      const currentProductCount = await prisma.products.count({
-        where: {
-          workspaceId: workspaceId,
-          isActive: true,
-        },
-      })
-
-      // Check if user can add another product based on their plan
-      const planType = workspace.plan as PlanType
-      if (!canAddProduct(planType, currentProductCount)) {
-        return res.status(403).json({
-          message: "Plan limit reached",
-          error: getPlanLimitErrorMessage(planType, "products"),
         })
       }
 

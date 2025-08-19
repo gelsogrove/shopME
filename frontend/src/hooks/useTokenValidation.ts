@@ -83,11 +83,11 @@ export const useTokenValidation = ({
       logger.error('[TOKEN-VALIDATION] Error validating token:', err)
       
       if (err.response?.status === 401) {
-        setError('Link scaduto o non valido')
+        setError('Link expired or invalid')
       } else if (err.response?.status === 403) {
-        setError('Link non autorizzato per questo workspace')
+        setError('Link not authorized for this workspace')
       } else {
-        setError('Errore durante la validazione del link')
+        setError('Error during link validation')
       }
       setValid(false)
     } finally {
@@ -128,7 +128,7 @@ export const useCheckoutTokenValidation = (token: string | null, workspaceId?: s
 
   const validateToken = async () => {
     if (!token) {
-      setError('Token mancante nel link')
+      setError('Token missing in link')
       setValid(false)
       setLoading(false)
       return
@@ -152,7 +152,7 @@ export const useCheckoutTokenValidation = (token: string | null, workspaceId?: s
         logger.info('[CHECKOUT-TOKEN-VALIDATION] ✅ Token validated successfully')
       } else {
         setValid(false)
-        setError(response.data.error || 'Token checkout non valido')
+        setError(response.data.error || 'Invalid checkout token')
         setErrorType(response.data.errorType)
         setExpiresAt(response.data.expiresAt)
         logger.warn('[CHECKOUT-TOKEN-VALIDATION] ❌ Token validation failed:', response.data.error)
@@ -161,13 +161,13 @@ export const useCheckoutTokenValidation = (token: string | null, workspaceId?: s
       logger.error('[CHECKOUT-TOKEN-VALIDATION] Error validating token:', err)
       
       if (err.response?.status === 400) {
-        setError(err.response.data.error || 'Link scaduto o non valido')
+        setError(err.response.data.error || 'Link expired or invalid')
         setErrorType(err.response.data.errorType)
         setExpiresAt(err.response.data.expiresAt)
       } else if (err.response?.status === 403) {
-        setError('Link non autorizzato per questo workspace')
+        setError('Link not authorized for this workspace')
       } else {
-        setError('Errore durante la validazione del link')
+        setError('Error during link validation')
       }
       setValid(false)
     } finally {

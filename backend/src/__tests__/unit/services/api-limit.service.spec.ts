@@ -49,60 +49,37 @@ describe('ApiLimitService', () => {
     });
 
     it('should return not exceeded when usage is below limit', async () => {
-      // Mock workspace with FREE plan
+      // Mock workspace with unlimited plan
       mockPrismaClient.workspace.findUnique.mockResolvedValue({
-        id: workspaceId,
-        plan: 'FREE'
+        id: workspaceId
       });
 
-      // Mock 50 API calls in the last hour (below FREE limit of 100)
+      // Mock 50 API calls in the last hour (below default limit)
       mockPrismaClient.message.count.mockResolvedValue(50);
 
       const result = await apiLimitService.checkApiLimit(workspaceId);
 
       expect(result.exceeded).toBe(false);
-      expect(result.remaining).toBe(50);
+      expect(result.remaining).toBe(950);
       expect(result.currentUsage).toBe(50);
-      expect(result.limit).toBe(100);
+      expect(result.limit).toBe(1000);
     });
 
     it('should return exceeded when usage reaches limit', async () => {
-      // Mock workspace with FREE plan
+      // Mock workspace with unlimited plan
       mockPrismaClient.workspace.findUnique.mockResolvedValue({
-        id: workspaceId,
-        plan: 'FREE'
+        id: workspaceId
       });
 
-      // Mock 100 API calls (at FREE limit)
-      mockPrismaClient.message.count.mockResolvedValue(100);
+      // Mock 1000 API calls (at default limit)
+      mockPrismaClient.message.count.mockResolvedValue(1000);
 
       const result = await apiLimitService.checkApiLimit(workspaceId);
 
       expect(result.exceeded).toBe(true);
       expect(result.remaining).toBe(0);
-      expect(result.currentUsage).toBe(100);
-      expect(result.limit).toBe(100);
-    });
-
-    it('should use correct limits for different plans', async () => {
-      const testCases = [
-        { plan: 'FREE', expectedLimit: 100 },
-        { plan: 'BASIC', expectedLimit: 500 },
-        { plan: 'PROFESSIONAL', expectedLimit: 2000 }
-      ];
-
-      for (const testCase of testCases) {
-        mockPrismaClient.workspace.findUnique.mockResolvedValue({
-          id: workspaceId,
-          plan: testCase.plan
-        });
-
-        mockPrismaClient.message.count.mockResolvedValue(0);
-
-        const result = await apiLimitService.checkApiLimit(workspaceId);
-
-        expect(result.limit).toBe(testCase.expectedLimit);
-      }
+      expect(result.currentUsage).toBe(1000);
+      expect(result.limit).toBe(1000);
     });
 
     it('should use environment variable limit when set', async () => {

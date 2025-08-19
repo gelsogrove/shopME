@@ -300,7 +300,7 @@ export class MessageController {
           `[N8N-ERROR] ❌ Error with N8N processing for ${phoneNumber}:`,
           error
         )
-        const errorMessage = `❌ Si è verificato un errore durante l'elaborazione del messaggio.\n\n🔍 Dettagli tecnici:\n${error.message}\n\nRiprova più tardi o contatta il supporto.`
+        const errorMessage = `❌ An error occurred during message processing.\n\n🔍 Technical details:\n${error.message}\n\nPlease try again later or contact support.`
         await messageRepository.saveMessage({
           workspaceId,
           phoneNumber,
