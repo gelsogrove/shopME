@@ -97,7 +97,80 @@ Investigate and fix debug mode settings bug - debugMode cannot be saved when set
 
 ## 🚨 BUG #2: Orders Public Link 404 Error
 
-**Task ID**: ORDERS-PUBLIC-404-BUG-001  
+**Task ID**: ORDERS-PUBLIC-404-BUG-001
+
+---
+
+## 🔶 TASK #7: Analytics Page Enhancement
+
+**Task ID**: ANALYTICS-ENHANCEMENT-001  
+**Date**: 2025-08-19  
+**Mode**: IMPLEMENT (Feature Development)  
+**Complexity**: Level 2 (Simple Enhancement)  
+**Priority**: 🔶 **MEDIUM**  
+
+### 🎯 OBJECTIVE
+Enhance analytics page to persist period selection in sessionStorage and limit top customers/products to 3 items.
+
+### 📊 CURRENT STATUS
+- **Phase**: IMPLEMENT Mode - Feature Development
+- **Progress**: 0% (Task initiated)
+- **Next Step**: Implement sessionStorage persistence for period selection
+
+### 🔧 ENHANCEMENT REQUIREMENTS
+
+#### 📊 SESSIONSTORAGE PERSISTENCE
+1. **Period Selection Persistence**:
+   - Save selected period (lastWeek, lastMonth, etc.) in sessionStorage
+   - Restore period selection on page reload
+   - Default to 'lastWeek' if no saved value
+
+2. **Implementation Details**:
+   - Use key: `analytics_period_selection`
+   - Save value when user changes period
+   - Load value on component mount
+   - Update UI to reflect saved selection
+
+#### 📈 TOP CUSTOMERS/PRODUCTS LIMIT
+1. **Limit Display to 3 Items**:
+   - Top Customers: Show only first 3 customers
+   - Top Products: Show only first 3 products
+   - Maintain existing sorting and data structure
+
+2. **Implementation Details**:
+   - Apply `.slice(0, 3)` to top customers array
+   - Apply `.slice(0, 3)` to top products array
+   - Update backend API to return limited data
+   - Ensure frontend handles limited data correctly
+
+### 📋 SPECIFIC IMPLEMENTATION TASKS
+
+#### 🔧 FRONTEND CHANGES
+- [ ] **AnalyticsPage.tsx**: Add sessionStorage persistence for period
+- [ ] **DateRangeSelector.tsx**: Save selection to sessionStorage
+- [ ] **MetricsOverview.tsx**: Limit top customers/products to 3
+- [ ] **HistoricalChart.tsx**: Handle period persistence
+
+#### 🔧 BACKEND CHANGES
+- [ ] **Analytics Service**: Limit top customers/products to 3 in queries
+- [ ] **Analytics Controller**: Ensure API returns limited data
+- [ ] **Database Queries**: Optimize queries for top 3 results
+
+#### 🔧 SESSIONSTORAGE IMPLEMENTATION
+- [ ] **Save Period**: Save selected period on change
+- [ ] **Load Period**: Restore period on page load
+- [ ] **Default Value**: Set default to 'lastWeek'
+- [ ] **Error Handling**: Handle missing sessionStorage gracefully
+
+### 🎯 SUCCESS METRICS
+- [ ] Period selection persists after page reload
+- [ ] Top customers limited to 3 items
+- [ ] Top products limited to 3 items
+- [ ] No performance degradation
+- [ ] All existing functionality works correctly
+- [ ] SessionStorage handles edge cases gracefully
+
+---  
 **Date**: 2025-08-19  
 **Priority**: 🚨 **CRITICAL**  
 
