@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { Request, Response } from 'express'
-import logger from '../../utils/logger'
 import { InternalApiController } from '../../interfaces/http/controllers/internal-api.controller'
+import logger from '../../utils/logger'
 
 // Mock dependencies
 // Mock MessageRepository
@@ -514,7 +514,7 @@ describe('InternalApiController - createOrderInternal', () => {
       
       // Assertions
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining('[CREATE-ORDER] ❌ Errore creazione ordine:'), 
+        expect.stringContaining('[CREATE-ORDER] ❌ Order creation error:'), 
         expect.any(Error)
       )
       expect(mockResponse.status).toHaveBeenCalledWith(500)

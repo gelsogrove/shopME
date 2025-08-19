@@ -18,7 +18,7 @@ fai un file con le domande e risposte dopo la ricerca
 
 ********STAR********
 
-- [ ] 1 fai la build prima di partire e guarda se vanno i test dopo npm run seed
+- [x] 1 fai la build prima di partire e guarda se vanno i test dopo npm run seed e guarda se le migrazioni sono attualizzate
 
 ********CHECKS********
 
@@ -104,9 +104,9 @@ fai un file con le domande e risposte dopo la ricerca
 
 - [ ] 41 Ci sono test in skip da risolvere?
 
-- [ ] 42 Da la build il backend e il frontentd ? 
+- [x] 42 Da la build il backend e il frontentd ? 
 
-- [ ] 43 Vanno i test unitari ?
+- [x] 43 Vanno i test unitari ?
 
 - [ ] 44 Il PRD e' aggoirnato dopo i cambi che hai fatto ?
 
@@ -126,8 +126,14 @@ se hai dubbi chiedi.
 
 - 51 IL SEED IMPORTA CORRETTAMENTE IL FILE /Users/gelso/workspace/AI/shop/n8n/workflows/shopme-whatsapp-workflow.json
 
-- [ ] 52 Stato del progetto in percentuale ?
 
-- [ ] 53 cosa ne pensi del prompt_agent ?
+- 52 contorlla che non ci siano variabili non utilizzate dentro il .env di be e di fe
 
-- [ ] 54 Prossimi task?
+- 53 controlla che il .env.example sia aggiornato
+
+- [ ] 54 Stato del progetto in percentuale ?
+
+- [ ] 55 cosa ne pensi del prompt_agent ?
+
+- [ ] 56 Prossimi task?
+ 

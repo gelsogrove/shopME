@@ -14,6 +14,9 @@ export interface Config {
     origin: string
   }
   dhlTrackingBaseUrl: string
+  llm: {
+    defaultPrice: number
+  }
 }
 
 export const config: Config = {
@@ -34,6 +37,9 @@ export const config: Config = {
   dhlTrackingBaseUrl:
     process.env.DHL_TRACKING_BASE_URL ||
     "https://www.dhl.com/global-en/home/tracking/tracking-express.html",
+  llm: {
+    defaultPrice: parseFloat(process.env.DEFAULT_LLM_PRICE || "0.50"),
+  },
 }
 
 export const buildDhlTrackingUrl = (trackingNumber?: string | null): string | null => {

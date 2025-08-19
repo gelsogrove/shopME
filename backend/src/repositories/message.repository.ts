@@ -1,12 +1,13 @@
-import logger from "../utils/logger"
 import {
-  MessageDirection,
-  MessageType,
-  OrderStatus,
-  PrismaClient,
+    MessageDirection,
+    MessageType,
+    OrderStatus,
+    PrismaClient,
 } from "@prisma/client"
 import * as dotenv from "dotenv"
 import OpenAI from "openai"
+import { config } from "../config"
+import logger from "../utils/logger"
 
 // Load environment variables
 dotenv.config()
@@ -607,14 +608,14 @@ export class MessageRepository {
               await usageService.trackUsage({
                 clientId: customer.id,
                 workspaceId: workspaceId,
-                price: 0.005,
+                price: config.llm.defaultPrice,
               })
 
               logger.info(
                 `[DEBUG-TRACKING] ✅ usageService.trackUsage called successfully`
               )
               logger.info(
-                `[USAGE-TRACKING] 💰 €0.005 tracked before saving AI response for customer ${customer.name} (${data.phoneNumber})`
+                `[USAGE-TRACKING] 💰 €${config.llm.defaultPrice} tracked before saving AI response for customer ${customer.name} (${data.phoneNumber})`
               )
             } else {
               // debugMode is true, skip tracking

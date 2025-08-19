@@ -2184,11 +2184,11 @@ All sensitive operations are handled securely through temporary links with secur
 +---------------------------------------------------+----------------------------------------------------------------------------+
 | 8. COST STRUCTURE                                 | 9. REVENUE STREAMS                                                         |
 |                                                   |                                                                            |
-| • Development team                                | • Tiered subscription model:                                               |
-| • AI/ML model costs                               |   - Free Trial (€0 for 14 days): Single WhatsApp line, unlimited products |
-| • WhatsApp Business API fees                      |   - Basic Plan (€49/month): Single WhatsApp line, unlimited products       |
-| • Cloud infrastructure                            |   - Professional Plan (€149/month): 3 numbers, unlimited products          |
-| • Customer success team                           |   - Enterprise Plan (custom): Unlimited connections                        |
+| • Development team                                | • Subscription model:                                                      |
+| • AI/ML model costs                               |   - Single plan with unlimited products and WhatsApp integration          |
+| • WhatsApp Business API fees                      |   - Implementation and customization services                              |
+| • Cloud infrastructure                            |   - API access fees for third-party integrations                          |
+| • Customer success team                           |                                                                             |
 | • Sales & marketing                               | • Implementation and customization services                                |
 |                                                   | • API access fees for third-party integrations                             |
 +---------------------------------------------------+----------------------------------------------------------------------------+
@@ -5378,50 +5378,12 @@ Comprehensive testing approach:
 
 ### Subscription Plans & Pricing (REVISED)
 
-#### 1. **Free Plan** (€0/month) - **STARTER**
+#### **Single Plan** - **UNLIMITED**
 
-**Target**: Piccole attività che vogliono testare il sistema
+**Target**: All businesses with comprehensive WhatsApp integration
 
-- ✅ **1 WhatsApp channel**
-- ✅ **Up to 100 AI messages/month**
-- ✅ **Maximum 5 Products**
-- ✅ **Maximum 3 Services**
-- ✅ **Basic analytics dashboard**
-- ❌ API access (disabled)
-- ❌ Advanced analytics (disabled)
-- ❌ Push notifications (disabled)
-- ❌ Priority support (disabled)
-- ❌ Custom AI training (disabled)
-- **Support**: Community forum only
-- **Response time**: Best effort (no SLA)
-
-#### 2. **Basic Plan** (€59/month + €0.005/message) - **BUSINESS**
-
-**Target**: Piccole/medie imprese con esigenze standard
-
-- ✅ **1 WhatsApp channel**
-- ✅ **Up to 1,000 AI messages/month included**
-- ✅ **€0.005 per additional message** (0.5 cents per message over limit)
-- ✅ **Up to 50 Products** (not unlimited!)
-- ✅ **Up to 20 Services**
-- ✅ **Basic analytics dashboard**
-- ✅ **API access** (limited to 1,000 calls/month)
-- ✅ **Real-time billing dashboard**
-- ✅ **Monthly usage reports**
-- ❌ Advanced analytics (disabled)
-- ❌ Push notifications (disabled)
-- ❌ Custom AI training (disabled)
-- **Support**: Email support
-- **Response time**: 48h SLA
-- **Billing**: Monthly subscription + pay-per-use overage
-
-#### 3. **Professional Plan** (€149/month) - **ENTERPRISE**
-
-**Target**: Aziende in crescita con esigenze avanzate
-**Upgrade Process**: **Contact Sales Form** - Direct operator contact required
-
-- ✅ **Up to 3 WhatsApp channels**
-- ✅ **Up to 5,000 AI messages/month**
+- ✅ **Unlimited WhatsApp channels**
+- ✅ **Unlimited AI messages/month**
 - ✅ **Unlimited Products and Services**
 - ✅ **Advanced analytics and reporting**
 - ✅ **Full API access** (unlimited calls)
@@ -5433,59 +5395,42 @@ Comprehensive testing approach:
 - ✅ **Dedicated onboarding session**
 - ✅ **Custom configuration setup**
 - **Support**: Dedicated support team
-- **Sales Process**: Personal consultation with technical specialist
+- **Sales Process**: Direct implementation and customization services
 
-#### 4. **Enterprise Plan** (Custom pricing) - **CORPORATE**
+### Single Plan Features
 
-**Target**: Grandi aziende con esigenze specifiche
-
-- ✅ **Unlimited WhatsApp channels**
-- ✅ **Custom AI message volume**
-- ✅ **Unlimited products/services**
-- ✅ **Dedicated response team (4h SLA)**
-- ✅ **Full API access with custom limits**
-- ✅ **White-label options**
-- ✅ **Dedicated account manager**
-- ✅ **Custom integrations**
-- ✅ **On-premises deployment option**
-- ✅ **Custom AI model training**
-- **Support**: 24/7 dedicated support
-
-### Plan Comparison Matrix
-
-| Feature                | Free             | Basic (€59 + overage)         | Professional (€149) | Enterprise (Custom) |
-| ---------------------- | ---------------- | ----------------------------- | ------------------- | ------------------- |
-| **WhatsApp Channels**  | 1                | 1                             | 3                   | Unlimited           |
-| **AI Messages/Month**  | 100 (hard limit) | 1,000 included + €0.005/extra | 5,000               | Custom              |
-| **Overage Billing**    | ❌               | ✅ Pay-per-use                | ❌ (unlimited)      | Custom              |
-| **Products**           | 5                | 50                            | Unlimited           | Unlimited           |
-| **Services**           | 3                | 20                            | Unlimited           | Unlimited           |
-| **Analytics**          | Basic            | Basic + Billing               | Advanced            | Custom              |
-| **API Access**         | ❌               | Limited                       | Full                | Custom              |
-| **Billing Dashboard**  | ❌               | ✅ Real-time                  | ✅ Advanced         | ✅ Custom           |
-| **Payment Methods**    | ❌               | Credit Card                   | Multiple            | Enterprise          |
-| **Push Notifications** | ❌               | ❌                            | ✅                  | ✅                  |
-| **Custom AI Training** | ❌               | ❌                            | ✅                  | ✅                  |
-| **Support**            | Community        | Email (48h)                   | Phone+Email (12h)   | 24/7 Dedicated      |
-| **White-label**        | ❌               | ❌                            | ✅                  | ✅                  |
+| Feature                | Unlimited Plan                |
+| ---------------------- | ----------------------------- |
+| **WhatsApp Channels**  | Unlimited                     |
+| **AI Messages/Month**  | Unlimited                     |
+| **Products**           | Unlimited                     |
+| **Services**           | Unlimited                     |
+| **Analytics**          | Advanced                      |
+| **API Access**         | Full                          |
+| **Billing Dashboard**  | Advanced                      |
+| **Payment Methods**    | Multiple                       |
+| **Push Notifications** | ✅                            |
+| **Custom AI Training** | ✅                            |
+| **Support**            | Phone+Email (12h)             |
+| **White-label**        | ✅                            |
 
 ### Monetization Strategy
 
 #### Revenue Drivers:
 
-1. **Message Volume**: Primary limitation for scaling
-2. **Channel Count**: Multiple WhatsApp numbers for different departments
-3. **Product/Service Limits**: Catalog size restrictions
-4. **Advanced Features**: Analytics, API, Custom AI
-5. **Support Level**: Response time and channel quality
+1. **Implementation Services**: Custom setup and configuration
+2. **Customization Services**: Tailored integrations and features
+3. **API Access**: Third-party integration fees
+4. **Support Services**: Premium support and training
+5. **White-label Solutions**: Branded deployments
 
-#### Upgrade Triggers:
+#### Service Offerings:
 
-- **Free → Basic**: When hitting 100 messages/month or need more than 5 products (Self-service upgrade)
-- **Basic → Professional**: When overage costs exceed €90/month consistently (Contact Sales Form)
-- **Professional → Enterprise**: When need custom integrations or 24/7 support (Enterprise Sales Process)
-
-### Professional Plan Sales Process
+- **Implementation**: Custom setup and configuration
+- **Customization**: Tailored integrations and features
+- **API Access**: Third-party integration fees
+- **Support**: Premium support and training
+- **White-label**: Branded deployments
 
 #### Contact Sales Form Requirements:
 
@@ -5516,91 +5461,41 @@ When users click "Upgrade to Professional" they are directed to a contact form i
 - Direct relationship with account manager
 - Potential custom pricing for high-volume users
 
-### Pay-Per-Use Billing System
+### Usage Tracking System
 
-#### Billing Model Overview:
+#### Usage Model Overview:
 
-**Basic Plan**: €59/month base + €0.005 per message over 1,000 monthly limit
+**Single Plan**: Unlimited usage with tracking for analytics and optimization
 
-#### Real-Time Billing Architecture:
+#### Usage Tracking Architecture:
 
 **1. Message Counting System**
 
 - Every AI response increments workspace message counter
 - Real-time tracking with Redis for performance
-- Daily aggregation to PostgreSQL for billing
-- Monthly reset on billing cycle date
+- Daily aggregation to PostgreSQL for analytics
+- Monthly reporting for business insights
 
-**2. Overage Calculation**
+**2. Usage Analytics**
 
-```typescript
-// Example billing calculation
-const basePrice = 59.0 // €59 monthly subscription
-const includedMessages = 1000
-const overageRate = 0.005 // €0.005 per message
-const actualMessages = 1547
-
-const overageMessages = Math.max(0, actualMessages - includedMessages)
-const overageCost = overageMessages * overageRate
-const totalMonthlyBill = basePrice + overageCost
-
-// Result: €59 + (547 * €0.005) = €59 + €2.735 = €61.74
-```
-
-**3. Billing Dashboard Components**
-
-- **Current Month Usage**: Real-time message count and cost
-- **Projected Bill**: Estimated monthly cost based on current usage
-- **Usage History**: 12-month usage and billing history
-- **Cost Alerts**: Notifications at €10, €25, €50 overage thresholds
+- **Current Month Usage**: Real-time message count and trends
+- **Usage History**: 12-month usage patterns
 - **Usage Analytics**: Peak usage times, message trends
+- **Performance Metrics**: Response times, user satisfaction
 
-**4. Payment Processing Integration**
+**3. Analytics Dashboard Components**
 
-- **Stripe Integration**: For credit card processing
-- **Monthly Billing Cycle**: Subscription + overage charges
-- **Automatic Payment**: Credit card on file
-- **Invoice Generation**: PDF invoices with usage breakdown
-- **Failed Payment Handling**: Grace period + service suspension
+- **Current Month Usage**: Real-time message count and trends
+- **Usage History**: 12-month usage patterns
+- **Usage Analytics**: Peak usage times, message trends
+- **Performance Metrics**: Response times, user satisfaction
 
-**5. Cost Control Features**
+**4. Business Intelligence**
 
-- **Spending Limits**: Set maximum monthly overage (e.g., €50 max)
-- **Usage Alerts**: Email/SMS at 80%, 100%, 150% of included messages
-- **Auto-Upgrade**: Automatic upgrade to Professional when overage > €90/month
-- **Billing Notifications**: Real-time cost updates in dashboard
-
-### Plan Limits Enforcement System
-
-#### Where Limits Are Applied:
-
-**1. WhatsApp Message Processing (`/src/services/whatsapp.service.ts`)**
-
-- Check monthly message count before sending AI response
-- Block response if limit exceeded, show upgrade message instead
-- Track message count per workspace per month
-
-**2. Product Management (`/src/controllers/products.controller.ts`)**
-
-- Validate product count before creating new product
-- Show upgrade popup when limit reached
-- Prevent product creation beyond plan limit
-
-**3. Service Management (`/src/controllers/services.controller.ts`)**
-
-- Validate service count before creating new service
-- Show upgrade popup when limit reached
-- Prevent service creation beyond plan limit
-
-**4. API Endpoints (`/src/middleware/plan-limits.middleware.ts`)**
-
-- Rate limiting based on plan (1,000 calls for Basic, unlimited for Professional)
-- Return 429 error with upgrade message when API limit exceeded
-- Track API usage per workspace
-
-**5. Frontend Components**
-
-- Products page: Show usage indicator "47/50 products used"
+- **Usage Patterns**: Identify peak usage times and trends
+- **Feature Adoption**: Track which features are most used
+- **Performance Optimization**: Monitor response times and quality
+- **Business Insights**: Customer behavior and preferences
 - Services page: Show usage indicator "18/20 services used"
 - Dashboard: Show monthly message usage "847/1,000 messages used"
 - Settings: Show current plan and usage statistics

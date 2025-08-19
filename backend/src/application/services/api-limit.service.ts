@@ -131,7 +131,6 @@ export class ApiLimitService {
       const workspace = await this.prisma.workspace.findUnique({
         where: { id: workspaceId },
         select: { 
-          plan: true,
           id: true,
           name: true
         }
@@ -142,18 +141,8 @@ export class ApiLimitService {
         return null;
       }
 
-      // Limiti basati sul piano - safely access plan property
-      const plan = workspace.plan || 'FREE';
-      switch (plan) {
-        case 'FREE':
-          return 100; // Limite ridotto per piano gratuito
-        case 'BASIC':
-          return 500;
-        case 'PROFESSIONAL':
-          return 2000;
-        default:
-          return this.DEFAULT_LIMIT_PER_HOUR;
-      }
+      // Unlimited plan - no restrictions
+      return this.DEFAULT_LIMIT_PER_HOUR;
 
     } catch (error) {
       logger.error(`[API_LIMIT] Error getting workspace limit:`, error);

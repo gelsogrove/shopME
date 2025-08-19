@@ -1,7 +1,8 @@
 import { Router } from 'express'
+import { config } from '../../../config'
 import { usageService } from '../../../services/usage.service'
-import { asyncHandler } from '../middlewares/async.middleware'
 import logger from '../../../utils/logger'
+import { asyncHandler } from '../middlewares/async.middleware'
 
 const router = Router()
 
@@ -53,21 +54,21 @@ router.post('/track-usage', asyncHandler(async (req, res) => {
     await usageService.trackUsage({
       workspaceId: workspaceId,
       clientId: customer.id,
-      price: 0.005 // €0.005 per response (0.5 centesimi)
+              price: config.llm.defaultPrice // Default LLM price from configuration
     })
 
-    logger.info(`[N8N-TrackUsage] ✅ Usage tracked: €0.005 for customer ${customer.name}`)
+          logger.info(`[N8N-TrackUsage] ✅ Usage tracked: €${config.llm.defaultPrice} for customer ${customer.name}`)
 
     return res.status(200).json({
       success: true,
-      message: `Usage tracked successfully: €0.005 for ${responseType} response`,
+              message: `Usage tracked successfully: €${config.llm.defaultPrice} for ${responseType} response`,
       tracked: true,
       customer: {
         id: customer.id,
         name: customer.name,
         phone: customer.phone
       },
-      cost: 0.005
+              cost: config.llm.defaultPrice
     })
 
   } catch (error) {
@@ -75,8 +76,8 @@ router.post('/track-usage', asyncHandler(async (req, res) => {
     
     return res.status(500).json({
       success: false,
-      message: "Errore nel tracking dell'usage",
-      error: error instanceof Error ? error.message : "Errore sconosciuto"
+              message: "Error tracking usage",
+              error: error instanceof Error ? error.message : "Unknown error"
     })
   }
 }))

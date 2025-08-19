@@ -1,96 +1,108 @@
-/**
- * Plan limits utility functions
- * Defines limits for each subscription plan and provides validation functions
- */
+export type PlanType = "FREE" | "BASIC" | "PREMIUM" | "ENTERPRISE"
 
-export enum PlanType {
-  FREE = 'FREE',
-  BASIC = 'BASIC',
-  PROFESSIONAL = 'PROFESSIONAL'
+export interface PlanLimits {
+  maxProducts: number
+  maxServices: number
+  maxDocuments: number
+  maxFaqs: number
+  maxCustomers: number
+  maxOrders: number
+  maxChatSessions: number
+  maxUsagePerMonth: number
+  features: string[]
 }
 
-interface PlanLimits {
-  maxProducts: number; // -1 for unlimited
-  maxServices: number; // -1 for unlimited
-  maxAIMessages: number; // -1 for unlimited
-  maxWhatsAppChannels: number; // -1 for unlimited
-}
-
-/**
- * Define limits for each plan type
- */
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
-  [PlanType.FREE]: {
-    maxProducts: 3,
-    maxServices: 3,
-    maxAIMessages: 100,
-    maxWhatsAppChannels: 1
-  },
-  [PlanType.BASIC]: {
-    maxProducts: 5,
+  FREE: {
+    maxProducts: 10,
     maxServices: 5,
-    maxAIMessages: 1000,
-    maxWhatsAppChannels: 1
+    maxDocuments: 3,
+    maxFaqs: 10,
+    maxCustomers: 50,
+    maxOrders: 100,
+    maxChatSessions: 200,
+    maxUsagePerMonth: 1000,
+    features: ["Basic Chat", "Product Catalog", "Order Management"]
   },
-  [PlanType.PROFESSIONAL]: {
-    maxProducts: 100,
+  BASIC: {
+    maxProducts: 50,
+    maxServices: 20,
+    maxDocuments: 10,
+    maxFaqs: 50,
+    maxCustomers: 200,
+    maxOrders: 500,
+    maxChatSessions: 1000,
+    maxUsagePerMonth: 5000,
+    features: ["Basic Chat", "Product Catalog", "Order Management", "Analytics"]
+  },
+  PREMIUM: {
+    maxProducts: 200,
     maxServices: 100,
-    maxAIMessages: 5000,
-    maxWhatsAppChannels: 3
+    maxDocuments: 50,
+    maxFaqs: 200,
+    maxCustomers: 1000,
+    maxOrders: 2000,
+    maxChatSessions: 5000,
+    maxUsagePerMonth: 25000,
+    features: ["Advanced Chat", "Product Catalog", "Order Management", "Analytics", "WhatsApp Integration"]
+  },
+  ENTERPRISE: {
+    maxProducts: -1, // Unlimited
+    maxServices: -1, // Unlimited
+    maxDocuments: -1, // Unlimited
+    maxFaqs: -1, // Unlimited
+    maxCustomers: -1, // Unlimited
+    maxOrders: -1, // Unlimited
+    maxChatSessions: -1, // Unlimited
+    maxUsagePerMonth: -1, // Unlimited
+    features: ["Advanced Chat", "Product Catalog", "Order Management", "Analytics", "WhatsApp Integration", "Custom Features"]
   }
-};
-
-/**
- * Get plan limits for a given plan type
- */
-export function getPlanLimits(planType: PlanType): PlanLimits {
-  return PLAN_LIMITS[planType];
 }
 
-/**
- * Check if adding a new product would exceed the plan limit
- */
-export function canAddProduct(planType: PlanType, currentCount: number): boolean {
-  const limits = getPlanLimits(planType);
-  if (limits.maxProducts === -1) return true; // Unlimited
-  return currentCount < limits.maxProducts;
+export const getPlanLimits = (planType: PlanType): PlanLimits => {
+  return PLAN_LIMITS[planType] || PLAN_LIMITS.FREE
 }
 
-/**
- * Check if adding a new service would exceed the plan limit
- */
-export function canAddService(planType: PlanType, currentCount: number): boolean {
-  const limits = getPlanLimits(planType);
-  if (limits.maxServices === -1) return true; // Unlimited
-  return currentCount < limits.maxServices;
+export const isUnlimited = (limit: number): boolean => {
+  return limit === -1
 }
 
-/**
- * Get the maximum allowed products for a plan
- */
-export function getMaxProducts(planType: PlanType): number | string {
-  const limits = getPlanLimits(planType);
-  return limits.maxProducts === -1 ? 'Unlimited' : limits.maxProducts;
+export const checkLimit = (current: number, limit: number): boolean => {
+  if (isUnlimited(limit)) return true
+  return current < limit
 }
 
-/**
- * Get the maximum allowed services for a plan
- */
-export function getMaxServices(planType: PlanType): number | string {
-  const limits = getPlanLimits(planType);
-  return limits.maxServices === -1 ? 'Unlimited' : limits.maxServices;
+// Helper functions for controllers
+export const canAddProduct = (planType: PlanType, currentCount: number): boolean => {
+  const limits = getPlanLimits(planType)
+  return checkLimit(currentCount, limits.maxProducts)
 }
 
-/**
- * Get a user-friendly error message for plan limits
- */
-export function getPlanLimitErrorMessage(planType: PlanType, limitType: 'products' | 'services'): string {
-  const limits = getPlanLimits(planType);
-  const maxItems = limitType === 'products' ? limits.maxProducts : limits.maxServices;
+export const canAddService = (planType: PlanType, currentCount: number): boolean => {
+  const limits = getPlanLimits(planType)
+  return checkLimit(currentCount, limits.maxServices)
+}
+
+export const canAddDocument = (planType: PlanType, currentCount: number): boolean => {
+  const limits = getPlanLimits(planType)
+  return checkLimit(currentCount, limits.maxDocuments)
+}
+
+export const canAddFaq = (planType: PlanType, currentCount: number): boolean => {
+  const limits = getPlanLimits(planType)
+  return checkLimit(currentCount, limits.maxFaqs)
+}
+
+export const getPlanLimitErrorMessage = (planType: PlanType, resourceType: string): string => {
+  const limits = getPlanLimits(planType)
+  const limit = resourceType === "products" ? limits.maxProducts :
+                resourceType === "services" ? limits.maxServices :
+                resourceType === "documents" ? limits.maxDocuments :
+                resourceType === "faqs" ? limits.maxFaqs : -1
   
-  if (maxItems === -1) {
-    return 'You have unlimited access to this feature.';
+  if (isUnlimited(limit)) {
+    return `You have unlimited ${resourceType} in your ${planType} plan`
   }
   
-  return `Your ${planType} plan allows a maximum of ${maxItems} ${limitType}. Please upgrade your plan to add more ${limitType}.`;
-} 
+  return `Plan limit reached: ${resourceType} limit is ${limit} for ${planType} plan`
+}

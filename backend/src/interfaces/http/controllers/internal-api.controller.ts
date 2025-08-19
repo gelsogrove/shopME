@@ -1725,7 +1725,7 @@ ${JSON.stringify(ragResults, null, 2)}`
 
   private formatMockResults(results: any[], query: string): string {
     if (results.length === 0) {
-      return `🔍 Nessun risultato trovato per "${query}"`
+              return `🔍 No results found for "${query}"`
     }
 
     let response = `🛍️ **PRODOTTI TROVATI PER "${query.toUpperCase()}":**\n\n`
@@ -1751,8 +1751,8 @@ ${JSON.stringify(ragResults, null, 2)}`
     try {
       const { search } = req.query
 
-      // 🔒 HARDCODED VALUES FOR TESTING (Andrea's Request)
-      const HARDCODED_WORKSPACE_ID = "clzd8x8z20000356cqhpe6yu0"
+        // 🔒 HARDCODED VALUES FOR TESTING (Andrea's Request)
+  const HARDCODED_WORKSPACE_ID = "cm9hjgq9v00014qk8fsdy4ujv"
       const query = (search as string) || "mozzarelle" // Default search if empty
 
       logger.info(`[OPEN-RAG-TEST] 🧪 Andrea's Open Test - Query: "${query}"`)
@@ -1804,7 +1804,7 @@ ${JSON.stringify(ragResults, null, 2)}`
    */
   async testRegenerateEmbeddings(req: Request, res: Response): Promise<void> {
     try {
-      const HARDCODED_WORKSPACE_ID = "clzd8x8z20000356cqhpe6yu0"
+      const HARDCODED_WORKSPACE_ID = "cm9hjgq9v00014qk8fsdy4ujv"
 
       logger.info(
         `[TEST-EMBEDDING-REGEN] 🔄 Starting FAQ embedding regeneration for workspace: ${HARDCODED_WORKSPACE_ID}`
@@ -3875,7 +3875,7 @@ ${JSON.stringify(ragResults, null, 2)}`
           shippingAddress: shippingAddress || null,
           billingAddress: billingAddress || null,
           notes: notes || `Ordine creato tramite N8N per ${customer.name}`,
-          customerId: customer.id, // Usa l'ID del customer effettivo trovato/creato
+          customerId: customer.id, // Use the actual customer ID found/created
           workspaceId: workspaceId,
           items: {
             create: resolvedOrderItems,
@@ -3913,7 +3913,7 @@ ${JSON.stringify(ragResults, null, 2)}`
         },
       })
     } catch (error) {
-      logger.error("[CREATE-ORDER] ❌ Errore creazione ordine:", error)
+      logger.error("[CREATE-ORDER] ❌ Order creation error:", error)
       res.status(500).json({
         success: false,
         error: "Internal server error",

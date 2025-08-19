@@ -676,7 +676,7 @@ export class FunctionHandlerService {
       logger.error("❌ Errore createOrderFromItems:", error)
       return {
         success: false,
-        error: "❌ Errore interno del server durante la creazione dell'ordine",
+        error: "❌ Internal server error during order creation",
       }
     }
   }
@@ -757,7 +757,7 @@ export class FunctionHandlerService {
       logger.error("Error fetching cart info:", error)
       return {
         error:
-          "Si è verificato un errore nel recupero delle informazioni del carrello",
+          "An error occurred while retrieving cart information",
         empty: true,
         items: [],
         total: 0,
@@ -790,7 +790,7 @@ export class FunctionHandlerService {
         if (!order) {
           return {
             found: false,
-            error: "Ordine non trovato",
+            error: "Order not found",
           }
         }
 
@@ -835,7 +835,7 @@ export class FunctionHandlerService {
       logger.error("Error fetching order status:", error)
       return {
         found: false,
-        error: "Si è verificato un errore nel recupero dello stato dell'ordine",
+        error: "An error occurred while retrieving order status",
       }
     }
   }
@@ -929,7 +929,7 @@ export class FunctionHandlerService {
       return {
         success: false,
         error:
-          "Si è verificato un errore nell'aggiunta del prodotto al carrello",
+          "An error occurred while adding product to cart",
       }
     }
   }
@@ -999,7 +999,7 @@ export class FunctionHandlerService {
       return {
         success: false,
         error:
-          "Si è verificato un errore nella rimozione del prodotto dal carrello",
+          "An error occurred while removing product from cart",
       }
     }
   }
@@ -1090,7 +1090,7 @@ export class FunctionHandlerService {
       logger.error("Error fetching product list:", error)
       return {
         found: false,
-        error: "Si è verificato un errore nel recupero della lista prodotti",
+        error: "An error occurred while retrieving product list",
       }
     }
   }

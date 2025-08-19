@@ -1,6 +1,7 @@
-import logger from "../../../utils/logger"
 import { Request, Response } from "express"
+import { config } from "../../../config"
 import { usageService } from "../../../services/usage.service"
+import logger from "../../../utils/logger"
 
 export class UsageController {
   constructor() {}
@@ -33,28 +34,28 @@ export class UsageController {
       await usageService.trackUsage({
         clientId: customerId,
         workspaceId: workspaceId,
-        price: 0.005,
+        price: config.llm.defaultPrice,
       })
 
       logger.info("[UsageController] ✅ Usage tracked successfully:", {
         customerId,
         workspaceId,
         type,
-        cost: "€0.005",
+        cost: `€${config.llm.defaultPrice}`,
       })
 
       res.json({
         success: true,
         usage: {
-          cost: 0.005,
-          message: "Usage tracked successfully (€0.005)",
+                  cost: config.llm.defaultPrice,
+        message: `Usage tracked successfully (€${config.llm.defaultPrice})`,
         },
       })
     } catch (error) {
-      logger.error("[UsageController] ❌ Errore tracking usage:", error)
+      logger.error("[UsageController] ❌ Usage tracking error:", error)
       res.status(500).json({
         success: false,
-        error: "Errore interno durante tracking usage",
+        error: "Internal error during usage tracking",
       })
     }
   }

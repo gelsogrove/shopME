@@ -241,7 +241,7 @@ const createOrderHandler = async (req: Request, res: Response): Promise<void> =>
       }
     });
   } catch (error) {
-    logger.error('[CREATE-ORDER] ❌ Errore creazione ordine:', error);
+            logger.error('[CREATE-ORDER] ❌ Order creation error:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error',
@@ -640,7 +640,7 @@ describe('create-order endpoint tests', () => {
     
     // Assertions
     expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining('[CREATE-ORDER] ❌ Errore creazione ordine:'),
+      expect.stringContaining('[CREATE-ORDER] ❌ Order creation error:'),
       expect.any(Error)
     );
     expect(mockResponse.status).toHaveBeenCalledWith(500);

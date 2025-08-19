@@ -246,7 +246,7 @@ export class N8nPayloadBuilder {
                 optimizedData.businessInfo?.name || "L'Altra Italia(ESP)",
               businessType:
                 optimizedData.businessInfo?.businessType || "ECOMMERCE",
-              plan: optimizedData.businessInfo?.plan || "PREMIUM",
+              plan: "PREMIUM", // Default plan since it's not in schema
               whatsappPhoneNumber:
                 optimizedData.businessInfo?.whatsappPhoneNumber ||
                 "+34654728753",

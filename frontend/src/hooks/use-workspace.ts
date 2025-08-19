@@ -1,9 +1,9 @@
+import { logger } from "@/lib/logger"
 import { api } from "@/services/api"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import axios from "axios"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { logger } from "@/lib/logger"
 import { useToast } from "./use-toast"
 
 export interface Workspace {
@@ -19,7 +19,7 @@ export interface Workspace {
   updatedAt: string
   currency?: string
   language?: string
-  plan?: 'FREE' | 'BASIC' | 'PROFESSIONAL'
+
   stats?: {
     products: number
     orders: number

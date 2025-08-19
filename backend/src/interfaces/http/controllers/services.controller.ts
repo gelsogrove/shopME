@@ -3,11 +3,7 @@ import ServiceService from "../../../application/services/service.service"
 import { prisma } from "../../../lib/prisma"
 import { embeddingService } from "../../../services/embeddingService"
 import logger from "../../../utils/logger"
-import {
-  canAddService,
-  getPlanLimitErrorMessage,
-  PlanType,
-} from "../../../utils/planLimits"
+
 import { WorkspaceRequest } from "../types/workspace-request"
 
 /**
@@ -90,31 +86,15 @@ export class ServicesController {
         return res.status(400).json({ error: "Code is required" })
       }
 
-      // Check workspace plan and current service count
+      // Check workspace exists
       const workspace = await prisma.workspace.findUnique({
         where: { id: workspaceId },
-        select: { plan: true },
+        select: { id: true },
       })
 
       if (!workspace) {
         return res.status(404).json({
           error: "Workspace not found",
-        })
-      }
-
-      // Count current active services
-      const currentServiceCount = await prisma.services.count({
-        where: {
-          workspaceId: workspaceId,
-          isActive: true,
-        },
-      })
-
-      // Check if user can add another service based on their plan
-      const planType = workspace.plan as PlanType
-      if (!canAddService(planType, currentServiceCount)) {
-        return res.status(403).json({
-          error: getPlanLimitErrorMessage(planType, "services"),
         })
       }
 

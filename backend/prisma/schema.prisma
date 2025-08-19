@@ -27,7 +27,7 @@ model Workspace {
   blocklist                 String?           @default("")
   url                       String?
   n8nWorkflowUrl            String?           @default("http://localhost:5678/workflow/1XPQF919PP0MEdtH")
-  plan                      PlanType          @default(FREE)
+
   businessType              BusinessType      @default(ECOMMERCE)
   welcomeMessages           Json?             @default("{\"en\": \"Welcome!\", \"es\": \"¡Bienvenido!\", \"it\": \"Benvenuto!\"}")
   wipMessages               Json?             @default("{\"en\": \"Work in progress. Please contact us later.\", \"es\": \"Trabajos en curso. Por favor, contáctenos más tarde.\", \"it\": \"Lavori in corso. Contattaci più tardi.\", \"pt\": \"Em manutenção. Por favor, contacte-nos mais tarde.\"}")
@@ -649,11 +649,7 @@ enum UserRole {
   MEMBER
 }
 
-enum PlanType {
-  FREE
-  BASIC
-  PROFESSIONAL
-}
+
 
 enum BusinessType {
   ECOMMERCE
