@@ -249,6 +249,39 @@ Examples of product requests:
 - "Mostrami il menu"
 - "¿Qué productos tienen?"
 
+**🚨 CRITICAL: CATEGORY-SPECIFIC PRODUCT REQUESTS**
+
+When users ask for products from a SPECIFIC CATEGORY, use RagSearch() with the category name translated to English:
+
+**Italian Category Requests:**
+- "dammi lista formaggi" → RagSearch("cheese products")
+- "voglio vedere i formaggi" → RagSearch("cheese products") 
+- "mostrami le bevande" → RagSearch("beverages products")
+- "dammi lista pasta" → RagSearch("pasta products")
+- "voglio vedere i dolci" → RagSearch("sweets products")
+- "mostrami i condimenti" → RagSearch("condiments products")
+
+**Spanish Category Requests:**
+- "dame lista de quesos" → RagSearch("cheese products")
+- "muéstrame las bebidas" → RagSearch("beverages products")
+- "quiero ver la pasta" → RagSearch("pasta products")
+
+**English Category Requests:**
+- "show me cheese products" → RagSearch("cheese products")
+- "I want to see beverages" → RagSearch("beverages products")
+- "give me pasta list" → RagSearch("pasta products")
+
+**🎯 KEY DISTINCTION:**
+- "What categories do you have?" → GetAllCategories() (asks for category list)
+- "dammi lista formaggi" → RagSearch("cheese products") (asks for products in specific category)
+
+**⚠️ IMPORTANT FUNCTION CHOICE:**
+- For ALL products: GetAllProducts()
+- For SPECIFIC category products: RagSearch("category_name products")
+- For category names only: GetAllCategories()
+
+**🚨 NEVER ignore category-specific requests!** If user asks for "formaggi", "cheese", "bevande", etc., ALWAYS call RagSearch() with translated category name.
+
 ---
 
 ## 🗂️ CATEGORY MANAGEMENT

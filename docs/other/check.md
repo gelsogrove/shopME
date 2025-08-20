@@ -170,4 +170,6 @@ se hai dubbi chiedi.
 - [ ] 73 TOKEN-ONLY SYSTEM: Tutti i link generati sono nel formato corretto (/orders-public?token=..., /customer-profile?token=..., /checkout?token=...)?
 - [ ] 74 TOKEN-ONLY SYSTEM: LLM non inventa più link ma usa solo quelli generati dalle calling functions?
 - [ ] 75 TOKEN-ONLY SYSTEM: Sistema è "congelato" e funzionante per deployment?
+
+- [ ] 76 LLM TRANSLATION RULE: Nel prompt_agent.md esiste la regola "PRIMA DI CHIAMARE RagSearch(), se la domanda dell'utente è in italiano o spagnolo, TRADUCI AUTOMATICAMENTE la query in inglese" (linea 374-376)?
  
