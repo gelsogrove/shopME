@@ -47,7 +47,7 @@ export class SecureTokenService {
   }
 
   /**
-   * Create a secure token
+   * Create or update a secure token (UNICO RECORD PER UTENTE)
    */
   async createToken(
     type: 'registration' | 'checkout' | 'invoice' | 'cart' | 'password_reset' | 'email_verification' | 'orders' | 'profile',
@@ -56,43 +56,10 @@ export class SecureTokenService {
     expiresIn: string = '1h',
     userId?: string,
     phoneNumber?: string,
-    ipAddress?: string
+    ipAddress?: string,
+    customerId?: string
   ): Promise<string> {
     try {
-      // 🧹 AUTO-CLEANUP: Remove expired tokens (older than 1 hour) for this workspace
-      const oneHourAgo = new Date()
-      oneHourAgo.setHours(oneHourAgo.getHours() - 1)
-      
-      const cleanupResult = await this.prisma.secureToken.deleteMany({
-        where: {
-          workspaceId,
-          expiresAt: {
-            lt: oneHourAgo
-          }
-        }
-      })
-
-      if (cleanupResult.count > 0) {
-        logger.info(`[SECURE-TOKEN] 🧹 Auto-cleaned ${cleanupResult.count} expired tokens (older than 1 hour) for workspace ${workspaceId}`)
-      }
-
-      // Invalidate existing tokens of the same type for the same user/phone
-      const whereClause: any = {
-        type,
-        workspaceId,
-        usedAt: null,
-      }
-
-      if (userId) whereClause.userId = userId
-      if (phoneNumber) whereClause.phoneNumber = phoneNumber
-
-      await this.prisma.secureToken.updateMany({
-        where: whereClause,
-        data: {
-          expiresAt: new Date(), // Expire immediately
-        },
-      })
-
       // Generate new token
       const token = this.generateSecureToken()
 
@@ -104,12 +71,69 @@ export class SecureTokenService {
       // Store payload as JSON (no encryption) to ensure compatibility and avoid runtime crypto issues
       const encryptedPayload = payload ?? null
 
-      // Save token to database
-      await this.prisma.secureToken.create({
+      // 🎯 NUOVA LOGICA: RIUTILIZZA TOKEN SE NON SCADUTO!
+      if (customerId) {
+        logger.info(`[SECURE-TOKEN] 🚀 Checking existing token for customerId="${customerId}", type="${type}", workspaceId="${workspaceId}"`)
+        
+        // Prima controlla se esiste un token valido
+        const existingToken = await this.prisma.secureToken.findFirst({
+          where: {
+            customerId,
+            type,
+            workspaceId,
+            expiresAt: {
+              gt: new Date() // Token non scaduto
+            }
+          }
+        })
+
+        if (existingToken) {
+          logger.info(`[SECURE-TOKEN] ✅ RIUTILIZZO TOKEN ESISTENTE: ${existingToken.token.substring(0, 10)}... (scade: ${existingToken.expiresAt})`)
+          return existingToken.token
+        }
+
+        logger.info(`[SECURE-TOKEN] 🔄 Nessun token valido trovato, creo/aggiorno con UPSERT`)
+        
+        const upsertedToken = await this.prisma.secureToken.upsert({
+          where: {
+            unique_customer_token: {
+              customerId,
+              type,
+              workspaceId
+            }
+          },
+          update: {
+            token,
+            expiresAt,
+            payload: encryptedPayload,
+            phoneNumber,
+            ipAddress,
+            updatedAt: new Date()
+          },
+          create: {
+            token,
+            type,
+            workspaceId,
+            customerId,
+            userId,
+            phoneNumber,
+            payload: encryptedPayload,
+            expiresAt,
+            ipAddress,
+          }
+        })
+
+        logger.info(`[SECURE-TOKEN] ✅ UPSERT completed for ${type} token - customer ${customerId} in workspace ${workspaceId}`)
+        return token
+      }
+
+      // 📝 FALLBACK: Crea nuovo record se customerId non fornito
+      const newToken = await this.prisma.secureToken.create({
         data: {
           token,
           type,
           workspaceId,
+          customerId,
           userId,
           phoneNumber,
           payload: encryptedPayload,
@@ -118,7 +142,7 @@ export class SecureTokenService {
         },
       })
 
-      logger.info(`Created ${type} token for workspace ${workspaceId}`)
+      logger.info(`[SECURE-TOKEN] 📝 Created new ${type} token (no customerId) with ID: ${newToken.id}`)
       return token
     } catch (error) {
       logger.error(`Error creating ${type} token:`, error)
@@ -181,6 +205,7 @@ export class SecureTokenService {
           id: secureToken.id,
           type: secureToken.type,
           workspaceId: secureToken.workspaceId,
+          customerId: secureToken.customerId, // Aggiunto customerId
           userId: secureToken.userId,
           phoneNumber: secureToken.phoneNumber,
           expiresAt: secureToken.expiresAt,

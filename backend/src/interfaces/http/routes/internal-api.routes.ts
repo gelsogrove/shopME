@@ -1,6 +1,7 @@
 import { Router } from "express"
 import { MessageRepository } from "../../../repositories/message.repository"
 import { InternalApiController } from "../controllers/internal-api.controller"
+import { linkCorrectorMiddleware } from "../middlewares/link-corrector.middleware"
 import { n8nAuthMiddleware } from "../middlewares/n8n-auth.middleware"
 import n8nUsageRoutes from "./n8n-usage.routes"
 
@@ -94,7 +95,61 @@ router.get(
   internalApiController.getPublicOrderDetail.bind(internalApiController)
 )
 
-// Apply authentication middleware to all other internal API routes
+// 🔐 Token validation for public links (NO AUTH REQUIRED)
+router.post(
+  "/validate-secure-token",
+  internalApiController.validateSecureToken.bind(internalApiController)
+)
+
+// 🔗 ORDERS LINK GENERATION (Public, NO AUTH REQUIRED)
+router.post(
+  "/orders-link",
+  async (req, res) => {
+    try {
+      const { customerId, workspaceId, orderCode } = req.body
+      
+      // Import dinamico per evitare circular dependencies
+      const { GetOrdersListLink } = await import('../../../chatbot/calling-functions/GetOrdersListLink')
+      
+      const result = await GetOrdersListLink({
+        customerId,
+        workspaceId,
+        orderCode: orderCode || undefined
+      })
+      
+      res.json(result)
+    } catch (error) {
+      res.status(400).json({ error: error.message })
+    }
+  }
+)
+
+// 👤 CUSTOMER PROFILE LINK GENERATION (Public, NO AUTH REQUIRED)  
+router.post(
+  "/profile-link",
+  async (req, res) => {
+    try {
+      const { customerId, workspaceId } = req.body
+      
+      // Import dinamico per evitare circular dependencies
+      const { GetCustomerProfileLink } = await import('../../../chatbot/calling-functions/GetCustomerProfileLink')
+      
+      const result = await GetCustomerProfileLink({
+        customerId,
+        workspaceId
+      })
+      
+      res.json(result)
+    } catch (error) {
+      res.status(400).json({ error: error.message })
+    }
+  }
+)
+
+// 🔧 Apply link corrector middleware to ALL responses (before auth)
+router.use(linkCorrectorMiddleware)
+
+// Apply authentication middleware to all other internal API routes  
 router.use(n8nAuthMiddleware)
 
 // N8N Usage Tracking Routes
@@ -212,11 +267,7 @@ router.post(
   internalApiController.welcomeUser.bind(internalApiController)
 )
 
-// 🔐 Token validation for public links
-router.post(
-  "/validate-secure-token",
-  internalApiController.validateSecureToken.bind(internalApiController)
-)
+
 
 // 🧾 Get customer invoices by token
 router.get(

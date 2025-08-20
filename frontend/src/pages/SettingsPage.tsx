@@ -1,30 +1,30 @@
 import { Button } from "@/components/ui/button"
-import { logger } from "@/lib/logger"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
     Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
     Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import { logger } from "@/lib/logger"
 import { toast } from "@/lib/toast"
 import {
     deleteWorkspace,
-  getCurrentWorkspace,
-  updateWorkspace,
+    getCurrentWorkspace,
+    updateWorkspace,
 } from "@/services/workspaceApi"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Loader2, Save, Settings, Trash2 } from "lucide-react"
@@ -195,6 +195,9 @@ export default function SettingsPage() {
 
       // Invalida e aggiorna la cache di React Query
       queryClient.setQueryData(["currentWorkspace"], updatedWorkspace)
+
+      // Refetch fresh data from server to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ["currentWorkspace"] })
 
       toast.success("Settings saved successfully")
     },

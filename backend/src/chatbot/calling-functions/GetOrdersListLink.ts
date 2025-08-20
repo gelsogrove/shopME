@@ -26,10 +26,10 @@ export async function GetOrdersListLink({ workspaceId, customerId, orderCode }: 
 
   const tokenService = new SecureTokenService()
   const payload = { customerId, workspaceId, createdAt: new Date().toISOString() }
-  const token = await tokenService.createToken("orders", workspaceId, payload, "1h", customerId, customer.phone || undefined)
+  const token = await tokenService.createToken("orders", workspaceId, payload, "1h", customerId, customer.phone || undefined, undefined, customerId)
 
   const baseUrl = customer.workspace?.url || process.env.FRONTEND_URL || "http://localhost:3000"
-  const ordersListUrl = `${baseUrl}/orders?token=${token}`
+  const ordersListUrl = `${baseUrl}/orders-public?token=${token}`
   const result: Result = {
     ordersListUrl,
     token,
@@ -37,7 +37,7 @@ export async function GetOrdersListLink({ workspaceId, customerId, orderCode }: 
   }
 
   if (orderCode) {
-    result.orderDetailUrl = `${baseUrl}/orders/${orderCode}?token=${token}`
+    result.orderDetailUrl = `${baseUrl}/orders-public/${orderCode}?token=${token}`
   }
 
   return result

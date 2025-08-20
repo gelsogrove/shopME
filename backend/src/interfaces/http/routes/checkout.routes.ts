@@ -7,12 +7,12 @@ const checkoutController = new CheckoutController()
 
 /**
  * @swagger
- * /api/checkout/token/{token}:
+ * /api/checkout/token:
  *   get:
- *     summary: Validate checkout token and get order data
+ *     summary: Validate checkout token and get order data (TOKEN-ONLY)
  *     tags: [Checkout]
  *     parameters:
- *       - in: path
+ *       - in: query
  *         name: token
  *         required: true
  *         schema:
@@ -40,7 +40,7 @@ const checkoutController = new CheckoutController()
  *         description: Server error
  */
 router.get(
-  "/token/:token",
+  "/token",
   asyncMiddleware(checkoutController.validateToken.bind(checkoutController))
 )
 

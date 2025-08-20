@@ -27,7 +27,6 @@ model Workspace {
   blocklist                 String?           @default("")
   url                       String?
   n8nWorkflowUrl            String?           @default("http://localhost:5678/workflow/1XPQF919PP0MEdtH")
-
   businessType              BusinessType      @default(ECOMMERCE)
   welcomeMessages           Json?             @default("{\"en\": \"Welcome!\", \"es\": \"¡Bienvenido!\", \"it\": \"Benvenuto!\"}")
   wipMessages               Json?             @default("{\"en\": \"Work in progress. Please contact us later.\", \"es\": \"Trabajos en curso. Por favor, contáctenos más tarde.\", \"it\": \"Lavori in corso. Contattaci più tardi.\", \"pt\": \"Em manutenção. Por favor, contacte-nos mais tarde.\"}")
@@ -158,11 +157,11 @@ model Orders {
   updatedAt       DateTime        @updatedAt
   customerId      String
   workspaceId     String
+  trackingNumber  String?
   items           OrderItems[]
   customer        Customers       @relation(fields: [customerId], references: [id])
   workspace       Workspace       @relation(fields: [workspaceId], references: [id])
   paymentDetails  PaymentDetails?
-  trackingNumber  String?         // Added optional tracking number
 
   @@map("orders")
 }
@@ -388,11 +387,14 @@ model SecureToken {
   ipAddress   String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  customerId  String?
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
+  @@unique([customerId, type, workspaceId], name: "unique_customer_token", map: "unique_customer_token_non_null")
   @@index([token])
   @@index([expiresAt])
   @@index([workspaceId])
+  @@index([customerId])
   @@map("secure_tokens")
 }
 
@@ -648,8 +650,6 @@ enum UserRole {
   OWNER
   MEMBER
 }
-
-
 
 enum BusinessType {
   ECOMMERCE
