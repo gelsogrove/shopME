@@ -97,10 +97,10 @@ describe("WhatsApp Controller - Blacklist Behavior", () => {
       // The key assertion: blacklisted customers should have NO trace in message history
       expect(mockMessageCreate).not.toHaveBeenCalled()
 
-      // ✅ VERIFY: Response indicates customer was filtered out
+      // ✅ VERIFY: Response indicates customer was blacklisted (not just inactive)
       expect(mockRes.status).toHaveBeenCalledWith(200)
       expect(mockRes.send).toHaveBeenCalledWith(
-        "EVENT_RECEIVED_CUSTOMER_INACTIVE"
+        "EVENT_RECEIVED_CUSTOMER_BLACKLISTED"
       )
     })
 

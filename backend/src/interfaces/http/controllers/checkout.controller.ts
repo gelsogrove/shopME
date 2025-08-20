@@ -13,7 +13,7 @@ export class CheckoutController {
    */
   async validateToken(req: Request, res: Response): Promise<void> {
     try {
-      const { token } = req.query
+      const token = req.query.token as string
 
       if (!token) {
         res.status(400).json({
