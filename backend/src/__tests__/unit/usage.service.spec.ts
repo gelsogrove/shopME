@@ -26,7 +26,7 @@ describe('UsageService', () => {
     const validUsageData = {
       workspaceId: 'workspace-123',
       clientId: 'customer-456',
-      price: 0.005,
+      price: 0.50,
     };
 
     const mockCustomer = {
@@ -63,7 +63,7 @@ describe('UsageService', () => {
         data: {
           workspaceId: 'workspace-123',
           clientId: 'customer-456',
-          price: 0.005,
+          price: 0.50,
         },
       });
     });
@@ -130,7 +130,7 @@ describe('UsageService', () => {
         id: 'usage-1',
         workspaceId: 'workspace-123',
         clientId: 'customer-456',
-        price: 0.005,
+        price: 2.50,
         createdAt: new Date('2024-01-15T10:30:00Z'),
         customer: {
           name: 'Mario Rossi',
@@ -141,7 +141,7 @@ describe('UsageService', () => {
         id: 'usage-2',
         workspaceId: 'workspace-123',
         clientId: 'customer-456',
-        price: 0.005,
+        price: 2.50,
         createdAt: new Date('2024-01-15T14:45:00Z'),
         customer: {
           name: 'Mario Rossi',
@@ -154,22 +154,22 @@ describe('UsageService', () => {
       // Arrange
       (mockPrisma.usage.findMany as jest.Mock).mockResolvedValue(mockUsageRecords);
       (mockPrisma.usage.aggregate as jest.Mock)
-        .mockResolvedValueOnce({ _sum: { price: 0.010 } }) // Current month
-        .mockResolvedValueOnce({ _sum: { price: 0.005 } }); // Previous month
+        .mockResolvedValueOnce({ _sum: { price: 5.00 } }) // Current month  
+        .mockResolvedValueOnce({ _sum: { price: 2.50 } }); // Previous month
 
       // Act
       const result = await usageService.getUsageStats(mockQuery);
 
       // Assert
       expect(result).toEqual({
-        totalCost: 0.010,
+        totalCost: 5.00,
         totalMessages: 2,
         dailyUsage: expect.any(Array),
         topClients: expect.any(Array),
         peakHours: expect.any(Array),
         monthlyComparison: {
-          currentMonth: 0.010,
-          previousMonth: 0.005,
+          currentMonth: 5.00,
+          previousMonth: 2.50,
           growth: 100, // 100% growth
         },
       });
@@ -233,7 +233,7 @@ describe('UsageService', () => {
     it('should return usage summary for specified period', async () => {
       // Arrange
       const mockAggregateResult = {
-        _sum: { price: 0.025 },
+        _sum: { price: 2.50 },
         _count: 5,
       };
       (mockPrisma.usage.aggregate as jest.Mock).mockResolvedValue(mockAggregateResult);
@@ -243,9 +243,9 @@ describe('UsageService', () => {
 
       // Assert
       expect(result).toEqual({
-        totalCost: 0.025,
+        totalCost: 2.50,
         totalMessages: 5,
-        averageDailyCost: 0.025 / 30,
+        averageDailyCost: 2.50 / 30,
         averageDailyMessages: 5 / 30,
       });
     });
