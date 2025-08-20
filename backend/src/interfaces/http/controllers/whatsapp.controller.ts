@@ -271,23 +271,36 @@ export class WhatsAppController {
           workspaceId
         )
 
-        // Always save the message regardless of customer status (for audit trail)
-        await this.saveIncomingMessageForStatus(
-          phoneNumber,
-          messageContent,
-          workspaceId,
-          customerStatusResult
-        )
+        // 🚫 BLACKLIST TOTALE: Se blacklisted, ignora completamente
+        if (customerStatusResult.isBlacklisted && customerStatusResult.customer) {
+          await this.handleBlacklistedCustomer(
+            phoneNumber,
+            messageContent,
+            workspaceId,
+            customerStatusResult.customer
+          )
+          
+          // ❌ BLACKLIST TOTALE: Zero traccia, zero elaborazione
+          res.status(200).send("EVENT_RECEIVED_CUSTOMER_BLACKLISTED")
+          return
+        }
 
-        if (
-          !customerStatusResult.isActive ||
-          customerStatusResult.isBlacklisted
-        ) {
+        // 💾 Salva messaggio solo per utenti NON blacklisted
+        if (customerStatusResult.customer) {
+          await this.saveIncomingMessageForStatus(
+            phoneNumber,
+            messageContent,
+            workspaceId,
+            customerStatusResult
+          )
+        }
+
+        if (!customerStatusResult.isActive) {
           logger.info(
-            `[CUSTOMER-STATUS] ❌ Customer ${phoneNumber} is ${!customerStatusResult.isActive ? "INACTIVE" : "BLACKLISTED"} - message saved but NOT forwarding to N8N`
+            `[CUSTOMER-STATUS] ❌ Customer ${phoneNumber} is INACTIVE - message saved but NOT forwarding to N8N`
           )
 
-          // ❌ DO NOT forward to N8N when customer is inactive or blacklisted
+          // ❌ DO NOT forward to N8N when customer is inactive
           res.status(200).send("EVENT_RECEIVED_CUSTOMER_INACTIVE")
           return
         }
@@ -931,47 +944,32 @@ export class WhatsAppController {
   }
 
   /**
-   * 💾 SAVE INCOMING MESSAGE FOR STATUS FILTERING
-   * Saves customer message when filtered by isActive/isBlacklisted status
+   * 🚫 BLACKLIST TOTALE - IGNORE COMPLETA
+   * Blacklisted customers: NO message saving, NO processing, NO trace
    */
-  private async saveIncomingMessageForStatus(
+  private async handleBlacklistedCustomer(
     phoneNumber: string,
     message: string,
     workspaceId: string,
-    statusResult: { isActive: boolean; isBlacklisted: boolean; customer?: any }
+    customer: any
   ): Promise<void> {
     try {
-      const reason = !statusResult.isActive
-        ? "CUSTOMER_INACTIVE"
-        : statusResult.isBlacklisted
-          ? "CUSTOMER_BLACKLISTED"
-          : "UNKNOWN"
-
       logger.info(
-        `[CUSTOMER-STATUS] Saving incoming message for status filtering: ${phoneNumber} - ${reason}`
+        `[BLACKLIST-TOTAL] 🚫 Customer ${customer.name} (${phoneNumber}) is blacklisted - IGNORING message completely`
       )
 
-      // Always save message for audit trail, regardless of customer status
-      const { MessageRepository } = await import(
-        "../../../repositories/message.repository"
-      )
-      const messageRepository = new MessageRepository()
-
-      await messageRepository.saveMessage({
-        workspaceId,
-        phoneNumber,
-        message: message,
-        response: "", // No response for filtered customers
-        agentSelected: reason,
-        direction: "INBOUND",
-      })
-
+      // 🚫 BLACKLIST TOTALE: Zero traccia, zero salvataggio, zero elaborazione
       logger.info(
-        `[CUSTOMER-STATUS] ✅ Message saved with agent: ${reason} for ${phoneNumber}`
+        `[BLACKLIST-TOTAL] ✅ Message from ${phoneNumber} completely ignored - no database save, no N8N processing, no trace`
+      )
+
+      // Webhook conferma ricezione (cliente non sa di essere blacklisted)
+      logger.info(
+        `[BLACKLIST-TOTAL] 📡 Webhook confirms receipt to customer (silent blacklist)`
       )
     } catch (error) {
       logger.error(
-        `[CUSTOMER-STATUS] ❌ Error saving message for ${phoneNumber}:`,
+        `[BLACKLIST-TOTAL] ❌ Error handling blacklisted customer ${phoneNumber}:`,
         error
       )
     }

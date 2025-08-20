@@ -2079,6 +2079,7 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
   - ❌ **NON riceve risposta** dall'AI chatbot
   - ✅ **Webhook conferma ricezione** (cliente non sa di essere blacklisted)
   - 🔍 **Blacklist silenziosa**: Cliente pensa che i messaggi siano consegnati ma non vengono mai processati
+  - 🚫 **IGNORE COMPLETA**: Messaggi completamente ignorati, zero traccia nel sistema
 - **Channel status**: isActive e activeChatbot flags
 - **WIP status**: Messaggio work-in-progress se canale in manutenzione
 
