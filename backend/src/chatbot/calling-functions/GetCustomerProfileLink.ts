@@ -62,15 +62,17 @@ export async function GetCustomerProfileLink(params: GetCustomerProfileLinkParam
       tokenPayload,
       '1h',
       params.customerId,
-      customer.phone
+      customer.phone,
+      undefined,
+      params.customerId
     )
 
     logger.info(`[PROFILE-LINK] Token generated successfully: ${token.substring(0, 12)}...`)
 
     // Build profile URL - FORCE localhost:3000 for development
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-    const phoneParam = encodeURIComponent(customer.phone || '')
-    const profileUrl = `${baseUrl}/customer-profile?token=${token}&phone=${phoneParam}`
+    // TOKEN-ONLY: No phone parameter needed
+    const profileUrl = `${baseUrl}/customer-profile?token=${token}`
 
     logger.info(`[PROFILE-LINK] Profile URL generated: ${profileUrl}`)
 

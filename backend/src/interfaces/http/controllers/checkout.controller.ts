@@ -1,17 +1,19 @@
 import { Request, Response } from "express"
 import { EmailService } from "../../../application/services/email.service"
+import { SecureTokenService } from "../../../application/services/secure-token.service"
 import { prisma } from "../../../lib/prisma"
 import logger from "../../../utils/logger"
 
 export class CheckoutController {
   private emailService = new EmailService()
+  private secureTokenService = new SecureTokenService()
 
   /**
    * Validate checkout token and return order data
    */
   async validateToken(req: Request, res: Response): Promise<void> {
     try {
-      const { token } = req.params
+      const { token } = req.query
 
       if (!token) {
         res.status(400).json({
@@ -21,46 +23,22 @@ export class CheckoutController {
         return
       }
 
-      // Find token in database (check if exists first)
-      const tokenExists = await prisma.secureToken.findFirst({
-        where: {
-          token,
-          type: "checkout",
-        },
-      })
-
-      if (!tokenExists) {
+      // Use SecureTokenService for unified token validation
+      const validation = await this.secureTokenService.validateToken(token, 'checkout')
+      
+      if (!validation.valid) {
         res.status(400).json({
           valid: false,
-          error: "Token non valido",
+          error: "Token non valido o scaduto",
           errorType: "INVALID_TOKEN",
         })
         return
       }
 
-      // Check if token was already used
-      if (tokenExists.usedAt) {
-        res.status(400).json({
-          valid: false,
-          error: "Link già utilizzato",
-          errorType: "ALREADY_USED",
-        })
-        return
-      }
-
-      // Check if token is expired
-      if (tokenExists.expiresAt <= new Date()) {
-        res.status(400).json({
-          valid: false,
-          error: "Link scaduto (validità 1 ora)",
-          errorType: "EXPIRED_TOKEN",
-          expiresAt: tokenExists.expiresAt,
-        })
-        return
-      }
-
+      const secureToken = validation.data
+      
       // Check payload validity
-      if (!tokenExists.payload) {
+      if (!validation.payload) {
         res.status(400).json({
           valid: false,
           error: "Token corrotto",
@@ -68,8 +46,6 @@ export class CheckoutController {
         })
         return
       }
-
-      const secureToken = tokenExists
 
       // Get customer and workspace data
       const payload = secureToken.payload as any
@@ -128,26 +104,18 @@ export class CheckoutController {
         return
       }
 
-      // Validate token again with workspace isolation
-      const secureToken = await prisma.secureToken.findFirst({
-        where: {
-          token,
-          type: "checkout",
-          usedAt: null,
-          expiresAt: {
-            gt: new Date(),
-          },
-          // Note: workspaceId will be validated from token payload
-        },
-      })
-
-      if (!secureToken) {
+      // Validate token again using SecureTokenService
+      const validation = await this.secureTokenService.validateToken(token, 'checkout')
+      
+      if (!validation.valid) {
         res.status(400).json({
           success: false,
           error: "Invalid or expired token",
         })
         return
       }
+      
+      const secureToken = validation.data
 
       const payload = secureToken.payload as any
       const customerId = payload.customerId

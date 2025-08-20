@@ -65,6 +65,7 @@ export interface UpdateWorkspaceData {
   isActive?: boolean
   isDelete?: boolean
   url?: string
+  debugMode?: boolean
 }
 
 export const transformWorkspaceResponse = (workspace: any): Workspace => {

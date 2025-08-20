@@ -86,8 +86,6 @@ const formatCurrency = (num: number) => new Intl.NumberFormat('it-IT', { style: 
 const OrdersPublicPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const { orderCode } = useParams<{ orderCode?: string }>()
-  const phone = searchParams.get('phone') || ''
-  const workspaceId = searchParams.get('workspaceId') || undefined
   const orderCodeQuery = searchParams.get('orderCode') || ''
   const token = searchParams.get('token') || null
 
@@ -103,8 +101,7 @@ const OrdersPublicPage: React.FC = () => {
     error: tokenError 
   } = useTokenValidation({
     token,
-    type: 'any',
-    workspaceId,
+    type: 'orders',
     autoValidate: true
   })
 
@@ -133,22 +130,18 @@ const OrdersPublicPage: React.FC = () => {
         return
       }
 
-      if (!phone) {
-        setError('Numero di telefono mancante')
-        return
-      }
       setLoading(true)
       setError(null)
       try {
         if (orderCode) {
-          const res = await axios.get(`/api/internal/public/orders/${orderCode}`, { params: { phone, workspaceId } })
+          const res = await axios.get(`/api/internal/public/orders/${orderCode}`, { params: { token } })
           if (res.data.success) {
             setDetailData(res.data.data)
           } else {
             setError(res.data.error || 'Errore caricamento ordine')
           }
         } else {
-          const res = await axios.get(`/api/internal/public/orders`, { params: { phone, workspaceId } })
+          const res = await axios.get(`/api/internal/public/orders`, { params: { token } })
           if (res.data.success) {
             setListData(res.data.data)
           } else {
@@ -162,7 +155,7 @@ const OrdersPublicPage: React.FC = () => {
       }
     }
     load()
-  }, [phone, workspaceId, orderCode, token, tokenValid, tokenLoading])
+  }, [orderCode, token, tokenValid, tokenLoading])
 
   // Auto-scroll to specific order from query param on list view
   useEffect(() => {
@@ -252,9 +245,29 @@ const OrdersPublicPage: React.FC = () => {
                 <p className="opacity-90">Status: {o.status} • Date: {formatDate(o.date)}</p>
               </div>
               <button 
-                onClick={() => {
-                  const profileUrl = `/customer-profile?token=${token}&phone=${encodeURIComponent(phone)}`
-                  window.location.href = profileUrl
+                onClick={async () => {
+                  try {
+                    // Generate a profile token for this customer
+                    const response = await axios.post('/api/internal/generate-token', {
+                      customerId: detailData.customer.id,
+                      workspaceId: workspaceId,
+                      action: 'profile'
+                    }, {
+                      headers: {
+                        'Authorization': 'Basic YWRtaW46YWRtaW4=',
+                        'Content-Type': 'application/json'
+                      }
+                    })
+                    
+                    if (response.data.token) {
+                      const profileUrl = `/customer-profile?token=${response.data.token}`
+                      window.location.href = profileUrl
+                    } else {
+                      console.error('Failed to generate profile token')
+                    }
+                  } catch (error) {
+                    console.error('Error generating profile token:', error)
+                  }
                 }}
                 className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
@@ -388,9 +401,29 @@ const OrdersPublicPage: React.FC = () => {
                 <p className="opacity-90">{listData.customer.name} • {listData.workspace.name}</p>
               </div>
               <button 
-                onClick={() => {
-                  const profileUrl = `/customer-profile?token=${token}&phone=${encodeURIComponent(phone)}`
-                  window.location.href = profileUrl
+                onClick={async () => {
+                  try {
+                    // Generate a profile token for this customer
+                    const response = await axios.post('/api/internal/generate-token', {
+                      customerId: listData.customer.id,
+                      workspaceId: workspaceId,
+                      action: 'profile'
+                    }, {
+                      headers: {
+                        'Authorization': 'Basic YWRtaW46YWRtaW4=',
+                        'Content-Type': 'application/json'
+                      }
+                    })
+                    
+                    if (response.data.token) {
+                                              const profileUrl = `/customer-profile?token=${response.data.token}`
+                      window.location.href = profileUrl
+                    } else {
+                      console.error('Failed to generate profile token')
+                    }
+                  } catch (error) {
+                    console.error('Error generating profile token:', error)
+                  }
                 }}
                 className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
@@ -438,7 +471,7 @@ const OrdersPublicPage: React.FC = () => {
               {displayOrders.map((o) => (
                 <div key={o.id} id={`order-${o.orderCode}`} className="py-4">
                   <a
-                    href={`${window.location.origin}/orders/${o.orderCode}?phone=${encodeURIComponent(phone)}${workspaceId ? `&workspaceId=${encodeURIComponent(workspaceId)}` : ''}`}
+                    href={`${window.location.origin}/orders-public/${o.orderCode}?token=${token}`}
                     className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between text-left hover:bg-gray-50 p-3 rounded-lg transition-colors cursor-pointer"
                   >
                     <div className="space-y-1">

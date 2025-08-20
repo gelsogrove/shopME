@@ -10,6 +10,7 @@ PRD: /Users/gelso/workspace/AI/shop/docs/PRD.md
 docs: /Users/gelso/workspace/AI/shop/docs
 task: /Users/gelso/workspace/AI/shop/docs/memory-bank/tasks.md
 
+ 
 
 ********REPORT FORMAT********
 
@@ -35,6 +36,16 @@ fai un file con le domande e risposte dopo la ricerca
 - [ ] 7 se un utente cheide la lista dei podotti LLM deve ritorare lista prodotti chuamando la CF relazionata (controll nel codice)
 
 - [ ] 8 se un untente chiede di aggiungere un prodtto al carrello deve funzionare e ritonare il carrello sempre quando si modifica un elemento del carrello (controll nel codice)
+
+
+- [ ] 8.1 se un untente e' bloccato vengono ignorati i messaggi e non salvati nello storioc?
+
+
+- [ ] mi puoi garantire che questa pagina
+http://localhost:3000/orders-public?token=32f2bda9d9a530ed0496f926a60aa75e2c0a8bcf4ad9bec367813068961a7530
+puo' vedre gli ordini solo di un utente? e non veda ordini di altri utenti ?
+
+
 
 - 9 controlla se i link che vengono generati hanno una corrispondeza con la route 
 
@@ -135,5 +146,28 @@ se hai dubbi chiedi.
 
 - [ ] 55 cosa ne pensi del prompt_agent ?
 
-- [ ] 56 Prossimi task o bug in ordine di priorita?
+- [ ] 56 ci sono ancora testi in italiano toglii 
+
+- [ ] 57 Prossimi task o bug in ordine di priorita?
+
+********TOKEN-ONLY SYSTEM CHECKS********
+
+- [ ] 58 TOKEN-ONLY SYSTEM: Tutti i link pubblici usano solo token parameter? (orders-public, customer-profile, checkout)
+- [ ] 59 TOKEN-ONLY SYSTEM: Frontend non fa più controlli su phone/workspaceId mancanti?
+- [ ] 60 TOKEN-ONLY SYSTEM: Backend estrae correttamente customerId, phone, workspaceId dal token?
+- [ ] 61 TOKEN-ONLY SYSTEM: N8N genera link token-only corretti per orders, profile, checkout?
+- [ ] 62 TOKEN-ONLY SYSTEM: Prompt_agent istruisce LLM per generare link token-only?
+- [ ] 63 TOKEN-ONLY SYSTEM: Token reuse funziona (1 token per user per type, aggiornato solo se scaduto)?
+- [ ] 64 TOKEN-ONLY SYSTEM: Workspace isolation automatica tramite token validation?
+- [ ] 65 TOKEN-ONLY SYSTEM: Link generation functions (GetOrdersListLink, GetCustomerProfileLink, confirmOrderFromConversation) producono URL token-only?
+- [ ] 66 TOKEN-ONLY SYSTEM: Middleware link-corrector non aggiunge più parametri phone?
+- [ ] 67 TOKEN-ONLY SYSTEM: API endpoints (/api/orders-public, /api/customer-profile, /api/checkout) accettano solo token?
+- [ ] 68 TOKEN-ONLY SYSTEM: Frontend hooks (useTokenValidation, useCheckoutTokenValidation) sono token-only?
+- [ ] 69 TOKEN-ONLY SYSTEM: Database schema SecureToken ha constraint unique (customerId, type, workspaceId)?
+- [ ] 70 TOKEN-ONLY SYSTEM: Test integration e unit test verificano token-only approach?
+- [ ] 71 TOKEN-ONLY SYSTEM: PRD e memory-bank documentano correttamente il sistema token-only?
+- [ ] 72 TOKEN-ONLY SYSTEM: Script verify-token-only-system.sh funziona correttamente?
+- [ ] 73 TOKEN-ONLY SYSTEM: Tutti i link generati sono nel formato corretto (/orders-public?token=..., /customer-profile?token=..., /checkout?token=...)?
+- [ ] 74 TOKEN-ONLY SYSTEM: LLM non inventa più link ma usa solo quelli generati dalle calling functions?
+- [ ] 75 TOKEN-ONLY SYSTEM: Sistema è "congelato" e funzionante per deployment?
  

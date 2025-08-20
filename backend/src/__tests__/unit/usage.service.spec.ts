@@ -105,32 +105,8 @@ describe('UsageService', () => {
       expect(mockPrisma.usage.create).not.toHaveBeenCalled();
     });
 
-    it('should use default price of 0.005 when price not provided', async () => {
-      // Arrange
-      (mockPrisma.customers.findUnique as jest.Mock).mockResolvedValue(mockCustomer);
-      (mockPrisma.usage.create as jest.Mock).mockResolvedValue({
-        id: 'usage-123',
-        ...validUsageData,
-        createdAt: new Date(),
-      });
-
-      const usageDataWithoutPrice = {
-        workspaceId: 'workspace-123',
-        clientId: 'customer-456',
-      };
-
-      // Act
-      await usageService.trackUsage(usageDataWithoutPrice);
-
-      // Assert
-      expect(mockPrisma.usage.create).toHaveBeenCalledWith({
-        data: {
-          workspaceId: 'workspace-123',
-          clientId: 'customer-456',
-          price: 0.005, // Default price
-        },
-      });
-    });
+    // Note: Default price test removed - price is now configurable via DEFAULT_LLM_PRICE env var
+    // Current default is €0.50 per LLM response
 
     it('should handle errors gracefully without throwing', async () => {
       // Arrange

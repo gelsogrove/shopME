@@ -36,6 +36,7 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
       isDelete: data.isDelete,
       url: data.url,
       adminEmail: data.whatsappSettings?.adminEmail || null,
+      debugMode: data.debugMode ?? true,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     })
@@ -65,6 +66,7 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
       isActive: workspace.isActive,
       isDelete: workspace.isDelete,
       url: workspace.url,
+      debugMode: workspace.debugMode,
     }
   }
 

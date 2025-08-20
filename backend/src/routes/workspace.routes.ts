@@ -1,8 +1,8 @@
-import logger from "../utils/logger"
 import { RequestHandler, Router } from "express"
 import { WorkspaceService } from "../application/services/workspace.service"
 import { workspaceController } from "../controllers/workspace.controller"
 import { wrapController } from "../utils/controller-wrapper"
+import logger from "../utils/logger"
 
 const router = Router()
 const workspaceService = new WorkspaceService()
@@ -77,7 +77,7 @@ const workspaceService = new WorkspaceService()
  */
 const getCurrentWorkspace: RequestHandler = async (req, res): Promise<void> => {
   try {
-    // Get all workspaces using the service (which includes adminEmail)
+    // Get all workspaces using the service
     const workspaces = await workspaceService.getAll()
 
     // Find the first active workspace
@@ -88,8 +88,8 @@ const getCurrentWorkspace: RequestHandler = async (req, res): Promise<void> => {
       return
     }
 
-    // The workspace from service already includes adminEmail
-    const responseData = {
+    // Return workspace with all fields including debugMode
+    res.json({
       id: workspace.id,
       name: workspace.name,
       slug: workspace.slug,
@@ -98,7 +98,7 @@ const getCurrentWorkspace: RequestHandler = async (req, res): Promise<void> => {
       whatsappApiToken: workspace.whatsappApiToken,
       webhookUrl: workspace.webhookUrl,
       notificationEmail: workspace.notificationEmail,
-      adminEmail: workspace.adminEmail, // This should now be included
+      adminEmail: workspace.adminEmail,
       language: workspace.language,
       currency: workspace.currency,
       messageLimit: workspace.messageLimit,
@@ -109,11 +109,10 @@ const getCurrentWorkspace: RequestHandler = async (req, res): Promise<void> => {
       isActive: workspace.isActive,
       isDelete: workspace.isDelete,
       url: workspace.url,
+      debugMode: workspace.debugMode,
       createdAt: workspace.createdAt,
       updatedAt: workspace.updatedAt,
-    }
-
-    res.json(responseData)
+    })
     return
   } catch (error) {
     logger.error("Error fetching current workspace:", error)

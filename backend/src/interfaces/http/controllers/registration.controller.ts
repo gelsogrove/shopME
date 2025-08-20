@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { RegistrationService } from '../../../application/services/registration.service';
-import { TokenService } from '../../../application/services/token.service';
+import { SecureTokenService } from '../../../application/services/secure-token.service';
 import { WelcomeService } from '../../../application/services/welcome.service';
 import { prisma } from '../../../lib/prisma';
 import logger from '../../../utils/logger';
@@ -10,12 +10,12 @@ import logger from '../../../utils/logger';
  * Handles HTTP requests related to customer registration
  */
 export class RegistrationController {
-  private tokenService: TokenService;
+  private secureTokenService: SecureTokenService;
   private welcomeService: WelcomeService;
   private registrationService: RegistrationService;
   
   constructor() {
-    this.tokenService = new TokenService();
+    this.secureTokenService = new SecureTokenService();
     this.welcomeService = new WelcomeService();
     this.registrationService = new RegistrationService();
   }
@@ -31,29 +31,14 @@ export class RegistrationController {
         return res.status(400).json({ error: 'Token is required' });
       }
       
-      let tokenData = null;
+      // Use SecureTokenService for unified token validation
+      const validation = await this.secureTokenService.validateToken(token, 'registration');
       
-      try {
-        // Try TokenService first
-        tokenData = await this.tokenService.validateToken(token);
-      } catch (error) {
-        // If TokenService fails, try simple token validation
-        logger.info(`[VALIDATE-TOKEN] TokenService validation failed, trying simple token validation for: ${token.substring(0, 10)}...`);
-        
-        tokenData = await prisma.registrationToken.findFirst({
-          where: {
-            token,
-            expiresAt: {
-              gt: new Date(), // Token expiration time must be in the future
-            },
-            usedAt: null, // Token must not have been used yet
-          },
-        });
-        
-        if (tokenData) {
-          logger.info(`[VALIDATE-TOKEN] Simple token validation successful for: ${token.substring(0, 10)}...`);
-        }
+      if (!validation.valid) {
+        return res.status(404).json({ error: 'Invalid or expired token' });
       }
+      
+      const tokenData = validation.data;
       
       if (!tokenData) {
         return res.status(404).json({ error: 'Invalid or expired token' });
@@ -94,30 +79,14 @@ export class RegistrationController {
         return res.status(400).json({ error: 'Missing required fields' });
       }
       
-      // Validate the registration token (support both TokenService and simple tokens)
-      let tokenData = null;
+      // Use SecureTokenService for unified token validation
+      const validation = await this.secureTokenService.validateToken(token, 'registration');
       
-      try {
-        // Try TokenService first
-        tokenData = await this.tokenService.validateToken(token);
-      } catch (error) {
-        // If TokenService fails, try simple token validation
-        logger.info(`[REGISTRATION] TokenService validation failed, trying simple token validation for: ${token.substring(0, 10)}...`);
-        
-        tokenData = await prisma.registrationToken.findFirst({
-          where: {
-            token,
-            expiresAt: {
-              gt: new Date(), // Token expiration time must be in the future
-            },
-            usedAt: null, // Token must not have been used yet
-          },
-        });
-        
-        if (tokenData) {
-          logger.info(`[REGISTRATION] Simple token validation successful for: ${token.substring(0, 10)}...`);
-        }
+      if (!validation.valid) {
+        return res.status(401).json({ error: 'Invalid or expired registration token' });
       }
+      
+      const tokenData = validation.data;
       
       if (!tokenData || tokenData.phoneNumber !== phone || tokenData.workspaceId !== workspace_id) {
         logger.error(`[REGISTRATION] Token validation failed. TokenData:`, tokenData ? 
@@ -186,24 +155,8 @@ export class RegistrationController {
         });
       }
       
-      // Mark token as used (support both TokenService and simple tokens)
-      try {
-        await this.tokenService.markTokenAsUsed(token);
-      } catch (error) {
-        // If TokenService fails, try simple token marking
-        logger.info(`[REGISTRATION] TokenService markAsUsed failed, trying simple token marking for: ${token.substring(0, 10)}...`);
-        
-        await prisma.registrationToken.update({
-          where: {
-            token,
-          },
-          data: {
-            usedAt: new Date(),
-          },
-        });
-        
-        logger.info(`[REGISTRATION] Simple token marked as used: ${token.substring(0, 10)}...`);
-      }
+      // Mark token as used using SecureTokenService
+      await this.secureTokenService.markTokenAsUsed(token);
       
       // Send welcome message asynchronously
       this.welcomeService.sendWelcomeMessage(customer.id)

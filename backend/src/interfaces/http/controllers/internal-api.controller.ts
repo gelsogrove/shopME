@@ -2075,18 +2075,18 @@ ${JSON.stringify(ragResults, null, 2)}`
             ordersPayload,
             "24h",
             resolvedCustomerId,
-            customer.phone
+            customer.phone,
+            undefined,
+            resolvedCustomerId
           )
 
           expiresAt = new Date()
           expiresAt.setHours(expiresAt.getHours() + 24)
 
-          // Build orders URL using workspace URL
+          // Build orders URL using workspace URL (TOKEN-ONLY)
           const ordersBaseUrl =
             customer.workspace.url || process.env.FRONTEND_URL || "http://localhost:3000"
-          // Include phone in link as requested by Andrea, plus token
-          const ordersPhoneParam = encodeURIComponent(customer.phone || "")
-          linkUrl = `${ordersBaseUrl}/orders-public?token=${token}&phone=${ordersPhoneParam}`
+          linkUrl = `${ordersBaseUrl}/orders-public?token=${token}`
           break
 
         case "profile":
@@ -2106,17 +2106,18 @@ ${JSON.stringify(ragResults, null, 2)}`
             profilePayload,
             "1h",
             resolvedCustomerId,
-            customer.phone
+            customer.phone,
+            undefined,
+            resolvedCustomerId
           )
 
           expiresAt = new Date()
           expiresAt.setHours(expiresAt.getHours() + 1)
 
-          // Build profile URL
+          // Build profile URL (TOKEN-ONLY)
           const profileBaseUrl =
             customer.workspace.url || process.env.FRONTEND_URL || "http://localhost:3000"
-          const profilePhoneParam = encodeURIComponent(customer.phone || "")
-          linkUrl = `${profileBaseUrl}/customer-profile?token=${token}&phone=${profilePhoneParam}`
+          linkUrl = `${profileBaseUrl}/customer-profile?token=${token}`
           break
 
         default:
@@ -2402,53 +2403,31 @@ ${JSON.stringify(ragResults, null, 2)}`
   }
 
   /**
-   * PUBLIC: Get orders by phone (no auth, external page)
-   * GET /public/orders?phone=+39...&workspaceId=...
+   * PUBLIC: Get orders by token (no auth, external page)
+   * GET /public/orders?token=...
    */
   async getPublicOrders(req: Request, res: Response): Promise<void> {
     try {
-      const rawPhone = (req.query.phone as string) || ""
-      const trimmedPhone = rawPhone.trim()
-      const candidatePhones = Array.from(
-        new Set([
-          trimmedPhone,
-          trimmedPhone.startsWith("+") ? trimmedPhone : `+${trimmedPhone}`,
-          trimmedPhone.replace(/\s+/g, ""),
-          (trimmedPhone.startsWith("+") ? trimmedPhone : `+${trimmedPhone}`).replace(/\s+/g, ""),
-        ])
-      ).filter(Boolean)
-      let workspaceId = (req.query.workspaceId as string) || ""
+      const token = (req.query.token as string) || ""
 
-      if (candidatePhones.length === 0) {
-        res.status(400).json({ success: false, error: "phone is required" })
+      if (!token) {
+        res.status(400).json({ success: false, error: "token is required" })
         return
       }
 
-      // If workspaceId is missing, try to resolve uniquely by phone
-      if (!workspaceId) {
-        const matches = await this.prisma.customers.findMany({
-          where: { phone: { in: candidatePhones } },
-          select: { id: true, workspaceId: true },
-        })
-        if (matches.length === 0) {
-          res.status(404).json({ success: false, error: "Customer not found" })
-          return
-        }
-        if (matches.length > 1) {
-          res
-            .status(400)
-            .json({
-              success: false,
-              error: "Multiple customers found for this phone. workspaceId is required",
-            })
-          return
-        }
-        workspaceId = matches[0].workspaceId
+      // VALIDAZIONE TOKEN CENTRALIZZATA
+      const tokenValidation = await this.secureTokenService.validateToken(token, 'orders')
+      if (!tokenValidation.valid) {
+        res.status(401).json({ success: false, error: "Invalid or expired token" })
+        return
       }
 
-      // Resolve customer by phone within the resolved workspace
+      // ESTRAZIONE AUTOMATICA DATI DAL TOKEN
+      const { customerId, workspaceId } = tokenValidation.data
+
+      // QUERY DIRETTA SENZA CONTROLLI AGGIUNTIVI
       const customer = await this.prisma.customers.findFirst({
-        where: { phone: { in: candidatePhones }, workspaceId },
+        where: { id: customerId, workspaceId },
         include: { workspace: true },
       })
 
@@ -2457,7 +2436,7 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      const targetWorkspaceId = customer.workspaceId
+      const targetWorkspaceId = workspaceId
 
 
 
@@ -2503,54 +2482,34 @@ ${JSON.stringify(ragResults, null, 2)}`
   }
 
   /**
-   * PUBLIC: Get single order detail by orderCode and phone
-   * GET /public/orders/:orderCode?phone=+39...&workspaceId=...
+   * PUBLIC: Get single order detail by orderCode and token
+   * GET /public/orders/:orderCode?token=...
    */
   async getPublicOrderDetail(req: Request, res: Response): Promise<void> {
     try {
       const { orderCode } = req.params
-      const rawPhone = (req.query.phone as string) || ""
-      const trimmedPhone = rawPhone.trim()
-      const candidatePhones = Array.from(
-        new Set([
-          trimmedPhone,
-          trimmedPhone.startsWith("+") ? trimmedPhone : `+${trimmedPhone}`,
-          trimmedPhone.replace(/\s+/g, ""),
-          (trimmedPhone.startsWith("+") ? trimmedPhone : `+${trimmedPhone}`).replace(/\s+/g, ""),
-        ])
-      ).filter(Boolean)
-      let workspaceId = (req.query.workspaceId as string) || ""
+      const token = (req.query.token as string) || ""
 
-      if (!orderCode || candidatePhones.length === 0) {
+      if (!orderCode || !token) {
         res
           .status(400)
-          .json({ success: false, error: "orderCode and phone are required" })
+          .json({ success: false, error: "orderCode and token are required" })
         return
       }
 
-      if (!workspaceId) {
-        const matches = await this.prisma.customers.findMany({
-          where: { phone: { in: candidatePhones } },
-          select: { id: true, workspaceId: true },
-        })
-        if (matches.length === 0) {
-          res.status(404).json({ success: false, error: "Customer not found" })
-          return
-        }
-        if (matches.length > 1) {
-          res
-            .status(400)
-            .json({
-              success: false,
-              error: "Multiple customers found for this phone. workspaceId is required",
-            })
-          return
-        }
-        workspaceId = matches[0].workspaceId
+      // VALIDAZIONE TOKEN CENTRALIZZATA
+      const tokenValidation = await this.secureTokenService.validateToken(token, 'orders')
+      if (!tokenValidation.valid) {
+        res.status(401).json({ success: false, error: "Invalid or expired token" })
+        return
       }
 
+      // ESTRAZIONE AUTOMATICA DATI DAL TOKEN
+      const { customerId, workspaceId } = tokenValidation.data
+
+      // QUERY DIRETTA SENZA CONTROLLI AGGIUNTIVI
       const customer = await this.prisma.customers.findFirst({
-        where: { phone: { in: candidatePhones }, workspaceId },
+        where: { id: customerId, workspaceId },
         include: { workspace: true },
       })
       if (!customer) {
@@ -4746,21 +4705,15 @@ Risposta solo in JSON, niente altro testo.
 
       logger.info('[INTERNAL-API] Getting checkout data for token: ' + token.substring(0, 12) + '...')
 
-      // Find token in database
-      const tokenData = await prisma.secureToken.findFirst({
-        where: {
-          token: token,
-          type: "checkout",
-          expiresAt: {
-            gt: new Date()
-          }
-        }
-      })
-
-      if (!tokenData) {
+      // Use SecureTokenService for unified token validation
+      const validation = await this.secureTokenService.validateToken(token, 'checkout')
+      
+      if (!validation.valid) {
         res.status(404).json({ error: "Token not found or expired" })
         return
       }
+      
+      const tokenData = validation.data
 
       const payload = tokenData.payload as any
 

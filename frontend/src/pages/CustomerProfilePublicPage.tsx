@@ -26,7 +26,6 @@ const CustomerProfilePublicPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const token = searchParams.get('token')
-  const phone = searchParams.get('phone') || ''
 
   // 🔐 Token validation for secure access
   const { 
@@ -37,7 +36,7 @@ const CustomerProfilePublicPage: React.FC = () => {
     validateToken 
   } = useTokenValidation({
     token,
-    type: 'any',
+    type: 'profile',
     autoValidate: true
   })
 
@@ -118,8 +117,8 @@ const CustomerProfilePublicPage: React.FC = () => {
   const handleViewOrders = () => {
     logger.info('[PROFILE] View Orders clicked, using current token:', token)
     
-    // Use current token and redirect to orders page
-            const ordersUrl = `/orders?token=${token}&phone=${encodeURIComponent(phone)}`
+    // Use current token and redirect to orders page (TOKEN-ONLY)
+    const ordersUrl = `/orders-public?token=${token}`
     logger.info('[PROFILE] Redirecting to orders:', ordersUrl)
     window.location.href = ordersUrl
   }

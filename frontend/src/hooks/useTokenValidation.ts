@@ -115,9 +115,9 @@ export const useTokenValidation = ({
 }
 
 /**
- * 🛒 Specialized hook for checkout token validation
+ * 🛒 Specialized hook for checkout token validation (TOKEN-ONLY)
  */
-export const useCheckoutTokenValidation = (token: string | null, workspaceId?: string) => {
+export const useCheckoutTokenValidation = (token: string | null) => {
   const [valid, setValid] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -142,8 +142,8 @@ export const useCheckoutTokenValidation = (token: string | null, workspaceId?: s
     try {
       logger.info(`[CHECKOUT-TOKEN-VALIDATION] Validating checkout token`)
       
-      // Use dedicated checkout endpoint
-      const response = await axios.get(`/api/checkout/token/${token}`)
+      // Use dedicated checkout endpoint (TOKEN-ONLY)
+      const response = await axios.get(`/api/checkout/token?token=${token}`)
 
       if (response.data.valid) {
         setValid(true)

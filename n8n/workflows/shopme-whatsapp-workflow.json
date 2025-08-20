@@ -304,7 +304,7 @@
     },
     {
       "parameters": {
-        "toolDescription": "🔗 **GETORDERSLISTLINK() - LINK PUBBLICO STORICO ORDINI**\n\n**COSA FA QUESTA FUNZIONE:**\nGenera un token sicuro (tipo: orders) e restituisce il link pubblico locale per visualizzare lo storico ordini (e opzionalmente il dettaglio di un ordine specifico).\n\n**ENDPOINT USATO:** POST /api/internal/generate-token (action=orders)\n\n**COME RISPONDERE:**\n- Lista: http://localhost:3000/orders?token={{$json.token}}\n- Se l’utente chiede un ordine specifico (es. 2001), aggiungi anche: http://localhost:3000/orders/2001?token={{$json.token}}\n\n**TRIGGER ESEMPI:**\n- \"dammi la lista ordini\", \"i miei ordini\", \"order history\"\n- \"dammi l’ordine 2001\"\n",
+        "toolDescription": "🔗 **GETORDERSLISTLINK() - LINK PUBBLICO STORICO ORDINI**\n\n**COSA FA QUESTA FUNZIONE:**\nGenera un token sicuro (tipo: orders) e restituisce il link pubblico locale per visualizzare lo storico ordini (e opzionalmente il dettaglio di un ordine specifico).\n\n**ENDPOINT USATO:** POST /api/internal/generate-token (action=orders)\n\n**COME RISPONDERE (TOKEN-ONLY):**\n- Lista: http://localhost:3000/orders-public?token={{$json.token}}\n- Se l'utente chiede un ordine specifico (es. 2001), aggiungi anche: http://localhost:3000/orders-public/2001?token={{$json.token}}\n\n**TRIGGER ESEMPI:**\n- \"dammi la lista ordini\", \"i miei ordini\", \"order history\"\n- \"dammi l'ordine 2001\"\n\n**IMPORTANTE:** Link usano solo token parameter (TOKEN-ONLY)\n",
         "method": "POST",
         "url": "=http://host.docker.internal:3001/api/internal/generate-token",
         "authentication": "genericCredentialType",
@@ -322,6 +322,33 @@
       ],
       "id": "d43c955f-08f6-41d0-a8f3-529e6785cea6",
       "name": "GetOrdersListLink()",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "7CEUQjT9iAyh1utW",
+          "name": "Backend API Basic Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "👤 **GETCUSTOMERPROFILELINK() - LINK GESTIONE PROFILO CLIENTE**\n\n**COSA FA QUESTA FUNZIONE:**\nGenera un token sicuro (tipo: profile) e restituisce il link pubblico per la gestione del profilo cliente (modifica email, telefono, indirizzo).\n\n**ENDPOINT USATO:** POST /api/internal/generate-token (action=profile)\n\n**COME RISPONDERE (TOKEN-ONLY):**\n- Profilo: http://localhost:3000/customer-profile?token={{$json.token}}\n\n**TRIGGER ESEMPI:**\n- \"modifico mio indirizzo\", \"cambia email\", \"aggiorna telefono\"\n- \"voglio cambiare i miei dati\", \"modifica profilo\"\n\n**IMPORTANTE:** Link usa solo token parameter (TOKEN-ONLY)\n",
+        "method": "POST",
+        "url": "=http://host.docker.internal:3001/api/internal/generate-token",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"customerId\": \"{{ $('prepare-data').item.json.customerid }}\",\n  \"workspaceId\": \"{{ $('prepare-data').item.json.workspaceId }}\",\n  \"action\": \"profile\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1960,
+        200
+      ],
+      "id": "get-customer-profile-link-node",
+      "name": "GetCustomerProfileLink()",
       "credentials": {
         "httpBasicAuth": {
           "id": "7CEUQjT9iAyh1utW",

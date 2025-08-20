@@ -1492,7 +1492,7 @@ export class WhatsAppController {
       const token = `reg_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`
       const baseUrl =
         workspace.url || process.env.FRONTEND_URL || "https://app.example.com"
-      const registrationUrl = `${baseUrl}/register?phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}&token=${token}&lang=${detectedLang}`
+      const registrationUrl = `${baseUrl}/register?token=${token}`
 
       // Create complete message with registration link
       const registrationText = this.getRegistrationText(detectedLang)

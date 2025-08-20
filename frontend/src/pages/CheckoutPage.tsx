@@ -6,11 +6,10 @@ import { useCheckoutTokenValidation } from "../hooks/useTokenValidation"
 const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const token = searchParams.get("token")
-  const workspaceId = searchParams.get("workspaceId")
 
-  // 🔐 Validate checkout token
+  // 🔐 Validate checkout token (TOKEN-ONLY)
   const { valid, loading, error, errorType, expiresAt, tokenData, payload, validateToken } =
-    useCheckoutTokenValidation(token, workspaceId)
+    useCheckoutTokenValidation(token)
 
   // Show loading state during token validation
   if (loading) {

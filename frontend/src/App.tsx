@@ -160,6 +160,24 @@ export function App() {
           }
         />
 
+        {/* Public Orders pages via orders-public URL (backend generated links) */}
+        <Route
+          path="/orders-public"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-gray-100 flex items-center justify-center p-4"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>}>
+              <OrdersPublicPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/orders-public/:orderCode"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-gray-100 flex items-center justify-center p-4"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>}>
+              <OrdersPublicPage />
+            </Suspense>
+          }
+        />
+
         {/* Public Customer Profile page via secure token (external, no platform layout) */}
         <Route
           path="/customer-profile"
@@ -179,7 +197,7 @@ export function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/signup" element={<RegisterPage />} />
         <Route path="/registration-success" element={<RegistrationSuccess />} />
-        <Route path="/checkout/:token" element={<CheckoutPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
         <Route path="/order-summary/:token" element={<OrderSummaryPage />} />
         <Route path="/data-protection" element={<DataProtectionPage />} />

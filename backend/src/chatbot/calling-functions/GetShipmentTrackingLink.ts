@@ -72,15 +72,16 @@ export async function GetShipmentTrackingLink(params: GetShipmentTrackingLinkPar
       tokenPayload,
       '24h',
       params.customerId,
-      customer.phone
+      customer.phone,
+      undefined,
+      params.customerId
     )
 
     logger.info(`[TRACKING-LINK] Token generated successfully: ${token.substring(0, 12)}...`)
 
     // Build ShopMe URL with token
     const baseUrl = customer.workspace?.url || process.env.FRONTEND_URL || 'http://localhost:3000'
-    const phoneParam = encodeURIComponent(customer.phone || '')
-    const shopMeUrl = `${baseUrl}/orders-public/${result.orderCode}?phone=${phoneParam}&token=${token}`
+    const shopMeUrl = `${baseUrl}/orders-public/${result.orderCode}?token=${token}`
 
     logger.info(`[TRACKING-LINK] Generated ShopMe URL: ${shopMeUrl}`)
 

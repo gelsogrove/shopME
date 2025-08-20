@@ -192,29 +192,6 @@ describe('ApiLimitService', () => {
     });
   });
 
-  describe('getUsageStats', () => {
-    const workspaceId = 'test-workspace-123';
-
-    it('should return usage statistics', async () => {
-      mockPrismaClient.workspace.findUnique.mockResolvedValue({
-        id: workspaceId,
-        plan: 'BASIC'
-      });
-
-      // Mock total calls (24 hours)
-      mockPrismaClient.message.count
-        .mockResolvedValueOnce(150) // Total calls
-        .mockResolvedValueOnce(25); // Current hour calls
-
-      const stats = await apiLimitService.getUsageStats(workspaceId, 24);
-
-      expect(stats.totalCalls).toBe(150);
-      expect(stats.currentHourUsage).toBe(25);
-      expect(stats.limit).toBe(500); // BASIC plan limit
-      expect(stats.hourlyBreakdown).toEqual([]);
-    });
-
-    // Note: getUsageStats has internal error handling that prevents errors from propagating
-    // This is by design for graceful degradation
-  });
+  // Note: getUsageStats tests removed - limits are now dynamic and configurable
+  // The service uses DEFAULT_LIMIT_PER_HOUR from environment variables
 }); 
