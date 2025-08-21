@@ -76,7 +76,13 @@ puo' vedre gli ordini solo di un utente? e non veda ordini di altri utenti ?
 
 - [ ] 22 se un utente saluta in portoghese risponde in portoghese?
 
-- [ ] 23 ci sono dati sensibili secondo te che vanno a openRouter ? 
+- [ ] 23 **SISTEMA MULTILINGUA**: Il bot mantiene la lingua coerente durante tutta la conversazione? (test: "hello" → inglese, poi "ciao" → italiano, poi "hola" → spagnolo)
+
+- [ ] 24 **LANGUAGE DETECTION**: Il sistema rileva correttamente la lingua dal messaggio e aggiorna il database? (controlla logs per language detection)
+
+- [ ] 25 **LINGUA PERSISTENTE**: Se un utente scrive "hello" e poi continua la conversazione, il bot risponde sempre in inglese?
+
+- [ ] 26 ci sono dati sensibili secondo te che vanno a openRouter ? 
 
 - [ ] 24 ci sono scripts che non vengono usati e dobbiamo cancellare?
 

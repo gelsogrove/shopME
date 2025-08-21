@@ -3622,11 +3622,26 @@ The ShopMe platform includes a comprehensive e-commerce system that enables busi
 #### 📑 **Orders & Invoices Management Dashboard**
 
 - **Complete Orders Overview**: Admin dashboard showing all orders with filters and search
+- **Manual Order Creation**: Admin can create new orders manually via Add Order button with complete form interface
+- **Order Creation Form**: Comprehensive form with customer selection, products/services management, pricing, and validation
+- **Product/Service Integration**: Add/remove items with quantity adjustment, real-time totals, and inventory management
 - **Order Status Workflow**: Visual order status management with drag-and-drop status updates
 - **Invoice Management**: Bulk invoice generation and download capabilities
 - **Customer Order Analytics**: Customer-specific order patterns and analytics
 - **Revenue Analytics**: Detailed revenue tracking and reporting
 - **Export Capabilities**: Export orders and invoices for accounting systems
+
+##### 📝 **Manual Order Creation Features**
+- **Add Order Button**: Integrated "Add" button in OrdersPage following standard UI patterns
+- **Identical UI/UX**: Same interface as order editing for consistency and familiarity
+- **Customer Selection**: Dropdown with existing customers or create new customer option
+- **Automatic Order Code**: System-generated unique order codes (no manual input required)
+- **Products & Services Management**: Full product/service selection with quantity and pricing controls
+- **Address Management**: Both shipping and billing address input with structured field validation
+- **Real-time Validation**: Form validation with specific error messages and user feedback
+- **Payment Integration**: Payment method selection and status tracking
+- **Notes & Tracking**: Order notes and tracking number support for logistics
+- **Workspace Isolation**: Automatic workspace filtering ensuring data security
 
 #### 🤖 **N8N E-commerce Workflow Integration**
 
