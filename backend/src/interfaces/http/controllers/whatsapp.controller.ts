@@ -745,7 +745,7 @@ export class WhatsAppController {
 
   /**
    * 🌍 DETECT USER LANGUAGE
-   * Detects user language from customer record or message content
+   * Detects user language from current message and updates customer preference
    */
   private async detectUserLanguage(
     phoneNumber: string,
@@ -753,29 +753,31 @@ export class WhatsAppController {
     workspaceId: string
   ): Promise<string> {
     try {
-      // First try to get language from customer record
-      const customer = await prisma.customers.findFirst({
-        where: {
-          phone: phoneNumber,
-          workspaceId: workspaceId,
-        },
-        select: {
-          language: true,
-        },
-      })
-
-      if (customer?.language) {
-        logger.info(
-          `[LANGUAGE-DETECT] Customer ${phoneNumber} has language: ${customer.language}`
-        )
-        return customer.language.toLowerCase()
-      }
-
-      // Fallback to message detection
+      // 🚨 CRITICAL FIX: Always detect language from current message
       const detectedLang = this.detectLanguageFromMessage(messageContent)
       logger.info(
-        `[LANGUAGE-DETECT] Detected language from message: ${detectedLang}`
+        `[LANGUAGE-DETECT] 🌍 Detected language from current message: ${detectedLang}`
       )
+
+      // Update customer's language preference in database
+      try {
+        await prisma.customers.updateMany({
+          where: {
+            phone: phoneNumber,
+            workspaceId: workspaceId,
+          },
+          data: {
+            language: detectedLang.toUpperCase(),
+          },
+        })
+        logger.info(
+          `[LANGUAGE-DETECT] ✅ Updated customer ${phoneNumber} language to: ${detectedLang}`
+        )
+      } catch (updateError) {
+        logger.warn(
+          `[LANGUAGE-DETECT] ⚠️ Could not update customer language: ${updateError}`
+        )
+      }
 
       return detectedLang
     } catch (error) {
@@ -786,6 +788,8 @@ export class WhatsAppController {
       return "en" // Default to English
     }
   }
+
+
 
   /**
    * 📝 GET WIP MESSAGE IN USER LANGUAGE

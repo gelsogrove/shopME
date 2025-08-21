@@ -108,10 +108,7 @@ export class WelcomeService {
       case 'fr':
         return `Bonjour ${firstName}, bienvenue et merci de vous être inscrit ! Il est important pour nous que vous sachiez que vos données sont entre de bonnes mains et ne seront transmises à aucun modèle d'IA grâce à un système de chiffrement que nous avons installé sur nos serveurs. Si vous souhaitez en savoir plus, cliquez ici : ${dataProtectionUrl}`;
         
-      case 'german':
-      case 'deutsch':
-      case 'de':
-        return `Hallo ${firstName}, willkommen und danke für deine Registrierung! Es ist uns wichtig, dass du weißt, dass deine Daten in guten Händen sind und dank eines Verschlüsselungssystems, das wir auf unseren Servern installiert haben, an keine KI-Modelle übermittelt werden. Wenn du mehr erfahren möchtest, klicke hier: ${dataProtectionUrl}`;
+
       
       default: // English is the default
         return `Hello ${firstName}, welcome and thank you for registering! It's important for us that you know your data is in good hands and will not be sent to any AI model thanks to an encryption system we have installed on our servers. If you want to know more, click here: ${dataProtectionUrl}`;

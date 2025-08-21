@@ -53,7 +53,7 @@
     {
       "parameters": {
         "options": {
-          "systemMessage": "=lingua utente: {{ $json.language }}\nnome utente: {{ $('Filter').item.json.precompiledData.customer.name }}\nnome azienda: {{ $('Filter').item.json.precompiledData.customer.businessName }}\ndiscount   {{ $('Filter').item.json.precompiledData.customer.discount }}\n\n{{ $json.prompt }}\n "
+          "systemMessage": "=lingua utente: {{ $json.language }}\nnome utente: {{ $('Filter').item.json.precompiledData.customer.name }}\nnome azienda: {{ $('Filter').item.json.precompiledData.customer.businessName }}\ndiscount: {{ $('Filter').item.json.precompiledData.customer.discount }}\n\n{{ $json.prompt }}\n "
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
