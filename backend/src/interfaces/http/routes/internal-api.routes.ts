@@ -207,6 +207,9 @@ router.use("/n8n", n8nUsageRoutes)
 // Generate secure tokens for various purposes
 router.post('/generate-token', (req, res) => internalApiController.generateToken(req, res))
 
+// Removed: Token cross-page generation endpoints - not needed in TOKEN-ONLY system
+// One token works for all pages (orders, profile, checkout)
+
 /**
  * N8N Internal API Routes with Multi-Business Support
  * Protected by INTERNAL_API_SECRET authentication

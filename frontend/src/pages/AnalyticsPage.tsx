@@ -19,13 +19,14 @@ import {
 } from "@/services/analyticsApi"
 import { Activity, AlertCircle, BarChart3, TrendingUp } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useAnalyticsPeriod } from "@/hooks/useAnalyticsPeriod"
 
 export function AnalyticsPage() {
   const { workspace: currentWorkspace } = useWorkspace()
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedPeriod, setSelectedPeriod] = useState<PeriodPreset>("3months") // Default to 3 months
+  const { selectedPeriod, setSelectedPeriod, isInitialized } = useAnalyticsPeriod()
 
   const loadAnalytics = async (period: PeriodPreset) => {
     if (!currentWorkspace?.id) return
@@ -54,8 +55,10 @@ export function AnalyticsPage() {
   }
 
   useEffect(() => {
-    loadAnalytics(selectedPeriod)
-  }, [currentWorkspace?.id, selectedPeriod])
+    if (isInitialized) {
+      loadAnalytics(selectedPeriod)
+    }
+  }, [currentWorkspace?.id, selectedPeriod, isInitialized])
 
   const handlePeriodChange = (period: PeriodPreset) => {
     setSelectedPeriod(period)

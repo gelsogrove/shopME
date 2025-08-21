@@ -2101,7 +2101,7 @@ ${JSON.stringify(ragResults, null, 2)}`
           }
 
           token = await this.secureTokenService.createToken(
-            "profile",
+            "any", // TOKEN-ONLY system: use "any" type for universal token
             targetWorkspaceId,
             profilePayload,
             "1h",
@@ -2143,6 +2143,9 @@ ${JSON.stringify(ragResults, null, 2)}`
       res.status(500).json({ error: "Internal server error" })
     }
   }
+
+  // Removed: Token cross-page generation methods - not needed in TOKEN-ONLY system
+  // One token works for all pages (orders, profile, checkout) per customer
 
   /**
    * 📋 GET ALL PRODUCTS - For N8N getAllProducts Tool (Andrea's Request)
@@ -2416,7 +2419,7 @@ ${JSON.stringify(ragResults, null, 2)}`
       }
 
       // VALIDAZIONE TOKEN CENTRALIZZATA
-      const tokenValidation = await this.secureTokenService.validateToken(token, 'orders')
+      const tokenValidation = await this.secureTokenService.validateToken(token)
       if (!tokenValidation.valid) {
         res.status(401).json({ success: false, error: "Invalid or expired token" })
         return
@@ -2498,7 +2501,7 @@ ${JSON.stringify(ragResults, null, 2)}`
       }
 
       // VALIDAZIONE TOKEN CENTRALIZZATA
-      const tokenValidation = await this.secureTokenService.validateToken(token, 'orders')
+      const tokenValidation = await this.secureTokenService.validateToken(token)
       if (!tokenValidation.valid) {
         res.status(401).json({ success: false, error: "Invalid or expired token" })
         return
@@ -4400,7 +4403,7 @@ ${JSON.stringify(ragResults, null, 2)}`
       logger.info('[INTERNAL-API] Getting customer profile for token: ' + token.substring(0, 12) + '...')
 
       // Validate token
-      const tokenValidation = await this.secureTokenService.validateToken(token, 'profile')
+      const tokenValidation = await this.secureTokenService.validateToken(token)
       
       if (!tokenValidation.valid) {
         res.status(401).json({ error: "Invalid or expired token" })
@@ -4467,7 +4470,7 @@ ${JSON.stringify(ragResults, null, 2)}`
       logger.info('[INTERNAL-API] Updating customer profile for token: ' + token.substring(0, 12) + '...')
 
       // Validate token
-      const tokenValidation = await this.secureTokenService.validateToken(token, 'profile')
+      const tokenValidation = await this.secureTokenService.validateToken(token)
       
       if (!tokenValidation.valid) {
         res.status(401).json({ error: "Invalid or expired token" })

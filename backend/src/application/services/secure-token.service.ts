@@ -50,7 +50,7 @@ export class SecureTokenService {
    * Create or update a secure token (UNICO RECORD PER UTENTE)
    */
   async createToken(
-    type: 'registration' | 'checkout' | 'invoice' | 'cart' | 'password_reset' | 'email_verification' | 'orders' | 'profile',
+    type: 'registration' | 'checkout' | 'invoice' | 'cart' | 'password_reset' | 'email_verification' | 'orders' | 'profile' | 'any',
     workspaceId: string,
     payload?: any,
     expiresIn: string = '1h',
