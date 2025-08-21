@@ -61,11 +61,12 @@ export const useTokenValidation = ({
     try {
       logger.info(`[TOKEN-VALIDATION] Validating token for type: ${type || 'any'}`)
       
-      const response = await axios.post('/api/internal/validate-secure-token', {
-        token,
-        type,
-        workspaceId
-      })
+      // TOKEN-ONLY system: Don't send type to allow universal token usage
+      const requestBody: any = { token }
+      if (workspaceId) requestBody.workspaceId = workspaceId
+      // Explicitly don't send 'type' to allow any valid token type
+      
+      const response = await axios.post('/api/internal/validate-secure-token', requestBody)
 
       if (response.data.valid) {
         setValid(true)

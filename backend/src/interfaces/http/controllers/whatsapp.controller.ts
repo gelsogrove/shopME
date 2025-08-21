@@ -287,11 +287,10 @@ export class WhatsAppController {
 
         // 💾 Salva messaggio solo per utenti NON blacklisted
         if (customerStatusResult.customer) {
-          await this.saveIncomingMessageForStatus(
+          await this.saveIncomingMessageForOperator(
             phoneNumber,
             messageContent,
-            workspaceId,
-            customerStatusResult
+            workspaceId
           )
         }
 

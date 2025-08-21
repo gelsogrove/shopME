@@ -1,9 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import request from 'supertest'
 import app from '../../app'
-import { createTestCustomer, createTestUser, createTestWorkspace } from '../unit/helpers/prisma-test'
-
-const prisma = new PrismaClient()
+import { connectTestDatabase, createTestCustomer, createTestUser, createTestWorkspace, testPrisma } from '../unit/helpers/prisma-test'
 
 describe('🔐 TOKEN-ONLY SYSTEM Integration Tests', () => {
   let testWorkspace: any
@@ -12,8 +9,11 @@ describe('🔐 TOKEN-ONLY SYSTEM Integration Tests', () => {
   let universalToken: string
 
   beforeAll(async () => {
+    // Connect to test database
+    await connectTestDatabase()
+    
     // Clean up any existing test data
-    await prisma.secureToken.deleteMany({
+    await testPrisma.secureToken.deleteMany({
       where: {
         token: {
           startsWith: 'test-'
@@ -40,21 +40,21 @@ describe('🔐 TOKEN-ONLY SYSTEM Integration Tests', () => {
 
   afterAll(async () => {
     // Clean up test data
-    await prisma.secureToken.deleteMany({
+    await testPrisma.secureToken.deleteMany({
       where: {
         customerId: testCustomer.id
       }
     })
-    await prisma.customers.delete({
+    await testPrisma.customers.delete({
       where: { id: testCustomer.id }
     })
-    await prisma.user.delete({
+    await testPrisma.user.delete({
       where: { id: testUser.id }
     })
-    await prisma.workspace.delete({
+    await testPrisma.workspace.delete({
       where: { id: testWorkspace.id }
     })
-    await prisma.$disconnect()
+    await testPrisma.$disconnect()
   })
 
   describe('🎯 Universal Token Generation', () => {
@@ -77,7 +77,7 @@ describe('🔐 TOKEN-ONLY SYSTEM Integration Tests', () => {
       universalToken = response.body.token
 
       // Verify token is created with type "any" in database
-      const tokenRecord = await prisma.secureToken.findFirst({
+      const tokenRecord = await testPrisma.secureToken.findFirst({
         where: { token: universalToken }
       })
       expect(tokenRecord).toBeDefined()
@@ -102,7 +102,7 @@ describe('🔐 TOKEN-ONLY SYSTEM Integration Tests', () => {
       expect(response.body.action).toBe('orders')
 
       // Verify token is created with type "any" in database
-      const tokenRecord = await prisma.secureToken.findFirst({
+      const tokenRecord = await testPrisma.secureToken.findFirst({
         where: { token: response.body.token }
       })
       expect(tokenRecord).toBeDefined()
@@ -197,7 +197,7 @@ describe('🔐 TOKEN-ONLY SYSTEM Integration Tests', () => {
 
     test('should reject expired token', async () => {
       // Create an expired token
-      const expiredToken = await prisma.secureToken.create({
+      const expiredToken = await testPrisma.secureToken.create({
         data: {
           token: 'test-expired-token',
           type: 'any',
@@ -218,7 +218,7 @@ describe('🔐 TOKEN-ONLY SYSTEM Integration Tests', () => {
       expect(response.body.valid).toBe(false)
 
       // Clean up
-      await prisma.secureToken.delete({
+      await testPrisma.secureToken.delete({
         where: { id: expiredToken.id }
       })
     })
@@ -256,13 +256,13 @@ describe('🔐 TOKEN-ONLY SYSTEM Integration Tests', () => {
       expect(response.body.valid).toBe(false)
 
       // Clean up
-      await prisma.secureToken.delete({
+      await testPrisma.secureToken.delete({
         where: { token: otherToken }
       })
-      await prisma.customers.delete({
+      await testPrisma.customers.delete({
         where: { id: otherCustomer.id }
       })
-      await prisma.workspace.delete({
+      await testPrisma.workspace.delete({
         where: { id: otherWorkspace.id }
       })
     })
@@ -368,7 +368,7 @@ describe('🔐 TOKEN-ONLY SYSTEM Integration Tests', () => {
       })
 
       // Verify token is universal (type: "any")
-      const tokenRecord = await prisma.secureToken.findFirst({
+      const tokenRecord = await testPrisma.secureToken.findFirst({
         where: { token: response.body.token }
       })
       expect(tokenRecord?.type).toBe('any')
@@ -395,7 +395,7 @@ describe('🔐 TOKEN-ONLY SYSTEM Integration Tests', () => {
       })
 
       // Verify token is universal (type: "any")
-      const tokenRecord = await prisma.secureToken.findFirst({
+      const tokenRecord = await testPrisma.secureToken.findFirst({
         where: { token: response.body.token }
       })
       expect(tokenRecord?.type).toBe('any')

@@ -101,7 +101,7 @@ const OrdersPublicPage: React.FC = () => {
     error: tokenError 
   } = useTokenValidation({
     token,
-    type: 'orders',
+    // No type specified - token should work for any page (TOKEN-ONLY system)
     autoValidate: true
   })
 
@@ -245,29 +245,11 @@ const OrdersPublicPage: React.FC = () => {
                 <p className="opacity-90">Status: {o.status} • Date: {formatDate(o.date)}</p>
               </div>
               <button 
-                onClick={async () => {
-                  try {
-                    // Generate a profile token for this customer
-                    const response = await axios.post('/api/internal/generate-token', {
-                      customerId: detailData.customer.id,
-                      workspaceId: workspaceId,
-                      action: 'profile'
-                    }, {
-                      headers: {
-                        'Authorization': 'Basic YWRtaW46YWRtaW4=',
-                        'Content-Type': 'application/json'
-                      }
-                    })
-                    
-                    if (response.data.token) {
-                      const profileUrl = `/customer-profile?token=${response.data.token}`
-                      window.location.href = profileUrl
-                    } else {
-                      console.error('Failed to generate profile token')
-                    }
-                  } catch (error) {
-                    console.error('Error generating profile token:', error)
-                  }
+                onClick={() => {
+                  // Use current token for profile page (TOKEN-ONLY system)
+                  // Same token works for all pages - no need to generate new token
+                  const profileUrl = `/customer-profile?token=${token}`
+                  window.location.href = profileUrl
                 }}
                 className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
@@ -401,29 +383,11 @@ const OrdersPublicPage: React.FC = () => {
                 <p className="opacity-90">{listData.customer.name} • {listData.workspace.name}</p>
               </div>
               <button 
-                onClick={async () => {
-                  try {
-                    // Generate a profile token for this customer
-                    const response = await axios.post('/api/internal/generate-token', {
-                      customerId: listData.customer.id,
-                      workspaceId: workspaceId,
-                      action: 'profile'
-                    }, {
-                      headers: {
-                        'Authorization': 'Basic YWRtaW46YWRtaW4=',
-                        'Content-Type': 'application/json'
-                      }
-                    })
-                    
-                    if (response.data.token) {
-                                              const profileUrl = `/customer-profile?token=${response.data.token}`
-                      window.location.href = profileUrl
-                    } else {
-                      console.error('Failed to generate profile token')
-                    }
-                  } catch (error) {
-                    console.error('Error generating profile token:', error)
-                  }
+                onClick={() => {
+                  // Use current token for profile page (TOKEN-ONLY system)
+                  // Same token works for all pages - no need to generate new token
+                  const profileUrl = `/customer-profile?token=${token}`
+                  window.location.href = profileUrl
                 }}
                 className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >

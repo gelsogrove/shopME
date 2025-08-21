@@ -3,6 +3,7 @@
  * This creates a direct PrismaClient specifically for tests
  */
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 import logger from '../../../utils/logger';
 
 // Create a test-specific PrismaClient
@@ -38,4 +39,63 @@ export const disconnectTestDatabase = async () => {
     logger.error('Failed to disconnect from test database:', error);
     throw error;
   }
+};
+
+// Helper function to create test workspace
+export const createTestWorkspace = async (name: string) => {
+  return await testPrisma.workspace.create({
+    data: {
+      name,
+      isActive: true,
+      isDelete: false,
+      businessType: 'ECOMMERCE'
+    }
+  });
+};
+
+// Helper function to create test customer
+export const createTestCustomer = async (workspaceId: string, customerData: {
+  name: string;
+  email: string;
+  phone: string;
+}) => {
+  return await testPrisma.customers.create({
+    data: {
+      ...customerData,
+      workspaceId,
+      isActive: true,
+      isDelete: false,
+      language: 'IT',
+      activeChatbot: true,
+      isBlacklisted: false
+    }
+  });
+};
+
+// Helper function to create test user
+export const createTestUser = async (workspaceId: string, userData: {
+  email: string;
+  password: string;
+}) => {
+  const hashedPassword = await bcrypt.hash(userData.password, 10);
+  
+  const user = await testPrisma.user.create({
+    data: {
+      email: userData.email,
+      password: hashedPassword,
+      isActive: true,
+      isDelete: false
+    }
+  });
+
+  // Create UserWorkspace association
+  await testPrisma.userWorkspace.create({
+    data: {
+      userId: user.id,
+      workspaceId,
+      role: 'OWNER'
+    }
+  });
+
+  return user;
 }; 

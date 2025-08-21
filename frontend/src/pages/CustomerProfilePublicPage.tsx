@@ -36,7 +36,7 @@ const CustomerProfilePublicPage: React.FC = () => {
     validateToken 
   } = useTokenValidation({
     token,
-    type: 'profile',
+    // No type specified - token should work for any page (TOKEN-ONLY system)
     autoValidate: true
   })
 
@@ -113,11 +113,12 @@ const CustomerProfilePublicPage: React.FC = () => {
   }
 
   // 🔗 Navigate to orders
-  // 📋 Handle view orders
+  // 📋 Handle view orders - Use same token (TOKEN-ONLY system)
   const handleViewOrders = () => {
     logger.info('[PROFILE] View Orders clicked, using current token:', token)
     
     // Use current token and redirect to orders page (TOKEN-ONLY)
+    // No need to generate new token - same token works for all pages
     const ordersUrl = `/orders-public?token=${token}`
     logger.info('[PROFILE] Redirecting to orders:', ordersUrl)
     window.location.href = ordersUrl

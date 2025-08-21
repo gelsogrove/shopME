@@ -135,41 +135,80 @@ se hai dubbi chiedi.
 
 - [ ] 50 USAGE VIENE CALCOLATO ? DOVE VIENE MOSTRATO? PREZZO? (CONTROLLA CODICE)
 
-- 51 IL SEED IMPORTA CORRETTAMENTE IL FILE /Users/gelso/workspace/AI/shop/n8n/workflows/shopme-whatsapp-workflow.json
+- [ ] 51 IL SEED IMPORTA CORRETTAMENTE IL FILE /Users/gelso/workspace/AI/shop/n8n/workflows/shopme-whatsapp-workflow.json
+  - [ ] 51.1 Il file JSON viene letto correttamente durante `npm run seed`?
+  - [ ] 51.2 Il workflow viene importato nell'istanza N8N attiva?
+  - [ ] 51.3 Tutti i nodi (GetOrdersListLink, GetCustomerProfileLink, etc.) sono presenti nel workflow importato?
+  - [ ] 51.4 Le descrizioni dei tool sono aggiornate nel workflow attivo?
+  - [ ] 51.5 Il prompt_agent.md viene propagato correttamente al sistemaMessage del nodo AI Agent?
+
+- [ ] 52 NUCLEAR CLEANUP N8N: Lo script scripts/nuclear-cleanup.sh funziona correttamente?
+  - [ ] 52.1 Lo script elimina tutti i workflow esistenti in N8N?
+  - [ ] 52.2 Lo script importa correttamente il workflow pulito da shopme-whatsapp-workflow.json?
+  - [ ] 52.3 Il workflow importato contiene tutti i nodi necessari (GetCustomerProfileLink, GetOrdersListLink, etc.)?
+  - [ ] 52.4 Il workflow importato è attivo e funzionante?
+  - [ ] 52.5 Lo script gestisce correttamente l'autenticazione N8N (admin@shopme.com/Venezia44)?
 
 
-- 52 contorlla che non ci siano variabili non utilizzate dentro il .env di be e di fe
+- 53 contorlla che non ci siano variabili non utilizzate dentro il .env di be e di fe
 
-- 53 controlla che il .env.example sia aggiornato
+- 54 controlla che il .env.example sia aggiornato
 
-- [ ] 54 Stato del progetto in percentuale ?
+- [ ] 55 Stato del progetto in percentuale ?
 
-- [ ] 55 cosa ne pensi del prompt_agent ?
+- [ ] 56 cosa ne pensi del prompt_agent ?
 
-- [ ] 56 ci sono ancora testi in italiano toglii 
+- [ ] 57 ci sono ancora testi in italiano toglii 
 
-- [ ] 57 Prossimi task o bug in ordine di priorita?
+- [ ] 58 Prossimi task o bug in ordine di priorita?
 
 ********TOKEN-ONLY SYSTEM CHECKS********
 
-- [ ] 58 TOKEN-ONLY SYSTEM: Tutti i link pubblici usano solo token parameter? (orders-public, customer-profile, checkout)
-- [ ] 59 TOKEN-ONLY SYSTEM: Frontend non fa più controlli su phone/workspaceId mancanti?
-- [ ] 60 TOKEN-ONLY SYSTEM: Backend estrae correttamente customerId, phone, workspaceId dal token?
-- [ ] 61 TOKEN-ONLY SYSTEM: N8N genera link token-only corretti per orders, profile, checkout?
-- [ ] 62 TOKEN-ONLY SYSTEM: Prompt_agent istruisce LLM per generare link token-only?
-- [ ] 63 TOKEN-ONLY SYSTEM: Token reuse funziona (1 token per user per type, aggiornato solo se scaduto)?
-- [ ] 64 TOKEN-ONLY SYSTEM: Workspace isolation automatica tramite token validation?
-- [ ] 65 TOKEN-ONLY SYSTEM: Link generation functions (GetOrdersListLink, GetCustomerProfileLink, confirmOrderFromConversation) producono URL token-only?
-- [ ] 66 TOKEN-ONLY SYSTEM: Middleware link-corrector non aggiunge più parametri phone?
-- [ ] 67 TOKEN-ONLY SYSTEM: API endpoints (/api/orders-public, /api/customer-profile, /api/checkout) accettano solo token?
-- [ ] 68 TOKEN-ONLY SYSTEM: Frontend hooks (useTokenValidation, useCheckoutTokenValidation) sono token-only?
-- [ ] 69 TOKEN-ONLY SYSTEM: Database schema SecureToken ha constraint unique (customerId, type, workspaceId)?
-- [ ] 70 TOKEN-ONLY SYSTEM: Test integration e unit test verificano token-only approach?
-- [ ] 71 TOKEN-ONLY SYSTEM: PRD e memory-bank documentano correttamente il sistema token-only?
-- [ ] 72 TOKEN-ONLY SYSTEM: Script verify-token-only-system.sh funziona correttamente?
-- [ ] 73 TOKEN-ONLY SYSTEM: Tutti i link generati sono nel formato corretto (/orders-public?token=..., /customer-profile?token=..., /checkout?token=...)?
-- [ ] 74 TOKEN-ONLY SYSTEM: LLM non inventa più link ma usa solo quelli generati dalle calling functions?
-- [ ] 75 TOKEN-ONLY SYSTEM: Sistema è "congelato" e funzionante per deployment?
+- [ ] 59 TOKEN-ONLY SYSTEM: Tutti i link pubblici usano solo token parameter? (orders-public, customer-profile, checkout)
+- [ ] 60 TOKEN-ONLY SYSTEM: Frontend non fa più controlli su phone/workspaceId mancanti?
+- [ ] 61 TOKEN-ONLY SYSTEM: Backend estrae correttamente customerId, phone, workspaceId dal token?
+- [ ] 62 TOKEN-ONLY SYSTEM: N8N genera link token-only corretti per orders, profile, checkout?
+- [ ] 63 TOKEN-ONLY SYSTEM: Prompt_agent istruisce LLM per generare link token-only?
+- [ ] 64 TOKEN-ONLY SYSTEM: Token reuse funziona (1 token per user per type, aggiornato solo se scaduto)?
+- [ ] 65 TOKEN-ONLY SYSTEM: Workspace isolation automatica tramite token validation?
+- [ ] 66 TOKEN-ONLY SYSTEM: Link generation functions (GetOrdersListLink, GetCustomerProfileLink, confirmOrderFromConversation) producono URL token-only?
+- [ ] 67 TOKEN-ONLY SYSTEM: Middleware link-corrector non aggiunge più parametri phone?
+- [ ] 68 TOKEN-ONLY SYSTEM: API endpoints (/api/orders-public, /api/customer-profile, /api/checkout) accettano solo token?
+- [ ] 69 TOKEN-ONLY SYSTEM: Frontend hooks (useTokenValidation, useCheckoutTokenValidation) sono token-only?
+- [ ] 70 TOKEN-ONLY SYSTEM: Database schema SecureToken ha constraint unique (customerId, type, workspaceId)?
+- [ ] 71 TOKEN-ONLY SYSTEM: Test integration e unit test verificano token-only approach?
+- [ ] 72 TOKEN-ONLY SYSTEM: PRD e memory-bank documentano correttamente il sistema token-only?
+- [ ] 73 TOKEN-ONLY SYSTEM: Script verify-token-only-system.sh funziona correttamente?
+- [ ] 74 TOKEN-ONLY SYSTEM: Tutti i link generati sono nel formato corretto (/orders-public?token=..., /customer-profile?token=..., /checkout?token=...)?
+- [ ] 75 TOKEN-ONLY SYSTEM: LLM non inventa più link ma usa solo quelli generati dalle calling functions?
+- [ ] 76 TOKEN-ONLY SYSTEM: Sistema è "congelato" e funzionante per deployment?
 
-- [ ] 76 LLM TRANSLATION RULE: Nel prompt_agent.md esiste la regola "PRIMA DI CHIAMARE RagSearch(), se la domanda dell'utente è in italiano o spagnolo, TRADUCI AUTOMATICAMENTE la query in inglese" (linea 374-376)?
+- [ ] 77 LLM TRANSLATION RULE: Nel prompt_agent.md esiste la regola "PRIMA DI CHIAMARE RagSearch(), se la domanda dell'utente è in italiano o spagnolo, TRADUCI AUTOMATICAMENTE la query in inglese" (linea 374-376)?
+
+********CRITICAL MISSING CHECKS********
+
+- [ ] 78 CRITICAL: Docker containers (backend, frontend, n8n, postgres) si avviano correttamente con `docker-compose up`?
+- [ ] 79 CRITICAL: N8N è accessibile su http://localhost:5678 e le credenziali admin@shopme.com/Venezia44 funzionano?
+- [ ] 80 CRITICAL: OpenRouter API key è configurata e funzionante nel backend/.env?
+- [ ] 81 CRITICAL: Database PostgreSQL è accessibile e le migrazioni sono applicate correttamente?
+- [ ] 82 CRITICAL: Embeddings sono generati e funzionanti per products, faqs, services, documents?
+- [ ] 83 CRITICAL: WhatsApp Business API è configurata e funzionante?
+- [ ] 84 CRITICAL: Webhook N8N è accessibile da WhatsApp Business API?
+- [ ] 85 CRITICAL: Rate limiting (100 calls/10min) è implementato e funzionante?
+- [ ] 86 CRITICAL: Blacklist automatica (10 messaggi/30sec) è implementata?
+- [ ] 87 CRITICAL: File upload (PDF max 5MB) è funzionante?
+- [ ] 88 CRITICAL: GDPR endpoint restituisce testo corretto per registrazione?
+- [ ] 89 CRITICAL: Analytics tracking funziona e salva dati nel database?
+- [ ] 90 CRITICAL: Backup automatico .env funziona prima di ogni modifica?
+- [ ] 91 CRITICAL: PDF invoice/DDT generation funziona correttamente?
+- [ ] 92 CRITICAL: DHL tracking integration funziona e restituisce link validi?
+- [ ] 93 CRITICAL: Multi-business support (ECOMMERCE, RESTAURANT, etc.) è configurato?
+- [ ] 94 CRITICAL: Session storage analytics period persiste correttamente?
+- [ ] 95 CRITICAL: Error handling globale cattura e logga tutti gli errori?
+- [ ] 96 CRITICAL: Logging system funziona e salva log in file appropriati?
+- [ ] 97 CRITICAL: Health check endpoints (/health) rispondono correttamente?
+- [ ] 98 CRITICAL: CORS è configurato correttamente per frontend-backend communication?
+- [ ] 99 CRITICAL: SSL/TLS è configurato per produzione (se applicabile)?
+- [ ] 100 CRITICAL: Database connection pooling è configurato correttamente?
+- [ ] 101 CRITICAL: Memory leaks - l'applicazione non consuma memoria in modo eccessivo?
  
