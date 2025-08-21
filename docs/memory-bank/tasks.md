@@ -492,6 +492,10 @@ Il sistema di language detection non è sempre coerente. Nonostante le modifiche
 1. **Completare seed** per applicare modifiche workflow
 2. **Testare con WhatsApp** per verificare coerenza linguistica
 3. **Monitorare log** per identificare eventuali problemi residui
+4. **✅ Aggiunto check multilingua**: Inseriti 3 nuovi check nel check.md per verificare:
+   - Sistema multilingua coerente durante conversazione
+   - Language detection e aggiornamento database
+   - Persistenza lingua durante conversazione
 
 ## ✅ **TASK COMPLETATE**
 
@@ -515,3 +519,133 @@ Il prompt non aveva istruzioni specifiche per gestire richieste come "give me th
 
 ### 🎯 **PRIORITÀ**
 **ALTA** - Funzionalità core per gestione ordini
+
+---
+
+## 🐛 **BUG IDENTIFICATI DA ANDREA - 21 AGOSTO 2025**
+
+### 🐛 **BUG #1: LANGUAGE SWITCHING INCONSISTENCY** 
+
+**Bug ID**: LANG-SWITCH-BUG-001  
+**Data**: 21 Agosto 2025  
+**Severità**: ALTA  
+**Stato**: 🚨 **DOCUMENTATO - DA RISOLVERE**  
+**Reporter**: Andrea
+
+#### 🎯 **PROBLEMA IDENTIFICATO**
+Da una conversazione WhatsApp reale, il chatbot ha improvvisamente cambiato lingua da inglese a italiano durante la stessa conversazione.
+
+#### 🔍 **EVIDENZA DALLA CHAT**
+```
+14:50 User: "can you give me the order 10001"
+14:50 Bot: "Here is the detail page for order 10001..." (ENGLISH) ✅
+
+14:50 User: "may i change my address?"
+14:50 Bot: "Per modificare il tuo indirizzo, puoi accedere al tuo profilo sicuro..." (ITALIAN) ❌
+```
+
+#### 🔧 **ROOT CAUSE ANALYSIS**
+**File Problematico**: `backend/src/chatbot/calling-functions/ContactOperator.ts`
+- **Linee 168-185**: Sistema prompt hardcoded in italiano
+- **Problema**: `generateAIChatSummary()` usa sempre prompt italiano indipendentemente dalla lingua utente
+- **Impact**: Responses della funzione ContactOperator sempre in italiano
+
+**Codice Problematico**:
+```typescript
+const systemPrompt = `Sei un assistente AI specializzato nel riassumere conversazioni chat per operatori di customer service.
+
+OBIETTIVO: Crea un riassunto conciso e utile della conversazione...` // SEMPRE ITALIANO
+```
+
+#### 🛠️ **SOLUZIONE RICHIESTA**
+1. **Modificare ContactOperator.ts** → Rendere AI summary multilingua
+2. **Rilevare lingua utente** → Passare lingua come parametro
+3. **System prompt dinamico** → Usare lingua appropriata per summary
+4. **Test multilingua** → Verificare EN/IT/ES per ContactOperator
+
+#### 🎯 **SUCCESS CRITERIA**
+- [ ] ContactOperator rispetta lingua utente in AI summary
+- [ ] Nessun hardcode italiano nelle calling functions
+- [ ] Test EN/IT/ES per ContactOperator funzionanti
+- [ ] Seed aggiornato con modifiche
+
+---
+
+### 🐛 **BUG #2: WRONG CUSTOMER PROFILE LINK** 
+
+**Bug ID**: CUSTOMER-LINK-BUG-001  
+**Data**: 21 Agosto 2025  
+**Severità**: ALTA  
+**Stato**: 🚨 **DOCUMENTATO - DA RISOLVERE**  
+**Reporter**: Andrea
+
+#### 🎯 **PROBLEMA IDENTIFICATO**
+Il chatbot ha generato un link profilo cliente sbagliato con URL hardcoded invece di usare il vero endpoint.
+
+#### 🔍 **EVIDENZA DALLA CHAT**
+```
+14:50 User: "may i change my address?"
+14:50 Bot: "Per modificare il tuo indirizzo, puoi accedere al tuo profilo sicuro tramite questo link: 
+https://app.example.com/customer-profile?token=123456abcdef ❌
+
+DOVREBBE ESSERE:
+http://localhost:3000/customer-profile?token=REAL_TOKEN
+```
+
+#### 🔧 **ROOT CAUSE ANALYSIS**
+**File Problematico**: `docs/other/prompt_agent.md`
+- **Linee 493-494**: Esempi URL sbagliati nel prompt
+- **Problema**: `https://app.example.com` invece di `http://localhost:3000`
+- **Token finto**: `123456abcdef` invece di token reale
+- **Impact**: LLM usa esempi sbagliati dal prompt invece di chiamare funzione reale
+
+**Codice Problematico nel Prompt**:
+```markdown
+- Orders List URL: `https://app.example.com/orders?token=...`
+- Order Detail URL: `https://app.example.com/orders/{ORDER_CODE}?token=...`
+```
+
+**Funzione Corretta**: `GetCustomerProfileLink.ts` linea 73-75:
+```typescript
+const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
+const profileUrl = `${baseUrl}/customer-profile?token=${token}`
+```
+
+#### 🛠️ **SOLUZIONE RICHIESTA**
+1. **Aggiornare prompt_agent.md** → Sostituire `app.example.com` con `localhost:3000`
+2. **Rimuovere token finti** → Usare placeholder come `[TOKEN]`
+3. **Enforce function calling** → LLM deve chiamare GetCustomerProfileLink(), non inventare
+4. **Test link generation** → Verificare che genera link veri
+
+#### 🎯 **SUCCESS CRITERIA**
+- [ ] Prompt agent ha esempi URL corretti con localhost:3000
+- [ ] Nessun hardcode di token finti negli esempi
+- [ ] LLM chiama GetCustomerProfileLink() invece di inventare link
+- [ ] Seed aggiornato con prompt corretto
+- [ ] Test end-to-end: utente riceve link funzionante
+
+---
+
+## 📊 **BUG METRICS SUMMARY**
+
+### 🚨 **BUG ATTIVI**
+- **ALTA PRIORITÀ**: 2 bug (Language Switch + Wrong Link)
+- **MEDIA PRIORITÀ**: 0 bug
+- **BASSA PRIORITÀ**: 0 bug
+
+### ⏱️ **EFFORT ESTIMATE**
+- **Language Switch Fix**: 30-45 minuti
+- **Customer Link Fix**: 15-30 minuti
+- **TOTAL**: ~1 ora per risolvere entrambi
+
+### 🎯 **NEXT ACTIONS**
+1. **Bug #1**: Fix ContactOperator language consistency
+2. **Bug #2**: Fix agent prompt examples URL
+3. **Test completo**: Verificare che entrambi i fix funzionino
+4. **Seed finale**: Aggiornare sistema con correzioni
+
+### 🔧 **TECHNICAL NOTES**
+- **Bug #1**: Backend issue (ContactOperator.ts)
+- **Bug #2**: Prompt issue (prompt_agent.md)
+- **Testing**: Serve test WhatsApp reale per validare fix
+- **Impact**: Entrambi affettano UX customer direttamente
