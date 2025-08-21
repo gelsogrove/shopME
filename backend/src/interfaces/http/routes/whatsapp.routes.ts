@@ -112,5 +112,7 @@ export const whatsappRouter = (whatsappController: WhatsAppController): Router =
   // Authenticated endpoint for operator messages
   router.post('/send-operator-message', authMiddleware, asyncHandler(whatsappController.sendOperatorMessage.bind(whatsappController)));
 
+
+
   return router;
 }; 

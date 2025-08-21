@@ -154,6 +154,8 @@ import { internalApiRoutes } from "./interfaces/http/routes/internal-api.routes"
 app.use("/api/internal", internalApiRoutes)
 logger.info("Mounted internal API routes directly at /api/internal")
 
+
+
 // Hotfix solo per gli ambienti non di test
 if (process.env.NODE_ENV !== "test") {
   // Endpoint di catch-all specifico per bloccare clienti
@@ -198,6 +200,8 @@ app.use("/api/v1", apiRouter)
 
 // Default version route (current version)
 app.use("/api", apiRouter)
+
+
 
 // Mount workspace routes directly at root for legacy compatibility
 import workspaceRoutesRoot from "./routes/workspace.routes"

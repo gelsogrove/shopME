@@ -1,4 +1,3 @@
-import logger from "../utils/logger"
 import { PrismaClient } from "@prisma/client"
 import { NextFunction, Request, Response, Router } from "express"
 import { OtpService } from "../application/services/otp.service"
@@ -8,6 +7,7 @@ import { AuthController } from "../interfaces/http/controllers/auth.controller"
 import { CategoryController } from "../interfaces/http/controllers/category.controller"
 import { ChatController } from "../interfaces/http/controllers/chat.controller"
 import { CustomersController } from "../interfaces/http/controllers/customers.controller"
+import logger from "../utils/logger"
 
 import { FaqController } from "../interfaces/http/controllers/faq.controller"
 import { MessageController } from "../interfaces/http/controllers/message.controller"
@@ -21,8 +21,8 @@ import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
 import { chatRouter } from "../interfaces/http/routes/chat.routes"
 import {
-  customersRouter,
-  workspaceCustomersRouter,
+    customersRouter,
+    workspaceCustomersRouter,
 } from "../interfaces/http/routes/customers.routes"
 
 import { faqsRouter } from "../interfaces/http/routes/faqs.routes"
@@ -205,6 +205,8 @@ const whatsappInstance = whatsappRouter(whatsappController)
 // Mount all whatsapp routes (webhook routes are now defined in app.ts)
 router.use("/whatsapp", whatsappInstance)
 logger.info("Registered WhatsApp router with auth-protected endpoints")
+
+
 
 // Mount document routes with debug middleware
 router.use(

@@ -1273,7 +1273,7 @@ async function main() {
   }
 
   // Crea le lingue disponibili solo se non esistono già
-  const languageCodes = ["it", "en", "es", "fr", "de"]
+  const languageCodes = ["it", "en", "es", "fr"]
   const existingLanguages = await prisma.languages.findMany({
     where: {
       code: { in: languageCodes },
@@ -1297,7 +1297,6 @@ async function main() {
       en: "English",
       es: "Español",
       fr: "Français",
-      de: "Deutsch",
     }
     return names[code] || code
   }
