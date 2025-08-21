@@ -1,5 +1,4 @@
 import { PageLayout } from "@/components/layout/PageLayout"
-import { logger } from "@/lib/logger"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { Badge } from "@/components/ui/badge"
@@ -9,26 +8,27 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
     Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select"
 import {
     Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle
+    SheetContent,
+    SheetHeader,
+    SheetTitle
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
+import { logger } from "@/lib/logger"
 import { clientsApi } from "@/services/clientsApi"
 import {
     ordersApi,
-  type ItemType,
-  type Order,
-  type OrderStatus,
-  type PaymentMethod,
+    type ItemType,
+    type Order,
+    type OrderStatus,
+    type PaymentMethod,
 } from "@/services/ordersApi"
 import { productsApi } from "@/services/productsApi"
 import { servicesApi } from "@/services/servicesApi"
@@ -36,14 +36,14 @@ import { commonStyles } from "@/styles/common"
 import { formatPrice } from "@/utils/format"
 import {
     Eye,
-  FileText,
-  Package,
-  Pencil,
-  Plus,
-  ShoppingCart,
-  Trash2,
-  Truck,
-  Wrench,
+    FileText,
+    Package,
+    Pencil,
+    Plus,
+    ShoppingCart,
+    Trash2,
+    Truck,
+    Wrench,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
@@ -959,13 +959,28 @@ function OrderCrudSheet({
       return
     }
 
+    if (mode === "create" && orderItems.length === 0) {
+      toast.error("Please add at least one product or service")
+      return
+    }
+
     if (!workspace?.id) return
 
     setIsLoading(true)
     try {
       let savedOrder
-      const orderData = {
-        ...formData,
+      
+      // Prepare order data - exclude orderCode for create mode
+      const baseOrderData = {
+        customerId: formData.customerId,
+        status: formData.status,
+        paymentMethod: formData.paymentMethod,
+        totalAmount: formData.totalAmount,
+        shippingAmount: formData.shippingAmount,
+        taxAmount: formData.taxAmount,
+        discountAmount: formData.discountAmount,
+        notes: formData.notes,
+        trackingNumber: formData.trackingNumber,
         items: orderItems.map((item) => ({
           itemType: item.itemType,
           productId: item.productId,
@@ -976,6 +991,11 @@ function OrderCrudSheet({
           productVariant: item.productVariant || null,
         })),
       }
+
+      // Add orderCode only for edit mode
+      const orderData = mode === "edit" 
+        ? { ...baseOrderData, orderCode: formData.orderCode }
+        : baseOrderData
 
       if (mode === "create") {
         savedOrder = await ordersApi.create(workspace.id, orderData)
@@ -1020,22 +1040,20 @@ function OrderCrudSheet({
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="orderCode">Order Code (5 digits) *</Label>
-                  <Input
-                    id="orderCode"
-                    value={formData.orderCode}
-                    onChange={(e) => {
-                      const value = e.target.value
-                        .replace(/\D/g, "")
-                        .slice(0, 5) // Only digits, max 5
-                      setFormData((prev) => ({ ...prev, orderCode: value }))
-                    }}
-                    maxLength={5}
-                    placeholder="12345"
-                    required
-                  />
-                </div>
+                {mode === "edit" && (
+                  <div>
+                    <Label htmlFor="orderCode">Order Code</Label>
+                    <Input
+                      id="orderCode"
+                      value={formData.orderCode}
+                      disabled
+                      className="bg-gray-50 text-gray-700"
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                      Order code is automatically generated
+                    </p>
+                  </div>
+                )}
                 <div>
                   <Label htmlFor="customer">Customer</Label>
                   {mode === "edit" ? (
@@ -1183,7 +1201,7 @@ function OrderCrudSheet({
           </Card>
 
           {/* Products & Services Management */}
-          {mode === "edit" && (
+          {(mode === "edit" || (mode === "create" && formData.customerId)) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -1641,6 +1659,7 @@ export default function OrdersPage() {
 
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isCartEditOpen, setIsCartEditOpen] = useState(false)
+  const [isAddOpen, setIsAddOpen] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const navigate = useNavigate()
 
@@ -1714,6 +1733,11 @@ export default function OrdersPage() {
   }, [workspace?.id])
 
   // Event handlers
+  const handleAdd = () => {
+    setSelectedOrder(null) // Clear selected order for create mode
+    setIsAddOpen(true)
+  }
+
   const handleEdit = (order: Order) => {
     setSelectedOrder(order)
     setIsEditOpen(true)
@@ -1735,6 +1759,11 @@ export default function OrdersPage() {
     // Open customer edit popup - this should integrate with existing customer edit functionality
     // For now, we'll show a placeholder
     toast.info(`Edit customer: ${customer.name} (Feature coming soon)`)
+  }
+
+  const handleViewDetails = (order: Order) => {
+    setSelectedOrder(order)
+    setIsDetailsOpen(true)
   }
 
   const handleCustomerNavigation = (customer: any) => {
@@ -1997,12 +2026,14 @@ export default function OrdersPage() {
       }
     })
 
-    // Show success message
-    toast.success("Order updated successfully")
+    // Show success message based on whether it's create or edit
+    const isNewOrder = !orders.find(o => o.id === savedOrder.id)
+    toast.success(isNewOrder ? "Order created successfully" : "Order updated successfully")
 
     // Close the sheets
     setIsEditOpen(false)
     setIsCartEditOpen(false)
+    setIsAddOpen(false)
     setSelectedOrder(null)
 
     // Verify with server in background
@@ -2059,6 +2090,8 @@ export default function OrdersPage() {
         searchValue={searchTerm}
         onSearch={setSearchTerm}
         searchPlaceholder="Search orders..."
+        onAdd={handleAdd}
+        addButtonText="Add"
         data={sortedOrders}
         columns={columns}
         isLoading={isLoading}
@@ -2105,13 +2138,22 @@ export default function OrdersPage() {
         }
       />
 
+      {/* Order Add Sheet */}
+      <OrderCrudSheet
+        order={null}
+        open={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onSave={handleOrderSave}
+        mode="create"
+      />
+
       {/* Order Edit Sheet */}
       <OrderCrudSheet
         order={selectedOrder}
         open={isEditOpen}
         onClose={() => setIsEditOpen(false)}
         onSave={handleOrderSave}
-        mode={selectedOrder?.id ? "edit" : "create"}
+        mode="edit"
       />
       {/* Cart Edit Sheet */}
       <CartItemEditSheet

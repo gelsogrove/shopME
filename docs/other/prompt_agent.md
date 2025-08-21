@@ -93,11 +93,14 @@ http://host.docker.internal:3001/api/internal/orders/tracking-link
 - **Italian**: "dammi ordine 20008" → CALL GetOrdersListLink(orderCode: "20008") → USE orderDetailUrl  
 - **Italian**: "voglio vedere l'ordine 10002" → CALL GetOrdersListLink(orderCode: "10002") → USE orderDetailUrl
 - **Italian**: "link ordine 20007" → CALL GetOrdersListLink(orderCode: "20007") → USE orderDetailUrl
+- **Italian**: "dammi l'ultimo ordine" → CALL GetOrdersListLink() → USE ordersListUrl (NO orderCode)
 - **English**: "show me order 20014" → CALL GetOrdersListLink(orderCode: "20014") → USE orderDetailUrl
 - **English**: "give me order 20008" → CALL GetOrdersListLink(orderCode: "20008") → USE orderDetailUrl
 - **English**: "order 10002" → CALL GetOrdersListLink(orderCode: "10002") → USE orderDetailUrl
+- **English**: "give me the last order" → CALL GetOrdersListLink() → USE ordersListUrl (NO orderCode)
 - **Spanish**: "dame orden 20014" → CALL GetOrdersListLink(orderCode: "20014") → USE orderDetailUrl
 - **Spanish**: "muéstrame orden 20008" → CALL GetOrdersListLink(orderCode: "20008") → USE orderDetailUrl
+- **Spanish**: "dame el último pedido" → CALL GetOrdersListLink() → USE ordersListUrl (NO orderCode)
 
 **🚨 ULTRA CRITICAL: SPECIFIC ORDER = USE orderDetailUrl FROM RESPONSE!**
 
@@ -119,6 +122,11 @@ http://host.docker.internal:3001/api/internal/orders/tracking-link
   - "link ordine 20013" → PASS orderCode: "20013" ⚠️ SPECIFIC ORDER!
   - "dammi link 20007" → PASS orderCode: "20007" ⚠️ SPECIFIC ORDER!
   - "show order 20007" → PASS orderCode: "20007" ⚠️ SPECIFIC ORDER!
+  - **"give me the last order"** → NO orderCode (general list) ⚠️ LAST ORDER!
+  - **"dammi l'ultimo ordine"** → NO orderCode (general list) ⚠️ LAST ORDER!
+  - **"show me the last order"** → NO orderCode (general list) ⚠️ LAST ORDER!
+  - **"ultimo ordine"** → NO orderCode (general list) ⚠️ LAST ORDER!
+  - **"last order"** → NO orderCode (general list) ⚠️ LAST ORDER!
   - "voglio vedere l'ordine" → NO orderCode (general list)
   - "show me order" → NO orderCode (general list)
   - "order details" → NO orderCode (general list)

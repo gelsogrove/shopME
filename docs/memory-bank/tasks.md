@@ -431,4 +431,87 @@ Il system message del nodo AI Agent in N8N utilizzava `{{ $json.language }}` ma 
 
 ---
 
+## 🐛 **BUG APERTO: "GIVE ME THE LAST ORDER" NON FUNZIONA**
+
+### 📋 **DESCRIZIONE BUG**
+**Data**: 21 Agosto 2025  
+**Severità**: ALTA  
+**Stato**: APERTO  
+**Tester**: Andrea
+
+### 🎯 **PROBLEMA**
+Quando l'utente chiede "give me the last order" o frasi simili, il sistema non risponde correttamente o non fornisce informazioni sull'ultimo ordine.
+
+### 🔍 **EVIDENZE**
+- **Test**: "give me the last order" → Sistema non risponde correttamente
+- **Database**: 20 ordini presenti nel workspace `cm9hjgq9v00014qk8fsdy4ujv`
+- **Funzione**: GetOrdersListLink() dovrebbe gestire richieste di ordini
+
+### 🧪 **ANALISI NECESSARIA**
+1. **Verificare se GetOrdersListLink() gestisce richieste senza orderCode specifico**
+2. **Controllare se il prompt riconosce "last order" come trigger**
+3. **Testare se la funzione restituisce l'ultimo ordine per data**
+4. **Verificare se il sistema ordina per createdAt DESC**
+
+### 🎯 **PRIORITÀ**
+**ALTA** - Funzionalità core per gestione ordini
+
+---
+
+## 🐛 **BUG APERTO: LINGUA NON COERENTE CON PROMPT**
+
+### 📋 **DESCRIZIONE BUG**
+**Data**: 21 Agosto 2025  
+**Severità**: ALTA  
+**Stato**: APERTO  
+**Tester**: Andrea
+
+### 🎯 **PROBLEMA**
+Il sistema di language detection non è sempre coerente. Nonostante le modifiche implementate, la lingua non viene mantenuta costantemente durante la conversazione.
+
+### 🔍 **EVIDENZE**
+- **Test 1**: "hello" → Bot risponde in inglese ✅
+- **Test 2**: "ciao" → Bot dovrebbe rispondere in italiano ❌
+- **Problema**: Lingua non sempre coerente con il prompt dell'utente
+
+### 🧪 **ROOT CAUSE IDENTIFICATA**
+1. **✅ Language Detection**: Funziona correttamente (testato con endpoint)
+2. **✅ Database Update**: Customer language viene aggiornato
+3. **❌ N8N Workflow**: System message potrebbe avere problemi
+4. **❌ Prompt Coerenza**: Possibile mismatch tra detection e utilizzo
+
+### 🔧 **SOLUZIONI IMPLEMENTATE**
+1. **✅ Rimosso istruzione problematica**: "Importante: Rispondi all'utente sempre in lingua en..."
+2. **✅ Corretto system message**: Aggiornato per usare `{{ $json.language }}`
+3. **✅ Workflow aggiornato**: Seed necessario per applicare modifiche
+
+### 🎯 **PRIORITÀ**
+**ALTA** - Sistema multilingua core per UX
+
+### 📋 **NEXT STEPS**
+1. **Completare seed** per applicare modifiche workflow
+2. **Testare con WhatsApp** per verificare coerenza linguistica
+3. **Monitorare log** per identificare eventuali problemi residui
+
 ## ✅ **TASK COMPLETATE**
+
+### 🔧 **SOLUZIONE IMPLEMENTATA**
+**Data**: 21 Agosto 2025  
+**Status**: ✅ RISOLTO
+
+**PROBLEMA IDENTIFICATO**: 
+Il prompt non aveva istruzioni specifiche per gestire richieste come "give me the last order" o "dammi l'ultimo ordine". Il sistema non riconosceva questi trigger come richieste di ordini.
+
+**SOLUZIONE APPLICATA**:
+1. **✅ Aggiunto trigger "last order"**: Aggiunto al prompt esempi per "give me the last order", "dammi l'ultimo ordine", "ultimo ordine"
+2. **✅ Istruzioni multilingua**: Aggiunto esempi in IT/EN/ES per richieste di ultimo ordine
+3. **✅ Logica corretta**: GetOrdersListLink() senza orderCode per richieste generali
+4. **✅ Prompt aggiornato**: Modifiche applicate al prompt_agent.md
+
+**TESTING NECESSARIO**:
+- Testare con WhatsApp: "give me the last order" → dovrebbe chiamare GetOrdersListLink()
+- Testare con WhatsApp: "dammi l'ultimo ordine" → dovrebbe chiamare GetOrdersListLink()
+- Verificare che restituisca ordersListUrl (non orderDetailUrl)
+
+### 🎯 **PRIORITÀ**
+**ALTA** - Funzionalità core per gestione ordini

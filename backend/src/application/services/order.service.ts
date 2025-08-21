@@ -4,14 +4,17 @@ import { IOrderRepository, OrderFilters } from '../../domain/repositories/order.
 import { OrderRepository } from '../../repositories/order.repository';
 import logger from '../../utils/logger';
 import { StockService } from './stock.service';
+import { CustomerService } from './customer.service';
 
 export class OrderService {
   private orderRepository: IOrderRepository;
   private stockService: StockService;
+  private customerService: CustomerService;
 
-  constructor(orderRepository?: IOrderRepository, stockService?: StockService) {
+  constructor(orderRepository?: IOrderRepository, stockService?: StockService, customerService?: CustomerService) {
     this.orderRepository = orderRepository || new OrderRepository();
     this.stockService = stockService || new StockService();
+    this.customerService = customerService || new CustomerService();
   }
 
   async getAllOrders(workspaceId: string, filters?: OrderFilters) {
@@ -81,11 +84,43 @@ export class OrderService {
         throw new Error('Total amount must be greater than 0');
       }
 
+      // Get customer data to populate shipping address
+      const customer = await this.customerService.getById(orderData.customerId, orderData.workspaceId);
+      if (!customer) {
+        throw new Error('Customer not found');
+      }
+
       // Set default values
       orderData.status = orderData.status || OrderStatus.PENDING;
       orderData.shippingAmount = orderData.shippingAmount || 0;
       orderData.taxAmount = orderData.taxAmount || 0;
       orderData.discountAmount = orderData.discountAmount || 0;
+
+      // Populate shipping address from customer if not provided
+      if (!orderData.shippingAddress && customer.address) {
+        // Split customer name into firstName and lastName
+        const nameParts = customer.name.trim().split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+        
+        // Create a structured shipping address from customer's address field
+        orderData.shippingAddress = {
+          firstName,
+          lastName,
+          address: customer.address,
+          city: '', // Could be parsed from address if needed
+          postalCode: '',
+          country: '',
+          phone: customer.phone || undefined,
+        };
+        
+        logger.info('Populated shipping address from customer:', {
+          customerId: customer.id,
+          customerName: customer.name,
+          customerAddress: customer.address,
+          shippingAddress: orderData.shippingAddress
+        });
+      }
 
       // Generate order code if not provided
       if (!orderData.orderCode) {
