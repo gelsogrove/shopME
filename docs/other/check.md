@@ -84,25 +84,25 @@ puo' vedre gli ordini solo di un utente? e non veda ordini di altri utenti ?
 
 - [ ] 26 ci sono dati sensibili secondo te che vanno a openRouter ? 
 
-- [ ] 24 ci sono scripts che non vengono usati e dobbiamo cancellare?
+- [ ] 27 ci sono scripts che non vengono usati e dobbiamo cancellare?
 
-- [ ] 25 ci sono file temporanei che dobbiamo cancellare ? 
+- [ ] 28 ci sono file temporanei che dobbiamo cancellare ? 
 
-- [ ] 26 nel seed vengono lanciati i comandi per lanciare il generate embedding di faq services, products,documents
+- [ ] 29 nel seed vengono lanciati i comandi per lanciare il generate embedding di faq services, products,documents
 
-- [ ] 27 Readme E' aggiornato correttamente ? 
+- [ ] 30 Readme E' aggiornato correttamente ? 
 
-- [ ] 28 mi devi controllare se generate embedding si esegue dopo il seed su faq, services, producst,documents 
+- [ ] 31 mi devi controllare se generate embedding si esegue dopo il seed su faq, services, producst,documents 
 
-- [ ] 29 mi devi controllare se generate embedding si esegue quando c'e' un cambio di dati dentro faq, products,service,offers?
+- [ ] 32 mi devi controllare se generate embedding si esegue quando c'e' un cambio di dati dentro faq, products,service,offers?
 
-- [ ] 30 NON ci sono testi in italiano nel codice vero? se si correggi
+- [ ] 33 NON ci sono testi in italiano nel codice vero? se si correggi
 
-- [ ] 31 NON CI SONO console.log vero ? 
+- [ ] 34 NON CI SONO console.log vero ? 
 
-- [ ] 32 c'e' sempre un filtro di workspaceId nella chiamate di find ?
+- [ ] 35 c'e' sempre un filtro di workspaceId nella chiamate di find ?
 
-- [ ] 33 aggiorna la task list dentro memory bank se c'e' quclsao in sospeso
+- [ ] 36 aggiorna la task list dentro memory bank se c'e' quclsao in sospeso
 
 - [ ] 34 non ci deve essere in root package.json o cartella node_modules
 
