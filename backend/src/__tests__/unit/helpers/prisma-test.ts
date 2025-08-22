@@ -46,6 +46,7 @@ export const createTestWorkspace = async (name: string) => {
   return await testPrisma.workspace.create({
     data: {
       name,
+      slug: name.toLowerCase().replace(/\s+/g, '-'),
       isActive: true,
       isDelete: false,
       businessType: 'ECOMMERCE'
@@ -64,7 +65,6 @@ export const createTestCustomer = async (workspaceId: string, customerData: {
       ...customerData,
       workspaceId,
       isActive: true,
-      isDelete: false,
       language: 'IT',
       activeChatbot: true,
       isBlacklisted: false
@@ -82,9 +82,8 @@ export const createTestUser = async (workspaceId: string, userData: {
   const user = await testPrisma.user.create({
     data: {
       email: userData.email,
-      password: hashedPassword,
-      isActive: true,
-      isDelete: false
+      passwordHash: hashedPassword,
+      status: 'ACTIVE'
     }
   });
 

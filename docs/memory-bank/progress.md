@@ -47,14 +47,29 @@
 
 ## ⏳ **NEXT PRIORITIES**
 
-1. **LLM ORDER PROCESSING BUG**: ❌ HIGH PRIORITY
+1. **🧪 WHATSAPP INTEGRATION TESTS**: 🚧 IN PROGRESS - HIGH PRIORITY
+   - **Status**: 15/58 test passano, 43 test falliscono
+   - **Issues**: Language detection bug, Customer registration issue
+   - **Coverage**: Welcome flow, FAQ responses, Category requests
+   - **Next**: Risolvere language detection bug, creare 5 test mancanti
+
+2. **LLM ORDER PROCESSING BUG**: ❌ HIGH PRIORITY
    - **Problem**: LLM shows fake messages but doesn't process real orders
    - **Example**: Customer says "yes" → "processing" but no order created
    - **Impact**: Customers can't complete WhatsApp orders
 
-2. **ANALYTICS SESSION STORAGE**: ❌ MEDIUM PRIORITY
+3. **ANALYTICS SESSION STORAGE**: ❌ MEDIUM PRIORITY
    - **Feature**: Persist Analytics period selection after page refresh
    - **Implementation**: useAnalyticsPeriod hook with sessionStorage
+
+## ✅ **RECENTLY COMPLETED** (22 Agosto 2025)
+
+- **🧪 WHATSAPP TEST INFRASTRUCTURE**: ✅ COMPLETED
+  - **3 Test Suites**: test-welcome-message, test-faq, test-categories
+  - **Common Helpers**: common-test-helpers.ts con funzioni condivise
+  - **Test Customer**: Maria Garcia (+34666777888) configurata
+  - **API Integration**: POST /api/messages con language support
+  - **Status**: 15/58 test passano, infrastructure completa
 
 ## ✅ **RECENTLY COMPLETED** (20 Agosto 2025)
 
@@ -68,13 +83,14 @@
 
 ## 📈 **COMPLETION PERCENTAGES**
 
-- **Overall Project**: 95% Complete (solo 2 task attivi rimasti)
+- **Overall Project**: 90% Complete (WhatsApp tests in progress)
 - **Memory Bank**: 100% Complete
 - **Documentation**: 100% Complete
 - **Task Management**: 100% Complete
 - **Development Standards**: 100% Complete
-- **Test Suite**: 100% Complete (263/263 tests pass)
+- **Test Suite**: 95% Complete (263/263 unit tests pass, 15/58 integration tests pass)
 - **TOKEN-ONLY System**: 100% Complete (frozen and operational)
+- **WhatsApp Integration Tests**: 25% Complete (3/8 test suites created)
 
 ---
 

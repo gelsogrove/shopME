@@ -14,6 +14,7 @@
     "start:prod": "node dist/src/index.js",
     "start:dev": "ts-node-dev --respawn --transpile-only --notify false --clear --exit-child -r dotenv/config src/index.ts",
     "test:unit": "cross-env NODE_ENV=test jest --config jest.config.unit.js",
+    "test:integration": "cross-env NODE_ENV=test jest --testPathPattern=integration --verbose --forceExit",
     "test:coverage": "cross-env NODE_ENV=test jest --verbose --coverage --coverageReporters='text-summary' --coverageReporters='html' --config jest.config.unit.js",
     "lint": "echo 'Linting skipped for development'",
     "lint:fix": "eslint . --ext .ts --fix",
