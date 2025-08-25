@@ -3887,6 +3887,52 @@ The N8N workflow does NOT contain the actual chatbot prompt text. Instead, it im
 **🚨 DEVELOPER WARNING:**
 Modifying the `systemMessage` directly in the N8N workflow JSON will be overridden by the dynamic `{{ $json.prompt }}` template. All chatbot modifications MUST be made in `/docs/other/prompt_agent.md`.
 
+#### **🌍 MULTILINGUAL QUERY TRANSLATION ARCHITECTURE**
+
+**🚨 CRITICAL RULE: NO HARDCODED TRANSLATION IN BACKEND**
+
+**Problem Solved:** User queries in different languages (Italian, Spanish, Portuguese) need to be translated to English for optimal RAG search performance.
+
+**❌ WRONG APPROACH (NOT ALLOWED):**
+- Hardcoded regex patterns in backend code
+- Translation logic in API controllers
+- Language detection with regex matching
+- Static translation mappings
+
+**✅ CORRECT APPROACH (IMPLEMENTED):**
+- **LLM handles translation** via prompt_agent.md instructions
+- **Backend passes original query** without modification
+- **Prompt contains explicit translation rules** for RagSearch() function
+- **Dynamic translation** based on user input language
+
+**Implementation Details:**
+1. **User Input:** "che pagamenti accettate?" (Italian)
+2. **LLM Processing:** Reads prompt_agent.md translation rules
+3. **Function Call:** RagSearch("what payment methods do you accept")
+4. **Backend:** Receives English query, performs RAG search
+5. **Response:** Returns results in user's original language
+
+**Multilingual Response Examples:**
+- **Italian User:** "che pagamenti accettate?" → Response in Italian
+- **Spanish User:** "¿qué métodos de pago aceptan?" → Response in Spanish  
+- **Portuguese User:** "quais métodos de pagamento aceitam?" → Response in Portuguese
+- **English User:** "what payment methods do you accept?" → Response in English
+
+**Prompt Rules (prompt_agent.md):**
+```
+**🚨 ULTRA CRITICAL - RAGSearch TRANSLATION RULE** 🚨
+**PRIMA DI CHIAMARE RagSearch()**, DEVI SEMPRE TRADURRE la query in inglese
+- Utente: "che pagamenti accettate?" → Tu: RagSearch("what payment methods do you accept")
+- Utente: "quali sono gli orari?" → Tu: RagSearch("what are your opening hours")
+```
+
+**Benefits:**
+- **No hardcoded logic** in backend code
+- **Flexible translation** via LLM intelligence
+- **Easy maintenance** through prompt updates
+- **Scalable** to any language combination
+- **Consistent** with overall architecture
+
 ---
 
 ### C4 Model
@@ -5489,6 +5535,34 @@ Comprehensive testing approach:
 - Performance and load testing
 - Security and penetration testing
 
+#### 🧪 Standard Test User for Integration Tests
+
+**All integration tests use a standardized test user for consistency:**
+
+- **Customer ID:** `test-customer-123`
+- **Phone:** `+393451234567`
+- **Email:** `test-customer-123@shopme.com`
+- **Name:** `Test Customer MCP`
+- **Workspace ID:** `cm9hjgq9v00014qk8fsdy4ujv`
+- **Language:** `it` (Italian)
+- **Status:** `activeChatbot: true`
+- **Privacy:** `privacy_accepted_at: new Date()`
+
+**Configuration:**
+- Fixed ID used across all integration tests for consistency
+- Active chatbot enabled for WhatsApp testing
+- Privacy accepted - no registration prompts during tests
+- Workspace association connected to main workspace
+- Language support for multilingual testing capability
+
+**Usage in Tests:**
+```typescript
+// All integration tests use this standard user
+export const FIXED_CUSTOMER_ID = 'test-customer-123'
+export const FIXED_CUSTOMER_PHONE = '+393451234567'
+export const FIXED_WORKSPACE_ID = 'cm9hjgq9v00014qk8fsdy4ujv'
+```
+
 ## SUBSCRIPTION PLANS
 
 ### Subscription Plans & Pricing (REVISED)
@@ -6628,6 +6702,16 @@ Ogni singolo messaggio WhatsApp ora genera un session token sicuro che:
 | 📤 Send Welcome Message    | `/api/internal/send-whatsapp`                   | POST       | Invio messaggio di benvenuto     |
 | 🔑 Generate Checkout Token | **SERVIZIO INTERNO**                            | Code Node  | ✅ **Generazione token interna** |
 | 🔍 RAG Search              | `/api/internal/rag-search`                      | POST       | Ricerca semantica nei dati       |
+| 🛒 GetAllProducts()        | `/api/internal/get-all-products`                | POST       | Catalogo completo prodotti       |
+| 🏢 GetAllCategories()      | `/api/internal/get-all-categories`              | POST       | Lista categorie prodotti         |
+| 🛎️ GetServices()           | `/api/internal/get-all-services`                | POST       | Catalogo servizi disponibili     |
+| 🏷️ GetActiveOffers()       | `/api/internal/get-active-offers`               | POST       | Offerte e sconti attivi          |
+| 🔗 GetOrdersListLink()     | `/api/internal/orders-link`                     | POST       | Link sicuri storico ordini       |
+| 👤 GetCustomerProfileLink()| `/api/internal/profile-link`                    | POST       | Link gestione profilo cliente    |
+| 🚚 GetShipmentTrackingLink()| `/api/internal/orders/tracking-link`           | POST       | Tracking spedizione DHL          |
+| 📝 confirmOrderFromConversation() | `/api/internal/confirm-order-conversation` | POST       | Conferma ordine da conversazione |
+| 🛒 CreateOrder()           | `/api/internal/create-order`                    | POST       | Creazione ordine finale          |
+| ☎️ ContactOperator()       | `/api/internal/contact-operator`                | POST       | Richiesta operatore umano        |
 | 🤖 OpenRouter LLM 1 Call   | `https://openrouter.ai/api/v1/chat/completions` | POST       | LLM 1 - RAG Processor            |
 | 🤖 OpenRouter LLM 2 Call   | `https://openrouter.ai/api/v1/chat/completions` | POST       | LLM 2 - Formatter                |
 | 💾 Save Message & Response | `/api/internal/save-message`                    | POST       | Salvataggio conversazione        |
@@ -6652,6 +6736,16 @@ Ogni singolo messaggio WhatsApp ora genera un session token sicuro che:
 | `/api/internal/user-check/:workspaceId/:phone`           | GET        | N8N User Flow         | Verifica esistenza utente                   |
 | `/api/internal/wip-status/:workspaceId/:phone`           | GET        | N8N Workspace Check   | Stato work-in-progress                      |
 | `/api/internal/rag-search`                               | POST       | **N8N RAG Search**    | ✅ **Ricerca semantica attiva**             |
+| `/api/internal/get-all-products`                         | POST       | **N8N GetAllProducts** | ✅ **Catalogo prodotti attivo**             |
+| `/api/internal/get-all-categories`                       | POST       | **N8N GetAllCategories** | ✅ **Lista categorie attiva**               |
+| `/api/internal/get-all-services`                         | POST       | **N8N GetServices**   | ✅ **Catalogo servizi attivo**              |
+| `/api/internal/get-active-offers`                        | POST       | **N8N GetActiveOffers** | ✅ **Offerte attive**                       |
+| `/api/internal/orders-link`                              | POST       | **N8N GetOrdersListLink** | ✅ **Link ordini attivo**                   |
+| `/api/internal/profile-link`                             | POST       | **N8N GetCustomerProfileLink** | ✅ **Link profilo attivo**                 |
+| `/api/internal/orders/tracking-link`                     | POST       | **N8N GetShipmentTrackingLink** | ✅ **Tracking attivo**                     |
+| `/api/internal/confirm-order-conversation`               | POST       | **N8N confirmOrderFromConversation** | ✅ **Conferma ordine attiva**              |
+| `/api/internal/create-order`                             | POST       | **N8N CreateOrder**   | ✅ **Creazione ordine attiva**              |
+| `/api/internal/contact-operator`                         | POST       | **N8N ContactOperator** | ✅ **Richiesta operatore attiva**           |
 | `/api/internal/agent-config/:workspaceId`                | GET        | N8N LLM Calls         | Configurazione agente AI                    |
 | `/api/internal/save-message`                             | POST       | **N8N Save Message**  | ✅ **Salvataggio conversazioni**            |
 | `/api/internal/conversation-history/:workspaceId/:phone` | GET        | N8N History           | Storico conversazioni                       |
@@ -6684,13 +6778,14 @@ Ogni singolo messaggio WhatsApp ora genera un session token sicuro che:
 
 Ogni messaggio WhatsApp passa attraverso il workflow N8N che chiama gli endpoint Internal API appropriati per processare la richiesta e generare la risposta finale.
 
-**📊 STATISTICHE CALLING FUNCTIONS:**
+**📊 STATISTICHE CALLING FUNCTIONS (Updated 2025-08-23):**
 
-- **8 N8N HTTP Functions** → Endpoint reali attivi
+- **11 N8N HTTP Functions** → Endpoint reali attivi
 - **1 N8N Internal Service** → SecureTokenService (più efficiente)
 - **3 Legacy Functions** → Files vuoti/deprecated
-- **11 Internal API Endpoints** → Attivi (1 deprecated)
-- **1 OpenRouter Call** → Single LLM Agent per conversazione completa
+- **18 Internal API Endpoints** → Attivi (1 deprecated)
+- **2 OpenRouter Calls** → Two-LLM Architecture (RAG Processor + Formatter)
+- **100% Coverage** → Tutte le funzionalità business coperte da calling functions
 
 **🎯 ARCHITETTURA MIGLIORATA DA ANDREA:**
 
@@ -6712,6 +6807,38 @@ Ogni messaggio WhatsApp passa attraverso il workflow N8N che chiama gli endpoint
 | GetCustomer     | Custom Function     | ✅ Active     | Completed    |
 | GetCategories   | Custom Function     | ✅ Active     | Completed    |
 | **GetInvoices** | **Custom Function** | **✅ Active** | **Task #30** |
+
+### **🎯 COMPLETE CALLING FUNCTIONS LIST (Updated 2025-08-23)**
+
+#### **✅ IMPLEMENTED & ACTIVE CALLING FUNCTIONS**
+
+| **Function Name** | **Endpoint** | **Status** | **Purpose** | **Response Structure** |
+|------------------|--------------|------------|-------------|------------------------|
+| **RagSearch()** | `/api/internal/rag-search` | ✅ **ACTIVE** | Ricerca semantica intelligente su prodotti, FAQ, servizi, documenti | `{ businessType, products[], faqs[], services[], documents[] }` |
+| **GetAllProducts()** | `/api/internal/get-all-products` | ✅ **ACTIVE** | Catalogo completo prodotti con strategia prezzi Andrea | `{ success, products[], customerInfo, discountLogic }` |
+| **GetAllCategories()** | `/api/internal/get-all-categories` | ✅ **ACTIVE** | Lista categorie con conteggio prodotti | `{ success, total_categories, categories[], response_message }` |
+| **GetServices()** | `/api/internal/get-all-services` | ✅ **ACTIVE** | Catalogo servizi con prezzi personalizzati | `{ success, customerInfo, services[], discountLogic }` |
+| **GetActiveOffers()** | `/api/internal/get-active-offers` | ✅ **ACTIVE** | Offerte attive con logica sconti | `{ success, customer, offers[], message }` |
+| **GetOrdersListLink()** | `/api/internal/orders-link` | ✅ **ACTIVE** | Link sicuri per storico ordini | `{ ordersListUrl, orderDetailUrl?, token, expiresAt }` |
+| **GetCustomerProfileLink()** | `/api/internal/profile-link` | ✅ **ACTIVE** | Link gestione profilo cliente | `{ customerId, customerName, customerPhone, profileUrl }` |
+| **GetShipmentTrackingLink()** | `/api/internal/orders/tracking-link` | ✅ **ACTIVE** | Tracking spedizione DHL | `{ success, orderId, orderCode, status, trackingNumber, trackingUrl, message }` |
+| **confirmOrderFromConversation()** | `/api/internal/confirm-order-conversation` | ✅ **ACTIVE** | Conferma ordine da conversazione | `{ success, checkoutToken, checkoutUrl, totalAmount, response }` |
+| **CreateOrder()** | `/api/internal/create-order` | ✅ **ACTIVE** | Creazione ordine con prodotti/servizi | `{ success, orderId, orderCode, totalAmount, message }` |
+| **ContactOperator()** | `/api/internal/contact-operator` | ✅ **ACTIVE** | Richiesta operatore umano | `{ success, message }` |
+
+#### **🔧 TECHNICAL DETAILS**
+
+**Endpoint Base URL:** `http://host.docker.internal:3001/api/internal/`
+
+**Authentication:** HTTP Basic Auth (Backend API Basic Auth)
+
+**Response Format:** JSON con struttura standardizzata
+
+**Error Handling:** Tutti gli endpoint restituiscono errori strutturati
+
+**Workspace Isolation:** Tutti gli endpoint filtrano automaticamente per `workspaceId`
+
+**Language Support:** Multilingue (IT/EN/ES/PT) con auto-rilevamento
 
 ### **🚀 Planned Calling Functions**
 

@@ -10,10 +10,10 @@
  */
 
 import {
-    cleanupTestData,
-    extractResponseMessage,
-    setupTestCustomer,
-    simulateWhatsAppMessage
+  cleanupTestData,
+  extractResponseMessage,
+  setupTestCustomer,
+  simulateWhatsAppMessage
 } from './common-test-helpers'
 
 describe('🧪 Block User Integration Test', () => {
@@ -191,16 +191,6 @@ describe('🧪 Block User Integration Test', () => {
 
   describe('📊 Block User Test Summary', () => {
     it('should summarize block user test results', async () => {
-      console.log('\n📊 BLOCK USER TEST SUMMARY:')
-      console.log('✅ Blocked user detection works correctly')
-      console.log('✅ Auto-block system works correctly')
-      console.log('✅ Manual unblock process works correctly')
-      console.log('✅ Multi-language blocking works correctly')
-      console.log('✅ Complete blocking flow validation works correctly')
-      console.log('✅ Rate limiting and security enforced')
-      console.log('✅ Admin unblock functionality available')
-      console.log('\n🚀 ALL BLOCK USER TESTS PASSED!')
-      
       expect(true).toBe(true)
     })
   })

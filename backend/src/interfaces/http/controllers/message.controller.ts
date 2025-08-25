@@ -28,6 +28,7 @@ export class MessageController {
         workspaceId,
         sessionId,
         isNewConversation,
+        language, // 🚨 ADD: Extract language from payload
       } = req.body
 
       // 🚨 DEBUG: Log del payload ricevuto
@@ -74,10 +75,16 @@ export class MessageController {
       logger.info(`[MESSAGES API] From phone number: ${phoneNumber}`)
       logger.info(`[MESSAGES API] For workspace: ${workspaceId}`)
 
-      // Detect language of the incoming message
-      const detectedLanguage = detectLanguage(message)
+      // 🌍 LANGUAGE DETECTION: Use payload language if provided, otherwise detect from message
+      const userLanguage = language || detectLanguage(message)
       logger.info(
-        `[MESSAGES API] Detected language for message: ${detectedLanguage}`
+        `[MESSAGES API] Language from payload: ${language || 'not provided'}`
+      )
+      logger.info(
+        `[MESSAGES API] Detected language from message: ${detectLanguage(message)}`
+      )
+      logger.info(
+        `[MESSAGES API] Final language to use: ${userLanguage}`
       )
 
       // 🔐 NEW: CHECK USER REGISTRATION STATUS FIRST
@@ -105,7 +112,7 @@ export class MessageController {
             phoneNumber,
             workspaceId,
             message,
-            detectedLanguage
+            userLanguage
           )
 
           res.status(200).json({
@@ -123,10 +130,10 @@ export class MessageController {
                 registrationUrl: welcomeResponse.registrationUrl,
                 token: welcomeResponse.token,
               },
-              detectedLanguage: detectedLanguage,
+              detectedLanguage: userLanguage,
               sessionId: sessionId,
               customerId: `unregistered-${phoneNumber.replace("+", "")}`,
-              customerLanguage: detectedLanguage,
+              customerLanguage: userLanguage,
             },
           })
           return
@@ -137,7 +144,7 @@ export class MessageController {
 
           // Get registration required message in the user's detected language
           const registrationRequiredMessage =
-            this.getRegistrationRequiredMessage(detectedLanguage)
+            this.getRegistrationRequiredMessage(userLanguage)
 
           res.status(200).json({
             success: false,
@@ -152,10 +159,10 @@ export class MessageController {
                 messageType: "registration_required",
                 userRegistrationStatus: "unregistered",
               },
-              detectedLanguage: detectedLanguage,
+              detectedLanguage: userLanguage,
               sessionId: sessionId,
               customerId: `unregistered-${phoneNumber.replace("+", "")}`,
-              customerLanguage: detectedLanguage,
+              customerLanguage: userLanguage,
             },
           })
           return
@@ -198,10 +205,10 @@ export class MessageController {
             workspaceId: workspaceId,
             timestamp: new Date().toISOString(),
             metadata: { agentName: "MANUAL_OPERATOR" },
-            detectedLanguage: detectedLanguage,
+            detectedLanguage: userLanguage,
             sessionId: sessionId,
             customerId: `customer-${phoneNumber.replace("+", "")}`,
-            customerLanguage: detectedLanguage,
+            customerLanguage: userLanguage,
           },
         })
         return
@@ -220,7 +227,8 @@ export class MessageController {
             phoneNumber,
             message,
             sessionToken,
-            "api"
+            "api",
+            userLanguage // 🚨 ADD: Pass user language to payload builder
           )
         // Send to N8N
         const n8nResponse = await N8nPayloadBuilder.sendToN8N(
@@ -262,10 +270,10 @@ export class MessageController {
               workspaceId: workspaceId,
               timestamp: new Date().toISOString(),
               metadata: { agentName: "CHATBOT" },
-              detectedLanguage: detectedLanguage,
+              detectedLanguage: userLanguage,
               sessionId: sessionId,
               customerId: customer ? customer.id : undefined,
-              customerLanguage: detectedLanguage,
+              customerLanguage: userLanguage,
             },
           })
         } else {
@@ -288,10 +296,10 @@ export class MessageController {
               workspaceId: workspaceId,
               timestamp: new Date().toISOString(),
               metadata: { agentName: "CHATBOT_FALLBACK" },
-              detectedLanguage: detectedLanguage,
+              detectedLanguage: userLanguage,
               sessionId: sessionId,
               customerId: customer ? customer.id : undefined,
-              customerLanguage: detectedLanguage,
+              customerLanguage: userLanguage,
             },
           })
         }
@@ -317,10 +325,10 @@ export class MessageController {
             workspaceId: workspaceId,
             timestamp: new Date().toISOString(),
             metadata: { agentName: "CHATBOT_ERROR" },
-            detectedLanguage: detectedLanguage,
+            detectedLanguage: userLanguage,
             sessionId: sessionId,
             customerId: customer ? customer.id : undefined,
-            customerLanguage: detectedLanguage,
+            customerLanguage: userLanguage,
           },
         })
       }

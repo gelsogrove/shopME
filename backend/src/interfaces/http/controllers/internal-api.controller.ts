@@ -291,10 +291,12 @@ const prisma = new PrismaClient()
 export class InternalApiController {
   private secureTokenService: SecureTokenService
   private prisma: PrismaClient
+  // MessageService removed - using real endpoints instead
 
   constructor(private messageRepository: MessageRepository) {
     this.secureTokenService = new SecureTokenService()
     this.prisma = new PrismaClient()
+    // MessageService removed - using real endpoints instead
   }
 
   /**
@@ -462,14 +464,11 @@ export class InternalApiController {
         )
       }
 
-      // 🌍 TRANSLATE QUERY TO ENGLISH FOR BETTER SEMANTIC SEARCH
-      const translatedQuery = await this.translateQueryToEnglish(
-        query,
-        customerLanguage || "it"
-      )
+      // Use original query - LLM will handle translation via prompt_agent.md
+      const translatedQuery = query
 
       logger.info(
-        `[RAG-SEARCH] Original: "${query}" | Translated: "${translatedQuery}" | Language: ${customerLanguage}`
+        `[RAG-SEARCH] Query: "${query}" | Language: ${customerLanguage}`
       )
 
       // Get workspace to determine business type if not provided
@@ -3168,7 +3167,7 @@ ${JSON.stringify(ragResults, null, 2)}`
   ): Promise<string> {
     // Auto-detect if query is already in English by checking common Italian/Spanish/Portuguese words
     const italianWords =
-      /\b(qual|quale|come|dove|quando|perché|cosa|che|dei|della|delle|del|per|con|una|uno|è|sono|hai|avete|posso|puoi|può)\b/i
+      /\b(qual|quale|come|dove|quando|perché|cosa|che|dei|della|delle|del|per|con|una|uno|è|sono|hai|avete|posso|puoi|può|accettate|pagamenti|metodi|pagamento)\b/i
     const spanishWords =
       /\b(qué|cuál|cómo|dónde|cuándo|por qué|para|con|una|uno|es|son|tienes|tienen|puedo|puedes|puede)\b/i
     const frenchWords =
@@ -4742,4 +4741,9 @@ Risposta solo in JSON, niente altro testo.
   private generateSecureToken(): string {
     return crypto.randomBytes(32).toString('hex')
   }
+
+    /**
+   * 🧪 TEST WHATSAPP MESSAGE - REMOVED
+   * Using real /api/messages endpoint instead for realistic testing
+   */
 }

@@ -1,84 +1,134 @@
-# ACTIVE CONTEXT
+# Active Context - ShopMe Project
 
-## CURRENT FOCUS
-- **Task**: ✅ DEBUG MODE SETTINGS BUG FIX - COMPLETED & ARCHIVED
-- **Mode**: READY FOR NEXT TASK
-- **Complexity**: Level 2 (Simple Enhancement)
-- **Status**: ✅ COMPLETED - Bug fixed successfully, task archived
+## 🎉 CRITICAL BUGS COMPLETELY RESOLVED - MULTILINGUAL RAG SYSTEM OPERATIONAL
 
-## CURRENT OBJECTIVE
-✅ DEBUG MODE SETTINGS BUG FIXED & ARCHIVED - Task completed successfully. Ready to proceed with next priority task from memory bank.
+### **BUG #3, #4, #5 - RAG SEARCH & LANGUAGE DETECTION ✅ FULLY FIXED**
 
-### ✅ Key Focus Areas - COMPLETED
-- **Frontend Settings**: ✅ Debug mode toggle working correctly
-- **Backend API**: ✅ Workspace update endpoint working correctly
-- **Database Schema**: ✅ debugMode field exists and working
-- **Repository Fix**: ✅ Added missing debugMode mapping in mapToDomain and mapToDatabase
-- **Integration Flow**: ✅ Complete save functionality now working
+**Problem:** System RAG not finding FAQ information and language detection not working correctly.
 
-## CONFIRMED FINDINGS
-- ✅ Backend compiles successfully with Prisma Client generation
-- ✅ Frontend builds successfully with Vite (2859 modules)
-- ✅ All analytics tests pass (3/3 test suites)
-- ✅ Missing dependencies resolved (planLimits.ts, config imports)
-- ✅ TypeScript errors fixed (plan field references removed)
+**Root Cause:** 
+1. **FAQ embeddings corrupted** - Generated with wrong content during seed
+2. **Translation approach wrong** - Attempted hardcoded regex patterns in backend
+3. **Language parameter ignored** - Backend not using language parameter from payload
 
-## TECHNICAL APPROACH
-- **Build Process**: ✅ Complete - both backend and frontend build successfully
-- **Issue Resolution**: Fixed missing files and TypeScript errors
-- **Testing**: ✅ Complete - all relevant tests pass
+**✅ COMPLETE SOLUTION IMPLEMENTED:**
 
-## BUILD ISSUES RESOLVED
-- **Missing planLimits.ts**: Created complete plan management system
-- **Config imports**: Added missing config imports to n8n-usage.routes.ts
-- **Plan field references**: Removed references to non-existent plan field in schema
-- **PlansPage import**: Removed non-existent PlansPage from App.tsx
+#### **1. FAQ Embeddings Regenerated**
+- **Action:** Regenerated FAQ embeddings via `/api/internal/test-regenerate-embeddings`
+- **Result:** FAQ content now correctly stored and searchable
+- **Test:** "what payment methods do you accept?" → Finds FAQ correctly
 
-## BUILD VERIFICATION: ✅ COMPLETED (100%)
-- ✅ Backend build successful (Prisma + TypeScript)
-- ✅ Frontend build successful (Vite + React)
-- ✅ All tests pass (analytics service tests)
-- ✅ Production build ready
+#### **2. Multilingual Translation Architecture**
+**❌ WRONG APPROACH (REJECTED):**
+- Hardcoded regex patterns in backend code
+- Translation logic in API controllers  
+- Language detection with regex matching
+- Static translation mappings
 
-## BUILD SYSTEM STATUS: ✅ COMPLETED (100%)
-- ✅ All build errors resolved
-- ✅ Dependencies properly configured
-- ✅ TypeScript compilation successful
+**✅ CORRECT APPROACH (IMPLEMENTED):**
+- **LLM handles translation** via prompt_agent.md instructions
+- **Backend passes original query** without modification
+- **Prompt contains explicit translation rules** for RagSearch() function
+- **Dynamic translation** based on user input language
 
-## IMPLEMENT Mode Progress: ✅ COMPLETED (100%)
-- ✅ Backend build completed
-- ✅ Frontend build completed
-- ✅ All tests passing
+**Implementation Flow:**
+1. **User Input:** "che pagamenti accettate?" (Italian)
+2. **LLM Processing:** Reads prompt_agent.md translation rules
+3. **Function Call:** RagSearch("what payment methods do you accept")
+4. **Backend:** Receives English query, performs RAG search
+5. **Response:** Returns results in user's original language
 
-## BUILD COMPLETION SUMMARY
-1. **Backend**: ✅ Build successful - Prisma Client generated, TypeScript compiled
-2. **Frontend**: ✅ Build successful - Vite build completed, production ready
-3. **Tests**: ✅ All analytics tests pass (3/3 test suites)
-4. **Issues Fixed**: Missing files, imports, and TypeScript errors resolved
+**Multilingual Response Examples:**
+- **Italian:** "che pagamenti accettate?" → "Accettiamo pagamenti con carta di credito/debito..."
+- **Spanish:** "¿qué métodos de pago aceptan?" → "Aceptamos pagos con tarjeta de crédito/débito..."
+- **Portuguese:** "quais métodos de pagamento aceitam?" → "Aceitamos pagamentos com cartão de crédito/débito..."
+- **English:** "what payment methods do you accept?" → "We accept credit/debit card payments..."
 
-## BUILD SYSTEM DECISIONS
-- **Decision**: Fix all build errors before proceeding with development
-- **Approach**: Create missing files, fix imports, remove invalid references
-- **Validation**: Verify builds and tests pass successfully
+**Prompt Rules Added (prompt_agent.md):**
+```
+**🚨 ULTRA CRITICAL - RAGSearch TRANSLATION RULE** 🚨
+**PRIMA DI CHIAMARE RagSearch()**, DEVI SEMPRE TRADURRE la query in inglese
+- Utente: "che pagamenti accettate?" → Tu: RagSearch("what payment methods do you accept")
+- Utente: "quali sono gli orari?" → Tu: RagSearch("what are your opening hours")
+```
 
-## Build System Components
-- **Backend**: Node.js + TypeScript + Prisma
-- **Frontend**: React + Vite + TypeScript
-- **Database**: PostgreSQL with Prisma Client
-- **Testing**: Jest for unit tests
+#### **3. Backend Code Cleaned**
+- **Removed:** translateQueryToEnglish() function and regex logic
+- **Simplified:** Backend now passes original query to LLM
+- **Result:** Clean, maintainable code without hardcoded translation logic
 
-## Build Quality Standards
-- **Type Safety**: All TypeScript errors resolved
-- **Dependencies**: All imports properly configured
-- **Testing**: All tests pass successfully
+#### **4. Language Parameter Support Added**
+- **Modified:** `message.controller.ts` to extract and use `language` parameter from payload
+- **Updated:** `n8n-payload-builder.ts` to pass `userLanguage` to N8N workflow
+- **Result:** System now respects `language` parameter: `userLanguage || detectedLanguage`
 
-## BUILD CONSTRAINTS
-- **No Breaking Changes**: Maintain existing functionality
-- **Type Safety**: All TypeScript errors must be resolved
-- **Dependency Management**: All imports must be properly configured
-- **Test Coverage**: All existing tests must pass
+### **Benefits of This Solution:**
+- **No hardcoded logic** in backend code
+- **Flexible translation** via LLM intelligence  
+- **Easy maintenance** through prompt updates
+- **Scalable** to any language combination
+- **Consistent** with overall architecture
 
-## AUTONOMY LEVEL
-- **Current Level**: 4 (Fully Autonomous)
-- **Range**: 1-5 (Manual to Fully Autonomous)
-- **Last Updated**: 2025-08-18 14:30
+### **✅ VERIFICATION COMPLETED:**
+1. **✅ `npm run seed` executed** - Database updated with new prompt_agent.md
+2. **✅ Chatbot tested** with Italian/Spanish queries - ALL WORKING
+3. **✅ All three bugs verified resolved** - System fully operational
+
+### **Test Results:**
+- **✅ "Ciao" (IT)** → "Ciao! Come posso aiutarti oggi?" (Italian response)
+- **✅ "che pagamenti accettate?" (IT)** → "Accettiamo pagamenti con carta di credito/debito..." (FAQ found)
+- **✅ "mostrami tutti i prodotti" (IT)** → Catalogo completo in italiano con formaggi
+- **✅ Language detection:** "it" correctly detected and used
+- **✅ RAG search:** FAQ and products found correctly
+
+### **Files Modified:**
+- `docs/other/prompt_agent.md` - Added translation rules
+- `backend/src/interfaces/http/controllers/internal-api.controller.ts` - Removed translation logic
+- `backend/src/interfaces/http/controllers/message.controller.ts` - Added language parameter support
+- `backend/src/utils/n8n-payload-builder.ts` - Added userLanguage parameter
+- `docs/PRD.md` - Documented architecture decision
+- `docs/memory-bank/activeContext.md` - This file
+- `docs/other/task-list.md` - Updated bug status
+
+---
+
+## 🧪 TEST USER STANDARDIZATION
+
+### **Standard Test User for All Integration Tests**
+**Customer ID:** `test-customer-123`  
+**Phone:** `+393451234567`  
+**Email:** `test-customer-123@shopme.com`  
+**Name:** `Test Customer MCP`  
+**Workspace ID:** `cm9hjgq9v00014qk8fsdy4ujv`  
+**Language:** `it` (Italian)  
+**Status:** `activeChatbot: true`  
+**Privacy:** `privacy_accepted_at: new Date()`  
+
+### **Test User Configuration**
+- **Fixed ID:** Used across all integration tests for consistency
+- **Active Chatbot:** Enabled for WhatsApp testing
+- **Privacy Accepted:** No registration prompts during tests
+- **Workspace Association:** Connected to main workspace
+- **Language Support:** Multilingual testing capability
+
+### **Usage in Tests**
+```typescript
+// All integration tests use this standard user
+export const FIXED_CUSTOMER_ID = 'test-customer-123'
+export const FIXED_CUSTOMER_PHONE = '+393451234567'
+export const FIXED_WORKSPACE_ID = 'cm9hjgq9v00014qk8fsdy4ujv'
+```
+
+---
+
+## Current Focus
+
+**Primary Objective:** ✅ MULTILINGUAL RAG SYSTEM COMPLETELY IMPLEMENTED AND OPERATIONAL
+**Status:** ✅ FULLY FUNCTIONAL - All critical bugs resolved
+**Priority:** ✅ COMPLETED - System ready for production use
+
+## Next Priority
+
+**Focus:** BUG #1 (N8N Credential Duplication) and BUG #2 (Max Iterations)
+**Status:** Medium priority - System core functionality working
+**Impact:** Optimization and cleanup tasks

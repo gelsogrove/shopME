@@ -4,6 +4,11 @@
 
 ### 🚨 **AUTOMATED PROCESSES**
 
+#### 🚫 **Server Management**
+**Rule**: NEVER run `npm run dev` or start servers manually  
+**Reason**: Andrea manages all server processes and lifecycle  
+**Status**: ✅ **CRITICAL**  
+
 #### 📝 **Prompt Agent Changes**
 **Rule**: Every time `prompt_agent.md` is modified, run `npm run seed`  
 **Location**: `docs/other/prompt_agent.md`  
@@ -119,6 +124,23 @@
 - **Testing**: Run tests before deployment
 - **Documentation**: Update swagger after API changes
 - **Backup**: Create backups before critical changes
+
+### 🚨 **SERVER MANAGEMENT RULES**
+- **NEVER run `npm run dev`** - Andrea manages server startup
+- **NEVER start backend manually** - Andrea handles all server processes
+- **NEVER restart services** - Andrea manages all service lifecycle
+- **If servers are down**: Ask Andrea to start them, don't start them yourself
+- **Test integration**: Only run tests when Andrea confirms servers are active
+
+### 🧪 **INTEGRATION TEST RULES**
+- **Integration tests require active services**: Backend (`npm run dev`) and N8N must be running
+- **If integration tests fail**: Always verify that:
+  1. Backend is running on port 3001 (`npm run dev`)
+  2. N8N is running on port 5678
+  3. Database is accessible
+  4. Seed has been executed (`npm run seed`)
+- **Test environment**: Integration tests use real HTTP calls to running services
+- **No mocks**: Integration tests must test the real system, not mocked responses
 
 ### 🤖 **Prompt Workflow**
 1. **Edit**: Modify `docs/other/prompt_agent.md` (source of truth)

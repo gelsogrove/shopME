@@ -269,6 +269,17 @@ if (process.env.NODE_ENV === 'test' && !process.env.INTEGRATION_TEST) {
         deleteMany: jest.fn(),
         count: jest.fn(),
       },
+      secureToken: {
+        findMany: jest.fn(),
+        findFirst: jest.fn(),
+        findUnique: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        updateMany: jest.fn(),
+        delete: jest.fn(),
+        deleteMany: jest.fn(),
+        count: jest.fn(),
+      },
       userWorkspaces: {
         findMany: jest.fn(),
         findFirst: jest.fn(),

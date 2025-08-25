@@ -142,7 +142,8 @@ export class N8nPayloadBuilder {
     phoneNumber: string,
     messageContent: string,
     sessionToken: string,
-    source: string = "whatsapp"
+    source: string = "whatsapp",
+    userLanguage?: string // 🚨 ADD: Optional user language parameter
   ) {
     // Precompile all data needed
     const optimizedData = await N8nPayloadBuilder.precompileN8NData(
@@ -216,7 +217,7 @@ export class N8nPayloadBuilder {
               id: `agent-config-${Date.now()}`,
               workspaceId: workspaceId,
               model: "openai/gpt-4o-mini",
-              temperature: 0.7,
+              temperature: 0.3, // Abbassata per maggiore consistenza nei link
               maxTokens: 1000,
               topP: 0.9,
               prompt:
@@ -232,7 +233,7 @@ export class N8nPayloadBuilder {
               name: optimizedData.customer.name,
               email: optimizedData.customer.email,
               phone: optimizedData.customer.phone,
-              language: optimizedData.customer.language || "it",
+              language: userLanguage || optimizedData.customer.language || "it",
               isActive: Boolean(optimizedData.customer.isActive),
               isBlacklisted: Boolean(optimizedData.customer.isBlacklisted),
               activeChatbot: Boolean(optimizedData.customer.activeChatbot),
@@ -280,7 +281,7 @@ export class N8nPayloadBuilder {
               name: "Customer",
               email: "",
               phone: phoneNumber,
-              language: "it",
+              language: userLanguage || "it",
               isActive: true,
               isBlacklisted: false,
               activeChatbot: Boolean(true),

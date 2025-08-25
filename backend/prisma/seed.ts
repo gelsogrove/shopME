@@ -911,7 +911,7 @@ async function main() {
           prompt: SOFIA_PROMPT,
           workspaceId: mainWorkspaceId,
           model: defaultAgent.model,
-          temperature: 0.7,
+          temperature: 0.3, // Abbassata per maggiore consistenza nei link
           maxTokens: 1000,
           isActive: true,
         },
@@ -939,7 +939,7 @@ async function main() {
           department: null,
           workspaceId: mainWorkspaceId,
           model: "gpt-3.5-turbo",
-          temperature: 0.7,
+          temperature: 0.3, // Abbassata per maggiore consistenza nei link
           top_p: 1,
           max_tokens: 1024,
         },
@@ -1158,7 +1158,7 @@ async function main() {
       name: "Beverages",
       slug: "beverages",
       description:
-        "Italian beverages including coffee, soft drinks, and non-alcoholic options",
+        "Italian beverages including wines, spirits, coffee, soft drinks, and both alcoholic and non-alcoholic options",
     },
     {
       name: "Pasta",
@@ -1661,7 +1661,73 @@ async function main() {
       stock: 40,
 
       status: "ACTIVE",
-      slug: "pesto-alla-genovese-dop",
+      slug: "limoncello-di-capri",
+      categoryName: "Beverages",
+    },
+    {
+      name: "Chianti Classico DOCG",
+      description:
+        "Chianti Classico DOCG, uno dei vini rossi più famosi d'Italia, prodotto nella regione storica del Chianti in Toscana. Realizzato principalmente con uve Sangiovese, presenta un bouquet complesso con note di frutta rossa, spezie e tabacco. Perfetto per accompagnare carni rosse, formaggi stagionati e piatti della tradizione toscana.",
+      price: 24.99,
+      stock: 25,
+
+      status: "ACTIVE",
+      slug: "chianti-classico-docg",
+      categoryName: "Beverages",
+    },
+    {
+      name: "Prosecco DOC Treviso",
+      description:
+        "Prosecco DOC Treviso, spumante italiano prodotto con uve Glera nella regione del Veneto. Caratterizzato da bollicine fini e persistenti, presenta aromi di fiori bianchi, pera e mela verde. Perfetto come aperitivo o per accompagnare antipasti e piatti di pesce. Ideale per celebrazioni e momenti speciali.",
+      price: 18.99,
+      stock: 30,
+
+      status: "ACTIVE",
+      slug: "prosecco-doc-treviso",
+      categoryName: "Beverages",
+    },
+    {
+      name: "Barolo DOCG",
+      description:
+        "Barolo DOCG, il 'Re dei vini e vino dei Re', prodotto esclusivamente con uve Nebbiolo nelle Langhe del Piemonte. Vino rosso di grande struttura e longevità, presenta aromi complessi di rosa, tartufo, spezie e frutta rossa matura. Richiede invecchiamento e si abbina perfettamente a piatti elaborati e carni rosse.",
+      price: 45.99,
+      stock: 15,
+
+      status: "ACTIVE",
+      slug: "barolo-docg",
+      categoryName: "Beverages",
+    },
+    {
+      name: "Pinot Grigio delle Venezie DOC",
+      description:
+        "Pinot Grigio delle Venezie DOC, vino bianco secco prodotto nelle regioni del Nord-Est italiano. Caratterizzato da un colore paglierino con riflessi ramati, presenta aromi di fiori bianchi, frutta tropicale e note minerali. Perfetto per accompagnare antipasti, pesce e piatti leggeri della cucina mediterranea.",
+      price: 16.99,
+      stock: 35,
+
+      status: "ACTIVE",
+      slug: "pinot-grigio-delle-venezie-doc",
+      categoryName: "Beverages",
+    },
+    {
+      name: "Amarone della Valpolicella DOCG",
+      description:
+        "Amarone della Valpolicella DOCG, vino rosso corposo prodotto con uve appassite nella regione del Veneto. Caratterizzato da un elevato contenuto alcolico e aromi intensi di frutta secca, spezie, cioccolato e note balsamiche. Vino da meditazione, perfetto per accompagnare formaggi stagionati e cioccolato fondente.",
+      price: 52.99,
+      stock: 12,
+
+      status: "ACTIVE",
+      slug: "amarone-della-valpolicella-docg",
+      categoryName: "Beverages",
+    },
+    {
+      name: "Grappa di Moscato",
+      description:
+        "Grappa di Moscato, distillato italiano prodotto con vinacce di uve Moscato. Caratterizzata da un profumo intenso e floreale con note di uva moscata, fiori bianchi e frutta tropicale. Grappa elegante e raffinata, perfetta come digestivo o per accompagnare dolci e cioccolato. Prodotta secondo la tradizione artigianale italiana.",
+      price: 28.99,
+      stock: 20,
+
+      status: "ACTIVE",
+      slug: "grappa-di-moscato",
       categoryName: "Beverages",
     },
   ]
@@ -1801,11 +1867,11 @@ async function main() {
   // Define sample offers
   const specialOffers = [
     {
-      name: "Offerta Estiva 2025",
-      description: "Sconto speciale del 20% su tutte le bevande per l'estate!",
+      name: "Offerta Alcolici 20%",
+      description: "Sconto del 20% su tutti gli alcolici!",
       discountPercent: 20,
-      startDate: new Date(2025, 6, 1), // July 1st, 2025 (month is 0-indexed)
-      endDate: new Date(2025, 8, 30), // September 30th, 2025
+      startDate: new Date(new Date().setDate(new Date().getDate() - 30)), // 30 days ago
+      endDate: new Date(new Date().setDate(new Date().getDate() + 365)), // 1 year from now
       isActive: true,
       categoryId: null as string | null, // Will be set to Beverages category below
     },
@@ -1849,9 +1915,9 @@ async function main() {
   // Create new offers
   for (const offer of specialOffers) {
     try {
-      // For "Offerta Estiva 2025", find and assign Beverages category
+      // For "Offerta Alcolici 20%", find and assign Beverages category
       let finalCategoryId = offer.categoryId
-      if (offer.name === "Offerta Estiva 2025") {
+      if (offer.name === "Offerta Alcolici 20%") {
         const beverageCategory = await prisma.categories.findFirst({
           where: {
             workspaceId: mainWorkspaceId,
@@ -1861,7 +1927,7 @@ async function main() {
         if (beverageCategory) {
           finalCategoryId = beverageCategory.id
           console.log(
-            `Assigning Offerta Estiva to Beverages category: ${beverageCategory.id}`
+            `Assigning Offerta Alcolici to Beverages category: ${beverageCategory.id}`
           )
         }
       }
@@ -2138,7 +2204,7 @@ async function main() {
   console.log(`➡️ testCustomer.id: ${testCustomer.id}`)
   console.log(`➡️ workspaceId: ${mainWorkspaceId}`)
 
-  // Create second test customer - Maria Garcia
+  // Create second test customer - Maria Garcia (with 10% discount)
   const testCustomer2 = await prisma.customers.create({
     data: {
       name: "Maria Garcia",
@@ -2153,6 +2219,7 @@ async function main() {
       privacy_accepted_at: new Date(),
       push_notifications_consent: true,
       push_notifications_consent_at: new Date(),
+      discount: 10, // 10% discount for Maria Garcia
       invoiceAddress: {
         firstName: "Maria",
         lastName: "Garcia",

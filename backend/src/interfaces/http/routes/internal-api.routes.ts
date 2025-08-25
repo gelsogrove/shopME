@@ -29,6 +29,10 @@ router.post(
   internalApiController.testRegenerateEmbeddings.bind(internalApiController)
 )
 
+// 🧪 TEST WHATSAPP MESSAGE - No Auth Required (Andrea's Testing)
+// This endpoint is OUTSIDE the auth middleware for testing WhatsApp messages
+// REMOVED - Using real /api/messages endpoint instead
+
 // 🌐 PUBLIC ORDERS PAGES (NO AUTH)
 /**
  * @swagger
@@ -135,6 +139,28 @@ router.post(
       const { GetCustomerProfileLink } = await import('../../../chatbot/calling-functions/GetCustomerProfileLink')
       
       const result = await GetCustomerProfileLink({
+        customerId,
+        workspaceId
+      })
+      
+      res.json(result)
+    } catch (error) {
+      res.status(400).json({ error: error.message })
+    }
+  }
+)
+
+// 🔗 LAST ORDER LINK GENERATION (Public, NO AUTH REQUIRED)
+router.post(
+  "/last-order-link",
+  async (req, res) => {
+    try {
+      const { customerId, workspaceId } = req.body
+      
+      // Import dinamico per evitare circular dependencies
+      const { GetLastOrderLink } = await import('../../../chatbot/calling-functions/GetLastOrderLink')
+      
+      const result = await GetLastOrderLink({
         customerId,
         workspaceId
       })
