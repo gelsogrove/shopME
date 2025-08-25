@@ -7342,6 +7342,42 @@ GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
 
 **STRATEGIA IBRIDA:** Combinazione tra chat libera e checkout web per esperienza utente ottimale.
 
+**🎯 RIASSUNTO FLUSSO COMPLETO:**
+
+```
+1. 👤 Cliente WhatsApp: "Metti 4 mozzarelle"
+2. 🤖 AI: "Ho aggiunto 4 Mozzarella di Bufala al carrello! 🧀"
+3. 👤 Cliente: "Confermo"
+4. 🔗 N8N: Chiama confirmOrderFromConversation()
+5. 🧠 Backend: Parsing conversazione + generazione token
+6. 🔐 Token: 32 caratteri, 1 ora, payload completo
+7. 🌐 URL: http://localhost:3000/checkout-public?token=abc123...
+8. 📋 Frontend: 3 step (prodotti → indirizzi → conferma)
+9. ✅ Submit: Ordine creato + notifiche inviate
+```
+
+**🔧 COMPONENTI TECNICI:**
+- **Calling Function**: `confirmOrderFromConversation()`
+- **Token Service**: SecureTokenService con crypto
+- **Frontend**: CheckoutPage con modifica prodotti
+- **API**: 3 endpoint completi (confirm, validate, submit)
+- **Database**: SecureToken + Orders tables
+- **N8N**: Workflow aggiornato con calling function
+
+**🔒 SICUREZZA:**
+- **Workspace Isolation**: Tutte le query filtrano per workspaceId
+- **Token Security**: 32 caratteri crypto, 1 ora scadenza
+- **One-time Use**: Token marcato come usato dopo submit
+- **localhost:3000**: URL consistente sempre
+- **checkout-public**: Path consistente con altri link pubblici
+
+**✅ CARATTERISTICHE CHIAVE:**
+- **Deterministico**: Stesso input → Stesso output
+- **Consistente**: URL sempre localhost:3000
+- **Sicuro**: Token validi e isolati per workspace
+- **Completo**: Carrello + indirizzi nel token
+- **Funzionale**: End-to-end working flow
+
 **FLUSSO COMPLETO IMPLEMENTATO:**
 
 ```
@@ -7374,11 +7410,11 @@ GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
 - **Parsing**: LLM interno (OpenRouter) analizza conversationContext
 - **Validazione**: Controlla prodotti/servizi contro database
 - **Token**: Genera secureToken con TTL 1 ora
-- **URL**: `http://localhost:3000/order-summary/{token}`
+- **URL**: `http://localhost:3000/checkout-public?token={token}`
 
 **Frontend (✅ COMPLETED):**
-- **Route**: `/order-summary/:token`
-- **Component**: `OrderSummaryPage.tsx`
+- **Route**: `/checkout-public`
+- **Component**: `CheckoutPage.tsx`
 - **Features**: 
   - Carica dati da `/api/internal/checkout/:token`
   - Interfaccia interattiva per modificare quantità

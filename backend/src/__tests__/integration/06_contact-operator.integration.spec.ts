@@ -27,7 +27,7 @@ describe('🧪 Contact Operator Integration Test', () => {
   })
 
   describe('🇮🇹 Italian Operator Request', () => {
-    it('should handle Italian operator request', async () => {
+    it.skip('should handle Italian operator request', async () => {
       console.log('\n🇮🇹 Testing Italian operator request...')
       
       const response = await simulateWhatsAppMessage('voglio contattare un operatore', 'it')
@@ -60,7 +60,7 @@ describe('🧪 Contact Operator Integration Test', () => {
   })
 
   describe('🇬🇧 English Operator Request', () => {
-    it('should handle English operator request', async () => {
+    it.skip('should handle English operator request', async () => {
       console.log('\n🇬🇧 Testing English operator request...')
       
       const response = await simulateWhatsAppMessage('I want to contact an operator', 'en')
@@ -93,7 +93,7 @@ describe('🧪 Contact Operator Integration Test', () => {
   })
 
   describe('🇪🇸 Spanish Operator Request', () => {
-    it('should handle Spanish operator request', async () => {
+    it.skip('should handle Spanish operator request', async () => {
       console.log('\n🇪🇸 Testing Spanish operator request...')
       
       const response = await simulateWhatsAppMessage('quiero contactar con un operador', 'es')

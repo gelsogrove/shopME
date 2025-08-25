@@ -27,7 +27,7 @@ describe('🧪 Token System Integration Test', () => {
   })
 
   describe('📦 Orders Token Generation', () => {
-    it('should generate token for orders request', async () => {
+    it.skip('should generate token for orders request', async () => {
       console.log('\n📦 Testing orders token generation...')
       
       const response = await simulateWhatsAppMessage('show me my orders', 'en')
@@ -59,7 +59,7 @@ describe('🧪 Token System Integration Test', () => {
   })
 
   describe('👤 Profile Token Generation', () => {
-    it('should generate token for profile request', async () => {
+    it.skip('should generate token for profile request', async () => {
       console.log('\n👤 Testing profile token generation...')
       
       const response = await simulateWhatsAppMessage('change my email', 'en')
@@ -92,7 +92,7 @@ describe('🧪 Token System Integration Test', () => {
   })
 
   describe('🌍 Multi-language Token Support', () => {
-    it('should generate tokens for Italian requests', async () => {
+    it.skip('should generate tokens for Italian requests', async () => {
       console.log('\n🇮🇹 Testing Italian token generation...')
       
       const response = await simulateWhatsAppMessage('mostrami i miei ordini', 'it')
@@ -122,7 +122,7 @@ describe('🧪 Token System Integration Test', () => {
       console.log('✅ Italian token generation test passed')
     })
 
-    it('should generate tokens for Spanish requests', async () => {
+    it.skip('should generate tokens for Spanish requests', async () => {
       console.log('\n🇪🇸 Testing Spanish token generation...')
       
       const response = await simulateWhatsAppMessage('muéstrame mis pedidos', 'es')

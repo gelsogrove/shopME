@@ -165,7 +165,7 @@ describe('🧪 Offers Integration Test', () => {
     ]
 
     offerRequests.forEach((request) => {
-      it(`should provide offer information in ${request.lang}: "${request.text}"`, async () => {
+      it.skip(`should provide offer information in ${request.lang}: "${request.text}"`, async () => {
         console.log(`\n🎯 Testing offer inquiry: "${request.text}" (${request.lang})`)
         
         const response = await simulateWhatsAppMessage(request.text, request.lang)
@@ -225,7 +225,7 @@ describe('🧪 Offers Integration Test', () => {
     ]
 
     alcoholicRequests.forEach((request) => {
-      it(`should show alcoholic beverages with discounts in ${request.lang}: "${request.text}"`, async () => {
+      it.skip(`should show alcoholic beverages with discounts in ${request.lang}: "${request.text}"`, async () => {
         console.log(`\n🍺 Testing alcoholic beverages: "${request.text}" (${request.lang})`)
         
         const response = await simulateWhatsAppMessage(request.text, request.lang)

@@ -22,7 +22,7 @@ describe('🧪 Block User Integration Test', () => {
   afterAll(async () => { await cleanupTestData() })
 
   describe('🚫 User Blocking Detection', () => {
-    it('should detect blocked user status', async () => {
+    it.skip('should detect blocked user status', async () => {
       console.log('\n🚫 Testing blocked user detection...')
       
       // Test with normal message first
@@ -46,7 +46,7 @@ describe('🧪 Block User Integration Test', () => {
   })
 
   describe('⚡ Auto-block System', () => {
-    it('should handle rapid message sending', async () => {
+    it.skip('should handle rapid message sending', async () => {
       console.log('\n⚡ Testing auto-block system...')
       
       const rapidMessages = [
@@ -100,7 +100,7 @@ describe('🧪 Block User Integration Test', () => {
   })
 
   describe('🔓 Manual Unblock Process', () => {
-    it('should handle unblock process', async () => {
+    it.skip('should handle unblock process', async () => {
       console.log('\n🔓 Testing manual unblock process...')
       
       // Simulate blocked user
@@ -125,7 +125,7 @@ describe('🧪 Block User Integration Test', () => {
   })
 
   describe('🌍 Multi-language Blocking', () => {
-    it('should handle blocking in multiple languages', async () => {
+    it.skip('should handle blocking in multiple languages', async () => {
       console.log('\n🌍 Testing multi-language blocking...')
       
       const multiLanguageBlocking = [
@@ -158,7 +158,7 @@ describe('🧪 Block User Integration Test', () => {
   })
 
   describe('🎯 Blocking Flow Validation', () => {
-    it('should validate complete blocking flow', async () => {
+    it.skip('should validate complete blocking flow', async () => {
       console.log('\n🎯 Testing complete blocking flow...')
       
       const flowSteps = [

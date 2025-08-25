@@ -1213,6 +1213,494 @@ paths:
                     type: string
                     example: "Internal server error getting active offers"
 
+  /internal/confirm-order-conversation:
+    post:
+      tags:
+        - Internal API
+      summary: Confirm order from conversation and generate checkout link
+      description: |
+        **🛒 CONVERSATIONAL ORDER FLOW** - Confirma ordine da conversazione WhatsApp e genera link checkout sicuro.
+        
+        **Flusso Completo**:
+        1. Cliente conferma ordine in WhatsApp ("Confermo", "Procedi")
+        2. N8N chiama questa API con conversazione + prodotti
+        3. Backend genera token sicuro con carrello + indirizzi
+        4. Ritorna URL checkout: `http://localhost:3000/checkout?token=...`
+        
+        **Token Payload**:
+        - Customer data (id, name, phone, address)
+        - Prodotti selezionati (codice, quantità, prezzo)
+        - Indirizzi di spedizione e fatturazione
+        - Workspace isolation
+        
+        **Sicurezza**:
+        - Token 32 caratteri, 1 ora validità
+        - Workspace isolation automatica
+        - One-time use (marked as used)
+        
+        **Deterministico**: Stesso input → Stesso output
+      security:
+        - basicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - customerId
+                - workspaceId
+                - prodottiSelezionati
+              properties:
+                customerId:
+                  type: string
+                  description: ID del cliente
+                  example: "customer-123"
+                workspaceId:
+                  type: string
+                  description: ID del workspace
+                  example: "cm9hjgq9v00014qk8fsdy4ujv"
+                conversationContext:
+                  type: string
+                  description: Ultimi messaggi della conversazione per contesto
+                  example: "Cliente: Metti 4 mozzarelle\nAI: Aggiunto al carrello\nCliente: Confermo"
+                prodottiSelezionati:
+                  type: array
+                  description: Prodotti identificati nella conversazione
+                  items:
+                    type: object
+                    required:
+                      - nome
+                      - quantita
+                    properties:
+                      nome:
+                        type: string
+                        description: Nome prodotto come menzionato dal cliente
+                        example: "Mozzarella di Bufala Campana DOP"
+                      quantita:
+                        type: number
+                        description: Quantità richiesta dal cliente
+                        example: 4
+                      descrizione:
+                        type: string
+                        description: Descrizione aggiuntiva se fornita
+                        example: "Mozzarella di Bufala Campana DOP"
+                      codice:
+                        type: string
+                        description: Codice prodotto se menzionato
+                        example: "MOZ001"
+      responses:
+        "200":
+          description: Checkout link generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  checkoutToken:
+                    type: string
+                    description: Token sicuro per accesso checkout
+                    example: "abc123def456ghi789jkl012mno345"
+                  checkoutUrl:
+                    type: string
+                    description: URL completo per pagina checkout
+                    example: "http://localhost:3000/checkout-public?token=abc123def456ghi789jkl012mno345"
+                  totalAmount:
+                    type: number
+                    format: float
+                    description: Totale calcolato dell'ordine
+                    example: 34.00
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: Scadenza token
+                    example: "2024-12-01T12:00:00Z"
+                  response:
+                    type: string
+                    description: Messaggio di conferma per utente
+                    example: "✅ Ordine confermato! Ecco il link per completare il tuo ordine: http://localhost:3000/checkout?token=abc123..."
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Customer not found"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid internal API credentials"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Internal server error confirming order"
+
+  /checkout/validate:
+    get:
+      tags:
+        - Checkout
+      summary: Validate checkout token and return order data
+      description: |
+        **🔐 TOKEN VALIDATION** - Valida token checkout e ritorna dati ordine.
+        
+        **Utilizzo**:
+        - Frontend chiama questa API per validare token
+        - Ritorna customer + prodotti se token valido
+        - Gestisce errori (scaduto, non valido, già usato)
+        
+        **Response**:
+        - Customer data (id, name, phone, address)
+        - Prodotti nel carrello (codice, quantità, prezzo)
+        - Indirizzi di spedizione e fatturazione
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: Checkout token to validate
+          example: "abc123def456ghi789jkl012mno345"
+      responses:
+        "200":
+          description: Token validated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  valid:
+                    type: boolean
+                    example: true
+                  customer:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "customer-123"
+                      name:
+                        type: string
+                        example: "Maria Garcia"
+                      phone:
+                        type: string
+                        example: "+34666777888"
+                      email:
+                        type: string
+                        example: "maria.garcia@shopme.com"
+                      address:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: "Maria Garcia"
+                          street:
+                            type: string
+                            example: "Via Roma 123"
+                          city:
+                            type: string
+                            example: "Milano"
+                          postalCode:
+                            type: string
+                            example: "20100"
+                      invoiceAddress:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: "Maria Garcia"
+                          street:
+                            type: string
+                            example: "Via Roma 123"
+                          city:
+                            type: string
+                            example: "Milano"
+                          postalCode:
+                            type: string
+                            example: "20100"
+                  prodotti:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        codice:
+                          type: string
+                          example: "MOZ001"
+                        descrizione:
+                          type: string
+                          example: "Mozzarella di Bufala Campana DOP"
+                        qty:
+                          type: number
+                          example: 4
+                        prezzo:
+                          type: number
+                          format: float
+                          example: 8.50
+                        productId:
+                          type: string
+                          example: "product-123"
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    example: "2024-12-01T12:00:00Z"
+        "400":
+          description: Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  valid:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Token is required"
+        "401":
+          description: Token expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  valid:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Token expired or invalid"
+        "410":
+          description: Token already used
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  valid:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Token already used"
+
+  /checkout/submit:
+    post:
+      tags:
+        - Checkout
+      summary: Submit order and create final order
+      description: |
+        **✅ ORDER SUBMISSION** - Invia ordine finale e crea record nel database.
+        
+        **Flusso**:
+        1. Frontend invia dati completi (token + prodotti + indirizzi)
+        2. Backend valida token e dati
+        3. Crea ordine nel database
+        4. Invia notifiche email/WhatsApp
+        5. Marca token come usato
+        
+        **Dati Richiesti**:
+        - Token checkout valido
+        - Prodotti finali (quantità, prezzi)
+        - Indirizzi di spedizione e fatturazione
+        - Note aggiuntive (opzionale)
+        
+        **Response**:
+        - Order ID e codice ordine
+        - Conferma successo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - prodotti
+                - shippingAddress
+              properties:
+                token:
+                  type: string
+                  description: Checkout token
+                  example: "abc123def456ghi789jkl012mno345"
+                prodotti:
+                  type: array
+                  description: Prodotti finali dell'ordine
+                  items:
+                    type: object
+                    required:
+                      - codice
+                      - descrizione
+                      - qty
+                      - prezzo
+                    properties:
+                      codice:
+                        type: string
+                        example: "MOZ001"
+                      descrizione:
+                        type: string
+                        example: "Mozzarella di Bufala Campana DOP"
+                      qty:
+                        type: number
+                        example: 4
+                      prezzo:
+                        type: number
+                        format: float
+                        example: 8.50
+                      productId:
+                        type: string
+                        example: "product-123"
+                shippingAddress:
+                  type: object
+                  required:
+                    - name
+                    - street
+                    - city
+                    - postalCode
+                  properties:
+                    name:
+                      type: string
+                      example: "Maria Garcia"
+                    street:
+                      type: string
+                      example: "Via Roma 123"
+                    city:
+                      type: string
+                      example: "Milano"
+                    postalCode:
+                      type: string
+                      example: "20100"
+                    country:
+                      type: string
+                      example: "Italia"
+                billingAddress:
+                  type: object
+                  description: Indirizzo di fatturazione (opzionale, usa shipping se non fornito)
+                  properties:
+                    name:
+                      type: string
+                      example: "Maria Garcia"
+                    street:
+                      type: string
+                      example: "Via Roma 123"
+                    city:
+                      type: string
+                      example: "Milano"
+                    postalCode:
+                      type: string
+                      example: "20100"
+                    country:
+                      type: string
+                      example: "Italia"
+                notes:
+                  type: string
+                  description: Note aggiuntive per l'ordine
+                  example: "Consegna al piano terra"
+      responses:
+        "200":
+          description: Order submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  orderId:
+                    type: string
+                    description: ID dell'ordine creato
+                    example: "order-789"
+                  orderCode:
+                    type: string
+                    description: Codice ordine univoco
+                    example: "ORD-20241201-001"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Invalid token or missing data"
+        "401":
+          description: Token expired or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Token expired or invalid"
+        "410":
+          description: Token already used
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Token already used"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Internal server error creating order"
+
   /internal/generate-token:
     post:
       tags:

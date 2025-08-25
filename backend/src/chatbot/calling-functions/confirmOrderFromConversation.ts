@@ -144,9 +144,9 @@ export async function confirmOrderFromConversation(
       },
     })
 
-    // Crea URL frontend (TOKEN-ONLY)
+    // Crea URL frontend (TOKEN-ONLY) - Consistent with other public links
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000"
-    const checkoutUrl = `${frontendUrl}/checkout?token=${checkoutToken}`
+    const checkoutUrl = `${frontendUrl}/checkout-public?token=${checkoutToken}`
 
     // Create order summary message
     const checkoutMessage = `🛒 **Order Summary**

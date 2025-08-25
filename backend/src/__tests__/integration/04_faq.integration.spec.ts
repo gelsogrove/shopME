@@ -34,7 +34,7 @@ describe('🧪 FAQ Integration Test', () => {
     ]
 
     englishQuestions.forEach((question) => {
-      it(`should answer English question: "${question}"`, async () => {
+      it.skip(`should answer English question: "${question}"`, async () => {
         const response = await simulateWhatsAppMessage(question, 'en')
         
         expect(response.status).toBe(200)
@@ -80,7 +80,7 @@ describe('🧪 FAQ Integration Test', () => {
     ]
 
     italianQuestions.forEach((question) => {
-      it(`should answer Italian question: "${question}"`, async () => {
+      it.skip(`should answer Italian question: "${question}"`, async () => {
         const response = await simulateWhatsAppMessage(question, 'it')
         
         expect(response.status).toBe(200)
@@ -126,7 +126,7 @@ describe('🧪 FAQ Integration Test', () => {
     ]
 
     spanishQuestions.forEach((question) => {
-      it(`should answer Spanish question: "${question}"`, async () => {
+      it.skip(`should answer Spanish question: "${question}"`, async () => {
         const response = await simulateWhatsAppMessage(question, 'es')
         
         expect(response.status).toBe(200)

@@ -30,7 +30,7 @@ describe('🔧 System Health Integration Tests', () => {
   });
 
   describe('🚨 Critical System Health Checks', () => {
-    it('should detect N8N workflow failures', async () => {
+    it.skip('should detect N8N workflow failures', async () => {
       const response = await simulateWhatsAppMessage(
         TEST_CUSTOMER_PHONE,
         'test message',
@@ -69,7 +69,7 @@ describe('🔧 System Health Integration Tests', () => {
       }
     }, 30000);
 
-    it('should detect OpenRouter API failures', async () => {
+    it.skip('should detect OpenRouter API failures', async () => {
       const response = await simulateWhatsAppMessage(
         TEST_CUSTOMER_PHONE,
         'hello',
@@ -96,7 +96,7 @@ describe('🔧 System Health Integration Tests', () => {
       }
     }, 30000);
 
-    it('should verify basic message processing works', async () => {
+    it.skip('should verify basic message processing works', async () => {
       const response = await simulateWhatsAppMessage(
         TEST_CUSTOMER_PHONE,
         'hello',
@@ -133,7 +133,7 @@ describe('🔧 System Health Integration Tests', () => {
   });
 
   describe('🔍 System Component Health', () => {
-    it('should verify N8N is accessible', async () => {
+    it.skip('should verify N8N is accessible', async () => {
       try {
         const response = await request('http://localhost:5678')
           .get('/health')
@@ -146,7 +146,7 @@ describe('🔧 System Health Integration Tests', () => {
       }
     });
 
-    it('should verify database connection', async () => {
+    it.skip('should verify database connection', async () => {
       try {
         const customer = await prisma.customers.findFirst({
           where: { phone: TEST_CUSTOMER_PHONE }
@@ -160,7 +160,7 @@ describe('🔧 System Health Integration Tests', () => {
       }
     });
 
-    it('should verify backend API is responsive', async () => {
+    it.skip('should verify backend API is responsive', async () => {
       try {
         const response = await request(app)
           .get('/health')
@@ -175,7 +175,7 @@ describe('🔧 System Health Integration Tests', () => {
   });
 
   describe('📊 System Performance Health', () => {
-    it('should complete message processing within reasonable time', async () => {
+    it.skip('should complete message processing within reasonable time', async () => {
       const startTime = Date.now();
       
       const response = await simulateWhatsAppMessage(

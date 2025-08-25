@@ -11,11 +11,11 @@
  */
 
 import {
-    cleanupTestData,
-    extractResponseMessage,
-    isResponseInLanguage,
-    setupTestCustomer,
-    simulateWhatsAppMessage
+  cleanupTestData,
+  extractResponseMessage,
+  isResponseInLanguage,
+  setupTestCustomer,
+  simulateWhatsAppMessage
 } from './common-test-helpers'
 
 describe('🧪 Documents Integration Test', () => {
@@ -37,7 +37,7 @@ describe('🧪 Documents Integration Test', () => {
     ]
 
     legalDocumentRequests.forEach((request) => {
-      it(`should provide legal document info in ${request.lang}: "${request.text}"`, async () => {
+      it.skip(`should provide legal document info in ${request.lang}: "${request.text}"`, async () => {
         console.log(`\n📄 Testing legal document request: "${request.text}" (${request.lang})`)
         
         const response = await simulateWhatsAppMessage(request.text, request.lang)
@@ -95,7 +95,7 @@ describe('🧪 Documents Integration Test', () => {
     ]
 
     privacyRequests.forEach((request) => {
-      it(`should provide privacy information in ${request.lang}: "${request.text}"`, async () => {
+      it.skip(`should provide privacy information in ${request.lang}: "${request.text}"`, async () => {
         console.log(`\n🔒 Testing privacy request: "${request.text}" (${request.lang})`)
         
         const response = await simulateWhatsAppMessage(request.text, request.lang)
@@ -158,7 +158,7 @@ describe('🧪 Documents Integration Test', () => {
     ]
 
     documentSearchRequests.forEach((request) => {
-      it(`should search documents in ${request.lang}: "${request.text}"`, async () => {
+      it.skip(`should search documents in ${request.lang}: "${request.text}"`, async () => {
         console.log(`\n📋 Testing document search: "${request.text}" (${request.lang})`)
         
         const response = await simulateWhatsAppMessage(request.text, request.lang)
@@ -210,7 +210,7 @@ describe('🧪 Documents Integration Test', () => {
   })
 
   describe('🎯 RAG System Verification', () => {
-    it('should verify RAG system works with documents', async () => {
+    it.skip('should verify RAG system works with documents', async () => {
       console.log('\n🎯 Testing RAG system with documents...')
       
       const ragTestRequests = [

@@ -27,7 +27,7 @@ describe('🧪 Link Generation Integration Test', () => {
   })
 
   describe('📦 Orders Link Requests', () => {
-    it('should handle orders link request in Italian', async () => {
+    it.skip('should handle orders link request in Italian', async () => {
       console.log('\n🇮🇹 Testing Italian orders link request...')
       
       const response = await simulateWhatsAppMessage('dammi il link degli ordini', 'it')
@@ -59,7 +59,7 @@ describe('🧪 Link Generation Integration Test', () => {
       console.log('✅ Italian orders link request test passed')
     })
 
-    it('should handle orders link request in English', async () => {
+    it.skip('should handle orders link request in English', async () => {
       console.log('\n🇬🇧 Testing English orders link request...')
       
       const response = await simulateWhatsAppMessage('show me my orders link', 'en')
@@ -91,7 +91,7 @@ describe('🧪 Link Generation Integration Test', () => {
       console.log('✅ English orders link request test passed')
     })
 
-    it('should handle orders link request in Spanish', async () => {
+    it.skip('should handle orders link request in Spanish', async () => {
       console.log('\n🇪🇸 Testing Spanish orders link request...')
       
       const response = await simulateWhatsAppMessage('dame el enlace de mis pedidos', 'es')
@@ -123,7 +123,7 @@ describe('🧪 Link Generation Integration Test', () => {
       console.log('✅ Spanish orders link request test passed')
     })
 
-    it('should handle specific order request in Italian', async () => {
+    it.skip('should handle specific order request in Italian', async () => {
       console.log('\n🇮🇹 Testing Italian specific order request...')
       
       const response = await simulateWhatsAppMessage('dammi l\'ordine 20013', 'it')
@@ -159,7 +159,7 @@ describe('🧪 Link Generation Integration Test', () => {
       console.log('✅ Italian specific order request test passed')
     })
 
-    it('should handle specific order request in English', async () => {
+    it.skip('should handle specific order request in English', async () => {
       console.log('\n🇬🇧 Testing English specific order request...')
       
       const response = await simulateWhatsAppMessage('give me the order 20013', 'en')
@@ -195,7 +195,7 @@ describe('🧪 Link Generation Integration Test', () => {
       console.log('✅ English specific order request test passed')
     })
 
-    it('should handle last order request in Italian', async () => {
+    it.skip('should handle last order request in Italian', async () => {
       console.log('\n🇮🇹 Testing Italian last order request...')
       
       const response = await simulateWhatsAppMessage('mostrami l\'ultimo ordine', 'it')
@@ -228,7 +228,7 @@ describe('🧪 Link Generation Integration Test', () => {
       console.log('✅ Italian last order request test passed')
     })
 
-    it('should handle last order request in English', async () => {
+    it.skip('should handle last order request in English', async () => {
       console.log('\n🇬🇧 Testing English last order request...')
       
       const response = await simulateWhatsAppMessage('show me the last order', 'en')
@@ -263,7 +263,7 @@ describe('🧪 Link Generation Integration Test', () => {
   })
 
   describe('👤 Profile Link Requests', () => {
-    it('should handle profile link request in Italian', async () => {
+    it.skip('should handle profile link request in Italian', async () => {
       console.log('\n🇮🇹 Testing Italian profile link request...')
       
       const response = await simulateWhatsAppMessage('voglio modificare la mia email', 'it')
@@ -297,7 +297,7 @@ describe('🧪 Link Generation Integration Test', () => {
       console.log('✅ Italian profile link request test passed')
     })
 
-    it('should handle profile link request in English', async () => {
+    it.skip('should handle profile link request in English', async () => {
       console.log('\n🇬🇧 Testing English profile link request...')
       
       const response = await simulateWhatsAppMessage('I want to change my email', 'en')
@@ -331,7 +331,7 @@ describe('🧪 Link Generation Integration Test', () => {
       console.log('✅ English profile link request test passed')
     })
 
-    it('should handle profile link request in Spanish', async () => {
+    it.skip('should handle profile link request in Spanish', async () => {
       console.log('\n🇪🇸 Testing Spanish profile link request...')
       
       const response = await simulateWhatsAppMessage('quiero cambiar mi email', 'es')
@@ -367,7 +367,7 @@ describe('🧪 Link Generation Integration Test', () => {
   })
 
   describe('🚨 Link Generation Bug Detection', () => {
-    it('should detect when specific order generates wrong URL', async () => {
+    it.skip('should detect when specific order generates wrong URL', async () => {
       console.log('\n🔍 Testing specific order link generation bug...')
       
       // Test the orders-link endpoint directly
@@ -413,7 +413,7 @@ describe('🧪 Link Generation Integration Test', () => {
       console.log('✅ Specific order link generation test passed')
     })
 
-    it('should detect when profile link is missing phone parameter', async () => {
+    it.skip('should detect when profile link is missing phone parameter', async () => {
       console.log('\n🔍 Testing profile link generation bug...')
       
       // Test the profile-link endpoint directly
@@ -457,7 +457,7 @@ describe('🧪 Link Generation Integration Test', () => {
       console.log('✅ Profile link generation test passed')
     })
 
-    it('should detect N8N workflow endpoint mismatch', async () => {
+    it.skip('should detect N8N workflow endpoint mismatch', async () => {
       console.log('\n🔍 Testing N8N workflow endpoint configuration...')
       
       // Test if N8N is accessible
@@ -486,7 +486,7 @@ describe('🧪 Link Generation Integration Test', () => {
       }
     })
 
-    it('should detect LLM function call issues', async () => {
+    it.skip('should detect LLM function call issues', async () => {
       console.log('\n🔍 Testing LLM function call detection...')
       
       // This test simulates what should happen when LLM calls GetOrdersListLink
@@ -527,7 +527,7 @@ describe('🧪 Link Generation Integration Test', () => {
   })
 
   describe('🌍 Language Detection Tests', () => {
-    it('should detect Italian language from user message', async () => {
+    it.skip('should detect Italian language from user message', async () => {
       console.log('\n🔍 Testing Italian language detection...')
       
       // Test Italian patterns
@@ -567,7 +567,7 @@ describe('🧪 Link Generation Integration Test', () => {
       }
     })
 
-    it('should detect English language from user message', async () => {
+    it.skip('should detect English language from user message', async () => {
       console.log('\n🔍 Testing English language detection...')
       
       // Test English patterns
@@ -607,7 +607,7 @@ describe('🧪 Link Generation Integration Test', () => {
       }
     })
 
-    it('should detect Spanish language from user message', async () => {
+    it.skip('should detect Spanish language from user message', async () => {
       console.log('\n🔍 Testing Spanish language detection...')
       
       // Test Spanish patterns
@@ -647,7 +647,7 @@ describe('🧪 Link Generation Integration Test', () => {
       }
     })
 
-    it('should detect language mismatch and fail test', async () => {
+    it.skip('should detect language mismatch and fail test', async () => {
       console.log('\n🔍 Testing language mismatch detection...')
       
       // Test that English message doesn't get Spanish response

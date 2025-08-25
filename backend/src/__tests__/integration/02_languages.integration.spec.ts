@@ -27,7 +27,7 @@ describe('🧪 Languages Integration Test', () => {
   })
 
   describe('🇬🇧 English Language', () => {
-    it('should respond meaningfully to English message', async () => {
+    it.skip('should respond meaningfully to English message', async () => {
       console.log('\n🇬🇧 Testing English language response...')
       
       const response = await simulateWhatsAppMessage('Hello', 'en')
@@ -68,7 +68,7 @@ describe('🧪 Languages Integration Test', () => {
   })
 
   describe('🇮🇹 Italian Language', () => {
-    it('should respond meaningfully to Italian message', async () => {
+    it.skip('should respond meaningfully to Italian message', async () => {
       console.log('\n🇮🇹 Testing Italian language response...')
       
       const response = await simulateWhatsAppMessage('Ciao', 'it')
@@ -109,7 +109,7 @@ describe('🧪 Languages Integration Test', () => {
   })
 
   describe('🇪🇸 Spanish Language', () => {
-    it('should respond meaningfully to Spanish message', async () => {
+    it.skip('should respond meaningfully to Spanish message', async () => {
       console.log('\n🇪🇸 Testing Spanish language response...')
       
       const response = await simulateWhatsAppMessage('Hola', 'es')

@@ -1,7 +1,39 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { TokenError, TokenLoading } from "../components/ui/TokenError"
 import { useCheckoutTokenValidation } from "../hooks/useTokenValidation"
+
+interface Product {
+  codice: string
+  descrizione: string
+  qty: number
+  prezzo: number
+  productId: string
+}
+
+interface Customer {
+  id: string
+  name: string
+  email: string
+  phone: string
+  address?: any
+  invoiceAddress?: any
+}
+
+interface Address {
+  name: string
+  street: string
+  city: string
+  postalCode: string
+  country?: string
+}
+
+interface FormData {
+  shippingAddress: Address
+  billingAddress: Address
+  sameAsBilling: boolean
+  notes: string
+}
 
 const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -10,6 +42,119 @@ const CheckoutPage: React.FC = () => {
   // 🔐 Validate checkout token (TOKEN-ONLY)
   const { valid, loading, error, errorType, expiresAt, tokenData, payload, validateToken } =
     useCheckoutTokenValidation(token)
+
+  // State management
+  const [currentStep, setCurrentStep] = useState(1)
+  const [customer, setCustomer] = useState<Customer | null>(null)
+  const [prodotti, setProdotti] = useState<Product[]>([])
+  const [formData, setFormData] = useState<FormData>({
+    shippingAddress: { name: "", street: "", city: "", postalCode: "" },
+    billingAddress: { name: "", street: "", city: "", postalCode: "" },
+    sameAsBilling: true,
+    notes: ""
+  })
+  const [submitStatus, setSubmitStatus] = useState({
+    loading: false,
+    success: false,
+    error: ""
+  })
+
+  // Load data from token when validated
+  useEffect(() => {
+    if (valid && tokenData) {
+      setCustomer(tokenData.customer)
+      setProdotti(tokenData.prodotti || [])
+      
+      // Pre-fill addresses if available
+      if (tokenData.customer.address) {
+        setFormData(prev => ({
+          ...prev,
+          shippingAddress: tokenData.customer.address
+        }))
+      }
+      if (tokenData.customer.invoiceAddress) {
+        setFormData(prev => ({
+          ...prev,
+          billingAddress: tokenData.customer.invoiceAddress
+        }))
+      }
+    }
+  }, [valid, tokenData])
+
+  // Calculate total
+  const calculateTotal = () => {
+    return prodotti.reduce((sum, prodotto) => sum + (prodotto.prezzo * prodotto.qty), 0)
+  }
+
+  // Handle quantity change
+  const handleQuantityChange = (index: number, newQuantity: number) => {
+    if (newQuantity < 1) return
+    
+    const updatedProdotti = [...prodotti]
+    updatedProdotti[index].qty = newQuantity
+    setProdotti(updatedProdotti)
+  }
+
+  // Remove product
+  const removeProduct = (index: number) => {
+    const updatedProdotti = prodotti.filter((_, i) => i !== index)
+    setProdotti(updatedProdotti)
+  }
+
+  // Handle form input changes
+  const handleInputChange = (section: 'shippingAddress' | 'billingAddress', field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value
+      }
+    }))
+  }
+
+  // Handle same as billing checkbox
+  const handleSameAsBillingChange = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      sameAsBilling: checked,
+      billingAddress: checked ? prev.shippingAddress : prev.billingAddress
+    }))
+  }
+
+  // Submit order
+  const handleSubmit = async () => {
+    if (prodotti.length === 0) return
+
+    setSubmitStatus({ loading: true, success: false, error: "" })
+
+    try {
+      const response = await fetch("http://localhost:3001/api/checkout/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          prodotti,
+          shippingAddress: formData.shippingAddress,
+          billingAddress: formData.sameAsBilling ? formData.shippingAddress : formData.billingAddress,
+          notes: formData.notes
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setSubmitStatus({ loading: false, success: true, error: "" })
+        // Redirect to success page after 2 seconds
+        setTimeout(() => {
+          window.location.href = `/checkout-success?orderCode=${result.orderCode}`
+        }, 2000)
+      } else {
+        setSubmitStatus({ loading: false, success: false, error: result.error || "Errore durante la creazione dell'ordine" })
+      }
+    } catch (error) {
+      setSubmitStatus({ loading: false, success: false, error: "Errore di connessione" })
+    }
+  }
 
   // Show loading state during token validation
   if (loading) {
@@ -74,31 +219,13 @@ const CheckoutPage: React.FC = () => {
           </div>
 
           <div className="flex justify-between mt-2 text-sm">
-            <span
-              className={
-                currentStep >= 1
-                  ? "text-green-600 font-semibold"
-                  : "text-gray-500"
-              }
-            >
+            <span className={currentStep >= 1 ? "text-green-600 font-semibold" : "text-gray-500"}>
               Prodotti
             </span>
-            <span
-              className={
-                currentStep >= 2
-                  ? "text-green-600 font-semibold"
-                  : "text-gray-500"
-              }
-            >
+            <span className={currentStep >= 2 ? "text-green-600 font-semibold" : "text-gray-500"}>
               Indirizzi
             </span>
-            <span
-              className={
-                currentStep >= 3
-                  ? "text-green-600 font-semibold"
-                  : "text-gray-500"
-              }
-            >
+            <span className={currentStep >= 3 ? "text-green-600 font-semibold" : "text-gray-500"}>
               Conferma
             </span>
           </div>
@@ -113,51 +240,39 @@ const CheckoutPage: React.FC = () => {
               {/* Products List */}
               <div className="space-y-4 mb-6">
                 {prodotti.map((prodotto, index) => (
-                  <div
-                    key={index}
-                    className="border rounded-lg p-4 flex items-center justify-between"
-                  >
+                  <div key={index} className="border rounded-lg p-4 flex items-center justify-between">
                     <div className="flex-1">
                       <h3 className="font-semibold">{prodotto.descrizione}</h3>
-                      <p className="text-sm text-gray-600">
-                        Codice: {prodotto.codice}
-                      </p>
-                      <p className="text-lg font-bold text-green-600">
-                        €{prodotto.prezzo.toFixed(2)}
-                      </p>
+                      <p className="text-sm text-gray-600">Codice: {prodotto.codice}</p>
+                      <p className="text-lg font-bold text-green-600">€{prodotto.prezzo.toFixed(2)}</p>
                     </div>
 
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() =>
-                            handleQuantityChange(index, prodotto.qty - 1)
-                          }
-                          className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
+                          onClick={() => handleQuantityChange(index, prodotto.qty - 1)}
+                          className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
                           disabled={prodotto.qty <= 1}
                         >
                           -
                         </button>
-                        <span className="w-8 text-center">{prodotto.qty}</span>
+                        <span className="w-8 text-center font-semibold">{prodotto.qty}</span>
                         <button
-                          onClick={() =>
-                            handleQuantityChange(index, prodotto.qty + 1)
-                          }
-                          className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
+                          onClick={() => handleQuantityChange(index, prodotto.qty + 1)}
+                          className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
                         >
                           +
                         </button>
                       </div>
 
                       <div className="text-right">
-                        <p className="font-semibold">
-                          €{(prodotto.prezzo * prodotto.qty).toFixed(2)}
-                        </p>
+                        <p className="font-semibold text-lg">€{(prodotto.prezzo * prodotto.qty).toFixed(2)}</p>
                       </div>
 
                       <button
                         onClick={() => removeProduct(index)}
-                        className="text-red-500 hover:text-red-700 p-2"
+                        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"
+                        title="Rimuovi prodotto"
                       >
                         🗑️
                       </button>
@@ -166,23 +281,19 @@ const CheckoutPage: React.FC = () => {
                 ))}
               </div>
 
-              {/* Add Product Button */}
-              <div className="mb-6">
-                <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  onClick={() => setShowAddProductModal(true)}
-                >
-                  + Aggiungi Prodotto
-                </button>
-              </div>
+              {/* Empty cart message */}
+              {prodotti.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <p className="text-lg">Il tuo carrello è vuoto</p>
+                  <p className="text-sm">Aggiungi prodotti per continuare</p>
+                </div>
+              )}
 
               {/* Total */}
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center text-xl font-bold">
                   <span>Totale:</span>
-                  <span className="text-green-600">
-                    €{calculateTotal().toFixed(2)}
-                  </span>
+                  <span className="text-green-600">€{calculateTotal().toFixed(2)}</span>
                 </div>
               </div>
 
@@ -191,7 +302,7 @@ const CheckoutPage: React.FC = () => {
                 <button
                   onClick={() => setCurrentStep(2)}
                   disabled={prodotti.length === 0}
-                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-300"
+                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
                   Continua →
                 </button>
@@ -205,75 +316,47 @@ const CheckoutPage: React.FC = () => {
 
               {/* Shipping Address */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">
-                  Indirizzo di Spedizione
-                </h3>
+                <h3 className="text-lg font-semibold mb-4">Indirizzo di Spedizione</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input
                     type="text"
                     placeholder="Nome completo"
                     value={formData.shippingAddress.name}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "shippingAddress",
-                        "name",
-                        e.target.value
-                      )
-                    }
-                    className="border rounded-lg px-3 py-2"
+                    onChange={(e) => handleInputChange("shippingAddress", "name", e.target.value)}
+                    className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <input
                     type="text"
                     placeholder="Via e numero civico"
                     value={formData.shippingAddress.street}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "shippingAddress",
-                        "street",
-                        e.target.value
-                      )
-                    }
-                    className="border rounded-lg px-3 py-2"
+                    onChange={(e) => handleInputChange("shippingAddress", "street", e.target.value)}
+                    className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <input
                     type="text"
                     placeholder="Città"
                     value={formData.shippingAddress.city}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "shippingAddress",
-                        "city",
-                        e.target.value
-                      )
-                    }
-                    className="border rounded-lg px-3 py-2"
+                    onChange={(e) => handleInputChange("shippingAddress", "city", e.target.value)}
+                    className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <input
                     type="text"
                     placeholder="CAP"
                     value={formData.shippingAddress.postalCode}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "shippingAddress",
-                        "postalCode",
-                        e.target.value
-                      )
-                    }
-                    className="border rounded-lg px-3 py-2"
+                    onChange={(e) => handleInputChange("shippingAddress", "postalCode", e.target.value)}
+                    className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
 
               {/* Same as billing checkbox */}
               <div className="mb-6">
-                <label className="flex items-center">
+                <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.sameAsBilling}
-                    onChange={(e) =>
-                      handleSameAsBillingChange(e.target.checked)
-                    }
-                    className="mr-2"
+                    onChange={(e) => handleSameAsBillingChange(e.target.checked)}
+                    className="mr-2 rounded"
                   />
                   <span>Usa stesso indirizzo per fatturazione</span>
                 </label>
@@ -282,61 +365,35 @@ const CheckoutPage: React.FC = () => {
               {/* Billing Address */}
               {!formData.sameAsBilling && (
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-4">
-                    Indirizzo di Fatturazione
-                  </h3>
+                  <h3 className="text-lg font-semibold mb-4">Indirizzo di Fatturazione</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="text"
                       placeholder="Nome completo"
                       value={formData.billingAddress.name}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "billingAddress",
-                          "name",
-                          e.target.value
-                        )
-                      }
-                      className="border rounded-lg px-3 py-2"
+                      onChange={(e) => handleInputChange("billingAddress", "name", e.target.value)}
+                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <input
                       type="text"
                       placeholder="Via e numero civico"
                       value={formData.billingAddress.street}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "billingAddress",
-                          "street",
-                          e.target.value
-                        )
-                      }
-                      className="border rounded-lg px-3 py-2"
+                      onChange={(e) => handleInputChange("billingAddress", "street", e.target.value)}
+                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <input
                       type="text"
                       placeholder="Città"
                       value={formData.billingAddress.city}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "billingAddress",
-                          "city",
-                          e.target.value
-                        )
-                      }
-                      className="border rounded-lg px-3 py-2"
+                      onChange={(e) => handleInputChange("billingAddress", "city", e.target.value)}
+                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <input
                       type="text"
                       placeholder="CAP"
                       value={formData.billingAddress.postalCode}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "billingAddress",
-                          "postalCode",
-                          e.target.value
-                        )
-                      }
-                      className="border rounded-lg px-3 py-2"
+                      onChange={(e) => handleInputChange("billingAddress", "postalCode", e.target.value)}
+                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -346,13 +403,13 @@ const CheckoutPage: React.FC = () => {
               <div className="flex justify-between">
                 <button
                   onClick={() => setCurrentStep(1)}
-                  className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600"
+                  className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
                 >
                   ← Indietro
                 </button>
                 <button
                   onClick={() => setCurrentStep(3)}
-                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700"
+                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
                 >
                   Continua →
                 </button>
@@ -366,25 +423,16 @@ const CheckoutPage: React.FC = () => {
 
               {/* Order Summary */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">
-                  Riepilogo Prodotti
-                </h3>
+                <h3 className="text-lg font-semibold mb-4">Riepilogo Prodotti</h3>
                 {prodotti.map((prodotto, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between py-2 border-b"
-                  >
-                    <span>
-                      {prodotto.qty}x {prodotto.descrizione}
-                    </span>
+                  <div key={index} className="flex justify-between py-2 border-b">
+                    <span>{prodotto.qty}x {prodotto.descrizione}</span>
                     <span>€{(prodotto.prezzo * prodotto.qty).toFixed(2)}</span>
                   </div>
                 ))}
-                <div className="flex justify-between py-2 text-xl font-bold">
+                <div className="flex justify-between py-2 text-xl font-bold border-t-2 mt-2">
                   <span>Totale:</span>
-                  <span className="text-green-600">
-                    €{calculateTotal().toFixed(2)}
-                  </span>
+                  <span className="text-green-600">€{calculateTotal().toFixed(2)}</span>
                 </div>
               </div>
 
@@ -396,36 +444,26 @@ const CheckoutPage: React.FC = () => {
                     <h4 className="font-semibold">Spedizione:</h4>
                     <p>{formData.shippingAddress.name}</p>
                     <p>{formData.shippingAddress.street}</p>
-                    <p>
-                      {formData.shippingAddress.city}{" "}
-                      {formData.shippingAddress.postalCode}
-                    </p>
+                    <p>{formData.shippingAddress.city} {formData.shippingAddress.postalCode}</p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <h4 className="font-semibold">Fatturazione:</h4>
                     <p>{formData.billingAddress.name}</p>
                     <p>{formData.billingAddress.street}</p>
-                    <p>
-                      {formData.billingAddress.city}{" "}
-                      {formData.billingAddress.postalCode}
-                    </p>
+                    <p>{formData.billingAddress.city} {formData.billingAddress.postalCode}</p>
                   </div>
                 </div>
               </div>
 
               {/* Notes */}
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">
-                  Note aggiuntive
-                </label>
+                <label className="block text-sm font-medium mb-2">Note aggiuntive</label>
                 <textarea
                   value={formData.notes}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, notes: e.target.value }))
-                  }
+                  onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
                   placeholder="Eventuali note per la consegna..."
                   rows={3}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -446,7 +484,7 @@ const CheckoutPage: React.FC = () => {
               <div className="flex justify-between">
                 <button
                   onClick={() => setCurrentStep(2)}
-                  className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600"
+                  className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
                   disabled={submitStatus.loading}
                 >
                   ← Indietro
@@ -454,7 +492,7 @@ const CheckoutPage: React.FC = () => {
                 <button
                   onClick={handleSubmit}
                   disabled={submitStatus.loading}
-                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400"
+                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition-colors"
                 >
                   {submitStatus.loading ? (
                     <span className="flex items-center">
@@ -470,140 +508,6 @@ const CheckoutPage: React.FC = () => {
           )}
         </div>
       </div>
-
-      {/* Add Product Modal */}
-      {showAddProductModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">Aggiungi Prodotto</h3>
-              <button
-                onClick={() => {
-                  setShowAddProductModal(false)
-                  setSelectedProductToAdd(null)
-                  setQuantityToAdd(1)
-                }}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-
-            {!selectedProductToAdd ? (
-              <div>
-                <p className="text-gray-600 mb-4">
-                  Seleziona un prodotto da aggiungere al carrello:
-                </p>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {availableProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50"
-                      onClick={() => setSelectedProductToAdd(product)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-semibold">{product.name}</h4>
-                          <p className="text-sm text-gray-600">
-                            {product.description}
-                          </p>
-                          <p className="text-lg font-bold text-green-600">
-                            €{product.price.toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm text-gray-500">
-                            Stock: {product.stock}
-                          </p>
-                          <p
-                            className={`text-xs px-2 py-1 rounded ${
-                              product.stock > 10
-                                ? "bg-green-100 text-green-800"
-                                : product.stock > 0
-                                ? "bg-orange-100 text-orange-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {product.stock > 10
-                              ? "Disponibile"
-                              : product.stock > 0
-                              ? "Pochi pezzi"
-                              : "Esaurito"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div>
-                <div className="border rounded-lg p-4 mb-4">
-                  <h4 className="font-semibold">{selectedProductToAdd.name}</h4>
-                  <p className="text-sm text-gray-600">
-                    {selectedProductToAdd.description}
-                  </p>
-                  <p className="text-lg font-bold text-green-600">
-                    €{selectedProductToAdd.price.toFixed(2)}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Stock disponibile: {selectedProductToAdd.stock}
-                  </p>
-                </div>
-
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">
-                    Quantità
-                  </label>
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={() =>
-                        setQuantityToAdd(Math.max(1, quantityToAdd - 1))
-                      }
-                      className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
-                    >
-                      -
-                    </button>
-                    <span className="w-12 text-center">{quantityToAdd}</span>
-                    <button
-                      onClick={() =>
-                        setQuantityToAdd(
-                          Math.min(
-                            selectedProductToAdd.stock,
-                            quantityToAdd + 1
-                          )
-                        )
-                      }
-                      className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Totale: €
-                    {(selectedProductToAdd.price * quantityToAdd).toFixed(2)}
-                  </p>
-                </div>
-
-                <div className="flex space-x-3">
-                  <button
-                    onClick={() => setSelectedProductToAdd(null)}
-                    className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
-                  >
-                    Indietro
-                  </button>
-                  <button
-                    onClick={handleAddProductFromModal}
-                    className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-                  >
-                    Aggiungi al Carrello
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
