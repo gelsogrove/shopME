@@ -1,447 +1,403 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="119" failures="23" errors="0" time="40.709">
-  <testsuite name="🧪 Link Generation Integration Test" errors="0" failures="2" skipped="0" timestamp="2025-08-25T11:17:36" time="8.601" tests="19">
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle orders link request in Italian" time="1.11">
+<testsuites name="jest tests" tests="126" failures="1" errors="0" time="2.934">
+  <testsuite name="🧪 Categories Integration Test" errors="0" failures="0" skipped="12" timestamp="2025-08-25T11:35:28" time="1.356" tests="12">
+    <testcase classname="🧪 Categories Integration Test › 📋 Get All Categories" name="should provide all categories in it: &quot;dammi tutte le categorie&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle orders link request in English" time="0.251">
+    <testcase classname="🧪 Categories Integration Test › 📋 Get All Categories" name="should provide all categories in en: &quot;show me all categories&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle orders link request in Spanish" time="0.273">
+    <testcase classname="🧪 Categories Integration Test › 📋 Get All Categories" name="should provide all categories in pt: &quot;quais são todas as categorias&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle specific order request in Italian" time="0.233">
+    <testcase classname="🧪 Categories Integration Test › 🍷 Get All Wines" name="should provide wine catalog in it: &quot;dammi tutti i vini che hai nel catalogo&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle specific order request in English" time="0.608">
+    <testcase classname="🧪 Categories Integration Test › 🍷 Get All Wines" name="should provide wine catalog in en: &quot;show me all wines in your catalog&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle last order request in Italian" time="0.255">
+    <testcase classname="🧪 Categories Integration Test › 🍷 Get All Wines" name="should provide wine catalog in it: &quot;mostrami tutti i vini del catalogo&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle last order request in English" time="0.237">
+    <testcase classname="🧪 Categories Integration Test › 🍷 Get All Wines" name="should provide wine catalog in en: &quot;what wines do you have&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle profile link request in Italian" time="0.294">
+    <testcase classname="🧪 Categories Integration Test › 🧀 Get All Cheeses" name="should provide cheese catalog in it: &quot;dammi tutti i formaggi nel catalogo&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle profile link request in English" time="0.381">
+    <testcase classname="🧪 Categories Integration Test › 🧀 Get All Cheeses" name="should provide cheese catalog in en: &quot;show me all cheeses in your catalog&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle profile link request in Spanish" time="0.224">
+    <testcase classname="🧪 Categories Integration Test › 🧀 Get All Cheeses" name="should provide cheese catalog in en: &quot;what cheeses do you have&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect when specific order generates wrong URL" time="0.056">
+    <testcase classname="🧪 Categories Integration Test › 🎯 Product Information Verification" name="should provide detailed product information" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect when profile link is missing phone parameter" time="0.043">
+    <testcase classname="🧪 Categories Integration Test › 📊 Categories Test Summary" name="should summarize categories test results" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect N8N workflow endpoint mismatch" time="0.007">
+  </testsuite>
+  <testsuite name="🧪 Products &amp; Services Integration Test" errors="0" failures="0" skipped="16" timestamp="2025-08-25T11:35:29" time="0.032" tests="16">
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🍕 Get All Products List" name="should provide all products in it: &quot;mostrami tutti i prodotti&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect LLM function call issues" time="0.021">
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🍕 Get All Products List" name="should provide all products in en: &quot;show me all products&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect Italian language from user message" time="0.231">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/05_link-generation.integration.spec.ts:566:33
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/05_link-generation.integration.spec.ts:15:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🚚 Get All Services List" name="should provide all services in it: &quot;quali servizi offrite?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect English language from user message" time="0.239">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/05_link-generation.integration.spec.ts:606:33
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/05_link-generation.integration.spec.ts:15:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🚚 Get All Services List" name="should provide all services in en: &quot;what services do you offer?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect Spanish language from user message" time="2.302">
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🚚 Get All Services List" name="should provide all services in es: &quot;¿qué servicios ofrecen?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect language mismatch and fail test" time="0.223">
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in it: &quot;avete pasta?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in en: &quot;do you have pasta?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in es: &quot;¿tienen pasta?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in it: &quot;mostrami i formaggi&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in en: &quot;show me the cheeses&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in es: &quot;muéstrame los quesos&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in it: &quot;quali vini avete?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in en: &quot;what wines do you have?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in es: &quot;¿qué vinos tienen?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Products &amp; Services Integration Test › 🎯 Product &amp; Service Information Verification" name="should provide detailed product and service information" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Products &amp; Services Integration Test › 📊 Products &amp; Services Test Summary" name="should summarize products and services test results" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+  <testsuite name="🧪 Offers Integration Test" errors="0" failures="0" skipped="21" timestamp="2025-08-25T11:35:29" time="0.025" tests="21">
+    <testcase classname="🧪 Offers Integration Test › 🍷 Alcoholic Beverages 20% Discount" name="should show discounted limoncello price in it: &quot;quanto costa il limoncello?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🍷 Alcoholic Beverages 20% Discount" name="should show discounted limoncello price in en: &quot;how much does limoncello cost?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🍷 Alcoholic Beverages 20% Discount" name="should show discounted limoncello price in it: &quot;prezzo del limoncello&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🍷 Alcoholic Beverages 20% Discount" name="should show discounted limoncello price in en: &quot;limoncello price&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 👤 Maria Garcia 10% Customer Discount" name="should show Maria Garcia discounted price in it: &quot;quanto costa il limoncello?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 👤 Maria Garcia 10% Customer Discount" name="should show Maria Garcia discounted price in en: &quot;how much does limoncello cost?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 👤 Maria Garcia 10% Customer Discount" name="should show Maria Garcia discounted price in it: &quot;prezzo del limoncello&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🎯 Offer Inquiries" name="should provide offer information in it: &quot;che offerte avete?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🎯 Offer Inquiries" name="should provide offer information in en: &quot;what offers do you have?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🎯 Offer Inquiries" name="should provide offer information in es: &quot;¿qué ofertas tienen?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🎯 Offer Inquiries" name="should provide offer information in pt: &quot;quais ofertas vocês têm?&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🎯 Offer Inquiries" name="should provide offer information in it: &quot;mostrami le offerte&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🎯 Offer Inquiries" name="should provide offer information in en: &quot;show me the offers&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🍺 Alcoholic Beverages Category" name="should show alcoholic beverages with discounts in it: &quot;mostrami gli alcolici&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🍺 Alcoholic Beverages Category" name="should show alcoholic beverages with discounts in en: &quot;show me alcoholic beverages&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🍺 Alcoholic Beverages Category" name="should show alcoholic beverages with discounts in es: &quot;muéstrame las bebidas alcohólicas&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🍺 Alcoholic Beverages Category" name="should show alcoholic beverages with discounts in pt: &quot;mostre-me as bebidas alcoólicas&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🍺 Alcoholic Beverages Category" name="should show alcoholic beverages with discounts in it: &quot;bevande alcoliche&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 🍺 Alcoholic Beverages Category" name="should show alcoholic beverages with discounts in en: &quot;alcoholic drinks&quot;" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 💰 Price Calculation Verification" name="should verify correct price calculations with discounts" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Offers Integration Test › 📊 Offers Test Summary" name="should summarize offers test results" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+  <testsuite name="🧪 Link Generation Integration Test" errors="0" failures="0" skipped="19" timestamp="2025-08-25T11:35:29" time="0.03" tests="19">
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle orders link request in Italian" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle orders link request in English" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle orders link request in Spanish" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle specific order request in Italian" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle specific order request in English" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle last order request in Italian" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle last order request in English" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle profile link request in Italian" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle profile link request in English" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle profile link request in Spanish" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect when specific order generates wrong URL" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect when profile link is missing phone parameter" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect N8N workflow endpoint mismatch" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect LLM function call issues" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect Italian language from user message" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect English language from user message" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect Spanish language from user message" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect language mismatch and fail test" time="0">
+      <skipped/>
     </testcase>
     <testcase classname="🧪 Link Generation Integration Test › 📊 Link Generation Test Summary" name="should summarize link generation test results" time="0">
+      <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Offers Integration Test" errors="0" failures="5" skipped="0" timestamp="2025-08-25T11:17:44" time="8.628" tests="21">
-    <testcase classname="🧪 Offers Integration Test › 🍷 Alcoholic Beverages 20% Discount" name="should show discounted limoncello price in it: &quot;quanto costa il limoncello?&quot;" time="0.231">
+  <testsuite name="🔧 System Health Integration Tests" errors="0" failures="1" skipped="0" timestamp="2025-08-25T11:35:29" time="1.164" tests="7">
+    <testcase classname="🔧 System Health Integration Tests › 🚨 Critical System Health Checks" name="should detect N8N workflow failures" time="0.032">
     </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🍷 Alcoholic Beverages 20% Discount" name="should show discounted limoncello price in en: &quot;how much does limoncello cost?&quot;" time="0.472">
+    <testcase classname="🔧 System Health Integration Tests › 🚨 Critical System Health Checks" name="should detect OpenRouter API failures" time="0.013">
     </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🍷 Alcoholic Beverages 20% Discount" name="should show discounted limoncello price in it: &quot;prezzo del limoncello&quot;" time="0.272">
+    <testcase classname="🔧 System Health Integration Tests › 🚨 Critical System Health Checks" name="should verify basic message processing works" time="0.01">
     </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🍷 Alcoholic Beverages 20% Discount" name="should show discounted limoncello price in en: &quot;limoncello price&quot;" time="0.238">
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 👤 Maria Garcia 10% Customer Discount" name="should show Maria Garcia discounted price in it: &quot;quanto costa il limoncello?&quot;" time="0.327">
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 👤 Maria Garcia 10% Customer Discount" name="should show Maria Garcia discounted price in en: &quot;how much does limoncello cost?&quot;" time="0.301">
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 👤 Maria Garcia 10% Customer Discount" name="should show Maria Garcia discounted price in it: &quot;prezzo del limoncello&quot;" time="0.219">
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🎯 Offer Inquiries" name="should provide offer information in it: &quot;che offerte avete?&quot;" time="0.22">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/08_offers.integration.spec.ts:189:60
+    <testcase classname="🔧 System Health Integration Tests › 🔍 System Component Health" name="should verify N8N is accessible" time="0.024">
+      <failure>Error: N8N health check failed - service may be down
+    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/07_system-health.integration.spec.ts:145:15
     at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/08_offers.integration.spec.ts:16:58)
+    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/07_system-health.integration.spec.ts:5:58)
     at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
     </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🎯 Offer Inquiries" name="should provide offer information in en: &quot;what offers do you have?&quot;" time="2.491">
+    <testcase classname="🔧 System Health Integration Tests › 🔍 System Component Health" name="should verify database connection" time="0.004">
     </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🎯 Offer Inquiries" name="should provide offer information in es: &quot;¿qué ofertas tienen?&quot;" time="0.967">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/08_offers.integration.spec.ts:199:52
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/08_offers.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
+    <testcase classname="🔧 System Health Integration Tests › 🔍 System Component Health" name="should verify backend API is responsive" time="0.012">
     </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🎯 Offer Inquiries" name="should provide offer information in pt: &quot;quais ofertas vocês têm?&quot;" time="0.206">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/08_offers.integration.spec.ts:199:52
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/08_offers.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🎯 Offer Inquiries" name="should provide offer information in it: &quot;mostrami le offerte&quot;" time="0.236">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/08_offers.integration.spec.ts:189:60
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/08_offers.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🎯 Offer Inquiries" name="should provide offer information in en: &quot;show me the offers&quot;" time="0.446">
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🍺 Alcoholic Beverages Category" name="should show alcoholic beverages with discounts in it: &quot;mostrami gli alcolici&quot;" time="0.215">
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🍺 Alcoholic Beverages Category" name="should show alcoholic beverages with discounts in en: &quot;show me alcoholic beverages&quot;" time="0.208">
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🍺 Alcoholic Beverages Category" name="should show alcoholic beverages with discounts in es: &quot;muéstrame las bebidas alcohólicas&quot;" time="0.383">
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🍺 Alcoholic Beverages Category" name="should show alcoholic beverages with discounts in pt: &quot;mostre-me as bebidas alcoólicas&quot;" time="0.237">
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🍺 Alcoholic Beverages Category" name="should show alcoholic beverages with discounts in it: &quot;bevande alcoliche&quot;" time="0.235">
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 🍺 Alcoholic Beverages Category" name="should show alcoholic beverages with discounts in en: &quot;alcoholic drinks&quot;" time="0.214">
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 💰 Price Calculation Verification" name="should verify correct price calculations with discounts" time="0.437">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/08_offers.integration.spec.ts:325:51
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/08_offers.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
-    </testcase>
-    <testcase classname="🧪 Offers Integration Test › 📊 Offers Test Summary" name="should summarize offers test results" time="0.001">
+    <testcase classname="🔧 System Health Integration Tests › 📊 System Performance Health" name="should complete message processing within reasonable time" time="0.009">
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Products &amp; Services Integration Test" errors="0" failures="5" skipped="0" timestamp="2025-08-25T11:17:53" time="4.568" tests="16">
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🍕 Get All Products List" name="should provide all products in it: &quot;mostrami tutti i prodotti&quot;" time="0.336">
+  <testsuite name="🧪 Documents Integration Test" errors="0" failures="0" skipped="13" timestamp="2025-08-25T11:35:31" time="0.022" tests="13">
+    <testcase classname="🧪 Documents Integration Test › 📄 Legal Document Information" name="should provide legal document info in it: &quot;cosa dice il documento legale sulla privacy?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🍕 Get All Products List" name="should provide all products in en: &quot;show me all products&quot;" time="0.303">
+    <testcase classname="🧪 Documents Integration Test › 📄 Legal Document Information" name="should provide legal document info in en: &quot;what does the legal document say about privacy?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🚚 Get All Services List" name="should provide all services in it: &quot;quali servizi offrite?&quot;" time="0.318">
+    <testcase classname="🧪 Documents Integration Test › 📄 Legal Document Information" name="should provide legal document info in es: &quot;¿qué dice el documento legal sobre la privacidad?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🚚 Get All Services List" name="should provide all services in en: &quot;what services do you offer?&quot;" time="0.219">
+    <testcase classname="🧪 Documents Integration Test › 🔒 Privacy FAQ Questions" name="should provide privacy information in it: &quot;come gestite i miei dati personali?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🚚 Get All Services List" name="should provide all services in es: &quot;¿qué servicios ofrecen?&quot;" time="0.301">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/09_products.integration.spec.ts:139:57
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/09_products.integration.spec.ts:17:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
+    <testcase classname="🧪 Documents Integration Test › 🔒 Privacy FAQ Questions" name="should provide privacy information in en: &quot;how do you handle my personal data?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in it: &quot;avete pasta?&quot;" time="0.237">
+    <testcase classname="🧪 Documents Integration Test › 📋 Document Search Functionality" name="should search documents in it: &quot;cerca nei documenti informazioni sui termini di servizio&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in en: &quot;do you have pasta?&quot;" time="0.219">
+    <testcase classname="🧪 Documents Integration Test › 📋 Document Search Functionality" name="should search documents in en: &quot;search documents for terms of service information&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in es: &quot;¿tienen pasta?&quot;" time="0.281">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/09_products.integration.spec.ts:192:60
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/09_products.integration.spec.ts:17:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
+    <testcase classname="🧪 Documents Integration Test › 📋 Document Search Functionality" name="should search documents in es: &quot;buscar en documentos información sobre términos de servicio&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in it: &quot;mostrami i formaggi&quot;" time="0.381">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/09_products.integration.spec.ts:203:65
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/09_products.integration.spec.ts:17:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
+    <testcase classname="🧪 Documents Integration Test › 📋 Document Search Functionality" name="should search documents in it: &quot;trova documenti sui diritti del consumatore&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in en: &quot;show me the cheeses&quot;" time="0.236">
+    <testcase classname="🧪 Documents Integration Test › 📋 Document Search Functionality" name="should search documents in en: &quot;find documents about consumer rights&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in es: &quot;muéstrame los quesos&quot;" time="0.214">
+    <testcase classname="🧪 Documents Integration Test › 📋 Document Search Functionality" name="should search documents in es: &quot;encontrar documentos sobre derechos del consumidor&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in it: &quot;quali vini avete?&quot;" time="0.215">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/09_products.integration.spec.ts:203:65
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/09_products.integration.spec.ts:17:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
-    </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in en: &quot;what wines do you have?&quot;" time="0.292">
-    </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🍝 Specific Product Categories" name="should provide specific product category in es: &quot;¿qué vinos tienen?&quot;" time="0.435">
-    </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 🎯 Product &amp; Service Information Verification" name="should provide detailed product and service information" time="0.517">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/09_products.integration.spec.ts:258:64
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/09_products.integration.spec.ts:17:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
-    </testcase>
-    <testcase classname="🧪 Products &amp; Services Integration Test › 📊 Products &amp; Services Test Summary" name="should summarize products and services test results" time="0.001">
-    </testcase>
-  </testsuite>
-  <testsuite name="🧪 Documents Integration Test" errors="0" failures="8" skipped="0" timestamp="2025-08-25T11:17:57" time="4.046" tests="13">
-    <testcase classname="🧪 Documents Integration Test › 📄 Legal Document Information" name="should provide legal document info in it: &quot;cosa dice il documento legale sulla privacy?&quot;" time="0.23">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:62:60
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
-    </testcase>
-    <testcase classname="🧪 Documents Integration Test › 📄 Legal Document Information" name="should provide legal document info in en: &quot;what does the legal document say about privacy?&quot;" time="0.36">
-    </testcase>
-    <testcase classname="🧪 Documents Integration Test › 📄 Legal Document Information" name="should provide legal document info in es: &quot;¿qué dice el documento legal sobre la privacidad?&quot;" time="0.484">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:62:60
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
-    </testcase>
-    <testcase classname="🧪 Documents Integration Test › 🔒 Privacy FAQ Questions" name="should provide privacy information in it: &quot;come gestite i miei dati personali?&quot;" time="0.324">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:119:60
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
-    </testcase>
-    <testcase classname="🧪 Documents Integration Test › 🔒 Privacy FAQ Questions" name="should provide privacy information in en: &quot;how do you handle my personal data?&quot;" time="0.268">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:119:60
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
-    </testcase>
-    <testcase classname="🧪 Documents Integration Test › 📋 Document Search Functionality" name="should search documents in it: &quot;cerca nei documenti informazioni sui termini di servizio&quot;" time="0.245">
-    </testcase>
-    <testcase classname="🧪 Documents Integration Test › 📋 Document Search Functionality" name="should search documents in en: &quot;search documents for terms of service information&quot;" time="0.303">
-    </testcase>
-    <testcase classname="🧪 Documents Integration Test › 📋 Document Search Functionality" name="should search documents in es: &quot;buscar en documentos información sobre términos de servicio&quot;" time="0.21">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:182:60
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
-    </testcase>
-    <testcase classname="🧪 Documents Integration Test › 📋 Document Search Functionality" name="should search documents in it: &quot;trova documenti sui diritti del consumatore&quot;" time="0.215">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:182:60
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
-    </testcase>
-    <testcase classname="🧪 Documents Integration Test › 📋 Document Search Functionality" name="should search documents in en: &quot;find documents about consumer rights&quot;" time="0.216">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:182:60
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
-    </testcase>
-    <testcase classname="🧪 Documents Integration Test › 📋 Document Search Functionality" name="should search documents in es: &quot;encontrar documentos sobre derechos del consumidor&quot;" time="0.295">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:182:60
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/10_documents.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
-    </testcase>
-    <testcase classname="🧪 Documents Integration Test › 🎯 RAG System Verification" name="should verify RAG system works with documents" time="0.85">
+    <testcase classname="🧪 Documents Integration Test › 🎯 RAG System Verification" name="should verify RAG system works with documents" time="0">
+      <skipped/>
     </testcase>
     <testcase classname="🧪 Documents Integration Test › 📊 Documents Test Summary" name="should summarize documents test results" time="0">
+      <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Categories Integration Test" errors="0" failures="3" skipped="0" timestamp="2025-08-25T11:18:01" time="3.67" tests="12">
-    <testcase classname="🧪 Categories Integration Test › 📋 Get All Categories" name="should provide all categories in it: &quot;dammi tutte le categorie&quot;" time="0.445">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/07_categories.integration.spec.ts:61:60
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/07_categories.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
+  <testsuite name="🧪 Block User Integration Test" errors="0" failures="0" skipped="6" timestamp="2025-08-25T11:35:31" time="0.022" tests="6">
+    <testcase classname="🧪 Block User Integration Test › 🚫 User Blocking Detection" name="should detect blocked user status" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Categories Integration Test › 📋 Get All Categories" name="should provide all categories in en: &quot;show me all categories&quot;" time="0.696">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/07_categories.integration.spec.ts:69:56
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/07_categories.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
+    <testcase classname="🧪 Block User Integration Test › ⚡ Auto-block System" name="should handle rapid message sending" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Categories Integration Test › 📋 Get All Categories" name="should provide all categories in pt: &quot;quais são todas as categorias&quot;" time="0.21">
-      <failure>Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/07_categories.integration.spec.ts:61:60
-    at Generator.next (&lt;anonymous&gt;)
-    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/07_categories.integration.spec.ts:16:58)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
+    <testcase classname="🧪 Block User Integration Test › 🔓 Manual Unblock Process" name="should handle unblock process" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Categories Integration Test › 🍷 Get All Wines" name="should provide wine catalog in it: &quot;dammi tutti i vini che hai nel catalogo&quot;" time="0.292">
+    <testcase classname="🧪 Block User Integration Test › 🌍 Multi-language Blocking" name="should handle blocking in multiple languages" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Categories Integration Test › 🍷 Get All Wines" name="should provide wine catalog in en: &quot;show me all wines in your catalog&quot;" time="0.214">
-    </testcase>
-    <testcase classname="🧪 Categories Integration Test › 🍷 Get All Wines" name="should provide wine catalog in it: &quot;mostrami tutti i vini del catalogo&quot;" time="0.214">
-    </testcase>
-    <testcase classname="🧪 Categories Integration Test › 🍷 Get All Wines" name="should provide wine catalog in en: &quot;what wines do you have&quot;" time="0.21">
-    </testcase>
-    <testcase classname="🧪 Categories Integration Test › 🧀 Get All Cheeses" name="should provide cheese catalog in it: &quot;dammi tutti i formaggi nel catalogo&quot;" time="0.22">
-    </testcase>
-    <testcase classname="🧪 Categories Integration Test › 🧀 Get All Cheeses" name="should provide cheese catalog in en: &quot;show me all cheeses in your catalog&quot;" time="0.294">
-    </testcase>
-    <testcase classname="🧪 Categories Integration Test › 🧀 Get All Cheeses" name="should provide cheese catalog in en: &quot;what cheeses do you have&quot;" time="0.219">
-    </testcase>
-    <testcase classname="🧪 Categories Integration Test › 🎯 Product Information Verification" name="should provide detailed product information" time="0.614">
-    </testcase>
-    <testcase classname="🧪 Categories Integration Test › 📊 Categories Test Summary" name="should summarize categories test results" time="0.001">
-    </testcase>
-  </testsuite>
-  <testsuite name="🧪 Block User Integration Test" errors="0" failures="0" skipped="0" timestamp="2025-08-25T11:18:05" time="6.089" tests="6">
-    <testcase classname="🧪 Block User Integration Test › 🚫 User Blocking Detection" name="should detect blocked user status" time="0.288">
-    </testcase>
-    <testcase classname="🧪 Block User Integration Test › ⚡ Auto-block System" name="should handle rapid message sending" time="3.977">
-    </testcase>
-    <testcase classname="🧪 Block User Integration Test › 🔓 Manual Unblock Process" name="should handle unblock process" time="0.324">
-    </testcase>
-    <testcase classname="🧪 Block User Integration Test › 🌍 Multi-language Blocking" name="should handle blocking in multiple languages" time="0.767">
-    </testcase>
-    <testcase classname="🧪 Block User Integration Test › 🎯 Blocking Flow Validation" name="should validate complete blocking flow" time="0.706">
+    <testcase classname="🧪 Block User Integration Test › 🎯 Blocking Flow Validation" name="should validate complete blocking flow" time="0">
+      <skipped/>
     </testcase>
     <testcase classname="🧪 Block User Integration Test › 📊 Block User Test Summary" name="should summarize block user test results" time="0">
+      <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 FAQ Integration Test" errors="0" failures="0" skipped="0" timestamp="2025-08-25T11:18:11" time="1.732" tests="8">
-    <testcase classname="🧪 FAQ Integration Test › 🇬🇧 English FAQ Questions" name="should answer English question: &quot;What are your opening hours?&quot;" time="0.204">
+  <testsuite name="🧪 FAQ Integration Test" errors="0" failures="0" skipped="8" timestamp="2025-08-25T11:35:31" time="0.022" tests="8">
+    <testcase classname="🧪 FAQ Integration Test › 🇬🇧 English FAQ Questions" name="should answer English question: &quot;What are your opening hours?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 FAQ Integration Test › 🇬🇧 English FAQ Questions" name="should answer English question: &quot;Do you offer delivery?&quot;" time="0.199">
+    <testcase classname="🧪 FAQ Integration Test › 🇬🇧 English FAQ Questions" name="should answer English question: &quot;Do you offer delivery?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 FAQ Integration Test › 🇬🇧 English FAQ Questions" name="should answer English question: &quot;What payment methods do you accept?&quot;" time="0.282">
+    <testcase classname="🧪 FAQ Integration Test › 🇬🇧 English FAQ Questions" name="should answer English question: &quot;What payment methods do you accept?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 FAQ Integration Test › 🇮🇹 Italian FAQ Questions" name="should answer Italian question: &quot;Quali sono gli orari di apertura?&quot;" time="0.213">
+    <testcase classname="🧪 FAQ Integration Test › 🇮🇹 Italian FAQ Questions" name="should answer Italian question: &quot;Quali sono gli orari di apertura?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 FAQ Integration Test › 🇮🇹 Italian FAQ Questions" name="should answer Italian question: &quot;Quali metodi di pagamento accettate?&quot;" time="0.197">
+    <testcase classname="🧪 FAQ Integration Test › 🇮🇹 Italian FAQ Questions" name="should answer Italian question: &quot;Quali metodi di pagamento accettate?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 FAQ Integration Test › 🇪🇸 Spanish FAQ Questions" name="should answer Spanish question: &quot;¿Cuáles son los horarios de apertura?&quot;" time="0.22">
+    <testcase classname="🧪 FAQ Integration Test › 🇪🇸 Spanish FAQ Questions" name="should answer Spanish question: &quot;¿Cuáles son los horarios de apertura?&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 FAQ Integration Test › 🇪🇸 Spanish FAQ Questions" name="should answer Spanish question: &quot;¿Qué métodos de pago aceptan?&quot;" time="0.388">
+    <testcase classname="🧪 FAQ Integration Test › 🇪🇸 Spanish FAQ Questions" name="should answer Spanish question: &quot;¿Qué métodos de pago aceptan?&quot;" time="0">
+      <skipped/>
     </testcase>
     <testcase classname="🧪 FAQ Integration Test › 📊 FAQ Test Summary" name="should summarize FAQ test results" time="0">
+      <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Languages Integration Test" errors="0" failures="0" skipped="0" timestamp="2025-08-25T11:18:13" time="0.667" tests="4">
-    <testcase classname="🧪 Languages Integration Test › 🇬🇧 English Language" name="should respond meaningfully to English message" time="0.223">
+  <testsuite name="🧪 Contact Operator Integration Test" errors="0" failures="0" skipped="4" timestamp="2025-08-25T11:35:31" time="0.023" tests="4">
+    <testcase classname="🧪 Contact Operator Integration Test › 🇮🇹 Italian Operator Request" name="should handle Italian operator request" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Languages Integration Test › 🇮🇹 Italian Language" name="should respond meaningfully to Italian message" time="0.212">
+    <testcase classname="🧪 Contact Operator Integration Test › 🇬🇧 English Operator Request" name="should handle English operator request" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Languages Integration Test › 🇪🇸 Spanish Language" name="should respond meaningfully to Spanish message" time="0.204">
-    </testcase>
-    <testcase classname="🧪 Languages Integration Test › 📊 Languages Test Summary" name="should summarize languages test results" time="0.001">
-    </testcase>
-  </testsuite>
-  <testsuite name="🧪 Token System Integration Test" errors="0" failures="0" skipped="0" timestamp="2025-08-25T11:18:14" time="0.927" tests="5">
-    <testcase classname="🧪 Token System Integration Test › 📦 Orders Token Generation" name="should generate token for orders request" time="0.278">
-    </testcase>
-    <testcase classname="🧪 Token System Integration Test › 👤 Profile Token Generation" name="should generate token for profile request" time="0.2">
-    </testcase>
-    <testcase classname="🧪 Token System Integration Test › 🌍 Multi-language Token Support" name="should generate tokens for Italian requests" time="0.209">
-    </testcase>
-    <testcase classname="🧪 Token System Integration Test › 🌍 Multi-language Token Support" name="should generate tokens for Spanish requests" time="0.214">
-    </testcase>
-    <testcase classname="🧪 Token System Integration Test › 📊 Token System Test Summary" name="should summarize token system test results" time="0">
-    </testcase>
-  </testsuite>
-  <testsuite name="🧪 Contact Operator Integration Test" errors="0" failures="0" skipped="0" timestamp="2025-08-25T11:18:14" time="1.198" tests="4">
-    <testcase classname="🧪 Contact Operator Integration Test › 🇮🇹 Italian Operator Request" name="should handle Italian operator request" time="0.381">
-    </testcase>
-    <testcase classname="🧪 Contact Operator Integration Test › 🇬🇧 English Operator Request" name="should handle English operator request" time="0.204">
-    </testcase>
-    <testcase classname="🧪 Contact Operator Integration Test › 🇪🇸 Spanish Operator Request" name="should handle Spanish operator request" time="0.589">
+    <testcase classname="🧪 Contact Operator Integration Test › 🇪🇸 Spanish Operator Request" name="should handle Spanish operator request" time="0">
+      <skipped/>
     </testcase>
     <testcase classname="🧪 Contact Operator Integration Test › 📊 Contact Operator Test Summary" name="should summarize contact operator test results" time="0">
+      <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Welcome Message Integration Test" errors="0" failures="0" skipped="0" timestamp="2025-08-25T11:18:16" time="0.397" tests="11">
-    <testcase classname="🧪 Welcome Message Integration Test › 🇮🇹 Italian Welcome Messages" name="should respond in Italian to &quot;Ciao&quot; with registration link" time="0.03">
+  <testsuite name="🧪 Token System Integration Test" errors="0" failures="0" skipped="5" timestamp="2025-08-25T11:35:31" time="0.018" tests="5">
+    <testcase classname="🧪 Token System Integration Test › 📦 Orders Token Generation" name="should generate token for orders request" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Welcome Message Integration Test › 🇮🇹 Italian Welcome Messages" name="should respond in Italian to &quot;ciao&quot; with registration link" time="0.02">
+    <testcase classname="🧪 Token System Integration Test › 👤 Profile Token Generation" name="should generate token for profile request" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Welcome Message Integration Test › 🇮🇹 Italian Welcome Messages" name="should respond in Italian to &quot;Buongiorno&quot; with registration link" time="0.027">
+    <testcase classname="🧪 Token System Integration Test › 🌍 Multi-language Token Support" name="should generate tokens for Italian requests" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Welcome Message Integration Test › 🇪🇸 Spanish Welcome Messages" name="should respond in Spanish to &quot;Hola&quot; with registration link" time="0.043">
+    <testcase classname="🧪 Token System Integration Test › 🌍 Multi-language Token Support" name="should generate tokens for Spanish requests" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Welcome Message Integration Test › 🇪🇸 Spanish Welcome Messages" name="should respond in Spanish to &quot;hola&quot; with registration link" time="0.035">
+    <testcase classname="🧪 Token System Integration Test › 📊 Token System Test Summary" name="should summarize token system test results" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Welcome Message Integration Test › 🇬🇧 English Welcome Messages" name="should respond in English to &quot;Hi&quot; with registration link" time="0.036">
+  </testsuite>
+  <testsuite name="🧪 Languages Integration Test" errors="0" failures="0" skipped="4" timestamp="2025-08-25T11:35:31" time="0.019" tests="4">
+    <testcase classname="🧪 Languages Integration Test › 🇬🇧 English Language" name="should respond meaningfully to English message" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Welcome Message Integration Test › 🇬🇧 English Welcome Messages" name="should respond in English to &quot;Hello&quot; with registration link" time="0.026">
+    <testcase classname="🧪 Languages Integration Test › 🇮🇹 Italian Language" name="should respond meaningfully to Italian message" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Welcome Message Integration Test › 🇬🇧 English Welcome Messages" name="should respond in English to &quot;hello&quot; with registration link" time="0.029">
+    <testcase classname="🧪 Languages Integration Test › 🇪🇸 Spanish Language" name="should respond meaningfully to Spanish message" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Welcome Message Integration Test › 🇬🇧 English Welcome Messages" name="should respond in English to &quot;hi&quot; with registration link" time="0.038">
+    <testcase classname="🧪 Languages Integration Test › 📊 Languages Test Summary" name="should summarize languages test results" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Welcome Message Integration Test › 🎯 Registration Flow Verification" name="should maintain language consistency in registration flow" time="0.086">
+  </testsuite>
+  <testsuite name="🧪 Welcome Message Integration Test" errors="0" failures="0" skipped="11" timestamp="2025-08-25T11:35:31" time="0.023" tests="11">
+    <testcase classname="🧪 Welcome Message Integration Test › 🇮🇹 Italian Welcome Messages" name="should respond in Italian to &quot;Ciao&quot; with registration link" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Welcome Message Integration Test › 🇮🇹 Italian Welcome Messages" name="should respond in Italian to &quot;ciao&quot; with registration link" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Welcome Message Integration Test › 🇮🇹 Italian Welcome Messages" name="should respond in Italian to &quot;Buongiorno&quot; with registration link" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Welcome Message Integration Test › 🇪🇸 Spanish Welcome Messages" name="should respond in Spanish to &quot;Hola&quot; with registration link" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Welcome Message Integration Test › 🇪🇸 Spanish Welcome Messages" name="should respond in Spanish to &quot;hola&quot; with registration link" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Welcome Message Integration Test › 🇬🇧 English Welcome Messages" name="should respond in English to &quot;Hi&quot; with registration link" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Welcome Message Integration Test › 🇬🇧 English Welcome Messages" name="should respond in English to &quot;Hello&quot; with registration link" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Welcome Message Integration Test › 🇬🇧 English Welcome Messages" name="should respond in English to &quot;hello&quot; with registration link" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Welcome Message Integration Test › 🇬🇧 English Welcome Messages" name="should respond in English to &quot;hi&quot; with registration link" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Welcome Message Integration Test › 🎯 Registration Flow Verification" name="should maintain language consistency in registration flow" time="0">
+      <skipped/>
     </testcase>
     <testcase classname="🧪 Welcome Message Integration Test › 📊 Welcome Message Test Summary" name="should summarize welcome message test results" time="0">
+      <skipped/>
     </testcase>
   </testsuite>
 </testsuites>
