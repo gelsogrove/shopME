@@ -263,7 +263,7 @@ describe('🧪 Link Generation Integration Test', () => {
   })
 
   describe('👤 Profile Link Requests', () => {
-    it.skip('should handle profile link request in Italian', async () => {
+    it('should handle profile link request in Italian', async () => {
       console.log('\n🇮🇹 Testing Italian profile link request...')
       
       const response = await simulateWhatsAppMessage('voglio modificare la mia email', 'it')
@@ -297,7 +297,7 @@ describe('🧪 Link Generation Integration Test', () => {
       console.log('✅ Italian profile link request test passed')
     })
 
-    it.skip('should handle profile link request in English', async () => {
+    it('should handle profile link request in English', async () => {
       console.log('\n🇬🇧 Testing English profile link request...')
       
       const response = await simulateWhatsAppMessage('I want to change my email', 'en')
@@ -331,7 +331,7 @@ describe('🧪 Link Generation Integration Test', () => {
       console.log('✅ English profile link request test passed')
     })
 
-    it.skip('should handle profile link request in Spanish', async () => {
+    it('should handle profile link request in Spanish', async () => {
       console.log('\n🇪🇸 Testing Spanish profile link request...')
       
       const response = await simulateWhatsAppMessage('quiero cambiar mi email', 'es')
@@ -363,6 +363,174 @@ describe('🧪 Link Generation Integration Test', () => {
       expect(hasProfileContent).toBe(true)
       
       console.log('✅ Spanish profile link request test passed')
+    })
+
+    it('should handle shipping address change request in Italian', async () => {
+      console.log('\n🇮🇹 Testing Italian shipping address change request...')
+      console.log('🧪 About to send WhatsApp message...')
+      
+      const response = await simulateWhatsAppMessage('voglio cambiare indirizzo di spedizione', 'it')
+      console.log('🧪 WhatsApp message sent, response received')
+      console.log('🧪 Response status:', response.status)
+      console.log('🧪 Response body:', JSON.stringify(response.body, null, 2))
+      
+      expect(response.status).toBe(200)
+      
+      const responseMessage = extractResponseMessage(response)
+      console.log(`- Full Response: "${responseMessage}"`)
+      console.log(`- Response length: ${responseMessage.length}`)
+      
+      // Verify we get a meaningful response
+      const hasContent = responseMessage.length > 20
+      expect(hasContent).toBe(true)
+      
+      // Should NOT contain registration links (Maria is already registered)
+      const hasRegistrationLink = responseMessage.includes('register') ||
+                                 responseMessage.includes('To use this service') ||
+                                 responseMessage.includes('Per utilizzare questo servizio')
+      expect(hasRegistrationLink).toBe(false)
+      
+      // Should contain profile-related content and link
+      const hasProfileContent = responseMessage.includes('profilo') ||
+                               responseMessage.includes('profile') ||
+                               responseMessage.includes('perfil') ||
+                               responseMessage.includes('modificare') ||
+                               responseMessage.includes('change') ||
+                               responseMessage.includes('cambiar') ||
+                               responseMessage.includes('token') ||
+                               responseMessage.includes('localhost:3000')
+      expect(hasProfileContent).toBe(true)
+      
+      // Should contain a clickable link
+      const hasLink = responseMessage.includes('http://localhost:3000/customer-profile?token=')
+      expect(hasLink).toBe(true)
+      
+      console.log('✅ Italian shipping address change request test passed')
+    })
+
+    it('should handle shipping address change request in English', async () => {
+      console.log('\n🇬🇧 Testing English shipping address change request...')
+      
+      const response = await simulateWhatsAppMessage('change shipping address', 'en')
+      
+      expect(response.status).toBe(200)
+      
+      const responseMessage = extractResponseMessage(response)
+      console.log(`- Response: "${responseMessage.substring(0, 100)}..."`)
+      
+      // Verify we get a meaningful response
+      const hasContent = responseMessage.length > 20
+      expect(hasContent).toBe(true)
+      
+      // Should NOT contain registration links (Maria is already registered)
+      const hasRegistrationLink = responseMessage.includes('register') ||
+                                 responseMessage.includes('To use this service') ||
+                                 responseMessage.includes('Per utilizzare questo servizio')
+      expect(hasRegistrationLink).toBe(false)
+      
+      // Should contain profile-related content and link
+      const hasProfileContent = responseMessage.includes('profile') ||
+                               responseMessage.includes('profilo') ||
+                               responseMessage.includes('perfil') ||
+                               responseMessage.includes('modify') ||
+                               responseMessage.includes('change') ||
+                               responseMessage.includes('modificare') ||
+                               responseMessage.includes('cambiar') ||
+                               responseMessage.includes('token') ||
+                               responseMessage.includes('localhost:3000')
+      expect(hasProfileContent).toBe(true)
+      
+      // Should contain a clickable link
+      const hasLink = responseMessage.includes('http://localhost:3000/customer-profile?token=')
+      expect(hasLink).toBe(true)
+      
+      console.log('✅ English shipping address change request test passed')
+    })
+
+    it('should handle shipping address change request in Spanish', async () => {
+      console.log('\n🇪🇸 Testing Spanish shipping address change request...')
+      
+      const response = await simulateWhatsAppMessage('cambiar dirección de envío', 'es')
+      
+      expect(response.status).toBe(200)
+      
+      const responseMessage = extractResponseMessage(response)
+      console.log(`- Response: "${responseMessage.substring(0, 100)}..."`)
+      
+      // Verify we get a meaningful response
+      const hasContent = responseMessage.length > 20
+      expect(hasContent).toBe(true)
+      
+      // Should NOT contain registration links (Maria is already registered)
+      const hasRegistrationLink = responseMessage.includes('register') ||
+                                 responseMessage.includes('To use this service') ||
+                                 responseMessage.includes('Per utilizzare questo servizio')
+      expect(hasRegistrationLink).toBe(false)
+      
+      // Should contain profile-related content and link
+      const hasProfileContent = responseMessage.includes('perfil') ||
+                               responseMessage.includes('profile') ||
+                               responseMessage.includes('profilo') ||
+                               responseMessage.includes('modificar') ||
+                               responseMessage.includes('cambiar') ||
+                               responseMessage.includes('change') ||
+                               responseMessage.includes('modificare') ||
+                               responseMessage.includes('token') ||
+                               responseMessage.includes('localhost:3000')
+      expect(hasProfileContent).toBe(true)
+      
+      // Should contain a clickable link
+      const hasLink = responseMessage.includes('http://localhost:3000/customer-profile?token=')
+      expect(hasLink).toBe(true)
+      
+      console.log('✅ Spanish shipping address change request test passed')
+    })
+
+    it('should test GetCustomerProfileLink calling function directly', async () => {
+      console.log('\n🔧 Testing GetCustomerProfileLink calling function...')
+      
+      // Test the profile-link endpoint directly
+      const response = await fetch('http://localhost:3001/api/internal/profile-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customerId: 'test-customer-123',
+          workspaceId: 'cm9hjgq9v00014qk8fsdy4ujv'
+        })
+      })
+
+      const result = await response.json()
+      console.log(`- API Response:`, result)
+
+      // Check if profile URL is generated
+      expect(result.profileUrl).toBeDefined()
+      expect(result.customerId).toBe('test-customer-123')
+      expect(result.customerName).toBeDefined()
+      expect(result.customerPhone).toBeDefined()
+
+      // CRITICAL: Check if profile URL has correct format (TOKEN-ONLY)
+      const hasTokenOnly = result.profileUrl.includes('/customer-profile?token=')
+      const hasPhoneParam = result.profileUrl.includes('phone=')
+
+      console.log(`- Profile URL: ${result.profileUrl}`)
+      console.log(`- Has token-only format: ${hasTokenOnly}`)
+      console.log(`- Has phone parameter: ${hasPhoneParam}`)
+
+      // This should pass - the API is working correctly
+      expect(hasTokenOnly).toBe(true)
+      // Note: The new system uses token-only, so phone param is not needed
+      expect(hasPhoneParam).toBe(false)
+
+      // Test frontend accessibility
+      const frontendResponse = await fetch(result.profileUrl)
+      console.log(`- Frontend Status: ${frontendResponse.status}`)
+      
+      // Frontend should be accessible
+      expect(frontendResponse.status).toBe(200)
+
+      console.log('✅ GetCustomerProfileLink calling function test passed')
     })
   })
 
@@ -413,7 +581,7 @@ describe('🧪 Link Generation Integration Test', () => {
       console.log('✅ Specific order link generation test passed')
     })
 
-    it.skip('should detect when profile link is missing phone parameter', async () => {
+    it('should detect when profile link is missing phone parameter', async () => {
       console.log('\n🔍 Testing profile link generation bug...')
       
       // Test the profile-link endpoint directly

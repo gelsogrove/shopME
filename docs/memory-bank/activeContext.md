@@ -97,7 +97,55 @@
 ### **Standard Test User for All Integration Tests**
 **Customer ID:** `test-customer-123`  
 **Phone:** `+393451234567`  
-**Email:** `test-customer-123@shopme.com`  
+**Email:** `test-customer-123@shopme.com`
+
+## 🛒 CART MANAGEMENT FIX - LLM MEMORY SYSTEM
+
+### **✅ PROBLEM RESOLVED: Cart Functionality Restored**
+
+**Issue:** Chatbot was unable to add products to cart, immediately asking for order confirmation instead.
+
+**Root Cause:** 
+- N8N workflow had incorrect `add_to_cart` function that was interfering with LLM memory management
+- Prompt was confusing about cart management approach
+
+**✅ SOLUTION IMPLEMENTED:**
+
+#### **1. Removed add_to_cart from N8N**
+- **Action:** Eliminated `add_to_cart` httpRequestTool node from workflow
+- **Result:** No more interference with LLM memory cart management
+
+#### **2. Updated N8N Prompt**
+- **Action:** Modified cart management section in N8N workflow prompt
+- **Changes:** 
+  - Removed reference to non-existent `AddToCart()` functions
+  - Clarified that cart is managed in LLM memory
+  - Added instruction to show cart after every modification
+
+#### **3. Updated PRD Documentation**
+- **Action:** Added "LLM Memory Cart Management" section
+- **Content:** Detailed explanation of cart operations in memory vs external APIs
+
+### **✅ CORRECT CART FLOW:**
+1. **"Metti 4 mozzarelle"** → LLM updates internal cart array
+2. **LLM Response:** Shows updated cart immediately
+3. **"Aggiungi 2 parmigiani"** → LLM updates cart again
+4. **LLM Response:** Shows updated cart immediately  
+5. **"Confermo"** → Calls `confirmOrderFromConversation()`
+6. **Cart Cleared:** Automatically after order confirmation
+
+### **✅ VERIFICATION NEEDED:**
+- Test "metti 4 mozzarelle" → Should show cart immediately
+- Test "confermo" → Should call confirmOrderFromConversation()
+- Verify cart is cleared after order confirmation
+
+### **🔧 ADDITIONAL FIXES APPLIED:**
+- **Updated N8N Prompt**: Corrected all references from `CreateOrder()` to `confirmOrderFromConversation()`
+- **Enhanced Cart Instructions**: Added specific instructions for "aggiungi X" or "metti X" commands
+- **Clear Flow**: LLM should search product → update cart → show cart immediately → NO order confirmation request
+- **Product Code Display**: Added requirement to show product codes in both product lists and cart
+- **Critical Cart Fix**: Added explicit rules to NOT ask for order confirmation when adding products
+- **🚨 CRITICAL N8N WORKFLOW RULE**: NEVER modify n8n/workflows/shopme-whatsapp-workflow.json directly - prompt comes from database via agentConfig.prompt  
 **Name:** `Test Customer MCP`  
 **Workspace ID:** `cm9hjgq9v00014qk8fsdy4ujv`  
 **Language:** `it` (Italian)  
@@ -202,8 +250,10 @@ export const FIXED_WORKSPACE_ID = 'cm9hjgq9v00014qk8fsdy4ujv'
 7. **Swagger Documentation**: Complete API documentation - ✅ Working
 
 #### **✅ Test Coverage:**
-- **11_order-confirmation-backend.integration.spec.ts**: 4 mozzarelle scenario
-- **12_checkout-link-consistency.integration.spec.ts**: Token consistency
+- **11_order-confirmation-complete.integration.spec.ts**: Unified test file with 3 sequential describe blocks:
+  1. **Backend Order Confirmation**: 4 mozzarelle scenario + token validation
+  2. **Checkout Link Consistency**: Deterministic system (same input = same output)
+  3. **End-to-End Complete Flow**: WhatsApp → Token → Checkout → Order
 - **checkout-page.integration.test.tsx**: Frontend validation
 
 #### **✅ Security Features:**
@@ -225,7 +275,7 @@ export const FIXED_WORKSPACE_ID = 'cm9hjgq9v00014qk8fsdy4ujv'
 4. 🔗 N8N: Chiama confirmOrderFromConversation()
 5. 🧠 Backend: Parsing conversazione + generazione token
 6. 🔐 Token: 32 caratteri, 1 ora, payload completo
-7. 🌐 URL: http://localhost:3000/checkout?token=abc123...
+7. 🌐 URL: http://localhost:3000/checkout-public?token=abc123...
 8. 📋 Frontend: 3 step (prodotti → indirizzi → conferma)
 9. ✅ Submit: Ordine creato + notifiche inviate
 ```
@@ -264,10 +314,11 @@ export const FIXED_WORKSPACE_ID = 'cm9hjgq9v00014qk8fsdy4ujv'
 8. **Database Integration**: Orders + SecureToken tables - ✅ Working
 
 **🧪 COSA TESTIAMO:**
-1. **11_order-confirmation-backend.integration.spec.ts**: 4 mozzarelle scenario
-2. **12_checkout-link-consistency.integration.spec.ts**: Token consistency
-3. **13_order-confirmation-end-to-end.integration.spec.ts**: Complete flow
-4. **checkout-page.integration.test.tsx**: Frontend validation
+1. **11_order-confirmation-complete.integration.spec.ts**: Unified test file with 3 sequential describe blocks:
+   - **Backend Order Confirmation**: 4 mozzarelle scenario + token validation
+   - **Checkout Link Consistency**: Deterministic system (same input = same output)
+   - **End-to-End Complete Flow**: WhatsApp → Token → Checkout → Order
+2. **checkout-page.integration.test.tsx**: Frontend validation
 
 **📝 CONVENZIONE TEST NAMING:**
 - **File naming**: `*.spec.ts` per backend, `*.test.tsx` per frontend

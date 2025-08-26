@@ -98,14 +98,14 @@ const CustomerProfilePublicPage: React.FC = () => {
         toast.success('Profilo aggiornato con successo!')
         logger.info(`[PROFILE] ✅ Profile updated successfully`)
       } else {
-        toast.error(response.data.error || 'Errore nel salvataggio')
+        toast.error(response.data.error || 'Error saving')
       }
     } catch (error: any) {
       logger.error('[PROFILE] Error saving profile:', error)
       if (error.response?.status === 401) {
         toast.error('Token scaduto, richiedi un nuovo link')
       } else {
-        toast.error('Errore nel salvataggio del profilo')
+        toast.error('Error saving profile')
       }
     } finally {
       setSaving(false)
@@ -154,7 +154,7 @@ const CustomerProfilePublicPage: React.FC = () => {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center max-w-md w-full">
           <div className="flex flex-col items-center space-y-4">
             <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-blue-700 font-medium">Caricamento profilo...</p>
+            <p className="text-blue-700 font-medium">Loading profile...</p>
           </div>
         </div>
       </div>
@@ -183,9 +183,9 @@ const CustomerProfilePublicPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Gestione Profilo Cliente</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Customer Profile Management</h1>
               <p className="text-gray-600 mt-1">
-                Modifica i tuoi dati personali in modo sicuro
+                Modify your personal data securely
               </p>
             </div>
             <div className="flex space-x-3">

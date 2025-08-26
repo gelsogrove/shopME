@@ -220,13 +220,13 @@ const CheckoutPage: React.FC = () => {
 
           <div className="flex justify-between mt-2 text-sm">
             <span className={currentStep >= 1 ? "text-green-600 font-semibold" : "text-gray-500"}>
-              Prodotti
+              Products
             </span>
             <span className={currentStep >= 2 ? "text-green-600 font-semibold" : "text-gray-500"}>
-              Indirizzi
+              Addresses
             </span>
             <span className={currentStep >= 3 ? "text-green-600 font-semibold" : "text-gray-500"}>
-              Conferma
+              Confirm
             </span>
           </div>
         </div>
@@ -235,7 +235,7 @@ const CheckoutPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           {currentStep === 1 && (
             <div>
-              <h2 className="text-2xl font-bold mb-6">📦 I Tuoi Prodotti</h2>
+              <h2 className="text-2xl font-bold mb-6">📦 Your Products</h2>
 
               {/* Products List */}
               <div className="space-y-4 mb-6">
@@ -243,7 +243,7 @@ const CheckoutPage: React.FC = () => {
                   <div key={index} className="border rounded-lg p-4 flex items-center justify-between">
                     <div className="flex-1">
                       <h3 className="font-semibold">{prodotto.descrizione}</h3>
-                      <p className="text-sm text-gray-600">Codice: {prodotto.codice}</p>
+                      <p className="text-sm text-gray-600">Code: {prodotto.codice}</p>
                       <p className="text-lg font-bold text-green-600">€{prodotto.prezzo.toFixed(2)}</p>
                     </div>
 
@@ -272,7 +272,7 @@ const CheckoutPage: React.FC = () => {
                       <button
                         onClick={() => removeProduct(index)}
                         className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"
-                        title="Rimuovi prodotto"
+                        title="Remove product"
                       >
                         🗑️
                       </button>
@@ -284,15 +284,15 @@ const CheckoutPage: React.FC = () => {
               {/* Empty cart message */}
               {prodotti.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
-                  <p className="text-lg">Il tuo carrello è vuoto</p>
-                  <p className="text-sm">Aggiungi prodotti per continuare</p>
+                  <p className="text-lg">Your cart is empty</p>
+                  <p className="text-sm">Add products to continue</p>
                 </div>
               )}
 
               {/* Total */}
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center text-xl font-bold">
-                  <span>Totale:</span>
+                  <span>Total:</span>
                   <span className="text-green-600">€{calculateTotal().toFixed(2)}</span>
                 </div>
               </div>
@@ -304,7 +304,7 @@ const CheckoutPage: React.FC = () => {
                   disabled={prodotti.length === 0}
                   className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
-                  Continua →
+                  Continue →
                 </button>
               </div>
             </div>
@@ -312,11 +312,11 @@ const CheckoutPage: React.FC = () => {
 
           {currentStep === 2 && (
             <div>
-              <h2 className="text-2xl font-bold mb-6">📍 Indirizzi</h2>
+              <h2 className="text-2xl font-bold mb-6">📍 Addresses</h2>
 
               {/* Shipping Address */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">Indirizzo di Spedizione</h3>
+                <h3 className="text-lg font-semibold mb-4">Shipping Address</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input
                     type="text"
@@ -419,7 +419,7 @@ const CheckoutPage: React.FC = () => {
 
           {currentStep === 3 && (
             <div>
-              <h2 className="text-2xl font-bold mb-6">📝 Conferma Ordine</h2>
+              <h2 className="text-2xl font-bold mb-6">📝 Confirm Order</h2>
 
               {/* Order Summary */}
               <div className="mb-6">
@@ -500,7 +500,7 @@ const CheckoutPage: React.FC = () => {
                       Creazione ordine...
                     </span>
                   ) : (
-                    "✅ CONFERMA ORDINE"
+                    "✅ CONFIRM ORDER"
                   )}
                 </button>
               </div>

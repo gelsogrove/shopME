@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="135" failures="0" errors="0" time="19.716">
-  <testsuite name="🧪 Products &amp; Services Integration Test" errors="0" failures="0" skipped="16" timestamp="2025-08-25T18:44:33" time="3.028" tests="16">
+<testsuites name="jest tests" tests="139" failures="1" errors="0" time="3.933">
+  <testsuite name="🧪 Products &amp; Services Integration Test" errors="0" failures="0" skipped="16" timestamp="2025-08-26T08:37:06" time="1.218" tests="16">
     <testcase classname="🧪 Products &amp; Services Integration Test › 🍕 Get All Products List" name="should provide all products in it: &quot;mostrami tutti i prodotti&quot;" time="0">
       <skipped/>
     </testcase>
@@ -50,7 +50,85 @@
       <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🔧 System Health Integration Tests" errors="0" failures="0" skipped="7" timestamp="2025-08-25T18:44:36" time="1.636" tests="7">
+  <testsuite name="🧪 Link Generation Integration Test" errors="0" failures="1" skipped="22" timestamp="2025-08-26T08:37:07" time="1.489" tests="23">
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle orders link request in Italian" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle orders link request in English" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle orders link request in Spanish" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle specific order request in Italian" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle specific order request in English" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle last order request in Italian" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle last order request in English" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle profile link request in Italian" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle profile link request in English" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle profile link request in Spanish" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle shipping address change request in Italian" time="1.144">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+    at /Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/05_link-generation.integration.spec.ts:406:23
+    at Generator.next (&lt;anonymous&gt;)
+    at fulfilled (/Users/gelso/workspace/AI/shop/backend/src/__tests__/integration/05_link-generation.integration.spec.ts:15:58)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle shipping address change request in English" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle shipping address change request in Spanish" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should test GetCustomerProfileLink calling function directly" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect when specific order generates wrong URL" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect when profile link is missing phone parameter" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect N8N workflow endpoint mismatch" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect LLM function call issues" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect Italian language from user message" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect English language from user message" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect Spanish language from user message" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect language mismatch and fail test" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="🧪 Link Generation Integration Test › 📊 Link Generation Test Summary" name="should summarize link generation test results" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+  <testsuite name="🔧 System Health Integration Tests" errors="0" failures="0" skipped="7" timestamp="2025-08-26T08:37:09" time="0.682" tests="7">
     <testcase classname="🔧 System Health Integration Tests › 🚨 Critical System Health Checks" name="should detect N8N workflow failures" time="0">
       <skipped/>
     </testcase>
@@ -73,7 +151,7 @@
       <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Offers Integration Test" errors="0" failures="0" skipped="21" timestamp="2025-08-25T18:44:37" time="0.051" tests="21">
+  <testsuite name="🧪 Offers Integration Test" errors="0" failures="0" skipped="21" timestamp="2025-08-26T08:37:10" time="0.03" tests="21">
     <testcase classname="🧪 Offers Integration Test › 🍷 Alcoholic Beverages 20% Discount" name="should show discounted limoncello price in it: &quot;quanto costa il limoncello?&quot;" time="0">
       <skipped/>
     </testcase>
@@ -138,7 +216,7 @@
       <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Categories Integration Test" errors="0" failures="0" skipped="18" timestamp="2025-08-25T18:44:37" time="14.124" tests="21">
+  <testsuite name="🧪 Categories Integration Test" errors="0" failures="0" skipped="21" timestamp="2025-08-26T08:37:10" time="0.031" tests="21">
     <testcase classname="🧪 Categories Integration Test › 📋 Get All Categories" name="should provide all categories in it: &quot;dammi tutte le categorie&quot;" time="0">
       <skipped/>
     </testcase>
@@ -190,76 +268,20 @@
     <testcase classname="🧪 Categories Integration Test › 🧀 Specific Cheese Inquiries" name="should answer cheese inquiry in es: &quot;¿qué quesos tienen?&quot;" time="0">
       <skipped/>
     </testcase>
-    <testcase classname="🧪 Categories Integration Test › 🏷️ Specific Category Inquiries" name="should answer category inquiry in it: &quot;che categorie avete&quot;" time="6.466">
+    <testcase classname="🧪 Categories Integration Test › 🏷️ Specific Category Inquiries" name="should answer category inquiry in it: &quot;che categorie avete&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Categories Integration Test › 🏷️ Specific Category Inquiries" name="should answer category inquiry in en: &quot;what categories do you have&quot;" time="3.531">
+    <testcase classname="🧪 Categories Integration Test › 🏷️ Specific Category Inquiries" name="should answer category inquiry in en: &quot;what categories do you have&quot;" time="0">
+      <skipped/>
     </testcase>
-    <testcase classname="🧪 Categories Integration Test › 🏷️ Specific Category Inquiries" name="should answer category inquiry in es: &quot;¿qué categorías tienen?&quot;" time="4.06">
+    <testcase classname="🧪 Categories Integration Test › 🏷️ Specific Category Inquiries" name="should answer category inquiry in es: &quot;¿qué categorías tienen?&quot;" time="0">
+      <skipped/>
     </testcase>
     <testcase classname="🧪 Categories Integration Test › 📊 Categories Test Summary" name="should summarize categories test results" time="0">
       <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Link Generation Integration Test" errors="0" failures="0" skipped="19" timestamp="2025-08-25T18:44:51" time="0.029" tests="19">
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle orders link request in Italian" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle orders link request in English" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle orders link request in Spanish" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle specific order request in Italian" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle specific order request in English" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle last order request in Italian" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 📦 Orders Link Requests" name="should handle last order request in English" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle profile link request in Italian" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle profile link request in English" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 👤 Profile Link Requests" name="should handle profile link request in Spanish" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect when specific order generates wrong URL" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect when profile link is missing phone parameter" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect N8N workflow endpoint mismatch" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🚨 Link Generation Bug Detection" name="should detect LLM function call issues" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect Italian language from user message" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect English language from user message" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect Spanish language from user message" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 🌍 Language Detection Tests" name="should detect language mismatch and fail test" time="0">
-      <skipped/>
-    </testcase>
-    <testcase classname="🧪 Link Generation Integration Test › 📊 Link Generation Test Summary" name="should summarize link generation test results" time="0">
-      <skipped/>
-    </testcase>
-  </testsuite>
-  <testsuite name="🧪 FAQ Integration Test" errors="0" failures="0" skipped="8" timestamp="2025-08-25T18:44:51" time="0.024" tests="8">
+  <testsuite name="🧪 FAQ Integration Test" errors="0" failures="0" skipped="8" timestamp="2025-08-26T08:37:10" time="0.031" tests="8">
     <testcase classname="🧪 FAQ Integration Test › 🇬🇧 English FAQ Questions" name="should answer English question: &quot;What are your opening hours?&quot;" time="0">
       <skipped/>
     </testcase>
@@ -285,7 +307,7 @@
       <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Block User Integration Test" errors="0" failures="0" skipped="6" timestamp="2025-08-25T18:44:52" time="0.03" tests="6">
+  <testsuite name="🧪 Block User Integration Test" errors="0" failures="0" skipped="6" timestamp="2025-08-26T08:37:10" time="0.025" tests="6">
     <testcase classname="🧪 Block User Integration Test › 🚫 User Blocking Detection" name="should detect blocked user status" time="0">
       <skipped/>
     </testcase>
@@ -305,7 +327,7 @@
       <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Languages Integration Test" errors="0" failures="0" skipped="4" timestamp="2025-08-25T18:44:52" time="0.025" tests="4">
+  <testsuite name="🧪 Languages Integration Test" errors="0" failures="0" skipped="4" timestamp="2025-08-26T08:37:10" time="0.024" tests="4">
     <testcase classname="🧪 Languages Integration Test › 🇬🇧 English Language" name="should respond meaningfully to English message" time="0">
       <skipped/>
     </testcase>
@@ -319,7 +341,7 @@
       <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Documents Integration Test" errors="0" failures="0" skipped="13" timestamp="2025-08-25T18:44:52" time="0.03" tests="13">
+  <testsuite name="🧪 Documents Integration Test" errors="0" failures="0" skipped="13" timestamp="2025-08-26T08:37:10" time="0.026" tests="13">
     <testcase classname="🧪 Documents Integration Test › 📄 Legal Document Information" name="should provide legal document info in it: &quot;cosa dice il documento legale sulla privacy?&quot;" time="0">
       <skipped/>
     </testcase>
@@ -360,7 +382,7 @@
       <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Token System Integration Test" errors="0" failures="0" skipped="5" timestamp="2025-08-25T18:44:52" time="0.028" tests="5">
+  <testsuite name="🧪 Token System Integration Test" errors="0" failures="0" skipped="5" timestamp="2025-08-26T08:37:10" time="0.026" tests="5">
     <testcase classname="🧪 Token System Integration Test › 📦 Orders Token Generation" name="should generate token for orders request" time="0">
       <skipped/>
     </testcase>
@@ -377,7 +399,7 @@
       <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Contact Operator Integration Test" errors="0" failures="0" skipped="4" timestamp="2025-08-25T18:44:52" time="0.032" tests="4">
+  <testsuite name="🧪 Contact Operator Integration Test" errors="0" failures="0" skipped="4" timestamp="2025-08-26T08:37:10" time="0.027" tests="4">
     <testcase classname="🧪 Contact Operator Integration Test › 🇮🇹 Italian Operator Request" name="should handle Italian operator request" time="0">
       <skipped/>
     </testcase>
@@ -391,7 +413,7 @@
       <skipped/>
     </testcase>
   </testsuite>
-  <testsuite name="🧪 Welcome Message Integration Test" errors="0" failures="0" skipped="11" timestamp="2025-08-25T18:44:52" time="0.029" tests="11">
+  <testsuite name="🧪 Welcome Message Integration Test" errors="0" failures="0" skipped="11" timestamp="2025-08-26T08:37:10" time="0.026" tests="11">
     <testcase classname="🧪 Welcome Message Integration Test › 🇮🇹 Italian Welcome Messages" name="should respond in Italian to &quot;Ciao&quot; with registration link" time="0">
       <skipped/>
     </testcase>

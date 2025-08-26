@@ -239,6 +239,37 @@ Sistema completo di test di integrazione per verificare il funzionamento del cha
   - No backend database changes required.
   - Simple, reliable, and maintainable solution.
 
+### ✅ NEW: LLM Memory Cart Management (August 2025)
+
+- **Strategic Approach:** Cart management is handled entirely within LLM memory, not through external API calls
+- **Cart Operations:** 
+  - **ADD PRODUCTS**: When user says "add X", "I want X", "add to cart" → LLM updates internal cart array
+  - **REMOVE PRODUCTS**: When user says "remove X", "delete X" → LLM removes from cart array
+  - **UPDATE QUANTITIES**: When user says "change quantity", "update X to Y" → LLM modifies cart array
+  - **SHOW CART**: When user asks "show cart", "what's in my cart" → LLM displays current cart
+  - **CLEAR CART**: When user says "clear cart", "empty cart" → LLM resets cart to empty array
+- **Critical Rule:** After ANY cart change, LLM must IMMEDIATELY show the updated cart in the same response
+- **Function Calls:** Only `confirmOrderFromConversation()` is called for final order confirmation
+- **No External APIs:** No `add_to_cart`, `get_cart`, or similar functions are called during cart management
+- **Memory Persistence:** Cart state persists throughout the conversation until order confirmation
+- **Automatic Cleanup:** Cart is automatically cleared after `confirmOrderFromConversation()` is called
+
+### 🚨 CRITICAL: N8N Workflow Configuration (August 2025)
+
+**NEVER modify `n8n/workflows/shopme-whatsapp-workflow.json` directly!**
+
+**Why this is critical:**
+- The prompt in N8N workflow comes from the database via `agentConfig.prompt`
+- The workflow file is only a template
+- Modifying the file directly has NO effect on the running system
+- All prompt changes must be made in `docs/other/prompt_agent.md` and propagated via seed
+
+**Correct workflow:**
+1. **Modify**: `docs/other/prompt_agent.md` (source of truth)
+2. **Run**: `npm run seed` (updates database)
+3. **Verify**: Test chatbot behavior
+4. **NEVER**: Touch N8N workflow file directly
+
 ### ✅ Workspace Isolation Policy (Mandatory)
 
 - **Principle:** Every data operation MUST be isolated by `workspaceId`. This applies to all APIs, calling functions, repositories, and background jobs.
@@ -4152,6 +4183,15 @@ interface LoginPageDesign {
     spacing: string[] // Main app spacing system
     components: string[] // Reuse existing UI components
   }
+}
+
+**Icon Usage Guidelines**:
+
+- **Moderate Use**: Icons are well-received and improve UX, but avoid overuse
+- **Strategic Placement**: Use icons only when they add clear value to user understanding
+- **Consistency**: Maintain icon consistency with the established design system
+- **Accessibility**: Ensure icons have proper alt text and are accessible
+- **Context**: Icons should complement text, not replace it entirely
 }
 ```
 

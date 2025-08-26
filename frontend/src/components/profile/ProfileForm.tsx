@@ -382,7 +382,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
             disabled={saving}
             className="px-6 py-2"
           >
-            {saving ? 'Salvando...' : 'Salva Modifiche'}
+            {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </CardContent>

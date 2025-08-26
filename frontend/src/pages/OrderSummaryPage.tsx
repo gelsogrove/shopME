@@ -195,7 +195,7 @@ const OrderSummaryPage: React.FC = () => {
             quantity: item.quantity,
             unitPrice: item.unitPrice
           })),
-          notes: 'Ordine confermato via WhatsApp - OrderSummaryPage'
+          notes: 'Order confirmed via WhatsApp - OrderSummaryPage'
         })
       })
 
@@ -204,14 +204,14 @@ const OrderSummaryPage: React.FC = () => {
       }
 
       const result = await response.json()
-      toast.success('Ordine confermato con successo!')
+              toast.success('Order confirmed successfully!')
       
       // Redirect to order confirmation
       navigate(`/orders/${result.orderCode}`)
       
     } catch (err) {
       setIsConfirmed(false)
-      toast.error('Errore nella conferma dell\'ordine')
+              toast.error('Error confirming order')
     }
   }
 
@@ -255,7 +255,7 @@ const OrderSummaryPage: React.FC = () => {
               Riepilogo Ordine
             </CardTitle>
             <p className="text-gray-600">
-              Verifica i prodotti e servizi selezionati prima di confermare l'ordine
+              Verify the selected products and services before confirming the order
             </p>
           </CardHeader>
         </Card>
@@ -266,7 +266,7 @@ const OrderSummaryPage: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Prodotti e Servizi</span>
+                  <span>Products and Services</span>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -275,7 +275,7 @@ const OrderSummaryPage: React.FC = () => {
                       className="flex items-center gap-1"
                     >
                       <Plus className="h-4 w-4" />
-                      Prodotto
+                      Product
                     </Button>
                     <Button
                       variant="outline"
@@ -284,7 +284,7 @@ const OrderSummaryPage: React.FC = () => {
                       className="flex items-center gap-1"
                     >
                       <Plus className="h-4 w-4" />
-                      Servizio
+                      Service
                     </Button>
                   </div>
                 </CardTitle>
@@ -293,8 +293,8 @@ const OrderSummaryPage: React.FC = () => {
                 {items.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Nessun prodotto o servizio selezionato</p>
-                    <p className="text-sm">Aggiungi prodotti o servizi dal catalogo</p>
+                    <p>No products or services selected</p>
+                    <p className="text-sm">Add products or services from the catalog</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -308,13 +308,13 @@ const OrderSummaryPage: React.FC = () => {
                               <Truck className="h-5 w-5 text-green-600" />
                             )}
                             <Badge variant={item.itemType === 'PRODUCT' ? 'default' : 'secondary'}>
-                              {item.itemType === 'PRODUCT' ? 'Prodotto' : 'Servizio'}
+                              {item.itemType === 'PRODUCT' ? 'Product' : 'Service'}
                             </Badge>
                           </div>
                           <div>
                             <h4 className="font-medium">{item.name}</h4>
                             <p className="text-sm text-gray-500">
-                              Codice: {item.itemType === 'PRODUCT' ? item.productCode : item.serviceCode}
+                              Code: {item.itemType === 'PRODUCT' ? item.productCode : item.serviceCode}
                             </p>
                             <p className="text-sm text-gray-600">
                               €{item.unitPrice.toFixed(2)} cad.
@@ -367,22 +367,22 @@ const OrderSummaryPage: React.FC = () => {
           <div className="lg:col-span-1">
             <Card>
               <CardHeader>
-                <CardTitle>Riepilogo</CardTitle>
+                <CardTitle>Summary</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between">
-                    <span>Totale ({items.length} elementi)</span>
+                    <span>Total ({items.length} items)</span>
                     <span className="font-bold text-lg">€{totalAmount.toFixed(2)}</span>
                   </div>
                   
                   
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600">
-                      ⏰ Link valido per 1 ora
+                      ⏰ Link valid for 1 hour
                     </p>
                     <p className="text-sm text-gray-600">
-                      🔐 Checkout sicuro
+                      🔐 Secure checkout
                     </p>
                   </div>
                   
@@ -392,11 +392,11 @@ const OrderSummaryPage: React.FC = () => {
                     className="w-full"
                     size="lg"
                   >
-                    {isConfirmed ? 'Confermando...' : 'Conferma Ordine'}
+                    {isConfirmed ? 'Confirming...' : 'Confirm Order'}
                   </Button>
                   
                   <p className="text-xs text-gray-500 text-center">
-                    Una volta confermato, l'ordine non potrà più essere modificato
+                    Once confirmed, the order cannot be modified
                   </p>
                 </div>
               </CardContent>

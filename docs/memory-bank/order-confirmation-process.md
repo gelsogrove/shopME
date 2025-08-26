@@ -214,20 +214,15 @@ Content-Type: application/json
 
 ### **Integration Tests**
 
-#### **1. Order Confirmation Backend**
+#### **1. Unified Order Confirmation Tests**
 ```typescript
-// File: 11_order-confirmation-backend.integration.spec.ts
-test("4 mozzarelle conversation should generate valid token")
+// File: 11_order-confirmation-complete.integration.spec.ts
+describe("1. Backend Order Confirmation - 4 Mozzarelle")
+describe("2. Checkout Link Consistency - Deterministic System")
+describe("3. End-to-End Complete Flow - WhatsApp to Order")
 ```
 
-#### **2. Link Consistency**
-```typescript
-// File: 12_checkout-link-consistency.integration.spec.ts
-test("Same conversation should always generate same token")
-test("Different conversations should generate different tokens")
-```
-
-#### **3. Frontend Checkout**
+#### **2. Frontend Checkout**
 ```typescript
 // File: checkout-page.integration.test.tsx
 test("Checkout page should render with token data")
@@ -309,15 +304,14 @@ OPENROUTER_API_KEY=your_key_here
 - [x] Swagger documentation
 
 ### **🔄 In Sviluppo**
-- [ ] Test di consistenza link
-- [ ] Validazione completa token
 - [ ] Notifiche email/WhatsApp
+- [ ] Performance optimization
+- [ ] Additional error scenarios
 
 ### **📋 TODO**
-- [ ] Aggiornamento PRD
-- [ ] Aggiornamento Swagger
-- [ ] Memory Bank sync
 - [ ] Production testing
+- [ ] Performance monitoring
+- [ ] User acceptance testing
 
 ## 🎯 **SUCCESS CRITERIA**
 
