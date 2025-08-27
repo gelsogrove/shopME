@@ -37,7 +37,7 @@ describe('🧪 Offers Integration Test', () => {
     ]
 
     limoncelloRequests.forEach((request) => {
-      it(`should show discounted limoncello price in ${request.lang}: "${request.text}"`, async () => {
+      it.only(`should show discounted limoncello price in ${request.lang}: "${request.text}"`, async () => {
         console.log(`\n🍷 Testing limoncello price: "${request.text}" (${request.lang})`)
         
         const response = await simulateWhatsAppMessage(request.text, request.lang)

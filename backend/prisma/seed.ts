@@ -237,6 +237,12 @@ async function cleanAndImportN8NWorkflow() {
         console.log("❌ Owner setup failed:", setupOut)
         throw new Error("Owner setup failed")
       }
+      
+      // Wait a moment for user activation to complete
+      console.log("⏳ Waiting for user activation to complete...")
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      console.log("✅ User activation wait completed")
+      
       // Try login again
       const { stdout: loginOut2 } = await execAsync(loginCmd)
       if (/error|Unauthorized|401/i.test(loginOut2 || "")) {
@@ -362,7 +368,7 @@ async function cleanAndImportN8NWorkflow() {
 
       const putPayload = JSON.stringify(wfObj)
       const { stdout: putOut } = await execAsync(
-        `curl -s -b ${COOKIES_FILE} -X PUT -H "Content-Type: application/json" -d '${putPayload.replace(/'/g, "'\''")}' "${N8N_URL}/rest/workflows/${workflowId}"`
+        `curl -s -b ${COOKIES_FILE} -X PUT -H "Content-Type: application/json" -d '${putPayload.replace(/'/g, "\\\\'")}' "${N8N_URL}/rest/workflows/${workflowId}"`
       )
       if (/error|Error/i.test(putOut || "")) {
         console.log("⚠️ Activation/update via PUT reported warning:", putOut)

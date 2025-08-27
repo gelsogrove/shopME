@@ -273,7 +273,7 @@ export class MessageService {
       // 🚀 NOW CALL N8N DIRECTLY using centralized builder
       try {
         // 🚨 FIXED N8N URL - hardcoded for now
-        const n8nWebhookUrl = "http://localhost:5678/webhook-test/webhook-start"
+        const n8nWebhookUrl = "http://localhost:5678/webhook/webhook-start"
 
         logger.info("🚨 N8N URL FISSO:", n8nWebhookUrl)
 
