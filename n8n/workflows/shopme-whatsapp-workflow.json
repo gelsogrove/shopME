@@ -109,7 +109,7 @@
             "name": "GetCustomerProfileLink()",
             "type": "ai_tool",
             "parameters": {
-              "toolDescription": "Generate secure profile management link"
+              "toolDescription": "Generate secure profile management link for customer to modify email, phone, address. Call this function when user asks to change any personal data like 'voglio cambiare la mia mail', 'change my address', 'modificar mi teléfono'. Returns token-based URL valid for 1 hour."
             }
           },
           {
@@ -437,7 +437,7 @@
     },
     {
       "parameters": {
-        "toolDescription": "Profile",
+        "toolDescription": "Generate secure profile management link for customer to modify email, phone, address. Call this function when user asks to change any personal data like 'voglio cambiare la mia mail', 'change my address', 'modificar mi teléfono'. Returns token-based URL valid for 1 hour.",
         "method": "POST",
         "url": "=http://host.docker.internal:3001/api/internal/profile-link",
         "authentication": "genericCredentialType",
