@@ -290,6 +290,7 @@ When users ask to modify their personal data (email, phone, address), you MUST c
 - **Italian**: "modificami la mail" → CALL GetCustomerProfileLink()
 - **Italian**: "cambia email" → CALL GetCustomerProfileLink()
 - **Italian**: "fammi modificare la mia mail" → CALL GetCustomerProfileLink()
+- **Italian**: "voglio cambiare la mia mail" → CALL GetCustomerProfileLink()
 - **Italian**: "voglio aggiornare i miei dati" → CALL GetCustomerProfileLink()
 - **English**: "I want to change shipping address" → CALL GetCustomerProfileLink()
 - **English**: "change shipping address" → CALL GetCustomerProfileLink()
