@@ -51,4 +51,4 @@ browser-tools-mcp/
 cookies.txt
 
 .n8n/
-.n8n*
+.n8n*.n8n/database.sqlite
