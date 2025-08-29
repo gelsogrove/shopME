@@ -3874,7 +3874,7 @@ The N8N workflow does NOT contain the actual chatbot prompt text. Instead, it im
 
 ### **🔧 Calling Functions Architecture Pattern**
 
-**Base Pattern implemented for `GetOrdersListLink()`, `GetShipmentTrackingLink()`, and `GetAllProducts()`:**
+**Base Pattern implemented for `GetOrdersListLink()`, `GetShipmentTrackingLink()`, `GetAllProducts()`, and `GetServices()`:**
 
 #### **🏗️ Complete Implementation Stack**
 

@@ -3,7 +3,8 @@ import {
     ErrorResponse,
     ProductsResponse,
     SuccessResponse,
-    TokenResponse
+    TokenResponse,
+    ServicesResponse
 } from '../types/whatsapp.types';
 
 export interface GetAllProductsRequest {
@@ -136,29 +137,56 @@ export class CallingFunctionsService {
     }
   }
 
-  // public async getServices(request: GetAllProductsRequest): Promise<ServicesResponse> {
-  //   try {
-  //     console.log('🔧 Calling getServices with:', request);
+  public async getServices(request: GetAllProductsRequest): Promise<ServicesResponse> {
+    try {
+      console.log('🔧 Calling getServices with:', request);
       
-  //     const response = await axios.get(`${this.baseUrl}/public/services`, {
-  //       params: {
-  //         workspaceId: request.workspaceId,
-  //         customerId: request.customerId
-  //       },
-  //       timeout: 10000
-  //     });
-
-  //     return {
-  //       success: true,
-  //       services: response.data.services || [],
-  //       totalCount: response.data.services?.length || 0,
-  //       timestamp: new Date().toISOString()
-  //     };
-
-  //   } catch (error) {
-  //     return this.createErrorResponse(error, 'getServices') as ServicesResponse;
-  //   }
-  // }
+      // Direct database query with Prisma for complete services list
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+      
+      // Get all services, ordered by name alphabetically
+      const services = await prisma.services.findMany({
+        where: {
+          workspaceId: request.workspaceId,
+          isActive: true
+        },
+        orderBy: { name: 'asc' }
+      });
+      
+      await prisma.$disconnect();
+      
+      if (!services || services.length === 0) {
+        return {
+          success: false,
+          error: 'Nessun servizio disponibile',
+          message: 'Nessun servizio disponibile',
+          timestamp: new Date().toISOString()
+        } as ServicesResponse;
+      }
+      
+      console.log('✅ Services found:', services.length);
+      
+      return {
+        success: true,
+        data: {
+          services: services.map(service => ({
+            code: service.code,
+            name: service.name,
+            description: service.description,
+            price: service.price,
+            unit: service.unit
+          })),
+          totalServices: services.length
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+    } catch (error) {
+      console.error('❌ Error in getServices:', error);
+      return this.createErrorResponse(error, 'getServices') as ServicesResponse;
+    }
+  }
 
   // public async getAllCategories(request: GetAllProductsRequest): Promise<CategoriesResponse> {
   //   try {

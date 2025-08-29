@@ -20,16 +20,16 @@ export class ToolDescriptionsService {
     };
   }
 
-  // public getServices(): ToolDescription {
-  //   return {
-  //     name: 'getServices',
-  //     description: 'RETURNS COMPLETE SERVICES CATALOG WITH DESCRIPTIONS AND PRICES',
-  //     whenToUse: 'when user asks for services list or what services are available',
-  //     examples: ['che servizi avete', 'lista servizi', 'servizi disponibili', 'dammi servizi'],
-  //     output: 'Array of services with descriptions and prices',
-  //     notes: 'Returns full services catalog with pricing information. Use this for ANY service-related request.'
-  //   };
-  // }
+  public getServices(): ToolDescription {
+    return {
+      name: 'getServices',
+      description: 'RETURNS COMPLETE SERVICES CATALOG WITH CODES, NAMES, DESCRIPTIONS AND PRICES',
+      whenToUse: 'when user asks for services list or what services are available',
+      examples: ['che servizi avete', 'lista servizi', 'servizi disponibili', 'dammi servizi', 'show me services', 'what services do you offer'],
+      output: 'Array of services with codes, names, descriptions and prices',
+      notes: 'Returns full services catalog with pricing information. Use this for ANY service-related request.'
+    };
+  }
 
   public getOrdersListLink(): ToolDescription {
     return {
@@ -122,7 +122,7 @@ export class ToolDescriptionsService {
   public getToolDescriptions(): ToolDescription[] {
     return [
       this.getAllProducts(),
-      // this.getServices(),
+      this.getServices(),
       this.getOrdersListLink(),
       this.getShipmentTrackingLink(),
       // this.getCustomerProfileLink(),

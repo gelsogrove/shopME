@@ -313,8 +313,8 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
         else if (result.functionName === 'getAllProducts' && result.result?.data?.categories) {
           products = result.result.data.categories;
         }
-        else if (result.functionName === 'getServices' && result.result?.services) {
-          services = result.result.services;
+        else if (result.functionName === 'getServices' && result.result?.data?.services) {
+          services = result.result.data.services;
         }
       }
     }
@@ -364,7 +364,10 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
     if (services && services.length > 0) {
       dataDescription += `\n\nI have found ${services.length} services available:`;
       services.slice(0, 5).forEach((service: any) => {
-        dataDescription += `\n- ${service.name} - ${service.description}`;
+        dataDescription += `\n- ${service.code} - ${service.name} - €${service.price}/${service.unit}`;
+        if (service.description && service.description.length > 0) {
+          dataDescription += ` (${service.description.substring(0, 60)}${service.description.length > 60 ? '...' : ''})`;
+        }
       });
     }
     
@@ -422,12 +425,12 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
               customerId: request.customerid
             });
             break;
-          // case 'getServices':
-          //   result = await this.callingFunctionsService.getServices({
-          //     workspaceId: request.workspaceId,
-          //     customerId: request.customerid
-          //   });
-          //   break;
+          case 'getServices':
+            result = await this.callingFunctionsService.getServices({
+              workspaceId: request.workspaceId,
+              customerId: request.customerid
+            });
+            break;
           case 'getOrdersListLink':
             result = await this.callingFunctionsService.getOrdersListLink({
               customerId: request.customerid,
