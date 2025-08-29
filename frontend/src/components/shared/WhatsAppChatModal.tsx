@@ -27,6 +27,14 @@ interface Message {
   content: string
   sender: "user" | "customer"
   timestamp: Date
+  agentName?: string
+  metadata?: {
+    isOperatorMessage?: boolean
+    isOperatorControl?: boolean
+    agentSelected?: string
+    sentBy?: string
+    operatorId?: string
+  }
 }
 
 // Interface for selected chat from chat history
@@ -208,6 +216,14 @@ export function WhatsAppChatModal({
           // Map MessageDirection.INBOUND to 'customer' and MessageDirection.OUTBOUND to 'user' (like main chat)
           sender: message.direction === "INBOUND" ? "customer" : "user",
           timestamp: new Date(message.createdAt),
+          agentName: message.agentName || (message.direction === "OUTBOUND" ? "AI Assistant" : undefined),
+          metadata: {
+            isOperatorMessage: message.metadata?.isOperatorMessage || false,
+            isOperatorControl: message.metadata?.isOperatorControl || false,
+            agentSelected: message.metadata?.agentSelected || (message.direction === "OUTBOUND" ? "CHATBOT" : "CUSTOMER"),
+            sentBy: message.metadata?.sentBy || (message.direction === "OUTBOUND" ? "AI" : "CUSTOMER"),
+            operatorId: message.metadata?.operatorId
+          }
         }))
 
         logger.info(
@@ -273,8 +289,14 @@ export function WhatsAppChatModal({
     const userMessage: Message = {
       id: (Date.now() + 100).toString(),
       content: initialMessage,
-      sender: "user",
+      sender: "customer", // Changed from "user" to "customer" for initial message
       timestamp: new Date(),
+      metadata: {
+        isOperatorMessage: false,
+        isOperatorControl: false,
+        agentSelected: "CUSTOMER",
+        sentBy: "CUSTOMER"
+      }
     }
 
     setMessages([userMessage])
@@ -331,6 +353,13 @@ export function WhatsAppChatModal({
           content: response.data.data.processedMessage,
           sender: "user",
           timestamp: new Date(),
+          agentName: "AI Assistant",
+          metadata: {
+            isOperatorMessage: false,
+            isOperatorControl: false,
+            agentSelected: "CHATBOT",
+            sentBy: "AI"
+          }
         }
 
         // Add ONLY the bot response to chat history, not the user's message again
@@ -347,6 +376,13 @@ export function WhatsAppChatModal({
             "Sorry, there was an error processing your message. Please try again later.",
           sender: "user",
           timestamp: new Date(),
+          agentName: "System",
+          metadata: {
+            isOperatorMessage: false,
+            isOperatorControl: false,
+            agentSelected: "SYSTEM_ERROR",
+            sentBy: "SYSTEM"
+          }
         }
 
         setMessages((prev) => [...prev, errorMessage])
@@ -361,6 +397,13 @@ export function WhatsAppChatModal({
           "Sorry, there was an error processing your message. Please try again later.",
         sender: "user",
         timestamp: new Date(),
+        agentName: "System",
+        metadata: {
+          isOperatorMessage: false,
+          isOperatorControl: false,
+          agentSelected: "SYSTEM_ERROR",
+          sentBy: "SYSTEM"
+        }
       }
 
       setMessages((prev) => [...prev, errorMessage])
@@ -409,6 +452,12 @@ export function WhatsAppChatModal({
       content: currentMessage,
       sender: "customer",
       timestamp: new Date(),
+      metadata: {
+        isOperatorMessage: false,
+        isOperatorControl: false,
+        agentSelected: "CUSTOMER",
+        sentBy: "CUSTOMER"
+      }
     }
 
     // Save the message to display immediately
@@ -453,6 +502,13 @@ export function WhatsAppChatModal({
             content: botResponse,
             sender: "user",
             timestamp: new Date(),
+            agentName: "AI Assistant",
+            metadata: {
+              isOperatorMessage: false,
+              isOperatorControl: false,
+              agentSelected: "CHATBOT",
+              sentBy: "AI"
+            }
           }
 
           // Add bot response to chat history
@@ -471,6 +527,13 @@ export function WhatsAppChatModal({
             "Sorry, there was an error processing your message. Please try again later.",
           sender: "user",
           timestamp: new Date(),
+          agentName: "System",
+          metadata: {
+            isOperatorMessage: false,
+            isOperatorControl: false,
+            agentSelected: "SYSTEM_ERROR",
+            sentBy: "SYSTEM"
+          }
         }
 
         setMessages((prev) => [...prev, errorMessage])
@@ -485,6 +548,13 @@ export function WhatsAppChatModal({
           "Sorry, there was an error processing your message. Please try again later.",
         sender: "user",
         timestamp: new Date(),
+        agentName: "System",
+        metadata: {
+          isOperatorMessage: false,
+          isOperatorControl: false,
+          agentSelected: "SYSTEM_ERROR",
+          sentBy: "SYSTEM"
+        }
       }
 
       setMessages((prev) => [...prev, errorMessage])
@@ -630,58 +700,160 @@ export function WhatsAppChatModal({
             {/* Chat messages */}
             <ScrollArea className="flex-1 p-4 bg-gray-100">
               <div className="space-y-3">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${
-                      message.sender === "customer"
-                        ? "justify-start"
-                        : "justify-end"
-                    } mb-3`}
-                  >
+                {messages.map((message) => {
+                  // Using the sender field which is properly mapped from direction
+                  const isAgentMessage = message.sender === "user"
+                  const isCustomerMessage = message.sender === "customer"
+
+                  // 🚨 ANDREA'S OPERATOR CONTROL INDICATORS
+                  // Correct logic:
+                  const isChatbotMessage =
+                    isAgentMessage &&
+                    (message.metadata?.agentSelected?.startsWith(
+                      "CHATBOT_"
+                    ) ||
+                      message.metadata?.agentSelected === "LLM" ||
+                      message.metadata?.agentSelected === "AI" ||
+                      message.metadata?.agentSelected === "AI_AGENT")
+
+                  // Only EXPLICIT operator messages should be blue
+                  const isOperatorMessage =
+                    isAgentMessage &&
+                    (message.metadata?.agentSelected === "MANUAL_OPERATOR" ||
+                      message.metadata?.isOperatorMessage === true ||
+                      message.metadata?.sentBy === "HUMAN_OPERATOR")
+
+                  const isOperatorControl =
+                    message.metadata?.isOperatorControl === true
+                  const isManualOperator =
+                    message.metadata?.agentSelected === "MANUAL_OPERATOR" ||
+                    message.metadata?.agentSelected ===
+                      "MANUAL_OPERATOR_CONTROL" ||
+                    message.metadata?.sentBy === "HUMAN_OPERATOR"
+
+                  const getMessageStyle = () => {
+                    if (!isAgentMessage) {
+                      return isOperatorControl
+                        ? "bg-orange-50 text-orange-900 border-l-4 border-orange-400" // Customer under control
+                        : "bg-white border border-gray-200" // Normal customer
+                    }
+
+                    // SE C'È IL BADGE CHATBOT → VERDE (controllo anche agentName)
+                    if (
+                      message.metadata?.agentSelected === "CHATBOT" ||
+                      message.metadata?.agentSelected?.startsWith(
+                        "CHATBOT_"
+                      ) ||
+                      message.metadata?.agentSelected === "AI" ||
+                      message.metadata?.agentSelected === "LLM" ||
+                      message.agentName
+                    ) {
+                      // Se ha agentName è un chatbot!
+                      return "bg-green-100 text-green-900 border-l-4 border-green-500" // CHATBOT → VERDE
+                    }
+
+                    if (
+                      message.metadata?.agentSelected === "MANUAL_OPERATOR"
+                    ) {
+                      return "bg-blue-100 text-blue-900 border-l-4 border-blue-500" // MANUAL_OPERATOR → BLU
+                    }
+
+                    // Default fallback
+                    return "bg-green-100 text-green-900"
+                  }
+
+                  return (
                     <div
-                      className={
-                        message.sender === "customer"
-                          ? "bg-white border border-gray-200 rounded-2xl rounded-br-md shadow-sm px-3 py-3 max-w-[85%] sm:max-w-[400px] mb-2 word-wrap break-words overflow-wrap-anywhere"
-                          : "bg-green-100 text-green-900 rounded-2xl rounded-bl-md shadow-sm px-3 py-3 max-w-[85%] sm:max-w-[400px] mb-2 word-wrap break-words overflow-wrap-anywhere"
-                      }
+                      key={message.id}
+                      className={`flex ${
+                        isAgentMessage ? "justify-end" : "justify-start"
+                      } mb-3`}
                     >
-                      <span 
-                        className="break-words whitespace-pre-line text-sm block leading-relaxed overflow-wrap-anywhere hyphens-auto"
-                        style={{
-                          wordWrap: 'break-word',
-                          overflowWrap: 'anywhere',
-                          hyphens: 'auto',
-                          wordBreak: 'break-word',
-                          whiteSpace: 'pre-wrap',
-                          maxWidth: '100%'
-                        }}
+                      <div
+                        className={`rounded-2xl px-3 py-3 max-w-[85%] sm:max-w-[400px] mb-2 word-wrap break-words overflow-wrap-anywhere relative ${getMessageStyle()}`}
                       >
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            a: ({ node, ...props }) => (
-                              <a
-                                {...props}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline"
-                              />
-                            ),
+                        {/* 🚨 OPERATOR CONTROL BADGE */}
+                        {(isOperatorMessage ||
+                          isOperatorControl ||
+                          isManualOperator) && (
+                          <div className="absolute -top-2 -right-2">
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-medium ${
+                                isOperatorMessage
+                                  ? "bg-blue-500 text-white"
+                                  : "bg-orange-500 text-white"
+                              }`}
+                            >
+                              👨‍💼 {isOperatorMessage ? "OPERATOR" : "MANUAL"}
+                            </span>
+                          </div>
+                        )}
+
+                        <span 
+                          className="break-words whitespace-pre-line text-sm block leading-relaxed overflow-wrap-anywhere hyphens-auto"
+                          style={{
+                            wordWrap: 'break-word',
+                            overflowWrap: 'anywhere',
+                            hyphens: 'auto',
+                            wordBreak: 'break-word',
+                            whiteSpace: 'pre-wrap',
+                            maxWidth: '100%'
                           }}
                         >
-                          {message.content}
-                        </ReactMarkdown>
-                      </span>
-                      <div className="text-[10px] text-gray-300 text-right mt-1">
-                        {message.timestamp.toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              a: ({ node, ...props }) => (
+                                <a
+                                  {...props}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline"
+                                />
+                              ),
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        </span>
+
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-[10px] opacity-70">
+                            {message.timestamp.toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+
+                          <div className="flex items-center gap-1">
+                            {/* 🤖 AI Agent Badge */}
+                            {isAgentMessage &&
+                              message.agentName &&
+                              !isOperatorMessage && (
+                                <span className="text-[10px] font-medium bg-green-200 text-green-800 px-2 py-0.5 rounded ml-2">
+                                  🤖 {message.agentName}
+                                </span>
+                              )}
+
+                            {/* 👨‍💼 Operator Badge */}
+                            {isOperatorMessage && (
+                              <span className="text-[10px] font-medium bg-blue-200 text-blue-800 px-2 py-0.5 rounded ml-2">
+                                👨‍💼 Human Operator
+                              </span>
+                            )}
+
+                            {/* 📋 Manual Control Badge */}
+                            {isOperatorControl && (
+                              <span className="text-[10px] font-medium bg-orange-200 text-orange-800 px-2 py-0.5 rounded ml-2">
+                                📋 Under Manual Control
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
                 {isLoading && (
                   <div className="flex justify-end mb-2">
                     <div className="bg-green-100 text-green-900 rounded-2xl rounded-bl-md shadow-sm px-4 py-3 max-w-[90%]">

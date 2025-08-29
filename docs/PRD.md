@@ -8039,6 +8039,72 @@ secureToken {
 
 ---
 
+## ☎️ ContactOperator() - Human Operator Escalation
+
+### Overview
+The `ContactOperator()` calling function handles customer escalation to human operators when the chatbot cannot assist or when customers specifically request human assistance. This critical function ensures customer satisfaction and prevents frustration by providing seamless escalation to human support.
+
+### Implementation Details
+
+#### **Escalation Logic**
+```typescript
+public async contactOperator(request: GetAllProductsRequest): Promise<StandardResponse> {
+  // Log operator contact request for monitoring
+  console.log('🚨 OPERATOR ESCALATION REQUESTED:', {
+    customerId: request.customerId,
+    workspaceId: request.workspaceId,
+    timestamp: new Date().toISOString()
+  });
+  
+  return {
+    success: true,
+    data: {
+      message: 'Un operatore ti contatterà al più presto. Grazie per la tua pazienza!',
+      operatorContacted: true,
+      estimatedResponseTime: '5-10 minuti',
+      escalationReason: 'Customer requested human assistance',
+      customerInfo: {
+        customerId: request.customerId,
+        workspaceId: request.workspaceId
+      }
+    }
+  };
+}
+```
+
+#### **Tool Description**
+```typescript
+{
+  name: 'contactOperator',
+  description: 'escalate to human operator for complex assistance',
+  whenToUse: 'when user wants to speak with a person, needs help from an operator, requests human assistance, or chatbot cannot help',
+  examples: ['voglio parlare con un operatore', 'aiuto umano', 'assistenza umana', 'human operator', 'speak with someone'],
+  output: 'Confirmation that operator will be contacted with customer details',
+  notes: 'Escalates customer to human support and logs the request for operator attention'
+}
+```
+
+#### **Prompt Triggers**
+- **Italian**: "voglio parlare con un operatore", "aiuto umano", "assistenza umana"
+- **English**: "human operator", "speak with someone", "human assistance"
+- **Multilingual**: Automatic language detection and appropriate response formatting
+
+#### **Response Formatting**
+The formatter provides professional escalation responses:
+- **Reassuring message** about operator contact
+- **Estimated response time** (5-10 minutes)
+- **Customer information** for operator reference
+- **Escalation reason** for context
+- **Professional tone** to maintain customer confidence
+
+#### **Test Results**
+✅ **Italian Test**: "voglio parlare con un operatore" → Professional escalation response in Italian
+✅ **English Test**: "human operator" → Bilingual response (Italian + English)
+✅ **Multilingual**: Automatic language detection and appropriate response formatting
+✅ **Professional**: Reassuring tone with clear expectations and alternatives
+
+---
+
 ## 📂 GetAllCategories() - Product Categories Management
 
 ### Overview

@@ -173,44 +173,86 @@ router.post("/whatsapp/webhook", async (req, res) => {
 
     console.log(`📱 Processing message: "${messageContent}" from ${customerId}`)
 
-    // Use our DUAL LLM SYSTEM (already initialized above)
-    
-    // Get agent config with prompt from database
-    let agentPrompt = "WhatsApp conversation"; // fallback
+    // 🔍 CHECK IF CHAT SESSION IS DISABLED (OPERATOR ESCALATION) - PRIMA DI TUTTO
+    let isSessionDisabled = false;
     try {
       const { PrismaClient } = require('@prisma/client');
       const prisma = new PrismaClient();
       
-      const agentConfig = await prisma.agentConfig.findFirst({
-        where: { workspaceId: workspaceId }
+      const activeSession = await prisma.chatSession.findFirst({
+        where: {
+          customerId: customerId,
+          workspaceId: workspaceId,
+          status: 'operator_escalated'
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
       });
-      if (agentConfig && agentConfig.prompt) {
-        agentPrompt = agentConfig.prompt;
-        console.log('✅ Using prompt from database');
-      } else {
-        console.log('⚠️ No agent config found, using fallback prompt');
+      
+      if (activeSession) {
+        isSessionDisabled = true;
+        console.log(`🚨 CHAT SESSION DISABLED: Session ${activeSession.id} is in 'operator_escalated' status`);
       }
-    } catch (error) {
-      console.error('❌ Error getting agent config:', error);
+      
+      await prisma.$disconnect();
+    } catch (sessionError) {
+      console.error('❌ Error checking session status:', sessionError);
+      // Continue with normal processing if check fails
     }
+
+    let result;
+    let llmRequest: LLMRequest | null = null;
     
-    const llmRequest: LLMRequest = {
-      chatInput: messageContent,
-      workspaceId: workspaceId,
-      customerid: customerId,
-      phone: phoneNumber,
-      language: "it",
-      sessionId: "webhook-session",
-      temperature: 0.0,
-      maxTokens: 3500,
-      model: "gpt-4o",
-      messages: data.messages || [],
-      prompt: agentPrompt
-    };
-    
-    console.log('🚀 CALLING DUAL LLM SERVICE!!!');
-    const result = await dualLLMService.processMessage(llmRequest);
-    console.log('✅ DUAL LLM RESULT:', result);
+    if (isSessionDisabled) {
+      // 🚨 SESSION DISABLED - SEND OPERATOR MESSAGE IMMEDIATELY
+      console.log('🚨 SESSION DISABLED - Sending operator escalation message immediately');
+      result = {
+        success: true,
+        output: "Un operatore ti contatterà al più presto. Nel frattempo, il chatbot è temporaneamente disabilitato per questa conversazione. Grazie per la tua pazienza! 🤝"
+      };
+    } else {
+      // ✅ SESSION ACTIVE - SETUP DUAL LLM SYSTEM
+      console.log('✅ SESSION ACTIVE - Setting up dual LLM system');
+      
+      // Get agent config with prompt from database
+      let agentPrompt = "WhatsApp conversation"; // fallback
+      try {
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        const agentConfig = await prisma.agentConfig.findFirst({
+          where: { workspaceId: workspaceId }
+        });
+        if (agentConfig && agentConfig.prompt) {
+          agentPrompt = agentConfig.prompt;
+          console.log('✅ Using prompt from database');
+        } else {
+          console.log('⚠️ No agent config found, using fallback prompt');
+        }
+      } catch (error) {
+        console.error('❌ Error getting agent config:', error);
+      }
+      
+      llmRequest = {
+        chatInput: messageContent,
+        workspaceId: workspaceId,
+        customerid: customerId,
+        phone: phoneNumber,
+        language: "it",
+        sessionId: "webhook-session",
+        temperature: 0.0,
+        maxTokens: 3500,
+        model: "gpt-4o",
+        messages: data.messages || [],
+        prompt: agentPrompt
+      };
+      
+      // ✅ SESSION ACTIVE - PROCESS WITH DUAL LLM
+      console.log('🚀 CALLING DUAL LLM SERVICE!!!');
+      result = await dualLLMService.processMessage(llmRequest);
+      console.log('✅ DUAL LLM RESULT:', result);
+    }
     
     // 💾 SAVE MESSAGE AND TRACK USAGE (Critical fix for missing history/analytics)
     if (result.success && result.output) {
@@ -237,7 +279,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
     res.json({ 
       success: true, 
       message: result.output,
-      debug: { llmRequest, result }
+      debug: { result }
     });
   } catch (error) {
     console.error('❌ WHATSAPP WEBHOOK ERROR:', error);

@@ -147,3 +147,18 @@ se un utente chiede le offerte, sconti, promozioni o saldi disponibili, dobbiamo
 - "sales"
 - "special offers"
 
+## ContactOperator()
+se un utente vuole parlare con un operatore umano, ha bisogno di assistenza umana, o il chatbot non riesce ad aiutarlo, dobbiamo lanciare la Calling function `ContactOperator()` che gestisce l'escalation verso un operatore umano.
+
+**TRIGGERS per escalation operatore:**
+- "voglio parlare con un operatore"
+- "aiuto umano"
+- "assistenza umana"
+- "parla con una persona"
+- "operatore"
+- "human operator"
+- "speak with someone"
+- "human assistance"
+- "talk to a person"
+- "non riesci ad aiutarmi"
+- "voglio parlare con qualcuno"

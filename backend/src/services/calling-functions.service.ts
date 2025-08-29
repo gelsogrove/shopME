@@ -361,6 +361,44 @@ export class CallingFunctionsService {
         timestamp: new Date().toISOString()
       });
       
+      // 🔧 DISABLE CHATBOT FOR THIS SESSION
+      try {
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        // Find the active chat session for this customer
+        const activeSession = await prisma.chatSession.findFirst({
+          where: {
+            customerId: request.customerId,
+            workspaceId: request.workspaceId,
+            status: 'active'
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        });
+        
+        if (activeSession) {
+          // Update session status to disable chatbot
+          await prisma.chatSession.update({
+            where: { id: activeSession.id },
+            data: { 
+              status: 'operator_escalated',
+              updatedAt: new Date()
+            }
+          });
+          
+          console.log(`✅ Chat session ${activeSession.id} disabled - status set to 'operator_escalated'`);
+        } else {
+          console.log('⚠️ No active chat session found to disable');
+        }
+        
+        await prisma.$disconnect();
+      } catch (sessionError) {
+        console.error('❌ Error updating chat session:', sessionError);
+        // Continue with escalation even if session update fails
+      }
+      
       return {
         success: true,
         data: {
@@ -371,7 +409,8 @@ export class CallingFunctionsService {
           customerInfo: {
             customerId: request.customerId,
             workspaceId: request.workspaceId
-          }
+          },
+          sessionDisabled: true
         },
         timestamp: new Date().toISOString()
       };

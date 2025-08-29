@@ -290,6 +290,7 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
     let services = null;
     let offers = null;
     let categories = null;
+    let operatorEscalation = null;
     
     if (ragResult.functionResults && ragResult.functionResults.length > 0) {
       for (const result of ragResult.functionResults) {
@@ -327,6 +328,9 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
         }
         else if (result.functionName === 'getAllCategories' && result.result?.data?.categories) {
           categories = result.result.data.categories;
+        }
+        else if (result.functionName === 'contactOperator' && result.result?.data) {
+          operatorEscalation = result.result.data;
         }
       }
     }
@@ -412,7 +416,17 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
       });
     }
     
-    return `${dataDescription}\n\nCONVERSATION HISTORY:\n${JSON.stringify(request.messages, null, 2)}\n\nCreate a natural, helpful response for the user's request. If there's an error, explain it clearly and suggest what the user can do. If you have a valid link, include it properly formatted.\n\n🚨 REMEMBER:\n- If there's an order error, explain the problem and suggest solutions\n- Respond conversationally, not in JSON\n- Use the link provided above if available\n- Be friendly and helpful\n- Format links as plain URLs`;
+    if (operatorEscalation) {
+      dataDescription += `\n\n🚨 OPERATOR ESCALATION: Customer has requested human assistance.`;
+      dataDescription += `\nEscalation Details:`;
+      dataDescription += `\n- Message: ${operatorEscalation.message}`;
+      dataDescription += `\n- Estimated Response Time: ${operatorEscalation.estimatedResponseTime}`;
+      dataDescription += `\n- Customer ID: ${operatorEscalation.customerInfo?.customerId}`;
+      dataDescription += `\n- Workspace ID: ${operatorEscalation.customerInfo?.workspaceId}`;
+      dataDescription += `\n- Reason: ${operatorEscalation.escalationReason}`;
+    }
+    
+    return `${dataDescription}\n\nCONVERSATION HISTORY:\n${JSON.stringify(request.messages, null, 2)}\n\nCreate a natural, helpful response for the user's request. If there's an error, explain it clearly and suggest what the user can do. If you have a valid link, include it properly formatted.\n\n🚨 REMEMBER:\n- If there's an order error, explain the problem and suggest solutions\n- If operator escalation is requested, provide a professional and reassuring response\n- Respond conversationally, not in JSON\n- Use the link provided above if available\n- Be friendly and helpful\n- Format links as plain URLs`;
   }
 
   private getRAGProcessorFunctionDefinitions(): any[] {
@@ -504,12 +518,12 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
               customerId: request.customerid
             });
             break;
-          // case 'contactOperator':
-          //   result = await this.callingFunctionsService.contactOperator({
-          //     workspaceId: request.workspaceId,
-          //     customerId: request.customerid
-          //   });
-          //   break;
+          case 'contactOperator':
+            result = await this.callingFunctionsService.contactOperator({
+              workspaceId: request.workspaceId,
+              customerId: request.customerid
+            });
+            break;
           // case 'confirmOrderFromConversation':
           //   result = await this.callingFunctionsService.confirmOrderFromConversation({
           //     query: request.chatInput,
