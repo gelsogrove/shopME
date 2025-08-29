@@ -1,16 +1,16 @@
 import { Button } from "@/components/ui/button"
-import { logger } from "@/lib/logger"
 import {
     Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { getWorkspaceId } from "@/config/workspace.config"
+import { logger } from "@/lib/logger"
 import { api } from "@/services/api"
 import axios from "axios"
 import { MessageCircle, Send, X } from "lucide-react"
@@ -417,53 +417,40 @@ export function WhatsAppChatModal({
     setIsLoading(true)
 
     try {
-      // Call the API to process the message
+      // Call the API to process the message - DUAL LLM SYSTEM
       const apiUrl = `${
         import.meta.env.VITE_API_URL || "http://localhost:3001"
-      }/api/messages`
+      }/api/whatsapp/webhook`
 
       // Use provided workspaceId or get from config
       const currentWorkspaceId = getWorkspaceId(workspaceId)
 
-      logger.info("🔄 FRONTEND DEBUG: Making API call to:", apiUrl)
+      logger.info("🔄 FRONTEND DEBUG: Making API call to DUAL LLM SYSTEM:", apiUrl)
       const response = await axios.post(apiUrl, {
-        message: userMessage.content,
-        phoneNumber: userPhoneNumber,
-        workspaceId: currentWorkspaceId,
-        sessionId: sessionId, // Include the sessionId in the request
+        entry: [{
+          changes: [{
+            value: {
+              messages: [{
+                from: userPhoneNumber,
+                text: {
+                  body: userMessage.content
+                }
+              }]
+            }
+          }]
+        }]
       })
       logger.info("📥 FRONTEND DEBUG: API response received:", response.data)
 
       if (response.data.success) {
-        // Update sessionId if provided in the response and not yet set
-        if (response.data.data.sessionId && !sessionId) {
-          logger.info("Updating sessionId:", response.data.data.sessionId)
-          setSessionId(response.data.data.sessionId)
-
-          // Update our global variable to persist across modal closings
-          globalSessionId = response.data.data.sessionId
-
-          // Update localStorage with new sessionId
-          if (localSelectedChat) {
-            const updatedChat = {
-              ...localSelectedChat,
-              sessionId: response.data.data.sessionId,
-            }
-            localStorage.setItem("selectedChat", JSON.stringify(updatedChat))
-            setLocalSelectedChat(updatedChat)
-          }
-        }
-
-        // Se la risposta è vuota, non aggiungere nessun messaggio dal bot
-        // Questo evita il messaggio duplicato dopo un saluto tipo "Ciao"
-        if (
-          response.data.data.processedMessage &&
-          response.data.data.processedMessage.trim() !== ""
-        ) {
+        // DUAL LLM SYSTEM response format
+        const botResponse = response.data.message
+        
+        if (botResponse && botResponse.trim() !== "") {
           // Create the bot message from the API response
           const botMessage: Message = {
             id: (Date.now() + 1).toString(),
-            content: response.data.data.processedMessage,
+            content: botResponse,
             sender: "user",
             timestamp: new Date(),
           }
@@ -471,7 +458,7 @@ export function WhatsAppChatModal({
           // Add bot response to chat history
           setMessages((prev) => [...prev, botMessage])
         } else {
-          logger.info("Empty response from API, not adding bot message")
+          logger.info("Empty response from DUAL LLM SYSTEM, not adding bot message")
         }
       } else {
         // Handle API error response

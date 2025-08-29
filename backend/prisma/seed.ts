@@ -62,34 +62,7 @@ const SOFIA_PROMPT = fs.readFileSync(
 )
 
 // Andrea's Two-LLM Architecture - Router Prompt (DEPRECATED)
-const ROUTER_PROMPT = `DEPRECATED: This router is no longer used in Andrea's Two-LLM Architecture.
-
-🏗️ ANDREA'S REVOLUTIONARY ARCHITECTURE:
-- LLM 1: RAG Processor (handles all routing automatically)
-- LLM 2: Formatter (this agent - creates conversational responses)
-
-🚫 OLD FUNCTION ROUTING (No Longer Used):
-- ~~welcome_back_user~~ → Direct response in LLM 2
-- ~~checkout_intent~~ → Future NewOrder() function
-- ~~rag_search~~ → Automatic in LLM 1 RAG processing
-
-🎯 FUTURE FUNCTIONS (Only These):
-- NewOrder() → When user wants to finalize purchase
-- ContactOperator() → When user requests human support
-
-⚡ NEW WORKFLOW:
-1. User Query → N8N Workflow
-2. LLM 1 (RAG Processor) → Analyzes query + searches database
-3. LLM 2 (Formatter) → Creates natural response using structured data
-4. Result → Perfect, accurate, conversational response
-
-Note: This router prompt is kept for historical reference but is not used in the current Two-LLM architecture.
-"hai le mozzarelle fresche?" → rag_search
-"do you have mozzarella?" → rag_search
-"vendete vino?" → rag_search
-"voglio comprare" → checkout_intent
-
-User message: "{message}"`
+// ROUTER_PROMPT rimosso - ora usa sempre SOFIA_PROMPT (contenuto di prompt_agent.md)
 
 // Inizializziamo createdWorkspaces qui, prima di main()
 let createdWorkspaces: any[] = []
@@ -178,310 +151,10 @@ async function generateEmbeddingsAfterSeed() {
   }
 }
 
+// N8N function removed - Dual LLM system is now used instead
 async function cleanAndImportN8NWorkflow() {
-  console.log("\n🔄 N8N Complete Cleanup & Import (idempotent ensure):")
-  console.log("============================")
-
-  const fs = require("fs")
-  const path = require("path")
-  const { exec } = require("child_process")
-  const { promisify } = require("util")
-  const execAsync = promisify(exec)
-
-  const N8N_URL = process.env.N8N_URL || "http://localhost:5678"
-  const OWNER_EMAIL = process.env.N8N_OWNER_EMAIL || "admin@shopme.com"
-  const OWNER_PASSWORD = process.env.N8N_OWNER_PASSWORD || "Venezia44"
-  const COOKIES_FILE = "/tmp/n8n_seed_cookies.txt"
-
-  // Path to the workflow file
-  const workflowPath = path.join(
-    __dirname,
-    "../../n8n/workflows/shopme-whatsapp-workflow.json"
-  )
-
-  try {
-    if (!fs.existsSync(workflowPath)) {
-      console.log("⚠️ N8N workflow file not found:", workflowPath)
-      return
-    }
-
-    // 0) Health check
-    try {
-      const { stdout: healthStatusRaw } = await execAsync(
-        `curl -s -o /dev/null -w "%{http_code}" "${N8N_URL}/healthz"`
-      )
-      const healthStatus = (healthStatusRaw || "").trim()
-      if (healthStatus !== "200") {
-        console.log(`⚠️ N8N health check failed (status ${healthStatus}). Skipping ensure.`)
-        // Fall back to nuclear script
-        throw new Error("N8N not healthy")
-      }
-    } catch (e) {
-      throw e
-    }
-
-    // 1) Login (or owner setup if fresh)
-    const loginCmd = `curl -s -c ${COOKIES_FILE} -X POST -H "Content-Type: application/json" -d '{"emailOrLdapLoginId":"${OWNER_EMAIL}","password":"${OWNER_PASSWORD}"}' "${N8N_URL}/rest/login"`
-    const { stdout: loginOut } = await execAsync(loginCmd)
-    if (/error|Unauthorized|401/i.test(loginOut || "")) {
-      console.log("ℹ️ Login failed, attempting owner setup...")
-      const setupPayload = JSON.stringify({
-        email: OWNER_EMAIL,
-        password: OWNER_PASSWORD,
-        firstName: "Admin",
-        lastName: "ShopMe",
-      })
-      const setupCmd = `curl -s -X POST -H "Content-Type: application/json" -d '${setupPayload}' "${N8N_URL}/rest/owner/setup"`
-      const { stdout: setupOut } = await execAsync(setupCmd)
-      if (/error|Error/i.test(setupOut || "")) {
-        console.log("❌ Owner setup failed:", setupOut)
-        throw new Error("Owner setup failed")
-      }
-      
-      // Wait a moment for user activation to complete
-      console.log("⏳ Waiting for user activation to complete...")
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      console.log("✅ User activation wait completed")
-      
-      // Try login again
-      const { stdout: loginOut2 } = await execAsync(loginCmd)
-      if (/error|Unauthorized|401/i.test(loginOut2 || "")) {
-        console.log("❌ Login failed after setup:", loginOut2)
-        throw new Error("Login failed")
-      }
-    }
-    console.log("✅ N8N login successful")
-
-    // 1.5) Ensure credentials exist (Backend API Basic Auth + OpenRouter API)
-    let backendCredId: string | null = null
-    let openrouterCredId: string | null = null
-
-    const { stdout: credsJson } = await execAsync(
-      `curl -s -b ${COOKIES_FILE} "${N8N_URL}/rest/credentials"`
-    )
-    try {
-      const parsed = JSON.parse(credsJson || "{}")
-      const list = Array.isArray(parsed?.data) ? parsed.data : []
-      const backend = list.find((c: any) => c.type === "httpBasicAuth")
-      const openrouter = list.find((c: any) => c.type === "openRouterApi")
-      backendCredId = backend?.id || null
-      openrouterCredId = openrouter?.id || null
-    } catch (_) {}
-
-    if (!backendCredId) {
-      const backendPayload = JSON.stringify({
-        name: "Backend API Basic Auth",
-        type: "httpBasicAuth",
-        data: { user: "admin", password: "admin" },
-      })
-      const { stdout: backendCreate } = await execAsync(
-        `curl -s -b ${COOKIES_FILE} -X POST -H "Content-Type: application/json" -d '${backendPayload}' "${N8N_URL}/rest/credentials"`
-      )
-      try {
-        const created = JSON.parse(backendCreate || "{}")
-        backendCredId = created?.id || created?.data?.id || null
-      } catch (_) {}
-      console.log(`🔐 Backend credential ensured: ${backendCredId}`)
-    } else {
-      console.log(`🔐 Backend credential exists: ${backendCredId}`)
-    }
-
-    if (!openrouterCredId) {
-      const apiKey = process.env.OPENROUTER_API_KEY || ""
-      if (!apiKey) {
-        console.log("⚠️ OPENROUTER_API_KEY not provided; OpenRouter node may fail until configured")
-      } else {
-        const orPayload = JSON.stringify({
-          name: "OpenRouter API",
-          type: "openRouterApi",
-          data: { apiKey },
-        })
-        const { stdout: orCreate } = await execAsync(
-          `curl -s -b ${COOKIES_FILE} -X POST -H "Content-Type: application/json" -d '${orPayload}' "${N8N_URL}/rest/credentials"`
-        )
-        try {
-          const created = JSON.parse(orCreate || "{}")
-          openrouterCredId = created?.id || created?.data?.id || null
-        } catch (_) {}
-        console.log(`🔐 OpenRouter credential ensured: ${openrouterCredId}`)
-      }
-    } else {
-      console.log(`🔐 OpenRouter credential exists: ${openrouterCredId}`)
-    }
-
-    // Helper to inject credentials into workflow nodes by name
-    const injectCredentials = (wfObj: any) => {
-      if (!wfObj || !Array.isArray(wfObj.nodes)) return wfObj
-      wfObj.nodes = wfObj.nodes.map((node: any) => {
-        const name: string = node?.name || ""
-        if (backendCredId && (name === "RagSearch()" || name === "GetAllProducts()")) {
-          node.credentials = node.credentials || {}
-          node.credentials.httpBasicAuth = {
-            id: backendCredId,
-            name: "Backend API Basic Auth",
-          }
-        }
-        if (openrouterCredId && /OpenRouter/i.test(name)) {
-          node.credentials = node.credentials || {}
-          node.credentials.openRouterApi = {
-            id: openrouterCredId,
-            name: "OpenRouter API",
-          }
-        }
-        return node
-      })
-      return wfObj
-    }
-
-    // 2) Fetch existing workflows
-    const { stdout: workflowsJson } = await execAsync(
-      `curl -s -b ${COOKIES_FILE} "${N8N_URL}/rest/workflows"`
-    )
-    let workflows: any[] = []
-    try {
-      const parsed = JSON.parse(workflowsJson || "{}")
-      workflows = Array.isArray(parsed?.data) ? parsed.data : []
-    } catch (e) {
-      workflows = []
-    }
-
-    let workflowId: string | null = null
-
-    if (workflows.length >= 1) {
-      // Use first workflow found (expecting single-workflow setup)
-      workflowId = workflows[0].id
-      console.log(`ℹ️ Found existing workflow: ${workflowId}`)
-
-      // Fetch, inject credentials and ensure active
-      const { stdout: wfGet } = await execAsync(
-        `curl -s -b ${COOKIES_FILE} "${N8N_URL}/rest/workflows/${workflowId}"`
-      )
-      let wfObj: any = null
-      try {
-        const parsed = JSON.parse(wfGet || "{}")
-        wfObj = parsed?.data || parsed || {}
-      } catch (_) {
-        wfObj = {}
-      }
-      wfObj = injectCredentials(wfObj)
-      wfObj.active = true
-
-      const putPayload = JSON.stringify(wfObj)
-      const { stdout: putOut } = await execAsync(
-        `curl -s -b ${COOKIES_FILE} -X PUT -H "Content-Type: application/json" -d '${putPayload.replace(/'/g, "\\\\'")}' "${N8N_URL}/rest/workflows/${workflowId}"`
-      )
-      if (/error|Error/i.test(putOut || "")) {
-        console.log("⚠️ Activation/update via PUT reported warning:", putOut)
-      } else {
-        console.log("✅ Workflow updated and activated (PUT)")
-      }
-    } else {
-      // 3) Import workflow with active=true and credentials injected
-      const tmpFile = "/tmp/shopme-workflow-seed.json"
-      try {
-        const wfRaw = fs.readFileSync(workflowPath, "utf8")
-        let wfObj = {}
-        try { wfObj = JSON.parse(wfRaw) } catch { wfObj = {} }
-        ;(wfObj as any).active = true
-        wfObj = injectCredentials(wfObj)
-        fs.writeFileSync(tmpFile, JSON.stringify(wfObj))
-
-        const { stdout: createOut } = await execAsync(
-          `curl -s -b ${COOKIES_FILE} -X POST -H "Content-Type: application/json" --data-binary @${tmpFile} "${N8N_URL}/rest/workflows"`
-        )
-
-        try {
-          const created = JSON.parse(createOut || "{}")
-          workflowId = created?.id || created?.data?.id || null
-        } catch (_) {
-          workflowId = null
-        }
-        if (!workflowId) {
-          console.log("❌ Workflow import failed:", createOut)
-          throw new Error("Workflow import failed")
-        }
-        console.log(`✅ Workflow imported with ID: ${workflowId}`)
-      } finally {
-        try { fs.unlinkSync(tmpFile) } catch (_) {}
-      }
-    }
-
-    // 4) Verify activation, webhook and node credentials presence
-    if (workflowId) {
-      // Verify state
-      const { stdout: statusOut } = await execAsync(
-        `curl -s -b ${COOKIES_FILE} "${N8N_URL}/rest/workflows/${workflowId}"`
-      )
-      try {
-        const statusObj = JSON.parse(statusOut || "{}")
-        const wf = statusObj?.data || statusObj
-        const isActive = !!wf?.active
-        console.log(`📊 Workflow active status: ${isActive}`)
-        if (Array.isArray(wf?.nodes)) {
-          const nodeSummary = wf.nodes
-            .filter((n: any) => /RagSearch\(\)|GetAllProducts\(\)|OpenRouter/i.test(n?.name || ""))
-            .map((n: any) => ({ name: n.name, creds: Object.keys(n.credentials || {}) }))
-          console.log(`🔎 Node credentials summary: ${JSON.stringify(nodeSummary)}`)
-        }
-      } catch (_) {}
-
-      // Test webhook
-      await new Promise((r) => setTimeout(r, 1500))
-      const testPayload = JSON.stringify({
-        test: "activation_check",
-        workspaceId: mainWorkspaceId,
-      })
-      const { stdout: webhookOut, stderr: webhookErr } = await execAsync(
-        `curl -s -X POST -H "Content-Type: application/json" -d '${testPayload}' "${N8N_URL}/webhook/webhook-start"`
-      )
-      const webhookResp = (webhookOut || webhookErr || "").toString()
-      if (/not registered/i.test(webhookResp)) {
-        console.log("⚠️ Webhook not yet registered; it may take a moment after activation.")
-      } else {
-        console.log("✅ Webhook responds (activation confirmed)")
-      }
-    }
-
-    // Cleanup cookies
-    try { fs.unlinkSync(COOKIES_FILE) } catch (_) {}
-
-    console.log("============================\n")
-    return
-  } catch (error) {
-    console.error("❌ Idempotent N8N ensure failed:", error?.message || error)
-    console.log("💡 Falling back to nuclear cleanup script (one-time reset)...")
-  }
-
-  // Fallback to existing nuclear script flow (original implementation)
-  try {
-    const { exec } = require("child_process")
-    const { promisify } = require("util")
-    const execAsync = promisify(exec)
-    const scriptsPath = path.join(__dirname, "../../scripts")
-    const nuclearScript = path.join(scriptsPath, "n8n_nuclear-cleanup.sh")
-
-    if (fs.existsSync(nuclearScript)) {
-      console.log("🚀 Running N8N NUCLEAR cleanup to prevent any duplicates...")
-      await execAsync(`chmod +x "${nuclearScript}"`)
-      const { stdout, stderr } = await execAsync(`"${nuclearScript}"`, {
-        cwd: scriptsPath,
-        timeout: 180000,
-      })
-      if (stdout) console.log("📥 N8N Nuclear Cleanup Output:", stdout)
-      if (stderr && !stderr.includes("Warning")) {
-        console.log("⚠️ N8N Nuclear Cleanup Warnings:", stderr)
-      }
-      console.log("✅ N8N nuclear cleanup and workflow import completed successfully")
-    } else {
-      console.log("⚠️ N8N nuclear cleanup script not found:", nuclearScript)
-      console.log("💡 Please ensure scripts/n8n_nuclear-cleanup.sh exists")
-    }
-  } catch (execError) {
-    console.error("❌ Error running fallback N8N nuclear cleanup:", execError.message)
-    console.log("💡 You can manually run: scripts/n8n_nuclear-cleanup.sh")
-  }
-
-  console.log("============================\n")
+  console.log("\n🔄 N8N function removed - Dual LLM system is now used instead")
+  return
 }
 
 // Function to seed Aviso Legal document
@@ -847,7 +520,7 @@ async function main() {
         language: "es",
         currency: "EUR",
         url: "http://localhost:3000",
-        n8nWorkflowUrl: "http://localhost:5678/webhook/webhook-start",
+
 
         wipMessages: {
           en: "Work in progress. Please contact us later.",
@@ -917,14 +590,36 @@ async function main() {
           prompt: SOFIA_PROMPT,
           workspaceId: mainWorkspaceId,
           model: defaultAgent.model,
-          temperature: 0.3, // Abbassata per maggiore consistenza nei link
+          temperature: 0.3,
           maxTokens: 1000,
           isActive: true,
         },
       })
       console.log("SofIA AgentConfig creato per il workspace principale")
     } else {
-      console.log("AgentConfig già esistente per il workspace principale")
+      // FORCE UPDATE: Aggiorna sempre agentConfig con il contenuto di prompt_agent.md
+      let promptContent = ""
+      const promptFilePath = path.join(__dirname, "..", "..", "docs", "other", "prompt_agent.md")
+      
+      try {
+        promptContent = fs.readFileSync(promptFilePath, "utf8")
+        console.log(`🔄 Aggiornando agentConfig con prompt_agent.md`)
+      } catch (error) {
+        console.error(`❌ Errore lettura prompt_agent.md: ${error}`)
+        promptContent = SOFIA_PROMPT // Fallback al prompt di default
+      }
+      
+      await prisma.agentConfig.update({
+        where: { id: existingAgentConfig.id },
+        data: {
+          prompt: promptContent,
+          model: defaultAgent.model,
+          temperature: 0.3,
+          maxTokens: 1000,
+          isActive: true,
+        },
+      })
+      console.log("✅ AgentConfig aggiornato con prompt_agent.md")
     }
 
     // CREA ANCHE UN AGENT NELLA TABELLA PROMPTS SE NON ESISTE
@@ -967,7 +662,7 @@ async function main() {
       await prisma.prompts.create({
         data: {
           name: "Router LLM",
-          content: ROUTER_PROMPT,
+          content: SOFIA_PROMPT,
           isActive: true,
           isRouter: false,
           department: "router",
@@ -998,7 +693,7 @@ async function main() {
         language: "es",
         currency: "EUR",
         url: "http://localhost:3000",
-        n8nWorkflowUrl: "http://localhost:5678/webhook/webhook-start",
+
 
         wipMessages: {
           en: "Work in progress. Please contact us later.",
@@ -1081,7 +776,29 @@ async function main() {
       })
       console.log("SofIA AgentConfig creato per il workspace principale")
     } else {
-      console.log("AgentConfig già esistente per il workspace principale")
+      // FORCE UPDATE: Aggiorna sempre agentConfig con il contenuto di prompt_agent.md
+      let promptContent = ""
+      const promptFilePath = path.join(__dirname, "..", "..", "docs", "other", "prompt_agent.md")
+      
+      try {
+        promptContent = fs.readFileSync(promptFilePath, "utf8")
+        console.log(`🔄 Aggiornando agentConfig con prompt_agent.md`)
+      } catch (error) {
+        console.error(`❌ Errore lettura prompt_agent.md: ${error}`)
+        promptContent = SOFIA_PROMPT // Fallback al prompt di default
+      }
+      
+      await prisma.agentConfig.update({
+        where: { id: existingAgentConfig.id },
+        data: {
+          prompt: promptContent,
+          model: defaultAgent.model,
+          temperature: 0.3,
+          maxTokens: 1000,
+          isActive: true,
+        },
+      })
+      console.log("✅ AgentConfig aggiornato con prompt_agent.md")
     }
 
     // CREA ANCHE UN AGENT NELLA TABELLA PROMPTS SE NON ESISTE
@@ -1124,7 +841,7 @@ async function main() {
       await prisma.prompts.create({
         data: {
           name: "Router LLM",
-          content: ROUTER_PROMPT,
+          content: SOFIA_PROMPT,
           isActive: true,
           isRouter: false,
           department: "router",
@@ -1345,30 +1062,40 @@ async function main() {
       },
     })
 
+          // Force update the prompt to use our new prompt_agent.md
+      if (existingPrompt) {
+        // Read the new prompt content
+        let promptContent = ""
+        const promptFilePath = path.join(__dirname, "..", "..", "docs", "other", "prompt_agent.md")
+        
+        try {
+          promptContent = fs.readFileSync(promptFilePath, "utf8")
+          console.log(`Using updated prompt_agent.md for ${agent.name} agent`)
+        } catch (error) {
+          console.error(`Error reading prompt_agent.md file: ${error}`)
+          promptContent = "Default prompt content. Please update with proper instructions."
+        }
+        
+        // Update existing prompt
+        await prisma.prompts.update({
+          where: { id: existingPrompt.id },
+          data: {
+            content: promptContent,
+            temperature: 0.3,
+            top_p: 0.8,
+            top_k: 30,
+            model: agent.model,
+          },
+        })
+        console.log(`Prompt updated: ${agent.promptName} for agent ${agent.name}`)
+      }
+    
     if (!existingPrompt) {
       let promptContent = ""
       let promptFilePath = ""
 
-      // Use specific prompt files based on agent name
-      switch (agent.name) {
-        case "GENERIC":
-          promptFilePath = path.join(__dirname, "prompts/gdpr.md")
-          break
-        case "PRODUCTS AND CARTS":
-          promptFilePath = path.join(__dirname, "prompts/product-and.carts.md")
-          break
-        case "ORDERS AND INVOICES":
-          promptFilePath = path.join(__dirname, "prompts/orders-and-invoice.md")
-          break
-        case "TRANSPORT":
-          promptFilePath = path.join(__dirname, "prompts/transport.md")
-          break
-        case "SERVICES":
-          promptFilePath = path.join(__dirname, "prompts/services.md")
-          break
-        default:
-          promptFilePath = path.join(__dirname, "prompts/gdpr.md")
-      }
+      // Use our updated prompt_agent.md for all agents
+      promptFilePath = path.join(__dirname, "..", "..", "docs", "other", "prompt_agent.md")
 
       try {
         promptContent = fs.readFileSync(promptFilePath, "utf8")
@@ -2922,33 +2649,27 @@ async function main() {
   console.log("=================================")
   await generateEmbeddingsAfterSeed()
 
-  // PHASE 2: N8N Complete Setup (Credentials + Workflow + Activation)
-  console.log("\n🤖 PHASE 2: N8N COMPLETE AUTOMATION")
-  console.log("===================================")
+  // PHASE 2: DUAL LLM SYSTEM READY
+  console.log("\n🤖 PHASE 2: DUAL LLM SYSTEM READY")
+  console.log("==================================")
   console.log("📋 CHECKLIST ANDREA:")
   console.log("   ✅ Query SQL (completato)")
-  console.log("   ⏳ Embedding (in corso)")
-  console.log("   ⏳ N8N Credential (prossimo)")
-  console.log("   ⏳ Delete old workflow (prossimo)")
-  console.log("   ⏳ N8N import workflow (prossimo)")
-  console.log("   ⏳ Compila il workflow (prossimo)")
-  console.log("   ⏳ Attiva il workflow (prossimo)")
-
-  await cleanAndImportN8NWorkflow()
+  console.log("   ✅ Embedding (completato)")
+  console.log("   ✅ Dual LLM System (pronto)")
+  console.log("   ✅ Function Calling (pronto)")
+  console.log("   ✅ Tool Descriptions (pronto)")
 
   console.log("✅ CHECKLIST ANDREA COMPLETATA:")
   console.log("   ✅ Query SQL")
   console.log("   ✅ Embedding")
-  console.log("   ✅ N8N Credential (from .env)")
-  console.log("   ✅ Delete old workflow")
-  console.log("   ✅ N8N import workflow")
-  console.log("   ✅ Compila il workflow")
-  console.log("   ✅ Attiva il workflow")
+  console.log("   ✅ Dual LLM System")
+  console.log("   ✅ Function Calling")
+  console.log("   ✅ Tool Descriptions")
   console.log("")
-  console.log("🎯 SETUP COMPLETO! N8N PRONTO PER WHATSAPP!")
-  console.log("🔗 Webhook URL: http://localhost:5678/webhook/webhook-start")
-  console.log("⚙️ Admin Panel: http://localhost:5678")
-  console.log("   ✅ Attiva il workflow")
+  console.log("🎯 SETUP COMPLETO! DUAL LLM SYSTEM PRONTO!")
+  console.log("🔗 Webhook URL: http://localhost:3001/api/whatsapp/webhook")
+  console.log("⚙️ Admin Panel: http://localhost:3000")
+  console.log("   ✅ System ready for WhatsApp")
 
   console.log(`Seed completato con successo!`)
   console.log(`- Admin user creato: ${adminEmail}`)

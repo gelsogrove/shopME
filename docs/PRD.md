@@ -71,6 +71,13 @@ Allow customers to access their full orders history and specific order details v
 - **Automatic workspace isolation** enforced via token validation.
 - If token is invalid or expired, backend returns an error requiring new token generation.
 
+### Database Seed Behavior
+- **`npm run seed`** automatically updates both `agentConfig` and `prompts` tables with content from `docs/other/prompt_agent.md`
+- **Force Update**: Even if `agentConfig` already exists, the seed script will overwrite it with the latest content from `prompt_agent.md`
+- **Source of Truth**: `docs/other/prompt_agent.md` is the single source of truth for all chatbot prompts
+- **Fallback**: If `prompt_agent.md` cannot be read, the system falls back to the default `SOFIA_PROMPT`
+- **Consistency**: Both `agentConfig.prompt` and `prompts.content` are kept in sync during seeding
+
 # ShopMe - WhatsApp E-commerce Platform PRD
 
 ---

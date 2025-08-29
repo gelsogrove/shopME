@@ -1,5 +1,5 @@
-import { api } from '@/services/api'
 import { logger } from "@/lib/logger"
+import { api } from '@/services/api'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 
@@ -20,6 +20,11 @@ export function useCurrentUser() {
             // Clear invalid cached data
             localStorage.removeItem('user')
           }
+        }
+        
+        // Se non c'è un utente nel localStorage, non fare chiamate API
+        if (!cachedUser) {
+          throw new Error('No user data available')
         }
         
         const response = await api.get('/auth/me')
@@ -65,6 +70,8 @@ export function useCurrentUser() {
     refetchOnMount: false,
     // Cache successful responses for 10 minutes (using gcTime instead of deprecated cacheTime)
     gcTime: 10 * 60 * 1000,
+    // Disable the query completely if no user data is available
+    enabled: !!localStorage.getItem('user'),
     retry: (failureCount, error: any) => {
       // Non riprovare in caso di errori 401 o 404 (non autorizzato o utente non trovato)
       if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 404)) {

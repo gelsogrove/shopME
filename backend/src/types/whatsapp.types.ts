@@ -35,8 +35,7 @@ export interface GetShipmentTrackingLinkRequest {
   customerId: string;
 }
 
-export interface GetShipmentTrackingLinkResponse {
-  success: boolean;
+export interface GetShipmentTrackingLinkResponse extends StandardResponse {
   linkUrl: string;
 }
 
@@ -47,14 +46,14 @@ export interface RagSearchRequest {
   messages: any[];
 }
 
-export interface RagSearchResponse {
-  success: boolean;
+export interface RagSearchResponse extends StandardResponse {
   results: any[];
+  query?: string;
+  translatedQuery?: string;
 }
 
-export interface TokenResponse {
+export interface TokenResponse extends StandardResponse {
   token: string;
-  success: boolean;
   expiresAt: string;
   linkUrl: string;
   action: string;
@@ -66,7 +65,51 @@ export interface WhatsAppRequest {
   customerid: string;
 }
 
-export interface WhatsAppResponse {
-  success: boolean;
+export interface WhatsAppResponse extends StandardResponse {
   message: string;
+}
+
+// Standardized Error Handling Interfaces
+export interface StandardResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+  details?: string;
+  timestamp?: string;
+}
+
+export interface ErrorResponse {
+  success: false;
+  error: string;
+  message: string;
+  details?: string;
+  timestamp: string;
+}
+
+export interface SuccessResponse<T = any> {
+  success: true;
+  data: T;
+  timestamp: string;
+}
+
+// Standardized Function Response Types
+export interface ProductsResponse extends StandardResponse {
+  products?: any[];
+  totalCount?: number;
+}
+
+export interface ServicesResponse extends StandardResponse {
+  services?: any[];
+  totalCount?: number;
+}
+
+export interface CategoriesResponse extends StandardResponse {
+  categories?: any[];
+  totalCount?: number;
+}
+
+export interface OffersResponse extends StandardResponse {
+  offers?: any[];
+  totalCount?: number;
 }

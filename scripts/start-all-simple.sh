@@ -16,14 +16,14 @@ fi
 echo "✅ Docker è attivo!"
 
 # Step 2: Avvia i container se non sono già attivi
-echo "🗄️  Verifico database e N8N..."
+echo "🗄️  Verifico database..."
 if ! docker ps | grep -q "shop_db"; then
-    echo "   Avvio container database e N8N..."
+    echo "   Avvio container database..."
     docker compose up -d
     echo "   Aspetto che il database sia pronto..."
     sleep 15
 else
-    echo "✅ Database e N8N già attivi!"
+    echo "✅ Database già attivo!"
 fi
 
 # Step 3: Pulisci processi esistenti
@@ -36,65 +36,29 @@ pkill -f "concurrently" >/dev/null 2>&1 || true
 
 sleep 2
 
-# Step 4: Setup N8N DEFINITIVO SINCRONIZZATO  
-echo "🧹 N8N Database Reset + Import SINCRONIZZATO..."
-echo "   Reset completo database N8N..."
-./scripts/n8n_full-cleanup.sh > n8n-cleanup.log 2>&1
-
-echo "   Aspetto che N8N sia completamente pronto..."
-sleep 10
-
-echo "   Import di tutti i workflow dalla cartella n8n/ (FIXED VERSION)..."
-./scripts/n8n_import-optimized-workflow.sh > n8n-setup.log 2>&1
-
-if [ $? -eq 0 ]; then
-    echo "✅ N8N setup definitivo completato!"
-    echo "   📡 Webhook attivo: http://localhost:5678/webhook/webhook-start"
-else
-    echo "❌ Errore nell'import N8N! Controlla n8n-setup.log"
-fi
-
 echo ""
 echo "🎉 AVVIO SERVIZI CON LOG INTEGRATI!"
 echo "========================================"
 echo "🌐 Frontend: http://localhost:3000"
 echo "   Login: admin@shopme.com / venezia44"
 echo ""
-echo "🤖 N8N: http://localhost:5678"
-echo "   Login: admin@shopme.com / Venezia44"
-echo ""
 echo "🔧 Backend API: http://localhost:3001"
 echo ""
-echo "📊 Stato Docker:"
-docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+echo "🗄️  Database: localhost:5434"
+echo "   User: shopmefy / shopmefy"
 echo ""
-echo "📋 LOGS IN TEMPO REALE (premi Ctrl+C per fermare tutto):"
-echo "========================================"
+echo "🚀 Avvio backend e frontend..."
+echo ""
 
-# Function per gestire cleanup al Ctrl+C
-cleanup() {
-    echo ""
-    echo "🛑 Stopping all services..."
-    npx kill-port 3000 >/dev/null 2>&1 || true
-    npx kill-port 3001 >/dev/null 2>&1 || true
-    pkill -f "ts-node-dev" >/dev/null 2>&1 || true
-    pkill -f "vite" >/dev/null 2>&1 || true
-    rm -f .backend.pid .frontend.pid
-    echo "✅ Tutti i servizi sono stati fermati!"
-    exit 0
-}
+# Step 4: Avvia backend e frontend
+concurrently \
+  --names "backend,frontend" \
+  --prefix-colors "blue,green" \
+  --kill-others \
+  "cd backend && npm run dev" \
+  "cd frontend && npm run dev"
 
-# Gestisce SIGINT (Ctrl+C)
-trap cleanup SIGINT
-
-# Step 5: Avvia tutto con concurrently per log integrati
-npx concurrently \
-    --names "BACKEND,FRONTEND" \
-    --prefix-colors "green,cyan" \
-    --prefix "[{name}]" \
-    --kill-others-on-fail \
-    "cd backend && npm run dev" \
-    "cd frontend && npm run dev"
-
-# Se concurrently termina, esegui cleanup
-cleanup 
+echo ""
+echo "✅ Tutti i servizi sono stati avviati!"
+echo "🌐 Frontend: http://localhost:3000"
+echo "🔧 Backend: http://localhost:3001" 

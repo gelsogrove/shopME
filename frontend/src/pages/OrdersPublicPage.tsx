@@ -80,8 +80,8 @@ const paymentColor = (status?: string) => {
   }
 }
 
-const formatDate = (date: string) => new Date(date).toLocaleString('it-IT')
-const formatCurrency = (num: number) => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(num)
+const formatDate = (date: string) => new Date(date).toLocaleString('en-US')
+const formatCurrency = (num: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }).format(num)
 
 const OrdersPublicPage: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -126,7 +126,7 @@ const OrdersPublicPage: React.FC = () => {
     const load = async () => {
       // 🔐 Check token validation first
       if (token && !tokenValid && !tokenLoading) {
-        setError('Link non valido o scaduto. Richiedi un nuovo link di tracking.')
+        setError('Invalid or expired link. Request a new tracking link.')
         return
       }
 
@@ -138,18 +138,18 @@ const OrdersPublicPage: React.FC = () => {
           if (res.data.success) {
             setDetailData(res.data.data)
           } else {
-            setError(res.data.error || 'Errore caricamento ordine')
+            setError(res.data.error || 'Error loading order')
           }
         } else {
           const res = await axios.get(`/api/internal/public/orders`, { params: { token } })
           if (res.data.success) {
             setListData(res.data.data)
           } else {
-            setError(res.data.error || 'Errore caricamento ordini')
+            setError(res.data.error || 'Error loading orders')
           }
         }
       } catch (e: any) {
-        setError('Errore durante il caricamento')
+        setError('Error during loading')
       } finally {
         setLoading(false)
       }
@@ -175,7 +175,7 @@ const OrdersPublicPage: React.FC = () => {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center max-w-md w-full">
           <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-blue-700 font-medium">Verifica link di sicurezza...</p>
+          <p className="text-blue-700 font-medium">Verifying security link...</p>
         </div>
       </div>
     )
@@ -187,13 +187,13 @@ const OrdersPublicPage: React.FC = () => {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center max-w-md w-full">
           <div className="text-6xl mb-2">🔒</div>
-          <h3 className="text-lg font-semibold text-red-800 mb-1">Accesso Negato</h3>
-          <p className="text-red-700 font-medium mb-3">{tokenError || 'Link non valido o scaduto'}</p>
+          <h3 className="text-lg font-semibold text-red-800 mb-1">Access Denied</h3>
+          <p className="text-red-700 font-medium mb-3">{tokenError || 'Invalid or expired link'}</p>
           <div className="text-sm text-red-700 mb-4">
-            <p className="font-medium mb-1">Cosa puoi fare:</p>
+            <p className="font-medium mb-1">What you can do:</p>
             <ul className="text-left space-y-1">
-              <li>• Richiedi un nuovo link di tracking via WhatsApp</li>
-              <li>• Contatta il supporto se il problema persiste</li>
+              <li>• Request a new tracking link via WhatsApp</li>
+              <li>• Contact support if the problem persists</li>
             </ul>
           </div>
         </div>
@@ -206,7 +206,7 @@ const OrdersPublicPage: React.FC = () => {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center max-w-md w-full">
           <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-blue-700 font-medium">Caricamento ordini...</p>
+          <p className="text-blue-700 font-medium">Loading orders...</p>
         </div>
       </div>
     )
@@ -216,17 +216,17 @@ const OrdersPublicPage: React.FC = () => {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center max-w-md w-full">
           <div className="text-6xl mb-2">⚠️</div>
-          <h3 className="text-lg font-semibold text-red-800 mb-1">Errore Link</h3>
+          <h3 className="text-lg font-semibold text-red-800 mb-1">Link Error</h3>
           <p className="text-red-700 font-medium mb-3">{error}</p>
           <div className="text-sm text-red-700 mb-4">
-            <p className="font-medium mb-1">Cosa puoi fare:</p>
+            <p className="font-medium mb-1">What you can do:</p>
             <ul className="text-left space-y-1">
-              <li>• Controlla di aver copiato tutto il link</li>
-              <li>• Richiedi un nuovo link via WhatsApp</li>
-              <li>• Verifica che il link non sia scaduto</li>
+              <li>• Check that you copied the entire link</li>
+              <li>• Request a new link via WhatsApp</li>
+              <li>• Verify that the link has not expired</li>
             </ul>
           </div>
-          <button onClick={() => window.location.reload()} className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg">Riprova</button>
+          <button onClick={() => window.location.reload()} className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg">Try Again</button>
         </div>
       </div>
     )
@@ -399,9 +399,9 @@ const OrdersPublicPage: React.FC = () => {
             {/* Filters */}
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
               <div>
-                <label className="text-xs text-gray-500">Stato ordine</label>
+                <label className="text-xs text-gray-500">Order Status</label>
                 <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full border rounded px-2 py-2 text-sm">
-                  <option value="ALL">Tutti</option>
+                  <option value="ALL">All</option>
                   <option value="PENDING">PENDING</option>
                   <option value="CONFIRMED">CONFIRMED</option>
                   <option value="PROCESSING">PROCESSING</option>
@@ -411,25 +411,25 @@ const OrdersPublicPage: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-500">Pagamento</label>
+                <label className="text-xs text-gray-500">Payment</label>
                 <select value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} className="w-full border rounded px-2 py-2 text-sm">
-                  <option value="ALL">Tutti</option>
+                  <option value="ALL">All</option>
                   <option value="PAID">PAID</option>
                   <option value="PENDING">PENDING</option>
                   <option value="FAILED">FAILED</option>
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-500">Da data</label>
+                <label className="text-xs text-gray-500">From Date</label>
                 <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-full border rounded px-2 py-2 text-sm" />
               </div>
               <div>
-                <label className="text-xs text-gray-500">A data</label>
+                <label className="text-xs text-gray-500">To Date</label>
                 <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-full border rounded px-2 py-2 text-sm" />
               </div>
             </div>
             <div className="flex justify-end mb-4">
-              <button onClick={() => { setStatusFilter('ALL'); setPaymentFilter('ALL'); setFromDate(''); setToDate('') }} className="text-sm px-3 py-2 border rounded hover:bg-gray-50">Pulisci filtri</button>
+              <button onClick={() => { setStatusFilter('ALL'); setPaymentFilter('ALL'); setFromDate(''); setToDate('') }} className="text-sm px-3 py-2 border rounded hover:bg-gray-50">Clear Filters</button>
             </div>
             <div className="divide-y">
               {displayOrders.map((o) => (
@@ -442,9 +442,9 @@ const OrdersPublicPage: React.FC = () => {
                       <div className="text-lg font-semibold">{o.orderCode}</div>
                       <div className="text-sm text-gray-500">{formatDate(o.date)}</div>
                       <div className="text-xs text-gray-500">
-                        Imponibile: {formatCurrency(Math.max(0, (o.totalAmount || 0) - (o.taxAmount || 0)))}
-                        { (o.taxAmount || 0) > 0 && <> • IVA: {formatCurrency(o.taxAmount || 0)}</> }
-                        { (o.shippingAmount || 0) > 0 && <> • Sped.: {formatCurrency(o.shippingAmount || 0)}</> }
+                        Subtotal: {formatCurrency(Math.max(0, (o.totalAmount || 0) - (o.taxAmount || 0)))}
+                        { (o.taxAmount || 0) > 0 && <> • VAT: {formatCurrency(o.taxAmount || 0)}</> }
+                        { (o.shippingAmount || 0) > 0 && <> • Shipping: {formatCurrency(o.shippingAmount || 0)}</> }
                       </div>
                     </div>
                     <div className="mt-3 sm:mt-0 flex items-center gap-3">

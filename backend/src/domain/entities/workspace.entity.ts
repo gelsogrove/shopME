@@ -1,51 +1,82 @@
 import { Entity } from "./entity"
 
 export interface WorkspaceProps {
-  id?: string
+  id: string
   name: string
-  slug?: string
-  description?: string | null
+  slug: string
   whatsappPhoneNumber?: string | null
+  whatsappApiKey?: string | null
   whatsappApiToken?: string | null
   whatsappWebhookUrl?: string | null
-  webhookUrl?: string | null
-  n8nWorkflowUrl?: string | null
   notificationEmail?: string | null
-  adminEmail?: string | null
-  language?: string
-  currency?: string
-  messageLimit?: number
+  webhookUrl?: string | null
+  isActive: boolean
+  language: string
+  createdAt: Date
+  updatedAt: Date
+  isDelete: boolean
+  currency: string
+  challengeStatus: boolean
+  description?: string | null
+  messageLimit: number
   blocklist?: string | null
-  welcomeMessages?: Record<string, string> | null
-  wipMessages?: Record<string, string> | null
-  challengeStatus?: boolean
-  isActive?: boolean
-  isDelete?: boolean
-  debugMode?: boolean
   url?: string | null
-  createdAt?: Date
-  updatedAt?: Date
+  n8nWorkflowUrl?: string | null
+  businessType: string
+  welcomeMessages?: any
+  wipMessages?: any
+  afterRegistrationMessages?: any
+  debugMode: boolean
+  adminEmail?: string | null
 }
 
 export class Workspace extends Entity<WorkspaceProps> {
-  get id(): string {
-    return this.props.id || ""
+  constructor(props: WorkspaceProps) {
+    super(props)
+  }
+
+  static create(props: WorkspaceProps): Workspace {
+    return new Workspace(props)
   }
 
   get name(): string {
     return this.props.name
   }
 
-  get slug(): string | undefined {
-    return this.props.slug
-  }
-
   get description(): string | null | undefined {
     return this.props.description
   }
 
+  get isActive(): boolean {
+    return this.props.isActive
+  }
+
+  get isDelete(): boolean {
+    return this.props.isDelete
+  }
+
+  get createdAt(): Date {
+    return this.props.createdAt
+  }
+
+  get updatedAt(): Date {
+    return this.props.updatedAt
+  }
+
+  get id(): string {
+    return this.props.id
+  }
+
+  get slug(): string {
+    return this.props.slug
+  }
+
   get whatsappPhoneNumber(): string | null | undefined {
     return this.props.whatsappPhoneNumber
+  }
+
+  get whatsappApiKey(): string | null | undefined {
+    return this.props.whatsappApiKey
   }
 
   get whatsappApiToken(): string | null | undefined {
@@ -56,155 +87,90 @@ export class Workspace extends Entity<WorkspaceProps> {
     return this.props.whatsappWebhookUrl
   }
 
-  get webhookUrl(): string | null | undefined {
-    return this.props.webhookUrl
-  }
-
-  get n8nWorkflowUrl(): string | null | undefined {
-    return this.props.n8nWorkflowUrl
-  }
-
   get notificationEmail(): string | null | undefined {
     return this.props.notificationEmail
   }
 
-  get adminEmail(): string | null | undefined {
-    return this.props.adminEmail
+  get webhookUrl(): string | null | undefined {
+    return this.props.webhookUrl
   }
 
   get language(): string {
-    return this.props.language ?? "ENG"
+    return this.props.language
   }
 
   get currency(): string {
-    return this.props.currency ?? "EUR"
+    return this.props.currency
+  }
+
+  get challengeStatus(): boolean {
+    return this.props.challengeStatus
   }
 
   get messageLimit(): number {
-    return this.props.messageLimit ?? 50
+    return this.props.messageLimit
   }
 
   get blocklist(): string | null | undefined {
     return this.props.blocklist
   }
 
-  get welcomeMessages(): Record<string, string> | null | undefined {
-    return this.props.welcomeMessages
-  }
-
-  get wipMessages(): Record<string, string> | null | undefined {
-    return this.props.wipMessages
-  }
-
-  get challengeStatus(): boolean {
-    return this.props.challengeStatus ?? false
-  }
-
-  get isActive(): boolean {
-    return this.props.isActive ?? true
-  }
-
-  get isDelete(): boolean {
-    return this.props.isDelete ?? false
-  }
-
-  get debugMode(): boolean {
-    return this.props.debugMode ?? true
-  }
-
   get url(): string | null | undefined {
     return this.props.url
   }
 
-  get createdAt(): Date | undefined {
-    return this.props.createdAt
+  get n8nWorkflowUrl(): string | null | undefined {
+    return this.props.n8nWorkflowUrl
   }
 
-  get updatedAt(): Date | undefined {
-    return this.props.updatedAt
+  get businessType(): string {
+    return this.props.businessType
   }
 
-  static create(props: WorkspaceProps): Workspace {
-    // Validations
-    if (!props.name || props.name.trim().length === 0) {
-      throw new Error("Workspace name is required")
-    }
-
-    // Set defaults
-    return new Workspace({
-      ...props,
-      language: props.language ?? "ENG",
-      currency: props.currency ?? "EUR",
-      messageLimit: props.messageLimit ?? 50,
-      isActive: props.isActive ?? true,
-      isDelete: props.isDelete ?? false,
-      debugMode: props.debugMode ?? true,
-      challengeStatus: props.challengeStatus ?? false,
-      createdAt: props.createdAt ?? new Date(),
-      updatedAt: props.updatedAt ?? new Date(),
-    })
+  get welcomeMessages(): any {
+    return this.props.welcomeMessages
   }
 
-  public updateName(name: string): void {
-    this.props.name = name
-    this.props.updatedAt = new Date()
+  get wipMessages(): any {
+    return this.props.wipMessages
   }
 
-  public updateDescription(description: string | null): void {
-    this.props.description = description
-    this.props.updatedAt = new Date()
+  get afterRegistrationMessages(): any {
+    return this.props.afterRegistrationMessages
   }
 
-  public updateWhatsappConfig(
-    phoneNumber: string | null,
-    apiToken: string | null,
-    webhookUrl: string | null
-  ): void {
-    this.props.whatsappPhoneNumber = phoneNumber
-    this.props.whatsappApiToken = apiToken
-    this.props.whatsappWebhookUrl = webhookUrl
-    this.props.updatedAt = new Date()
+  get debugMode(): boolean {
+    return this.props.debugMode
   }
 
-  public activate(): void {
+  get adminEmail(): string | null | undefined {
+    return this.props.adminEmail
+  }
+
+  // Business methods
+  activate(): void {
     this.props.isActive = true
     this.props.updatedAt = new Date()
   }
 
-  public deactivate(): void {
+  deactivate(): void {
     this.props.isActive = false
     this.props.updatedAt = new Date()
   }
 
-  public markDeleted(): void {
+  softDelete(): void {
     this.props.isDelete = true
+    this.props.isActive = false
     this.props.updatedAt = new Date()
   }
 
-  public toJSON() {
-    return {
-      id: this.id,
-      name: this.name,
-      slug: this.slug,
-      description: this.description,
-      whatsappPhoneNumber: this.whatsappPhoneNumber,
-      whatsappApiToken: this.whatsappApiToken,
-      whatsappWebhookUrl: this.whatsappWebhookUrl,
-      webhookUrl: this.webhookUrl,
-      notificationEmail: this.notificationEmail,
-      language: this.language,
-      currency: this.currency,
-      messageLimit: this.messageLimit,
-      blocklist: this.blocklist,
-      welcomeMessages: this.welcomeMessages,
-      wipMessages: this.wipMessages,
-      challengeStatus: this.challengeStatus,
-      isActive: this.isActive,
-      isDelete: this.isDelete,
-      debugMode: this.debugMode,
-      url: this.url,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
-    }
+  updateName(name: string): void {
+    this.props.name = name
+    this.props.updatedAt = new Date()
+  }
+
+  updateDescription(description: string | null): void {
+    this.props.description = description
+    this.props.updatedAt = new Date()
   }
 }

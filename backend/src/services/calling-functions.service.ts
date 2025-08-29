@@ -1,11 +1,7 @@
-import axios from 'axios';
 import { SecureTokenService } from '../application/services/secure-token.service';
 import {
-    GetServicesResponse,
-    GetShipmentTrackingLinkRequest,
-    GetShipmentTrackingLinkResponse,
-    RagSearchRequest,
-    RagSearchResponse,
+    ErrorResponse,
+    SuccessResponse,
     TokenResponse
 } from '../types/whatsapp.types';
 
@@ -29,141 +25,182 @@ export class CallingFunctionsService {
     this.baseUrl = 'http://localhost:3001/api/internal';
   }
 
-  public async getAllProducts(request: GetAllProductsRequest): Promise<any> {
-    try {
-      console.log('🔧 Calling getAllProducts with:', request);
-      
-      const response = await axios.get(`${this.baseUrl}/products`, {
-        params: {
-          workspaceId: request.workspaceId,
-          customerId: request.customerId
-        },
-        timeout: 10000
-      });
-
-      console.log('✅ getAllProducts response:', response.data);
-      return {
-        success: true,
-        products: response.data.products || []
-      };
-
-    } catch (error) {
-      console.error('❌ getAllProducts error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        products: []
-      };
-    }
+  private createErrorResponse(error: any, context: string): ErrorResponse {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const details = error.response?.data?.message || errorMessage;
+    
+    console.error(`❌ ${context} error:`, error);
+    
+    return {
+      success: false,
+      error: errorMessage,
+      message: `Unable to ${context.toLowerCase()}. Please try again later.`,
+      details: details,
+      timestamp: new Date().toISOString()
+    };
   }
 
-  public async getServices(request: GetAllProductsRequest): Promise<GetServicesResponse> {
-    try {
-      console.log('🔧 Calling getServices with:', request);
-      
-      const response = await axios.get(`${this.baseUrl}/services`, {
-        params: {
-          workspaceId: request.workspaceId,
-          customerId: request.customerId
-        },
-        timeout: 10000
-      });
-
-      console.log('✅ getServices response:', response.data);
-      return {
-        success: true,
-        services: response.data.services || []
-      };
-
-    } catch (error) {
-      console.error('❌ getServices error:', error);
-      return {
-        success: false,
-        services: []
-      };
-    }
+  private createSuccessResponse<T>(data: T, context: string): SuccessResponse<T> {
+    console.log(`✅ ${context} response:`, data);
+    
+    return {
+      success: true,
+      data: data,
+      timestamp: new Date().toISOString()
+    };
   }
 
-  public async getAllCategories(request: GetAllProductsRequest): Promise<any> {
-    try {
-      console.log('🔧 Calling getAllCategories with:', request);
+  // public async getAllProducts(request: GetAllProductsRequest): Promise<ProductsResponse> {
+  //   try {
+  //     console.log('🔧 Calling getAllProducts with:', request);
       
-      const response = await axios.get(`${this.baseUrl}/categories`, {
-        params: {
-          workspaceId: request.workspaceId,
-          customerId: request.customerId
-        },
-        timeout: 10000
-      });
+  //     const response = await axios.get(`${this.baseUrl}/public/products`, {
+  //       params: {
+  //         workspaceId: request.workspaceId,
+  //         customerId: request.customerId
+  //       },
+  //       timeout: 10000
+  //     });
 
-      console.log('✅ getAllCategories response:', response.data);
-      return {
-        success: true,
-        categories: response.data.categories || []
-      };
+  //     return {
+  //       success: true,
+  //       products: response.data.products || [],
+  //       totalCount: response.data.products?.length || 0,
+  //       timestamp: new Date().toISOString()
+  //     };
 
-    } catch (error) {
-      console.error('❌ getAllCategories error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        categories: []
-      };
-    }
-  }
+  //   } catch (error) {
+  //     return this.createErrorResponse(error, 'getAllProducts') as ProductsResponse;
+  //   }
+  // }
 
-  public async getActiveOffers(request: GetAllProductsRequest): Promise<any> {
-    try {
-      console.log('🔧 Calling getActiveOffers with:', request);
+  // public async getServices(request: GetAllProductsRequest): Promise<ServicesResponse> {
+  //   try {
+  //     console.log('🔧 Calling getServices with:', request);
       
-      const response = await axios.get(`${this.baseUrl}/offers`, {
-        params: {
-          workspaceId: request.workspaceId,
-          customerId: request.customerId
-        },
-        timeout: 10000
-      });
+  //     const response = await axios.get(`${this.baseUrl}/public/services`, {
+  //       params: {
+  //         workspaceId: request.workspaceId,
+  //         customerId: request.customerId
+  //       },
+  //       timeout: 10000
+  //     });
 
-      console.log('✅ getActiveOffers response:', response.data);
-      return {
-        success: true,
-        offers: response.data.offers || []
-      };
+  //     return {
+  //       success: true,
+  //       services: response.data.services || [],
+  //       totalCount: response.data.services?.length || 0,
+  //       timestamp: new Date().toISOString()
+  //     };
 
-    } catch (error) {
-      console.error('❌ getActiveOffers error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        offers: []
-      };
-    }
-  }
+  //   } catch (error) {
+  //     return this.createErrorResponse(error, 'getServices') as ServicesResponse;
+  //   }
+  // }
 
-  public async contactOperator(request: GetAllProductsRequest): Promise<any> {
-    try {
-      console.log('🔧 Calling contactOperator with:', request);
+  // public async getAllCategories(request: GetAllProductsRequest): Promise<CategoriesResponse> {
+  //   try {
+  //     console.log('🔧 Calling getAllCategories with:', request);
       
-      // Simulate operator contact
-      return {
-        success: true,
-        message: 'Un operatore ti contatterà al più presto. Grazie per la tua pazienza!',
-        operatorContacted: true,
-        estimatedResponseTime: '5-10 minuti'
-      };
+  //     const response = await axios.get(`${this.baseUrl}/categories`, {
+  //       params: {
+  //         workspaceId: request.workspaceId,
+  //         customerId: request.customerId
+  //       },
+  //       timeout: 10000
+  //     });
 
-    } catch (error) {
-      console.error('❌ contactOperator error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
+  //     return {
+  //       success: true,
+  //       categories: response.data.categories || [],
+  //       totalCount: response.data.categories?.length || 0,
+  //       timestamp: new Date().toISOString()
+  //     };
+
+  //   } catch (error) {
+  //     return this.createErrorResponse(error, 'getAllCategories') as CategoriesResponse;
+  //   }
+  // }
+
+  // public async getActiveOffers(request: GetAllProductsRequest): Promise<OffersResponse> {
+  //   try {
+  //     console.log('🔧 Calling getActiveOffers with:', request);
+      
+  //     const response = await axios.get(`${this.baseUrl}/offers`, {
+  //       params: {
+  //         workspaceId: request.workspaceId,
+  //         customerId: request.customerId
+  //       },
+  //       timeout: 10000
+  //     });
+
+  //     return {
+  //       success: true,
+  //       offers: response.data.offers || [],
+  //       totalCount: response.data.offers?.length || 0,
+  //       timestamp: new Date().toISOString()
+  //     };
+
+  //   } catch (error) {
+  //     return this.createErrorResponse(error, 'getActiveOffers') as OffersResponse;
+  //   }
+  // }
+
+  // public async contactOperator(request: GetAllProductsRequest): Promise<StandardResponse> {
+  //   try {
+  //     console.log('🔧 Calling contactOperator with:', request);
+      
+  //     return {
+  //       success: true,
+  //       data: {
+  //         message: 'Un operatore ti contatterà al più presto. Grazie per la tua pazienza!',
+  //         operatorContacted: true,
+  //         estimatedResponseTime: '5-10 minuti'
+  //       },
+  //       timestamp: new Date().toISOString()
+  //     };
+
+  //   } catch (error) {
+  //     return this.createErrorResponse(error, 'contactOperator');
+  //   }
+  // }
 
   public async getOrdersListLink(request: GetOrdersListLinkRequest): Promise<TokenResponse> {
     try {
       console.log('🔧 Calling getOrdersListLink with:', request);
+      
+      // If orderCode is specified, verify order exists first
+      if (request.orderCode) {
+        try {
+          console.log('🔍 Checking if order exists:', request.orderCode);
+          const orderCheckResponse = await fetch(`${this.baseUrl}/public/orders/${request.orderCode}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (!orderCheckResponse.ok) {
+            console.log('❌ Order not found:', request.orderCode);
+            return {
+              success: false,
+              error: `Ordine ${request.orderCode} non trovato`,
+              message: `Mi dispiace, l'ordine ${request.orderCode} non è stato trovato nel sistema. Verifica il numero dell'ordine e riprova.`,
+              timestamp: new Date().toISOString()
+            } as TokenResponse;
+          }
+          
+          console.log('✅ Order found:', request.orderCode);
+        } catch (orderError) {
+          console.log('❌ Error checking order:', orderError);
+          return {
+            success: false,
+            error: `Errore nella verifica dell'ordine ${request.orderCode}`,
+            message: `Mi dispiace, non riesco a verificare l'ordine ${request.orderCode} al momento. Riprova più tardi.`,
+            timestamp: new Date().toISOString()
+          } as TokenResponse;
+        }
+      }
       
       const token = await this.secureTokenService.createToken(
         'orders',
@@ -183,140 +220,121 @@ export class CallingFunctionsService {
         linkUrl = `http://localhost:3000/orders-public?token=${token}`;
       }
 
-      console.log('✅ getOrdersListLink generated:', linkUrl);
-      
       return {
+        success: true,
         token: token,
-        success: true,
-        expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
         linkUrl: linkUrl,
-        action: 'orders'
-      };
-
-    } catch (error) {
-      console.error('❌ getOrdersListLink error:', error);
-      return {
-        token: '',
-        success: false,
-        expiresAt: new Date().toISOString(),
-        linkUrl: '',
-        action: 'orders'
-      };
-    }
-  }
-
-  public async getCustomerProfileLink(request: GetAllProductsRequest): Promise<TokenResponse> {
-    try {
-      console.log('🔧 Calling getCustomerProfileLink with:', request);
-      
-      const token = await this.secureTokenService.createToken(
-        'profile',
-        request.workspaceId,
-        { customerId: request.customerId },
-        '1h',
-        undefined,
-        undefined,
-        undefined,
-        request.customerId
-      );
-
-      const linkUrl = `http://localhost:3000/profile-public?token=${token}`;
-
-      console.log('✅ getCustomerProfileLink generated:', linkUrl);
-      
-      return {
-        token: token,
-        success: true,
         expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-        linkUrl: linkUrl,
-        action: 'profile'
+        action: 'orders',
+        timestamp: new Date().toISOString()
       };
 
     } catch (error) {
-      console.error('❌ getCustomerProfileLink error:', error);
-      return {
-        token: '',
-        success: false,
-        expiresAt: new Date().toISOString(),
-        linkUrl: '',
-        action: 'profile'
-      };
+      return this.createErrorResponse(error, 'getOrdersListLink') as TokenResponse;
     }
   }
 
-  public async confirmOrderFromConversation(request: RagSearchRequest): Promise<any> {
-    try {
-      console.log('🔧 Calling confirmOrderFromConversation with:', request);
+  // public async getCustomerProfileLink(request: GetAllProductsRequest): Promise<TokenResponse> {
+  //   try {
+  //     console.log('🔧 Calling getCustomerProfileLink with:', request);
       
-      // This would analyze conversation history and extract order details
-      // For now, return a simple response
-      return {
-        success: true,
-        message: 'Ordine confermato! Ti invieremo una conferma via email.',
-        orderConfirmed: true
-      };
+  //     const token = await this.secureTokenService.createToken(
+  //       'profile',
+  //       request.workspaceId,
+  //       { customerId: request.customerId },
+  //       '1h',
+  //       undefined,
+  //       undefined,
+  //       undefined,
+  //       request.customerId
+  //     );
 
-    } catch (error) {
-      console.error('❌ confirmOrderFromConversation error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
+  //     const linkUrl = `http://localhost:3000/profile-public?token=${token}`;
 
-  public async ragSearch(request: RagSearchRequest): Promise<RagSearchResponse> {
-    try {
-      console.log('🔧 Calling ragSearch with:', request);
+  //     return {
+  //       success: true,
+  //       token: token,
+  //       linkUrl: linkUrl,
+  //       expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+  //       action: 'profile',
+  //       timestamp: new Date().toISOString()
+  //     };
+
+  //   } catch (error) {
+  //     return this.createErrorResponse(error, 'getCustomerProfileLink') as TokenResponse;
+  //   }
+  // }
+
+  // public async confirmOrderFromConversation(request: RagSearchRequest): Promise<StandardResponse> {
+  //   try {
+  //     console.log('🔧 Calling confirmOrderFromConversation with:', request);
       
-      const response = await axios.post(`${this.baseUrl}/rag-search`, {
-        query: request.query,
-        workspaceId: request.workspaceId,
-        customerId: request.customerId,
-        messages: request.messages
-      }, {
-        timeout: 15000
-      });
+  //     // This would analyze conversation history and extract order details
+  //     // For now, return a simple response
+  //     return {
+  //       success: true,
+  //       data: {
+  //         message: 'Ordine confermato! Ti invieremo una conferma via email.',
+  //         orderConfirmed: true
+  //       },
+  //       timestamp: new Date().toISOString()
+  //     };
 
-      console.log('✅ ragSearch response:', response.data);
-      return {
-        success: true,
-        results: response.data.results || []
-      };
+  //   } catch (error) {
+  //     return this.createErrorResponse(error, 'confirmOrderFromConversation');
+  //   }
+  // }
 
-    } catch (error) {
-      console.error('❌ ragSearch error:', error);
-      return {
-        success: false,
-        results: []
-      };
-    }
-  }
-
-  public async getShipmentTrackingLink(request: GetShipmentTrackingLinkRequest): Promise<GetShipmentTrackingLinkResponse> {
-    try {
-      console.log('🔧 Calling getShipmentTrackingLink with:', request);
+  // public async ragSearch(request: RagSearchRequest): Promise<RagSearchResponse> {
+  //   try {
+  //     console.log('🔧 Calling ragSearch with:', request);
       
-      const response = await axios.get(`${this.baseUrl}/shipment-tracking`, {
-        params: {
-          workspaceId: request.workspaceId,
-          customerId: request.customerId
-        },
-        timeout: 10000
-      });
+  //     const response = await axios.post(`${this.baseUrl}/rag-search`, {
+  //       query: request.query,
+  //       workspaceId: request.workspaceId,
+  //       customerId: request.customerId,
+  //       messages: request.messages
+  //     }, {
+  //       timeout: 15000
+  //     });
 
-      console.log('✅ getShipmentTrackingLink response:', response.data);
-      return {
-        success: true,
-        linkUrl: response.data.trackingUrl || ''
-      };
+  //     return {
+  //       success: true,
+  //       results: response.data.results || {},
+  //       query: request.query,
+  //       translatedQuery: response.data.translatedQuery,
+  //       timestamp: new Date().toISOString()
+  //     };
 
-    } catch (error) {
-      console.error('❌ getShipmentTrackingLink error:', error);
-      return {
-        success: false,
-        linkUrl: ''
-      };
-    }
-  }
+  //   } catch (error) {
+  //     return this.createErrorResponse(error, 'ragSearch') as RagSearchResponse;
+  //   }
+  // }
+
+  // public async getShipmentTrackingLink(request: GetShipmentTrackingLinkRequest): Promise<GetShipmentTrackingLinkResponse> {
+  //   try {
+  //     console.log('🔧 Calling getShipmentTrackingLink with:', request);
+      
+  //     const response = await axios.get(`${this.baseUrl}/shipment-tracking`, {
+  //       params: {
+  //         workspaceId: request.workspaceId,
+  //         customerId: request.customerId
+  //       },
+  //       timeout: 10000
+  //     });
+
+  //     return {
+  //       success: true,
+  //       linkUrl: response.data.trackingUrl || '',
+  //       timestamp: new Date().toISOString()
+  //     };
+
+  //   } catch (error) {
+  //     const errorResponse = this.createErrorResponse(error, 'getShipmentTrackingLink');
+  //     return {
+  //       ...errorResponse,
+  //       linkUrl: ''
+  //     };
+  //   }
+  // }
 }

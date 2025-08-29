@@ -63,16 +63,16 @@ const CustomerProfilePublicPage: React.FC = () => {
           setProfileData(response.data.data)
           logger.info(`[PROFILE] ✅ Profile data loaded for customer ${response.data.data.name}`)
         } else {
-          setProfileError(response.data.error || 'Errore nel caricamento profilo')
+          setProfileError(response.data.error || 'Error loading profile')
         }
       } catch (error: any) {
         logger.error('[PROFILE] Error fetching profile:', error)
         if (error.response?.status === 401) {
-          setProfileError('Token scaduto, richiedi un nuovo link')
+          setProfileError('Token expired, request a new link')
         } else if (error.response?.status === 404) {
-          setProfileError('Cliente non trovato')
+          setProfileError('Customer not found')
         } else {
-          setProfileError('Errore nel caricamento del profilo')
+          setProfileError('Error loading profile')
         }
       } finally {
         setLoadingProfile(false)
@@ -95,7 +95,7 @@ const CustomerProfilePublicPage: React.FC = () => {
       
       if (response.data.success) {
         setProfileData(response.data.data)
-        toast.success('Profilo aggiornato con successo!')
+        toast.success('Profile updated successfully!')
         logger.info(`[PROFILE] ✅ Profile updated successfully`)
       } else {
         toast.error(response.data.error || 'Error saving')
@@ -103,7 +103,7 @@ const CustomerProfilePublicPage: React.FC = () => {
     } catch (error: any) {
       logger.error('[PROFILE] Error saving profile:', error)
       if (error.response?.status === 401) {
-        toast.error('Token scaduto, richiedi un nuovo link')
+        toast.error('Token expired, request a new link')
       } else {
         toast.error('Error saving profile')
       }
@@ -138,7 +138,7 @@ const CustomerProfilePublicPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <TokenError 
-          error={tokenError || 'Token profilo non valido'}
+          error={tokenError || 'Invalid profile token'}
           onRetry={validateToken}
           showRetry={true}
           className="max-w-md w-full"

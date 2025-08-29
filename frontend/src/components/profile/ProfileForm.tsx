@@ -87,17 +87,17 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     const newErrors: Record<string, string> = {}
 
     if (!name.trim()) {
-      newErrors.name = 'Il nome è obbligatorio'
+      newErrors.name = 'Name is required'
     }
 
     if (!email.trim()) {
-      newErrors.email = 'L\'email è obbligatoria'
+      newErrors.email = 'Email is required'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'L\'email non è valida'
+      newErrors.email = 'Email is not valid'
     }
 
     if (!phone.trim()) {
-      newErrors.phone = 'Il telefono è obbligatorio'
+      newErrors.phone = 'Phone is required'
     }
 
     setErrors(newErrors)
@@ -109,7 +109,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     e.preventDefault()
 
     if (!validateForm()) {
-      toast.error('Per favore correggi gli errori nel form')
+      toast.error('Please correct the errors in the form')
       return
     }
 
@@ -140,18 +140,18 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <CardHeader>
-        <CardTitle className="text-xl font-semibold">Dati Personali</CardTitle>
+        <CardTitle className="text-xl font-semibold">Personal Data</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-6">
         {/* Personal Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-800">👤 Informazioni Personali</h3>
+          <h3 className="text-lg font-medium text-gray-800">👤 Personal Information</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-sm font-medium">
-                Nome Completo *
+                Full Name *
               </Label>
               <Input
                 id="name"
@@ -186,7 +186,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="phone" className="text-sm font-medium">
-                Telefono *
+                Phone *
               </Label>
               <Input
                 id="phone"
@@ -202,7 +202,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="company" className="text-sm font-medium">
-                Azienda
+                Company
               </Label>
               <Input
                 id="company"
@@ -214,20 +214,20 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="address" className="text-sm font-medium">
-              Indirizzo di spedizione
+              Shipping Address
             </Label>
             <Input
               id="address"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="Via, numero, città, CAP, provincia"
+              placeholder="Street, number, city, postal code, province"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="language" className="text-sm font-medium">
-                Lingua
+                Language
               </Label>
               <select
                 id="language"
@@ -244,7 +244,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="currency" className="text-sm font-medium">
-                Valuta
+                Currency
               </Label>
               <select
                 id="currency"
@@ -264,15 +264,15 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
         {/* Invoice Address */}
         <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-800">🧾 Indirizzo di Fatturazione</h3>
+          <h3 className="text-lg font-medium text-gray-800">🧾 Billing Address</h3>
           <p className="text-sm text-gray-600">
-            Se diverso dall'indirizzo principale
+            If different from the main address
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="invoiceFirstName" className="text-sm font-medium">
-                Nome
+                First Name
               </Label>
               <Input
                 id="invoiceFirstName"
@@ -283,7 +283,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="invoiceLastName" className="text-sm font-medium">
-                Cognome
+                Last Name
               </Label>
               <Input
                 id="invoiceLastName"
@@ -295,7 +295,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="invoiceCompany" className="text-sm font-medium">
-              Azienda
+              Company
             </Label>
             <Input
               id="invoiceCompany"
@@ -306,7 +306,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="invoiceAddress" className="text-sm font-medium">
-              Indirizzo
+              Address
             </Label>
             <Input
               id="invoiceAddress"
@@ -318,7 +318,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="invoiceCity" className="text-sm font-medium">
-                Città
+                City
               </Label>
               <Input
                 id="invoiceCity"
@@ -329,7 +329,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="invoicePostalCode" className="text-sm font-medium">
-                CAP
+                Postal Code
               </Label>
               <Input
                 id="invoicePostalCode"
@@ -340,7 +340,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="invoiceCountry" className="text-sm font-medium">
-                Paese
+                Country
               </Label>
               <Input
                 id="invoiceCountry"
@@ -353,7 +353,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="invoiceVatNumber" className="text-sm font-medium">
-                Partita IVA
+                VAT Number
               </Label>
               <Input
                 id="invoiceVatNumber"
@@ -364,7 +364,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="invoicePhone" className="text-sm font-medium">
-                Telefono
+                Phone
               </Label>
               <Input
                 id="invoicePhone"

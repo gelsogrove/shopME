@@ -98,6 +98,43 @@ router.get(
   internalApiController.getPublicOrderDetail.bind(internalApiController)
 )
 
+// 🛒 PUBLIC PRODUCTS ENDPOINT - No Auth Required (WhatsApp Bot)
+router.get("/public/products", internalApiController.getPublicProducts.bind(internalApiController));
+
+// 🔧 PUBLIC SERVICES ENDPOINT - No Auth Required (WhatsApp Bot)
+router.get("/public/services", (req, res) => {
+  // Simple services endpoint for WhatsApp bot
+  const { workspaceId } = req.query;
+  
+  if (!workspaceId) {
+    return res.status(400).json({
+      success: false,
+      error: "workspaceId is required"
+    });
+  }
+
+  // Mock services for testing
+  const services = [
+    {
+      id: "serv-001",
+      name: "Consegna a Domicilio",
+      description: "Consegna rapida entro 24-48 ore in tutta Italia",
+      price: 5.00
+    },
+    {
+      id: "serv-002",
+      name: "Confezionamento Regalo", 
+      description: "Confezionamento elegante con carta e fiocchi",
+      price: 3.50
+    }
+  ];
+
+  res.status(200).json({
+    success: true,
+    services: services
+  });
+});
+
 // 🔐 Token validation for public links (NO AUTH REQUIRED)
 router.post(
   "/validate-secure-token",

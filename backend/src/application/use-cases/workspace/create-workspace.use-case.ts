@@ -28,7 +28,23 @@ export class CreateWorkspaceUseCase {
       whatsappPhoneNumber: dto.whatsappPhoneNumber,
       whatsappApiToken: dto.whatsappApiToken,
       whatsappWebhookUrl: dto.whatsappWebhookUrl,
-      isActive: dto.isActive !== undefined ? dto.isActive : true
+      isActive: dto.isActive !== undefined ? dto.isActive : true,
+      language: "ENG",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isDelete: false,
+      currency: "EUR",
+      challengeStatus: false,
+      messageLimit: 50,
+      blocklist: "",
+      url: null,
+      n8nWorkflowUrl: null,
+      businessType: "ECOMMERCE",
+      welcomeMessages: null,
+      wipMessages: null,
+      afterRegistrationMessages: null,
+      debugMode: true,
+      adminEmail: null
     })
 
     return this.workspaceRepository.create(workspace)

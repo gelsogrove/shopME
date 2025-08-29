@@ -1,7 +1,7 @@
-import logger from "../utils/logger"
 import { PrismaClient } from "@prisma/client"
 import { Workspace, WorkspaceProps } from "../domain/entities/workspace.entity"
 import { WorkspaceRepositoryInterface } from "../domain/repositories/workspace.repository.interface"
+import logger from "../utils/logger"
 
 export class WorkspaceRepository implements WorkspaceRepositoryInterface {
   private prisma: PrismaClient
@@ -23,7 +23,6 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
       whatsappApiToken: data.whatsappApiKey,
       whatsappWebhookUrl: data.whatsappWebhookUrl,
       webhookUrl: data.webhookUrl,
-      n8nWorkflowUrl: data.n8nWorkflowUrl,
       notificationEmail: data.notificationEmail,
       language: data.language,
       currency: data.currency,
@@ -39,6 +38,9 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
       debugMode: data.debugMode ?? true,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
+      n8nWorkflowUrl: data.n8nWorkflowUrl,
+      businessType: data.businessType,
+      afterRegistrationMessages: data.afterRegistrationMessages,
     })
   }
 
@@ -130,7 +132,31 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
           return Workspace.create({
             id: workspace.id,
             name: workspace.name || "Deleted Workspace", // Ensure name is never empty
+            slug: workspace.slug || "deleted-workspace",
             isDelete: true,
+            isActive: false,
+            language: "ENG",
+            createdAt: workspace.createdAt || new Date(),
+            updatedAt: workspace.updatedAt || new Date(),
+            currency: "EUR",
+            challengeStatus: false,
+            description: null,
+            messageLimit: 50,
+            blocklist: "",
+            url: null,
+            n8nWorkflowUrl: null,
+            businessType: "ECOMMERCE",
+            welcomeMessages: null,
+            wipMessages: null,
+            afterRegistrationMessages: null,
+            debugMode: true,
+            adminEmail: null,
+            whatsappPhoneNumber: null,
+            whatsappApiKey: null,
+            whatsappApiToken: null,
+            whatsappWebhookUrl: null,
+            notificationEmail: null,
+            webhookUrl: null,
           })
         } else {
           throw error
@@ -298,7 +324,31 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
           return Workspace.create({
             id: updatedWorkspace.id,
             name: updatedWorkspace.name || "Deleted Workspace", // Ensure name is never empty
+            slug: updatedWorkspace.slug || "deleted-workspace",
             isDelete: true,
+            isActive: false,
+            language: "ENG",
+            createdAt: updatedWorkspace.createdAt || new Date(),
+            updatedAt: updatedWorkspace.updatedAt || new Date(),
+            currency: "EUR",
+            challengeStatus: false,
+            description: null,
+            messageLimit: 50,
+            blocklist: "",
+            url: null,
+            n8nWorkflowUrl: null,
+            businessType: "ECOMMERCE",
+            welcomeMessages: null,
+            wipMessages: null,
+            afterRegistrationMessages: null,
+            debugMode: true,
+            adminEmail: null,
+            whatsappPhoneNumber: null,
+            whatsappApiKey: null,
+            whatsappApiToken: null,
+            whatsappWebhookUrl: null,
+            notificationEmail: null,
+            webhookUrl: null,
           })
         }
         throw error

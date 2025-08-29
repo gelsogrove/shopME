@@ -8,7 +8,6 @@ import { chatRouter } from './chat.routes';
 import { customersRouter } from './customers.routes';
 
 import { faqsRouter } from './faqs.routes';
-import { messagesRouter } from './messages.routes';
 import { offersRouter } from './offers.routes';
 import { createOpenAIRouter } from './openai.routes';
 import { createOrderRouter } from './order.routes';
@@ -55,7 +54,7 @@ const serviceService = ServiceService;
 const userService = new UserService();
 const workspaceService = new WorkspaceService();
 const customerService = new CustomerService();
-const messageService = new MessageService();
+// Removed messageService
 const faqService = new FaqService();
 
 // Initialize controllers

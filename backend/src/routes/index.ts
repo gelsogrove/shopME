@@ -10,24 +10,24 @@ import { CustomersController } from "../interfaces/http/controllers/customers.co
 import logger from "../utils/logger"
 
 import { FaqController } from "../interfaces/http/controllers/faq.controller"
-import { MessageController } from "../interfaces/http/controllers/message.controller"
+// Removed MessageController import
 import { ProductController } from "../interfaces/http/controllers/product.controller"
 import { ServicesController } from "../interfaces/http/controllers/services.controller"
 
 import { UserController } from "../interfaces/http/controllers/user.controller"
-import { WhatsAppController } from "../interfaces/http/controllers/whatsapp.controller"
+// Removed WhatsAppController import
 import { createAgentRouter } from "../interfaces/http/routes/agent.routes"
 import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
 import { chatRouter } from "../interfaces/http/routes/chat.routes"
 import {
-    customersRouter,
-    workspaceCustomersRouter,
+  customersRouter,
+  workspaceCustomersRouter,
 } from "../interfaces/http/routes/customers.routes"
 
 import { faqsRouter } from "../interfaces/http/routes/faqs.routes"
 import { createLanguagesRouter } from "../interfaces/http/routes/languages.routes"
-import { messagesRouter } from "../interfaces/http/routes/messages.routes"
+// Removed messagesRouter import
 import { offersRouter } from "../interfaces/http/routes/offers.routes"
 import { createOrderRouter } from "../interfaces/http/routes/order.routes"
 import createRegistrationRouter from "../interfaces/http/routes/registration.routes"
@@ -35,7 +35,7 @@ import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import createSettingsRouter from "../interfaces/http/routes/settings.routes"
 
 import { checkoutRouter } from "../interfaces/http/routes/checkout.routes"
-import { whatsappRouter } from "../interfaces/http/routes/whatsapp.routes"
+// Removed whatsappRouter import
 import { workspaceRoutes } from "../interfaces/http/routes/workspace.routes"
 // Import the legacy workspace routes that has the /current endpoint
 import workspaceRoutesLegacy from "./workspace.routes"
@@ -81,6 +81,168 @@ const router = Router()
 // Add logging middleware
 router.use(loggingMiddleware)
 
+// WhatsApp webhook routes (must be FIRST, before any authentication middleware)
+import { DualLLMService } from '../services/dual-llm.service'
+import { LLMRequest } from '../types/whatsapp.types'
+
+// Public WhatsApp webhook routes (NO AUTHENTICATION)
+router.post("/whatsapp/webhook", async (req, res) => {
+  try {
+    console.log('🚨🚨🚨 WHATSAPP WEBHOOK - DUAL LLM SYSTEM!!! 🚨🚨🚨');
+    
+    // For GET requests (verification)
+    if (req.method === "GET") {
+      const mode = req.query["hub.mode"]
+      const token = req.query["hub.verify_token"]
+      const challenge = req.query["hub.challenge"]
+
+      const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN || "test-verify-token"
+      if (mode === "subscribe" && token === verifyToken) {
+        console.log("WhatsApp webhook verified")
+        res.status(200).send(challenge)
+        return
+      }
+
+      res.status(403).send("Verification failed")
+      return
+    }
+
+    // For POST requests (incoming messages)
+    const data = req.body
+    console.log("WhatsApp webhook received", { data })
+
+    // 🔍 DETECT FORMAT: WhatsApp vs Test Format
+    let phoneNumber, messageContent, workspaceId, customerId;
+    
+    // Check if it's WhatsApp format
+    if (data.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from) {
+      console.log("📱 WhatsApp format detected");
+      phoneNumber = data.entry[0].changes[0].value.messages[0].from;
+      messageContent = data.entry[0].changes[0].value.messages[0].text?.body;
+      workspaceId = process.env.WHATSAPP_WORKSPACE_ID || "cm9hjgq9v00014qk8fsdy4ujv";
+      
+      // Find customer by phone number
+      try {
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        const customer = await prisma.customers.findFirst({
+          where: {
+            phone: phoneNumber,
+            workspaceId: workspaceId,
+            isActive: true
+          },
+          select: {
+            id: true,
+            name: true,
+            phone: true
+          }
+        });
+
+        if (customer) {
+          customerId = customer.id;
+          console.log(`✅ Customer found: ${customer.name} (${customer.id})`);
+        } else {
+          console.log(`⚠️ No customer found for phone: ${phoneNumber}`);
+          customerId = "test-customer-123";
+        }
+      } catch (error) {
+        console.error('❌ Error finding customer:', error);
+        customerId = "test-customer-123";
+      }
+    }
+    // Check if it's test format
+    else if (data.chatInput && data.customerid && data.workspaceId) {
+      console.log("🧪 Test format detected");
+      phoneNumber = "test-phone-123";
+      messageContent = data.chatInput;
+      workspaceId = data.workspaceId;
+      customerId = data.customerid;
+    }
+    // Invalid format
+    else {
+      console.log("❌ Invalid format - no valid message found");
+      res.status(200).send("OK")
+      return
+    }
+
+    console.log(`📱 Processing message: "${messageContent}" from ${customerId}`)
+
+    // Use our DUAL LLM SYSTEM
+    const dualLLMService = new DualLLMService();
+    
+    // Get agent config with prompt from database
+    let agentPrompt = "WhatsApp conversation"; // fallback
+    try {
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+      
+      const agentConfig = await prisma.agentConfig.findFirst({
+        where: { workspaceId: workspaceId }
+      });
+      if (agentConfig && agentConfig.prompt) {
+        agentPrompt = agentConfig.prompt;
+        console.log('✅ Using prompt from database');
+      } else {
+        console.log('⚠️ No agent config found, using fallback prompt');
+      }
+    } catch (error) {
+      console.error('❌ Error getting agent config:', error);
+    }
+    
+    const llmRequest: LLMRequest = {
+      chatInput: messageContent,
+      workspaceId: workspaceId,
+      customerid: customerId,
+      phone: phoneNumber,
+      language: "it",
+      sessionId: "webhook-session",
+      temperature: 0.0,
+      maxTokens: 3500,
+      model: "gpt-4o",
+      messages: data.messages || [],
+      prompt: agentPrompt
+    };
+    
+    console.log('🚀 CALLING DUAL LLM SERVICE!!!');
+    const result = await dualLLMService.processMessage(llmRequest);
+    console.log('✅ DUAL LLM RESULT:', result);
+    
+    // TODO: Send response back to WhatsApp
+    console.log('📤 Response to send:', result.output);
+    
+    res.json({ 
+      success: true, 
+      message: result.output,
+      debug: { llmRequest, result }
+    });
+  } catch (error) {
+    console.error('❌ WHATSAPP WEBHOOK ERROR:', error);
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
+  }
+});
+
+router.get("/whatsapp/webhook", async (req, res) => {
+  // Same logic as POST for verification
+  const mode = req.query["hub.mode"]
+  const token = req.query["hub.verify_token"]
+  const challenge = req.query["hub.challenge"]
+
+  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN || "test-verify-token"
+  if (mode === "subscribe" && token === verifyToken) {
+    console.log("WhatsApp webhook verified")
+    res.status(200).send(challenge)
+    return
+  }
+
+  res.status(403).send("Verification failed")
+});
+
+logger.info("Registered WhatsApp webhook routes FIRST (public, no authentication)")
+
 // Debug middleware removed - TypeScript errors fixed
 
 // Initialize Prisma client
@@ -98,7 +260,7 @@ const servicesController = new ServicesController()
 const categoryController = new CategoryController()
 
 const chatController = new ChatController()
-const messageController = new MessageController()
+// Removed messageController
 const productController = new ProductController()
 const userController = new UserController(userService)
 const authController = new AuthController(
@@ -108,7 +270,7 @@ const authController = new AuthController(
 )
 const promptsController = new PromptsController()
 const faqController = new FaqController()
-const whatsappController = new WhatsAppController()
+// Removed whatsappController
 
 // Initialize Settings controller for GDPR routes
 const settingsController = new SettingsController()
@@ -117,7 +279,7 @@ const settingsController = new SettingsController()
 router.use("/auth", authRouter(authController))
 router.use("/registration", createRegistrationRouter())
 router.use("/chat", chatRouter(chatController))
-router.use("/messages", messagesRouter(messageController))
+// Removed messages route
 router.use("/users", createUserRouter())
 // Mount customer routes on both legacy and workspace paths to ensure backward compatibility
 router.use("/", customersRouter(customersController))
@@ -200,11 +362,7 @@ import ordersPublicRoutes from "../interfaces/http/routes/orders.routes"
 router.use("/orders", ordersPublicRoutes)
 logger.info("Registered public orders routes with JWT authentication")
 
-// Mount WhatsApp router
-const whatsappInstance = whatsappRouter(whatsappController)
-// Mount all whatsapp routes (webhook routes are now defined in app.ts)
-router.use("/whatsapp", whatsappInstance)
-logger.info("Registered WhatsApp router with auth-protected endpoints")
+
 
 
 

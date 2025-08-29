@@ -28,57 +28,57 @@ export const TokenError: React.FC<TokenErrorProps> = ({
       case 'EXPIRED_TOKEN':
         return {
           icon: '⏰',
-          title: 'Link Scaduto',
+          title: 'Link Expired',
           bgColor: 'bg-orange-50',
           borderColor: 'border-orange-200',
           textColor: 'text-orange-800',
           messageColor: 'text-orange-700',
           suggestions: [
-            '• Il link aveva validità di 1 ora',
-            '• Torna su WhatsApp per richiedere un nuovo link',
-            '• I tuoi prodotti sono ancora disponibili'
+            '• The link had a 1-hour validity',
+            '• Return to WhatsApp to request a new link',
+            '• Your products are still available'
           ]
         }
       case 'ALREADY_USED':
         return {
           icon: '✅',
-          title: 'Link Già Utilizzato',
+          title: 'Link Already Used',
           bgColor: 'bg-blue-50',
           borderColor: 'border-blue-200',
           textColor: 'text-blue-800',
           messageColor: 'text-blue-700',
           suggestions: [
-            '• Questo link è già stato usato per completare un ordine',
-            '• Controlla la tua email per la conferma',
-            '• Per un nuovo ordine, torna su WhatsApp'
+            '• This link has already been used to complete an order',
+            '• Check your email for confirmation',
+            '• For a new order, return to WhatsApp'
           ]
         }
       case 'INVALID_TOKEN':
         return {
           icon: '🚫',
-          title: 'Link Non Valido',
+          title: 'Invalid Link',
           bgColor: 'bg-red-50',
           borderColor: 'border-red-200',
           textColor: 'text-red-800',
           messageColor: 'text-red-700',
           suggestions: [
-            '• Controlla di aver copiato tutto il link',
-            '• Il link potrebbe essere corrotto',
-            '• Richiedi un nuovo link via WhatsApp'
+            '• Check that you copied the entire link',
+            '• The link might be corrupted',
+            '• Request a new link via WhatsApp'
           ]
         }
       default:
         return {
           icon: '⚠️',
-          title: 'Errore Link',
+          title: 'Link Error',
           bgColor: 'bg-red-50',
           borderColor: 'border-red-200',
           textColor: 'text-red-800',
           messageColor: 'text-red-700',
           suggestions: [
-            '• Controlla di aver copiato tutto il link',
-            '• Richiedi un nuovo link via WhatsApp',
-            '• Verifica che il link non sia scaduto'
+            '• Check that you copied the entire link',
+            '• Request a new link via WhatsApp',
+            '• Verify that the link has not expired'
           ]
         }
     }
@@ -106,13 +106,13 @@ export const TokenError: React.FC<TokenErrorProps> = ({
         {/* Expiration Time for Expired Tokens */}
         {errorType === 'EXPIRED_TOKEN' && expiresAt && (
           <div className={`text-sm ${config.messageColor} bg-white bg-opacity-50 rounded-lg px-4 py-2`}>
-            <p>⏰ Scaduto il: {new Date(expiresAt).toLocaleString('it-IT')}</p>
+            <p>⏰ Expired on: {new Date(expiresAt).toLocaleString('en-US')}</p>
           </div>
         )}
         
         {/* Suggestions */}
         <div className={`text-sm ${config.messageColor} max-w-md`}>
-          <p className="mb-2 font-medium">Cosa puoi fare:</p>
+          <p className="mb-2 font-medium">What you can do:</p>
           <ul className="text-left space-y-1">
             {config.suggestions.map((suggestion, index) => (
               <li key={index}>{suggestion}</li>
@@ -126,13 +126,13 @@ export const TokenError: React.FC<TokenErrorProps> = ({
             onClick={onRetry}
             className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
           >
-            Riprova
+            Try Again
           </button>
         )}
         
         {/* Contact Support */}
         <div className="text-xs text-gray-500 border-t border-red-200 pt-4 w-full">
-          Problemi persistenti? Contatta il supporto via WhatsApp
+          Persistent problems? Contact support via WhatsApp
         </div>
       </div>
     </div>
@@ -152,11 +152,11 @@ export const TokenLoading: React.FC<{ className?: string }> = ({ className = "" 
         
         {/* Loading Message */}
         <p className="text-blue-700 font-medium">
-          Verificando il link...
+          Verifying link...
         </p>
         
         <p className="text-sm text-blue-600">
-          Attendere prego, stiamo validando il token di sicurezza
+          Please wait, we are validating the security token
         </p>
       </div>
     </div>

@@ -1,26 +1,25 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { logger } from "@/lib/logger"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { logger } from "@/lib/logger"
 import { toast } from "@/lib/toast"
 import { api } from "@/services/api"
 import {
     ArrowLeftRight,
-  Bot,
-  CreditCard,
-  LogOut,
-  Network,
-  Phone,
-  Settings,
-  ShieldCheck,
-  User,
+    Bot,
+    CreditCard,
+    LogOut,
+    Phone,
+    Settings,
+    ShieldCheck,
+    User
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -239,18 +238,6 @@ export function Header() {
               >
                 <Bot className="mr-3 h-5 w-5" />
                 <span>Agent Configuration</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="p-4 text-lg cursor-pointer"
-                onClick={() => {
-                  const workflowUrl =
-                    workspace?.n8nWorkflowUrl ||
-                    "http://localhost:5678/projects/7i6FA4CnEst9J9FX/workflows"
-                  window.open(workflowUrl, "_blank")
-                }}
-              >
-                <Network className="mr-3 h-5 w-5" />
-                <span>N8N Workflow</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

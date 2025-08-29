@@ -4743,6 +4743,113 @@ Risposta solo in JSON, niente altro testo.
   }
 
     /**
+   * 🛒 GET PUBLIC PRODUCTS - No Auth Required (WhatsApp Bot)
+   * GET /internal/public/products
+   * Get all active products for WhatsApp bot
+   */
+  async getPublicProducts(req: Request, res: Response): Promise<void> {
+    try {
+      const { workspaceId } = req.query;
+      
+      if (!workspaceId) {
+        res.status(400).json({
+          success: false,
+          error: "workspaceId is required"
+        });
+        return;
+      }
+
+      logger.info('[INTERNAL-API] Getting public products for workspace: ' + workspaceId);
+
+      const products = await prisma.products.findMany({
+        where: {
+          workspaceId: workspaceId as string,
+          isActive: true
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+          ProductCode: true
+        }
+      });
+
+      // Format products for WhatsApp
+      const formattedProducts = products.map(product => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        originalPrice: product.price, // Use price as originalPrice
+        discountPercent: 0, // No discount by default
+        ProductCode: product.ProductCode,
+        formatted: `€${product.price.toFixed(2)}`
+      }));
+
+      res.status(200).json({
+        success: true,
+        products: formattedProducts
+      });
+
+      logger.info('[INTERNAL-API] Public products retrieved: ' + formattedProducts.length + ' products');
+    } catch (error) {
+      logger.error('[INTERNAL-API] Get public products error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  /**
+   * 🔧 GET PUBLIC SERVICES - No Auth Required (WhatsApp Bot)
+   * GET /internal/public/services
+   * Get all active services for WhatsApp bot
+   */
+  async getPublicServices(req: Request, res: Response): Promise<void> {
+    try {
+      const { workspaceId } = req.query;
+      
+      if (!workspaceId) {
+        res.status(400).json({
+          success: false,
+          error: "workspaceId is required"
+        });
+        return;
+      }
+
+      logger.info('[INTERNAL-API] Getting public services for workspace: ' + workspaceId);
+
+      const services = await prisma.services.findMany({
+        where: {
+          workspaceId: workspaceId as string,
+          isActive: true
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true
+        }
+      });
+
+      res.status(200).json({
+        success: true,
+        services: services
+      });
+
+      logger.info('[INTERNAL-API] Public services retrieved: ' + services.length + ' services');
+    } catch (error) {
+      logger.error('[INTERNAL-API] Get public services error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  /**
    * 🧪 TEST WHATSAPP MESSAGE - REMOVED
    * Using real /api/messages endpoint instead for realistic testing
    */

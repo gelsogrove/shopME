@@ -40,6 +40,7 @@ import { LanguagesPage } from "./pages/settings/LanguagesPage"
 import { ProductsPage as SettingsProductsPage } from "./pages/settings/ProductsPage"
 
 import { Suspense, lazy } from "react"
+import { WorkspaceProvider } from "./contexts/WorkspaceContext"
 import SurveysPage from "./pages/SurveysPage"
 import { VerifyOtpPage } from "./pages/VerifyOtpPage"
 import { WorkspacePage } from "./pages/WorkspacePage"
@@ -50,8 +51,9 @@ const CustomerProfilePublicPage = lazy(() => import("./pages/CustomerProfilePubl
 
 export function App() {
   return (
-    <BrowserRouter>
-      <Toaster position="top-right" duration={1000} />
+    <WorkspaceProvider>
+      <BrowserRouter>
+        <Toaster position="top-right" duration={1000} />
       <Routes>
         {/* Auth Routes - accessibili senza autenticazione */}
         <Route path="/auth">
@@ -215,6 +217,7 @@ export function App() {
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </WorkspaceProvider>
   )
 }

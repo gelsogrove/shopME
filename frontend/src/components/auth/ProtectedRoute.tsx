@@ -1,4 +1,3 @@
-import { useCurrentUser } from "@/hooks/useCurrentUser"
 import { logger } from "@/lib/logger"
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -9,65 +8,46 @@ import { Navigate, Outlet, useLocation } from "react-router-dom"
  * Controlla se l'utente è autenticato e in caso contrario reindirizza alla pagina di login.
  */
 export function ProtectedRoute() {
-  const { data: userData, isLoading, isError, refetch } = useCurrentUser()
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
-  const [retryCount, setRetryCount] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
   const location = useLocation()
 
   useEffect(() => {
-    const verifyAuth = async () => {
+    const verifyAuth = () => {
       try {
-        // Verifica se abbiamo già i dati dell'utente
-        if (userData) {
-          setIsAuthenticated(true)
-          return
-        }
-
-        // Verifica se c'è un utente nel localStorage per gestire i ricaricamenti
+        // Verifica solo localStorage - NO chiamate API
         const storedUser = localStorage.getItem("user")
         if (storedUser) {
           try {
             const parsedUser = JSON.parse(storedUser)
             if (parsedUser && parsedUser.id) {
-              // Abbiamo già dei dati utente in localStorage, usa quelli temporaneamente
               setIsAuthenticated(true)
-
-              // Tenta comunque un refetch per aggiornare i dati
-              refetch()
+              setIsLoading(false)
               return
             }
           } catch (e) {
             logger.error("Error parsing user data from localStorage:", e)
+            localStorage.removeItem("user")
           }
         }
 
-        // Se arrivati qui, non abbiamo un utente valido, ma proviamo a refetch
-        if (retryCount < 3) {
-          setRetryCount((count) => count + 1)
-          const result = await refetch()
-          setIsAuthenticated(!!result.data)
-        } else {
-          setIsAuthenticated(false)
-        }
+        // Se arrivati qui, non abbiamo un utente valido
+        setIsAuthenticated(false)
+        setIsLoading(false)
       } catch (error) {
         logger.error("Error verifying authentication:", error)
-
-        // Solo dopo alcuni tentativi falliti imposta l'autenticazione a false
-        if (retryCount >= 2) {
-          setIsAuthenticated(false)
-        } else {
-          // Altrimenti incrementa il contatore e riprova
-          setRetryCount((count) => count + 1)
-          setTimeout(() => refetch(), 1000) // Riprova dopo 1 secondo
-        }
+        setIsAuthenticated(false)
+        setIsLoading(false)
       }
     }
 
-    verifyAuth()
-  }, [userData, retryCount, refetch])
+    // Piccolo delay per evitare loop immediati
+    const timer = setTimeout(verifyAuth, 100)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Mostra un loader mentre verifichiamo l'autenticazione
-  if (isAuthenticated === null || (isLoading && retryCount < 3)) {
+  if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
