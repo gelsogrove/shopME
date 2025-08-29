@@ -283,6 +283,8 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
     let orderLink = null;
     let orderCode = null;
     let orderError = null;
+    let trackingLink = null;
+    let trackingError = null;
     let products = null;
     let services = null;
     
@@ -295,6 +297,16 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
             orderCode = result.arguments?.orderCode || null;
           } else if (result.result?.linkUrl) {
             orderLink = result.result.linkUrl;
+            orderCode = result.arguments?.orderCode || null;
+          }
+        }
+        else if (result.functionName === 'getShipmentTrackingLink') {
+          if (result.result?.success === false) {
+            // Handle tracking order not found error
+            trackingError = result.result.message || result.result.error;
+            orderCode = result.arguments?.orderCode || null;
+          } else if (result.result?.linkUrl) {
+            trackingLink = result.result.linkUrl;
             orderCode = result.arguments?.orderCode || null;
           }
         }
@@ -314,6 +326,17 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
       if (orderCode) {
         dataDescription += `\nThe order ${orderCode} was not found in the system.`;
       }
+    } else if (trackingError) {
+      dataDescription += `\n\nTRACKING ERROR: ${trackingError}`;
+      if (orderCode) {
+        if (trackingError.includes('tracking-id')) {
+          dataDescription += `\nThe order ${orderCode} exists but has no tracking number in the system.`;
+        } else {
+          dataDescription += `\nThe order ${orderCode} was not found for tracking.`;
+        }
+      }
+    } else if (trackingLink && orderCode) {
+      dataDescription += `\n\nI have generated a tracking link for order ${orderCode}: ${trackingLink}`;
     } else if (orderLink && orderCode) {
       dataDescription += `\n\nI have generated a secure link for order ${orderCode}: ${orderLink}`;
     } else if (orderLink) {
@@ -399,6 +422,13 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
           //   break;
           case 'getOrdersListLink':
             result = await this.callingFunctionsService.getOrdersListLink({
+              customerId: request.customerid,
+              workspaceId: request.workspaceId,
+              orderCode: arguments_.orderCode
+            });
+            break;
+          case 'getShipmentTrackingLink':
+            result = await this.callingFunctionsService.getShipmentTrackingLink({
               customerId: request.customerid,
               workspaceId: request.workspaceId,
               orderCode: arguments_.orderCode

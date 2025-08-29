@@ -53,10 +53,11 @@ export interface RagSearchResponse extends StandardResponse {
 }
 
 export interface TokenResponse extends StandardResponse {
-  token: string;
+  token?: string;
   expiresAt: string;
   linkUrl: string;
   action: string;
+  trackingNumber?: string;
 }
 
 export interface WhatsAppRequest {

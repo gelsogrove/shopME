@@ -16,6 +16,12 @@ export interface GetOrdersListLinkRequest {
   orderCode?: string;
 }
 
+export interface GetShipmentTrackingLinkRequest {
+  customerId: string;
+  workspaceId: string;
+  orderCode: string;
+}
+
 export class CallingFunctionsService {
   private secureTokenService: SecureTokenService;
   private baseUrl: string;
@@ -326,30 +332,79 @@ export class CallingFunctionsService {
   //   }
   // }
 
-  // public async getShipmentTrackingLink(request: GetShipmentTrackingLinkRequest): Promise<GetShipmentTrackingLinkResponse> {
-  //   try {
-  //     console.log('🔧 Calling getShipmentTrackingLink with:', request);
+  public async getShipmentTrackingLink(request: GetShipmentTrackingLinkRequest): Promise<TokenResponse> {
+    try {
+      console.log('🔧 Calling getShipmentTrackingLink with:', request);
       
-  //     const response = await axios.get(`${this.baseUrl}/shipment-tracking`, {
-  //       params: {
-  //         workspaceId: request.workspaceId,
-  //         customerId: request.customerId
-  //       },
-  //       timeout: 10000
-  //     });
+      // Validate that orderCode exists in database and get trackingNumber
+      let order;
+      try {
+        console.log('🔍 Checking if order exists in database for tracking:', request.orderCode);
+        
+        // Import Prisma client
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        // Query the database for the order with trackingNumber
+        order = await prisma.orders.findFirst({
+          where: {
+            orderCode: request.orderCode,
+            workspaceId: request.workspaceId
+          },
+          select: {
+            orderCode: true,
+            trackingNumber: true
+          }
+        });
+        
+        await prisma.$disconnect();
+        
+        if (!order) {
+          console.log('❌ Order not found in database for tracking:', request.orderCode);
+          return {
+            success: false,
+            error: `Ordine non trovato`,
+            message: `Ordine non trovato`,
+            timestamp: new Date().toISOString()
+          } as TokenResponse;
+        }
+        
+        if (!order.trackingNumber) {
+          console.log('❌ No tracking number found for order:', request.orderCode);
+          return {
+            success: false,
+            error: `Non c'è il tracking-id nell'ordine`,
+            message: `Non c'è il tracking-id nell'ordine`,
+            timestamp: new Date().toISOString()
+          } as TokenResponse;
+        }
 
-  //     return {
-  //       success: true,
-  //       linkUrl: response.data.trackingUrl || '',
-  //       timestamp: new Date().toISOString()
-  //     };
+        console.log('✅ Order found with tracking number:', order.trackingNumber);
+        
+      } catch (dbError) {
+        console.log('❌ Database error while checking order for tracking:', dbError);
+        return {
+          success: false,
+          error: `Ordine non trovato`,
+          message: `Ordine non trovato`,
+          timestamp: new Date().toISOString()
+        } as TokenResponse;
+      }
 
-  //   } catch (error) {
-  //     const errorResponse = this.createErrorResponse(error, 'getShipmentTrackingLink');
-  //     return {
-  //       ...errorResponse,
-  //       linkUrl: ''
-  //     };
-  //   }
-  // }
+      // Generate DHL tracking link
+      const dhlTrackingUrl = `https://www.dhl.com/it-en/home/tracking.html?locale=true&tracking-id=${order.trackingNumber}`;
+
+      return {
+        success: true,
+        linkUrl: dhlTrackingUrl,
+        trackingNumber: order.trackingNumber,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        action: 'tracking',
+        timestamp: new Date().toISOString()
+      };
+
+    } catch (error) {
+      return this.createErrorResponse(error, 'getShipmentTrackingLink') as TokenResponse;
+    }
+  }
 }

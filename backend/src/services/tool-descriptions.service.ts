@@ -42,6 +42,17 @@ export class ToolDescriptionsService {
     };
   }
 
+  public getShipmentTrackingLink(): ToolDescription {
+    return {
+      name: 'getShipmentTrackingLink',
+      description: 'tracking link for order shipment status',
+      whenToUse: 'when user asks about shipment tracking, delivery status, or where their order is',
+      examples: ['dove è il mio ordine', 'tracking spedizione', 'stato spedizione', 'dove è la merce'],
+      output: 'Tracking link and shipment information',
+      notes: 'Provides shipment tracking for specific orders'
+    };
+  }
+
   // public getCustomerProfileLink(): ToolDescription {
   //   return {
   //     name: 'getCustomerProfileLink',
@@ -113,6 +124,7 @@ export class ToolDescriptionsService {
       // this.getAllProducts(),
       // this.getServices(),
       this.getOrdersListLink(),
+      this.getShipmentTrackingLink(),
       // this.getCustomerProfileLink(),
       // this.getAllCategories(),
       // this.getActiveOffers(),
