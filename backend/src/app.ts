@@ -6,11 +6,13 @@ import OpenAI from "openai"
 import path from "path"
 import swaggerUi from "swagger-ui-express"
 import { swaggerSpec } from "./config/swagger"
-import { WhatsAppController } from "./interfaces/http/controllers/whatsapp.controller"
+
 import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware"
 import { jsonFixMiddleware } from "./interfaces/http/middlewares/json-fix.middleware"
 import { loggingMiddleware } from "./middlewares/logging.middleware"
 import apiRouter from "./routes"
+import { DualLLMService } from './services/dual-llm.service'
+import { LLMRequest } from './types/whatsapp.types'
 import logger from "./utils/logger"
 
 // Extend Request interface to include rawBody
@@ -109,14 +111,99 @@ app.post("/api/test/json-parser", (req, res) => {
 })
 
 // Public WhatsApp webhook routes (must be before authentication)
-logger.info("Mounting public WhatsApp webhook routes")
-const whatsappController = new WhatsAppController()
-app.post("/api/whatsapp/webhook", (req, res, next) =>
-  whatsappController.handleWebhook(req, res).catch(next)
-)
-app.get("/api/whatsapp/webhook", (req, res, next) =>
-  whatsappController.handleWebhook(req, res).catch(next)
-)
+logger.info("Mounting public WhatsApp webhook routes with DUAL LLM SYSTEM")
+
+app.post("/api/whatsapp/webhook", async (req, res) => {
+  try {
+    console.log('🚨🚨🚨 WHATSAPP WEBHOOK - DUAL LLM SYSTEM!!! 🚨🚨🚨');
+    
+    // For GET requests (verification)
+    if (req.method === "GET") {
+      const mode = req.query["hub.mode"]
+      const token = req.query["hub.verify_token"]
+      const challenge = req.query["hub.challenge"]
+
+      const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN || "test-verify-token"
+      if (mode === "subscribe" && token === verifyToken) {
+        console.log("WhatsApp webhook verified")
+        res.status(200).send(challenge)
+        return
+      }
+
+      res.status(403).send("Verification failed")
+      return
+    }
+
+    // For POST requests (incoming messages)
+    const data = req.body
+    console.log("WhatsApp webhook received", { data })
+
+    // Extract message data
+    const phoneNumber = data.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from
+    const messageContent = data.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.text?.body
+    const workspaceId = process.env.WHATSAPP_WORKSPACE_ID || "cm9hjgq9v00014qk8fsdy4ujv"
+
+    if (!phoneNumber || !messageContent) {
+      console.log("No valid message found in webhook")
+      res.status(200).send("OK")
+      return
+    }
+
+    console.log(`📱 Processing message from ${phoneNumber}: "${messageContent}"`)
+
+    // Use our DUAL LLM SYSTEM
+    const dualLLMService = new DualLLMService();
+    
+    const llmRequest: LLMRequest = {
+      chatInput: messageContent,
+      workspaceId: workspaceId,
+      customerid: "test-customer", // TODO: Get from database
+      phone: phoneNumber,
+      language: "it",
+      sessionId: "webhook-session",
+      temperature: 0.0,
+      maxTokens: 3500,
+      model: "gpt-4o",
+      messages: [],
+      prompt: "WhatsApp conversation"
+    };
+    
+    console.log('🚀 CALLING DUAL LLM SERVICE!!!');
+    const result = await dualLLMService.processMessage(llmRequest);
+    console.log('✅ DUAL LLM RESULT:', result);
+    
+    // TODO: Send response back to WhatsApp
+    console.log('📤 Response to send:', result.output);
+    
+    res.json({ 
+      success: true, 
+      message: result.output,
+      debug: { llmRequest, result }
+    });
+  } catch (error) {
+    console.error('❌ WHATSAPP WEBHOOK ERROR:', error);
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
+  }
+});
+
+app.get("/api/whatsapp/webhook", async (req, res) => {
+  // Same logic as POST for verification
+  const mode = req.query["hub.mode"]
+  const token = req.query["hub.verify_token"]
+  const challenge = req.query["hub.challenge"]
+
+  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN || "test-verify-token"
+  if (mode === "subscribe" && token === verifyToken) {
+    console.log("WhatsApp webhook verified")
+    res.status(200).send(challenge)
+    return
+  }
+
+  res.status(403).send("Verification failed")
+});
 
 // API versioning
 const apiVersions = {
@@ -208,8 +295,6 @@ import workspaceRoutesRoot from "./routes/workspace.routes"
 app.use("/workspaces", workspaceRoutesRoot)
 
 // ANDREA TEST: Endpoint per testare DualLLMService direttamente
-import { DualLLMService } from './services/dual-llm.service'
-import { LLMRequest } from './types/whatsapp.types'
 
 app.post("/api/test/dual-llm", async (req, res) => {
   try {

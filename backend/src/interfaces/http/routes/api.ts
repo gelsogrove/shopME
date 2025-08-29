@@ -18,7 +18,7 @@ import { settingsRouter } from './settings.routes';
 
 import { internalApiRoutes } from './internal-api.routes';
 import { createUserRouter } from './user.routes';
-import { whatsappRouter } from './whatsapp.routes';
+// Removed whatsappRouter import
 import { workspaceRouter } from './workspace.routes';
 
 import { CategoriesController } from '../controllers/categories.controller';
@@ -26,7 +26,7 @@ import { ChatController } from '../controllers/chat.controller';
 import { CustomersController } from '../controllers/customers.controller';
 
 import { FaqController } from '../controllers/faq.controller';
-import { MessageController } from '../controllers/message.controller';
+// Removed MessageController import
 import { OfferController } from '../controllers/offer.controller';
 import { OpenAIController } from '../controllers/openai.controller';
 import { ProductController } from '../controllers/product.controller';
@@ -34,12 +34,12 @@ import { ServicesController } from '../controllers/services.controller';
 import { SettingsController } from '../controllers/settings.controller';
 
 import { UserController } from '../controllers/user.controller';
-import { WhatsAppController } from '../controllers/whatsapp.controller';
+// Removed WhatsAppController import
 import { WorkspaceController } from '../controllers/workspace.controller';
 
 import { CustomerService } from '../../../application/services/customer.service';
 import { FaqService } from '../../../application/services/faq.service';
-import { MessageService } from '../../../application/services/message.service';
+// Removed MessageService import
 import { OtpService } from '../../../application/services/otp.service';
 import { PasswordResetService } from '../../../application/services/password-reset.service';
 import { ProductService } from '../../../application/services/product.service';
@@ -66,9 +66,8 @@ const categoriesController = new CategoriesController();
 const workspaceController = new WorkspaceController();
 const chatController = new ChatController();
 const customersController = new CustomersController();
-const messageController = new MessageController();
 const settingsController = new SettingsController();
-const whatsappController = new WhatsAppController();
+// Removed messageController and whatsappController
 const authController = new AuthController(userService, new OtpService(prisma), new PasswordResetService(prisma));
 
 const offerController = new OfferController();
@@ -86,13 +85,12 @@ export const apiRouter = (): Router => {
   router.use('/categories', categoriesRouter());
   router.use('/workspace', workspaceRouter());
   router.use('/chat', chatRouter(chatController));
-  router.use('/messages', messagesRouter(messageController));
   router.use('/settings', settingsRouter(settingsController));
 
   router.use('/offers', offersRouter());
   router.use('/customers', customersRouter(customersController));
   router.use('/faqs', faqsRouter());
-  router.use('/whatsapp', whatsappRouter(whatsappController));
+  // Removed messages and whatsapp routes
   router.use('/openai', createOpenAIRouter(openaiController));
   
   // Orders routes
