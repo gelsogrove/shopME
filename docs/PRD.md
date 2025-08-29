@@ -1624,6 +1624,8 @@ CREATE INDEX idx_order_events_order_date ON order_events(order_id, created_at DE
 
 ### **🎯 N8N Integration & Calling Functions**
 
+> **📖 For complete Calling Functions implementation pattern, see: [Calling Functions Architecture Pattern](#🔧-calling-functions-architecture-pattern)**
+
 #### **Orders Calling Functions**
 
 ```typescript
@@ -3869,6 +3871,245 @@ The N8N workflow does NOT contain the actual chatbot prompt text. Instead, it im
 - **Format:** Markdown with comprehensive AI agent instructions
 - **Content:** Complete chatbot behavior, function calling rules, formatting guidelines, business logic
 - **Maintenance:** Single source of truth for all chatbot behavior modifications
+
+### **🔧 Calling Functions Architecture Pattern**
+
+**Base Pattern implemented for `GetOrdersListLink()`, `GetShipmentTrackingLink()`, and `GetAllProducts()`:**
+
+#### **🏗️ Complete Implementation Stack**
+
+**1. Prompt Definition (`prompt_agent.md`)**
+```markdown
+## GetShipmentTrackingLink(orderCode)
+se un utente chiede dove si trova il suo ordine o vuole il tracking della spedizione, dobbiamo lanciare la Calling function `GetShipmentTrackingLink()` con il parametro `orderCode` impostato al numero dell'ordine richiesto.
+
+**TRIGGERS per tracking spedizione:**
+- "dove è il mio ordine"
+- "tracking spedizione" 
+- "stato spedizione"
+- "where is my order"
+- "shipment tracking"
+- "delivery status"
+```
+
+**GetAllProducts() Example:**
+```markdown
+## GetAllProducts()
+se un utente chiede la lista dei prodotti, il catalogo, o cosa abbiamo disponibile, dobbiamo lanciare la Calling function `GetAllProducts()` che ritorna la lista completa dei prodotti organizzata per categoria. IMPORTANTE: nella risposta aggiungi sempre icone appropriate per ogni categoria (es. 🍷 per Beverages, 🍝 per Pasta, 🧀 per Cheese, ecc.).
+
+**TRIGGERS per lista prodotti:**
+- "dammi la lista dei prodotti"
+- "che prodotti avete"
+- "catalogo prodotti"
+- "show me products"
+- "product list"
+```
+
+**2. Tool Description Service (`tool-descriptions.service.ts`)**
+```typescript
+public getShipmentTrackingLink(): ToolDescription {
+  return {
+    name: 'getShipmentTrackingLink',
+    description: 'tracking link for order shipment status',
+    whenToUse: 'when user asks about shipment tracking, delivery status, or where their order is',
+    examples: ['dove è il mio ordine', 'tracking spedizione', 'stato spedizione'],
+    output: 'Tracking link and shipment information',
+    notes: 'Provides shipment tracking for specific orders'
+  };
+}
+```
+
+**GetAllProducts() Tool Description:**
+```typescript
+public getAllProducts(): ToolDescription {
+  return {
+    name: 'getAllProducts',
+    description: 'RETURNS COMPLETE PRODUCT CATALOG WITH CODES, NAMES, PRICES, DESCRIPTIONS GROUPED BY CATEGORY WITH ICONS',
+    whenToUse: 'when user asks for products list, catalog, or what products are available',
+    examples: ['dammi la lista dei prodotti', 'che prodotti avete', 'catalogo', 'show me products'],
+    output: 'Products grouped by category with icons, including product codes, names, descriptions, and prices',
+    notes: 'Returns full product catalog organized by categories in alphabetical order. LLM adds appropriate category icons automatically.'
+  };
+}
+```
+
+**3. Calling Function Implementation (`calling-functions.service.ts`)**
+```typescript
+public async getShipmentTrackingLink(request: GetShipmentTrackingLinkRequest): Promise<TokenResponse> {
+  // ✅ 1. Database validation with real Prisma query
+  const order = await prisma.orders.findFirst({
+    where: { orderCode: request.orderCode, workspaceId: request.workspaceId },
+    select: { orderCode: true, trackingNumber: true }
+  });
+  
+  // ✅ 2. Order not found error (multilingual)
+  if (!order) {
+    return { success: false, error: `Ordine non trovato`, message: `Ordine non trovato` };
+  }
+  
+  // ✅ 3. Specific business logic validation
+  if (!order.trackingNumber) {
+    return { success: false, error: `Non c'è il tracking-id nell'ordine` };
+  }
+  
+  // ✅ 4. External service integration (DHL)
+  const dhlTrackingUrl = `https://www.dhl.com/it-en/home/tracking.html?locale=true&tracking-id=${order.trackingNumber}`;
+  
+  return { success: true, linkUrl: dhlTrackingUrl, trackingNumber: order.trackingNumber };
+}
+```
+
+**GetAllProducts() Implementation:**
+```typescript
+public async getAllProducts(request: GetAllProductsRequest): Promise<ProductsResponse> {
+  try {
+    // ✅ 1. Direct database query with Prisma for complete product list
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    // ✅ 2. Get all products with categories, ordered alphabetically
+    const products = await prisma.products.findMany({
+      where: { workspaceId: request.workspaceId, isActive: true },
+      include: { category: { select: { id: true, name: true } } },
+      orderBy: [{ category: { name: 'asc' } }, { name: 'asc' }]
+    });
+    
+    // ✅ 3. Group products by category (LLM will add icons automatically)
+    const groupedProducts = products.reduce((acc, product) => {
+      const categoryName = product.category?.name || 'Senza Categoria';
+      if (!acc[categoryName]) {
+        acc[categoryName] = { categoryName, products: [] };
+      }
+      acc[categoryName].products.push({
+        code: product.code,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        unit: product.unit
+      });
+      return acc;
+    }, {});
+    
+    // ✅ 4. Return structured data for LLM formatting
+    return {
+      success: true,
+      data: {
+        categories: Object.values(groupedProducts),
+        totalProducts: products.length,
+        totalCategories: Object.keys(groupedProducts).length
+      }
+    };
+  } catch (error) {
+    return this.createErrorResponse(error, 'getAllProducts') as ProductsResponse;
+  }
+}
+```
+
+**4. Function Registration (`dual-llm.service.ts`)**
+```typescript
+switch (functionName) {
+  case 'getShipmentTrackingLink':
+    result = await this.callingFunctionsService.getShipmentTrackingLink({
+      customerId: request.customerid,
+      workspaceId: request.workspaceId,
+      orderCode: arguments_.orderCode
+    });
+    break;
+  
+  case 'getAllProducts':
+    result = await this.callingFunctionsService.getAllProducts({
+      workspaceId: request.workspaceId,
+      customerId: request.customerid
+    });
+    break;
+}
+```
+
+**5. Response Formatting (`dual-llm.service.ts`)**
+```typescript
+// ✅ Handle success case
+if (result.result?.linkUrl) {
+  trackingLink = result.result.linkUrl;
+  orderCode = result.arguments?.orderCode || null;
+}
+
+// ✅ Handle specific error cases
+if (result.result?.success === false) {
+  if (trackingError.includes('tracking-id')) {
+    dataDescription += `\nThe order ${orderCode} exists but has no tracking number in the system.`;
+  } else {
+    dataDescription += `\nThe order ${orderCode} was not found for tracking.`;
+  }
+}
+```
+
+**GetAllProducts() Formatting:**
+```typescript
+// ✅ Handle products data
+if (products && products.length > 0) {
+  const totalProducts = products.reduce((sum: number, category: any) => sum + category.products.length, 0);
+  dataDescription += `\n\nI have found ${totalProducts} products available organized in ${products.length} categories:`;
+  
+  products.forEach((category: any) => {
+    dataDescription += `\n\n**${category.categoryName}** (${category.products.length} products):`;
+    category.products.slice(0, 5).forEach((product: any) => {
+      dataDescription += `\n- ${product.code} - ${product.name} - €${product.price}/${product.unit}`;
+      if (product.description && product.description.length > 0) {
+        dataDescription += ` (${product.description.substring(0, 50)}${product.description.length > 50 ? '...' : ''})`;
+      }
+    });
+    if (category.products.length > 5) {
+      dataDescription += `\n... and ${category.products.length - 5} more products in this category`;
+    }
+  });
+}
+
+// ✅ LLM automatically adds appropriate category icons:
+// 🍷 Beverages, 🍝 Pasta, 🧀 Cheese, 🥗 Antipasti, 🍰 Desserts, etc.
+```
+
+#### **🌍 Multilingual Error Handling Pattern**
+
+**Critical Implementation Rule:**
+```typescript
+// ✅ Backend returns exact error message in database language (Italian)
+return { success: false, error: `Ordine non trovato`, message: `Ordine non trovato` };
+
+// ✅ Formatter passes error context to LLM with language rule
+dataDescription += `\n\nTRACKING ERROR: ${trackingError}`;
+
+// ✅ LLM responds in user's input language automatically
+// User input: "where is my order 99999" → English response
+// User input: "dove è il mio ordine 99999" → Italian response
+```
+
+#### **🔒 Security & Validation Standards**
+
+**Mandatory Requirements for all Calling Functions:**
+1. **Workspace Isolation:** All database queries MUST filter by `workspaceId`
+2. **Real Database Validation:** Use actual Prisma queries, not mock validations
+3. **Specific Error Messages:** Different errors for "not found" vs "business logic failures"
+4. **Type Safety:** Proper TypeScript interfaces for all request/response objects
+5. **External Service Integration:** Direct links to external services when applicable
+
+#### **🎯 Pattern Benefits**
+
+- **Consistency:** Same pattern for all future calling functions
+- **Security:** Workspace isolation and real database validation
+- **UX:** Multilingual error handling with specific, helpful messages
+- **Maintainability:** Clear separation of concerns across service layers
+- **Scalability:** Easy to add new calling functions following the same pattern
+
+#### **📋 Next Functions Implementation Checklist**
+
+For each new calling function:
+- [ ] Add triggers to `prompt_agent.md`
+- [ ] Create tool description in `tool-descriptions.service.ts`
+- [ ] Implement function in `calling-functions.service.ts` with database validation
+- [ ] Register function in `dual-llm.service.ts` switch statement
+- [ ] Update formatter to handle success/error cases
+- [ ] Test all scenarios: success, not found, business logic errors
+- [ ] Verify multilingual error responses work correctly
 
 #### **🔄 N8N Dynamic Prompt Import Process**
 

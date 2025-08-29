@@ -1,6 +1,7 @@
 import { SecureTokenService } from '../application/services/secure-token.service';
 import {
     ErrorResponse,
+    ProductsResponse,
     SuccessResponse,
     TokenResponse
 } from '../types/whatsapp.types';
@@ -56,29 +57,84 @@ export class CallingFunctionsService {
     };
   }
 
-  // public async getAllProducts(request: GetAllProductsRequest): Promise<ProductsResponse> {
-  //   try {
-  //     console.log('🔧 Calling getAllProducts with:', request);
+  public async getAllProducts(request: GetAllProductsRequest): Promise<ProductsResponse> {
+    try {
+      console.log('🔧 Calling getAllProducts with:', request);
       
-  //     const response = await axios.get(`${this.baseUrl}/public/products`, {
-  //       params: {
-  //         workspaceId: request.workspaceId,
-  //         customerId: request.customerId
-  //       },
-  //       timeout: 10000
-  //     });
-
-  //     return {
-  //       success: true,
-  //       products: response.data.products || [],
-  //       totalCount: response.data.products?.length || 0,
-  //       timestamp: new Date().toISOString()
-  //     };
-
-  //   } catch (error) {
-  //     return this.createErrorResponse(error, 'getAllProducts') as ProductsResponse;
-  //   }
-  // }
+      // Direct database query with Prisma for complete product list
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+      
+      // Get all products with categories, ordered by category name alphabetically
+      const products = await prisma.products.findMany({
+        where: {
+          workspaceId: request.workspaceId,
+          isActive: true
+        },
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        },
+        orderBy: [
+          { category: { name: 'asc' } },
+          { name: 'asc' }
+        ]
+      });
+      
+      await prisma.$disconnect();
+      
+      if (!products || products.length === 0) {
+        return {
+          success: false,
+          error: 'Nessun prodotto disponibile',
+          message: 'Nessun prodotto disponibile',
+          timestamp: new Date().toISOString()
+        } as ProductsResponse;
+      }
+      
+      // Group products by category (LLM will add icons automatically)
+      const groupedProducts = products.reduce((acc, product) => {
+        const categoryName = product.category?.name || 'Senza Categoria';
+        
+        if (!acc[categoryName]) {
+          acc[categoryName] = {
+            categoryName,
+            products: []
+          };
+        }
+        
+        acc[categoryName].products.push({
+          code: product.code,
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          unit: product.unit
+        });
+        
+        return acc;
+      }, {});
+      
+      console.log('✅ Products grouped by category:', Object.keys(groupedProducts));
+      
+      return {
+        success: true,
+        data: {
+          categories: Object.values(groupedProducts),
+          totalProducts: products.length,
+          totalCategories: Object.keys(groupedProducts).length
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+    } catch (error) {
+      console.error('❌ Error in getAllProducts:', error);
+      return this.createErrorResponse(error, 'getAllProducts') as ProductsResponse;
+    }
+  }
 
   // public async getServices(request: GetAllProductsRequest): Promise<ServicesResponse> {
   //   try {

@@ -310,8 +310,8 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
             orderCode = result.arguments?.orderCode || null;
           }
         }
-        else if (result.functionName === 'getAllProducts' && result.result?.products) {
-          products = result.result.products;
+        else if (result.functionName === 'getAllProducts' && result.result?.data?.categories) {
+          products = result.result.data.categories;
         }
         else if (result.functionName === 'getServices' && result.result?.services) {
           services = result.result.services;
@@ -344,13 +344,21 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
     }
     
     if (products && products.length > 0) {
-      dataDescription += `\n\nI have found ${products.length} products available:`;
-      products.slice(0, 10).forEach((product: any) => {
-        dataDescription += `\n- ${product.name} (${product.ProductCode}) - ${product.formatted}`;
+      const totalProducts = products.reduce((sum: number, category: any) => sum + category.products.length, 0);
+      dataDescription += `\n\nI have found ${totalProducts} products available organized in ${products.length} categories:`;
+      
+      products.forEach((category: any) => {
+        dataDescription += `\n\n**${category.categoryName}** (${category.products.length} products):`;
+        category.products.slice(0, 5).forEach((product: any) => {
+          dataDescription += `\n- ${product.code} - ${product.name} - €${product.price}/${product.unit}`;
+          if (product.description && product.description.length > 0) {
+            dataDescription += ` (${product.description.substring(0, 50)}${product.description.length > 50 ? '...' : ''})`;
+          }
+        });
+        if (category.products.length > 5) {
+          dataDescription += `\n... and ${category.products.length - 5} more products in this category`;
+        }
       });
-      if (products.length > 10) {
-        dataDescription += `\n... and ${products.length - 10} more products`;
-      }
     }
     
     if (services && services.length > 0) {
@@ -408,12 +416,12 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
 
         let result;
         switch (functionName) {
-          // case 'getAllProducts':
-          //   result = await this.callingFunctionsService.getAllProducts({
-          //     workspaceId: request.workspaceId,
-          //     customerId: request.customerid
-          //   });
-          //   break;
+          case 'getAllProducts':
+            result = await this.callingFunctionsService.getAllProducts({
+              workspaceId: request.workspaceId,
+              customerId: request.customerid
+            });
+            break;
           // case 'getServices':
           //   result = await this.callingFunctionsService.getServices({
           //     workspaceId: request.workspaceId,

@@ -9,16 +9,16 @@ export interface ToolDescription {
 
 export class ToolDescriptionsService {
   
-  // public getAllProducts(): ToolDescription {
-  //   return {
-  //     name: 'getAllProducts',
-  //     description: 'RETURNS COMPLETE PRODUCT CATALOG WITH NAMES, PRICES, DESCRIPTIONS AND AVAILABILITY',
-  //     whenToUse: 'when user asks for products list, catalog, or what products are available',
-  //     examples: ['dammi la lista dei prodotti', 'che prodotti avete', 'catalogo', 'dammi prodotti'],
-  //     output: 'Array of products with names, prices, descriptions and availability',
-  //     notes: 'Returns full product catalog with real-time pricing and stock information. Use this for ANY product-related request.'
-  //   };
-  // }
+  public getAllProducts(): ToolDescription {
+    return {
+      name: 'getAllProducts',
+      description: 'RETURNS COMPLETE PRODUCT CATALOG WITH CODES, NAMES, PRICES, DESCRIPTIONS GROUPED BY CATEGORY WITH ICONS',
+      whenToUse: 'when user asks for products list, catalog, or what products are available',
+      examples: ['dammi la lista dei prodotti', 'che prodotti avete', 'catalogo', 'dammi prodotti', 'show me products', 'product list'],
+      output: 'Products grouped by category with icons, including product codes, names, descriptions, and prices',
+      notes: 'Returns full product catalog organized by categories in alphabetical order with category icons. Use this for ANY product-related request.'
+    };
+  }
 
   // public getServices(): ToolDescription {
   //   return {
@@ -121,7 +121,7 @@ export class ToolDescriptionsService {
 
   public getToolDescriptions(): ToolDescription[] {
     return [
-      // this.getAllProducts(),
+      this.getAllProducts(),
       // this.getServices(),
       this.getOrdersListLink(),
       this.getShipmentTrackingLink(),
