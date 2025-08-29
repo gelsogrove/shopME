@@ -288,6 +288,7 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
     let profileLink = null;
     let products = null;
     let services = null;
+    let offers = null;
     
     if (ragResult.functionResults && ragResult.functionResults.length > 0) {
       for (const result of ragResult.functionResults) {
@@ -319,6 +320,9 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
         }
         else if (result.functionName === 'getCustomerProfileLink' && result.result?.linkUrl) {
           profileLink = result.result.linkUrl;
+        }
+        else if (result.functionName === 'getActiveOffers' && result.result?.data?.offers) {
+          offers = result.result.data.offers;
         }
       }
     }
@@ -376,6 +380,21 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
         if (service.description && service.description.length > 0) {
           dataDescription += ` (${service.description.substring(0, 60)}${service.description.length > 60 ? '...' : ''})`;
         }
+      });
+    }
+    
+    if (offers && offers.length > 0) {
+      dataDescription += `\n\nI have found ${offers.length} active offers and promotions:`;
+      offers.forEach((offer: any) => {
+        dataDescription += `\n- 🎯 ${offer.name} - ${offer.discountPercent}% OFF`;
+        if (offer.description && offer.description.length > 0) {
+          dataDescription += ` (${offer.description.substring(0, 80)}${offer.description.length > 80 ? '...' : ''})`;
+        }
+        if (offer.category) {
+          dataDescription += ` [Category: ${offer.category.name}]`;
+        }
+        const endDate = new Date(offer.endDate);
+        dataDescription += ` [Valid until: ${endDate.toLocaleDateString()}]`;
       });
     }
     
@@ -465,12 +484,12 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
           //     customerId: request.customerid
           //   });
           //   break;
-          // case 'getActiveOffers':
-          //   result = await this.callingFunctionsService.getActiveOffers({
-          //     workspaceId: request.workspaceId,
-          //     customerId: request.customerid
-          //   });
-          //   break;
+          case 'getActiveOffers':
+            result = await this.callingFunctionsService.getActiveOffers({
+              workspaceId: request.workspaceId,
+              customerId: request.customerid
+            });
+            break;
           // case 'contactOperator':
           //   result = await this.callingFunctionsService.contactOperator({
           //     workspaceId: request.workspaceId,

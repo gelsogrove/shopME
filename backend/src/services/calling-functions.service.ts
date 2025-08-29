@@ -4,7 +4,8 @@ import {
     ProductsResponse,
     ServicesResponse,
     SuccessResponse,
-    TokenResponse
+    TokenResponse,
+    OffersResponse
 } from '../types/whatsapp.types';
 
 export interface GetAllProductsRequest {
@@ -214,7 +215,7 @@ export class CallingFunctionsService {
       }
       
       // Generate profile link
-      const profileUrl = `http://localhost:3000/profile-public/${request.customerId}?token=${token}`;
+      const profileUrl = `http://localhost:3000/customer-profile?token=${token}`;
       
       console.log('✅ Profile link generated successfully:', profileUrl);
       
@@ -256,29 +257,71 @@ export class CallingFunctionsService {
   //   }
   // }
 
-  // public async getActiveOffers(request: GetAllProductsRequest): Promise<OffersResponse> {
-  //   try {
-  //     console.log('🔧 Calling getActiveOffers with:', request);
+  public async getActiveOffers(request: GetAllProductsRequest): Promise<OffersResponse> {
+    try {
+      console.log('🔧 Calling getActiveOffers with:', request);
       
-  //     const response = await axios.get(`${this.baseUrl}/offers`, {
-  //       params: {
-  //         workspaceId: request.workspaceId,
-  //         customerId: request.customerId
-  //       },
-  //       timeout: 10000
-  //     });
-
-  //     return {
-  //       success: true,
-  //       offers: response.data.offers || [],
-  //       totalCount: response.data.offers?.length || 0,
-  //       timestamp: new Date().toISOString()
-  //     };
-
-  //   } catch (error) {
-  //     return this.createErrorResponse(error, 'getActiveOffers') as OffersResponse;
-  //   }
-  // }
+      // Direct database query with Prisma for active offers
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+      
+      // Get all active offers for the workspace
+      const offers = await prisma.offers.findMany({
+        where: {
+          workspaceId: request.workspaceId,
+          isActive: true,
+          startDate: { lte: new Date() }, // Started
+          endDate: { gte: new Date() }    // Not ended
+        },
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        },
+        orderBy: { discountPercent: 'desc' } // Best offers first
+      });
+      
+      await prisma.$disconnect();
+      
+      if (!offers || offers.length === 0) {
+        return {
+          success: false,
+          error: 'Nessuna offerta disponibile al momento',
+          message: 'Nessuna offerta disponibile al momento',
+          timestamp: new Date().toISOString()
+        } as OffersResponse;
+      }
+      
+      console.log('✅ Active offers found:', offers.length);
+      
+      return {
+        success: true,
+        data: {
+          offers: offers.map(offer => ({
+            id: offer.id,
+            name: offer.name,
+            description: offer.description,
+            discountPercent: offer.discountPercent,
+            startDate: offer.startDate,
+            endDate: offer.endDate,
+            category: offer.category ? {
+              id: offer.category.id,
+              name: offer.category.name
+            } : null
+          })),
+          totalOffers: offers.length
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+    } catch (error) {
+      console.error('❌ Error in getActiveOffers:', error);
+      return this.createErrorResponse(error, 'getActiveOffers') as OffersResponse;
+    }
+  }
 
   // public async contactOperator(request: GetAllProductsRequest): Promise<StandardResponse> {
   //   try {

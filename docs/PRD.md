@@ -8039,4 +8039,126 @@ secureToken {
 
 ---
 
+## 🎯 GetActiveOffers() - Offers & Promotions Management
+
+### Overview
+The `GetActiveOffers()` calling function enables customers to discover current promotions, discounts, and special offers through natural language queries. The system displays active offers with detailed information including discount percentages, validity dates, and category associations.
+
+### Implementation Details
+
+#### **Database Structure**
+- **Table**: `offers`
+- **Key Fields**: `name`, `description`, `discountPercent`, `startDate`, `endDate`, `isActive`, `categoryId`
+- **Filtering**: Only active offers within valid date range
+- **Sorting**: Ordered by discount percentage (best offers first)
+
+#### **Calling Function Logic**
+```typescript
+public async getActiveOffers(request: GetAllProductsRequest): Promise<OffersResponse> {
+  // Query active offers with date validation
+  const offers = await prisma.offers.findMany({
+    where: {
+      workspaceId: request.workspaceId,
+      isActive: true,
+      startDate: { lte: new Date() }, // Started
+      endDate: { gte: new Date() }    // Not ended
+    },
+    include: { category: { select: { id: true, name: true } } },
+    orderBy: { discountPercent: 'desc' }
+  });
+}
+```
+
+#### **Response Format**
+```json
+{
+  "success": true,
+  "data": {
+    "offers": [
+      {
+        "id": "offer-id",
+        "name": "Offerta Alcolici 20%",
+        "description": "Sconto del 20% su tutti gli alcolici!",
+        "discountPercent": 20,
+        "startDate": "2025-07-30T21:59:08.478Z",
+        "endDate": "2026-08-29T21:59:08.478Z",
+        "category": { "id": "cat-id", "name": "Beverages" }
+      }
+    ],
+    "totalOffers": 3
+  }
+}
+```
+
+#### **Multilingual Triggers**
+**Italian**: "che offerte avete", "sconti disponibili", "promozioni", "saldi", "offerte speciali"
+**English**: "show me offers", "any deals", "discounts available", "promotions", "sales"
+**Spanish**: "ofertas", "descuentos", "promociones", "rebajas"
+
+#### **LLM Response Formatting**
+- **Icons**: Automatic emoji selection based on offer category (🍷 for beverages, 🍝 for pasta)
+- **Discount Display**: Clear percentage format with category context
+- **Date Format**: Localized date display for validity period
+- **Call-to-Action**: Encouraging language with next steps
+
+### Example Responses
+
+#### **Italian Response**
+```
+Ciao! 👋 Ecco le offerte speciali attualmente attive:
+
+🍷 *Alcolici -20%*
+Sconto del 20% su tutti gli alcolici
+Valido fino al 29/08/2026
+
+🍝 *Pasta Week -20%*
+Offerte speciali su tutta la pasta
+Valido fino al 03/09/2025
+
+Approfitta di queste fantastiche promozioni! 🎉
+```
+
+#### **English Response**
+```
+🌟 Check out our amazing current offers!
+
+1. 🍷 *Alcolici -20%*
+All alcoholic beverages at 20% off
+Valid until August 29, 2026
+
+2. 🍝 *Pasta Week -20%*
+Great discounts on all pasta products
+Valid until September 3, 2025
+
+Want to take advantage of these offers? Just add the products to your cart!
+```
+
+### Technical Integration
+
+#### **Tool Description**
+```typescript
+name: 'getActiveOffers',
+description: 'current active offers, discounts, promotions and special deals',
+whenToUse: 'when user asks about offers, discounts, promotions, sales, or deals',
+examples: ['che offerte avete', 'sconti disponibili', 'show me offers', 'any deals'],
+output: 'Array of active offers with discount percentages, dates and categories'
+```
+
+#### **Error Handling**
+- **No Offers**: "Nessuna offerta disponibile al momento" / "No offers available at the moment"
+- **Database Error**: Proper error logging with fallback response
+- **Invalid Dates**: Automatic filtering prevents display of expired offers
+
+### Status: ✅ **FULLY IMPLEMENTED & TESTED**
+
+**Test Results**:
+- ✅ **Italian Triggers**: "che offerte avete", "sconti disponibili" → Correct function call
+- ✅ **English Triggers**: "show me offers", "any deals" → Correct function call  
+- ✅ **Database Query**: Returns 3 active offers with proper filtering
+- ✅ **Response Format**: Properly formatted with icons, dates, and descriptions
+- ✅ **Multilingual**: Automatic language detection and appropriate response format
+- ✅ **Error Handling**: Graceful handling when no offers available
+
+---
+
 ## UI Screenshots

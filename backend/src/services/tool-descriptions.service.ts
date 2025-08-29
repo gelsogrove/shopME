@@ -75,16 +75,16 @@ export class ToolDescriptionsService {
   //   };
   // }
 
-  // public getActiveOffers(): ToolDescription {
-  //   return {
-  //     name: 'getActiveOffers',
-  //     description: 'current active offers and promotions',
-  //     whenToUse: 'when user asks about offers, discounts, promotions, or deals',
-  //     examples: ['che offerte avete', 'sconti disponibili', 'promozioni'],
-  //     output: 'Array of active offers with discount details',
-  //     notes: 'Returns current promotions and special deals'
-  //   };
-  // }
+  public getActiveOffers(): ToolDescription {
+    return {
+      name: 'getActiveOffers',
+      description: 'current active offers, discounts, promotions and special deals',
+      whenToUse: 'when user asks about offers, discounts, promotions, sales, or deals',
+      examples: ['che offerte avete', 'sconti disponibili', 'promozioni', 'saldi', 'show me offers', 'any deals', 'discounts'],
+      output: 'Array of active offers with discount percentages, dates and categories',
+      notes: 'Returns only currently active promotions and special deals with discount details'
+    };
+  }
 
   // public contactOperator(): ToolDescription {
   //   return {
@@ -127,7 +127,7 @@ export class ToolDescriptionsService {
       this.getShipmentTrackingLink(),
       this.getCustomerProfileLink(),
       // this.getAllCategories(),
-      // this.getActiveOffers(),
+      this.getActiveOffers(),
       // this.contactOperator(),
       // this.confirmOrderFromConversation(),
       // this.ragSearch()

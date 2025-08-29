@@ -101,3 +101,20 @@ se un utente vuole modificare il proprio profilo, cambiare indirizzo di spedizio
 - "dati del mio profilo"
 - "mostami il profilo"
 
+## GetActiveOffers()
+se un utente chiede le offerte, sconti, promozioni o saldi disponibili, dobbiamo lanciare la Calling function `GetActiveOffers()` che ritorna la lista delle offerte attive con percentuali di sconto, date di validità e categorie.
+
+**TRIGGERS per offerte e promozioni:**
+- "che offerte avete"
+- "sconti disponibili"
+- "promozioni"
+- "saldi"
+- "offerte speciali"
+- "ci sono offerte"
+- "show me offers"
+- "any deals"
+- "discounts available"
+- "promotions"
+- "sales"
+- "special offers"
+

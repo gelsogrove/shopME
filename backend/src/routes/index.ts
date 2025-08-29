@@ -82,6 +82,7 @@ const router = Router()
 router.use(loggingMiddleware)
 
 // WhatsApp webhook routes (must be FIRST, before any authentication middleware)
+import { MessageRepository } from '../repositories/message.repository'
 import { DualLLMService } from '../services/dual-llm.service'
 import { LLMRequest } from '../types/whatsapp.types'
 
@@ -89,6 +90,10 @@ import { LLMRequest } from '../types/whatsapp.types'
 router.post("/whatsapp/webhook", async (req, res) => {
   try {
     console.log('🚨🚨🚨 WHATSAPP WEBHOOK - DUAL LLM SYSTEM!!! 🚨🚨🚨');
+    
+    // Initialize services
+    const dualLLMService = new DualLLMService();
+    const messageRepository = new MessageRepository();
     
     // For GET requests (verification)
     if (req.method === "GET") {
@@ -168,8 +173,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
 
     console.log(`📱 Processing message: "${messageContent}" from ${customerId}`)
 
-    // Use our DUAL LLM SYSTEM
-    const dualLLMService = new DualLLMService();
+    // Use our DUAL LLM SYSTEM (already initialized above)
     
     // Get agent config with prompt from database
     let agentPrompt = "WhatsApp conversation"; // fallback
@@ -207,6 +211,25 @@ router.post("/whatsapp/webhook", async (req, res) => {
     console.log('🚀 CALLING DUAL LLM SERVICE!!!');
     const result = await dualLLMService.processMessage(llmRequest);
     console.log('✅ DUAL LLM RESULT:', result);
+    
+    // 💾 SAVE MESSAGE AND TRACK USAGE (Critical fix for missing history/analytics)
+    if (result.success && result.output) {
+      try {
+        console.log('💾 Saving message to database with usage tracking...');
+        await messageRepository.saveMessage({
+          workspaceId: workspaceId,
+          phoneNumber: phoneNumber,
+          message: messageContent,
+          response: result.output,
+          direction: "INBOUND",
+          agentSelected: "CHATBOT_DUAL_LLM"
+        });
+        console.log('✅ Message saved successfully with usage tracking');
+      } catch (saveError) {
+        console.error('❌ Failed to save message:', saveError);
+        // Continue - don't fail the whole request if save fails
+      }
+    }
     
     // TODO: Send response back to WhatsApp
     console.log('📤 Response to send:', result.output);
