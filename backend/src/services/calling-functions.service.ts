@@ -169,39 +169,53 @@ export class CallingFunctionsService {
     try {
       console.log('🔧 Calling getOrdersListLink with:', request);
       
-      // If orderCode is specified, verify order exists first
+
+      
+      console.log('🔧 SecureTokenService instance:', !!this.secureTokenService);
+      
+      // If orderCode is specified, validate it exists in database
       if (request.orderCode) {
         try {
-          console.log('🔍 Checking if order exists:', request.orderCode);
-          const orderCheckResponse = await fetch(`${this.baseUrl}/public/orders/${request.orderCode}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json'
+          console.log('🔍 Checking if order exists in database:', request.orderCode);
+          
+          // Import Prisma client
+          const { PrismaClient } = require('@prisma/client');
+          const prisma = new PrismaClient();
+          
+          // Query the database for the order
+          const order = await prisma.orders.findFirst({
+            where: {
+              orderCode: request.orderCode,
+              workspaceId: request.workspaceId
             }
           });
           
-          if (!orderCheckResponse.ok) {
-            console.log('❌ Order not found:', request.orderCode);
+          await prisma.$disconnect();
+          
+          if (!order) {
+            console.log('❌ Order not found in database:', request.orderCode);
             return {
               success: false,
-              error: `Ordine ${request.orderCode} non trovato`,
-              message: `Mi dispiace, l'ordine ${request.orderCode} non è stato trovato nel sistema. Verifica il numero dell'ordine e riprova.`,
+              error: `Ordine non trovato`,
+              message: `Ordine non trovato`,
               timestamp: new Date().toISOString()
             } as TokenResponse;
           }
           
-          console.log('✅ Order found:', request.orderCode);
-        } catch (orderError) {
-          console.log('❌ Error checking order:', orderError);
+          console.log('✅ Order found in database:', request.orderCode);
+          
+        } catch (dbError) {
+          console.log('❌ Database error while checking order:', dbError);
           return {
             success: false,
-            error: `Errore nella verifica dell'ordine ${request.orderCode}`,
-            message: `Mi dispiace, non riesco a verificare l'ordine ${request.orderCode} al momento. Riprova più tardi.`,
+            error: `Ordine non trovato`,
+            message: `Ordine non trovato`,
             timestamp: new Date().toISOString()
           } as TokenResponse;
         }
       }
-      
+
+      console.log('🔧 About to create token...');
       const token = await this.secureTokenService.createToken(
         'orders',
         request.workspaceId,
@@ -212,6 +226,7 @@ export class CallingFunctionsService {
         undefined,
         request.customerId
       );
+      console.log('🔧 Token created successfully:', token);
 
       let linkUrl: string;
       if (request.orderCode) {

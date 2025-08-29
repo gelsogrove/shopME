@@ -136,7 +136,11 @@ export class DualLLMService {
       
     } catch (error) {
       console.error('❌ RAG Processor Error:', error);
-      throw error; // Re-throw the error instead of using fallback
+      return {
+        functionResults: [],
+        success: false,
+        error: error.message
+      };
     }
   }
 
@@ -224,7 +228,7 @@ RULES:
 3. Use emojis appropriately
 4. Format links as plain URLs (WhatsApp doesn't support markdown)
 5. Keep responses concise but informative
-6. Always respond in the user's language (Italian)
+6. LANGUAGE RULE: Respond in the SAME language as the user's input. If user writes in English, respond in English. If user writes in Italian, respond in Italian. If user writes in Spanish, respond in Spanish, etc.
 7. If user asks for a "tabella" or "table", create a formatted table using ASCII characters
 
 LINK FORMATTING FOR WHATSAPP:
