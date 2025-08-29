@@ -53,16 +53,16 @@ export class ToolDescriptionsService {
     };
   }
 
-  // public getCustomerProfileLink(): ToolDescription {
-  //   return {
-  //     name: 'getCustomerProfileLink',
-  //     description: 'secure link to view and edit profile',
-  //     whenToUse: 'when user wants to change address, update profile, or modify personal details',
-  //     examples: ['voglio cambiare indirizzo', 'modifica profilo', 'aggiorna dati'],
-  //     output: 'Secure JWT-based link to profile page',
-  //     notes: 'Allows customers to update shipping address and personal information'
-  //   };
-  // }
+  public getCustomerProfileLink(): ToolDescription {
+    return {
+      name: 'getCustomerProfileLink',
+      description: 'secure link to view and edit customer profile and shipping address',
+      whenToUse: 'when user wants to change address, update profile, modify personal details, or change email',
+      examples: ['voglio cambiare indirizzo', 'modifica profilo', 'aggiorna dati', 'cambia email', 'modifica indirizzo', 'change address', 'update profile'],
+      output: 'Secure JWT-based link to profile page',
+      notes: 'Allows customers to update shipping address and personal information securely'
+    };
+  }
 
   // public getAllCategories(): ToolDescription {
   //   return {
@@ -125,7 +125,7 @@ export class ToolDescriptionsService {
       this.getServices(),
       this.getOrdersListLink(),
       this.getShipmentTrackingLink(),
-      // this.getCustomerProfileLink(),
+      this.getCustomerProfileLink(),
       // this.getAllCategories(),
       // this.getActiveOffers(),
       // this.contactOperator(),

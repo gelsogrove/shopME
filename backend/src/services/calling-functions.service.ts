@@ -2,9 +2,9 @@ import { SecureTokenService } from '../application/services/secure-token.service
 import {
     ErrorResponse,
     ProductsResponse,
+    ServicesResponse,
     SuccessResponse,
-    TokenResponse,
-    ServicesResponse
+    TokenResponse
 } from '../types/whatsapp.types';
 
 export interface GetAllProductsRequest {
@@ -185,6 +185,50 @@ export class CallingFunctionsService {
     } catch (error) {
       console.error('❌ Error in getServices:', error);
       return this.createErrorResponse(error, 'getServices') as ServicesResponse;
+    }
+  }
+
+  public async getCustomerProfileLink(request: GetOrdersListLinkRequest): Promise<TokenResponse> {
+    try {
+      console.log('🔧 Calling getCustomerProfileLink with:', request);
+      
+      // Generate secure token for profile access
+      const token = await this.secureTokenService.createToken(
+        'profile',
+        request.workspaceId,
+        { customerId: request.customerId },
+        '1h'
+      );
+      
+      if (!token) {
+        console.error('❌ Failed to generate profile token');
+        return {
+          success: false,
+          error: 'Errore nella generazione del link profilo',
+          message: 'Errore nella generazione del link profilo',
+          linkUrl: '',
+          expiresAt: new Date().toISOString(),
+          action: 'profile',
+          timestamp: new Date().toISOString()
+        };
+      }
+      
+      // Generate profile link
+      const profileUrl = `http://localhost:3000/profile-public/${request.customerId}?token=${token}`;
+      
+      console.log('✅ Profile link generated successfully:', profileUrl);
+      
+      return {
+        success: true,
+        linkUrl: profileUrl,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour
+        action: 'profile',
+        timestamp: new Date().toISOString()
+      };
+      
+    } catch (error) {
+      console.error('❌ Error in getCustomerProfileLink:', error);
+      return this.createErrorResponse(error, 'getCustomerProfileLink') as TokenResponse;
     }
   }
 

@@ -285,6 +285,7 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
     let orderError = null;
     let trackingLink = null;
     let trackingError = null;
+    let profileLink = null;
     let products = null;
     let services = null;
     
@@ -316,6 +317,9 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
         else if (result.functionName === 'getServices' && result.result?.data?.services) {
           services = result.result.data.services;
         }
+        else if (result.functionName === 'getCustomerProfileLink' && result.result?.linkUrl) {
+          profileLink = result.result.linkUrl;
+        }
       }
     }
     
@@ -341,6 +345,10 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
       dataDescription += `\n\nI have generated a secure link for order ${orderCode}: ${orderLink}`;
     } else if (orderLink) {
       dataDescription += `\n\nI have generated a secure link for order history: ${orderLink}`;
+    }
+    
+    if (profileLink) {
+      dataDescription += `\n\nI have generated a secure link for profile management: ${profileLink}`;
     }
     
     if (products && products.length > 0) {
@@ -445,12 +453,12 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
               orderCode: arguments_.orderCode
             });
             break;
-          // case 'getCustomerProfileLink':
-          //   result = await this.callingFunctionsService.getCustomerProfileLink({
-          //     customerId: request.customerid,
-          //     workspaceId: request.workspaceId
-          //   });
-          //   break;
+          case 'getCustomerProfileLink':
+            result = await this.callingFunctionsService.getCustomerProfileLink({
+              customerId: request.customerid,
+              workspaceId: request.workspaceId
+            });
+            break;
           // case 'getAllCategories':
           //   result = await this.callingFunctionsService.getAllCategories({
           //     workspaceId: request.workspaceId,

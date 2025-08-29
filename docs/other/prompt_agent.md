@@ -88,3 +88,16 @@ se un utente chiede la lista dei servizi, che servizi abbiamo disponibili, o dom
 - "what services do you offer"
 - "service list"
 - "delivery services"
+
+## GetCustomerProfileLink()
+se un utente vuole modificare il proprio profilo, cambiare indirizzo di spedizione, aggiornare email o altri dati personali, dobbiamo lanciare la Calling function `GetCustomerProfileLink()` che ritorna un link sicuro per accedere alla pagina di modifica del profilo.
+
+**TRIGGERS per gestione profilo:**
+- "voglio cambiare indirizzo di spedizione"
+- "modifica indirizzo"
+- "cambia indirizzo"
+- "voglio cambiare la mia email"
+- "voglo cambiare il mio numero di telefono"
+- "dati del mio profilo"
+- "mostami il profilo"
+
