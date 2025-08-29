@@ -207,6 +207,48 @@ app.use("/api", apiRouter)
 import workspaceRoutesRoot from "./routes/workspace.routes"
 app.use("/workspaces", workspaceRoutesRoot)
 
+// ANDREA TEST: Endpoint per testare DualLLMService direttamente
+import { DualLLMService } from './services/dual-llm.service'
+import { LLMRequest } from './types/whatsapp.types'
+
+app.post("/api/test/dual-llm", async (req, res) => {
+  try {
+    console.error('🚨🚨🚨 ANDREA TEST: DUAL LLM DIRECT TEST!!! 🚨🚨🚨');
+    
+    const dualLLMService = new DualLLMService();
+    
+    const llmRequest: LLMRequest = {
+      chatInput: req.body.messageContent || "che servizi avete",
+      workspaceId: req.body.workspaceId || "cm9hjgq9v00014qk8fsdy4ujv", 
+      customerid: req.body.customerId || "test-customer",
+      phone: "+1234567890",
+      language: "it",
+      sessionId: "test-session",
+      temperature: 0.0,
+      maxTokens: 3500,
+      model: "gpt-4o",
+      messages: [],
+      prompt: "Test prompt"
+    };
+    
+    console.error('🚨🚨🚨 CALLING DUAL LLM SERVICE!!! 🚨🚨🚨');
+    const result = await dualLLMService.processMessage(llmRequest);
+    console.error('🚨🚨🚨 DUAL LLM RESULT!!! 🚨🚨🚨');
+    
+    res.json({ 
+      success: true, 
+      message: result.output,
+      debug: { llmRequest, result }
+    });
+  } catch (error) {
+    console.error('❌ DUAL LLM TEST ERROR:', error);
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
+  }
+});
+
 // Endpoint di test per OpenAI
 app.get("/api/test/openai", async (req, res) => {
   try {
