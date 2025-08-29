@@ -1,16 +1,15 @@
 import { Button } from "@/components/ui/button"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { getWorkspaceId } from "@/config/workspace.config"
-import { logger } from "@/lib/logger"
 import { api } from "@/services/api"
 import axios from "axios"
 import { MessageCircle, Send, X } from "lucide-react"
@@ -27,14 +26,6 @@ interface Message {
   content: string
   sender: "user" | "customer"
   timestamp: Date
-  agentName?: string
-  metadata?: {
-    isOperatorMessage?: boolean
-    isOperatorControl?: boolean
-    agentSelected?: string
-    sentBy?: string
-    operatorId?: string
-  }
 }
 
 // Interface for selected chat from chat history
@@ -84,7 +75,7 @@ export function WhatsAppChatModal({
   const currentWorkspaceId = getWorkspaceId(workspaceId)
   const hasValidWorkspace = currentWorkspaceId !== null
 
-  logger.info("WhatsAppChatModal props:", {
+  console.log("WhatsAppChatModal props:", {
     isOpen,
     channelName,
     phoneNumber,
@@ -92,7 +83,7 @@ export function WhatsAppChatModal({
     selectedChat,
   })
 
-  logger.info("Workspace check:", {
+  console.log("Workspace check:", {
     currentWorkspaceId,
     hasValidWorkspace,
     providedWorkspaceId: workspaceId,
@@ -107,7 +98,7 @@ export function WhatsAppChatModal({
     if (isOpen) {
       // Priority 1: Use the chat passed from props if available
       if (selectedChat) {
-        logger.info("Using selectedChat from props:", selectedChat)
+        console.log("Using selectedChat from props:", selectedChat)
         setLocalSelectedChat(selectedChat)
 
         // If the selectedChat has a sessionId, use it
@@ -126,7 +117,7 @@ export function WhatsAppChatModal({
         const savedChatJson = localStorage.getItem("selectedChat")
         if (savedChatJson) {
           const savedChat = JSON.parse(savedChatJson) as Chat
-          logger.info("Using selectedChat from localStorage:", savedChat)
+          console.log("Using selectedChat from localStorage:", savedChat)
           setLocalSelectedChat(savedChat)
 
           // If the savedChat has a sessionId, use it
@@ -138,12 +129,12 @@ export function WhatsAppChatModal({
           return
         }
       } catch (error) {
-        logger.error("Error reading selectedChat from localStorage:", error)
+        console.error("Error reading selectedChat from localStorage:", error)
       }
 
       // If the sessionId was set but not the chat, try to use that
       if (globalSessionId) {
-        logger.info("Using previously stored sessionId:", globalSessionId)
+        console.log("Using previously stored sessionId:", globalSessionId)
         setSessionId(globalSessionId)
       }
     }
@@ -152,7 +143,7 @@ export function WhatsAppChatModal({
   // Initialize chat when a local selected chat is available
   useEffect(() => {
     if (isOpen && localSelectedChat) {
-      logger.info("Initializing chat with chat:", localSelectedChat)
+      console.log("Initializing chat with chat:", localSelectedChat)
       setUserPhoneNumber(localSelectedChat.customerPhone)
       setChatStarted(true)
       fetchMessagesForSelectedChat(localSelectedChat)
@@ -162,7 +153,7 @@ export function WhatsAppChatModal({
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
-      logger.info("Modal closed, resetting component state")
+      console.log("Modal closed, resetting component state")
       setTimeout(() => {
         // Reset solo gli stati necessari, mantenendo la conversazione
         setIsLoading(false)
@@ -175,7 +166,7 @@ export function WhatsAppChatModal({
       }, 300)
     } else if (isOpen && !localSelectedChat && !selectedChat) {
       // Handle case where modal opens without a selected chat
-      logger.info("Modal opened without any chat")
+      console.log("Modal opened without any chat")
       setUserPhoneNumber(phoneNumber || "")
       // Focus input field when chat opens without selected chat
       setTimeout(() => {
@@ -189,7 +180,7 @@ export function WhatsAppChatModal({
   // Fetch messages for the selected chat
   const fetchMessagesForSelectedChat = async (chat: Chat) => {
     if (!chat || !chat.sessionId) {
-      logger.error(
+      console.error(
         "No chat or sessionId provided to fetchMessagesForSelectedChat"
       )
       return
@@ -198,15 +189,15 @@ export function WhatsAppChatModal({
     // Get workspaceId for API call
     const currentWorkspaceId = getWorkspaceId(workspaceId)
     if (!currentWorkspaceId) {
-      logger.error("No workspace ID available for fetching messages")
+      console.error("No workspace ID available for fetching messages")
       return
     }
 
-    logger.info("Fetching messages for chat:", chat.sessionId)
+    console.log("Fetching messages for chat:", chat.sessionId)
     setIsLoading(true)
     try {
       const response = await api.get(`/chat/${chat.sessionId}/messages`)
-      logger.info("API response for messages:", response.data)
+      console.log("API response for messages:", response.data)
 
       if (response.data.success) {
         // Transform backend messages to frontend format for the playground
@@ -216,24 +207,16 @@ export function WhatsAppChatModal({
           // Map MessageDirection.INBOUND to 'customer' and MessageDirection.OUTBOUND to 'user' (like main chat)
           sender: message.direction === "INBOUND" ? "customer" : "user",
           timestamp: new Date(message.createdAt),
-          agentName: message.agentName || (message.direction === "OUTBOUND" ? "AI Assistant" : undefined),
-          metadata: {
-            isOperatorMessage: message.metadata?.isOperatorMessage || false,
-            isOperatorControl: message.metadata?.isOperatorControl || false,
-            agentSelected: message.metadata?.agentSelected || (message.direction === "OUTBOUND" ? "CHATBOT" : "CUSTOMER"),
-            sentBy: message.metadata?.sentBy || (message.direction === "OUTBOUND" ? "AI" : "CUSTOMER"),
-            operatorId: message.metadata?.operatorId
-          }
         }))
 
-        logger.info(
+        console.log(
           `Loaded ${chatMessages.length} messages for chat:`,
           chat.sessionId
         )
         setMessages(chatMessages)
       }
     } catch (error) {
-      logger.error("Error loading messages for selected chat:", error)
+      console.error("Error loading messages for selected chat:", error)
     } finally {
       setIsLoading(false)
     }
@@ -289,14 +272,8 @@ export function WhatsAppChatModal({
     const userMessage: Message = {
       id: (Date.now() + 100).toString(),
       content: initialMessage,
-      sender: "customer", // Changed from "user" to "customer" for initial message
+      sender: "user",
       timestamp: new Date(),
-      metadata: {
-        isOperatorMessage: false,
-        isOperatorControl: false,
-        agentSelected: "CUSTOMER",
-        sentBy: "CUSTOMER"
-      }
     }
 
     setMessages([userMessage])
@@ -323,7 +300,7 @@ export function WhatsAppChatModal({
       if (response.data.success) {
         // Save sessionId if provided in the response
         if (response.data.data.sessionId) {
-          logger.info("Setting new session ID:", response.data.data.sessionId)
+          console.log("Setting new session ID:", response.data.data.sessionId)
           setSessionId(response.data.data.sessionId)
 
           // Update our global variable to persist across modal closings
@@ -353,13 +330,6 @@ export function WhatsAppChatModal({
           content: response.data.data.processedMessage,
           sender: "user",
           timestamp: new Date(),
-          agentName: "AI Assistant",
-          metadata: {
-            isOperatorMessage: false,
-            isOperatorControl: false,
-            agentSelected: "CHATBOT",
-            sentBy: "AI"
-          }
         }
 
         // Add ONLY the bot response to chat history, not the user's message again
@@ -367,7 +337,7 @@ export function WhatsAppChatModal({
         setMessages([userMessage, botMessage]) // Include both user message and bot response
       } else {
         // Handle API error response
-        logger.error("API Error:", response.data.error)
+        console.error("API Error:", response.data.error)
 
         // Add an error message to the chat
         const errorMessage: Message = {
@@ -376,19 +346,12 @@ export function WhatsAppChatModal({
             "Sorry, there was an error processing your message. Please try again later.",
           sender: "user",
           timestamp: new Date(),
-          agentName: "System",
-          metadata: {
-            isOperatorMessage: false,
-            isOperatorControl: false,
-            agentSelected: "SYSTEM_ERROR",
-            sentBy: "SYSTEM"
-          }
         }
 
         setMessages((prev) => [...prev, errorMessage])
       }
     } catch (error) {
-      logger.error("Error calling message API:", error)
+      console.error("Error calling message API:", error)
 
       // Add an error message to the chat in case of exception
       const errorMessage: Message = {
@@ -397,13 +360,6 @@ export function WhatsAppChatModal({
           "Sorry, there was an error processing your message. Please try again later.",
         sender: "user",
         timestamp: new Date(),
-        agentName: "System",
-        metadata: {
-          isOperatorMessage: false,
-          isOperatorControl: false,
-          agentSelected: "SYSTEM_ERROR",
-          sentBy: "SYSTEM"
-        }
       }
 
       setMessages((prev) => [...prev, errorMessage])
@@ -414,10 +370,10 @@ export function WhatsAppChatModal({
   }
 
   const sendMessage = async () => {
-    logger.info("🚀 FRONTEND DEBUG: sendMessage called with:", currentMessage)
+    console.log("🚀 FRONTEND DEBUG: sendMessage called with:", currentMessage)
 
     if (!currentMessage.trim() || isLoading) {
-      logger.info(
+      console.log(
         "❌ FRONTEND DEBUG: sendMessage blocked - empty message or loading"
       )
       return
@@ -428,7 +384,7 @@ export function WhatsAppChatModal({
     const lastCall = lastSendRef.current
     if (now - lastCall < 10000) {
       // 10 second debounce for testing
-      logger.info(
+      console.log(
         "❌ FRONTEND DEBUG: sendMessage blocked - too soon after last call"
       )
       return
@@ -441,7 +397,7 @@ export function WhatsAppChatModal({
       return
     }
 
-    logger.info(
+    console.log(
       "✅ FRONTEND DEBUG: sendMessage proceeding with message:",
       currentMessage
     )
@@ -452,12 +408,6 @@ export function WhatsAppChatModal({
       content: currentMessage,
       sender: "customer",
       timestamp: new Date(),
-      metadata: {
-        isOperatorMessage: false,
-        isOperatorControl: false,
-        agentSelected: "CUSTOMER",
-        sentBy: "CUSTOMER"
-      }
     }
 
     // Save the message to display immediately
@@ -466,59 +416,65 @@ export function WhatsAppChatModal({
     setIsLoading(true)
 
     try {
-      // Call the API to process the message - DUAL LLM SYSTEM
+      // Call the API to process the message
       const apiUrl = `${
         import.meta.env.VITE_API_URL || "http://localhost:3001"
-      }/api/whatsapp/webhook`
+      }/api/messages`
 
       // Use provided workspaceId or get from config
       const currentWorkspaceId = getWorkspaceId(workspaceId)
 
-      logger.info("🔄 FRONTEND DEBUG: Making API call to DUAL LLM SYSTEM:", apiUrl)
+      console.log("🔄 FRONTEND DEBUG: Making API call to:", apiUrl)
       const response = await axios.post(apiUrl, {
-        entry: [{
-          changes: [{
-            value: {
-              messages: [{
-                from: userPhoneNumber,
-                text: {
-                  body: userMessage.content
-                }
-              }]
-            }
-          }]
-        }]
+        message: userMessage.content,
+        phoneNumber: userPhoneNumber,
+        workspaceId: currentWorkspaceId,
+        sessionId: sessionId, // Include the sessionId in the request
       })
-      logger.info("📥 FRONTEND DEBUG: API response received:", response.data)
+      console.log("📥 FRONTEND DEBUG: API response received:", response.data)
 
       if (response.data.success) {
-        // DUAL LLM SYSTEM response format
-        const botResponse = response.data.message
-        
-        if (botResponse && botResponse.trim() !== "") {
+        // Update sessionId if provided in the response and not yet set
+        if (response.data.data.sessionId && !sessionId) {
+          console.log("Updating sessionId:", response.data.data.sessionId)
+          setSessionId(response.data.data.sessionId)
+
+          // Update our global variable to persist across modal closings
+          globalSessionId = response.data.data.sessionId
+
+          // Update localStorage with new sessionId
+          if (localSelectedChat) {
+            const updatedChat = {
+              ...localSelectedChat,
+              sessionId: response.data.data.sessionId,
+            }
+            localStorage.setItem("selectedChat", JSON.stringify(updatedChat))
+            setLocalSelectedChat(updatedChat)
+          }
+        }
+
+        // Se la risposta è vuota, non aggiungere nessun messaggio dal bot
+        // Questo evita il messaggio duplicato dopo un saluto tipo "Ciao"
+        if (
+          response.data.data.processedMessage &&
+          response.data.data.processedMessage.trim() !== ""
+        ) {
           // Create the bot message from the API response
           const botMessage: Message = {
             id: (Date.now() + 1).toString(),
-            content: botResponse,
+            content: response.data.data.processedMessage,
             sender: "user",
             timestamp: new Date(),
-            agentName: "AI Assistant",
-            metadata: {
-              isOperatorMessage: false,
-              isOperatorControl: false,
-              agentSelected: "CHATBOT",
-              sentBy: "AI"
-            }
           }
 
           // Add bot response to chat history
           setMessages((prev) => [...prev, botMessage])
         } else {
-          logger.info("Empty response from DUAL LLM SYSTEM, not adding bot message")
+          console.log("Empty response from API, not adding bot message")
         }
       } else {
         // Handle API error response
-        logger.error("API Error:", response.data.error)
+        console.error("API Error:", response.data.error)
 
         // Add an error message to the chat
         const errorMessage: Message = {
@@ -527,19 +483,12 @@ export function WhatsAppChatModal({
             "Sorry, there was an error processing your message. Please try again later.",
           sender: "user",
           timestamp: new Date(),
-          agentName: "System",
-          metadata: {
-            isOperatorMessage: false,
-            isOperatorControl: false,
-            agentSelected: "SYSTEM_ERROR",
-            sentBy: "SYSTEM"
-          }
         }
 
         setMessages((prev) => [...prev, errorMessage])
       }
     } catch (error) {
-      logger.error("Error calling message API:", error)
+      console.error("Error calling message API:", error)
 
       // Add an error message to the chat in case of exception
       const errorMessage: Message = {
@@ -548,13 +497,6 @@ export function WhatsAppChatModal({
           "Sorry, there was an error processing your message. Please try again later.",
         sender: "user",
         timestamp: new Date(),
-        agentName: "System",
-        metadata: {
-          isOperatorMessage: false,
-          isOperatorControl: false,
-          agentSelected: "SYSTEM_ERROR",
-          sentBy: "SYSTEM"
-        }
       }
 
       setMessages((prev) => [...prev, errorMessage])
@@ -593,7 +535,7 @@ export function WhatsAppChatModal({
         }
       }}
     >
-            <DialogContent
+      <DialogContent
         className="w-[600px] max-w-[90vw] p-0 overflow-hidden [&>button]:hidden h-[850px] flex flex-col"
         data-state={isOpen ? "open" : "closed"}
         style={{
@@ -700,160 +642,48 @@ export function WhatsAppChatModal({
             {/* Chat messages */}
             <ScrollArea className="flex-1 p-4 bg-gray-100">
               <div className="space-y-3">
-                {messages.map((message) => {
-                  // Using the sender field which is properly mapped from direction
-                  const isAgentMessage = message.sender === "user"
-                  const isCustomerMessage = message.sender === "customer"
-
-                  // 🚨 ANDREA'S OPERATOR CONTROL INDICATORS
-                  // Correct logic:
-                  const isChatbotMessage =
-                    isAgentMessage &&
-                    (message.metadata?.agentSelected?.startsWith(
-                      "CHATBOT_"
-                    ) ||
-                      message.metadata?.agentSelected === "LLM" ||
-                      message.metadata?.agentSelected === "AI" ||
-                      message.metadata?.agentSelected === "AI_AGENT")
-
-                  // Only EXPLICIT operator messages should be blue
-                  const isOperatorMessage =
-                    isAgentMessage &&
-                    (message.metadata?.agentSelected === "MANUAL_OPERATOR" ||
-                      message.metadata?.isOperatorMessage === true ||
-                      message.metadata?.sentBy === "HUMAN_OPERATOR")
-
-                  const isOperatorControl =
-                    message.metadata?.isOperatorControl === true
-                  const isManualOperator =
-                    message.metadata?.agentSelected === "MANUAL_OPERATOR" ||
-                    message.metadata?.agentSelected ===
-                      "MANUAL_OPERATOR_CONTROL" ||
-                    message.metadata?.sentBy === "HUMAN_OPERATOR"
-
-                  const getMessageStyle = () => {
-                    if (!isAgentMessage) {
-                      return isOperatorControl
-                        ? "bg-orange-50 text-orange-900 border-l-4 border-orange-400" // Customer under control
-                        : "bg-white border border-gray-200" // Normal customer
-                    }
-
-                    // SE C'È IL BADGE CHATBOT → VERDE (controllo anche agentName)
-                    if (
-                      message.metadata?.agentSelected === "CHATBOT" ||
-                      message.metadata?.agentSelected?.startsWith(
-                        "CHATBOT_"
-                      ) ||
-                      message.metadata?.agentSelected === "AI" ||
-                      message.metadata?.agentSelected === "LLM" ||
-                      message.agentName
-                    ) {
-                      // Se ha agentName è un chatbot!
-                      return "bg-green-100 text-green-900 border-l-4 border-green-500" // CHATBOT → VERDE
-                    }
-
-                    if (
-                      message.metadata?.agentSelected === "MANUAL_OPERATOR"
-                    ) {
-                      return "bg-blue-100 text-blue-900 border-l-4 border-blue-500" // MANUAL_OPERATOR → BLU
-                    }
-
-                    // Default fallback
-                    return "bg-green-100 text-green-900"
-                  }
-
-                  return (
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex ${
+                      message.sender === "customer"
+                        ? "justify-start"
+                        : "justify-end"
+                    } mb-3`}
+                  >
                     <div
-                      key={message.id}
-                      className={`flex ${
-                        isAgentMessage ? "justify-end" : "justify-start"
-                      } mb-3`}
+                      className={
+                        message.sender === "customer"
+                          ? "bg-white border border-gray-200 rounded-2xl rounded-br-md shadow-sm px-5 py-3 max-w-[600px] mb-2"
+                          : "bg-green-100 text-green-900 rounded-2xl rounded-bl-md shadow-sm px-5 py-3 max-w-[600px] mb-2"
+                      }
                     >
-                      <div
-                        className={`rounded-2xl px-3 py-3 max-w-[85%] sm:max-w-[400px] mb-2 word-wrap break-words overflow-wrap-anywhere relative ${getMessageStyle()}`}
-                      >
-                        {/* 🚨 OPERATOR CONTROL BADGE */}
-                        {(isOperatorMessage ||
-                          isOperatorControl ||
-                          isManualOperator) && (
-                          <div className="absolute -top-2 -right-2">
-                            <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-medium ${
-                                isOperatorMessage
-                                  ? "bg-blue-500 text-white"
-                                  : "bg-orange-500 text-white"
-                              }`}
-                            >
-                              👨‍💼 {isOperatorMessage ? "OPERATOR" : "MANUAL"}
-                            </span>
-                          </div>
-                        )}
-
-                        <span 
-                          className="break-words whitespace-pre-line text-sm block leading-relaxed overflow-wrap-anywhere hyphens-auto"
-                          style={{
-                            wordWrap: 'break-word',
-                            overflowWrap: 'anywhere',
-                            hyphens: 'auto',
-                            wordBreak: 'break-word',
-                            whiteSpace: 'pre-wrap',
-                            maxWidth: '100%'
+                      <span className="break-words whitespace-pre-line text-sm">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            a: ({ node, ...props }) => (
+                              <a
+                                {...props}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              />
+                            ),
                           }}
                         >
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              a: ({ node, ...props }) => (
-                                <a
-                                  {...props}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:underline"
-                                />
-                              ),
-                            }}
-                          >
-                            {message.content}
-                          </ReactMarkdown>
-                        </span>
-
-                        <div className="flex justify-between items-center mt-1">
-                          <span className="text-[10px] opacity-70">
-                            {message.timestamp.toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-
-                          <div className="flex items-center gap-1">
-                            {/* 🤖 AI Agent Badge */}
-                            {isAgentMessage &&
-                              message.agentName &&
-                              !isOperatorMessage && (
-                                <span className="text-[10px] font-medium bg-green-200 text-green-800 px-2 py-0.5 rounded ml-2">
-                                  🤖 {message.agentName}
-                                </span>
-                              )}
-
-                            {/* 👨‍💼 Operator Badge */}
-                            {isOperatorMessage && (
-                              <span className="text-[10px] font-medium bg-blue-200 text-blue-800 px-2 py-0.5 rounded ml-2">
-                                👨‍💼 Human Operator
-                              </span>
-                            )}
-
-                            {/* 📋 Manual Control Badge */}
-                            {isOperatorControl && (
-                              <span className="text-[10px] font-medium bg-orange-200 text-orange-800 px-2 py-0.5 rounded ml-2">
-                                📋 Under Manual Control
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                          {message.content}
+                        </ReactMarkdown>
+                      </span>
+                      <div className="text-[10px] text-gray-300 text-right mt-1">
+                        {message.timestamp.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </div>
                     </div>
-                  )
-                })}
+                  </div>
+                ))}
                 {isLoading && (
                   <div className="flex justify-end mb-2">
                     <div className="bg-green-100 text-green-900 rounded-2xl rounded-bl-md shadow-sm px-4 py-3 max-w-[90%]">

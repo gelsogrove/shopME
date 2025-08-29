@@ -1,7 +1,93 @@
-import { OrderStatus, PrismaClient } from '@prisma/client'
+<<<<<<< HEAD
+import { z } from 'zod';
+import logger from '../../utils/logger';
+import { OrderRepository } from '../../repositories/order.repository';
+
+const GetShipmentTrackingLinkSchema = z.object({
+  workspaceId: z.string().describe("The workspace ID"),
+  customerId: z.string().describe("The customer ID")
+});
+
+export const GetShipmentTrackingLink = {
+  name: "GetShipmentTrackingLink",
+  description: "Get shipment tracking link for the latest processing order of a customer",
+  parameters: GetShipmentTrackingLinkSchema,
+  execute: async (params: z.infer<typeof GetShipmentTrackingLinkSchema>) => {
+    try {
+      logger.info(`[GetShipmentTrackingLink] 📦 Looking for tracking info for customer ${params.customerId} in workspace ${params.workspaceId}`);
+      
+      const orderRepository = new OrderRepository();
+      
+      // Find all orders for this customer
+      const customerOrders = await orderRepository.findByCustomerId(
+        params.customerId,
+        params.workspaceId
+      );
+      
+      // Filter for PROCESSING orders and get the latest one
+      const processingOrders = customerOrders.filter(order => order.status === 'PROCESSING');
+      
+      if (processingOrders.length === 0) {
+        logger.info(`[GetShipmentTrackingLink] ⚠️ No processing order found for customer ${params.customerId}`);
+        return {
+          success: false,
+          message: "Nessun ordine in elaborazione trovato. Il tracking sarà disponibile quando l'ordine verrà spedito."
+        };
+      }
+      
+      // Get the most recent processing order
+      const latestProcessingOrder = processingOrders.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )[0];
+      
+      // Check if order has tracking number (field not yet implemented in schema)
+      // For now, always return that tracking is not available yet
+      logger.info(`[GetShipmentTrackingLink] ⚠️ Order ${latestProcessingOrder.orderCode} - tracking field not yet implemented in database`);
+      return {
+        success: false,
+        message: `Il tuo ordine ${latestProcessingOrder.orderCode} è in preparazione. Il numero di tracking sarà disponibile a breve quando verrà spedito.`
+      };
+      
+      // TODO: Uncomment when trackingNumber field is added to Orders table
+      /*
+      if (!latestProcessingOrder.trackingNumber) {
+        logger.info(`[GetShipmentTrackingLink] ⚠️ Order ${latestProcessingOrder.orderCode} has no tracking number yet`);
+        return {
+          success: false,
+          message: "Il tuo ordine è in preparazione. Il numero di tracking sarà disponibile a breve."
+        };
+      }
+      
+      // Generate DHL tracking URL
+      const trackingUrl = `https://www.dhl.com/en/express/tracking.html?AWB=${latestProcessingOrder.trackingNumber}`;
+      
+      logger.info(`[GetShipmentTrackingLink] ✅ Tracking link generated for order ${latestProcessingOrder.orderCode}`);
+      
+      return {
+        success: true,
+        data: {
+          orderId: latestProcessingOrder.id,
+          orderCode: latestProcessingOrder.orderCode,
+          status: latestProcessingOrder.status,
+          trackingNumber: latestProcessingOrder.trackingNumber,
+          trackingUrl: trackingUrl
+        },
+        message: `🚚 Ecco il link per tracciare il tuo ordine ${latestProcessingOrder.orderCode}: ${trackingUrl}`
+      };
+      */
+      
+    } catch (error) {
+      logger.error(`[GetShipmentTrackingLink] ❌ Error getting tracking link:`, error);
+      return {
+        success: false,
+        message: "Errore nel recupero delle informazioni di tracking. Riprova più tardi."
+      };
+    }
+  }
+};
+=======
+import { OrderStatus } from '@prisma/client'
 import { OrderService } from '../../application/services/order.service'
-import { SecureTokenService } from '../../application/services/secure-token.service'
-import logger from '../../utils/logger'
 
 export interface GetShipmentTrackingLinkParams {
   workspaceId: string
@@ -17,90 +103,14 @@ export interface GetShipmentTrackingLinkResult {
 }
 
 export async function GetShipmentTrackingLink(params: GetShipmentTrackingLinkParams): Promise<GetShipmentTrackingLinkResult | null> {
-  logger.info(`[TRACKING-LINK] Starting GetShipmentTrackingLink for customer ${params.customerId} in workspace ${params.workspaceId}`)
-  
   const service = new OrderService()
   const result = await service.getLatestProcessingTracking(params.workspaceId, params.customerId)
-  
-  if (!result) {
-    logger.warn(`[TRACKING-LINK] No processing order found for customer ${params.customerId}`)
-    return null
-  }
-
-  logger.info(`[TRACKING-LINK] Found order ${result.orderCode} with status ${result.status}`)
-
-  try {
-    // Get customer phone number for URL construction
-    const prisma = new PrismaClient()
-    const customer = await prisma.customers.findFirst({
-      where: { 
-        id: params.customerId,
-        workspaceId: params.workspaceId 
-      },
-      select: {
-        phone: true,
-        workspace: {
-          select: {
-            url: true
-          }
-        }
-      }
-    })
-
-    if (!customer) {
-      logger.warn(`[TRACKING-LINK] Customer not found for ID ${params.customerId}, falling back to DHL URL`)
-      // Fallback to original DHL URL if customer not found
-      return result
-    }
-
-    logger.info(`[TRACKING-LINK] Found customer with phone ${customer.phone}`)
-
-    // Generate secure token for orders page access
-    const secureTokenService = new SecureTokenService()
-    const tokenPayload = {
-      customerId: params.customerId,
-      workspaceId: params.workspaceId,
-      orderCode: result.orderCode,
-      createdAt: new Date().toISOString()
-    }
-
-    logger.info(`[TRACKING-LINK] Generating token with payload:`, tokenPayload)
-
-    const token = await secureTokenService.createToken(
-      'orders',
-      params.workspaceId,
-      tokenPayload,
-      '24h',
-      params.customerId,
-      customer.phone,
-      undefined,
-      params.customerId
-    )
-
-    logger.info(`[TRACKING-LINK] Token generated successfully: ${token.substring(0, 12)}...`)
-
-    // Build ShopMe URL with token
-    const baseUrl = customer.workspace?.url || process.env.FRONTEND_URL || 'http://localhost:3000'
-    const shopMeUrl = `${baseUrl}/orders-public/${result.orderCode}?token=${token}`
-
-    logger.info(`[TRACKING-LINK] Generated ShopMe URL: ${shopMeUrl}`)
-
-    // Return result with ShopMe URL instead of DHL URL
-    return {
-      ...result,
-      trackingUrl: shopMeUrl
-    }
-
-  } catch (error) {
-    logger.error('[TRACKING-LINK] Error generating ShopMe tracking URL:', error)
-    // Fallback to original DHL URL if token generation fails
-    return result
-  }
+  return result
 }
 
 export const GetShipmentTrackingLinkFunction = {
   name: 'GetShipmentTrackingLink',
-  description: 'Return trackingNumber and ShopMe tracking URL for latest processing order of a customer in a workspace',
+  description: 'Return trackingNumber and trackingUrl for latest processing order of a customer in a workspace',
   parameters: {
     type: 'object',
     properties: {
@@ -110,3 +120,4 @@ export const GetShipmentTrackingLinkFunction = {
     required: ['workspaceId', 'customerId']
   }
 }
+>>>>>>> c8c486282d896950d19d363eade0d2692a34088b

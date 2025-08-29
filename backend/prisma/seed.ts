@@ -21,7 +21,7 @@
  * ⚠️ NON MODIFICARE CREDENZIALI SENZA AGGIORNARE .env
  */
 
-import { PrismaClient } from "@prisma/client"
+import { OrderStatus, PrismaClient } from "@prisma/client"
 import * as bcrypt from "bcrypt"
 import dotenv from "dotenv"
 import fs from "fs"
@@ -62,7 +62,34 @@ const SOFIA_PROMPT = fs.readFileSync(
 )
 
 // Andrea's Two-LLM Architecture - Router Prompt (DEPRECATED)
-// ROUTER_PROMPT rimosso - ora usa sempre SOFIA_PROMPT (contenuto di prompt_agent.md)
+const ROUTER_PROMPT = `DEPRECATED: This router is no longer used in Andrea's Two-LLM Architecture.
+
+🏗️ ANDREA'S REVOLUTIONARY ARCHITECTURE:
+- LLM 1: RAG Processor (handles all routing automatically)
+- LLM 2: Formatter (this agent - creates conversational responses)
+
+🚫 OLD FUNCTION ROUTING (No Longer Used):
+- ~~welcome_back_user~~ → Direct response in LLM 2
+- ~~checkout_intent~~ → Future NewOrder() function
+- ~~rag_search~~ → Automatic in LLM 1 RAG processing
+
+🎯 FUTURE FUNCTIONS (Only These):
+- NewOrder() → When user wants to finalize purchase
+- ContactOperator() → When user requests human support
+
+⚡ NEW WORKFLOW:
+1. User Query → N8N Workflow
+2. LLM 1 (RAG Processor) → Analyzes query + searches database
+3. LLM 2 (Formatter) → Creates natural response using structured data
+4. Result → Perfect, accurate, conversational response
+
+Note: This router prompt is kept for historical reference but is not used in the current Two-LLM architecture.
+"hai le mozzarelle fresche?" → rag_search
+"do you have mozzarella?" → rag_search
+"vendete vino?" → rag_search
+"voglio comprare" → checkout_intent
+
+User message: "{message}"`
 
 // Inizializziamo createdWorkspaces qui, prima di main()
 let createdWorkspaces: any[] = []
@@ -151,10 +178,79 @@ async function generateEmbeddingsAfterSeed() {
   }
 }
 
-// N8N function removed - Dual LLM system is now used instead
 async function cleanAndImportN8NWorkflow() {
-  console.log("\n🔄 N8N function removed - Dual LLM system is now used instead")
-  return
+  console.log("\n🔄 N8N Complete Cleanup & Import:")
+  console.log("============================")
+
+  try {
+    const fs = require("fs")
+    const path = require("path")
+    const { exec } = require("child_process")
+    const { promisify } = require("util")
+    const execAsync = promisify(exec)
+
+    // Path to the workflow file
+    const workflowPath = path.join(
+      __dirname,
+      "../../n8n/workflows/shopme-whatsapp-workflow.json"
+    )
+
+    if (!fs.existsSync(workflowPath)) {
+      console.log("⚠️ N8N workflow file not found:", workflowPath)
+      return
+    }
+
+    console.log(
+      "🗑️ Complete cleanup: removing workflows AND credentials to prevent duplicates..."
+    )
+
+    // Execute the N8N cleanup and import script
+    const scriptsPath = path.join(__dirname, "../../scripts")
+
+    // Check if the nuclear cleanup script exists
+    const nuclearScript = path.join(scriptsPath, "n8n_nuclear-cleanup.sh")
+
+    if (fs.existsSync(nuclearScript)) {
+      console.log("🚀 Running N8N NUCLEAR cleanup to prevent any duplicates...")
+
+      try {
+        // Make script executable
+        await execAsync(`chmod +x "${nuclearScript}"`)
+
+        // Run the nuclear cleanup script that completely resets N8N
+        const { stdout, stderr } = await execAsync(`"${nuclearScript}"`, {
+          cwd: scriptsPath,
+          timeout: 180000, // 180 seconds timeout for nuclear cleanup (includes docker restart and setup)
+        })
+
+        if (stdout) {
+          console.log("📥 N8N Nuclear Cleanup Output:", stdout)
+        }
+
+        if (stderr && !stderr.includes("Warning")) {
+          console.log("⚠️ N8N Nuclear Cleanup Warnings:", stderr)
+        }
+
+        console.log(
+          "✅ N8N nuclear cleanup and workflow import completed successfully"
+        )
+      } catch (execError) {
+        console.error(
+          "❌ Error running N8N nuclear cleanup script:",
+          execError.message
+        )
+        console.log("💡 You can manually run: scripts/n8n_nuclear-cleanup.sh")
+      }
+    } else {
+      console.log("⚠️ N8N nuclear cleanup script not found:", nuclearScript)
+      console.log("💡 Please ensure scripts/n8n_nuclear-cleanup.sh exists")
+    }
+  } catch (error) {
+    console.error("❌ Error in N8N workflow management:", error.message)
+    console.log("💡 N8N workflow import can be done manually if needed")
+  }
+
+  console.log("============================\n")
 }
 
 // Function to seed Aviso Legal document
@@ -520,8 +616,8 @@ async function main() {
         language: "es",
         currency: "EUR",
         url: "http://localhost:3000",
-
-
+        n8nWorkflowUrl: "http://localhost:5678/webhook/webhook-start",
+        plan: "FREE",
         wipMessages: {
           en: "Work in progress. Please contact us later.",
           it: "Lavori in corso. Contattaci più tardi.",
@@ -590,36 +686,14 @@ async function main() {
           prompt: SOFIA_PROMPT,
           workspaceId: mainWorkspaceId,
           model: defaultAgent.model,
-          temperature: 0.3,
+          temperature: 0.7,
           maxTokens: 1000,
           isActive: true,
         },
       })
       console.log("SofIA AgentConfig creato per il workspace principale")
     } else {
-      // FORCE UPDATE: Aggiorna sempre agentConfig con il contenuto di prompt_agent.md
-      let promptContent = ""
-      const promptFilePath = path.join(__dirname, "..", "..", "docs", "other", "prompt_agent.md")
-      
-      try {
-        promptContent = fs.readFileSync(promptFilePath, "utf8")
-        console.log(`🔄 Aggiornando agentConfig con prompt_agent.md`)
-      } catch (error) {
-        console.error(`❌ Errore lettura prompt_agent.md: ${error}`)
-        promptContent = SOFIA_PROMPT // Fallback al prompt di default
-      }
-      
-      await prisma.agentConfig.update({
-        where: { id: existingAgentConfig.id },
-        data: {
-          prompt: promptContent,
-          model: defaultAgent.model,
-          temperature: 0.3,
-          maxTokens: 1000,
-          isActive: true,
-        },
-      })
-      console.log("✅ AgentConfig aggiornato con prompt_agent.md")
+      console.log("AgentConfig già esistente per il workspace principale")
     }
 
     // CREA ANCHE UN AGENT NELLA TABELLA PROMPTS SE NON ESISTE
@@ -640,7 +714,7 @@ async function main() {
           department: null,
           workspaceId: mainWorkspaceId,
           model: "gpt-3.5-turbo",
-          temperature: 0.3, // Abbassata per maggiore consistenza nei link
+          temperature: 0.7,
           top_p: 1,
           max_tokens: 1024,
         },
@@ -662,7 +736,7 @@ async function main() {
       await prisma.prompts.create({
         data: {
           name: "Router LLM",
-          content: SOFIA_PROMPT,
+          content: ROUTER_PROMPT,
           isActive: true,
           isRouter: false,
           department: "router",
@@ -693,8 +767,8 @@ async function main() {
         language: "es",
         currency: "EUR",
         url: "http://localhost:3000",
-
-
+        n8nWorkflowUrl: "http://localhost:5678/webhook/webhook-start",
+        plan: "FREE",
         wipMessages: {
           en: "Work in progress. Please contact us later.",
           it: "Lavori in corso. Contattaci più tardi.",
@@ -706,7 +780,7 @@ async function main() {
           en: "Welcome to L'Altra Italia! 👋 I'm your virtual assistant and I'm here to help you with any information about our products and services. How can I assist you today? 😊",
           es: "¡Bienvenido a L'Altra Italia! 👋 Soy tu asistente virtual y estoy aquí para ayudarte con cualquier información sobre nuestros productos y servicios. ¿Cómo puedo ayudarte hoy? 😊",
         },
-        debugMode: false,
+        debugMode: true,
       },
     })
     console.log(
@@ -769,36 +843,14 @@ async function main() {
           prompt: SOFIA_PROMPT,
           workspaceId: mainWorkspaceId,
           model: defaultAgent.model,
-          temperature: 0.3,
+          temperature: 0.7,
           maxTokens: 1000,
           isActive: true,
         },
       })
       console.log("SofIA AgentConfig creato per il workspace principale")
     } else {
-      // FORCE UPDATE: Aggiorna sempre agentConfig con il contenuto di prompt_agent.md
-      let promptContent = ""
-      const promptFilePath = path.join(__dirname, "..", "..", "docs", "other", "prompt_agent.md")
-      
-      try {
-        promptContent = fs.readFileSync(promptFilePath, "utf8")
-        console.log(`🔄 Aggiornando agentConfig con prompt_agent.md`)
-      } catch (error) {
-        console.error(`❌ Errore lettura prompt_agent.md: ${error}`)
-        promptContent = SOFIA_PROMPT // Fallback al prompt di default
-      }
-      
-      await prisma.agentConfig.update({
-        where: { id: existingAgentConfig.id },
-        data: {
-          prompt: promptContent,
-          model: defaultAgent.model,
-          temperature: 0.3,
-          maxTokens: 1000,
-          isActive: true,
-        },
-      })
-      console.log("✅ AgentConfig aggiornato con prompt_agent.md")
+      console.log("AgentConfig già esistente per il workspace principale")
     }
 
     // CREA ANCHE UN AGENT NELLA TABELLA PROMPTS SE NON ESISTE
@@ -819,7 +871,7 @@ async function main() {
           department: null,
           workspaceId: mainWorkspaceId,
           model: "gpt-3.5-turbo",
-          temperature: 0.3,
+          temperature: 0.7,
           top_p: 1,
           max_tokens: 1024,
         },
@@ -841,7 +893,7 @@ async function main() {
       await prisma.prompts.create({
         data: {
           name: "Router LLM",
-          content: SOFIA_PROMPT,
+          content: ROUTER_PROMPT,
           isActive: true,
           isRouter: false,
           department: "router",
@@ -881,7 +933,7 @@ async function main() {
       name: "Beverages",
       slug: "beverages",
       description:
-        "Italian beverages including wines, spirits, coffee, soft drinks, and both alcoholic and non-alcoholic options",
+        "Italian beverages including coffee, soft drinks, and non-alcoholic options",
     },
     {
       name: "Pasta",
@@ -996,7 +1048,7 @@ async function main() {
   }
 
   // Crea le lingue disponibili solo se non esistono già
-  const languageCodes = ["it", "en", "es", "fr"]
+  const languageCodes = ["it", "en", "es", "fr", "de"]
   const existingLanguages = await prisma.languages.findMany({
     where: {
       code: { in: languageCodes },
@@ -1020,6 +1072,7 @@ async function main() {
       en: "English",
       es: "Español",
       fr: "Français",
+      de: "Deutsch",
     }
     return names[code] || code
   }
@@ -1062,40 +1115,30 @@ async function main() {
       },
     })
 
-          // Force update the prompt to use our new prompt_agent.md
-      if (existingPrompt) {
-        // Read the new prompt content
-        let promptContent = ""
-        const promptFilePath = path.join(__dirname, "..", "..", "docs", "other", "prompt_agent.md")
-        
-        try {
-          promptContent = fs.readFileSync(promptFilePath, "utf8")
-          console.log(`Using updated prompt_agent.md for ${agent.name} agent`)
-        } catch (error) {
-          console.error(`Error reading prompt_agent.md file: ${error}`)
-          promptContent = "Default prompt content. Please update with proper instructions."
-        }
-        
-        // Update existing prompt
-        await prisma.prompts.update({
-          where: { id: existingPrompt.id },
-          data: {
-            content: promptContent,
-            temperature: 0.3,
-            top_p: 0.8,
-            top_k: 30,
-            model: agent.model,
-          },
-        })
-        console.log(`Prompt updated: ${agent.promptName} for agent ${agent.name}`)
-      }
-    
     if (!existingPrompt) {
       let promptContent = ""
       let promptFilePath = ""
 
-      // Use our updated prompt_agent.md for all agents
-      promptFilePath = path.join(__dirname, "..", "..", "docs", "other", "prompt_agent.md")
+      // Use specific prompt files based on agent name
+      switch (agent.name) {
+        case "GENERIC":
+          promptFilePath = path.join(__dirname, "prompts/gdpr.md")
+          break
+        case "PRODUCTS AND CARTS":
+          promptFilePath = path.join(__dirname, "prompts/product-and.carts.md")
+          break
+        case "ORDERS AND INVOICES":
+          promptFilePath = path.join(__dirname, "prompts/orders-and-invoice.md")
+          break
+        case "TRANSPORT":
+          promptFilePath = path.join(__dirname, "prompts/transport.md")
+          break
+        case "SERVICES":
+          promptFilePath = path.join(__dirname, "prompts/services.md")
+          break
+        default:
+          promptFilePath = path.join(__dirname, "prompts/gdpr.md")
+      }
 
       try {
         promptContent = fs.readFileSync(promptFilePath, "utf8")
@@ -1394,73 +1437,7 @@ async function main() {
       stock: 40,
 
       status: "ACTIVE",
-      slug: "limoncello-di-capri",
-      categoryName: "Beverages",
-    },
-    {
-      name: "Chianti Classico DOCG",
-      description:
-        "Chianti Classico DOCG, uno dei vini rossi più famosi d'Italia, prodotto nella regione storica del Chianti in Toscana. Realizzato principalmente con uve Sangiovese, presenta un bouquet complesso con note di frutta rossa, spezie e tabacco. Perfetto per accompagnare carni rosse, formaggi stagionati e piatti della tradizione toscana.",
-      price: 24.99,
-      stock: 25,
-
-      status: "ACTIVE",
-      slug: "chianti-classico-docg",
-      categoryName: "Beverages",
-    },
-    {
-      name: "Prosecco DOC Treviso",
-      description:
-        "Prosecco DOC Treviso, spumante italiano prodotto con uve Glera nella regione del Veneto. Caratterizzato da bollicine fini e persistenti, presenta aromi di fiori bianchi, pera e mela verde. Perfetto come aperitivo o per accompagnare antipasti e piatti di pesce. Ideale per celebrazioni e momenti speciali.",
-      price: 18.99,
-      stock: 30,
-
-      status: "ACTIVE",
-      slug: "prosecco-doc-treviso",
-      categoryName: "Beverages",
-    },
-    {
-      name: "Barolo DOCG",
-      description:
-        "Barolo DOCG, il 'Re dei vini e vino dei Re', prodotto esclusivamente con uve Nebbiolo nelle Langhe del Piemonte. Vino rosso di grande struttura e longevità, presenta aromi complessi di rosa, tartufo, spezie e frutta rossa matura. Richiede invecchiamento e si abbina perfettamente a piatti elaborati e carni rosse.",
-      price: 45.99,
-      stock: 15,
-
-      status: "ACTIVE",
-      slug: "barolo-docg",
-      categoryName: "Beverages",
-    },
-    {
-      name: "Pinot Grigio delle Venezie DOC",
-      description:
-        "Pinot Grigio delle Venezie DOC, vino bianco secco prodotto nelle regioni del Nord-Est italiano. Caratterizzato da un colore paglierino con riflessi ramati, presenta aromi di fiori bianchi, frutta tropicale e note minerali. Perfetto per accompagnare antipasti, pesce e piatti leggeri della cucina mediterranea.",
-      price: 16.99,
-      stock: 35,
-
-      status: "ACTIVE",
-      slug: "pinot-grigio-delle-venezie-doc",
-      categoryName: "Beverages",
-    },
-    {
-      name: "Amarone della Valpolicella DOCG",
-      description:
-        "Amarone della Valpolicella DOCG, vino rosso corposo prodotto con uve appassite nella regione del Veneto. Caratterizzato da un elevato contenuto alcolico e aromi intensi di frutta secca, spezie, cioccolato e note balsamiche. Vino da meditazione, perfetto per accompagnare formaggi stagionati e cioccolato fondente.",
-      price: 52.99,
-      stock: 12,
-
-      status: "ACTIVE",
-      slug: "amarone-della-valpolicella-docg",
-      categoryName: "Beverages",
-    },
-    {
-      name: "Grappa di Moscato",
-      description:
-        "Grappa di Moscato, distillato italiano prodotto con vinacce di uve Moscato. Caratterizzata da un profumo intenso e floreale con note di uva moscata, fiori bianchi e frutta tropicale. Grappa elegante e raffinata, perfetta come digestivo o per accompagnare dolci e cioccolato. Prodotta secondo la tradizione artigianale italiana.",
-      price: 28.99,
-      stock: 20,
-
-      status: "ACTIVE",
-      slug: "grappa-di-moscato",
+      slug: "pesto-alla-genovese-dop",
       categoryName: "Beverages",
     },
   ]
@@ -1468,7 +1445,6 @@ async function main() {
   // Create services for the main workspace (reduced to 2 services as requested)
   const services = [
     {
-      code: "SHP001",
       name: "Shipping",
       description:
         "Premium shipping service with tracking and guaranteed delivery within 3-5 business days.",
@@ -1476,7 +1452,6 @@ async function main() {
       currency: "EUR",
     },
     {
-      code: "GFT001",
       name: "Gift Package",
       description:
         "Luxury gift wrapping service with personalized message and premium packaging materials.",
@@ -1489,7 +1464,7 @@ async function main() {
   for (const service of services) {
     const existingService = await prisma.services.findFirst({
       where: {
-        code: service.code,
+        name: service.name,
         workspaceId: mainWorkspaceId,
       },
     })
@@ -1502,7 +1477,7 @@ async function main() {
         },
       })
       console.log(
-        `Service created: ${service.name} (${service.code}) for workspace ${createdWorkspaces[0].name}`
+        `Service created: ${service.name} for workspace ${createdWorkspaces[0].name}`
       )
     } else {
       // Update existing service
@@ -1514,7 +1489,7 @@ async function main() {
         },
       })
       console.log(
-        `Service updated: ${service.name} (${service.code}) for workspace ${createdWorkspaces[0].name}`
+        `Service updated: ${service.name} for workspace ${createdWorkspaces[0].name}`
       )
     }
   }
@@ -1600,11 +1575,11 @@ async function main() {
   // Define sample offers
   const specialOffers = [
     {
-      name: "Offerta Alcolici 20%",
-      description: "Sconto del 20% su tutti gli alcolici!",
+      name: "Offerta Estiva 2025",
+      description: "Sconto speciale del 20% su tutte le bevande per l'estate!",
       discountPercent: 20,
-      startDate: new Date(new Date().setDate(new Date().getDate() - 30)), // 30 days ago
-      endDate: new Date(new Date().setDate(new Date().getDate() + 365)), // 1 year from now
+      startDate: new Date(2025, 6, 1), // July 1st, 2025 (month is 0-indexed)
+      endDate: new Date(2025, 8, 30), // September 30th, 2025
       isActive: true,
       categoryId: null as string | null, // Will be set to Beverages category below
     },
@@ -1648,9 +1623,9 @@ async function main() {
   // Create new offers
   for (const offer of specialOffers) {
     try {
-      // For "Offerta Alcolici 20%", find and assign Beverages category
+      // For "Offerta Estiva 2025", find and assign Beverages category
       let finalCategoryId = offer.categoryId
-      if (offer.name === "Offerta Alcolici 20%") {
+      if (offer.name === "Offerta Estiva 2025") {
         const beverageCategory = await prisma.categories.findFirst({
           where: {
             workspaceId: mainWorkspaceId,
@@ -1660,7 +1635,7 @@ async function main() {
         if (beverageCategory) {
           finalCategoryId = beverageCategory.id
           console.log(
-            `Assigning Offerta Alcolici to Beverages category: ${beverageCategory.id}`
+            `Assigning Offerta Estiva to Beverages category: ${beverageCategory.id}`
           )
         }
       }
@@ -1897,7 +1872,7 @@ async function main() {
   await prisma.customers.deleteMany({
     where: {
       workspaceId: mainWorkspaceId,
-      email: { in: ["test.customer@shopme.com", "maria.garcia@shopme.com", "test-customer-123@shopme.com"] },
+      email: { in: ["test.customer@shopme.com", "maria.garcia@shopme.com"] },
     },
   })
   console.log("Deleted existing test customers")
@@ -1934,10 +1909,8 @@ async function main() {
   console.log(
     `Test customer 1 created: ${testCustomer.name} (${testCustomer.email})`
   )
-  console.log(`➡️ testCustomer.id: ${testCustomer.id}`)
-  console.log(`➡️ workspaceId: ${mainWorkspaceId}`)
 
-  // Create second test customer - Maria Garcia (with 10% discount)
+  // Create second test customer - Maria Garcia
   const testCustomer2 = await prisma.customers.create({
     data: {
       name: "Maria Garcia",
@@ -1952,7 +1925,6 @@ async function main() {
       privacy_accepted_at: new Date(),
       push_notifications_consent: true,
       push_notifications_consent_at: new Date(),
-      discount: 10, // 10% discount for Maria Garcia
       invoiceAddress: {
         firstName: "Maria",
         lastName: "Garcia",
@@ -1967,40 +1939,6 @@ async function main() {
       },
     },
   })
-
-  // Create test customer for MCP testing - test-customer-123
-  const testCustomerMCP = await prisma.customers.create({
-    data: {
-      id: "test-customer-123", // Fixed ID for MCP testing
-      name: "Test Customer MCP",
-      email: "test-customer-123@shopme.com",
-      phone: "+393451234567",
-      address: "Test Address for MCP",
-      company: "MCP Test Company",
-      language: "it",
-      currency: "EUR",
-      workspaceId: mainWorkspaceId,
-      activeChatbot: true,
-      privacy_accepted_at: new Date(),
-      push_notifications_consent: true,
-      push_notifications_consent_at: new Date(),
-      invoiceAddress: {
-        firstName: "Test",
-        lastName: "Customer",
-        company: "MCP Test Company",
-        address: "Test Address",
-        city: "Test City",
-        postalCode: "12345",
-        country: "Italy",
-        vatNumber: "IT12345678901",
-        phone: "+393451234567",
-        email: "test-customer-123@shopme.com",
-      },
-    },
-  })
-  console.log(
-    `Test customer MCP created: ${testCustomerMCP.name} (ID: ${testCustomerMCP.id})`
-  )
   console.log(
     `Test customer 2 created: ${testCustomer2.name} (${testCustomer2.email})`
   )
@@ -2154,9 +2092,9 @@ async function main() {
 
   if (availableProducts.length > 0) {
     // Create multiple orders with different statuses
-    const ordersData: any[] = [
+    const ordersData = [
       {
-        status: "PENDING",
+        status: OrderStatus.PENDING,
         paymentStatus: "PENDING",
         paymentMethod: "CREDIT_CARD",
         totalAmount: 89.5,
@@ -2212,7 +2150,7 @@ async function main() {
         ],
       },
       {
-        status: "PROCESSING",
+        status: OrderStatus.PROCESSING,
         paymentStatus: "PAID",
         paymentMethod: "PAYPAL",
         totalAmount: 156.75,
@@ -2255,7 +2193,7 @@ async function main() {
         ],
       },
       {
-        status: "DELIVERED",
+        status: OrderStatus.DELIVERED,
         paymentStatus: "PAID",
         paymentMethod: "BANK_TRANSFER",
         totalAmount: 245.99,
@@ -2305,7 +2243,7 @@ async function main() {
         ],
       },
       {
-        status: "CANCELLED",
+        status: OrderStatus.CANCELLED,
         paymentStatus: "REFUNDED",
         paymentMethod: "CREDIT_CARD",
         totalAmount: 67.48,
@@ -2387,10 +2325,9 @@ async function main() {
             orderCode: `${10001 + i}`, // 5-digit numeric codes starting from 10001
             customerId: customerId,
             workspaceId: mainWorkspaceId,
-            status: orderData.status as any,
+            status: orderData.status,
             totalAmount: orderData.totalAmount,
             shippingAddress: shippingAddresses[customerId],
-            trackingNumber: "1234567890",
             createdAt: orderDate,
           },
         })
@@ -2482,7 +2419,6 @@ async function main() {
           status: randomStatus as any,
           totalAmount: randomAmount,
           shippingAddress: shippingAddresses[randomCustomerId],
-          trackingNumber: "1234567890",
           createdAt: orderDate,
         },
       })
@@ -2588,59 +2524,6 @@ async function main() {
     `💰 Total cost simulation: €${(usageData.length * 0.005).toFixed(4)}`
   )
 
-  // 🚚 CREATE PROCESSING ORDER FOR TRACKING TEST
-  console.log("\n🚚 CREATING PROCESSING ORDER FOR TRACKING TEST")
-  console.log("=============================================")
-  
-  try {
-    // Ensure we have a PROCESSING order for tracking test
-    const processingOrder = await prisma.orders.create({
-      data: {
-        orderCode: "TRACKING-TEST-001",
-        customerId: testCustomer.id, // Use the dynamic customerId from seed
-        workspaceId: mainWorkspaceId,
-        status: "PROCESSING",
-        totalAmount: 49.99,
-        shippingAddress: {
-          name: "Mario Rossi",
-          street: "Via Roma 123",
-          city: "Milano",
-          postalCode: "20121",
-          province: "MI",
-          country: "Italia",
-          phone: "+39 02 1234567",
-        },
-        trackingNumber: "DHL1234567890", // Specific tracking for test
-        createdAt: new Date(),
-      },
-    })
-
-    // Add items to the processing order
-    const mozzarellaProduct = availableProducts.find(p => p.name.includes("Mozzarella"))
-    if (mozzarellaProduct) {
-      await prisma.orderItems.create({
-        data: {
-          orderId: processingOrder.id,
-          productId: mozzarellaProduct.id,
-          quantity: 2,
-          unitPrice: 24.99,
-          totalPrice: 49.98,
-        },
-      })
-    }
-
-    console.log(`✅ Created PROCESSING order for tracking test:`)
-    console.log(`   📦 Order ID: ${processingOrder.id}`)
-    console.log(`   📋 Order Code: ${processingOrder.orderCode}`)
-    console.log(`   🚚 Tracking: ${processingOrder.trackingNumber}`)
-    console.log(`   👤 CustomerId: ${testCustomer.id}`)
-    console.log(`   💼 WorkspaceId: ${mainWorkspaceId}`)
-    console.log(`   💰 Total: €${processingOrder.totalAmount}`)
-    console.log(`   🔗 DHL Link: https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=DHL1234567890`)
-  } catch (error) {
-    console.error("❌ Error creating processing order for tracking test:", error)
-  }
-
   // Seed Aviso Legal document
   await seedAvisoLegalDocument()
 
@@ -2649,27 +2532,33 @@ async function main() {
   console.log("=================================")
   await generateEmbeddingsAfterSeed()
 
-  // PHASE 2: DUAL LLM SYSTEM READY
-  console.log("\n🤖 PHASE 2: DUAL LLM SYSTEM READY")
-  console.log("==================================")
+  // PHASE 2: N8N Complete Setup (Credentials + Workflow + Activation)
+  console.log("\n🤖 PHASE 2: N8N COMPLETE AUTOMATION")
+  console.log("===================================")
   console.log("📋 CHECKLIST ANDREA:")
   console.log("   ✅ Query SQL (completato)")
-  console.log("   ✅ Embedding (completato)")
-  console.log("   ✅ Dual LLM System (pronto)")
-  console.log("   ✅ Function Calling (pronto)")
-  console.log("   ✅ Tool Descriptions (pronto)")
+  console.log("   ⏳ Embedding (in corso)")
+  console.log("   ⏳ N8N Credential (prossimo)")
+  console.log("   ⏳ Delete old workflow (prossimo)")
+  console.log("   ⏳ N8N import workflow (prossimo)")
+  console.log("   ⏳ Compila il workflow (prossimo)")
+  console.log("   ⏳ Attiva il workflow (prossimo)")
+
+  await cleanAndImportN8NWorkflow()
 
   console.log("✅ CHECKLIST ANDREA COMPLETATA:")
   console.log("   ✅ Query SQL")
   console.log("   ✅ Embedding")
-  console.log("   ✅ Dual LLM System")
-  console.log("   ✅ Function Calling")
-  console.log("   ✅ Tool Descriptions")
+  console.log("   ✅ N8N Credential (from .env)")
+  console.log("   ✅ Delete old workflow")
+  console.log("   ✅ N8N import workflow")
+  console.log("   ✅ Compila il workflow")
+  console.log("   ✅ Attiva il workflow")
   console.log("")
-  console.log("🎯 SETUP COMPLETO! DUAL LLM SYSTEM PRONTO!")
-  console.log("🔗 Webhook URL: http://localhost:3001/api/whatsapp/webhook")
-  console.log("⚙️ Admin Panel: http://localhost:3000")
-  console.log("   ✅ System ready for WhatsApp")
+  console.log("🎯 SETUP COMPLETO! N8N PRONTO PER WHATSAPP!")
+  console.log("🔗 Webhook URL: http://localhost:5678/webhook/webhook-start")
+  console.log("⚙️ Admin Panel: http://localhost:5678")
+  console.log("   ✅ Attiva il workflow")
 
   console.log(`Seed completato con successo!`)
   console.log(`- Admin user creato: ${adminEmail}`)

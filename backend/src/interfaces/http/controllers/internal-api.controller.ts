@@ -1,9 +1,7 @@
 import { PrismaClient } from "@prisma/client"
 import { Request, Response } from "express"
-import { OrderService } from "../../../application/services/order.service"
 import { SecureTokenService } from "../../../application/services/secure-token.service"
 
-import crypto from "crypto"
 import { getAllCategories } from "../../../chatbot/calling-functions/getAllCategories"
 import { MessageRepository } from "../../../repositories/message.repository"
 import { embeddingService } from "../../../services/embeddingService"
@@ -291,12 +289,10 @@ const prisma = new PrismaClient()
 export class InternalApiController {
   private secureTokenService: SecureTokenService
   private prisma: PrismaClient
-  // MessageService removed - using real endpoints instead
 
   constructor(private messageRepository: MessageRepository) {
     this.secureTokenService = new SecureTokenService()
     this.prisma = new PrismaClient()
-    // MessageService removed - using real endpoints instead
   }
 
   /**
@@ -464,11 +460,14 @@ export class InternalApiController {
         )
       }
 
-      // Use original query - LLM will handle translation via prompt_agent.md
-      const translatedQuery = query
+      // 🌍 TRANSLATE QUERY TO ENGLISH FOR BETTER SEMANTIC SEARCH
+      const translatedQuery = await this.translateQueryToEnglish(
+        query,
+        customerLanguage || "it"
+      )
 
       logger.info(
-        `[RAG-SEARCH] Query: "${query}" | Language: ${customerLanguage}`
+        `[RAG-SEARCH] Original: "${query}" | Translated: "${translatedQuery}" | Language: ${customerLanguage}`
       )
 
       // Get workspace to determine business type if not provided
@@ -1106,7 +1105,7 @@ ${JSON.stringify(ragResults, null, 2)}`
    */
   async saveMessage(req: Request, res: Response): Promise<void> {
     try {
-      logger.info(
+      console.log(
         "[SAVE-MESSAGE] 📥 Request received:",
         JSON.stringify(req.body, null, 2)
       )
@@ -1118,7 +1117,7 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      logger.info(
+      console.log(
         `[SAVE-MESSAGE] 📝 Processing message from ${phoneNumber}, response: "${response ? response.substring(0, 50) + "..." : "NO RESPONSE"}"`
       )
 
@@ -1132,7 +1131,7 @@ ${JSON.stringify(ragResults, null, 2)}`
       })
 
       // 💰 USAGE TRACKING: Now handled in MessageRepository.saveMessage() (Andrea's Logic)
-      logger.info(
+      console.log(
         "[SAVE-MESSAGE] ✅ Message saved via MessageRepository (tracking included)"
       )
 
@@ -1724,7 +1723,7 @@ ${JSON.stringify(ragResults, null, 2)}`
 
   private formatMockResults(results: any[], query: string): string {
     if (results.length === 0) {
-              return `🔍 No results found for "${query}"`
+      return `🔍 Nessun risultato trovato per "${query}"`
     }
 
     let response = `🛍️ **PRODOTTI TROVATI PER "${query.toUpperCase()}":**\n\n`
@@ -1750,8 +1749,8 @@ ${JSON.stringify(ragResults, null, 2)}`
     try {
       const { search } = req.query
 
-        // 🔒 HARDCODED VALUES FOR TESTING (Andrea's Request)
-  const HARDCODED_WORKSPACE_ID = "cm9hjgq9v00014qk8fsdy4ujv"
+      // 🔒 HARDCODED VALUES FOR TESTING (Andrea's Request)
+      const HARDCODED_WORKSPACE_ID = "clzd8x8z20000356cqhpe6yu0"
       const query = (search as string) || "mozzarelle" // Default search if empty
 
       logger.info(`[OPEN-RAG-TEST] 🧪 Andrea's Open Test - Query: "${query}"`)
@@ -1803,7 +1802,7 @@ ${JSON.stringify(ragResults, null, 2)}`
    */
   async testRegenerateEmbeddings(req: Request, res: Response): Promise<void> {
     try {
-      const HARDCODED_WORKSPACE_ID = "cm9hjgq9v00014qk8fsdy4ujv"
+      const HARDCODED_WORKSPACE_ID = "clzd8x8z20000356cqhpe6yu0"
 
       logger.info(
         `[TEST-EMBEDDING-REGEN] 🔄 Starting FAQ embedding regeneration for workspace: ${HARDCODED_WORKSPACE_ID}`
@@ -1895,22 +1894,10 @@ ${JSON.stringify(ragResults, null, 2)}`
    */
   async generateToken(req: Request, res: Response): Promise<void> {
     try {
-      // Be resilient to non-JSON bodies coming from external tools
-      let incomingBody: any = req.body
-      if (typeof incomingBody === "string") {
-        try {
-          incomingBody = JSON.parse(incomingBody)
-        } catch (e) {
-          // ignore parse error, will validate below
-        }
-      }
-      if (!incomingBody || typeof incomingBody !== "object") {
-        incomingBody = {}
-      }
-      const { customerId, action, metadata, workspaceId, phone } = incomingBody
+      const { customerId, action, metadata, workspaceId } = req.body
 
-      if (!action) {
-        res.status(400).json({ error: "action is required" })
+      if (!customerId || !action) {
+        res.status(400).json({ error: "customerId and action are required" })
         return
       }
 
@@ -1918,32 +1905,9 @@ ${JSON.stringify(ragResults, null, 2)}`
         `[INTERNAL-API] Generating ${action} token for customer ${customerId}`
       )
 
-      // Resolve customer by id or phone within workspace
-      let resolvedCustomerId: string | undefined = customerId
-      let resolvedWorkspaceId: string | undefined = workspaceId
-
-      if (!resolvedCustomerId && phone) {
-        const byPhone = await prisma.customers.findFirst({
-          where: {
-            phone,
-            ...(resolvedWorkspaceId ? { workspaceId: resolvedWorkspaceId } : {}),
-          },
-          include: { workspace: true },
-        })
-        if (byPhone) {
-          resolvedCustomerId = byPhone.id
-          resolvedWorkspaceId = byPhone.workspaceId
-        }
-      }
-
-      if (!resolvedCustomerId) {
-        res.status(400).json({ error: "customerId or phone is required" })
-        return
-      }
-
       // Get customer details
       const customer = await prisma.customers.findUnique({
-        where: { id: resolvedCustomerId },
+        where: { id: customerId },
         include: { workspace: true },
       })
 
@@ -1953,7 +1917,7 @@ ${JSON.stringify(ragResults, null, 2)}`
       }
 
       // Validate workspace if provided
-      const targetWorkspaceId = resolvedWorkspaceId || customer.workspaceId
+      const targetWorkspaceId = workspaceId || customer.workspaceId
       if (customer.workspaceId !== targetWorkspaceId) {
         res
           .status(403)
@@ -1970,7 +1934,7 @@ ${JSON.stringify(ragResults, null, 2)}`
         case "checkout":
           // Create checkout token using SecureTokenService
           const checkoutPayload = {
-            customerId: resolvedCustomerId,
+            customerId,
             workspaceId: targetWorkspaceId,
             customerName: customer.name,
             customerPhone: customer.phone,
@@ -1983,7 +1947,7 @@ ${JSON.stringify(ragResults, null, 2)}`
             targetWorkspaceId,
             checkoutPayload,
             "1h",
-            resolvedCustomerId,
+            customerId,
             customer.phone
           )
 
@@ -2001,7 +1965,7 @@ ${JSON.stringify(ragResults, null, 2)}`
         case "invoice":
           // Create invoice token
           const invoicePayload = {
-            customerId: resolvedCustomerId,
+            customerId,
             workspaceId: targetWorkspaceId,
             customerName: customer.name,
             customerPhone: customer.phone,
@@ -2014,7 +1978,7 @@ ${JSON.stringify(ragResults, null, 2)}`
             targetWorkspaceId,
             invoicePayload,
             "24h",
-            resolvedCustomerId,
+            customerId,
             customer.phone
           )
 
@@ -2032,7 +1996,7 @@ ${JSON.stringify(ragResults, null, 2)}`
         case "cart":
           // Create cart token
           const cartPayload = {
-            customerId: resolvedCustomerId,
+            customerId,
             workspaceId: targetWorkspaceId,
             customerName: customer.name,
             customerPhone: customer.phone,
@@ -2045,7 +2009,7 @@ ${JSON.stringify(ragResults, null, 2)}`
             targetWorkspaceId,
             cartPayload,
             "2h",
-            resolvedCustomerId,
+            customerId,
             customer.phone
           )
 
@@ -2060,67 +2024,8 @@ ${JSON.stringify(ragResults, null, 2)}`
           linkUrl = `${cartBaseUrl}/cart?token=${token}`
           break
 
-        case "orders":
-          // Persisted secure token for orders page (required by FE validator)
-          const ordersPayload = {
-            customerId: resolvedCustomerId,
-            workspaceId: targetWorkspaceId,
-            createdAt: new Date().toISOString(),
-          }
-
-          token = await this.secureTokenService.createToken(
-            "orders",
-            targetWorkspaceId,
-            ordersPayload,
-            "24h",
-            resolvedCustomerId,
-            customer.phone,
-            undefined,
-            resolvedCustomerId
-          )
-
-          expiresAt = new Date()
-          expiresAt.setHours(expiresAt.getHours() + 24)
-
-          // Build orders URL using workspace URL (TOKEN-ONLY)
-          const ordersBaseUrl =
-            customer.workspace.url || process.env.FRONTEND_URL || "http://localhost:3000"
-          linkUrl = `${ordersBaseUrl}/orders-public?token=${token}`
-          break
-
-        case "profile":
-          // Create profile token for customer profile management
-          const profilePayload = {
-            customerId: resolvedCustomerId,
-            workspaceId: targetWorkspaceId,
-            customerName: customer.name,
-            customerPhone: customer.phone,
-            metadata: metadata || {},
-            createdAt: new Date().toISOString(),
-          }
-
-          token = await this.secureTokenService.createToken(
-            "any", // TOKEN-ONLY system: use "any" type for universal token
-            targetWorkspaceId,
-            profilePayload,
-            "1h",
-            resolvedCustomerId,
-            customer.phone,
-            undefined,
-            resolvedCustomerId
-          )
-
-          expiresAt = new Date()
-          expiresAt.setHours(expiresAt.getHours() + 1)
-
-          // Build profile URL (TOKEN-ONLY)
-          const profileBaseUrl =
-            customer.workspace.url || process.env.FRONTEND_URL || "http://localhost:3000"
-          linkUrl = `${profileBaseUrl}/customer-profile?token=${token}`
-          break
-
         default:
-          res.status(400).json({ error: 'Unsupported action: ' + action })
+          res.status(400).json({ error: `Unsupported action: ${action}` })
           return
       }
 
@@ -2130,21 +2035,18 @@ ${JSON.stringify(ragResults, null, 2)}`
         expiresAt,
         linkUrl,
         action,
-        customerId: resolvedCustomerId,
+        customerId,
         workspaceId: targetWorkspaceId,
       })
 
       logger.info(
-        `[INTERNAL-API] Generated ${action} token: ${token.substring(0, 12)}... for customer ${resolvedCustomerId}`
+        `[INTERNAL-API] Generated ${action} token: ${token.substring(0, 12)}... for customer ${customerId}`
       )
     } catch (error) {
       logger.error("[INTERNAL-API] Generate token error:", error)
       res.status(500).json({ error: "Internal server error" })
     }
   }
-
-  // Removed: Token cross-page generation methods - not needed in TOKEN-ONLY system
-  // One token works for all pages (orders, profile, checkout) per customer
 
   /**
    * 📋 GET ALL PRODUCTS - For N8N getAllProducts Tool (Andrea's Request)
@@ -2154,7 +2056,7 @@ ${JSON.stringify(ragResults, null, 2)}`
    */
   async getAllProducts(req: Request, res: Response): Promise<void> {
     try {
-      const { workspaceId, customerId, categoryId, search, limit, offset } = req.body
+      const { workspaceId, customerId, categoryId, search, limit } = req.body
 
       if (!workspaceId) {
         res.status(400).json({
@@ -2191,8 +2093,7 @@ ${JSON.stringify(ragResults, null, 2)}`
       }
 
       // Get products with pagination
-      const maxLimit = Number(limit) || 50 // Default limit
-      const skip = Number(offset) || 0
+      const maxLimit = limit || 50 // Default limit
       const products = await prisma.products.findMany({
         where,
         include: {
@@ -2202,7 +2103,6 @@ ${JSON.stringify(ragResults, null, 2)}`
           name: "asc",
         },
         take: maxLimit,
-        skip,
       })
 
       // Count total products in workspace
@@ -2352,234 +2252,6 @@ ${JSON.stringify(ragResults, null, 2)}`
   }
 
   /**
-   * 📋 GET ALL PRODUCTS (Preformatted Text for Chat) - For N8N hard output
-   * POST /internal/get-all-products-text
-   * Returns a plain text list of ALL products without truncation, ready to send to user
-   */
-  async getAllProductsText(req: Request, res: Response): Promise<void> {
-    try {
-      const { workspaceId, customerId } = req.body
-      if (!workspaceId) {
-        res.status(400).json({ success: false, error: "Workspace ID is required" })
-        return
-      }
-
-      // Reuse pricing logic by calling the same path as getAllProducts with large limit
-      const fakeReq: any = { body: { workspaceId, customerId, limit: 500 } }
-      let productsResult: any
-      const originalJson = res.json.bind(res)
-      // Temporarily capture JSON
-      await new Promise<void>((resolve, reject) => {
-        ;(res as any).json = (payload: any) => {
-          productsResult = payload
-          // restore
-          ;(res as any).json = originalJson
-          resolve()
-          return res
-        }
-        this.getAllProducts(fakeReq, res).catch(reject)
-      })
-
-      if (!productsResult?.products) {
-        res.status(500).json({ success: false, error: "Failed to build products list" })
-        return
-      }
-
-      // Build plain text lines: CODE NAME — formatted
-      const lines: string[] = []
-      for (const p of productsResult.products) {
-        const code = p.ProductCode ? `${p.ProductCode} ` : ""
-        lines.push(`${code}${p.name} — ${p.formatted}`)
-      }
-      const text = lines.join("\n")
-
-      res.json({
-        success: true,
-        total: productsResult.summary?.total || productsResult.products.length,
-        text,
-      })
-    } catch (error) {
-      logger.error("[GET-ALL-PRODUCTS-TEXT] ❌ Error: ", error)
-      res.status(500).json({ success: false, error: "Internal server error" })
-    }
-  }
-
-  /**
-   * PUBLIC: Get orders by token (no auth, external page)
-   * GET /public/orders?token=...
-   */
-  async getPublicOrders(req: Request, res: Response): Promise<void> {
-    try {
-      const token = (req.query.token as string) || ""
-
-      if (!token) {
-        res.status(400).json({ success: false, error: "token is required" })
-        return
-      }
-
-      // VALIDAZIONE TOKEN CENTRALIZZATA
-      const tokenValidation = await this.secureTokenService.validateToken(token)
-      if (!tokenValidation.valid) {
-        res.status(401).json({ success: false, error: "Invalid or expired token" })
-        return
-      }
-
-      // ESTRAZIONE AUTOMATICA DATI DAL TOKEN
-      const { customerId, workspaceId } = tokenValidation.data
-
-      // QUERY DIRETTA SENZA CONTROLLI AGGIUNTIVI
-      const customer = await this.prisma.customers.findFirst({
-        where: { id: customerId, workspaceId },
-        include: { workspace: true },
-      })
-
-      if (!customer) {
-        res.status(404).json({ success: false, error: "Customer not found" })
-        return
-      }
-
-      const targetWorkspaceId = workspaceId
-
-
-
-      const orders = await this.prisma.orders.findMany({
-        where: { customerId: customer.id, workspaceId: targetWorkspaceId },
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          orderCode: true,
-          status: true,
-          paymentDetails: { select: { status: true } },
-          totalAmount: true,
-          taxAmount: true,
-          shippingAmount: true,
-          createdAt: true,
-        },
-      })
-
-      res.json({
-        success: true,
-        data: {
-          customer: { id: customer.id, name: customer.name, phone: customer.phone },
-          workspace: { id: targetWorkspaceId, name: customer.workspace?.name || "" },
-          orders: orders.map((o) => ({
-            id: o.id,
-            orderCode: o.orderCode,
-            date: o.createdAt.toISOString(),
-            status: o.status,
-            paymentStatus: o.paymentDetails?.status ?? "PENDING",
-            totalAmount: o.totalAmount,
-            taxAmount: o.taxAmount ?? 0,
-            shippingAmount: o.shippingAmount ?? 0,
-            itemsCount: 0,
-            invoiceUrl: `/api/internal/orders/${o.orderCode}/invoice`,
-            ddtUrl: `/api/internal/orders/${o.orderCode}/ddt`,
-          })),
-        },
-      })
-    } catch (error: any) {
-      logger.error("[PUBLIC-ORDERS] Error:", error)
-      res.status(500).json({ success: false, error: "Internal server error" })
-    }
-  }
-
-  /**
-   * PUBLIC: Get single order detail by orderCode and token
-   * GET /public/orders/:orderCode?token=...
-   */
-  async getPublicOrderDetail(req: Request, res: Response): Promise<void> {
-    try {
-      const { orderCode } = req.params
-      const token = (req.query.token as string) || ""
-
-      if (!orderCode || !token) {
-        res
-          .status(400)
-          .json({ success: false, error: "orderCode and token are required" })
-        return
-      }
-
-      // VALIDAZIONE TOKEN CENTRALIZZATA
-      const tokenValidation = await this.secureTokenService.validateToken(token)
-      if (!tokenValidation.valid) {
-        res.status(401).json({ success: false, error: "Invalid or expired token" })
-        return
-      }
-
-      // ESTRAZIONE AUTOMATICA DATI DAL TOKEN
-      const { customerId, workspaceId } = tokenValidation.data
-
-      // QUERY DIRETTA SENZA CONTROLLI AGGIUNTIVI
-      const customer = await this.prisma.customers.findFirst({
-        where: { id: customerId, workspaceId },
-        include: { workspace: true },
-      })
-      if (!customer) {
-        res.status(404).json({ success: false, error: "Customer not found" })
-        return
-      }
-
-      const order = await this.prisma.orders.findFirst({
-        where: {
-          orderCode,
-          workspaceId: customer.workspaceId,
-          customerId: customer.id,
-        },
-        include: {
-          items: {
-            include: {
-              product: { select: { name: true, ProductCode: true } },
-              service: { select: { name: true, code: true } },
-            },
-          },
-          paymentDetails: true,
-        },
-      })
-
-      if (!order) {
-        res.status(404).json({ success: false, error: "Order not found" })
-        return
-      }
-
-
-
-      res.json({
-        success: true,
-        data: {
-          order: {
-            id: order.id,
-            orderCode: order.orderCode,
-            date: order.createdAt.toISOString(),
-            status: order.status,
-            paymentStatus: order.paymentDetails?.status ?? "PENDING",
-            paymentProvider: order.paymentDetails?.provider ?? null,
-            shippingAmount: order.shippingAmount ?? 0,
-            taxAmount: order.taxAmount ?? 0,
-            shippingAddress: order.shippingAddress ?? null,
-            trackingNumber: order.trackingNumber ?? null,
-            totalAmount: order.totalAmount,
-            items: order.items.map((it) => ({
-              id: it.id,
-              itemType: it.itemType,
-              name: (it.product?.name || it.service?.name || "Item"),
-              code: (it.product?.ProductCode || it.service?.code || null),
-              quantity: it.quantity,
-              unitPrice: it.unitPrice,
-              totalPrice: it.totalPrice,
-            })),
-            invoiceUrl: `/api/internal/orders/${order.orderCode}/invoice`,
-            ddtUrl: `/api/internal/orders/${order.orderCode}/ddt`,
-          },
-          customer: { id: customer.id, name: customer.name },
-        },
-      })
-    } catch (error: any) {
-      logger.error("[PUBLIC-ORDER-DETAIL] Error:", error)
-      res.status(500).json({ success: false, error: "Internal server error" })
-    }
-  }
-
-  /**
    * 🛍️ GET ALL SERVICES - For N8N getAllServices Tool (Andrea's Request)
    * POST /internal/get-all-services
    * Returns all services for a workspace with customer discount logic applied
@@ -2686,7 +2358,6 @@ ${JSON.stringify(ragResults, null, 2)}`
 
         return {
           id: service.id,
-          code: service.code,
           name: service.name,
           description: service.description || "",
           price: finalPrice,
@@ -3167,7 +2838,7 @@ ${JSON.stringify(ragResults, null, 2)}`
   ): Promise<string> {
     // Auto-detect if query is already in English by checking common Italian/Spanish/Portuguese words
     const italianWords =
-      /\b(qual|quale|come|dove|quando|perché|cosa|che|dei|della|delle|del|per|con|una|uno|è|sono|hai|avete|posso|puoi|può|accettate|pagamenti|metodi|pagamento)\b/i
+      /\b(qual|quale|come|dove|quando|perché|cosa|che|dei|della|delle|del|per|con|una|uno|è|sono|hai|avete|posso|puoi|può)\b/i
     const spanishWords =
       /\b(qué|cuál|cómo|dónde|cuándo|por qué|para|con|una|uno|es|son|tienes|tienen|puedo|puedes|puede)\b/i
     const frenchWords =
@@ -3343,87 +3014,46 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      // First, try SecureTokenService
+      // Validate token using SecureTokenService with workspace isolation
       const validation = await this.secureTokenService.validateToken(
         token,
         type,
         workspaceId
       )
 
-      if (validation.valid) {
-        // Check workspace match if provided
-        if (workspaceId && validation.data?.workspaceId !== workspaceId) {
-          res.status(403).json({
-            valid: false,
-            error: "Token workspace mismatch",
-          })
-          return
-        }
-
-        logger.info(
-          `[VALIDATE-TOKEN] ✅ SecureToken validated successfully for type: ${type || "any"}`
-        )
-
-        res.status(200).json({
-          valid: true,
-          data: {
-            tokenId: validation.data?.id,
-            type: validation.data?.type,
-            workspaceId: validation.data?.workspaceId,
-            userId: validation.data?.userId,
-            phoneNumber: validation.data?.phoneNumber,
-            expiresAt: validation.data?.expiresAt,
-            createdAt: validation.data?.createdAt,
-          },
-          payload: validation.payload,
+      if (!validation.valid) {
+        res.status(401).json({
+          valid: false,
+          error: "Invalid or expired token",
         })
         return
       }
 
-      // If SecureToken validation failed and type is registration, try RegistrationToken
-      if (type === 'registration') {
-        try {
-          const registrationToken = await prisma.registrationToken.findFirst({
-            where: {
-              token,
-              workspaceId,
-              expiresAt: {
-                gt: new Date(),
-              },
-              usedAt: null,
-            },
-          })
-
-          if (registrationToken) {
-            logger.info(
-              `[VALIDATE-TOKEN] ✅ RegistrationToken validated successfully for token: ${token.substring(0, 10)}...`
-            )
-
-            res.status(200).json({
-              valid: true,
-              data: {
-                tokenId: registrationToken.id,
-                type: 'registration',
-                workspaceId: registrationToken.workspaceId,
-                phoneNumber: registrationToken.phoneNumber,
-                expiresAt: registrationToken.expiresAt,
-                createdAt: registrationToken.createdAt,
-              },
-              payload: {
-                phoneNumber: registrationToken.phoneNumber,
-              },
-            })
-            return
-          }
-        } catch (regError) {
-          logger.error("[VALIDATE-TOKEN] Error checking RegistrationToken:", regError)
-        }
+      // Check workspace match if provided
+      if (workspaceId && validation.data?.workspaceId !== workspaceId) {
+        res.status(403).json({
+          valid: false,
+          error: "Token workspace mismatch",
+        })
+        return
       }
 
-      // Both validation methods failed
-      res.status(401).json({
-        valid: false,
-        error: "Invalid or expired token",
+      logger.info(
+        `[VALIDATE-TOKEN] ✅ Token validated successfully for type: ${type || "any"}`
+      )
+
+      res.status(200).json({
+        valid: true,
+        data: {
+          tokenId: validation.data?.id,
+          type: validation.data?.type,
+          workspaceId: validation.data?.workspaceId,
+          userId: validation.data?.userId,
+          phoneNumber: validation.data?.phoneNumber,
+          expiresAt: validation.data?.expiresAt,
+          createdAt: validation.data?.createdAt,
+        },
+        payload: validation.payload,
       })
     } catch (error) {
       logger.error("[VALIDATE-TOKEN] Error validating secure token:", error)
@@ -3836,7 +3466,7 @@ ${JSON.stringify(ragResults, null, 2)}`
           shippingAddress: shippingAddress || null,
           billingAddress: billingAddress || null,
           notes: notes || `Ordine creato tramite N8N per ${customer.name}`,
-          customerId: customer.id, // Use the actual customer ID found/created
+          customerId: customer.id, // Usa l'ID del customer effettivo trovato/creato
           workspaceId: workspaceId,
           items: {
             create: resolvedOrderItems,
@@ -3874,115 +3504,11 @@ ${JSON.stringify(ragResults, null, 2)}`
         },
       })
     } catch (error) {
-      logger.error("[CREATE-ORDER] ❌ Order creation error:", error)
+      logger.error("[CREATE-ORDER] ❌ Errore creazione ordine:", error)
       res.status(500).json({
         success: false,
         error: "Internal server error",
         message: error instanceof Error ? error.message : "Unknown error",
-      })
-    }
-  }
-
-
-
-  /**
-   * Get shipment tracking link for the latest processing order
-   * 📦 N8N GetShipmentTrackingLink Function Integration
-   */
-  async getShipmentTrackingLink(req: Request, res: Response) {
-    try {
-      const { workspaceId, customerId } = req.body;
-
-      logger.info(`[GET-SHIPMENT-TRACKING] 📦 Request for customer ${customerId} in workspace ${workspaceId}`);
-
-      // Import and execute the GetShipmentTrackingLink function
-      const { GetShipmentTrackingLink } = await import('../../../chatbot/calling-functions/GetShipmentTrackingLink');
-      
-      const result = await GetShipmentTrackingLink({
-        workspaceId,
-        customerId
-      });
-
-      if (result) {
-        res.json({
-          success: true,
-          data: result,
-          message: `Tracking info found for order ${result.orderCode}`
-        });
-      } else {
-        res.json({
-          success: false,
-          message: "No processing orders with tracking available"
-        });
-      }
-
-    } catch (error) {
-      logger.error("[GET-SHIPMENT-TRACKING] ❌ Error getting tracking link:", error);
-      res.status(500).json({
-        success: false,
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  }
-
-  /**
-   * Get all customer orders sorted by createdAt DESC
-   * Body: { workspaceId: string, customerId: string, orderCode?: string }
-   */
-  async getOrdersList(req: Request, res: Response): Promise<void> {
-    try {
-      const { workspaceId, customerId, orderCode } = req.body || {}
-
-      if (!workspaceId || !customerId) {
-        res.status(400).json({
-          success: false,
-          message: 'workspaceId and customerId are required'
-        })
-        return
-      }
-
-      // Verify customer belongs to workspace (workspace isolation)
-      const customer = await this.prisma.customers.findFirst({
-        where: { id: customerId, workspaceId }
-      })
-      if (!customer) {
-        res.status(404).json({
-          success: false,
-          message: 'Customer not found in this workspace'
-        })
-        return
-      }
-
-      // Fetch orders using repository/service (already sorted desc)
-      const orderService = new OrderService()
-      const orders = await orderService.getOrdersByCustomerId(customerId, workspaceId)
-
-      const ordersDto = orders.map(o => ({
-        orderCode: o.orderCode,
-        createdAt: o.createdAt,
-        status: o.status,
-        totalAmount: o.totalAmount
-      }))
-
-      const response: any = {
-        success: true,
-        total: ordersDto.length,
-        orders: ordersDto
-      }
-
-      if (orderCode) {
-        const exists = ordersDto.find(o => o.orderCode === orderCode)
-        response.orderRequested = orderCode
-        response.orderExists = Boolean(exists)
-      }
-
-      res.json(response)
-    } catch (error) {
-      logger.error('[GET-ORDERS-LIST] ❌ Error:', error)
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Unknown error'
       })
     }
   }
@@ -4027,9 +3553,14 @@ ${JSON.stringify(ragResults, null, 2)}`
         return
       }
 
-      const validation = await this.secureTokenService.validateToken(token, "any")
+      const validation = await this.secureTokenService.validateToken(
+        token,
+        "orders"
+      )
       if (!validation.valid) {
-        res.status(401).json({ success: false, error: "Invalid or expired token" })
+        res
+          .status(401)
+          .json({ success: false, error: "Invalid or expired orders token" })
         return
       }
 
@@ -4070,10 +3601,22 @@ ${JSON.stringify(ragResults, null, 2)}`
       res.status(200).json({
         success: true,
         data: {
-          customer: { id: customer.id, name: customer.name, phone: customer.phone, email: customer.email },
-          workspace: { id: customer.workspace.id, name: customer.workspace.name },
+          customer: {
+            id: customer.id,
+            name: customer.name,
+            phone: customer.phone,
+            email: customer.email,
+          },
+          workspace: {
+            id: customer.workspace.id,
+            name: customer.workspace.name,
+          },
           orders: mapped,
-          tokenInfo: { type: "orders", expiresAt: validation.data?.expiresAt, issuedAt: validation.data?.createdAt },
+          tokenInfo: {
+            type: "orders",
+            expiresAt: validation.data?.expiresAt,
+            issuedAt: validation.data?.createdAt,
+          },
         },
       })
     } catch (error) {
@@ -4088,15 +3631,25 @@ ${JSON.stringify(ragResults, null, 2)}`
    */
   async getOrderDetailByToken(req: Request, res: Response): Promise<void> {
     try {
-      const { token, orderCode } = req.params as { token: string; orderCode: string }
+      const { token, orderCode } = req.params as {
+        token: string
+        orderCode: string
+      }
       if (!token || !orderCode) {
-        res.status(400).json({ success: false, error: "Token and orderCode are required" })
+        res
+          .status(400)
+          .json({ success: false, error: "Token and orderCode are required" })
         return
       }
 
-      const validation = await this.secureTokenService.validateToken(token, "any")
+      const validation = await this.secureTokenService.validateToken(
+        token,
+        "orders"
+      )
       if (!validation.valid) {
-        res.status(401).json({ success: false, error: "Invalid or expired token" })
+        res
+          .status(401)
+          .json({ success: false, error: "Invalid or expired orders token" })
         return
       }
 
@@ -4107,8 +3660,16 @@ ${JSON.stringify(ragResults, null, 2)}`
       }
 
       // Optional: if token payload restricts to a specific orderCode
-      if (validation.payload?.orderCode && validation.payload.orderCode !== orderCode) {
-        res.status(403).json({ success: false, error: "Token not authorized for this order" })
+      if (
+        validation.payload?.orderCode &&
+        validation.payload.orderCode !== orderCode
+      ) {
+        res
+          .status(403)
+          .json({
+            success: false,
+            error: "Token not authorized for this order",
+          })
         return
       }
 
@@ -4146,7 +3707,11 @@ ${JSON.stringify(ragResults, null, 2)}`
             ddtUrl: `/api/internal/orders/${order.orderCode}/ddt?token=${token}`,
           },
           customer: { id: order.customer.id, name: order.customer.name },
-          tokenInfo: { type: "orders", expiresAt: validation.data?.expiresAt, issuedAt: validation.data?.createdAt },
+          tokenInfo: {
+            type: "orders",
+            expiresAt: validation.data?.expiresAt,
+            issuedAt: validation.data?.createdAt,
+          },
         },
       })
     } catch (error) {
@@ -4156,104 +3721,30 @@ ${JSON.stringify(ragResults, null, 2)}`
   }
 
   /**
-   * 🧾 DOWNLOAD INVOICE - Demo PDF (Public Access)
+   * 🧾 DOWNLOAD INVOICE (stub)
    */
   async downloadInvoiceByOrderCode(req: Request, res: Response): Promise<void> {
     try {
       const { orderCode } = req.params
-      
-      logger.info(`[PDF-INVOICE] Generating test invoice for order: ${orderCode}`)
-      
-      // Generate test PDF
-      const PDFDocument = require('pdfkit')
-      res.setHeader('Content-Type', 'application/pdf')
-      res.setHeader('Content-Disposition', `attachment; filename=invoice-${orderCode}.pdf`)
-      
-      const doc = new PDFDocument({ size: 'A4', margin: 50 })
-      doc.pipe(res)
-
-      // Professional Invoice Header
-      doc.fontSize(24).font('Helvetica-Bold').text('INVOICE', { align: 'center' })
-      doc.moveDown(0.5)
-      doc.fontSize(12).font('Helvetica').text('Invoice Number: ' + orderCode, { align: 'center' })
-      doc.fontSize(10).font('Helvetica').text('Date: ' + new Date().toLocaleDateString('en-US'), { align: 'center' })
-      doc.moveDown(2)
-
-      // Company Information
-      doc.fontSize(14).font('Helvetica-Bold').text('FROM:')
-      doc.fontSize(10).font('Helvetica').text('ShopMe Demo Company')
-      doc.text('123 Business Street')
-      doc.text('Milan, Italy 20100')
-      doc.text('Phone: +39 02 1234567')
-      doc.text('Email: info@shopme-demo.com')
-      doc.moveDown(1)
-
-      // Customer Information
-      doc.fontSize(14).font('Helvetica-Bold').text('BILL TO:')
-      doc.fontSize(10).font('Helvetica').text('Demo Customer')
-      doc.text('456 Customer Avenue')
-      doc.text('Rome, Italy 00100')
-      doc.text('Phone: +39 06 9876543')
-      doc.text('Email: customer@demo.com')
-      doc.moveDown(2)
-
-      // Order Summary
-      doc.fontSize(16).font('Helvetica-Bold').text('ORDER SUMMARY')
-      doc.moveDown(0.5)
-      doc.fontSize(10).font('Helvetica').text(`Order Code: ${orderCode}`)
-      doc.text(`Status: CONFIRMED`)
-      doc.text(`Payment Status: PAID`)
-      doc.moveDown(1)
-
-      // Items Table
-      doc.fontSize(12).font('Helvetica-Bold').text('ITEMS')
-      doc.moveDown(0.5)
-      
-      // Table header
-      const startY = doc.y
-      doc.fontSize(10).font('Helvetica-Bold')
-      doc.text('Item', 50, startY)
-      doc.text('Quantity', 250, startY)
-      doc.text('Unit Price', 350, startY)
-      doc.text('Total', 450, startY)
-      
-      // Table content
-      doc.fontSize(10).font('Helvetica')
-      const items = [
-        { name: 'Demo Product 1', qty: 2, price: 25.00, total: 50.00 },
-        { name: 'Demo Product 2', qty: 1, price: 35.50, total: 35.50 },
-        { name: 'Demo Service 1', qty: 1, price: 15.00, total: 15.00 }
-      ]
-      
-      let currentY = startY + 20
-      items.forEach(item => {
-        doc.text(item.name, 50, currentY)
-        doc.text(item.qty.toString(), 250, currentY)
-        doc.text(`€${item.price.toFixed(2)}`, 350, currentY)
-        doc.text(`€${item.total.toFixed(2)}`, 450, currentY)
-        currentY += 15
-      })
-
-      // Totals
-      doc.moveDown(2)
-      const subtotal = items.reduce((sum, item) => sum + item.total, 0)
-      const tax = subtotal * 0.22 // 22% VAT
-      const shipping = 5.00
-      const total = subtotal + tax + shipping
-
-      doc.fontSize(10).font('Helvetica')
-      doc.text(`Subtotal: €${subtotal.toFixed(2)}`, 350, doc.y)
-      doc.text(`VAT (22%): €${tax.toFixed(2)}`, 350, doc.y + 15)
-      doc.text(`Shipping: €${shipping.toFixed(2)}`, 350, doc.y + 30)
-      doc.fontSize(12).font('Helvetica-Bold')
-      doc.text(`TOTAL: €${total.toFixed(2)}`, 350, doc.y + 45)
-
-      // Footer
-      doc.moveDown(3)
-      doc.fontSize(8).font('Helvetica').text('This is a test invoice generated for demonstration purposes.', { align: 'center' })
-      doc.text('Thank you for your business!', { align: 'center' })
-
-      doc.end()
+      const { token } = req.query as { token?: string }
+      if (!token) {
+        res.status(400).json({ success: false, error: "Token required" })
+        return
+      }
+      const validation = await this.secureTokenService.validateToken(
+        token,
+        "orders"
+      )
+      if (!validation.valid) {
+        res
+          .status(401)
+          .json({ success: false, error: "Invalid or expired token" })
+        return
+      }
+      // TODO: return real PDF stream; for now return JSON with placeholder
+      res
+        .status(501)
+        .json({ success: false, error: "Invoice download not implemented yet" })
     } catch (error) {
       logger.error("[ORDERS] Error downloading invoice:", error)
       res.status(500).json({ success: false, error: "Internal server error" })
@@ -4261,596 +3752,32 @@ ${JSON.stringify(ragResults, null, 2)}`
   }
 
   /**
-   * 📄 DOWNLOAD DDT - Demo PDF (Public Access)
+   * 📄 DOWNLOAD DDT (stub)
    */
   async downloadDdtByOrderCode(req: Request, res: Response): Promise<void> {
     try {
       const { orderCode } = req.params
-      
-      logger.info(`[PDF-DDT] Generating test DDT for order: ${orderCode}`)
-      
-      // Generate test PDF
-      const PDFDocument = require('pdfkit')
-      res.setHeader('Content-Type', 'application/pdf')
-      res.setHeader('Content-Disposition', `attachment; filename=ddt-${orderCode}.pdf`)
-      
-      const doc = new PDFDocument({ size: 'A4', margin: 50 })
-      doc.pipe(res)
-
-      // Professional DDT Header
-      doc.fontSize(24).font('Helvetica-Bold').text('DELIVERY NOTE', { align: 'center' })
-      doc.moveDown(0.5)
-      doc.fontSize(12).font('Helvetica').text('Document Number: ' + orderCode, { align: 'center' })
-      doc.fontSize(10).font('Helvetica').text('Date: ' + new Date().toLocaleDateString('en-US'), { align: 'center' })
-      doc.moveDown(2)
-
-      // Company Information
-      doc.fontSize(14).font('Helvetica-Bold').text('FROM:')
-      doc.fontSize(10).font('Helvetica').text('ShopMe Demo Company')
-      doc.text('123 Business Street')
-      doc.text('Milan, Italy 20100')
-      doc.text('Phone: +39 02 1234567')
-      doc.text('VAT: IT12345678901')
-      doc.moveDown(1)
-
-      // Shipping Information
-      doc.fontSize(14).font('Helvetica-Bold').text('SHIP TO:')
-      doc.fontSize(10).font('Helvetica').text('Demo Customer')
-      doc.text('456 Customer Avenue')
-      doc.text('Rome, Italy 00100')
-      doc.text('Phone: +39 06 9876543')
-      doc.moveDown(2)
-
-      // Delivery Information
-      doc.fontSize(16).font('Helvetica-Bold').text('DELIVERY INFORMATION')
-      doc.moveDown(0.5)
-      doc.fontSize(10).font('Helvetica').text(`Order Code: ${orderCode}`)
-      doc.text(`Delivery Date: ${new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US')}`)
-      doc.text(`Carrier: Demo Express`)
-      doc.text('Tracking Number: DEMO-' + orderCode)
-      doc.moveDown(1)
-
-      // Items Table (no prices for DDT)
-      doc.fontSize(12).font('Helvetica-Bold').text('ITEMS TO DELIVER')
-      doc.moveDown(0.5)
-      
-      // Table header
-      const startY = doc.y
-      doc.fontSize(10).font('Helvetica-Bold')
-      doc.text('Item', 50, startY)
-      doc.text('Description', 250, startY)
-      doc.text('Quantity', 450, startY)
-      
-      // Table content
-      doc.fontSize(10).font('Helvetica')
-      const items = [
-        { name: 'Demo Product 1', description: 'High quality demo product', qty: 2 },
-        { name: 'Demo Product 2', description: 'Premium demo item', qty: 1 },
-        { name: 'Demo Service 1', description: 'Professional demo service', qty: 1 }
-      ]
-      
-      let currentY = startY + 20
-      items.forEach(item => {
-        doc.text(item.name, 50, currentY)
-        doc.text(item.description, 250, currentY)
-        doc.text(item.qty.toString(), 450, currentY)
-        currentY += 15
-      })
-
-      // Special Instructions
-      doc.moveDown(2)
-      doc.fontSize(12).font('Helvetica-Bold').text('SPECIAL INSTRUCTIONS')
-      doc.fontSize(10).font('Helvetica').text('Handle with care. Fragile items included.')
-      doc.text('Delivery time: 2-3 business days')
-      doc.text('Signature required upon delivery')
-
-      // Footer
-      doc.moveDown(3)
-      doc.fontSize(8).font('Helvetica').text('This is a test delivery note generated for demonstration purposes.', { align: 'center' })
-      doc.text('Please keep this document for your records.', { align: 'center' })
-
-      doc.end()
+      const { token } = req.query as { token?: string }
+      if (!token) {
+        res.status(400).json({ success: false, error: "Token required" })
+        return
+      }
+      const validation = await this.secureTokenService.validateToken(
+        token,
+        "orders"
+      )
+      if (!validation.valid) {
+        res
+          .status(401)
+          .json({ success: false, error: "Invalid or expired token" })
+        return
+      }
+      res
+        .status(501)
+        .json({ success: false, error: "DDT download not implemented yet" })
     } catch (error) {
       logger.error("[ORDERS] Error downloading DDT:", error)
       res.status(500).json({ success: false, error: "Internal server error" })
     }
   }
-
-  /**
-   * 📦 Get tracking link for latest processing order
-   */
-  async getTrackingLink(req: Request, res: Response) {
-    try {
-      const { workspaceId, customerId } = req.body || {}
-      if (!workspaceId || !customerId) {
-        return res.status(400).json({
-          success: false,
-          error: 'Missing required fields',
-          required: ['workspaceId', 'customerId'],
-        })
-      }
-      const { OrderService } = await import('../../../application/services/order.service')
-      const service = new OrderService()
-      const result = await service.getLatestProcessingTracking(workspaceId, customerId)
-      if (!result) {
-        return res.status(200).json({
-          success: true,
-          message: 'No processing orders with tracking available',
-          tracking: null,
-        })
-      }
-      return res.status(200).json({ success: true, ...result })
-    } catch (error) {
-      return res.status(500).json({ success: false, error: 'Internal server error' })
-    }
-  }
-
-  /**
-   * 👤 GET CUSTOMER PROFILE DATA
-   * GET /internal/customer-profile/{token}
-   * Get customer profile data for profile management page
-   */
-  async getCustomerProfile(req: Request, res: Response): Promise<void> {
-    try {
-      const { token } = req.params
-
-      if (!token) {
-        res.status(400).json({ error: "Token is required" })
-        return
-      }
-
-      logger.info('[INTERNAL-API] Getting customer profile for token: ' + token.substring(0, 12) + '...')
-
-      // Validate token
-      const tokenValidation = await this.secureTokenService.validateToken(token)
-      
-      if (!tokenValidation.valid) {
-        res.status(401).json({ error: "Invalid or expired token" })
-        return
-      }
-
-      const { data: tokenData, payload } = tokenValidation
-      const { customerId, workspaceId } = payload
-
-      // Get customer data
-      const customer = await this.prisma.customers.findFirst({
-        where: {
-          id: customerId,
-          workspaceId: workspaceId
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          company: true,
-          address: true,
-          language: true,
-          currency: true,
-          discount: true,
-          invoiceAddress: true,
-          createdAt: true,
-          updatedAt: true
-        }
-      })
-
-      if (!customer) {
-        res.status(404).json({ error: "Customer not found" })
-        return
-      }
-
-      res.json({
-        success: true,
-        data: customer
-      })
-
-      logger.info('[INTERNAL-API] Customer profile retrieved for customer ' + customer.id)
-    } catch (error) {
-      logger.error("[INTERNAL-API] Get customer profile error:", error)
-      res.status(500).json({ error: "Internal server error" })
-    }
-  }
-
-  /**
-   * 👤 UPDATE CUSTOMER PROFILE
-   * PUT /internal/customer-profile/{token}
-   * Update customer profile data from profile management page
-   */
-  async updateCustomerProfile(req: Request, res: Response): Promise<void> {
-    try {
-      const { token } = req.params
-      const updateData = req.body
-
-      if (!token) {
-        res.status(400).json({ error: "Token is required" })
-        return
-      }
-
-      logger.info('[INTERNAL-API] Updating customer profile for token: ' + token.substring(0, 12) + '...')
-
-      // Validate token
-      const tokenValidation = await this.secureTokenService.validateToken(token)
-      
-      if (!tokenValidation.valid) {
-        res.status(401).json({ error: "Invalid or expired token" })
-        return
-      }
-
-      const { data: tokenData, payload } = tokenValidation
-      const { customerId, workspaceId } = payload
-
-      // Validate update data
-      const allowedFields = ['name', 'email', 'phone', 'company', 'address', 'language', 'currency', 'invoiceAddress']
-      const filteredData: any = {}
-      
-      for (const field of allowedFields) {
-        if (updateData[field] !== undefined) {
-          filteredData[field] = updateData[field]
-        }
-      }
-
-      // Update customer
-      const updatedCustomer = await prisma.customers.update({
-        where: {
-          id: customerId,
-          workspaceId: workspaceId
-        },
-        data: {
-          ...filteredData,
-          updatedAt: new Date()
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          company: true,
-          address: true,
-          language: true,
-          currency: true,
-          discount: true,
-          invoiceAddress: true,
-          updatedAt: true
-        }
-      })
-
-      res.json({
-        success: true,
-        data: updatedCustomer,
-        message: "Profile updated successfully"
-      })
-
-      logger.info('[INTERNAL-API] Customer profile updated for customer ' + customerId)
-    } catch (error) {
-      logger.error("[INTERNAL-API] Update customer profile error:", error)
-      res.status(500).json({ error: "Internal server error" })
-    }
-  }
-
-  /**
-   * 🛒 CONFIRM ORDER FROM CONVERSATION
-   * POST /internal/confirm-order-conversation
-   * Parse conversation context and generate checkout token
-   */
-  async confirmOrderFromConversation(req: Request, res: Response): Promise<void> {
-    try {
-      const { conversationContext, workspaceId, customerId } = req.body
-
-      if (!conversationContext || !workspaceId || !customerId) {
-        res.status(400).json({ 
-          error: "Missing required parameters: conversationContext, workspaceId, customerId" 
-        })
-        return
-      }
-
-      logger.info('[INTERNAL-API] Processing order confirmation for customer: ' + customerId)
-
-      // Parse conversation context using internal LLM
-      const parsedItems = await this.parseConversationToItems(conversationContext, workspaceId)
-
-      if (!parsedItems || parsedItems.length === 0) {
-        res.status(400).json({ 
-          error: "No products or services found in conversation context" 
-        })
-        return
-      }
-
-      // Calculate total amount
-      const totalAmount = parsedItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0)
-
-      // Generate secure checkout token
-      const checkoutToken = this.generateSecureToken()
-
-      // Save token to database
-      await prisma.secureToken.create({
-        data: {
-          token: checkoutToken,
-          type: "checkout",
-          workspaceId: workspaceId,
-          payload: {
-            customerId,
-            items: parsedItems,
-            totalAmount,
-            type: "checkout",
-            conversationContext
-          },
-          expiresAt: new Date(Date.now() + 60 * 60 * 1000) // 1 hour
-        }
-      })
-
-      const checkoutUrl = `http://localhost:3000/order-summary/${checkoutToken}`
-
-      res.json({
-        success: true,
-        response: `Perfetto! Ho preparato il tuo ordine. Clicca qui per rivedere e confermare: ${checkoutUrl}`,
-        checkoutToken,
-        checkoutUrl,
-        totalAmount,
-        items: parsedItems
-      })
-
-      logger.info('[INTERNAL-API] Order confirmation processed for customer: ' + customerId)
-    } catch (error) {
-      logger.error("[INTERNAL-API] Confirm order from conversation error:", error)
-      res.status(500).json({ error: "Internal server error" })
-    }
-  }
-
-  /**
-   * 🧠 Parse conversation context to extract products/services
-   */
-  private async parseConversationToItems(conversationContext: string, workspaceId: string): Promise<any[]> {
-    try {
-      const prompt = `
-Analizza la seguente conversazione e estrai tutti i prodotti e servizi menzionati con le relative quantità.
-
-Conversazione:
-${conversationContext}
-
-Regole:
-1. Cerca solo prodotti e servizi reali dal database
-2. Estrai nome, quantità e prezzo unitario
-3. Restituisci un array JSON con questa struttura:
-[
-  {
-    "itemType": "PRODUCT" o "SERVICE",
-    "name": "Nome del prodotto/servizio",
-    "quantity": numero,
-    "unitPrice": prezzo_unitario
-  }
-]
-
-Risposta solo in JSON, niente altro testo.
-`
-
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'openai/gpt-4o-mini',
-          messages: [
-            { role: 'system', content: 'Sei un assistente che analizza conversazioni per estrarre prodotti e servizi.' },
-            { role: 'user', content: prompt }
-          ],
-          temperature: 0.3,
-          max_tokens: 500
-        })
-      })
-
-      const data = await response.json()
-      const content = data.choices[0]?.message?.content
-
-      if (!content) {
-        throw new Error('No response from LLM')
-      }
-
-      // Parse JSON response
-      const items = JSON.parse(content)
-
-      // Validate items against database
-      const validatedItems = []
-      for (const item of items) {
-        if (item.itemType === 'PRODUCT') {
-          const product = await prisma.products.findFirst({
-            where: {
-              workspaceId,
-              name: { contains: item.name, mode: 'insensitive' },
-              isActive: true
-            }
-          })
-          if (product) {
-            validatedItems.push({
-              ...item,
-              unitPrice: product.price
-            })
-          }
-        } else if (item.itemType === 'SERVICE') {
-          const service = await prisma.services.findFirst({
-            where: {
-              workspaceId,
-              name: { contains: item.name, mode: 'insensitive' },
-              isActive: true
-            }
-          })
-          if (service) {
-            validatedItems.push({
-              ...item,
-              unitPrice: service.price
-            })
-          }
-        }
-      }
-
-      return validatedItems
-    } catch (error) {
-      logger.error('[INTERNAL-API] Parse conversation error:', error)
-      return []
-    }
-  }
-
-  /**
-   * 📋 GET CHECKOUT DATA
-   * GET /internal/checkout/{token}
-   * Get checkout data from secure token
-   */
-  async getCheckoutData(req: Request, res: Response): Promise<void> {
-    try {
-      const { token } = req.params
-
-      if (!token) {
-        res.status(400).json({ error: "Token is required" })
-        return
-      }
-
-      logger.info('[INTERNAL-API] Getting checkout data for token: ' + token.substring(0, 12) + '...')
-
-      // Use SecureTokenService for unified token validation
-      const validation = await this.secureTokenService.validateToken(token, 'checkout')
-      
-      if (!validation.valid) {
-        res.status(404).json({ error: "Token not found or expired" })
-        return
-      }
-      
-      const tokenData = validation.data
-
-      const payload = tokenData.payload as any
-
-      res.json({
-        success: true,
-        customerId: payload.customerId,
-        items: payload.items || [],
-        totalAmount: payload.totalAmount || 0,
-        type: payload.type,
-        conversationContext: payload.conversationContext
-      })
-
-      logger.info('[INTERNAL-API] Checkout data retrieved for token ' + token.substring(0, 12) + '...')
-    } catch (error) {
-      logger.error("[INTERNAL-API] Get checkout data error:", error)
-      res.status(500).json({ error: "Internal server error" })
-    }
-  }
-
-  /**
-   * 🔐 Generate secure token for checkout
-   */
-  private generateSecureToken(): string {
-    return crypto.randomBytes(32).toString('hex')
-  }
-
-    /**
-   * 🛒 GET PUBLIC PRODUCTS - No Auth Required (WhatsApp Bot)
-   * GET /internal/public/products
-   * Get all active products for WhatsApp bot
-   */
-  async getPublicProducts(req: Request, res: Response): Promise<void> {
-    try {
-      const { workspaceId } = req.query;
-      
-      if (!workspaceId) {
-        res.status(400).json({
-          success: false,
-          error: "workspaceId is required"
-        });
-        return;
-      }
-
-      logger.info('[INTERNAL-API] Getting public products for workspace: ' + workspaceId);
-
-      const products = await prisma.products.findMany({
-        where: {
-          workspaceId: workspaceId as string,
-          isActive: true
-        },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          price: true,
-          ProductCode: true
-        }
-      });
-
-      // Format products for WhatsApp
-      const formattedProducts = products.map(product => ({
-        id: product.id,
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        originalPrice: product.price, // Use price as originalPrice
-        discountPercent: 0, // No discount by default
-        ProductCode: product.ProductCode,
-        formatted: `€${product.price.toFixed(2)}`
-      }));
-
-      res.status(200).json({
-        success: true,
-        products: formattedProducts
-      });
-
-      logger.info('[INTERNAL-API] Public products retrieved: ' + formattedProducts.length + ' products');
-    } catch (error) {
-      logger.error('[INTERNAL-API] Get public products error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error'
-      });
-    }
-  }
-
-  /**
-   * 🔧 GET PUBLIC SERVICES - No Auth Required (WhatsApp Bot)
-   * GET /internal/public/services
-   * Get all active services for WhatsApp bot
-   */
-  async getPublicServices(req: Request, res: Response): Promise<void> {
-    try {
-      const { workspaceId } = req.query;
-      
-      if (!workspaceId) {
-        res.status(400).json({
-          success: false,
-          error: "workspaceId is required"
-        });
-        return;
-      }
-
-      logger.info('[INTERNAL-API] Getting public services for workspace: ' + workspaceId);
-
-      const services = await prisma.services.findMany({
-        where: {
-          workspaceId: workspaceId as string,
-          isActive: true
-        },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          price: true
-        }
-      });
-
-      res.status(200).json({
-        success: true,
-        services: services
-      });
-
-      logger.info('[INTERNAL-API] Public services retrieved: ' + services.length + ' services');
-    } catch (error) {
-      logger.error('[INTERNAL-API] Get public services error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error'
-      });
-    }
-  }
-
-  /**
-   * 🧪 TEST WHATSAPP MESSAGE - REMOVED
-   * Using real /api/messages endpoint instead for realistic testing
-   */
 }

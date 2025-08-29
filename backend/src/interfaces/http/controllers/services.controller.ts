@@ -3,7 +3,11 @@ import ServiceService from "../../../application/services/service.service"
 import { prisma } from "../../../lib/prisma"
 import { embeddingService } from "../../../services/embeddingService"
 import logger from "../../../utils/logger"
-
+import {
+  canAddService,
+  getPlanLimitErrorMessage,
+  PlanType,
+} from "../../../utils/planLimits"
 import { WorkspaceRequest } from "../types/workspace-request"
 
 /**
@@ -69,7 +73,6 @@ export class ServicesController {
 
       const {
         name,
-        code,
         description = "",
         price,
         currency = "EUR",
@@ -82,19 +85,31 @@ export class ServicesController {
         return res.status(400).json({ error: "Name is required" })
       }
 
-      if (!code) {
-        return res.status(400).json({ error: "Code is required" })
-      }
-
-      // Check workspace exists
+      // Check workspace plan and current service count
       const workspace = await prisma.workspace.findUnique({
         where: { id: workspaceId },
-        select: { id: true },
+        select: { plan: true },
       })
 
       if (!workspace) {
         return res.status(404).json({
           error: "Workspace not found",
+        })
+      }
+
+      // Count current active services
+      const currentServiceCount = await prisma.services.count({
+        where: {
+          workspaceId: workspaceId,
+          isActive: true,
+        },
+      })
+
+      // Check if user can add another service based on their plan
+      const planType = workspace.plan as PlanType
+      if (!canAddService(planType, currentServiceCount)) {
+        return res.status(403).json({
+          error: getPlanLimitErrorMessage(planType, "services"),
         })
       }
 
@@ -136,7 +151,6 @@ export class ServicesController {
 
       const serviceData = {
         name,
-        code,
         description,
         price: numericPrice,
         duration: numericDuration,
@@ -183,7 +197,7 @@ export class ServicesController {
           .json({ error: "Service not found in specified workspace" })
       }
 
-      const { name, code, description, price, currency, duration, isActive } =
+      const { name, description, price, currency, duration, isActive } =
         req.body
 
       // Process numeric fields and validate data
@@ -191,7 +205,6 @@ export class ServicesController {
 
       // Add fields only if they are provided to avoid null overwrites
       if (name !== undefined) updateData.name = name
-      if (code !== undefined) updateData.code = code
       if (description !== undefined) updateData.description = description
       if (currency !== undefined) updateData.currency = currency
       if (isActive !== undefined) updateData.isActive = isActive
@@ -239,7 +252,7 @@ export class ServicesController {
           .json({ error: "No valid fields provided for update" })
       }
 
-      const service = await this.serviceService.update(id, workspaceId, updateData)
+      const service = await this.serviceService.update(id, updateData)
 
       // Fire-and-forget: trigger embedding regeneration for Services
       logger.info(
@@ -297,7 +310,7 @@ export class ServicesController {
           .json({ error: "Service not found in specified workspace" })
       }
 
-      await this.serviceService.delete(id, workspaceId)
+      await this.serviceService.delete(id)
 
       // Fire-and-forget: trigger embedding regeneration for Services
       embeddingService

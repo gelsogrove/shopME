@@ -1,83 +1,3 @@
-## Public Orders (Phone-based External Links)
-
-### Goal
-Allow customers to access their full orders history and specific order details via an external public link, without logging in, filtered strictly by phone number and workspaceId.
-
-### Final Flow
-- The chatbot or N8N provides a URL in the form:
-  - List: `http://localhost:3000/orders-public?token=...`
-  - Detail: `http://localhost:3000/orders-public/{orderCode}?token=...`
-- The frontend page `OrdersPublicPage` renders without the internal platform layout and fetches data from public backend endpoints using only the `token` parameter.
-
-### Backend
-- Endpoints (token-based auth):
-  - `GET /api/internal/public/orders?token=...`
-  - `GET /api/internal/public/orders/:orderCode?token=...`
-- Behavior:
-  - **Validates secure token** using centralized `SecureTokenService`
-  - **Extracts automatically** `customerId` and `workspaceId` from token payload
-  - **No additional validation** - token contains all necessary information
-  - **Direct database queries** without phone/workspaceId checks
-  - Returns orders in `createdAt` DESC order for list; returns full order detail for single order including invoice and DDT URLs.
-  - **Enforces workspace isolation** automatically via token validation
-
-### Frontend
-- Route: `/orders-public` and `/orders-public/:orderCode` (no platform layout)
-- Page: `OrdersPublicPage.tsx`
-  - **Reads only `token` from URL** - no phone or workspaceId parameters
-  - **Token validation** specific for `orders` type
-  - **Simplified API calls** with only token parameter
-  - Supports optional filters via query params: `status`, `payment`, `from`, `to`.
-  - Supports `orderCode` query param to auto-expand a specific order in the list view.
-  - Calls the backend endpoints above using token-based authentication.
-  - For each order, provides links to invoice and DDT downloads.
-
-### N8N Calling Function: GetOrdersListLink()
-- Purpose: Reply with the correct external URLs for orders list or a specific order.
-- Output examples:
-  - List: `http://localhost:3000/orders-public?token={{token}}`
-  - Filtered: `http://localhost:3000/orders-public?token={{token}}&status=PENDING&payment=PENDING`
-  - Detail: `http://localhost:3000/orders-public/2001?token={{token}}`
-- Note: Token-based authentication is used for this flow. Token contains all necessary customer information.
-- **Token Reuse**: Same token is reused for 1 hour, ensuring consistent links for the same user.
-
-### PDF Generation (Invoice & DDT) ✅ COMPLETED
-- **Endpoints (Public Access):**
-  - `GET /api/internal/orders/:orderCode/invoice` → Professional invoice PDF with billing/shipping addresses, items, subtotal, tax, shipping, total
-  - `GET /api/internal/orders/:orderCode/ddt` → Professional delivery note PDF with shipping address and items (no prices)
-- **Security:** No token validation required - endpoints accept direct access via orderCode
-- **Frontend Integration:** 
-  - Order list page: Rows are clickable (no "View Details" button needed)
-  - Order detail page: Professional invoice layout with "Download Invoice" and "Download DDT" buttons
-  - All text in English: "Bill To", "Ship To", "Order Summary", "Items", etc.
-- **PDF Features:**
-  - Professional invoice header with company and customer information
-  - Structured billing and shipping address sections
-  - Complete order summary with payment status, tracking, shipping cost, tax
-  - Items table with product codes, quantities, and pricing
-  - DDT formatted as English customs declaration
-- **UI/UX Improvements:**
-  - Removed redundant download buttons from order list
-  - Made entire order rows clickable for better UX
-  - Added hover effects and visual indicators (→ arrow) for clickable rows
-  - Professional invoice-style layout in detail view
-
-### Security and Constraints
-- No hardcoded fallbacks. All configuration and data from DB.
-- **Centralized token validation** using `SecureTokenService` for all public endpoints.
-- **Token contains all necessary data**: customerId, workspaceId, and expiration time.
-- **No additional parameters required** - token is sufficient for all operations.
-- **Token Reuse System**: One token per user per type, reused for 1 hour until expiration.
-- **Automatic workspace isolation** enforced via token validation.
-- If token is invalid or expired, backend returns an error requiring new token generation.
-
-### Database Seed Behavior
-- **`npm run seed`** automatically updates both `agentConfig` and `prompts` tables with content from `docs/other/prompt_agent.md`
-- **Force Update**: Even if `agentConfig` already exists, the seed script will overwrite it with the latest content from `prompt_agent.md`
-- **Source of Truth**: `docs/other/prompt_agent.md` is the single source of truth for all chatbot prompts
-- **Fallback**: If `prompt_agent.md` cannot be read, the system falls back to the default `SOFIA_PROMPT`
-- **Consistency**: Both `agentConfig.prompt` and `prompts.content` are kept in sync during seeding
-
 # ShopMe - WhatsApp E-commerce Platform PRD
 
 ---
@@ -96,8 +16,6 @@ Allow customers to access their full orders history and specific order details v
 - **Google Translate in RAG:** ✅ **COMPLETED** - Sistema traduzione multilingue bidirezionale implementato con OpenRouter (google/gemma-2-9b-it:free). Supporta IT/ES/FR/PT con auto-rilevamento e traduzione real-time di query e risposte FAQ.
 - **🎉 OFFERS MANAGEMENT:** Complete offers system implemented with GetActiveOffers N8N tool for chatbot integration.
 - **🛒 INTELLIGENT CART AUTO-EXTRACTION:** ✅ **IMPLEMENTED** - Revolutionary cart management system that automatically extracts order items from conversation history when LLM instructions fail. Uses regex pattern matching and smart fallback mechanisms to ensure 100% order success rate.
-- **📄 PDF DOWNLOAD SYSTEM:** ✅ **COMPLETED** - Professional PDF generation system for invoices and delivery notes (DDT). Public endpoints without token validation, clickable order rows, English interface, and professional invoice layout with billing/shipping addresses.
-- **🛒 CONVERSATIONAL ORDER FLOW:** ✅ **COMPLETED** - Sistema completo di generazione ordini da conversazione WhatsApp. Implementato `confirmOrderFromConversation()` con parsing LLM automatico, frontend interattivo `OrderSummaryPage`, e integrazione N8N completa. Test di integrazione tutti superati con successo.
 
 ### ✅ NEW: Sistema Multilingue Bidirezionale (July 2025)
 
@@ -105,96 +23,6 @@ Allow customers to access their full orders history and specific order details v
 - **Ricerca Semantica Ottimizzata**: Query tradotte in inglese per embeddings più accurati
 - **UX Multilingue**: Risposte FAQ tradotte in tempo reale nella lingua del cliente
 - **OpenRouter Integration**: Modello google/gemma-2-9b-it:free per traduzioni veloci e gratuite
-
-### 🧪 NEW: Test di Integrazione WhatsApp (August 2025)
-
-#### **Test Suite Overview**
-Sistema completo di test di integrazione per verificare il funzionamento del chatbot WhatsApp con copertura completa di tutti i flussi critici.
-
-#### **1. test-welcome-message.integration.spec.ts**
-**Scopo**: Verificare il flusso di benvenuto e registrazione per utenti non registrati
-**Test Cases**:
-- 🇮🇹 **Italian Greetings**: "Ciao", "Buongiorno", "Salve" → Risposta italiana + link registrazione
-- 🇪🇸 **Spanish Greetings**: "Hola", "Buenos días", "Saludos" → Risposta spagnola + link registrazione  
-- 🇬🇧 **English Greetings**: "Hi", "Hello", "Good morning", "Hey" → Risposta inglese + link registrazione
-- 🎯 **Registration Flow**: Verifica consistenza linguaggio nel flusso di registrazione
-**Status**: ✅ **COMPLETED** - Alcuni test passano, altri falliscono per language detection bug
-
-#### **2. test-faq.integration.spec.ts**
-**Scopo**: Verificare risposte FAQ in multiple lingue per utenti registrati
-**Test Cases**:
-- 🇬🇧 **English FAQ**: "What are your opening hours?", "Do you offer delivery?", "What payment methods do you accept?"
-- 🇮🇹 **Italian FAQ**: "Quali sono gli orari di apertura?", "Fate consegne a domicilio?", "Quali metodi di pagamento accettate?"
-- 🇪🇸 **Spanish FAQ**: "¿Cuáles son los horarios de apertura?", "¿Hacen entregas a domicilio?", "¿Qué métodos de pago aceptan?"
-- 🎯 **Language Consistency**: Verifica che la risposta sia nella lingua corretta
-**Status**: ✅ **PARTIAL** - English (3/3 PASS), Italian/Spanish (❌ Language detection bug)
-
-#### **3. test-categories.integration.spec.ts**
-**Scopo**: Verificare richieste di categorie e prodotti in multiple lingue
-**Test Cases**:
-- 📋 **All Categories**: "dammi tutte le categorie", "show me all categories", "quais são todas as categorias"
-- 🍷 **Wine Catalog**: "dammi tutti i vini che hai nel catalogo", "show me all wines in your catalog", "what wines do you have"
-- 🧀 **Cheese Catalog**: "dammi tutti i formaggi nel catalogo", "show me all cheeses in your catalog", "what cheeses do you have"
-- 🎯 **Product Information**: Verifica informazioni dettagliate prodotti
-**Status**: ✅ **PARTIAL** - English (4/4 PASS), Italian/Other languages (❌ Language detection bug)
-
-#### **4. test-token-only-system.integration.spec.ts** (DA CREARE)
-**Scopo**: Verificare il sistema di token sicuri per link esterni
-**Test Cases**:
-- 🔄 **Token Reuse**: Stesso token generato per stesso customer
-- ⏰ **Token Validation**: Validazione buona entro 1 ora, scadenza dopo 1 ora
-- 🔗 **Link Generation**: Generazione corretta link con localhost:3000
-**Status**: 🚧 **PENDING**
-
-#### **5. test-link-generated.integration.spec.ts** (DA CREARE)
-**Scopo**: Verificare generazione link per ordini e profilo customer
-**Test Cases**:
-- 📋 **Orders List**: "dammi il link degli ordini" → Link corretto orders-public
-- 📄 **Last Order**: "dammi l'ultimo ordine" → Link corretto order detail
-- 👤 **Profile Update**: "voglio cambiare il mio indirizzo di fatturazione" → Link corretto customer-profile
-**Status**: 🚧 **PENDING**
-
-#### **6. test-languages.integration.spec.ts** (DA CREARE)
-**Scopo**: Verificare consistenza linguaggio in tutte le interazioni
-**Test Cases**:
-- 🇬🇧 **English**: Customer language="en" → AI risponde sempre in inglese
-- 🇮🇹 **Italian**: Customer language="it" → AI risponde sempre in italiano
-- 🇪🇸 **Spanish**: Customer language="es" → AI risponde sempre in spagnolo
-**Status**: 🚧 **PENDING**
-
-#### **7. test-contact-operator.integration.spec.ts** (DA CREARE)
-**Scopo**: Verificare flusso contatto operatore
-**Test Cases**:
-- 📞 **Operator Request**: "voglio contattare un operatore" → activeChatbot=false
-- 🚫 **Message Ignoring**: Dopo richiesta operatore, altri messaggi ignorati
-- 🌍 **Multi-language**: Test in italiano, inglese, spagnolo
-**Status**: 🚧 **PENDING**
-
-#### **8. test-block-user.integration.spec.ts** (DA CREARE)
-**Scopo**: Verificare sistema di blocco utenti
-**Test Cases**:
-- 🚫 **User Blocking**: Utente bloccato → messaggi ignorati
-- ⏰ **Auto-block**: 10 messaggi in 30 secondi → auto-blocco
-- 🔓 **Manual Unblock**: Admin può sbloccare manualmente
-**Status**: 🚧 **PENDING**
-
-#### **🧪 Test Infrastructure**
-- **Common Helpers**: `common-test-helpers.ts` con funzioni condivise
-- **Test Customer**: Maria Garcia (+34666777888) - customer registrato dal seed
-- **Workspace**: cm9hjgq9v00014qk8fsdy4ujv (workspace principale)
-- **API Endpoint**: POST /api/messages con payload {workspaceId, phoneNumber, message, language}
-- **Response Validation**: Verifica status 200, language detection, content validation
-
-#### **🐛 Known Issues**
-1. **Language Detection Bug**: Sistema risponde sempre in inglese anche per input italiano/spagnolo
-2. **Customer Registration Issue**: Maria Garcia registrata ma riceve ancora "To use this service..."
-3. **Token System**: Alcuni test token falliscono per problemi Prisma model naming
-
-#### **📊 Test Results Summary**
-- **Total Tests**: 58 test cases across 4 test suites
-- **Passing**: 15 tests (English tests + some welcome messages)
-- **Failing**: 43 tests (Language detection + customer registration issues)
-- **Coverage**: Welcome flow, FAQ responses, Category requests, Language consistency
 - **Fallback Robusto**: Sistema mantiene funzionalità anche se traduzione non disponibile
 - **Copertura Completa**: Funziona per prodotti, FAQ, servizi, documenti in SearchRag
 - **Performance Ottimizzata**: Due chiamate LLM per query multilingue (query→EN, response→customer_lang)
@@ -232,50 +60,17 @@ Sistema completo di test di integrazione per verificare il funzionamento del cha
 
 - **Goal:** Guarantee that, after a successful order creation, the agent cart memory is cleared to avoid accidental reorders or stale items.
 - **Mechanism:**
-  - **SIMPLE APPROACH**: After calling confirmOrderFromConversation() and generating the checkout link, the LLM automatically clears the cart array to empty [].
-  - **PROMPT-BASED**: The cleanup is handled directly in the prompt_agent.md instructions.
-  - **IMMEDIATE**: Cart is cleared immediately after generating the checkout link, not after order completion.
-- **User Experience:** The user is informed that the cart has been cleared to prevent duplicate orders.
+  - N8N sends a hidden "system" message to the LLM instructing it to clear all cart state from memory.
+  - The message is sent only on SUCCESS (never on cancel/failure).
+  - A short delay of ~5 seconds is applied before sending to avoid racing with the final confirmation message.
+- **User Experience:** The system message is invisible to the user; no UI output is generated.
 - **Acceptance Criteria:**
-  - Immediately after generating checkout link, a user prompt like "show my cart" yields empty/no items.
+  - Immediately after order confirmation, a user prompt like "show my cart" yields empty/no items.
   - No residual cart content is present in subsequent LLM responses unless the user explicitly adds new items.
-  - User is informed that cart was cleared for safety.
-- **Implementation Notes:**
-  - Added rule #7 in prompt_agent.md: "After calling confirmOrderFromConversation(), IMMEDIATELY clear the cart array to empty []"
-  - No complex N8N workflow changes needed.
-  - No backend database changes required.
-  - Simple, reliable, and maintainable solution.
-
-### ✅ NEW: LLM Memory Cart Management (August 2025)
-
-- **Strategic Approach:** Cart management is handled entirely within LLM memory, not through external API calls
-- **Cart Operations:** 
-  - **ADD PRODUCTS**: When user says "add X", "I want X", "add to cart" → LLM updates internal cart array
-  - **REMOVE PRODUCTS**: When user says "remove X", "delete X" → LLM removes from cart array
-  - **UPDATE QUANTITIES**: When user says "change quantity", "update X to Y" → LLM modifies cart array
-  - **SHOW CART**: When user asks "show cart", "what's in my cart" → LLM displays current cart
-  - **CLEAR CART**: When user says "clear cart", "empty cart" → LLM resets cart to empty array
-- **Critical Rule:** After ANY cart change, LLM must IMMEDIATELY show the updated cart in the same response
-- **Function Calls:** Only `confirmOrderFromConversation()` is called for final order confirmation
-- **No External APIs:** No `add_to_cart`, `get_cart`, or similar functions are called during cart management
-- **Memory Persistence:** Cart state persists throughout the conversation until order confirmation
-- **Automatic Cleanup:** Cart is automatically cleared after `confirmOrderFromConversation()` is called
-
-### 🚨 CRITICAL: N8N Workflow Configuration (August 2025)
-
-**NEVER modify `n8n/workflows/shopme-whatsapp-workflow.json` directly!**
-
-**Why this is critical:**
-- The prompt in N8N workflow comes from the database via `agentConfig.prompt`
-- The workflow file is only a template
-- Modifying the file directly has NO effect on the running system
-- All prompt changes must be made in `docs/other/prompt_agent.md` and propagated via seed
-
-**Correct workflow:**
-1. **Modify**: `docs/other/prompt_agent.md` (source of truth)
-2. **Run**: `npm run seed` (updates database)
-3. **Verify**: Test chatbot behavior
-4. **NEVER**: Touch N8N workflow file directly
+- **Implementation Notes (N8N):**
+  - Add a "Wait" node (5000 ms) after the order creation step.
+  - Add a "Code" or "Set" node to construct a system message: { role: "system", content: "Clear all cart-related memory/state now." }.
+  - Ensure this message is appended only to the LLM context and not delivered to the user output channel.
 
 ### ✅ Workspace Isolation Policy (Mandatory)
 
@@ -633,16 +428,19 @@ Sistema completo di gestione ordini e carrello enterprise-grade che sostituisce 
 ### **🔗 Accesso Ordini via Link Sicuro (TTL 1h)**
 
 - **Intento generico (lista ordini / fattura / DDT senza numero ordine)**
+
   - Risposta: link a pagina lista ordini del cliente in ordine di data decrescente, con stato e totale
   - URL esempio: `https://app.example.com/orders?token=...`
   - Validità: token firmato (JWT HS256), TTL 1 ora; scaduto → pagina non accessibile
   - Dal dettaglio ordine sono disponibili: download Fattura (PDF) e DDT (PDF)
 
 - **Intento specifico (con numero ordine)**
+
   - Risposta: link diretto al dettaglio dell'ordine
   - URL esempio: `https://app.example.com/orders/ORD-123?token=...`
 
 - **Token JWT (sicurezza)**
+
   - Claim minimi: `clientId`, `workspaceId`, `scope`
     - Lista: `orders:list`
     - Dettaglio: `orders:detail` + `orderCode`
@@ -650,6 +448,7 @@ Sistema completo di gestione ordini e carrello enterprise-grade che sostituisce 
   - Niente dati sensibili nel payload
 
 - **Frontend**
+
   - `OrdersListPage`: lista in ordine data decrescente, stato, totale; click → dettaglio
   - `OrderDetailPage`: dettaglio ordine con pulsanti download Fattura e DDT
 
@@ -784,7 +583,7 @@ interface OrdersTable {
     "Status", // Badge colorato con stato
     "Items", // Numero prodotti in ordine
     "Total", // Prezzo totale formattato
-    "Actions", // View, Edit, Delete buttons
+    "Actions" // View, Edit, Delete buttons
   ]
 
   features: {
@@ -807,7 +606,7 @@ interface OrdersTable {
     bulkActions: ["changeStatus", "exportSelected", "deleteSelected"]
     filterActions: [
       "clearAllFilters", // NUOVO: Reset tutti i filtri
-      "saveFilterPreset", // NUOVO: Salva combinazione filtri
+      "saveFilterPreset" // NUOVO: Salva combinazione filtri
     ]
   }
 }
@@ -826,7 +625,7 @@ interface OrdersPageFilters {
       "Confirmed",
       "Shipped",
       "Delivered",
-      "Cancelled",
+      "Cancelled"
     ]
     multiple: boolean // Allow multiple status selection
     clearable: boolean // Easy clear option
@@ -1031,6 +830,7 @@ const allowedTransitions = {
 - SHIPPED → Send tracking email
 - DELIVERED → Request review
 ```
+
 ---
 
 ## 📦 **STOCK MANAGEMENT SYSTEM - COMPLETE IMPLEMENTATION**
@@ -1258,10 +1058,15 @@ async findProducts(filters: ProductFilters): Promise<Product[]> {
 ```typescript
 // Add Product Modal con stock verification
 const handleAddProductFromModal = async () => {
-  const stockAvailable = await checkProductStock(selectedProduct.id, quantityToAdd)
+  const stockAvailable = await checkProductStock(
+    selectedProduct.id,
+    quantityToAdd
+  )
 
   if (!stockAvailable) {
-    toast.error(`Stock insufficiente. Disponibili: ${selectedProduct.stock} unità`)
+    toast.error(
+      `Stock insufficiente. Disponibili: ${selectedProduct.stock} unità`
+    )
     return
   }
 
@@ -1269,10 +1074,10 @@ const handleAddProductFromModal = async () => {
 }
 
 // Quantity controls con limiti stock
-<button
-  onClick={() => setQuantityToAdd(
-    Math.min(selectedProductToAdd.stock, quantityToAdd + 1)
-  )}
+;<button
+  onClick={() =>
+    setQuantityToAdd(Math.min(selectedProductToAdd.stock, quantityToAdd + 1))
+  }
   disabled={quantityToAdd >= selectedProductToAdd.stock}
 >
   +
@@ -1322,8 +1127,7 @@ ${order.items
   )
   .join("\n")}
 
-Totale: €${order.totalAmount.toFixed(2)}`
-// Admin email
+Totale: €${order.totalAmount.toFixed(2)}`// Admin email
 `Ordine confermato e processato:
 Ordine: ${order.orderCode}
 Cliente: ${customer.name}
@@ -1623,8 +1427,6 @@ CREATE INDEX idx_order_events_order_date ON order_events(order_id, created_at DE
 ```
 
 ### **🎯 N8N Integration & Calling Functions**
-
-> **📖 For complete Calling Functions implementation pattern, see: [Calling Functions Architecture Pattern](#🔧-calling-functions-architecture-pattern)**
 
 #### **Orders Calling Functions**
 
@@ -1972,8 +1774,8 @@ orders.map((order) => ({
     order.status === "paid"
       ? "paid"
       : order.status === "completed"
-        ? "pending"
-        : "overdue",
+      ? "pending"
+      : "overdue",
   items: order.orderItems.map((item) => ({
     description: item.product?.name,
     quantity: item.quantity,
@@ -2209,7 +2011,6 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
   - ❌ **NON riceve risposta** dall'AI chatbot
   - ✅ **Webhook conferma ricezione** (cliente non sa di essere blacklisted)
   - 🔍 **Blacklist silenziosa**: Cliente pensa che i messaggi siano consegnati ma non vengono mai processati
-  - 🚫 **IGNORE COMPLETA**: Messaggi completamente ignorati, zero traccia nel sistema
 - **Channel status**: isActive e activeChatbot flags
 - **WIP status**: Messaggio work-in-progress se canale in manutenzione
 
@@ -2324,11 +2125,11 @@ All sensitive operations are handled securely through temporary links with secur
 +---------------------------------------------------+----------------------------------------------------------------------------+
 | 8. COST STRUCTURE                                 | 9. REVENUE STREAMS                                                         |
 |                                                   |                                                                            |
-| • Development team                                | • Subscription model:                                                      |
-| • AI/ML model costs                               |   - Single plan with unlimited products and WhatsApp integration          |
-| • WhatsApp Business API fees                      |   - Implementation and customization services                              |
-| • Cloud infrastructure                            |   - API access fees for third-party integrations                          |
-| • Customer success team                           |                                                                             |
+| • Development team                                | • Tiered subscription model:                                               |
+| • AI/ML model costs                               |   - Free Trial (€0 for 14 days): Single WhatsApp line, unlimited products |
+| • WhatsApp Business API fees                      |   - Basic Plan (€49/month): Single WhatsApp line, unlimited products       |
+| • Cloud infrastructure                            |   - Professional Plan (€149/month): 3 numbers, unlimited products          |
+| • Customer success team                           |   - Enterprise Plan (custom): Unlimited connections                        |
 | • Sales & marketing                               | • Implementation and customization services                                |
 |                                                   | • API access fees for third-party integrations                             |
 +---------------------------------------------------+----------------------------------------------------------------------------+
@@ -2668,7 +2469,9 @@ curl -X POST http://localhost:5678/webhook/whatsapp-flow \
   }
 }
 ```
+
 #### **Node 2: Channel Active Check**
+
 ```json
 {
   "type": "http_request",
@@ -3189,17 +2992,20 @@ Andrea ha creato la **base architecturale perfetta** per un sistema WhatsApp int
 #### **🛠️ Componenti Implementati:**
 
 1. **📊 Database Schema**
+
    - Campo `adminEmail String?` aggiunto a `WhatsappSettings`
    - Migrazione: `20250720080133_add_admin_email_to_whatsapp_settings`
    - Seed aggiornato con email predefinita: `andrea_gelsomino@hotmail.com`
 
 2. **🎨 Frontend - Settings Page**
+
    - Campo "Admin Email" obbligatorio con validazione
    - Controllo formato email in tempo reale
    - Messaggi di errore user-friendly
    - Descrizione campo per UX ottimale
 
 3. **🔧 Backend API**
+
    - `getCurrentWorkspace()` include `adminEmail` da `whatsappSettings`
    - `updateWorkspace()` gestisce aggiornamento `adminEmail`
    - Integrazione seamless con architettura esistente
@@ -3420,7 +3226,9 @@ POST / api / internal / conversation - history // Recupero storico chat
          v
 📤 RESPONSE BACK TO SHOPME BACKEND → WhatsApp
 ```
+
 ### **Legacy Flow (for comparison)**
+
 Ecco i nostri tesori culinari:
 
 **🍝 PASTA & CEREALI:**
@@ -3532,6 +3340,7 @@ La fecha estimada de entrega es el viernes 12 de mayo. ¿Puedo ayudarle con algo
 - Bulk import/export functionality
 
 **Product Code System**:
+
 - **Unique Product Codes**: Each product has a unique code (e.g., "00001", "00002") for easy identification
 - **Code Format**: 5-digit format with leading zeros (00001-99999)
 - **Required Field**: Product code is mandatory when creating new products
@@ -3752,26 +3561,11 @@ The ShopMe platform includes a comprehensive e-commerce system that enables busi
 #### 📑 **Orders & Invoices Management Dashboard**
 
 - **Complete Orders Overview**: Admin dashboard showing all orders with filters and search
-- **Manual Order Creation**: Admin can create new orders manually via Add Order button with complete form interface
-- **Order Creation Form**: Comprehensive form with customer selection, products/services management, pricing, and validation
-- **Product/Service Integration**: Add/remove items with quantity adjustment, real-time totals, and inventory management
 - **Order Status Workflow**: Visual order status management with drag-and-drop status updates
 - **Invoice Management**: Bulk invoice generation and download capabilities
 - **Customer Order Analytics**: Customer-specific order patterns and analytics
 - **Revenue Analytics**: Detailed revenue tracking and reporting
 - **Export Capabilities**: Export orders and invoices for accounting systems
-
-##### 📝 **Manual Order Creation Features**
-- **Add Order Button**: Integrated "Add" button in OrdersPage following standard UI patterns
-- **Identical UI/UX**: Same interface as order editing for consistency and familiarity
-- **Customer Selection**: Dropdown with existing customers or create new customer option
-- **Automatic Order Code**: System-generated unique order codes (no manual input required)
-- **Products & Services Management**: Full product/service selection with quantity and pricing controls
-- **Address Management**: Both shipping and billing address input with structured field validation
-- **Real-time Validation**: Form validation with specific error messages and user feedback
-- **Payment Integration**: Payment method selection and status tracking
-- **Notes & Tracking**: Order notes and tracking number support for logistics
-- **Workspace Isolation**: Automatic workspace filtering ensuring data security
 
 #### 🤖 **N8N E-commerce Workflow Integration**
 
@@ -3857,362 +3651,6 @@ flowchart TB
     class WhatsApp,OpenAI,Payment external
     class User,Operator user
 ```
-
-### 🤖 **N8N WORKFLOW & PROMPT MANAGEMENT ARCHITECTURE**
-
-**🚨 CRITICAL TECHNICAL SPECIFICATION: N8N PROMPT IMPORT SYSTEM**
-
-The N8N workflow does NOT contain the actual chatbot prompt text. Instead, it imports the prompt dynamically from the repository file system using a sophisticated template variable system.
-
-#### **📂 Prompt Source Architecture**
-
-**Primary Prompt File:**
-- **Location:** `/docs/other/prompt_agent.md`
-- **Format:** Markdown with comprehensive AI agent instructions
-- **Content:** Complete chatbot behavior, function calling rules, formatting guidelines, business logic
-- **Maintenance:** Single source of truth for all chatbot behavior modifications
-
-### **🔧 Calling Functions Architecture Pattern**
-
-**Base Pattern implemented for `GetOrdersListLink()`, `GetShipmentTrackingLink()`, `GetAllProducts()`, `GetServices()`, and `GetCustomerProfileLink()`:**
-
-#### **🏗️ Complete Implementation Stack**
-
-**1. Prompt Definition (`prompt_agent.md`)**
-```markdown
-## GetShipmentTrackingLink(orderCode)
-se un utente chiede dove si trova il suo ordine o vuole il tracking della spedizione, dobbiamo lanciare la Calling function `GetShipmentTrackingLink()` con il parametro `orderCode` impostato al numero dell'ordine richiesto.
-
-**TRIGGERS per tracking spedizione:**
-- "dove è il mio ordine"
-- "tracking spedizione" 
-- "stato spedizione"
-- "where is my order"
-- "shipment tracking"
-- "delivery status"
-```
-
-**GetAllProducts() Example:**
-```markdown
-## GetAllProducts()
-se un utente chiede la lista dei prodotti, il catalogo, o cosa abbiamo disponibile, dobbiamo lanciare la Calling function `GetAllProducts()` che ritorna la lista completa dei prodotti organizzata per categoria. IMPORTANTE: nella risposta aggiungi sempre icone appropriate per ogni categoria (es. 🍷 per Beverages, 🍝 per Pasta, 🧀 per Cheese, ecc.).
-
-**TRIGGERS per lista prodotti:**
-- "dammi la lista dei prodotti"
-- "che prodotti avete"
-- "catalogo prodotti"
-- "show me products"
-- "product list"
-```
-
-**2. Tool Description Service (`tool-descriptions.service.ts`)**
-```typescript
-public getShipmentTrackingLink(): ToolDescription {
-  return {
-    name: 'getShipmentTrackingLink',
-    description: 'tracking link for order shipment status',
-    whenToUse: 'when user asks about shipment tracking, delivery status, or where their order is',
-    examples: ['dove è il mio ordine', 'tracking spedizione', 'stato spedizione'],
-    output: 'Tracking link and shipment information',
-    notes: 'Provides shipment tracking for specific orders'
-  };
-}
-```
-
-**GetAllProducts() Tool Description:**
-```typescript
-public getAllProducts(): ToolDescription {
-  return {
-    name: 'getAllProducts',
-    description: 'RETURNS COMPLETE PRODUCT CATALOG WITH CODES, NAMES, PRICES, DESCRIPTIONS GROUPED BY CATEGORY WITH ICONS',
-    whenToUse: 'when user asks for products list, catalog, or what products are available',
-    examples: ['dammi la lista dei prodotti', 'che prodotti avete', 'catalogo', 'show me products'],
-    output: 'Products grouped by category with icons, including product codes, names, descriptions, and prices',
-    notes: 'Returns full product catalog organized by categories in alphabetical order. LLM adds appropriate category icons automatically.'
-  };
-}
-```
-
-**3. Calling Function Implementation (`calling-functions.service.ts`)**
-```typescript
-public async getShipmentTrackingLink(request: GetShipmentTrackingLinkRequest): Promise<TokenResponse> {
-  // ✅ 1. Database validation with real Prisma query
-  const order = await prisma.orders.findFirst({
-    where: { orderCode: request.orderCode, workspaceId: request.workspaceId },
-    select: { orderCode: true, trackingNumber: true }
-  });
-  
-  // ✅ 2. Order not found error (multilingual)
-  if (!order) {
-    return { success: false, error: `Ordine non trovato`, message: `Ordine non trovato` };
-  }
-  
-  // ✅ 3. Specific business logic validation
-  if (!order.trackingNumber) {
-    return { success: false, error: `Non c'è il tracking-id nell'ordine` };
-  }
-  
-  // ✅ 4. External service integration (DHL)
-  const dhlTrackingUrl = `https://www.dhl.com/it-en/home/tracking.html?locale=true&tracking-id=${order.trackingNumber}`;
-  
-  return { success: true, linkUrl: dhlTrackingUrl, trackingNumber: order.trackingNumber };
-}
-```
-
-**GetAllProducts() Implementation:**
-```typescript
-public async getAllProducts(request: GetAllProductsRequest): Promise<ProductsResponse> {
-  try {
-    // ✅ 1. Direct database query with Prisma for complete product list
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
-    
-    // ✅ 2. Get all products with categories, ordered alphabetically
-    const products = await prisma.products.findMany({
-      where: { workspaceId: request.workspaceId, isActive: true },
-      include: { category: { select: { id: true, name: true } } },
-      orderBy: [{ category: { name: 'asc' } }, { name: 'asc' }]
-    });
-    
-    // ✅ 3. Group products by category (LLM will add icons automatically)
-    const groupedProducts = products.reduce((acc, product) => {
-      const categoryName = product.category?.name || 'Senza Categoria';
-      if (!acc[categoryName]) {
-        acc[categoryName] = { categoryName, products: [] };
-      }
-      acc[categoryName].products.push({
-        code: product.code,
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        unit: product.unit
-      });
-      return acc;
-    }, {});
-    
-    // ✅ 4. Return structured data for LLM formatting
-    return {
-      success: true,
-      data: {
-        categories: Object.values(groupedProducts),
-        totalProducts: products.length,
-        totalCategories: Object.keys(groupedProducts).length
-      }
-    };
-  } catch (error) {
-    return this.createErrorResponse(error, 'getAllProducts') as ProductsResponse;
-  }
-}
-```
-
-**4. Function Registration (`dual-llm.service.ts`)**
-```typescript
-switch (functionName) {
-  case 'getShipmentTrackingLink':
-    result = await this.callingFunctionsService.getShipmentTrackingLink({
-      customerId: request.customerid,
-      workspaceId: request.workspaceId,
-      orderCode: arguments_.orderCode
-    });
-    break;
-  
-  case 'getAllProducts':
-    result = await this.callingFunctionsService.getAllProducts({
-      workspaceId: request.workspaceId,
-      customerId: request.customerid
-    });
-    break;
-}
-```
-
-**5. Response Formatting (`dual-llm.service.ts`)**
-```typescript
-// ✅ Handle success case
-if (result.result?.linkUrl) {
-  trackingLink = result.result.linkUrl;
-  orderCode = result.arguments?.orderCode || null;
-}
-
-// ✅ Handle specific error cases
-if (result.result?.success === false) {
-  if (trackingError.includes('tracking-id')) {
-    dataDescription += `\nThe order ${orderCode} exists but has no tracking number in the system.`;
-  } else {
-    dataDescription += `\nThe order ${orderCode} was not found for tracking.`;
-  }
-}
-```
-
-**GetAllProducts() Formatting:**
-```typescript
-// ✅ Handle products data
-if (products && products.length > 0) {
-  const totalProducts = products.reduce((sum: number, category: any) => sum + category.products.length, 0);
-  dataDescription += `\n\nI have found ${totalProducts} products available organized in ${products.length} categories:`;
-  
-  products.forEach((category: any) => {
-    dataDescription += `\n\n**${category.categoryName}** (${category.products.length} products):`;
-    category.products.slice(0, 5).forEach((product: any) => {
-      dataDescription += `\n- ${product.code} - ${product.name} - €${product.price}/${product.unit}`;
-      if (product.description && product.description.length > 0) {
-        dataDescription += ` (${product.description.substring(0, 50)}${product.description.length > 50 ? '...' : ''})`;
-      }
-    });
-    if (category.products.length > 5) {
-      dataDescription += `\n... and ${category.products.length - 5} more products in this category`;
-    }
-  });
-}
-
-// ✅ LLM automatically adds appropriate category icons:
-// 🍷 Beverages, 🍝 Pasta, 🧀 Cheese, 🥗 Antipasti, 🍰 Desserts, etc.
-```
-
-#### **🌍 Multilingual Error Handling Pattern**
-
-**Critical Implementation Rule:**
-```typescript
-// ✅ Backend returns exact error message in database language (Italian)
-return { success: false, error: `Ordine non trovato`, message: `Ordine non trovato` };
-
-// ✅ Formatter passes error context to LLM with language rule
-dataDescription += `\n\nTRACKING ERROR: ${trackingError}`;
-
-// ✅ LLM responds in user's input language automatically
-// User input: "where is my order 99999" → English response
-// User input: "dove è il mio ordine 99999" → Italian response
-```
-
-#### **🔒 Security & Validation Standards**
-
-**Mandatory Requirements for all Calling Functions:**
-1. **Workspace Isolation:** All database queries MUST filter by `workspaceId`
-2. **Real Database Validation:** Use actual Prisma queries, not mock validations
-3. **Specific Error Messages:** Different errors for "not found" vs "business logic failures"
-4. **Type Safety:** Proper TypeScript interfaces for all request/response objects
-5. **External Service Integration:** Direct links to external services when applicable
-
-#### **🎯 Pattern Benefits**
-
-- **Consistency:** Same pattern for all future calling functions
-- **Security:** Workspace isolation and real database validation
-- **UX:** Multilingual error handling with specific, helpful messages
-- **Maintainability:** Clear separation of concerns across service layers
-- **Scalability:** Easy to add new calling functions following the same pattern
-
-#### **📋 Next Functions Implementation Checklist**
-
-For each new calling function:
-- [ ] Add triggers to `prompt_agent.md`
-- [ ] Create tool description in `tool-descriptions.service.ts`
-- [ ] Implement function in `calling-functions.service.ts` with database validation
-- [ ] Register function in `dual-llm.service.ts` switch statement
-- [ ] Update formatter to handle success/error cases
-- [ ] Test all scenarios: success, not found, business logic errors
-- [ ] Verify multilingual error responses work correctly
-
-#### **🔄 N8N Dynamic Prompt Import Process**
-
-**File:** `/n8n/workflows/shopme-whatsapp-workflow.json`
-
-**Critical Code Section:**
-```json
-{
-  "parameters": {
-    "options": {
-      "systemMessage": "={{ $json.prompt }}\n[additional dynamic variables...]"
-    }
-  },
-  "type": "@n8n/n8n-nodes-langchain.agent"
-}
-```
-
-**Template Variable Resolution:**
-1. **`{{ $json.prompt }}`** → Dynamically resolves to content from `prompt_agent.md`
-2. **`{{ $json.language }}`** → Customer language (IT/ES/EN/PT)
-3. **`{{ $('Filter').item.json.precompiledData.customer.name }}`** → Customer name
-4. **`{{ $('Filter').item.json.precompiledData.customer.businessName }}`** → Business name
-5. **`{{ $('Filter').item.json.precompiledData.customer.discount }}`** → Customer discount %
-
-#### **🛠️ Why This Architecture?**
-
-**Advantages:**
-- **Single Source of Truth:** All prompt modifications happen in `prompt_agent.md`
-- **Version Control:** Prompt changes tracked in Git with full history
-- **Development Efficiency:** No need to edit complex N8N JSON for prompt updates
-- **Dynamic Personalization:** Customer data injected at runtime
-- **Separation of Concerns:** Business logic (prompt) separate from workflow logic (N8N)
-
-**Critical Implementation Rules:**
-1. **NEVER modify systemMessage directly in N8N workflow JSON**
-2. **ALL chatbot behavior changes must be made in `prompt_agent.md`**
-3. **N8N workflow only handles technical routing and API calls**
-4. **Prompt updates are immediately active without N8N workflow changes**
-
-#### **🔧 Technical Integration Points**
-
-**Backend Integration:**
-- N8N calls backend APIs with customer context
-- Backend loads `prompt_agent.md` content
-- Content passed to N8N via `$json.prompt` variable
-- N8N injects customer-specific variables at runtime
-
-**Deployment Process:**
-1. Update `prompt_agent.md` with new chatbot behavior
-2. Commit changes to repository
-3. Changes automatically available to N8N workflow
-4. No N8N workflow redeployment required
-
-**🚨 DEVELOPER WARNING:**
-Modifying the `systemMessage` directly in the N8N workflow JSON will be overridden by the dynamic `{{ $json.prompt }}` template. All chatbot modifications MUST be made in `/docs/other/prompt_agent.md`.
-
-#### **🌍 MULTILINGUAL QUERY TRANSLATION ARCHITECTURE**
-
-**🚨 CRITICAL RULE: NO HARDCODED TRANSLATION IN BACKEND**
-
-**Problem Solved:** User queries in different languages (Italian, Spanish, Portuguese) need to be translated to English for optimal RAG search performance.
-
-**❌ WRONG APPROACH (NOT ALLOWED):**
-- Hardcoded regex patterns in backend code
-- Translation logic in API controllers
-- Language detection with regex matching
-- Static translation mappings
-
-**✅ CORRECT APPROACH (IMPLEMENTED):**
-- **LLM handles translation** via prompt_agent.md instructions
-- **Backend passes original query** without modification
-- **Prompt contains explicit translation rules** for RagSearch() function
-- **Dynamic translation** based on user input language
-
-**Implementation Details:**
-1. **User Input:** "che pagamenti accettate?" (Italian)
-2. **LLM Processing:** Reads prompt_agent.md translation rules
-3. **Function Call:** RagSearch("what payment methods do you accept")
-4. **Backend:** Receives English query, performs RAG search
-5. **Response:** Returns results in user's original language
-
-**Multilingual Response Examples:**
-- **Italian User:** "che pagamenti accettate?" → Response in Italian
-- **Spanish User:** "¿qué métodos de pago aceptan?" → Response in Spanish  
-- **Portuguese User:** "quais métodos de pagamento aceitam?" → Response in Portuguese
-- **English User:** "what payment methods do you accept?" → Response in English
-
-**Prompt Rules (prompt_agent.md):**
-```
-**🚨 ULTRA CRITICAL - RAGSearch TRANSLATION RULE** 🚨
-**PRIMA DI CHIAMARE RagSearch()**, DEVI SEMPRE TRADURRE la query in inglese
-- Utente: "che pagamenti accettate?" → Tu: RagSearch("what payment methods do you accept")
-- Utente: "quali sono gli orari?" → Tu: RagSearch("what are your opening hours")
-```
-
-**Benefits:**
-- **No hardcoded logic** in backend code
-- **Flexible translation** via LLM intelligence
-- **Easy maintenance** through prompt updates
-- **Scalable** to any language combination
-- **Consistent** with overall architecture
-
----
 
 ### C4 Model
 
@@ -4300,12 +3738,14 @@ C4Container
 The ShopMe frontend is built with a modern React architecture:
 
 - **Core Technologies**:
+
   - React 18+ with functional components and hooks
   - TypeScript for type safety and improved developer experience
   - Tailwind CSS for utility-first styling approach
   - Next.js for server-side rendering and optimized performance
 
 - **Key Frontend Components**:
+
   - Component library with atomic design principles
   - Responsive layouts for all device types
   - Custom hooks for business logic reuse
@@ -4432,15 +3872,6 @@ interface LoginPageDesign {
     components: string[] // Reuse existing UI components
   }
 }
-
-**Icon Usage Guidelines**:
-
-- **Moderate Use**: Icons are well-received and improve UX, but avoid overuse
-- **Strategic Placement**: Use icons only when they add clear value to user understanding
-- **Consistency**: Maintain icon consistency with the established design system
-- **Accessibility**: Ensure icons have proper alt text and are accessible
-- **Context**: Icons should complement text, not replace it entirely
-}
 ```
 
 **User Avatar Design Issues**:
@@ -4482,6 +3913,7 @@ interface UserAvatarDesign {
 The backend follows a Domain-Driven Design (DDD) architecture:
 
 - **Core Technologies**:
+
   - Node.js with Express framework
   - TypeScript for type safety across the stack
   - Prisma ORM for database access
@@ -4489,12 +3921,14 @@ The backend follows a Domain-Driven Design (DDD) architecture:
   - Redis for caching and session management
 
 - **Layer Separation**:
+
   - **Domain Layer**: Core business entities and rules
   - **Application Layer**: Use cases and application services
   - **Infrastructure Layer**: Technical implementations and external services
   - **Interfaces Layer**: API controllers and routes
 
 - **Key Design Principles**:
+
   - Business domain at the center of design
   - Clear boundaries between layers
   - Repository pattern for data access
@@ -4552,7 +3986,9 @@ model UserWorkspace {
   @@id([userId, workspaceId])
 }
 ```
+
 **Seed Script Behavior:**
+
 1. **Complete Database Cleanup**: Removes ALL data from ALL tables
 2. **Admin User Creation**: Creates admin user with credentials from .env
 3. **Main Workspace Creation**: Creates the primary workspace with fixed ID
@@ -5238,11 +4674,13 @@ We protect all API endpoints with smart rate limiting:
 #### Authentication API
 
 - `POST /api/auth/login`
+
   - **Description**: Authenticates a user and returns tokens
   - **Body**: `{ email, password }`
   - **Returns**: Access token and refresh token
 
 - `POST /api/auth/refresh`
+
   - **Description**: Refreshes an expired access token
   - **Body**: (Uses refresh token from HTTP-only cookie)
   - **Returns**: New access token
@@ -5254,11 +4692,13 @@ We protect all API endpoints with smart rate limiting:
 #### Workspace API
 
 - `GET /api/workspaces`
+
   - **Description**: Lists workspaces accessible to the user
   - **Parameters**: `page`, `limit`, `status`
   - **Returns**: Paginated workspace list
 
 - `POST /api/workspaces`
+
   - **Description**: Creates a new workspace
   - **Body**: Workspace details
   - **Returns**: Created workspace details
@@ -5270,6 +4710,7 @@ We protect all API endpoints with smart rate limiting:
 #### Products API
 
 - `GET /api/products`
+
   - **Description**: Lists products
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5279,15 +4720,18 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated product list
 
 - `POST /api/products`
+
   - **Description**: Creates a new product
   - **Body**: Product details with category and workspace information
   - **Returns**: Created product
 
 - `GET /api/products/:id`
+
   - **Description**: Gets details of a specific product
   - **Returns**: Complete product information including variants and images
 
 - `PUT /api/products/:id`
+
   - **Description**: Updates a product
   - **Body**: Fields to update
   - **Returns**: Updated product
@@ -5299,11 +4743,13 @@ We protect all API endpoints with smart rate limiting:
 #### Categories API
 
 - `GET /api/categories`
+
   - **Description**: Lists categories
   - **Parameters**: `workspace_id`, `parent_id`, `status`, `page`, `limit`
   - **Returns**: Paginated category list
 
 - `POST /api/categories`
+
   - **Description**: Creates a new category
   - **Body**: Category details with parent info
   - **Returns**: Created category
@@ -5315,11 +4761,13 @@ We protect all API endpoints with smart rate limiting:
 #### Customers API
 
 - `GET /api/customers`
+
   - **Description**: Lists customers
   - **Parameters**: `workspace_id`, various filters, pagination
   - **Returns**: Paginated customer list
 
 - `GET /api/customers/:id`
+
   - **Description**: Gets customer profile
   - **Returns**: Customer details with order history
 
@@ -5360,6 +4808,7 @@ We protect all API endpoints with smart rate limiting:
 #### Orders API
 
 - `GET /api/orders`
+
   - **Description**: Lists orders
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5370,6 +4819,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated order list with basic details
 
 - `POST /api/orders`
+
   - **Description**: Creates a new order
   - **Body**:
     - `customer_id`: Customer making the order
@@ -5380,11 +4830,13 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Created order with payment link
 
 - `GET /api/orders/:id`
+
   - **Description**: Gets detailed information about an order
   - **Parameters**: `id` (required): Order ID
   - `Returns\*\*: Complete order information including items, payment status, and history
 
 - `PUT /api/orders/:id/status`
+
   - **Description**: Updates order status
   - **Body**: `status`: New order status
   - **Returns**: Updated order with current status
@@ -5397,6 +4849,7 @@ We protect all API endpoints with smart rate limiting:
 #### Conversations API
 
 - `GET /api/conversations`
+
   - **Description**: Lists customer conversations
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5407,16 +4860,19 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated conversation list
 
 - `GET /api/conversations/:id`
+
   - **Description**: Gets details of a specific conversation
   - **Parameters**: `id` (required): Conversation ID
   - **Returns**: Conversation with messages
 
 - `PUT /api/conversations/:id/status`
+
   - **Description**: Updates conversation status (e.g., open, closed)
   - **Body**: `status`: New conversation status
   - **Returns**: Updated conversation status
 
 - `GET /api/conversations/:id/messages`
+
   - **Description**: Gets messages from a conversation
   - **Parameters**:
     - `id` (required): Conversation ID
@@ -5431,6 +4887,7 @@ We protect all API endpoints with smart rate limiting:
 #### Documents API
 
 - `GET /api/documents`
+
   - **Description**: Lists uploaded documents
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5439,21 +4896,25 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated document list with metadata
 
 - `POST /api/documents/upload`
+
   - **Description**: Uploads a new PDF document
   - **Body**: Multipart form data with PDF file
   - **Returns**: Created document with upload confirmation
 
 - `POST /api/documents/:id/process`
+
   - **Description**: Processes document for text extraction and embedding generation
   - **Parameters**: `id` (required): Document ID
   - **Returns**: Processing status and job information
 
 - `GET /api/documents/:id`
+
   - **Description**: Gets details of a specific document
   - **Parameters**: `id` (required): Document ID
   - **Returns**: Complete document information including processing status
 
 - `DELETE /api/documents/:id`
+
   - **Description**: Deletes a document and its associated chunks
   - **Parameters**: `id` (required): Document ID
   - **Returns**: Deletion confirmation
@@ -5469,6 +4930,7 @@ We protect all API endpoints with smart rate limiting:
 #### Analytics API
 
 - `GET /api/analytics/overview`
+
   - **Description**: Gets high-level analytics for a workspace
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5476,6 +4938,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Key metrics summary
 
 - `GET /api/analytics/sales`
+
   - **Description**: Gets sales analytics
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5484,6 +4947,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Sales data for the requested period
 
 - `GET /api/analytics/customers`
+
   - **Description**: Gets customer analytics
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5502,11 +4966,13 @@ We protect all API endpoints with smart rate limiting:
 ##### Shopping Cart API
 
 - `GET /api/cart/:customerId`
+
   - **Description**: Gets customer's current shopping cart
   - **Parameters**: `customerId` (required): Customer identifier
   - **Returns**: Cart contents with products, quantities, and total amount
 
 - `POST /api/cart/add`
+
   - **Description**: Adds product to customer's cart
   - **Body**:
     - `customerId`: Customer identifier
@@ -5516,6 +4982,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Updated cart contents
 
 - `PUT /api/cart/update`
+
   - **Description**: Updates product quantity in cart
   - **Body**:
     - `customerId`: Customer identifier
@@ -5531,6 +4998,7 @@ We protect all API endpoints with smart rate limiting:
 ##### Order Management API
 
 - `GET /api/orders/advanced`
+
   - **Description**: Advanced order listing with comprehensive filters
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5546,6 +5014,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Comprehensive paginated order list with customer details
 
 - `POST /api/orders/create`
+
   - **Description**: Creates a comprehensive order with full checkout process
   - **Body**:
     - `customerId`: Customer placing the order
@@ -5558,11 +5027,13 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Created order with unique order code and payment intent
 
 - `GET /api/orders/:orderCode/details`
+
   - **Description**: Gets comprehensive order details by order code
   - **Parameters**: `orderCode` (required): Unique order code
   - **Returns**: Complete order information including items, customer, shipping, payment status
 
 - `PUT /api/orders/:orderCode/confirm`
+
   - **Description**: Confirms order after payment verification
   - **Parameters**: `orderCode` (required): Order code to confirm
   - **Body**:
@@ -5571,6 +5042,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Confirmed order with updated status
 
 - `PUT /api/orders/:orderCode/status`
+
   - **Description**: Updates order status with tracking information
   - **Parameters**: `orderCode` (required): Order code
   - **Body**:
@@ -5590,6 +5062,7 @@ We protect all API endpoints with smart rate limiting:
 ##### Payment Processing API
 
 - `POST /api/payments/intent`
+
   - **Description**: Creates payment intent for order
   - **Body**:
     - `orderCode`: Order for payment
@@ -5600,6 +5073,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Payment intent with secure payment URL
 
 - `POST /api/payments/confirm`
+
   - **Description**: Confirms payment completion
   - **Body**:
     - `paymentIntentId`: Payment intent identifier
@@ -5608,6 +5082,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Payment confirmation with order update
 
 - `GET /api/payments/:orderCode/status`
+
   - **Description**: Gets real-time payment status for order
   - **Parameters**: `orderCode` (required): Order code
   - **Returns**: Current payment status and transaction details
@@ -5624,6 +5099,7 @@ We protect all API endpoints with smart rate limiting:
 ##### Shipping & Address API
 
 - `POST /api/shipping/calculate`
+
   - **Description**: Calculates shipping costs for order
   - **Body**:
     - `items`: Array of products with quantities and weights
@@ -5632,6 +5108,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Available shipping options with costs and delivery times
 
 - `POST /api/shipping/address/validate`
+
   - **Description**: Validates and standardizes shipping address
   - **Body**:
     - `address`: Address to validate
@@ -5639,6 +5116,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Validated address with corrections and suggestions
 
 - `GET /api/shipping/methods`
+
   - **Description**: Gets available shipping methods for workspace
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5646,6 +5124,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Available shipping methods with pricing
 
 - `POST /api/shipping/create`
+
   - **Description**: Creates shipping label and tracking
   - **Body**:
     - `orderCode`: Order to ship
@@ -5661,6 +5140,7 @@ We protect all API endpoints with smart rate limiting:
 ##### Invoice & PDF API
 
 - `POST /api/invoices/generate`
+
   - **Description**: Generates professional PDF invoice for order
   - **Body**:
     - `orderCode`: Order to invoice
@@ -5669,12 +5149,14 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Generated invoice details with PDF download URL
 
 - `GET /api/invoices/:orderCode/download`
+
   - **Description**: Downloads PDF invoice using secure temporary link
   - **Parameters**: `orderCode` (required): Order code
   - **Query**: `token` (required): Secure download token
   - **Returns**: PDF file download
 
 - `GET /api/invoices`
+
   - **Description**: Lists all invoices for workspace with advanced filtering
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5685,6 +5167,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Paginated invoice list with download links
 
 - `GET /api/invoices/:invoiceId/details`
+
   - **Description**: Gets detailed invoice information
   - **Parameters**: `invoiceId` (required): Invoice identifier
   - **Returns**: Complete invoice details with payment history
@@ -5700,6 +5183,7 @@ We protect all API endpoints with smart rate limiting:
 ##### Order Analytics & Reports API
 
 - `GET /api/orders/analytics/summary`
+
   - **Description**: Gets comprehensive order analytics summary
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5708,6 +5192,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Order metrics including revenue, volume, average order value
 
 - `GET /api/orders/analytics/products`
+
   - **Description**: Gets product performance analytics from orders
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5716,6 +5201,7 @@ We protect all API endpoints with smart rate limiting:
   - **Returns**: Top-selling products with quantities and revenue
 
 - `GET /api/orders/analytics/customers`
+
   - **Description**: Gets customer ordering behavior analytics
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5734,11 +5220,13 @@ We protect all API endpoints with smart rate limiting:
 #### Settings API
 
 - `GET /api/settings`
+
   - **Description**: Gets workspace settings
   - **Parameters**: `workspace_id` (required): Workspace identifier
   - **Returns**: All workspace settings
 
 - `PUT /api/settings`
+
   - **Description**: Updates workspace settings
   - **Parameters**: `workspace_id` (required): Workspace identifier
   - **Body**: Object containing settings to update
@@ -5749,6 +5237,7 @@ We protect all API endpoints with smart rate limiting:
     - Blocked users cannot send messages and are filtered out from conversations
 
 - `GET /api/settings/templates`
+
   - **Description**: Gets message templates
   - **Parameters**: `workspace_id` (required): Workspace identifier
   - **Returns**: Available message templates
@@ -5761,12 +5250,14 @@ We protect all API endpoints with smart rate limiting:
 #### Media API
 
 - `POST /api/media/upload`
+
   - **Description**: Uploads a media file
   - **Body**: Multipart form with file
   - **Parameters**: `workspace_id` (required): Workspace identifier
   - **Returns**: Uploaded file details with URL
 
 - `GET /api/media`
+
   - **Description**: Lists media files
   - **Parameters**:
     - `workspace_id` (required): Workspace identifier
@@ -5782,6 +5273,7 @@ We protect all API endpoints with smart rate limiting:
 #### Agent Configuration API
 
 - `GET /api/agent-config`
+
   - **Description**: Gets AI agent configuration
   - **Parameters**: `workspace_id`
   - **Returns**: Current AI configuration
@@ -5794,6 +5286,7 @@ We protect all API endpoints with smart rate limiting:
 #### WhatsApp Integration API
 
 - `POST /api/whatsapp/webhook`
+
   - **Description**: Webhook for incoming WhatsApp messages
   - **Body**: Message payload from WhatsApp Business API
   - **Returns**: Acknowledgment of receipt
@@ -5823,44 +5316,54 @@ Comprehensive testing approach:
 - Performance and load testing
 - Security and penetration testing
 
-#### 🧪 Standard Test User for Integration Tests
-
-**All integration tests use a standardized test user for consistency:**
-
-- **Customer ID:** `test-customer-123`
-- **Phone:** `+393451234567`
-- **Email:** `test-customer-123@shopme.com`
-- **Name:** `Test Customer MCP`
-- **Workspace ID:** `cm9hjgq9v00014qk8fsdy4ujv`
-- **Language:** `it` (Italian)
-- **Status:** `activeChatbot: true`
-- **Privacy:** `privacy_accepted_at: new Date()`
-
-**Configuration:**
-- Fixed ID used across all integration tests for consistency
-- Active chatbot enabled for WhatsApp testing
-- Privacy accepted - no registration prompts during tests
-- Workspace association connected to main workspace
-- Language support for multilingual testing capability
-
-**Usage in Tests:**
-```typescript
-// All integration tests use this standard user
-export const FIXED_CUSTOMER_ID = 'test-customer-123'
-export const FIXED_CUSTOMER_PHONE = '+393451234567'
-export const FIXED_WORKSPACE_ID = 'cm9hjgq9v00014qk8fsdy4ujv'
-```
-
 ## SUBSCRIPTION PLANS
 
 ### Subscription Plans & Pricing (REVISED)
 
-#### **Single Plan** - **UNLIMITED**
+#### 1. **Free Plan** (€0/month) - **STARTER**
 
-**Target**: All businesses with comprehensive WhatsApp integration
+**Target**: Piccole attività che vogliono testare il sistema
 
-- ✅ **Unlimited WhatsApp channels**
-- ✅ **Unlimited AI messages/month**
+- ✅ **1 WhatsApp channel**
+- ✅ **Up to 100 AI messages/month**
+- ✅ **Maximum 5 Products**
+- ✅ **Maximum 3 Services**
+- ✅ **Basic analytics dashboard**
+- ❌ API access (disabled)
+- ❌ Advanced analytics (disabled)
+- ❌ Push notifications (disabled)
+- ❌ Priority support (disabled)
+- ❌ Custom AI training (disabled)
+- **Support**: Community forum only
+- **Response time**: Best effort (no SLA)
+
+#### 2. **Basic Plan** (€59/month + €0.005/message) - **BUSINESS**
+
+**Target**: Piccole/medie imprese con esigenze standard
+
+- ✅ **1 WhatsApp channel**
+- ✅ **Up to 1,000 AI messages/month included**
+- ✅ **€0.005 per additional message** (0.5 cents per message over limit)
+- ✅ **Up to 50 Products** (not unlimited!)
+- ✅ **Up to 20 Services**
+- ✅ **Basic analytics dashboard**
+- ✅ **API access** (limited to 1,000 calls/month)
+- ✅ **Real-time billing dashboard**
+- ✅ **Monthly usage reports**
+- ❌ Advanced analytics (disabled)
+- ❌ Push notifications (disabled)
+- ❌ Custom AI training (disabled)
+- **Support**: Email support
+- **Response time**: 48h SLA
+- **Billing**: Monthly subscription + pay-per-use overage
+
+#### 3. **Professional Plan** (€149/month) - **ENTERPRISE**
+
+**Target**: Aziende in crescita con esigenze avanzate
+**Upgrade Process**: **Contact Sales Form** - Direct operator contact required
+
+- ✅ **Up to 3 WhatsApp channels**
+- ✅ **Up to 5,000 AI messages/month**
 - ✅ **Unlimited Products and Services**
 - ✅ **Advanced analytics and reporting**
 - ✅ **Full API access** (unlimited calls)
@@ -5872,42 +5375,59 @@ export const FIXED_WORKSPACE_ID = 'cm9hjgq9v00014qk8fsdy4ujv'
 - ✅ **Dedicated onboarding session**
 - ✅ **Custom configuration setup**
 - **Support**: Dedicated support team
-- **Sales Process**: Direct implementation and customization services
+- **Sales Process**: Personal consultation with technical specialist
 
-### Single Plan Features
+#### 4. **Enterprise Plan** (Custom pricing) - **CORPORATE**
 
-| Feature                | Unlimited Plan                |
-| ---------------------- | ----------------------------- |
-| **WhatsApp Channels**  | Unlimited                     |
-| **AI Messages/Month**  | Unlimited                     |
-| **Products**           | Unlimited                     |
-| **Services**           | Unlimited                     |
-| **Analytics**          | Advanced                      |
-| **API Access**         | Full                          |
-| **Billing Dashboard**  | Advanced                      |
-| **Payment Methods**    | Multiple                       |
-| **Push Notifications** | ✅                            |
-| **Custom AI Training** | ✅                            |
-| **Support**            | Phone+Email (12h)             |
-| **White-label**        | ✅                            |
+**Target**: Grandi aziende con esigenze specifiche
+
+- ✅ **Unlimited WhatsApp channels**
+- ✅ **Custom AI message volume**
+- ✅ **Unlimited products/services**
+- ✅ **Dedicated response team (4h SLA)**
+- ✅ **Full API access with custom limits**
+- ✅ **White-label options**
+- ✅ **Dedicated account manager**
+- ✅ **Custom integrations**
+- ✅ **On-premises deployment option**
+- ✅ **Custom AI model training**
+- **Support**: 24/7 dedicated support
+
+### Plan Comparison Matrix
+
+| Feature                | Free             | Basic (€59 + overage)         | Professional (€149) | Enterprise (Custom) |
+| ---------------------- | ---------------- | ----------------------------- | ------------------- | ------------------- |
+| **WhatsApp Channels**  | 1                | 1                             | 3                   | Unlimited           |
+| **AI Messages/Month**  | 100 (hard limit) | 1,000 included + €0.005/extra | 5,000               | Custom              |
+| **Overage Billing**    | ❌               | ✅ Pay-per-use                | ❌ (unlimited)      | Custom              |
+| **Products**           | 5                | 50                            | Unlimited           | Unlimited           |
+| **Services**           | 3                | 20                            | Unlimited           | Unlimited           |
+| **Analytics**          | Basic            | Basic + Billing               | Advanced            | Custom              |
+| **API Access**         | ❌               | Limited                       | Full                | Custom              |
+| **Billing Dashboard**  | ❌               | ✅ Real-time                  | ✅ Advanced         | ✅ Custom           |
+| **Payment Methods**    | ❌               | Credit Card                   | Multiple            | Enterprise          |
+| **Push Notifications** | ❌               | ❌                            | ✅                  | ✅                  |
+| **Custom AI Training** | ❌               | ❌                            | ✅                  | ✅                  |
+| **Support**            | Community        | Email (48h)                   | Phone+Email (12h)   | 24/7 Dedicated      |
+| **White-label**        | ❌               | ❌                            | ✅                  | ✅                  |
 
 ### Monetization Strategy
 
 #### Revenue Drivers:
 
-1. **Implementation Services**: Custom setup and configuration
-2. **Customization Services**: Tailored integrations and features
-3. **API Access**: Third-party integration fees
-4. **Support Services**: Premium support and training
-5. **White-label Solutions**: Branded deployments
+1. **Message Volume**: Primary limitation for scaling
+2. **Channel Count**: Multiple WhatsApp numbers for different departments
+3. **Product/Service Limits**: Catalog size restrictions
+4. **Advanced Features**: Analytics, API, Custom AI
+5. **Support Level**: Response time and channel quality
 
-#### Service Offerings:
+#### Upgrade Triggers:
 
-- **Implementation**: Custom setup and configuration
-- **Customization**: Tailored integrations and features
-- **API Access**: Third-party integration fees
-- **Support**: Premium support and training
-- **White-label**: Branded deployments
+- **Free → Basic**: When hitting 100 messages/month or need more than 5 products (Self-service upgrade)
+- **Basic → Professional**: When overage costs exceed €90/month consistently (Contact Sales Form)
+- **Professional → Enterprise**: When need custom integrations or 24/7 support (Enterprise Sales Process)
+
+### Professional Plan Sales Process
 
 #### Contact Sales Form Requirements:
 
@@ -5938,41 +5458,91 @@ When users click "Upgrade to Professional" they are directed to a contact form i
 - Direct relationship with account manager
 - Potential custom pricing for high-volume users
 
-### Usage Tracking System
+### Pay-Per-Use Billing System
 
-#### Usage Model Overview:
+#### Billing Model Overview:
 
-**Single Plan**: Unlimited usage with tracking for analytics and optimization
+**Basic Plan**: €59/month base + €0.005 per message over 1,000 monthly limit
 
-#### Usage Tracking Architecture:
+#### Real-Time Billing Architecture:
 
 **1. Message Counting System**
 
 - Every AI response increments workspace message counter
 - Real-time tracking with Redis for performance
-- Daily aggregation to PostgreSQL for analytics
-- Monthly reporting for business insights
+- Daily aggregation to PostgreSQL for billing
+- Monthly reset on billing cycle date
 
-**2. Usage Analytics**
+**2. Overage Calculation**
 
-- **Current Month Usage**: Real-time message count and trends
-- **Usage History**: 12-month usage patterns
+```typescript
+// Example billing calculation
+const basePrice = 59.0 // €59 monthly subscription
+const includedMessages = 1000
+const overageRate = 0.005 // €0.005 per message
+const actualMessages = 1547
+
+const overageMessages = Math.max(0, actualMessages - includedMessages)
+const overageCost = overageMessages * overageRate
+const totalMonthlyBill = basePrice + overageCost
+
+// Result: €59 + (547 * €0.005) = €59 + €2.735 = €61.74
+```
+
+**3. Billing Dashboard Components**
+
+- **Current Month Usage**: Real-time message count and cost
+- **Projected Bill**: Estimated monthly cost based on current usage
+- **Usage History**: 12-month usage and billing history
+- **Cost Alerts**: Notifications at €10, €25, €50 overage thresholds
 - **Usage Analytics**: Peak usage times, message trends
-- **Performance Metrics**: Response times, user satisfaction
 
-**3. Analytics Dashboard Components**
+**4. Payment Processing Integration**
 
-- **Current Month Usage**: Real-time message count and trends
-- **Usage History**: 12-month usage patterns
-- **Usage Analytics**: Peak usage times, message trends
-- **Performance Metrics**: Response times, user satisfaction
+- **Stripe Integration**: For credit card processing
+- **Monthly Billing Cycle**: Subscription + overage charges
+- **Automatic Payment**: Credit card on file
+- **Invoice Generation**: PDF invoices with usage breakdown
+- **Failed Payment Handling**: Grace period + service suspension
 
-**4. Business Intelligence**
+**5. Cost Control Features**
 
-- **Usage Patterns**: Identify peak usage times and trends
-- **Feature Adoption**: Track which features are most used
-- **Performance Optimization**: Monitor response times and quality
-- **Business Insights**: Customer behavior and preferences
+- **Spending Limits**: Set maximum monthly overage (e.g., €50 max)
+- **Usage Alerts**: Email/SMS at 80%, 100%, 150% of included messages
+- **Auto-Upgrade**: Automatic upgrade to Professional when overage > €90/month
+- **Billing Notifications**: Real-time cost updates in dashboard
+
+### Plan Limits Enforcement System
+
+#### Where Limits Are Applied:
+
+**1. WhatsApp Message Processing (`/src/services/whatsapp.service.ts`)**
+
+- Check monthly message count before sending AI response
+- Block response if limit exceeded, show upgrade message instead
+- Track message count per workspace per month
+
+**2. Product Management (`/src/controllers/products.controller.ts`)**
+
+- Validate product count before creating new product
+- Show upgrade popup when limit reached
+- Prevent product creation beyond plan limit
+
+**3. Service Management (`/src/controllers/services.controller.ts`)**
+
+- Validate service count before creating new service
+- Show upgrade popup when limit reached
+- Prevent service creation beyond plan limit
+
+**4. API Endpoints (`/src/middleware/plan-limits.middleware.ts`)**
+
+- Rate limiting based on plan (1,000 calls for Basic, unlimited for Professional)
+- Return 429 error with upgrade message when API limit exceeded
+- Track API usage per workspace
+
+**5. Frontend Components**
+
+- Products page: Show usage indicator "47/50 products used"
 - Services page: Show usage indicator "18/20 services used"
 - Dashboard: Show monthly message usage "847/1,000 messages used"
 - Settings: Show current plan and usage statistics
@@ -6511,24 +6081,28 @@ Backend/
 #### ✅ **COSA FA N8N:**
 
 1. **Business Logic Checks**
+
    - Workspace Active Verification
    - Chatbot Status Verification
    - Channel Availability Checks
    - Customer Blacklist Verification
 
 2. **User Experience Management**
+
    - New vs Existing Customer Detection
    - Welcome Message Logic
    - Language Preference Handling
    - Conversation Context Management
 
 3. **AI Processing Pipeline**
+
    - Checkout Intent Detection
    - RAG Search Coordination
    - OpenRouter LLM Calls (DIRECT)
    - Response Formatting & Enhancement
 
 4. **External System Integration**
+
    - WhatsApp Message Sending
    - Security Token Generation
    - Third-party API Calls
@@ -6850,6 +6424,7 @@ const sessionToken = await sessionTokenService.createOrRenewSessionToken(
   conversationId
 )
 ```
+
 #### **2. Sicurezza Avanzata**
 
 - **Token Unico**: SHA256 di 48 caratteri
@@ -6869,6 +6444,7 @@ const sessionToken = await sessionTokenService.createOrRenewSessionToken(
   "createdAt": "2024-01-15T10:00:00Z"
 }
 ```
+
 ### **🔗 TOKEN TYPES SUPPORTATI**
 
 | Type           | Durata | Utilizzo               | Endpoint                                   |
@@ -6990,16 +6566,6 @@ Ogni singolo messaggio WhatsApp ora genera un session token sicuro che:
 | 📤 Send Welcome Message    | `/api/internal/send-whatsapp`                   | POST       | Invio messaggio di benvenuto     |
 | 🔑 Generate Checkout Token | **SERVIZIO INTERNO**                            | Code Node  | ✅ **Generazione token interna** |
 | 🔍 RAG Search              | `/api/internal/rag-search`                      | POST       | Ricerca semantica nei dati       |
-| 🛒 GetAllProducts()        | `/api/internal/get-all-products`                | POST       | Catalogo completo prodotti       |
-| 🏢 GetAllCategories()      | `/api/internal/get-all-categories`              | POST       | Lista categorie prodotti         |
-| 🛎️ GetServices()           | `/api/internal/get-all-services`                | POST       | Catalogo servizi disponibili     |
-| 🏷️ GetActiveOffers()       | `/api/internal/get-active-offers`               | POST       | Offerte e sconti attivi          |
-| 🔗 GetOrdersListLink()     | `/api/internal/orders-link`                     | POST       | Link sicuri storico ordini       |
-| 👤 GetCustomerProfileLink()| `/api/internal/profile-link`                    | POST       | Link gestione profilo cliente    |
-| 🚚 GetShipmentTrackingLink()| `/api/internal/orders/tracking-link`           | POST       | Tracking spedizione DHL          |
-| 📝 confirmOrderFromConversation() | `/api/internal/confirm-order-conversation` | POST       | Conferma ordine da conversazione |
-| 🛒 CreateOrder()           | `/api/internal/create-order`                    | POST       | Creazione ordine finale          |
-| ☎️ ContactOperator()       | `/api/internal/contact-operator`                | POST       | Richiesta operatore umano        |
 | 🤖 OpenRouter LLM 1 Call   | `https://openrouter.ai/api/v1/chat/completions` | POST       | LLM 1 - RAG Processor            |
 | 🤖 OpenRouter LLM 2 Call   | `https://openrouter.ai/api/v1/chat/completions` | POST       | LLM 2 - Formatter                |
 | 💾 Save Message & Response | `/api/internal/save-message`                    | POST       | Salvataggio conversazione        |
@@ -7024,16 +6590,6 @@ Ogni singolo messaggio WhatsApp ora genera un session token sicuro che:
 | `/api/internal/user-check/:workspaceId/:phone`           | GET        | N8N User Flow         | Verifica esistenza utente                   |
 | `/api/internal/wip-status/:workspaceId/:phone`           | GET        | N8N Workspace Check   | Stato work-in-progress                      |
 | `/api/internal/rag-search`                               | POST       | **N8N RAG Search**    | ✅ **Ricerca semantica attiva**             |
-| `/api/internal/get-all-products`                         | POST       | **N8N GetAllProducts** | ✅ **Catalogo prodotti attivo**             |
-| `/api/internal/get-all-categories`                       | POST       | **N8N GetAllCategories** | ✅ **Lista categorie attiva**               |
-| `/api/internal/get-all-services`                         | POST       | **N8N GetServices**   | ✅ **Catalogo servizi attivo**              |
-| `/api/internal/get-active-offers`                        | POST       | **N8N GetActiveOffers** | ✅ **Offerte attive**                       |
-| `/api/internal/orders-link`                              | POST       | **N8N GetOrdersListLink** | ✅ **Link ordini attivo**                   |
-| `/api/internal/profile-link`                             | POST       | **N8N GetCustomerProfileLink** | ✅ **Link profilo attivo**                 |
-| `/api/internal/orders/tracking-link`                     | POST       | **N8N GetShipmentTrackingLink** | ✅ **Tracking attivo**                     |
-| `/api/internal/confirm-order-conversation`               | POST       | **N8N confirmOrderFromConversation** | ✅ **Conferma ordine attiva**              |
-| `/api/internal/create-order`                             | POST       | **N8N CreateOrder**   | ✅ **Creazione ordine attiva**              |
-| `/api/internal/contact-operator`                         | POST       | **N8N ContactOperator** | ✅ **Richiesta operatore attiva**           |
 | `/api/internal/agent-config/:workspaceId`                | GET        | N8N LLM Calls         | Configurazione agente AI                    |
 | `/api/internal/save-message`                             | POST       | **N8N Save Message**  | ✅ **Salvataggio conversazioni**            |
 | `/api/internal/conversation-history/:workspaceId/:phone` | GET        | N8N History           | Storico conversazioni                       |
@@ -7066,14 +6622,13 @@ Ogni singolo messaggio WhatsApp ora genera un session token sicuro che:
 
 Ogni messaggio WhatsApp passa attraverso il workflow N8N che chiama gli endpoint Internal API appropriati per processare la richiesta e generare la risposta finale.
 
-**📊 STATISTICHE CALLING FUNCTIONS (Updated 2025-08-23):**
+**📊 STATISTICHE CALLING FUNCTIONS:**
 
-- **11 N8N HTTP Functions** → Endpoint reali attivi
+- **8 N8N HTTP Functions** → Endpoint reali attivi
 - **1 N8N Internal Service** → SecureTokenService (più efficiente)
 - **3 Legacy Functions** → Files vuoti/deprecated
-- **18 Internal API Endpoints** → Attivi (1 deprecated)
-- **2 OpenRouter Calls** → Two-LLM Architecture (RAG Processor + Formatter)
-- **100% Coverage** → Tutte le funzionalità business coperte da calling functions
+- **11 Internal API Endpoints** → Attivi (1 deprecated)
+- **1 OpenRouter Call** → Single LLM Agent per conversazione completa
 
 **🎯 ARCHITETTURA MIGLIORATA DA ANDREA:**
 
@@ -7095,38 +6650,6 @@ Ogni messaggio WhatsApp passa attraverso il workflow N8N che chiama gli endpoint
 | GetCustomer     | Custom Function     | ✅ Active     | Completed    |
 | GetCategories   | Custom Function     | ✅ Active     | Completed    |
 | **GetInvoices** | **Custom Function** | **✅ Active** | **Task #30** |
-
-### **🎯 COMPLETE CALLING FUNCTIONS LIST (Updated 2025-08-23)**
-
-#### **✅ IMPLEMENTED & ACTIVE CALLING FUNCTIONS**
-
-| **Function Name** | **Endpoint** | **Status** | **Purpose** | **Response Structure** |
-|------------------|--------------|------------|-------------|------------------------|
-| **RagSearch()** | `/api/internal/rag-search` | ✅ **ACTIVE** | Ricerca semantica intelligente su prodotti, FAQ, servizi, documenti | `{ businessType, products[], faqs[], services[], documents[] }` |
-| **GetAllProducts()** | `/api/internal/get-all-products` | ✅ **ACTIVE** | Catalogo completo prodotti con strategia prezzi Andrea | `{ success, products[], customerInfo, discountLogic }` |
-| **GetAllCategories()** | `/api/internal/get-all-categories` | ✅ **ACTIVE** | Lista categorie con conteggio prodotti | `{ success, total_categories, categories[], response_message }` |
-| **GetServices()** | `/api/internal/get-all-services` | ✅ **ACTIVE** | Catalogo servizi con prezzi personalizzati | `{ success, customerInfo, services[], discountLogic }` |
-| **GetActiveOffers()** | `/api/internal/get-active-offers` | ✅ **ACTIVE** | Offerte attive con logica sconti | `{ success, customer, offers[], message }` |
-| **GetOrdersListLink()** | `/api/internal/orders-link` | ✅ **ACTIVE** | Link sicuri per storico ordini | `{ ordersListUrl, orderDetailUrl?, token, expiresAt }` |
-| **GetCustomerProfileLink()** | `/api/internal/profile-link` | ✅ **ACTIVE** | Link gestione profilo cliente | `{ customerId, customerName, customerPhone, profileUrl }` |
-| **GetShipmentTrackingLink()** | `/api/internal/orders/tracking-link` | ✅ **ACTIVE** | Tracking spedizione DHL | `{ success, orderId, orderCode, status, trackingNumber, trackingUrl, message }` |
-| **confirmOrderFromConversation()** | `/api/internal/confirm-order-conversation` | ✅ **ACTIVE** | Conferma ordine da conversazione | `{ success, checkoutToken, checkoutUrl, totalAmount, response }` |
-| **CreateOrder()** | `/api/internal/create-order` | ✅ **ACTIVE** | Creazione ordine con prodotti/servizi | `{ success, orderId, orderCode, totalAmount, message }` |
-| **ContactOperator()** | `/api/internal/contact-operator` | ✅ **ACTIVE** | Richiesta operatore umano | `{ success, message }` |
-
-#### **🔧 TECHNICAL DETAILS**
-
-**Endpoint Base URL:** `http://host.docker.internal:3001/api/internal/`
-
-**Authentication:** HTTP Basic Auth (Backend API Basic Auth)
-
-**Response Format:** JSON con struttura standardizzata
-
-**Error Handling:** Tutti gli endpoint restituiscono errori strutturati
-
-**Workspace Isolation:** Tutti gli endpoint filtrano automaticamente per `workspaceId`
-
-**Language Support:** Multilingue (IT/EN/ES/PT) con auto-rilevamento
 
 ### **🚀 Planned Calling Functions**
 
@@ -7626,100 +7149,40 @@ GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
 
 - "vorrei ordinare 2 mozzarelle e 1 pasta" / "aggiungi al carrello" / "procediamo al checkout"
 
-### **🚀 NEW: Conversational Order Flow - Flusso Ordine Conversazionale** ✅ **IMPLEMENTED**
+### **🚀 NEW: Conversational Order Flow - Flusso Ordine Conversazionale**
 
 **STRATEGIA IBRIDA:** Combinazione tra chat libera e checkout web per esperienza utente ottimale.
 
-**🎯 RIASSUNTO FLUSSO COMPLETO:**
+**FLUSSO COMPLETO:**
 
 ```
-1. 👤 Cliente WhatsApp: "Metti 4 mozzarelle"
-2. 🤖 AI: "Ho aggiunto 4 Mozzarella di Bufala al carrello! 🧀"
-3. 👤 Cliente: "Confermo"
-4. 🔗 N8N: Chiama confirmOrderFromConversation()
-5. 🧠 Backend: Parsing conversazione + generazione token
-6. 🔐 Token: 32 caratteri, 1 ora, payload completo
-7. 🌐 URL: http://localhost:3000/checkout-public?token=abc123...
-8. 📋 Frontend: 3 step (prodotti → indirizzi → conferma)
-9. ✅ Submit: Ordine creato + notifiche inviate
+1. Cliente: "Voglio maglietta rossa"
+   ↓
+2. LLM: "✅ Maglietta rossa aggiunta alla selezione"
+   ↓
+3. Cliente: "Aggiungi anche jeans blu"
+   ↓
+4. LLM: "✅ Jeans blu aggiunto alla selezione"
+   ↓
+5. Cliente: "Basta così"
+   ↓
+6. LLM: "Vuoi confermare l'ordine con questi prodotti?"
+   ↓
+7. Cliente: "Sì"
+   ↓
+8. LLM chiama confirmOrderFromConversation():
+   - Raccoglie prodotti dalla conversazione corrente
+   - Crea token sicuro con prodotti selezionati
+   - Genera URL checkout personalizzato
+   ↓
+9. LLM: "🛒 Riepilogo Ordine:
+          • Maglietta rossa: €25.00
+          • Jeans blu: €80.00
+          💰 Totale: €105.00
+          🔗 Completa qui: shopme.com/checkout/abc123token"
+   ↓
+10. Cliente clicca → vai al web per completare checkout
 ```
-
-**🔧 COMPONENTI TECNICI:**
-- **Calling Function**: `confirmOrderFromConversation()`
-- **Token Service**: SecureTokenService con crypto
-- **Frontend**: CheckoutPage con modifica prodotti
-- **API**: 3 endpoint completi (confirm, validate, submit)
-- **Database**: SecureToken + Orders tables
-- **N8N**: Workflow aggiornato con calling function
-
-**🔒 SICUREZZA:**
-- **Workspace Isolation**: Tutte le query filtrano per workspaceId
-- **Token Security**: 32 caratteri crypto, 1 ora scadenza
-- **One-time Use**: Token marcato come usato dopo submit
-- **localhost:3000**: URL consistente sempre
-- **checkout-public**: Path consistente con altri link pubblici
-
-**✅ CARATTERISTICHE CHIAVE:**
-- **Deterministico**: Stesso input → Stesso output
-- **Consistente**: URL sempre localhost:3000
-- **Sicuro**: Token validi e isolati per workspace
-- **Completo**: Carrello + indirizzi nel token
-- **Funzionale**: End-to-end working flow
-
-**FLUSSO COMPLETO IMPLEMENTATO:**
-
-```
-1. Cliente: "Voglio 2 mozzarelle"
-   ↓
-2. LLM: "✅ Ho trovato Mozzarella di Bufala Campana DOP €9.99. Aggiungo 2 pezzi al tuo ordine"
-   ↓
-3. Cliente: "Sì, confermo l'ordine"
-   ↓
-4. LLM chiama confirmOrderFromConversation():
-   - Passa ultimi 10 messaggi come conversationContext
-   - Backend fa parsing automatico con LLM interno
-   - Genera token sicuro con prodotti parsati
-   - Crea URL checkout interattivo
-   ↓
-5. LLM: "🛒 Perfetto! Ho preparato il tuo ordine. Clicca qui per rivedere e confermare: 
-          http://localhost:3000/order-summary/abc123token"
-   ↓
-6. Cliente clicca → OrderSummaryPage interattiva
-   - Visualizza prodotti parsati dalla conversazione
-   - Permette aggiungere/rimuovere prodotti e servizi
-   - Calcola totale in tempo reale
-   - Conferma finale → crea ordine nel DB
-```
-
-**ARCHITETTURA IMPLEMENTATA:**
-
-**Backend (✅ COMPLETED):**
-- **Endpoint**: `POST /api/internal/confirm-order-conversation`
-- **Parsing**: LLM interno (OpenRouter) analizza conversationContext
-- **Validazione**: Controlla prodotti/servizi contro database
-- **Token**: Genera secureToken con TTL 1 ora
-- **URL**: `http://localhost:3000/checkout-public?token={token}`
-
-**Frontend (✅ COMPLETED):**
-- **Route**: `/checkout-public`
-- **Component**: `CheckoutPage.tsx`
-- **Features**: 
-  - Carica dati da `/api/internal/checkout/:token`
-  - Interfaccia interattiva per modificare quantità
-  - Aggiungere prodotti/servizi dal catalogo
-  - Calcolo totale real-time
-  - Conferma finale → crea ordine
-
-**N8N Integration (✅ COMPLETED):**
-- **Function**: `confirmOrderFromConversation()` aggiunta al workflow
-- **Prompt**: Aggiornato per usare solo questa funzione
-- **Logic**: Passa ultimi 10 messaggi per parsing automatico
-
-**TEST DI INTEGRAZIONE (✅ SUCCESS):**
-- ✅ Backend endpoint funziona correttamente
-- ✅ Frontend checkout recupera dati dal token
-- ✅ N8N workflow aggiornato e pronto
-- ✅ Parsing LLM automatico dei prodotti dalla conversazione
 
 **VANTAGGI CHIAVE:**
 
@@ -7739,62 +7202,13 @@ GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
 | **Output**        | Ordine immediato    | Token + URL         | **Token + URL**          |
 | **Completamento** | Subito              | Form web            | **Form web**             |
 
-**IMPLEMENTAZIONE TECNICA DETTAGLIATA:**
+**IMPLEMENTAZIONE TECNICA:**
 
-**Backend Controller (`internal-api.controller.ts`):**
-```typescript
-async confirmOrderFromConversation(req: Request, res: Response): Promise<void> {
-  const { conversationContext, workspaceId, customerId } = req.body;
-  
-  // Parse conversation using internal LLM
-  const parsedItems = await this.parseConversationToItems(conversationContext, workspaceId);
-  
-  // Generate secure token
-  const checkoutToken = this.generateSecureToken();
-  
-  // Save to database with 1-hour TTL
-  await prisma.secureToken.create({
-    data: {
-      token: checkoutToken,
-      type: "checkout",
-      workspaceId: workspaceId,
-      payload: { customerId, items: parsedItems, totalAmount, conversationContext },
-      expiresAt: new Date(Date.now() + 60 * 60 * 1000)
-    }
-  });
-  
-  res.json({
-    success: true,
-    checkoutToken,
-    checkoutUrl: `http://localhost:3000/order-summary/${checkoutToken}`,
-    totalAmount,
-    items: parsedItems
-  });
-}
-```
-
-**LLM Parsing Service:**
-- **Model**: `openai/gpt-4o-mini` via OpenRouter
-- **Temperature**: 0.3 per parsing accurato
-- **Prompt**: Analizza conversazione e estrae prodotti/servizi con quantità
-- **Validation**: Controlla prodotti contro database per prezzi reali
-- **Fallback**: Gestione errori con logging completo
-
-**Frontend Component (`OrderSummaryPage.tsx`):**
-- **State Management**: React hooks per items, totalAmount, loading
-- **API Integration**: Fetch da `/api/internal/checkout/:token`
-- **Interactive Features**: 
-  - Quantity controls per ogni item
-  - Remove item functionality
-  - Add product/service buttons (modal integration ready)
-  - Real-time total calculation
-- **Final Confirmation**: Chiama `/api/internal/create-order` con items finali
-
-**Security & Validation:**
-- **Token TTL**: 1 ora automatica scadenza
-- **Workspace Isolation**: Tutte le query filtrano per workspaceId
-- **Input Validation**: Controllo parametri obbligatori
-- **Error Handling**: Gestione completa errori con logging
+- **Funzione**: `confirmOrderFromConversation(customerId, workspaceId, conversationContext)`
+- **Parsing**: Estrazione automatica prodotti dai messaggi recenti
+- **Validazione**: Controllo stock e prezzi real-time
+- **Token**: Generazione sicura con payload conversazione
+- **Fallback**: Gestione errori con richiesta chiarimenti
 
 ### **☎️ ContactOperator() - Richiesta Operatore Umano**
 
@@ -7829,7 +7243,7 @@ async confirmOrderFromConversation(req: Request, res: Response): Promise<void> {
 - Query database ottimizzate con indici
 - Pagination automatica per grandi dataset
 - Cache intelligente per dati frequenti
-**Business Logic Centralizzata:**
+  **Business Logic Centralizzata:**
 
 - **Strategia prezzi di Andrea** applicata uniformemente
 - Calcoli prezzi consistenti across tutte le funzioni
@@ -7840,461 +7254,6 @@ async confirmOrderFromConversation(req: Request, res: Response): Promise<void> {
 - Logging dettagliato per ogni chiamata
 - Tracking usage per cost control
 - Performance metrics per ottimizzazioni
-
----
-
-## 👤 Customer Profile Management System
-
-### Goal
-Allow customers to securely view and edit their personal data through a token-protected web page, accessible via WhatsApp bot requests.
-
-### Final Flow
-- Customer asks WhatsApp bot to modify personal data (email, phone, address)
-- Bot provides secure URL: `http://localhost:3000/customer-profile?token={SECURE_TOKEN}`
-- Customer accesses page with 1-hour token validation
-- Customer can view and edit personal information
-- Changes are saved securely to database
-
-### Backend Implementation
-- **Token Generation**: `POST /api/internal/generate-token` with `action: "profile"`
-- **Profile Retrieval**: `GET /api/internal/customer-profile/:token`
-- **Profile Update**: `PUT /api/internal/customer-profile/:token`
-- **Security**: 1-hour token expiration, workspace isolation
-
-### Frontend Implementation
-- **Route**: `/customer-profile` (public access, no platform layout)
-- **Page**: `CustomerProfilePublicPage.tsx`
-- **Form**: `ProfileForm.tsx` with validation
-- **Token Validation**: `useTokenValidation` hook
-
-### WhatsApp Bot Integration
-- **Function**: `GetCustomerProfileLink(workspaceId, customerId)`
-- **Triggers**: "voglio cambiare la mia mail", "modifica telefono", "cambia indirizzo"
-- **Response**: Secure profile management link
-
-### Data Fields
-- **Personal**: Name, Email, Phone, Company, Address
-- **Preferences**: Language, Currency
-- **Invoice Address**: Separate billing address with VAT number
-- **Security**: All data filtered by workspaceId
-
-### Security Features
-- **Universal Token System**: Single token valid for all customer services (profile, orders, tracking)
-- **Token-based Access**: 1-hour expiration with workspace isolation
-- **Form Validation**: Client and server-side validation
-- **Audit Trail**: All changes logged with timestamps
-- **Simplified UX**: No need to generate separate tokens for different services
-
-### UI/UX Features
-- **Responsive Design**: Mobile-optimized interface
-- **Form Validation**: Real-time error feedback
-- **Loading States**: Proper loading indicators
-- **Success Messages**: Clear feedback on save
-- **Error Handling**: Graceful error display
-- **Bidirectional Navigation**: Seamless navigation between profile and orders pages
-- **Universal Token System**: Single token for all customer services
-
-### Integration Points
-- **N8N Workflow**: `GetCustomerProfileLink()` calling function
-- **Prompt Agent**: Updated with profile management triggers
-- **Database**: Customer profile CRUD operations
-- **Universal Token Service**: Single token valid for all customer services
-- **Cross-Service Navigation**: Seamless navigation between profile and orders
-
-### Acceptance Criteria
-- ✅ Secure web page for customer profile management
-- ✅ 1-hour token access protection
-- ✅ WhatsApp bot integration for profile requests
-- ✅ UI/UX consistency with existing application
-- ✅ Form validation and error handling
-- ✅ Database integration for profile updates
-- ✅ Swagger documentation updated
-- ✅ PRD documentation updated
-
-### Technology Stack
-- **Backend**: Node.js, Express, Prisma, PostgreSQL
-- **Frontend**: React, TypeScript, TailwindCSS
-- **Integration**: N8N Workflow, WhatsApp API
-- **Security**: SecureTokenService, Token validation
-
-### Status: ✅ COMPLETED
-- **Implementation**: Full backend and frontend with universal token system
-- **Testing**: Build successful, API endpoints working, cross-service navigation tested
-- **Documentation**: Swagger and PRD updated
-- **Integration**: WhatsApp bot ready for production
-- **UX Enhancement**: Simplified token system for better user experience
-
----
-
-## 🔐 Secure Token Management System
-
-### Goal
-Implementare sistema di token unico per utente con update invece di insert multipli, eliminando la necessità di cleanup manuale e garantendo consistenza.
-
-### Token Strategy
-- **UN SOLO RECORD** per customerId nella tabella secureToken
-- **UPDATE** del record esistente invece di creare nuovi token
-- **expiresAt** aggiornato ad ogni richiesta con nuova scadenza
-- **No cleanup necessario** - token scade automaticamente e viene sovrascritto
-
-### Database Schema Update
-```sql
-secureToken {
-  id: string (PK)
-  customerId: string (FK) // NUOVO: chiave per identificare utente
-  token: string
-  type: string
-  workspaceId: string
-  expiresAt: DateTime
-  createdAt: DateTime
-  updatedAt: DateTime
-}
-```
-
-### Token Generation Logic
-1. Cerca record esistente per `customerId` e `type`
-2. Se esiste: UPDATE `expiresAt` e `token` (nuovo valore)
-3. Se non esiste: INSERT nuovo record
-4. Ritorna token aggiornato
-
-### Backend Validation Logic
-- Cerca per `customerId` invece di `token` per validazione
-- Verifica `expiresAt > NOW()`
-- Workspace isolation enforcement
-- Rate limiting per evitare abuso
-
-### Benefits
-- **Consistenza**: Un solo token per utente
-- **Performance**: No cleanup necessario
-- **Semplicità**: Logica chiara e prevedibile
-- **Debugging**: Facile tracciare token per utente
-
-### Implementation Requirements
-- **Database Migration**: Aggiungere campo customerId
-- **SecureTokenService**: Aggiornare logica createToken
-- **Validation**: Aggiornare logica validateToken
-- **Frontend**: Aggiornare hook di validazione
-- **N8N**: Aggiornare calling functions
-
-### Status: ✅ SYSTEM WORKING PERFECTLY
-- **Database**: ✅ Schema updated with customerId and unique constraints
-- **Backend**: ✅ Service logic updated with UPDATE instead of INSERT
-- **Frontend**: ✅ Validation updated
-- **Testing**: ✅ Token system correctly reuses same token for 1 hour
-
-### 🚨 CRITICAL BUGS FOUND
-
-#### **TOKEN CONSISTENCY SYSTEM** ✅ **FULLY OPERATIONAL**
-**Behavior**: System automatically reuses the same token for 1 hour, then generates a new token
-**Logic**: 
-1. Check if existing token is valid (not expired)
-2. If valid: Return existing token
-3. If expired/missing: Create new token via UPSERT
-**Expected**: Same token for 1 hour, then new token after expiration
-**Implementation**: findFirst with expiresAt > NOW + UPSERT for atomic operations
-**Benefits**: 
-- Consistent user experience
-- No token confusion
-- Automatic cleanup via expiration
-- Database integrity with unique constraints
-**Status**: ✅ **VERIFIED WORKING** - Multiple tests confirm same token reuse for 1 hour period
-**Test Results**: 
-- ✅ **Token Reuse**: 3 consecutive API calls returned identical token `e6e3ce663a0e5a9e3654888fe195082ba38f56be9f5c75cc1009e2cf79e5d940`
-- ✅ **Different Actions**: Different tokens for orders (`e6e3ce66...`) vs profile (`2415a10c...`)
-- ✅ **Database Integrity**: Exactly 2 records per customer (orders + profile), both valid (not expired)
-- ✅ **Performance**: No cleanup needed, automatic expiration handling
-
-#### **BUG #2: Link Inconsistency in LLM Responses**
-**Problem**: LLM generates inconsistent links for orders
-- "lista ordini" → `/orders-public` ✅ CORRECT
-- "ordine specifico" → `/orders/2007` ❌ WRONG (should be `/orders-public/2007`)
-
-#### **BUG #3: Cross-Service Navigation**
-**Problem**: "View Profile" link from orders page may not work correctly
-**Location**: `OrdersPublicPage.tsx` line ~250
-**Expected**: Seamless navigation between orders and profile pages
-
-### 🔧 REQUIRED FIXES
-
-#### **Fix #1: Token Reuse Logic**
-- **Issue**: `SecureTokenService.createToken()` not finding existing tokens correctly
-- **Solution**: Debug the `findUnique` query for `customerId + type + workspaceId`
-- **Test**: Generate token twice → should return same token if within 1 hour
-
-#### **Fix #2: LLM Prompt Correction**
-- **Issue**: LLM not following consistent link generation rules
-- **Solution**: Update N8N workflow prompt to enforce `/orders-public` for all order links
-- **Test**: All order-related requests should generate `/orders-public` URLs
-
-#### **Fix #3: Navigation Testing**
-- **Issue**: Cross-service navigation may fail
-- **Solution**: Test "View Profile" link from orders page
-- **Test**: Click "View Profile" → should navigate to customer profile page
-
-### 🎯 ACCEPTANCE CRITERIA FOR FIXES
-1. **Token Consistency**: Same token returned for 1 hour period
-2. **Link Consistency**: All order links use `/orders-public` format
-3. **Navigation**: Seamless cross-service navigation works
-4. **Testing**: Comprehensive testing of token reuse and link generation
-
----
-
-## ☎️ ContactOperator() - Human Operator Escalation
-
-### Overview
-The `ContactOperator()` calling function handles customer escalation to human operators when the chatbot cannot assist or when customers specifically request human assistance. This critical function ensures customer satisfaction and prevents frustration by providing seamless escalation to human support.
-
-### Implementation Details
-
-#### **Escalation Logic**
-```typescript
-public async contactOperator(request: GetAllProductsRequest): Promise<StandardResponse> {
-  // Log operator contact request for monitoring
-  console.log('🚨 OPERATOR ESCALATION REQUESTED:', {
-    customerId: request.customerId,
-    workspaceId: request.workspaceId,
-    timestamp: new Date().toISOString()
-  });
-  
-  return {
-    success: true,
-    data: {
-      message: 'Un operatore ti contatterà al più presto. Grazie per la tua pazienza!',
-      operatorContacted: true,
-      estimatedResponseTime: '5-10 minuti',
-      escalationReason: 'Customer requested human assistance',
-      customerInfo: {
-        customerId: request.customerId,
-        workspaceId: request.workspaceId
-      }
-    }
-  };
-}
-```
-
-#### **Tool Description**
-```typescript
-{
-  name: 'contactOperator',
-  description: 'escalate to human operator for complex assistance',
-  whenToUse: 'when user wants to speak with a person, needs help from an operator, requests human assistance, or chatbot cannot help',
-  examples: ['voglio parlare con un operatore', 'aiuto umano', 'assistenza umana', 'human operator', 'speak with someone'],
-  output: 'Confirmation that operator will be contacted with customer details',
-  notes: 'Escalates customer to human support and logs the request for operator attention'
-}
-```
-
-#### **Prompt Triggers**
-- **Italian**: "voglio parlare con un operatore", "aiuto umano", "assistenza umana"
-- **English**: "human operator", "speak with someone", "human assistance"
-- **Multilingual**: Automatic language detection and appropriate response formatting
-
-#### **Response Formatting**
-The formatter provides professional escalation responses:
-- **Reassuring message** about operator contact
-- **Estimated response time** (5-10 minutes)
-- **Customer information** for operator reference
-- **Escalation reason** for context
-- **Professional tone** to maintain customer confidence
-
-#### **Test Results**
-✅ **Italian Test**: "voglio parlare con un operatore" → Professional escalation response in Italian
-✅ **English Test**: "human operator" → Bilingual response (Italian + English)
-✅ **Multilingual**: Automatic language detection and appropriate response formatting
-✅ **Professional**: Reassuring tone with clear expectations and alternatives
-
----
-
-## 📂 GetAllCategories() - Product Categories Management
-
-### Overview
-The `GetAllCategories()` calling function enables customers to discover all available product categories through natural language queries. The system displays categories with names and descriptions, organized alphabetically for easy navigation.
-
-### Implementation Details
-
-#### **Database Structure**
-- **Table**: `categories`
-- **Key Fields**: `name`, `description`, `isActive`, `workspaceId`
-- **Filtering**: Only active categories for the workspace
-- **Sorting**: Ordered alphabetically by name
-
-#### **Calling Function Logic**
-```typescript
-public async getAllCategories(request: GetAllProductsRequest): Promise<CategoriesResponse> {
-  // Query active categories with workspace filtering
-  const categories = await prisma.categories.findMany({
-    where: {
-      workspaceId: request.workspaceId,
-      isActive: true
-    },
-    orderBy: { name: 'asc' }
-  });
-  
-  // Return structured response with category details
-  return {
-    success: true,
-    data: {
-      categories: categories.map(category => ({
-        id: category.id,
-        name: category.name,
-        description: category.description
-      })),
-      totalCategories: categories.length
-    }
-  };
-}
-```
-
-#### **Tool Description**
-```typescript
-{
-  name: 'getAllCategories',
-  description: 'complete list of product categories with names and descriptions',
-  whenToUse: 'when user asks about categories, types of products, or what kinds of items are available',
-  examples: ['che categorie avete', 'tipi di prodotti', 'categorie disponibili', 'show me categories'],
-  output: 'Array of product categories with names and descriptions',
-  notes: 'Returns organized list of all product categories alphabetically'
-}
-```
-
-#### **Prompt Triggers**
-- **Italian**: "che categorie avete", "tipi di prodotti", "categorie disponibili"
-- **English**: "show me categories", "what categories do you have", "product types"
-- **Multilingual**: Automatic language detection and response formatting
-
-#### **Response Formatting**
-The formatter organizes categories into logical groups:
-- **Food & Fresh**: Antipasti, Pasta, Pizza, Piatti Pronti, Pesce, Fresh Products
-- **Specialties**: Cheese, Salumi, Salse, Condiments, Preserves
-- **Drinks & More**: Beverages, Gourmet, Desserts, Snacks, Vegetables
-
-#### **Test Results**
-✅ **Italian Test**: "che categorie avete" → 16 categories displayed in Italian
-✅ **English Test**: "show me categories" → 16 categories displayed in English
-✅ **Multilingual**: Automatic language detection and appropriate response formatting
-✅ **Organization**: Categories intelligently grouped for better user experience
-
----
-
-## 🎯 GetActiveOffers() - Offers & Promotions Management
-
-### Overview
-The `GetActiveOffers()` calling function enables customers to discover current promotions, discounts, and special offers through natural language queries. The system displays active offers with detailed information including discount percentages, validity dates, and category associations.
-
-### Implementation Details
-
-#### **Database Structure**
-- **Table**: `offers`
-- **Key Fields**: `name`, `description`, `discountPercent`, `startDate`, `endDate`, `isActive`, `categoryId`
-- **Filtering**: Only active offers within valid date range
-- **Sorting**: Ordered by discount percentage (best offers first)
-
-#### **Calling Function Logic**
-```typescript
-public async getActiveOffers(request: GetAllProductsRequest): Promise<OffersResponse> {
-  // Query active offers with date validation
-  const offers = await prisma.offers.findMany({
-    where: {
-      workspaceId: request.workspaceId,
-      isActive: true,
-      startDate: { lte: new Date() }, // Started
-      endDate: { gte: new Date() }    // Not ended
-    },
-    include: { category: { select: { id: true, name: true } } },
-    orderBy: { discountPercent: 'desc' }
-  });
-}
-```
-
-#### **Response Format**
-```json
-{
-  "success": true,
-  "data": {
-    "offers": [
-      {
-        "id": "offer-id",
-        "name": "Offerta Alcolici 20%",
-        "description": "Sconto del 20% su tutti gli alcolici!",
-        "discountPercent": 20,
-        "startDate": "2025-07-30T21:59:08.478Z",
-        "endDate": "2026-08-29T21:59:08.478Z",
-        "category": { "id": "cat-id", "name": "Beverages" }
-      }
-    ],
-    "totalOffers": 3
-  }
-}
-```
-
-#### **Multilingual Triggers**
-**Italian**: "che offerte avete", "sconti disponibili", "promozioni", "saldi", "offerte speciali"
-**English**: "show me offers", "any deals", "discounts available", "promotions", "sales"
-**Spanish**: "ofertas", "descuentos", "promociones", "rebajas"
-
-#### **LLM Response Formatting**
-- **Icons**: Automatic emoji selection based on offer category (🍷 for beverages, 🍝 for pasta)
-- **Discount Display**: Clear percentage format with category context
-- **Date Format**: Localized date display for validity period
-- **Call-to-Action**: Encouraging language with next steps
-
-### Example Responses
-
-#### **Italian Response**
-```
-Ciao! 👋 Ecco le offerte speciali attualmente attive:
-
-🍷 *Alcolici -20%*
-Sconto del 20% su tutti gli alcolici
-Valido fino al 29/08/2026
-
-🍝 *Pasta Week -20%*
-Offerte speciali su tutta la pasta
-Valido fino al 03/09/2025
-
-Approfitta di queste fantastiche promozioni! 🎉
-```
-
-#### **English Response**
-```
-🌟 Check out our amazing current offers!
-
-1. 🍷 *Alcolici -20%*
-All alcoholic beverages at 20% off
-Valid until August 29, 2026
-
-2. 🍝 *Pasta Week -20%*
-Great discounts on all pasta products
-Valid until September 3, 2025
-
-Want to take advantage of these offers? Just add the products to your cart!
-```
-
-### Technical Integration
-
-#### **Tool Description**
-```typescript
-name: 'getActiveOffers',
-description: 'current active offers, discounts, promotions and special deals',
-whenToUse: 'when user asks about offers, discounts, promotions, sales, or deals',
-examples: ['che offerte avete', 'sconti disponibili', 'show me offers', 'any deals'],
-output: 'Array of active offers with discount percentages, dates and categories'
-```
-
-#### **Error Handling**
-- **No Offers**: "Nessuna offerta disponibile al momento" / "No offers available at the moment"
-- **Database Error**: Proper error logging with fallback response
-- **Invalid Dates**: Automatic filtering prevents display of expired offers
-
-### Status: ✅ **FULLY IMPLEMENTED & TESTED**
-
-**Test Results**:
-- ✅ **Italian Triggers**: "che offerte avete", "sconti disponibili" → Correct function call
-- ✅ **English Triggers**: "show me offers", "any deals" → Correct function call  
-- ✅ **Database Query**: Returns 3 active offers with proper filtering
-- ✅ **Response Format**: Properly formatted with icons, dates, and descriptions
-- ✅ **Multilingual**: Automatic language detection and appropriate response format
-- ✅ **Error Handling**: Graceful handling when no offers available
 
 ---
 

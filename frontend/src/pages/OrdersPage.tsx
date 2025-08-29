@@ -6,44 +6,44 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
-import { logger } from "@/lib/logger"
 import { clientsApi } from "@/services/clientsApi"
 import {
-    ordersApi,
-    type ItemType,
-    type Order,
-    type OrderStatus,
-    type PaymentMethod,
+  ordersApi,
+  type ItemType,
+  type Order,
+  type OrderStatus,
+  type PaymentMethod,
 } from "@/services/ordersApi"
 import { productsApi } from "@/services/productsApi"
 import { servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
 import { formatPrice } from "@/utils/format"
 import {
-    Eye,
-    FileText,
-    Package,
-    Pencil,
-    Plus,
-    ShoppingCart,
-    Trash2,
-    Truck,
-    Wrench,
+  FileText,
+  Package,
+  Pencil,
+  Plus,
+  ShoppingCart,
+  Trash2,
+  Truck,
+  Wrench,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
@@ -95,9 +95,6 @@ function CartItemEditSheet({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(
     order?.paymentMethod || null
   )
-  const [trackingNumber, setTrackingNumber] = useState<string>(
-    order?.trackingNumber || ""
-  )
 
   useEffect(() => {
     if (open && order) {
@@ -107,7 +104,6 @@ function CartItemEditSheet({
       // Set initial order status and payment method
       setOrderStatus(order.status)
       setPaymentMethod(order.paymentMethod)
-      setTrackingNumber(order.trackingNumber || "")
 
       // Load products and services
       const loadData = async () => {
@@ -122,7 +118,7 @@ function CartItemEditSheet({
           setProducts(productsRes?.products || [])
           setServices(servicesRes || [])
         } catch (error) {
-          logger.error("Error loading data:", error)
+          console.error("Error loading data:", error)
           toast.error("Failed to load products and services")
         }
       }
@@ -249,7 +245,6 @@ function CartItemEditSheet({
         totalAmount: newTotalAmount,
         status: orderStatus,
         paymentMethod: paymentMethod,
-        trackingNumber: trackingNumber,
         items: editingItems.map((item) => ({
           itemType: item.itemType || (item.serviceId ? "SERVICE" : "PRODUCT"),
           productId: item.productId,
@@ -276,7 +271,7 @@ function CartItemEditSheet({
 
       // Note: success message will be shown by handleOrderSave
     } catch (error) {
-      logger.error("Error saving cart:", error)
+      console.error("Error saving cart:", error)
 
       // Parse the error more carefully
       let errorMessage = "Please try again."
@@ -338,6 +333,9 @@ function CartItemEditSheet({
           <SheetTitle className="text-2xl font-bold text-gray-900">
             Edit Order {order.orderCode}
           </SheetTitle>
+          <SheetDescription className="text-gray-600">
+            Manage products, services, and order details
+          </SheetDescription>
         </SheetHeader>
 
         <div className="space-y-10">
@@ -434,22 +432,6 @@ function CartItemEditSheet({
                     </Badge>
                   </div>
                 </div>
-              </div>
-
-              {/* Tracking Number field */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">
-                  Tracking Number
-                </Label>
-                <Input
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                  placeholder="1234567890"
-                  className="max-w-md"
-                />
-                <p className="text-sm text-gray-500">
-                  Optional. Leave blank if not available.
-                </p>
               </div>
 
               <div className="text-sm text-gray-500">
@@ -696,6 +678,24 @@ function CartItemEditSheet({
                   </div>
                   <div className="flex gap-3">
                     <Button
+                      variant="outline"
+                      size="sm"
+                      disabled
+                      className="flex items-center gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Download Invoice
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled
+                      className="flex items-center gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Download DDT
+                    </Button>
+                    <Button
                       onClick={handleSave}
                       disabled={isSaving}
                       size="default"
@@ -714,7 +714,221 @@ function CartItemEditSheet({
   )
 }
 
+// Order Details Sheet Component
+function OrderDetailsSheet({
+  order,
+  open,
+  onClose,
+}: {
+  order: Order | null
+  open: boolean
+  onClose: () => void
+}): JSX.Element | null {
+  const { workspace } = useWorkspace()
 
+  if (!order) return null
+
+  return (
+    <Sheet open={open} onOpenChange={onClose}>
+      <SheetContent side="right" className="max-w-[70%] overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="text-2xl font-bold">
+            Order {order.orderCode}
+          </SheetTitle>
+          <SheetDescription>
+            View complete order details and information
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="space-y-6 mt-6">
+          {/* Order Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Order Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">
+                    Status
+                  </Label>
+                  <Badge variant={getStatusBadgeVariant(order.status)}>
+                    {order.status}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">
+                    Total Amount
+                  </Label>
+                  <p className="font-medium">
+                    {formatPrice(order.totalAmount, workspace?.currency)}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">
+                    Payment Method
+                  </Label>
+                  <p>{order.paymentMethod || "Not specified"}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">
+                    Order Date
+                  </Label>
+                  <p>
+                    {new Date(order.createdAt).toLocaleDateString("en-GB", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">
+                    Shipping Address
+                  </Label>
+                  <p>
+                    {order.shippingAddress
+                      ? `${
+                          order.shippingAddress.street ||
+                          order.shippingAddress.address ||
+                          ""
+                        }, ${order.shippingAddress.city || ""}, ${
+                          order.shippingAddress.zipCode ||
+                          order.shippingAddress.postalCode ||
+                          ""
+                        }, ${order.shippingAddress.country || ""}`
+                          .replace(/^,\s*|,\s*$/g, "")
+                          .replace(/,\s*,/g, ",")
+                      : "Not specified"}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Customer Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p>
+                  <strong>Name:</strong> {order.customer?.name}
+                </p>
+                <p>
+                  <strong>Email:</strong> {order.customer?.email}
+                </p>
+                {order.customer?.phone && (
+                  <p>
+                    <strong>Phone:</strong> {order.customer.phone}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Order Items */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Order Items</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[200px]">
+                <table className="w-full">
+                  <thead>
+                    <tr>
+                      <th className="text-left font-medium">Type</th>
+                      <th className="text-left font-medium">Item</th>
+                      <th className="text-right font-medium">Price</th>
+                      <th className="text-right font-medium">Quantity</th>
+                      <th className="text-right font-medium">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {order.items?.map((item) => (
+                      <tr key={item.id}>
+                        <td className="py-2">
+                          <Badge variant="outline" className="text-xs">
+                            {item.itemType === "PRODUCT"
+                              ? "Product"
+                              : "Service"}
+                          </Badge>
+                        </td>
+                        <td className="py-2">
+                          {item.itemType === "PRODUCT"
+                            ? item.product?.name || `Product ${item.productId}`
+                            : item.service?.name || `Service ${item.serviceId}`}
+                        </td>
+                        <td className="py-2 text-right">
+                          {formatPrice(item.unitPrice, workspace?.currency)}
+                        </td>
+                        <td className="py-2 text-center">
+                          {item.itemType === "SERVICE" ? "1" : item.quantity}
+                        </td>
+                        <td className="py-2 text-right">
+                          {formatPrice(item.totalPrice, workspace?.currency)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          {/* Shipping Address (multiline, like Invoice Address) */}
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <Truck className="h-5 w-5 text-green-600" />
+                Shipping Address
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {order.shippingAddress ? (
+                <div className="space-y-1 text-gray-700">
+                  {/* Street/Address */}
+                  <div>
+                    {order.shippingAddress.street ||
+                      order.shippingAddress.address ||
+                      ""}
+                  </div>
+                  {/* City */}
+                  <div>{order.shippingAddress.city || ""}</div>
+                  {/* Postal Code */}
+                  <div>
+                    {order.shippingAddress.zipCode ||
+                      order.shippingAddress.postalCode ||
+                      ""}
+                  </div>
+                  {/* Country */}
+                  <div>{order.shippingAddress.country || ""}</div>
+                </div>
+              ) : (
+                <span className="text-gray-500 italic">Not specified</span>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Notes */}
+          {order.notes && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Notes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{order.notes}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+}
 
 // Order CRUD Sheet Component
 function OrderCrudSheet({
@@ -753,7 +967,6 @@ function OrderCrudSheet({
     taxAmount: 0,
     discountAmount: 0,
     notes: "",
-    trackingNumber: "",
   })
 
   // Load customers, products, and services
@@ -762,7 +975,7 @@ function OrderCrudSheet({
       if (!workspace?.id) return
 
       try {
-        logger.info("🔄 OrderCrudSheet - Starting to load data...")
+        console.log("🔄 OrderCrudSheet - Starting to load data...")
 
         const [customersResponse, productsResponse, servicesResponse] =
           await Promise.all([
@@ -771,12 +984,12 @@ function OrderCrudSheet({
             servicesApi.getServices(workspace.id),
           ])
 
-        logger.info("🔍 OrderCrudSheet - Raw API responses:")
-        logger.info("  - customersResponse:", customersResponse)
-        logger.info("  - customersResponse type:", typeof customersResponse)
-        logger.info("  - customersResponse.length:", customersResponse?.length)
-        logger.info("  - productsResponse:", productsResponse)
-        logger.info("  - servicesResponse:", servicesResponse)
+        console.log("🔍 OrderCrudSheet - Raw API responses:")
+        console.log("  - customersResponse:", customersResponse)
+        console.log("  - customersResponse type:", typeof customersResponse)
+        console.log("  - customersResponse.length:", customersResponse?.length)
+        console.log("  - productsResponse:", productsResponse)
+        console.log("  - servicesResponse:", servicesResponse)
 
         // Handle different response formats for customers
         const customersArray = Array.isArray(customersResponse)
@@ -789,27 +1002,27 @@ function OrderCrudSheet({
         setProducts(productsResponse.products || [])
         setServices(servicesResponse || [])
 
-        logger.info("✅ OrderCrudSheet - Data loaded successfully:")
-        logger.info("  - Customers set:", customersArray.length, "items")
-        logger.info(
+        console.log("✅ OrderCrudSheet - Data loaded successfully:")
+        console.log("  - Customers set:", customersArray.length, "items")
+        console.log(
           "  - Products set:",
           (productsResponse.products || []).length,
           "items"
         )
-        logger.info(
+        console.log(
           "  - Services set:",
           (servicesResponse || []).length,
           "items"
         )
 
         if (customersArray.length === 0) {
-          logger.warn(
+          console.warn(
             "⚠️ No customers found - this might be why dropdown is empty"
           )
           toast.warning("No customers found. Please add customers first.")
         }
       } catch (error) {
-        logger.error("❌ Error loading OrderCrudSheet data:", error)
+        console.error("❌ Error loading OrderCrudSheet data:", error)
         toast.error("Failed to load form data")
       }
     }
@@ -832,7 +1045,6 @@ function OrderCrudSheet({
         taxAmount: order.taxAmount || 0,
         discountAmount: order.discountAmount || 0,
         notes: order.notes || "",
-        trackingNumber: order.trackingNumber || "",
       })
       setOrderItems([...(order.items || [])])
     } else if (mode === "create") {
@@ -846,7 +1058,6 @@ function OrderCrudSheet({
         taxAmount: 0,
         discountAmount: 0,
         notes: "",
-        trackingNumber: "",
       })
       setOrderItems([])
     }
@@ -959,28 +1170,13 @@ function OrderCrudSheet({
       return
     }
 
-    if (mode === "create" && orderItems.length === 0) {
-      toast.error("Please add at least one product or service")
-      return
-    }
-
     if (!workspace?.id) return
 
     setIsLoading(true)
     try {
       let savedOrder
-      
-      // Prepare order data - exclude orderCode for create mode
-      const baseOrderData = {
-        customerId: formData.customerId,
-        status: formData.status,
-        paymentMethod: formData.paymentMethod,
-        totalAmount: formData.totalAmount,
-        shippingAmount: formData.shippingAmount,
-        taxAmount: formData.taxAmount,
-        discountAmount: formData.discountAmount,
-        notes: formData.notes,
-        trackingNumber: formData.trackingNumber,
+      const orderData = {
+        ...formData,
         items: orderItems.map((item) => ({
           itemType: item.itemType,
           productId: item.productId,
@@ -991,11 +1187,6 @@ function OrderCrudSheet({
           productVariant: item.productVariant || null,
         })),
       }
-
-      // Add orderCode only for edit mode
-      const orderData = mode === "edit" 
-        ? { ...baseOrderData, orderCode: formData.orderCode }
-        : baseOrderData
 
       if (mode === "create") {
         savedOrder = await ordersApi.create(workspace.id, orderData)
@@ -1011,7 +1202,7 @@ function OrderCrudSheet({
         )
       }
     } catch (error) {
-      logger.error("Error saving order:", error)
+      console.error("Error saving order:", error)
       toast.error(`Failed to ${mode} order. Please try again.`)
     } finally {
       setIsLoading(false)
@@ -1027,7 +1218,7 @@ function OrderCrudSheet({
         <SheetHeader>
           <SheetTitle>
             {mode === "edit"
-              ? `Order: ${order?.orderCode}`
+              ? `Edit Order ${order?.orderCode}`
               : "Create New Order"}
           </SheetTitle>
         </SheetHeader>
@@ -1040,20 +1231,22 @@ function OrderCrudSheet({
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                {mode === "edit" && (
-                  <div>
-                    <Label htmlFor="orderCode">Order Code</Label>
-                    <Input
-                      id="orderCode"
-                      value={formData.orderCode}
-                      disabled
-                      className="bg-gray-50 text-gray-700"
-                    />
-                    <p className="text-sm text-gray-500 mt-1">
-                      Order code is automatically generated
-                    </p>
-                  </div>
-                )}
+                <div>
+                  <Label htmlFor="orderCode">Order Code (5 digits) *</Label>
+                  <Input
+                    id="orderCode"
+                    value={formData.orderCode}
+                    onChange={(e) => {
+                      const value = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 5) // Only digits, max 5
+                      setFormData((prev) => ({ ...prev, orderCode: value }))
+                    }}
+                    maxLength={5}
+                    placeholder="12345"
+                    required
+                  />
+                </div>
                 <div>
                   <Label htmlFor="customer">Customer</Label>
                   {mode === "edit" ? (
@@ -1157,51 +1350,32 @@ function OrderCrudSheet({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="trackingNumber">Tracking Number</Label>
-                  <Input
-                    id="trackingNumber"
-                    value={formData.trackingNumber}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        trackingNumber: e.target.value,
-                      }))
+              <div>
+                <Label htmlFor="totalAmount">Total Amount *</Label>
+                <Input
+                  id="totalAmount"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={formData.totalAmount.toFixed(2)}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value) || 0
+                    if (value > 0) {
+                      setFormData((prev) => ({ ...prev, totalAmount: value }))
                     }
-                    placeholder="1234567890"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Optional. Leave as default for demo.
-                  </p>
-                </div>
-                <div>
-                  <Label htmlFor="totalAmount">Total Amount *</Label>
-                  <Input
-                    id="totalAmount"
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    value={formData.totalAmount.toFixed(2)}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value) || 0
-                      if (value > 0) {
-                        setFormData((prev) => ({ ...prev, totalAmount: value }))
-                      }
-                    }}
-                    placeholder="0.00"
-                    required
-                  />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Final price including all taxes and fees
-                  </p>
-                </div>
+                  }}
+                  placeholder="0.00"
+                  required
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Final price including all taxes and fees
+                </p>
               </div>
             </CardContent>
           </Card>
 
           {/* Products & Services Management */}
-          {(mode === "edit" || (mode === "create" && formData.customerId)) && (
+          {mode === "edit" && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -1587,8 +1761,8 @@ function OrderCrudSheet({
               {isLoading
                 ? "Saving..."
                 : mode === "create"
-                  ? "Create Order"
-                  : "Save Changes"}
+                ? "Create Order"
+                : "Save Changes"}
             </Button>
           </div>
         </form>
@@ -1656,10 +1830,8 @@ export default function OrdersPage() {
   const [dateToFilter, setDateToFilter] = useState<Date | undefined>(undefined)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
-
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isCartEditOpen, setIsCartEditOpen] = useState(false)
-  const [isAddOpen, setIsAddOpen] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const navigate = useNavigate()
 
@@ -1677,9 +1849,9 @@ export default function OrdersPage() {
           clientsApi.getAllForWorkspace(workspace.id),
         ])
 
-        logger.info("🔍 DEBUG - Raw responses:")
-        logger.info("Orders response:", ordersResponse)
-        logger.info("Customers response:", customersResponse)
+        console.log("🔍 DEBUG - Raw responses:")
+        console.log("Orders response:", ordersResponse)
+        console.log("Customers response:", customersResponse)
 
         // Create a map of customers for quick lookup
         const customersMap = new Map()
@@ -1693,18 +1865,18 @@ export default function OrdersPage() {
           })
         }
 
-        logger.info("🔍 DEBUG - Customers map:", customersMap)
+        console.log("🔍 DEBUG - Customers map:", customersMap)
 
         // Enrich orders with customer data
         const enrichedOrders = (ordersResponse.orders || []).map((order) => {
           const customerFromMap = customersMap.get(order.customerId)
           const finalCustomer = customerFromMap || order.customer || null
 
-          logger.info(`🔍 DEBUG - Order ${order.orderCode}:`)
-          logger.info("  - customerId:", order.customerId)
-          logger.info("  - customerFromMap:", customerFromMap)
-          logger.info("  - order.customer:", order.customer)
-          logger.info("  - finalCustomer:", finalCustomer)
+          console.log(`🔍 DEBUG - Order ${order.orderCode}:`)
+          console.log("  - customerId:", order.customerId)
+          console.log("  - customerFromMap:", customerFromMap)
+          console.log("  - order.customer:", order.customer)
+          console.log("  - finalCustomer:", finalCustomer)
 
           return {
             ...order,
@@ -1712,7 +1884,7 @@ export default function OrdersPage() {
           }
         })
 
-        logger.info("🔍 DEBUG - Final enriched orders:", enrichedOrders)
+        console.log("🔍 DEBUG - Final enriched orders:", enrichedOrders)
 
         // Sort orders by date descending (newest first)
         const sortedOrders = enrichedOrders.sort(
@@ -1722,7 +1894,7 @@ export default function OrdersPage() {
 
         setOrders(sortedOrders)
       } catch (error) {
-        logger.error("Error loading data:", error)
+        console.error("Error loading data:", error)
         toast.error("Failed to load data")
       } finally {
         setIsLoading(false)
@@ -1733,17 +1905,10 @@ export default function OrdersPage() {
   }, [workspace?.id])
 
   // Event handlers
-  const handleAdd = () => {
-    setSelectedOrder(null) // Clear selected order for create mode
-    setIsAddOpen(true)
-  }
-
   const handleEdit = (order: Order) => {
     setSelectedOrder(order)
     setIsEditOpen(true)
   }
-
-
 
   const handleCartEdit = (order: Order) => {
     setSelectedOrder(order)
@@ -1759,11 +1924,6 @@ export default function OrdersPage() {
     // Open customer edit popup - this should integrate with existing customer edit functionality
     // For now, we'll show a placeholder
     toast.info(`Edit customer: ${customer.name} (Feature coming soon)`)
-  }
-
-  const handleViewDetails = (order: Order) => {
-    setSelectedOrder(order)
-    setIsDetailsOpen(true)
   }
 
   const handleCustomerNavigation = (customer: any) => {
@@ -1981,12 +2141,12 @@ export default function OrdersPage() {
   )
 
   // Debug final results
-  logger.info("🔍 FINAL DEBUG:")
-  logger.info("- searchTerm:", searchTerm)
-  logger.info("- orders.length:", orders.length)
-  logger.info("- filteredOrders.length:", filteredOrders.length)
-  logger.info("- sortedOrders.length:", sortedOrders.length)
-  logger.info("- sortedOrders:", sortedOrders)
+  console.log("🔍 FINAL DEBUG:")
+  console.log("- searchTerm:", searchTerm)
+  console.log("- orders.length:", orders.length)
+  console.log("- filteredOrders.length:", filteredOrders.length)
+  console.log("- sortedOrders.length:", sortedOrders.length)
+  console.log("- sortedOrders:", sortedOrders)
 
   const handleDeleteConfirm = async () => {
     if (!selectedOrder || !workspace?.id) return
@@ -1998,7 +2158,7 @@ export default function OrdersPage() {
       setSelectedOrder(null)
       toast.success("Order deleted successfully")
     } catch (error) {
-      logger.error("Error deleting order:", error)
+      console.error("Error deleting order:", error)
       toast.error(
         "Failed to delete order. " + (error as any)?.response?.data?.message ||
           "Please try again."
@@ -2026,14 +2186,12 @@ export default function OrdersPage() {
       }
     })
 
-    // Show success message based on whether it's create or edit
-    const isNewOrder = !orders.find(o => o.id === savedOrder.id)
-    toast.success(isNewOrder ? "Order created successfully" : "Order updated successfully")
+    // Show success message
+    toast.success("Order updated successfully")
 
     // Close the sheets
     setIsEditOpen(false)
     setIsCartEditOpen(false)
-    setIsAddOpen(false)
     setSelectedOrder(null)
 
     // Verify with server in background
@@ -2042,23 +2200,14 @@ export default function OrdersPage() {
         const response = await ordersApi.getAllForWorkspace(workspace.id, {})
         setOrders(response.orders)
       } catch (error) {
-        logger.error("Background sync failed:", error)
+        console.error("Background sync failed:", error)
       }
     }
   }
 
-  // Custom actions for orders - View Details, Edit and Delete
+  // Custom actions for orders - Edit and Delete only
   const renderOrderActions = (order: Order) => (
     <div className="flex gap-1 justify-end">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => handleViewDetails(order)}
-        title="View Order Details"
-        className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-700"
-      >
-        <Eye className={`${commonStyles.actionIcon} text-blue-500`} />
-      </Button>
       <Button
         variant="ghost"
         size="sm"
@@ -2090,8 +2239,6 @@ export default function OrdersPage() {
         searchValue={searchTerm}
         onSearch={setSearchTerm}
         searchPlaceholder="Search orders..."
-        onAdd={handleAdd}
-        addButtonText="Add"
         data={sortedOrders}
         columns={columns}
         isLoading={isLoading}
@@ -2137,23 +2284,19 @@ export default function OrdersPage() {
           </div>
         }
       />
-
-      {/* Order Add Sheet */}
-      <OrderCrudSheet
-        order={null}
-        open={isAddOpen}
-        onClose={() => setIsAddOpen(false)}
-        onSave={handleOrderSave}
-        mode="create"
+      {/* Order Details Sheet */}
+      <OrderDetailsSheet
+        order={selectedOrder}
+        open={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
       />
-
       {/* Order Edit Sheet */}
       <OrderCrudSheet
         order={selectedOrder}
         open={isEditOpen}
         onClose={() => setIsEditOpen(false)}
         onSave={handleOrderSave}
-        mode="edit"
+        mode={selectedOrder?.id ? "edit" : "create"}
       />
       {/* Cart Edit Sheet */}
       <CartItemEditSheet

@@ -1,5 +1,4 @@
 import { api } from "@/services/api"
-import { logger } from "@/lib/logger"
 
 // Enums aligned with backend
 export type OrderStatus =
@@ -109,14 +108,12 @@ export interface Order {
   updatedAt: string
   customer?: Customer
   items?: OrderItem[]
-  trackingNumber?: string | null
 }
 
 export interface Service {
   id: string
   name: string
   description: string
-  code: string
   price: number
   currency: string
   duration: number
@@ -147,7 +144,6 @@ export interface CreateOrderData {
   discountCode?: string
   discountAmount?: number
   paymentMethod?: PaymentMethod
-  trackingNumber?: string | null
 }
 
 // Update order data interface
@@ -171,7 +167,6 @@ export interface UpdateOrderData {
     totalPrice: number
     productVariant?: any
   }[]
-  trackingNumber?: string | null
 }
 
 // Filters interface
@@ -207,9 +202,9 @@ export const getAllForWorkspace = async (
   totalPages: number
 }> => {
   try {
-    logger.info("Getting orders for workspace:", workspaceId)
+    console.log("Getting orders for workspace:", workspaceId)
     if (!workspaceId) {
-      logger.error("WorkspaceId missing in getAllForWorkspace")
+      console.error("WorkspaceId missing in getAllForWorkspace")
       return {
         orders: [],
         total: 0,
@@ -256,14 +251,14 @@ export const getAllForWorkspace = async (
     const requestUrl = `/workspaces/${workspaceId}/orders${
       queryString ? `?${queryString}` : ""
     }`
-    logger.info("Orders API request URL:", requestUrl)
+    console.log("Orders API request URL:", requestUrl)
 
     const response = await api.get(requestUrl)
-    logger.info("Orders API response:", response.data)
+    console.log("Orders API response:", response.data)
 
     return response.data
   } catch (error) {
-    logger.error("Error getting orders:", error)
+    console.error("Error getting orders:", error)
     return {
       orders: [],
       total: 0,
@@ -284,7 +279,7 @@ export const getById = async (
     const response = await api.get(`/orders/${id}`)
     return response.data
   } catch (error) {
-    logger.error("Error getting order:", error)
+    console.error("Error getting order:", error)
     throw error
   }
 }
@@ -300,7 +295,7 @@ export const getByCode = async (
     const response = await api.get(`/orders/code/${orderCode}`)
     return response.data
   } catch (error) {
-    logger.error("Error getting order by code:", error)
+    console.error("Error getting order by code:", error)
     throw error
   }
 }
@@ -316,7 +311,7 @@ export const getByCustomer = async (
     const response = await api.get(`/orders/customer/${customerId}`)
     return response.data
   } catch (error) {
-    logger.error("Error getting orders by customer:", error)
+    console.error("Error getting orders by customer:", error)
     throw error
   }
 }
@@ -329,14 +324,14 @@ export const create = async (
   data: CreateOrderData
 ): Promise<Order> => {
   try {
-    logger.info("Creating order with data:", data)
-    logger.info("Workspace ID:", workspaceId)
+    console.log("Creating order with data:", data)
+    console.log("Workspace ID:", workspaceId)
 
     const response = await api.post(`/orders`, data)
-    logger.info("Order creation response:", response.data)
+    console.log("Order creation response:", response.data)
     return response.data
   } catch (error) {
-    logger.error("Error creating order:", error)
+    console.error("Error creating order:", error)
     throw error
   }
 }
@@ -350,12 +345,12 @@ export const update = async (
   data: UpdateOrderData
 ): Promise<Order> => {
   try {
-    logger.info("Updating order with data:", data)
+    console.log("Updating order with data:", data)
 
     const response = await api.put(`/orders/${id}`, data)
     return response.data
   } catch (error) {
-    logger.error("Error updating order:", error)
+    console.error("Error updating order:", error)
     throw error
   }
 }
@@ -370,7 +365,7 @@ export const delete_ = async (
   try {
     await api.delete(`/orders/${id}`)
   } catch (error) {
-    logger.error("Error deleting order:", error)
+    console.error("Error deleting order:", error)
     throw error
   }
 }
@@ -387,7 +382,7 @@ export const updateStatus = async (
     const response = await api.patch(`/orders/${id}/status`, { status })
     return response.data
   } catch (error) {
-    logger.error("Error updating order status:", error)
+    console.error("Error updating order status:", error)
     throw error
   }
 }
@@ -422,7 +417,7 @@ export const getAnalytics = async (
     const response = await api.get(requestUrl)
     return response.data
   } catch (error) {
-    logger.error("Error getting order analytics:", error)
+    console.error("Error getting order analytics:", error)
     throw error
   }
 }
@@ -441,7 +436,7 @@ export const getByDateRange = async (
     )
     return response.data
   } catch (error) {
-    logger.error("Error getting orders by date range:", error)
+    console.error("Error getting orders by date range:", error)
     throw error
   }
 }
