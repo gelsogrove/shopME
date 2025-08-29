@@ -289,6 +289,7 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
     let products = null;
     let services = null;
     let offers = null;
+    let categories = null;
     
     if (ragResult.functionResults && ragResult.functionResults.length > 0) {
       for (const result of ragResult.functionResults) {
@@ -323,6 +324,9 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
         }
         else if (result.functionName === 'getActiveOffers' && result.result?.data?.offers) {
           offers = result.result.data.offers;
+        }
+        else if (result.functionName === 'getAllCategories' && result.result?.data?.categories) {
+          categories = result.result.data.categories;
         }
       }
     }
@@ -395,6 +399,16 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
         }
         const endDate = new Date(offer.endDate);
         dataDescription += ` [Valid until: ${endDate.toLocaleDateString()}]`;
+      });
+    }
+    
+    if (categories && categories.length > 0) {
+      dataDescription += `\n\nI have found ${categories.length} product categories available:`;
+      categories.forEach((category: any) => {
+        dataDescription += `\n- 📂 ${category.name}`;
+        if (category.description && category.description.length > 0) {
+          dataDescription += ` (${category.description.substring(0, 80)}${category.description.length > 80 ? '...' : ''})`;
+        }
       });
     }
     
@@ -478,12 +492,12 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
               workspaceId: request.workspaceId
             });
             break;
-          // case 'getAllCategories':
-          //   result = await this.callingFunctionsService.getAllCategories({
-          //     workspaceId: request.workspaceId,
-          //     customerId: request.customerid
-          //   });
-          //   break;
+          case 'getAllCategories':
+            result = await this.callingFunctionsService.getAllCategories({
+              workspaceId: request.workspaceId,
+              customerId: request.customerid
+            });
+            break;
           case 'getActiveOffers':
             result = await this.callingFunctionsService.getActiveOffers({
               workspaceId: request.workspaceId,

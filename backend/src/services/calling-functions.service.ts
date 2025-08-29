@@ -1,11 +1,13 @@
 import { SecureTokenService } from '../application/services/secure-token.service';
 import {
+    CategoriesResponse,
     ErrorResponse,
+    OffersResponse,
     ProductsResponse,
     ServicesResponse,
+    StandardResponse,
     SuccessResponse,
-    TokenResponse,
-    OffersResponse
+    TokenResponse
 } from '../types/whatsapp.types';
 
 export interface GetAllProductsRequest {
@@ -233,29 +235,54 @@ export class CallingFunctionsService {
     }
   }
 
-  // public async getAllCategories(request: GetAllProductsRequest): Promise<CategoriesResponse> {
-  //   try {
-  //     console.log('🔧 Calling getAllCategories with:', request);
+  public async getAllCategories(request: GetAllProductsRequest): Promise<CategoriesResponse> {
+    try {
+      console.log('🔧 Calling getAllCategories with:', request);
       
-  //     const response = await axios.get(`${this.baseUrl}/categories`, {
-  //       params: {
-  //         workspaceId: request.workspaceId,
-  //         customerId: request.customerId
-  //       },
-  //       timeout: 10000
-  //     });
-
-  //     return {
-  //       success: true,
-  //       categories: response.data.categories || [],
-  //       totalCount: response.data.categories?.length || 0,
-  //       timestamp: new Date().toISOString()
-  //     };
-
-  //   } catch (error) {
-  //     return this.createErrorResponse(error, 'getAllCategories') as CategoriesResponse;
-  //   }
-  // }
+      // Direct database query with Prisma for all categories
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+      
+      // Get all categories for the workspace
+      const categories = await prisma.categories.findMany({
+        where: {
+          workspaceId: request.workspaceId,
+          isActive: true
+        },
+        orderBy: { name: 'asc' }
+      });
+      
+      await prisma.$disconnect();
+      
+      if (!categories || categories.length === 0) {
+        return {
+          success: false,
+          error: 'Nessuna categoria disponibile al momento',
+          message: 'Nessuna categoria disponibile al momento',
+          timestamp: new Date().toISOString()
+        } as CategoriesResponse;
+      }
+      
+      console.log('✅ Categories found:', categories.length);
+      
+      return {
+        success: true,
+        data: {
+          categories: categories.map(category => ({
+            id: category.id,
+            name: category.name,
+            description: category.description
+          })),
+          totalCategories: categories.length
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+    } catch (error) {
+      console.error('❌ Error in getAllCategories:', error);
+      return this.createErrorResponse(error, 'getAllCategories') as CategoriesResponse;
+    }
+  }
 
   public async getActiveOffers(request: GetAllProductsRequest): Promise<OffersResponse> {
     try {
@@ -323,24 +350,37 @@ export class CallingFunctionsService {
     }
   }
 
-  // public async contactOperator(request: GetAllProductsRequest): Promise<StandardResponse> {
-  //   try {
-  //     console.log('🔧 Calling contactOperator with:', request);
+  public async contactOperator(request: GetAllProductsRequest): Promise<StandardResponse> {
+    try {
+      console.log('🔧 Calling contactOperator with:', request);
       
-  //     return {
-  //       success: true,
-  //       data: {
-  //         message: 'Un operatore ti contatterà al più presto. Grazie per la tua pazienza!',
-  //         operatorContacted: true,
-  //         estimatedResponseTime: '5-10 minuti'
-  //       },
-  //       timestamp: new Date().toISOString()
-  //     };
+      // Log operator contact request for monitoring
+      console.log('🚨 OPERATOR ESCALATION REQUESTED:', {
+        customerId: request.customerId,
+        workspaceId: request.workspaceId,
+        timestamp: new Date().toISOString()
+      });
+      
+      return {
+        success: true,
+        data: {
+          message: 'Un operatore ti contatterà al più presto. Grazie per la tua pazienza!',
+          operatorContacted: true,
+          estimatedResponseTime: '5-10 minuti',
+          escalationReason: 'Customer requested human assistance',
+          customerInfo: {
+            customerId: request.customerId,
+            workspaceId: request.workspaceId
+          }
+        },
+        timestamp: new Date().toISOString()
+      };
 
-  //   } catch (error) {
-  //     return this.createErrorResponse(error, 'contactOperator');
-  //   }
-  // }
+    } catch (error) {
+      console.error('❌ Error in contactOperator:', error);
+      return this.createErrorResponse(error, 'contactOperator');
+    }
+  }
 
   public async getOrdersListLink(request: GetOrdersListLinkRequest): Promise<TokenResponse> {
     try {

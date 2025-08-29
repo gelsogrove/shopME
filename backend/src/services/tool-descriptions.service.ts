@@ -64,16 +64,16 @@ export class ToolDescriptionsService {
     };
   }
 
-  // public getAllCategories(): ToolDescription {
-  //   return {
-  //     name: 'getAllCategories',
-  //     description: 'complete list of product categories',
-  //     whenToUse: 'when user asks about categories, types of products, or what kinds of items are available',
-  //     examples: ['che categorie avete', 'tipi di prodotti', 'categorie disponibili'],
-  //     output: 'Array of product categories',
-  //     notes: 'Returns organized list of all product categories'
-  //   };
-  // }
+  public getAllCategories(): ToolDescription {
+    return {
+      name: 'getAllCategories',
+      description: 'complete list of product categories with names and descriptions',
+      whenToUse: 'when user asks about categories, types of products, or what kinds of items are available',
+      examples: ['che categorie avete', 'tipi di prodotti', 'categorie disponibili', 'show me categories', 'what categories do you have', 'product types'],
+      output: 'Array of product categories with names and descriptions',
+      notes: 'Returns organized list of all product categories alphabetically'
+    };
+  }
 
   public getActiveOffers(): ToolDescription {
     return {
@@ -86,16 +86,16 @@ export class ToolDescriptionsService {
     };
   }
 
-  // public contactOperator(): ToolDescription {
-  //   return {
-  //     name: 'contactOperator',
-  //     description: 'human operator assistance',
-  //     whenToUse: 'when user wants to speak with a person, needs help from an operator, or requests human assistance',
-  //     examples: ['voglio parlare con un operatore', 'aiuto umano', 'assistenza'],
-  //     output: 'Confirmation that operator will be contacted',
-  //     notes: 'Connects customer with human support'
-  //   };
-  // }
+  public contactOperator(): ToolDescription {
+    return {
+      name: 'contactOperator',
+      description: 'escalate to human operator for complex assistance',
+      whenToUse: 'when user wants to speak with a person, needs help from an operator, requests human assistance, or chatbot cannot help',
+      examples: ['voglio parlare con un operatore', 'aiuto umano', 'assistenza umana', 'parla con una persona', 'operatore', 'human operator', 'speak with someone', 'human assistance', 'talk to a person'],
+      output: 'Confirmation that operator will be contacted with customer details',
+      notes: 'Escalates customer to human support and logs the request for operator attention'
+    };
+  }
 
   // public confirmOrderFromConversation(): ToolDescription {
   //   return {
@@ -126,9 +126,9 @@ export class ToolDescriptionsService {
       this.getOrdersListLink(),
       this.getShipmentTrackingLink(),
       this.getCustomerProfileLink(),
-      // this.getAllCategories(),
+      this.getAllCategories(),
       this.getActiveOffers(),
-      // this.contactOperator(),
+      this.contactOperator(),
       // this.confirmOrderFromConversation(),
       // this.ragSearch()
     ];

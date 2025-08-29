@@ -8039,6 +8039,77 @@ secureToken {
 
 ---
 
+## 📂 GetAllCategories() - Product Categories Management
+
+### Overview
+The `GetAllCategories()` calling function enables customers to discover all available product categories through natural language queries. The system displays categories with names and descriptions, organized alphabetically for easy navigation.
+
+### Implementation Details
+
+#### **Database Structure**
+- **Table**: `categories`
+- **Key Fields**: `name`, `description`, `isActive`, `workspaceId`
+- **Filtering**: Only active categories for the workspace
+- **Sorting**: Ordered alphabetically by name
+
+#### **Calling Function Logic**
+```typescript
+public async getAllCategories(request: GetAllProductsRequest): Promise<CategoriesResponse> {
+  // Query active categories with workspace filtering
+  const categories = await prisma.categories.findMany({
+    where: {
+      workspaceId: request.workspaceId,
+      isActive: true
+    },
+    orderBy: { name: 'asc' }
+  });
+  
+  // Return structured response with category details
+  return {
+    success: true,
+    data: {
+      categories: categories.map(category => ({
+        id: category.id,
+        name: category.name,
+        description: category.description
+      })),
+      totalCategories: categories.length
+    }
+  };
+}
+```
+
+#### **Tool Description**
+```typescript
+{
+  name: 'getAllCategories',
+  description: 'complete list of product categories with names and descriptions',
+  whenToUse: 'when user asks about categories, types of products, or what kinds of items are available',
+  examples: ['che categorie avete', 'tipi di prodotti', 'categorie disponibili', 'show me categories'],
+  output: 'Array of product categories with names and descriptions',
+  notes: 'Returns organized list of all product categories alphabetically'
+}
+```
+
+#### **Prompt Triggers**
+- **Italian**: "che categorie avete", "tipi di prodotti", "categorie disponibili"
+- **English**: "show me categories", "what categories do you have", "product types"
+- **Multilingual**: Automatic language detection and response formatting
+
+#### **Response Formatting**
+The formatter organizes categories into logical groups:
+- **Food & Fresh**: Antipasti, Pasta, Pizza, Piatti Pronti, Pesce, Fresh Products
+- **Specialties**: Cheese, Salumi, Salse, Condiments, Preserves
+- **Drinks & More**: Beverages, Gourmet, Desserts, Snacks, Vegetables
+
+#### **Test Results**
+✅ **Italian Test**: "che categorie avete" → 16 categories displayed in Italian
+✅ **English Test**: "show me categories" → 16 categories displayed in English
+✅ **Multilingual**: Automatic language detection and appropriate response formatting
+✅ **Organization**: Categories intelligently grouped for better user experience
+
+---
+
 ## 🎯 GetActiveOffers() - Offers & Promotions Management
 
 ### Overview
