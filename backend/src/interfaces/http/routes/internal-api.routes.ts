@@ -393,7 +393,13 @@ router.get(
   internalApiController.testSimpleSearchGet.bind(internalApiController)
 )
 
-// 📋 GET ALL PRODUCTS - For N8N getAllProducts Tool (Andrea's Request)
+// � SEARCH RAG - For N8N SearchRag Tool (CF/SearchRag endpoint)
+router.post(
+  "/CF/SearchRag",
+  internalApiController.ragSearch.bind(internalApiController)
+)
+
+// �📋 GET ALL PRODUCTS - For N8N getAllProducts Tool (Andrea's Request)
 router.post(
   "/get-all-products",
   internalApiController.getAllProducts.bind(internalApiController)

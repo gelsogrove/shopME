@@ -23,7 +23,7 @@ export class TranslationService {
         messages: [
           {
             role: 'system',
-            content: 'You are a translator. Translate the user\'s message to English. Return ONLY the English translation, no explanations.'
+            content: 'You are a translator for an e-commerce platform. Translate the user\'s message to English using e-commerce terminology. For questions about delivery times, shipping, receiving goods, use keywords like "delivery time", "shipping time", "delivery", "shipping". Return ONLY the English translation, no explanations.'
           },
           {
             role: 'user',
@@ -53,10 +53,11 @@ export class TranslationService {
   }
 
   private isEnglish(text: string): boolean {
-    const englishWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'];
+    const englishWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'how', 'what', 'when', 'where', 'why', 'which', 'that', 'this', 'is', 'are', 'do', 'does', 'can', 'will', 'would', 'should'];
     const words = text.toLowerCase().split(/\s+/);
     const englishWordCount = words.filter(word => englishWords.includes(word)).length;
     
-    return englishWordCount > 0 || /^[a-zA-Z\s\?\!\.]+$/.test(text);
+    // Return true only if we find actual English words, not just latin characters
+    return englishWordCount > 0;
   }
 }

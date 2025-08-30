@@ -189,20 +189,7 @@ if (process.env.NODE_ENV !== "test") {
 
 // Agent routes are now handled by the modular router system
 
-// Versioned routes
-app.use("/api/v1", apiRouter)
-
-// Default version route (current version)
-app.use("/api", apiRouter)
-
-
-
-// Mount workspace routes directly at root for legacy compatibility
-import workspaceRoutesRoot from "./routes/workspace.routes"
-app.use("/workspaces", workspaceRoutesRoot)
-
-// ANDREA TEST: Endpoint per testare DualLLMService direttamente
-
+// ANDREA TEST: Endpoint per testare DualLLMService direttamente (PRIMA del routing API per evitare auth)
 app.post("/api/test/dual-llm", async (req, res) => {
   try {
     console.error('🚨🚨🚨 ANDREA TEST: DUAL LLM DIRECT TEST!!! 🚨🚨🚨');
@@ -210,7 +197,7 @@ app.post("/api/test/dual-llm", async (req, res) => {
     const dualLLMService = new DualLLMService();
     
     const llmRequest: LLMRequest = {
-      chatInput: req.body.messageContent || "che servizi avete",
+      chatInput: req.body.messageContent || req.body.message || "che servizi avete",
       workspaceId: req.body.workspaceId || "cm9hjgq9v00014qk8fsdy4ujv", 
       customerid: req.body.customerId || "test-customer",
       phone: "+1234567890",
@@ -239,7 +226,58 @@ app.post("/api/test/dual-llm", async (req, res) => {
       stack: error instanceof Error ? error.stack : undefined
     });
   }
-});
+})
+
+// Versioned routes
+app.use("/api/v1", apiRouter)
+
+// Default version route (current version)
+app.use("/api", apiRouter)
+
+
+
+// Mount workspace routes directly at root for legacy compatibility
+import workspaceRoutesRoot from "./routes/workspace.routes"
+app.use("/workspaces", workspaceRoutesRoot)
+
+// ANDREA TEST: Endpoint per testare DualLLMService direttamente (PRIMA del routing API per evitare auth)
+app.post("/test/dual-llm", async (req, res) => {
+  try {
+    console.error('🚨🚨🚨 ANDREA TEST: DUAL LLM DIRECT TEST!!! 🚨🚨🚨');
+    
+    const dualLLMService = new DualLLMService();
+    
+    const llmRequest: LLMRequest = {
+      chatInput: req.body.query || req.body.messageContent || req.body.message || "che servizi avete",
+      workspaceId: req.body.workspaceId || "cm9hjgq9v00014qk8fsdy4ujv", 
+      customerid: req.body.customerId || "test-customer",
+      phone: "+1234567890",
+      language: "it",
+      sessionId: "test-session",
+      temperature: 0.0,
+      maxTokens: 3500,
+      model: "gpt-4o",
+      messages: [],
+      prompt: "Test prompt"
+    };
+    
+    console.error('🚨🚨🚨 CALLING DUAL LLM SERVICE!!! 🚨🚨🚨');
+    const result = await dualLLMService.processMessage(llmRequest);
+    console.error('🚨🚨🚨 DUAL LLM RESULT!!! 🚨🚨🚨');
+    
+    res.json({ 
+      success: true, 
+      message: result.output,
+      debug: { llmRequest, result }
+    });
+  } catch (error) {
+    console.error('❌ DUAL LLM TEST ERROR:', error);
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
+  }
+})
 
 // Endpoint di test per OpenAI
 app.get("/api/test/openai", async (req, res) => {

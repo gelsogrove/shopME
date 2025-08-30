@@ -1,9 +1,13 @@
+import axios from 'axios';
 import { SecureTokenService } from '../application/services/secure-token.service';
+import { TranslationService } from './translation.service';
 import {
     CategoriesResponse,
     ErrorResponse,
     OffersResponse,
     ProductsResponse,
+    RagSearchRequest,
+    RagSearchResponse,
     ServicesResponse,
     StandardResponse,
     SuccessResponse,
@@ -556,31 +560,45 @@ export class CallingFunctionsService {
   //   }
   // }
 
-  // public async ragSearch(request: RagSearchRequest): Promise<RagSearchResponse> {
-  //   try {
-  //     console.log('🔧 Calling ragSearch with:', request);
+  public async SearchRag(request: RagSearchRequest): Promise<RagSearchResponse> {
+    try {
+      console.log('🔧 Calling SearchRag with:', request);
       
-  //     const response = await axios.post(`${this.baseUrl}/rag-search`, {
-  //       query: request.query,
-  //       workspaceId: request.workspaceId,
-  //       customerId: request.customerId,
-  //       messages: request.messages
-  //     }, {
-  //       timeout: 15000
-  //     });
+      // Translate query to English for better search results
+      const translationService = new TranslationService();
+      const translatedQuery = await translationService.translateToEnglish(request.query);
+      console.log('🌐 Translated query:', translatedQuery);
+      
+      const response = await axios.post(`${this.baseUrl}/rag-search`, {
+        query: translatedQuery, // Use translated query
+        workspaceId: request.workspaceId,
+        customerId: request.customerId,
+        businessType: "ECOMMERCE", // Default business type
+        customerLanguage: "en" // Use English for search
+      }, {
+        timeout: 15000
+      });
 
-  //     return {
-  //       success: true,
-  //       results: response.data.results || {},
-  //       query: request.query,
-  //       translatedQuery: response.data.translatedQuery,
-  //       timestamp: new Date().toISOString()
-  //     };
+      console.log('✅ SearchRag response received:', {
+        hasResults: !!response.data.results,
+        originalQuery: request.query,
+        translatedQuery: translatedQuery,
+        resultsCount: response.data.results ? Object.keys(response.data.results).length : 0
+      });
 
-  //   } catch (error) {
-  //     return this.createErrorResponse(error, 'ragSearch') as RagSearchResponse;
-  //   }
-  // }
+      return {
+        success: true,
+        results: response.data || {},
+        query: request.query,
+        translatedQuery: translatedQuery,
+        timestamp: new Date().toISOString()
+      };
+
+    } catch (error) {
+      console.error('❌ Error in SearchRag:', error);
+      return this.createErrorResponse(error, 'SearchRag') as RagSearchResponse;
+    }
+  }
 
   public async getShipmentTrackingLink(request: GetShipmentTrackingLinkRequest): Promise<TokenResponse> {
     try {
