@@ -476,6 +476,7 @@ export function WhatsAppChatModal({
             sender: "user",
             timestamp: new Date().toISOString(),
             agentName: "AI Assistant",
+            translatedQuery: response.data.debug?.result?.translatedQuery,
             functionCalls: response.data.debug?.result?.functionCalls || [],
             metadata: {
               isOperatorMessage: false,
@@ -855,6 +856,18 @@ export function WhatsAppChatModal({
                               <div className="text-xs font-semibold text-gray-600 mb-1">
                                 🔧 Function Calls ({totalFunctionCalls})
                               </div>
+                              
+                              {/* Translated Query Debug Info */}
+                              {message.translatedQuery && message.translatedQuery !== message.content && (
+                                <div className="mb-2 p-1 bg-yellow-50 rounded border border-yellow-200">
+                                  <div className="text-xs font-semibold text-yellow-700">
+                                    🌐 Translated Query:
+                                  </div>
+                                  <div className="text-xs text-yellow-600 mt-1">
+                                    {message.translatedQuery}
+                                  </div>
+                                </div>
+                              )}
                               
                               {/* Regular function calls */}
                               {otherFunctionCalls.map((fc, index) => (

@@ -13,6 +13,7 @@ export class DualLLMService {
   private openRouterApiKey: string;
   private openRouterUrl: string;
   private backendUrl: string;
+  private lastTranslatedQuery: string = '';
 
   constructor() {
     this.toolDescriptionsService = new ToolDescriptionsService();
@@ -48,6 +49,10 @@ export class DualLLMService {
       if (!ragResult.success) {
         console.log('⚠️ Both processors failed, using generic fallback response');
         // STAGE 3: GENERIC FALLBACK - Never return error, always provide helpful response
+        // Set a default translated query for generic fallback
+        if (!this.lastTranslatedQuery) {
+          this.lastTranslatedQuery = await this.translationService.translateForSearchRag(request.chatInput);
+        }
         const genericResponse = await this.executeGenericFallback(request);
         return {
           output: genericResponse,
@@ -57,7 +62,8 @@ export class DualLLMService {
             source: 'generic',
             functionName: 'Generic Fallback',
             result: 'No specific function or SearchRag results found, providing generic helpful response'
-          }]
+          }],
+          translatedQuery: this.lastTranslatedQuery
         };
       }
       
@@ -69,7 +75,8 @@ export class DualLLMService {
       return {
         output: formattedResponse,
         success: true,
-        functionCalls: ragResult.functionResults || []
+        functionCalls: ragResult.functionResults || [],
+        translatedQuery: this.lastTranslatedQuery
       };
       
     } catch (error) {
@@ -77,7 +84,8 @@ export class DualLLMService {
       console.error('❌ Error stack:', error.stack);
       return {
         output: 'Mi dispiace, si è verificato un errore. Riprova più tardi.',
-        success: false
+        success: false,
+        translatedQuery: this.lastTranslatedQuery || request.chatInput
       };
     }
   }
@@ -88,6 +96,7 @@ export class DualLLMService {
     try {
       // Translate query
       const translatedQuery = await this.translationService.translateToEnglish(request.chatInput);
+      this.lastTranslatedQuery = translatedQuery; // Store for debug
       console.log('🔧 Translated query:', translatedQuery);
       
       // Get function definitions
@@ -170,11 +179,15 @@ export class DualLLMService {
     console.log('🔧🔧🔧 SEARCHRAG FALLBACK STARTED 🔧🔧🔧');
     
     try {
+      // Translate query specifically for SearchRag with language detection
+      const translatedQuery = await this.translationService.translateForSearchRag(request.chatInput);
+      this.lastTranslatedQuery = translatedQuery; // Store for debug
+
       // Use SearchRag for semantic search - try multiple sources
       const [productResults, serviceResults, faqResults] = await Promise.all([
-        this.embeddingService.searchProducts(request.chatInput, request.workspaceId, 2),
-        this.embeddingService.searchServices(request.chatInput, request.workspaceId, 2),
-        this.embeddingService.searchFAQs(request.chatInput, request.workspaceId, 2)
+        this.embeddingService.searchProducts(translatedQuery, request.workspaceId, 2),
+        this.embeddingService.searchServices(translatedQuery, request.workspaceId, 2),
+        this.embeddingService.searchFAQs(translatedQuery, request.workspaceId, 2)
       ]);
       
       const allResults = [

@@ -4,6 +4,7 @@ export interface Message {
   sender: "user" | "customer"
   timestamp: string
   agentName?: string
+  translatedQuery?: string
   functionCalls?: Array<{
     functionName: string
     toolCall?: {

@@ -16,6 +16,7 @@ export interface LLMResponse {
   output: string;
   success: boolean;
   functionCalls?: any[];
+  translatedQuery?: string;
 }
 
 export interface FunctionCall {
