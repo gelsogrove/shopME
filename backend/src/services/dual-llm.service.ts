@@ -4,26 +4,6 @@ import { CallingFunctionsService } from './calling-functions.service';
 import { ToolDescriptionsService } from './tool-descriptions.service';
 import { TranslationService } from './translation.service';
 
-/*
-CRITICAL RULES:
-1. Call specific functions ONLY when the request clearly matches
-2. For product lists/catalogs → CALL getAllProducts()
-3. For services lists → CALL getServices()
-4. For orders/order history → CALL getOrdersListLink()
-5. For address/profile/email changes → CALL getCustomerProfileLink()
-6. For offers/discounts → CALL getActiveOffers()
-7. For categories → CALL getAllCategories()
-8. For human assistance → CALL contactOperator()
-9. For tracking SPECIFIC orders with order code → CALL getShipmentTrackingLink()
-10. If request doesn't clearly match any function → DON'T call anything (fallback will handle)
-
-EXAMPLES:
-- "dammi la lista dei prodotti" → CALL getAllProducts()
-- "voglio cambiare indirizzo" → CALL getCustomerProfileLink()
-- "modificare email" → CALL getCustomerProfileLink()
-- "voglio modificare la mia mail" → CALL getCustomerProfileLink()
-*/
-
 export class DualLLMService {
   private toolDescriptionsService: ToolDescriptionsService;
   private callingFunctionsService: CallingFunctionsService;
@@ -112,7 +92,7 @@ export class DualLLMService {
           }
         ],
         tools: functionDefinitions,
-        tool_choice: 'auto',
+        tool_choice: 'required',
         temperature: agentConfig.temperature || 0.0,
         max_tokens: agentConfig.maxTokens || 1000
       };
@@ -139,99 +119,18 @@ export class DualLLMService {
       
       console.log('🔧 Tool calls found:', toolCalls.length);
       
-      // STRATEGIA SearchRag-FIRST: Prova sempre SearchRag per primo
-      console.log('� ALWAYS trying SearchRag first with translated query');
-      
-      const searchRagResult = await this.callingFunctionsService.SearchRag({
-        query: translatedQuery,
-        workspaceId: request.workspaceId,
-        customerId: request.customerid,
-        messages: request.messages
-      });
-      
-      console.log('🔍 SearchRag result:', JSON.stringify(searchRagResult, null, 2));
-      
-      // Check if SearchRag found useful results with HIGHER THRESHOLD
-      const ragResults: any = searchRagResult?.results || {};
-      const hasProducts = ragResults.products && ragResults.products.length > 0;
-      const hasFAQs = ragResults.faqs && ragResults.faqs.length > 0;
-      const hasDocuments = ragResults.documents && ragResults.documents.length > 0;
-      const hasServices = ragResults.services && ragResults.services.length > 0;
-      
-      // MUCH HIGHER THRESHOLD: Be very selective about what counts as "significant"
-      const hasRelevantProducts = ragResults.products && ragResults.products.length >= 4; // At least 4 products
-      const hasRelevantFAQs = ragResults.faqs && ragResults.faqs.length >= 2; // At least 2 FAQs
-      const hasRelevantServices = ragResults.services && ragResults.services.length >= 3; // At least 3 services
-      
-      // Documents should almost NEVER be considered relevant - they are usually generic legal docs
-      const hasRelevantDocuments = ragResults.documents && ragResults.documents.length >= 100 && 
-                                   !hasProducts && !hasFAQs && !hasServices;
-      
-      const hasSignificantResults = hasRelevantProducts || hasRelevantFAQs || hasRelevantServices || hasRelevantDocuments;
-      
-      console.log('🔍 SearchRag relevance analysis:', {
-        products: `${ragResults.products?.length || 0} (relevant: ${hasRelevantProducts})`,
-        faqs: `${ragResults.faqs?.length || 0} (relevant: ${hasRelevantFAQs})`,
-        services: `${ragResults.services?.length || 0} (relevant: ${hasRelevantServices})`,
-        documents: `${ragResults.documents?.length || 0} (relevant: ${hasRelevantDocuments})`,
-        hasSignificantResults
-      });
-      
-      if (hasSignificantResults) {
-        console.log('✅ SearchRag found SIGNIFICANT results - using SearchRag response');
-        
-        const searchResults = [{
-          functionName: 'SearchRag',
-          arguments: { query: translatedQuery },
-          result: searchRagResult
-        }];
-        
-        return {
-          functionResults: searchResults,
-          success: true
-        };
+      if (toolCalls.length === 0) {
+        console.log('⚠️ No tool calls detected - forcing error');
+        throw new Error('No tool calls detected - LLM must call GetOrdersListLink for order requests');
       }
       
-      // If SearchRag found nothing significant BUT we have tool calls, execute them
-      console.log('⚠️ SearchRag found insufficient results - checking tool calls');
-      if (toolCalls.length > 0) {
-        console.log('🔧 Executing tool calls because SearchRag results were not significant enough');
-        const toolResults = await this.executeToolCalls(toolCalls, request);
-        console.log('✅ Tool call results:', JSON.stringify(toolResults, null, 2));
-        
-        return {
-          functionResults: toolResults,
-          success: true
-        };
-      }
-      
-      // If SearchRag found SOME significant results (not just documents) AND no tool calls, show SearchRag results
-      if ((hasProducts || hasFAQs || hasServices || hasRelevantDocuments) && toolCalls.length === 0) {
-        console.log('📋 SearchRag found SOME meaningful results and no tool calls - showing SearchRag results anyway');
-        
-        const searchResults = [{
-          functionName: 'SearchRag',
-          arguments: { query: translatedQuery },
-          result: searchRagResult
-        }];
-        
-        return {
-          functionResults: searchResults,
-          success: true
-        };
-      }
-      
-      // Fallback: return SearchRag result anyway
-      console.log('⚠️ No significant SearchRag results and no tool calls - returning basic SearchRag result');
-      
-      const fallbackResults = [{
-        functionName: 'SearchRag',
-        arguments: { query: translatedQuery },
-        result: searchRagResult
-      }];
+      // Execute tool calls
+      console.log('🔧 Executing tool calls...');
+      const results = await this.executeToolCalls(toolCalls, request);
+      console.log('✅ Tool call results:', JSON.stringify(results, null, 2));
       
       return {
-        functionResults: fallbackResults,
+        functionResults: results,
         success: true
       };
       
@@ -287,7 +186,7 @@ export class DualLLMService {
   private buildRAGProcessorSystemMessage(): string {
     return `You are a Function Calling Agent for ShopMe WhatsApp Bot.
 
-MISSION: You MUST call functions for specific requests. If no specific function matches, let the fallback system handle it.
+MISSION: You MUST call functions to get real data. NEVER respond with text.
 
 AVAILABLE FUNCTIONS:
 ${this.toolDescriptionsService.getToolDescriptions().map(tool => 
@@ -295,38 +194,27 @@ ${this.toolDescriptionsService.getToolDescriptions().map(tool =>
 ).join('\n')}
 
 CRITICAL RULES:
-1. Call specific functions ONLY when the request clearly matches
-2. For product lists/catalogs → CALL getAllProducts()
-3. For services lists → CALL getServices()
-4. For orders/order history → CALL getOrdersListLink()
-5. For address/profile changes → CALL getCustomerProfileLink()
-6. For offers/discounts → CALL getActiveOffers()
-7. For categories → CALL getAllCategories()
-8. For human assistance → CALL contactOperator()
-9. For tracking SPECIFIC orders with order code → CALL getShipmentTrackingLink()
-10. If request doesn't clearly match any function → DON'T call anything (fallback will handle)
+1. ALWAYS call a function - NEVER respond with text
+2. For ANY product-related request → CALL getAllProducts()
+3. For ANY service-related request → CALL getServices()
+4. For ANY order-related request → CALL getOrdersListLink()
+5. For ANY profile/address change → CALL getCustomerProfileLink()
+6. For ANY general questions → CALL ragSearch()
+7. For ANY human assistance → CALL contactOperator()
 
 EXAMPLES:
 - "dammi la lista dei prodotti" → CALL getAllProducts()
 - "che prodotti avete" → CALL getAllProducts()
+- "dammi prodotti" → CALL getAllProducts()
 - "catalogo" → CALL getAllProducts()
 - "dammi link ordini" → CALL getOrdersListLink()
 - "dammi link 20006" → CALL getOrdersListLink() with orderCode: "20006"
 - "voglio cambiare indirizzo" → CALL getCustomerProfileLink()
-- "modificare email" → CALL getCustomerProfileLink()
-- "voglio modificare la mia mail" → CALL getCustomerProfileLink()
-- "cambiare dati personali" → CALL getCustomerProfileLink()
 - "voglio parlare con un operatore" → CALL contactOperator()
-- "traccia ordine 12345" → CALL getShipmentTrackingLink() with orderCode: "12345"
-- "tracking del mio ordine ABC123" → CALL getShipmentTrackingLink() with orderCode: "ABC123"
-- "quanto ci vuole per la consegna" → NO FUNCTION (let fallback handle)
-- "in quanto tempo arriva la merce" → NO FUNCTION (let fallback handle)
-- "tempi di consegna" → NO FUNCTION (let fallback handle)
-- "dimmi di più sulla mozzarella" → NO FUNCTION (let fallback handle)
 
-IMPORTANT: Only call functions for clear, specific requests. Unclear requests will be handled by fallback search.
+IMPORTANT: "dammi prodotti" MUST call getAllProducts(), NOT ragSearch()
 
-RESPOND ONLY WITH FUNCTION CALLS OR NO CALLS.`;
+RESPOND ONLY WITH FUNCTION CALLS.`;
   }
 
   private buildFormatterSystemMessage(): string {
@@ -342,7 +230,6 @@ RULES:
 5. Keep responses concise but informative
 6. LANGUAGE RULE: Respond in the SAME language as the user's input. If user writes in English, respond in English. If user writes in Italian, respond in Italian. If user writes in Spanish, respond in Spanish, etc.
 7. If user asks for a "tabella" or "table", create a formatted table using ASCII characters
-8. CRITICAL: NEVER modify numbers, prices, delivery times, or dates from the provided data. Use EXACTLY the numbers as given. If data says "3-5 business days" write "3-5 giorni lavorativi" (or "3-5 business days" in English). DO NOT change "3-5" to "2-3" or "24-48 hours".
 
 LINK FORMATTING FOR WHATSAPP:
 - Use plain URLs: https://example.com
@@ -404,8 +291,6 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
     let offers = null;
     let categories = null;
     let operatorEscalation = null;
-    let ragFAQs = null;
-    let ragDocuments = null;
     
     if (ragResult.functionResults && ragResult.functionResults.length > 0) {
       for (const result of ragResult.functionResults) {
@@ -447,50 +332,10 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
         else if (result.functionName === 'contactOperator' && result.result?.data) {
           operatorEscalation = result.result.data;
         }
-        else if (result.functionName === 'SearchRag' && result.result?.results) {
-          // SearchRag returns products, faqs, services, documents
-          const ragResults = result.result.results;
-          
-          if (ragResults.products && ragResults.products.length > 0) {
-            products = ragResults.products;
-          }
-          if (ragResults.services && ragResults.services.length > 0) {
-            services = ragResults.services;
-          }
-          if (ragResults.faqs && ragResults.faqs.length > 0) {
-            ragFAQs = ragResults.faqs;
-          }
-          if (ragResults.documents && ragResults.documents.length > 0) {
-            ragDocuments = ragResults.documents;
-          }
-        }
       }
     }
     
     let dataDescription = `User asked: "${request.chatInput}"`;
-    
-    // Handle SearchRag FAQ and document results
-    if (ragFAQs && ragFAQs.length > 0) {
-      dataDescription += `\n\nI found ${ragFAQs.length} relevant FAQ answers:`;
-      ragFAQs.slice(0, 3).forEach((faq: any) => {
-        dataDescription += `\n- Q: ${faq.question}`;
-        dataDescription += `\n  A: ${faq.answer}`;
-      });
-    }
-    if (ragDocuments && ragDocuments.length > 0) {
-      dataDescription += `\n\nI found ${ragDocuments.length} relevant documents:`;
-      ragDocuments.slice(0, 2).forEach((doc: any) => {
-        dataDescription += `\n- ${doc.title}: ${doc.content.substring(0, 200)}...`;
-      });
-    }
-    
-    // If SearchRag was used but found nothing
-    if (ragResult.functionResults && ragResult.functionResults.length > 0) {
-      const searchRagUsed = ragResult.functionResults.some(r => r.functionName === 'SearchRag');
-      if (searchRagUsed && !products && !services && !ragFAQs && !ragDocuments) {
-        dataDescription += `\n\nI searched our database but couldn't find specific information about "${request.chatInput}". Provide a helpful general response or suggest contacting support.`;
-      }
-    }
     
     if (orderError) {
       dataDescription += `\n\nERROR: ${orderError}`;
@@ -679,17 +524,17 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
               customerId: request.customerid
             });
             break;
-          case 'SearchRag':
-            result = await this.callingFunctionsService.SearchRag({
-              query: arguments_.query || request.chatInput,
-              workspaceId: request.workspaceId,
-              customerId: request.customerid,
-              messages: request.messages
-            });
-            break;
           // case 'confirmOrderFromConversation':
           //   result = await this.callingFunctionsService.confirmOrderFromConversation({
           //     query: request.chatInput,
+          //     workspaceId: request.workspaceId,
+          //     customerId: request.customerid,
+          //     messages: request.messages
+          //   });
+          //   break;
+          // case 'ragSearch':
+          //   result = await this.callingFunctionsService.ragSearch({
+          //     query: arguments_.query || request.chatInput,
           //     workspaceId: request.workspaceId,
           //     customerId: request.customerid,
           //     messages: request.messages
@@ -726,46 +571,6 @@ RESPOND IN NATURAL LANGUAGE ONLY.`;
     
     if (ragResult.functionResults && ragResult.functionResults.length > 0) {
       const result = ragResult.functionResults[0];
-      
-      if (result.functionName === 'SearchRag' && result.result?.results) {
-        const searchResults = result.result.results;
-        let response = '';
-        
-        // Handle products
-        if (searchResults.products && searchResults.products.length > 0) {
-          response += '🧀 Ecco i prodotti che abbiamo trovato:\n\n';
-          searchResults.products.slice(0, 5).forEach((product: any) => {
-            response += `📦 **${product.name}** - €${product.finalPrice}\n`;
-            if (product.description) {
-              response += `   ${product.description.substring(0, 100)}...\n`;
-            }
-            response += '\n';
-          });
-          return response;
-        }
-        
-        // Handle FAQs
-        if (searchResults.faqs && searchResults.faqs.length > 0) {
-          response += '❓ Ecco le informazioni che ho trovato:\n\n';
-          searchResults.faqs.slice(0, 3).forEach((faq: any) => {
-            response += `**${faq.question}**\n${faq.answer}\n\n`;
-          });
-          return response;
-        }
-        
-        // Handle services
-        if (searchResults.services && searchResults.services.length > 0) {
-          response += '🔧 Ecco i servizi disponibili:\n\n';
-          searchResults.services.slice(0, 3).forEach((service: any) => {
-            response += `**${service.name}** - €${service.price}\n`;
-            if (service.description) {
-              response += `   ${service.description}\n`;
-            }
-            response += '\n';
-          });
-          return response;
-        }
-      }
       
       if (result.functionName === 'getServices' && result.result?.services) {
         const services = result.result.services;
