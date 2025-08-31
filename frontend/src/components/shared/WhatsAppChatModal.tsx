@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { getWorkspaceId } from "@/config/workspace.config"
 import { logger } from "@/lib/logger"
 import { api } from "@/services/api"
+import { Message, Chat } from "@/types/chat"
 import axios from "axios"
 import { MessageCircle, Send, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
@@ -21,37 +22,6 @@ import remarkGfm from "remark-gfm"
 // Define a global variable to store the current session ID
 // This will persist across modal closes/opens but not page refreshes
 let globalSessionId: string | null = null
-
-interface Message {
-  id: string
-  content: string
-  sender: "user" | "customer"
-  timestamp: Date
-  agentName?: string
-  metadata?: {
-    isOperatorMessage?: boolean
-    isOperatorControl?: boolean
-    agentSelected?: string
-    sentBy?: string
-    operatorId?: string
-  }
-}
-
-// Interface for selected chat from chat history
-interface Chat {
-  id: string
-  sessionId: string
-  customerId: string
-  customerName: string
-  customerPhone: string
-  companyName?: string
-  lastMessage: string
-  lastMessageTime: string
-  unreadCount: number
-  isActive: boolean
-  isFavorite: boolean
-  messages?: Message[]
-}
 
 interface WhatsAppChatModalProps {
   isOpen: boolean
@@ -79,6 +49,7 @@ export function WhatsAppChatModal({
   const [localSelectedChat, setLocalSelectedChat] = useState<Chat | null>(null)
   // Use the global session ID if available
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [showFunctionCalls, setShowFunctionCalls] = useState(false)
 
   // Check if we have a valid workspace ID
   const currentWorkspaceId = getWorkspaceId(workspaceId)
@@ -290,7 +261,7 @@ export function WhatsAppChatModal({
       id: (Date.now() + 100).toString(),
       content: initialMessage,
       sender: "customer", // Changed from "user" to "customer" for initial message
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       metadata: {
         isOperatorMessage: false,
         isOperatorControl: false,
@@ -352,13 +323,15 @@ export function WhatsAppChatModal({
           id: (Date.now() + 200).toString(),
           content: response.data.data.processedMessage,
           sender: "user",
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
           agentName: "AI Assistant",
+          functionCalls: response.data.data.functionCalls || [],
           metadata: {
             isOperatorMessage: false,
             isOperatorControl: false,
             agentSelected: "CHATBOT",
-            sentBy: "AI"
+            sentBy: "AI",
+            functionCalls: response.data.data.functionCalls
           }
         }
 
@@ -375,7 +348,7 @@ export function WhatsAppChatModal({
           content:
             "Sorry, there was an error processing your message. Please try again later.",
           sender: "user",
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
           agentName: "System",
           metadata: {
             isOperatorMessage: false,
@@ -396,7 +369,7 @@ export function WhatsAppChatModal({
         content:
           "Sorry, there was an error processing your message. Please try again later.",
         sender: "user",
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
         agentName: "System",
         metadata: {
           isOperatorMessage: false,
@@ -451,7 +424,7 @@ export function WhatsAppChatModal({
       id: Date.now().toString(),
       content: currentMessage,
       sender: "customer",
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       metadata: {
         isOperatorMessage: false,
         isOperatorControl: false,
@@ -501,13 +474,15 @@ export function WhatsAppChatModal({
             id: (Date.now() + 1).toString(),
             content: botResponse,
             sender: "user",
-            timestamp: new Date(),
+            timestamp: new Date().toISOString(),
             agentName: "AI Assistant",
+            functionCalls: response.data.debug?.result?.functionCalls || [],
             metadata: {
               isOperatorMessage: false,
               isOperatorControl: false,
               agentSelected: "CHATBOT",
-              sentBy: "AI"
+              sentBy: "AI",
+              functionCalls: response.data.debug?.result?.functionCalls || []
             }
           }
 
@@ -526,7 +501,7 @@ export function WhatsAppChatModal({
           content:
             "Sorry, there was an error processing your message. Please try again later.",
           sender: "user",
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
           agentName: "System",
           metadata: {
             isOperatorMessage: false,
@@ -547,7 +522,7 @@ export function WhatsAppChatModal({
         content:
           "Sorry, there was an error processing your message. Please try again later.",
         sender: "user",
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
         agentName: "System",
         metadata: {
           isOperatorMessage: false,
@@ -620,13 +595,29 @@ export function WhatsAppChatModal({
               {userPhoneNumber || channelName}
             </span>
           </div>
-          <button
-            onClick={onClose}
-            className="text-white hover:bg-green-600 rounded-full p-2 transition"
-            aria-label="Close"
-          >
-            <X className="h-6 w-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Function Calls Toggle - Debug Mode */}
+            <button
+              onClick={() => {
+                console.log('Toggle clicked, current state:', showFunctionCalls)
+                setShowFunctionCalls(!showFunctionCalls)
+              }}
+              className={`text-white hover:bg-white/20 rounded-lg px-3 py-1.5 transition-all duration-200 ${
+                showFunctionCalls ? 'bg-white/30 shadow-inner' : 'bg-white/10'
+              }`}
+              aria-label="Toggle Function Calls"
+              title="Show/Hide Function Calls Debug"
+            >
+              <span className="text-xs font-semibold tracking-wide">DEBUG</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="text-white hover:bg-green-600 rounded-full p-2 transition"
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
         </div>
 
         {!chatStarted ? (
@@ -819,7 +810,7 @@ export function WhatsAppChatModal({
 
                         <div className="flex justify-between items-center mt-1">
                           <span className="text-[10px] opacity-70">
-                            {message.timestamp.toLocaleTimeString([], {
+                            {new Date(message.timestamp).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
                             })}
@@ -850,6 +841,75 @@ export function WhatsAppChatModal({
                             )}
                           </div>
                         </div>
+
+                        {/* 🔧 Function Calls Debug Info */}
+                        {showFunctionCalls && message.functionCalls && message.functionCalls.length > 0 && (() => {
+                          // Group SearchRag results together
+                          const searchRagResults = message.functionCalls.filter(fc => fc.type === 'searchrag_result');
+                          const otherFunctionCalls = message.functionCalls.filter(fc => fc.type !== 'searchrag_result');
+                          
+                          const totalFunctionCalls = searchRagResults.length > 0 ? otherFunctionCalls.length + 1 : otherFunctionCalls.length;
+                          
+                          return (
+                            <div className="mt-2 p-2 bg-gray-100 rounded-md border border-gray-200">
+                              <div className="text-xs font-semibold text-gray-600 mb-1">
+                                🔧 Function Calls ({totalFunctionCalls})
+                              </div>
+                              
+                              {/* Regular function calls */}
+                              {otherFunctionCalls.map((fc, index) => (
+                                <div key={`other-${index}`} className="mb-2 last:mb-0">
+                                  <div className="text-xs font-mono bg-blue-50 p-1 rounded border">
+                                    <span className="text-blue-700 font-semibold">
+                                      {fc.functionName || fc.toolCall?.function?.name || 
+                                       (fc.source === 'generic' ? '💬 Generic Fallback' : fc.type || 'Unknown')}
+                                    </span>
+                                    {fc.toolCall?.function?.arguments && (
+                                      <div className="text-gray-600 mt-1">
+                                        Args: {fc.toolCall.function.arguments}
+                                      </div>
+                                    )}
+                                    {fc.type && fc.type !== 'searchrag_result' && (
+                                      <div className="text-gray-600 mt-1">
+                                        Type: {fc.type} | Source: {fc.source || 'unknown'}
+                                      </div>
+                                    )}
+                                  </div>
+                                  {fc.result && (
+                                    <div className="text-xs mt-1 p-1 bg-green-50 rounded border text-green-800">
+                                      <div className="font-semibold">Result:</div>
+                                      <div className="font-mono text-xs overflow-x-auto">
+                                        {typeof fc.result === 'object' 
+                                          ? JSON.stringify(fc.result, null, 2)
+                                          : String(fc.result)
+                                        }
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                              
+                              {/* SearchRag results grouped together */}
+                              {searchRagResults.length > 0 && (
+                                <div className="mb-2 last:mb-0">
+                                  <div className="text-xs font-mono bg-blue-50 p-1 rounded border">
+                                    <span className="text-blue-700 font-semibold">
+                                      🔍 SearchRag
+                                    </span>
+                                    <div className="text-gray-600 mt-1">
+                                      Found {searchRagResults.length} results:
+                                    </div>
+                                    {searchRagResults.map((fc, index) => (
+                                      <div key={`searchrag-${index}`} className="text-gray-600 mt-1 ml-2">
+                                        • {fc.data?.sourceName || 'Product'} (similarity: {fc.data?.similarity?.toFixed(2) || 'N/A'})
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   )

@@ -3,11 +3,13 @@ import { LLMRequest, LLMResponse } from '../types/whatsapp.types';
 import { CallingFunctionsService } from './calling-functions.service';
 import { ToolDescriptionsService } from './tool-descriptions.service';
 import { TranslationService } from './translation.service';
+import { EmbeddingService } from './embeddingService';
 
 export class DualLLMService {
   private toolDescriptionsService: ToolDescriptionsService;
   private callingFunctionsService: CallingFunctionsService;
   private translationService: TranslationService;
+  private embeddingService: EmbeddingService;
   private openRouterApiKey: string;
   private openRouterUrl: string;
   private backendUrl: string;
@@ -16,6 +18,7 @@ export class DualLLMService {
     this.toolDescriptionsService = new ToolDescriptionsService();
     this.callingFunctionsService = new CallingFunctionsService();
     this.translationService = new TranslationService();
+    this.embeddingService = new EmbeddingService();
     this.openRouterApiKey = process.env.OPENROUTER_API_KEY || '';
     this.openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
     this.backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
@@ -26,16 +29,35 @@ export class DualLLMService {
     console.log('📥 Request received:', JSON.stringify(request, null, 2));
     
     try {
-      // Stage 1: RAG Processor with Function Calling
-      console.log('🔧 Stage 1: RAG Processor with Function Calling');
-      const ragResult = await this.executeRAGProcessor(request);
-      console.log('✅ RAG Result:', JSON.stringify(ragResult, null, 2));
+      // Stage 1: TRY CLOUD FUNCTIONS FIRST (NEW STRATEGY)
+      console.log('🔧 Stage 1A: Trying Cloud Functions First');
+      const functionResult = await this.tryCloudFunctions(request);
+      
+      let ragResult;
+      if (functionResult.success) {
+        console.log('✅ Cloud Functions succeeded, using CF result');
+        ragResult = functionResult;
+      } else {
+        console.log('⚠️ Cloud Functions failed, falling back to SearchRag');
+        // Stage 1B: FALLBACK TO SEARCHRAG IF CF FAILS
+        ragResult = await this.executeSearchRagFallback(request);
+      }
+      
+      console.log('✅ Final RAG Result:', JSON.stringify(ragResult, null, 2));
       
       if (!ragResult.success) {
-        console.log('❌ RAG Processor failed, returning error');
+        console.log('⚠️ Both processors failed, using generic fallback response');
+        // STAGE 3: GENERIC FALLBACK - Never return error, always provide helpful response
+        const genericResponse = await this.executeGenericFallback(request);
         return {
-          output: 'Mi dispiace, si è verificato un errore. Riprova più tardi.',
-          success: false
+          output: genericResponse,
+          success: true,
+          functionCalls: [{
+            type: 'generic_fallback',
+            source: 'generic',
+            functionName: 'Generic Fallback',
+            result: 'No specific function or SearchRag results found, providing generic helpful response'
+          }]
         };
       }
       
@@ -60,8 +82,8 @@ export class DualLLMService {
     }
   }
 
-  private async executeRAGProcessor(request: LLMRequest): Promise<any> {
-    console.log('🔧🔧🔧 EXECUTE RAG PROCESSOR STARTED 🔧🔧🔧');
+  private async tryCloudFunctions(request: LLMRequest): Promise<any> {
+    console.log('🔧🔧🔧 TRY CLOUD FUNCTIONS STARTED 🔧🔧🔧');
     
     try {
       // Translate query
@@ -71,9 +93,6 @@ export class DualLLMService {
       // Get function definitions
       const functionDefinitions = this.getRAGProcessorFunctionDefinitions();
       console.log('🔧 Function definitions:', JSON.stringify(functionDefinitions, null, 2));
-      console.log('🔧 Function definitions length:', functionDefinitions.length);
-      console.log('🔧 First function name:', functionDefinitions[0]?.function?.name);
-      console.log('🔧 First function parameters:', JSON.stringify(functionDefinitions[0]?.function?.parameters, null, 2));
       
       // Get agent config from database
       const agentConfig = await this.getAgentConfig(request.workspaceId);
@@ -84,7 +103,7 @@ export class DualLLMService {
         messages: [
           {
             role: 'system',
-            content: agentConfig.prompt
+            content: this.buildCloudFunctionsSystemMessage()
           },
           {
             role: 'user',
@@ -92,56 +111,138 @@ export class DualLLMService {
           }
         ],
         tools: functionDefinitions,
-        tool_choice: 'required',
+        tool_choice: 'auto',  // Changed to auto to allow non-function responses
         temperature: agentConfig.temperature || 0.0,
         max_tokens: agentConfig.maxTokens || 1000
       };
       
-      console.log('🚀 OPENROUTER PAYLOAD:', JSON.stringify(openRouterPayload, null, 2));
-      console.log('🚀 SYSTEM MESSAGE CONTENT:', openRouterPayload.messages[0].content);
-      console.log('🚀 USER MESSAGE CONTENT:', openRouterPayload.messages[1].content);
-      console.log('🚀 TOOLS:', JSON.stringify(openRouterPayload.tools, null, 2));
+      console.log('🚀 CLOUD FUNCTIONS PAYLOAD:', JSON.stringify(openRouterPayload, null, 2));
       
       const response = await axios.post(this.openRouterUrl, openRouterPayload, {
         headers: {
           'Authorization': `Bearer ${this.openRouterApiKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': this.backendUrl,
-          'X-Title': 'ShopMe RAG Processor'
+          'X-Title': 'ShopMe Cloud Functions'
         },
         timeout: 30000
       });
       
-      console.log('✅ OpenRouter Response:', JSON.stringify(response.data, null, 2));
+      console.log('✅ Cloud Functions Response:', JSON.stringify(response.data, null, 2));
       
       const message = response.data.choices[0].message;
       const toolCalls = message.tool_calls || [];
       
       console.log('🔧 Tool calls found:', toolCalls.length);
       
-      if (toolCalls.length === 0) {
-        console.log('⚠️ No tool calls detected - forcing error');
-        throw new Error('No tool calls detected - LLM must call GetOrdersListLink for order requests');
+      if (toolCalls.length > 0) {
+        // Execute tool calls
+        console.log('🔧 Executing tool calls...');
+        const results = await this.executeToolCalls(toolCalls, request);
+        console.log('✅ Tool call results:', JSON.stringify(results, null, 2));
+        
+        return {
+          functionResults: results,
+          success: true,
+          source: 'cloud_functions'
+        };
+      } else {
+        console.log('⚠️ No tool calls detected - Cloud Functions cannot handle this request');
+        return {
+          functionResults: [],
+          success: false,
+          source: 'cloud_functions'
+        };
       }
       
-      // Execute tool calls
-      console.log('🔧 Executing tool calls...');
-      const results = await this.executeToolCalls(toolCalls, request);
-      console.log('✅ Tool call results:', JSON.stringify(results, null, 2));
-      
-      return {
-        functionResults: results,
-        success: true
-      };
-      
     } catch (error) {
-      console.error('❌ RAG Processor Error:', error);
+      console.error('❌ Cloud Functions Error:', error);
       return {
         functionResults: [],
         success: false,
+        source: 'cloud_functions',
         error: error.message
       };
     }
+  }
+
+  private async executeSearchRagFallback(request: LLMRequest): Promise<any> {
+    console.log('🔧🔧🔧 SEARCHRAG FALLBACK STARTED 🔧🔧🔧');
+    
+    try {
+      // Use SearchRag for semantic search - try multiple sources
+      const [productResults, serviceResults, faqResults] = await Promise.all([
+        this.embeddingService.searchProducts(request.chatInput, request.workspaceId, 2),
+        this.embeddingService.searchServices(request.chatInput, request.workspaceId, 2),
+        this.embeddingService.searchFAQs(request.chatInput, request.workspaceId, 2)
+      ]);
+      
+      const allResults = [
+        ...productResults.map(r => ({ ...r, type: 'product' })),
+        ...serviceResults.map(r => ({ ...r, type: 'service' })),
+        ...faqResults.map(r => ({ ...r, type: 'faq' }))
+      ];
+      
+      console.log('🔧 SearchRag results:', JSON.stringify(allResults, null, 2));
+      
+      if (allResults.length === 0) {
+        console.log('⚠️ No SearchRag results found');
+        return {
+          functionResults: [],
+          success: false,
+          source: 'searchrag'
+        };
+      }
+      
+      // Format SearchRag results
+      const formattedResults = allResults.map(result => ({
+        type: 'searchrag_result',
+        data: result,
+        source: 'searchrag'
+      }));
+      
+      return {
+        functionResults: formattedResults,
+        success: true,
+        source: 'searchrag'
+      };
+      
+    } catch (error) {
+      console.error('❌ SearchRag Fallback Error:', error);
+      return {
+        functionResults: [],
+        success: false,
+        source: 'searchrag',
+        error: error.message
+      };
+    }
+  }
+
+  private buildCloudFunctionsSystemMessage(): string {
+    return `You are a Function Calling Agent for ShopMe WhatsApp Bot.
+
+MISSION: You MUST call functions for specific requests, otherwise decline politely.
+
+AVAILABLE FUNCTIONS:
+${this.toolDescriptionsService.getToolDescriptions().map(tool => 
+  `- ${tool.name}: ${tool.description}`
+).join('\n')}
+
+CRITICAL RULES:
+1. For order-related requests → CALL GetOrdersListLink()
+   - If user specifies order code/number (e.g., "ordine TRACKING-TEST-001"), include orderCode parameter
+   - For general orders list, call without orderCode parameter
+2. For shipment tracking requests → CALL GetShipmentTrackingLink()
+   - REQUIRES orderCode parameter: "dove è il mio ordine", "dov'è ordine X", "tracking ordine Y"
+3. For active offers requests → CALL GetActiveOffers()
+4. For contact/support requests → CALL GetContactInfo()
+5. For "what do you sell" requests (cosa vendete) → CALL getAllCategories()
+6. For complete product catalog requests → CALL getAllProducts()
+7. For services → CALL getServices()
+8. For profile/address changes → CALL GetCustomerProfileLink()
+9. If request doesn't match any function → respond "NO_FUNCTION_NEEDED"
+
+PRIORITY: Cloud Functions take precedence. If uncertain, don't call functions.`;
   }
 
   private async executeFormatter(request: LLMRequest, ragResult: any): Promise<string> {
@@ -183,418 +284,335 @@ export class DualLLMService {
     }
   }
 
-  private buildRAGProcessorSystemMessage(): string {
-    return `You are a Function Calling Agent for ShopMe WhatsApp Bot.
+  private buildFormatterSystemMessage(): string {
+    return `You are a helpful WhatsApp assistant for ShopMe.
 
-MISSION: You MUST call functions to get real data. NEVER respond with text.
+MISSION: Create natural, friendly responses based on the data provided.
 
-AVAILABLE FUNCTIONS:
-${this.toolDescriptionsService.getToolDescriptions().map(tool => 
-  `- ${tool.name}: ${tool.description}`
-).join('\n')}
+STYLE:
+- Use Italian language
+- Be conversational and warm
+- Keep responses concise but informative
+- Use emojis appropriately
+- Always be helpful and professional
 
-CRITICAL RULES:
-1. ALWAYS call a function - NEVER respond with text
-2. For ANY product-related request → CALL getAllProducts()
-3. For ANY service-related request → CALL getServices()
-4. For ANY order-related request → CALL getOrdersListLink()
-5. For ANY profile/address change → CALL getCustomerProfileLink()
-6. For ANY general questions → CALL ragSearch()
-7. For ANY human assistance → CALL contactOperator()
+CONTEXT: You receive data from either Cloud Functions or SearchRag.
+- Cloud Functions: Structured data (orders, offers, contacts)
+- SearchRag: Semantic search results about products/services
 
-EXAMPLES:
-- "dammi la lista dei prodotti" → CALL getAllProducts()
-- "che prodotti avete" → CALL getAllProducts()
-- "dammi prodotti" → CALL getAllProducts()
-- "catalogo" → CALL getAllProducts()
-- "dammi link ordini" → CALL getOrdersListLink()
-- "dammi link 20006" → CALL getOrdersListLink() with orderCode: "20006"
-- "voglio cambiare indirizzo" → CALL getCustomerProfileLink()
-- "voglio parlare con un operatore" → CALL contactOperator()
-
-IMPORTANT: "dammi prodotti" MUST call getAllProducts(), NOT ragSearch()
-
-RESPOND ONLY WITH FUNCTION CALLS.`;
+Format the response naturally based on the data type and user's request.`;
   }
 
-  private buildFormatterSystemMessage(): string {
-    return `You are a WhatsApp Response Formatter for ShopMe.
+  private buildFormatterUserMessage(request: LLMRequest, ragResult: any): string {
+    const userQuery = request.chatInput;
+    const dataSource = ragResult.source || 'unknown';
+    const functionResults = ragResult.functionResults || [];
+    
+    let dataContext = '';
+    if (functionResults.length > 0) {
+      dataContext = `Data from ${dataSource}:\n${JSON.stringify(functionResults, null, 2)}`;
+    } else {
+      dataContext = 'No data found for this request.';
+    }
+    
+    return `User asked: "${userQuery}"
 
-MISSION: Format data into natural, helpful WhatsApp messages.
+${dataContext}
 
-RULES:
-1. NEVER call functions - only format existing data
-2. Be conversational and friendly
-3. Use emojis appropriately
-4. Format links as plain URLs (WhatsApp doesn't support markdown)
-5. Keep responses concise but informative
-6. LANGUAGE RULE: Respond in the SAME language as the user's input. If user writes in English, respond in English. If user writes in Italian, respond in Italian. If user writes in Spanish, respond in Spanish, etc.
-7. If user asks for a "tabella" or "table", create a formatted table using ASCII characters
+Please create a natural, helpful response in Italian based on this data.`;
+  }
 
-LINK FORMATTING FOR WHATSAPP:
-- Use plain URLs: https://example.com
-- Don't use markdown [text](url) format
-- Include token in URL if provided
+  private buildFallbackResponse(request: LLMRequest, ragResult: any): string {
+    const userQuery = request.chatInput;
+    
+    if (ragResult.functionResults && ragResult.functionResults.length > 0) {
+      return `Ho trovato alcune informazioni per la tua richiesta "${userQuery}". Tuttavia, si è verificato un errore nella formattazione della risposta. Ti prego di riprovare.`;
+    }
+    
+    return `Mi dispiace, non sono riuscito a trovare informazioni specifiche per "${userQuery}". Puoi essere più specifico o provare con una domanda diversa?`;
+  }
 
-TABLE FORMATTING FOR WHATSAPP:
-- Use ASCII characters: | - + 
-- Create clear headers and separators
-- Align columns properly
-- Example:
-┌─────────────┬─────────────┬─────────┐
-│ Prodotto    │ Codice      │ Prezzo  │
-├─────────────┼─────────────┼─────────┤
-│ Mozzarella  │ MOZ001      │ €9.99   │
-│ Parmigiano  │ PROD002     │ €15.50  │
-└─────────────┴─────────────┴─────────┘
+  private getRAGProcessorFunctionDefinitions(): any[] {
+    return [
+      {
+        type: 'function',
+        function: {
+          name: 'GetOrdersListLink',
+          description: 'Get a direct link to view customer orders. Use this for any order-related requests. If user specifies an order code/number, include it in orderCode parameter.',
+          parameters: {
+            type: 'object',
+            properties: {
+              orderCode: {
+                type: 'string',
+                description: 'Optional order code/number when user requests a specific order (e.g., "TRACKING-TEST-001", "20007", etc.)'
+              }
+            },
+            required: []
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'GetShipmentTrackingLink',
+          description: 'Get shipment tracking link for order delivery status. Use when user asks about order location, delivery status, or shipment tracking. If no orderCode provided, ask user to specify which order. Triggers: "dove è il mio ordine", "dov\'è il mio ordine", "tracking spedizione", "stato spedizione", "where is my order", "track my order".',
+          parameters: {
+            type: 'object',
+            properties: {
+              orderCode: {
+                type: 'string',
+                description: 'Order code/number for tracking. If not provided, function will return message asking user to specify order code.'
+              }
+            },
+            required: []
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'GetCustomerProfileLink',
+          description: 'Get link to customer profile page for modifying personal information, address, or account details. Use when user wants to change/modify their profile, address, email, or personal data. Triggers: "modificare profilo", "cambiare indirizzo", "vedere mail", "mia mail", "change profile", "update address".',
+          parameters: {
+            type: 'object',
+            properties: {},
+            required: []
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'GetActiveOffers',
+          description: 'Get current active offers and promotions.',
+          parameters: {
+            type: 'object',
+            properties: {},
+            required: []
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'GetContactInfo',
+          description: 'Get contact information and support details.',
+          parameters: {
+            type: 'object',
+            properties: {},
+            required: []
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'getAllCategories',
+          description: 'Get all product categories overview. Use when user asks what you sell, what categories you have, or wants to see available product types. Triggers: "cosa vendete", "COS VENDETE", "che categorie avete", "what do you sell", "categories", case insensitive.',
+          parameters: {
+            type: 'object',
+            properties: {},
+            required: []
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'getAllProducts',
+          description: 'Get complete detailed product catalog with all products, descriptions and prices. Use when user wants full product details, complete catalog, or specific product information. Triggers: "catalogo completo", "tutti i prodotti", "lista prodotti dettagliata".',
+          parameters: {
+            type: 'object',
+            properties: {},
+            required: []
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'getServices',
+          description: 'Get all available services.',
+          parameters: {
+            type: 'object',
+            properties: {},
+            required: []
+          }
+        }
+      }
+    ];
+  }
 
-EXAMPLES:
-- Products: "Ecco i nostri prodotti: 🧀 Mozzarella €7.99"
-- Services: "I nostri servizi: 🚚 Consegna rapida €5.99"
-- Orders: "Ecco il link per i tuoi ordini: https://example.com/orders?token=xyz"
-- Tables: Create ASCII tables when requested
-
-RESPOND IN NATURAL LANGUAGE ONLY.`;
+  private async executeToolCalls(toolCalls: any[], request: LLMRequest): Promise<any[]> {
+    const results = [];
+    
+    for (const toolCall of toolCalls) {
+      try {
+        console.log('🔧 Executing tool call:', toolCall.function.name);
+        
+        const functionName = toolCall.function.name;
+        const args = JSON.parse(toolCall.function.arguments || '{}');
+        
+        let result;
+        
+        // Call the appropriate function based on the function name
+        switch (functionName) {
+          case 'GetOrdersListLink':
+            result = await this.callingFunctionsService.getOrdersListLink({
+              customerId: request.customerid || '',
+              workspaceId: request.workspaceId,
+              orderCode: args.orderCode
+            });
+            break;
+          
+          case 'GetActiveOffers':
+            result = await this.callingFunctionsService.getActiveOffers({
+              customerId: request.customerid || '',
+              workspaceId: request.workspaceId
+            });
+            break;
+          
+          case 'GetShipmentTrackingLink':
+            result = await this.callingFunctionsService.getShipmentTrackingLink({
+              customerId: request.customerid || '',
+              workspaceId: request.workspaceId,
+              orderCode: args.orderCode
+            });
+            break;
+          
+          case 'GetCustomerProfileLink':
+            result = await this.callingFunctionsService.getCustomerProfileLink({
+              customerId: request.customerid || '',
+              workspaceId: request.workspaceId
+            });
+            break;
+          
+          case 'GetContactInfo':
+            result = await this.callingFunctionsService.contactOperator({
+              customerId: request.customerid || '',
+              workspaceId: request.workspaceId
+            });
+            break;
+          
+          case 'getAllCategories':
+            result = await this.callingFunctionsService.getAllCategories({
+              customerId: request.customerid || '',
+              workspaceId: request.workspaceId
+            });
+            break;
+          
+          case 'getAllProducts':
+            result = await this.callingFunctionsService.getAllProducts({
+              customerId: request.customerid || '',
+              workspaceId: request.workspaceId
+            });
+            break;
+          
+          case 'getServices':
+            result = await this.callingFunctionsService.getServices({
+              customerId: request.customerid || '',
+              workspaceId: request.workspaceId
+            });
+            break;
+          
+          default:
+            throw new Error(`Unknown function: ${functionName}`);
+        }
+        
+        results.push({
+          toolCall: toolCall,
+          result: result,
+          functionName: functionName
+        });
+        
+      } catch (error) {
+        console.error(`❌ Error executing ${toolCall.function.name}:`, error);
+        results.push({
+          toolCall: toolCall,
+          error: error.message,
+          functionName: toolCall.function.name
+        });
+      }
+    }
+    
+    return results;
   }
 
   private async getAgentConfig(workspaceId: string): Promise<any> {
     try {
-      console.log('🔧 Getting agent config for workspace:', workspaceId);
-      console.log('🔧 Calling URL:', `${this.backendUrl}/api/internal/agent-config/${workspaceId}`);
-      
-      const response = await axios.get(`${this.backendUrl}/api/internal/agent-config/${workspaceId}`);
-      console.log('✅ Agent config response:', response.data);
-      return response.data.agentConfig; // FIX: Use agentConfig object
+      const response = await axios.get(`${this.backendUrl}/api/agents/workspace/${workspaceId}/config`);
+      return response.data;
     } catch (error) {
-      console.error('❌ Error getting agent config:', error);
-      console.error('❌ Error details:', error.response?.data || error.message);
-      console.error('❌ Using fallback config');
-      // Fallback to default config
+      console.error('❌ Error fetching agent config:', error);
       return {
+        prompt: 'You are a helpful assistant.',
         model: 'openai/gpt-4o',
-        prompt: this.buildRAGProcessorSystemMessage(),
         temperature: 0.0,
         maxTokens: 1000
       };
     }
   }
 
-  private buildFormatterUserMessage(request: LLMRequest, ragResult: any): string {
-    let orderLink = null;
-    let orderCode = null;
-    let orderError = null;
-    let trackingLink = null;
-    let trackingError = null;
-    let profileLink = null;
-    let products = null;
-    let services = null;
-    let offers = null;
-    let categories = null;
-    let operatorEscalation = null;
+  private async executeGenericFallback(request: LLMRequest): Promise<string> {
+    console.log('🔧 Stage 3: Generic Fallback - Providing helpful response');
     
-    if (ragResult.functionResults && ragResult.functionResults.length > 0) {
-      for (const result of ragResult.functionResults) {
-        if (result.functionName === 'getOrdersListLink') {
-          if (result.result?.success === false) {
-            // Handle order not found error
-            orderError = result.result.message || result.result.error;
-            orderCode = result.arguments?.orderCode || null;
-          } else if (result.result?.linkUrl) {
-            orderLink = result.result.linkUrl;
-            orderCode = result.arguments?.orderCode || null;
-          }
-        }
-        else if (result.functionName === 'getShipmentTrackingLink') {
-          if (result.result?.success === false) {
-            // Handle tracking order not found error
-            trackingError = result.result.message || result.result.error;
-            orderCode = result.arguments?.orderCode || null;
-          } else if (result.result?.linkUrl) {
-            trackingLink = result.result.linkUrl;
-            orderCode = result.arguments?.orderCode || null;
-          }
-        }
-        else if (result.functionName === 'getAllProducts' && result.result?.data?.categories) {
-          products = result.result.data.categories;
-        }
-        else if (result.functionName === 'getServices' && result.result?.data?.services) {
-          services = result.result.data.services;
-        }
-        else if (result.functionName === 'getCustomerProfileLink' && result.result?.linkUrl) {
-          profileLink = result.result.linkUrl;
-        }
-        else if (result.functionName === 'getActiveOffers' && result.result?.data?.offers) {
-          offers = result.result.data.offers;
-        }
-        else if (result.functionName === 'getAllCategories' && result.result?.data?.categories) {
-          categories = result.result.data.categories;
-        }
-        else if (result.functionName === 'contactOperator' && result.result?.data) {
-          operatorEscalation = result.result.data;
-        }
-      }
-    }
-    
-    let dataDescription = `User asked: "${request.chatInput}"`;
-    
-    if (orderError) {
-      dataDescription += `\n\nERROR: ${orderError}`;
-      if (orderCode) {
-        dataDescription += `\nThe order ${orderCode} was not found in the system.`;
-      }
-    } else if (trackingError) {
-      dataDescription += `\n\nTRACKING ERROR: ${trackingError}`;
-      if (orderCode) {
-        if (trackingError.includes('tracking-id')) {
-          dataDescription += `\nThe order ${orderCode} exists but has no tracking number in the system.`;
-        } else {
-          dataDescription += `\nThe order ${orderCode} was not found for tracking.`;
-        }
-      }
-    } else if (trackingLink && orderCode) {
-      dataDescription += `\n\nI have generated a tracking link for order ${orderCode}: ${trackingLink}`;
-    } else if (orderLink && orderCode) {
-      dataDescription += `\n\nI have generated a secure link for order ${orderCode}: ${orderLink}`;
-    } else if (orderLink) {
-      dataDescription += `\n\nI have generated a secure link for order history: ${orderLink}`;
-    }
-    
-    if (profileLink) {
-      dataDescription += `\n\nI have generated a secure link for profile management: ${profileLink}`;
-    }
-    
-    if (products && products.length > 0) {
-      const totalProducts = products.reduce((sum: number, category: any) => sum + category.products.length, 0);
-      dataDescription += `\n\nI have found ${totalProducts} products available organized in ${products.length} categories:`;
-      
-      products.forEach((category: any) => {
-        dataDescription += `\n\n**${category.categoryName}** (${category.products.length} products):`;
-        category.products.slice(0, 5).forEach((product: any) => {
-          dataDescription += `\n- ${product.code} - ${product.name} - €${product.price}/${product.unit}`;
-          if (product.description && product.description.length > 0) {
-            dataDescription += ` (${product.description.substring(0, 50)}${product.description.length > 50 ? '...' : ''})`;
-          }
-        });
-        if (category.products.length > 5) {
-          dataDescription += `\n... and ${category.products.length - 5} more products in this category`;
-        }
-      });
-    }
-    
-    if (services && services.length > 0) {
-      dataDescription += `\n\nI have found ${services.length} services available:`;
-      services.slice(0, 5).forEach((service: any) => {
-        dataDescription += `\n- ${service.code} - ${service.name} - €${service.price}/${service.unit}`;
-        if (service.description && service.description.length > 0) {
-          dataDescription += ` (${service.description.substring(0, 60)}${service.description.length > 60 ? '...' : ''})`;
-        }
-      });
-    }
-    
-    if (offers && offers.length > 0) {
-      dataDescription += `\n\nI have found ${offers.length} active offers and promotions:`;
-      offers.forEach((offer: any) => {
-        dataDescription += `\n- 🎯 ${offer.name} - ${offer.discountPercent}% OFF`;
-        if (offer.description && offer.description.length > 0) {
-          dataDescription += ` (${offer.description.substring(0, 80)}${offer.description.length > 80 ? '...' : ''})`;
-        }
-        if (offer.category) {
-          dataDescription += ` [Category: ${offer.category.name}]`;
-        }
-        const endDate = new Date(offer.endDate);
-        dataDescription += ` [Valid until: ${endDate.toLocaleDateString()}]`;
-      });
-    }
-    
-    if (categories && categories.length > 0) {
-      dataDescription += `\n\nI have found ${categories.length} product categories available:`;
-      categories.forEach((category: any) => {
-        dataDescription += `\n- 📂 ${category.name}`;
-        if (category.description && category.description.length > 0) {
-          dataDescription += ` (${category.description.substring(0, 80)}${category.description.length > 80 ? '...' : ''})`;
-        }
-      });
-    }
-    
-    if (operatorEscalation) {
-      dataDescription += `\n\n🚨 OPERATOR ESCALATION: Customer has requested human assistance.`;
-      dataDescription += `\nEscalation Details:`;
-      dataDescription += `\n- Message: ${operatorEscalation.message}`;
-      dataDescription += `\n- Estimated Response Time: ${operatorEscalation.estimatedResponseTime}`;
-      dataDescription += `\n- Customer ID: ${operatorEscalation.customerInfo?.customerId}`;
-      dataDescription += `\n- Workspace ID: ${operatorEscalation.customerInfo?.workspaceId}`;
-      dataDescription += `\n- Reason: ${operatorEscalation.escalationReason}`;
-    }
-    
-    return `${dataDescription}\n\nCONVERSATION HISTORY:\n${JSON.stringify(request.messages, null, 2)}\n\nCreate a natural, helpful response for the user's request. If there's an error, explain it clearly and suggest what the user can do. If you have a valid link, include it properly formatted.\n\n🚨 REMEMBER:\n- If there's an order error, explain the problem and suggest solutions\n- If operator escalation is requested, provide a professional and reassuring response\n- Respond conversationally, not in JSON\n- Use the link provided above if available\n- Be friendly and helpful\n- Format links as plain URLs`;
-  }
-
-  private getRAGProcessorFunctionDefinitions(): any[] {
-    const toolDescriptions = this.toolDescriptionsService.getToolDescriptions();
-    
-    return toolDescriptions.map(tool => ({
-      type: 'function',
-      function: {
-        name: tool.name,
-        description: tool.description,
-        parameters: {
-          type: 'object',
-          properties: {
-            workspaceId: { type: 'string', description: 'The workspace ID' },
-            customerId: { type: 'string', description: 'The customer ID' },
-            query: { type: 'string', description: 'Search query for ragSearch' },
-            orderCode: { type: 'string', description: 'Order code for specific order requests' },
-            messages: { 
-              type: 'array', 
-              description: 'Conversation history for context',
-              items: {
-                type: 'object',
-                properties: {
-                  role: { type: 'string' },
-                  content: { type: 'string' }
-                }
-              }
-            }
+    try {
+      const response = await axios.post(this.openRouterUrl, {
+        model: 'anthropic/claude-3-5-sonnet-20241022',
+        messages: [
+          {
+            role: 'system',
+            content: `You are SofIA, a friendly Italian food e-commerce assistant for L'Altra Italia. 
+            
+            When you don't understand a request or can't find specific information, provide a helpful, friendly response that:
+            1. Acknowledges the user's message politely
+            2. Offers to help with common requests (orders, products, contact)
+            3. Uses a warm, professional Italian tone
+            4. Includes relevant emojis
+            5. Suggests specific actions they can try
+            
+            Keep responses concise but helpful. Always try to be useful even when you don't understand exactly what they want.`
           },
-          required: ['workspaceId', 'customerId']
+          {
+            role: 'user',
+            content: request.chatInput
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 200
+      }, {
+        headers: {
+          'Authorization': `Bearer ${this.openRouterApiKey}`,
+          'Content-Type': 'application/json'
         }
-      }
-    }));
+      });
+
+      return response.data.choices[0].message.content;
+      
+    } catch (error) {
+      console.error('❌ Generic fallback failed:', error);
+      
+      // Ultimate fallback - static helpful message
+      return `Ciao! 👋 Sono SofIA, il tuo assistente per L'Altra Italia.
+
+Mi dispiace, non ho capito bene la tua richiesta. Posso aiutarti con:
+
+🛒 **Ordini**: Scrivi "i miei ordini" per vedere il tuo storico
+📦 **Prodotti**: Scrivi "cosa vendete" per le nostre categorie  
+📞 **Assistenza**: Scrivi "contatti" per parlare con un operatore
+
+Cosa posso fare per te? 😊`;
+    }
   }
 
-  private async executeToolCalls(toolCalls: any[], request: LLMRequest): Promise<any[]> {
-    const results = [];
-
-    for (const toolCall of toolCalls) {
-      try {
-        const functionName = toolCall.function.name;
-        const arguments_ = JSON.parse(toolCall.function.arguments);
-        
-        console.log(`🔧 Executing ${functionName} with args:`, arguments_);
-
-        let result;
-        switch (functionName) {
-          case 'getAllProducts':
-            result = await this.callingFunctionsService.getAllProducts({
-              workspaceId: request.workspaceId,
-              customerId: request.customerid
-            });
-            break;
-          case 'getServices':
-            result = await this.callingFunctionsService.getServices({
-              workspaceId: request.workspaceId,
-              customerId: request.customerid
-            });
-            break;
-          case 'getOrdersListLink':
-            result = await this.callingFunctionsService.getOrdersListLink({
-              customerId: request.customerid,
-              workspaceId: request.workspaceId,
-              orderCode: arguments_.orderCode
-            });
-            break;
-          case 'getShipmentTrackingLink':
-            result = await this.callingFunctionsService.getShipmentTrackingLink({
-              customerId: request.customerid,
-              workspaceId: request.workspaceId,
-              orderCode: arguments_.orderCode
-            });
-            break;
-          case 'getCustomerProfileLink':
-            result = await this.callingFunctionsService.getCustomerProfileLink({
-              customerId: request.customerid,
-              workspaceId: request.workspaceId
-            });
-            break;
-          case 'getAllCategories':
-            result = await this.callingFunctionsService.getAllCategories({
-              workspaceId: request.workspaceId,
-              customerId: request.customerid
-            });
-            break;
-          case 'getActiveOffers':
-            result = await this.callingFunctionsService.getActiveOffers({
-              workspaceId: request.workspaceId,
-              customerId: request.customerid
-            });
-            break;
-          case 'contactOperator':
-            result = await this.callingFunctionsService.contactOperator({
-              workspaceId: request.workspaceId,
-              customerId: request.customerid
-            });
-            break;
-          // case 'confirmOrderFromConversation':
-          //   result = await this.callingFunctionsService.confirmOrderFromConversation({
-          //     query: request.chatInput,
-          //     workspaceId: request.workspaceId,
-          //     customerId: request.customerid,
-          //     messages: request.messages
-          //   });
-          //   break;
-          // case 'ragSearch':
-          //   result = await this.callingFunctionsService.ragSearch({
-          //     query: arguments_.query || request.chatInput,
-          //     workspaceId: request.workspaceId,
-          //     customerId: request.customerid,
-          //     messages: request.messages
-          //   });
-          //   break;
-          default:
-            console.warn(`⚠️ Unknown function: ${functionName}`);
-            result = { success: false, error: 'Unknown function' };
-        }
-
-        results.push({
-          functionName: functionName,
-          arguments: arguments_,
-          result: result
-        });
-
-        console.log(`✅ ${functionName} result:`, result);
-
-      } catch (error) {
-        console.error(`❌ Error executing ${toolCall.function.name}:`, error);
-        results.push({
-          functionName: toolCall.function.name,
-          arguments: toolCall.function.arguments,
-          result: { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-        });
-      }
-    }
-
-    return results;
-  }
-
-  private buildFallbackResponse(request: LLMRequest, ragResult: any): string {
-    console.log('🔄 Building fallback response');
+  private isAccountRelatedRequest(input: string): boolean {
+    const lowerInput = input.toLowerCase();
+    const accountKeywords = [
+      'mail', 'email', 'profilo', 'profile', 'account', 'password', 
+      'modificare', 'cambiare', 'vedere', 'visualizzare', 'mia mail',
+      'mio profilo', 'dati personali', 'informazioni personali'
+    ];
     
-    if (ragResult.functionResults && ragResult.functionResults.length > 0) {
-      const result = ragResult.functionResults[0];
-      
-      if (result.functionName === 'getServices' && result.result?.services) {
-        const services = result.result.services;
-        let response = 'Ecco i nostri servizi:\n\n';
-        services.slice(0, 5).forEach((service: any) => {
-          response += `🔧 ${service.name} - ${service.description}\n`;
-        });
-        return response;
-      }
-      
-      if (result.functionName === 'getAllProducts' && result.result?.products) {
-        const products = result.result.products;
-        let response = 'Ecco i nostri prodotti:\n\n';
-        products.slice(0, 5).forEach((product: any) => {
-          response += `📦 ${product.name} (${product.ProductCode}) - ${product.formatted}\n`;
-        });
-        return response;
-      }
-      
-      if (result.functionName === 'getOrdersListLink' && result.result?.linkUrl) {
-        return `Ecco il link per visualizzare i tuoi ordini: ${result.result.linkUrl}`;
-      }
-    }
-    
-    return 'Mi dispiace, non sono riuscito a processare la tua richiesta. Riprova più tardi.';
+    return accountKeywords.some(keyword => lowerInput.includes(keyword));
   }
 }

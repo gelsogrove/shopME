@@ -4,12 +4,30 @@ export interface Message {
   sender: "user" | "customer"
   timestamp: string
   agentName?: string
+  functionCalls?: Array<{
+    functionName: string
+    toolCall?: {
+      function?: {
+        name: string
+        arguments: string
+      }
+    }
+    result: any
+    type?: string
+    source?: string
+    data?: any
+  }>
   metadata?: {
     isOperatorMessage?: boolean
     isOperatorControl?: boolean
     agentSelected?: string
     sentBy?: string
     operatorId?: string
+    functionCalls?: Array<{
+      functionName: string
+      arguments: Record<string, any>
+      result: any
+    }>
   }
 }
 

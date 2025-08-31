@@ -52,6 +52,25 @@ Il sistema usa una strategia a **due livelli**:
 
 **REGOLA IMPORTANTE**: Le funzioni vengono chiamate SOLO per richieste che corrispondono esattamente ai trigger. Per tutto il resto il sistema userà automaticamente la ricerca semantica.
 
+## ConfirmOrder()
+
+l'utente puo' aggiungere i prodotti nel carrelo e il sistema deve tenere in memoria i prodotti aggiunti nel carrello, ovviamente l'utente
+puo' editare il carrello, rimuovere prodotti, cancellare il carrello, e visualizzare il carrello. Il sistema deve mantenere il carrello aggiornato.
+Il sistema deve permettere di visualizzare il prezzo totale del carrello, il numero di prodotti nel carrello, e il numero di prodotti in carrello che sono disponibili.
+Ecco una tabella di esempio
+
+CodiceProdotto Descrizione Prezzo 0100010. Pasta al pesto(2) 20 Euro 0100010. Mozzarelle(2) 20 Euro
+
+Totale: 40 Euro
+
+il due tra parentesi indica la quantitá
+
+Ogni volta che l'utente modifica aggiunge o cancella llM deve ritornare sempre il carrello aggionranto con la frase Se vuoi confermare l'ordine
+scrivi "CONFERMA" o "CONFIRM" dipende dall'ordne
+in tal caso si chiama la function calling ConfirmOrder() e si resetta il carrello
+se l'utente vuole vedere il carrello scrive "Vedi il carrello" o "Vedi il carrello" o "Vedi il carrello"
+il sistema deve ritornare il carrello aggiornato con tutte le informazioni
+
 ## GetOrdersListLink()
 
 **Quando usare**: L'utente vuole vedere ordini o storia ordini in generale
