@@ -5,6 +5,7 @@ export interface Message {
   timestamp: string
   agentName?: string
   translatedQuery?: string
+  processedPrompt?: string
   functionCalls?: Array<{
     functionName: string
     toolCall?: {

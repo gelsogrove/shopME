@@ -14,7 +14,7 @@ export class TranslationService {
       console.log('🔍 Detecting language for:', text);
       
       const response = await axios.post(this.openRouterUrl, {
-        model: 'google/gemma-2-9b-it:free',
+        model: 'anthropic/claude-3-5-sonnet-20241022',
         messages: [
           {
             role: 'system',
@@ -68,14 +68,14 @@ export class TranslationService {
       
       console.log(`🌐 Text is ${detectedLang}, translating to English...`);
       
-      // Step 3: Try LLM translation
+      // Step 3: Try LLM translation with Claude-3.5-Sonnet (same as formatter)
       try {
         const response = await axios.post(this.openRouterUrl, {
-          model: 'google/gemma-2-9b-it:free',
+          model: 'anthropic/claude-3-5-sonnet-20241022',
           messages: [
             {
               role: 'system',
-              content: 'You are a translator for an e-commerce platform. Translate the user\'s message to English using e-commerce terminology. For questions about delivery times, shipping, receiving goods, use keywords like "delivery time", "shipping time", "delivery", "shipping". Return ONLY the English translation, no explanations.'
+              content: 'You are a translator for an e-commerce platform. Translate the user\'s message to English using e-commerce terminology. For questions about delivery times, shipping, receiving goods, use keywords like "delivery time", "shipping time", "delivery", "shipping". For casual greetings like "ciao come va", translate to "hello how are you". Return ONLY the English translation, no explanations.'
             },
             {
               role: 'user',
@@ -167,11 +167,11 @@ export class TranslationService {
       }
 
       const response = await axios.post(this.openRouterUrl, {
-        model: 'google/gemma-2-9b-it:free',
+        model: 'anthropic/claude-3-5-sonnet-20241022',
         messages: [
           {
             role: 'system',
-            content: 'You are a translator for an e-commerce platform. Translate the user\'s message to English using e-commerce terminology. For questions about delivery times, shipping, receiving goods, use keywords like "delivery time", "shipping time", "delivery", "shipping". Return ONLY the English translation, no explanations.'
+            content: 'You are a translator for an e-commerce platform. Translate the user\'s message to English using e-commerce terminology. For questions about delivery times, shipping, receiving goods, use keywords like "delivery time", "shipping time", "delivery", "shipping". For casual greetings like "ciao come va", translate to "hello how are you". Return ONLY the English translation, no explanations.'
           },
           {
             role: 'user',

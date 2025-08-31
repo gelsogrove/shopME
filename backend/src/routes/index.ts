@@ -117,7 +117,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
     console.log("WhatsApp webhook received", { data })
 
     // 🔍 DETECT FORMAT: WhatsApp vs Test Format
-    let phoneNumber, messageContent, workspaceId, customerId;
+    let phoneNumber, messageContent, workspaceId, customerId, customer = null;
     
     // Check if it's WhatsApp format
     if (data.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from) {
@@ -131,7 +131,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
         const { PrismaClient } = require('@prisma/client');
         const prisma = new PrismaClient();
         
-        const customer = await prisma.customers.findFirst({
+        customer = await prisma.customers.findFirst({
           where: {
             phone: phoneNumber,
             workspaceId: workspaceId,
@@ -140,7 +140,9 @@ router.post("/whatsapp/webhook", async (req, res) => {
           select: {
             id: true,
             name: true,
-            phone: true
+            phone: true,
+            discount: true,
+            language: true
           }
         });
 
@@ -245,7 +247,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
         maxTokens: 3500,
         model: "gpt-4o",
         messages: data.messages || [],
-        prompt: agentPrompt
+        prompt: agentPrompt,
+        customer: customer // 🔧 Pass customer data for prompt personalization
       };
       
       // ✅ SESSION ACTIVE - PROCESS WITH DUAL LLM
@@ -264,7 +267,11 @@ router.post("/whatsapp/webhook", async (req, res) => {
           message: messageContent,
           response: result.output,
           direction: "INBOUND",
-          agentSelected: "CHATBOT_DUAL_LLM"
+          agentSelected: "CHATBOT_DUAL_LLM",
+          // 🔧 Debug data persistence
+          translatedQuery: result.translatedQuery,
+          functionCallsDebug: result.functionCalls,
+          processingSource: result.functionCalls?.[0]?.source || 'unknown'
         });
         console.log('✅ Message saved successfully with usage tracking');
       } catch (saveError) {
@@ -275,10 +282,18 @@ router.post("/whatsapp/webhook", async (req, res) => {
     
     // TODO: Send response back to WhatsApp
     console.log('📤 Response to send:', result.output);
+    console.log('🔧 DEBUG: processedPrompt in result:', result.processedPrompt);
+    console.log('🔧 DEBUG: result keys:', Object.keys(result));
     
     res.json({ 
       success: true, 
       message: result.output,
+      data: {
+        processedMessage: result.output,
+        processedPrompt: result.processedPrompt, // 🔧 Add processedPrompt to response
+        functionCalls: result.functionCalls,
+        translatedQuery: result.translatedQuery
+      },
       debug: { result }
     });
   } catch (error) {

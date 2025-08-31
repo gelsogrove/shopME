@@ -331,6 +331,10 @@ export class MessageRepository {
     response: string
     direction?: string
     agentSelected?: string
+    // 🔧 Debug fields
+    translatedQuery?: string
+    functionCallsDebug?: any[]
+    processingSource?: string
   }) {
     try {
       // Validate required fields
@@ -639,6 +643,10 @@ export class MessageRepository {
               type: MessageType.TEXT,
               aiGenerated: true,
               metadata: botMetadata,
+              // 🔧 Debug fields
+              translatedQuery: data.translatedQuery,
+              functionCallsDebug: data.functionCallsDebug ? JSON.stringify(data.functionCallsDebug) : null,
+              processingSource: data.processingSource,
             },
           })
           logger.info(

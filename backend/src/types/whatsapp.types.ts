@@ -1,3 +1,5 @@
+import { TemplateCustomer } from '../services/prompt-template.service';
+
 export interface LLMRequest {
   chatInput: string;
   workspaceId: string;
@@ -10,6 +12,7 @@ export interface LLMRequest {
   model: string;
   messages: any[];
   prompt: string;
+  customer?: TemplateCustomer;
 }
 
 export interface LLMResponse {
@@ -17,6 +20,7 @@ export interface LLMResponse {
   success: boolean;
   functionCalls?: any[];
   translatedQuery?: string;
+  processedPrompt?: string;
 }
 
 export interface FunctionCall {

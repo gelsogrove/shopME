@@ -50,6 +50,7 @@ export function WhatsAppChatModal({
   // Use the global session ID if available
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [showFunctionCalls, setShowFunctionCalls] = useState(false)
+  const [showProcessedPrompt, setShowProcessedPrompt] = useState(false)
 
   // Check if we have a valid workspace ID
   const currentWorkspaceId = getWorkspaceId(workspaceId)
@@ -188,12 +189,16 @@ export function WhatsAppChatModal({
           sender: message.direction === "INBOUND" ? "customer" : "user",
           timestamp: new Date(message.createdAt),
           agentName: message.agentName || (message.direction === "OUTBOUND" ? "AI Assistant" : undefined),
+          // 🔍 Debug fields from database
+          translatedQuery: message.translatedQuery,
+          functionCalls: message.functionCallsDebug ? JSON.parse(message.functionCallsDebug) : undefined,
           metadata: {
             isOperatorMessage: message.metadata?.isOperatorMessage || false,
             isOperatorControl: message.metadata?.isOperatorControl || false,
             agentSelected: message.metadata?.agentSelected || (message.direction === "OUTBOUND" ? "CHATBOT" : "CUSTOMER"),
             sentBy: message.metadata?.sentBy || (message.direction === "OUTBOUND" ? "AI" : "CUSTOMER"),
-            operatorId: message.metadata?.operatorId
+            operatorId: message.metadata?.operatorId,
+            processingSource: message.processingSource
           }
         }))
 
@@ -326,6 +331,8 @@ export function WhatsAppChatModal({
           timestamp: new Date().toISOString(),
           agentName: "AI Assistant",
           functionCalls: response.data.data.functionCalls || [],
+          translatedQuery: response.data.data.translatedQuery,
+          processedPrompt: response.data.data.processedPrompt, // 🔧 New debug field
           metadata: {
             isOperatorMessage: false,
             isOperatorControl: false,
@@ -334,6 +341,9 @@ export function WhatsAppChatModal({
             functionCalls: response.data.data.functionCalls
           }
         }
+
+        logger.info("🔧 DEBUG: processedPrompt from API:", response.data.data.processedPrompt)
+        logger.info("🔧 DEBUG: botMessage created with processedPrompt:", botMessage.processedPrompt)
 
         // Add ONLY the bot response to chat history, not the user's message again
         // This prevents the duplicate "Ciao" message
@@ -478,6 +488,7 @@ export function WhatsAppChatModal({
             agentName: "AI Assistant",
             translatedQuery: response.data.debug?.result?.translatedQuery,
             functionCalls: response.data.debug?.result?.functionCalls || [],
+            processedPrompt: response.data.debug?.result?.processedPrompt, // 🔧 Add processedPrompt here too
             metadata: {
               isOperatorMessage: false,
               isOperatorControl: false,
@@ -486,6 +497,8 @@ export function WhatsAppChatModal({
               functionCalls: response.data.debug?.result?.functionCalls || []
             }
           }
+
+          logger.info("🔧 DEBUG: botMessage for follow-up with processedPrompt:", botMessage.processedPrompt)
 
           // Add bot response to chat history
           setMessages((prev) => [...prev, botMessage])
@@ -611,6 +624,28 @@ export function WhatsAppChatModal({
             >
               <span className="text-xs font-semibold tracking-wide">DEBUG</span>
             </button>
+            
+            {/* Processed Prompt Toggle */}
+            <button
+              onClick={() => {
+                console.log('Prompt toggle clicked, current state:', showProcessedPrompt)
+                setShowProcessedPrompt(!showProcessedPrompt)
+              }}
+              className={`rounded-lg px-3 py-1.5 transition-all duration-200 border-2 ${
+                showProcessedPrompt 
+                  ? 'bg-purple-600 border-purple-400 text-white shadow-lg transform scale-105' 
+                  : 'bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40'
+              }`}
+              aria-label="Toggle Processed Prompt"
+              title="Show/Hide AI Prompt with User Data"
+            >
+              <span className={`text-xs font-semibold tracking-wide ${
+                showProcessedPrompt ? 'text-white' : 'text-white/90'
+              }`}>
+                {showProcessedPrompt ? '📝 PROMPT ✓' : '📝 PROMPT'}
+              </span>
+            </button>
+            
             <button
               onClick={onClose}
               className="text-white hover:bg-green-600 rounded-full p-2 transition"
@@ -865,6 +900,41 @@ export function WhatsAppChatModal({
                                   </div>
                                   <div className="text-xs text-yellow-600 mt-1">
                                     {message.translatedQuery}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Processed Prompt Debug Info */}
+                              {showProcessedPrompt && message.processedPrompt && (
+                                <div className="mb-2 p-3 bg-purple-50 rounded-lg border-2 border-purple-200">
+                                  <div className="text-sm font-bold text-purple-800 mb-2 flex items-center">
+                                    📝 Prompt Processato (con dati utente):
+                                    <span className="ml-2 text-xs bg-purple-200 px-2 py-1 rounded-full">
+                                      {message.processedPrompt.length} caratteri
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-purple-700 max-h-40 overflow-y-auto bg-white p-3 rounded border-2 border-purple-100 font-mono whitespace-pre-wrap leading-relaxed">
+                                    {message.processedPrompt}
+                                  </div>
+                                  <div className="text-xs text-purple-600 mt-2 italic">
+                                    ⚠️ Questo è il prompt che viene inviato all'AI con i dati del cliente sostituiti
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Show message when processedPrompt is empty but toggle is on */}
+                              {showProcessedPrompt && !message.processedPrompt && (
+                                <div className="mb-2 p-3 bg-orange-50 rounded-lg border-2 border-orange-200">
+                                  <div className="text-sm font-bold text-orange-800 mb-1">
+                                    ⚠️ Prompt Processato non disponibile
+                                  </div>
+                                  <div className="text-xs text-orange-700">
+                                    Il prompt processato non è arrivato dal backend. Controlla:
+                                    <ul className="mt-1 ml-4 list-disc">
+                                      <li>Se il backend è in funzione</li>
+                                      <li>Se il servizio PromptTemplateService sta funzionando</li>
+                                      <li>I log del browser per errori API</li>
+                                    </ul>
                                   </div>
                                 </div>
                               )}

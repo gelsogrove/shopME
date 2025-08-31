@@ -4,6 +4,7 @@ import { CallingFunctionsService } from './calling-functions.service';
 import { ToolDescriptionsService } from './tool-descriptions.service';
 import { TranslationService } from './translation.service';
 import { EmbeddingService } from './embeddingService';
+import { PromptTemplateService } from './prompt-template.service';
 
 export class DualLLMService {
   private toolDescriptionsService: ToolDescriptionsService;
@@ -14,6 +15,7 @@ export class DualLLMService {
   private openRouterUrl: string;
   private backendUrl: string;
   private lastTranslatedQuery: string = '';
+  private lastProcessedPrompt: string = '';
 
   constructor() {
     this.toolDescriptionsService = new ToolDescriptionsService();
@@ -53,6 +55,14 @@ export class DualLLMService {
         if (!this.lastTranslatedQuery) {
           this.lastTranslatedQuery = await this.translationService.translateForSearchRag(request.chatInput);
         }
+        
+        // 🔧 Process prompt even for generic fallback
+        if (request.prompt && request.customer) {
+          const processedPrompt = PromptTemplateService.processPromptTemplate(request.prompt, request.customer);
+          this.lastProcessedPrompt = processedPrompt;
+          console.log('🔧 Generic fallback: Prompt processed with customer data');
+        }
+        
         const genericResponse = await this.executeGenericFallback(request);
         return {
           output: genericResponse,
@@ -63,7 +73,8 @@ export class DualLLMService {
             functionName: 'Generic Fallback',
             result: 'No specific function or SearchRag results found, providing generic helpful response'
           }],
-          translatedQuery: this.lastTranslatedQuery
+          translatedQuery: this.lastTranslatedQuery,
+          processedPrompt: this.lastProcessedPrompt // 🔧 Include processedPrompt in generic fallback too
         };
       }
       
@@ -76,7 +87,8 @@ export class DualLLMService {
         output: formattedResponse,
         success: true,
         functionCalls: ragResult.functionResults || [],
-        translatedQuery: this.lastTranslatedQuery
+        translatedQuery: this.lastTranslatedQuery,
+        processedPrompt: this.lastProcessedPrompt
       };
       
     } catch (error) {
@@ -85,7 +97,8 @@ export class DualLLMService {
       return {
         output: 'Mi dispiace, si è verificato un errore. Riprova più tardi.',
         success: false,
-        translatedQuery: this.lastTranslatedQuery || request.chatInput
+        translatedQuery: this.lastTranslatedQuery || request.chatInput,
+        processedPrompt: this.lastProcessedPrompt
       };
     }
   }
@@ -262,12 +275,17 @@ PRIORITY: Cloud Functions take precedence. If uncertain, don't call functions.`;
     try {
       console.log('🎨 Stage 2: Formatter - Natural Response Generation');
 
+      // Use personalized prompt from request or fallback to default
+      const systemMessage = request.prompt && request.customer 
+        ? this.buildFormatterSystemMessageWithCustomer(request.prompt, request.customer)
+        : this.buildFormatterSystemMessage();
+
       const response = await axios.post(this.openRouterUrl, {
         model: 'anthropic/claude-3-5-sonnet-20241022',
         messages: [
           {
             role: 'system',
-            content: this.buildFormatterSystemMessage()
+            content: systemMessage
           },
           {
             role: 'user',
@@ -314,6 +332,30 @@ CONTEXT: You receive data from either Cloud Functions or SearchRag.
 - SearchRag: Semantic search results about products/services
 
 Format the response naturally based on the data type and user's request.`;
+  }
+
+  /**
+   * Build formatter system message with customer personalization
+   */
+  private buildFormatterSystemMessageWithCustomer(agentPrompt: string, customer: any): string {
+    if (!customer) {
+      this.lastProcessedPrompt = agentPrompt;
+      return agentPrompt;
+    }
+
+    // Process template with customer data
+    const processedPrompt = PromptTemplateService.processPromptTemplate(agentPrompt, customer);
+    this.lastProcessedPrompt = processedPrompt;
+    
+    console.log('🔧 Prompt processed with customer data');
+    console.log('🔧 Customer info:', {
+      name: customer.name,
+      discount: customer.discount,
+      language: customer.language,
+      phone: customer.phone
+    });
+    
+    return processedPrompt;
   }
 
   private buildFormatterUserMessage(request: LLMRequest, ragResult: any): string {
@@ -570,12 +612,10 @@ Please create a natural, helpful response in Italian based on this data.`;
     console.log('🔧 Stage 3: Generic Fallback - Providing helpful response');
     
     try {
-      const response = await axios.post(this.openRouterUrl, {
-        model: 'anthropic/claude-3-5-sonnet-20241022',
-        messages: [
-          {
-            role: 'system',
-            content: `You are SofIA, a friendly Italian food e-commerce assistant for L'Altra Italia. 
+      // 🔧 Use personalized prompt with customer data if available
+      const systemMessage = request.prompt && request.customer 
+        ? this.lastProcessedPrompt || PromptTemplateService.processPromptTemplate(request.prompt, request.customer)
+        : `You are SofIA, a friendly Italian food e-commerce assistant for L'Altra Italia. 
             
             When you don't understand a request or can't find specific information, provide a helpful, friendly response that:
             1. Acknowledges the user's message politely
@@ -584,7 +624,16 @@ Please create a natural, helpful response in Italian based on this data.`;
             4. Includes relevant emojis
             5. Suggests specific actions they can try
             
-            Keep responses concise but helpful. Always try to be useful even when you don't understand exactly what they want.`
+            Keep responses concise but helpful. Always try to be useful even when you don't understand exactly what they want.`;
+
+      console.log('🔧 Generic Fallback using system message:', systemMessage.substring(0, 200) + '...');
+
+      const response = await axios.post(this.openRouterUrl, {
+        model: 'anthropic/claude-3-5-sonnet-20241022',
+        messages: [
+          {
+            role: 'system',
+            content: systemMessage
           },
           {
             role: 'user',
@@ -592,7 +641,7 @@ Please create a natural, helpful response in Italian based on this data.`;
           }
         ],
         temperature: 0.3,
-        max_tokens: 200
+        max_tokens: 400
       }, {
         headers: {
           'Authorization': `Bearer ${this.openRouterApiKey}`,
