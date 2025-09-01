@@ -217,23 +217,51 @@ router.post("/whatsapp/webhook", async (req, res) => {
       // ✅ SESSION ACTIVE - SETUP DUAL LLM SYSTEM
       console.log('✅ SESSION ACTIVE - Setting up dual LLM system');
       
-      // Get agent config with prompt from database
-      let agentPrompt = "WhatsApp conversation"; // fallback
+      // 🔧 REMOVE DUPLICATE PROMPT FETCHING - DualLLMService handles this
+      // The prompt will be fetched by DualLLMService.getAgentConfig() method
+      console.log('📝 DualLLMService will handle agent prompt fetching from database');
+
+      // 🔧 RETRIEVE CHAT HISTORY FOR CONTEXT
+      let chatHistory = [];
       try {
         const { PrismaClient } = require('@prisma/client');
         const prisma = new PrismaClient();
         
-        const agentConfig = await prisma.agentConfig.findFirst({
-          where: { workspaceId: workspaceId }
+        // Get or create active chat session
+        let chatSession = await prisma.chatSession.findFirst({
+          where: {
+            customerId: customerId,
+            workspaceId: workspaceId,
+            status: 'active'
+          },
+          include: {
+            messages: {
+              orderBy: {
+                createdAt: 'asc'
+              },
+              take: 15 // Last 15 messages for optimal context
+            }
+          }
         });
-        if (agentConfig && agentConfig.prompt) {
-          agentPrompt = agentConfig.prompt;
-          console.log('✅ Using prompt from database');
+
+        if (chatSession) {
+          console.log(`📚 Found existing chat session with ${chatSession.messages.length} messages`);
+          
+          // Format messages for LLM context
+          chatHistory = chatSession.messages.map(msg => ({
+            role: msg.direction === 'INBOUND' ? 'user' : 'assistant',
+            content: msg.content
+          }));
+          
+          console.log('📜 Chat history loaded:', chatHistory.length, 'messages (last 15)');
         } else {
-          console.log('⚠️ No agent config found, using fallback prompt');
+          console.log('🆕 No existing chat session found, starting fresh conversation');
         }
-      } catch (error) {
-        console.error('❌ Error getting agent config:', error);
+        
+        await prisma.$disconnect();
+      } catch (historyError) {
+        console.error('❌ Error retrieving chat history:', historyError);
+        chatHistory = []; // Continue without history if error
       }
       
       llmRequest = {
@@ -246,8 +274,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
         temperature: 0.0,
         maxTokens: 3500,
         model: "gpt-4o",
-        messages: data.messages || [],
-        prompt: agentPrompt,
+        messages: chatHistory, // 🔧 Pass chat history for context
+        // prompt: removed - will be fetched by DualLLMService from database
         customer: customer // 🔧 Pass customer data for prompt personalization
       };
       

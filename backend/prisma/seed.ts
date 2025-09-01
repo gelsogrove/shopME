@@ -1917,6 +1917,7 @@ async function main() {
       privacy_accepted_at: new Date(),
       push_notifications_consent: true,
       push_notifications_consent_at: new Date(),
+      discount: 10, // 10% discount default
       invoiceAddress: {
         firstName: "Mario",
         lastName: "Rossi",
@@ -1984,6 +1985,7 @@ async function main() {
       privacy_accepted_at: new Date(),
       push_notifications_consent: true,
       push_notifications_consent_at: new Date(),
+      discount: 10, // 10% discount default
       invoiceAddress: {
         firstName: "Test",
         lastName: "Customer",

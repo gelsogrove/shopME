@@ -878,11 +878,15 @@ export function WhatsAppChatModal({
                           </div>
                         </div>
 
-                        {/* 🔧 Function Calls Debug Info */}
-                        {showFunctionCalls && message.functionCalls && message.functionCalls.length > 0 && (() => {
-                          // Group SearchRag results together
-                          const searchRagResults = message.functionCalls.filter(fc => fc.type === 'searchrag_result');
-                          const otherFunctionCalls = message.functionCalls.filter(fc => fc.type !== 'searchrag_result');
+                        {/* 🔧 Debug Info */}
+                        {showFunctionCalls && (
+                          (message.functionCalls && message.functionCalls.length > 0) ||
+                          message.translatedQuery ||
+                          message.processedPrompt
+                        ) && (() => {
+                          // Group SearchRag results together - safely handle undefined functionCalls
+                          const searchRagResults = (message.functionCalls || []).filter(fc => fc.type === 'searchrag_result');
+                          const otherFunctionCalls = (message.functionCalls || []).filter(fc => fc.type !== 'searchrag_result');
                           
                           const totalFunctionCalls = searchRagResults.length > 0 ? otherFunctionCalls.length + 1 : otherFunctionCalls.length;
                           

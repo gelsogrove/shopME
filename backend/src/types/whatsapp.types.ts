@@ -11,7 +11,7 @@ export interface LLMRequest {
   maxTokens: number;
   model: string;
   messages: any[];
-  prompt: string;
+  prompt?: string; // Optional - will be fetched from DB if not provided
   customer?: TemplateCustomer;
 }
 
