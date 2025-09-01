@@ -22,6 +22,7 @@ export class DualLLMService {
   private backendUrl: string
   private lastTranslatedQuery: string = ""
   private lastProcessedPrompt: string = ""
+  private lastDebugInfo: any = {}
 
   constructor() {
     this.callingFunctionsService = new CallingFunctionsService()
@@ -77,12 +78,22 @@ export class DualLLMService {
 
       let ragResult
       if (functionResult.success) {
-        console.log("✅ Cloud Functions succeeded, using CF result")
+        console.log("✅ FLOW: Cloud Functions succeeded, using CF result")
         ragResult = functionResult
       } else {
-        console.log("⚠️ Cloud Functions failed, falling back to SearchRag")
+        console.log("⚠️ FLOW: Cloud Functions failed, falling back to SearchRag")
         // Stage 1B: FALLBACK TO SEARCHRAG IF CF FAILS
         ragResult = await this.executeSearchRagFallback(requestWithPrompt)
+        
+        if (!ragResult.success) {
+          console.log("❌ FLOW: SearchRag also failed, will use Generic formatter")
+          // Store debug info for generic fallback
+          this.lastDebugInfo = {
+            stage: "generic",
+            reason: "both_cloud_functions_and_searchrag_failed",
+            success: true
+          };
+        }
       }
 
       console.log("✅ Final RAG Result:", JSON.stringify(ragResult, null, 2))
@@ -104,7 +115,8 @@ export class DualLLMService {
       console.log('🎯 DUAL LLM SUCCESS RESULT:', {
         translatedQuery: this.lastTranslatedQuery,
         hasProcessedPrompt: !!this.lastProcessedPrompt,
-        outputLength: formattedResponse?.length || 0
+        outputLength: formattedResponse?.length || 0,
+        debugInfo: this.lastDebugInfo
       });
 
       return {
@@ -113,6 +125,7 @@ export class DualLLMService {
         functionCalls: ragResult.functionResults || [],
         translatedQuery: this.lastTranslatedQuery,
         processedPrompt: this.lastProcessedPrompt,
+        debugInfo: this.lastDebugInfo, // 🔧 NEW: Debug info
       }
     } catch (error) {
       console.error("❌❌❌ DUAL LLM ERROR:", error)
@@ -209,13 +222,24 @@ export class DualLLMService {
       const message = response.data.choices[0].message
       const toolCalls = message.tool_calls || []
 
+      console.log("🔧🔧🔧 CLOUD FUNCTIONS ANALYSIS 🔧🔧🔧")
       console.log("🔧 Tool calls found:", toolCalls.length)
+      console.log("🔧 Tool calls details:", JSON.stringify(toolCalls, null, 2))
 
       if (toolCalls.length > 0) {
         // Execute tool calls
-        console.log("🔧 Executing tool calls...")
+        console.log("✅ CLOUD FUNCTIONS: Executing tool calls...")
         const results = await this.executeToolCalls(toolCalls, request)
-        console.log("✅ Tool call results:", JSON.stringify(results, null, 2))
+        console.log("✅ CLOUD FUNCTIONS: Tool call results:", JSON.stringify(results, null, 2))
+
+        // Store debug info for database
+        this.lastDebugInfo = {
+          stage: "cloud_functions",
+          toolCallsFound: toolCalls.length,
+          toolCallsDetails: toolCalls,
+          resultsCount: results.length,
+          success: true
+        };
 
         return {
           functionResults: results,
@@ -223,9 +247,18 @@ export class DualLLMService {
           source: "cloud_functions",
         }
       } else {
-        console.log(
-          "⚠️ No tool calls detected - Cloud Functions cannot handle this request"
-        )
+        console.log("❌ CLOUD FUNCTIONS: No tool calls detected - fallback to SearchRag")
+        
+        // Store debug info for database
+        this.lastDebugInfo = {
+          stage: "cloud_functions",
+          toolCallsFound: 0,
+          toolCallsDetails: [],
+          resultsCount: 0,
+          success: false,
+          reason: "no_tool_calls_detected"
+        };
+
         return {
           functionResults: [],
           success: false,
@@ -277,16 +310,38 @@ export class DualLLMService {
         ...faqResults.map((r) => ({ ...r, type: "faq" })),
       ]
 
+      console.log("🔧🔧🔧 SEARCHRAG ANALYSIS 🔧🔧🔧")
       console.log("🔧 SearchRag results:", JSON.stringify(allResults, null, 2))
+      console.log("🔧 SearchRag results count:", allResults.length)
 
       if (allResults.length === 0) {
-        console.log("⚠️ No SearchRag results found")
+        console.log("❌ SEARCHRAG: No results found - fallback to Generic")
+        
+        // Store debug info for database
+        this.lastDebugInfo = {
+          stage: "searchrag",
+          searchResults: [],
+          resultsCount: 0,
+          success: false,
+          reason: "no_search_results_found"
+        };
+
         return {
           functionResults: [],
           success: false,
           source: "searchrag",
         }
       }
+
+      console.log("✅ SEARCHRAG: Results found, generating response")
+      
+      // Store debug info for database
+      this.lastDebugInfo = {
+        stage: "searchrag",
+        searchResults: allResults,
+        resultsCount: allResults.length,
+        success: true
+      };
 
       // Format SearchRag results
       const formattedResults = allResults.map((result) => ({

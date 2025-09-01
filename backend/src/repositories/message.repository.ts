@@ -336,6 +336,7 @@ export class MessageRepository {
     processedPrompt?: string
     functionCallsDebug?: any[]
     processingSource?: string
+    debugInfo?: string // 🔧 NEW: Debug info as JSON string
   }) {
     try {
       // Validate required fields
@@ -649,6 +650,7 @@ export class MessageRepository {
               processedPrompt: data.processedPrompt,
               functionCallsDebug: data.functionCallsDebug ? JSON.stringify(data.functionCallsDebug) : null,
               processingSource: data.processingSource,
+              debugInfo: data.debugInfo, // 🔧 NEW: Debug info (already JSON string)
             },
           })
           logger.info(

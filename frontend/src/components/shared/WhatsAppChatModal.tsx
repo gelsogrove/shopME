@@ -30,6 +30,7 @@ interface Message {
   agentName?: string
   translatedQuery?: string
   processedPrompt?: string
+  debugInfo?: string | any // 🔧 NEW: Debug information
   functionCalls?: Array<{
     functionName: string
     toolCall?: {
@@ -237,7 +238,12 @@ export function WhatsAppChatModal({
           // Debug fields
           translatedQuery: message.translatedQuery,
           processedPrompt: message.processedPrompt,
-          functionCalls: message.functionCallsDebug ? JSON.parse(message.functionCallsDebug) : [],
+          functionCalls: message.functionCallsDebug ? (() => {
+            console.log('🔧 Raw functionCallsDebug:', message.functionCallsDebug);
+            const parsed = JSON.parse(message.functionCallsDebug);
+            console.log('🔧 Parsed functionCalls:', parsed);
+            return parsed;
+          })() : [],
           metadata: {
             isOperatorMessage: message.metadata?.isOperatorMessage || false,
             isOperatorControl: message.metadata?.isOperatorControl || false,
@@ -885,17 +891,39 @@ export function WhatsAppChatModal({
                               </div>
                             )}
 
+                            {showProcessedPrompt && message.debugInfo && (
+                              <div className="bg-green-50 border border-green-200 rounded p-2">
+                                <div className="text-xs font-semibold text-green-800 mb-1">
+                                  🔧 Debug Flow:
+                                </div>
+                                <div className="text-xs text-green-700 font-mono whitespace-pre-wrap max-h-32 overflow-y-auto">
+                                  {typeof message.debugInfo === 'string' ? message.debugInfo : JSON.stringify(message.debugInfo, null, 2)}
+                                </div>
+                              </div>
+                            )}
+
                             {showFunctionCalls && message.functionCalls && message.functionCalls.length > 0 && (
                               <div className="bg-purple-50 border border-purple-200 rounded p-2">
                                 <div className="text-xs font-semibold text-purple-800 mb-1">
-                                  ⚡ Function Calls ({message.functionCalls.length}):
+                                  {message.functionCalls.some(call => call.type === 'searchrag_result') 
+                                    ? `🔍 SearchRag Results (${message.functionCalls.length}):`
+                                    : `⚡ Function Calls (${message.functionCalls.length}):`
+                                  }
                                 </div>
                                 <div className="space-y-2 max-h-40 overflow-y-auto">
                                   {message.functionCalls.map((call, index) => (
                                     <div key={index} className="bg-white border border-purple-100 rounded p-2">
                                       <div className="text-xs font-medium text-purple-700 mb-1">
-                                        🔧 {call.functionName}
+                                        {call.type === 'searchrag_result' ? '🔍' : '🔧'} {call.functionName || call.type || 'Unknown'}
                                       </div>
+                                      {call.type === 'searchrag_result' && call.data && (
+                                        <div className="text-xs text-green-600">
+                                          <strong>Source:</strong> {call.data.sourceName || 'Unknown'}<br/>
+                                          <strong>Type:</strong> {call.data.sourceType || 'Unknown'}<br/>
+                                          <strong>Similarity:</strong> {(call.data.similarity * 100).toFixed(1)}%<br/>
+                                          <strong>Content:</strong> {call.data.content?.substring(0, 200)}...
+                                        </div>
+                                      )}
                                       {call.toolCall?.function?.arguments && (
                                         <div className="text-xs text-purple-600 font-mono">
                                           <pre className="whitespace-pre-wrap">
@@ -903,7 +931,7 @@ export function WhatsAppChatModal({
                                           </pre>
                                         </div>
                                       )}
-                                      {call.result && (
+                                      {call.result && call.type !== 'searchrag_result' && (
                                         <div className="text-xs text-green-600 mt-1">
                                           <strong>Result:</strong> {JSON.stringify(call.result)}
                                         </div>

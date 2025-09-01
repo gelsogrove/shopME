@@ -11,21 +11,16 @@ export class TranslationService {
   }
 
   public async translateToEnglish(text: string): Promise<string> {
-    console.log('🌐 ==== TRANSLATION SERVICE CALLED ====');
-    console.log('🌐 Input text:', text);
-    
     try {
       console.log('🌐 Translating text to English:', text);
       
       const isTextEnglish = this.isEnglish(text);
-      console.log('🔍 Is text English?', isTextEnglish);
       
       if (isTextEnglish) {
         console.log('🔄 Text appears to be English, returning as-is');
         return text;
       }
 
-      console.log('🚀 Starting translation request to OpenRouter...');
       const response = await axios.post(this.openRouterUrl, {
         model: 'openai/gpt-3.5-turbo',
         messages: [
@@ -52,7 +47,6 @@ export class TranslationService {
 
       const translation = response.data.choices[0]?.message?.content?.trim() || text;
       console.log('✅ Translation successful:', translation);
-      console.log('📊 Translation stats - Original:', text, '-> Translated:', translation);
       return translation;
 
     } catch (error) {
@@ -65,15 +59,8 @@ export class TranslationService {
     const englishWords = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'how', 'what', 'when', 'where', 'why', 'which', 'that', 'this', 'is', 'are', 'do', 'does', 'can', 'will', 'would', 'should'];
     const words = text.toLowerCase().split(/\s+/);
     const englishWordCount = words.filter(word => englishWords.includes(word)).length;
-    const isDetectedEnglish = englishWordCount > 0;
-    
-    console.log('🔍 DETAILED Language detection for:', text);
-    console.log('🔍 Words found:', words);
-    console.log('🔍 English words found:', words.filter(word => englishWords.includes(word)));
-    console.log('🔍 English word count:', englishWordCount);
-    console.log('🔍 Final decision - isEnglish:', isDetectedEnglish);
     
     // Return true only if we find actual English words, not just latin characters
-    return isDetectedEnglish;
+    return englishWordCount > 0;
   }
 }

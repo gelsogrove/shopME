@@ -315,7 +315,10 @@ router.post("/whatsapp/webhook", async (req, res) => {
         success: result.success,
         hasOutput: !!result.output,
         translatedQuery: result.translatedQuery,
-        outputLength: result.output?.length || 0
+        outputLength: result.output?.length || 0,
+        functionCallsCount: result.functionCalls?.length || 0,
+        functionCallsContent: JSON.stringify(result.functionCalls, null, 2),
+        debugInfo: result.debugInfo
       });
     }
     
@@ -333,7 +336,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
           translatedQuery: result.translatedQuery,
           processedPrompt: result.processedPrompt,
           functionCallsDebug: result.functionCalls,
-          processingSource: result.functionCalls?.[0]?.source || 'unknown'
+          processingSource: result.functionCalls?.[0]?.source || 'unknown',
+          debugInfo: JSON.stringify(result.debugInfo || {}) // 🔧 NEW: Save debug info
         });
       } catch (saveError) {
         console.error('❌ Failed to save message:', saveError);

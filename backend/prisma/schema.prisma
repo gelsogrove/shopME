@@ -334,6 +334,7 @@ model Message {
   processingSource   String?
   translatedQuery    String?
   processedPrompt    String?
+  debugInfo          String? // 🔧 NEW: Debug information as JSON string
   chatSession        ChatSession      @relation(fields: [chatSessionId], references: [id])
   prompt             Prompts?         @relation(fields: [promptId], references: [id])
 

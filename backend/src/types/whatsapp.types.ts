@@ -18,6 +18,7 @@ export interface LLMResponse {
   functionCalls?: any[];
   translatedQuery?: string;
   processedPrompt?: string;
+  debugInfo?: any; // 🔧 NEW: Debug information
 }
 
 export interface FunctionCall {
