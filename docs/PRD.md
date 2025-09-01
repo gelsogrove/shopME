@@ -90,7 +90,6 @@ Allow customers to access their full orders history and specific order details v
 - **Orders page pagination:** Implemented server-side pagination; marked as completed.
 - **Order filters bug:** Known issue—filters (search, status, date) on orders list not working; see bug task.
 - **Customer discount logic:** Customer discount field enforced; best discount (customer vs. offer) always applied in RAG search.
-- **Test System Discount Standard:** All test customers (Mario Rossi, Maria Garcia, MCP Test Customer) uniformly configured with 10% discount in seed data for consistent testing environment.
 - **Address handling:** Shipping Address and Invoice Address will both be managed as structured objects (field by field) in forms and backend.
 - **Pagination limits:** All paginated lists will show 5 more items per page (default and max).
 - **N8N Custom Functions:** Complete documentation of all 6 custom functions with comprehensive business logic and technical details.
@@ -164,14 +163,12 @@ Sistema completo di test di integrazione per verificare il funzionamento del cha
 **Status**: 🚧 **PENDING**
 
 #### **7. test-contact-operator.integration.spec.ts** (DA CREARE)
-**Scopo**: Verificare sistema escalation operatore completamente implementato
+**Scopo**: Verificare flusso contatto operatore
 **Test Cases**:
-- 📞 **Operator Request**: "voglio contattare un operatore" → ChatSession.status='operator_escalated'
-- 🚫 **Message Blocking**: Dopo escalation, nuovi messaggi ricevono messaggio automatico di escalation
-- 🌍 **Multi-language**: Test trigger phrases in IT/EN/ES
-- 🔄 **Reactivation**: Test cambio status da 'operator_escalated' a 'active'
-- 👨‍💼 **Manual Messages**: Test endpoint per invio messaggi operatore manuali
-**Status**: 🚧 **PENDING** (sistema già implementato, serve solo test)
+- 📞 **Operator Request**: "voglio contattare un operatore" → activeChatbot=false
+- 🚫 **Message Ignoring**: Dopo richiesta operatore, altri messaggi ignorati
+- 🌍 **Multi-language**: Test in italiano, inglese, spagnolo
+**Status**: 🚧 **PENDING**
 
 #### **8. test-block-user.integration.spec.ts** (DA CREARE)
 **Scopo**: Verificare sistema di blocco utenti
@@ -348,14 +345,9 @@ Sistema completo di test di integrazione per verificare il funzionamento del cha
 
 ### **Q3: LLM di Formattazione in N8N**
 
-**A:** ✅ **IMPLEMENTATO - SINGLE LLM ARCHITECTURE CON MEMORIA CONVERSAZIONALE**
+**A:** ✅ **IMPLEMENTATO - SINGLE LLM ARCHITECTURE**
 
-- **Single LLM Agent (Claude-3.5-Sonnet)**: Gestisce RAG search, function calling e genera risposta conversazionale in una singola chiamata API
-- **Memoria Conversazionale**: ✅ Sistema completo di recupero cronologia messaggi dal database per mantenere contesto conversazionale
-- **Ottimizzazione Costi**: Riduzione 66-75% dei costi (da 2-3 chiamate API a 1 sola chiamata per richiesta)
-- **Language Compliance**: Assicura consistenza linguistica attraverso processed prompt con dati cliente
-- **Function Integration**: Integrazione completa con getAllProducts, getServices, contactOperator, etc.
-- **RAG Context**: Ricerca semantica multi-source (prodotti, servizi, FAQ) integrata nella chiamata principale
+- **LLM Agent (OpenRouter)**: Gestisce RAG search e genera risposta conversazionale
 - Configurazione dinamica dalla tabella `agentConfig` (prompt, temperatura, token, modello)
 - Integrato con N8N Agent Node per gestione completa del workflow
 
@@ -367,23 +359,7 @@ Sistema completo di test di integrazione per verificare il funzionamento del cha
 - SecureTokenService per customer tokens temporanei
 - Cleanup automatico after expiration (1 ora)
 
-### **Q5: Sistema Escalation Operatore**
-
-**A:** ✅ **COMPLETAMENTE IMPLEMENTATO**
-
-- **Rilevamento Automatico**: LLM identifica richieste di assistenza umana in multi-lingua
-- **Disattivazione Immediata**: ChatSession.status → 'operator_escalated' blocca automaticamente il chatbot
-- **Messaggio di Escalation**: Risposta automatica che informa l'utente dell'escalation
-- **Controllo Webhook**: Verifica status sessione prima di processare nuovi messaggi
-- **Operatore Manuale**: Endpoint dedicato per invio messaggi manuali
-- **Riattivazione**: Cambio status da 'operator_escalated' a 'active' riabilita il chatbot
-
-**Trigger Phrases Supportate:**
-- 🇮🇹 "operatore", "parlare con operatore", "assistenza umana"
-- 🇬🇧 "operator", "human assistance", "speak to person" 
-- 🇪🇸 "operador", "asistencia humana", "hablar con persona"
-
-### **Q6: Usage Tracking System**
+### **Q5: Usage Tracking System**
 
 **A:** ✅ **IMPLEMENTATO COMPLETAMENTE**
 
@@ -392,7 +368,7 @@ Sistema completo di test di integrazione per verificare il funzionamento del cha
 - **Dashboard analytics**: Statistiche complete con grafici e export
 - **Filtri di sicurezza**: Solo clienti registrati con `activeChatbot: true`
 
-### **Q7: N8N Auto-Setup e Import Automatico**
+### **Q6: N8N Auto-Setup e Import Automatico**
 
 **A:** ✅ **IMPLEMENTATO COMPLETAMENTE**
 
@@ -2982,34 +2958,19 @@ Andrea ha creato un sistema WhatsApp intelligente che gestisce automaticamente t
 ##### **3. 👨‍💼 contact_operator() - Operator Control**
 
 ```javascript
-// Status: ✅ COMPLETAMENTE IMPLEMENTATO
-// Usage: Sistema automatico di escalation operatore
+// Endpoint: Internal customer.activeChatbot toggle
+// Status: ✅ INFRASTRUCTURE READY
+// Usage: Attiva controllo manuale operatore
 
-// ✅ IMPLEMENTED FEATURES:
-✅ Automatic LLM detection of operator requests
-✅ ChatSession.status = 'operator_escalated' mechanism
-✅ Automatic chatbot disabling for escalated sessions
-✅ Operator escalation message delivery
+// Implemented:
+✅ Operator control detection
 ✅ Message saving for operator review
 ✅ Manual message sending endpoint
-✅ Session status monitoring in webhook
+✅ activeChatbot flag management
 
-// 🔧 TECHNICAL IMPLEMENTATION:
-1. LLM calls contactOperator() when user requests human assistance
-2. Updates ChatSession.status from 'active' to 'operator_escalated'
-3. Webhook checks session status before processing new messages
-4. Escalated sessions receive automatic operator message:
-   "Un operatore ti contatterà al più presto. Nel frattempo, 
-   il chatbot è temporaneamente disabilitato per questa conversazione. 
-   Grazie per la tua pazienza! 🤝"
-5. Manual operator messages can be sent via /chat/sessions/{id}/send
-
-// 🎯 TRIGGER PHRASES (Multi-language):
-- IT: "operatore", "parlare con operatore", "assistenza umana"
-- EN: "operator", "human assistance", "speak to person"
-- ES: "operador", "asistencia humana", "hablar con persona"
-
-// 🔄 REACTIVATION: Change session status back to 'active'
+// Missing:
+❌ Automatic operator activation calling function
+❌ Operator notification system
 ```
 
 #### **❌ NOT IMPLEMENTED CALLING FUNCTIONS**

@@ -2,12 +2,18 @@ import axios from "axios"
 import { LLMRequest, LLMResponse } from "../types/whatsapp.types"
 import { CallingFunctionsService } from "./calling-functions.service"
 import { EmbeddingService } from "./embeddingService"
-import { PromptTemplateService } from "./prompt-template.service"
-import { ToolDescriptionsService } from "./tool-descriptions.service"
 import { TranslationService } from "./translation.service"
 
+interface PromptVariables {
+  nameUser: string
+  discountUser: string
+  companyName: string
+  lastorder: string
+  lastordercode: string
+  languageUser: string
+}
+
 export class DualLLMService {
-  private toolDescriptionsService: ToolDescriptionsService
   private callingFunctionsService: CallingFunctionsService
   private translationService: TranslationService
   private embeddingService: EmbeddingService
@@ -18,7 +24,6 @@ export class DualLLMService {
   private lastProcessedPrompt: string = ""
 
   constructor() {
-    this.toolDescriptionsService = new ToolDescriptionsService()
     this.callingFunctionsService = new CallingFunctionsService()
     this.translationService = new TranslationService()
     this.embeddingService = new EmbeddingService()
@@ -29,7 +34,10 @@ export class DualLLMService {
 
   public async processMessage(request: LLMRequest): Promise<LLMResponse> {
     console.log("🚀🚀🚀 DUAL LLM PROCESSING STARTED 🚀🚀🚀")
-    console.log("📥 Request received:", JSON.stringify(request, null, 2))
+    console.log("📥 Request chatInput:", request.chatInput)
+    console.log("📥 Request language:", request.language)
+    console.log("📥 Request workspaceId:", request.workspaceId)
+    console.log("💥💥💥 CUSTOMER ID FROM REQUEST:", request.customerid)
 
     let requestWithPrompt = request // Initialize with original request
 
@@ -43,8 +51,25 @@ export class DualLLMService {
         console.log("✅ Agent prompt fetched from database")
       }
 
-      // Update request with prompt for downstream processing
-      requestWithPrompt = { ...request, prompt: agentPrompt }
+      // � NO MORE VARIABLE REPLACEMENT - ALREADY DONE IN WEBHOOK!
+      console.log("� WEBHOOK HAS ALREADY PROCESSED VARIABLES - Using prompt as-is")
+      
+      // Use the prompt directly from webhook (already processed)
+      if (request.prompt) {
+        agentPrompt = request.prompt
+        console.log("✅ Using pre-processed prompt from webhook")
+      }
+
+      // 🌐 UPDATE REQUEST WITH USER'S LANGUAGE FROM PROFILE
+      requestWithPrompt = { 
+        ...request, 
+        prompt: agentPrompt,
+        language: request.language || 'it'  // 🔥 USE LANGUAGE FROM WEBHOOK
+      }
+      console.log(`🌐 Using language from webhook: ${request.language || 'it'}`)
+
+      // 🔧 STORE PROCESSED PROMPT FOR DEBUG
+      this.lastProcessedPrompt = agentPrompt
 
       // Stage 1: TRY CLOUD FUNCTIONS FIRST (NEW STRATEGY)
       console.log("🔧 Stage 1A: Trying Cloud Functions First")
@@ -76,6 +101,12 @@ export class DualLLMService {
         JSON.stringify(formattedResponse, null, 2)
       )
 
+      console.log('🎯 DUAL LLM SUCCESS RESULT:', {
+        translatedQuery: this.lastTranslatedQuery,
+        hasProcessedPrompt: !!this.lastProcessedPrompt,
+        outputLength: formattedResponse?.length || 0
+      });
+
       return {
         output: formattedResponse,
         success: true,
@@ -100,9 +131,11 @@ export class DualLLMService {
 
   private async tryCloudFunctions(request: LLMRequest): Promise<any> {
     console.log("🔧🔧🔧 TRY CLOUD FUNCTIONS STARTED 🔧🔧🔧")
+    console.log("🔧 Input request:", { chatInput: request.chatInput, language: request.language })
 
     try {
       // Translate query
+      console.log("🌐 About to call translation service for:", request.chatInput)
       const translatedQuery = await this.translationService.translateToEnglish(
         request.chatInput
       )
@@ -120,7 +153,7 @@ export class DualLLMService {
       const agentConfig = await this.getAgentConfig(request.workspaceId)
       console.log("🔧 Agent config from DB:", agentConfig)
 
-      // STAGE 1A: USA IL PROMPT DELL'AGENT DAL DB + personalizzazione cliente
+      // STAGE 1A: USA IL PROMPT DELL'AGENT DAL DB
       let systemMessage
       if (!request.prompt) {
         throw new Error(
@@ -128,22 +161,9 @@ export class DualLLMService {
         )
       }
 
-      if (request.customer) {
-        // Usa prompt dell'agent personalizzato con dati cliente
-        systemMessage = PromptTemplateService.processPromptTemplate(
-          request.prompt,
-          request.customer
-        )
-        this.lastProcessedPrompt = systemMessage
-        console.log(
-          "🔧 Cloud Functions: Using personalized agent prompt from DB"
-        )
-      } else {
-        // Usa prompt dell'agent dal DB senza personalizzazione
-        systemMessage = request.prompt
-        this.lastProcessedPrompt = systemMessage
-        console.log("🔧 Cloud Functions: Using agent prompt from DB")
-      }
+      // Usa prompt dell'agent dal DB
+      systemMessage = request.prompt
+      console.log("🔧 Cloud Functions: Using agent prompt from DB")
 
       const openRouterPayload = {
         model: agentConfig.model || "openai/gpt-4o",
@@ -229,7 +249,7 @@ export class DualLLMService {
     try {
       // Translate query specifically for SearchRag with language detection
       const translatedQuery =
-        await this.translationService.translateForSearchRag(request.chatInput)
+        await this.translationService.translateToEnglish(request.chatInput)
       this.lastTranslatedQuery = translatedQuery // Store for debug
 
       // Use SearchRag for semantic search - try multiple sources
@@ -297,10 +317,14 @@ export class DualLLMService {
 MISSION: You MUST call functions for specific requests, otherwise decline politely.
 
 AVAILABLE FUNCTIONS:
-${this.toolDescriptionsService
-  .getToolDescriptions()
-  .map((tool) => `- ${tool.name}: ${tool.description}`)
-  .join("\n")}
+- GetOrdersListLink: Get link to customer orders page
+- GetShipmentTrackingLink: Get link to track order shipment
+- GetCustomerProfileLink: Get link to customer profile management
+- GetActiveOffers: Get current active offers and promotions
+- GetContactInfo: Get company contact information
+- getAllCategories: Get complete list of product categories
+- getAllProducts: Get complete product catalog with details
+- getServices: Get list of all available services
 
 CRITICAL RULES:
 1. For order-related requests → CALL GetOrdersListLink()
@@ -326,14 +350,8 @@ PRIORITY: Cloud Functions take precedence. If uncertain, don't call functions.`
     try {
       console.log("🎨 Stage 2: Formatter - Natural Response Generation")
 
-      // FORMATTER USA IL SUO PROMPT MA RISPETTA LA LINGUA DEL CLIENTE
-      const customerLanguage = request.customer?.language;
-      console.log(`🔧 DEBUG: request.customer:`, request.customer);
-      console.log(`🔧 DEBUG: customerLanguage extracted:`, customerLanguage);
-      
-      const systemMessage = this.buildFormatterSystemMessage(customerLanguage);
-      console.log(`🌍 Formatter using language: ${customerLanguage || 'default (Italian)'}`);
-      console.log(`🔧 DEBUG: Formatter system message:`, systemMessage.substring(0, 200) + '...');
+      // FORMATTER USA IL PROMPT LOCALIZZATO BASATO SULLA LINGUA DELL'UTENTE
+      const systemMessage = this.buildFormatterSystemMessage(request.language || 'it')
 
       const response = await axios.post(
         this.openRouterUrl,
@@ -380,41 +398,70 @@ PRIORITY: Cloud Functions take precedence. If uncertain, don't call functions.`
     }
   }
 
-  private buildFormatterSystemMessage(customerLanguage?: string): string {
-    // Determina la lingua da usare con istruzioni MOLTO ESPLICITE
-    let languageInstruction = "Use Italian language";
-    if (customerLanguage) {
-      switch (customerLanguage.toLowerCase()) {
-        case 'en':
-        case 'english':
-          languageInstruction = "⚠️ CRITICAL: RESPOND ONLY IN ENGLISH. Do NOT use Italian. Every word must be in English. Do NOT mention this language rule in your response.";
-          break;
-        case 'es':
-        case 'spanish':
-          languageInstruction = "⚠️ CRITICAL: RESPOND ONLY IN SPANISH. Do NOT use Italian. Every word must be in Spanish. Do NOT mention this language rule in your response.";
-          break;
-        case 'fr':
-        case 'french':
-          languageInstruction = "⚠️ CRITICAL: RESPOND ONLY IN FRENCH. Do NOT use Italian. Every word must be in French. Do NOT mention this language rule in your response.";
-          break;
-        case 'de':
-        case 'german':
-          languageInstruction = "⚠️ CRITICAL: RESPOND ONLY IN GERMAN. Do NOT use Italian. Every word must be in German. Do NOT mention this language rule in your response.";
-          break;
-        default:
-          languageInstruction = "Use Italian language";
+  private buildFormatterSystemMessage(language: string = 'it'): string {
+    const languageConfig = {
+      'it': {
+        name: 'Italian',
+        languageName: 'italiano',
+        instructions: {
+          style: '- Usa la lingua italiana',
+          noData: {
+            acknowledge: '1. Riconosci cortesemente la richiesta dell\'utente',
+            offer: '2. Offri aiuto con richieste comuni (ordini, prodotti, contatti)',
+            suggest: '3. Suggerisci azioni specifiche che possono provare',
+            emojis: '4. Includi emoji appropriate'
+          }
+        }
+      },
+      'en': {
+        name: 'English',
+        languageName: 'English',
+        instructions: {
+          style: '- Use English language',
+          noData: {
+            acknowledge: '1. Acknowledge the user\'s request politely',
+            offer: '2. Offer to help with common requests (orders, products, contact)',
+            suggest: '3. Suggest specific actions they can try',
+            emojis: '4. Include relevant emojis'
+          }
+        }
+      },
+      'es': {
+        name: 'Spanish',
+        languageName: 'español',
+        instructions: {
+          style: '- Usa el idioma español',
+          noData: {
+            acknowledge: '1. Reconoce cortésmente la solicitud del usuario',
+            offer: '2. Ofrece ayuda con solicitudes comunes (pedidos, productos, contacto)',
+            suggest: '3. Sugiere acciones específicas que pueden intentar',
+            emojis: '4. Incluye emojis relevantes'
+          }
+        }
+      },
+      'pt': {
+        name: 'Portuguese',
+        languageName: 'português',
+        instructions: {
+          style: '- Use a língua portuguesa',
+          noData: {
+            acknowledge: '1. Reconheça cortesmente a solicitação do usuário',
+            offer: '2. Ofereça ajuda com solicitações comuns (pedidos, produtos, contato)',
+            suggest: '3. Sugira ações específicas que podem tentar',
+            emojis: '4. Inclua emojis relevantes'
+          }
+        }
       }
     }
 
-    return `You are a helpful WhatsApp assistant for L'Altra Italia e-commerce.
+    const config = languageConfig[language as keyof typeof languageConfig] || languageConfig['it']
+
+    return `You are SofIA, a helpful WhatsApp assistant for L'Altra Italia e-commerce.
 
 MISSION: Create natural, friendly responses based on the data provided.
 
-⚠️ LANGUAGE RULE - HIGHEST PRIORITY:
-${languageInstruction}
-This language rule overrides ALL other instructions.
-
 STYLE:
+${config.instructions.style}
 - Be conversational and warm
 - Keep responses concise but informative
 - Use emojis appropriately
@@ -426,12 +473,12 @@ CONTEXT: You receive data from either Cloud Functions or SearchRag.
 - No data: When no specific information is found, provide helpful guidance
 
 IMPORTANT: When no data is found, don't just say "no data" - instead:
-1. Acknowledge the user's request politely
-2. Offer to help with common requests (orders, products, contact)
-3. Suggest specific actions they can try
-4. Include relevant emojis
+${config.instructions.noData.acknowledge}
+${config.instructions.noData.offer}
+${config.instructions.noData.suggest}
+${config.instructions.noData.emojis}
 
-Format the response naturally based on the data type and user's request.`;
+Format the response naturally based on the data type and user's request.`
   }
 
   private buildFormatterUserMessage(
@@ -441,6 +488,40 @@ Format the response naturally based on the data type and user's request.`;
     const userQuery = request.chatInput
     const dataSource = ragResult.source || "unknown"
     const functionResults = ragResult.functionResults || []
+    const language = request.language || 'it'
+
+    const languageNames = {
+      'it': 'Italian',
+      'en': 'English', 
+      'es': 'Spanish',
+      'pt': 'Portuguese'
+    }
+
+    const suggestionExamples = {
+      'it': {
+        orders: '"i miei ordini" per vedere lo storico',
+        products: '"cosa vendete" per sfogliare i prodotti',
+        contact: '"contatti" per parlare con un operatore'
+      },
+      'en': {
+        orders: '"my orders" to see order history',
+        products: '"what do you sell" to browse products', 
+        contact: '"contact" to speak with an operator'
+      },
+      'es': {
+        orders: '"mis pedidos" para ver el historial',
+        products: '"qué venden" para explorar productos',
+        contact: '"contacto" para hablar con un operador'
+      },
+      'pt': {
+        orders: '"meus pedidos" para ver o histórico',
+        products: '"o que vendem" para navegar pelos produtos',
+        contact: '"contato" para falar com um operador'
+      }
+    }
+
+    const suggestions = suggestionExamples[language as keyof typeof suggestionExamples] || suggestionExamples['it']
+    const languageName = languageNames[language as keyof typeof languageNames] || 'Italian'
 
     let dataContext = ""
     if (functionResults.length > 0) {
@@ -452,9 +533,9 @@ Please provide a helpful response that:
 1. Acknowledges what the user asked
 2. Explains that you don't have specific information for this request
 3. Offers alternative help like:
-   - "i miei ordini" to see order history
-   - "cosa vendete" to browse products
-   - "contatti" to speak with an operator
+   - ${suggestions.orders}
+   - ${suggestions.products}
+   - ${suggestions.contact}
 4. Maintains a warm, helpful tone`
     }
 
@@ -462,17 +543,39 @@ Please provide a helpful response that:
 
 ${dataContext}
 
-Please create a natural, helpful response in Italian.`
+Please create a natural, helpful response in ${languageName}.`
   }
 
   private buildFallbackResponse(request: LLMRequest, ragResult: any): string {
     const userQuery = request.chatInput
+    const language = request.language || 'it'
 
-    if (ragResult.functionResults && ragResult.functionResults.length > 0) {
-      return `Ho trovato alcune informazioni per la tua richiesta "${userQuery}". Tuttavia, si è verificato un errore nella formattazione della risposta. Ti prego di riprovare.`
+    const fallbackMessages = {
+      'it': {
+        found: `Ho trovato alcune informazioni per la tua richiesta "${userQuery}". Tuttavia, si è verificato un errore nella formattazione della risposta. Ti prego di riprovare.`,
+        notFound: `Mi dispiace, non sono riuscito a trovare informazioni specifiche per "${userQuery}". Puoi essere più specifico o provare con una domanda diversa?`
+      },
+      'en': {
+        found: `I found some information for your request "${userQuery}". However, there was an error formatting the response. Please try again.`,
+        notFound: `Sorry, I couldn't find specific information for "${userQuery}". Can you be more specific or try with a different question?`
+      },
+      'es': {
+        found: `Encontré información para tu solicitud "${userQuery}". Sin embargo, hubo un error al formatear la respuesta. Por favor, inténtalo de nuevo.`,
+        notFound: `Lo siento, no pude encontrar información específica para "${userQuery}". ¿Puedes ser más específico o probar con una pregunta diferente?`
+      },
+      'pt': {
+        found: `Encontrei informações para sua solicitação "${userQuery}". No entanto, houve um erro na formatação da resposta. Por favor, tente novamente.`,
+        notFound: `Desculpe, não consegui encontrar informações específicas para "${userQuery}". Você pode ser mais específico ou tentar com uma pergunta diferente?`
+      }
     }
 
-    return `Mi dispiace, non sono riuscito a trovare informazioni specifiche per "${userQuery}". Puoi essere più specifico o provare con una domanda diversa?`
+    const messages = fallbackMessages[language as keyof typeof fallbackMessages] || fallbackMessages['it']
+
+    if (ragResult.functionResults && ragResult.functionResults.length > 0) {
+      return messages.found
+    }
+
+    return messages.notFound
   }
 
   private getRAGProcessorFunctionDefinitions(): any[] {
@@ -482,7 +585,7 @@ Please create a natural, helpful response in Italian.`
         function: {
           name: "GetOrdersListLink",
           description:
-            "Get a direct link to view customer orders. Use this for any order-related requests. If user specifies an order code/number, include it in orderCode parameter.",
+            "Get a direct link to view customer orders. Use this for any order-related requests. Examples: 'dammi la lista degli ordini', 'voglio vedere i miei ordini', 'show me my orders', 'i miei ordini', 'lista ordini', 'storico ordini'. If user specifies an order code/number, include it in orderCode parameter.",
           parameters: {
             type: "object",
             properties: {
@@ -501,7 +604,7 @@ Please create a natural, helpful response in Italian.`
         function: {
           name: "GetShipmentTrackingLink",
           description:
-            'Get shipment tracking link for order delivery status. Use when user asks about order location, delivery status, or shipment tracking. If no orderCode provided, ask user to specify which order. Triggers: "dove è il mio ordine", "dov\'è il mio ordine", "tracking spedizione", "stato spedizione", "where is my order", "track my order".',
+            'Get shipment tracking link for order delivery status. Examples: "dove è il mio ordine", "dov\'è il mio ordine", "tracking spedizione", "stato spedizione", "dove è la merce", "where is my order", "track my order", "delivery status". Use when user asks about order location, delivery status, or shipment tracking. If no orderCode provided, ask user to specify which order.',
           parameters: {
             type: "object",
             properties: {
@@ -520,7 +623,7 @@ Please create a natural, helpful response in Italian.`
         function: {
           name: "GetCustomerProfileLink",
           description:
-            'Get link to customer profile page for modifying personal information, address, or account details. Use when user wants to change/modify their profile, address, email, or personal data. Triggers: "modificare profilo", "cambiare indirizzo", "vedere mail", "mia mail", "change profile", "update address".',
+            'Get link to customer profile page for modifying personal information, address, or account details. Examples: "modificare profilo", "cambiare indirizzo", "vedere mail", "mia mail", "mio profilo", "dati personali", "change profile", "update address", "voglio cambiare indirizzo". Use when user wants to change/modify their profile, address, email, or personal data.',
           parameters: {
             type: "object",
             properties: {},
@@ -532,7 +635,7 @@ Please create a natural, helpful response in Italian.`
         type: "function",
         function: {
           name: "GetActiveOffers",
-          description: "Get current active offers and promotions.",
+          description: "Get current active offers and promotions. Examples: 'che offerte avete', 'sconti disponibili', 'promozioni', 'show me offers', 'any deals', 'discounts'.",
           parameters: {
             type: "object",
             properties: {},
@@ -544,7 +647,7 @@ Please create a natural, helpful response in Italian.`
         type: "function",
         function: {
           name: "GetContactInfo",
-          description: "Get contact information and support details.",
+          description: "Get contact information and support details. Examples: 'voglio parlare con un operatore', 'aiuto umano', 'assistenza umana', 'human operator', 'speak with someone'.",
           parameters: {
             type: "object",
             properties: {},
@@ -557,7 +660,7 @@ Please create a natural, helpful response in Italian.`
         function: {
           name: "getAllCategories",
           description:
-            'Get all product categories overview. Use when user asks what you sell, what categories you have, or wants to see available product types. Triggers: "cosa vendete", "COS VENDETE", "che categorie avete", "what do you sell", "categories", case insensitive.',
+            'Get all product categories overview. Examples: "cosa vendete", "che categorie avete", "tipi di prodotti", "categorie disponibili", "what do you sell", "show me categories", "product categories". Use when user asks what you sell, what categories you have, or wants to see available product types.',
           parameters: {
             type: "object",
             properties: {},
@@ -570,7 +673,7 @@ Please create a natural, helpful response in Italian.`
         function: {
           name: "getAllProducts",
           description:
-            'Get complete detailed product catalog with all products, descriptions and prices. Use when user wants full product details, complete catalog, or specific product information. Triggers: "catalogo completo", "tutti i prodotti", "lista prodotti dettagliata".',
+            'Get complete detailed product catalog with all products, descriptions and prices. Examples: "dammi la lista dei prodotti", "che prodotti avete", "catalogo", "show me products", "catalogo completo", "tutti i prodotti", "lista prodotti dettagliata". Use when user wants full product details, complete catalog, or specific product information.',
           parameters: {
             type: "object",
             properties: {},
@@ -582,7 +685,8 @@ Please create a natural, helpful response in Italian.`
         type: "function",
         function: {
           name: "getServices",
-          description: "Get all available services.",
+          description:
+            'Get detailed list of all available services offered by the company. Examples: "che servizi offrite", "servizi disponibili", "quali servizi avete", "lista servizi", "what services do you offer", "servizi della ditta". Use when user asks about company services, service availability, or service details.',
           parameters: {
             type: "object",
             properties: {},
@@ -789,5 +893,180 @@ Please create a natural, helpful response in Italian.`
 
     console.log(`🗨️ Final conversation: ${messages.length} total messages`)
     return messages
+  }
+
+  /**
+   * Collect all variables needed for prompt replacement
+   */
+  private async getPromptVariables(request: LLMRequest): Promise<PromptVariables> {
+    console.log("🚨🚨🚨 GET PROMPT VARIABLES CALLED! 🚨🚨🚨")
+    console.log("Request customerid:", request.customerid)
+    
+    const { PrismaClient } = require('@prisma/client')
+    const prisma = new PrismaClient()
+
+    try {
+      // Initialize default values
+      let nameUser = "Cliente"
+      let discountUser = "Nessuno sconto attivo"
+      let companyName = "L'Altra Italia"
+      let lastorder = "Nessun ordine precedente"
+      let lastordercode = "N/A"
+      let languageUser = "it" // Default italiano
+
+      // 🔍 DEBUG: Log search parameters
+      console.log("🔍 SEARCHING FOR CUSTOMER:")
+      console.log("  - Customer ID:", request.customerid)
+      console.log("  - Workspace ID:", request.workspaceId)
+      console.log("  - Phone:", request.phone)
+      console.log("  - Full request object:", JSON.stringify(request, null, 2))
+
+      // 🔍 SMART CUSTOMER SEARCH: Try by ID first, then by phone as fallback
+      let customer = null;
+      
+      // Try by Customer ID first (if it's a valid UUID)
+      if (request.customerid && request.customerid.length > 10 && !request.customerid.includes("test-customer")) {
+        console.log("🔍 Searching by Customer ID...")
+        customer = await prisma.customers.findFirst({
+          where: {
+            id: request.customerid,
+            workspaceId: request.workspaceId,
+            isActive: true
+          },
+          select: {
+            id: true,
+            name: true,
+            company: true,
+            discount: true,
+            language: true  // 🔥 RECUPERA LINGUA DAL PROFILO UTENTE
+          }
+        })
+        console.log("🔍 Customer search by ID result:", customer)
+      }
+      
+      // If not found by ID, try by phone number (CRITICAL FALLBACK)
+      if (!customer && request.phone && request.phone !== "test-phone-123") {
+        console.log("🔍 Customer not found by ID, searching by phone...")
+        customer = await prisma.customers.findFirst({
+          where: {
+            phone: request.phone,
+            workspaceId: request.workspaceId,
+            isActive: true
+          },
+          select: {
+            id: true,
+            name: true,
+            company: true,
+            discount: true,
+            language: true  // 🔥 RECUPERA LINGUA DAL PROFILO UTENTE
+          }
+        })
+        console.log("🔍 Customer search by phone result:", customer)
+      }
+
+      if (customer) {
+        console.log("✅ CUSTOMER FOUND:", JSON.stringify(customer, null, 2))
+        
+        // Set customer name
+        if (customer.name) {
+          nameUser = customer.name
+        }
+
+        // Set company name if available
+        if (customer.company) {
+          companyName = customer.company
+        }
+
+        // Set discount if available
+        if (customer.discount && customer.discount > 0) {
+          discountUser = `${customer.discount}% di sconto attivo`
+        }
+
+        // 🔥 SET LANGUAGE FROM USER PROFILE (NOT PHONE)
+        if (customer.language) {
+          languageUser = customer.language
+          console.log(`🌐 Language from user profile: ${customer.language}`)
+        } else {
+          console.log("⚠️ No language in user profile, using default: it")
+        }
+      } else {
+        console.log("❌ CUSTOMER NOT FOUND - using default values")
+      }
+
+      // Get last order
+      const lastOrder = await prisma.orders.findFirst({
+        where: {
+          customerId: request.customerid,
+          workspaceId: request.workspaceId
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        select: {
+          orderCode: true,
+          createdAt: true,
+          total: true
+        }
+      })
+
+      if (lastOrder) {
+        const orderDate = new Date(lastOrder.createdAt).toLocaleDateString('it-IT')
+        lastorder = `Ordine ${lastOrder.orderCode} del ${orderDate} - Totale: €${lastOrder.total}`
+        lastordercode = lastOrder.orderCode
+      }
+
+      await prisma.$disconnect()
+
+      const variables: PromptVariables = {
+        nameUser,
+        discountUser,
+        companyName,
+        lastorder,
+        lastordercode,
+        languageUser
+      }
+
+      console.log("📋 Prompt variables collected:", variables)
+      console.log("🔄 About to replace variables in prompt...")
+      console.log("🔧 Original prompt length:", prompt.length)
+      return variables
+
+    } catch (error) {
+      console.error("❌ Error collecting prompt variables:", error)
+      await prisma.$disconnect()
+      
+      // Return safe defaults
+      return {
+        nameUser: "Cliente",
+        discountUser: "Nessuno sconto attivo",
+        companyName: "L'Altra Italia",
+        lastorder: "Nessun ordine precedente",
+        lastordercode: "N/A",
+        languageUser: "it"
+      }
+    }
+  }
+
+  /**
+   * Replace variables in prompt template
+   */
+  private replacePromptVariables(prompt: string, variables: PromptVariables): string {
+    console.log("🔄 REPLACE PROMPT VARIABLES STARTED")
+    console.log("🔧 Variables to replace:", variables)
+    console.log("🔧 Prompt before replacement (first 500 chars):", prompt.substring(0, 500))
+    
+    let processedPrompt = prompt
+
+    // Replace each variable
+    processedPrompt = processedPrompt.replace(/\{\{nameUser\}\}/g, variables.nameUser)
+    processedPrompt = processedPrompt.replace(/\{\{discountUser\}\}/g, variables.discountUser)
+    processedPrompt = processedPrompt.replace(/\{\{companyName\}\}/g, variables.companyName)
+    processedPrompt = processedPrompt.replace(/\{\{lastorder\}\}/g, variables.lastorder)
+    processedPrompt = processedPrompt.replace(/\{\{lastordercode\}\}/g, variables.lastordercode)
+    processedPrompt = processedPrompt.replace(/\{\{languageUser\}\}/g, variables.languageUser)
+
+    console.log("🔄 Prompt variables replaced")
+    console.log("🔧 Prompt after replacement (last 500 chars):", processedPrompt.substring(processedPrompt.length - 500))
+    return processedPrompt
   }
 }

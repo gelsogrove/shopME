@@ -1,9 +1,63 @@
 /**
  * Language detector utility
  * Provides functions to detect language from text input using common patterns and word usage
+ * AND from phone number country codes
  */
 
 export type SupportedLanguage = 'en' | 'it' | 'es' | 'pt';
+
+interface CountryLanguage {
+  code: string;
+  language: string;
+  name: string;
+}
+
+const COUNTRY_LANGUAGES: CountryLanguage[] = [
+  // Italy
+  { code: '+39', language: 'it', name: 'Italy' },
+  
+  // Spain and Spanish-speaking countries
+  { code: '+34', language: 'es', name: 'Spain' },
+  { code: '+52', language: 'es', name: 'Mexico' },
+  { code: '+54', language: 'es', name: 'Argentina' },
+  { code: '+56', language: 'es', name: 'Chile' },
+  { code: '+57', language: 'es', name: 'Colombia' },
+  
+  // English-speaking countries
+  { code: '+1', language: 'en', name: 'USA/Canada' },
+  { code: '+44', language: 'en', name: 'UK' },
+  { code: '+61', language: 'en', name: 'Australia' },
+  { code: '+64', language: 'en', name: 'New Zealand' },
+  
+  // Portuguese-speaking countries
+  { code: '+351', language: 'pt', name: 'Portugal' },
+  { code: '+55', language: 'pt', name: 'Brazil' },
+];
+
+/**
+ * Detect language from phone number country code
+ * @param phoneNumber - Phone number with country code (e.g., "+393401234567")
+ * @returns Language code (e.g., "it", "en", "fr") or "it" as default
+ */
+export function detectLanguageFromPhone(phoneNumber: string): string {
+  if (!phoneNumber || !phoneNumber.startsWith('+')) {
+    console.log('🌐 No valid phone number provided, defaulting to Italian');
+    return 'it'; // Default to Italian for your shop
+  }
+
+  // Sort by code length (longer first) to match most specific codes first
+  const sortedCodes = COUNTRY_LANGUAGES.sort((a, b) => b.code.length - a.code.length);
+  
+  for (const country of sortedCodes) {
+    if (phoneNumber.startsWith(country.code)) {
+      console.log(`🌐 Detected language: ${country.language} (${country.name}) from phone: ${phoneNumber.substring(0, 6)}...`);
+      return country.language;
+    }
+  }
+
+  console.log('🌐 Unknown country code, defaulting to Italian');
+  return 'it'; // Default to Italian
+}
 
 /**
  * Language detection utility for user messages

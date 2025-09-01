@@ -21,7 +21,7 @@ export interface WorkspaceProps {
   messageLimit: number
   blocklist?: string | null
   url?: string | null
-  n8nWorkflowUrl?: string | null
+  assistantPhone?: string | null
   businessType: string
   welcomeMessages?: any
   wipMessages?: any
@@ -117,10 +117,6 @@ export class Workspace extends Entity<WorkspaceProps> {
 
   get url(): string | null | undefined {
     return this.props.url
-  }
-
-  get n8nWorkflowUrl(): string | null | undefined {
-    return this.props.n8nWorkflowUrl
   }
 
   get businessType(): string {

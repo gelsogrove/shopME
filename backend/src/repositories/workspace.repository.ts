@@ -38,7 +38,6 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
       debugMode: data.debugMode ?? true,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
-      n8nWorkflowUrl: data.n8nWorkflowUrl,
       businessType: data.businessType,
       afterRegistrationMessages: data.afterRegistrationMessages,
     })
@@ -144,7 +143,6 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
             messageLimit: 50,
             blocklist: "",
             url: null,
-            n8nWorkflowUrl: null,
             businessType: "ECOMMERCE",
             welcomeMessages: null,
             wipMessages: null,
@@ -336,7 +334,6 @@ export class WorkspaceRepository implements WorkspaceRepositoryInterface {
             messageLimit: 50,
             blocklist: "",
             url: null,
-            n8nWorkflowUrl: null,
             businessType: "ECOMMERCE",
             welcomeMessages: null,
             wipMessages: null,

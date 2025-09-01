@@ -15,7 +15,6 @@ import productsRouter from './products.routes';
 import { servicesRouter } from './services.routes';
 import { settingsRouter } from './settings.routes';
 
-import { internalApiRoutes } from './internal-api.routes';
 import { createUserRouter } from './user.routes';
 // Removed whatsappRouter import
 import { workspaceRouter } from './workspace.routes';
@@ -95,9 +94,6 @@ export const apiRouter = (): Router => {
   // Orders routes
   router.use('/orders', createOrderRouter());
   router.use('/workspaces/:workspaceId/orders', createOrderRouter());
-  
-  // N8N Internal API Routes
-  router.use('/internal', internalApiRoutes);
   
   // Mount document routes
   router.use('/workspaces/:workspaceId/documents', documentRoutes);

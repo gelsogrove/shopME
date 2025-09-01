@@ -61,9 +61,6 @@ const SOFIA_PROMPT = fs.readFileSync(
   "utf8"
 )
 
-// Andrea's Two-LLM Architecture - Router Prompt (DEPRECATED)
-// ROUTER_PROMPT rimosso - ora usa sempre SOFIA_PROMPT (contenuto di prompt_agent.md)
-
 // Inizializziamo createdWorkspaces qui, prima di main()
 let createdWorkspaces: any[] = []
 // Definiamo un ID fisso per il nostro workspace unico
@@ -521,7 +518,6 @@ async function main() {
         currency: "EUR",
         url: "http://localhost:3000",
 
-
         wipMessages: {
           en: "Work in progress. Please contact us later.",
           it: "Lavori in corso. Contattaci più tardi.",
@@ -599,8 +595,15 @@ async function main() {
     } else {
       // FORCE UPDATE: Aggiorna sempre agentConfig con il contenuto di prompt_agent.md
       let promptContent = ""
-      const promptFilePath = path.join(__dirname, "..", "..", "docs", "other", "prompt_agent.md")
-      
+      const promptFilePath = path.join(
+        __dirname,
+        "..",
+        "..",
+        "docs",
+        "other",
+        "prompt_agent.md"
+      )
+
       try {
         promptContent = fs.readFileSync(promptFilePath, "utf8")
         console.log(`🔄 Aggiornando agentConfig con prompt_agent.md`)
@@ -608,7 +611,7 @@ async function main() {
         console.error(`❌ Errore lettura prompt_agent.md: ${error}`)
         promptContent = SOFIA_PROMPT // Fallback al prompt di default
       }
-      
+
       await prisma.agentConfig.update({
         where: { id: existingAgentConfig.id },
         data: {
@@ -694,7 +697,6 @@ async function main() {
         currency: "EUR",
         url: "http://localhost:3000",
 
-
         wipMessages: {
           en: "Work in progress. Please contact us later.",
           it: "Lavori in corso. Contattaci più tardi.",
@@ -778,8 +780,15 @@ async function main() {
     } else {
       // FORCE UPDATE: Aggiorna sempre agentConfig con il contenuto di prompt_agent.md
       let promptContent = ""
-      const promptFilePath = path.join(__dirname, "..", "..", "docs", "other", "prompt_agent.md")
-      
+      const promptFilePath = path.join(
+        __dirname,
+        "..",
+        "..",
+        "docs",
+        "other",
+        "prompt_agent.md"
+      )
+
       try {
         promptContent = fs.readFileSync(promptFilePath, "utf8")
         console.log(`🔄 Aggiornando agentConfig con prompt_agent.md`)
@@ -787,7 +796,7 @@ async function main() {
         console.error(`❌ Errore lettura prompt_agent.md: ${error}`)
         promptContent = SOFIA_PROMPT // Fallback al prompt di default
       }
-      
+
       await prisma.agentConfig.update({
         where: { id: existingAgentConfig.id },
         data: {
@@ -1062,40 +1071,55 @@ async function main() {
       },
     })
 
-          // Force update the prompt to use our new prompt_agent.md
-      if (existingPrompt) {
-        // Read the new prompt content
-        let promptContent = ""
-        const promptFilePath = path.join(__dirname, "..", "..", "docs", "other", "prompt_agent.md")
-        
-        try {
-          promptContent = fs.readFileSync(promptFilePath, "utf8")
-          console.log(`Using updated prompt_agent.md for ${agent.name} agent`)
-        } catch (error) {
-          console.error(`Error reading prompt_agent.md file: ${error}`)
-          promptContent = "Default prompt content. Please update with proper instructions."
-        }
-        
-        // Update existing prompt
-        await prisma.prompts.update({
-          where: { id: existingPrompt.id },
-          data: {
-            content: promptContent,
-            temperature: 0.3,
-            top_p: 0.8,
-            top_k: 30,
-            model: agent.model,
-          },
-        })
-        console.log(`Prompt updated: ${agent.promptName} for agent ${agent.name}`)
+    // Force update the prompt to use our new prompt_agent.md
+    if (existingPrompt) {
+      // Read the new prompt content
+      let promptContent = ""
+      const promptFilePath = path.join(
+        __dirname,
+        "..",
+        "..",
+        "docs",
+        "other",
+        "prompt_agent.md"
+      )
+
+      try {
+        promptContent = fs.readFileSync(promptFilePath, "utf8")
+        console.log(`Using updated prompt_agent.md for ${agent.name} agent`)
+      } catch (error) {
+        console.error(`Error reading prompt_agent.md file: ${error}`)
+        promptContent =
+          "Default prompt content. Please update with proper instructions."
       }
-    
+
+      // Update existing prompt
+      await prisma.prompts.update({
+        where: { id: existingPrompt.id },
+        data: {
+          content: promptContent,
+          temperature: 0.3,
+          top_p: 0.8,
+          top_k: 30,
+          model: agent.model,
+        },
+      })
+      console.log(`Prompt updated: ${agent.promptName} for agent ${agent.name}`)
+    }
+
     if (!existingPrompt) {
       let promptContent = ""
       let promptFilePath = ""
 
       // Use our updated prompt_agent.md for all agents
-      promptFilePath = path.join(__dirname, "..", "..", "docs", "other", "prompt_agent.md")
+      promptFilePath = path.join(
+        __dirname,
+        "..",
+        "..",
+        "docs",
+        "other",
+        "prompt_agent.md"
+      )
 
       try {
         promptContent = fs.readFileSync(promptFilePath, "utf8")
@@ -1897,7 +1921,13 @@ async function main() {
   await prisma.customers.deleteMany({
     where: {
       workspaceId: mainWorkspaceId,
-      email: { in: ["test.customer@shopme.com", "maria.garcia@shopme.com", "test-customer-123@shopme.com"] },
+      email: {
+        in: [
+          "test.customer@shopme.com",
+          "maria.garcia@shopme.com",
+          "test-customer-123@shopme.com",
+        ],
+      },
     },
   })
   console.log("Deleted existing test customers")
@@ -1917,7 +1947,6 @@ async function main() {
       privacy_accepted_at: new Date(),
       push_notifications_consent: true,
       push_notifications_consent_at: new Date(),
-      discount: 10, // 10% discount default
       invoiceAddress: {
         firstName: "Mario",
         lastName: "Rossi",
@@ -1985,7 +2014,6 @@ async function main() {
       privacy_accepted_at: new Date(),
       push_notifications_consent: true,
       push_notifications_consent_at: new Date(),
-      discount: 10, // 10% discount default
       invoiceAddress: {
         firstName: "Test",
         lastName: "Customer",
@@ -2593,7 +2621,7 @@ async function main() {
   // 🚚 CREATE PROCESSING ORDER FOR TRACKING TEST
   console.log("\n🚚 CREATING PROCESSING ORDER FOR TRACKING TEST")
   console.log("=============================================")
-  
+
   try {
     // Ensure we have a PROCESSING order for tracking test
     const processingOrder = await prisma.orders.create({
@@ -2618,7 +2646,9 @@ async function main() {
     })
 
     // Add items to the processing order
-    const mozzarellaProduct = availableProducts.find(p => p.name.includes("Mozzarella"))
+    const mozzarellaProduct = availableProducts.find((p) =>
+      p.name.includes("Mozzarella")
+    )
     if (mozzarellaProduct) {
       await prisma.orderItems.create({
         data: {
@@ -2638,9 +2668,14 @@ async function main() {
     console.log(`   👤 CustomerId: ${testCustomer.id}`)
     console.log(`   💼 WorkspaceId: ${mainWorkspaceId}`)
     console.log(`   💰 Total: €${processingOrder.totalAmount}`)
-    console.log(`   🔗 DHL Link: https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=DHL1234567890`)
+    console.log(
+      `   🔗 DHL Link: https://www.dhl.com/global-en/home/tracking/tracking-express.html?tracking-id=DHL1234567890`
+    )
   } catch (error) {
-    console.error("❌ Error creating processing order for tracking test:", error)
+    console.error(
+      "❌ Error creating processing order for tracking test:",
+      error
+    )
   }
 
   // Seed Aviso Legal document

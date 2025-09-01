@@ -333,6 +333,7 @@ export class MessageRepository {
     agentSelected?: string
     // 🔧 Debug fields
     translatedQuery?: string
+    processedPrompt?: string
     functionCallsDebug?: any[]
     processingSource?: string
   }) {
@@ -645,6 +646,7 @@ export class MessageRepository {
               metadata: botMetadata,
               // 🔧 Debug fields
               translatedQuery: data.translatedQuery,
+              processedPrompt: data.processedPrompt,
               functionCallsDebug: data.functionCallsDebug ? JSON.stringify(data.functionCallsDebug) : null,
               processingSource: data.processingSource,
             },
@@ -2365,7 +2367,7 @@ INSTRUCTIONS FOR LLM FORMATTER:
       logger.info(`[RAG] LLM formatter response generated successfully`)
 
       // 💰 USAGE TRACKING: Now handled in saveMessage (Andrea's Logic)
-      // No need to track here - tracking happens when N8N saves final conversation
+      // No need to track here - tracking happens when external systems save final conversation
 
       return formattedResponse
     } catch (error) {

@@ -11,8 +11,6 @@ import { errorMiddleware } from "./interfaces/http/middlewares/error.middleware"
 import { jsonFixMiddleware } from "./interfaces/http/middlewares/json-fix.middleware"
 import { loggingMiddleware } from "./middlewares/logging.middleware"
 import apiRouter from "./routes"
-import { DualLLMService } from './services/dual-llm.service'
-import { LLMRequest } from './types/whatsapp.types'
 import logger from "./utils/logger"
 
 // Extend Request interface to include rawBody
@@ -110,14 +108,6 @@ app.post("/api/test/json-parser", (req, res) => {
   })
 })
 
-// WhatsApp webhook routes are now handled in routes/index.ts (before authentication)
-
-// API versioning
-const apiVersions = {
-  v1: apiRouter,
-  // v2: apiRouterV2, // For future versions
-}
-
 // Swagger JSON endpoint (must be before Swagger UI)
 app.get("/api/docs/swagger.json", (req, res) => {
   try {
@@ -142,13 +132,6 @@ app.use(
 
 // Log that we're about to mount the API router
 logger.info("Mounting API router at /api prefix")
-
-// Mount internal API routes directly to avoid middleware conflicts
-import { internalApiRoutes } from "./interfaces/http/routes/internal-api.routes"
-app.use("/api/internal", internalApiRoutes)
-logger.info("Mounted internal API routes directly at /api/internal")
-
-
 
 // Hotfix solo per gli ambienti non di test
 if (process.env.NODE_ENV !== "test") {
@@ -187,97 +170,15 @@ if (process.env.NODE_ENV !== "test") {
   })
 }
 
-// Agent routes are now handled by the modular router system
-
-// ANDREA TEST: Endpoint per testare DualLLMService direttamente (PRIMA del routing API per evitare auth)
-app.post("/api/test/dual-llm", async (req, res) => {
-  try {
-    console.error('🚨🚨🚨 ANDREA TEST: DUAL LLM DIRECT TEST!!! 🚨🚨🚨');
-    
-    const dualLLMService = new DualLLMService();
-    
-    const llmRequest: LLMRequest = {
-      chatInput: req.body.messageContent || req.body.message || "che servizi avete",
-      workspaceId: req.body.workspaceId || "cm9hjgq9v00014qk8fsdy4ujv", 
-      customerid: req.body.customerId || "test-customer",
-      phone: "+1234567890",
-      language: "it",
-      sessionId: "test-session",
-      temperature: 0.0,
-      maxTokens: 3500,
-      model: "gpt-4o",
-      messages: [],
-      prompt: "Test prompt"
-    };
-    
-    console.error('🚨🚨🚨 CALLING DUAL LLM SERVICE!!! 🚨🚨🚨');
-    const result = await dualLLMService.processMessage(llmRequest);
-    console.error('🚨🚨🚨 DUAL LLM RESULT!!! 🚨🚨🚨');
-    
-    res.json({ 
-      success: true, 
-      message: result.output,
-      debug: { llmRequest, result }
-    });
-  } catch (error) {
-    console.error('❌ DUAL LLM TEST ERROR:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    });
-  }
-})
-
 // Versioned routes
 app.use("/api/v1", apiRouter)
 
 // Default version route (current version)
 app.use("/api", apiRouter)
 
-
-
 // Mount workspace routes directly at root for legacy compatibility
 import workspaceRoutesRoot from "./routes/workspace.routes"
 app.use("/workspaces", workspaceRoutesRoot)
-
-// ANDREA TEST: Endpoint per testare DualLLMService direttamente (PRIMA del routing API per evitare auth)
-app.post("/test/dual-llm", async (req, res) => {
-  try {
-    console.error('🚨🚨🚨 ANDREA TEST: DUAL LLM DIRECT TEST!!! 🚨🚨🚨');
-    
-    const dualLLMService = new DualLLMService();
-    
-    const llmRequest: LLMRequest = {
-      chatInput: req.body.query || req.body.messageContent || req.body.message || "che servizi avete",
-      workspaceId: req.body.workspaceId || "cm9hjgq9v00014qk8fsdy4ujv", 
-      customerid: req.body.customerId || "test-customer",
-      phone: "+1234567890",
-      language: "it",
-      sessionId: "test-session",
-      temperature: 0.0,
-      maxTokens: 3500,
-      model: "gpt-4o",
-      messages: [],
-      prompt: "Test prompt"
-    };
-    
-    console.error('🚨🚨🚨 CALLING DUAL LLM SERVICE!!! 🚨🚨🚨');
-    const result = await dualLLMService.processMessage(llmRequest);
-    console.error('🚨🚨🚨 DUAL LLM RESULT!!! 🚨🚨🚨');
-    
-    res.json({ 
-      success: true, 
-      message: result.output,
-      debug: { llmRequest, result }
-    });
-  } catch (error) {
-    console.error('❌ DUAL LLM TEST ERROR:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    });
-  }
-})
 
 // Endpoint di test per OpenAI
 app.get("/api/test/openai", async (req, res) => {
@@ -355,38 +256,5 @@ app.get("/health", (req, res) => {
     apiVersion: "v1",
   })
 })
-
-// Debug: Print all registered routes at startup
-if (process.env.NODE_ENV !== "test") {
-  logger.info("🔍 DEBUG: Printing all registered routes:")
-
-  function printRoutes(stack, basePath = "") {
-    stack.forEach((middleware) => {
-      if (middleware.route) {
-        // Route
-        const methods = Object.keys(middleware.route.methods)
-          .filter((method) => middleware.route.methods[method])
-          .join(", ")
-        logger.info(
-          `🛣️  ${methods.toUpperCase()} ${basePath}${middleware.route.path}`
-        )
-      } else if (middleware.name === "router") {
-        // Router middleware
-        const newBase =
-          basePath +
-          (middleware.regexp
-            ? middleware.regexp
-                .toString()
-                .replace("/^", "")
-                .replace("/(?=\\/|$)/i", "")
-            : "")
-        printRoutes(middleware.handle.stack, newBase)
-      }
-    })
-  }
-
-  // Print main app routes
-  printRoutes(app._router.stack)
-}
 
 export default app

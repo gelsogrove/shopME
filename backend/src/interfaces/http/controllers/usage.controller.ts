@@ -8,7 +8,7 @@ export class UsageController {
 
   public trackUsage = async (req: Request, res: Response): Promise<void> => {
     try {
-      logger.info("[UsageController] 📊 N8N chiamando track-usage:", req.body)
+      logger.info("[UsageController] 📊 External API chiamando track-usage:", req.body)
 
       const { customerId, workspaceId, type = "ai_response" } = req.body
 

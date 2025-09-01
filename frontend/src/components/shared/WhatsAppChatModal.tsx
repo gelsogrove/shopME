@@ -12,9 +12,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { getWorkspaceId } from "@/config/workspace.config"
 import { logger } from "@/lib/logger"
 import { api } from "@/services/api"
-import { Message, Chat } from "@/types/chat"
 import axios from "axios"
-import { MessageCircle, Send, X } from "lucide-react"
+import { MessageCircle, Send, X, Code, Settings } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
@@ -22,6 +21,52 @@ import remarkGfm from "remark-gfm"
 // Define a global variable to store the current session ID
 // This will persist across modal closes/opens but not page refreshes
 let globalSessionId: string | null = null
+
+interface Message {
+  id: string
+  content: string
+  sender: "user" | "customer"
+  timestamp: Date
+  agentName?: string
+  translatedQuery?: string
+  processedPrompt?: string
+  functionCalls?: Array<{
+    functionName: string
+    toolCall?: {
+      function?: {
+        name: string
+        arguments: string
+      }
+    }
+    result: any
+    type?: string
+    source?: string
+    data?: any
+  }>
+  metadata?: {
+    isOperatorMessage?: boolean
+    isOperatorControl?: boolean
+    agentSelected?: string
+    sentBy?: string
+    operatorId?: string
+  }
+}
+
+// Interface for selected chat from chat history
+interface Chat {
+  id: string
+  sessionId: string
+  customerId: string
+  customerName: string
+  customerPhone: string
+  companyName?: string
+  lastMessage: string
+  lastMessageTime: string
+  unreadCount: number
+  isActive: boolean
+  isFavorite: boolean
+  messages?: Message[]
+}
 
 interface WhatsAppChatModalProps {
   isOpen: boolean
@@ -189,16 +234,16 @@ export function WhatsAppChatModal({
           sender: message.direction === "INBOUND" ? "customer" : "user",
           timestamp: new Date(message.createdAt),
           agentName: message.agentName || (message.direction === "OUTBOUND" ? "AI Assistant" : undefined),
-          // 🔍 Debug fields from database
+          // Debug fields
           translatedQuery: message.translatedQuery,
-          functionCalls: message.functionCallsDebug ? JSON.parse(message.functionCallsDebug) : undefined,
+          processedPrompt: message.processedPrompt,
+          functionCalls: message.functionCallsDebug ? JSON.parse(message.functionCallsDebug) : [],
           metadata: {
             isOperatorMessage: message.metadata?.isOperatorMessage || false,
             isOperatorControl: message.metadata?.isOperatorControl || false,
             agentSelected: message.metadata?.agentSelected || (message.direction === "OUTBOUND" ? "CHATBOT" : "CUSTOMER"),
             sentBy: message.metadata?.sentBy || (message.direction === "OUTBOUND" ? "AI" : "CUSTOMER"),
-            operatorId: message.metadata?.operatorId,
-            processingSource: message.processingSource
+            operatorId: message.metadata?.operatorId
           }
         }))
 
@@ -266,7 +311,7 @@ export function WhatsAppChatModal({
       id: (Date.now() + 100).toString(),
       content: initialMessage,
       sender: "customer", // Changed from "user" to "customer" for initial message
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
       metadata: {
         isOperatorMessage: false,
         isOperatorControl: false,
@@ -328,22 +373,15 @@ export function WhatsAppChatModal({
           id: (Date.now() + 200).toString(),
           content: response.data.data.processedMessage,
           sender: "user",
-          timestamp: new Date().toISOString(),
+          timestamp: new Date(),
           agentName: "AI Assistant",
-          functionCalls: response.data.data.functionCalls || [],
-          translatedQuery: response.data.data.translatedQuery,
-          processedPrompt: response.data.data.processedPrompt, // 🔧 New debug field
           metadata: {
             isOperatorMessage: false,
             isOperatorControl: false,
             agentSelected: "CHATBOT",
-            sentBy: "AI",
-            functionCalls: response.data.data.functionCalls
+            sentBy: "AI"
           }
         }
-
-        logger.info("🔧 DEBUG: processedPrompt from API:", response.data.data.processedPrompt)
-        logger.info("🔧 DEBUG: botMessage created with processedPrompt:", botMessage.processedPrompt)
 
         // Add ONLY the bot response to chat history, not the user's message again
         // This prevents the duplicate "Ciao" message
@@ -358,7 +396,7 @@ export function WhatsAppChatModal({
           content:
             "Sorry, there was an error processing your message. Please try again later.",
           sender: "user",
-          timestamp: new Date().toISOString(),
+          timestamp: new Date(),
           agentName: "System",
           metadata: {
             isOperatorMessage: false,
@@ -379,7 +417,7 @@ export function WhatsAppChatModal({
         content:
           "Sorry, there was an error processing your message. Please try again later.",
         sender: "user",
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
         agentName: "System",
         metadata: {
           isOperatorMessage: false,
@@ -434,7 +472,7 @@ export function WhatsAppChatModal({
       id: Date.now().toString(),
       content: currentMessage,
       sender: "customer",
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
       metadata: {
         isOperatorMessage: false,
         isOperatorControl: false,
@@ -484,21 +522,19 @@ export function WhatsAppChatModal({
             id: (Date.now() + 1).toString(),
             content: botResponse,
             sender: "user",
-            timestamp: new Date().toISOString(),
+            timestamp: new Date(),
             agentName: "AI Assistant",
-            translatedQuery: response.data.debug?.result?.translatedQuery,
-            functionCalls: response.data.debug?.result?.functionCalls || [],
-            processedPrompt: response.data.debug?.result?.processedPrompt, // 🔧 Add processedPrompt here too
+            // Debug fields from API response
+            translatedQuery: response.data.debug?.translatedQuery,
+            processedPrompt: response.data.debug?.processedPrompt,
+            functionCalls: response.data.debug?.functionCalls || [],
             metadata: {
               isOperatorMessage: false,
               isOperatorControl: false,
               agentSelected: "CHATBOT",
-              sentBy: "AI",
-              functionCalls: response.data.debug?.result?.functionCalls || []
+              sentBy: "AI"
             }
           }
-
-          logger.info("🔧 DEBUG: botMessage for follow-up with processedPrompt:", botMessage.processedPrompt)
 
           // Add bot response to chat history
           setMessages((prev) => [...prev, botMessage])
@@ -515,7 +551,7 @@ export function WhatsAppChatModal({
           content:
             "Sorry, there was an error processing your message. Please try again later.",
           sender: "user",
-          timestamp: new Date().toISOString(),
+          timestamp: new Date(),
           agentName: "System",
           metadata: {
             isOperatorMessage: false,
@@ -536,7 +572,7 @@ export function WhatsAppChatModal({
         content:
           "Sorry, there was an error processing your message. Please try again later.",
         sender: "user",
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
         agentName: "System",
         metadata: {
           isOperatorMessage: false,
@@ -609,43 +645,23 @@ export function WhatsAppChatModal({
               {userPhoneNumber || channelName}
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            {/* Function Calls Toggle - Debug Mode */}
+          <div className="flex gap-2 items-center">
             <button
-              onClick={() => {
-                console.log('Toggle clicked, current state:', showFunctionCalls)
-                setShowFunctionCalls(!showFunctionCalls)
-              }}
-              className={`text-white hover:bg-white/20 rounded-lg px-3 py-1.5 transition-all duration-200 ${
-                showFunctionCalls ? 'bg-white/30 shadow-inner' : 'bg-white/10'
-              }`}
-              aria-label="Toggle Function Calls"
+              onClick={() => setShowFunctionCalls(!showFunctionCalls)}
+              className={`text-white hover:bg-green-600 rounded-full p-2 transition ${showFunctionCalls ? 'bg-green-600' : ''}`}
+              aria-label="Toggle Function Calls Debug"
               title="Show/Hide Function Calls Debug"
             >
-              <span className="text-xs font-semibold tracking-wide">DEBUG</span>
+              <Code className="h-5 w-5" />
             </button>
-            
-            {/* Processed Prompt Toggle */}
             <button
-              onClick={() => {
-                console.log('Prompt toggle clicked, current state:', showProcessedPrompt)
-                setShowProcessedPrompt(!showProcessedPrompt)
-              }}
-              className={`rounded-lg px-3 py-1.5 transition-all duration-200 border-2 ${
-                showProcessedPrompt 
-                  ? 'bg-purple-600 border-purple-400 text-white shadow-lg transform scale-105' 
-                  : 'bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40'
-              }`}
-              aria-label="Toggle Processed Prompt"
-              title="Show/Hide AI Prompt with User Data"
+              onClick={() => setShowProcessedPrompt(!showProcessedPrompt)}
+              className={`text-white hover:bg-green-600 rounded-full p-2 transition ${showProcessedPrompt ? 'bg-green-600' : ''}`}
+              aria-label="Toggle Processed Prompt Debug"
+              title="Show/Hide Processed Prompt Debug"
             >
-              <span className={`text-xs font-semibold tracking-wide ${
-                showProcessedPrompt ? 'text-white' : 'text-white/90'
-              }`}>
-                {showProcessedPrompt ? '📝 PROMPT ✓' : '📝 PROMPT'}
-              </span>
+              <Settings className="h-5 w-5" />
             </button>
-            
             <button
               onClick={onClose}
               className="text-white hover:bg-green-600 rounded-full p-2 transition"
@@ -844,9 +860,65 @@ export function WhatsAppChatModal({
                           </ReactMarkdown>
                         </span>
 
+                        {/* Debug Information */}
+                        {(showFunctionCalls || showProcessedPrompt) && (
+                          <div className="mt-3 border-t border-gray-300 pt-2 space-y-2">
+                            {showProcessedPrompt && message.translatedQuery && (
+                              <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+                                <div className="text-xs font-semibold text-yellow-800 mb-1">
+                                  🔍 Translated Query:
+                                </div>
+                                <div className="text-xs text-yellow-700 font-mono whitespace-pre-wrap">
+                                  {message.translatedQuery}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {showProcessedPrompt && message.processedPrompt && (
+                              <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                                <div className="text-xs font-semibold text-blue-800 mb-1">
+                                  📝 Processed Prompt:
+                                </div>
+                                <div className="text-xs text-blue-700 font-mono whitespace-pre-wrap max-h-32 overflow-y-auto">
+                                  {message.processedPrompt}
+                                </div>
+                              </div>
+                            )}
+
+                            {showFunctionCalls && message.functionCalls && message.functionCalls.length > 0 && (
+                              <div className="bg-purple-50 border border-purple-200 rounded p-2">
+                                <div className="text-xs font-semibold text-purple-800 mb-1">
+                                  ⚡ Function Calls ({message.functionCalls.length}):
+                                </div>
+                                <div className="space-y-2 max-h-40 overflow-y-auto">
+                                  {message.functionCalls.map((call, index) => (
+                                    <div key={index} className="bg-white border border-purple-100 rounded p-2">
+                                      <div className="text-xs font-medium text-purple-700 mb-1">
+                                        🔧 {call.functionName}
+                                      </div>
+                                      {call.toolCall?.function?.arguments && (
+                                        <div className="text-xs text-purple-600 font-mono">
+                                          <pre className="whitespace-pre-wrap">
+                                            {JSON.stringify(JSON.parse(call.toolCall.function.arguments), null, 2)}
+                                          </pre>
+                                        </div>
+                                      )}
+                                      {call.result && (
+                                        <div className="text-xs text-green-600 mt-1">
+                                          <strong>Result:</strong> {JSON.stringify(call.result)}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         <div className="flex justify-between items-center mt-1">
                           <span className="text-[10px] opacity-70">
-                            {new Date(message.timestamp).toLocaleTimeString([], {
+                            {message.timestamp.toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
                             })}
@@ -877,126 +949,6 @@ export function WhatsAppChatModal({
                             )}
                           </div>
                         </div>
-
-                        {/* 🔧 Debug Info */}
-                        {showFunctionCalls && (
-                          (message.functionCalls && message.functionCalls.length > 0) ||
-                          message.translatedQuery ||
-                          message.processedPrompt
-                        ) && (() => {
-                          // Group SearchRag results together - safely handle undefined functionCalls
-                          const searchRagResults = (message.functionCalls || []).filter(fc => fc.type === 'searchrag_result');
-                          const otherFunctionCalls = (message.functionCalls || []).filter(fc => fc.type !== 'searchrag_result');
-                          
-                          const totalFunctionCalls = searchRagResults.length > 0 ? otherFunctionCalls.length + 1 : otherFunctionCalls.length;
-                          
-                          return (
-                            <div className="mt-2 p-2 bg-gray-100 rounded-md border border-gray-200">
-                              <div className="text-xs font-semibold text-gray-600 mb-1">
-                                🔧 Function Calls ({totalFunctionCalls})
-                              </div>
-                              
-                              {/* Translated Query Debug Info */}
-                              {message.translatedQuery && message.translatedQuery !== message.content && (
-                                <div className="mb-2 p-1 bg-yellow-50 rounded border border-yellow-200">
-                                  <div className="text-xs font-semibold text-yellow-700">
-                                    🌐 Translated Query:
-                                  </div>
-                                  <div className="text-xs text-yellow-600 mt-1">
-                                    {message.translatedQuery}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Processed Prompt Debug Info */}
-                              {showProcessedPrompt && message.processedPrompt && (
-                                <div className="mb-2 p-3 bg-purple-50 rounded-lg border-2 border-purple-200">
-                                  <div className="text-sm font-bold text-purple-800 mb-2 flex items-center">
-                                    📝 Prompt Processato (con dati utente):
-                                    <span className="ml-2 text-xs bg-purple-200 px-2 py-1 rounded-full">
-                                      {message.processedPrompt.length} caratteri
-                                    </span>
-                                  </div>
-                                  <div className="text-xs text-purple-700 max-h-40 overflow-y-auto bg-white p-3 rounded border-2 border-purple-100 font-mono whitespace-pre-wrap leading-relaxed">
-                                    {message.processedPrompt}
-                                  </div>
-                                  <div className="text-xs text-purple-600 mt-2 italic">
-                                    ⚠️ Questo è il prompt che viene inviato all'AI con i dati del cliente sostituiti
-                                  </div>
-                                </div>
-                              )}
-                              
-                              {/* Show message when processedPrompt is empty but toggle is on */}
-                              {showProcessedPrompt && !message.processedPrompt && (
-                                <div className="mb-2 p-3 bg-orange-50 rounded-lg border-2 border-orange-200">
-                                  <div className="text-sm font-bold text-orange-800 mb-1">
-                                    ⚠️ Prompt Processato non disponibile
-                                  </div>
-                                  <div className="text-xs text-orange-700">
-                                    Il prompt processato non è arrivato dal backend. Controlla:
-                                    <ul className="mt-1 ml-4 list-disc">
-                                      <li>Se il backend è in funzione</li>
-                                      <li>Se il servizio PromptTemplateService sta funzionando</li>
-                                      <li>I log del browser per errori API</li>
-                                    </ul>
-                                  </div>
-                                </div>
-                              )}
-                              
-                              {/* Regular function calls */}
-                              {otherFunctionCalls.map((fc, index) => (
-                                <div key={`other-${index}`} className="mb-2 last:mb-0">
-                                  <div className="text-xs font-mono bg-blue-50 p-1 rounded border">
-                                    <span className="text-blue-700 font-semibold">
-                                      {fc.functionName || fc.toolCall?.function?.name || 
-                                       (fc.source === 'generic' ? '💬 Generic Fallback' : fc.type || 'Unknown')}
-                                    </span>
-                                    {fc.toolCall?.function?.arguments && (
-                                      <div className="text-gray-600 mt-1">
-                                        Args: {fc.toolCall.function.arguments}
-                                      </div>
-                                    )}
-                                    {fc.type && fc.type !== 'searchrag_result' && (
-                                      <div className="text-gray-600 mt-1">
-                                        Type: {fc.type} | Source: {fc.source || 'unknown'}
-                                      </div>
-                                    )}
-                                  </div>
-                                  {fc.result && (
-                                    <div className="text-xs mt-1 p-1 bg-green-50 rounded border text-green-800">
-                                      <div className="font-semibold">Result:</div>
-                                      <div className="font-mono text-xs overflow-x-auto">
-                                        {typeof fc.result === 'object' 
-                                          ? JSON.stringify(fc.result, null, 2)
-                                          : String(fc.result)
-                                        }
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                              
-                              {/* SearchRag results grouped together */}
-                              {searchRagResults.length > 0 && (
-                                <div className="mb-2 last:mb-0">
-                                  <div className="text-xs font-mono bg-blue-50 p-1 rounded border">
-                                    <span className="text-blue-700 font-semibold">
-                                      🔍 SearchRag
-                                    </span>
-                                    <div className="text-gray-600 mt-1">
-                                      Found {searchRagResults.length} results:
-                                    </div>
-                                    {searchRagResults.map((fc, index) => (
-                                      <div key={`searchrag-${index}`} className="text-gray-600 mt-1 ml-2">
-                                        • {fc.data?.sourceName || 'Product'} (similarity: {fc.data?.similarity?.toFixed(2) || 'N/A'})
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })()}
                       </div>
                     </div>
                   )

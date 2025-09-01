@@ -26,7 +26,6 @@ model Workspace {
   messageLimit              Int               @default(50)
   blocklist                 String?           @default("")
   url                       String?
-  n8nWorkflowUrl            String?           @default("http://localhost:5678/workflow/1XPQF919PP0MEdtH")
   businessType              BusinessType      @default(ECOMMERCE)
   welcomeMessages           Json?             @default("{\"en\": \"Welcome!\", \"es\": \"¡Bienvenido!\", \"it\": \"Benvenuto!\"}")
   wipMessages               Json?             @default("{\"en\": \"Work in progress. Please contact us later.\", \"es\": \"Trabajos en curso. Por favor, contáctenos más tarde.\", \"it\": \"Lavori in corso. Contattaci più tardi.\", \"pt\": \"Em manutenção. Por favor, contacte-nos mais tarde.\"}")
@@ -268,7 +267,6 @@ model WhatsappSettings {
   phoneNumber String    @unique
   apiKey      String
   webhookUrl  String?
-  n8nWebhook  String?   @default("http://localhost:5678/webhook/webhook-start")
   settings    Json?     @default("{}")
   adminEmail  String?
   smtpHost    String?   @default("smtp.ethereal.email")
@@ -281,6 +279,7 @@ model WhatsappSettings {
   updatedAt   DateTime  @updatedAt
   workspaceId String    @unique
   gdpr        String?
+  n8nWebhook  String?   @default("http://localhost:5678/webhook/webhook-start")
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   @@map("whatsapp_settings")
@@ -319,23 +318,24 @@ model ChatSession {
 }
 
 model Message {
-  id                  String           @id @default(uuid())
-  direction           MessageDirection
-  content             String
-  type                MessageType      @default(TEXT)
-  status              String           @default("sent")
-  aiGenerated         Boolean          @default(false)
-  metadata            Json?            @default("{}")
-  read                Boolean          @default(false)
-  translatedQuery     String?          // Debug: Translated query for SearchRag
-  functionCallsDebug  Json?            // Debug: Function calls details
-  processingSource    String?          // Debug: cloud_functions, searchrag, generic_fallback
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
-  chatSessionId       String
-  promptId            String?
-  chatSession         ChatSession      @relation(fields: [chatSessionId], references: [id])
-  prompt              Prompts?         @relation(fields: [promptId], references: [id])
+  id                 String           @id @default(uuid())
+  direction          MessageDirection
+  content            String
+  type               MessageType      @default(TEXT)
+  status             String           @default("sent")
+  aiGenerated        Boolean          @default(false)
+  metadata           Json?            @default("{}")
+  read               Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  chatSessionId      String
+  promptId           String?
+  functionCallsDebug String?
+  processingSource   String?
+  translatedQuery    String?
+  processedPrompt    String?
+  chatSession        ChatSession      @relation(fields: [chatSessionId], references: [id])
+  prompt             Prompts?         @relation(fields: [promptId], references: [id])
 
   @@map("messages")
 }

@@ -54,7 +54,7 @@ const createOrderHandler = async (req: Request, res: Response): Promise<void> =>
       notes
     } = req.body;
     
-    // Supporta sia customerId che customerid per compatibilità con N8N
+    // Supporta sia customerId che customerid per compatibilità con API esterne
     const finalCustomerId = customerId || customerid;
 
     if (!workspaceId || !finalCustomerId) {
@@ -129,7 +129,7 @@ const createOrderHandler = async (req: Request, res: Response): Promise<void> =>
       // For debugging
       logger.info(`[CREATE-ORDER] Processing order item: ${JSON.stringify(item)}`);
 
-      // Support both 'id' and 'productCode' fields from N8N
+      // Support both 'id' and 'productCode' fields from external APIs
       const itemId = item.id || item.productCode || item.serviceId;
       
       // Support both 'type' and 'itemType' fields for backward compatibility

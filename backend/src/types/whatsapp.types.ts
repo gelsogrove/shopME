@@ -1,5 +1,3 @@
-import { TemplateCustomer } from '../services/prompt-template.service';
-
 export interface LLMRequest {
   chatInput: string;
   workspaceId: string;
@@ -11,8 +9,7 @@ export interface LLMRequest {
   maxTokens: number;
   model: string;
   messages: any[];
-  prompt?: string; // Optional - will be fetched from DB if not provided
-  customer?: TemplateCustomer;
+  prompt: string;
 }
 
 export interface LLMResponse {

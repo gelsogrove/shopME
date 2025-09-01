@@ -1,5 +1,10 @@
-- carrello view
+- isActive
 - dovrebbe mandare una mail
+- la formattazione non mi piace
+- conpnay name e lastORder
+- test di integrazione ?
+
+IL PREZZO DEL LIMONCELLO E' SCONTATO PECHE' C'E' UN OFFERTA SUGLI ALCOLI CHE ODBBIMO PRENDERE IN CONSIDERAZIONE
 
 - carrello view
   hai caipto dalla nostra chat dalla documentazione dal codice
@@ -25,3 +30,20 @@ fase 2
 
 - ci sono api che possono essere convertite in funzioni
 - a livello di sicurezza del webook mira webook.md
+
+  const accountKeywords = [
+  "mail",
+  "email",
+  "profilo",
+  "profile",
+  "account",
+  "password",
+  "modificare",
+  "cambiare",
+  "vedere",
+  "visualizzare",
+  "mia mail",
+  "mio profilo",
+  "dati personali",
+  "informazioni personali",
+  ]

@@ -38,7 +38,7 @@ export class CreateWorkspaceUseCase {
       messageLimit: 50,
       blocklist: "",
       url: null,
-      n8nWorkflowUrl: null,
+      assistantPhone: null,
       businessType: "ECOMMERCE",
       welcomeMessages: null,
       wipMessages: null,

@@ -150,7 +150,7 @@ describe('LLM Cost Tracking Tests - TASK #26', () => {
  * Implementation Notes:
  * - Current code uses 0.005 (0.5 cents), will update to 0.50 (50 cents) in TASK #26
  * - Workspace model needs usageCost DECIMAL(10,2) field
- * - Integration point: After every LLM response in N8N/function-handler
+ * - Integration point: After every LLM response in external/function-handler
  */
 
 /**
@@ -174,13 +174,13 @@ describe('LLM Cost Tracking Tests - TASK #26', () => {
  * 1. ✅ **Test Created**: Unit test verifies tracking behavior
  * 2. ⏳ **Database Migration**: Add usageCost DECIMAL(10,2) to workspaces table
  * 3. ⏳ **Service Update**: Modify usageService.trackUsage price from 0.005 → 0.50
- * 4. ⏳ **N8N Integration**: Add cost tracking call after each LLM response
+ * 4. ⏳ **External Integration**: Add cost tracking call after each LLM response
  * 5. ⏳ **Frontend Display**: Show workspace cost in dashboard
  * 6. ⏳ **Workspace Update**: Increment workspace.usageCost field
  * 
  * 🎯 **INTEGRATION POINTS:**
  * 
- * - **N8N Workflow**: Add trackUsage call after LLM response nodes
+ * - **External Workflow**: Add trackUsage call after LLM response nodes
  * - **Function Handler**: Integrate cost tracking in LLM processing
  * - **WhatsApp Pipeline**: Ensure every LLM response triggers cost increment
  * - **Workspace Dashboard**: Display real-time usage costs
@@ -199,7 +199,7 @@ describe('LLM Cost Tracking Tests - TASK #26', () => {
  * 
  * 1. Update usageService to use €0.50 instead of €0.005
  * 2. Add workspace.usageCost field migration  
- * 3. Integrate cost tracking in N8N workflow
+ * 3. Integrate cost tracking in external workflow
  * 4. Add cost display in frontend dashboard
  * 5. Test end-to-end LLM cost tracking flow
  * 

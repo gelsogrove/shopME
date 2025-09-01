@@ -521,7 +521,7 @@ export class FunctionHandlerService {
   }
 
   /**
-   * Crea un ordine direttamente da una lista di items (per N8N CreateOrder)
+   * Crea un ordine direttamente da una lista di items (per API CreateOrder)
    */
   private async createOrderFromItems(
     customerId: string,

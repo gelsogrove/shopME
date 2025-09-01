@@ -47,8 +47,6 @@ import { createUserRouter } from "../interfaces/http/routes/user.routes"
 import createPromptsRouter from "./prompts.routes"
 // Import document routes
 import documentRoutes from "./documentRoutes"
-// Import internal API routes for N8N integration
-import { internalApiRoutes } from "../interfaces/http/routes/internal-api.routes"
 // Import analytics routes
 import analyticsRoutes from "./analytics.routes"
 
@@ -89,8 +87,6 @@ import { LLMRequest } from '../types/whatsapp.types'
 // Public WhatsApp webhook routes (NO AUTHENTICATION)
 router.post("/whatsapp/webhook", async (req, res) => {
   try {
-    console.log('🚨🚨🚨 WHATSAPP WEBHOOK - DUAL LLM SYSTEM!!! 🚨🚨🚨');
-    
     // Initialize services
     const dualLLMService = new DualLLMService();
     const messageRepository = new MessageRepository();
@@ -114,24 +110,19 @@ router.post("/whatsapp/webhook", async (req, res) => {
 
     // For POST requests (incoming messages)
     const data = req.body
-    console.log("WhatsApp webhook received", { data })
 
     // 🔍 DETECT FORMAT: WhatsApp vs Test Format
-    let phoneNumber, messageContent, workspaceId, customerId, customer = null;
+    let phoneNumber, messageContent, workspaceId, customerId;
     
     // Check if it's WhatsApp format
     if (data.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from) {
-      console.log("📱 WhatsApp format detected");
       phoneNumber = data.entry[0].changes[0].value.messages[0].from;
       messageContent = data.entry[0].changes[0].value.messages[0].text?.body;
       workspaceId = process.env.WHATSAPP_WORKSPACE_ID || "cm9hjgq9v00014qk8fsdy4ujv";
       
       // Find customer by phone number
       try {
-        const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
-        
-        customer = await prisma.customers.findFirst({
+        const customer = await prisma.customers.findFirst({
           where: {
             phone: phoneNumber,
             workspaceId: workspaceId,
@@ -140,19 +131,17 @@ router.post("/whatsapp/webhook", async (req, res) => {
           select: {
             id: true,
             name: true,
-            phone: true,
-            discount: true,
-            language: true
+            phone: true
           }
         });
 
         if (customer) {
           customerId = customer.id;
-          console.log(`✅ Customer found: ${customer.name} (${customer.id})`);
         } else {
-          console.log(`⚠️ No customer found for phone: ${phoneNumber}`);
           customerId = "test-customer-123";
         }
+        
+        // Non serve più disconnettere perché usiamo l'istanza globale
       } catch (error) {
         console.error('❌ Error finding customer:', error);
         customerId = "test-customer-123";
@@ -160,27 +149,44 @@ router.post("/whatsapp/webhook", async (req, res) => {
     }
     // Check if it's test format
     else if (data.chatInput && data.customerid && data.workspaceId) {
-      console.log("🧪 Test format detected");
-      phoneNumber = "test-phone-123";
       messageContent = data.chatInput;
       workspaceId = data.workspaceId;
       customerId = data.customerid;
+      
+      // Get phone number from customer ID
+      try {
+        const customerWithPhone = await prisma.customers.findFirst({
+          where: {
+            id: customerId,
+            workspaceId: workspaceId,
+            isActive: true
+          },
+          select: {
+            phone: true,
+            name: true
+          }
+        });
+        
+        if (customerWithPhone && customerWithPhone.phone) {
+          phoneNumber = customerWithPhone.phone;
+        } else {
+          phoneNumber = "test-phone-123";
+        }
+        
+      } catch (error) {
+        console.error('❌ Error getting customer phone:', error);
+        phoneNumber = "test-phone-123";
+      }
     }
     // Invalid format
     else {
-      console.log("❌ Invalid format - no valid message found");
       res.status(200).send("OK")
       return
     }
 
-    console.log(`📱 Processing message: "${messageContent}" from ${customerId}`)
-
-    // 🔍 CHECK IF CHAT SESSION IS DISABLED (OPERATOR ESCALATION) - PRIMA DI TUTTO
+    // Check if chat session is disabled (operator escalation)
     let isSessionDisabled = false;
     try {
-      const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
-      
       const activeSession = await prisma.chatSession.findFirst({
         where: {
           customerId: customerId,
@@ -194,10 +200,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
       
       if (activeSession) {
         isSessionDisabled = true;
-        console.log(`🚨 CHAT SESSION DISABLED: Session ${activeSession.id} is in 'operator_escalated' status`);
       }
       
-      await prisma.$disconnect();
     } catch (sessionError) {
       console.error('❌ Error checking session status:', sessionError);
       // Continue with normal processing if check fails
@@ -207,61 +211,87 @@ router.post("/whatsapp/webhook", async (req, res) => {
     let llmRequest: LLMRequest | null = null;
     
     if (isSessionDisabled) {
-      // 🚨 SESSION DISABLED - SEND OPERATOR MESSAGE IMMEDIATELY
-      console.log('🚨 SESSION DISABLED - Sending operator escalation message immediately');
+      // Session disabled - send operator message
       result = {
         success: true,
         output: "Un operatore ti contatterà al più presto. Nel frattempo, il chatbot è temporaneamente disabilitato per questa conversazione. Grazie per la tua pazienza! 🤝"
       };
     } else {
-      // ✅ SESSION ACTIVE - SETUP DUAL LLM SYSTEM
-      console.log('✅ SESSION ACTIVE - Setting up dual LLM system');
+      // Session active - setup dual LLM system
       
-      // 🔧 REMOVE DUPLICATE PROMPT FETCHING - DualLLMService handles this
-      // The prompt will be fetched by DualLLMService.getAgentConfig() method
-      console.log('📝 DualLLMService will handle agent prompt fetching from database');
-
-      // 🔧 RETRIEVE CHAT HISTORY FOR CONTEXT
-      let chatHistory = [];
+      // Initialize variables with defaults
+      let variables = {
+        nameUser: 'Cliente',
+        discountUser: 'Nessuno sconto attivo',
+        companyName: 'L\'Altra Italia',
+        lastorder: 'Nessun ordine recente',
+        lastordercode: 'N/A',
+        languageUser: 'it'
+      };
+      
+      // Get agent config with prompt from database
+      let agentPrompt = "WhatsApp conversation"; // fallback
       try {
-        const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
-        
-        // Get or create active chat session
-        let chatSession = await prisma.chatSession.findFirst({
-          where: {
-            customerId: customerId,
-            workspaceId: workspaceId,
-            status: 'active'
-          },
-          include: {
-            messages: {
-              orderBy: {
-                createdAt: 'asc'
-              },
-              take: 15 // Last 15 messages for optimal context
-            }
-          }
+        const agentConfig = await prisma.agentConfig.findFirst({
+          where: { workspaceId: workspaceId }
         });
-
-        if (chatSession) {
-          console.log(`📚 Found existing chat session with ${chatSession.messages.length} messages`);
-          
-          // Format messages for LLM context
-          chatHistory = chatSession.messages.map(msg => ({
-            role: msg.direction === 'INBOUND' ? 'user' : 'assistant',
-            content: msg.content
-          }));
-          
-          console.log('📜 Chat history loaded:', chatHistory.length, 'messages (last 15)');
-        } else {
-          console.log('🆕 No existing chat session found, starting fresh conversation');
+        if (agentConfig && agentConfig.prompt) {
+          agentPrompt = agentConfig.prompt;
         }
         
-        await prisma.$disconnect();
-      } catch (historyError) {
-        console.error('❌ Error retrieving chat history:', historyError);
-        chatHistory = []; // Continue without history if error
+        // Get customer data for variable replacement
+        const customer = await prisma.customers.findFirst({
+          where: {
+            id: customerId,
+            workspaceId: workspaceId,
+            isActive: true
+          },
+          select: {
+            id: true,
+            name: true,
+            company: true,
+            discount: true,
+            language: true
+          }
+        });
+        
+        // Get last order
+        const lastOrder = await prisma.orders.findFirst({
+          where: {
+            customerId: customerId,
+            workspaceId: workspaceId
+          },
+          orderBy: {
+            createdAt: 'desc'
+          },
+          select: {
+            id: true,
+            orderCode: true,
+            createdAt: true
+          }
+        });
+        
+        // Prepare variables for replacement
+        variables = {
+          nameUser: customer?.name || 'Cliente',
+          discountUser: customer?.discount ? `${customer.discount}% di sconto attivo` : 'Nessuno sconto attivo',
+          companyName: customer?.company || 'L\'Altra Italia',
+          lastorder: lastOrder ? lastOrder.createdAt.toLocaleDateString() : 'Nessun ordine recente',
+          lastordercode: lastOrder?.orderCode || 'N/A',
+          languageUser: customer?.language || 'it'
+        };
+        
+        // Replace variables in prompt
+        agentPrompt = agentPrompt
+          .replace(/\{\{nameUser\}\}/g, variables.nameUser)
+          .replace(/\{\{discountUser\}\}/g, variables.discountUser)
+          .replace(/\{\{companyName\}\}/g, variables.companyName)
+          .replace(/\{\{lastorder\}\}/g, variables.lastorder)
+          .replace(/\{\{lastordercode\}\}/g, variables.lastordercode)
+          .replace(/\{\{languageUser\}\}/g, variables.languageUser);
+        
+      } catch (error) {
+        console.error('❌ Error processing customer data:', error);
       }
       
       llmRequest = {
@@ -269,26 +299,29 @@ router.post("/whatsapp/webhook", async (req, res) => {
         workspaceId: workspaceId,
         customerid: customerId,
         phone: phoneNumber,
-        language: "it",
+        language: variables.languageUser,
         sessionId: "webhook-session",
         temperature: 0.0,
         maxTokens: 3500,
         model: "gpt-4o",
-        messages: chatHistory, // 🔧 Pass chat history for context
-        // prompt: removed - will be fetched by DualLLMService from database
-        customer: customer // 🔧 Pass customer data for prompt personalization
+        messages: data.messages || [],
+        prompt: agentPrompt
       };
       
-      // ✅ SESSION ACTIVE - PROCESS WITH DUAL LLM
-      console.log('🚀 CALLING DUAL LLM SERVICE!!!');
+      // Process with dual LLM service
+      console.log('🚀 WEBHOOK: About to call dual LLM service with input:', messageContent);
       result = await dualLLMService.processMessage(llmRequest);
-      console.log('✅ DUAL LLM RESULT:', result);
+      console.log('🚀 WEBHOOK: Dual LLM result received:', {
+        success: result.success,
+        hasOutput: !!result.output,
+        translatedQuery: result.translatedQuery,
+        outputLength: result.output?.length || 0
+      });
     }
     
-    // 💾 SAVE MESSAGE AND TRACK USAGE (Critical fix for missing history/analytics)
+    // Save message and track usage
     if (result.success && result.output) {
       try {
-        console.log('💾 Saving message to database with usage tracking...');
         await messageRepository.saveMessage({
           workspaceId: workspaceId,
           phoneNumber: phoneNumber,
@@ -298,10 +331,10 @@ router.post("/whatsapp/webhook", async (req, res) => {
           agentSelected: "CHATBOT_DUAL_LLM",
           // 🔧 Debug data persistence
           translatedQuery: result.translatedQuery,
+          processedPrompt: result.processedPrompt,
           functionCallsDebug: result.functionCalls,
           processingSource: result.functionCalls?.[0]?.source || 'unknown'
         });
-        console.log('✅ Message saved successfully with usage tracking');
       } catch (saveError) {
         console.error('❌ Failed to save message:', saveError);
         // Continue - don't fail the whole request if save fails
@@ -309,20 +342,15 @@ router.post("/whatsapp/webhook", async (req, res) => {
     }
     
     // TODO: Send response back to WhatsApp
-    console.log('📤 Response to send:', result.output);
-    console.log('🔧 DEBUG: processedPrompt in result:', result.processedPrompt);
-    console.log('🔧 DEBUG: result keys:', Object.keys(result));
     
     res.json({ 
       success: true, 
       message: result.output,
-      data: {
-        processedMessage: result.output,
-        processedPrompt: result.processedPrompt, // 🔧 Add processedPrompt to response
-        functionCalls: result.functionCalls,
-        translatedQuery: result.translatedQuery
-      },
-      debug: { result }
+      debug: {
+        translatedQuery: result.translatedQuery,
+        processedPrompt: result.processedPrompt,
+        functionCalls: result.functionCalls || []
+      }
     });
   } catch (error) {
     console.error('❌ WHATSAPP WEBHOOK ERROR:', error);
@@ -488,10 +516,6 @@ router.use(
   documentRoutes
 )
 logger.info("Registered document router with workspace and upload endpoints")
-
-// Mount internal API routes for N8N integration
-router.use("/internal", internalApiRoutes)
-logger.info("Registered internal API routes for N8N integration")
 
 // Mount analytics routes
 router.use("/analytics", analyticsRoutes)
