@@ -381,64 +381,6 @@ router.get("/whatsapp/webhook", async (req, res) => {
   res.status(403).send("Verification failed")
 });
 
-// 🧪 TEST ENDPOINT FOR SEARCHRAG ONLY (temporary)
-router.post("/test/searchrag", async (req, res) => {
-  try {
-    const { query, workspaceId = "cm3ajl7ic00003ep6rkk6x5bg" } = req.body;
-    
-    if (!query) {
-      return res.status(400).json({ error: "Query is required" });
-    }
-
-    console.log("🧪 TESTING SEARCHRAG DIRECTLY");
-    console.log("🧪 Query:", query);
-    console.log("🧪 WorkspaceId:", workspaceId);
-
-    // Import the embedding service directly instead
-    const { embeddingService } = await import('../services/embeddingService');
-    const { TranslationService } = await import('../services/translation.service');
-    
-    const translationService = new TranslationService();
-
-    // Translate query to English
-    const translatedQuery = await translationService.translateToEnglish(query);
-    console.log("🧪 Translated query:", translatedQuery);
-
-    // Search using embedding service directly
-    const [productResults, serviceResults, faqResults] = await Promise.all([
-      embeddingService.searchProducts(translatedQuery, workspaceId, 3),
-      embeddingService.searchServices(translatedQuery, workspaceId, 3),
-      embeddingService.searchFAQs(translatedQuery, workspaceId, 3),
-    ]);
-
-    const allResults = [
-      ...productResults.map((r) => ({ ...r, type: "product" })),
-      ...serviceResults.map((r) => ({ ...r, type: "service" })),
-      ...faqResults.map((r) => ({ ...r, type: "faq" })),
-    ];
-
-    console.log("🧪 SEARCHRAG DIRECT RESULTS:", JSON.stringify(allResults, null, 2));
-
-    res.json({
-      success: true,
-      query: query,
-      translatedQuery: translatedQuery,
-      productResults: productResults,
-      serviceResults: serviceResults,
-      faqResults: faqResults,
-      allResults: allResults,
-      totalResults: allResults.length
-    });
-
-  } catch (error) {
-    console.error('❌ TEST SEARCHRAG ERROR:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    });
-  }
-});
-
 logger.info("Registered WhatsApp webhook routes FIRST (public, no authentication)")
 
 // Debug middleware removed - TypeScript errors fixed

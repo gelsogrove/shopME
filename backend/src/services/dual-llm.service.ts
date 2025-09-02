@@ -74,87 +74,85 @@ export class DualLLMService {
       // 🔧 STORE PROCESSED PROMPT FOR DEBUG
       this.lastProcessedPrompt = agentPrompt
 
-      // NEW APPROACH: SEARCHRAG FIRST, THEN CLOUD FUNCTIONS AS FALLBACK
-      console.log("🔍 NEW FLOW: SearchRag FIRST approach")
+      // NEW APPROACH: CLOUD FUNCTIONS FIRST, SEARCHRAG AS LAST RESORT
+      console.log("🔍 NEW FLOW: Cloud Functions FIRST, SearchRag as LAST RESORT")
 
-      // Stage 1A: SEARCHRAG FIRST
+      // Stage 1A: CLOUD FUNCTIONS FIRST (for specific actions)
+      console.log("⚡ Stage 1A: Cloud Functions PRIMARY processor")
+      const functionResult = await this.tryCloudFunctions(requestWithPrompt)
+
+      console.log("📊 CLOUD FUNCTIONS DEBUG ANALYSIS:")
+      console.log(`   ⚡ Cloud Functions success: ${functionResult.success}`)
+      console.log(
+        `   📝 Cloud Functions functionResults length: ${functionResult.functionResults?.length || 0}`
+      )
+      console.log(
+        `   📋 Cloud Functions functionResults:`,
+        functionResult.functionResults
+      )
+
+      let finalResult = functionResult
+      let finalStage = "unknown"
+
+      if (functionResult.success && functionResult.functionResults?.length > 0) {
+        console.log(
+          "✅ FLOW DECISION: Cloud Functions succeeded with actions, using CF result"
+        )
+        finalStage = "cloud_functions_primary"
+        this.lastDebugInfo = {
+          stage: "cloud_functions",
+          reason: "cloud_functions_found_specific_actions",
+          success: true,
+          resultsCount: functionResult.functionResults.length,
+        }
+      } else {
+        console.log(
+          "⚠️ FLOW DECISION: Cloud Functions found no actions, trying SearchRag fallback"
+        )
+
+        // Stage 1B: FALLBACK TO SEARCHRAG IF CLOUD FUNCTIONS HAS NO ACTIONS
+        const ragResult = await this.executeSearchRagFallback(requestWithPrompt)
+
+        console.log("📊 SEARCHRAG DEBUG ANALYSIS:")
+        console.log(`   🔍 SearchRag success: ${ragResult.success}`)
+        console.log(
+          `   📝 SearchRag functionResults length: ${ragResult.functionResults?.length || 0}`
+        )
+        console.log(`   📋 SearchRag functionResults:`, ragResult.functionResults)
+
+        if (ragResult.success && ragResult.functionResults?.length > 0) {
+          console.log("✅ FLOW DECISION: SearchRag fallback succeeded")
+          finalStage = "searchrag_fallback"
+          finalResult = ragResult
+          this.lastDebugInfo = {
+            stage: "searchrag",
+            reason: "cloud_functions_empty_searchrag_success",
+            success: true,
+            resultsCount: ragResult.functionResults?.length || 0,
+          }
+        } else {
+          console.log(
+            "❌ FLOW DECISION: Both Cloud Functions and SearchRag found nothing, will use generic response"
+          )
+          finalStage = "generic_fallback"
+          // Keep Cloud Functions result (empty) for generic response
+          finalResult = functionResult
+          this.lastDebugInfo = {
+            stage: "generic",
+            reason: "both_cloud_functions_and_searchrag_found_nothing",
+            success: true,
+            cloudFunctionsAttempted: true,
+            searchRagAttempted: true,
+          }
+        }
+      }
       console.log("� Stage 1A: SearchRag PRIMARY processor")
       let ragResult = await this.executeSearchRagFallback(requestWithPrompt)
 
       // DETAILED DEBUG: Analyze SearchRag results
-      console.log("📊 SEARCHRAG DEBUG ANALYSIS:")
-      console.log(`   🔍 SearchRag success: ${ragResult.success}`)
-      console.log(
-        `   📝 SearchRag functionResults length: ${ragResult.functionResults?.length || 0}`
-      )
-      console.log(`   📋 SearchRag functionResults:`, ragResult.functionResults)
-
-      let finalResult = ragResult
-      let finalStage = "unknown"
-
-      if (
-        ragResult.success &&
-        ragResult.functionResults &&
-        ragResult.functionResults.length > 0
-      ) {
-        console.log(
-          "✅ FLOW DECISION: SearchRag succeeded with results, using SearchRag result"
-        )
-        finalStage = "searchrag_with_results"
-        this.lastDebugInfo = {
-          stage: "searchrag",
-          reason: "searchrag_found_relevant_data",
-          success: true,
-          resultsCount: ragResult.functionResults.length,
-        }
-      } else {
-        console.log(
-          "⚠️ FLOW DECISION: SearchRag had no results, trying Cloud Functions fallback"
-        )
-
-        // Stage 1B: FALLBACK TO CLOUD FUNCTIONS IF SEARCHRAG HAS NO RESULTS
-        const functionResult = await this.tryCloudFunctions(requestWithPrompt)
-
-        console.log("📊 CLOUD FUNCTIONS DEBUG ANALYSIS:")
-        console.log(`   ⚡ Cloud Functions success: ${functionResult.success}`)
-        console.log(
-          `   📝 Cloud Functions functionResults length: ${functionResult.functionResults?.length || 0}`
-        )
-        console.log(
-          `   📋 Cloud Functions functionResults:`,
-          functionResult.functionResults
-        )
-
-        if (functionResult.success) {
-          console.log("✅ FLOW DECISION: Cloud Functions fallback succeeded")
-          finalStage = "cloud_functions_fallback"
-          ragResult = functionResult // Keep ragResult for compatibility
-          this.lastDebugInfo = {
-            stage: "cloud_functions",
-            reason: "searchrag_empty_cloud_functions_success",
-            success: true,
-            resultsCount: functionResult.functionResults?.length || 0,
-          }
-        } else {
-          console.log(
-            "❌ FLOW DECISION: Both SearchRag and Cloud Functions found nothing, will use SearchRag result for generic response"
-          )
-          finalStage = "generic_fallback"
-          // Keep SearchRag result for generic response
-          finalResult = ragResult
-          this.lastDebugInfo = {
-            stage: "generic",
-            reason: "both_searchrag_and_cloud_functions_found_nothing",
-            success: true,
-            searchRagAttempted: true,
-            cloudFunctionsAttempted: true,
-          }
-        }
-      }
-
       console.log(`🎯 FINAL DECISION: Using stage "${finalStage}"`)
 
-      console.log("✅ Final RAG Result:", JSON.stringify(ragResult, null, 2))
+      console.log("✅ Final Result:", JSON.stringify(finalResult, null, 2))
 
       // Stage 2: FORMATTER - SEMPRE USA IL FORMATTER (anche se SearchRag è vuoto)
       console.log(
@@ -163,14 +161,14 @@ export class DualLLMService {
 
       const formattedResponse = await this.executeFormatter(
         requestWithPrompt,
-        ragResult
+        finalResult
       )
       
       // FINAL DEBUG SUMMARY
       console.log("🏁 FINAL RESULT SUMMARY:")
       console.log(`   🎯 Final Stage Used: ${finalStage}`)
-      console.log(`   📊 Had SearchRag Results: ${ragResult.functionResults?.length > 0}`)
-      console.log(`   🔍 Data Source: ${ragResult.source}`)
+      console.log(`   📊 Had Results: ${finalResult.functionResults?.length > 0}`)
+      console.log(`   🔍 Data Source: ${finalResult.source}`)
       console.log(`   📝 Response Length: ${formattedResponse?.length || 0} chars`)
       console.log(`   🐛 Debug Info:`, this.lastDebugInfo)
       
@@ -524,10 +522,14 @@ PRIORITY: Cloud Functions take precedence. If uncertain, don't call functions.`
         response.data.choices[0]?.message?.content?.trim()
       console.log("✅ Formatted response:", formattedResponse)
 
-      return (
-        formattedResponse ||
-        "Mi dispiace, non sono riuscito a generare una risposta."
+      // 📱 POST-PROCESSOR: Applica formattazione WhatsApp automatica
+      const whatsappFormattedResponse = this.applyWhatsAppFormatting(
+        formattedResponse || "Mi dispiace, non sono riuscito a generare una risposta."
       )
+      
+      console.log("📱 WhatsApp formatted response:", whatsappFormattedResponse)
+
+      return whatsappFormattedResponse
     } catch (error) {
       console.error("❌ Formatter Error:", error)
       return this.buildFallbackResponse(request, ragResult)
@@ -1265,5 +1267,57 @@ Please create a natural, helpful response in ${languageName}.`
       processedPrompt.substring(processedPrompt.length - 500)
     )
     return processedPrompt
+  }
+
+  /**
+   * 📱 POST-PROCESSOR: Applica formattazione WhatsApp automatica
+   * Corregge automaticamente la formattazione per seguire le regole WhatsApp
+   */
+  private applyWhatsAppFormatting(response: string): string {
+    let formatted = response
+
+    console.log("📱 Applicando formattazione WhatsApp automatica...")
+    console.log("📱 Input originale:", formatted)
+
+    // 1. 🚫 Rimuovi emoji usati come bullet points e sostituisci con •
+    const emojiBullets = ['💳', '🏦', '📱', '💰', '💶', '🍷', '🍝', '🍇', '📦', '🔒', '🎯']
+    emojiBullets.forEach(emoji => {
+      // Sostituisci emoji all'inizio di riga (con possibili spazi) con •
+      const regex = new RegExp(`^(\\s*)${emoji}\\s+`, 'gm')
+      formatted = formatted.replace(regex, '$1• ')
+    })
+
+    // 2. 🔧 Converti anche i trattini (-) in bullet points (•)
+    formatted = formatted.replace(/^(\s*)- /gm, '$1• ')
+
+    // 3. ✨ Aggiungi titoli con * quando mancano per le liste di pagamento
+    if ((formatted.includes('• Carta di credito') || formatted.includes('• PayPal')) && 
+        !formatted.includes('*Metodi') && !formatted.includes('*metodi')) {
+      
+      // Trova dove inizia la lista e aggiungi il titolo
+      formatted = formatted.replace(
+        /(.*?\n)(\s*• (?:Carta di credito|PayPal))/,
+        '$1\n*Metodi accettati:*\n$2'
+      )
+    }
+
+    // 4. 🗜️ Rimuovi righe vuote eccessive (max 1 riga vuota consecutiva)
+    formatted = formatted.replace(/\n\s*\n\s*\n/g, '\n\n')
+
+    // 5. 🔧 Standardizza emoji funzionali - aggiungi 🔒 per sicurezza se manca
+    if ((formatted.includes('sicur') || formatted.includes('garanti')) && !formatted.includes('🔒')) {
+      formatted = formatted.replace(
+        /(sicur[a-z]*|garanti[a-z]*)/gi,
+        '$1 🔒'
+      )
+    }
+
+    // 6. ✂️ Rimuovi spazi extra prima e dopo
+    formatted = formatted.trim()
+
+    console.log("📱 Output formattato:", formatted)
+    console.log("📱 Formattazione WhatsApp applicata con successo")
+    
+    return formatted
   }
 }
