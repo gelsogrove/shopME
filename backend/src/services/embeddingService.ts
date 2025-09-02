@@ -25,7 +25,7 @@ export class EmbeddingService {
 
   // 🎯 CONFIGURABLE SIMILARITY THRESHOLDS (Andrea's Request)
   private readonly SIMILARITY_THRESHOLDS = {
-    FAQ: 0.5, // Lowered from 0.3 to 0.15 for better recall on paraphrased questions
+    FAQ: 0.2, // 🧪 TEMPORARY: Lowered from 0.5 to 0.2 for testing "come pago" issue
     PRODUCTS: 0.3, // Good balance for product search
     SERVICES: 0.3, // Higher threshold for service precision
     DOCUMENTS: 0.3, // 🚀 OPTIMIZED: Lowered from 0.5 to 0.3 for better recall with larger, higher-quality chunks
