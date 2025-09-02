@@ -1,6 +1,7 @@
 import { PageLayout } from "@/components/layout/PageLayout"
 import { ClientSheet } from "@/components/shared/ClientSheet"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { MessageRenderer } from "@/components/shared/MessageRenderer"
 import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
 import { useWorkspace } from "@/hooks/use-workspace"
@@ -853,9 +854,9 @@ export function ChatPage() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-600 mt-1 truncate">
+                    <div className="text-xs text-gray-600 mt-1 whitespace-pre-line overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                       {chat.lastMessage}
-                    </p>
+                    </div>
                     <p className="text-[10px] text-gray-400 mt-1">
                       {formatDate(chat.lastMessageTime)}
                     </p>

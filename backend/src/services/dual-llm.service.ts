@@ -583,6 +583,18 @@ ${config.instructions.style}
 - Use emojis appropriately
 - Always be helpful and professional
 
+CRITICAL WHATSAPP FORMATTING RULES:
+- ALWAYS use newlines after colons (:) before starting lists
+- ALWAYS put each list item on a separate line  
+- ALWAYS use line breaks between sections
+- NEVER put list items on same line as the intro text
+- Example CORRECT format:
+  "I can help you with:
+  • Item 1
+  • Item 2" 
+- Example WRONG format:
+  "I can help you with: • Item 1 • Item 2"
+
 CONTEXT: You receive data from either Cloud Functions or SearchRag.
 - Cloud Functions: Structured data (orders, offers, contacts)
 - SearchRag: Semantic search results about products/services

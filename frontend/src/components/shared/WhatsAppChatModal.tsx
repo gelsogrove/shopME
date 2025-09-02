@@ -332,10 +332,10 @@ export function WhatsAppChatModal({
     setIsLoading(true)
 
     try {
-      // Call the API to process the initial message
+      // Call the API to process the initial message - USE SAME WEBHOOK AS NORMAL MESSAGES
       const apiUrl = `${
         import.meta.env.VITE_API_URL || "http://localhost:3001"
-      }/api/messages`
+      }/api/whatsapp/webhook`
 
       // Use provided workspaceId or get from config
       const currentWorkspaceId = getWorkspaceId(workspaceId)
