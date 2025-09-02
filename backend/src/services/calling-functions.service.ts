@@ -73,6 +73,26 @@ export class CallingFunctionsService {
       const { PrismaClient } = require('@prisma/client');
       const prisma = new PrismaClient();
       
+      // Get all active offers first to apply discounts
+      const activeOffers = await prisma.offers.findMany({
+        where: {
+          workspaceId: request.workspaceId,
+          isActive: true,
+          startDate: { lte: new Date() },
+          endDate: { gte: new Date() }
+        },
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        }
+      });
+      
+      console.log('🎯 Active offers found:', activeOffers.length);
+      
       // Get all products with categories, ordered by category name alphabetically
       const products = await prisma.products.findMany({
         where: {
@@ -104,9 +124,10 @@ export class CallingFunctionsService {
         } as ProductsResponse;
       }
       
-      // Group products by category (LLM will add icons automatically)
+      // Group products by category and apply discounts
       const groupedProducts = products.reduce((acc, product) => {
         const categoryName = product.category?.name || 'Senza Categoria';
+        const categoryId = product.category?.id;
         
         if (!acc[categoryName]) {
           acc[categoryName] = {
@@ -115,18 +136,38 @@ export class CallingFunctionsService {
           };
         }
         
+        // Check if there's an active offer for this category
+        const categoryOffer = activeOffers.find(offer => 
+          offer.category && offer.category.id === categoryId
+        );
+        
+        let finalPrice = product.price;
+        let hasDiscount = false;
+        let discountPercent = 0;
+        let originalPrice = product.price;
+        
+        if (categoryOffer) {
+          hasDiscount = true;
+          discountPercent = categoryOffer.discountPercent;
+          finalPrice = product.price * (1 - discountPercent / 100);
+          console.log(`💰 Applied ${discountPercent}% discount to ${product.name}: €${originalPrice} → €${finalPrice.toFixed(2)}`);
+        }
+        
         acc[categoryName].products.push({
           code: product.code,
           name: product.name,
           description: product.description,
-          price: product.price,
+          price: finalPrice, // Final discounted price
+          originalPrice: hasDiscount ? originalPrice : undefined, // Show original only if discounted
+          discountPercent: hasDiscount ? discountPercent : undefined,
+          hasDiscount: hasDiscount,
           unit: product.unit
         });
         
         return acc;
       }, {});
       
-      console.log('✅ Products grouped by category:', Object.keys(groupedProducts));
+      console.log('✅ Products grouped by category with discounts applied:', Object.keys(groupedProducts));
       
       return {
         success: true,

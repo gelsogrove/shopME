@@ -1,10 +1,47 @@
 - isActive
 - dovrebbe mandare una mail
 - la formattazione non mi piace
-- conpnay name e lastORder
 - test di integrazione ?
 
-IL PREZZO DEL LIMONCELLO E' SCONTATO PECHE' C'E' UN OFFERTA SUGLI ALCOLI CHE ODBBIMO PRENDERE IN CONSIDERAZIONE
+
+
+formatazzione
+Hi there! 💳 Let me help you with payment information.
+
+
+We accept several convenient payment methods:
+
+
+
+Credit/Debit Cards
+
+PayPal
+
+Bank Transfer
+
+
+During checkout, you'll be able to choose your preferred payment option. All transactions are secure and encrypted! 🔒
+
+
+By the way, we have some great offers running that you might want to check out before paying:
+
+
+
+20% off on all alcoholic beverages 🍷
+
+Special discounts on pasta products 🍝
+
+10% off on premium wines during our Wine Tasting Special 🍇
+
+
+Can I help you with anything specific about the payment process or would you like to know more about these offers? 😊
+
+
+
+guarda questo messaggio ha degli spazi che davvero non capico
+vorrei averni meglio vorrei avere dei bullet poiint vorrei avere dei bold considera che la formattazione deve essere quella di whatsapp con iconcine ma non troppo invasivo di iconcine
+ecco non so bene come migliroare la formattazzione c'e0 un qualcosa di standard per whatsapp?
+
 
 - carrello view
   hai caipto dalla nostra chat dalla documentazione dal codice
@@ -31,19 +68,11 @@ fase 2
 - ci sono api che possono essere convertite in funzioni
 - a livello di sicurezza del webook mira webook.md
 
-  const accountKeywords = [
-  "mail",
-  "email",
-  "profilo",
-  "profile",
-  "account",
-  "password",
-  "modificare",
-  "cambiare",
-  "vedere",
-  "visualizzare",
-  "mia mail",
-  "mio profilo",
-  "dati personali",
-  "informazioni personali",
-  ]
+curl -X POST http://localhost:3001/api/whatsapp/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chatInput": "come pago",
+    "customerid": "test-customer-123",
+    "workspaceId": "cm9hjgq9v00014qk8fsdy4ujv",
+    "language": "it"
+  }'

@@ -53,8 +53,10 @@ export class DualLLMService {
       }
 
       // � NO MORE VARIABLE REPLACEMENT - ALREADY DONE IN WEBHOOK!
-      console.log("� WEBHOOK HAS ALREADY PROCESSED VARIABLES - Using prompt as-is")
-      
+      console.log(
+        "� WEBHOOK HAS ALREADY PROCESSED VARIABLES - Using prompt as-is"
+      )
+
       // Use the prompt directly from webhook (already processed)
       if (request.prompt) {
         agentPrompt = request.prompt
@@ -62,39 +64,95 @@ export class DualLLMService {
       }
 
       // 🌐 UPDATE REQUEST WITH USER'S LANGUAGE FROM PROFILE
-      requestWithPrompt = { 
-        ...request, 
+      requestWithPrompt = {
+        ...request,
         prompt: agentPrompt,
-        language: request.language || 'it'  // 🔥 USE LANGUAGE FROM WEBHOOK
+        language: request.language || "it", // 🔥 USE LANGUAGE FROM WEBHOOK
       }
-      console.log(`🌐 Using language from webhook: ${request.language || 'it'}`)
+      console.log(`🌐 Using language from webhook: ${request.language || "it"}`)
 
       // 🔧 STORE PROCESSED PROMPT FOR DEBUG
       this.lastProcessedPrompt = agentPrompt
 
-      // Stage 1: TRY CLOUD FUNCTIONS FIRST (NEW STRATEGY)
-      console.log("🔧 Stage 1A: Trying Cloud Functions First")
-      const functionResult = await this.tryCloudFunctions(requestWithPrompt)
+      // NEW APPROACH: SEARCHRAG FIRST, THEN CLOUD FUNCTIONS AS FALLBACK
+      console.log("🔍 NEW FLOW: SearchRag FIRST approach")
 
-      let ragResult
-      if (functionResult.success) {
-        console.log("✅ FLOW: Cloud Functions succeeded, using CF result")
-        ragResult = functionResult
+      // Stage 1A: SEARCHRAG FIRST
+      console.log("� Stage 1A: SearchRag PRIMARY processor")
+      let ragResult = await this.executeSearchRagFallback(requestWithPrompt)
+
+      // DETAILED DEBUG: Analyze SearchRag results
+      console.log("📊 SEARCHRAG DEBUG ANALYSIS:")
+      console.log(`   🔍 SearchRag success: ${ragResult.success}`)
+      console.log(
+        `   📝 SearchRag functionResults length: ${ragResult.functionResults?.length || 0}`
+      )
+      console.log(`   📋 SearchRag functionResults:`, ragResult.functionResults)
+
+      let finalResult = ragResult
+      let finalStage = "unknown"
+
+      if (
+        ragResult.success &&
+        ragResult.functionResults &&
+        ragResult.functionResults.length > 0
+      ) {
+        console.log(
+          "✅ FLOW DECISION: SearchRag succeeded with results, using SearchRag result"
+        )
+        finalStage = "searchrag_with_results"
+        this.lastDebugInfo = {
+          stage: "searchrag",
+          reason: "searchrag_found_relevant_data",
+          success: true,
+          resultsCount: ragResult.functionResults.length,
+        }
       } else {
-        console.log("⚠️ FLOW: Cloud Functions failed, falling back to SearchRag")
-        // Stage 1B: FALLBACK TO SEARCHRAG IF CF FAILS
-        ragResult = await this.executeSearchRagFallback(requestWithPrompt)
-        
-        if (!ragResult.success) {
-          console.log("❌ FLOW: SearchRag also failed, will use Generic formatter")
-          // Store debug info for generic fallback
+        console.log(
+          "⚠️ FLOW DECISION: SearchRag had no results, trying Cloud Functions fallback"
+        )
+
+        // Stage 1B: FALLBACK TO CLOUD FUNCTIONS IF SEARCHRAG HAS NO RESULTS
+        const functionResult = await this.tryCloudFunctions(requestWithPrompt)
+
+        console.log("📊 CLOUD FUNCTIONS DEBUG ANALYSIS:")
+        console.log(`   ⚡ Cloud Functions success: ${functionResult.success}`)
+        console.log(
+          `   📝 Cloud Functions functionResults length: ${functionResult.functionResults?.length || 0}`
+        )
+        console.log(
+          `   📋 Cloud Functions functionResults:`,
+          functionResult.functionResults
+        )
+
+        if (functionResult.success) {
+          console.log("✅ FLOW DECISION: Cloud Functions fallback succeeded")
+          finalStage = "cloud_functions_fallback"
+          ragResult = functionResult // Keep ragResult for compatibility
+          this.lastDebugInfo = {
+            stage: "cloud_functions",
+            reason: "searchrag_empty_cloud_functions_success",
+            success: true,
+            resultsCount: functionResult.functionResults?.length || 0,
+          }
+        } else {
+          console.log(
+            "❌ FLOW DECISION: Both SearchRag and Cloud Functions found nothing, will use SearchRag result for generic response"
+          )
+          finalStage = "generic_fallback"
+          // Keep SearchRag result for generic response
+          finalResult = ragResult
           this.lastDebugInfo = {
             stage: "generic",
-            reason: "both_cloud_functions_and_searchrag_failed",
-            success: true
-          };
+            reason: "both_searchrag_and_cloud_functions_found_nothing",
+            success: true,
+            searchRagAttempted: true,
+            cloudFunctionsAttempted: true,
+          }
         }
       }
+
+      console.log(`🎯 FINAL DECISION: Using stage "${finalStage}"`)
 
       console.log("✅ Final RAG Result:", JSON.stringify(ragResult, null, 2))
 
@@ -107,17 +165,26 @@ export class DualLLMService {
         requestWithPrompt,
         ragResult
       )
+      
+      // FINAL DEBUG SUMMARY
+      console.log("🏁 FINAL RESULT SUMMARY:")
+      console.log(`   🎯 Final Stage Used: ${finalStage}`)
+      console.log(`   📊 Had SearchRag Results: ${ragResult.functionResults?.length > 0}`)
+      console.log(`   🔍 Data Source: ${ragResult.source}`)
+      console.log(`   📝 Response Length: ${formattedResponse?.length || 0} chars`)
+      console.log(`   🐛 Debug Info:`, this.lastDebugInfo)
+      
       console.log(
         "✅ Formatted Response:",
         JSON.stringify(formattedResponse, null, 2)
       )
 
-      console.log('🎯 DUAL LLM SUCCESS RESULT:', {
+      console.log("🎯 DUAL LLM SUCCESS RESULT:", {
         translatedQuery: this.lastTranslatedQuery,
         hasProcessedPrompt: !!this.lastProcessedPrompt,
         outputLength: formattedResponse?.length || 0,
-        debugInfo: this.lastDebugInfo
-      });
+        debugInfo: this.lastDebugInfo,
+      })
 
       return {
         output: formattedResponse,
@@ -144,11 +211,17 @@ export class DualLLMService {
 
   private async tryCloudFunctions(request: LLMRequest): Promise<any> {
     console.log("🔧🔧🔧 TRY CLOUD FUNCTIONS STARTED 🔧🔧🔧")
-    console.log("🔧 Input request:", { chatInput: request.chatInput, language: request.language })
+    console.log("🔧 Input request:", {
+      chatInput: request.chatInput,
+      language: request.language,
+    })
 
     try {
       // Translate query
-      console.log("🌐 About to call translation service for:", request.chatInput)
+      console.log(
+        "🌐 About to call translation service for:",
+        request.chatInput
+      )
       const translatedQuery = await this.translationService.translateToEnglish(
         request.chatInput
       )
@@ -230,7 +303,10 @@ export class DualLLMService {
         // Execute tool calls
         console.log("✅ CLOUD FUNCTIONS: Executing tool calls...")
         const results = await this.executeToolCalls(toolCalls, request)
-        console.log("✅ CLOUD FUNCTIONS: Tool call results:", JSON.stringify(results, null, 2))
+        console.log(
+          "✅ CLOUD FUNCTIONS: Tool call results:",
+          JSON.stringify(results, null, 2)
+        )
 
         // Store debug info for database
         this.lastDebugInfo = {
@@ -238,8 +314,8 @@ export class DualLLMService {
           toolCallsFound: toolCalls.length,
           toolCallsDetails: toolCalls,
           resultsCount: results.length,
-          success: true
-        };
+          success: true,
+        }
 
         return {
           functionResults: results,
@@ -247,8 +323,10 @@ export class DualLLMService {
           source: "cloud_functions",
         }
       } else {
-        console.log("❌ CLOUD FUNCTIONS: No tool calls detected - fallback to SearchRag")
-        
+        console.log(
+          "❌ CLOUD FUNCTIONS: No tool calls detected - fallback to SearchRag"
+        )
+
         // Store debug info for database
         this.lastDebugInfo = {
           stage: "cloud_functions",
@@ -256,8 +334,8 @@ export class DualLLMService {
           toolCallsDetails: [],
           resultsCount: 0,
           success: false,
-          reason: "no_tool_calls_detected"
-        };
+          reason: "no_tool_calls_detected",
+        }
 
         return {
           functionResults: [],
@@ -281,8 +359,9 @@ export class DualLLMService {
 
     try {
       // Translate query specifically for SearchRag with language detection
-      const translatedQuery =
-        await this.translationService.translateToEnglish(request.chatInput)
+      const translatedQuery = await this.translationService.translateToEnglish(
+        request.chatInput
+      )
       this.lastTranslatedQuery = translatedQuery // Store for debug
 
       // Use SearchRag for semantic search - try multiple sources
@@ -316,15 +395,15 @@ export class DualLLMService {
 
       if (allResults.length === 0) {
         console.log("❌ SEARCHRAG: No results found - fallback to Generic")
-        
+
         // Store debug info for database
         this.lastDebugInfo = {
           stage: "searchrag",
           searchResults: [],
           resultsCount: 0,
           success: false,
-          reason: "no_search_results_found"
-        };
+          reason: "no_search_results_found",
+        }
 
         return {
           functionResults: [],
@@ -334,14 +413,14 @@ export class DualLLMService {
       }
 
       console.log("✅ SEARCHRAG: Results found, generating response")
-      
+
       // Store debug info for database
       this.lastDebugInfo = {
         stage: "searchrag",
         searchResults: allResults,
         resultsCount: allResults.length,
-        success: true
-      };
+        success: true,
+      }
 
       // Format SearchRag results
       const formattedResults = allResults.map((result) => ({
@@ -406,7 +485,9 @@ PRIORITY: Cloud Functions take precedence. If uncertain, don't call functions.`
       console.log("🎨 Stage 2: Formatter - Natural Response Generation")
 
       // FORMATTER USA IL PROMPT LOCALIZZATO BASATO SULLA LINGUA DELL'UTENTE
-      const systemMessage = this.buildFormatterSystemMessage(request.language || 'it')
+      const systemMessage = this.buildFormatterSystemMessage(
+        request.language || "it"
+      )
 
       const response = await axios.post(
         this.openRouterUrl,
@@ -453,63 +534,69 @@ PRIORITY: Cloud Functions take precedence. If uncertain, don't call functions.`
     }
   }
 
-  private buildFormatterSystemMessage(language: string = 'it'): string {
+  private buildFormatterSystemMessage(language: string = "it"): string {
     const languageConfig = {
-      'it': {
-        name: 'Italian',
-        languageName: 'italiano',
+      it: {
+        name: "Italian",
+        languageName: "italiano",
         instructions: {
-          style: '- Usa la lingua italiana',
+          style: "- Usa la lingua italiana",
           noData: {
-            acknowledge: '1. Riconosci cortesemente la richiesta dell\'utente',
-            offer: '2. Offri aiuto con richieste comuni (ordini, prodotti, contatti)',
-            suggest: '3. Suggerisci azioni specifiche che possono provare',
-            emojis: '4. Includi emoji appropriate'
-          }
-        }
+            acknowledge: "1. Riconosci cortesemente la richiesta dell'utente",
+            offer:
+              "2. Offri aiuto con richieste comuni (ordini, prodotti, contatti)",
+            suggest: "3. Suggerisci azioni specifiche che possono provare",
+            emojis: "4. Includi emoji appropriate",
+          },
+        },
       },
-      'en': {
-        name: 'English',
-        languageName: 'English',
+      en: {
+        name: "English",
+        languageName: "English",
         instructions: {
-          style: '- Use English language',
+          style: "- Use English language",
           noData: {
-            acknowledge: '1. Acknowledge the user\'s request politely',
-            offer: '2. Offer to help with common requests (orders, products, contact)',
-            suggest: '3. Suggest specific actions they can try',
-            emojis: '4. Include relevant emojis'
-          }
-        }
+            acknowledge: "1. Acknowledge the user's request politely",
+            offer:
+              "2. Offer to help with common requests (orders, products, contact)",
+            suggest: "3. Suggest specific actions they can try",
+            emojis: "4. Include relevant emojis",
+          },
+        },
       },
-      'es': {
-        name: 'Spanish',
-        languageName: 'español',
+      es: {
+        name: "Spanish",
+        languageName: "español",
         instructions: {
-          style: '- Usa el idioma español',
+          style: "- Usa el idioma español",
           noData: {
-            acknowledge: '1. Reconoce cortésmente la solicitud del usuario',
-            offer: '2. Ofrece ayuda con solicitudes comunes (pedidos, productos, contacto)',
-            suggest: '3. Sugiere acciones específicas que pueden intentar',
-            emojis: '4. Incluye emojis relevantes'
-          }
-        }
+            acknowledge: "1. Reconoce cortésmente la solicitud del usuario",
+            offer:
+              "2. Ofrece ayuda con solicitudes comunes (pedidos, productos, contacto)",
+            suggest: "3. Sugiere acciones específicas que pueden intentar",
+            emojis: "4. Incluye emojis relevantes",
+          },
+        },
       },
-      'pt': {
-        name: 'Portuguese',
-        languageName: 'português',
+      pt: {
+        name: "Portuguese",
+        languageName: "português",
         instructions: {
-          style: '- Use a língua portuguesa',
+          style: "- Use a língua portuguesa",
           noData: {
-            acknowledge: '1. Reconheça cortesmente a solicitação do usuário',
-            offer: '2. Ofereça ajuda com solicitações comuns (pedidos, produtos, contato)',
-            suggest: '3. Sugira ações específicas que podem tentar',
-            emojis: '4. Inclua emojis relevantes'
-          }
-        }
-      }
+            acknowledge: "1. Reconheça cortesmente a solicitação do usuário",
+            offer:
+              "2. Ofereça ajuda com solicitações comuns (pedidos, produtos, contato)",
+            suggest: "3. Sugira ações específicas que podem tentar",
+            emojis: "4. Inclua emojis relevantes",
+          },
+        },
+      },
     }
 
-    const config = languageConfig[language as keyof typeof languageConfig] || languageConfig['it']
+    const config =
+      languageConfig[language as keyof typeof languageConfig] ||
+      languageConfig["it"]
 
     return `You are SofIA, a helpful WhatsApp assistant for L'Altra Italia e-commerce.
 
@@ -543,40 +630,57 @@ Format the response naturally based on the data type and user's request.`
     const userQuery = request.chatInput
     const dataSource = ragResult.source || "unknown"
     const functionResults = ragResult.functionResults || []
-    const language = request.language || 'it'
+    const language = request.language || "it"
+    const hasResults = functionResults.length > 0
+
+    // DETAILED DEBUG FOR FORMATTER
+    console.log("🎨 FORMATTER DEBUG:")
+    console.log(`   📊 Has results: ${hasResults}`)
+    console.log(`   📋 Results count: ${functionResults.length}`)
+    console.log(`   🔍 Source: ${dataSource}`)
+    console.log(`   🗣️ Language: ${language}`)
+    
+    if (hasResults) {
+      console.log("✅ FORMATTER MODE: SearchRag with data - formatting with found information")
+    } else {
+      console.log("🔄 FORMATTER MODE: Generic fallback - no specific data found")
+    }
 
     const languageNames = {
-      'it': 'Italian',
-      'en': 'English', 
-      'es': 'Spanish',
-      'pt': 'Portuguese'
+      it: "Italian",
+      en: "English",
+      es: "Spanish",
+      pt: "Portuguese",
     }
 
     const suggestionExamples = {
-      'it': {
+      it: {
         orders: '"i miei ordini" per vedere lo storico',
         products: '"cosa vendete" per sfogliare i prodotti',
-        contact: '"contatti" per parlare con un operatore'
+        contact: '"contatti" per parlare con un operatore',
       },
-      'en': {
+      en: {
         orders: '"my orders" to see order history',
-        products: '"what do you sell" to browse products', 
-        contact: '"contact" to speak with an operator'
+        products: '"what do you sell" to browse products',
+        contact: '"contact" to speak with an operator',
       },
-      'es': {
+      es: {
         orders: '"mis pedidos" para ver el historial',
         products: '"qué venden" para explorar productos',
-        contact: '"contacto" para hablar con un operador'
+        contact: '"contacto" para hablar con un operador',
       },
-      'pt': {
+      pt: {
         orders: '"meus pedidos" para ver o histórico',
         products: '"o que vendem" para navegar pelos produtos',
-        contact: '"contato" para falar com um operador'
-      }
+        contact: '"contato" para falar com um operador',
+      },
     }
 
-    const suggestions = suggestionExamples[language as keyof typeof suggestionExamples] || suggestionExamples['it']
-    const languageName = languageNames[language as keyof typeof languageNames] || 'Italian'
+    const suggestions =
+      suggestionExamples[language as keyof typeof suggestionExamples] ||
+      suggestionExamples["it"]
+    const languageName =
+      languageNames[language as keyof typeof languageNames] || "Italian"
 
     let dataContext = ""
     if (functionResults.length > 0) {
@@ -603,28 +707,30 @@ Please create a natural, helpful response in ${languageName}.`
 
   private buildFallbackResponse(request: LLMRequest, ragResult: any): string {
     const userQuery = request.chatInput
-    const language = request.language || 'it'
+    const language = request.language || "it"
 
     const fallbackMessages = {
-      'it': {
+      it: {
         found: `Ho trovato alcune informazioni per la tua richiesta "${userQuery}". Tuttavia, si è verificato un errore nella formattazione della risposta. Ti prego di riprovare.`,
-        notFound: `Mi dispiace, non sono riuscito a trovare informazioni specifiche per "${userQuery}". Puoi essere più specifico o provare con una domanda diversa?`
+        notFound: `Mi dispiace, non sono riuscito a trovare informazioni specifiche per "${userQuery}". Puoi essere più specifico o provare con una domanda diversa?`,
       },
-      'en': {
+      en: {
         found: `I found some information for your request "${userQuery}". However, there was an error formatting the response. Please try again.`,
-        notFound: `Sorry, I couldn't find specific information for "${userQuery}". Can you be more specific or try with a different question?`
+        notFound: `Sorry, I couldn't find specific information for "${userQuery}". Can you be more specific or try with a different question?`,
       },
-      'es': {
+      es: {
         found: `Encontré información para tu solicitud "${userQuery}". Sin embargo, hubo un error al formatear la respuesta. Por favor, inténtalo de nuevo.`,
-        notFound: `Lo siento, no pude encontrar información específica para "${userQuery}". ¿Puedes ser más específico o probar con una pregunta diferente?`
+        notFound: `Lo siento, no pude encontrar información específica para "${userQuery}". ¿Puedes ser más específico o probar con una pregunta diferente?`,
       },
-      'pt': {
+      pt: {
         found: `Encontrei informações para sua solicitação "${userQuery}". No entanto, houve um erro na formatação da resposta. Por favor, tente novamente.`,
-        notFound: `Desculpe, não consegui encontrar informações específicas para "${userQuery}". Você pode ser mais específico ou tentar com uma pergunta diferente?`
-      }
+        notFound: `Desculpe, não consegui encontrar informações específicas para "${userQuery}". Você pode ser mais específico ou tentar com uma pergunta diferente?`,
+      },
     }
 
-    const messages = fallbackMessages[language as keyof typeof fallbackMessages] || fallbackMessages['it']
+    const messages =
+      fallbackMessages[language as keyof typeof fallbackMessages] ||
+      fallbackMessages["it"]
 
     if (ragResult.functionResults && ragResult.functionResults.length > 0) {
       return messages.found
@@ -690,7 +796,8 @@ Please create a natural, helpful response in ${languageName}.`
         type: "function",
         function: {
           name: "GetActiveOffers",
-          description: "Get current active offers and promotions. Examples: 'che offerte avete', 'sconti disponibili', 'promozioni', 'show me offers', 'any deals', 'discounts'.",
+          description:
+            "Get current active offers and promotions. Examples: 'che offerte avete', 'sconti disponibili', 'promozioni', 'show me offers', 'any deals', 'discounts'.",
           parameters: {
             type: "object",
             properties: {},
@@ -702,7 +809,8 @@ Please create a natural, helpful response in ${languageName}.`
         type: "function",
         function: {
           name: "GetContactInfo",
-          description: "Get contact information and support details. Examples: 'voglio parlare con un operatore', 'aiuto umano', 'assistenza umana', 'human operator', 'speak with someone'.",
+          description:
+            "Get contact information and support details. Examples: 'voglio parlare con un operatore', 'aiuto umano', 'assistenza umana', 'human operator', 'speak with someone'.",
           parameters: {
             type: "object",
             properties: {},
@@ -953,11 +1061,13 @@ Please create a natural, helpful response in ${languageName}.`
   /**
    * Collect all variables needed for prompt replacement
    */
-  private async getPromptVariables(request: LLMRequest): Promise<PromptVariables> {
+  private async getPromptVariables(
+    request: LLMRequest
+  ): Promise<PromptVariables> {
     console.log("🚨🚨🚨 GET PROMPT VARIABLES CALLED! 🚨🚨🚨")
     console.log("Request customerid:", request.customerid)
-    
-    const { PrismaClient } = require('@prisma/client')
+
+    const { PrismaClient } = require("@prisma/client")
     const prisma = new PrismaClient()
 
     try {
@@ -977,28 +1087,32 @@ Please create a natural, helpful response in ${languageName}.`
       console.log("  - Full request object:", JSON.stringify(request, null, 2))
 
       // 🔍 SMART CUSTOMER SEARCH: Try by ID first, then by phone as fallback
-      let customer = null;
-      
+      let customer = null
+
       // Try by Customer ID first (if it's a valid UUID)
-      if (request.customerid && request.customerid.length > 10 && !request.customerid.includes("test-customer")) {
+      if (
+        request.customerid &&
+        request.customerid.length > 10 &&
+        !request.customerid.includes("test-customer")
+      ) {
         console.log("🔍 Searching by Customer ID...")
         customer = await prisma.customers.findFirst({
           where: {
             id: request.customerid,
             workspaceId: request.workspaceId,
-            isActive: true
+            isActive: true,
           },
           select: {
             id: true,
             name: true,
             company: true,
             discount: true,
-            language: true  // 🔥 RECUPERA LINGUA DAL PROFILO UTENTE
-          }
+            language: true, // 🔥 RECUPERA LINGUA DAL PROFILO UTENTE
+          },
         })
         console.log("🔍 Customer search by ID result:", customer)
       }
-      
+
       // If not found by ID, try by phone number (CRITICAL FALLBACK)
       if (!customer && request.phone && request.phone !== "test-phone-123") {
         console.log("🔍 Customer not found by ID, searching by phone...")
@@ -1006,22 +1120,22 @@ Please create a natural, helpful response in ${languageName}.`
           where: {
             phone: request.phone,
             workspaceId: request.workspaceId,
-            isActive: true
+            isActive: true,
           },
           select: {
             id: true,
             name: true,
             company: true,
             discount: true,
-            language: true  // 🔥 RECUPERA LINGUA DAL PROFILO UTENTE
-          }
+            language: true, // 🔥 RECUPERA LINGUA DAL PROFILO UTENTE
+          },
         })
         console.log("🔍 Customer search by phone result:", customer)
       }
 
       if (customer) {
         console.log("✅ CUSTOMER FOUND:", JSON.stringify(customer, null, 2))
-        
+
         // Set customer name
         if (customer.name) {
           nameUser = customer.name
@@ -1052,20 +1166,22 @@ Please create a natural, helpful response in ${languageName}.`
       const lastOrder = await prisma.orders.findFirst({
         where: {
           customerId: request.customerid,
-          workspaceId: request.workspaceId
+          workspaceId: request.workspaceId,
         },
         orderBy: {
-          createdAt: 'desc'
+          createdAt: "desc",
         },
         select: {
           orderCode: true,
           createdAt: true,
-          total: true
-        }
+          total: true,
+        },
       })
 
       if (lastOrder) {
-        const orderDate = new Date(lastOrder.createdAt).toLocaleDateString('it-IT')
+        const orderDate = new Date(lastOrder.createdAt).toLocaleDateString(
+          "it-IT"
+        )
         lastorder = `Ordine ${lastOrder.orderCode} del ${orderDate} - Totale: €${lastOrder.total}`
         lastordercode = lastOrder.orderCode
       }
@@ -1078,18 +1194,17 @@ Please create a natural, helpful response in ${languageName}.`
         companyName,
         lastorder,
         lastordercode,
-        languageUser
+        languageUser,
       }
 
       console.log("📋 Prompt variables collected:", variables)
       console.log("🔄 About to replace variables in prompt...")
       console.log("🔧 Original prompt length:", prompt.length)
       return variables
-
     } catch (error) {
       console.error("❌ Error collecting prompt variables:", error)
       await prisma.$disconnect()
-      
+
       // Return safe defaults
       return {
         nameUser: "Cliente",
@@ -1097,7 +1212,7 @@ Please create a natural, helpful response in ${languageName}.`
         companyName: "L'Altra Italia",
         lastorder: "Nessun ordine precedente",
         lastordercode: "N/A",
-        languageUser: "it"
+        languageUser: "it",
       }
     }
   }
@@ -1105,23 +1220,50 @@ Please create a natural, helpful response in ${languageName}.`
   /**
    * Replace variables in prompt template
    */
-  private replacePromptVariables(prompt: string, variables: PromptVariables): string {
+  private replacePromptVariables(
+    prompt: string,
+    variables: PromptVariables
+  ): string {
     console.log("🔄 REPLACE PROMPT VARIABLES STARTED")
     console.log("🔧 Variables to replace:", variables)
-    console.log("🔧 Prompt before replacement (first 500 chars):", prompt.substring(0, 500))
-    
+    console.log(
+      "🔧 Prompt before replacement (first 500 chars):",
+      prompt.substring(0, 500)
+    )
+
     let processedPrompt = prompt
 
     // Replace each variable
-    processedPrompt = processedPrompt.replace(/\{\{nameUser\}\}/g, variables.nameUser)
-    processedPrompt = processedPrompt.replace(/\{\{discountUser\}\}/g, variables.discountUser)
-    processedPrompt = processedPrompt.replace(/\{\{companyName\}\}/g, variables.companyName)
-    processedPrompt = processedPrompt.replace(/\{\{lastorder\}\}/g, variables.lastorder)
-    processedPrompt = processedPrompt.replace(/\{\{lastordercode\}\}/g, variables.lastordercode)
-    processedPrompt = processedPrompt.replace(/\{\{languageUser\}\}/g, variables.languageUser)
+    processedPrompt = processedPrompt.replace(
+      /\{\{nameUser\}\}/g,
+      variables.nameUser
+    )
+    processedPrompt = processedPrompt.replace(
+      /\{\{discountUser\}\}/g,
+      variables.discountUser
+    )
+    processedPrompt = processedPrompt.replace(
+      /\{\{companyName\}\}/g,
+      variables.companyName
+    )
+    processedPrompt = processedPrompt.replace(
+      /\{\{lastorder\}\}/g,
+      variables.lastorder
+    )
+    processedPrompt = processedPrompt.replace(
+      /\{\{lastordercode\}\}/g,
+      variables.lastordercode
+    )
+    processedPrompt = processedPrompt.replace(
+      /\{\{languageUser\}\}/g,
+      variables.languageUser
+    )
 
     console.log("🔄 Prompt variables replaced")
-    console.log("🔧 Prompt after replacement (last 500 chars):", processedPrompt.substring(processedPrompt.length - 500))
+    console.log(
+      "🔧 Prompt after replacement (last 500 chars):",
+      processedPrompt.substring(processedPrompt.length - 500)
+    )
     return processedPrompt
   }
 }

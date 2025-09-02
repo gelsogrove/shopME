@@ -209,6 +209,7 @@ se un utente chiede dove si trova il suo ordine o vuole il tracking della spediz
 - "politica di reso"
 - "caratteristiche formaggio"
 - "come posso pagare"
+- "come pago?"
 - "politica di reso"
 
 ## User Information
