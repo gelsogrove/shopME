@@ -120,7 +120,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
       messageContent = data.entry[0].changes[0].value.messages[0].text?.body;
       workspaceId = process.env.WHATSAPP_WORKSPACE_ID || "cm9hjgq9v00014qk8fsdy4ujv";
       
-      // Find customer by phone number
+      // Find customer by phone number with ALL needed data in ONE query
       try {
         const customer = await prisma.customers.findFirst({
           where: {
@@ -131,17 +131,24 @@ router.post("/whatsapp/webhook", async (req, res) => {
           select: {
             id: true,
             name: true,
-            phone: true
+            phone: true,
+            company: true,
+            discount: true,
+            language: true
           }
         });
 
         if (customer) {
           customerId = customer.id;
+          console.log(`✅ Customer found: ${customer.name} (${customer.phone})`);
         } else {
           customerId = "test-customer-123";
+          console.log(`⚠️ Customer not found for phone: ${phoneNumber}`);
         }
         
-        // Non serve più disconnettere perché usiamo l'istanza globale
+        // Store customer data for later use (avoid double query)
+        (req as any).customerData = customer;
+        
       } catch (error) {
         console.error('❌ Error finding customer:', error);
         customerId = "test-customer-123";
@@ -239,21 +246,9 @@ router.post("/whatsapp/webhook", async (req, res) => {
           agentPrompt = agentConfig.prompt;
         }
         
-        // Get customer data for variable replacement
-        const customer = await prisma.customers.findFirst({
-          where: {
-            id: customerId,
-            workspaceId: workspaceId,
-            isActive: true
-          },
-          select: {
-            id: true,
-            name: true,
-            company: true,
-            discount: true,
-            language: true
-          }
-        });
+        // Use customer data from first query (avoid double query)
+        const customer = (req as any).customerData;
+        console.log('🔍 Customer data for variables:', customer);
         
         // Get last order
         const lastOrder = await prisma.orders.findFirst({
@@ -273,13 +268,15 @@ router.post("/whatsapp/webhook", async (req, res) => {
         
         // Prepare variables for replacement
         variables = {
-          nameUser: customer?.name || 'Cliente',
+          nameUser: customer?.name || 'Unknown Customer',
           discountUser: customer?.discount ? `${customer.discount}% di sconto attivo` : 'Nessuno sconto attivo',
           companyName: customer?.company || 'L\'Altra Italia',
           lastorder: lastOrder ? lastOrder.createdAt.toLocaleDateString() : 'Nessun ordine recente',
           lastordercode: lastOrder?.orderCode || 'N/A',
-          languageUser: customer?.language || 'it'
+          languageUser: customer?.language || 'Italian'
         };
+        
+        console.log('✅ Variables prepared:', variables);
         
         // Replace variables in prompt
         agentPrompt = agentPrompt

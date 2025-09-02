@@ -1,6 +1,9 @@
 - isActive
 - dovrebbe mandare una mail
 - test di integrazione ?
+- formattazione
+- test di integrazione ?
+-
 
 - carrello view
   hai caipto dalla nostra chat dalla documentazione dal codice
