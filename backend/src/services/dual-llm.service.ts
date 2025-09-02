@@ -146,10 +146,7 @@ export class DualLLMService {
           }
         }
       }
-      console.log("� Stage 1A: SearchRag PRIMARY processor")
-      let ragResult = await this.executeSearchRagFallback(requestWithPrompt)
 
-      // DETAILED DEBUG: Analyze SearchRag results
       console.log(`🎯 FINAL DECISION: Using stage "${finalStage}"`)
 
       console.log("✅ Final Result:", JSON.stringify(finalResult, null, 2))
@@ -187,7 +184,7 @@ export class DualLLMService {
       return {
         output: formattedResponse,
         success: true,
-        functionCalls: ragResult.functionResults || [],
+        functionCalls: finalResult.functionResults || [],
         translatedQuery: this.lastTranslatedQuery,
         processedPrompt: this.lastProcessedPrompt,
         debugInfo: this.lastDebugInfo, // 🔧 NEW: Debug info
@@ -265,7 +262,7 @@ export class DualLLMService {
           request.messages || []
         ),
         tools: functionDefinitions,
-        tool_choice: "auto", // Changed to auto to allow non-function responses
+        tool_choice: "auto", // Let AI decide when to use functions
         temperature: agentConfig.temperature || 0.0,
         max_tokens: agentConfig.maxTokens || 1000,
       }
@@ -343,6 +340,13 @@ export class DualLLMService {
       }
     } catch (error) {
       console.error("❌ Cloud Functions Error:", error)
+      console.error("❌ Cloud Functions Error Details:", {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        stack: error.stack
+      })
       return {
         functionResults: [],
         success: false,
@@ -441,38 +445,6 @@ export class DualLLMService {
         error: error.message,
       }
     }
-  }
-
-  private buildCloudFunctionsSystemMessage(): string {
-    return `You are a Function Calling Agent for ShopMe WhatsApp Bot.
-
-MISSION: You MUST call functions for specific requests, otherwise decline politely.
-
-AVAILABLE FUNCTIONS:
-- GetOrdersListLink: Get link to customer orders page
-- GetShipmentTrackingLink: Get link to track order shipment
-- GetCustomerProfileLink: Get link to customer profile management
-- GetActiveOffers: Get current active offers and promotions
-- GetContactInfo: Get company contact information
-- getAllCategories: Get complete list of product categories
-- getAllProducts: Get complete product catalog with details
-- getServices: Get list of all available services
-
-CRITICAL RULES:
-1. For order-related requests → CALL GetOrdersListLink()
-   - If user specifies order code/number (e.g., "ordine TRACKING-TEST-001"), include orderCode parameter
-   - For general orders list, call without orderCode parameter
-2. For shipment tracking requests → CALL GetShipmentTrackingLink()
-   - REQUIRES orderCode parameter: "dove è il mio ordine", "dov'è ordine X", "tracking ordine Y"
-3. For active offers requests → CALL GetActiveOffers()
-4. For contact/support requests → CALL GetContactInfo()
-5. For "what do you sell" requests (cosa vendete) → CALL getAllCategories()
-6. For complete product catalog requests → CALL getAllProducts()
-7. For services → CALL getServices()
-8. For profile/address changes → CALL GetCustomerProfileLink()
-9. If request doesn't match any function → respond "NO_FUNCTION_NEEDED"
-
-PRIORITY: Cloud Functions take precedence. If uncertain, don't call functions.`
   }
 
   private async executeFormatter(
@@ -616,6 +588,8 @@ CONTEXT: You receive data from either Cloud Functions or SearchRag.
 - SearchRag: Semantic search results about products/services
 - No data: When no specific information is found, provide helpful guidance
 
+CRITICAL RULE: When the data comes from GetAllProducts function, you MUST show ALL products returned, organized by category. Do NOT summarize or abbreviate - show the complete list with prices and descriptions.
+
 IMPORTANT: When no data is found, don't just say "no data" - instead:
 ${config.instructions.noData.acknowledge}
 ${config.instructions.noData.offer}
@@ -748,7 +722,7 @@ Please create a natural, helpful response in ${languageName}.`
         function: {
           name: "GetOrdersListLink",
           description:
-            "Get a direct link to view customer orders. Use this for any order-related requests. Examples: 'dammi la lista degli ordini', 'voglio vedere i miei ordini', 'show me my orders', 'i miei ordini', 'lista ordini', 'storico ordini'. If user specifies an order code/number, include it in orderCode parameter.",
+            "Get a direct link to view customer orders. For specific order use orderCode parameter.",
           parameters: {
             type: "object",
             properties: {
@@ -767,7 +741,7 @@ Please create a natural, helpful response in ${languageName}.`
         function: {
           name: "GetShipmentTrackingLink",
           description:
-            'Get shipment tracking link for order delivery status. Examples: "dove è il mio ordine", "dov\'è il mio ordine", "tracking spedizione", "stato spedizione", "dove è la merce", "where is my order", "track my order", "delivery status". Use when user asks about order location, delivery status, or shipment tracking. If no orderCode provided, ask user to specify which order.',
+            'Get shipment tracking link for order delivery status.',
           parameters: {
             type: "object",
             properties: {
@@ -786,7 +760,7 @@ Please create a natural, helpful response in ${languageName}.`
         function: {
           name: "GetCustomerProfileLink",
           description:
-            'Get link to customer profile page for modifying personal information, address, or account details. Examples: "modificare profilo", "cambiare indirizzo", "vedere mail", "mia mail", "mio profilo", "dati personali", "change profile", "update address", "voglio cambiare indirizzo". Use when user wants to change/modify their profile, address, email, or personal data.',
+            'Get link to customer profile page for modifying personal information, address, or account details.',
           parameters: {
             type: "object",
             properties: {},
@@ -799,7 +773,7 @@ Please create a natural, helpful response in ${languageName}.`
         function: {
           name: "GetActiveOffers",
           description:
-            "Get current active offers and promotions. Examples: 'che offerte avete', 'sconti disponibili', 'promozioni', 'show me offers', 'any deals', 'discounts'.",
+            "Get current active offers and promotions.",
           parameters: {
             type: "object",
             properties: {},
@@ -812,7 +786,7 @@ Please create a natural, helpful response in ${languageName}.`
         function: {
           name: "GetContactInfo",
           description:
-            "Get contact information and support details. Examples: 'voglio parlare con un operatore', 'aiuto umano', 'assistenza umana', 'human operator', 'speak with someone'.",
+            "Get contact information and support details.",
           parameters: {
             type: "object",
             properties: {},
@@ -823,9 +797,9 @@ Please create a natural, helpful response in ${languageName}.`
       {
         type: "function",
         function: {
-          name: "getAllCategories",
+          name: "GetAllCategories",
           description:
-            'Get all product categories overview. Examples: "cosa vendete", "che categorie avete", "tipi di prodotti", "categorie disponibili", "what do you sell", "show me categories", "product categories". Use when user asks what you sell, what categories you have, or wants to see available product types.',
+            'Get all product categories overview.',
           parameters: {
             type: "object",
             properties: {},
@@ -836,9 +810,9 @@ Please create a natural, helpful response in ${languageName}.`
       {
         type: "function",
         function: {
-          name: "getAllProducts",
+          name: "GetAllProducts",
           description:
-            'Get complete detailed product catalog with all products, descriptions and prices. Examples: "dammi la lista dei prodotti", "che prodotti avete", "catalogo", "show me products", "catalogo completo", "tutti i prodotti", "lista prodotti dettagliata". Use when user wants full product details, complete catalog, or specific product information.',
+            "Get complete detailed product catalog with all products, descriptions and prices.",
           parameters: {
             type: "object",
             properties: {},
@@ -849,9 +823,9 @@ Please create a natural, helpful response in ${languageName}.`
       {
         type: "function",
         function: {
-          name: "getServices",
+          name: "GetServices",
           description:
-            'Get detailed list of all available services offered by the company. Examples: "che servizi offrite", "servizi disponibili", "quali servizi avete", "lista servizi", "what services do you offer", "servizi della ditta". Use when user asks about company services, service availability, or service details.',
+            'Get detailed list of all available services offered by the company.',
           parameters: {
             type: "object",
             properties: {},
@@ -918,21 +892,21 @@ Please create a natural, helpful response in ${languageName}.`
             })
             break
 
-          case "getAllCategories":
+          case "GetAllCategories":
             result = await this.callingFunctionsService.getAllCategories({
               customerId: request.customerid || "",
               workspaceId: request.workspaceId,
             })
             break
 
-          case "getAllProducts":
+          case "GetAllProducts":
             result = await this.callingFunctionsService.getAllProducts({
               customerId: request.customerid || "",
               workspaceId: request.workspaceId,
             })
             break
 
-          case "getServices":
+          case "GetServices":
             result = await this.callingFunctionsService.getServices({
               customerId: request.customerid || "",
               workspaceId: request.workspaceId,

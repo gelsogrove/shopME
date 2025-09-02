@@ -17,6 +17,7 @@ import { MessageCircle, Send, X, Code, Settings } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import { MessageRenderer } from "./MessageRenderer"
 
 // Define a global variable to store the current session ID
 // This will persist across modal closes/opens but not page refreshes
@@ -838,33 +839,10 @@ export function WhatsAppChatModal({
                           </div>
                         )}
 
-                        <span 
-                          className="break-words whitespace-pre-line text-sm block leading-relaxed overflow-wrap-anywhere hyphens-auto"
-                          style={{
-                            wordWrap: 'break-word',
-                            overflowWrap: 'anywhere',
-                            hyphens: 'auto',
-                            wordBreak: 'break-word',
-                            whiteSpace: 'pre-wrap',
-                            maxWidth: '100%'
-                          }}
-                        >
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              a: ({ node, ...props }) => (
-                                <a
-                                  {...props}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:underline"
-                                />
-                              ),
-                            }}
-                          >
-                            {message.content}
-                          </ReactMarkdown>
-                        </span>
+                        <MessageRenderer 
+                          content={message.content}
+                          variant="modal"
+                        />
 
                         {/* Debug Information */}
                         {(showFunctionCalls || showProcessedPrompt) && (
@@ -922,13 +900,6 @@ export function WhatsAppChatModal({
                                           <strong>Type:</strong> {call.data.sourceType || 'Unknown'}<br/>
                                           <strong>Similarity:</strong> {(call.data.similarity * 100).toFixed(1)}%<br/>
                                           <strong>Content:</strong> {call.data.content?.substring(0, 200)}...
-                                        </div>
-                                      )}
-                                      {call.toolCall?.function?.arguments && (
-                                        <div className="text-xs text-purple-600 font-mono">
-                                          <pre className="whitespace-pre-wrap">
-                                            {JSON.stringify(JSON.parse(call.toolCall.function.arguments), null, 2)}
-                                          </pre>
                                         </div>
                                       )}
                                       {call.result && call.type !== 'searchrag_result' && (

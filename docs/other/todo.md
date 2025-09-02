@@ -1,6 +1,5 @@
 - isActive
 - dovrebbe mandare una mail
-- la formattazione non mi piace
 - test di integrazione ?
 
 - carrello view
