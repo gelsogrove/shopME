@@ -64,6 +64,28 @@ function getWorkspaceId() {
   return null
 }
 
+// Helper function to convert language code to name
+function convertLanguageCodeToName(code: string): string {
+  const languageMap: { [key: string]: string } = {
+    'it': 'Italiano',
+    'en': 'English', 
+    'es': 'Español',
+    'pt': 'Português'
+  }
+  return languageMap[code] || code
+}
+
+// Helper function to convert language name to code
+function convertLanguageNameToCode(name: string): string {
+  const languageMap: { [key: string]: string } = {
+    'Italiano': 'it',
+    'English': 'en',
+    'Español': 'es', 
+    'Português': 'pt'
+  }
+  return languageMap[name] || name
+}
+
 export function ClientSheet({
   client,
   open,
@@ -122,7 +144,16 @@ export function ClientSheet({
       setEmail(fetchedClient.email || "")
       setCompany(fetchedClient.company || "")
       setPhone(fetchedClient.phone || "")
-      setLanguage(fetchedClient.language || "")
+      // Convert language code to name for display
+      const languageCode = fetchedClient.language || ""
+      const languageName = convertLanguageCodeToName(languageCode)
+      logger.info("🌐 Language conversion debug:", { 
+        clientName: fetchedClient.name,
+        languageCode, 
+        languageName,
+        availableLanguages
+      })
+      setLanguage(languageName)
       setDiscount(fetchedClient.discount?.toString() || "0")
       setNotes(fetchedClient.notes || "")
       // Always ensure addressData is a complete object with all fields as strings
@@ -275,7 +306,8 @@ export function ClientSheet({
       email,
       company,
       phone,
-      language,
+      // Convert language name back to code for storage
+      language: convertLanguageNameToCode(language),
       discount: parseFloat(discount),
       notes,
       address: JSON.stringify({ street, city, zip, country }),

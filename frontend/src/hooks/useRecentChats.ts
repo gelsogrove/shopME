@@ -32,13 +32,14 @@ export function useRecentChats() {
         })
 
         if (response.data.success) {
-          // Transform the backend data to match frontend expectations
+                    // Transform the backend data to match frontend expectations
           const transformedChats = response.data.data.map((chat: any) => ({
             id: chat.id,
             sessionId: chat.id, // Map id to sessionId for frontend compatibility
             customerId: chat.customerId,
             customerName: chat.customer?.name || "Unknown Customer",
             customerPhone: chat.customer?.phone || "",
+            customerLanguage: chat.context?.language || "en", // Use context.language direttamente
             companyName: chat.customer?.company || "",
             lastMessage: chat.lastMessage || "",
             lastMessageTime: chat.updatedAt || chat.createdAt,
@@ -48,6 +49,15 @@ export function useRecentChats() {
             activeChatbot: chat.customer?.activeChatbot ?? true, // Include activeChatbot for chat list icon
             isBlacklisted: chat.customer?.isBlacklisted ?? false, // Include blacklist status
           }))
+
+          // DEBUG: Log per vedere che lingue arrivano dal backend
+          transformedChats.forEach(chat => {
+            console.log(`🔍 DEBUG - Customer: ${chat.customerName}`)
+            console.log(`🔍 DEBUG - Raw chat object:`, chat)
+            console.log(`🔍 DEBUG - context?.language:`, chat.context?.language)
+            console.log(`🔍 DEBUG - customerLanguage:`, chat.customerLanguage)
+            console.log(`🔍 DEBUG - customer?.language:`, chat.customer?.language)
+          })
 
           return transformedChats
         }

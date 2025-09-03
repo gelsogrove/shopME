@@ -1932,6 +1932,16 @@ async function main() {
       answer:
         "⚡ *Express delivery options available!*\n\n🚀 *Express 24h delivery:*\n• Available in major Spanish cities\n• Order before 2 PM for next-day delivery\n• Additional cost: €9.95\n\n🏃‍♂️ *Same-day delivery:*\n• Available in Madrid and Barcelona city centers\n• Order before 11 AM\n• Additional cost: €15.95\n\n📞 *Need urgent delivery?* Contact us to check availability in your area!",
     },
+    {
+      question: "How do you maintain the cold chain for fresh products?",
+      answer:
+        "❄️ *Cold chain protection guaranteed!*\n\n🧊 *Our cold chain process:*\n• Products stored at controlled temperatures (0-4°C)\n• Insulated packaging with gel ice packs\n• Temperature monitoring during transport\n• Maximum 24h delivery time for fresh items\n\n📊 *Quality controls:*\n• Temperature sensors in our warehouse\n• Specialized refrigerated vehicles\n• Partner couriers trained for fresh deliveries\n\n⚠️ *Fresh products delivery:* Available Tuesday to Friday only to ensure optimal freshness!",
+    },
+    {
+      question: "Is my merchandise insured during shipping?",
+      answer:
+        "🛡️ *Full insurance coverage included!*\n\n✅ *What's covered:*\n• Loss during transport\n• Damage caused by courier mishandling\n• Theft during delivery\n• Weather-related damage\n\n💰 *Coverage details:*\n• Up to €500 per package (standard)\n• Higher value items: contact us for extended coverage\n• No additional cost - included in shipping\n\n📋 *How to claim:*\n• Report within 48h of delivery\n• Provide photos and order number\n• We handle everything with insurance company\n• Replacement or refund processed within 5-7 days",
+    },
   ]
 
   // Create new FAQs

@@ -118,6 +118,22 @@ const formatDate = (dateString: string | null | undefined): string => {
   }
 }
 
+// Helper function to get language flag emoji
+const getLanguageFlag = (language?: string): string => {
+  switch (language?.toLowerCase()) {
+    case 'it':
+      return '🇮🇹'
+    case 'en':
+      return '🇬🇧'
+    case 'es':
+      return '🇪🇸'
+    case 'pt':
+      return '🇵🇹'
+    default:
+      return '🌐' // Default globe icon for unknown languages
+  }
+}
+
 export function ChatPage() {
   logger.info("🟦 ChatPage component loaded - modifiche applicate!")
   const { workspace, loading: isWorkspaceLoading } = useWorkspace()
@@ -829,6 +845,9 @@ export function ChatPage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="font-medium text-sm flex items-center gap-1">
+                          <span className="text-lg" title={`Language: ${chat.customerLanguage || 'Unknown'}`}>
+                            {getLanguageFlag(chat.customerLanguage)}
+                          </span>
                           {chat.customerName}{" "}
                           {chat.companyName ? `(${chat.companyName})` : ""}
                           {/* Blocked user indicator */}
