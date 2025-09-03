@@ -1897,6 +1897,11 @@ async function main() {
       answer:
         "Each product includes storage instructions. Generally, dry products in a cool, dry place, refrigerated products in the fridge, and frozen products in the freezer.",
     },
+    {
+      question: "What should I do if I have urgent problems with the goods received?",
+      answer:
+        "🚨 I'm very sorry to hear that!\n\n*Here's what you need to do RIGHT AWAY:*\n\n📸 *Step 1:* Take clear photos of the damaged product\n\n📧 *Step 2:* Send email to info@laltrait.com with:\n• The photos of the damage\n• Your order number\n• Description of the problem\n\n⚡ *We'll contact you within 24h!*\n\nYou also have the right to return within 14 days 📦",
+    },
   ]
 
   // Create new FAQs
@@ -2187,7 +2192,6 @@ async function main() {
     const ordersData: any[] = [
       {
         status: "PENDING",
-        paymentStatus: "PENDING",
         paymentMethod: "CREDIT_CARD",
         totalAmount: 89.5,
         shippingAmount: 9.99,
@@ -2370,6 +2374,93 @@ async function main() {
           },
         ],
       },
+      // Ordini consegnati ma con pagamento in sospeso (usando paymentStatus)
+      {
+        status: "DELIVERED",
+        paymentStatus: "PENDING",
+        paymentMethod: "CASH_ON_DELIVERY",
+        totalAmount: 156.75,
+        shippingAmount: 12.99,
+        taxAmount: 27.67,
+        shippingAddress: {
+          street: "Calle Mayor 45",
+          city: "Madrid",
+          zipCode: "28013",
+          country: "Spain",
+          name: "Maria Garcia",
+          phone: "+34666777888",
+        },
+        billingAddress: {
+          street: "Calle Mayor 45",
+          city: "Madrid",
+          zipCode: "28013",
+          country: "Spain",
+          name: "Maria Garcia", 
+          phone: "+34666777888",
+        },
+        notes: "Delivered but payment still pending - cash on delivery",
+        discountCode: "MARIA10",
+        discountAmount: 15.68,
+        items: [
+          {
+            productId: availableProducts[0].id,
+            quantity: 3,
+            unitPrice: 29.99,
+            totalPrice: 89.97,
+            productVariant: "250ml",
+          },
+          {
+            productId: availableProducts[2].id,
+            quantity: 2,
+            unitPrice: 33.39,
+            totalPrice: 66.78,
+            productVariant: "Premium",
+          },
+        ],
+      },
+      {
+        status: "DELIVERED",
+        paymentStatus: "PENDING", 
+        paymentMethod: "BANK_TRANSFER",
+        totalAmount: 89.45,
+        shippingAmount: 9.99,
+        taxAmount: 15.82,
+        shippingAddress: {
+          street: "Via Roma 123",
+          city: "Milano",
+          zipCode: "20121",
+          country: "Italy",
+          name: "Mario Rossi",
+          phone: "+393451234567",
+        },
+        billingAddress: {
+          street: "Via Roma 123",
+          city: "Milano", 
+          zipCode: "20121",
+          country: "Italy",
+          name: "Mario Rossi",
+          phone: "+393451234567",
+        },
+        notes: "Delivered but bank transfer not received yet",
+        discountCode: null,
+        discountAmount: 0,
+        items: [
+          {
+            productId: availableProducts[1].id,
+            quantity: 2,
+            unitPrice: 19.53,
+            totalPrice: 39.06,
+            productVariant: "500g",
+          },
+          {
+            productId: availableProducts[3].id,
+            quantity: 1,
+            unitPrice: 37.45,
+            totalPrice: 37.45,
+            productVariant: "Limited Edition",
+          },
+        ],
+      },
     ]
 
     // Create orders with different created dates over 3 months
@@ -2472,7 +2563,9 @@ async function main() {
     const randomPayment =
       randomStatus === "CANCELLED"
         ? "REFUNDED"
-        : ["PENDING", "PAID"][Math.floor(Math.random() * 2)]
+        : randomStatus === "DELIVERED"
+        ? ["PENDING", "COMPLETED"][Math.floor(Math.random() * 2)]
+        : ["PENDING", "COMPLETED"][Math.floor(Math.random() * 2)]
     const randomAmount = 25 + Math.random() * 200 // Random amount between 25-225
 
     // Randomly assign to either customer

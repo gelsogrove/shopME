@@ -144,6 +144,7 @@ model Orders {
   orderCode       String          @unique
   status          OrderStatus     @default(PENDING)
   paymentMethod   PaymentMethod?
+  paymentStatus   PaymentStatus?  @default(PENDING)
   totalAmount     Float
   shippingAmount  Float?          @default(0)
   taxAmount       Float?          @default(0)
@@ -627,6 +628,14 @@ enum PaymentMethod {
   PAYPAL
   CASH_ON_DELIVERY
   CRYPTO
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  PARTIALLY_PAID
 }
 
 enum MessageDirection {

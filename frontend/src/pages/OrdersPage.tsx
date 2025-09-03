@@ -7,43 +7,43 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { logger } from "@/lib/logger"
 import { clientsApi } from "@/services/clientsApi"
 import {
-    ordersApi,
-    type ItemType,
-    type Order,
-    type OrderStatus,
-    type PaymentMethod,
+  ordersApi,
+  type ItemType,
+  type Order,
+  type OrderStatus,
+  type PaymentMethod,
 } from "@/services/ordersApi"
 import { productsApi } from "@/services/productsApi"
 import { servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
 import { formatPrice } from "@/utils/format"
 import {
-    Eye,
-    FileText,
-    Package,
-    Pencil,
-    Plus,
-    ShoppingCart,
-    Trash2,
-    Truck,
-    Wrench,
+  Eye,
+  FileText,
+  Package,
+  Pencil,
+  Plus,
+  ShoppingCart,
+  Trash2,
+  Truck,
+  Wrench,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
@@ -382,6 +382,7 @@ function CartItemEditSheet({
                         <SelectItem value="PROCESSING">Processing</SelectItem>
                         <SelectItem value="SHIPPED">Shipped</SelectItem>
                         <SelectItem value="DELIVERED">Delivered</SelectItem>
+
                         <SelectItem value="CANCELLED">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
@@ -714,8 +715,6 @@ function CartItemEditSheet({
   )
 }
 
-
-
 // Order CRUD Sheet Component
 function OrderCrudSheet({
   order,
@@ -969,7 +968,7 @@ function OrderCrudSheet({
     setIsLoading(true)
     try {
       let savedOrder
-      
+
       // Prepare order data - exclude orderCode for create mode
       const baseOrderData = {
         customerId: formData.customerId,
@@ -993,9 +992,10 @@ function OrderCrudSheet({
       }
 
       // Add orderCode only for edit mode
-      const orderData = mode === "edit" 
-        ? { ...baseOrderData, orderCode: formData.orderCode }
-        : baseOrderData
+      const orderData =
+        mode === "edit"
+          ? { ...baseOrderData, orderCode: formData.orderCode }
+          : baseOrderData
 
       if (mode === "create") {
         savedOrder = await ordersApi.create(workspace.id, orderData)
@@ -1587,8 +1587,8 @@ function OrderCrudSheet({
               {isLoading
                 ? "Saving..."
                 : mode === "create"
-                  ? "Create Order"
-                  : "Save Changes"}
+                ? "Create Order"
+                : "Save Changes"}
             </Button>
           </div>
         </form>
@@ -1742,8 +1742,6 @@ export default function OrdersPage() {
     setSelectedOrder(order)
     setIsEditOpen(true)
   }
-
-
 
   const handleCartEdit = (order: Order) => {
     setSelectedOrder(order)
@@ -2027,8 +2025,10 @@ export default function OrdersPage() {
     })
 
     // Show success message based on whether it's create or edit
-    const isNewOrder = !orders.find(o => o.id === savedOrder.id)
-    toast.success(isNewOrder ? "Order created successfully" : "Order updated successfully")
+    const isNewOrder = !orders.find((o) => o.id === savedOrder.id)
+    toast.success(
+      isNewOrder ? "Order created successfully" : "Order updated successfully"
+    )
 
     // Close the sheets
     setIsEditOpen(false)
@@ -2114,6 +2114,7 @@ export default function OrdersPage() {
                 <SelectItem value="PROCESSING">Processing</SelectItem>
                 <SelectItem value="SHIPPED">Shipped</SelectItem>
                 <SelectItem value="DELIVERED">Delivered</SelectItem>
+
                 <SelectItem value="CANCELLED">Cancelled</SelectItem>
               </SelectContent>
             </Select>

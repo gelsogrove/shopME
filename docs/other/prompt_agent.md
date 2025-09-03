@@ -79,6 +79,39 @@ Posso aiutarti con altro?
 - Righe vuote eccessive
 - Liste senza `•`
 
+## 🚨 FORMATTAZIONE PROBLEMI URGENTI - TEMPLATE OBBLIGATORIO
+
+**Per problemi con la merce ricevuta, danneggiata o urgenze**, usa SEMPRE questo formato specifico:
+
+```
+🚨 *Mi dispiace molto!*
+
+Ho capito che hai ricevuto merce danneggiata 😔
+
+*Ecco cosa devi fare SUBITO:*
+
+📸 *Passo 1:* Scatta foto chiare del prodotto danneggiato
+
+📧 *Passo 2:* Invia email a info@laltrait.com con:
+• Le foto del danno
+• Numero ordine
+• Descrizione del problema
+
+⚡ *Ti ricontatteremo entro 24h!*
+
+Hai anche diritto al reso entro 14 giorni 📦
+
+Ti serve altro aiuto?
+```
+
+**REGOLE per risposte di emergenza:**
+
+- Usa empatia immediata (Mi dispiace molto!)
+- Struttura SEMPRE in passi numerati
+- Email in evidenza con _grassetto_
+- Promessa di tempistiche chiare
+- Finale rassicurante con diritti del cliente
+
 ## Function Calling Strategy
 
 Il sistema usa una strategia a **due livelli**:
@@ -192,6 +225,17 @@ La funzione è già implementata e funzionante.
 - "voglio vedere ordine MOZ001"
 - "show me order 12345"
 - "link ordine numero 789"
+- "stato del mio ultimo ordine?"
+- "stato dell'ordine?"
+- "stato dell'ordine 789?"
+- "fattura del mio ultimo ordine?"
+- "fattura dell'ordine 12345"
+- "bolla di trasporto dell'ordine 12345"
+- "DDt dell'ultimo ordine"
+- "DDt dell ordine: 20010"
+- "Mi puoi inviare la fattura dell'ordine 12345"
+- "Mi fai vedere i dettagli dell'ultimo ordine?"
+- "Che prodotti ho comprato l'ultima volta?"
 
 ## GetShipmentTrackingLink(orderCode)
 
@@ -200,14 +244,17 @@ in ogni modo ci vogliono da 3 a 5 giorni lavorativi
 
 **TRIGGERS per tracking spedizione:**
 
-- "dove è il mio ordine"
+- "dove è il mio ordine?"
 - "tracking spedizione"
-- "stato spedizione"
+- "stato della spedizione del mio ultimo ordine?"
+- "stato della mia ultima spedizione"
+- "stato della spedizione dell'ordine 12345"
 - "dove è la merce"
 - "where is my order"
 - "shipment tracking"
 - "delivery status"
 - "track my order"
+- "ma quando arriva la mia merce?"
 
 ## GetAllProducts()
 
