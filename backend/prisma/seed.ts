@@ -1005,7 +1005,7 @@ async function main() {
   }
 
   // Crea le lingue disponibili solo se non esistono già
-  const languageCodes = ["it", "en", "es", "fr"]
+  const languageCodes = ["it", "en", "es", "pt"]
   const existingLanguages = await prisma.languages.findMany({
     where: {
       code: { in: languageCodes },
@@ -1028,7 +1028,7 @@ async function main() {
       it: "Italiano",
       en: "English",
       es: "Español",
-      fr: "Français",
+      pt: "Português",
     }
     return names[code] || code
   }
@@ -1902,6 +1902,36 @@ async function main() {
       answer:
         "🚨 I'm very sorry to hear that!\n\n*Here's what you need to do RIGHT AWAY:*\n\n📸 *Step 1:* Take clear photos of the damaged product\n\n📧 *Step 2:* Send email to info@laltrait.com with:\n• The photos of the damage\n• Your order number\n• Description of the problem\n\n⚡ *We'll contact you within 24h!*\n\nYou also have the right to return within 14 days 📦",
     },
+    {
+      question: "What happens if I'm not home when the courier delivers?",
+      answer:
+        "📦 *No problem!* Here are the delivery options:\n\n🏠 *If you're not home:*\n• The courier will leave a notice with pickup instructions\n• You can schedule redelivery for a convenient time\n• Products can be picked up at the nearest collection point\n\n📱 *Pro tip:* Most couriers send SMS with tracking link so you can follow your delivery in real-time!",
+    },
+    {
+      question: "Can I change the delivery address after placing the order?",
+      answer:
+        "⚡ *Address changes are possible but time-sensitive!*\n\n✅ *Before shipment:* Contact us immediately at info@laltrait.com\n❌ *After shipment:* Address cannot be changed, but you can:\n• Redirect to a pickup point\n• Schedule redelivery to new address (additional fees may apply)\n\n🕒 *Best practice:* Double-check your address before confirming the order!",
+    },
+    {
+      question: "What are the shipping costs and are there free shipping options?",
+      answer:
+        "💰 *Shipping costs depend on your location and order size:*\n\n🇪🇸 *Mainland Spain:*\n• Orders over €50: FREE shipping 🎉\n• Orders under €50: €4.95\n\n🏝️ *Islands (Balearic/Canary):*\n• Special rates apply (€8.95-€15.95)\n• Free shipping threshold: €75\n\n📦 *Express delivery:* Available for €9.95 (24h delivery)",
+    },
+    {
+      question: "Can I track my order during shipping?",
+      answer:
+        "📱 *Absolutely! Full tracking available:*\n\n🔍 *How to track:*\n• You'll receive tracking number via WhatsApp/email\n• Click the link to see real-time updates\n• Get notifications for each delivery step\n\n📍 *What you can see:*\n• Order prepared\n• In transit\n• Out for delivery\n• Delivered ✅\n\n💡 *Having issues with tracking?* Just send me your order number!",
+    },
+    {
+      question: "What should I do if my package is damaged during transport?",
+      answer:
+        "📦 *Package damaged? Don't worry, we've got you covered!*\n\n🚨 *IMMEDIATE ACTIONS:*\n• ❌ DON'T accept damaged packages from courier\n• 📸 Take photos of external damage\n• 📝 Note damage on delivery receipt\n\n✅ *If you already accepted it:*\n• Take photos of damage immediately\n• Keep all packaging materials\n• Contact us within 24h at info@laltrait.com\n\n🔄 *We'll arrange replacement or full refund immediately!*",
+    },
+    {
+      question: "Is there express or same-day delivery available?",
+      answer:
+        "⚡ *Express delivery options available!*\n\n🚀 *Express 24h delivery:*\n• Available in major Spanish cities\n• Order before 2 PM for next-day delivery\n• Additional cost: €9.95\n\n🏃‍♂️ *Same-day delivery:*\n• Available in Madrid and Barcelona city centers\n• Order before 11 AM\n• Additional cost: €15.95\n\n📞 *Need urgent delivery?* Contact us to check availability in your area!",
+    },
   ]
 
   // Create new FAQs
@@ -1919,8 +1949,8 @@ async function main() {
     }
   }
 
-  // Create test customers with active chats and welcome messages
-  console.log("Creating test customers with active chats...")
+  // Create test customers with active chats and welcome messages (4 customers - one per language)
+  console.log("Creating 4 test customers - one per language (it, en, es, pt)...")
 
   // Delete existing test customers if they exist
   await prisma.customers.deleteMany({
@@ -1928,24 +1958,25 @@ async function main() {
       workspaceId: mainWorkspaceId,
       email: {
         in: [
-          "test.customer@shopme.com",
+          "mario.rossi@shopme.com",
+          "john.smith@shopme.com", 
           "maria.garcia@shopme.com",
-          "test-customer-123@shopme.com",
+          "joao.silva@shopme.com",
         ],
       },
     },
   })
   console.log("Deleted existing test customers")
 
-  // Create first test customer - Mario Rossi
+  // Create Italian customer - Mario Rossi
   const testCustomer = await prisma.customers.create({
     data: {
       name: "Mario Rossi",
-      email: "test.customer@shopme.com",
+      email: "mario.rossi@shopme.com",
       phone: "+39123456789",
-      address: "123 Roma Street, Milan, Italy",
-      company: "Test Company Ltd.",
-      language: "en",
+      address: "Via Roma 123, Milano, Italy",
+      company: "Rossi Ltd.",
+      language: "it",
       currency: "EUR",
       workspaceId: mainWorkspaceId,
       activeChatbot: true,
@@ -1955,31 +1986,29 @@ async function main() {
       invoiceAddress: {
         firstName: "Mario",
         lastName: "Rossi",
-        company: "Test Company Ltd.",
-        address: "42 Giuseppe Verdi Street",
-        city: "Milan",
+        company: "Rossi Ltd.",
+        address: "Via Roma 123",
+        city: "Milano",
         postalCode: "20121",
         country: "Italy",
         vatNumber: "IT12345678901",
         phone: "+39 02 8765432",
-        email: "billing@testcompany.com",
+        email: "billing@rossi.com",
       },
     },
   })
   console.log(
-    `Test customer 1 created: ${testCustomer.name} (${testCustomer.email})`
+    `✅ Italian customer created: ${testCustomer.name} (${testCustomer.email})`
   )
-  console.log(`➡️ testCustomer.id: ${testCustomer.id}`)
-  console.log(`➡️ workspaceId: ${mainWorkspaceId}`)
 
-  // Create second test customer - Maria Garcia (with 10% discount)
+  // Create English customer - John Smith (with 10% discount)
   const testCustomer2 = await prisma.customers.create({
     data: {
-      name: "Maria Garcia",
-      email: "maria.garcia@shopme.com",
-      phone: "+34666777888",
-      address: "45 Balmes Street, Barcelona, Spain",
-      company: "Barcelona Foods Ltd.",
+      name: "John Smith",
+      email: "john.smith@shopme.com",
+      phone: "+44123456789",
+      address: "123 Oxford Street, London, UK",
+      company: "Smith & Co Ltd.",
       language: "en",
       currency: "EUR",
       workspaceId: mainWorkspaceId,
@@ -1987,32 +2016,35 @@ async function main() {
       privacy_accepted_at: new Date(),
       push_notifications_consent: true,
       push_notifications_consent_at: new Date(),
-      discount: 10, // 10% discount for Maria Garcia
+      discount: 10, // 10% discount for John Smith
       invoiceAddress: {
-        firstName: "Maria",
-        lastName: "Garcia",
-        company: "Barcelona Foods Ltd.",
-        address: "158 Comte Urgell Street",
-        city: "Barcelona",
-        postalCode: "08036",
-        country: "Spain",
-        vatNumber: "ES87654321009",
-        phone: "+34 93 454 7890",
-        email: "billing@barcelonafoods.com",
+        firstName: "John",
+        lastName: "Smith",
+        company: "Smith & Co Ltd.",
+        address: "123 Oxford Street",
+        city: "London",
+        postalCode: "W1C 1LA",
+        country: "United Kingdom",
+        vatNumber: "GB123456789",
+        phone: "+44 20 7946 0958",
+        email: "billing@smithco.com",
       },
     },
   })
+  console.log(
+    `✅ English customer created: ${testCustomer2.name} (${testCustomer2.email})`
+  )
 
-  // Create test customer for MCP testing - test-customer-123
+  // Create Spanish customer - Maria Garcia
   const testCustomerMCP = await prisma.customers.create({
     data: {
       id: "test-customer-123", // Fixed ID for MCP testing
-      name: "Test Customer MCP",
-      email: "test-customer-123@shopme.com",
-      phone: "+393451234567",
-      address: "Test Address for MCP",
-      company: "MCP Test Company",
-      language: "it",
+      name: "Maria Garcia",
+      email: "maria.garcia@shopme.com",
+      phone: "+34666777888",
+      address: "Calle Balmes 45, Barcelona, Spain",
+      company: "Garcia Foods SL",
+      language: "es",
       currency: "EUR",
       workspaceId: mainWorkspaceId,
       activeChatbot: true,
@@ -2020,43 +2052,73 @@ async function main() {
       push_notifications_consent: true,
       push_notifications_consent_at: new Date(),
       invoiceAddress: {
-        firstName: "Test",
-        lastName: "Customer",
-        company: "MCP Test Company",
-        address: "Test Address",
-        city: "Test City",
-        postalCode: "12345",
-        country: "Italy",
-        vatNumber: "IT12345678901",
-        phone: "+393451234567",
-        email: "test-customer-123@shopme.com",
+        firstName: "Maria",
+        lastName: "Garcia",
+        company: "Garcia Foods SL",
+        address: "Calle Balmes 45",
+        city: "Barcelona",
+        postalCode: "08036",
+        country: "Spain",
+        vatNumber: "ES87654321009",
+        phone: "+34 93 454 7890",
+        email: "billing@garciafoods.com",
       },
     },
   })
   console.log(
-    `Test customer MCP created: ${testCustomerMCP.name} (ID: ${testCustomerMCP.id})`
-  )
-  console.log(
-    `Test customer 2 created: ${testCustomer2.name} (${testCustomer2.email})`
+    `✅ Spanish customer created: ${testCustomerMCP.name} (${testCustomerMCP.email})`
   )
 
-  // Create active chat sessions for both customers
-  // Chat session for Mario Rossi
+  // Create Portuguese customer - João Silva
+  const testCustomer4 = await prisma.customers.create({
+    data: {
+      name: "João Silva",
+      email: "joao.silva@shopme.com",
+      phone: "+351123456789",
+      address: "Rua Augusta 100, Lisboa, Portugal",
+      company: "Silva Importações Lda",
+      language: "pt",
+      currency: "EUR",
+      workspaceId: mainWorkspaceId,
+      activeChatbot: true,
+      privacy_accepted_at: new Date(),
+      push_notifications_consent: true,
+      push_notifications_consent_at: new Date(),
+      invoiceAddress: {
+        firstName: "João",
+        lastName: "Silva",
+        company: "Silva Importações Lda",
+        address: "Rua Augusta 100",
+        city: "Lisboa",
+        postalCode: "1100-048",
+        country: "Portugal",
+        vatNumber: "PT123456789",
+        phone: "+351 21 123 4567",
+        email: "billing@silvaimport.com",
+      },
+    },
+  })
+  console.log(
+    `✅ Portuguese customer created: ${testCustomer4.name} (${testCustomer4.email})`
+  )
+
+  // Create active chat sessions for all 4 customers
+  // Chat session for Mario Rossi (Italian)
   const chatSession = await prisma.chatSession.create({
     data: {
       customerId: testCustomer.id,
       workspaceId: mainWorkspaceId,
       status: "active",
       context: {
-        language: "en",
+        language: "it",
         userRegistered: true,
         lastActivity: new Date().toISOString(),
       },
     },
   })
-  console.log(`Chat session created for customer: ${chatSession.id}`)
+  console.log(`Chat session created for Mario (IT): ${chatSession.id}`)
 
-  // Chat session for Maria Garcia
+  // Chat session for John Smith (English)
   const chatSession2 = await prisma.chatSession.create({
     data: {
       customerId: testCustomer2.id,
@@ -2069,7 +2131,37 @@ async function main() {
       },
     },
   })
-  console.log(`Chat session created for customer 2: ${chatSession2.id}`)
+  console.log(`Chat session created for John (EN): ${chatSession2.id}`)
+
+  // Chat session for Maria Garcia (Spanish)
+  const chatSession3 = await prisma.chatSession.create({
+    data: {
+      customerId: testCustomerMCP.id,
+      workspaceId: mainWorkspaceId,
+      status: "active",
+      context: {
+        language: "es",
+        userRegistered: true,
+        lastActivity: new Date().toISOString(),
+      },
+    },
+  })
+  console.log(`Chat session created for Maria (ES): ${chatSession3.id}`)
+
+  // Chat session for João Silva (Portuguese)
+  const chatSession4 = await prisma.chatSession.create({
+    data: {
+      customerId: testCustomer4.id,
+      workspaceId: mainWorkspaceId,
+      status: "active",
+      context: {
+        language: "pt",
+        userRegistered: true,
+        lastActivity: new Date().toISOString(),
+      },
+    },
+  })
+  console.log(`Chat session created for João (PT): ${chatSession4.id}`)
 
   // Get the active prompt for creating messages
   const activePrompt = await prisma.prompts.findFirst({
@@ -2080,11 +2172,19 @@ async function main() {
     },
   })
 
+  // Welcome messages in different languages with flags
+  const welcomeMessages = {
+    it: "🇮🇹 Ciao Mario! 👋 Benvenuto in L'Altra Italia! Sono il tuo assistente virtuale e sono qui per aiutarti con informazioni sui nostri prodotti e servizi. Come posso aiutarti oggi? 😊",
+    en: "🇬🇧 Hello John! 👋 Welcome to L'Altra Italia! I'm your virtual assistant and I'm here to help you with any information about our products and services. How can I assist you today? 😊",
+    es: "🇪🇸 ¡Hola Maria! 👋 ¡Bienvenida a L'Altra Italia! Soy tu asistente virtual y estoy aquí para ayudarte con información sobre nuestros productos y servicios. ¿Cómo puedo ayudarte hoy? 😊",
+    pt: "🇵🇹 Olá João! 👋 Bem-vindo à L'Altra Italia! Sou o seu assistente virtual e estou aqui para ajudá-lo com informações sobre os nossos produtos e serviços. Como posso ajudá-lo hoje? 😊"
+  }
+
   // Create initial messages for Mario Rossi (Italian)
-  const messages = [
+  const messagesIT = [
     {
       direction: "INBOUND" as const,
-      content: "hello",
+      content: "ciao",
       type: "TEXT" as const,
       status: "received",
       aiGenerated: false,
@@ -2095,35 +2195,32 @@ async function main() {
     },
     {
       direction: "OUTBOUND" as const,
-      content:
-        "Hello Mario! 👋 Welcome to L'Altra Italia! I'm your virtual assistant and I'm here to help you with any information about our products and services. How can I assist you today? 😊",
+      content: welcomeMessages.it,
       type: "TEXT" as const,
       status: "sent",
       aiGenerated: true,
       metadata: {
         timestamp: new Date().toISOString(),
         messageType: "welcome",
-        language: "en",
+        language: "it",
         agentSelected: "CHATBOT",
       },
     },
   ]
 
-  for (const messageData of messages) {
-    const message = await prisma.message.create({
+  for (const messageData of messagesIT) {
+    await prisma.message.create({
       data: {
         ...messageData,
         chatSessionId: chatSession.id,
         promptId: activePrompt?.id || null,
       },
     })
-    console.log(
-      `Message created for Mario: ${messageData.direction} - "${messageData.content.substring(0, 50)}..."`
-    )
   }
+  console.log("Messages created for Mario (IT)")
 
-  // Create initial messages for Maria Garcia (Spanish)
-  const messages2 = [
+  // Create initial messages for John Smith (English)
+  const messagesEN = [
     {
       direction: "INBOUND" as const,
       content: "hello",
@@ -2137,8 +2234,7 @@ async function main() {
     },
     {
       direction: "OUTBOUND" as const,
-      content:
-        "Hello Maria! 👋 Welcome to L'Altra Italia! I'm your virtual assistant and I'm here to help you with any information about our products and services. How can I assist you today? 😊",
+      content: welcomeMessages.en,
       type: "TEXT" as const,
       status: "sent",
       aiGenerated: true,
@@ -2151,18 +2247,94 @@ async function main() {
     },
   ]
 
-  for (const messageData of messages2) {
-    const message = await prisma.message.create({
+  for (const messageData of messagesEN) {
+    await prisma.message.create({
       data: {
         ...messageData,
         chatSessionId: chatSession2.id,
         promptId: activePrompt?.id || null,
       },
     })
-    console.log(
-      `Message created for Maria: ${messageData.direction} - "${messageData.content.substring(0, 50)}..."`
-    )
   }
+  console.log("Messages created for John (EN)")
+
+  // Create initial messages for Maria Garcia (Spanish)
+  const messagesES = [
+    {
+      direction: "INBOUND" as const,
+      content: "hola",
+      type: "TEXT" as const,
+      status: "received",
+      aiGenerated: false,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        source: "whatsapp",
+      },
+    },
+    {
+      direction: "OUTBOUND" as const,
+      content: welcomeMessages.es,
+      type: "TEXT" as const,
+      status: "sent",
+      aiGenerated: true,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        messageType: "welcome",
+        language: "es",
+        agentSelected: "CHATBOT",
+      },
+    },
+  ]
+
+  for (const messageData of messagesES) {
+    await prisma.message.create({
+      data: {
+        ...messageData,
+        chatSessionId: chatSession3.id,
+        promptId: activePrompt?.id || null,
+      },
+    })
+  }
+  console.log("Messages created for Maria (ES)")
+
+  // Create initial messages for João Silva (Portuguese)
+  const messagesPT = [
+    {
+      direction: "INBOUND" as const,
+      content: "olá",
+      type: "TEXT" as const,
+      status: "received",
+      aiGenerated: false,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        source: "whatsapp",
+      },
+    },
+    {
+      direction: "OUTBOUND" as const,
+      content: welcomeMessages.pt,
+      type: "TEXT" as const,
+      status: "sent",
+      aiGenerated: true,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        messageType: "welcome",
+        language: "pt",
+        agentSelected: "CHATBOT",
+      },
+    },
+  ]
+
+  for (const messageData of messagesPT) {
+    await prisma.message.create({
+      data: {
+        ...messageData,
+        chatSessionId: chatSession4.id,
+        promptId: activePrompt?.id || null,
+      },
+    })
+  }
+  console.log("Messages created for João (PT)")
 
   console.log(
     "✅ Test customers with active chats and welcome messages created successfully!"
@@ -2473,9 +2645,11 @@ async function main() {
         orderDate.getDate() - (i * 20 + Math.floor(Math.random() * 10))
       )
 
-      // Distribute orders between customers: odd for Mario, even for Maria
-      const customerId = i % 2 === 0 ? testCustomer.id : testCustomer2.id
-      const customerName = i % 2 === 0 ? "Mario Rossi" : "Maria Garcia"
+      // Distribute orders between only 3 customers (excluding Portuguese customer João Silva)
+      const customers = [testCustomer, testCustomer2, testCustomerMCP]
+      const customerId = customers[i % 3].id
+      const customerNames = ["Mario Rossi", "John Smith", "Maria Garcia"]
+      const customerName = customerNames[i % 3]
 
       try {
         // Define shipping addresses for each customer
@@ -2491,6 +2665,16 @@ async function main() {
             phone: "+39 02 1234567",
           },
           [testCustomer2.id]: {
+            // John Smith (English customer)
+            name: "John Smith",
+            street: "123 Oxford Street",
+            city: "London",
+            postalCode: "W1C 1LA",
+            province: "London",
+            country: "United Kingdom",
+            phone: "+44 20 7946 0958",
+          },
+          [testCustomerMCP.id]: {
             // Maria Garcia (Spanish customer)
             name: "Maria Garcia",
             street: "Carrer de Balmes 456",
@@ -2499,6 +2683,16 @@ async function main() {
             province: "Barcelona",
             country: "España",
             phone: "+34 93 987 6543",
+          },
+          [testCustomer4.id]: {
+            // João Silva (Portuguese customer)
+            name: "João Silva",
+            street: "Rua Augusta 100",
+            city: "Lisboa",
+            postalCode: "1100-048",
+            province: "Lisboa",
+            country: "Portugal",
+            phone: "+351 21 123 4567",
           },
         }
 
@@ -2568,9 +2762,9 @@ async function main() {
         : ["PENDING", "COMPLETED"][Math.floor(Math.random() * 2)]
     const randomAmount = 25 + Math.random() * 200 // Random amount between 25-225
 
-    // Randomly assign to either customer
-    const randomCustomerId =
-      Math.random() < 0.5 ? testCustomer.id : testCustomer2.id
+    // Randomly assign to one of the 3 customers (excluding Portuguese customer João Silva)
+    const allCustomers = [testCustomer, testCustomer2, testCustomerMCP]
+    const randomCustomerId = allCustomers[Math.floor(Math.random() * 3)].id
 
     try {
       // Define shipping addresses for each customer (for additional orders)
@@ -2586,6 +2780,16 @@ async function main() {
           phone: "+39 02 1234567",
         },
         [testCustomer2.id]: {
+          // John Smith (English customer)
+          name: "John Smith",
+          street: "123 Oxford Street",
+          city: "London",
+          postalCode: "W1C 1LA",
+          province: "London",
+          country: "United Kingdom",
+          phone: "+44 20 7946 0958",
+        },
+        [testCustomerMCP.id]: {
           // Maria Garcia (Spanish customer)
           name: "Maria Garcia",
           street: "Carrer de Balmes 456",
@@ -2594,6 +2798,16 @@ async function main() {
           province: "Barcelona",
           country: "España",
           phone: "+34 93 987 6543",
+        },
+        [testCustomer4.id]: {
+          // João Silva (Portuguese customer)
+          name: "João Silva",
+          street: "Rua Augusta 100",
+          city: "Lisboa",
+          postalCode: "1100-048",
+          province: "Lisboa",
+          country: "Portugal",
+          phone: "+351 21 123 4567",
         },
       }
 
@@ -2809,7 +3023,7 @@ async function main() {
   console.log(`- Services creati/aggiornati: ${services.length}`)
   console.log(`- FAQs create: ${faqsData.length}`)
   console.log(
-    `- Test customer with active chat created: Mario Rossi (+39123456789)`
+    `- 4 test customers with active chats created: Mario Rossi (🇮🇹), John Smith (🇬🇧), Maria Garcia (🇪🇸), João Silva (🇵🇹)`
   )
   console.log(`- Embeddings ready for manual generation via API`)
 }
