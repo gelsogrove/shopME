@@ -4,6 +4,8 @@ import { embeddingService } from '../services/embeddingService';
 import { PriceCalculationService } from '../application/services/price-calculation.service';
 import { prisma } from '../lib/prisma';
 import logger from '../utils/logger';
+// Import public orders routes
+import publicOrdersRoutes from './public-orders.routes';
 
 const router = Router();
 
@@ -215,5 +217,8 @@ router.post('/get-active-offers', async (req: Request, res: Response) => {
     });
   }
 });
+
+// Mount public orders routes
+router.use('/', publicOrdersRoutes);
 
 export default router;

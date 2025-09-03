@@ -109,24 +109,22 @@ class ChatSimulator {
 
         this.log(`👤 ${this.currentCustomer.name}: ${message}`, 'yellow');
 
+        // Use test format for WhatsApp webhook endpoint
         const payload = {
-            phoneNumber: this.currentCustomer.phone,
-            message: message,
+            chatInput: message,
             workspaceId: CONFIG.workspaceId,
-            customerId: this.currentCustomer.id,
-            timestamp: new Date().toISOString()
+            customerid: this.currentCustomer.id
         };
 
         this.log('🔄 Invio messaggio al bot...', 'cyan');
 
         try {
             const response = await axios.post(
-                `${CONFIG.backendUrl}/api/internal/n8n/webhook`,
+                `${CONFIG.backendUrl}/api/whatsapp/webhook`,
                 payload,
                 {
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Basic ${Buffer.from('admin:admin').toString('base64')}`
+                        'Content-Type': 'application/json'
                     },
                     timeout: 10000
                 }
