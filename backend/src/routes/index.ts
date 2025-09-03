@@ -49,6 +49,8 @@ import createPromptsRouter from "./prompts.routes"
 import documentRoutes from "./documentRoutes"
 // Import analytics routes
 import analyticsRoutes from "./analytics.routes"
+// Import internal API routes
+import internalApiRoutes from "./internal-api.routes"
 
 // Simple logging middleware
 const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -291,6 +293,41 @@ router.post("/whatsapp/webhook", async (req, res) => {
         console.error('❌ Error processing customer data:', error);
       }
       
+      // 🔥 RETRIEVE CHAT HISTORY FOR CONTEXT
+      let chatHistory: any[] = [];
+      try {
+        // Find or create chat session
+        const chatSession = await prisma.chatSession.findFirst({
+          where: {
+            customerId: customerId,
+            workspaceId: workspaceId
+          },
+          include: {
+            messages: {
+              orderBy: {
+                createdAt: 'asc'
+              },
+              take: 10 // Last 10 messages for context
+            }
+          }
+        });
+
+        if (chatSession && chatSession.messages.length > 0) {
+          // Convert messages to OpenAI format
+          chatHistory = chatSession.messages.map(msg => ({
+            role: msg.direction === 'INBOUND' ? 'user' : 'assistant',
+            content: msg.content
+          }));
+          console.log(`🗨️ WEBHOOK: Retrieved ${chatHistory.length} messages from chat history`);
+        } else {
+          console.log('🗨️ WEBHOOK: No chat history found, starting fresh conversation');
+        }
+        
+      } catch (historyError) {
+        console.error('❌ Error retrieving chat history:', historyError);
+        // Continue without history if error occurs
+      }
+      
       llmRequest = {
         chatInput: messageContent,
         workspaceId: workspaceId,
@@ -301,7 +338,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
         temperature: 0.0,
         maxTokens: 3500,
         model: "gpt-4o",
-        messages: data.messages || [],
+        messages: chatHistory, // 🔥 NOW INCLUDES REAL CHAT HISTORY
         prompt: agentPrompt
       };
       
@@ -379,6 +416,10 @@ router.get("/whatsapp/webhook", async (req, res) => {
 });
 
 logger.info("Registered WhatsApp webhook routes FIRST (public, no authentication)")
+
+// Mount internal API routes (for N8N calling functions) - NO AUTHENTICATION REQUIRED
+router.use("/internal", internalApiRoutes)
+logger.info("Registered internal API routes for N8N integration (public)")
 
 // Debug middleware removed - TypeScript errors fixed
 
@@ -498,10 +539,6 @@ logger.info("Registered orders router with workspace routes")
 import ordersPublicRoutes from "../interfaces/http/routes/orders.routes"
 router.use("/orders", ordersPublicRoutes)
 logger.info("Registered public orders routes with JWT authentication")
-
-
-
-
 
 // Mount document routes with debug middleware
 router.use(

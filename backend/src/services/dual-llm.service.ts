@@ -367,24 +367,20 @@ export class DualLLMService {
       )
       this.lastTranslatedQuery = translatedQuery // Store for debug
 
-      // Use SearchRag for semantic search - try multiple sources
-      const [productResults, serviceResults, faqResults] = await Promise.all([
-        this.embeddingService.searchProducts(
-          translatedQuery,
-          request.workspaceId,
-          2
-        ),
-        this.embeddingService.searchServices(
-          translatedQuery,
-          request.workspaceId,
-          2
-        ),
-        this.embeddingService.searchFAQs(
-          translatedQuery,
-          request.workspaceId,
-          2
-        ),
-      ])
+      // Use internal RAG API that includes pricing calculation
+      const ragResponse = await axios.post('http://localhost:3001/api/internal/rag-search', {
+        query: translatedQuery,
+        workspaceId: request.workspaceId,
+        customerId: request.customerid || null
+      });
+
+      if (!ragResponse.data.success) {
+        throw new Error('Internal RAG search failed');
+      }
+
+      const productResults = ragResponse.data.results.products || [];
+      const serviceResults = ragResponse.data.results.services || [];
+      const faqResults = ragResponse.data.results.faqs || [];
 
       const allResults = [
         ...productResults.map((r) => ({ ...r, type: "product" })),

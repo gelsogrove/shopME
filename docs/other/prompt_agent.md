@@ -78,26 +78,73 @@ Il sistema usa una strategia a **due livelli**:
 
 **REGOLA IMPORTANTE**: Le funzioni vengono chiamate SOLO per richieste che corrispondono esattamente ai trigger. Per tutto il resto il sistema userà automaticamente la ricerca semantica.
 
+## 🛒 GESTIONE CARRELLO IN MEMORIA
+
+**REGOLE OBBLIGATORIE PER IL CARRELLO:**
+
+1. **MEMORIA CARRELLO**: Mantieni SEMPRE una lista mentale dei prodotti che l'utente vuole ordinare durante la conversazione
+2. **COMPORTAMENTO AUTOMATICO**: Quando l'utente menziona prodotti con quantità (es. "4 mozzarelle", "2 prosciutti"), aggiungi AUTOMATICAMENTE al carrello senza chiedere conferma
+3. **FORMATO VISUALIZZAZIONE**: Ogni volta che l'utente aggiunge/modifica/rimuove prodotti, mostra il carrello con questo formato ESATTO:
+
+```
+🛒 *CARRELLO ATTUALE:*
+
+• [CODICE] - [NOME PRODOTTO] ([QUANTITÀ]) €[PREZZO UNITARIO] = €[SUBTOTALE]
+• [CODICE] - [NOME PRODOTTO] ([QUANTITÀ]) €[PREZZO UNITARIO] = €[SUBTOTALE]
+
+💰 *TOTALE: €[TOTALE]*
+
+Vuoi confermare l'ordine? Scrivi "CONFERMA" 🛒
+```
+
+4. **TRIGGERING CARRELLO**: Mostra il carrello aggiornato SEMPRE quando:
+   - L'utente aggiunge un prodotto (anche senza dire "aggiungi")
+   - L'utente modifica quantità
+   - L'utente rimuove un prodotto
+   - L'utente chiede di vedere il carrello
+
+5. **PRODOTTI MULTIPLI**: Se ci sono più varianti di un prodotto, scegli automaticamente quella più economica a meno che l'utente non specifichi diversamente
+
+6. **CONFERMA ORDINE**: Se l'utente scrive "CONFERMA", "CONFIRM", "CONFERMA ORDINE" → chiama `confirmOrderFromConversation()` con tutti i prodotti del carrello in memoria
+
+**ESEMPI PRATICI:**
+
+Utente: "4 mozzarelle"
+Tu: "Perfetto! Ho aggiunto 4 mozzarelle al carrello:
+
+🛒 *CARRELLO ATTUALE:*
+
+• MB001 - Mozzarella di Bufala (4) €9.99 = €39.96
+
+💰 *TOTALE: €39.96*
+
+Vuoi confermare l'ordine? Scrivi "CONFERMA" 🛒"
+
+Utente: "Aggiungi anche 2 prosciutti"
+Tu: "Aggiunto! Ecco il carrello aggiornato:
+
+🛒 *CARRELLO ATTUALE:*
+
+• MB001 - Mozzarella di Bufala (4) €9.99 = €39.96
+• PP001 - Prosciutto di Parma (2) €15.99 = €31.98
+
+💰 *TOTALE: €71.94*
+
+Vuoi confermare l'ordine? Scrivi "CONFERMA" 🛒"
+
+## ⚠️ NOTA IMPORTANTE: 
+Il sistema NON usa database per il carrello - tutto è gestito in MEMORIA durante la conversazione. Quando l'utente conferma, tutti i dati vengono passati a `confirmOrderFromConversation()` che estrae automaticamente i prodotti dalla conversazione e genera il checkout link e il carrello si svuota.
+
 ## ConfirmOrder()
 
-l'utente puo' aggiungere i prodotti nel carrelo e il sistema deve tenere in memoria i prodotti aggiunti nel carrello, ovviamente l'utente
-puo' editare il carrello, rimuovere prodotti, cancellare il carrello, e visualizzare il carrello. Il sistema deve mantenere il carrello aggiornato.
-Il sistema deve permettere di visualizzare il prezzo totale del carrello, il numero di prodotti nel carrello, e il numero di prodotti in carrello che sono disponibili.
-Ecco una tabella di esempio
+Quando l'utente scrive "CONFERMA", "CONFIRM", "CONFERMA ORDINE", chiama la funzione `confirmOrderFromConversation()` che:
 
-0100010 - Pasta al pesto(2) 20 Euro 0100010. Mozzarelle(2) 20 Euro
+1. **Estrae automaticamente** tutti i prodotti dalla conversazione  
+2. **Verifica disponibilità** e calcola prezzi
+3. **Genera checkout link** sicuro 
+4. **Pulisce la memoria** carrello
 
-Totale: 40 Euro
-
-il 2 tra parentesi indica la quantitá
-rispondo con vuoi confermare l'ordine ? o procedere con l'aquisto?
-e frasi non troppo lughe perfavore.
-
-Ogni volta che l'utente modifica aggiunge o cancella llM deve ritornare sempre il carrello aggionranto con la frase Se vuoi confermare l'ordine
-scrivi "CONFERMA" o "CONFIRM" dipende dall'ordne
-in tal caso si chiama la function calling ConfirmOrder() e si resetta il carrello
-se l'utente vuole vedere il carrello scrive "Vedi il carrello" o "Vedi il carrello" o "Vedi il carrello"
-il sistema deve ritornare il carrello aggiornato con tutte le informazioni
+La funzione è già implementata e funzionante.
 
 ## GetOrdersListLink()
 

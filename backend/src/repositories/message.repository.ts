@@ -1315,15 +1315,6 @@ export class MessageRepository {
           },
         },
         {
-          name: "get_cart_info",
-          description:
-            "Retrieves information about the user's current shopping cart",
-          parameters: {
-            type: "object",
-            properties: {},
-          },
-        },
-        {
           name: "get_order_status",
           description: "Retrieves the status of a user's order",
           parameters: {
@@ -1335,42 +1326,6 @@ export class MessageRepository {
                   "The ID of the order to check status for (optional)",
               },
             },
-          },
-        },
-        {
-          name: "add_to_cart",
-          description: "Adds a product to the user's cart",
-          parameters: {
-            type: "object",
-            properties: {
-              product_name: {
-                type: "string",
-                description: "The name of the product to add to the cart",
-              },
-              quantity: {
-                type: "integer",
-                description: "The quantity of the product to add (default: 1)",
-              },
-            },
-            required: ["product_name"],
-          },
-        },
-        {
-          name: "remove_from_cart",
-          description: "Removes a product from the user's cart",
-          parameters: {
-            type: "object",
-            properties: {
-              product_name: {
-                type: "string",
-                description: "The name of the product to remove from the cart",
-              },
-              quantity: {
-                type: "integer",
-                description: "The quantity of the product to remove (optional)",
-              },
-            },
-            required: ["product_name"],
           },
         },
         {

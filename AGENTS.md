@@ -345,5 +345,11 @@ The user's input is processed through a two-stage LLM workflow:
 
 **Remember**: This is a multilingual SaaS platform (Italian, English, Spanish) for WhatsApp e-commerce automation. Every decision should align with the goal of creating intelligent chatbots, managing products, and processing orders through WhatsApp with AI-powered automation.
 
-SERVIZI LI GEStiSCO io!!!!
+I SERVIZI LI GEStiSCO IO!!!!
+**\*NON DEVI RIAVVIARE **
 non serve riavviare i servizi di BE e di FE ogni volta che si modifica il codice il server riavvia il servizio e lo gestisco io e non l'ai!
+
+SQL esempio:
+docker exec shop_db psql -U shopmefy -d shopmefy -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';" | head -20
+
+non usare npx prisma studio --port 5556
