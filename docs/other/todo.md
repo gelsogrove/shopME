@@ -1,9 +1,5 @@
-- isActive
 - dovrebbe mandare una mail
-- test di integrazione ?
 - formattazione
-- test di integrazione ?
-- 3 utenti con 3 lignue diverse
 
 - carrello view
   hai caipto dalla nostra chat dalla documentazione dal codice

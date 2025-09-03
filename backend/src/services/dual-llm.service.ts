@@ -3,6 +3,7 @@ import { LLMRequest, LLMResponse } from "../types/whatsapp.types"
 import { CallingFunctionsService } from "./calling-functions.service"
 import { EmbeddingService } from "./embeddingService"
 import { TranslationService } from "./translation.service"
+import { ContactOperator } from "../chatbot/calling-functions/ContactOperator"
 
 interface PromptVariables {
   nameUser: string
@@ -796,9 +797,9 @@ Please create a natural, helpful response in ${languageName}.`
       {
         type: "function",
         function: {
-          name: "GetContactInfo",
+          name: "ContactOperator",
           description:
-            "Get contact information and support details.",
+            "Request to speak with a human operator. Use when customer wants to contact an operator, talk to a human, get human support, or escalate to manual assistance. Triggers: operatore, operator, human, assistance, support, help from person.",
           parameters: {
             type: "object",
             properties: {},
@@ -897,9 +898,10 @@ Please create a natural, helpful response in ${languageName}.`
             })
             break
 
-          case "GetContactInfo":
-            result = await this.callingFunctionsService.contactOperator({
-              customerId: request.customerid || "",
+          case "ContactOperator":
+            // Use the correct ContactOperator function that updates activeChatbot
+            result = await ContactOperator({
+              phone: request.phone || "",
               workspaceId: request.workspaceId,
             })
             break

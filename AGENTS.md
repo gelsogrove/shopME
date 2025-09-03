@@ -29,6 +29,7 @@
 ## 🧠 Core Development Rules
 
 ### Communication & Context
+
 - Address me **by name (Andrea)** in chats and discussions (e.g., "Hello Andrea", "Andrea, what do you think?")
 - Context: @/terraform @/backend @/frontend @/scripts
 - Focus **only** on code areas **relevant to the assigned task**
@@ -36,6 +37,7 @@
 - **Keep solutions simple** and avoid unnecessary complexity
 
 ### Code Standards
+
 - All code and comments must be **in English**
 - **NEVER** run `git push` — **only Andrea** can do this
 - Use **PostgreSQL** (not SQLite)
@@ -47,7 +49,9 @@
 ## 🔒 Security & Data Management
 
 ### Critical Backup Rules
+
 ⚠️ **MANDATORY BACKUP BEFORE ANY .ENV INTERACTION:**
+
 - **BEFORE** reading, checking, or interacting with ANY `.env` file, **ALWAYS** create a backup first
 - **COMMAND TO RUN FIRST:** `cp .env .env.backup.$(date +%Y%m%d_%H%M%S)`
 - **NEVER** touch `.env` files without creating a timestamped backup
@@ -55,7 +59,9 @@
 - **ALWAYS** inform Andrea when creating backups: "Andrea, I'm creating a backup of .env before proceeding"
 
 ### Critical File Protection
+
 ⚠️ **NEVER DELETE OR MODIFY THE PDF FILE:**
+
 - **NEVER** delete, modify, or touch `backend/prisma/temp/international-transportation-law.pdf`
 - **NEVER** remove files from `backend/prisma/temp/` directory
 - **NEVER** modify the seed script to remove PDF file creation
@@ -64,7 +70,9 @@
 - **ALWAYS** preserve this file during any script or seed modifications
 
 ### Database-Only Configuration
+
 ⚠️ **NEVER CREATE HARDCODED CONFIGURATION FALLBACKS:**
+
 - **NEVER** create hardcoded default prompts, models, or agent configurations
 - **NEVER** use fallback values like `DEFAULT_PROMPT` or `initialConfig` in frontend/backend
 - **ALL CONFIGURATION MUST COME FROM DATABASE** - no exceptions
@@ -78,6 +86,7 @@
 ## 📁 Project Structure & Architecture
 
 ### Root Project Structure
+
 ```
 AI4Devs-finalproject/
 ├── 📁 backend/                     # Backend Node.js application
@@ -90,6 +99,7 @@ AI4Devs-finalproject/
 ```
 
 ### Backend Structure (`/backend/`)
+
 ```
 backend/
 ├── 📁 src/                         # Source code
@@ -122,6 +132,7 @@ backend/
 ```
 
 ### Frontend Structure (`/frontend/`)
+
 ```
 frontend/
 ├── 📁 src/                         # Source code
@@ -153,13 +164,16 @@ frontend/
 ```
 
 ### Naming Conventions
+
 - **Directories**: kebab-case (`document-service`, `user-controller`)
 - **TypeScript files**: camelCase (`userService.ts`, `documentController.ts`)
 - **React components**: PascalCase (`UserProfile.tsx`, `DocumentList.tsx`)
 - **Test files**: `*.spec.ts` (unit), `*.integration.spec.ts` (integration), `*.cy.js` (E2E)
 
 ### Forbidden Patterns
+
 **DO NOT CREATE:**
+
 - `package.json` in project root
 - Test files outside `__tests__/` or `__test__/` directories
 - Files directly in `src/` without proper subdirectories
@@ -169,17 +183,20 @@ frontend/
 ## 🧪 Testing & Quality Assurance
 
 ### Test Organization
+
 - **Unit tests**: `backend/src/__tests__/unit/` and `frontend/src/__test__/unit/`
 - **Integration tests**: `backend/src/__tests__/integration/` and `frontend/src/__test__/e2e/`
 - **Mocks**: Must be in `__mocks__/` subdirectories within test folders
 - **Test user**: Always use the same test user for automated tests, stored in memory bank
 
 ### Testing Workflow
+
 - **TDD approach**: First design tests for a bug, then develop the fix, verify success
 - **Real tests**: Tests must be real and not use mocks
 - **Verification**: Run `npm run test:unit`, `npm run test:integration`, `npm run seed`, and `npm run build` for both frontend and backend
 
 ### API Testing
+
 - **Swagger updates**: After every API modification, update swagger.json IMMEDIATELY
 - **Integration tests**: Require backend active (`npm run dev`) and N8N active
 - **If tests fail**: Verify backend (port 3001), N8N (port 5678), database, seed
@@ -187,7 +204,9 @@ frontend/
 ## 📚 Documentation & References
 
 ### Project Documentation
+
 All project documentation is located under:
+
 - **Task List**: `docs/other/task-list.md`
 - **PRD Document**: `docs/PRD.md`
 - **LangChain Documentation**: `docs/langchain.md`
@@ -196,20 +215,26 @@ All project documentation is located under:
 - **Agent Prompt**: `docs/prompt_agent.md`
 
 ### Database Queries
+
 To see what we have in the DB use for examples:
+
 ```bash
 docker exec -it shopmefy-db psql -U shopmefy -d shopmefy -c "SELECT COUNT(*) FROM document_chunks;"
 ```
 
 ### Architecture Notes
+
 #### LLM Workflow
+
 The user's input is processed through a two-stage LLM workflow:
+
 1. **First LLM**: Decides the target calling function
 2. **Second LLM**: Has history and formats the final user response
 
 > **Note**: This is the **only static point** in the workflow. If the flow **does not follow** this structure, we must discuss it or **modify the agent's prompt** inside the **SEED**.
 
 #### Calling Functions
+
 - Calling functions are located in `backend/src/chatbot/calling-functions/`
 - Use LangChain for implementing message flows
 - Follow the repository pattern
@@ -218,6 +243,7 @@ The user's input is processed through a two-stage LLM workflow:
 ## 🚫 Strict Prohibitions
 
 ### Never Hardcode Data
+
 - **NEVER** create hardcoded responses or fallback data in controllers
 - **NEVER** return fake/mock data outside of test environments
 - **NEVER** use hardcoded product lists, prices, or inventory data
@@ -226,12 +252,14 @@ The user's input is processed through a two-stage LLM workflow:
 - **NO** static text, prompts, or codes; **everything must come from the database**
 
 ### Critical Restrictions
+
 - **NEVER** use hardcoded conditions like `lowerQuery.includes('vino') || lowerQuery.includes('export')`
 - **DO NOT USE OPENAI** - use **OPENROUTER** instead
 - **NEVER** use the word "hardcode" in the backend code
 - **NEVER** use static prompts - prompts must come from database agent settings along with temperature, topP, token, model
 
 ### Additional Restrictions
+
 - DO NOT write any **catch blocks** with generic messages; **always provide the full error stack**
 - **NEVER create fake functions** – everything must reflect the real database and logic
 - **NEVER change the layout or graphics** without **explicit permission**
@@ -241,17 +269,20 @@ The user's input is processed through a two-stage LLM workflow:
 ## 📋 Task Management
 
 ### Task Updates
+
 - Always update **ONLY the existing tasks** in `docs/other/task-list.md` when completing tasks that are already present on the list
 - **DO NOT add new tasks** to the task list - only mark existing ones as completed or update their status
 - Keep track of progress and document changes properly
 
 ### Context Gathering
+
 - Get always the full context from @backend @frontend and @final
 - Get the context from the test unit, integration, integration for having a better understanding
 - When I say PRD, consider the file `/docs/PRD.md`
 - Remember that PRD has absolute truth, then truth is in tests, then in code
 
 ### Development Workflow
+
 - **Reflect, reason, compare, read** in order: PRD → tests → code before taking any action
 - If I write something that's not in line, block the user
 - Servers restart automatically, no need to open many terminals, always use the same terminal
@@ -260,6 +291,7 @@ The user's input is processed through a two-stage LLM workflow:
 ## 🔧 Technical Guidelines
 
 ### Environment & Setup
+
 - **Terminal context**: Always check the context of the terminal, if in wrong terminal, ask to switch to correct terminal
 - **Package management**: Don't create `package.json` in root - use `backend` or `frontend` folders for installing packages
 - **File organization**: All `.md` files must be in `docs` except `README.md`
@@ -268,12 +300,14 @@ The user's input is processed through a two-stage LLM workflow:
 - **Temporary scripts**: When creating a script for temporary updates, delete it afterwards
 
 ### System Synchronization
+
 - System must be synchronized: swagger, seed code, test BE FE, README, prompts folder
 - When finishing a job, ask: "Do you need to update this section too?"
 - After every API modification: update swagger.json immediately
 - Before saying "done": verify that swagger is updated and working
 
 ### Memory Bank Integration
+
 - All core Memory Bank files reside within the `docs/memory-bank/` directory
 - **Tasks File**: `docs/memory-bank/tasks.md` - Active, in-progress task tracking
 - **Active Context File**: `docs/memory-bank/activeContext.md`
@@ -287,6 +321,7 @@ The user's input is processed through a two-stage LLM workflow:
 ## 🎯 Success Criteria
 
 ### Verification Checklist
+
 - [ ] All tests pass (unit, integration, build)
 - [ ] Swagger documentation is updated and accurate
 - [ ] No hardcoded values introduced
@@ -299,6 +334,7 @@ The user's input is processed through a two-stage LLM workflow:
 - [ ] Andrea is satisfied with the implementation
 
 ### Quality Standards
+
 - **Code quality**: Clean, organized, well-commented, readable flow
 - **Performance**: Optimized solutions, avoid unnecessary complexity
 - **Security**: Proper error handling, no credentials in code
@@ -308,3 +344,6 @@ The user's input is processed through a two-stage LLM workflow:
 ---
 
 **Remember**: This is a multilingual SaaS platform (Italian, English, Spanish) for WhatsApp e-commerce automation. Every decision should align with the goal of creating intelligent chatbots, managing products, and processing orders through WhatsApp with AI-powered automation.
+
+SERVIZI LI GEStiSCO io!!!!
+non serve riavviare i servizi di BE e di FE ogni volta che si modifica il codice il server riavvia il servizio e lo gestisco io e non l'ai!
