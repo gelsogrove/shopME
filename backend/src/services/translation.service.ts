@@ -14,12 +14,15 @@ export class TranslationService {
     try {
       console.log('🌐 Translating text to English:', text);
       
-      const isTextEnglish = this.isEnglish(text);
+      // TEMP DEBUG: Force translation, skip English check
+      console.log('🔧 DEBUG: Forcing translation, skipping English check');
       
-      if (isTextEnglish) {
-        console.log('🔄 Text appears to be English, returning as-is');
-        return text;
-      }
+      // const isTextEnglish = this.isEnglish(text);
+      
+      // if (isTextEnglish) {
+      //   console.log('🔄 Text appears to be English, returning as-is');
+      //   return text;
+      // }
 
       const response = await axios.post(this.openRouterUrl, {
         model: 'openai/gpt-3.5-turbo',

@@ -1981,6 +1981,7 @@ async function main() {
   // Create Italian customer - Mario Rossi
   const testCustomer = await prisma.customers.create({
     data: {
+      id: "3c9fce96-5397-5c9f-9f8e-3d4f5a6b7890", // ID fisso per MCP test client
       name: "Mario Rossi",
       email: "mario.rossi@shopme.com",
       phone: "+39123456789",

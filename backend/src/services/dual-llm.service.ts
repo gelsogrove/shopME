@@ -421,11 +421,15 @@ export class DualLLMService {
         success: true,
       }
 
-      // Format SearchRag results
-      const formattedResults = allResults.map((result) => ({
+      // Format SearchRag results with better debug info
+      const formattedResults = allResults.map((result, index) => ({
+        name: `SearchRag_${result.type}`, // FAQ, Product, or Service
         type: "searchrag_result",
         data: result,
         source: "searchrag",
+        sourceName: result.sourceName || result.name || `${result.type}_${index + 1}`,
+        similarity: result.similarity,
+        contentPreview: result.content ? result.content.substring(0, 100) + '...' : 'No content'
       }))
 
       return {

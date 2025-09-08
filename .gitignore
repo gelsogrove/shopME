@@ -20,6 +20,14 @@ dist/
 .next/
 out/
 
+# Debug and temporary files
+/backend/debug-*.js
+/backend/check-*.js
+/backend/test-*.js
+/backend/create-*.js
+**/debug-*.js
+**/temp-*.js
+
 # Misc
 .DS_Store
 *.pem
