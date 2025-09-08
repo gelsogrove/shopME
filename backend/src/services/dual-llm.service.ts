@@ -40,6 +40,7 @@ export class DualLLMService {
     console.log("📥 Request language:", request.language)
     console.log("📥 Request workspaceId:", request.workspaceId)
     console.log("💥💥💥 CUSTOMER ID FROM REQUEST:", request.customerid)
+    console.log("🔍 CHAT HISTORY RECEIVED:", JSON.stringify(request.messages || [], null, 2)) // 🔧 DEBUG CHAT HISTORY
 
     let requestWithPrompt = request // Initialize with original request
 
@@ -218,8 +219,10 @@ export class DualLLMService {
         "🌐 About to call translation service for:",
         request.chatInput
       )
+      const hasConversationHistory = request.messages && request.messages.length > 0;
       const translatedQuery = await this.translationService.translateToEnglish(
-        request.chatInput
+        request.chatInput,
+        hasConversationHistory // 🔧 Pass conversation history info
       )
       this.lastTranslatedQuery = translatedQuery // Store for debug
       console.log("🔧 Translated query:", translatedQuery)
@@ -362,8 +365,10 @@ export class DualLLMService {
 
     try {
       // Translate query specifically for SearchRag with language detection
+      const hasConversationHistory = request.messages && request.messages.length > 0;
       const translatedQuery = await this.translationService.translateToEnglish(
-        request.chatInput
+        request.chatInput,
+        hasConversationHistory // 🔧 Pass conversation history info
       )
       this.lastTranslatedQuery = translatedQuery // Store for debug
 
@@ -735,7 +740,7 @@ Please create a natural, helpful response in ${languageName}.`
         function: {
           name: "GetOrdersListLink",
           description:
-            "Get a direct link to view customer orders. For specific order use orderCode parameter.",
+            "Generate secure link to view customer orders. For specific order use orderCode parameter.",
           parameters: {
             type: "object",
             properties: {
@@ -754,7 +759,7 @@ Please create a natural, helpful response in ${languageName}.`
         function: {
           name: "GetShipmentTrackingLink",
           description:
-            'Get shipment tracking link for order delivery status.',
+            'Generate shipment tracking link for order delivery status.',
           parameters: {
             type: "object",
             properties: {
@@ -773,7 +778,7 @@ Please create a natural, helpful response in ${languageName}.`
         function: {
           name: "GetCustomerProfileLink",
           description:
-            'Get link to customer profile page for modifying personal information, address, or account details.',
+            'Generate secure link for customer profile management when user wants to modify profile, address, email, or personal data.',
           parameters: {
             type: "object",
             properties: {},

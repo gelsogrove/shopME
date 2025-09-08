@@ -10,12 +10,31 @@ export class TranslationService {
     console.log('🔑 Translation service initialized with API key:', this.openRouterApiKey ? 'EXISTS' : 'MISSING');
   }
 
-  public async translateToEnglish(text: string): Promise<string> {
+  public async translateToEnglish(text: string, hasConversationHistory: boolean = false): Promise<string> {
     try {
       console.log('🌐 Translating text to English:', text);
+      console.log('🧠 Has conversation history:', hasConversationHistory);
       
-      // TEMP DEBUG: Force translation, skip English check
-      console.log('🔧 DEBUG: Forcing translation, skipping English check');
+      // 🔧 SMART TRANSLATION: Don't translate short/numeric responses when there's conversation history
+      if (hasConversationHistory) {
+        const trimmedText = text.trim();
+        
+        // Don't translate single numbers or very short responses
+        if (/^[0-9]+$/.test(trimmedText) || trimmedText.length <= 3) {
+          console.log('🔧 SKIPPING TRANSLATION: Short/numeric response with conversation history');
+          return text;
+        }
+        
+        // Don't translate common short responses
+        const shortResponses = ['si', 'sí', 'no', 'ok', 'yes', 'grazie', 'bene', 'ciao'];
+        if (shortResponses.includes(trimmedText.toLowerCase())) {
+          console.log('🔧 SKIPPING TRANSLATION: Common short response with conversation history');
+          return text;
+        }
+      }
+      
+      // TEMP DEBUG: Force translation for longer texts
+      console.log('🔧 DEBUG: Proceeding with translation');
       
       // const isTextEnglish = this.isEnglish(text);
       

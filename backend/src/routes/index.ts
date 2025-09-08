@@ -88,6 +88,9 @@ import { LLMRequest } from '../types/whatsapp.types'
 
 // Public WhatsApp webhook routes (NO AUTHENTICATION)
 router.post("/whatsapp/webhook", async (req, res) => {
+  console.log("🔥🔥🔥 WEBHOOK POST RECEIVED 🔥🔥🔥", new Date().toISOString()); // 🔧 FIRST LOG
+  console.log("📨 Request body:", JSON.stringify(req.body, null, 2)); // 🔧 DEBUG BODY
+  
   try {
     // Initialize services
     const dualLLMService = new DualLLMService();
@@ -193,6 +196,9 @@ router.post("/whatsapp/webhook", async (req, res) => {
       return
     }
 
+    // 🔧 DECLARE CHAT SESSION FOR GLOBAL SCOPE (used throughout the webhook)
+    let chatSession: any = null;
+
     // Check if chat session is disabled (operator escalation)
     let isSessionDisabled = false;
     try {
@@ -292,12 +298,16 @@ router.post("/whatsapp/webhook", async (req, res) => {
       } catch (error) {
         console.error('❌ Error processing customer data:', error);
       }
-      
-      // 🔥 RETRIEVE CHAT HISTORY FOR CONTEXT
+
+      console.log(`🔍 STARTING CHAT HISTORY RETRIEVAL - Customer: ${customerId}, Workspace: ${workspaceId}`); // 🔧 MOVED OUTSIDE TRY-CATCH
+
+      //  RETRIEVE CHAT HISTORY FOR CONTEXT
       let chatHistory: any[] = [];
       try {
+        console.log(`🔍 SEARCHING FOR CHAT SESSION - Customer: ${customerId}, Workspace: ${workspaceId}`); // 🔧 DEBUG
+        
         // Find or create chat session
-        const chatSession = await prisma.chatSession.findFirst({
+        chatSession = await prisma.chatSession.findFirst({
           where: {
             customerId: customerId,
             workspaceId: workspaceId
@@ -312,6 +322,27 @@ router.post("/whatsapp/webhook", async (req, res) => {
           }
         });
 
+        // 🔧 CREATE CHAT SESSION IF NOT EXISTS
+        if (!chatSession) {
+          console.log('🔧 Creating new chat session for customer:', customerId);
+          chatSession = await prisma.chatSession.create({
+            data: {
+              customerId: customerId,
+              workspaceId: workspaceId,
+              status: 'ACTIVE',
+              startedAt: new Date()
+            },
+            include: {
+              messages: {
+                orderBy: {
+                  createdAt: 'asc'
+                },
+                take: 10
+              }
+            }
+          });
+        }
+
         if (chatSession && chatSession.messages.length > 0) {
           // Convert messages to OpenAI format
           chatHistory = chatSession.messages.map(msg => ({
@@ -319,9 +350,18 @@ router.post("/whatsapp/webhook", async (req, res) => {
             content: msg.content
           }));
           console.log(`🗨️ WEBHOOK: Retrieved ${chatHistory.length} messages from chat history`);
+          console.log(`🗨️ WEBHOOK: Chat history preview:`, chatHistory.slice(-3)); // Last 3 messages
+          console.log(`🔍 WEBHOOK: Full chat history:`, JSON.stringify(chatHistory, null, 2)); // 🔧 FULL DEBUG
         } else {
           console.log('🗨️ WEBHOOK: No chat history found, starting fresh conversation');
+          console.log(`🗨️ WEBHOOK: Customer ID: ${customerId}, Workspace ID: ${workspaceId}`);
+          console.log(`🔍 WEBHOOK: ChatSession exists: ${!!chatSession}, Messages count: ${chatSession?.messages?.length || 0}`); // 🔧 DEBUG
         }
+
+        // 💾 NOTE: User message will be saved AFTER LLM processing by messageRepository.saveMessage()
+        // This avoids duplicate message saving in the database
+        console.log('� WEBHOOK: Skipping immediate user message save to avoid duplication');
+        console.log('� WEBHOOK: User message will be saved by messageRepository.saveMessage() after LLM processing');
         
       } catch (historyError) {
         console.error('❌ Error retrieving chat history:', historyError);
@@ -373,6 +413,11 @@ router.post("/whatsapp/webhook", async (req, res) => {
           processingSource: result.functionCalls?.[0]?.source || 'unknown',
           debugInfo: JSON.stringify(result.debugInfo || {}) // 🔧 NEW: Save debug info
         });
+
+        // 💾 SAVE MESSAGE RESPONSE - handled by messageRepository.saveMessage() above
+        // Assistant response is already saved by messageRepository.saveMessage()
+        console.log('💾 Message and assistant response saved by messageRepository.saveMessage()');
+
       } catch (saveError) {
         console.error('❌ Failed to save message:', saveError);
         // Continue - don't fail the whole request if save fails

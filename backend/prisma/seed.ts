@@ -1908,11 +1908,6 @@ async function main() {
         "📦 *No problem!* Here are the delivery options:\n\n🏠 *If you're not home:*\n• The courier will leave a notice with pickup instructions\n• You can schedule redelivery for a convenient time\n• Products can be picked up at the nearest collection point\n\n📱 *Pro tip:* Most couriers send SMS with tracking link so you can follow your delivery in real-time!",
     },
     {
-      question: "Can I change the delivery address after placing the order?",
-      answer:
-        "⚡ *Address changes are possible but time-sensitive!*\n\n✅ *Before shipment:* Contact us immediately at info@laltrait.com\n❌ *After shipment:* Address cannot be changed, but you can:\n• Redirect to a pickup point\n• Schedule redelivery to new address (additional fees may apply)\n\n🕒 *Best practice:* Double-check your address before confirming the order!",
-    },
-    {
       question: "What are the shipping costs and are there free shipping options?",
       answer:
         "💰 *Shipping costs depend on your location and order size:*\n\n🇪🇸 *Mainland Spain:*\n• Orders over €50: FREE shipping 🎉\n• Orders under €50: €4.95\n\n🏝️ *Islands (Balearic/Canary):*\n• Special rates apply (€8.95-€15.95)\n• Free shipping threshold: €75\n\n📦 *Express delivery:* Available for €9.95 (24h delivery)",

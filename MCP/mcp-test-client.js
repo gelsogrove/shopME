@@ -218,11 +218,19 @@ Cosa desideri fare?
   // Invia il messaggio al backend
   async sendMessage(message) {
     try {
-      // Payload nel formato test che si aspetta il backend
+      // Aggiungi il messaggio utente allo storico locale per il client
+      this.sessionData.messages.push({
+        role: 'user',
+        content: message
+      });
+
+      // Payload nel formato che si aspetta il backend
+      // NON inviamo messages perché il backend gestisce lo storico automaticamente dal database
       const payload = {
         chatInput: message,
         customerid: CONFIG.customerId,
         workspaceId: "cm9hjgq9v00014qk8fsdy4ujv"
+        // messages: rimosso per evitare duplicazioni - il backend gestisce lo storico
       };
       
       // Effettua la chiamata API reale

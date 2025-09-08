@@ -392,7 +392,7 @@ export function WhatsAppChatModal({
 
         // Add ONLY the bot response to chat history, not the user's message again
         // This prevents the duplicate "Ciao" message
-        setMessages([userMessage, botMessage]) // Include both user message and bot response
+        setMessages((prev) => [...prev, botMessage]) // Add only bot response - user message already added
       } else {
         // Handle API error response
         logger.error("API Error:", response.data.error)

@@ -4907,6 +4907,41 @@ The backend follows a Domain-Driven Design (DDD) architecture:
   - Analytics service
   - External integrations service (WhatsApp, payment providers)
   - Background job processing
+  - **🧠 Conversation History Management**: ✅ **IMPLEMENTED** - Automatic chat session tracking and context preservation
+
+### 🧠 Conversation History Management ✅ IMPLEMENTED
+
+**CRITICAL**: The backend automatically manages complete conversation history for all WhatsApp interactions:
+
+- **Automatic Chat Session Creation**: Backend creates chat sessions automatically for each customer-workspace combination
+- **Message Persistence**: All inbound (user) and outbound (bot) messages are automatically saved to database
+- **Context Retrieval**: Backend automatically loads last 10 messages from chat history before processing new messages
+- **Smart Translation**: Translation service skips numeric/short responses when conversation history exists to preserve context
+- **LLM Context Integration**: Chat history is automatically passed to dual-LLM service with enhanced prompt rules for context awareness
+
+**Key Features:**
+- ✅ Auto-creates `ChatSession` if not exists for customer+workspace
+- ✅ Saves user messages before LLM processing
+- ✅ Saves bot responses after LLM processing  
+- ✅ Retrieves conversation history (last 10 messages) automatically
+- ✅ Enhanced prompt with conversation context rules
+- ✅ Smart handling of numbered responses (1, 2, 3) based on previous options
+- ✅ No frontend involvement - backend handles everything automatically
+
+**Database Schema:**
+```sql
+ChatSession { id, customerId, workspaceId, status, startedAt, createdAt }
+Message { id, chatSessionId, direction (INBOUND/OUTBOUND), content, createdAt }
+```
+
+**Flow:**
+1. WhatsApp message → Backend webhook
+2. Find/create ChatSession for customer+workspace
+3. Save user message to Message table
+4. Load last 10 messages from conversation history
+5. Pass history to dual-LLM service with enhanced context prompt
+6. Process response with full conversation context
+7. Save bot response to Message table
 
 ### Database and Prisma ORM
 
