@@ -6,6 +6,8 @@ import { prisma } from '../lib/prisma';
 import logger from '../utils/logger';
 // Import public orders routes
 import publicOrdersRoutes from './public-orders.routes';
+// Import cart intent detection
+import { detectCartIntent, shouldTriggerCartOperation, handleAutomaticCartOperation } from '../utils/cart-intent-detector';
 
 const router = Router();
 
@@ -14,7 +16,7 @@ const router = Router();
  */
 
 /**
- * RAG Search endpoint with price calculation
+ * RAG Search endpoint with price calculation and cart-awareness
  */
 router.post('/rag-search', async (req: Request, res: Response) => {
   try {
@@ -28,6 +30,10 @@ router.post('/rag-search', async (req: Request, res: Response) => {
     }
 
     logger.info(`🔍 Internal RAG Search: "${query}" for workspace ${workspaceId}`);
+
+    // ✨ CART-AWARENESS: Detect cart intent in multiple languages
+    const cartIntentResult = detectCartIntent(query);
+    logger.info(`🛒 Cart Intent Detection: ${JSON.stringify(cartIntentResult)}`);
 
     // Search across all content types with pricing
     const [productResults, faqResults, serviceResults] = await Promise.all([
@@ -91,6 +97,26 @@ router.post('/rag-search', async (req: Request, res: Response) => {
 
     logger.info(`✅ RAG Search completed: ${allResults.length} results found`);
 
+    // ✨ CART-AWARENESS: Handle automatic cart operations
+    let cartOperationResult = null;
+    if (shouldTriggerCartOperation(cartIntentResult) && customerId && enhancedProductResults.length > 0) {
+      try {
+        cartOperationResult = await handleAutomaticCartOperation(
+          cartIntentResult,
+          customerId,
+          workspaceId,
+          enhancedProductResults
+        );
+        logger.info(`🛒 Cart operation completed: ${JSON.stringify(cartOperationResult)}`);
+      } catch (cartError) {
+        logger.error('❌ Cart operation failed:', cartError);
+        cartOperationResult = { 
+          success: false, 
+          error: cartError instanceof Error ? cartError.message : 'Unknown error' 
+        };
+      }
+    }
+
     return res.json({
       success: true,
       results: {
@@ -99,6 +125,8 @@ router.post('/rag-search', async (req: Request, res: Response) => {
         services: serviceResults,
         total: allResults.length
       },
+      cartIntent: cartIntentResult,
+      cartOperation: cartOperationResult,
       query,
       workspaceId,
       timestamp: new Date().toISOString()

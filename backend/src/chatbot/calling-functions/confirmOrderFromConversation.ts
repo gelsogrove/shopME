@@ -1,6 +1,7 @@
 import crypto from "crypto"
 import { prisma } from "../../lib/prisma"
 import logger from "../../utils/logger"
+import { SecureTokenService } from "../../application/services/secure-token.service"
 
 /**
  * Confirm Order From Conversation Calling Function
@@ -20,6 +21,9 @@ export interface ConfirmOrderFromConversationParams {
   workspaceId: string
   conversationContext: string // Latest conversation messages
   prodottiSelezionati?: ConversationProduct[] // Products identified by LLM
+  // 🆕 NEW CART INTEGRATION PARAMETERS
+  useCartData?: boolean // If true, use cart data instead of conversation parsing
+  generateCartLink?: boolean // If true, generate cart link instead of checkout link
 }
 
 export interface ConfirmOrderFromConversationResult {
@@ -27,6 +31,9 @@ export interface ConfirmOrderFromConversationResult {
   response?: string
   checkoutToken?: string
   checkoutUrl?: string
+  // 🆕 NEW CART INTEGRATION RESULTS
+  cartToken?: string
+  cartUrl?: string
   expiresAt?: Date
   error?: string
   totalAmount?: number
@@ -38,7 +45,7 @@ export interface ConfirmOrderFromConversationResult {
 export async function confirmOrderFromConversation(
   params: ConfirmOrderFromConversationParams
 ): Promise<ConfirmOrderFromConversationResult> {
-  const { customerId, workspaceId, conversationContext, prodottiSelezionati } =
+  const { customerId, workspaceId, conversationContext, prodottiSelezionati, useCartData = false, generateCartLink = false } =
     params
 
   logger.info(
@@ -51,6 +58,158 @@ export async function confirmOrderFromConversation(
       throw new Error("Missing required parameters: customerId or workspaceId")
     }
 
+    // 🆕 CART DATA FLOW - Use cart data instead of conversation parsing
+    if (useCartData) {
+      logger.info(`[CONFIRM_ORDER_CONVERSATION] 🛒 Using cart data flow for customer ${customerId}`)
+      
+      // Get customer cart
+      const cart = await prisma.carts.findFirst({
+        where: { customerId, workspaceId },
+        include: {
+          items: {
+            include: {
+              product: true
+            }
+          }
+        }
+      })
+
+      if (!cart || cart.items.length === 0) {
+        return {
+          success: false,
+          response: "🛒 Il tuo carrello è vuoto. Aggiungi alcuni prodotti prima di confermare l'ordine.",
+          error: "Cart is empty"
+        }
+      }
+
+      // Calculate totals
+      let totalAmount = 0
+      const cartProducts = cart.items.map(item => {
+        const itemTotal = item.product.price * item.quantity
+        totalAmount += itemTotal
+        return {
+          codice: item.product.ProductCode || item.product.sku || item.productId,
+          descrizione: item.product.name,
+          qty: item.quantity,
+          prezzo: item.product.price,
+          productId: item.productId
+        }
+      })
+
+      // Get workspace for URL
+      const workspace = await prisma.workspace.findUnique({
+        where: { id: workspaceId }
+      })
+
+      if (!workspace) {
+        throw new Error(`Workspace ${workspaceId} not found`)
+      }
+
+      // Create secure token service instance
+      const secureTokenService = new SecureTokenService()
+
+      if (generateCartLink) {
+        // 🔗 GENERATE CART LINK with SecureTokenService
+        const cartPayload = {
+          customerId,
+          workspaceId,
+          cartId: cart.id,
+          items: cartProducts,
+          totalAmount,
+          currency: 'EUR',
+          createdAt: new Date().toISOString()
+        }
+
+        const cartToken = await secureTokenService.createToken(
+          'cart',
+          workspaceId,
+          cartPayload,
+          '1h',
+          customerId,
+          // Get customer phone if available
+          (await prisma.customers.findUnique({ where: { id: customerId } }))?.phone
+        )
+
+        // Determine base URL
+        const baseUrl = workspace.url || process.env.FRONTEND_URL || 'https://laltroitalia.shop'
+        const cartUrl = `${baseUrl}/cart?token=${cartToken}`
+
+        // Create cart message
+        const cartMessage = `🛒 **Il tuo carrello è pronto!**
+
+${cartProducts.map(item => 
+  `• ${item.descrizione} [${item.codice}]\n  Quantità: ${item.qty} x €${item.prezzo.toFixed(2)} = €${(item.prezzo * item.qty).toFixed(2)}`
+).join('\n\n')}
+
+💰 **TOTALE: €${totalAmount.toFixed(2)}**
+
+🔗 **Rivedi il carrello e procedi al checkout:**
+${cartUrl}
+
+⏰ Link valido per 1 ora`
+
+        return {
+          success: true,
+          response: cartMessage,
+          cartToken,
+          cartUrl,
+          totalAmount,
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000)
+        }
+
+      } else {
+        // 🛒 GENERATE CHECKOUT LINK from cart data
+        const checkoutPayload = {
+          customerId,
+          prodotti: cartProducts,
+          type: "cart_checkout",
+          totalAmount,
+          currency: 'EUR'
+        }
+
+        const checkoutToken = await secureTokenService.createToken(
+          'checkout',
+          workspaceId,
+          checkoutPayload,
+          '1h',
+          customerId,
+          (await prisma.customers.findUnique({ where: { id: customerId } }))?.phone
+        )
+
+        const baseUrl = workspace.url || process.env.FRONTEND_URL || 'https://laltroitalia.shop'
+        const checkoutUrl = `${baseUrl}/checkout?token=${checkoutToken}`
+
+        // Create checkout message
+        const checkoutMessage = `✅ **Ordine confermato dal carrello!**
+
+${cartProducts.map(item => 
+  `• ${item.descrizione} [${item.codice}]\n  Quantità: ${item.qty} x €${item.prezzo.toFixed(2)} = €${(item.prezzo * item.qty).toFixed(2)}`
+).join('\n\n')}
+
+💰 **TOTALE: €${totalAmount.toFixed(2)}**
+
+🔗 **Completa il checkout:**
+${checkoutUrl}
+
+⏰ Link valido per 1 ora`
+
+        // Clear cart after creating checkout
+        await prisma.cartItems.deleteMany({
+          where: { cartId: cart.id }
+        })
+
+        return {
+          success: true,
+          response: checkoutMessage,
+          checkoutToken,
+          checkoutUrl,
+          totalAmount,
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000)
+        }
+      }
+    }
+
+    // 📝 ORIGINAL CONVERSATION PARSING FLOW (fallback)
     if (!prodottiSelezionati || prodottiSelezionati.length === 0) {
       return {
         success: false,
@@ -259,8 +418,18 @@ export const confirmOrderFromConversationFunction = {
           required: ["nome", "quantita"],
         },
       },
+      useCartData: {
+        type: "boolean",
+        description: "If true, use cart data instead of conversation parsing (default: false)",
+        default: false
+      },
+      generateCartLink: {
+        type: "boolean", 
+        description: "If true, generate cart link instead of checkout link (default: false)",
+        default: false
+      },
     },
-    required: ["customerId", "workspaceId", "prodottiSelezionati"],
+    required: ["customerId", "workspaceId"],
   },
   handler: confirmOrderFromConversation,
 }

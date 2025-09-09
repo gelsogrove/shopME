@@ -35,6 +35,7 @@ import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import createSettingsRouter from "../interfaces/http/routes/settings.routes"
 
 import { checkoutRouter } from "../interfaces/http/routes/checkout.routes"
+import { cartRouter } from "../interfaces/http/routes/cart.routes"
 // Removed whatsappRouter import
 import { workspaceRoutes } from "../interfaces/http/routes/workspace.routes"
 // Import the legacy workspace routes that has the /current endpoint
@@ -165,28 +166,41 @@ router.post("/whatsapp/webhook", async (req, res) => {
       workspaceId = data.workspaceId;
       customerId = data.customerid;
       
-      // Get phone number from customer ID
+      // Get full customer data (including language) for test format
       try {
-        const customerWithPhone = await prisma.customers.findFirst({
+        console.log(`🔍 TEST FORMAT: Looking for customer with ID: "${customerId}" in workspace: "${workspaceId}"`);
+        
+        const customer = await prisma.customers.findFirst({
           where: {
             id: customerId,
             workspaceId: workspaceId,
             isActive: true
           },
           select: {
+            id: true,
+            name: true,
             phone: true,
-            name: true
+            company: true,
+            discount: true,
+            language: true
           }
         });
-        
-        if (customerWithPhone && customerWithPhone.phone) {
-          phoneNumber = customerWithPhone.phone;
+
+        console.log(`🔍 TEST FORMAT: Customer search result:`, customer);
+
+        if (customer) {
+          phoneNumber = customer.phone || "test-phone-123";
+          console.log(`✅ TEST FORMAT: Customer found: ${customer.name} (${customer.phone}) - Language: ${customer.language}`);
+          
+          // Store customer data for later use (same as WhatsApp format)
+          (req as any).customerData = customer;
         } else {
           phoneNumber = "test-phone-123";
+          console.log(`⚠️ TEST FORMAT: Customer not found for ID: ${customerId}`);
         }
         
       } catch (error) {
-        console.error('❌ Error getting customer phone:', error);
+        console.error('❌ Error getting customer data in test format:', error);
         phoneNumber = "test-phone-123";
       }
     }
@@ -281,10 +295,11 @@ router.post("/whatsapp/webhook", async (req, res) => {
           companyName: customer?.company || 'L\'Altra Italia',
           lastorder: lastOrder ? lastOrder.createdAt.toLocaleDateString() : 'Nessun ordine recente',
           lastordercode: lastOrder?.orderCode || 'N/A',
-          languageUser: customer?.language || 'Italian'
+          languageUser: customer?.language || 'it'
         };
         
         console.log('✅ Variables prepared:', variables);
+        console.log(`🌐 WEBHOOK DEBUG: Customer language is "${customer?.language}", setting languageUser to "${variables.languageUser}"`);
         
         // Replace variables in prompt
         agentPrompt = agentPrompt
@@ -294,6 +309,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
           .replace(/\{\{lastorder\}\}/g, variables.lastorder)
           .replace(/\{\{lastordercode\}\}/g, variables.lastordercode)
           .replace(/\{\{languageUser\}\}/g, variables.languageUser);
+        
+        console.log(`🌐 WEBHOOK DEBUG: Prompt after language substitution contains: ${agentPrompt.includes('languageUser: en') ? 'YES' : 'NO'} "languageUser: en"`);
         
       } catch (error) {
         console.error('❌ Error processing customer data:', error);
@@ -607,6 +624,10 @@ logger.info("Registered analytics routes for dashboard metrics")
 // Mount checkout routes (public - no auth required)
 router.use("/checkout", checkoutRouter)
 logger.info("Registered checkout routes for order processing")
+
+// Mount cart routes (public - no auth required)
+router.use("/cart", cartRouter)
+logger.info("Registered cart routes for cart token validation")
 
 // Add special route for GDPR default content (to handle frontend request to /gdpr/default)
 router.get(

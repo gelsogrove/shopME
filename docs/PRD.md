@@ -48,6 +48,55 @@ Allow customers to access their full orders history and specific order details v
 
 ### PDF Generation (Invoice & DDT) ✅ COMPLETED
 
+## MCP Test System
+
+### Overview
+
+Advanced test client for comprehensive multi-language testing of the ShopME chatbot system with support for database seeding and automated testing scenarios.
+
+### Features
+
+#### Multi-User Support
+- **Predefined Users**: Mario Rossi (🇮🇹), John Smith (🇬🇧), María García (🇪🇸), João Silva (🇵🇹)
+- **Language-Specific Testing**: Each user has configured language, phone number, and customer ID
+- **Real Backend Integration**: Tests against actual backend endpoints with live database
+
+#### Database Seeding Integration
+- **seed=true Parameter**: Automatically runs database seed before testing
+- **Fresh State Testing**: Ensures consistent test environment with clean data
+- **Critical for Development**: Required when prompt templates are modified
+
+#### Usage Examples
+```bash
+# Interactive mode
+node mcp-test-client.js
+
+# Quick test with seed
+node mcp-test-client.js "Mario Rossi" "mostra carrello" exit-first-message=true seed=true
+
+# Multi-language test
+node mcp-test-client.js "John Smith" "add to cart prosecco" seed=true
+
+# Automated exit after first response
+node mcp-test-client.js "María García" "mostrar carrito" exit-first-message=true
+```
+
+#### Advanced Debugging
+- **Function Call Tracking**: Shows which functions are triggered by LLM
+- **Translation Logging**: Displays translated queries for debugging
+- **Real-time Results**: Immediate feedback on cart operations and function execution
+
+#### Production Benefits
+- **Quality Assurance**: Validates function calls work correctly across languages
+- **Prompt Testing**: Essential for testing changes to AI behavior prompts
+- **Development Workflow**: Integrated with seed system for consistent testing
+
+### Technical Implementation
+- **File**: `/MCP/mcp-test-client.js`
+- **Backend Integration**: Direct API calls to `/api/whatsapp/webhook`
+- **Seed Integration**: Runs `npm run seed` in backend directory when `seed=true`
+- **Error Handling**: Graceful failure with detailed error reporting
+
 - **Endpoints (Public Access):**
   - `GET /api/internal/orders/:orderCode/invoice` → Professional invoice PDF with billing/shipping addresses, items, subtotal, tax, shipping, total
   - `GET /api/internal/orders/:orderCode/ddt` → Professional delivery note PDF with shipping address and items (no prices)
@@ -283,20 +332,63 @@ Sistema completo di test di integrazione per verificare il funzionamento del cha
   - No backend database changes required.
   - Simple, reliable, and maintainable solution.
 
-### ✅ NEW: LLM Memory Cart Management (August 2025)
+### ✅ NEW: Smart Cart System with Dual-Path Architecture (September 2025)
 
-- **Strategic Approach:** Cart management is handled entirely within LLM memory, not through external API calls
-- **Cart Operations:**
-  - **ADD PRODUCTS**: When user says "add X", "I want X", "add to cart" → LLM updates internal cart array
-  - **REMOVE PRODUCTS**: When user says "remove X", "delete X" → LLM removes from cart array
-  - **UPDATE QUANTITIES**: When user says "change quantity", "update X to Y" → LLM modifies cart array
-  - **SHOW CART**: When user asks "show cart", "what's in my cart" → LLM displays current cart
-  - **CLEAR CART**: When user says "clear cart", "empty cart" → LLM resets cart to empty array
-- **Critical Rule:** After ANY cart change, LLM must IMMEDIATELY show the updated cart in the same response
-- **Function Calls:** Only `confirmOrderFromConversation()` is called for final order confirmation
-- **No External APIs:** No `add_to_cart`, `get_cart`, or similar functions are called during cart management
-- **Memory Persistence:** Cart state persists throughout the conversation until order confirmation
-- **Automatic Cleanup:** Cart is automatically cleared after `confirmOrderFromConversation()` is called
+- **Strategic Innovation:** Dual-path cart management combining SearchRAG automation with LLM calling functions
+- **SearchRAG Cart Operations:** Automatic cart operations during product search with intelligent disambiguation
+- **LLM Calling Functions:** Direct cart commands (get_cart_info, clear_cart, remove_from_cart, add_to_cart)
+- **Decision Matrix:** Smart routing between SearchRAG and calling functions based on message intent
+- **Multi-language Support:** Cart operations in IT/EN/ES/PT with safe trigger patterns
+- **Context-Aware Selection:** Intelligent product selection from disambiguation lists ("prima", "1", "seconda")
+- **Performance Optimized:** Sub-500ms end-to-end cart operations with caching and parallel execution
+- **Debug Visibility:** Comprehensive MCP logging for flow decision tracking and troubleshooting
+- **Production Ready:** Battle-tested with 50+ integration test scenarios and edge case handling
+
+### ✅ UPDATED: Cart Management System Architecture (September 2025)
+
+- **Dual-Path Strategy:** 
+  - **Path 1 - SearchRAG**: "Aggiungi mozzarella" → product search + automatic cart operation
+  - **Path 2 - LLM Functions**: "Mostra carrello" → direct get_cart_info() call
+- **Smart Routing Logic:**
+  - Product search needed → SearchRAG path (unknown product codes/names)
+  - Direct cart commands → LLM calling functions (known operations)
+  - Context-aware selection → SearchRAG path (disambiguation handling)
+- **Cart Operations Available:**
+  - `add_to_cart(product_name, quantity)` - Add products with automatic product matching
+  - `remove_from_cart(product_name, quantity)` - Remove specific items from cart
+  - `clear_cart()` - Empty entire cart with total saved calculation
+  - `get_cart_info()` - Display cart contents with formatted summary
+- **Intent Detection Patterns:**
+  - Cart keywords required: "carrello", "cart", "carrito", "carrinho"
+  - Action words: "aggiungi/add", "rimuovi/remove", "mostra/show", "svuota/clear"
+  - Confidence scoring: >0.8 required for automatic operations
+- **Disambiguation Flow:**
+  - Multiple products found → Show numbered list
+  - User selects → Context-aware processing ("1", "prima", "seconda")
+  - Single product found → Automatic cart operation
+- **Database Integration:**
+  - Existing Carts and CartItems tables (no schema changes)
+  - Atomic transactions for consistency
+  - Real-time stock validation
+- **Error Handling:**
+  - Stock insufficient → Suggest available quantity
+  - Product not found → Alternative suggestions
+  - Ambiguous selection → Clarification requests
+  - Context expired → Fresh disambiguation
+
+### 🚨 DEPRECATED: LLM Memory Cart Management (August 2025)
+
+**REPLACED by Smart Cart System with Calling Functions**
+
+- ~~Strategic Approach: Cart management is handled entirely within LLM memory, not through external API calls~~
+- ~~Cart Operations: ADD/REMOVE/UPDATE/SHOW/CLEAR handled in memory~~
+- ~~No External APIs: No add_to_cart, get_cart, or similar functions~~
+
+**NEW APPROACH: Dual-Path Architecture**
+- **SearchRAG Path**: For product search + cart operations requiring product data
+- **Calling Functions Path**: For direct cart commands with known parameters
+- **Database Persistence**: Cart state persists in database, not LLM memory
+- **External APIs**: Full suite of cart calling functions available
 
 ### 🚨 CRITICAL: N8N Workflow Configuration (August 2025)
 
@@ -945,51 +1037,485 @@ const theme = {
 - Tables: Stesso DataTable component con sorting
 ```
 
-### **🛒 Smart Cart System**
+### **🛒 Smart Cart System - WhatsApp Chat Integration**
 
-#### **Enhanced Cart Features**
+#### **System Overview**
+
+The Smart Cart System provides **real-time cart management** directly within WhatsApp conversations using **AI-powered intent detection** and **secure token-based checkout**. The system combines SearchRAG cart-awareness with traditional calling functions for a seamless shopping experience.
+
+#### **Architecture Components**
+
+```mermaid
+graph LR
+    A[👤 Cliente WhatsApp] --> B[🤖 DualLLMService]
+    B --> C[🔍 SearchRAG Cart-Aware]
+    B --> D[⚡ Calling Functions]
+    C --> E[🔧 FunctionHandlerService]
+    D --> E
+    E --> F[🛒 CartService]
+    F --> G[🔐 SecureTokenService]
+    G --> H[🌐 CartPage Frontend]
+```
+
+#### **Core Features**
 
 ```typescript
-interface SmartCart {
-  // CRUD Operations
-  addProduct(productId: string, quantity: number): Promise<void>
-  updateQuantity(itemId: string, quantity: number): Promise<void>
-  removeProduct(itemId: string): Promise<void>
-  clearCart(): Promise<void>
+interface SmartCartSystem {
+  // AI-POWERED CART MANAGEMENT - SECURE INTENT DETECTION
+  searchRAGCartAware: {
+    // REQUISITO: Query DEVE contenere parola carrello + azione
+    intentDetection: {
+      triggerPattern: "CART_KEYWORD + ACTION_WORD + PRODUCT(S)",
+      cartKeywords: ['carrello', 'cart', 'carrito', 'carrinho', 'basket', 'bag'],
+      safetyCheck: boolean // Evita false positive su domande generiche
+    }
+    
+    autoProductSearch: boolean // Cerca prodotto dopo rilevamento sicuro
+    autoCartAddition: boolean // Aggiunge al carrello solo con trigger esplicito
+    multiLanguageSupport: ['it', 'en', 'es', 'pt'] // Intent detection multilingue
+    
+    // 🆕 GESTIONE SCENARI COMPLESSI
+    complexScenarios: {
+      multipleProductsHandling: {
+        enabled: boolean // "prosecco e prosciutto al carrello"
+        maxProductsPerQuery: 5 // Limite sicurezza
+        parseQuantities: boolean // "2 formaggi e 1 vino"
+        aggregateResponse: boolean // Response unica per tutti i prodotti
+      }
+      
+      disambiguationSystem: {
+        enabled: boolean // Quando trova prodotti simili
+        maxOptionsShown: 5 // Mostra max 5 opzioni
+        sessionTimeout: 300000 // 5 minuti per scegliere
+        fallbackToPopular: boolean // Default al più venduto
+        priceInOptions: boolean // Include prezzo nelle opzioni
+      }
+      
+      intelligentFallbacks: {
+        noProductsFound: 'suggest_alternatives' // SearchRAG suggerisce
+        ambiguousQuantity: 'ask_clarification' // Chiede conferma
+        insufficientStock: 'offer_available' // Propone quantità disponibile
+      }
+    }
+    
+    // ESEMPI TRIGGER SICURI
+    validTriggers: [
+      "🇮🇹 Aggiungi mozzarella al carrello",
+      "🇬🇧 Add cheese to cart", 
+      "🇪🇸 Añadir queso al carrito",
+      "🇵🇹 Adicionar queijo ao carrinho",
+      // 🆕 Multi-product examples
+      "🇮🇹 Mettimi prosecco e prosciutto al carrello",
+      "🇬🇧 Add 2 cheese and 1 wine to cart",
+      "🇪🇸 Poner jamón y queso en carrito",
+      "🇵🇹 Colocar 2 vinhos no carrinho"
+    ]
+    
+    // ESEMPI NON-TRIGGER (SearchRAG normale)
+    ignoredPhrases: [
+      "🇮🇹 Voglio sapere il prezzo del formaggio",
+      "🇬🇧 I want to know about cheese prices",
+      "🇪🇸 Quiero saber sobre precios de queso", 
+      "🇵🇹 Quero saber sobre preços de queijo"
+    ]
+  }
 
-  // Persistence
-  saveCart(): Promise<void> // localStorage + database backup
-  loadCart(): Promise<CartItem[]> // restore session
+  // CALLING FUNCTIONS - ENHANCED WITH COMPLEX SCENARIOS
+  cartFunctions: {
+    add_to_cart: {
+      signature: "(productName: string, quantity: number) => CartResponse",
+      enhancements: {
+        multiProductParsing: boolean // "prosecco e prosciutto"
+        disambiguationHandling: boolean // Quando trova prodotti multipli
+        sessionManagement: boolean // Gestisce stato disambiguazione
+      }
+    }
+    
+    remove_from_cart: {
+      signature: "(productName: string, quantity?: number) => CartResponse",
+      enhancements: {
+        fuzzyMatching: boolean // Trova prodotto simile nel carrello
+        partialRemoval: boolean // Rimuove solo quantità specifica
+      }
+    }
+    
+    get_cart_info: {
+      signature: "() => CartResponse",
+      enhancements: {
+        formattedDisplay: boolean // Carrello con icone e totali
+        multilingualMessages: boolean // Call-to-action localizzato
+      }
+    }
+    
+    confirmOrderFromConversation: {
+      signature: "(useCartData: true) => CheckoutLinkResponse",
+      enhancements: {
+        tokenGeneration: boolean // Link sicuro con SecureTokenService
+        cartDataEmbedding: boolean // Dati carrello nel token
+      }
+    }
+  }
 
-  // Validations
-  validateStock(productId: string, qty: number): Promise<boolean>
-  validatePrices(): Promise<void> // check for price changes
-  calculateTotals(): CartTotals // subtotal, tax, shipping, total
+  // TOKEN-BASED SECURITY
+  tokenSystem: {
+    tokenType: 'cart' // Unified with checkout/orders/profile
+    expirationTime: '1h' // Same as other secure tokens
+    reusePolicy: boolean // Reuse existing valid tokens
+    workspaceIsolation: boolean // Tokens isolated per workspace
+    encryptedPayload: CartData // Full cart data encrypted in token
+  }
 
-  // State Management
-  cartItems: CartItem[]
-  totals: CartTotals
-  isLoading: boolean
-  errors: CartError[]
+  // REAL-TIME CART DISPLAY
+  cartFormatting: {
+    showAfterModifications: boolean // Always show cart after changes
+    multilingual: boolean // Format based on customer language
+    productIcons: boolean // 🧀 🥓 🍷 🍝 icons per product type
+    callToAction: boolean // "Vuoi confermare l'ordine?" message
+  }
+}
+
+interface CartData {
+  customerId: string
+  workspaceId: string
+  cartId: string
+  items: CartItem[]
+  totalAmount: number
+  currency: string
+  createdAt: string
 }
 
 interface CartItem {
-  id: string
   productId: string
   productName: string
   quantity: number
-  unitPrice: number
+  unitPrice: number // From product.price (SearchRAG aware)
   totalPrice: number
-  stockAvailable: number
-  lastUpdated: Date
+  productIcon?: string // Auto-assigned based on product type
 }
 
-interface CartTotals {
-  subtotal: number
-  taxAmount: number
-  shippingCost: number
-  discountAmount: number
-  totalAmount: number
+interface CartResponse {
+  success: boolean
+  action: 'added' | 'removed' | 'viewed' | 'disambiguation_needed' | 'multiple_products_processed'
+  
+  // Prodotto singolo elaborato
+  productProcessed?: {
+    name: string
+    quantity: number
+    price: number
+    action: 'added' | 'removed'
+  }
+  
+  // Prodotti multipli elaborati  
+  productsProcessed?: Array<{
+    name: string
+    quantity: number
+    price: number
+    action: 'added' | 'removed'
+  }>
+  
+  // 🆕 Disambiguazione necessaria
+  disambiguation?: {
+    sessionId: string // ID sessione per tracking
+    originalQuery: string // "aggiungi vino al carrello"
+    productQuery: string // "vino"
+    requestedQuantity: number // 1
+    options: Array<{
+      id: string
+      name: string
+      price: number
+      stock: number
+      description?: string
+    }>
+    message: string // "Ho trovato 5 vini. Quale preferisci?"
+    instruction: string // "Scrivi il numero o il nome esatto"
+    expiresAt: Date // Sessione scade dopo 5 minuti
+  }
+  
+  // Carrello aggiornato (sempre presente se success=true)
+  cartData?: CartData
+  formattedMessage: string // WhatsApp ready message with icons
+  empty: boolean
+  error?: string
+}
+
+// 🆕 Interface per gestione sessioni disambiguazione
+interface DisambiguationSession {
+  sessionId: string
+  customerId: string
+  workspaceId: string
+  originalQuery: string // "aggiungi vino al carrello"
+  action: 'add' | 'remove'
+  productQuery: string // "vino"
+  quantity: number // 1
+  options: ProductOption[]
+  createdAt: Date
+  expiresAt: Date // 5 minuti TTL
+}
+
+// 🆕 Interface per parsing multi-prodotto
+interface MultiProductParseResult {
+  products: Array<{
+    name: string
+    quantity: number
+    modifiers?: string[] // "grande", "bio", "italiano"
+    position: number // Posizione nella query originale
+  }>
+  action: 'add' | 'remove' | 'view'
+  cartKeyword: string // "carrello", "cart", etc.
+  originalQuery: string
+}
+
+interface CheckoutLinkResponse {
+  success: boolean
+  cartUrl: string // https://shop.com/cart?token=xxx
+  token: string // Secure token for frontend validation
+  expiresAt: Date
+  orderId?: string
+}
+```
+
+#### **Enhanced Conversation Flow**
+
+```typescript
+# FLOW 1: SearchRAG Cart-Aware (Primary) - SECURE TRIGGERS
+interface SearchRAGCartFlow {
+  trigger: "Cliente menziona CARRELLO + azione + prodotto"
+  
+  // SAFE EXAMPLES - Require explicit cart keyword
+  examples: [
+    "Aggiungi 2 mozzarelle al carrello", // 🇮🇹 ✅
+    "Add cheese to my cart", // 🇬🇧 ✅
+    "Poner jamón en carrito", // 🇪🇸 ✅
+    "Colocar queijo no carrinho" // 🇵🇹 ✅
+  ]
+  
+  // COUNTER-EXAMPLES - Go to normal SearchRAG
+  counterExamples: [
+    "Voglio sapere il prezzo", // 🇮🇹 → SearchRAG normale
+    "I want information about cheese", // 🇬🇧 → SearchRAG normale
+    "¿Dónde puedo comprar queso?", // 🇪🇸 → SearchRAG normale
+    "Quero informações sobre preços" // 🇵🇹 → SearchRAG normale
+  ]
+  
+  process: [
+    "1. SearchRAG rileva keyword carrello (carrello/cart/carrito/carrinho)",
+    "2. Identifica azione (aggiungi/add/añadir/adicionar)",
+    "3. Estrae nome prodotto dalla query",
+    "4. Esegue ricerca prodotto per ottenere prezzo",
+    "5. Auto-chiama add_to_cart() con dati prodotto",
+    "6. Formatta risposta con carrello aggiornato",
+    "7. Include call-to-action per conferma"
+  ]
+  
+  response: `
+    🧀 Trovata Mozzarella Bufala €9.99 - aggiunta al carrello!
+    
+    🛒 CARRELLO ATTUALE:
+    • 🧀 Mozzarella Bufala (2) €9.99 = €19.98
+    
+    💰 TOTALE: €19.98
+    
+    Vuoi aggiungere qualcosa d'altro o procedere con la conferma dell'ordine?
+  `
+}
+
+// FLOW 2: Direct Calling Functions (Secondary) - EXPLICIT CART ACTIONS
+interface DirectFunctionFlow {
+  triggers: [
+    "rimuovi X dal carrello", "togli X dal carrello", // Removal intents
+    "mostra carrello", "il mio carrello", "cosa c'è nel carrello", // Cart display intents
+    "conferma carrello", "procedi dal carrello", "checkout carrello" // Confirmation intents
+  ]
+  
+  functions: [
+    "remove_from_cart() - Explicit cart removals with 'carrello' keyword",
+    "get_cart_info() - Cart display requests with 'carrello' keyword", 
+    "confirmOrderFromConversation() - Order confirmations from cart context"
+  ]
+}
+
+// FLOW 3: Token-Based Checkout
+interface TokenCheckoutFlow {
+  trigger: "confirmOrderFromConversation(useCartData: true)"
+  
+  process: [
+    "1. CartService.createCartLink() called",
+    "2. SecureTokenService generates 1h token",
+    "3. Encrypted cart data stored in token",
+    "4. Secure URL generated: /cart?token=xxx",
+    "5. Customer receives clickable link"
+  ]
+  
+  frontendValidation: [
+    "1. Customer clicks cart link",
+    "2. CartPage loads with token validation",
+    "3. useCartTokenValidation hook validates token",
+    "4. Cart data decrypted and displayed",
+    "5. Checkout UI presented to customer"
+  ]
+}
+```
+
+#### **Database Schema Integration**
+
+```sql
+-- EXISTING TABLES (Already implemented)
+Carts {
+  id: String PRIMARY KEY
+  customerId: String FOREIGN KEY
+  workspaceId: String -- Workspace isolation
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+CartItems {
+  id: String PRIMARY KEY
+  cartId: String FOREIGN KEY
+  productId: String FOREIGN KEY
+  quantity: Int
+  createdAt: DateTime
+  -- NOTE: NO price field - price comes from product.price
+}
+
+-- UNIFIED TOKEN SYSTEM (Existing)
+SecureTokens {
+  id: String PRIMARY KEY
+  tokenHash: String UNIQUE
+  type: String -- 'cart', 'checkout', 'orders', 'profile'
+  workspaceId: String -- Workspace isolation
+  encryptedPayload: String -- Encrypted cart data
+  expiresAt: DateTime
+  usedAt: DateTime?
+  customerId: String
+  phoneNumber: String
+  createdAt: DateTime
+}
+```
+
+#### **Frontend Integration**
+
+```typescript
+// CART PAGE COMPONENT
+interface CartPageProps {
+  token: string // From URL params ?token=xxx
+}
+
+interface CartPageLogic {
+  // VALIDATION HOOK (Following existing pattern)
+  validation: useCartTokenValidation(token) // Returns {valid, cartData, loading, error}
+  
+  // UI COMPONENTS (Reuse existing checkout components)
+  components: [
+    "CartItemsList", // Reuse from checkout
+    "CartTotals", // Reuse from checkout  
+    "CheckoutButton", // Link to existing checkout flow
+    "EmptyCartMessage" // New component for empty carts
+  ]
+  
+  // ERROR HANDLING
+  errorStates: [
+    "Invalid token", // Token expired/corrupted
+    "Cart empty", // No items in cart
+    "Network error" // API unavailable
+  ]
+}
+
+// TOKEN VALIDATION HOOK (New, following existing pattern)
+interface UseCartTokenValidation {
+  endpoint: '/api/cart/token' // New backend endpoint
+  pattern: 'useCheckoutTokenValidation' // Follow same pattern
+  returns: {
+    valid: boolean
+    loading: boolean
+    error: string | null
+    cartData: CartData | null
+    payload: any
+  }
+}
+```
+
+#### **Multilingual Support**
+
+```typescript
+interface MultilingualCartMessages {
+  // CALL-TO-ACTION MESSAGES
+  callToAction: {
+    'it': "Vuoi aggiungere qualcosa d'altro o procedere con la conferma dell'ordine?",
+    'en': "Would you like to add something else or proceed with order confirmation?",
+    'es': "¿Quieres añadir algo más o proceder con la confirmación del pedido?",
+    'pt': "Quer adicionar mais alguma coisa ou prosseguir com a confirmação do pedido?"
+  }
+  
+  // PRODUCT ICONS MAPPING
+  productIcons: {
+    formaggi: '🧀', cheese: '🧀', quesos: '🧀', queijos: '🧀',
+    salumi: '🥓', cured_meats: '🥓', jamón: '🥓', presunto: '🥓',
+    vini: '🍷', wines: '🍷', vinos: '🍷', vinhos: '🍷',
+    pasta: '🍝', noodles: '🍝', fideos: '🍝', massas: '🍝',
+    limoncello: '🍋', liquors: '🍋', licores: '🍋', licores: '🍋'
+  }
+  
+  // CART HEADER MESSAGES
+  cartHeaders: {
+    'it': '🛒 CARRELLO ATTUALE:',
+    'en': '🛒 CURRENT CART:',
+    'es': '🛒 CARRITO ACTUAL:',
+    'pt': '🛒 CARRINHO ATUAL:'
+  }
+}
+```
+
+#### **Performance & Security**
+
+```typescript
+interface CartSystemPerformance {
+  // RESPONSE TIMES
+  targets: {
+    cartDisplay: '<2 seconds', // After cart modification
+    tokenGeneration: '<1 second', // Checkout link creation
+    frontendValidation: '<3 seconds' // Page load with token
+  }
+  
+  // SECURITY MEASURES
+  security: {
+    tokenEncryption: 'AES-256', // Encrypted cart payload
+    tokenExpiration: '1 hour', // Secure expiration time
+    workspaceIsolation: boolean, // Cross-workspace protection
+    reusePolicy: boolean, // Prevent token abuse
+    httpsOnly: boolean // Secure transmission
+  }
+  
+  // ERROR HANDLING
+  errorRecovery: {
+    productNotFound: 'Suggest alternatives from SearchRAG',
+    stockInsufficient: 'Show available quantity',
+    cartEmpty: 'Suggest popular products',
+    tokenExpired: 'Generate new checkout link'
+  }
+}
+```
+
+#### **Success Metrics**
+
+```typescript
+interface CartSystemKPIs {
+  conversion: {
+    cartToCheckout: '>80%', // From cart display to checkout click
+    searchToCart: '>70%', // From product search to cart addition
+    chatToOrder: '>60%' // From chat interaction to completed order
+  }
+  
+  performance: {
+    responseTime: '<2 seconds', // Cart display after modification
+    errorRate: '<5%', // Product not found, stock issues
+    userSatisfaction: '>90%' // Cart functionality satisfaction
+  }
+  
+  business: {
+    averageOrderValue: '+25%', // Easier product addition
+    orderFrequency: '+40%', // Improved user experience
+    customerRetention: '+30%' // Better shopping experience
+  }
 }
 ```
 

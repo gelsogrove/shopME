@@ -1,26 +1,70 @@
 #!/usr/bin/env node
 
 /**
- * 🤖 MCP CHAT TEST CLIENT
+ * 🤖 MCP CHAT TEST CLIENT - ADVANCED VERSION
  *
  * Client per testare le chiamate reali al backend ShopME
- * utilizzando l'API/webhook esistente
+ * con supporto per utenti multipli e test automatici
+ * 
+ * Usage:
+ *   node mcp-test-client.js [user] [message] [exit-first-message=true] [seed=true]
+ * 
+ * Examples:
+ *   node mcp-test-client.js "Mario Rossi" "aggiungi una mozzarella" exit-first-message=true
+ *   node mcp-test-client.js "John Smith" "add to cart prosecco" seed=true
+ *   node mcp-test-client.js "Mario Rossi" "mostra carrello" exit-first-message=true seed=true
+ *   node mcp-test-client.js (interactive mode)
  */
 
 const axios = require("axios");
 const readline = require("readline");
 
-// Configurazione
+// Configurazione utenti predefiniti (multilingue)
+const USERS = {
+  "Mario Rossi": {
+    customerId: "3c9fce96-5397-5c9f-9f8e-3d4f5a6b7890",
+    customerPhone: "+34666888999",
+    customerName: "Mario Rossi",
+    language: "it",
+    flag: "🇮🇹"
+  },
+  "John Smith": {
+    customerId: "user-en-001",
+    customerPhone: "+44123456789", 
+    customerName: "John Smith",
+    language: "en",
+    flag: "🇬🇧"
+  },
+  "María García": {
+    customerId: "user-es-001",
+    customerPhone: "+34600123456",
+    customerName: "María García", 
+    language: "es",
+    flag: "🇪🇸"
+  },
+  "João Silva": {
+    customerId: "user-pt-001",
+    customerPhone: "+351912345678",
+    customerName: "João Silva",
+    language: "pt", 
+    flag: "🇵🇹"
+  }
+};
+
+// Configurazione base
 const CONFIG = {
-  backendUrl: "http://localhost:3001", // Assicurati che questo punti al tuo server locale
-  apiEndpoint: "/api/whatsapp/webhook", // Endpoint corretto con prefisso /api
-  customerId: "3c9fce96-5397-5c9f-9f8e-3d4f5a6b7890", // ID di Mario Rossi
-  customerPhone: "+34666888999",
-  customerName: "Mario Rossi"
+  backendUrl: "http://localhost:3001",
+  apiEndpoint: "/api/whatsapp/webhook",
+  defaultUser: "Mario Rossi"
 };
 
 class MCPTestClient {
-  constructor() {
+  constructor(selectedUser = null, testMessage = null, exitAfterFirst = false, runSeed = false, showLogs = false) {
+    this.selectedUser = selectedUser || CONFIG.defaultUser;
+    this.testMessage = testMessage;
+    this.exitAfterFirst = exitAfterFirst;
+    this.runSeed = runSeed;
+    this.showLogs = showLogs;
     this.sessionActive = false;
     this.sessionData = {
       messages: [],
@@ -44,15 +88,127 @@ class MCPTestClient {
       magenta: "\x1b[35m",
       cyan: "\x1b[36m",
     };
+
+    // Se showLogs è attivo, avvia il monitoraggio dei log del server
+    if (this.showLogs) {
+      this.startServerLogMonitoring();
+    }
+  }
+
+  // Monitora i log del server in tempo reale
+  startServerLogMonitoring() {
+    const { spawn } = require('child_process');
+    
+    console.log(`${this.colors.cyan}📡 Avviando monitoraggio log del server...${this.colors.reset}`);
+    console.log(`${this.colors.cyan}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${this.colors.reset}`);
+    
+    // Avvia il processo per leggere i log del server
+    this.logProcess = spawn('tail', ['-f', '../backend/logs/whatsapp-' + new Date().toISOString().split('T')[0] + '.log'], {
+      stdio: 'pipe'
+    });
+    
+    this.logProcess.stdout.on('data', (data) => {
+      const logLine = data.toString().trim();
+      if (logLine) {
+        console.log(`${this.colors.cyan}📋 SERVER LOG: ${logLine}${this.colors.reset}`);
+      }
+    });
+    
+    this.logProcess.stderr.on('data', (data) => {
+      // Ignora errori di tail se il file non esiste ancora
+    });
+    
+    this.logProcess.on('error', (error) => {
+      console.log(`${this.colors.yellow}⚠️  Log monitoring failed: ${error.message}${this.colors.reset}`);
+    });
+  }
+
+  // Ferma il monitoraggio dei log
+  stopServerLogMonitoring() {
+    if (this.logProcess) {
+      this.logProcess.kill();
+      console.log(`${this.colors.cyan}📡 Monitoraggio log del server fermato${this.colors.reset}`);
+    }
+  }
+
+  // Ottieni configurazione utente
+  getUserConfig() {
+    const user = USERS[this.selectedUser];
+    if (!user) {
+      throw new Error(`User "${this.selectedUser}" not found. Available users: ${Object.keys(USERS).join(', ')}`);
+    }
+    return user;
+  }
+  
+  // Esegue il seed del database
+  async runDatabaseSeed() {
+    const { spawn } = require('child_process');
+    
+    console.log(`${this.colors.yellow}🌱 Eseguendo seed del database...${this.colors.reset}`);
+    
+    return new Promise((resolve, reject) => {
+      const seedProcess = spawn('npm', ['run', 'seed'], {
+        cwd: '../backend',
+        stdio: 'pipe'
+      });
+      
+      let output = '';
+      let errorOutput = '';
+      
+      seedProcess.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+      
+      seedProcess.stderr.on('data', (data) => {
+        errorOutput += data.toString();
+      });
+      
+      seedProcess.on('close', (code) => {
+        if (code === 0) {
+          console.log(`${this.colors.green}✅ Seed completato con successo!${this.colors.reset}`);
+          resolve();
+        } else {
+          console.error(`${this.colors.red}❌ Errore durante il seed: ${errorOutput}${this.colors.reset}`);
+          reject(new Error(`Seed failed with code ${code}`));
+        }
+      });
+      
+      seedProcess.on('error', (error) => {
+        console.error(`${this.colors.red}❌ Errore durante l'esecuzione del seed: ${error.message}${this.colors.reset}`);
+        reject(error);
+      });
+    });
   }
   
   // Inizializza la sessione
-  start() {
-    console.log(`${this.colors.blue}=== MCP CHAT TEST CLIENT ===${this.colors.reset}`);
-    console.log(`${this.colors.green}Connesso come: ${CONFIG.customerName} (${CONFIG.customerPhone})${this.colors.reset}`);
-    console.log(`${this.colors.yellow}Server: ${CONFIG.backendUrl}${this.colors.reset}`);
-    console.log(`${this.colors.cyan}Scrivi i tuoi messaggi. Digita EXIT per uscire.${this.colors.reset}`);
+  async start() {
+    // Esegui seed se richiesto
+    if (this.runSeed) {
+      try {
+        await this.runDatabaseSeed();
+      } catch (error) {
+        console.error(`${this.colors.red}❌ Errore durante il seed, continuando comunque...${this.colors.reset}`);
+      }
+    }
     
+    const userConfig = this.getUserConfig();
+    
+    console.log(`${this.colors.blue}=== MCP CHAT TEST CLIENT ===${this.colors.reset}`);
+    console.log(`${this.colors.green}${userConfig.flag} Connesso come: ${userConfig.customerName} (${userConfig.customerPhone})${this.colors.reset}`);
+    console.log(`${this.colors.yellow}Server: ${CONFIG.backendUrl}${this.colors.reset}`);
+    
+    if (this.testMessage) {
+      console.log(`${this.colors.magenta}🤖 AUTO-TEST MODE: "${this.testMessage}"${this.colors.reset}`);
+      this.sessionActive = true;
+      await this.sendMessage(this.testMessage);
+      if (this.exitAfterFirst) {
+        console.log(`${this.colors.cyan}✅ Test completato - uscita automatica${this.colors.reset}`);
+        this.stop();
+        return;
+      }
+    }
+    
+    console.log(`${this.colors.cyan}Scrivi i tuoi messaggi. Digita EXIT per uscire.${this.colors.reset}`);
     this.sessionActive = true;
     this.promptUser();
   }
@@ -218,20 +374,32 @@ Cosa desideri fare?
   // Invia il messaggio al backend
   async sendMessage(message) {
     try {
+      const userConfig = this.getUserConfig();
+      
       // Aggiungi il messaggio utente allo storico locale per il client
       this.sessionData.messages.push({
         role: 'user',
         content: message
       });
 
-      // Payload nel formato che si aspetta il backend
-      // NON inviamo messages perché il backend gestisce lo storico automaticamente dal database
+      // Payload nel formato WhatsApp che si aspetta il backend
+      // Questo formato usa il phone number per identificare il customer
       const payload = {
-        chatInput: message,
-        customerid: CONFIG.customerId,
-        workspaceId: "cm9hjgq9v00014qk8fsdy4ujv"
-        // messages: rimosso per evitare duplicazioni - il backend gestisce lo storico
+        entry: [{
+          changes: [{
+            value: {
+              messages: [{
+                from: userConfig.customerPhone,
+                text: {
+                  body: message
+                }
+              }]
+            }
+          }]
+        }]
       };
+      
+      console.log(`${this.colors.cyan}🔍 Sending WhatsApp format payload to server:${this.colors.reset}`, JSON.stringify(payload, null, 2));
       
       // Effettua la chiamata API reale
       const response = await axios.post(
@@ -243,6 +411,9 @@ Cosa desideri fare?
           }
         }
       );
+      
+      console.log(`${this.colors.cyan}🔍 Response status:${this.colors.reset}`, response.status);
+      console.log(`${this.colors.cyan}🔍 Response data:${this.colors.reset}`, JSON.stringify(response.data, null, 2));
       
       if (response.status === 200) {
         // Mostra la risposta del LLM
@@ -335,10 +506,69 @@ Cosa desideri fare?
   endSession() {
     console.log(`${this.colors.blue}Sessione terminata.${this.colors.reset}`);
     this.sessionActive = false;
+    this.stopServerLogMonitoring();
     this.rl.close();
+  }
+
+  // Metodo per terminare forzatamente (per test automatici)
+  stop() {
+    this.sessionActive = false;
+    this.stopServerLogMonitoring();
+    if (this.rl) {
+      this.rl.close();
+    }
+    process.exit(0);
   }
 }
 
+// Parser parametri linea di comando
+function parseArgs() {
+  const args = process.argv.slice(2);
+  
+  if (args.length === 0) {
+    return { interactive: true };
+  }
+
+  // Mostra utenti disponibili se richiesto
+  if (args[0] === '--users' || args[0] === '-u') {
+    console.log('\n🌍 UTENTI DISPONIBILI:');
+    Object.entries(USERS).forEach(([name, config]) => {
+      console.log(`  ${config.flag} ${name} (${config.language}) - ${config.customerPhone}`);
+    });
+    console.log('\nEsempi:');
+    console.log('  node mcp-test-client.js "Mario Rossi" "aggiungi una mozzarella" exit-first-message=true');
+    console.log('  node mcp-test-client.js "John Smith" "add to cart prosecco" seed=true log=true');
+    console.log('  node mcp-test-client.js "Mario Rossi" "mostra carrello" exit-first-message=true seed=true log=true');
+    console.log('  node mcp-test-client.js (modalità interattiva)\n');
+    console.log('Parametri disponibili:');
+    console.log('  seed=true           - Esegue il seed del database prima del test');
+    console.log('  log=true            - Mostra i log del server in tempo reale');
+    console.log('  exit-first-message=true - Esce dopo il primo messaggio\n');
+    process.exit(0);
+  }
+
+  const selectedUser = args[0];
+  const testMessage = args[1] || null;
+  const exitAfterFirst = args.includes('exit-first-message=true');
+  const runSeed = args.includes('seed=true');
+  const showLogs = args.includes('log=true');
+
+  return { selectedUser, testMessage, exitAfterFirst, runSeed, showLogs };
+}
+
 // Avvia il client
-const client = new MCPTestClient();
-client.start();
+const { interactive, selectedUser, testMessage, exitAfterFirst, runSeed, showLogs } = parseArgs();
+
+if (interactive) {
+  console.log('\n🌍 Modalità interattiva - Utenti disponibili:');
+  Object.entries(USERS).forEach(([name, config]) => {
+    console.log(`  ${config.flag} ${name}`);
+  });
+  console.log('\nPer test automatici: node mcp-test-client.js --users\n');
+}
+
+const client = new MCPTestClient(selectedUser, testMessage, exitAfterFirst, runSeed, showLogs);
+client.start().catch(error => {
+  console.error('❌ Errore avvio client:', error.message);
+  process.exit(1);
+});

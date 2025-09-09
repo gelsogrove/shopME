@@ -4,6 +4,8 @@ import { CallingFunctionsService } from "./calling-functions.service"
 import { EmbeddingService } from "./embeddingService"
 import { TranslationService } from "./translation.service"
 import { ContactOperator } from "../chatbot/calling-functions/ContactOperator"
+import { FunctionHandlerService } from "../application/services/function-handler.service"
+import { FormatterService } from "./formatter.service"
 
 interface PromptVariables {
   nameUser: string
@@ -18,6 +20,7 @@ export class DualLLMService {
   private callingFunctionsService: CallingFunctionsService
   private translationService: TranslationService
   private embeddingService: EmbeddingService
+  private functionHandlerService: FunctionHandlerService
   private openRouterApiKey: string
   private openRouterUrl: string
   private backendUrl: string
@@ -29,6 +32,7 @@ export class DualLLMService {
     this.callingFunctionsService = new CallingFunctionsService()
     this.translationService = new TranslationService()
     this.embeddingService = new EmbeddingService()
+    this.functionHandlerService = new FunctionHandlerService()
     this.openRouterApiKey = process.env.OPENROUTER_API_KEY || ""
     this.openRouterUrl = "https://openrouter.ai/api/v1/chat/completions"
     this.backendUrl = process.env.BACKEND_URL || "http://localhost:3001"
@@ -214,18 +218,29 @@ export class DualLLMService {
     })
 
     try {
-      // Translate query
-      console.log(
-        "🌐 About to call translation service for:",
-        request.chatInput
-      )
-      const hasConversationHistory = request.messages && request.messages.length > 0;
-      const translatedQuery = await this.translationService.translateToEnglish(
-        request.chatInput,
-        hasConversationHistory // 🔧 Pass conversation history info
-      )
+      // Check if translation is needed
+      const userLanguage = request.language || 'it'
+      let translatedQuery: string
+      
+      if (userLanguage === 'en' || userLanguage === 'English') {
+        // Skip translation for English users
+        translatedQuery = request.chatInput
+        console.log("🇬🇧 User is English - skipping translation, using original query:", translatedQuery)
+      } else {
+        // Translate query for non-English users
+        console.log(
+          "🌐 About to call translation service for:",
+          request.chatInput
+        )
+        const hasConversationHistory = request.messages && request.messages.length > 0;
+        translatedQuery = await this.translationService.translateToEnglish(
+          request.chatInput,
+          hasConversationHistory // 🔧 Pass conversation history info
+        )
+        console.log("🔧 Translated query:", translatedQuery)
+      }
+      
       this.lastTranslatedQuery = translatedQuery // Store for debug
-      console.log("🔧 Translated query:", translatedQuery)
 
       // Get function definitions
       const functionDefinitions = this.getRAGProcessorFunctionDefinitions()
@@ -248,7 +263,26 @@ export class DualLLMService {
 
       // Usa prompt dell'agent dal DB
       systemMessage = request.prompt
-      console.log("🔧 Cloud Functions: Using agent prompt from DB")
+      
+      // Add critical language enforcement based on language parameter  
+      const languageParam = request.language || 'it'
+      let languageEnforcement = ""
+      
+      if (languageParam === 'en' || languageParam === 'English') {
+        languageEnforcement = `🚨 CRITICAL LANGUAGE RULE: You MUST respond ONLY in ENGLISH. Do NOT use Italian, Spanish, or Portuguese. Every word must be in English.\n\n`
+      } else if (languageParam === 'es' || languageParam === 'Spanish') {
+        languageEnforcement = `🚨 CRITICAL LANGUAGE RULE: You MUST respond ONLY in SPANISH. Do NOT use Italian, English, or Portuguese. Every word must be in Spanish.\n\n`
+      } else if (languageParam === 'pt' || languageParam === 'Portuguese') {
+        languageEnforcement = `🚨 CRITICAL LANGUAGE RULE: You MUST respond ONLY in PORTUGUESE. Do NOT use Italian, English, or Spanish. Every word must be in Portuguese.\n\n`
+      } else {
+        languageEnforcement = `🚨 CRITICAL LANGUAGE RULE: You MUST respond ONLY in ITALIAN. Do NOT use English, Spanish, or Portuguese. Every word must be in Italian.\n\n`
+      }
+      
+      // Prepend language enforcement to system message
+      systemMessage = languageEnforcement + systemMessage
+      
+      console.log(`🔧 Cloud Functions: Using agent prompt from DB with language enforcement for: ${languageParam}`)
+      console.log(`🌐 Language enforcement added: ${languageEnforcement.substring(0, 50)}...`)
 
       const openRouterPayload = {
         model: agentConfig.model || "openai/gpt-4o",
@@ -386,6 +420,15 @@ export class DualLLMService {
       const productResults = ragResponse.data.results.products || [];
       const serviceResults = ragResponse.data.results.services || [];
       const faqResults = ragResponse.data.results.faqs || [];
+      
+      // ✨ Cart-awareness data from SearchRAG
+      const cartIntent = ragResponse.data.cartIntent || null;
+      const cartOperation = ragResponse.data.cartOperation || null;
+
+      console.log("🛒 CART INTENT ANALYSIS:", JSON.stringify(cartIntent, null, 2));
+      if (cartOperation) {
+        console.log("🛒 CART OPERATION RESULT:", JSON.stringify(cartOperation, null, 2));
+      }
 
       const allResults = [
         ...productResults.map((r) => ({ ...r, type: "product" })),
@@ -437,10 +480,27 @@ export class DualLLMService {
         contentPreview: result.content ? result.content.substring(0, 100) + '...' : 'No content'
       }))
 
+      // ✨ Add cart operation result if available
+      if (cartOperation) {
+        formattedResults.push({
+          name: "Cart_Operation",
+          type: "cart_operation_result", 
+          data: cartOperation,
+          source: "searchrag",
+          sourceName: "Cart Operation",
+          similarity: 1.0,
+          contentPreview: cartOperation.success ? 
+            `Added ${cartOperation.addedProduct?.quantity}x ${cartOperation.addedProduct?.name} to cart` :
+            `Cart operation failed: ${cartOperation.message}`
+        });
+      }
+
       return {
         functionResults: formattedResults,
         success: true,
         source: "searchrag",
+        cartIntent,
+        cartOperation
       }
     } catch (error) {
       console.error("❌ SearchRag Fallback Error:", error)
@@ -459,6 +519,14 @@ export class DualLLMService {
   ): Promise<string> {
     try {
       console.log("🎨 Stage 2: Formatter - Natural Response Generation")
+      
+      console.log(`🔍 FORMATTER DEBUG: request.language = "${request.language}"`);
+      console.log(`🔍 FORMATTER DEBUG: Full request object:`, {
+        language: request.language,
+        phone: request.phone,
+        customerid: request.customerid,
+        workspaceId: request.workspaceId
+      });
 
       // FORMATTER USA IL PROMPT LOCALIZZATO BASATO SULLA LINGUA DELL'UTENTE
       const systemMessage = this.buildFormatterSystemMessage(
@@ -515,6 +583,8 @@ export class DualLLMService {
   }
 
   private buildFormatterSystemMessage(language: string = "it"): string {
+    console.log(`🌐 FORMATTER DEBUG: Building system message for language: "${language}"`);
+    
     const languageConfig = {
       it: {
         name: "Italian",
@@ -534,7 +604,7 @@ export class DualLLMService {
         name: "English",
         languageName: "English",
         instructions: {
-          style: "- Use English language",
+          style: "- CRITICAL: ALWAYS respond in ENGLISH only, never use Italian",
           noData: {
             acknowledge: "1. Acknowledge the user's request politely",
             offer:
@@ -577,13 +647,22 @@ export class DualLLMService {
     const config =
       languageConfig[language as keyof typeof languageConfig] ||
       languageConfig["it"]
+    
+    console.log(`🌐 FORMATTER DEBUG: Selected config for language "${language}":`, {
+      name: config.name,
+      style: config.instructions.style
+    });
 
     return `You are SofIA, a helpful WhatsApp assistant for L'Altra Italia e-commerce.
+
+CRITICAL LANGUAGE REQUIREMENT:
+${config.instructions.style}
+- NEVER mix languages in your response
+- Respond ONLY in the specified language above
 
 MISSION: Create natural, friendly responses based on the data provided.
 
 STYLE:
-${config.instructions.style}
 - Be conversational and warm
 - Keep responses concise but informative
 - Use emojis appropriately
@@ -607,6 +686,13 @@ CONTEXT: You receive data from either Cloud Functions or SearchRag.
 - No data: When no specific information is found, provide helpful guidance
 
 CRITICAL RULE: When the data comes from GetAllProducts function, you MUST show ALL products returned, organized by category. Do NOT summarize or abbreviate - show the complete list with prices and descriptions.
+
+${FormatterService.getAllFormattingInstructions(language)}
+
+DISAMBIGUATION HANDLING:
+- CRITICAL: When you receive a disambiguation_required error, use the EXACT error message provided - do NOT reformat it
+- The backend provides precise instructions on how users should respond - preserve these instructions exactly
+- Do NOT change phrases like "aggiungi al carrello [00004]" or similar specific commands
 
 IMPORTANT: When no data is found, don't just say "no data" - instead:
 ${config.instructions.noData.acknowledge}
@@ -851,6 +937,77 @@ Please create a natural, helpful response in ${languageName}.`
           },
         },
       },
+      {
+        type: "function",
+        function: {
+          name: "add_to_cart",
+          description:
+            'Add product to shopping cart. Use when user wants to add items: "aggiungi al carrello/add to cart", "voglio/want", "comprare/buy", "acquistare/purchase", "metti nel carrello/put in cart", "prendo/I take". DO NOT use for general product questions or price inquiries.',
+          parameters: {
+            type: "object",
+            properties: {
+              product_name: {
+                type: "string",
+                description: "Product name or description to add to cart",
+              },
+              quantity: {
+                type: "number",
+                description: "Quantity to add (default: 1)",
+                default: 1,
+              },
+            },
+            required: ["product_name"],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "remove_from_cart",
+          description:
+            'Remove product from shopping cart. ONLY use when user explicitly says: "rimuovi/remove/eliminar X dal carrello/from cart/del carrito" or similar removal phrases. DO NOT use for general questions about products.',
+          parameters: {
+            type: "object",
+            properties: {
+              product_code: {
+                type: "string",
+                description: "Product code or SKU to remove from cart",
+              },
+              quantity: {
+                type: "number",
+                description: "Quantity to remove (optional, removes all if not specified)",
+              },
+            },
+            required: ["product_code"],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "clear_cart",
+          description:
+            'Clear/empty the entire shopping cart. ONLY use when user explicitly says: "svuota carrello/clear cart/vaciar carrito", "cancella tutto/delete all/borrar todo" or similar clear/empty phrases. DO NOT use for single item removal.',
+          parameters: {
+            type: "object",
+            properties: {},
+            required: [],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "get_cart_info",
+          description:
+            'Show shopping cart contents and totals. ONLY use when user explicitly asks about cart: "mostra carrello/show cart", "mostra il carrello/show the cart", "il mio carrello/my cart", "cosa c\'è nel carrello/what\'s in cart", "carrello/cart", "vedere il carrello/see the cart". DO NOT use for product searches or price inquiries.',
+          parameters: {
+            type: "object",
+            properties: {},
+            required: [],
+          },
+        },
+      },
     ]
   }
 
@@ -930,6 +1087,46 @@ Please create a natural, helpful response in ${languageName}.`
               customerId: request.customerid || "",
               workspaceId: request.workspaceId,
             })
+            break
+
+          case "add_to_cart":
+            result = await this.functionHandlerService.handleFunctionCall(
+              "add_to_cart", 
+              { product_name: args.product_name, quantity: args.quantity || 1 },
+              { id: request.customerid || "" },
+              request.workspaceId,
+              request.phone || ""
+            )
+            break
+
+          case "remove_from_cart":
+            result = await this.functionHandlerService.handleFunctionCall(
+              "remove_from_cart", 
+              { product_name: args.product_code, quantity: args.quantity },
+              { id: request.customerid || "" },
+              request.workspaceId,
+              request.phone || ""
+            )
+            break
+
+          case "clear_cart":
+            result = await this.functionHandlerService.handleFunctionCall(
+              "clear_cart", 
+              {},
+              { id: request.customerid || "" },
+              request.workspaceId,
+              request.phone || ""
+            )
+            break
+
+          case "get_cart_info":
+            result = await this.functionHandlerService.handleFunctionCall(
+              "get_cart_info",
+              {},
+              { id: request.customerid || "" },
+              request.workspaceId,
+              request.phone || ""
+            )
             break
 
           default:
