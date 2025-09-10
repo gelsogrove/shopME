@@ -92,25 +92,23 @@ export class SecureTokenService {
           return existingToken.token
         }
 
-        logger.info(`[SECURE-TOKEN] 🔄 Nessun token valido trovato, creo/aggiorno con UPSERT`)
+        logger.info(`[SECURE-TOKEN] 🔄 Nessun token valido trovato, creo nuovo token`)
         
-        const upsertedToken = await this.prisma.secureToken.upsert({
+        // Prima elimina eventuali token scaduti per questo customer/type/workspace
+        await this.prisma.secureToken.deleteMany({
           where: {
-            unique_customer_token: {
-              customerId,
-              type,
-              workspaceId
+            customerId,
+            type,
+            workspaceId,
+            expiresAt: {
+              lte: new Date() // Token scaduti
             }
-          },
-          update: {
-            token,
-            expiresAt,
-            payload: encryptedPayload,
-            phoneNumber,
-            ipAddress,
-            updatedAt: new Date()
-          },
-          create: {
+          }
+        })
+
+        // Crea nuovo token
+        const newToken = await this.prisma.secureToken.create({
+          data: {
             token,
             type,
             workspaceId,
@@ -123,7 +121,7 @@ export class SecureTokenService {
           }
         })
 
-        logger.info(`[SECURE-TOKEN] ✅ UPSERT completed for ${type} token - customer ${customerId} in workspace ${workspaceId}`)
+        logger.info(`[SECURE-TOKEN] ✅ NUOVO TOKEN creato per ${type} - customer ${customerId} in workspace ${workspaceId}`)
         return token
       }
 

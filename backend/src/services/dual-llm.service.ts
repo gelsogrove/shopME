@@ -52,10 +52,10 @@ export class DualLLMService {
       // 🔧 GET AGENT CONFIG AND PROMPT FROM DATABASE IF NOT PROVIDED
       let agentPrompt = request.prompt
       if (!agentPrompt) {
-        console.log("📝 No prompt in request, fetching from database...")
+        // console.log("📝 No prompt in request, fetching from database...")
         const agentConfig = await this.getAgentConfig(request.workspaceId)
         agentPrompt = agentConfig.prompt
-        console.log("✅ Agent prompt fetched from database")
+        // console.log("✅ Agent prompt fetched from database")
       }
 
       // � NO MORE VARIABLE REPLACEMENT - ALREADY DONE IN WEBHOOK!
@@ -66,7 +66,7 @@ export class DualLLMService {
       // Use the prompt directly from webhook (already processed)
       if (request.prompt) {
         agentPrompt = request.prompt
-        console.log("✅ Using pre-processed prompt from webhook")
+        // console.log("✅ Using pre-processed prompt from webhook")
       }
 
       // 🌐 UPDATE REQUEST WITH USER'S LANGUAGE FROM PROFILE
@@ -1314,8 +1314,8 @@ Please create a natural, helpful response in ${languageName}.`
   private async getPromptVariables(
     request: LLMRequest
   ): Promise<PromptVariables> {
-    console.log("🚨🚨🚨 GET PROMPT VARIABLES CALLED! 🚨🚨🚨")
-    console.log("Request customerid:", request.customerid)
+    // console.log("🚨🚨🚨 GET PROMPT VARIABLES CALLED! 🚨🚨🚨")
+    // console.log("Request customerid:", request.customerid)
 
     const { PrismaClient } = require("@prisma/client")
     const prisma = new PrismaClient()
@@ -1447,9 +1447,9 @@ Please create a natural, helpful response in ${languageName}.`
         languageUser,
       }
 
-      console.log("📋 Prompt variables collected:", variables)
-      console.log("🔄 About to replace variables in prompt...")
-      console.log("🔧 Original prompt length:", prompt.length)
+      // console.log("📋 Prompt variables collected:", variables)
+      // console.log("🔄 About to replace variables in prompt...")
+      // console.log("🔧 Original prompt length:", prompt.length)
       return variables
     } catch (error) {
       console.error("❌ Error collecting prompt variables:", error)
@@ -1474,8 +1474,8 @@ Please create a natural, helpful response in ${languageName}.`
     prompt: string,
     variables: PromptVariables
   ): string {
-    console.log("🔄 REPLACE PROMPT VARIABLES STARTED")
-    console.log("🔧 Variables to replace:", variables)
+    // console.log("🔄 REPLACE PROMPT VARIABLES STARTED")
+    // console.log("🔧 Variables to replace:", variables)
     console.log(
       "🔧 Prompt before replacement (first 500 chars):",
       prompt.substring(0, 500)
@@ -1509,7 +1509,7 @@ Please create a natural, helpful response in ${languageName}.`
       variables.languageUser
     )
 
-    console.log("🔄 Prompt variables replaced")
+    // console.log("🔄 Prompt variables replaced")
     console.log(
       "🔧 Prompt after replacement (last 500 chars):",
       processedPrompt.substring(processedPrompt.length - 500)

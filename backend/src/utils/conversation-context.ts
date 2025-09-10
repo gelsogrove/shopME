@@ -109,7 +109,7 @@ export class ConversationContextManager {
     
     this.contextCache.set(key, context)
     
-    console.log(`💾 Context saved for ${context.customerId}: ${context.contextType}`)
+    // console.log(`💾 Context saved for ${context.customerId}: ${context.contextType}`)
   }
 
   /**
@@ -161,7 +161,7 @@ export class ConversationContextManager {
       contextType: 'product_disambiguation'
     })
     
-    console.log(`🔍 Saved ${products.length} products for disambiguation: "${searchQuery}"`)
+    // console.log(`🔍 Saved ${products.length} products for disambiguation: "${searchQuery}"`)
   }
 
   /**
@@ -183,7 +183,7 @@ export class ConversationContextManager {
     
     if (index >= 0 && index < context.lastProductList.length) {
       const product = context.lastProductList[index]
-      console.log(`👆 Selected product ${index + 1}: ${product.name}`)
+      // console.log(`👆 Selected product ${index + 1}: ${product.name}`)
       return product
     }
     
@@ -203,7 +203,7 @@ export class ConversationContextManager {
       contextType: 'cart_operation'
     })
     
-    console.log(`🛒 Saved cart operation: ${operation.operation} - ${operation.success ? 'SUCCESS' : 'FAILED'}`)
+    // console.log(`🛒 Saved cart operation: ${operation.operation} - ${operation.success ? 'SUCCESS' : 'FAILED'}`)
   }
 
   /**
@@ -212,7 +212,7 @@ export class ConversationContextManager {
   public clearContext(customerId: string, workspaceId: string): void {
     const key = this.getContextKey(customerId, workspaceId)
     this.contextCache.delete(key)
-    console.log(`🗑️ Cleared context for ${customerId}`)
+    // console.log(`🗑️ Cleared context for ${customerId}`)
   }
 
   /**
@@ -281,7 +281,7 @@ export class ConversationContextManager {
       this.performCleanup()
     }, this.CLEANUP_INTERVAL)
     
-    console.log('🧹 Context cleanup timer started')
+    // console.log('🧹 Context cleanup timer started')
   }
 
   private performCleanup(): void {
@@ -295,9 +295,9 @@ export class ConversationContextManager {
       }
     }
     
-    if (cleanedCount > 0) {
-      console.log(`🧹 Cleaned ${cleanedCount} expired contexts`)
-    }
+    // if (cleanedCount > 0) {
+    //   console.log(`🧹 Cleaned ${cleanedCount} expired contexts`)
+    // }
   }
 
   public destroy(): void {

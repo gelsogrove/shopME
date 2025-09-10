@@ -1980,8 +1980,14 @@ async function main() {
       id: "3c9fce96-5397-5c9f-9f8e-3d4f5a6b7890", // ID fisso per MCP test client
       name: "Mario Rossi",
       email: "mario.rossi@shopme.com",
-      phone: "+39123456789",
-      address: "Via Roma 123, Milano, Italy",
+      phone: "mario-rossi", // Usa lo stesso phone del MCP test
+      address: JSON.stringify({
+        name: "Mario Rossi",
+        street: "Via Roma 123",
+        city: "Milano",
+        postalCode: "20100",
+        country: "Italy"
+      }),
       company: "Rossi Ltd.",
       language: "it",
       currency: "EUR",

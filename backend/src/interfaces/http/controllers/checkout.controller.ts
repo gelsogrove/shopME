@@ -1,5 +1,6 @@
 import { Request, Response } from "express"
 import { EmailService } from "../../../application/services/email.service"
+import { PriceCalculationService } from "../../../application/services/price-calculation.service"
 import { SecureTokenService } from "../../../application/services/secure-token.service"
 import { prisma } from "../../../lib/prisma"
 import logger from "../../../utils/logger"
@@ -7,6 +8,7 @@ import logger from "../../../utils/logger"
 export class CheckoutController {
   private emailService = new EmailService()
   private secureTokenService = new SecureTokenService()
+  private priceCalculationService = new PriceCalculationService(prisma)
 
   /**
    * Validate checkout token and return order data
@@ -81,17 +83,50 @@ export class CheckoutController {
         }
       });
 
-      // Calculate cart totals
+      // Calculate prices with discounts applied
+      const productIds = cart?.items.map(item => item.productId) || [];
+      const priceResult = await this.priceCalculationService.calculatePricesWithDiscounts(
+        secureToken.workspaceId,
+        productIds,
+        customer.discount || 0
+      );
+
+      // Create a map of product prices with discounts
+      const productPriceMap = new Map();
+      priceResult.products.forEach(product => {
+        productPriceMap.set(product.id, {
+          finalPrice: product.finalPrice || product.price,
+          originalPrice: product.originalPrice,
+          appliedDiscount: product.appliedDiscount || 0,
+          discountSource: product.discountSource,
+          discountName: product.discountName
+        });
+      });
+
+      // Calculate cart totals with discounted prices
       let totalAmount = 0;
       const cartItems = cart?.items.map(item => {
-        const itemTotal = item.product.price * item.quantity;
+        const priceInfo = productPriceMap.get(item.productId) || {
+          finalPrice: item.product.price,
+          originalPrice: item.product.price,
+          appliedDiscount: 0,
+          discountSource: undefined,
+          discountName: undefined
+        };
+        
+        const itemTotal = priceInfo.finalPrice * item.quantity;
         totalAmount += itemTotal;
+        
         return {
           id: item.id,
           productId: item.productId,
           codice: item.product.ProductCode || item.product.sku || 'N/A',
           descrizione: item.product.name,
-          prezzo: item.product.price,
+          prezzo: priceInfo.finalPrice,
+          prezzoOriginale: priceInfo.originalPrice,
+          scontoApplicato: priceInfo.appliedDiscount,
+          fonteSconto: priceInfo.discountSource,
+          nomeSconto: priceInfo.discountName,
           qty: item.quantity,
           total: itemTotal
         };
@@ -149,7 +184,7 @@ export class CheckoutController {
       
       const secureToken = validation.data
 
-      const payload = secureToken.payload as any
+      const payload = validation.payload as any
       const customerId = payload.customerId
       const workspaceId = secureToken.workspaceId
 

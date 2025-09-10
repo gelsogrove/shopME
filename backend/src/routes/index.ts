@@ -89,8 +89,8 @@ import { LLMRequest } from '../types/whatsapp.types'
 
 // Public WhatsApp webhook routes (NO AUTHENTICATION)
 router.post("/whatsapp/webhook", async (req, res) => {
-  console.log("🔥🔥🔥 WEBHOOK POST RECEIVED 🔥🔥🔥", new Date().toISOString()); // 🔧 FIRST LOG
-  console.log("📨 Request body:", JSON.stringify(req.body, null, 2)); // 🔧 DEBUG BODY
+  console.log("🔥 WEBHOOK POST RECEIVED", new Date().toISOString()); // 🔧 FIRST LOG
+  // console.log("📨 Request body:", JSON.stringify(req.body, null, 2)); // 🔧 DEBUG BODY
   
   try {
     // Initialize services
@@ -146,7 +146,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
 
         if (customer) {
           customerId = customer.id;
-          console.log(`✅ Customer found: ${customer.name} (${customer.phone})`);
+          // console.log(`✅ Customer found: ${customer.name} (${customer.phone})`);
         } else {
           customerId = "test-customer-123";
           console.log(`⚠️ Customer not found for phone: ${phoneNumber}`);
@@ -168,7 +168,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
       
       // Get full customer data (including language) for test format
       try {
-        console.log(`🔍 TEST FORMAT: Looking for customer with ID: "${customerId}" in workspace: "${workspaceId}"`);
+        // console.log(`🔍 TEST FORMAT: Looking for customer with ID: "${customerId}" in workspace: "${workspaceId}"`);
         
         const customer = await prisma.customers.findFirst({
           where: {
@@ -186,11 +186,11 @@ router.post("/whatsapp/webhook", async (req, res) => {
           }
         });
 
-        console.log(`🔍 TEST FORMAT: Customer search result:`, customer);
+        // console.log(`🔍 TEST FORMAT: Customer search result:`, customer);
 
         if (customer) {
           phoneNumber = customer.phone || "test-phone-123";
-          console.log(`✅ TEST FORMAT: Customer found: ${customer.name} (${customer.phone}) - Language: ${customer.language}`);
+          // console.log(`✅ TEST FORMAT: Customer found: ${customer.name} (${customer.phone}) - Language: ${customer.language}`);
           
           // Store customer data for later use (same as WhatsApp format)
           (req as any).customerData = customer;
@@ -270,7 +270,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
         
         // Use customer data from first query (avoid double query)
         const customer = (req as any).customerData;
-        console.log('🔍 Customer data for variables:', customer);
+        // console.log('🔍 Customer data for variables:', customer);
         
         // Get last order
         const lastOrder = await prisma.orders.findFirst({
@@ -298,8 +298,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
           languageUser: customer?.language || 'it'
         };
         
-        console.log('✅ Variables prepared:', variables);
-        console.log(`🌐 WEBHOOK DEBUG: Customer language is "${customer?.language}", setting languageUser to "${variables.languageUser}"`);
+        // console.log('✅ Variables prepared:', variables);
+        // console.log(`🌐 WEBHOOK DEBUG: Customer language is "${customer?.language}", setting languageUser to "${variables.languageUser}"`);
         
         // Replace variables in prompt
         agentPrompt = agentPrompt
@@ -310,18 +310,18 @@ router.post("/whatsapp/webhook", async (req, res) => {
           .replace(/\{\{lastordercode\}\}/g, variables.lastordercode)
           .replace(/\{\{languageUser\}\}/g, variables.languageUser);
         
-        console.log(`🌐 WEBHOOK DEBUG: Prompt after language substitution contains: ${agentPrompt.includes('languageUser: en') ? 'YES' : 'NO'} "languageUser: en"`);
+        // console.log(`🌐 WEBHOOK DEBUG: Prompt after language substitution contains: ${agentPrompt.includes('languageUser: en') ? 'YES' : 'NO'} "languageUser: en"`);
         
       } catch (error) {
         console.error('❌ Error processing customer data:', error);
       }
 
-      console.log(`🔍 STARTING CHAT HISTORY RETRIEVAL - Customer: ${customerId}, Workspace: ${workspaceId}`); // 🔧 MOVED OUTSIDE TRY-CATCH
+      // console.log(`🔍 STARTING CHAT HISTORY RETRIEVAL - Customer: ${customerId}, Workspace: ${workspaceId}`); // 🔧 MOVED OUTSIDE TRY-CATCH
 
       //  RETRIEVE CHAT HISTORY FOR CONTEXT
       let chatHistory: any[] = [];
       try {
-        console.log(`🔍 SEARCHING FOR CHAT SESSION - Customer: ${customerId}, Workspace: ${workspaceId}`); // 🔧 DEBUG
+        // console.log(`🔍 SEARCHING FOR CHAT SESSION - Customer: ${customerId}, Workspace: ${workspaceId}`); // 🔧 DEBUG
         
         // Find or create chat session
         chatSession = await prisma.chatSession.findFirst({
@@ -346,7 +346,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
 
         // 🔧 CREATE CHAT SESSION IF NOT EXISTS
         if (!chatSession) {
-          console.log('🔧 Creating new chat session for customer:', customerId);
+          // console.log('🔧 Creating new chat session for customer:', customerId);
           chatSession = await prisma.chatSession.create({
             data: {
               customerId: customerId,
@@ -371,14 +371,14 @@ router.post("/whatsapp/webhook", async (req, res) => {
             role: msg.direction === 'INBOUND' ? 'user' : 'assistant',
             content: msg.content
           }));
-          console.log(`🗨️ WEBHOOK: Retrieved ${chatHistory.length} messages from chat history (last 24h only)`);
-          console.log(`🗨️ WEBHOOK: Chat history preview:`, chatHistory.slice(-3)); // Last 3 messages
-          console.log(`⏰ WEBHOOK: Time filter applied - excluding messages older than 24 hours`);
-          console.log(`🔍 WEBHOOK: Full chat history:`, JSON.stringify(chatHistory, null, 2)); // 🔧 FULL DEBUG
+          // console.log(`🗨️ WEBHOOK: Retrieved ${chatHistory.length} messages from chat history (last 24h only)`);
+          // console.log(`🗨️ WEBHOOK: Chat history preview:`, chatHistory.slice(-3)); // Last 3 messages
+          // console.log(`⏰ WEBHOOK: Time filter applied - excluding messages older than 24 hours`);
+          // console.log(`🔍 WEBHOOK: Full chat history:`, JSON.stringify(chatHistory, null, 2)); // 🔧 FULL DEBUG
         } else {
-          console.log('🗨️ WEBHOOK: No chat history found, starting fresh conversation');
-          console.log(`🗨️ WEBHOOK: Customer ID: ${customerId}, Workspace ID: ${workspaceId}`);
-          console.log(`🔍 WEBHOOK: ChatSession exists: ${!!chatSession}, Messages count: ${chatSession?.messages?.length || 0}`); // 🔧 DEBUG
+          // console.log('🗨️ WEBHOOK: No chat history found, starting fresh conversation');
+          // console.log(`🗨️ WEBHOOK: Customer ID: ${customerId}, Workspace ID: ${workspaceId}`);
+          // console.log(`🔍 WEBHOOK: ChatSession exists: ${!!chatSession}, Messages count: ${chatSession?.messages?.length || 0}`); // 🔧 DEBUG
         }
 
         // 💾 NOTE: User message will be saved AFTER LLM processing by messageRepository.saveMessage()

@@ -64,7 +64,7 @@ export class CartLockManager {
     
     // Check if lock is available
     if (existingLock && !this.isLockExpired(existingLock)) {
-      console.log(`🔒 Cart locked for ${customerId} - operation: ${existingLock.operation}`)
+      // console.log(`🔒 Cart locked for ${customerId} - operation: ${existingLock.operation}`)
       return null // Lock not available
     }
     
@@ -81,7 +81,7 @@ export class CartLockManager {
     }
     
     this.locks.set(lockKey, lockInfo)
-    console.log(`🔓 Cart lock acquired for ${customerId} - operation: ${operation} - lockId: ${lockId}`)
+    // console.log(`🔓 Cart lock acquired for ${customerId} - operation: ${operation} - lockId: ${lockId}`)
     
     return lockId
   }
@@ -99,7 +99,7 @@ export class CartLockManager {
     }
     
     this.locks.delete(lockKey)
-    console.log(`🔓 Cart lock released for ${customerId} - lockId: ${lockId}`)
+    // console.log(`🔓 Cart lock released for ${customerId} - lockId: ${lockId}`)
     
     // Process queued operations
     this.processQueue(customerId, workspaceId)
@@ -124,7 +124,7 @@ export class CartLockManager {
     }
     
     try {
-      console.log(`⚡ Executing ${operationType} operation for ${customerId}`)
+      // console.log(`⚡ Executing ${operationType} operation for ${customerId}`)
       const result = await operation()
       
       // Success - release lock
@@ -174,7 +174,7 @@ export class CartLockManager {
     }
     
     queue.push(queuedOp)
-    console.log(`📝 Queued ${operationType} operation for ${customerId} - queue size: ${queue.length}`)
+    // console.log(`📝 Queued ${operationType} operation for ${customerId} - queue size: ${queue.length}`)
     
     // Return a promise that resolves when the operation is processed
     return new Promise((resolve, reject) => {
@@ -205,7 +205,7 @@ export class CartLockManager {
     
     // Get the next operation
     const nextOp = queue.shift()!
-    console.log(`🔄 Processing queued operation for ${customerId}: ${nextOp.operationType}`)
+    // console.log(`🔄 Processing queued operation for ${customerId}: ${nextOp.operationType}`)
     
     try {
       // Execute the operation with lock
@@ -223,7 +223,7 @@ export class CartLockManager {
       if (nextOp.retryCount < nextOp.maxRetries) {
         nextOp.retryCount++
         queue.unshift(nextOp) // Put back at front of queue
-        console.log(`🔄 Retrying operation for ${customerId} - attempt ${nextOp.retryCount}/${nextOp.maxRetries}`)
+        // console.log(`🔄 Retrying operation for ${customerId} - attempt ${nextOp.retryCount}/${nextOp.maxRetries}`)
         
         // Retry after delay
         setTimeout(() => {
@@ -301,9 +301,9 @@ export class CartLockManager {
       }
     }
     
-    if (releasedLocks > 0 || cleanedOperations > 0) {
-      console.log(`🧹 Lock cleanup: ${releasedLocks} expired locks, ${cleanedOperations} old operations`)
-    }
+    // if (releasedLocks > 0 || cleanedOperations > 0) {
+    //   console.log(`🧹 Lock cleanup: ${releasedLocks} expired locks, ${cleanedOperations} old operations`)
+    // }
   }
 
   // Private methods
@@ -329,7 +329,7 @@ export class CartLockManager {
       this.forceCleanup()
     }, this.CLEANUP_INTERVAL)
     
-    console.log('🧹 Cart lock cleanup timer started')
+    // console.log('🧹 Cart lock cleanup timer started')
   }
 
   public destroy(): void {

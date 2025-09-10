@@ -81,7 +81,7 @@ export class CartStateSynchronizer {
   ): Promise<CartState> {
     const stateKey = this.getStateKey(customerId, workspaceId)
     
-    console.log(`🔄 Syncing cart state for ${customerId} after ${operation}`)
+    // console.log(`🔄 Syncing cart state for ${customerId} after ${operation}`)
     
     // Execute with lock to prevent race conditions
     return cartLockManager.executeWithLock(
@@ -121,7 +121,7 @@ export class CartStateSynchronizer {
           }
         })
         
-        console.log(`✅ Cart state synced for ${customerId}: ${newState.totalItems} items, €${newState.totalAmount}`)
+        // console.log(`✅ Cart state synced for ${customerId}: ${newState.totalItems} items, €${newState.totalAmount}`)
         
         return newState
       }
@@ -299,7 +299,7 @@ export class CartStateSynchronizer {
    * Batch synchronize multiple customers
    */
   public async batchSync(customerIds: { customerId: string, workspaceId: string }[]): Promise<void> {
-    console.log(`🔄 Batch syncing ${customerIds.length} customers`)
+    // console.log(`🔄 Batch syncing ${customerIds.length} customers`)
     
     for (let i = 0; i < customerIds.length; i += this.SYNC_BATCH_SIZE) {
       const batch = customerIds.slice(i, i + this.SYNC_BATCH_SIZE)
@@ -310,7 +310,7 @@ export class CartStateSynchronizer {
         )
       )
       
-      console.log(`✅ Synced batch ${Math.floor(i / this.SYNC_BATCH_SIZE) + 1}`)
+      // console.log(`✅ Synced batch ${Math.floor(i / this.SYNC_BATCH_SIZE) + 1}`)
     }
   }
 
@@ -321,7 +321,7 @@ export class CartStateSynchronizer {
     totalAmount: number
     totalItems: number
   }> {
-    console.log(`📊 Fetching cart from DB for ${customerId}`)
+    // console.log(`📊 Fetching cart from DB for ${customerId}`)
     
     try {
       // Import Prisma dynamically to avoid circular dependencies
@@ -348,7 +348,7 @@ export class CartStateSynchronizer {
       })
       
       if (!cart) {
-        console.log(`📊 No cart found for customer ${customerId}`)
+        // console.log(`📊 No cart found for customer ${customerId}`)
         return {
           items: [],
           totalAmount: 0,
@@ -373,7 +373,7 @@ export class CartStateSynchronizer {
       const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0)
       const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
       
-      console.log(`📊 Fetched cart: ${totalItems} items, €${totalAmount.toFixed(2)}`)
+      // console.log(`📊 Fetched cart: ${totalItems} items, €${totalAmount.toFixed(2)}`)
       
       await prisma.$disconnect()
       
@@ -437,11 +437,11 @@ export class CartStateSynchronizer {
       this.performPeriodicValidation()
     }, this.VALIDATION_INTERVAL)
     
-    console.log('🔍 Cart validation timer started')
+    // console.log('🔍 Cart validation timer started')
   }
 
   private async performPeriodicValidation(): Promise<void> {
-    console.log('🔍 Performing periodic cart validation...')
+    // console.log('🔍 Performing periodic cart validation...')
     
     let validatedCount = 0
     let errorCount = 0
@@ -467,9 +467,9 @@ export class CartStateSynchronizer {
       }
     }
     
-    if (validatedCount > 0) {
-      console.log(`✅ Validated ${validatedCount} carts, ${errorCount} errors`)
-    }
+    // if (validatedCount > 0) {
+    //   console.log(`✅ Validated ${validatedCount} carts, ${errorCount} errors`)
+    // }
   }
 
   /**
