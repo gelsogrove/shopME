@@ -489,7 +489,11 @@ export class CallingFunctionsService {
         'checkout',
         request.workspaceId,
         { customerId: request.customerId },
-        '1h'
+        '1h',
+        undefined,
+        undefined,
+        undefined,
+        request.customerId
       );
       
       if (!token) {

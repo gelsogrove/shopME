@@ -353,3 +353,80 @@ SQL esempio:
 docker exec shop_db psql -U shopmefy -d shopmefy -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';" | head -20
 
 non usare npx prisma studio --port 5556
+
+## 🔧 MCP (Model Context Protocol) Integration
+
+### MCP Server Overview
+
+Il progetto ShopMe include un server MCP per testare e debuggare il chatbot WhatsApp. Il server MCP è posizionato in `/MCP/` e fornisce tool per:
+
+- **Test del chatbot** con utenti e messaggi specifici
+- **Seeding del database** con dati iniziali
+- **Health check** del backend
+- **Debug di funzioni** specifiche
+
+### Tool MCP Disponibili
+
+#### 1. `mcp_shopme_test_chat`
+Testa il chatbot WhatsApp con parametri specifici:
+- `user`: Nome utente (es. "Mario Rossi", "John Smith")
+- `message`: Messaggio da inviare
+- `log`: Logging dettagliato (default: true)
+- `exitFirstMessage`: Esce dopo prima risposta (default: true)
+
+#### 2. `mcp_shopme_seed_database`
+Popola il database con dati iniziali:
+- `log`: Logging dettagliato (default: true)
+
+#### 3. `mcp_shopme_check_health`
+Verifica lo stato del backend ShopMe (nessun parametro)
+
+#### 4. `mcp_shopme_debug_function`
+Debug di funzioni specifiche del chatbot:
+- `functionName`: Nome funzione (es. "ragSearch", "add_to_cart")
+- `testData`: Dati di test (opzionale)
+
+### Configurazione MCP
+
+#### Avvio del Server
+```bash
+# Script automatico (raccomandato)
+./scripts/start-mcp-server.sh
+
+# Manuale
+cd MCP && node mcp-server.js &
+```
+
+#### Integrazione con Cursor
+Il server MCP è configurato per funzionare con Cursor attraverso il file `MCP/cursor-mcp-config.json`.
+
+### Regole MCP
+
+- **Backend richiesto**: Il server MCP richiede backend attivo su porta 3001
+- **Database accessibile**: Assicurarsi che il database sia raggiungibile
+- **Script in /scripts/**: Lo script di avvio è stato spostato in `/scripts/start-mcp-server.sh`
+- **Logging dettagliato**: Tutti i tool forniscono logging per debug
+- **Test reali**: I tool MCP usano il sistema reale, non mock
+
+### Esempi di Utilizzo MCP
+
+```bash
+# Test aggiunta prodotto
+mcp_shopme_test_chat("Mario Rossi", "aggiungi una mozzarella al carrello")
+
+# Test conferma ordine
+mcp_shopme_test_chat("Mario Rossi", "CONFERMA")
+
+# Debug funzione RAG
+mcp_shopme_debug_function("ragSearch", {"query": "delivery times"})
+
+# Seed database
+mcp_shopme_seed_database()
+```
+
+### Troubleshooting MCP
+
+- **Server non si avvia**: Verificare dipendenze con `npm install` in `/MCP/`
+- **Tool non funzionano**: Controllare che backend sia attivo su porta 3001
+- **Cursor non rileva server**: Riavviare Cursor completamente
+- **Errori di connessione**: Verificare che database sia accessibile

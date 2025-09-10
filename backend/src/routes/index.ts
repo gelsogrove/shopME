@@ -521,7 +521,13 @@ const faqController = new FaqController()
 // Initialize Settings controller for GDPR routes
 const settingsController = new SettingsController()
 
-// Public routes
+// Public routes (MUST BE BEFORE AUTH ROUTES)
+router.use("/checkout", checkoutRouter)
+logger.info("Registered checkout routes for order processing")
+
+router.use("/cart", cartRouter)
+logger.info("Registered cart routes for cart token validation")
+
 router.use("/auth", authRouter(authController))
 router.use("/registration", createRegistrationRouter())
 router.use("/chat", chatRouter(chatController))
@@ -627,13 +633,6 @@ logger.info("Registered document router with workspace and upload endpoints")
 router.use("/analytics", analyticsRoutes)
 logger.info("Registered analytics routes for dashboard metrics")
 
-// Mount checkout routes (public - no auth required)
-router.use("/checkout", checkoutRouter)
-logger.info("Registered checkout routes for order processing")
-
-// Mount cart routes (public - no auth required)
-router.use("/cart", cartRouter)
-logger.info("Registered cart routes for cart token validation")
 
 // Add special route for GDPR default content (to handle frontend request to /gdpr/default)
 router.get(

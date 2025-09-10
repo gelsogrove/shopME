@@ -48,7 +48,7 @@ export class CheckoutController {
       }
 
       // Get customer and workspace data
-      const payload = secureToken.payload as any
+      const payload = validation.payload as any
       const customer = await prisma.customers.findFirst({
         where: {
           id: payload.customerId,
@@ -66,6 +66,37 @@ export class CheckoutController {
 
       logger.info(`[CHECKOUT] Token validated for customer ${customer.id}`)
 
+      // Get customer cart products from database
+      const cart = await prisma.carts.findFirst({
+        where: {
+          customerId: customer.id,
+          workspaceId: secureToken.workspaceId
+        },
+        include: {
+          items: {
+            include: {
+              product: true
+            }
+          }
+        }
+      });
+
+      // Calculate cart totals
+      let totalAmount = 0;
+      const cartItems = cart?.items.map(item => {
+        const itemTotal = item.product.price * item.quantity;
+        totalAmount += itemTotal;
+        return {
+          id: item.id,
+          productId: item.productId,
+          codice: item.product.ProductCode || item.product.sku || 'N/A',
+          descrizione: item.product.name,
+          prezzo: item.product.price,
+          qty: item.quantity,
+          total: itemTotal
+        };
+      }) || [];
+
       res.json({
         valid: true,
         customer: {
@@ -76,7 +107,8 @@ export class CheckoutController {
           address: customer.address,
           invoiceAddress: customer.invoiceAddress,
         },
-        prodotti: payload.prodotti || [],
+        prodotti: cartItems,
+        totalAmount: totalAmount,
         workspaceId: secureToken.workspaceId,
       })
     } catch (error) {

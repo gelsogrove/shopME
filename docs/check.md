@@ -16,6 +16,7 @@ ora proviamo a fare un test e vedere se MCP risponde a domande pertinenti con lo
 - avete prodotti freschi > mi aspetto i prodotti fresci
 - che servizi offrite > mi aspetto ña CF con lista servizi (due)
 - come gestite la catena del freddo > mi aspetto rispota in italiano e searchRag chiamata
+- famm
 - voglio parlare con un operatore deve > mi aspetto che chiami la CF
 
 
