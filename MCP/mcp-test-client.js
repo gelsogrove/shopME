@@ -23,7 +23,7 @@ const readline = require("readline");
 const USERS = {
   "Mario Rossi": {
     customerId: "3c9fce96-5397-5c9f-9f8e-3d4f5a6b7890",
-    customerPhone: "+34666888999",
+    customerPhone: "+39123456789",
     customerName: "Mario Rossi",
     language: "it",
     flag: "🇮🇹"
@@ -35,10 +35,10 @@ const USERS = {
     language: "en",
     flag: "🇬🇧"
   },
-  "María García": {
-    customerId: "user-es-001",
-    customerPhone: "+34600123456",
-    customerName: "María García", 
+  "Maria Garcia": {
+    customerId: "test-customer-123",
+    customerPhone: "+34666777888",
+    customerName: "Maria Garcia", 
     language: "es",
     flag: "🇪🇸"
   },
@@ -148,7 +148,7 @@ class MCPTestClient {
     
     return new Promise((resolve, reject) => {
       const seedProcess = spawn('npm', ['run', 'seed'], {
-        cwd: '../backend',
+        cwd: './backend',  // Fixed: corrected path from MCP directory
         stdio: 'pipe'
       });
       

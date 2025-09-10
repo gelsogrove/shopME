@@ -1357,6 +1357,7 @@ async function main() {
     },
     {
       name: "Mozzarella di Bufala",
+      ProductCode: "00005",
       description:
         "Autentica Mozzarella di Bufala Campana DOP, prodotta esclusivamente con latte di bufala secondo la tradizione secolare della Campania. Caratterizzata da una superficie liscia e una consistenza elastica, presenta un colore bianco perlaceo e un sapore dolce e delicato con note di latte fresco. Confezionata nel suo siero di conservazione per mantenerne intatte le caratteristiche organolettiche.",
       price: 12.5,
@@ -1984,6 +1985,7 @@ async function main() {
       company: "Rossi Ltd.",
       language: "it",
       currency: "EUR",
+      discount: 10, // 10% discount for Mario Rossi
       workspaceId: mainWorkspaceId,
       activeChatbot: true,
       privacy_accepted_at: new Date(),

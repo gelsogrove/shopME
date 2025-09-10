@@ -21,8 +21,8 @@ import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
 import { chatRouter } from "../interfaces/http/routes/chat.routes"
 import {
-  customersRouter,
-  workspaceCustomersRouter,
+    customersRouter,
+    workspaceCustomersRouter,
 } from "../interfaces/http/routes/customers.routes"
 
 import { faqsRouter } from "../interfaces/http/routes/faqs.routes"
@@ -34,8 +34,8 @@ import createRegistrationRouter from "../interfaces/http/routes/registration.rou
 import { servicesRouter } from "../interfaces/http/routes/services.routes"
 import createSettingsRouter from "../interfaces/http/routes/settings.routes"
 
-import { checkoutRouter } from "../interfaces/http/routes/checkout.routes"
 import { cartRouter } from "../interfaces/http/routes/cart.routes"
+import { checkoutRouter } from "../interfaces/http/routes/checkout.routes"
 // Removed whatsappRouter import
 import { workspaceRoutes } from "../interfaces/http/routes/workspace.routes"
 // Import the legacy workspace routes that has the /current endpoint
@@ -331,6 +331,11 @@ router.post("/whatsapp/webhook", async (req, res) => {
           },
           include: {
             messages: {
+              where: {
+                createdAt: {
+                  gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Only messages from last 24 hours
+                }
+              },
               orderBy: {
                 createdAt: 'asc'
               },
@@ -366,8 +371,9 @@ router.post("/whatsapp/webhook", async (req, res) => {
             role: msg.direction === 'INBOUND' ? 'user' : 'assistant',
             content: msg.content
           }));
-          console.log(`🗨️ WEBHOOK: Retrieved ${chatHistory.length} messages from chat history`);
+          console.log(`🗨️ WEBHOOK: Retrieved ${chatHistory.length} messages from chat history (last 24h only)`);
           console.log(`🗨️ WEBHOOK: Chat history preview:`, chatHistory.slice(-3)); // Last 3 messages
+          console.log(`⏰ WEBHOOK: Time filter applied - excluding messages older than 24 hours`);
           console.log(`🔍 WEBHOOK: Full chat history:`, JSON.stringify(chatHistory, null, 2)); // 🔧 FULL DEBUG
         } else {
           console.log('🗨️ WEBHOOK: No chat history found, starting fresh conversation');

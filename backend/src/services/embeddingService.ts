@@ -561,6 +561,7 @@ Category: ${product.category?.name || "General"}
 Price: €${product.price}
 Stock: ${product.stock} units
 SKU: ${product.sku || ""}
+ProductCode: ${product.ProductCode || ""}
 
 Keywords and Synonyms:
 ${this.generateProductKeywords(product.name, product.category?.name)}

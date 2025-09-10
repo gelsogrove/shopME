@@ -265,28 +265,6 @@ Il RAG Processor DEVE comprendere che QUALSIASI domanda su:
 
 → **TUTTE** queste domande sono TRACKING! Non importa la lingua o le parole esatte!
 
-**🚨 FOCUS CRITICO - PAROLE DI POSIZIONE:**
-
-Il RAG Processor DEVE riconoscere che QUALSIASI parola che indica POSIZIONE/LOCATION è SEMPRE TRACKING:
-
-**🇮🇹 PAROLE POSIZIONE ITALIANE:**
-- "dov'è" = "dove è" = "dove si trova" = "dove sta" = "posizione" = "ubicazione" → TRACKING
-- "dov'è il pacco" = "dove è il pacco" = "dove si trova il pacco" → TRACKING SEMPRE!
-
-**🇬🇧 PAROLE POSIZIONE INGLESI:**  
-- "where is" = "where's" = "location" = "position" = "where can I find" → TRACKING
-- "where is the package" = "where's my package" → TRACKING SEMPRE!
-
-**🇪🇸 PAROLE POSIZIONE SPAGNOLE:**
-- "dónde está" = "dónde se encuentra" = "ubicación" = "posición" → TRACKING  
-- "dónde está el paquete" = "dónde se encuentra mi paquete" → TRACKING SEMPRE!
-
-**🇵🇹 PAROLE POSIZIONE PORTOGHESI:**
-- "onde está" = "onde se encontra" = "localização" = "posição" → TRACKING
-- "onde está o pacote" = "onde se encontra meu pacote" → TRACKING SEMPRE!
-
-**REGOLA ASSOLUTA:** Qualsiasi domanda su DOVE/WHERE/DÓNDE/ONDE + ordine/pacco/package/pedido = TRACKING OBBLIGATORIO!
-
 Il sistema usa una strategia a **due livelli** con nuova priorità:
 
 ### **🔄 ORDINE di PRIORITÀ AGGIORNATO:**
@@ -666,14 +644,14 @@ In ogni modo ci vogliono da 3 a 5 giorni lavorativi.
 **🇮🇹 ITALIANO - CONCETTI DI TRACKING:**
 - "dove è il mio ordine?" = "quando arriva il mio ordine?" = "a che punto è?"
 - "tracking spedizione" = "tracciamento" = "seguire ordine" = "monitorare"
-- "stato della spedizione" = "stato ordine" = "posizione pacco" = "dov'è il pacco" = "dove è il pacco"
+- "stato della spedizione" = "stato ordine" = "posizione pacco" = "dov'è il pacco"
 - "dove è la merce" = "che fine ha fatto" = "è partito?" = "è in viaggio?"
 - "quando mi arriva" = "tempi di consegna" = "data arrivo" = "quando arriva"
 
 **🇬🇧 ENGLISH - TRACKING CONCEPTS:**
 - "where is my order?" = "when will my order arrive?" = "how far along is it?"
 - "shipment tracking" = "tracking" = "follow order" = "monitor delivery"
-- "delivery status" = "order status" = "package location" = "where's my package" = "where is my package"
+- "delivery status" = "order status" = "package location" = "where's my package"
 - "where is my merchandise" = "what happened to it" = "has it shipped?" = "is it traveling?"
 - "when will it come" = "delivery time" = "arrival date" = "when arrives"
 
@@ -692,19 +670,6 @@ In ogni modo ci vogliono da 3 a 5 giorni lavorativi.
 - "quando me chega" = "tempo entrega" = "data chegada" = "quando chega"
 
 **GOLDEN RULE**: Se l'utente vuole sapere DOVE, QUANDO, o COME VA il suo ordine → GetShipmentTrackingLink()!
-
-**🚨 ATTENZIONE SPECIALE - PAROLE CRITICHE:**
-
-**RICONOSCI IMMEDIATAMENTE queste parole come TRACKING ASSOLUTO:**
-
-- **"dov'è"** (italiano) = TRACKING IMMEDIATO
-- **"where is"** (inglese) = TRACKING IMMEDIATO  
-- **"dónde está"** (spagnolo) = TRACKING IMMEDIATO
-- **"onde está"** (portoghese) = TRACKING IMMEDIATO
-
-**Se vedi una di queste parole + ordine/pacco/package/pedido → GetShipmentTrackingLink() SEMPRE!**
-
-**NON usare SearchRAG per domande di posizione - USA SEMPRE GetShipmentTrackingLink()!**
 
 ## GetAllProducts()
 

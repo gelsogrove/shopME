@@ -185,107 +185,50 @@ cp docs/other/prompt_agent.md docs/other/prompt_agent.backup.$(date +%Y%m%d_%H%M
 **SEMANTIC EQUIVALENTS EXAMPLES (MULTILINGUAL)**:
 
 **🇮🇹🇬🇧🇪🇸🇵🇹 ORDERS** → GetOrdersListLink():
-- IT: "dammi ordini" = "mostrami ordini" = "fammi vedere ordini" = "hai il link degli ordini?" = "lista ordini" = "i miei ordini" = "ordini fatti" = "storico ordini" = "ordini precedenti" = "visualizza ordini" = "controlla ordini" = "vedi ordini" = "ordini effettuati" = "ordini passati"
-- EN: "give me orders" = "show me orders" = "let me see orders" = "do you have orders link?" = "order list" = "my orders" = "made orders" = "order history" = "previous orders" = "view orders" = "check orders" = "see orders" = "placed orders" = "past orders"
-- ES: "dame pedidos" = "muéstrame pedidos" = "déjame ver pedidos" = "¿tienes enlace pedidos?" = "lista pedidos" = "mis pedidos" = "pedidos hechos" = "historial pedidos" = "pedidos anteriores" = "visualizar pedidos" = "revisar pedidos" = "ver pedidos" = "pedidos realizados" = "pedidos pasados"
-- PT: "me dê pedidos" = "mostre pedidos" = "deixe-me ver pedidos" = "tem link dos pedidos?" = "lista pedidos" = "meus pedidos" = "pedidos feitos" = "histórico pedidos" = "pedidos anteriores" = "visualizar pedidos" = "verificar pedidos" = "ver pedidos" = "pedidos realizados" = "pedidos passados"
+- IT: "dammi ordini" = "mostrami ordini" = "fammi vedere ordini" = "hai il link degli ordini?" = "lista ordini"
+- EN: "give me orders" = "show me orders" = "let me see orders" = "do you have orders link?" = "order list"
+- ES: "dame pedidos" = "muéstrame pedidos" = "déjame ver pedidos" = "¿tienes enlace pedidos?" = "lista pedidos"
+- PT: "me dê pedidos" = "mostre pedidos" = "deixe-me ver pedidos" = "tem link dos pedidos?" = "lista pedidos"
 
 **🇮🇹🇬🇧🇪🇸🇵🇹 INVOICES** → GetOrdersListLink(orderCode):
-- IT: "dammi fattura" = "voglio fattura" = "mostra fattura" = "hai la fattura?" = "fattura ultimo ordine" = "fammi vedere fattura" = "fattura dell'ordine" = "ricevuta ordine" = "documento fiscale" = "scontrino ordine" = "fattura dell'ultimo acquisto" = "ricevuta ultimo ordine" = "documento ultimo ordine"
-- EN: "give me invoice" = "I want invoice" = "show invoice" = "do you have invoice?" = "last order invoice" = "let me see invoice" = "order invoice" = "order receipt" = "fiscal document" = "order ticket" = "last purchase invoice" = "last order receipt" = "last order document"
-- ES: "dame factura" = "quiero factura" = "muestra factura" = "¿tienes factura?" = "factura último pedido" = "déjame ver factura" = "factura del pedido" = "recibo pedido" = "documento fiscal" = "ticket pedido" = "factura última compra" = "recibo último pedido" = "documento último pedido"
-- PT: "me dê fatura" = "quero fatura" = "mostre fatura" = "tem fatura?" = "fatura último pedido" = "deixe-me ver fatura" = "fatura do pedido" = "recibo pedido" = "documento fiscal" = "ticket pedido" = "fatura última compra" = "recibo último pedido" = "documento último pedido"
+- IT: "dammi fattura" = "voglio fattura" = "mostra fattura" = "hai la fattura?" = "fattura ultimo ordine"
+- EN: "give me invoice" = "I want invoice" = "show invoice" = "do you have invoice?" = "last order invoice"
+- ES: "dame factura" = "quiero factura" = "muestra factura" = "¿tienes factura?" = "factura último pedido"
+- PT: "me dê fatura" = "quero fatura" = "mostre fatura" = "tem fatura?" = "fatura último pedido"
 
 **🇮🇹🇬🇧🇪🇸🇵🇹 OPERATOR** → ContactOperator():
-- IT: "voglio operatore" = "chiama operatore" = "servizio clienti" = "parlare con qualcuno" = "aiuto umano" = "contatta operatore" = "assistenza clienti" = "supporto clienti" = "parla con operatore" = "operatore umano" = "assistenza umana" = "customer care" = "help desk" = "contatto diretto" = "assistenza telefonica" = "operatore telefonico"
-- EN: "I want operator" = "call operator" = "customer service" = "speak with someone" = "human help" = "contact operator" = "customer assistance" = "customer support" = "talk to operator" = "human operator" = "human assistance" = "customer care" = "help desk" = "direct contact" = "phone assistance" = "phone operator"
-- ES: "quiero operador" = "llama operador" = "servicio cliente" = "hablar con alguien" = "ayuda humana" = "contacta operador" = "asistencia cliente" = "soporte cliente" = "habla con operador" = "operador humano" = "asistencia humana" = "atención cliente" = "help desk" = "contacto directo" = "asistencia telefónica" = "operador telefónico"
-- PT: "quero operador" = "chame operador" = "atendimento cliente" = "falar com alguém" = "ajuda humana" = "contate operador" = "assistência cliente" = "suporte cliente" = "fale com operador" = "operador humano" = "assistência humana" = "cuidado cliente" = "help desk" = "contato direto" = "assistência telefônica" = "operador telefônico"
+- IT: "voglio operatore" = "chiama operatore" = "servizio clienti" = "parlare con qualcuno" = "aiuto umano"
+- EN: "I want operator" = "call operator" = "customer service" = "speak with someone" = "human help"
+- ES: "quiero operador" = "llama operador" = "servicio cliente" = "hablar con alguien" = "ayuda humana"
+- PT: "quero operador" = "chame operador" = "atendimento cliente" = "falar com alguém" = "ajuda humana"
 
 **🇮🇹🇬🇧🇪🇸🇵🇹 PRODUCTS** → GetAllProducts():
-- IT: "che prodotti avete" = "fammi vedere prodotti" = "mostra catalogo" = "lista prodotti" = "dammi prodotti" = "quali prodotti vendete" = "prodotti disponibili" = "catalogo prodotti" = "visualizza prodotti" = "vedi prodotti" = "elenco prodotti" = "gamma prodotti" = "assortimento" = "cosa vendete" = "prodotti in vendita" = "articoli disponibili" = "merci disponibili"
-- EN: "what products do you have" = "show me products" = "show catalog" = "product list" = "give me products" = "what products do you sell" = "available products" = "product catalog" = "view products" = "see products" = "product listing" = "product range" = "assortment" = "what do you sell" = "products for sale" = "available items" = "available goods"
-- ES: "qué productos tienen" = "muéstrame productos" = "muestra catálogo" = "lista productos" = "dame productos" = "qué productos venden" = "productos disponibles" = "catálogo productos" = "visualizar productos" = "ver productos" = "listado productos" = "gama productos" = "surtido" = "qué venden" = "productos en venta" = "artículos disponibles" = "mercancías disponibles"
-- PT: "que produtos vocês têm" = "mostre produtos" = "mostre catálogo" = "lista produtos" = "me dê produtos" = "que produtos vocês vendem" = "produtos disponíveis" = "catálogo produtos" = "visualizar produtos" = "ver produtos" = "listagem produtos" = "gama produtos" = "sortimento" = "o que vocês vendem" = "produtos à venda" = "artigos disponíveis" = "mercadorias disponíveis"
+- IT: "che prodotti avete" = "fammi vedere prodotti" = "mostra catalogo" = "lista prodotti" = "dammi prodotti"
+- EN: "what products do you have" = "show me products" = "show catalog" = "product list" = "give me products"
+- ES: "qué productos tienen" = "muéstrame productos" = "muestra catálogo" = "lista productos" = "dame productos"
+- PT: "que produtos vocês têm" = "mostre produtos" = "mostre catálogo" = "lista produtos" = "me dê produtos"
 
 **🇮🇹🇬🇧🇪🇸🇵🇹 SERVICES** → GetServices():
-- IT: "che servizi avete" = "fammi vedere servizi" = "mostra servizi" = "lista servizi" = "servizi disponibili" = "quali servizi offrite" = "dammi servizi" = "servizi che fate" = "catalogo servizi" = "elenco servizi" = "gamma servizi" = "visualizza servizi" = "vedi servizi" = "servizi offerti" = "che servizi fate" = "servizi forniti" = "prestazioni disponibili"
-- EN: "what services do you have" = "show me services" = "show services" = "service list" = "available services" = "what services do you offer" = "give me services" = "services you do" = "service catalog" = "service listing" = "service range" = "view services" = "see services" = "offered services" = "what services do you do" = "provided services" = "available offerings"
-- ES: "qué servicios tienen" = "muéstrame servicios" = "muestra servicios" = "lista servicios" = "servicios disponibles" = "qué servicios ofrecen" = "dame servicios" = "servicios que hacen" = "catálogo servicios" = "listado servicios" = "gama servicios" = "visualizar servicios" = "ver servicios" = "servicios ofrecidos" = "qué servicios hacen" = "servicios proporcionados" = "ofertas disponibles"
-- PT: "que serviços vocês têm" = "mostre serviços" = "mostre serviços" = "lista serviços" = "serviços disponíveis" = "que serviços vocês oferecem" = "me dê serviços" = "serviços que fazem" = "catálogo serviços" = "listagem serviços" = "gama serviços" = "visualizar serviços" = "ver serviços" = "serviços oferecidos" = "que serviços vocês fazem" = "serviços fornecidos" = "ofertas disponíveis"
+- IT: "che servizi avete" = "fammi vedere servizi" = "mostra servizi" = "lista servizi" = "servizi disponibili"
+- EN: "what services do you have" = "show me services" = "show services" = "service list" = "available services"
+- ES: "qué servicios tienen" = "muéstrame servicios" = "muestra servicios" = "lista servicios" = "servicios disponibles"
+- PT: "que serviços vocês têm" = "mostre serviços" = "mostre serviços" = "lista serviços" = "serviços disponíveis"
 
 **🇮🇹🇬🇧🇪🇸🇵🇹 TRACKING** → GetShipmentTrackingLink():
-
-**🚨 CONCETTO CRITICO - TRACKING/SPEDIZIONE/CONSEGNA:**
-Il RAG Processor DEVE capire che TUTTE le domande relative a:
-- **POSIZIONE** dell'ordine (dove è, dove si trova)
-- **TEMPO** di arrivo (quando arriva, quando mi arriva)
-- **STATO** della spedizione (che punto è, come va)
-- **TRACKING** e **TRACCIAMENTO** (seguire il pacco)
-- **CONSEGNA** e **DELIVERY** (arrivo, consegna)
-
-→ Sono SEMPRE richieste di TRACKING! CHIAMA GetShipmentTrackingLink()!
-
-**🎯 ESEMPI CONCETTUALI UNIVERSALI:**
-- Qualsiasi domanda su DOVE è l'ordine → TRACKING
-- Qualsiasi domanda su QUANDO arriva → TRACKING  
-- Qualsiasi domanda su STATO spedizione → TRACKING
-- Qualsiasi richiesta di seguire/tracciare → TRACKING
-
-- IT: "dove è il mio ordine" = "tracking spedizione" = "dove è la merce" = "quando arriva" = "stato spedizione" = "quando arriva il mio ordine" = "dove si trova il mio ordine" = "tracciamento ordine" = "tracciamento spedizione" = "stato ordine" = "stato della spedizione" = "a che punto è il mio ordine" = "dov'è il pacco" = "dove è il pacco" = "quando mi arriva" = "tempi di consegna" = "data di consegna" = "arrivo ordine" = "consegna ordine" = "che fine ha fatto il mio ordine" = "è partito il mio ordine" = "è in viaggio il mio ordine" = "dove sta andando il mio pacco" = "posizione ordine" = "localizzazione ordine" = "seguire ordine" = "monitorare ordine" = "controllo spedizione"
-- EN: "where is my order" = "shipment tracking" = "where is my package" = "when will it arrive" = "delivery status" = "when will my order arrive" = "where is my order located" = "order tracking" = "shipment tracking" = "order status" = "shipment status" = "how far is my order" = "where's the package" = "where is the package" = "when will it come" = "delivery time" = "delivery date" = "order arrival" = "order delivery" = "what happened to my order" = "has my order shipped" = "is my order traveling" = "where is my package going" = "order position" = "order location" = "follow order" = "monitor order" = "shipment control"
-- ES: "dónde está mi pedido" = "seguimiento envío" = "dónde está mi paquete" = "cuándo llegará" = "estado entrega" = "cuándo llega mi pedido" = "dónde se encuentra mi pedido" = "rastreo pedido" = "rastreo envío" = "estado pedido" = "estado del envío" = "cómo va mi pedido" = "dónde está el paquete" = "dónde está el paquete" = "cuándo me llega" = "tiempo de entrega" = "fecha de entrega" = "llegada pedido" = "entrega pedido" = "qué pasó con mi pedido" = "salió mi pedido" = "está viajando mi pedido" = "dónde va mi paquete" = "posición pedido" = "ubicación pedido" = "seguir pedido" = "monitorear pedido" = "control envío"
-- PT: "onde está meu pedido" = "rastreamento envio" = "onde está meu pacote" = "quando chegará" = "status entrega" = "quando chega meu pedido" = "onde se encontra meu pedido" = "rastreio pedido" = "rastreio envio" = "status pedido" = "status do envio" = "como está meu pedido" = "onde está o pacote" = "onde está o pacote" = "quando me chega" = "tempo de entrega" = "data de entrega" = "chegada pedido" = "entrega pedido" = "o que aconteceu com meu pedido" = "saiu meu pedido" = "está viajando meu pedido" = "onde vai meu pacote" = "posição pedido" = "localização pedido" = "seguir pedido" = "monitorar pedido" = "controle envio"
+- IT: "dove è il mio ordine" = "tracking spedizione" = "dove è la merce" = "quando arriva" = "stato spedizione"
+- EN: "where is my order" = "shipment tracking" = "where is my package" = "when will it arrive" = "delivery status"
+- ES: "dónde está mi pedido" = "seguimiento envío" = "dónde está mi paquete" = "cuándo llegará" = "estado entrega"
+- PT: "onde está meu pedido" = "rastreamento envio" = "onde está meu pacote" = "quando chegará" = "status entrega"
 
 **🇮🇹🇬🇧🇪🇸🇵🇹 CART** → addToCart/get_cart_info:
-- IT: "aggiungi al carrello" = "metti nel carrello" = "voglio comprare" = "fammi vedere carrello" = "cosa ho nel carrello" = "inserisci nel carrello" = "aggiungi nel carrello" = "compra questo" = "prendi questo" = "vorrei comprare" = "contenuto carrello" = "carrello della spesa" = "mostra carrello" = "visualizza carrello" = "vedi carrello" = "controlla carrello" = "carrello acquisti"
-- EN: "add to cart" = "put in cart" = "I want to buy" = "show me cart" = "what's in my cart" = "insert in cart" = "add in cart" = "buy this" = "take this" = "I would like to buy" = "cart content" = "shopping cart" = "show cart" = "view cart" = "see cart" = "check cart" = "purchase cart"
-- ES: "añadir al carrito" = "poner en carrito" = "quiero comprar" = "muéstrame carrito" = "qué hay en mi carrito" = "insertar en carrito" = "agregar en carrito" = "comprar esto" = "tomar esto" = "me gustaría comprar" = "contenido carrito" = "carrito de compras" = "mostrar carrito" = "visualizar carrito" = "ver carrito" = "revisar carrito" = "carrito de compras"
-- PT: "adicionar ao carrinho" = "colocar no carrinho" = "quero comprar" = "mostre carrinho" = "o que tem no meu carrinho" = "inserir no carrinho" = "adicionar no carrinho" = "comprar isso" = "pegar isso" = "gostaria de comprar" = "conteúdo carrinho" = "carrinho de compras" = "mostrar carrinho" = "visualizar carrinho" = "ver carrinho" = "verificar carrinho" = "carrinho de compras"
+- IT: "aggiungi al carrello" = "metti nel carrello" = "voglio comprare" = "fammi vedere carrello" = "cosa ho nel carrello"
+- EN: "add to cart" = "put in cart" = "I want to buy" = "show me cart" = "what's in my cart"
+- ES: "añadir al carrito" = "poner en carrito" = "quiero comprar" = "muéstrame carrito" = "qué hay en mi carrito"
+- PT: "adicionar ao carrinho" = "colocar no carrinho" = "quero comprar" = "mostre carrinho" = "o que tem no meu carrinho"
 
 **GOLDEN RULE**: If the user's intent is semantically equivalent to a function's purpose, CALL THE FUNCTION regardless of exact wording!
 
 **MULTILINGUAL INTELLIGENCE**: The system MUST understand that "give me", "dame", "me dê" all express the same REQUEST intent across languages!
-
-**🚨 TRACKING INTELLIGENCE SPECIFICA:**
-
-Il RAG Processor DEVE comprendere che QUALSIASI domanda su:
-
-1. **POSIZIONE/LOCATION** (dove, where, dónde, onde):
-   - "dove è" = "where is" = "dónde está" = "onde está" → TRACKING
-
-2. **TEMPO/TIME** (quando, when, cuándo, quando):  
-   - "quando arriva" = "when arrives" = "cuándo llega" = "quando chega" → TRACKING
-
-3. **STATO/STATUS** (stato, status, estado):
-   - "che punto è" = "how far" = "cómo va" = "como está" → TRACKING
-
-4. **MOVIMENTO/MOVEMENT** (viaggio, traveling, viajando, viajando):
-   - "è in viaggio" = "is traveling" = "está viajando" = "está viajando" → TRACKING
-
-→ **TUTTE** queste domande sono TRACKING! Non importa la lingua o le parole esatte!
-
-**🚨 FOCUS CRITICO - PAROLE DI POSIZIONE:**
-
-Il RAG Processor DEVE riconoscere che QUALSIASI parola che indica POSIZIONE/LOCATION è SEMPRE TRACKING:
-
-**🇮🇹 PAROLE POSIZIONE ITALIANE:**
-- "dov'è" = "dove è" = "dove si trova" = "dove sta" = "posizione" = "ubicazione" → TRACKING
-- "dov'è il pacco" = "dove è il pacco" = "dove si trova il pacco" → TRACKING SEMPRE!
-
-**🇬🇧 PAROLE POSIZIONE INGLESI:**  
-- "where is" = "where's" = "location" = "position" = "where can I find" → TRACKING
-- "where is the package" = "where's my package" → TRACKING SEMPRE!
-
-**🇪🇸 PAROLE POSIZIONE SPAGNOLE:**
-- "dónde está" = "dónde se encuentra" = "ubicación" = "posición" → TRACKING  
-- "dónde está el paquete" = "dónde se encuentra mi paquete" → TRACKING SEMPRE!
-
-**🇵🇹 PAROLE POSIZIONE PORTOGHESI:**
-- "onde está" = "onde se encontra" = "localização" = "posição" → TRACKING
-- "onde está o pacote" = "onde se encontra meu pacote" → TRACKING SEMPRE!
-
-**REGOLA ASSOLUTA:** Qualsiasi domanda su DOVE/WHERE/DÓNDE/ONDE + ordine/pacco/package/pedido = TRACKING OBBLIGATORIO!
 
 Il sistema usa una strategia a **due livelli** con nuova priorità:
 
@@ -649,62 +592,22 @@ La funzione è già implementata e funzionante.
 
 ## GetShipmentTrackingLink(orderCode)
 
-**🚨 CONCETTO CRITICO - SEMANTIC INTENT**: User wants to TRACK, LOCATE, or CHECK the STATUS of their order/shipment
+se un utente chiede dove si trova il suo ordine o vuole il tracking della spedizione, dobbiamo lanciare la Calling function `GetShipmentTrackingLink()` con il parametro `orderCode` impostato al numero dell'ordine richiesto. Questo genererà un link diretto al tracking della spedizione.
+in ogni modo ci vogliono da 3 a 5 giorni lavorativi
 
-**🎯 SEMANTIC UNDERSTANDING RULE**: Any question about:
-- **WHERE** is my order/package → TRACKING
-- **WHEN** will it arrive → TRACKING  
-- **STATUS** of shipment → TRACKING
-- **POSITION** of package → TRACKING
-- **FOLLOWING** the delivery → TRACKING
+**TRIGGERS per tracking spedizione:**
 
-Se un utente chiede dove si trova il suo ordine, quando arriva, o vuole il tracking della spedizione, dobbiamo SEMPRE lanciare la Calling function `GetShipmentTrackingLink()` con il parametro `orderCode` impostato al numero dell'ordine richiesto. Questo genererà un link diretto al tracking della spedizione.
-In ogni modo ci vogliono da 3 a 5 giorni lavorativi.
-
-**🔍 TRIGGERS CONCETTUALI ESTESI (non esaustivi - usa comprensione semantica):**
-
-**🇮🇹 ITALIANO - CONCETTI DI TRACKING:**
-- "dove è il mio ordine?" = "quando arriva il mio ordine?" = "a che punto è?"
-- "tracking spedizione" = "tracciamento" = "seguire ordine" = "monitorare"
-- "stato della spedizione" = "stato ordine" = "posizione pacco" = "dov'è il pacco" = "dove è il pacco"
-- "dove è la merce" = "che fine ha fatto" = "è partito?" = "è in viaggio?"
-- "quando mi arriva" = "tempi di consegna" = "data arrivo" = "quando arriva"
-
-**🇬🇧 ENGLISH - TRACKING CONCEPTS:**
-- "where is my order?" = "when will my order arrive?" = "how far along is it?"
-- "shipment tracking" = "tracking" = "follow order" = "monitor delivery"
-- "delivery status" = "order status" = "package location" = "where's my package" = "where is my package"
-- "where is my merchandise" = "what happened to it" = "has it shipped?" = "is it traveling?"
-- "when will it come" = "delivery time" = "arrival date" = "when arrives"
-
-**🇪🇸 ESPAÑOL - CONCEPTOS DE TRACKING:**
-- "dónde está mi pedido?" = "cuándo llega mi pedido?" = "cómo va?"
-- "seguimiento envío" = "rastreo" = "seguir pedido" = "monitorear entrega"
-- "estado entrega" = "estado pedido" = "ubicación paquete" = "dónde está mi paquete"
-- "dónde está mi mercancía" = "qué pasó con eso" = "salió?" = "está viajando?"
-- "cuándo me llega" = "tiempo entrega" = "fecha llegada" = "cuándo llega"
-
-**🇵🇹 PORTUGUÊS - CONCEITOS DE TRACKING:**
-- "onde está meu pedido?" = "quando chega meu pedido?" = "como está?"
-- "rastreamento envio" = "rastreio" = "seguir pedido" = "monitorar entrega"
-- "status entrega" = "status pedido" = "localização pacote" = "onde está meu pacote"
-- "onde está minha mercadoria" = "o que aconteceu com isso" = "saiu?" = "está viajando?"
-- "quando me chega" = "tempo entrega" = "data chegada" = "quando chega"
-
-**GOLDEN RULE**: Se l'utente vuole sapere DOVE, QUANDO, o COME VA il suo ordine → GetShipmentTrackingLink()!
-
-**🚨 ATTENZIONE SPECIALE - PAROLE CRITICHE:**
-
-**RICONOSCI IMMEDIATAMENTE queste parole come TRACKING ASSOLUTO:**
-
-- **"dov'è"** (italiano) = TRACKING IMMEDIATO
-- **"where is"** (inglese) = TRACKING IMMEDIATO  
-- **"dónde está"** (spagnolo) = TRACKING IMMEDIATO
-- **"onde está"** (portoghese) = TRACKING IMMEDIATO
-
-**Se vedi una di queste parole + ordine/pacco/package/pedido → GetShipmentTrackingLink() SEMPRE!**
-
-**NON usare SearchRAG per domande di posizione - USA SEMPRE GetShipmentTrackingLink()!**
+- "dove è il mio ordine?"
+- "tracking spedizione"
+- "stato della spedizione del mio ultimo ordine?"
+- "stato della mia ultima spedizione"
+- "stato della spedizione dell'ordine 12345"
+- "dove è la merce"
+- "where is my order"
+- "shipment tracking"
+- "delivery status"
+- "track my order"
+- "ma quando arriva la mia merce?"
 
 ## GetAllProducts()
 

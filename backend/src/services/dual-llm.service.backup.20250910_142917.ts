@@ -824,25 +824,6 @@ Please create a natural, helpful response in ${languageName}.`
       {
         type: "function",
         function: {
-          name: "GetShipmentTrackingLink",
-          description:
-            '🚨 HIGHEST PRIORITY FUNCTION! MANDATORY for LOCATION questions! Use when user asks WHERE their package/order is located. CRITICAL TRIGGERS: "dov\'è il pacco", "where is my package", "dove è il pacco", "where is the package", "dov\'è", "where is", "dove si trova", "where\'s my package", "dónde está mi paquete", "onde está meu pacote". This function has ABSOLUTE PRIORITY over SearchRAG for ANY location-based tracking questions. SEMANTIC INTENT: Any question about POSITION/LOCATION of package/order → ALWAYS call this function!',
-          parameters: {
-            type: "object",
-            properties: {
-              orderCode: {
-                type: "string",
-                description:
-                  "Order code/number for tracking. If not provided, function will return message asking user to specify order code.",
-              },
-            },
-            required: [],
-          },
-        },
-      },
-      {
-        type: "function",
-        function: {
           name: "GetOrdersListLink",
           description:
             "Generate secure link to view customer orders. Use SPECIFICALLY when user says: 'i miei ordini', 'lista ordini', 'dammi ordini', 'show me orders'. For SPECIFIC ORDER or INVOICE requests use with orderCode parameter when user says: 'dammi fattura dell'ultimo ordine', 'fattura dell'ultimo ordine', 'dammi link ordine', 'stato del mio ultimo ordine', 'fattura dell'ordine', 'DDt dell'ultimo ordine'. This function has PRIORITY over SearchRAG for order/invoice requests.",
@@ -862,9 +843,67 @@ Please create a natural, helpful response in ${languageName}.`
       {
         type: "function",
         function: {
+          name: "GetShipmentTrackingLink",
+          description:
+            'Generate shipment tracking link for order delivery status.',
+          parameters: {
+            type: "object",
+            properties: {
+              orderCode: {
+                type: "string",
+                description:
+                  "Order code/number for tracking. If not provided, function will return message asking user to specify order code.",
+              },
+            },
+            required: [],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "GetCustomerProfileLink",
+          description:
+            'Generate secure link for customer profile management when user wants to modify profile, address, email, or personal data.',
+          parameters: {
+            type: "object",
+            properties: {},
+            required: [],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "GetActiveOffers",
+          description:
+            "Get current active offers and promotions.",
+          parameters: {
+            type: "object",
+            properties: {},
+            required: [],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
           name: "ContactOperator",
           description:
             "Request to speak with a human operator. Use SPECIFICALLY when user says: 'voglio parlare con un operatore', 'voglio un operatore', 'chiama un operatore', 'contatta un operatore', 'servizio clienti', 'customer service', 'human operator', 'speak with someone', 'talk to operator', 'contact support', 'aiuto umano', 'assistenza umana'. This function has PRIORITY over SearchRAG for operator requests.",
+          parameters: {
+            type: "object",
+            properties: {},
+            required: [],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "GetAllCategories",
+          description:
+            'Get all product categories overview.',
           parameters: {
             type: "object",
             properties: {},
@@ -962,45 +1001,6 @@ Please create a natural, helpful response in ${languageName}.`
           name: "get_cart_info",
           description:
             'Show shopping cart contents and totals. ONLY use when user explicitly asks about cart: "mostra carrello/show cart", "mostra il carrello/show the cart", "il mio carrello/my cart", "cosa c\'è nel carrello/what\'s in cart", "carrello/cart", "vedere il carrello/see the cart". DO NOT use for product searches or price inquiries.',
-          parameters: {
-            type: "object",
-            properties: {},
-            required: [],
-          },
-        },
-      },
-      {
-        type: "function",
-        function: {
-          name: "GetCustomerProfileLink",
-          description:
-            'Generate secure link for customer profile management when user wants to modify profile, address, email, or personal data.',
-          parameters: {
-            type: "object",
-            properties: {},
-            required: [],
-          },
-        },
-      },
-      {
-        type: "function",
-        function: {
-          name: "GetActiveOffers",
-          description:
-            "Get current active offers and promotions.",
-          parameters: {
-            type: "object",
-            properties: {},
-            required: [],
-          },
-        },
-      },
-      {
-        type: "function",
-        function: {
-          name: "GetAllCategories",
-          description:
-            'Get all product categories overview.',
           parameters: {
             type: "object",
             properties: {},

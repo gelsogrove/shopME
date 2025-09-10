@@ -666,14 +666,14 @@ In ogni modo ci vogliono da 3 a 5 giorni lavorativi.
 **🇮🇹 ITALIANO - CONCETTI DI TRACKING:**
 - "dove è il mio ordine?" = "quando arriva il mio ordine?" = "a che punto è?"
 - "tracking spedizione" = "tracciamento" = "seguire ordine" = "monitorare"
-- "stato della spedizione" = "stato ordine" = "posizione pacco" = "dov'è il pacco" = "dove è il pacco"
+- "stato della spedizione" = "stato ordine" = "posizione pacco" = "dov'è il pacco"
 - "dove è la merce" = "che fine ha fatto" = "è partito?" = "è in viaggio?"
 - "quando mi arriva" = "tempi di consegna" = "data arrivo" = "quando arriva"
 
 **🇬🇧 ENGLISH - TRACKING CONCEPTS:**
 - "where is my order?" = "when will my order arrive?" = "how far along is it?"
 - "shipment tracking" = "tracking" = "follow order" = "monitor delivery"
-- "delivery status" = "order status" = "package location" = "where's my package" = "where is my package"
+- "delivery status" = "order status" = "package location" = "where's my package"
 - "where is my merchandise" = "what happened to it" = "has it shipped?" = "is it traveling?"
 - "when will it come" = "delivery time" = "arrival date" = "when arrives"
 
