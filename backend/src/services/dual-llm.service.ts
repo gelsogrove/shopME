@@ -186,7 +186,7 @@ export class DualLLMService {
         outputLength: formattedResponse?.length || 0,
         debugInfo: this.lastDebugInfo,
       })
-
+      
       return {
         output: formattedResponse,
         success: true,
@@ -241,14 +241,14 @@ export class DualLLMService {
       }
       
       this.lastTranslatedQuery = translatedQuery // Store for debug
-
+      
       // Get function definitions
       const functionDefinitions = this.getRAGProcessorFunctionDefinitions()
       console.log(
         "🔧 Function definitions:",
         JSON.stringify(functionDefinitions, null, 2)
       )
-
+      
       // Get agent config from database
       const agentConfig = await this.getAgentConfig(request.workspaceId)
       console.log("🔧 Agent config from DB:", agentConfig)
@@ -283,7 +283,7 @@ export class DualLLMService {
       
       console.log(`🔧 Cloud Functions: Using agent prompt from DB with language enforcement for: ${languageParam}`)
       console.log(`🌐 Language enforcement added: ${languageEnforcement.substring(0, 50)}...`)
-
+      
       const openRouterPayload = {
         model: agentConfig.model || "openai/gpt-4o",
         messages: this.buildConversationMessages(
@@ -309,7 +309,7 @@ export class DualLLMService {
         "🚀 CLOUD FUNCTIONS PAYLOAD:",
         JSON.stringify(openRouterPayload, null, 2)
       )
-
+      
       const response = await axios.post(this.openRouterUrl, openRouterPayload, {
         headers: {
           Authorization: `Bearer ${this.openRouterApiKey}`,
@@ -451,8 +451,8 @@ export class DualLLMService {
           success: false,
           reason: "no_search_results_found",
         }
-
-        return {
+      
+      return {
           functionResults: [],
           success: false,
           source: "searchrag",
@@ -550,11 +550,11 @@ export class DualLLMService {
             ],
             request.messages || []
           ),
-          temperature: 0.7,
+        temperature: 0.7,
           max_tokens: 700,
         },
         {
-          headers: {
+        headers: {
             Authorization: `Bearer ${this.openRouterApiKey}`,
             "Content-Type": "application/json",
             "HTTP-Referer": "http://localhost:3001",
@@ -764,7 +764,16 @@ Format the response naturally based on the data type and user's request.`
 
     let dataContext = ""
     if (functionResults.length > 0) {
-      dataContext = `Data from ${dataSource}:\n${JSON.stringify(functionResults, null, 2)}`
+      // Check for confirmOrderFromConversation results
+      const confirmOrderResult = functionResults.find(result => 
+        result.functionName === 'confirmOrderFromConversation' && result.result?.success
+      )
+      
+      if (confirmOrderResult) {
+        dataContext = `Order confirmation successful! Checkout link generated: ${confirmOrderResult.result.data.checkoutUrl}`
+      } else {
+        dataContext = `Data from ${dataSource}:\n${JSON.stringify(functionResults, null, 2)}`
+      }
     } else {
       dataContext = `No specific data found for this request. 
 
@@ -823,13 +832,13 @@ Please create a natural, helpful response in ${languageName}.`
     return [
       {
         type: "function",
-        function: {
+      function: {
           name: "GetShipmentTrackingLink",
           description:
             '🚨 HIGHEST PRIORITY FUNCTION! MANDATORY for LOCATION questions! Use when user asks WHERE their package/order is located. CRITICAL TRIGGERS: "dov\'è il pacco", "where is my package", "dove è il pacco", "where is the package", "dov\'è", "where is", "dove si trova", "where\'s my package", "dónde está mi paquete", "onde está meu pacote". This function has ABSOLUTE PRIORITY over SearchRAG for ANY location-based tracking questions. SEMANTIC INTENT: Any question about POSITION/LOCATION of package/order → ALWAYS call this function!',
-          parameters: {
+        parameters: {
             type: "object",
-            properties: {
+          properties: {
               orderCode: {
                 type: "string",
                 description:
@@ -848,7 +857,7 @@ Please create a natural, helpful response in ${languageName}.`
             "Generate secure link to view customer orders. Use SPECIFICALLY when user says: 'i miei ordini', 'lista ordini', 'dammi ordini', 'show me orders'. For SPECIFIC ORDER or INVOICE requests use with orderCode parameter when user says: 'dammi fattura dell'ultimo ordine', 'fattura dell'ultimo ordine', 'dammi link ordine', 'stato del mio ultimo ordine', 'fattura dell'ordine', 'DDt dell'ultimo ordine'. This function has PRIORITY over SearchRAG for order/invoice requests.",
           parameters: {
             type: "object",
-            properties: {
+                properties: {
               orderCode: {
                 type: "string",
                 description:
@@ -1008,6 +1017,37 @@ Please create a natural, helpful response in ${languageName}.`
           },
         },
       },
+      {
+        type: "function",
+        function: {
+          name: "confirmOrderFromConversation",
+          description:
+            'Confirm order and generate checkout link when user says: "conferma", "conferma ordine", "procedi con l\'ordine", "finalizza ordine", "checkout", "completa ordine", "confirm", "confirm order", "proceed with order", "finalize order", "complete order". This function has PRIORITY over SearchRAG for order confirmation requests.',
+          parameters: {
+            type: "object",
+            properties: {},
+            required: [],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "ragSearch",
+          description:
+            'Semantic search for general queries about products, services, FAQs, and company information. Use when user asks general questions like: "quanto costa la spedizione", "politica di reso", "how long does it take for my order to arrive", "delivery time", "return policy", "shipping cost", "what are your hours", "contact information". This function searches through FAQs, documents, and knowledge base.',
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "The search query to find relevant information",
+              },
+            },
+            required: ["query"],
+          },
+        },
+      },
     ]
   }
 
@@ -1020,7 +1060,7 @@ Please create a natural, helpful response in ${languageName}.`
     for (const toolCall of toolCalls) {
       try {
         console.log("🔧 Executing tool call:", toolCall.function.name)
-
+        
         const functionName = toolCall.function.name
         const args = JSON.parse(toolCall.function.arguments || "{}")
 
@@ -1127,6 +1167,24 @@ Please create a natural, helpful response in ${languageName}.`
               request.workspaceId,
               request.phone || ""
             )
+            break
+
+          case "confirmOrderFromConversation":
+            result = await this.callingFunctionsService.confirmOrderFromConversation({
+              query: request.chatInput,
+              workspaceId: request.workspaceId,
+              customerId: request.customerid || "",
+              messages: request.messages || [],
+            })
+            break
+
+          case "ragSearch":
+            result = await this.callingFunctionsService.SearchRag({
+              query: args.query || request.chatInput,
+              workspaceId: request.workspaceId,
+              customerId: request.customerid || "",
+              messages: request.messages || [],
+            })
             break
 
           default:

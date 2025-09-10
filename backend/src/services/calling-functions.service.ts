@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { SecureTokenService } from '../application/services/secure-token.service';
-import { TranslationService } from './translation.service';
 import {
     CategoriesResponse,
     ErrorResponse,
@@ -13,6 +12,7 @@ import {
     SuccessResponse,
     TokenResponse
 } from '../types/whatsapp.types';
+import { TranslationService } from './translation.service';
 
 export interface GetAllProductsRequest {
   workspaceId: string;
@@ -479,56 +479,48 @@ export class CallingFunctionsService {
     }
   }
 
-  // public async getCustomerProfileLink(request: GetAllProductsRequest): Promise<TokenResponse> {
-  //   try {
-  //     console.log('🔧 Calling getCustomerProfileLink with:', request);
+
+  public async confirmOrderFromConversation(request: RagSearchRequest): Promise<StandardResponse> {
+    try {
+      console.log('🔧 Calling confirmOrderFromConversation with:', request);
       
-  //     const token = await this.secureTokenService.createToken(
-  //       'profile',
-  //       request.workspaceId,
-  //       { customerId: request.customerId },
-  //       '1h',
-  //       undefined,
-  //       undefined,
-  //       undefined,
-  //       request.customerId
-  //     );
-
-  //     const linkUrl = `http://localhost:3000/profile-public?token=${token}`;
-
-  //     return {
-  //       success: true,
-  //       token: token,
-  //       linkUrl: linkUrl,
-  //       expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-  //       action: 'profile',
-  //       timestamp: new Date().toISOString()
-  //     };
-
-  //   } catch (error) {
-  //     return this.createErrorResponse(error, 'getCustomerProfileLink') as TokenResponse;
-  //   }
-  // }
-
-  // public async confirmOrderFromConversation(request: RagSearchRequest): Promise<StandardResponse> {
-  //   try {
-  //     console.log('🔧 Calling confirmOrderFromConversation with:', request);
+      // Generate secure token for checkout/cart access
+      const token = await this.secureTokenService.createToken(
+        'checkout',
+        request.workspaceId,
+        { customerId: request.customerId },
+        '1h'
+      );
       
-  //     // This would analyze conversation history and extract order details
-  //     // For now, return a simple response
-  //     return {
-  //       success: true,
-  //       data: {
-  //         message: 'Ordine confermato! Ti invieremo una conferma via email.',
-  //         orderConfirmed: true
-  //       },
-  //       timestamp: new Date().toISOString()
-  //     };
+      if (!token) {
+        console.error('❌ Failed to generate checkout token');
+        return {
+          success: false,
+          error: 'Errore nella generazione del link checkout',
+          message: 'Errore nella generazione del link checkout',
+          timestamp: new Date().toISOString()
+        };
+      }
+      
+      // Generate checkout link
+      const checkoutUrl = `http://localhost:3000/checkout?token=${token}`;
+      
+      console.log('✅ Checkout link generated successfully:', checkoutUrl);
+      
+      return {
+        success: true,
+        data: {
+          message: 'Ordine confermato! Clicca sul link per completare il checkout.',
+          checkoutUrl: checkoutUrl,
+          orderConfirmed: true
+        },
+        timestamp: new Date().toISOString()
+      };
 
-  //   } catch (error) {
-  //     return this.createErrorResponse(error, 'confirmOrderFromConversation');
-  //   }
-  // }
+    } catch (error) {
+      return this.createErrorResponse(error, 'confirmOrderFromConversation');
+    }
+  }
 
   public async SearchRag(request: RagSearchRequest): Promise<RagSearchResponse> {
     try {
