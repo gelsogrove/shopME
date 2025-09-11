@@ -42,6 +42,13 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   const [language, setLanguage] = useState('')
   const [currency, setCurrency] = useState('')
 
+  // Shipping address state
+  const [shippingName, setShippingName] = useState('')
+  const [shippingStreet, setShippingStreet] = useState('')
+  const [shippingCity, setShippingCity] = useState('')
+  const [shippingPostalCode, setShippingPostalCode] = useState('')
+  const [shippingCountry, setShippingCountry] = useState('')
+
   // Invoice address state
   const [invoiceFirstName, setInvoiceFirstName] = useState('')
   const [invoiceLastName, setInvoiceLastName] = useState('')
@@ -63,7 +70,17 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       setEmail(profileData.email || '')
       setCompany(profileData.company || '')
       setPhone(profileData.phone || '')
-      setAddress(profileData.address || '')
+      // Handle address as object or string
+      if (profileData.address && typeof profileData.address === 'object') {
+        setShippingName(profileData.address.name || '')
+        setShippingStreet(profileData.address.street || '')
+        setShippingCity(profileData.address.city || '')
+        setShippingPostalCode(profileData.address.postalCode || '')
+        setShippingCountry(profileData.address.country || '')
+        setAddress(profileData.address.street || '') // Keep for backward compatibility
+      } else {
+        setAddress(profileData.address || '')
+      }
       setLanguage(profileData.language || 'ENG')
       setCurrency(profileData.currency || 'EUR')
 
@@ -118,7 +135,13 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       email,
       company,
       phone,
-      address,
+      address: JSON.stringify({
+        name: shippingName,
+        street: shippingStreet,
+        city: shippingCity,
+        postalCode: shippingPostalCode,
+        country: shippingCountry,
+      }),
       language,
       currency,
       invoiceAddress: {
@@ -212,16 +235,70 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="address" className="text-sm font-medium">
-              Shipping Address
-            </Label>
-            <Input
-              id="address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Street, number, city, postal code, province"
-            />
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-800">🚚 Shipping Address</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="shippingName" className="text-sm font-medium">
+                  Full Name
+                </Label>
+                <Input
+                  id="shippingName"
+                  value={shippingName}
+                  onChange={(e) => setShippingName(e.target.value)}
+                  placeholder="Full name"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="shippingStreet" className="text-sm font-medium">
+                  Street Address
+                </Label>
+                <Input
+                  id="shippingStreet"
+                  value={shippingStreet}
+                  onChange={(e) => setShippingStreet(e.target.value)}
+                  placeholder="Street, number"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="shippingCity" className="text-sm font-medium">
+                  City
+                </Label>
+                <Input
+                  id="shippingCity"
+                  value={shippingCity}
+                  onChange={(e) => setShippingCity(e.target.value)}
+                  placeholder="City"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="shippingPostalCode" className="text-sm font-medium">
+                  Postal Code
+                </Label>
+                <Input
+                  id="shippingPostalCode"
+                  value={shippingPostalCode}
+                  onChange={(e) => setShippingPostalCode(e.target.value)}
+                  placeholder="Postal code"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="shippingCountry" className="text-sm font-medium">
+                  Country
+                </Label>
+                <Input
+                  id="shippingCountry"
+                  value={shippingCountry}
+                  onChange={(e) => setShippingCountry(e.target.value)}
+                  placeholder="Country"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

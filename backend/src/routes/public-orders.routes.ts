@@ -496,10 +496,33 @@ router.get('/customer-profile/:token', async (req: Request, res: Response) => {
       select: { id: true, name: true }
     });
 
+    // Parse invoiceAddress and address if they're JSON strings
+    let parsedCustomer = { ...customer };
+    
+    // Parse invoiceAddress if it's a JSON string
+    if (parsedCustomer.invoiceAddress && typeof parsedCustomer.invoiceAddress === 'string') {
+      try {
+        parsedCustomer.invoiceAddress = JSON.parse(parsedCustomer.invoiceAddress);
+      } catch (error) {
+        logger.warn('[PUBLIC-PROFILE] Failed to parse invoiceAddress JSON:', error);
+        parsedCustomer.invoiceAddress = null;
+      }
+    }
+    
+    // Parse address if it's a JSON string
+    if (parsedCustomer.address && typeof parsedCustomer.address === 'string') {
+      try {
+        parsedCustomer.address = JSON.parse(parsedCustomer.address);
+      } catch (error) {
+        logger.warn('[PUBLIC-PROFILE] Failed to parse address JSON:', error);
+        parsedCustomer.address = null;
+      }
+    }
+
     return res.json({
       success: true,
       data: {
-        ...customer,
+        ...parsedCustomer,
         workspace
       }
     });
@@ -621,9 +644,32 @@ router.put('/customer-profile/:token', async (req: Request, res: Response) => {
       }
     });
 
+    // Parse invoiceAddress and address if they're JSON strings
+    let parsedCustomer = { ...updatedCustomer };
+    
+    // Parse invoiceAddress if it's a JSON string
+    if (parsedCustomer.invoiceAddress && typeof parsedCustomer.invoiceAddress === 'string') {
+      try {
+        parsedCustomer.invoiceAddress = JSON.parse(parsedCustomer.invoiceAddress);
+      } catch (error) {
+        logger.warn('[PUBLIC-PROFILE] Failed to parse invoiceAddress JSON after update:', error);
+        parsedCustomer.invoiceAddress = null;
+      }
+    }
+    
+    // Parse address if it's a JSON string
+    if (parsedCustomer.address && typeof parsedCustomer.address === 'string') {
+      try {
+        parsedCustomer.address = JSON.parse(parsedCustomer.address);
+      } catch (error) {
+        logger.warn('[PUBLIC-PROFILE] Failed to parse address JSON after update:', error);
+        parsedCustomer.address = null;
+      }
+    }
+
     return res.json({
       success: true,
-      data: updatedCustomer,
+      data: parsedCustomer,
       message: 'Profile updated successfully'
     });
 

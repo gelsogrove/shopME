@@ -60,8 +60,36 @@ const CustomerProfilePublicPage: React.FC = () => {
         const response = await axios.get(`/api/internal/customer-profile/${token}`)
         
         if (response.data.success) {
-          setProfileData(response.data.data)
-          logger.info(`[PROFILE] ✅ Profile data loaded for customer ${response.data.data.name}`)
+          const profileData = response.data.data
+          
+          // Debug: Log the invoiceAddress type and content
+          logger.info(`[PROFILE] DEBUG - invoiceAddress type: ${typeof profileData.invoiceAddress}`)
+          logger.info(`[PROFILE] DEBUG - invoiceAddress content:`, profileData.invoiceAddress)
+          
+          // Parse invoiceAddress if it's a JSON string
+          if (profileData.invoiceAddress && typeof profileData.invoiceAddress === 'string') {
+            try {
+              profileData.invoiceAddress = JSON.parse(profileData.invoiceAddress)
+              logger.info(`[PROFILE] DEBUG - Parsed invoiceAddress:`, profileData.invoiceAddress)
+            } catch (error) {
+              logger.warn('[PROFILE] Failed to parse invoiceAddress JSON:', error)
+              profileData.invoiceAddress = null
+            }
+          }
+          
+          // Parse address if it's a JSON string
+          if (profileData.address && typeof profileData.address === 'string') {
+            try {
+              profileData.address = JSON.parse(profileData.address)
+              logger.info(`[PROFILE] DEBUG - Parsed address:`, profileData.address)
+            } catch (error) {
+              logger.warn('[PROFILE] Failed to parse address JSON:', error)
+              profileData.address = null
+            }
+          }
+          
+          setProfileData(profileData)
+          logger.info(`[PROFILE] ✅ Profile data loaded for customer ${profileData.name}`)
         } else {
           setProfileError(response.data.error || 'Error loading profile')
         }
@@ -94,7 +122,19 @@ const CustomerProfilePublicPage: React.FC = () => {
       const response = await axios.put(`/api/internal/customer-profile/${token}`, updatedData)
       
       if (response.data.success) {
-        setProfileData(response.data.data)
+        const profileData = response.data.data
+        
+        // Parse invoiceAddress if it's a JSON string
+        if (profileData.invoiceAddress && typeof profileData.invoiceAddress === 'string') {
+          try {
+            profileData.invoiceAddress = JSON.parse(profileData.invoiceAddress)
+          } catch (error) {
+            logger.warn('[PROFILE] Failed to parse invoiceAddress JSON after save:', error)
+            profileData.invoiceAddress = null
+          }
+        }
+        
+        setProfileData(profileData)
         toast.success('Profile updated successfully!')
         logger.info(`[PROFILE] ✅ Profile updated successfully`)
       } else {
