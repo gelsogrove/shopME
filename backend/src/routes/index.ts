@@ -5,11 +5,13 @@ import { PasswordResetService } from "../application/services/password-reset.ser
 import { RegistrationAttemptsService } from "../application/services/registration-attempts.service"
 import { SecureTokenService } from "../application/services/secure-token.service"
 import { UserService } from "../application/services/user.service"
+import { config } from "../config"
 import { AuthController } from "../interfaces/http/controllers/auth.controller"
 import { CategoryController } from "../interfaces/http/controllers/category.controller"
 import { ChatController } from "../interfaces/http/controllers/chat.controller"
 import { CustomersController } from "../interfaces/http/controllers/customers.controller"
 import { MessageRepository } from "../repositories/message.repository"
+import { usageService } from "../services/usage.service"
 import logger from "../utils/logger"
 
 /**
@@ -159,6 +161,7 @@ async function handleNewUserWelcomeFlow(
         message: messageContent,
         response: completeMessage,
         direction: "INBOUND", // ✅ CORRECT: User message is INBOUND, system response is OUTBOUND
+        agentSelected: "CHATBOT", // ✅ ADD: Set agentSelected to CHATBOT for green styling
         functionCallsDebug: [],
         processingSource: 'new_user_welcome',
         debugInfo: JSON.stringify({
@@ -692,6 +695,14 @@ router.post("/whatsapp/webhook", async (req, res) => {
     // Save message and track usage
     if (result.success && result.output) {
       try {
+        // 💰 Calculate LLM cost for this response
+        const llmCost = config.llm.defaultPrice; // €0.50 per LLM response
+        
+        // Get current total usage for this workspace
+        const usageSummary = await usageService.getUsageSummary(workspaceId, 30);
+        const currentTotalUsage = usageSummary.totalCost;
+        const newTotalUsage = currentTotalUsage + llmCost;
+
         await messageRepository.saveMessage({
           workspaceId: workspaceId,
           phoneNumber: phoneNumber,
@@ -704,8 +715,27 @@ router.post("/whatsapp/webhook", async (req, res) => {
           processedPrompt: result.processedPrompt,
           functionCallsDebug: result.functionCalls,
           processingSource: result.functionCalls?.[0]?.source || 'unknown',
-          debugInfo: JSON.stringify(result.debugInfo || {}) // 🔧 NEW: Save debug info
+          debugInfo: JSON.stringify({
+            ...(result.debugInfo || {}),
+            // 💰 Cost tracking info
+            currentCallCost: llmCost,
+            previousTotalUsage: currentTotalUsage,
+            newTotalUsage: newTotalUsage,
+            costTimestamp: new Date().toISOString()
+          })
         });
+
+        // 💰 Track usage for registered customers only
+        if (customerId && customerId !== 'unknown') {
+          await usageService.trackUsage({
+            workspaceId: workspaceId,
+            clientId: customerId,
+            price: llmCost
+          });
+          console.log(`💰 Usage tracked: €${llmCost} for customer ${customerId} (Total: €${newTotalUsage.toFixed(2)})`);
+        } else {
+          console.log(`💰 Usage not tracked: customer not registered (Cost would be: €${llmCost})`);
+        }
 
         // 💾 SAVE MESSAGE RESPONSE - handled by messageRepository.saveMessage() above
         // Assistant response is already saved by messageRepository.saveMessage()
@@ -728,7 +758,14 @@ router.post("/whatsapp/webhook", async (req, res) => {
       debug: {
         translatedQuery: result.translatedQuery,
         processedPrompt: result.processedPrompt,
-        functionCalls: result.functionCalls || []
+        functionCalls: result.functionCalls || [],
+        // 💰 Cost tracking info
+        costInfo: result.success && result.output ? {
+          currentCallCost: config.llm.defaultPrice,
+          previousTotalUsage: result.debugInfo?.previousTotalUsage || 0,
+          newTotalUsage: result.debugInfo?.newTotalUsage || config.llm.defaultPrice,
+          costTimestamp: new Date().toISOString()
+        } : null
       }
     });
   } catch (error) {

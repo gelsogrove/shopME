@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -230,8 +230,8 @@ export function WhatsAppChatModal({
         const chatMessages = response.data.data.map((message: any) => ({
           id: message.id,
           content: message.content,
-          // Map MessageDirection.INBOUND to 'customer' and MessageDirection.OUTBOUND to 'user' (like main chat)
-          sender: message.direction === "INBOUND" ? "customer" : "user",
+          // Map MessageDirection.INBOUND to 'customer' and MessageDirection.OUTBOUND to 'bot'
+          sender: message.direction === "INBOUND" ? "customer" : "bot",
           timestamp: new Date(message.createdAt),
           agentName: message.agentName || (message.direction === "OUTBOUND" ? "AI Assistant" : undefined),
           // Debug fields
@@ -541,6 +541,13 @@ export function WhatsAppChatModal({
             translatedQuery: response.data.debug?.translatedQuery,
             processedPrompt: response.data.debug?.processedPrompt,
             functionCalls: response.data.debug?.functionCalls || [],
+            // 💰 Cost tracking info
+            debugInfo: response.data.debug?.costInfo ? JSON.stringify({
+              currentCallCost: response.data.debug.costInfo.currentCallCost,
+              previousTotalUsage: response.data.debug.costInfo.previousTotalUsage,
+              newTotalUsage: response.data.debug.costInfo.newTotalUsage,
+              costTimestamp: response.data.debug.costInfo.costTimestamp
+            }, null, 2) : undefined,
             metadata: {
               isOperatorMessage: false,
               isOperatorControl: false,
