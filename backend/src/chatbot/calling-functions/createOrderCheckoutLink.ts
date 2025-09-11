@@ -108,7 +108,7 @@ ${prodotti
   )
   .join("\n\n")}
 
-💰 **Totale: €${totalAmount.toFixed(2)}**
+💰 *Totale: €${totalAmount.toFixed(2)}*
 
 🔗 **Finalizza il tuo ordine:**
 ${checkoutUrl}

@@ -8,6 +8,10 @@ interface Product {
   descrizione: string
   qty: number
   prezzo: number
+  prezzoOriginale?: number
+  scontoApplicato?: number
+  fonteSconto?: string
+  nomeSconto?: string
   productId: string
 }
 
@@ -162,7 +166,11 @@ const CheckoutPage: React.FC = () => {
         productId: product.id,
         codice: product.ProductCode || product.sku || 'Non disponibile',
         descrizione: product.name,
-        prezzo: product.price,
+        prezzo: product.finalPrice || product.price,
+        prezzoOriginale: product.price,
+        scontoApplicato: product.appliedDiscount,
+        fonteSconto: product.discountSource,
+        nomeSconto: product.discountName,
         qty: 1
       }
       setProdotti([...prodotti, newProduct])
@@ -333,7 +341,21 @@ const CheckoutPage: React.FC = () => {
                     <div className="flex-1">
                       <h3 className="font-semibold">{prodotto.descrizione}</h3>
                       <p className="text-sm text-gray-600">Codice: {prodotto.codice !== 'N/A' ? prodotto.codice : 'Non disponibile'}</p>
-                      <p className="text-lg font-bold text-green-600">€{prodotto.prezzo.toFixed(2)}</p>
+                      <div className="flex items-center space-x-2">
+                        {prodotto.prezzoOriginale && prodotto.prezzoOriginale > prodotto.prezzo ? (
+                          <>
+                            <p className="text-lg font-bold text-green-600">€{prodotto.prezzo.toFixed(2)}</p>
+                            <p className="text-sm text-gray-500 line-through">€{prodotto.prezzoOriginale.toFixed(2)}</p>
+                            {prodotto.scontoApplicato && prodotto.scontoApplicato > 0 && (
+                              <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                                -{prodotto.scontoApplicato}%
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-lg font-bold text-green-600">€{prodotto.prezzo.toFixed(2)}</p>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex items-center space-x-4">
@@ -407,71 +429,49 @@ const CheckoutPage: React.FC = () => {
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-4">Indirizzo di Spedizione</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    placeholder="Nome completo"
-                    value={formData.shippingAddress.name}
-                    onChange={(e) => handleInputChange("shippingAddress", "name", e.target.value)}
-                    className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Via e numero civico"
-                    value={formData.shippingAddress.street}
-                    onChange={(e) => handleInputChange("shippingAddress", "street", e.target.value)}
-                    className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Città"
-                    value={formData.shippingAddress.city}
-                    onChange={(e) => handleInputChange("shippingAddress", "city", e.target.value)}
-                    className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <input
-                    type="text"
-                    placeholder="CAP"
-                    value={formData.shippingAddress.postalCode}
-                    onChange={(e) => handleInputChange("shippingAddress", "postalCode", e.target.value)}
-                    className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
+                    <input
+                      type="text"
+                      placeholder="Nome completo"
+                      value={formData.shippingAddress.name}
+                      onChange={(e) => handleInputChange("shippingAddress", "name", e.target.value)}
+                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Via e numero civico</label>
+                    <input
+                      type="text"
+                      placeholder="Via e numero civico"
+                      value={formData.shippingAddress.street}
+                      onChange={(e) => handleInputChange("shippingAddress", "street", e.target.value)}
+                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Città</label>
+                    <input
+                      type="text"
+                      placeholder="Città"
+                      value={formData.shippingAddress.city}
+                      onChange={(e) => handleInputChange("shippingAddress", "city", e.target.value)}
+                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">CAP</label>
+                    <input
+                      type="text"
+                      placeholder="CAP"
+                      value={formData.shippingAddress.postalCode}
+                      onChange={(e) => handleInputChange("shippingAddress", "postalCode", e.target.value)}
+                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Billing Address - Always shown */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">Indirizzo di Fatturazione</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    placeholder="Nome completo"
-                    value={formData.billingAddress.name}
-                    onChange={(e) => handleInputChange("billingAddress", "name", e.target.value)}
-                    className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Via e numero civico"
-                    value={formData.billingAddress.street}
-                    onChange={(e) => handleInputChange("billingAddress", "street", e.target.value)}
-                    className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Città"
-                    value={formData.billingAddress.city}
-                    onChange={(e) => handleInputChange("billingAddress", "city", e.target.value)}
-                    className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <input
-                    type="text"
-                    placeholder="CAP"
-                    value={formData.billingAddress.postalCode}
-                    onChange={(e) => handleInputChange("billingAddress", "postalCode", e.target.value)}
-                    className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
 
               {/* Navigation */}
               <div className="flex justify-between">
@@ -510,22 +510,13 @@ const CheckoutPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Addresses Summary */}
+              {/* Address Summary */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">Indirizzi</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <h4 className="font-semibold">Spedizione:</h4>
-                    <p>{formData.shippingAddress.name || 'Non specificato'}</p>
-                    <p>{formData.shippingAddress.street || 'Non specificato'}</p>
-                    <p>{formData.shippingAddress.city || 'Non specificato'} {formData.shippingAddress.postalCode || ''}</p>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <h4 className="font-semibold">Fatturazione:</h4>
-                    <p>{formData.billingAddress.name || 'Non specificato'}</p>
-                    <p>{formData.billingAddress.street || 'Non specificato'}</p>
-                    <p>{formData.billingAddress.city || 'Non specificato'} {formData.billingAddress.postalCode || ''}</p>
-                  </div>
+                <h3 className="text-lg font-semibold mb-4">Indirizzo di Spedizione</h3>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p>{formData.shippingAddress.name || 'Non specificato'}</p>
+                  <p>{formData.shippingAddress.street || 'Non specificato'}</p>
+                  <p>{formData.shippingAddress.city || 'Non specificato'} {formData.shippingAddress.postalCode || ''}</p>
                 </div>
               </div>
 
@@ -607,7 +598,21 @@ const CheckoutPage: React.FC = () => {
                     <div key={product.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                       <h4 className="font-semibold text-sm mb-2">{product.name}</h4>
                       <p className="text-xs text-gray-600 mb-2">Codice: {product.ProductCode || product.sku || 'Non disponibile'}</p>
-                      <p className="text-lg font-bold text-green-600 mb-3">€{product.price.toFixed(2)}</p>
+                      <div className="mb-3">
+                        {product.finalPrice && product.finalPrice < product.price ? (
+                          <div className="flex items-center space-x-2">
+                            <p className="text-lg font-bold text-green-600">€{product.finalPrice.toFixed(2)}</p>
+                            <p className="text-sm text-gray-500 line-through">€{product.price.toFixed(2)}</p>
+                            {product.appliedDiscount && product.appliedDiscount > 0 && (
+                              <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                                -{product.appliedDiscount}%
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-lg font-bold text-green-600">€{product.price.toFixed(2)}</p>
+                        )}
+                      </div>
                       <button
                         onClick={() => addProductToCart(product)}
                         className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded text-sm transition-colors"

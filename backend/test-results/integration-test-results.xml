@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="22" failures="0" errors="0" time="2.223">
+  <testsuite name="🔐 Secure Token System Integration Tests" errors="0" failures="0" skipped="0" timestamp="2025-09-11T10:28:53" time="2.106" tests="22">
+    <testcase classname="🔐 Secure Token System Integration Tests › 🎯 Token Creation Tests" name="should create orders token successfully" time="0.031">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🎯 Token Creation Tests" name="should create profile token successfully" time="0.01">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🎯 Token Creation Tests" name="should create cart token successfully" time="0.013">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🎯 Token Creation Tests" name="should create checkout token successfully" time="0.014">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🎯 Token Creation Tests" name="should reuse existing valid token instead of creating new one" time="0.013">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🔍 Token Validation Tests" name="should validate valid token successfully" time="0.022">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🔍 Token Validation Tests" name="should reject invalid token" time="0.008">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🔍 Token Validation Tests" name="should reject expired token" time="0.021">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🔍 Token Validation Tests" name="should validate token with specific type" time="0.014">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🔍 Token Validation Tests" name="should reject token with wrong type" time="0.006">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🔍 Token Validation Tests" name="should validate token with workspaceId" time="0.009">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🔍 Token Validation Tests" name="should reject token with wrong workspaceId" time="0.007">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🌐 TOKEN-ONLY System Tests" name="should accept any valid token type for validation (TOKEN-ONLY system)" time="0.017">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🌐 TOKEN-ONLY System Tests" name="should work with specific type tokens in TOKEN-ONLY system" time="0.023">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🔒 Workspace Isolation Tests" name="should isolate tokens by workspace" time="0.013">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🧹 Token Cleanup Tests" name="should cleanup expired tokens" time="0.019">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🧹 Token Cleanup Tests" name="should mark token as used" time="0.012">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🧹 Token Cleanup Tests" name="should revoke token" time="0.013">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🌐 API Endpoint Tests" name="should validate token via API endpoint" time="0.041">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🌐 API Endpoint Tests" name="should reject invalid token via API endpoint" time="0.041">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 🌐 API Endpoint Tests" name="should reject token with wrong workspace via API endpoint" time="0.014">
+    </testcase>
+    <testcase classname="🔐 Secure Token System Integration Tests › 📊 Token Statistics Tests" name="should return token statistics" time="0.026">
+    </testcase>
+  </testsuite>
+</testsuites>

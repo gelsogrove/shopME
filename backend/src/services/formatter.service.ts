@@ -36,6 +36,7 @@ CART RESPONSE FORMAT:
 - Empty cart: When cart data shows isEmpty=true or items=[], respond naturally in the user's language with helpful suggestions
 - Non-empty cart: Show itemized list with ProductCodes and totals
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
+- ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
@@ -68,6 +69,7 @@ CART RESPONSE FORMAT:
 - Empty cart: Show friendly message with suggestions
 - Non-empty cart: Show itemized list with ProductCodes and totals
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
+- ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
@@ -100,6 +102,7 @@ CART RESPONSE FORMAT:
 - Empty cart: Show friendly message with suggestions
 - Non-empty cart: Show itemized list with ProductCodes and totals
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
+- ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
@@ -132,6 +135,7 @@ CART RESPONSE FORMAT:
 - Empty cart: Show friendly message with suggestions
 - Non-empty cart: Show itemized list with ProductCodes and totals
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
+- ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:

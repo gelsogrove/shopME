@@ -11,6 +11,7 @@
 5. **SWAGGER SEMPRE AGGIORNATO** - Dopo ogni modifica API, aggiorna swagger.json IMMEDIATAMENTE
 6. **TEST PRIMA DI "FATTO"** - Mai dire completato senza verificare che funzioni
 7. **WORKSPACE ISOLATION** - Sempre filtrare per workspaceId in ogni query
+8. **NON RIATTIVARE SERVER** - I server si riavviano automaticamente, NON aprire terminali aggiuntivi
 
 ## ✅ CHECKLIST OBBLIGATORIA PRIMA DI COMPLETARE QUALSIASI TASK:
 
@@ -23,6 +24,7 @@
 - [ ] Layout/grafica non modificati senza permesso?
 - [ ] Non ti inventare nulla , chiedi sempre prima, se non e' in PRD o in task list, chiedi prima
 - [ ] Prima il PRD poi i test poi il codice (scala della veritá)
+- [ ] NON ho riavviato server manualmente (si riavviano da soli)
 
 ## 🧠 Core Development Rules
 

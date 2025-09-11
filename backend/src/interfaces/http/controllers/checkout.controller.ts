@@ -140,7 +140,6 @@ export class CheckoutController {
           email: customer.email,
           phone: customer.phone,
           address: customer.address,
-          invoiceAddress: customer.invoiceAddress,
         },
         prodotti: cartItems,
         totalAmount: totalAmount,

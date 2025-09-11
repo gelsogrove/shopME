@@ -83,7 +83,8 @@ export class SecureTokenService {
             workspaceId,
             expiresAt: {
               gt: new Date() // Token non scaduto
-            }
+            },
+            usedAt: null // Token non usato
           }
         })
 

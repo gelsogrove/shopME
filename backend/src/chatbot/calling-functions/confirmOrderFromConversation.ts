@@ -1,7 +1,7 @@
 import crypto from "crypto"
+import { SecureTokenService } from "../../application/services/secure-token.service"
 import { prisma } from "../../lib/prisma"
 import logger from "../../utils/logger"
-import { SecureTokenService } from "../../application/services/secure-token.service"
 
 /**
  * Confirm Order From Conversation Calling Function
@@ -141,7 +141,7 @@ ${cartProducts.map(item =>
   `• ${item.descrizione} [${item.codice}]\n  Quantità: ${item.qty} x €${item.prezzo.toFixed(2)} = €${(item.prezzo * item.qty).toFixed(2)}`
 ).join('\n\n')}
 
-💰 **TOTALE: €${totalAmount.toFixed(2)}**
+💰 *TOTALE: €${totalAmount.toFixed(2)}*
 
 🔗 **Rivedi il carrello e procedi al checkout:**
 ${cartUrl}
@@ -186,7 +186,7 @@ ${cartProducts.map(item =>
   `• ${item.descrizione} [${item.codice}]\n  Quantità: ${item.qty} x €${item.prezzo.toFixed(2)} = €${(item.prezzo * item.qty).toFixed(2)}`
 ).join('\n\n')}
 
-💰 **TOTALE: €${totalAmount.toFixed(2)}**
+💰 *TOTALE: €${totalAmount.toFixed(2)}*
 
 🔗 **Completa il checkout:**
 ${checkoutUrl}
@@ -317,7 +317,7 @@ ${prodottiConPrezzo
   )
   .join("\n\n")}
 
-💰 **Total: €${totalAmount.toFixed(2)}**
+💰 *Total: €${totalAmount.toFixed(2)}*
 
 🔗 **Complete your order:**
 ${checkoutUrl}

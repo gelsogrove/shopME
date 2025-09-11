@@ -16,8 +16,9 @@
  *   node mcp-test-client.js (interactive mode)
  */
 
-const axios = require("axios");
-const readline = require("readline");
+import axios from "axios";
+import readline from "readline";
+import { spawn } from "child_process";
 
 // Configurazione utenti predefiniti (multilingue)
 const USERS = {
