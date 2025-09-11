@@ -18,7 +18,6 @@
 
 import axios from "axios";
 import readline from "readline";
-import { spawn } from "child_process";
 
 // Configurazione utenti predefiniti (multilingue)
 const USERS = {
@@ -97,8 +96,8 @@ class MCPTestClient {
   }
 
   // Monitora i log del server in tempo reale
-  startServerLogMonitoring() {
-    const { spawn } = require('child_process');
+  async startServerLogMonitoring() {
+    const { spawn } = await import('child_process');
     
     console.log(`${this.colors.cyan}📡 Avviando monitoraggio log del server...${this.colors.reset}`);
     console.log(`${this.colors.cyan}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${this.colors.reset}`);
@@ -400,7 +399,7 @@ Cosa desideri fare?
         }]
       };
       
-      console.log(`${this.colors.cyan}🔍 Sending WhatsApp format payload to server:${this.colors.reset}`, JSON.stringify(payload, null, 2));
+      // console.log(`${this.colors.cyan}🔍 Sending WhatsApp format payload to server:${this.colors.reset}`, JSON.stringify(payload, null, 2));
       
       // Effettua la chiamata API reale
       const response = await axios.post(
@@ -414,15 +413,15 @@ Cosa desideri fare?
       );
       
       console.log(`${this.colors.cyan}🔍 Response status:${this.colors.reset}`, response.status);
-      console.log(`${this.colors.cyan}🔍 Response data:${this.colors.reset}`, JSON.stringify(response.data, null, 2));
+      // console.log(`${this.colors.cyan}🔍 Response data:${this.colors.reset}`, JSON.stringify(response.data, null, 2));
       
       if (response.status === 200) {
         // Mostra la risposta del LLM
         if (response.data && response.data.message) {
           console.log(`${this.colors.blue}🤖 BOT > ${this.colors.reset}${response.data.message}`);
           
-          // Mostra debug info dettagliata se disponibile
-          if (response.data.debug && response.data.debug.functionCalls && response.data.debug.functionCalls.length > 0) {
+          // Mostra debug info dettagliata se disponibile (solo se log=true)
+          if (this.showLogs && response.data.debug && response.data.debug.functionCalls && response.data.debug.functionCalls.length > 0) {
             console.log(`${this.colors.cyan}🔧 Function calls: ${response.data.debug.functionCalls.length}${this.colors.reset}`);
             
             // Mostra dettagli per ogni function call
@@ -471,7 +470,7 @@ Cosa desideri fare?
                 console.log(`${this.colors.red}      [DEBUG] Available fields: ${Object.keys(call).join(', ')}${this.colors.reset}`);
               }
             });
-          } else {
+          } else if (this.showLogs) {
             // Nessuna function call specifica
             console.log(`${this.colors.cyan}🔧 Function calls: GENERIC${this.colors.reset}`);
           }
@@ -568,8 +567,15 @@ if (interactive) {
   console.log('\nPer test automatici: node mcp-test-client.js --users\n');
 }
 
-const client = new MCPTestClient(selectedUser, testMessage, exitAfterFirst, runSeed, showLogs);
-client.start().catch(error => {
-  console.error('❌ Errore avvio client:', error.message);
+async function main() {
+  const client = new MCPTestClient(selectedUser, testMessage, exitAfterFirst, runSeed, showLogs);
+  client.start().catch(error => {
+    console.error('❌ Errore avvio client:', error.message);
+    process.exit(1);
+  });
+}
+
+main().catch(error => {
+  console.error('❌ Errore main:', error.message);
   process.exit(1);
 });

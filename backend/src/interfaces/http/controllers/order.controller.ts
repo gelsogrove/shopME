@@ -1,6 +1,7 @@
 import { OrderStatus } from '@prisma/client';
 import { Request, Response } from 'express';
 import { OrderService } from '../../../application/services/order.service';
+import { prisma } from '../../../lib/prisma';
 import logger from '../../../utils/logger';
 
 export class OrderController {
@@ -199,6 +200,9 @@ export class OrderController {
       }
       
       const order = await this.orderService.createOrder(orderData);
+      
+      // Track order cost (1€) in usage table
+      await this.trackOrderCost(workspaceId, orderData.customerId);
       
       return res.status(201).json(order);
     } catch (error) {
@@ -403,4 +407,23 @@ export class OrderController {
       });
     }
   };
+
+  /**
+   * Track order cost (1€) in usage table
+   */
+  private async trackOrderCost(workspaceId: string, customerId: string): Promise<void> {
+    try {
+      await prisma.usage.create({
+        data: {
+          workspaceId: workspaceId,
+          clientId: customerId,
+          price: 1.00 // 1€
+        }
+      });
+
+      logger.info(`[ORDER_COST] Tracked 1€ order cost for customer ${customerId} in workspace ${workspaceId}`);
+    } catch (error) {
+      logger.error(`[ORDER_COST] Error tracking order cost for customer ${customerId}:`, error);
+    }
+  }
 }

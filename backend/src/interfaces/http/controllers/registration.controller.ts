@@ -114,6 +114,22 @@ export class RegistrationController {
           workspaceId: workspace_id
         }
       });
+
+      // Check if email already exists for another customer in the same workspace
+      const existingEmailCustomer = await prisma.customers.findFirst({
+        where: {
+          email: email,
+          workspaceId: workspace_id,
+          id: { not: existingCustomer?.id } // Exclude current customer if updating
+        }
+      });
+
+      if (existingEmailCustomer) {
+        return res.status(409).json({ 
+          error: 'Email already registered', 
+          message: 'This email address is already registered in our system' 
+        });
+      }
       
       let customer;
       
@@ -164,7 +180,7 @@ export class RegistrationController {
       const registrationAttemptsService = new RegistrationAttemptsService(prisma);
       await registrationAttemptsService.clearAttempts(phone, workspace_id);
       
-      // Track registration cost (30 cents)
+      // Track registration cost (1€)
       await this.trackRegistrationCost(workspace_id, customer.id);
       
       // Send welcome message asynchronously
@@ -307,7 +323,7 @@ export class RegistrationController {
   }
 
   /**
-   * Track registration cost (30 cents) in usage table
+   * Track registration cost (1€) in usage table
    */
   private async trackRegistrationCost(workspaceId: string, customerId: string): Promise<void> {
     try {
@@ -315,11 +331,11 @@ export class RegistrationController {
         data: {
           workspaceId: workspaceId,
           clientId: customerId,
-          price: 0.30 // 30 cents
+          price: 1.00 // 1€
         }
       });
 
-      logger.info(`[REGISTRATION_COST] Tracked 30 cents registration cost for customer ${customerId} in workspace ${workspaceId}`);
+      logger.info(`[REGISTRATION_COST] Tracked 1€ registration cost for customer ${customerId} in workspace ${workspaceId}`);
     } catch (error) {
       logger.error(`[REGISTRATION_COST] Error tracking registration cost for customer ${customerId}:`, error);
     }

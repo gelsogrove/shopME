@@ -209,6 +209,9 @@ export async function CreateOrder(
       }
     }
 
+    // Track order cost (1€) in usage table
+    await trackOrderCost(params.workspaceId, customer.id)
+
     // Genera checkout URL (opzionale per ordini WhatsApp)
     const checkoutUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/checkout/order/${order.id}`
 
@@ -335,5 +338,24 @@ Crea un nuovo ordine per il cliente, includendo sia prodotti che servizi, con qu
     required: ["workspaceId", "customerId", "items"],
   },
   handler: CreateOrder,
+}
+
+/**
+ * Track order cost (1€) in usage table
+ */
+async function trackOrderCost(workspaceId: string, customerId: string): Promise<void> {
+  try {
+    await prisma.usage.create({
+      data: {
+        workspaceId: workspaceId,
+        clientId: customerId,
+        price: 1.00 // 1€
+      }
+    });
+
+    logger.info(`[ORDER_COST] Tracked 1€ order cost for customer ${customerId} in workspace ${workspaceId}`);
+  } catch (error) {
+    logger.error(`[ORDER_COST] Error tracking order cost for customer ${customerId}:`, error);
+  }
 }
 

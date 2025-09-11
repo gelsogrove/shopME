@@ -393,32 +393,6 @@ export default function ClientsPage(): JSX.Element {
       ),
     },
     {
-      header: "Language",
-      accessorKey: "language",
-      cell: ({ row }) => (
-        <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-          {row.original.language}
-        </span>
-      ),
-    },
-    {
-      header: "GDPR",
-      accessorKey: "last_privacy_version_accepted",
-      cell: ({ row }) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs ${
-            row.original.last_privacy_version_accepted
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {row.original.last_privacy_version_accepted
-            ? "Accepted"
-            : "Not Accepted"}
-        </span>
-      ),
-    },
-    {
       header: "Push",
       accessorKey: "push_notifications_consent",
       cell: ({ row }) => (

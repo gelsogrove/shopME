@@ -3060,6 +3060,7 @@ model RegistrationAttempts {
 - `SecureTokenService`: Genera token di registrazione sicuri
 - `MessageRepository`: Gestisce salvataggio messaggi e creazione customer temporanei "Unknown User-XXX"
 - `WelcomeService`: Recupera messaggi welcome dal database in base alla lingua
+- **Sistema di Tracking Costi**: Traccia automaticamente 1€ per registrazione e 1€ per ogni ordine
 
 **Flusso Implementativo:**
 1. **Nuovo utente rilevato** → Controlla `RegistrationAttempts`
@@ -3067,18 +3068,22 @@ model RegistrationAttempts {
 3. **Se non bloccato** → Crea customer temporaneo "Unknown User-XXX" + salva messaggi in chat history
 4. **Registra tentativo** + invia welcome message con link registrazione
 5. **Al 5° tentativo** → Blocca automaticamente + crea customer "Blocked User"
-6. **Registrazione successo** → Aggiorna customer temporaneo con dati reali + cancella tentativi + tracking 30 centesimi
+6. **Registrazione successo** → Aggiorna customer temporaneo con dati reali + cancella tentativi + tracking 1€
 7. **Reset automatico** → Dopo 24 ore, auto-unblock
 
 **Endpoint Coinvolti:**
 - `POST /api/whatsapp/webhook` - Gestisce nuovo utente e blocco
-- `POST /api/registration` - Gestisce registrazione e reset tentativi
+- `POST /api/registration` - Gestisce registrazione, reset tentativi e tracking 1€
+- `POST /api/orders` - Gestisce creazione ordini e tracking 1€
+- `POST /api/checkout/submit` - Gestisce checkout e tracking 1€
 
 **Configurazione Sistema:**
 - **MAX_ATTEMPTS**: 5 (configurabile in `RegistrationAttemptsService`)
 - **ATTEMPT_WINDOW_HOURS**: 24 (reset automatico dopo 24 ore)
 - **TOKEN_EXPIRY**: 1 ora (per link di registrazione)
 - **BLOCK_DURATION**: 24 ore (auto-unblock automatico)
+- **REGISTRATION_COST**: 1€ (tracking automatico)
+- **ORDER_COST**: 1€ (tracking automatico per ogni ordine)
 
 **Comportamento Frontend:**
 - **Messaggio welcome**: Mostra link di registrazione + messaggio nella lingua rilevata
@@ -3109,6 +3114,61 @@ model RegistrationAttempts {
 - **Problema**: Welcome message non mostrato nel frontend
   - **Causa**: `sender` impostato come "user" invece di "bot"
   - **Soluzione**: Verificare `WhatsAppChatModal.tsx` e tipo `Message.sender`
+
+---
+
+## Sistema di Tracking Costi
+
+### **💰 Costi per Operazioni**
+- **Registrazione Nuovo Utente**: 1€ (aggiornato da 30 centesimi)
+- **Creazione Nuovo Ordine**: 1€ (sia via API che via chatbot)
+
+### **📍 Punti di Tracking**
+1. **Registrazione**: `registration.controller.ts` - `trackRegistrationCost()`
+2. **Ordini API**: `order.controller.ts` - `trackOrderCost()`
+3. **Ordini Chatbot**: `CreateOrder.ts` - `trackOrderCost()`
+
+### **🗄️ Database Schema Usage**
+```sql
+CREATE TABLE usage (
+  id SERIAL PRIMARY KEY,
+  workspaceId VARCHAR NOT NULL,
+  clientId VARCHAR NOT NULL,
+  price DECIMAL(10,2) NOT NULL,
+  createdAt TIMESTAMP DEFAULT NOW()
+);
+```
+
+### **⚙️ Comportamento Automatico**
+- I costi vengono tracciati automaticamente senza intervento manuale
+- Ogni operazione genera un record nella tabella `usage`
+- Tracking avviene in background durante le operazioni principali
+- Nessuna modifica richiesta nel frontend o nelle API pubbliche
+
+### **🔧 Implementazione Tecnica**
+```typescript
+// Esempio di tracking in registration.controller.ts
+private async trackRegistrationCost(workspaceId: string, customerId: string): Promise<void> {
+  try {
+    await prisma.usage.create({
+      data: {
+        workspaceId: workspaceId,
+        clientId: customerId,
+        price: 1.00 // 1€
+      }
+    });
+    logger.info(`[REGISTRATION_COST] Tracked 1€ registration cost for customer ${customerId}`);
+  } catch (error) {
+    logger.error(`[REGISTRATION_COST] Error tracking registration cost:`, error);
+  }
+}
+```
+
+### **📊 Monitoraggio Costi**
+- Tutti i costi sono tracciati nella tabella `usage`
+- Possibilità di query per reportistica per workspace
+- Tracking automatico senza impatto sulle performance
+- Log dettagliati per debugging e monitoraggio
 
 ---
 
