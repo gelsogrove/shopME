@@ -214,6 +214,21 @@ export class CheckoutController {
       // Generate order code
       const orderCode = await this.generateOrderCode()
 
+      // Find products by code to get productId
+      const productCodes = prodotti.map((item: any) => item.codice)
+      const products = await prisma.products.findMany({
+        where: {
+          ProductCode: { in: productCodes },
+          workspaceId: workspaceId
+        }
+      })
+      
+      // Create a map of productCode -> productId
+      const productMap = new Map()
+      products.forEach(product => {
+        productMap.set(product.ProductCode, product.id)
+      })
+
       // Create order
       const order = await prisma.orders.create({
         data: {
@@ -233,6 +248,7 @@ export class CheckoutController {
               quantity: item.qty,
               unitPrice: item.prezzo,
               totalPrice: item.prezzo * item.qty,
+              productId: productMap.get(item.codice), // ✅ CORRECT: Save productId from productCode lookup
               productVariant: {
                 codice: item.codice,
                 descrizione: item.descrizione,

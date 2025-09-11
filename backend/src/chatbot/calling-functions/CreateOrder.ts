@@ -101,7 +101,7 @@ export async function CreateOrder(
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           totalPrice: totalPrice,
-          product: { connect: { id: product.id } },
+          productId: product.id, // ✅ CORRECT: Use productId field, not product relation
         })
       } else if (item.itemType === "SERVICE") {
         // Cerca servizio nel database
@@ -129,7 +129,7 @@ export async function CreateOrder(
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           totalPrice: totalPrice,
-          service: { connect: { id: service.id } },
+          serviceId: service.id, // ✅ CORRECT: Use serviceId field, not service relation
         })
       }
     }
@@ -156,7 +156,7 @@ export async function CreateOrder(
           quantity: v.quantity,
           unitPrice: v.unitPrice,
           totalPrice: v.totalPrice,
-          product: v.product,
+          productId: v.productId, // ✅ CORRECT: Use productId field, not product relation
         }
       } else {
         return {
@@ -164,7 +164,7 @@ export async function CreateOrder(
           quantity: v.quantity,
           unitPrice: v.unitPrice,
           totalPrice: v.totalPrice,
-          service: v.service,
+          serviceId: v.serviceId, // ✅ CORRECT: Use serviceId field, not service relation
         }
       }
     })
@@ -197,9 +197,9 @@ export async function CreateOrder(
 
     // Aggiorna stock prodotti
     for (const item of validatedItems) {
-      if (item.itemType === "PRODUCT" && item.product?.connect?.id) {
+      if (item.itemType === "PRODUCT" && item.productId) {
         await prisma.products.update({
-          where: { id: item.product.connect.id },
+          where: { id: item.productId },
           data: {
             stock: {
               decrement: item.quantity,

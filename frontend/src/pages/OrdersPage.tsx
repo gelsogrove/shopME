@@ -7,43 +7,43 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select"
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { logger } from "@/lib/logger"
 import { clientsApi } from "@/services/clientsApi"
 import {
-  ordersApi,
-  type ItemType,
-  type Order,
-  type OrderStatus,
-  type PaymentMethod,
+    ordersApi,
+    type ItemType,
+    type Order,
+    type OrderStatus,
+    type PaymentMethod,
 } from "@/services/ordersApi"
 import { productsApi } from "@/services/productsApi"
 import { servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
 import { formatPrice } from "@/utils/format"
 import {
-  Eye,
-  FileText,
-  Package,
-  Pencil,
-  Plus,
-  ShoppingCart,
-  Trash2,
-  Truck,
-  Wrench,
+    Eye,
+    FileText,
+    Package,
+    Pencil,
+    Plus,
+    ShoppingCart,
+    Trash2,
+    Truck,
+    Wrench,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
@@ -575,8 +575,8 @@ function CartItemEditSheet({
                       item.itemType || (item.serviceId ? "SERVICE" : "PRODUCT")
                     const itemName =
                       itemType === "PRODUCT"
-                        ? item.product?.name || `Product ${item.productId}`
-                        : item.service?.name || `Service ${item.serviceId}`
+                        ? item.product?.name || (item.productId ? `Product ${item.productId}` : "Unknown Product")
+                        : item.service?.name || (item.serviceId ? `Service ${item.serviceId}` : "Unknown Service")
 
                     return (
                       <div
@@ -1361,8 +1361,8 @@ function OrderCrudSheet({
                       serviceName ||
                       productName ||
                       (itemType === "SERVICE"
-                        ? "Unknown Service"
-                        : "Unknown Product")
+                        ? (item.serviceId ? `Service ${item.serviceId}` : "Unknown Service")
+                        : (item.productId ? `Product ${item.productId}` : "Unknown Product"))
 
                     return (
                       <div

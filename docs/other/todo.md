@@ -143,14 +143,23 @@
 - **Ambiente**: Test Manuale Completo
 - **Status**: 10 errori identificati, 1 risolto (Fix #1: Totale in grassetto)
 
-- 
----
-*Ultimo aggiornamento: 11/09/2025 - Andrea*
 
 
-
+task 0001
 te lo spiego dopo questo errore
 aggiungi al carrello [000584]
 
-lista clienti 
-te lo spiego dopo questo task
+task 0002
+lista clienti nel FE e' troppo largo togli la colonna 
+langiages e GDRP
+ 
+
+ task 3 
+ validazione mail nella fase di registrazione
+
+ task 4 
+ vedo troppi log nel MCP magari puoi togliere il console log del prompt?
+
+  task 5
+  metti un euro per ogni nuovo utente e metti 
+  1 eur per ogni nuovo ordine
