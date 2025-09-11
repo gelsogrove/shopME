@@ -1,6 +1,7 @@
 import axios from "axios"
 import { FunctionHandlerService } from "../application/services/function-handler.service"
 import { ContactOperator } from "../chatbot/calling-functions/ContactOperator"
+import { GetUserInfo } from "../chatbot/calling-functions/GetUserInfo"
 import { LLMRequest, LLMResponse } from "../types/whatsapp.types"
 import { CallingFunctionsService } from "./calling-functions.service"
 import { EmbeddingService } from "./embeddingService"
@@ -994,6 +995,19 @@ Please create a natural, helpful response in ${languageName}.`
       {
         type: "function",
         function: {
+          name: "GetUserInfo",
+          description:
+            'Get user personal information including discount, company, last order, and language. Use when user asks about their personal data like "che sconto ho", "my discount", "quale sconto mi applicate", "mio sconto personale".',
+          parameters: {
+            type: "object",
+            properties: {},
+            required: [],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
           name: "GetActiveOffers",
           description:
             "Get current active offers and promotions.",
@@ -1095,6 +1109,13 @@ Please create a natural, helpful response in ${languageName}.`
 
           case "GetCustomerProfileLink":
             result = await this.callingFunctionsService.getCustomerProfileLink({
+              customerId: request.customerid || "",
+              workspaceId: request.workspaceId,
+            })
+            break
+
+          case "GetUserInfo":
+            result = await GetUserInfo({
               customerId: request.customerid || "",
               workspaceId: request.workspaceId,
             })

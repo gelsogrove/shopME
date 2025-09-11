@@ -2219,12 +2219,10 @@ export default function OrdersPage() {
                     <p className="text-sm font-medium text-gray-500">Total Amount</p>
                     <p className="text-base font-semibold">€{selectedOrder.totalAmount.toFixed(2)}</p>
                   </div>
-                  {selectedOrder.notes && (
-                    <div className="col-span-2">
-                      <p className="text-sm font-medium text-gray-500">Notes</p>
-                      <p className="text-base">{selectedOrder.notes}</p>
-                    </div>
-                  )}
+                  <div className="col-span-2">
+                    <p className="text-sm font-medium text-gray-500">Notes</p>
+                    <p className="text-base">{selectedOrder.notes || "No notes"}</p>
+                  </div>
                 </CardContent>
               </Card>
 

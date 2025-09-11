@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils"
 import {
     BarChart3,
-    FileText,
     HelpCircle,
     LucideIcon,
     MessageSquare,
@@ -95,11 +94,6 @@ export function Sidebar() {
       href: "/faq",
       label: "FAQ",
       icon: HelpCircle,
-    },
-    {
-      href: "/documents",
-      label: "Documents",
-      icon: FileText,
     },
     {
               href: "/admin/orders",

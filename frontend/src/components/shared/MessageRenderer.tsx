@@ -39,6 +39,7 @@ export function MessageRenderer({
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        skipHtml={false}
         components={{
           // Consistent link styling
           a: ({ node, ...props }) => (
@@ -54,8 +55,8 @@ export function MessageRenderer({
           // Handle bullet points consistently
           ul: ({ children }) => <ul className="space-y-1">{children}</ul>,
           li: ({ children }) => <li className="flex items-start gap-1">{children}</li>,
-          // Preserve bold/italic formatting
-          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+          // Preserve bold/italic formatting with stronger styling
+          strong: ({ children }) => <strong className="font-bold text-gray-900">{children}</strong>,
           em: ({ children }) => <em className="italic">{children}</em>,
         }}
       >

@@ -37,6 +37,7 @@ CART RESPONSE FORMAT:
 - Non-empty cart: Show itemized list with ProductCodes and totals
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
+- CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
@@ -70,6 +71,7 @@ CART RESPONSE FORMAT:
 - Non-empty cart: Show itemized list with ProductCodes and totals
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
+- CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
@@ -103,6 +105,7 @@ CART RESPONSE FORMAT:
 - Non-empty cart: Show itemized list with ProductCodes and totals
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
+- CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
@@ -136,6 +139,7 @@ CART RESPONSE FORMAT:
 - Non-empty cart: Show itemized list with ProductCodes and totals
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
+- CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
