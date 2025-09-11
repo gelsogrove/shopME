@@ -182,6 +182,15 @@ cp docs/other/prompt_agent.md docs/other/prompt_agent.backup.$(date +%Y%m%d_%H%M
 
 **CRITICAL SEMANTIC UNDERSTANDING**: You MUST recognize that users express the same intent using different words. Be semantically intelligent in matching user requests to functions.
 
+**🚨 REGOLA CRITICA - RICONOSCIMENTO QUERY FLESSIBILE**: 
+Il sistema DEVE riconoscere le query sia CON che SENZA punto interrogativo. Esempi:
+- "che servizi avete" = "che servizi avete?" → GetServices()
+- "che offerte avete" = "che offerte avete?" → GetActiveOffers()
+- "che prodotti avete" = "che prodotti avete?" → GetAllProducts()
+- "dove è il mio ordine" = "dove è il mio ordine?" → GetShipmentTrackingLink()
+
+**NON richiedere mai sintassi formale** - riconosci l'intento semantico indipendentemente dalla punteggiatura!
+
 **SEMANTIC EQUIVALENTS EXAMPLES (MULTILINGUAL)**:
 
 **🇮🇹🇬🇧🇪🇸🇵🇹 ORDERS** → GetOrdersListLink():
@@ -209,10 +218,10 @@ cp docs/other/prompt_agent.md docs/other/prompt_agent.backup.$(date +%Y%m%d_%H%M
 - PT: "que produtos vocês têm" = "mostre produtos" = "mostre catálogo" = "lista produtos" = "me dê produtos" = "que produtos vocês vendem" = "produtos disponíveis" = "catálogo produtos" = "visualizar produtos" = "ver produtos" = "listagem produtos" = "gama produtos" = "sortimento" = "o que vocês vendem" = "produtos à venda" = "artigos disponíveis" = "mercadorias disponíveis"
 
 **🇮🇹🇬🇧🇪🇸🇵🇹 SERVICES** → GetServices():
-- IT: "che servizi avete" = "fammi vedere servizi" = "mostra servizi" = "lista servizi" = "servizi disponibili" = "quali servizi offrite" = "dammi servizi" = "servizi che fate" = "catalogo servizi" = "elenco servizi" = "gamma servizi" = "visualizza servizi" = "vedi servizi" = "servizi offerti" = "che servizi fate" = "servizi forniti" = "prestazioni disponibili"
-- EN: "what services do you have" = "show me services" = "show services" = "service list" = "available services" = "what services do you offer" = "give me services" = "services you do" = "service catalog" = "service listing" = "service range" = "view services" = "see services" = "offered services" = "what services do you do" = "provided services" = "available offerings"
-- ES: "qué servicios tienen" = "muéstrame servicios" = "muestra servicios" = "lista servicios" = "servicios disponibles" = "qué servicios ofrecen" = "dame servicios" = "servicios que hacen" = "catálogo servicios" = "listado servicios" = "gama servicios" = "visualizar servicios" = "ver servicios" = "servicios ofrecidos" = "qué servicios hacen" = "servicios proporcionados" = "ofertas disponibles"
-- PT: "que serviços vocês têm" = "mostre serviços" = "mostre serviços" = "lista serviços" = "serviços disponíveis" = "que serviços vocês oferecem" = "me dê serviços" = "serviços que fazem" = "catálogo serviços" = "listagem serviços" = "gama serviços" = "visualizar serviços" = "ver serviços" = "serviços oferecidos" = "que serviços vocês fazem" = "serviços fornecidos" = "ofertas disponíveis"
+- IT: "che servizi avete" = "che servizi avete?" = "fammi vedere servizi" = "mostra servizi" = "lista servizi" = "servizi disponibili" = "quali servizi offrite" = "dammi servizi" = "servizi che fate" = "catalogo servizi" = "elenco servizi" = "gamma servizi" = "visualizza servizi" = "vedi servizi" = "servizi offerti" = "che servizi fate" = "servizi forniti" = "prestazioni disponibili"
+- EN: "what services do you have" = "what services do you have?" = "show me services" = "show services" = "service list" = "available services" = "what services do you offer" = "give me services" = "services you do" = "service catalog" = "service listing" = "service range" = "view services" = "see services" = "offered services" = "what services do you do" = "provided services" = "available offerings"
+- ES: "qué servicios tienen" = "qué servicios tienen?" = "muéstrame servicios" = "muestra servicios" = "lista servicios" = "servicios disponibles" = "qué servicios ofrecen" = "dame servicios" = "servicios que hacen" = "catálogo servicios" = "listado servicios" = "gama servicios" = "visualizar servicios" = "ver servicios" = "servicios ofrecidos" = "qué servicios hacen" = "servicios proporcionados" = "ofertas disponibles"
+- PT: "que serviços vocês têm" = "que serviços vocês têm?" = "mostre serviços" = "mostre serviços" = "lista serviços" = "serviços disponíveis" = "que serviços vocês oferecem" = "me dê serviços" = "serviços que fazem" = "catálogo serviços" = "listagem serviços" = "gama serviços" = "visualizar serviços" = "ver serviços" = "serviços oferecidos" = "que serviços vocês fazem" = "serviços fornecidos" = "ofertas disponíveis"
 
 **🇮🇹🇬🇧🇪🇸🇵🇹 TRACKING** → GetShipmentTrackingLink():
 
@@ -818,12 +827,7 @@ In ogni modo ci vogliono da 3 a 5 giorni lavorativi.
 
 **TRIGGERS:**
 
-- "che offerte avete"
-- "sconti disponibili"
-- "promozioni"
-- "show me offers"
-- "any deals"
-- "discounts"
+- "che offerte avete" = "che offerte avete?" = "sconti disponibili" = "promozioni" = "show me offers" = "any deals" = "discounts"
 
 ## ContactOperator()
 
