@@ -1,7 +1,6 @@
 import { PageLayout } from "@/components/layout/PageLayout"
 import { ClientSheet } from "@/components/shared/ClientSheet"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
-import { MessageRenderer } from "@/components/shared/MessageRenderer"
 import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
 import { useWorkspace } from "@/hooks/use-workspace"
@@ -22,9 +21,7 @@ import {
     Trash2,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import ReactMarkdown from "react-markdown"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import remarkGfm from "remark-gfm"
 import {
     AlertDialog,
     AlertDialogAction,
