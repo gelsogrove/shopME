@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,10 +13,8 @@ import { getWorkspaceId } from "@/config/workspace.config"
 import { logger } from "@/lib/logger"
 import { api } from "@/services/api"
 import axios from "axios"
-import { MessageCircle, Send, X, Code, Settings } from "lucide-react"
+import { Code, MessageCircle, Send, Settings, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
 import { MessageRenderer } from "./MessageRenderer"
 
 // Define a global variable to store the current session ID
@@ -26,7 +24,7 @@ let globalSessionId: string | null = null
 interface Message {
   id: string
   content: string
-  sender: "user" | "customer"
+  sender: "user" | "customer" | "bot"
   timestamp: Date
   agentName?: string
   translatedQuery?: string
@@ -378,8 +376,8 @@ export function WhatsAppChatModal({
         // Create the bot message from the API response
         const botMessage: Message = {
           id: (Date.now() + 200).toString(),
-          content: response.data.data.processedMessage,
-          sender: "user",
+          content: response.data.data.message,
+          sender: "bot",
           timestamp: new Date(),
           agentName: "AI Assistant",
           metadata: {
@@ -402,7 +400,7 @@ export function WhatsAppChatModal({
           id: (Date.now() + 200).toString(),
           content:
             "Sorry, there was an error processing your message. Please try again later.",
-          sender: "user",
+          sender: "bot",
           timestamp: new Date(),
           agentName: "System",
           metadata: {
@@ -423,7 +421,7 @@ export function WhatsAppChatModal({
         id: (Date.now() + 200).toString(),
         content:
           "Sorry, there was an error processing your message. Please try again later.",
-        sender: "user",
+        sender: "bot",
         timestamp: new Date(),
         agentName: "System",
         metadata: {
@@ -518,17 +516,25 @@ export function WhatsAppChatModal({
         }]
       })
       logger.info("📥 FRONTEND DEBUG: API response received:", response.data)
+      logger.info("📥 FRONTEND DEBUG: Response status:", response.status)
+      logger.info("📥 FRONTEND DEBUG: Response success field:", response.data.success)
 
       if (response.data.success) {
         // DUAL LLM SYSTEM response format
-        const botResponse = response.data.message
+        const botResponse = response.data.data.message
+        
+        // Handle blacklisted customer - don't show any response
+        if (botResponse === "EVENT_RECEIVED_CUSTOMER_BLACKLISTED") {
+          logger.info("🚫 Customer is blacklisted - ignoring message")
+          return
+        }
         
         if (botResponse && botResponse.trim() !== "") {
           // Create the bot message from the API response
           const botMessage: Message = {
             id: (Date.now() + 1).toString(),
             content: botResponse,
-            sender: "user",
+            sender: "bot",
             timestamp: new Date(),
             agentName: "AI Assistant",
             // Debug fields from API response
@@ -557,7 +563,7 @@ export function WhatsAppChatModal({
           id: (Date.now() + 1).toString(),
           content:
             "Sorry, there was an error processing your message. Please try again later.",
-          sender: "user",
+          sender: "bot",
           timestamp: new Date(),
           agentName: "System",
           metadata: {
@@ -578,7 +584,7 @@ export function WhatsAppChatModal({
         id: (Date.now() + 1).toString(),
         content:
           "Sorry, there was an error processing your message. Please try again later.",
-        sender: "user",
+        sender: "bot",
         timestamp: new Date(),
         agentName: "System",
         metadata: {
@@ -752,7 +758,7 @@ export function WhatsAppChatModal({
               <div className="space-y-3">
                 {messages.map((message) => {
                   // Using the sender field which is properly mapped from direction
-                  const isAgentMessage = message.sender === "user"
+                  const isAgentMessage = message.sender === "bot"
                   const isCustomerMessage = message.sender === "customer"
 
                   // 🚨 ANDREA'S OPERATOR CONTROL INDICATORS

@@ -643,6 +643,20 @@ enum MessageDirection {
   OUTBOUND
 }
 
+model RegistrationAttempts {
+  id           String   @id @default(cuid())
+  phoneNumber  String
+  workspaceId  String
+  attemptCount Int      @default(0)
+  lastAttemptAt DateTime @default(now())
+  isBlocked    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([phoneNumber, workspaceId])
+  @@map("registration_attempts")
+}
+
 enum MessageType {
   TEXT
   IMAGE

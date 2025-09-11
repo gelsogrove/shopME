@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 import { SecureTokenService } from '../application/services/secure-token.service';
 import { prisma } from '../lib/prisma';
 import logger from '../utils/logger';
@@ -473,8 +473,13 @@ router.get('/customer-profile/:token', async (req: Request, res: Response) => {
         email: true,
         phone: true,
         address: true,
+        company: true,
+        language: true,
+        currency: true,
+        discount: true,
+        invoiceAddress: true,
         createdAt: true,
-        discount: true
+        updatedAt: true
       }
     });
 
@@ -594,6 +599,10 @@ router.put('/customer-profile/:token', async (req: Request, res: Response) => {
         ...(updateData.email && { email: updateData.email }),
         ...(updateData.phone && { phone: updateData.phone }),
         ...(updateData.address && { address: updateData.address }),
+        ...(updateData.company && { company: updateData.company }),
+        ...(updateData.language && { language: updateData.language }),
+        ...(updateData.currency && { currency: updateData.currency }),
+        ...(updateData.invoiceAddress && { invoiceAddress: updateData.invoiceAddress }),
         updatedAt: new Date()
       },
       select: {
@@ -602,9 +611,13 @@ router.put('/customer-profile/:token', async (req: Request, res: Response) => {
         email: true,
         phone: true,
         address: true,
+        company: true,
+        language: true,
+        currency: true,
+        discount: true,
+        invoiceAddress: true,
         createdAt: true,
-        updatedAt: true,
-        discount: true
+        updatedAt: true
       }
     });
 

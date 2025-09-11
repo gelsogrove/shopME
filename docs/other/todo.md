@@ -4,15 +4,27 @@
 
 ### 🔴 **CRITICI - Bloccano Funzionalità Base**
 
-#### 1. **Errore Primo Messaggio Nuovo Cliente**
+#### 1. **Errore Primo Messaggio Nuovo Cliente** ✅ **COMPLETATO**
 - **Problema**: Messaggio "Hola" da nuovo cliente restituisce "Sorry, there was an error processing your message. Please try again later."
 - **Impatto**: **BLOCCA COMPLETAMENTE** i nuovi clienti
 - **Priorità**: 🔴 **MASSIMA**
 - **File Coinvolti**: 
-  - `backend/src/chatbot/` (gestione messaggi)
-  - `backend/src/services/dual-llm.service.ts`
-  - N8N workflow
-- **Causa Probabile**: Errore nel processing del primo messaggio o mancanza di setup iniziale
+  - `backend/src/routes/index.ts` (webhook WhatsApp)
+  - `backend/src/application/services/secure-token.service.ts`
+  - `backend/src/repositories/message.repository.ts`
+  - `backend/src/application/services/registration-attempts.service.ts`
+- **Soluzione Implementata**: 
+  - ✅ Rilevamento automatico nuovi utenti tramite numero di telefono
+  - ✅ Rilevamento automatico lingua dal messaggio (IT/EN/ES/PT)
+  - ✅ Recupero messaggio welcome dal database in base alla lingua
+  - ✅ Generazione token di registrazione sicuro (1 ora di validità)
+  - ✅ Creazione link di registrazione automatico
+  - ✅ Sistema di blocco automatico dopo 5 tentativi (aggiornato da 3)
+  - ✅ Salvataggio messaggi nello storico per tutti i formati
+  - ✅ Formato risposta consistente per frontend
+  - ✅ Invio risposta diretta bypassando LLM per nuovo utente
+  - ✅ Funziona sia per formato WhatsApp che formato test
+  - ✅ Comportamento corretto: utenti bloccati vengono completamente ignorati (nessun messaggio)
 
 #### 2. **Product Null nel Backoffice**
 - **Problema**: Nel backoffice vengono mostrati "Product null" invece dei nomi dei prodotti
@@ -37,7 +49,6 @@
 - **File Coinvolti**:
   - `backend/src/services/dual-llm.service.ts`
   - `docs/other/prompt_agent.md`
-  - N8N workflow (intent recognition)
 - **Causa Probabile**: Prompt troppo rigido che richiede sintassi formale
 
 #### 4. **Totale Non in Grassetto nella Chat**
@@ -46,7 +57,6 @@
 - **Priorità**: 🟡 **MEDIA**
 - **File Coinvolti**:
   - `backend/src/chatbot/calling-functions/` (funzioni carrello)
-  - N8N workflow (formattazione messaggi)
 - **Causa Probabile**: Formattazione Markdown mancante o non supportata
 
 #### 5. **Indirizzo Fatturazione Mancante nel Checkout**
@@ -75,7 +85,6 @@
 - **Priorità**: 🟢 **BASSA**
 - **File Coinvolti**:
   - `backend/src/chatbot/calling-functions/`
-  - N8N workflow
 - **Causa Probabile**: Function calling non implementata o mal configurata
 
 #### 8. **"Voglio Parlare con un Operatore" Non Funziona**
@@ -84,7 +93,6 @@
 - **Priorità**: 🟢 **BASSA**
 - **File Coinvolti**:
   - `backend/src/chatbot/calling-functions/`
-  - N8N workflow
 - **Causa Probabile**: Function calling non implementata
 
 #### 9. **Indirizzo di Spedizione Mostrato come JSON Raw**
@@ -127,15 +135,22 @@
 
 - **Test Environment**: Verificare che tutti i fix funzionino sia in sviluppo che in produzione
 - **Database**: Controllare integrità dati per Product null
-- **N8N**: Verificare workflow e function calling
 - **Frontend**: Testare responsive design per tutti i fix UI
 
 ## 📝 **Stato Attuale**
 - **Data Test**: 11 Settembre 2025
 - **Tester**: Andrea
 - **Ambiente**: Test Manuale Completo
-- **Status**: 9 errori identificati, 1 risolto (Fix #1: Totale in grassetto)
+- **Status**: 10 errori identificati, 1 risolto (Fix #1: Totale in grassetto)
 
 - 
 ---
 *Ultimo aggiornamento: 11/09/2025 - Andrea*
+
+
+
+te lo spiego dopo questo errore
+aggiungi al carrello [000584]
+
+lista clienti 
+te lo spiego dopo questo task

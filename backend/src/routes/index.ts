@@ -2,12 +2,194 @@ import { PrismaClient } from "@prisma/client"
 import { NextFunction, Request, Response, Router } from "express"
 import { OtpService } from "../application/services/otp.service"
 import { PasswordResetService } from "../application/services/password-reset.service"
+import { RegistrationAttemptsService } from "../application/services/registration-attempts.service"
+import { SecureTokenService } from "../application/services/secure-token.service"
 import { UserService } from "../application/services/user.service"
 import { AuthController } from "../interfaces/http/controllers/auth.controller"
 import { CategoryController } from "../interfaces/http/controllers/category.controller"
 import { ChatController } from "../interfaces/http/controllers/chat.controller"
 import { CustomersController } from "../interfaces/http/controllers/customers.controller"
+import { MessageRepository } from "../repositories/message.repository"
 import logger from "../utils/logger"
+
+/**
+ * 🔒 BLACKLIST CHECK HELPER
+ * Checks if a customer is blacklisted and returns appropriate response
+ */
+async function checkCustomerBlacklist(
+  phoneNumber: string, 
+  workspaceId: string, 
+  res: Response, 
+  format: 'WHATSAPP' | 'TEST' = 'WHATSAPP'
+): Promise<boolean> {
+  try {
+    const customer = await prisma.customers.findFirst({
+      where: {
+        phone: phoneNumber,
+        workspaceId: workspaceId,
+        isActive: true
+      },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        company: true,
+        discount: true,
+        language: true,
+        isBlacklisted: true
+      }
+    });
+
+    if (customer?.isBlacklisted) {
+      console.log(`🚫 ${format}: Customer ${phoneNumber} is blacklisted - IGNORING MESSAGE`);
+      res.status(200).json({
+        success: true,
+        data: {
+          sessionId: null,
+          message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED"
+        }
+      });
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    logger.error(`[BLACKLIST_CHECK] Error checking blacklist for ${phoneNumber}:`, error);
+    return false;
+  }
+}
+
+
+/**
+ * 🆕 NEW USER WELCOME FLOW HELPER
+ * Handles new user detection, registration attempts tracking, and welcome message sending
+ * @param phoneNumber - User phone number
+ * @param workspaceId - Workspace ID
+ * @param messageContent - User message content
+ * @param res - Express response object
+ * @param format - Format type for logging ('WHATSAPP' or 'TEST')
+ * @returns Promise<boolean> - true if handled (response sent), false if should continue normal flow
+ */
+async function handleNewUserWelcomeFlow(
+  phoneNumber: string,
+  workspaceId: string,
+  messageContent: string,
+  res: Response,
+  format: 'WHATSAPP' | 'TEST' = 'WHATSAPP'
+): Promise<boolean> {
+  try {
+    // Initialize services
+    const secureTokenService = new SecureTokenService();
+    const messageRepository = new MessageRepository();
+    const registrationAttemptsService = new RegistrationAttemptsService(prisma);
+
+    // Check if user is blocked due to too many registration attempts
+    const isBlocked = await registrationAttemptsService.isBlocked(phoneNumber, workspaceId);
+    if (isBlocked) {
+      console.log(`🚫 ${format}: User ${phoneNumber} is blocked due to too many registration attempts - IGNORING MESSAGE`);
+      res.status(200).json({
+        success: true,
+        data: {
+          sessionId: null,
+          message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED"
+        }
+      });
+      return true;
+    }
+
+    // Record this registration attempt
+    const attempt = await registrationAttemptsService.recordAttempt(phoneNumber, workspaceId);
+    console.log(`📊 ${format}: Registration attempt ${attempt.attemptCount}/3 for ${phoneNumber}`);
+
+    // If user is now blocked after this attempt, ignore completely (blacklist totale)
+    if (attempt.isBlocked) {
+      console.log(`🚫 ${format}: User ${phoneNumber} blocked after ${attempt.attemptCount} attempts - IGNORING MESSAGE`);
+      res.status(200).json({
+        success: true,
+        data: {
+          sessionId: null,
+          message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED"
+        }
+      });
+      return true;
+    }
+
+    // Detect language from message content
+    let detectedLanguage = 'it'; // Default to Italian
+    if (messageContent) {
+      const lowerMessage = messageContent.toLowerCase();
+      if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('good morning') || lowerMessage.includes('good afternoon')) {
+        detectedLanguage = 'en';
+      } else if (lowerMessage.includes('hola') || lowerMessage.includes('buenos días') || lowerMessage.includes('buenas tardes')) {
+        detectedLanguage = 'es';
+      } else if (lowerMessage.includes('olá') || lowerMessage.includes('bom dia') || lowerMessage.includes('boa tarde')) {
+        detectedLanguage = 'pt';
+      }
+    }
+
+    // Get welcome message from database
+    const welcomeMessage = await messageRepository.getWelcomeMessage(workspaceId, detectedLanguage);
+    if (!welcomeMessage) {
+      console.error(`❌ ${format}: No welcome message found for language ${detectedLanguage} in workspace ${workspaceId}`);
+      res.status(500).send("ERROR");
+      return true;
+    }
+
+    // Generate secure registration token
+    const registrationToken = await secureTokenService.createToken(
+      'registration',
+      workspaceId,
+      { phone: phoneNumber, language: detectedLanguage },
+      '1h',
+      undefined,
+      phoneNumber
+    ); // 1 hour expiry
+
+    // Construct registration URL with phone and workspace parameters
+    const registrationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/register?token=${registrationToken}&phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`;
+
+    // Send complete welcome message with registration link
+    const completeMessage = `${welcomeMessage}\n\n🔗 **Per continuare, registrati qui:**\n${registrationUrl}\n\n⏰ Link valido per 1 ora`;
+
+    // 💾 SAVE MESSAGE TO HISTORY - Save both user message and welcome response
+    try {
+      await messageRepository.saveMessage({
+        workspaceId: workspaceId,
+        phoneNumber: phoneNumber,
+        message: messageContent,
+        response: completeMessage,
+        direction: "INBOUND", // ✅ CORRECT: User message is INBOUND, system response is OUTBOUND
+        functionCallsDebug: [],
+        processingSource: 'new_user_welcome',
+        debugInfo: JSON.stringify({
+          isNewUser: true,
+          detectedLanguage: detectedLanguage,
+          registrationUrl: registrationUrl,
+          attemptCount: attempt.attemptCount
+        })
+      });
+      console.log(`💾 ${format}: New user welcome message saved to history for ${phoneNumber}`);
+    } catch (saveError) {
+      console.error(`❌ ${format}: Failed to save new user welcome message:`, saveError);
+      // Continue - don't fail the whole request if save fails
+    }
+
+    console.log(`✅ ${format}: New user welcome message sent to ${phoneNumber} in ${detectedLanguage}`);
+    res.status(200).json({
+      success: true,
+      data: {
+        sessionId: null, // New users don't have a session yet
+        message: completeMessage
+      }
+    });
+
+    return true; // Handled successfully
+  } catch (error) {
+    console.error(`❌ ${format}: Error handling new user welcome flow for ${phoneNumber}:`, error);
+    res.status(500).send("ERROR");
+    return true; // Error handled
+  }
+}
 
 import { FaqController } from "../interfaces/http/controllers/faq.controller"
 // Removed MessageController import
@@ -83,7 +265,6 @@ const router = Router()
 router.use(loggingMiddleware)
 
 // WhatsApp webhook routes (must be FIRST, before any authentication middleware)
-import { MessageRepository } from '../repositories/message.repository'
 import { DualLLMService } from '../services/dual-llm.service'
 import { LLMRequest } from '../types/whatsapp.types'
 
@@ -145,34 +326,110 @@ router.post("/whatsapp/webhook", async (req, res) => {
         });
 
         if (customer) {
+          // 🔒 Check if customer is blacklisted - ignore completely if so
+          const isBlacklisted = await checkCustomerBlacklist(phoneNumber, workspaceId, res, 'WHATSAPP');
+          if (isBlacklisted) {
+            return; // Response already sent
+          }
+
           customerId = customer.id;
-          // console.log(`✅ Customer found: ${customer.name} (${customer.phone})`);
+          console.log(`✅ WHATSAPP: Customer found: ${customer.name} (${customer.phone})`);
         } else {
-          customerId = "test-customer-123";
-          console.log(`⚠️ Customer not found for phone: ${phoneNumber}`);
+          // 🆕 NEW USER DETECTED - Use handleNewUserWelcomeFlow for consistency
+          console.log(`🆕 New user detected for phone: ${phoneNumber}`);
+          
+          // Handle new user welcome flow using the centralized function
+          const handled = await handleNewUserWelcomeFlow(phoneNumber, workspaceId, messageContent, res, 'WHATSAPP');
+          if (handled) {
+            return; // Response already sent
+          }
         }
         
         // Store customer data for later use (avoid double query)
-        (req as any).customerData = customer;
+        if (customer) {
+          (req as any).customerData = customer;
+        }
         
       } catch (error) {
         console.error('❌ Error finding customer:', error);
-        customerId = "test-customer-123";
+        res.status(500).send("ERROR");
+        return;
+      }
+    }
+    // Check if it's frontend format (message, phoneNumber, workspaceId, isNewConversation)
+    else if (data.message && data.phoneNumber && data.workspaceId) {
+      messageContent = data.message;
+      phoneNumber = data.phoneNumber;
+      workspaceId = data.workspaceId;
+      
+      console.log(`🖥️ FRONTEND FORMAT: Processing message from ${phoneNumber}: "${messageContent}"`);
+      
+      // Get full customer data (including language) for frontend format
+      try {
+        const customer = await prisma.customers.findFirst({
+          where: {
+            phone: phoneNumber,
+            workspaceId: workspaceId,
+            isActive: true
+          },
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            company: true,
+            discount: true,
+            language: true,
+            isBlacklisted: true
+          }
+        });
+
+        if (customer) {
+          // 🔒 Check if customer is blacklisted - ignore completely if so
+          if (customer.isBlacklisted) {
+            console.log(`🚫 FRONTEND FORMAT: Customer ${phoneNumber} is blacklisted - IGNORING MESSAGE`);
+            res.status(200).json({
+              success: true,
+              data: {
+                sessionId: null,
+                message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED"
+              }
+            });
+            return;
+          }
+
+          customerId = customer.id;
+          console.log(`✅ FRONTEND FORMAT: Customer found: ${customer.name} (${customer.phone})`);
+        } else {
+          // New user - handle welcome flow
+          console.log(`🆕 FRONTEND FORMAT: New user detected: ${phoneNumber}`);
+          
+          // Handle new user welcome flow (includes blocking logic)
+          const handled = await handleNewUserWelcomeFlow(phoneNumber, workspaceId, messageContent, res, 'TEST');
+          if (handled) {
+            return; // Response already sent
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error getting customer data in frontend format:', error);
+        res.status(500).send("ERROR");
+        return;
       }
     }
     // Check if it's test format
-    else if (data.chatInput && data.customerid && data.workspaceId) {
+    else if (data.chatInput && data.workspaceId) {
       messageContent = data.chatInput;
       workspaceId = data.workspaceId;
-      customerId = data.customerid;
+      
+      // For test format, use phone number if provided, otherwise use test phone
+      phoneNumber = data.phone || "test-phone-123";
       
       // Get full customer data (including language) for test format
       try {
-        // console.log(`🔍 TEST FORMAT: Looking for customer with ID: "${customerId}" in workspace: "${workspaceId}"`);
+        // console.log(`🔍 TEST FORMAT: Looking for customer with phone: "${phoneNumber}" in workspace: "${workspaceId}"`);
         
         const customer = await prisma.customers.findFirst({
           where: {
-            id: customerId,
+            phone: phoneNumber,
             workspaceId: workspaceId,
             isActive: true
           },
@@ -189,19 +446,32 @@ router.post("/whatsapp/webhook", async (req, res) => {
         // console.log(`🔍 TEST FORMAT: Customer search result:`, customer);
 
         if (customer) {
+          // 🔒 Check if customer is blacklisted - ignore completely if so
+          const isBlacklisted = await checkCustomerBlacklist(phoneNumber, workspaceId, res, 'TEST');
+          if (isBlacklisted) {
+            return; // Response already sent
+          }
+
           phoneNumber = customer.phone || "test-phone-123";
-          // console.log(`✅ TEST FORMAT: Customer found: ${customer.name} (${customer.phone}) - Language: ${customer.language}`);
+          console.log(`✅ TEST: Customer found: ${customer.name} (${customer.phone}) - Language: ${customer.language}`);
           
-          // Store customer data for later use (same as WhatsApp format)
+          // Store customer data for later use
           (req as any).customerData = customer;
         } else {
-          phoneNumber = "test-phone-123";
-          console.log(`⚠️ TEST FORMAT: Customer not found for ID: ${customerId}`);
+          // 🆕 NEW USER DETECTED IN TEST FORMAT - Use handleNewUserWelcomeFlow for consistency
+          console.log(`🆕 TEST FORMAT: New user detected for phone: ${phoneNumber}`);
+          
+          // Handle new user welcome flow using the centralized function
+          const handled = await handleNewUserWelcomeFlow(phoneNumber, workspaceId, messageContent, res, 'TEST');
+          if (handled) {
+            return; // Response already sent
+          }
         }
         
       } catch (error) {
         console.error('❌ Error getting customer data in test format:', error);
-        phoneNumber = "test-phone-123";
+        res.status(500).send("ERROR");
+        return;
       }
     }
     // Invalid format
@@ -451,7 +721,10 @@ router.post("/whatsapp/webhook", async (req, res) => {
     
     res.json({ 
       success: true, 
-      message: result.output,
+      data: {
+        sessionId: chatSession?.id || null,
+        message: result.output
+      },
       debug: {
         translatedQuery: result.translatedQuery,
         processedPrompt: result.processedPrompt,

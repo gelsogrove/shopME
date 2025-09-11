@@ -66,6 +66,7 @@ export class RegistrationController {
         first_name,
         last_name,
         company,
+        email,
         phone,
         workspace_id,
         language,
@@ -75,7 +76,7 @@ export class RegistrationController {
       } = req.body;
       
       // Validate required fields
-      if (!token || !first_name || !last_name || !company || !phone || !workspace_id || !gdpr_consent) {
+      if (!token || !first_name || !last_name || !company || !email || !phone || !workspace_id || !gdpr_consent) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
       
@@ -124,7 +125,7 @@ export class RegistrationController {
           },
           data: {
             name: `${first_name} ${last_name}`,
-            email: existingCustomer.email, // Keep existing email
+            email: email, // Use the email provided by the user
             company,
             language: language || 'English',
             currency: currency || 'EUR',
@@ -136,11 +137,11 @@ export class RegistrationController {
           }
         });
       } else {
-        // Create new customer with placeholder email
+        // Create new customer with provided email
         customer = await prisma.customers.create({
           data: {
             name: `${first_name} ${last_name}`,
-            email: `${phone.replace(/[^0-9]/g, '')}@placeholder.com`, // Placeholder email
+            email: email, // Use the email provided by the user
             phone,
             company,
             workspaceId: workspace_id,
@@ -157,6 +158,14 @@ export class RegistrationController {
       
       // Mark token as used using SecureTokenService
       await this.secureTokenService.markTokenAsUsed(token);
+      
+      // Clear registration attempts since user successfully registered
+      const { RegistrationAttemptsService } = await import('../../../application/services/registration-attempts.service');
+      const registrationAttemptsService = new RegistrationAttemptsService(prisma);
+      await registrationAttemptsService.clearAttempts(phone, workspace_id);
+      
+      // Track registration cost (30 cents)
+      await this.trackRegistrationCost(workspace_id, customer.id);
       
       // Send welcome message asynchronously
       this.welcomeService.sendWelcomeMessage(customer.id)
@@ -250,6 +259,69 @@ export class RegistrationController {
     } catch (error) {
       logger.error('Error getting data protection info:', error);
       next(error);
+    }
+  }
+
+  /**
+   * Send registration confirmation message to user
+   */
+  private async sendRegistrationConfirmationMessage(
+    phoneNumber: string, 
+    workspaceId: string, 
+    language: string, 
+    customerName: string
+  ): Promise<void> {
+    try {
+      // Get workspace settings for after-registration messages
+      const workspace = await prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        select: { afterRegistrationMessages: true }
+      });
+
+      if (!workspace?.afterRegistrationMessages) {
+        logger.warn(`[REGISTRATION_CONFIRMATION] No after-registration messages configured for workspace ${workspaceId}`);
+        return;
+      }
+
+      const messages = workspace.afterRegistrationMessages as any;
+      let confirmationMessage = messages[language] || messages['en'] || messages['it'];
+
+      if (!confirmationMessage) {
+        logger.warn(`[REGISTRATION_CONFIRMATION] No message found for language ${language} in workspace ${workspaceId}`);
+        return;
+      }
+
+      // Replace [nome] placeholder with actual customer name
+      confirmationMessage = confirmationMessage.replace(/\[nome\]/g, customerName);
+
+      // TODO: Send message via WhatsApp API
+      // For now, just log the message
+      logger.info(`[REGISTRATION_CONFIRMATION] Would send to ${phoneNumber}: ${confirmationMessage}`);
+      
+      // In a real implementation, you would send this via WhatsApp API
+      // await whatsappService.sendMessage(phoneNumber, confirmationMessage, workspaceId);
+      
+    } catch (error) {
+      logger.error(`[REGISTRATION_CONFIRMATION] Error sending confirmation message to ${phoneNumber}:`, error);
+    }
+  }
+
+  /**
+   * Track registration cost (30 cents) in usage table
+   */
+  private async trackRegistrationCost(workspaceId: string, customerId: string): Promise<void> {
+    try {
+      await prisma.usage.create({
+        data: {
+          workspaceId: workspaceId,
+          clientId: customerId,
+          price: 0.30 // 30 cents
+        }
+      });
+
+      logger.info(`[REGISTRATION_COST] Tracked 30 cents registration cost for customer ${customerId} in workspace ${workspaceId}`);
+    } catch (error) {
+      logger.error(`[REGISTRATION_COST] Error tracking registration cost for customer ${customerId}:`, error);
     }
   }
 } 

@@ -1,5 +1,5 @@
 import { GDPRDialog } from '@/components/ui/gdpr-dialog';
-import { logger } from "@/lib/logger"
+import { logger } from "@/lib/logger";
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -326,21 +326,6 @@ const RegisterPage = () => {
             </div>
           )}
           
-          {/* Phone number (read-only) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700" htmlFor="phone">
-              Phone Number
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              type="text"
-              value={phone}
-              disabled
-              className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm text-gray-500 cursor-not-allowed"
-            />
-            <p className="mt-1 text-xs text-gray-500">This is the phone number you'll use to access our service</p>
-          </div>
           
           {/* First name */}
           <div>

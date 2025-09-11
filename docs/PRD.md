@@ -2949,10 +2949,41 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
 
 #### **Nuovi Utenti - Welcome Flow**
 
-- Riconoscimento saluti: "Ciao", "Hello", "Hi", "Hola", "Buongiorno"
-- Welcome message dal database (settings)
-- Link registrazione con token sicuro
-- Loop fino a registrazione completata
+**🔄 FLUSSO COMPLETO:**
+
+1. **Primo Check**: Verifica se numero telefono esiste nel DB
+   - ✅ **Se esiste**: Procedi con conversazione normale
+   - ❌ **Se NON esiste**: Attiva Welcome Flow
+
+2. **Welcome Flow per Nuovi Utenti:**
+   - Riconoscimento saluti: "Ciao", "Hello", "Hi", "Hola", "Buongiorno"
+   - **Welcome message dal database** (settings) in base alla lingua rilevata
+   - **Link registrazione con token sicuro** (valido 1 ora)
+   - **Tracking tentativi**: Registra ogni messaggio come tentativo di registrazione
+   - **Blocco automatico**: Dopo 5 messaggi senza registrazione → blocco totale
+   - **Loop continuo**: Fino a registrazione completata o blocco, continua a inviare welcome message
+
+3. **Gestione Lingue Welcome:**
+   - 🇮🇹 **Italiano**: "Benvenuto a L'Altra Italia! 👋 Sono il tuo assistente virtuale e sono qui per aiutarti con qualsiasi informazione sui nostri prodotti e servizi. Prima di iniziare, ti invitiamo a registrarti al nostro servizio: potrai consultare le nostre politiche sulla privacy e scoprire come tuteliamo i tuoi dati, che saranno custoditi in modo sicuro nel nostro database e non verranno mai condivisi con terzi."
+   - 🇬🇧 **Inglese**: "Welcome to L'Altra Italia! 👋 I'm your virtual assistant and I'm here to help you with any information about our products and services. Before we begin, we invite you to register for our service: you can review our privacy policies and discover how we protect your data, which will be securely stored in our database and never shared with third parties."
+   - 🇪🇸 **Spagnolo**: "¡Bienvenido a L'Altra Italia! 👋 Soy tu asistente virtual y estoy aquí para ayudarte con cualquier información sobre nuestros productos y servicios. Antes de comenzar, te invitamos a registrarte en nuestro servicio: podrás consultar nuestras políticas de privacidad y descubrir cómo protegemos tus datos, que serán custodiados de forma segura en nuestra base de datos y nunca serán compartidos con terceros."
+   - 🇵🇹 **Portoghese**: "Bem-vindo à L'Altra Italia! 👋 Sou o seu assistente virtual e estou aqui para ajudá-lo com informações sobre os nossos produtos e serviços. Antes de começar, convidamo-lo a registar-se no nosso serviço: poderá consultar as nossas políticas de privacidade e descobrir como protegemos os seus dados, que serão guardados de forma segura na nossa base de dados e nunca serão partilhados com terceiros."
+
+4. **Token di Registrazione:**
+   - Tipo: `registration`
+   - Durata: 1 ora
+   - Payload: `{phone, workspaceId, language, createdAt}`
+   - URL: `/register?token={registrationToken}`
+
+5. **Sistema di Blocco Automatico:**
+   - **Tracking tentativi**: Ogni messaggio di nuovo utente viene registrato in `RegistrationAttempts`
+   - **Limite tentativi**: Massimo 5 messaggi senza registrazione
+   - **Blocco automatico**: Al 5° tentativo → `isBlocked = true` + creazione customer "Blocked User"
+   - **Comportamento blocco**: Utenti bloccati vengono completamente ignorati (nessun messaggio)
+   - **Reset automatico**: Dopo 24 ore → auto-unblock e reset tentativi
+   - **Registrazione successo**: Cancella tentativi e sblocca utente
+   - **Costo registrazione**: 30 centesimi aggiunti al campo Usage
+   - **Conferma registrazione**: Messaggio di benvenuto nella lingua dell'utente
 
 #### **Utenti Registrati - Conversazione**
 
@@ -2973,8 +3004,111 @@ ALTER TABLE customers ADD COLUMN invoice_address JSONB;
   - ✅ **Webhook conferma ricezione** (cliente non sa di essere blacklisted)
   - 🔍 **Blacklist silenziosa**: Cliente pensa che i messaggi siano consegnati ma non vengono mai processati
   - 🚫 **IGNORE COMPLETA**: Messaggi completamente ignorati, zero traccia nel sistema
+- **🆕 BLOCCO REGISTRAZIONE**: Nuovo utente con 5+ tentativi senza registrazione:
+  - ❌ **NON riceve messaggi** (completamente ignorato)
+  - ❌ **NON viene salvato** nel database
+  - ❌ **NON viene processato** da N8N
+  - ✅ **Auto-unblock** dopo 24 ore
+  - ✅ **Reset tentativi** su registrazione successo
 - **Channel status**: isActive e activeChatbot flags
 - **WIP status**: Messaggio work-in-progress se canale in manutenzione
+
+#### **Sistema Chat History per Nuovi Utenti**
+
+**Gestione Customer Temporanei:**
+- **Nuovo utente non registrato** → Crea customer temporaneo "Unknown User-XXX" (numero random 3 cifre: 100-999)
+- **Messaggi salvati** nella chat history collegati al customer temporaneo
+- **Dopo registrazione** → Sostituisce customer temporaneo con dati reali (nome, email, company)
+- **Chat history preservata** → Tutti i messaggi rimangono collegati allo stesso customer ID
+- **Tracciabilità completa** del customer journey dall'inizio
+
+**Vantaggi del Sistema:**
+- ✅ **Chat history completa** anche per utenti non registrati
+- ✅ **Nomi temporanei unici** (Unknown User-761, Unknown User-234, etc.)
+- ✅ **Sostituzione trasparente** al momento della registrazione
+- ✅ **Nessuna perdita di dati** nella conversazione
+- ✅ **Customer journey completo** tracciabile dall'inizio
+
+**Implementazione Tecnica:**
+- **Customer temporaneo**: `Unknown User-${randomNumber}` (100-999)
+- **isActive: false** fino alla registrazione
+- **Aggiornamento automatico** con dati reali al momento della registrazione
+- **Chat history preservata** tramite stesso customer ID
+
+#### **Implementazione Tecnica - Sistema Blocco Registrazione**
+
+**Database Schema:**
+```sql
+-- Tabella per tracking tentativi registrazione
+model RegistrationAttempts {
+  id           String   @id @default(cuid())
+  phoneNumber  String
+  workspaceId  String
+  attemptCount Int      @default(0)
+  lastAttemptAt DateTime @default(now())
+  isBlocked    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([phoneNumber, workspaceId])
+  @@map("registration_attempts")
+}
+```
+
+**Servizi Implementati:**
+- `RegistrationAttemptsService`: Gestisce tracking tentativi e blocco automatico
+- `SecureTokenService`: Genera token di registrazione sicuri
+- `MessageRepository`: Gestisce salvataggio messaggi e creazione customer temporanei "Unknown User-XXX"
+- `WelcomeService`: Recupera messaggi welcome dal database in base alla lingua
+
+**Flusso Implementativo:**
+1. **Nuovo utente rilevato** → Controlla `RegistrationAttempts`
+2. **Se bloccato** → Ignora completamente (nessun messaggio)
+3. **Se non bloccato** → Crea customer temporaneo "Unknown User-XXX" + salva messaggi in chat history
+4. **Registra tentativo** + invia welcome message con link registrazione
+5. **Al 5° tentativo** → Blocca automaticamente + crea customer "Blocked User"
+6. **Registrazione successo** → Aggiorna customer temporaneo con dati reali + cancella tentativi + tracking 30 centesimi
+7. **Reset automatico** → Dopo 24 ore, auto-unblock
+
+**Endpoint Coinvolti:**
+- `POST /api/whatsapp/webhook` - Gestisce nuovo utente e blocco
+- `POST /api/registration` - Gestisce registrazione e reset tentativi
+
+**Configurazione Sistema:**
+- **MAX_ATTEMPTS**: 5 (configurabile in `RegistrationAttemptsService`)
+- **ATTEMPT_WINDOW_HOURS**: 24 (reset automatico dopo 24 ore)
+- **TOKEN_EXPIRY**: 1 ora (per link di registrazione)
+- **BLOCK_DURATION**: 24 ore (auto-unblock automatico)
+
+**Comportamento Frontend:**
+- **Messaggio welcome**: Mostra link di registrazione + messaggio nella lingua rilevata
+- **Utente bloccato**: Riceve `EVENT_RECEIVED_CUSTOMER_BLACKLISTED` (nessun messaggio mostrato)
+- **Formato risposta**: `{success: true, data: {sessionId: null, message: "..."}}`
+- **Chat history**: Tutti i messaggi salvati anche per utenti non registrati (customer temporaneo "Unknown User-XXX")
+- **Sender corretto**: Messaggi del bot con `sender: "bot"` per visualizzazione corretta
+
+**Logica di Rilevamento Lingua:**
+- **Italiano** (default): Nessuna parola chiave rilevata
+- **Inglese**: "hello", "hi", "good morning", "good afternoon"
+- **Spagnolo**: "hola", "buenos días", "buenas tardes"
+- **Portoghese**: "olá", "bom dia", "boa tarde"
+
+**Troubleshooting Sistema Blocco:**
+- **Problema**: Utente bloccato immediatamente al primo messaggio
+  - **Causa**: Record precedenti in `registration_attempts` o `customers` con `isBlacklisted = true`
+  - **Soluzione**: `DELETE FROM registration_attempts WHERE "phoneNumber" = '+XXX'; DELETE FROM customers WHERE phone = '+XXX';`
+- **Problema**: Utente non riceve messaggi dopo 5 tentativi
+  - **Causa**: Comportamento normale - utente è bloccato
+  - **Soluzione**: Attendere 24 ore per auto-unblock o registrazione manuale
+- **Problema**: Link di registrazione non funziona
+  - **Causa**: Token scaduto (1 ora) o formato URL errato
+  - **Soluzione**: Generare nuovo token o verificare `FRONTEND_URL` environment variable
+- **Problema**: Messaggi non salvati nella chat history
+  - **Causa**: Customer temporaneo non creato correttamente
+  - **Soluzione**: Verificare `MessageRepository.saveMessage` e creazione customer "Unknown User-XXX"
+- **Problema**: Welcome message non mostrato nel frontend
+  - **Causa**: `sender` impostato come "user" invece di "bot"
+  - **Soluzione**: Verificare `WhatsAppChatModal.tsx` e tipo `Message.sender`
 
 ---
 

@@ -704,9 +704,10 @@ async function main() {
           pt: "Em manutenção. Por favor, contacte-nos mais tarde.",
         },
         welcomeMessages: {
-          it: "Benvenuto a L'Altra Italia! 👋 Sono il tuo assistente virtuale e sono qui per aiutarti con qualsiasi informazione sui nostri prodotti e servizi. Come posso assisterti oggi? 😊",
-          en: "Welcome to L'Altra Italia! 👋 I'm your virtual assistant and I'm here to help you with any information about our products and services. How can I assist you today? 😊",
-          es: "¡Bienvenido a L'Altra Italia! 👋 Soy tu asistente virtual y estoy aquí para ayudarte con cualquier información sobre nuestros productos y servicios. ¿Cómo puedo ayudarte hoy? 😊",
+          it: "Benvenuto a L'Altra Italia! 👋 Sono il tuo assistente virtuale e sono qui per aiutarti con qualsiasi informazione sui nostri prodotti e servizi. Prima di iniziare, ti invitiamo a registrarti al nostro servizio: potrai consultare le nostre politiche sulla privacy e scoprire come tuteliamo i tuoi dati, che saranno custoditi in modo sicuro nel nostro database e non verranno mai condivisi con terzi.",
+          en: "Welcome to L'Altra Italia! 👋 I'm your virtual assistant and I'm here to help you with any information about our products and services. Before we begin, we invite you to register for our service: you can review our privacy policies and discover how we protect your data, which will be securely stored in our database and never shared with third parties.",
+          es: "¡Bienvenido a L'Altra Italia! 👋 Soy tu asistente virtual y estoy aquí para ayudarte con cualquier información sobre nuestros productos y servicios. Antes de comenzar, te invitamos a registrarte en nuestro servicio: podrás consultar nuestras políticas de privacidad y descubrir cómo protegemos tus datos, que serán custodiados de forma segura en nuestra base de datos y nunca serán compartidos con terceros.",
+          pt: "Bem-vindo à L'Altra Italia! 👋 Sou o seu assistente virtual e estou aqui para ajudá-lo com informações sobre os nossos produtos e serviços. Antes de começar, convidamo-lo a registar-se no nosso serviço: poderá consultar as nossas políticas de privacidade e descobrir como protegemos os seus dados, que serão guardados de forma segura na nossa base de dados e nunca serão partilhados com terceiros.",
         },
         debugMode: false,
       },
@@ -2188,10 +2189,10 @@ async function main() {
 
   // Welcome messages in different languages with flags
   const welcomeMessages = {
-    it: "🇮🇹 Ciao Mario! 👋 Benvenuto in L'Altra Italia! Sono il tuo assistente virtuale e sono qui per aiutarti con informazioni sui nostri prodotti e servizi. Come posso aiutarti oggi? 😊",
-    en: "🇬🇧 Hello John! 👋 Welcome to L'Altra Italia! I'm your virtual assistant and I'm here to help you with any information about our products and services. How can I assist you today? 😊",
-    es: "🇪🇸 ¡Hola Maria! 👋 ¡Bienvenida a L'Altra Italia! Soy tu asistente virtual y estoy aquí para ayudarte con información sobre nuestros productos y servicios. ¿Cómo puedo ayudarte hoy? 😊",
-    pt: "🇵🇹 Olá João! 👋 Bem-vindo à L'Altra Italia! Sou o seu assistente virtual e estou aqui para ajudá-lo com informações sobre os nossos produtos e serviços. Como posso ajudá-lo hoje? 😊"
+    it: "🇮🇹 Ciao Mario! 👋 Benvenuto in L'Altra Italia! Sono il tuo assistente virtuale e sono qui per aiutarti con informazioni sui nostri prodotti e servizi. Prima di iniziare, ti invitiamo a registrarti al nostro servizio: potrai consultare le nostre politiche sulla privacy e scoprire come tuteliamo i tuoi dati, che saranno custoditi in modo sicuro nel nostro database e non verranno mai condivisi con terzi.",
+    en: "🇬🇧 Hello John! 👋 Welcome to L'Altra Italia! I'm your virtual assistant and I'm here to help you with any information about our products and services. Before we begin, we invite you to register for our service: you can review our privacy policies and discover how we protect your data, which will be securely stored in our database and never shared with third parties.",
+    es: "🇪🇸 ¡Hola Maria! 👋 ¡Bienvenida a L'Altra Italia! Soy tu asistente virtual y estoy aquí para ayudarte con información sobre nuestros productos y servicios. Antes de comenzar, te invitamos a registrarte en nuestro servicio: podrás consultar nuestras políticas de privacidad y descubrir cómo protegemos tus datos, que serán custodiados de forma segura en nuestra base de datos y nunca serán compartidos con terceros.",
+    pt: "🇵🇹 Olá João! 👋 Bem-vindo à L'Altra Italia! Sou o seu assistente virtual e estou aqui para ajudá-lo com informações sobre os nossos produtos e serviços. Antes de começar, convidamo-lo a registar-se no nosso serviço: poderá consultar as nossas políticas de privacidade e descobrir como protegemos os seus dados, que serão guardados de forma segura na nossa base de dados e nunca serão partilhados com terceiros."
   }
 
   // Create initial messages for Mario Rossi (Italian)

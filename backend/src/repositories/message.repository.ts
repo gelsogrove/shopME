@@ -457,21 +457,28 @@ export class MessageRepository {
         workspaceId
       )
 
-      // If no customer exists, create one with the determined workspaceId using unified logic
+      // If no customer exists, create a temporary "Unknown User-XXX" for new users
+      // This allows us to save messages in chat history even before registration
       if (!customer) {
+        logger.info(`saveMessage: No customer found for phone ${data.phoneNumber} - creating temporary customer for new user`)
+        
+        // Generate random 3-digit number for temporary user
+        const randomNumber = Math.floor(Math.random() * 900) + 100; // 100-999
+        
+        // Create a temporary customer for new users
         customer = await this.prisma.customers.create({
           data: {
-            name: "Unknown Customer",
-            email: `customer-${Date.now()}@example.com`,
+            name: `Unknown User-${randomNumber}`,
+            email: `${data.phoneNumber.replace(/[^0-9]/g, '')}@temp.com`,
             phone: data.phoneNumber,
             workspaceId: workspaceId,
-            isActive: true,
-            activeChatbot: true,
-            language: "Italian",
-            currency: "EUR",
-          },
+            isActive: false, // Mark as inactive until they register
+            language: "English",
+            currency: "EUR"
+          }
         })
-        logger.info(`saveMessage: Created new customer: ${customer.id}`)
+        
+        logger.info(`saveMessage: Created temporary customer ${customer.id} (Unknown User-${randomNumber}) for new user ${data.phoneNumber}`)
       }
 
       // Update customer's lastContact field
