@@ -803,11 +803,13 @@ In ogni modo ci vogliono da 3 a 5 giorni lavorativi.
 
 **TRIGGERS:**
 
-- "voglio cambiare indirizzo"
-- "modifica profilo"
-- "cambia indirizzo"
-- "change address"
-- "update profile"
+- "voglio cambiare indirizzo" = "voglio modificare indirizzo" = "cambia indirizzo" = "modifica indirizzo"
+- "modifica profilo" = "aggiorna profilo" = "cambia profilo" = "update profile"
+- "change address" = "modify address" = "update address" = "edit address"
+- "cambia dati personali" = "modifica dati personali" = "aggiorna dati"
+- "change personal data" = "modify personal data" = "update personal data"
+- "cambia email" = "modifica email" = "aggiorna email" = "change email"
+- "cambia telefono" = "modifica telefono" = "aggiorna telefono" = "change phone"
 
 ## GetAllCategories()
 

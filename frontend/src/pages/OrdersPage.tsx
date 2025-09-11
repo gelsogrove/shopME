@@ -4,6 +4,7 @@ import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -1888,6 +1889,25 @@ export default function OrdersPage() {
       ),
     },
     {
+      header: "Notes",
+      accessorKey: "notes" as keyof Order,
+      size: 200,
+      cell: ({ row }: { row: { original: Order } }) => (
+        <div className="max-w-[200px]">
+          {row.original.notes ? (
+            <span 
+              className="text-sm text-gray-700 truncate block" 
+              title={row.original.notes}
+            >
+              {row.original.notes}
+            </span>
+          ) : (
+            <span className="text-sm text-gray-400 italic">No notes</span>
+          )}
+        </div>
+      ),
+    },
+    {
       header: "Date",
       accessorKey: "createdAt" as keyof Order,
       size: 160,
@@ -2163,6 +2183,87 @@ export default function OrdersPage() {
         onClose={() => setIsCartEditOpen(false)}
         onSave={handleOrderSave}
       />
+      {/* Order Details Dialog */}
+      {selectedOrder && (
+        <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Order Details - {selectedOrder.orderCode}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6">
+              {/* Order Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Order Information</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Order Code</p>
+                    <p className="text-base">{selectedOrder.orderCode}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Status</p>
+                    <Badge variant={selectedOrder.status === 'COMPLETED' ? 'default' : 'secondary'}>
+                      {selectedOrder.status}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Customer</p>
+                    <p className="text-base">{selectedOrder.customer?.name || 'Unknown Customer'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Date</p>
+                    <p className="text-base">{new Date(selectedOrder.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Total Amount</p>
+                    <p className="text-base font-semibold">€{selectedOrder.totalAmount.toFixed(2)}</p>
+                  </div>
+                  {selectedOrder.notes && (
+                    <div className="col-span-2">
+                      <p className="text-sm font-medium text-gray-500">Notes</p>
+                      <p className="text-base">{selectedOrder.notes}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Order Items */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Order Items</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {selectedOrder.items?.map((item, index) => (
+                      <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">
+                            {item.itemType === 'PRODUCT' 
+                              ? item.product?.name || `Product ${item.productId}` 
+                              : item.service?.name || `Service ${item.serviceId}`
+                            }
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Quantity: {item.quantity} × €{item.unitPrice.toFixed(2)}
+                          </p>
+                        </div>
+                        <p className="font-semibold">€{item.totalPrice.toFixed(2)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         open={showDeleteDialog}

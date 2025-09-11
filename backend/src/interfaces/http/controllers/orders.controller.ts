@@ -190,6 +190,7 @@ export class OrdersController {
             date: order.createdAt,
             status: order.status,
             totalAmount: order.totalAmount,
+            notes: order.notes,
             items: order.items.map((it) => ({
               id: it.id,
               itemType: it.itemType,
