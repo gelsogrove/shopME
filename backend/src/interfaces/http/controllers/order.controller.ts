@@ -4,6 +4,15 @@ import { OrderService } from '../../../application/services/order.service';
 import { prisma } from '../../../lib/prisma';
 import logger from '../../../utils/logger';
 
+interface JWTPayload {
+  clientId: string
+  workspaceId: string
+  scope: string
+  orderCode?: string
+  iat?: number
+  exp?: number
+}
+
 export class OrderController {
   private orderService: OrderService;
 
@@ -258,25 +267,45 @@ export class OrderController {
   deleteOrder = async (req: Request, res: Response): Promise<Response> => {
     try {
       const { id } = req.params;
-      const workspaceIdParam = req.params.workspaceId;
-      const workspaceIdQuery = req.query.workspaceId as string;
-      const workspaceIdHeader = req.headers['x-workspace-id'] as string;
-      const workspaceId = workspaceIdParam || workspaceIdQuery || workspaceIdHeader;
+      const workspaceId = req.params.workspaceId;
       
+      
+      // Use workspaceId from path params (required for this endpoint)
       if (!workspaceId) {
         return res.status(400).json({ 
-          message: 'WorkspaceId is required',
-          error: 'Missing workspaceId parameter' 
+          success: false,
+          error: "Workspace ID is required in path" 
+        });
+      }
+      
+      // Verify user has access to this workspace
+      const user = (req as any).user;
+      if (!user) {
+        return res.status(401).json({ 
+          success: false,
+          error: "Authentication required" 
+        });
+      }
+      
+      const hasAccess = user.workspaces?.some((w: any) => w.id === workspaceId);
+      if (!hasAccess) {
+        return res.status(403).json({ 
+          success: false,
+          error: "Access denied to this workspace" 
         });
       }
       
       await this.orderService.deleteOrder(id, workspaceId);
-      return res.status(200).json({ message: 'Order deleted successfully' });
+      
+      return res.status(200).json({ 
+        success: true,
+        message: 'Order deleted successfully' 
+      });
     } catch (error) {
-      logger.error('Error deleting order:', error);
+      logger.error(`Error deleting order ${req.params.id}:`, error);
       return res.status(500).json({ 
-        message: 'An error occurred while deleting the order',
-        error: (error as Error).message 
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to delete order"
       });
     }
   };

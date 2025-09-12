@@ -368,7 +368,13 @@ export const delete_ = async (
   workspaceId: string
 ): Promise<void> => {
   try {
-    await api.delete(`/orders/${id}`)
+    logger.info(`[ORDERS API] DELETE request:`, {
+      url: `/workspaces/${workspaceId}/orders/${id}`,
+      orderId: id,
+      workspaceId: workspaceId
+    })
+    await api.delete(`/workspaces/${workspaceId}/orders/${id}`)
+    logger.info(`[ORDERS API] DELETE successful for order: ${id}`)
   } catch (error) {
     logger.error("Error deleting order:", error)
     throw error

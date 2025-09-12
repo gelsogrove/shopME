@@ -2,13 +2,17 @@ import { Router } from 'express';
 import logger from '../../../utils/logger';
 import { OrderController } from '../controllers/order.controller';
 import { authMiddleware } from '../middlewares/auth.middleware';
+import { workspaceValidationMiddleware } from '../middlewares/workspace-validation.middleware';
 
 export function createOrderRouter(): Router {
-  const router = Router();
+  const router = Router({ mergeParams: true });  // Enable mergeParams to inherit workspaceId
   const orderController = new OrderController();
 
   // Apply auth middleware to all routes
   router.use(authMiddleware);
+  
+  // All routes require workspace validation
+  router.use(workspaceValidationMiddleware);
 
   // Log route registration
   logger.info('Setting up order routes');

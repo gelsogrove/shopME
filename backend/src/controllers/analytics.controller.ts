@@ -1,6 +1,6 @@
-import logger from "../utils/logger"
 import { Request, Response } from "express"
 import { AnalyticsService } from "../application/services/analytics.service"
+import logger from "../utils/logger"
 
 export class AnalyticsController {
   private analyticsService: AnalyticsService
@@ -349,18 +349,18 @@ export class AnalyticsController {
   }
 
   /**
-   * Calculate default date range: last 3 complete months excluding current month
+   * Calculate default date range: last 3 months including current month
    */
   private getDefaultDateRange(): { startDate: Date; endDate: Date } {
     const now = new Date()
     const currentYear = now.getFullYear()
     const currentMonth = now.getMonth() // 0-based (0 = January)
 
-    // End of previous month (last day)
-    const endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999)
+    // End of current month (last day)
+    const endDate = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999)
 
-    // Start of 3 months before the previous month (first day)
-    const startDate = new Date(currentYear, currentMonth - 3, 1, 0, 0, 0, 0)
+    // Start of 3 months before current month (first day)
+    const startDate = new Date(currentYear, currentMonth - 2, 1, 0, 0, 0, 0)
 
     return { startDate, endDate }
   }

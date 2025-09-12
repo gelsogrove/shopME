@@ -1,6 +1,6 @@
+import { logger } from "@/lib/logger"
 import axios from "axios"
 import { toast } from "../lib/toast"
-import { logger } from "@/lib/logger"
 
 // Create an axios instance with custom config
 export const api = axios.create({
@@ -34,12 +34,9 @@ api.interceptors.request.use(
       }
     )
 
-    // Add Authorization header with JWT token if available
-    const token = localStorage.getItem("token")
-    if (token && !config.headers["Authorization"]) {
-      logger.info(`🔐 Adding Authorization header with JWT token`)
-      config.headers["Authorization"] = `Bearer ${token}`
-    }
+    // Note: JWT token is sent automatically via HTTP-only cookies
+    // No need to manually add Authorization header
+    logger.info(`🔐 Using HTTP-only cookie for authentication`)
 
     // Add x-workspace-id header if not already present and we have a workspace ID
     if (!config.headers["x-workspace-id"]) {

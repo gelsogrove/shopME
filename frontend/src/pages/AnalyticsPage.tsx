@@ -5,12 +5,11 @@ import {
 } from "@/components/analytics/DateRangeSelector"
 import { HistoricalChart } from "@/components/analytics/HistoricalChart"
 import { MetricsOverview } from "@/components/analytics/MetricsOverview"
-import { MonthlyTopClients } from "@/components/analytics/MonthlyTopClients"
-import { MonthlyTopCustomers } from "@/components/analytics/MonthlyTopCustomers"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useWorkspace } from "@/hooks/use-workspace"
+import { useAnalyticsPeriod } from "@/hooks/useAnalyticsPeriod"
 import { logger } from "@/lib/logger"
 import {
     AnalyticsResponse,
@@ -19,7 +18,6 @@ import {
 } from "@/services/analyticsApi"
 import { Activity, AlertCircle, BarChart3, TrendingUp } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useAnalyticsPeriod } from "@/hooks/useAnalyticsPeriod"
 
 export function AnalyticsPage() {
   const { workspace: currentWorkspace } = useWorkspace()
@@ -278,19 +276,6 @@ export function AnalyticsPage() {
             </Card>
           </div>
 
-          {/* Monthly Top Customers and Clients */}
-          <div className="space-y-6">
-            <div className="text-center"></div>
-
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <MonthlyTopCustomers
-                dateRange={getDateRangeFromPeriod(selectedPeriod)}
-              />
-              <MonthlyTopClients
-                dateRange={getDateRangeFromPeriod(selectedPeriod)}
-              />
-            </div>
-          </div>
         </div>
       ) : (
         // No Data State

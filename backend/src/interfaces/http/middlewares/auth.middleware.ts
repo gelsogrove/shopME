@@ -39,9 +39,6 @@ const authMiddlewareAsync = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    logger.info('=== AUTH MIDDLEWARE START ===');
-    logger.info('Request URL:', req.originalUrl);
-    logger.info('Request method:', req.method);
     
     // In ambiente di test, verifichiamo la presenza di header speciali
     if (isTestEnvironment && isIntegrationTest) {
@@ -170,7 +167,6 @@ const authMiddlewareAsync = async (
       }
       
       req.user = decoded;
-      logger.info('=== AUTH MIDDLEWARE SUCCESS ===');
       return next();
     } catch (error) {
       logger.info("Token verification failed:", error.message);

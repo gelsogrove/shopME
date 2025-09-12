@@ -35,8 +35,12 @@ export const getDateRangeFromPeriod = (period: PeriodPreset): DateRange => {
     case 'lastmonth':
       // Set to previous month: first day 00:00:00 to last day 23:59:59
       const currentDate = new Date();
-      const firstDayLastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1, 0, 0, 0, 0);
-      const lastDayLastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0, 23, 59, 59, 999);
+      const previousMonth = currentDate.getMonth() - 1;
+      const year = previousMonth < 0 ? currentDate.getFullYear() - 1 : currentDate.getFullYear();
+      const month = previousMonth < 0 ? 11 : previousMonth;
+      
+      const firstDayLastMonth = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
+      const lastDayLastMonth = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
       return { startDate: firstDayLastMonth, endDate: lastDayLastMonth };
     case '3months':
       startDate.setMonth(endDate.getMonth() - 3);

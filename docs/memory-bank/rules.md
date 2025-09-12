@@ -101,6 +101,23 @@
 - **Responsive**: Mobile-first approach
 - **Accessibility**: WCAG compliance
 
+### 🌐 **FRONTEND LANGUAGE RULE - CRITICAL**
+- **ALL TEXT**: Every string, label, button, message, error, placeholder must be in English
+- **ALL FILE NAMES**: Every file, component, function, variable must be in English
+- **ALL COMMENTS**: Every comment in frontend code must be in English
+- **ALL UI ELEMENTS**: Every user-facing text must be in English
+- **NO ITALIAN**: Zero tolerance for Italian text in frontend
+- **NO MIXED LANGUAGES**: Frontend is 100% English only
+
+**Examples of what needs to be changed:**
+- ❌ "Metriche Principali" → ✅ "Main Metrics"
+- ❌ "Ordini Totali" → ✅ "Total Orders"
+- ❌ "Clienti" → ✅ "Customers"
+- ❌ "Messaggi" → ✅ "Messages"
+- ❌ "Costo LLM" → ✅ "LLM Cost"
+- ❌ "Ultimo Mese" → ✅ "Last Month"
+- ❌ "Ultima Settimana" → ✅ "Last Week"
+
 ---
 
 ## 📋 **AUTOMATION RULES**

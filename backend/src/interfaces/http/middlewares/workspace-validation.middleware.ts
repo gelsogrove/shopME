@@ -12,15 +12,6 @@ export const workspaceValidationMiddleware = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    logger.info('=== WORKSPACE VALIDATION DEBUG ===');
-    logger.info('Request URL:', req.originalUrl);
-    logger.info('Request method:', req.method);
-    logger.info('Request params:', req.params);
-    logger.info('Request query:', req.query);
-    logger.info('Request headers workspace-related:', {
-      'x-workspace-id': req.headers['x-workspace-id'],
-      'workspace-id': req.headers['workspace-id']
-    });
 
     // Extract workspace ID from various sources
     let workspaceIdFromParams = req.params.workspaceId;
@@ -33,7 +24,6 @@ export const workspaceValidationMiddleware = async (
       let urlMatch = req.originalUrl.match(/\/workspaces\/([^\/\?]+)/);
       if (urlMatch && urlMatch[1]) {
         workspaceIdFromParams = urlMatch[1];
-        logger.info('🔧 EXTRACTED workspaceId from /workspaces/ pattern:', workspaceIdFromParams);
         // Also set it in params for downstream middleware
         req.params.workspaceId = workspaceIdFromParams;
       } else {
@@ -41,25 +31,15 @@ export const workspaceValidationMiddleware = async (
         urlMatch = req.originalUrl.match(/\/settings\/([^\/\?]+)\/gdpr/);
         if (urlMatch && urlMatch[1]) {
           workspaceIdFromParams = urlMatch[1];
-          logger.info('🔧 EXTRACTED workspaceId from /settings/{workspaceId}/gdpr pattern:', workspaceIdFromParams);
           // Also set it in params for downstream middleware
           req.params.workspaceId = workspaceIdFromParams;
         }
       }
     }
     
-    logger.info('Workspace ID sources:', {
-      fromParams: workspaceIdFromParams,
-      fromQuery: workspaceIdFromQuery,
-      fromHeaders: workspaceIdFromHeaders
-    });
-
     const workspaceId = workspaceIdFromParams || workspaceIdFromQuery || workspaceIdFromHeaders;
-    
-    logger.info('Final workspaceId:', workspaceId);
 
     if (!workspaceId || workspaceId.trim() === '') {
-      logger.info('❌ Workspace ID is missing or empty');
       
       // Create debug response with all the information
       const debugResponse = {
@@ -87,21 +67,14 @@ export const workspaceValidationMiddleware = async (
       return;
     }
 
-    logger.info('✅ Workspace ID found:', workspaceId);
-
     // Check if workspace exists in database
-    logger.info('Checking workspace in database...');
     const workspace = await prisma.workspace.findUnique({
       where: { id: workspaceId },
       select: { id: true, name: true, isActive: true, isDelete: true }
     });
 
-    const sqlQuery = `SELECT id, name, isActive, isDelete FROM workspace WHERE id = '${workspaceId}'`;
-    logger.info('SQL Query executed:', sqlQuery);
-    logger.info('Workspace found:', workspace);
 
     if (!workspace) {
-      logger.info('❌ Workspace not found in database');
       
       const debugResponse = {
         message: "Workspace not found",
@@ -135,7 +108,6 @@ export const workspaceValidationMiddleware = async (
       return;
     }
 
-    logger.info('✅ Workspace validation passed');
     
     // Store workspace info in request
     (req as any).workspace = workspace;

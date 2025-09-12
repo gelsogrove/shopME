@@ -1,8 +1,8 @@
 import { OrderStatus } from "@prisma/client"
 import { Order } from "../../domain/entities/order.entity"
 import {
-  IOrderRepository,
-  OrderFilters,
+    IOrderRepository,
+    OrderFilters,
 } from "../../domain/repositories/order.repository.interface"
 import { OrderRepository } from "../../repositories/order.repository"
 import logger from "../../utils/logger"
@@ -201,17 +201,13 @@ export class OrderService {
         throw new Error("Order ID is required")
       }
 
-      // Check if order exists and can be deleted
+      // Check if order exists
       const order = await this.orderRepository.findById(id, workspaceId)
       if (!order) {
         throw new Error("Order not found")
       }
-
-      // Only allow deletion of pending orders
-      if (order.status !== OrderStatus.PENDING) {
-        throw new Error("Only pending orders can be deleted")
-      }
-
+      
+      // Allow deletion of all orders regardless of status
       await this.orderRepository.delete(id, workspaceId)
     } catch (error) {
       logger.error(`Error in order service deleteOrder for order ${id}:`, error)

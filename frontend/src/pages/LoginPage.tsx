@@ -3,14 +3,14 @@ import { AuthLogo } from "@/components/ui/auth-logo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { logger } from "@/lib/logger"
+import { zodResolver } from "@hookform/resolvers/zod"
 import {
-      AlertTriangle,
-    Globe,
-    MessageSquare,
-    ShoppingCart,
-    Zap,
+  AlertTriangle,
+  Globe,
+  MessageSquare,
+  ShoppingCart,
+  Zap,
 } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -49,6 +49,7 @@ export function LoginPage() {
     // Pulisci la sessionStorage prima del login
     sessionStorage.removeItem("currentWorkspace")
     localStorage.removeItem("user")
+    localStorage.removeItem("token") // Remove any old token
 
     try {
       // Usa await esplicitamente e salva la risposta
@@ -57,6 +58,10 @@ export function LoginPage() {
 
       if (response.data && response.data.user) {
         localStorage.setItem("user", JSON.stringify(response.data.user))
+        
+        // JWT token is automatically saved as HTTP-only cookie by backend
+        logger.info("Login successful - JWT token saved as HTTP-only cookie")
+        
         toast.success("Login successful!")
 
         setTimeout(() => {
@@ -97,7 +102,7 @@ export function LoginPage() {
             <AuthLogo />
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tight">
-                Welcome Back
+                ShopMe
               </h1>
               <p className="text-balance text-muted-foreground">
                 Enter your credentials to access your workspace

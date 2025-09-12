@@ -1,6 +1,7 @@
-import logger from "./utils/logger"
 import { PrismaClient } from "@prisma/client";
+import 'dotenv/config';
 import app from "./app";
+import logger from "./utils/logger";
 
 const PORT = process.env.PORT || 3001
 const prisma = new PrismaClient()

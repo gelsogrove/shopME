@@ -1,8 +1,8 @@
-import logger from "../utils/logger"
 import { UserRole } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
+import logger from "../utils/logger";
 // Types are automatically loaded by TypeScript
 
 // Define our payload type to match what's generated in auth.controller.ts

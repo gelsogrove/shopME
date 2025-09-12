@@ -314,6 +314,14 @@ export class OrderRepository implements IOrderRepository {
 
   async delete(id: string, workspaceId: string): Promise<void> {
     try {
+      // First delete all order items associated with this order
+      await this.prisma.orderItems.deleteMany({
+        where: {
+          orderId: id
+        }
+      });
+      
+      // Then delete the order itself
       await this.prisma.orders.delete({
         where: {
           id,
