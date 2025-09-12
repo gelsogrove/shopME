@@ -119,7 +119,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
 
   const metrics = [
     {
-      title: "Ordini Totali",
+      title: "Total Orders",
       value: analytics.overview.totalOrders,
       icon: <ShoppingCart className="h-4 w-4 text-muted-foreground" />,
       formatter: formatNumber,
@@ -129,10 +129,10 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             previousPeriodAnalytics.overview.totalOrders
           )
         : undefined,
-      description: "Numero totale di ordini ricevuti",
+      description: "Total number of orders received",
     },
     {
-      title: "Clienti",
+      title: "Customers",
       value: analytics.overview.totalCustomers,
       icon: <Users className="h-4 w-4 text-muted-foreground" />,
       formatter: formatNumber,
@@ -142,10 +142,10 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             previousPeriodAnalytics.overview.totalCustomers
           )
         : undefined,
-      description: "Numero di clienti attivi",
+      description: "Number of active customers",
     },
     {
-      title: "Messaggi",
+      title: "Messages",
       value: analytics.overview.totalMessages,
       icon: <MessageCircle className="h-4 w-4 text-muted-foreground" />,
       formatter: formatNumber,
@@ -155,10 +155,10 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             previousPeriodAnalytics.overview.totalMessages
           )
         : undefined,
-      description: "Messaggi scambiati con i clienti",
+      description: "Messages exchanged with customers",
     },
     {
-      title: "Costo LLM",
+      title: "LLM Cost",
       value: analytics.overview.usageCost,
       icon: <Euro className="h-4 w-4 text-orange-500" />,
       formatter: formatUsageCost,
@@ -168,7 +168,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             previousPeriodAnalytics.overview.usageCost
           )
         : undefined,
-      description: "€0.005 per risposta LLM (0.5 centesimi)",
+      description: "€0.005 per LLM response (0.5 cents)",
     },
   ]
 

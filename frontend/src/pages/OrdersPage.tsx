@@ -499,17 +499,26 @@ function CartItemEditSheet({
               <CardContent>
                 <div className="text-gray-700 leading-relaxed">
                   {order.shippingAddress ? (
-                    `${
-                      order.shippingAddress.street ||
-                      order.shippingAddress.address ||
-                      ""
-                    }, ${order.shippingAddress.city || ""}, ${
-                      order.shippingAddress.zipCode ||
-                      order.shippingAddress.postalCode ||
-                      ""
-                    }, ${order.shippingAddress.country || ""}`
-                      .replace(/^,\s*|,\s*$/g, "")
-                      .replace(/,\s*,/g, ",")
+                    <div className="space-y-1">
+                      {(order.shippingAddress.street || order.shippingAddress.address) && (
+                        <div>{order.shippingAddress.street || order.shippingAddress.address}</div>
+                      )}
+                      {order.shippingAddress.city && (
+                        <div>{order.shippingAddress.city}</div>
+                      )}
+                      {(order.shippingAddress.zipCode || order.shippingAddress.postalCode) && (
+                        <div>{order.shippingAddress.zipCode || order.shippingAddress.postalCode}</div>
+                      )}
+                      {order.shippingAddress.province && (
+                        <div>{order.shippingAddress.province}</div>
+                      )}
+                      {order.shippingAddress.country && (
+                        <div>{order.shippingAddress.country}</div>
+                      )}
+                      {order.shippingAddress.phone && (
+                        <div className="text-sm text-gray-600">📞 {order.shippingAddress.phone}</div>
+                      )}
+                    </div>
                   ) : (
                     <span className="text-gray-500 italic">Not specified</span>
                   )}

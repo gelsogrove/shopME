@@ -82,8 +82,7 @@ export const workspaceValidationMiddleware = async (
           workspaceId,
           url: req.originalUrl,
           method: req.method
-        },
-        sqlQuery
+        }
       };
       
       res.status(404).json(debugResponse);
@@ -100,8 +99,7 @@ export const workspaceValidationMiddleware = async (
           workspace,
           url: req.originalUrl,
           method: req.method
-        },
-        sqlQuery
+        }
       };
       
       res.status(403).json(debugResponse);

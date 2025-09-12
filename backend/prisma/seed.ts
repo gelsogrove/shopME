@@ -1975,21 +1975,24 @@ async function main() {
   })
   console.log("Deleted existing test customers")
 
-  // Create Italian customer - Mario Rossi
+  // Create Italian customer - Mario Rossi with complete real data
   const testCustomer = await prisma.customers.create({
     data: {
       id: "3c9fce96-5397-5c9f-9f8e-3d4f5a6b7890", // ID fisso per MCP test client
       name: "Mario Rossi",
-      email: "mario.rossi@shopme.com",
-      phone: "mario-rossi", // Usa lo stesso phone del MCP test
+      email: "mario.rossi@rossilimited.it",
+      phone: "+39 02 1234 5678", // Real Italian phone number
       address: JSON.stringify({
         name: "Mario Rossi",
-        street: "Via Roma 123",
+        street: "Via Montenapoleone 15",
         city: "Milano",
-        postalCode: "20100",
-        country: "Italy"
+        postalCode: "20121",
+        zipCode: "20121",
+        province: "MI",
+        country: "Italia",
+        phone: "+39 02 1234 5678"
       }),
-      company: "Rossi Ltd.",
+      company: "Rossi Limited S.r.l.",
       language: "it",
       currency: "EUR",
       discount: 10, // 10% discount for Mario Rossi
@@ -1998,18 +2001,24 @@ async function main() {
       privacy_accepted_at: new Date(),
       push_notifications_consent: true,
       push_notifications_consent_at: new Date(),
+      // BILLING ADDRESS (Company headquarters)
       invoiceAddress: {
         firstName: "Mario",
         lastName: "Rossi",
-        company: "Rossi Ltd.",
-        address: "Via Roma 123",
+        company: "Rossi Limited S.r.l.",
+        address: "Via Brera 28",
         city: "Milano",
         postalCode: "20121",
-        country: "Italy",
+        province: "MI",
+        country: "Italia",
+        phone: "+39 02 8765 4321",
         vatNumber: "IT12345678901",
-        phone: "+39 02 8765432",
-        email: "billing@rossi.com",
+        fiscalCode: "RSSMRA80A01F205X"
       },
+      // Additional customer data
+      notes: "Cliente VIP - Sconto del 10% applicato automaticamente",
+      isActive: true,
+      isBlacklisted: false
     },
   })
   console.log(
@@ -2384,20 +2393,24 @@ async function main() {
         shippingAmount: 9.99,
         taxAmount: 15.84,
         shippingAddress: {
-          street: "Via Roma 123",
+          street: "Via Montenapoleone 15",
           city: "Milano",
           zipCode: "20121",
-          country: "Italy",
+          province: "MI",
+          country: "Italia",
           name: "Mario Rossi",
-          phone: "+39123456789",
+          phone: "+39 02 1234 5678",
         },
         billingAddress: {
-          street: "Via Roma 123",
+          street: "Via Brera 28",
           city: "Milano",
           zipCode: "20121",
-          country: "Italy",
+          province: "MI",
+          country: "Italia",
           name: "Mario Rossi",
-          phone: "+39123456789",
+          company: "Rossi Limited S.r.l.",
+          phone: "+39 02 8765 4321",
+          vatNumber: "IT12345678901",
         },
         notes: "Please deliver after 6 PM",
         discountCode: "FIRST10",
@@ -2613,20 +2626,24 @@ async function main() {
         shippingAmount: 9.99,
         taxAmount: 15.82,
         shippingAddress: {
-          street: "Via Roma 123",
+          street: "Via Montenapoleone 15",
           city: "Milano",
           zipCode: "20121",
-          country: "Italy",
+          province: "MI",
+          country: "Italia",
           name: "Mario Rossi",
-          phone: "+393451234567",
+          phone: "+39 02 1234 5678",
         },
         billingAddress: {
-          street: "Via Roma 123",
+          street: "Via Brera 28",
           city: "Milano", 
           zipCode: "20121",
-          country: "Italy",
+          province: "MI",
+          country: "Italia",
           name: "Mario Rossi",
-          phone: "+393451234567",
+          company: "Rossi Limited S.r.l.",
+          phone: "+39 02 8765 4321",
+          vatNumber: "IT12345678901",
         },
         notes: "Delivered but bank transfer not received yet",
         discountCode: null,
@@ -2672,12 +2689,12 @@ async function main() {
           [testCustomer.id]: {
             // Mario Rossi (Italian customer)
             name: "Mario Rossi",
-            street: "Via Roma 123",
+            street: "Via Montenapoleone 15",
             city: "Milano",
             postalCode: "20121",
             province: "MI",
             country: "Italia",
-            phone: "+39 02 1234567",
+            phone: "+39 02 1234 5678",
           },
           [testCustomer2.id]: {
             // John Smith (English customer)
@@ -2787,12 +2804,12 @@ async function main() {
         [testCustomer.id]: {
           // Mario Rossi (Italian customer)
           name: "Mario Rossi",
-          street: "Via Roma 123",
+          street: "Via Montenapoleone 15",
           city: "Milano",
           postalCode: "20121",
           province: "MI",
           country: "Italia",
-          phone: "+39 02 1234567",
+          phone: "+39 02 1234 5678",
         },
         [testCustomer2.id]: {
           // John Smith (English customer)
@@ -2955,12 +2972,12 @@ async function main() {
         totalAmount: 49.99,
         shippingAddress: {
           name: "Mario Rossi",
-          street: "Via Roma 123",
+          street: "Via Montenapoleone 15",
           city: "Milano",
           postalCode: "20121",
           province: "MI",
           country: "Italia",
-          phone: "+39 02 1234567",
+          phone: "+39 02 1234 5678",
         },
         trackingNumber: "DHL1234567890", // Specific tracking for test
         createdAt: new Date(),

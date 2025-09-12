@@ -5,8 +5,8 @@
 ### TASK CRITICO: Sistema non prende la lingua dell'utente
 - **Descrizione**: Il sistema non sta rilevando o utilizzando correttamente la lingua dell'utente per le risposte del chatbot. Questo causa risposte nella lingua sbagliata.
 - **Priorità**: MASSIMA
-- **Stato**: PENDING
-- **Note**: Problema critico che impatta l'esperienza utente multilingue
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Sistema multilingue funzionante (IT/EN/ES/PT). Prompt aggiornato con template multilingue, rilevamento lingua migliorato, messaggi di benvenuto multilingue implementati.
 
 ## 📋 TASK PENDING
 
@@ -23,8 +23,8 @@
 ### TASK: Layout diversi tra chatHistory e popup chat
 - **Descrizione**: Si vedono due layout diversi tra la pagina chatHistory e il popup chat. Non si sa se dipende da una chiamata diversa al backend. Investigare le differenze di layout e le chiamate API per identificare la causa.
 - **Priorità**: MEDIA
-- **Stato**: PENDING
-- **Note**: Potrebbe essere correlato al task critico del rilevamento lingua dell'utente
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Sostituito ReactMarkdown con MessageRenderer in ChatPage.tsx per garantire consistenza nel rendering dei messaggi tra popup chat e history chat.
 
 ### TASK: Totali in BOLD dentro la conversazione
 - **Descrizione**: I totali devono essere visualizzati in grassetto (BOLD) all'interno delle conversazioni del chatbot. Attualmente i totali non sono evidenziati correttamente.
@@ -52,6 +52,37 @@
 - **Priorità**: ALTA
 - **Stato**: PENDING
 - **Note**: Critico per il funzionamento del sistema multitenant
+
+### TASK: Migliorare comprensione LLM delle sfumature linguistiche negli ordini
+- **Descrizione**: Il LLM attualmente non distingue tra "procedi con l'ordine" e "conferma ordine". Deve capire queste sfumature linguistiche per gestire correttamente i diversi stati del processo di ordine. Implementare logica per distinguere tra:
+  - "Procedi con l'ordine" = continua il processo di creazione ordine
+  - "Conferma ordine" = finalizza e conferma l'ordine esistente
+- **Priorità**: ALTA
+- **Stato**: PENDING
+- **Note**: Importante per UX del chatbot e gestione corretta del flusso ordini
+
+### TASK: Aggiungere nome società nella chat history
+- **Descrizione**: Nella chat history attualmente viene mostrato solo il nome del cliente (es. "Mario Rossi"). Deve essere aggiunto anche il nome della società per una migliore identificazione. Formato richiesto: "Mario Rossi (Rossi Limited S.r.l.)" - nome cliente seguito dal nome società tra parentesi.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+- **Note**: Migliora l'identificazione dei clienti nella chat history, specialmente quando ci sono clienti con nomi simili ma società diverse
+
+### TASK: Migliorare pagina Customer Profile
+- **Descrizione**: La pagina customer-profile (es. http://localhost:3000/customer-profile?token=...) necessita di miglioramenti:
+  1. Aggiungere bottone "View Cart" / "Vedi Carrello" (multilingue)
+  2. Uniformare l'header con le altre pagine del sistema
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+- **Note**: Importante per coerenza UI/UX e funzionalità carrello per i clienti
+
+### TASK: Aggiungere listino prezzi nelle statistiche
+- **Descrizione**: Aggiungere una sezione "Listino Prezzi" nella pagina delle statistiche con i seguenti costi:
+  - €0.005 per risposta LLM (0.5 centesimi)
+  - 1 euro per ogni nuovo cliente
+  - 1 euro per ogni nuovo ordine
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+- **Note**: Importante per trasparenza sui costi del servizio e per aiutare gli utenti a comprendere la struttura dei prezzi
 
 ## ✅ TASK COMPLETATI
 
@@ -94,5 +125,5 @@
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 18 (9 completati, 9 pending)
-**Task critici**: 2
+**Task totali**: 22 (11 completati, 11 pending)
+**Task critici**: 0

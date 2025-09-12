@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
+import { toast } from "sonner"
 import { TokenError, TokenLoading } from "../components/ui/TokenError"
 import { useCheckoutTokenValidation } from "../hooks/useTokenValidation"
 
@@ -29,7 +30,9 @@ interface Address {
   street: string
   city: string
   postalCode: string
+  province?: string
   country?: string
+  phone?: string
 }
 
 interface FormData {
@@ -52,8 +55,8 @@ const CheckoutPage: React.FC = () => {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [prodotti, setProdotti] = useState<Product[]>([])
   const [formData, setFormData] = useState<FormData>({
-    shippingAddress: { name: "", street: "", city: "", postalCode: "" },
-    billingAddress: { name: "", street: "", city: "", postalCode: "" },
+    shippingAddress: { name: "", street: "", city: "", postalCode: "", province: "", country: "", phone: "" },
+    billingAddress: { name: "", street: "", city: "", postalCode: "", province: "", country: "", phone: "" },
     sameAsBilling: false,
     notes: ""
   })
@@ -65,42 +68,65 @@ const CheckoutPage: React.FC = () => {
   const [showAddProducts, setShowAddProducts] = useState(false)
   const [availableProducts, setAvailableProducts] = useState<any[]>([])
   const [loadingProducts, setLoadingProducts] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [productToDelete, setProductToDelete] = useState<{index: number, name: string} | null>(null)
 
   // Load data from token when validated
   useEffect(() => {
     if (valid && tokenData) {
-      setCustomer(tokenData.customer)
-      setProdotti(tokenData.prodotti || [])
-      
-      // Pre-fill addresses if available
-      if (tokenData.customer.address) {
-        const address = typeof tokenData.customer.address === 'string' 
-          ? JSON.parse(tokenData.customer.address) 
-          : tokenData.customer.address;
-        setFormData(prev => ({
-          ...prev,
-          shippingAddress: {
-            name: address.name || "",
-            street: address.street || "",
-            city: address.city || "",
-            postalCode: address.postalCode || ""
-          }
-        }))
-      }
-      if (tokenData.customer.invoiceAddress) {
-        const invoiceAddress = typeof tokenData.customer.invoiceAddress === 'string' 
-          ? JSON.parse(tokenData.customer.invoiceAddress) 
-          : tokenData.customer.invoiceAddress;
-        setFormData(prev => ({
-          ...prev,
-          billingAddress: {
-            name: invoiceAddress.name || "",
-            street: invoiceAddress.street || "",
-            city: invoiceAddress.city || "",
-            postalCode: invoiceAddress.postalCode || ""
-          }
-        }))
-      }
+      // Simulate loading time for better UX
+      setTimeout(() => {
+        setCustomer(tokenData.customer)
+        setProdotti(tokenData.prodotti || [])
+        
+        // Pre-fill addresses if available
+        if (tokenData.customer.address) {
+          const address = typeof tokenData.customer.address === 'string' 
+            ? JSON.parse(tokenData.customer.address) 
+            : tokenData.customer.address;
+          setFormData(prev => ({
+            ...prev,
+            shippingAddress: {
+              name: address.name || "",
+              street: address.street || "",
+              city: address.city || "",
+              postalCode: address.postalCode || address.zipCode || "",
+              province: address.province || "",
+              country: address.country || "",
+              phone: address.phone || ""
+            }
+          }))
+        }
+
+        // Pre-fill billing address if available
+        if (tokenData.customer.invoiceAddress) {
+          const invoiceAddress = typeof tokenData.customer.invoiceAddress === 'string' 
+            ? JSON.parse(tokenData.customer.invoiceAddress) 
+            : tokenData.customer.invoiceAddress;
+          setFormData(prev => ({
+            ...prev,
+            billingAddress: {
+              name: `${invoiceAddress.firstName || ""} ${invoiceAddress.lastName || ""}`.trim(),
+              street: invoiceAddress.address || "",
+              city: invoiceAddress.city || "",
+              postalCode: invoiceAddress.postalCode || "",
+              province: invoiceAddress.province || "",
+              country: invoiceAddress.country || "",
+              phone: invoiceAddress.phone || ""
+            },
+            sameAsBilling: false
+          }))
+        } else {
+          // If no invoice address, use shipping address as billing
+          setFormData(prev => ({
+            ...prev,
+            sameAsBilling: true
+          }))
+        }
+        
+        setInitialLoading(false)
+      }, 800) // 800ms loading time
     }
   }, [valid, tokenData])
 
@@ -118,10 +144,27 @@ const CheckoutPage: React.FC = () => {
     setProdotti(updatedProdotti)
   }
 
-  // Remove product
-  const removeProduct = (index: number) => {
-    const updatedProdotti = prodotti.filter((_, i) => i !== index)
-    setProdotti(updatedProdotti)
+  // Show delete confirmation
+  const showDeleteConfirmation = (index: number, productName: string) => {
+    setProductToDelete({ index, name: productName })
+    setShowDeleteConfirm(true)
+  }
+
+  // Remove product after confirmation
+  const removeProduct = () => {
+    if (productToDelete) {
+      const updatedProdotti = prodotti.filter((_, i) => i !== productToDelete.index)
+      setProdotti(updatedProdotti)
+      setShowDeleteConfirm(false)
+      setProductToDelete(null)
+      toast.success(`${productToDelete.name} rimosso dal carrello`)
+    }
+  }
+
+  // Cancel delete
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false)
+    setProductToDelete(null)
   }
 
   // Load available products
@@ -175,6 +218,12 @@ const CheckoutPage: React.FC = () => {
       }
       setProdotti([...prodotti, newProduct])
     }
+    
+    // Close popup and show updated cart
+    setShowAddProducts(false)
+    
+    // Show success message
+    toast.success(`${product.name} aggiunto al carrello!`)
   }
 
   // Handle form input changes
@@ -237,6 +286,19 @@ const CheckoutPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <TokenLoading className="max-w-md w-full" />
+      </div>
+    )
+  }
+
+  // Show loading state during initial data loading
+  if (valid && initialLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Caricamento Checkout</h2>
+          <p className="text-gray-600">Stiamo preparando il tuo ordine...</p>
+        </div>
       </div>
     )
   }
@@ -381,7 +443,7 @@ const CheckoutPage: React.FC = () => {
                       </div>
 
                       <button
-                        onClick={() => removeProduct(index)}
+                        onClick={() => showDeleteConfirmation(index, prodotto.descrizione)}
                         className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"
                         title="Rimuovi prodotto"
                       >
@@ -423,11 +485,10 @@ const CheckoutPage: React.FC = () => {
 
           {currentStep === 2 && (
             <div>
-              <h2 className="text-2xl font-bold mb-6">📍 Indirizzi</h2>
 
               {/* Shipping Address */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">Indirizzo di Spedizione</h3>
+                <h3 className="text-lg font-semibold mb-4">🚚 Indirizzo di Spedizione</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
@@ -440,6 +501,16 @@ const CheckoutPage: React.FC = () => {
                     />
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+                    <input
+                      type="text"
+                      placeholder="Telefono"
+                      value={formData.shippingAddress.phone}
+                      onChange={(e) => handleInputChange("shippingAddress", "phone", e.target.value)}
+                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Via e numero civico</label>
                     <input
                       type="text"
@@ -469,8 +540,29 @@ const CheckoutPage: React.FC = () => {
                       className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+                    <input
+                      type="text"
+                      placeholder="Provincia"
+                      value={formData.shippingAddress.province}
+                      onChange={(e) => handleInputChange("shippingAddress", "province", e.target.value)}
+                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Paese</label>
+                    <input
+                      type="text"
+                      placeholder="Paese"
+                      value={formData.shippingAddress.country}
+                      onChange={(e) => handleInputChange("shippingAddress", "country", e.target.value)}
+                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                    />
+                  </div>
                 </div>
               </div>
+
 
 
               {/* Navigation */}
@@ -510,13 +602,40 @@ const CheckoutPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Address Summary */}
+              {/* Address Summary - Side by Side */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">Indirizzo di Spedizione</h3>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p>{formData.shippingAddress.name || 'Non specificato'}</p>
-                  <p>{formData.shippingAddress.street || 'Non specificato'}</p>
-                  <p>{formData.shippingAddress.city || 'Non specificato'} {formData.shippingAddress.postalCode || ''}</p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Shipping Address */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">🚚 Indirizzo di Spedizione</h3>
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <p><strong>{formData.shippingAddress.name || 'Non specificato'}</strong></p>
+                      <p>{formData.shippingAddress.street || 'Non specificato'}</p>
+                      <p>{formData.shippingAddress.city || 'Non specificato'} {formData.shippingAddress.postalCode || ''}</p>
+                      {formData.shippingAddress.province && <p>{formData.shippingAddress.province}</p>}
+                      {formData.shippingAddress.country && <p>{formData.shippingAddress.country}</p>}
+                      {formData.shippingAddress.phone && <p>📞 {formData.shippingAddress.phone}</p>}
+                    </div>
+                  </div>
+
+                  {/* Billing Address */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">🧾 Indirizzo di Fatturazione</h3>
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      {formData.sameAsBilling ? (
+                        <p className="text-gray-600 italic">Stesso indirizzo di spedizione</p>
+                      ) : (
+                        <>
+                          <p><strong>{formData.billingAddress.name || 'Non specificato'}</strong></p>
+                          <p>{formData.billingAddress.street || 'Non specificato'}</p>
+                          <p>{formData.billingAddress.city || 'Non specificato'} {formData.billingAddress.postalCode || ''}</p>
+                          {formData.billingAddress.province && <p>{formData.billingAddress.province}</p>}
+                          {formData.billingAddress.country && <p>{formData.billingAddress.country}</p>}
+                          {formData.billingAddress.phone && <p>📞 {formData.billingAddress.phone}</p>}
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -631,6 +750,55 @@ const CheckoutPage: React.FC = () => {
                 >
                   Chiudi
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && productToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0 w-10 h-10 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+                  <span className="text-red-600 text-xl">⚠️</span>
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {customer?.language === 'en' ? 'Are you sure?' : 
+                   customer?.language === 'es' ? '¿Estás seguro?' :
+                   customer?.language === 'pt' ? 'Tem certeza?' :
+                   'Sei sicuro?'}
+                </h3>
+                <p className="text-sm text-gray-500 mb-6">
+                  {customer?.language === 'en' ? `Do you want to remove "${productToDelete.name}" from your cart?` :
+                   customer?.language === 'es' ? `¿Quieres eliminar "${productToDelete.name}" de tu carrito?` :
+                   customer?.language === 'pt' ? `Você quer remover "${productToDelete.name}" do seu carrinho?` :
+                   `Vuoi rimuovere "${productToDelete.name}" dal carrello?`}
+                </p>
+                
+                <div className="flex space-x-3 justify-center">
+                  <button
+                    onClick={cancelDelete}
+                    className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
+                  >
+                    {customer?.language === 'en' ? 'Cancel' :
+                     customer?.language === 'es' ? 'Cancelar' :
+                     customer?.language === 'pt' ? 'Cancelar' :
+                     'Annulla'}
+                  </button>
+                  <button
+                    onClick={removeProduct}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                  >
+                    {customer?.language === 'en' ? 'Remove' :
+                     customer?.language === 'es' ? 'Eliminar' :
+                     customer?.language === 'pt' ? 'Remover' :
+                     'Rimuovi'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
