@@ -147,6 +147,9 @@ async function handleNewUserWelcomeFlow(
     if (messageContent) {
       const lowerMessage = messageContent.toLowerCase();
       
+      // Italian detection - FIXED: Added Italian words for proper language detection
+      const italianWords = ['ciao', 'buongiorno', 'buonasera', 'buonanotte', 'voglio', 'ho bisogno', 'vorrei', 'per favore', 'grazie', 'prego', 'sì', 'no', 'aggiungere', 'carrello', 'comprare', 'acquistare', 'ordine', 'prezzo', 'costo', 'quanto', 'consegna', 'spedizione', 'prodotto', 'prodotti', 'aiuto', 'informazioni', 'riguardo', 'il', 'la', 'i', 'le', 'e', 'o', 'ma', 'con', 'per', 'da', 'in', 'su', 'a', 'di'];
+      
       // English detection - more comprehensive
       const englishWords = ['hello', 'hi', 'good morning', 'good afternoon', 'good evening', 'i want', 'i need', 'i would like', 'please', 'thank you', 'thanks', 'yes', 'no', 'add', 'cart', 'buy', 'purchase', 'order', 'price', 'cost', 'how much', 'delivery', 'shipping', 'product', 'products', 'help', 'information', 'about', 'the', 'and', 'or', 'but', 'with', 'for', 'to', 'from', 'in', 'on', 'at', 'by'];
       
@@ -157,16 +160,19 @@ async function handleNewUserWelcomeFlow(
       const portugueseWords = ['olá', 'bom dia', 'boa tarde', 'boa noite', 'quero', 'preciso', 'gostaria', 'por favor', 'obrigado', 'obrigada', 'sim', 'não', 'adicionar', 'carrinho', 'comprar', 'preço', 'custo', 'quanto', 'entrega', 'envio', 'produto', 'produtos', 'ajuda', 'informação', 'sobre', 'o', 'a', 'os', 'as', 'e', 'ou', 'mas', 'com', 'para', 'de', 'em', 'por'];
       
       // Count matches for each language
+      const italianMatches = italianWords.filter(word => lowerMessage.includes(word)).length;
       const englishMatches = englishWords.filter(word => lowerMessage.includes(word)).length;
       const spanishMatches = spanishWords.filter(word => lowerMessage.includes(word)).length;
       const portugueseMatches = portugueseWords.filter(word => lowerMessage.includes(word)).length;
       
       // Determine language based on highest match count
-      if (englishMatches > spanishMatches && englishMatches > portugueseMatches) {
+      if (italianMatches > englishMatches && italianMatches > spanishMatches && italianMatches > portugueseMatches) {
+        detectedLanguage = 'it';
+      } else if (englishMatches > italianMatches && englishMatches > spanishMatches && englishMatches > portugueseMatches) {
         detectedLanguage = 'en';
-      } else if (spanishMatches > englishMatches && spanishMatches > portugueseMatches) {
+      } else if (spanishMatches > italianMatches && spanishMatches > englishMatches && spanishMatches > portugueseMatches) {
         detectedLanguage = 'es';
-      } else if (portugueseMatches > englishMatches && portugueseMatches > spanishMatches) {
+      } else if (portugueseMatches > italianMatches && portugueseMatches > englishMatches && portugueseMatches > spanishMatches) {
         detectedLanguage = 'pt';
       }
     }
