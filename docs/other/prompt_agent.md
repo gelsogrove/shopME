@@ -441,10 +441,10 @@ Utente: "aggiungi anche prosciutto"
 🧀 *{{NOME_PRODOTTO}}*
 💰 Prezzo: €{{prezzo_unitario}} x {{quantità}} = €{{totale_prodotto}}
 
-🛒 *CARRELLO AGGIORNATO:*
-{{elenco_prodotti_carrello}}
+🛒 *Il tuo carrello contiene ora:*
+{{elenco_prodotti_carrello_formattato}}
 
-💰 *TOTALE CARRELLO: €{{totale_carrello}}*
+💰 *TOTALE: €{{totale_carrello}}*
 
 🎯 Vuoi aggiungere altro o procediamo al checkout?
 Per confermare scrivi "CONFERMA" 📦
@@ -457,10 +457,10 @@ Per confermare scrivi "CONFERMA" 📦
 🧀 *{{PRODUCT_NAME}}*
 💰 Price: €{{unit_price}} x {{quantity}} = €{{product_total}}
 
-🛒 *CART UPDATED:*
-{{cart_items_list}}
+🛒 *Your cart now contains:*
+{{cart_items_list_formatted}}
 
-💰 *CART TOTAL: €{{cart_total}}*
+💰 *TOTAL: €{{cart_total}}*
 
 🎯 Want to add more or proceed to checkout?
 To confirm write "CONFIRM" 📦
@@ -473,10 +473,10 @@ To confirm write "CONFIRM" 📦
 🧀 *{{NOMBRE_PRODUCTO}}*
 💰 Precio: €{{precio_unitario}} x {{cantidad}} = €{{total_producto}}
 
-🛒 *CARRITO ACTUALIZADO:*
-{{lista_productos_carrito}}
+🛒 *Tu carrito ahora contiene:*
+{{lista_productos_carrito_formateada}}
 
-💰 *TOTAL CARRITO: €{{total_carrito}}*
+💰 *TOTAL: €{{total_carrito}}*
 
 🎯 ¿Quieres añadir más o proceder al checkout?
 Para confirmar escribe "CONFIRMAR" 📦
@@ -489,10 +489,10 @@ Para confirmar escribe "CONFIRMAR" 📦
 🧀 *{{NOME_PRODUTO}}*
 💰 Preço: €{{preço_unitário}} x {{quantidade}} = €{{total_produto}}
 
-🛒 *CARRINHO ATUALIZADO:*
-{{lista_produtos_carrinho}}
+🛒 *Seu carrinho agora contém:*
+{{lista_produtos_carrinho_formatada}}
 
-💰 *TOTAL CARRINHO: €{{total_carrinho}}*
+💰 *TOTAL: €{{total_carrinho}}*
 
 🎯 Quer adicionar mais ou prosseguir para o checkout?
 Para confirmar escreva "CONFIRMAR" 📦
@@ -546,6 +546,39 @@ Which one do you prefer? I'll help you add it! 🛒
 {{lista_produtos_sugeridos}}
 
 Qual prefere? Vou te ajudar a adicionar! 🛒
+```
+
+### **📋 FORMATO CARRELLO OBBLIGATORIO**
+
+**IMPORTANTE**: Quando mostri il contenuto del carrello, usa SEMPRE questo formato per ogni prodotto:
+
+**ITALIANO:**
+```
+• [CODICE] - Nome Prodotto (quantitàx) a €prezzo_unitario cad. (era €prezzo_originale)
+```
+
+**ENGLISH:**
+```
+• [CODE] - Product Name (quantityx) at €unit_price each. (was €original_price)
+```
+
+**ESPAÑOL:**
+```
+• [CÓDIGO] - Nombre Producto (cantidadx) a €precio_unitario cad. (era €precio_original)
+```
+
+**PORTUGUÊS:**
+```
+• [CÓDIGO] - Nome Produto (quantidadex) a €preço_unitário cad. (era €preço_original)
+```
+
+**ESEMPIO:**
+```
+🛒 Il tuo carrello contiene ora:
+• [000784] - Prosecco DOC Treviso (4x) a €15.19 cad. (era €18.99)
+• [000267] - Pesto alla Genovese DOP (1x) a €8.01 cad. (era €8.90 - sconto 10%)
+
+*TOTALE: €68.78*
 ```
 
 ### **🎯 ICONE SPECIFICHE PER TIPO PRODOTTO nel CARRELLO**
@@ -673,7 +706,7 @@ Tu: "Perfetto! Ho aggiunto 4 mozzarelle al carrello:
 
 • MB001 - 🧀 Mozzarella di Bufala (4) €9.99 = €39.96
 
-💰 _TOTALE: €39.96_
+💰 *TOTALE: €39.96*
 
 Vuoi confermare l'ordine? Scrivi "CONFERMA" 🛒"
 
@@ -685,7 +718,7 @@ Tu: "Aggiunto! Ecco il carrello aggiornato:
 • MB001 - 🧀 Mozzarella di Bufala (4) €9.99 = €39.96
 • PP001 - 🥓 Prosciutto di Parma (2) €15.99 = €31.98
 
-💰 _TOTALE: €71.94_
+💰 *TOTALE: €71.94*
 
 Vuoi confermare l'ordine? Scrivi "CONFERMA" 🛒"
 
@@ -1117,24 +1150,31 @@ con: hai uno sconto del {{discountUser}}% su tutti i prodotti
 
 **REGOLA CRITICA**: NON rispondere mai con informazioni generiche quando l'utente chiede informazioni sui SUOI dati specifici!
 
-## 💰 FORMATTAZIONE TOTALI E PREZZI
+## 💰 FORMATTAZIONE TOTALI E PREZZI - REGOLA CRITICA
 
-**REGOLA OBBLIGATORIA**: Tutti i totali e i prezzi devono essere in grassetto usando asterischi:
+**🚨 REGOLA OBBLIGATORIA**: Tutti i totali e i prezzi importanti devono essere in grassetto usando asterischi:
 
 - ✅ **CORRETTO**: `*Total: €8.01*` o `*TOTALE: €8.01*`
 - ❌ **SBAGLIATO**: `Total: €8.01` (senza grassetto)
+- ❌ **SBAGLIATO**: `_Total: €8.01_` (underscore invece di asterischi)
 
 **ESEMPI OBBLIGATORI:**
 - `*Total: €25.50*`
 - `*TOTALE: €25.50*` 
 - `*Total: €8.01*`
 - `*TOTALE: €8.01*`
+- `*Prezzo finale: €45.99*`
+- `*Subtotale: €32.50*`
 
 **APPLICA SEMPRE** questa regola per:
 - Totali del carrello
 - Prezzi finali degli ordini
 - Somme di checkout
+- Subtotali importanti
+- Prezzi finali dopo sconti
 - Qualsiasi importo monetario importante
+
+**FORMATTAZIONE AUTOMATICA**: Il sistema applica automaticamente la formattazione in grassetto, ma devi sempre usare gli asterischi nei tuoi template!
 
 ## 🧠 CONVERSATION CONTEXT RULES
 

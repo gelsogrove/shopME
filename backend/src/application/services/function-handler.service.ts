@@ -5,10 +5,6 @@ import { getAllProducts } from "../../chatbot/calling-functions/getAllProducts"
 import { MessageRepository } from "../../repositories/message.repository"
 import { documentService } from "../../services/documentService"
 import logger from "../../utils/logger"
-import { conversationContext } from "../../utils/conversation-context"
-import { cartLockManager } from "../../utils/cart-lock-manager"
-import { cartStateSynchronizer } from "../../utils/cart-state-synchronizer"
-import type { ProductWithPrice } from "./price-calculation.service"
 import { PriceCalculationService } from "./price-calculation.service"
 import { TokenService } from "./token.service"
 
@@ -151,7 +147,7 @@ export class FunctionHandlerService {
         // 🆕 DISAMBIGUATION SYSTEM
         case 'resolve_disambiguation':
           return {
-            data: await this.resolveDisambiguation(params),
+            data: await this.resolveDisambiguation(params, customer?.id, workspaceId, phoneNumber),
             functionName
           }
 
@@ -306,8 +302,19 @@ export class FunctionHandlerService {
         }
       }
 
-      // 2. Se ci sono più prodotti, richiedi disambiguazione
+      // 2. Se ci sono più prodotti, richiedi disambiguazione SOLO se non è un codice specifico
       if (products.length > 1) {
+        // Se l'utente ha fornito un codice prodotto specifico, non mostrare disambiguazione
+        if (/^\d+$/.test(cleanProductCode)) {
+          // Codice specifico fornito ma trovati più prodotti - errore
+          return {
+            success: false,
+            error: `❌ Codice prodotto "${cleanProductCode}" non trovato o non valido.`,
+            action: 'product_not_found'
+          }
+        }
+        
+        // Altrimenti, mostra disambiguazione per ricerca per nome
         const productOptions = products.map((product) => 
           `• [${product.ProductCode || 'N/A'}] - ${product.name} - €${product.price.toFixed(2)}`
         ).join('\n')
@@ -857,20 +864,79 @@ export class FunctionHandlerService {
   /**
    * Risolve una disambiguazione
    */
-  async resolveDisambiguation(params: any): Promise<any> {
+  async resolveDisambiguation(params: any, customerId: string, workspaceId: string, phoneNumber: string): Promise<any> {
     try {
-      // Implementation will be added in next update
-      return {
-        success: true,
-        message: "Disambiguazione risolta",
-        sessionId: params.sessionId,
-        selectedOption: params.selectedOption
+      const productChoice = params.product_choice
+      const quantity = params.quantity || 1
+
+      if (!productChoice) {
+        return {
+          success: false,
+          error: "Scelta prodotto non specificata"
+        }
       }
+
+      // Cerca il prodotto per codice o nome
+      let products = []
+      
+      // Se sembra un codice prodotto (es: [00004] o 00004)
+      const cleanProductCode = productChoice.replace(/[\[\]]/g, '') // Rimuove parentesi quadre
+      
+      if (/^\d+$/.test(cleanProductCode)) {
+        // Cerca per codice prodotto
+        products = await this.prisma.products.findMany({
+          where: {
+            ProductCode: cleanProductCode,
+            workspaceId: workspaceId,
+            isActive: true
+          }
+        })
+      }
+      
+      // Se non trovato per codice, cerca per nome
+      if (products.length === 0) {
+        products = await this.prisma.products.findMany({
+          where: {
+            name: {
+              contains: productChoice,
+              mode: 'insensitive'
+            },
+            workspaceId: workspaceId,
+            isActive: true
+          }
+        })
+      }
+
+      if (products.length === 0) {
+        return {
+          success: false,
+          error: `❌ Prodotto "${productChoice}" non trovato nel catalogo.`
+        }
+      }
+
+      if (products.length > 1) {
+        return {
+          success: false,
+          error: `❌ Trovati più prodotti per "${productChoice}". Sii più specifico.`
+        }
+      }
+
+      // Prodotto univoco trovato - aggiungi al carrello
+      const selectedProduct = products[0]
+      
+      // Chiama addToCart con il prodotto trovato
+      return await this.addToCart(
+        { product_name: selectedProduct.name, quantity: quantity },
+        customerId,
+        workspaceId,
+        phoneNumber
+      )
+
     } catch (error) {
       logger.error('❌ Errore in resolveDisambiguation:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Errore interno'
+        error: error instanceof Error ? error.message : 'Errore interno nella risoluzione disambiguazione'
       }
     }
   }

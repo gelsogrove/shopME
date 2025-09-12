@@ -399,56 +399,75 @@ const CheckoutPage: React.FC = () => {
               {/* Products List */}
               <div className="space-y-4 mb-6">
                 {prodotti.map((prodotto, index) => (
-                  <div key={index} className="border rounded-lg p-4 flex items-center justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{prodotto.descrizione}</h3>
-                      <p className="text-sm text-gray-600">Codice: {prodotto.codice !== 'N/A' ? prodotto.codice : 'Non disponibile'}</p>
-                      <div className="flex items-center space-x-2">
-                        {prodotto.prezzoOriginale && prodotto.prezzoOriginale > prodotto.prezzo ? (
-                          <>
-                            <p className="text-lg font-bold text-green-600">€{prodotto.prezzo.toFixed(2)}</p>
-                            <p className="text-sm text-gray-500 line-through">€{prodotto.prezzoOriginale.toFixed(2)}</p>
-                            {prodotto.scontoApplicato && prodotto.scontoApplicato > 0 && (
-                              <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
-                                -{prodotto.scontoApplicato}%
+                  <div key={index} className="border rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        {/* Product Code */}
+                        <div className="text-sm font-mono text-gray-500 mb-1">
+                          {prodotto.codice !== 'N/A' ? prodotto.codice : 'Non disponibile'}
+                        </div>
+                        
+                        {/* Product Name */}
+                        <div className="text-lg font-semibold text-gray-900 mb-2">
+                          {prodotto.descrizione}
+                        </div>
+                        
+                        {/* Quantity and Price */}
+                        <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleQuantityChange(index, prodotto.qty - 1)}
+                              className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
+                              disabled={prodotto.qty <= 1}
+                            >
+                              -
+                            </button>
+                            <span className="w-8 text-center font-semibold">{prodotto.qty}</span>
+                            <button
+                              onClick={() => handleQuantityChange(index, prodotto.qty + 1)}
+                              className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
+                            >
+                              +
+                            </button>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            {prodotto.prezzoOriginale && prodotto.prezzoOriginale > prodotto.prezzo ? (
+                              <>
+                                <span className="text-sm text-gray-600">
+                                  a €{prodotto.prezzo.toFixed(2)} cad.
+                                </span>
+                                <span className="text-sm text-gray-500 line-through">
+                                  (era €{prodotto.prezzoOriginale.toFixed(2)})
+                                </span>
+                                {prodotto.scontoApplicato && prodotto.scontoApplicato > 0 && (
+                                  <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                                    -{prodotto.scontoApplicato}%
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-sm text-gray-600">
+                                a €{prodotto.prezzo.toFixed(2)} cad.
                               </span>
                             )}
-                          </>
-                        ) : (
-                          <p className="text-lg font-bold text-green-600">€{prodotto.prezzo.toFixed(2)}</p>
-                        )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
+                          <p className="font-bold text-lg text-green-600">€{(prodotto.prezzo * prodotto.qty).toFixed(2)}</p>
+                        </div>
+
                         <button
-                          onClick={() => handleQuantityChange(index, prodotto.qty - 1)}
-                          className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
-                          disabled={prodotto.qty <= 1}
+                          onClick={() => showDeleteConfirmation(index, prodotto.descrizione)}
+                          className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"
+                          title="Rimuovi prodotto"
                         >
-                          -
-                        </button>
-                        <span className="w-8 text-center font-semibold">{prodotto.qty}</span>
-                        <button
-                          onClick={() => handleQuantityChange(index, prodotto.qty + 1)}
-                          className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
-                        >
-                          +
+                          🗑️
                         </button>
                       </div>
-
-                      <div className="text-right">
-                        <p className="font-semibold text-lg">€{(prodotto.prezzo * prodotto.qty).toFixed(2)}</p>
-                      </div>
-
-                      <button
-                        onClick={() => showDeleteConfirmation(index, prodotto.descrizione)}
-                        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"
-                        title="Rimuovi prodotto"
-                      >
-                        🗑️
-                      </button>
                     </div>
                   </div>
                 ))}
@@ -465,8 +484,8 @@ const CheckoutPage: React.FC = () => {
               {/* Total */}
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center text-xl font-bold">
-                  <span>Totale:</span>
-                  <span className="text-green-600">€{calculateTotal().toFixed(2)}</span>
+                  <span>TOTALE:</span>
+                  <span className="text-green-600 font-bold">€{calculateTotal().toFixed(2)}</span>
                 </div>
               </div>
 

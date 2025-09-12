@@ -913,13 +913,13 @@ Please create a natural, helpful response in ${languageName}.`
         function: {
           name: "add_to_cart",
           description:
-            'Add product to shopping cart. Use when user wants to add items: "aggiungi al carrello/add to cart", "voglio/want", "comprare/buy", "acquistare/purchase", "metti nel carrello/put in cart", "prendo/I take". DO NOT use for general product questions or price inquiries.',
+            'Add product to shopping cart. Use when user wants to add items: "aggiungi al carrello/add to cart", "voglio/want", "comprare/buy", "acquistare/purchase", "metti nel carrello/put in cart", "prendo/I take". CRITICAL: If user provides a product code like [00004] or 00004, use that EXACT code as product_name. DO NOT use for general product questions or price inquiries.',
           parameters: {
             type: "object",
             properties: {
               product_name: {
                 type: "string",
-                description: "Product name or description to add to cart",
+                description: "Product name, description, or EXACT product code (like [00004] or 00004) to add to cart",
               },
               quantity: {
                 type: "number",
@@ -950,6 +950,29 @@ Please create a natural, helpful response in ${languageName}.`
               },
             },
             required: ["product_code"],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "resolve_disambiguation",
+          description:
+            'Resolve product disambiguation. Use when user responds to a disambiguation message with a specific product code like [00004] or 00004, or a product name. This function handles the user\'s choice from a disambiguation list.',
+          parameters: {
+            type: "object",
+            properties: {
+              product_choice: {
+                type: "string",
+                description: "The product code (like [00004] or 00004) or exact product name chosen by the user",
+              },
+              quantity: {
+                type: "number",
+                description: "Quantity to add (default: 1)",
+                default: 1,
+              },
+            },
+            required: ["product_choice"],
           },
         },
       },
@@ -1164,6 +1187,16 @@ Please create a natural, helpful response in ${languageName}.`
             result = await this.functionHandlerService.handleFunctionCall(
               "remove_from_cart", 
               { product_name: args.product_code, quantity: args.quantity },
+              { id: request.customerid || "" },
+              request.workspaceId,
+              request.phone || ""
+            )
+            break
+
+          case "resolve_disambiguation":
+            result = await this.functionHandlerService.handleFunctionCall(
+              "resolve_disambiguation", 
+              { product_choice: args.product_choice, quantity: args.quantity || 1 },
               { id: request.customerid || "" },
               request.workspaceId,
               request.phone || ""
@@ -1581,7 +1614,20 @@ Please create a natural, helpful response in ${languageName}.`
       )
     }
 
-    // 6. ✂️ Rimuovi spazi extra prima e dopo
+    // 6. 💰 FORMATTAZIONE TOTALI E PREZZI - Assicura che tutti i totali e prezzi importanti siano in grassetto
+    // Pattern per totali senza asterischi: "TOTALE: €XX.XX" o "Total: €XX.XX"
+    formatted = formatted.replace(/(\b(?:TOTALE|Total|TOTAL|Total):\s*€[\d,]+\.?\d*)/gi, '*$1*')
+    
+    // Pattern per totali con underscore: "_TOTALE: €XX.XX_" → "*TOTALE: €XX.XX*"
+    formatted = formatted.replace(/_(\b(?:TOTALE|Total|TOTAL|Total):\s*€[\d,]+\.?\d*)_/gi, '*$1*')
+    
+    // Pattern per prezzi finali importanti: "Prezzo finale: €XX.XX" → "*Prezzo finale: €XX.XX*"
+    formatted = formatted.replace(/(\b(?:Prezzo finale|Final price|Precio final|Preço final):\s*€[\d,]+\.?\d*)/gi, '*$1*')
+    
+    // Pattern per subtotali: "Subtotale: €XX.XX" → "*Subtotale: €XX.XX*"
+    formatted = formatted.replace(/(\b(?:Subtotale|Subtotal|Subtotal|Subtotal):\s*€[\d,]+\.?\d*)/gi, '*$1*')
+
+    // 7. ✂️ Rimuovi spazi extra prima e dopo
     formatted = formatted.trim()
 
     console.log("📱 Output formattato:", formatted)
