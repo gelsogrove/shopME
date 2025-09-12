@@ -657,8 +657,12 @@ export class CartController {
         return sum + ((item.product.price || 0) * item.quantity)
       }, 0)
 
-      // Generate unique order code
-      const orderCode = `ORDER-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      // Generate unique order code - 5 uppercase letters
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+      let orderCode = ''
+      for (let i = 0; i < 5; i++) {
+        orderCode += letters.charAt(Math.floor(Math.random() * letters.length))
+      }
 
       // Create order
       const order = await prisma.orders.create({

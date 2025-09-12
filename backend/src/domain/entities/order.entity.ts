@@ -85,11 +85,15 @@ export class Order {
   }
 
   private generateOrderCode(): string {
-    // Generate 5-digit numeric code (10000-99999)
-    const min = 10000;
-    const max = 99999;
-    const code = Math.floor(Math.random() * (max - min + 1)) + min;
-    return code.toString();
+    // Generate 5 random uppercase letters
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let orderCode = '';
+    
+    for (let i = 0; i < 5; i++) {
+      orderCode += letters.charAt(Math.floor(Math.random() * letters.length));
+    }
+    
+    return orderCode;
   }
 
   getTotalItemsCount(): number {

@@ -2499,8 +2499,12 @@ INSTRUCTIONS FOR LLM FORMATTER:
     totalAmount?: number
   }) {
     try {
-      // Generate unique order code
-      const orderCode = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`
+      // Generate unique order code - 5 uppercase letters
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+      let orderCode = ''
+      for (let i = 0; i < 5; i++) {
+        orderCode += letters.charAt(Math.floor(Math.random() * letters.length))
+      }
 
       return await this.prisma.orders.create({
         data: {

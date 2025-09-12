@@ -871,7 +871,7 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
               orderCode: {
                 type: "string",
                 description:
-                  'Optional order code/number when user requests a specific order (e.g., "TRACKING-TEST-001", "20007", etc.). Use "lastorder" for last order requests.',
+                  'Optional order code/number when user requests a specific order (e.g., "ABCDE", "XYZAB", etc.). Use "lastorder" for last order requests.',
               },
             },
             required: [],

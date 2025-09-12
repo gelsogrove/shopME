@@ -2971,7 +2971,7 @@ async function main() {
     // Ensure we have a PROCESSING order for tracking test
     const processingOrder = await prisma.orders.create({
       data: {
-        orderCode: "TRACKING-TEST-001",
+        orderCode: "ABCDE",
         customerId: testCustomer.id, // Use the dynamic customerId from seed
         workspaceId: mainWorkspaceId,
         status: "PROCESSING",

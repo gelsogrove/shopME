@@ -373,31 +373,44 @@ export class CheckoutController {
   }
 
   /**
-   * Generate unique order code
+   * Generate unique order code - 5 uppercase letters
    */
   private async generateOrderCode(): Promise<string> {
-    const today = new Date()
-    const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "")
-
-    // Find the last order of today
-    const lastOrder = await prisma.orders.findFirst({
-      where: {
-        orderCode: {
-          startsWith: `ORD-${dateStr}-`,
+    // Generate 5 random uppercase letters
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    let orderCode = ''
+    
+    // Generate unique 5-letter code
+    let attempts = 0
+    const maxAttempts = 10
+    
+    do {
+      orderCode = ''
+      for (let i = 0; i < 5; i++) {
+        orderCode += letters.charAt(Math.floor(Math.random() * letters.length))
+      }
+      
+      // Check if this code already exists
+      const existingOrder = await prisma.orders.findFirst({
+        where: {
+          orderCode: orderCode,
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    })
-
-    let sequence = 1
-    if (lastOrder) {
-      const lastSequence = parseInt(lastOrder.orderCode.split("-")[2])
-      sequence = lastSequence + 1
+      })
+      
+      if (!existingOrder) {
+        break // Unique code found
+      }
+      
+      attempts++
+    } while (attempts < maxAttempts)
+    
+    // If we couldn't find a unique code after maxAttempts, add timestamp suffix
+    if (attempts >= maxAttempts) {
+      const timestamp = Date.now().toString().slice(-2) // Last 2 digits of timestamp
+      orderCode = orderCode.slice(0, 3) + timestamp
     }
-
-    return `ORD-${dateStr}-${sequence.toString().padStart(3, "0")}`
+    
+    return orderCode
   }
 
   /**
