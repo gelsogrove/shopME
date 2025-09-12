@@ -89,6 +89,7 @@ interface Chat {
   messages?: Message[]
   activeChatbot?: boolean
   isBlacklisted?: boolean
+  language?: string
 }
 
 const formatDate = (dateString: string | null | undefined): string => {
@@ -128,7 +129,7 @@ const getLanguageFlag = (language?: string): string => {
     case 'pt':
       return '🇵🇹'
     default:
-      return '🌐' // Default globe icon for unknown languages
+      return '🌐'
   }
 }
 
@@ -842,7 +843,10 @@ export function ChatPage() {
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-medium text-sm flex items-center gap-1">
+                        <h3 className="font-medium text-sm flex items-center gap-2">
+                          <span className="text-lg" title={`Language: ${chat.language || 'Unknown'}`}>
+                            {getLanguageFlag(chat.language)}
+                          </span>
                           {chat.customerName}{" "}
                           {chat.companyName ? `(${chat.companyName})` : ""}
                           {/* Blocked user indicator */}

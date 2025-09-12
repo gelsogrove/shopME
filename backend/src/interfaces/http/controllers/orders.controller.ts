@@ -566,4 +566,65 @@ export class OrdersController {
     }
   }
 
+  async deleteOrder(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params
+      
+      // Get JWT payload from middleware
+      const payload = (req as any).jwtPayload as JWTPayload
+      if (!payload) {
+        res.status(401).json({ 
+          success: false, 
+          error: "Invalid or expired token" 
+        })
+        return
+      }
+
+      const { workspaceId } = payload
+
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          error: "Order ID is required"
+        })
+        return
+      }
+
+      if (!workspaceId) {
+        res.status(400).json({
+          success: false,
+          error: "Workspace ID is required"
+        })
+        return
+      }
+
+      // Delete order using Prisma directly
+      const deletedOrder = await this.prisma.orders.deleteMany({
+        where: {
+          id: id,
+          workspaceId: workspaceId
+        }
+      })
+
+      if (deletedOrder.count === 0) {
+        res.status(404).json({
+          success: false,
+          error: "Order not found"
+        })
+        return
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Order deleted successfully"
+      })
+    } catch (error) {
+      logger.error("[ORDERS] Error deleting order:", error)
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to delete order"
+      })
+    }
+  }
+
 }

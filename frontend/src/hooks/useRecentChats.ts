@@ -1,5 +1,5 @@
-import { api } from "@/services/api"
 import { logger } from "@/lib/logger"
+import { api } from "@/services/api"
 import { useQuery } from "@tanstack/react-query"
 
 export function useRecentChats() {
@@ -39,7 +39,7 @@ export function useRecentChats() {
             customerId: chat.customerId,
             customerName: chat.customer?.name || "Unknown Customer",
             customerPhone: chat.customer?.phone || "",
-            customerLanguage: chat.context?.language || "en", // Use context.language direttamente
+            language: chat.context?.language || chat.customer?.language || "en", // Map to 'language' field
             companyName: chat.customer?.company || "",
             lastMessage: chat.lastMessage || "",
             lastMessageTime: chat.updatedAt || chat.createdAt,
@@ -53,10 +53,8 @@ export function useRecentChats() {
           // DEBUG: Log per vedere che lingue arrivano dal backend
           transformedChats.forEach(chat => {
             console.log(`🔍 DEBUG - Customer: ${chat.customerName}`)
+            console.log(`🔍 DEBUG - Language field:`, chat.language)
             console.log(`🔍 DEBUG - Raw chat object:`, chat)
-            console.log(`🔍 DEBUG - context?.language:`, chat.context?.language)
-            console.log(`🔍 DEBUG - customerLanguage:`, chat.customerLanguage)
-            console.log(`🔍 DEBUG - customer?.language:`, chat.customer?.language)
           })
 
           return transformedChats

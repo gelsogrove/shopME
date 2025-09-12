@@ -2,7 +2,7 @@ import { PeriodPreset } from '@/components/analytics/DateRangeSelector'
 import { useEffect, useState } from 'react'
 
 const STORAGE_KEY = 'analytics_period'
-const DEFAULT_PERIOD: PeriodPreset = '3months'
+const DEFAULT_PERIOD: PeriodPreset = 'lastmonth'
 
 /**
  * Custom hook for managing analytics period with sessionStorage persistence

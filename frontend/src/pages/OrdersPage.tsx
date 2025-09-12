@@ -4,7 +4,6 @@ import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -36,7 +35,7 @@ import { servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
 import { formatPrice } from "@/utils/format"
 import {
-  Eye,
+  Download,
   FileText,
   Package,
   Pencil,
@@ -99,6 +98,9 @@ function CartItemEditSheet({
   const [trackingNumber, setTrackingNumber] = useState<string>(
     order?.trackingNumber || ""
   )
+  const [notes, setNotes] = useState<string>(
+    order?.notes || ""
+  )
 
   useEffect(() => {
     if (open && order) {
@@ -109,6 +111,7 @@ function CartItemEditSheet({
       setOrderStatus(order.status)
       setPaymentMethod(order.paymentMethod)
       setTrackingNumber(order.trackingNumber || "")
+      setNotes(order.notes || "")
 
       // Load products and services
       const loadData = async () => {
@@ -251,6 +254,7 @@ function CartItemEditSheet({
         status: orderStatus,
         paymentMethod: paymentMethod,
         trackingNumber: trackingNumber,
+        notes: notes,
         items: editingItems.map((item) => ({
           itemType: item.itemType || (item.serviceId ? "SERVICE" : "PRODUCT"),
           productId: item.productId,
@@ -335,37 +339,37 @@ function CartItemEditSheet({
           onClose()
         }}
       >
-        <SheetHeader className="border-b pb-4 mb-6">
-          <SheetTitle className="text-2xl font-bold text-gray-900">
+        <SheetHeader className="border-b pb-3 mb-4">
+          <SheetTitle className="text-xl font-bold text-gray-900">
             Edit Order {order.orderCode}
           </SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-10">
+        <div className="space-y-6">
           {/* Order Header Card */}
           <Card className="border border-gray-200 shadow-sm">
-            <CardHeader className="pb-4">
+            <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-xl font-bold text-gray-900">
+                  <CardTitle className="text-lg font-bold text-gray-900">
                     Order {order.orderCode}
                   </CardTitle>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-gray-600 text-sm">
                     {order.customer?.name || "Unknown Customer"}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500">Total Amount</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-xs text-gray-500">Total Amount</p>
+                  <p className="text-xl font-bold text-gray-900">
                     €{order.totalAmount.toFixed(2)}
                   </p>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               {/* Status and Payment in one clean row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-1">
                   <Label className="text-sm font-medium text-gray-700">
                     Status
                   </Label>
@@ -396,7 +400,7 @@ function CartItemEditSheet({
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label className="text-sm font-medium text-gray-700">
                     Payment Method
                   </Label>
@@ -439,7 +443,7 @@ function CartItemEditSheet({
               </div>
 
               {/* Tracking Number field */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label className="text-sm font-medium text-gray-700">
                   Tracking Number
                 </Label>
@@ -451,6 +455,23 @@ function CartItemEditSheet({
                 />
                 <p className="text-sm text-gray-500">
                   Optional. Leave blank if not available.
+                </p>
+              </div>
+
+              {/* Notes field */}
+              <div className="space-y-1">
+                <Label className="text-sm font-medium text-gray-700">
+                  Notes
+                </Label>
+                <Textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Additional notes for this order..."
+                  rows={2}
+                  className="max-w-md"
+                />
+                <p className="text-sm text-gray-500">
+                  Optional. Add any additional information about this order.
                 </p>
               </div>
 
@@ -466,12 +487,12 @@ function CartItemEditSheet({
           </Card>
 
           {/* Addresses Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Shipping Address */}
             <Card className="border border-gray-200 shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                  <Truck className="h-5 w-5 text-green-600" />
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                  <Truck className="h-4 w-4 text-green-600" />
                   Shipping Address
                 </CardTitle>
               </CardHeader>
@@ -498,9 +519,9 @@ function CartItemEditSheet({
 
             {/* Invoice Address */}
             <Card className="border border-gray-200 shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                  <FileText className="h-5 w-5 text-blue-600" />
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                  <FileText className="h-4 w-4 text-blue-600" />
                   Invoice Address
                 </CardTitle>
               </CardHeader>
@@ -697,6 +718,16 @@ function CartItemEditSheet({
                     {editingItems.length !== 1 ? "s" : ""} in cart
                   </div>
                   <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={onClose}
+                      disabled={isSaving}
+                      size="default"
+                      className="px-8"
+                    >
+                      Cancel
+                    </Button>
                     <Button
                       onClick={handleSave}
                       disabled={isSaving}
@@ -1656,7 +1687,6 @@ export default function OrdersPage() {
   )
   const [dateToFilter, setDateToFilter] = useState<Date | undefined>(undefined)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isCartEditOpen, setIsCartEditOpen] = useState(false)
@@ -1760,10 +1790,6 @@ export default function OrdersPage() {
     toast.info(`Edit customer: ${customer.name} (Feature coming soon)`)
   }
 
-  const handleViewDetails = (order: Order) => {
-    setSelectedOrder(order)
-    setIsDetailsOpen(true)
-  }
 
   const handleCustomerNavigation = (customer: any) => {
     if (!customer?.id) {
@@ -1772,6 +1798,66 @@ export default function OrdersPage() {
     }
     navigate(`/clients?edit=${customer.id}`)
     toast.info(`Opening customer edit form: ${customer.name}`)
+  }
+
+  const handleDownloadInvoice = async (order: Order) => {
+    try {
+      const response = await fetch(`/api/orders/${order.orderCode}/invoice`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to download invoice')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `invoice-${order.orderCode}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      
+      toast.success('Invoice downloaded successfully')
+    } catch (error) {
+      logger.error('Error downloading invoice:', error)
+      toast.error('Failed to download invoice')
+    }
+  }
+
+  const handleDownloadDdt = async (order: Order) => {
+    try {
+      const response = await fetch(`/api/orders/${order.orderCode}/ddt`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to download delivery note')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `delivery-note-${order.orderCode}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      
+      toast.success('Delivery note downloaded successfully')
+    } catch (error) {
+      logger.error('Error downloading delivery note:', error)
+      toast.error('Failed to download delivery note')
+    }
   }
 
   const handleDateRangeChange = (range: string) => {
@@ -1836,34 +1922,30 @@ export default function OrdersPage() {
     {
       header: "Num.",
       accessorKey: "orderCode" as keyof Order,
-      size: 120,
+      size: 180,
       cell: ({ row }: { row: { original: Order } }) => (
         <span className="font-mono font-medium">{row.original.orderCode}</span>
       ),
     },
     {
-      header: "Customer Name",
-      accessorKey: "customerName",
-      size: 220,
-      cell: ({ row }: { row: { original: Order } }) => (
-        <span
-          className="font-medium cursor-pointer hover:text-blue-600 transition-colors"
-          onClick={() => handleCustomerNavigation(row.original.customer)}
-          title="Click to view customer details"
-        >
-          {row.original.customer?.name || "Unknown Customer"}
-        </span>
-      ),
-    },
-    {
-      header: "Company Name",
-      accessorKey: "companyName",
-      size: 220,
-      cell: ({ row }: { row: { original: Order } }) => (
-        <span className="font-normal">
-          {row.original.customer?.company || ""}
-        </span>
-      ),
+      header: "Customer",
+      accessorKey: "customer",
+      size: 300,
+      cell: ({ row }: { row: { original: Order } }) => {
+        const customerName = row.original.customer?.name || "Unknown Customer"
+        const companyName = row.original.customer?.company || ""
+        const displayText = companyName ? `${customerName} (${companyName})` : customerName
+        
+        return (
+          <span
+            className="font-medium cursor-pointer hover:text-blue-600 transition-colors"
+            onClick={() => handleCustomerNavigation(row.original.customer)}
+            title="Click to view customer details"
+          >
+            {displayText}
+          </span>
+        )
+      },
     },
     {
       header: "Status",
@@ -1886,25 +1968,6 @@ export default function OrdersPage() {
         <span className="font-medium">
           {formatPrice(row.original.totalAmount, workspace?.currency)}
         </span>
-      ),
-    },
-    {
-      header: "Notes",
-      accessorKey: "notes" as keyof Order,
-      size: 200,
-      cell: ({ row }: { row: { original: Order } }) => (
-        <div className="max-w-[200px]">
-          {row.original.notes ? (
-            <span 
-              className="text-sm text-gray-700 truncate block" 
-              title={row.original.notes}
-            >
-              {row.original.notes}
-            </span>
-          ) : (
-            <span className="text-sm text-gray-400 italic">No notes</span>
-          )}
-        </div>
       ),
     },
     {
@@ -2067,17 +2130,26 @@ export default function OrdersPage() {
     }
   }
 
-  // Custom actions for orders - View Details, Edit and Delete
+  // Custom actions for orders - Download PDFs, Edit and Delete
   const renderOrderActions = (order: Order) => (
     <div className="flex gap-1 justify-end">
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => handleViewDetails(order)}
-        title="View Order Details"
+        onClick={() => handleDownloadInvoice(order)}
+        title="Download Invoice PDF"
         className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-700"
       >
-        <Eye className={`${commonStyles.actionIcon} text-blue-500`} />
+        <Download className={`${commonStyles.actionIcon} text-blue-600`} />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => handleDownloadDdt(order)}
+        title="Download Delivery Note PDF"
+        className="h-8 w-8 p-0 hover:bg-purple-50 hover:text-purple-700"
+      >
+        <Download className={`${commonStyles.actionIcon} text-purple-600`} />
       </Button>
       <Button
         variant="ghost"
@@ -2183,84 +2255,6 @@ export default function OrdersPage() {
         onClose={() => setIsCartEditOpen(false)}
         onSave={handleOrderSave}
       />
-      {/* Order Details Dialog */}
-      {selectedOrder && (
-        <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Order Details - {selectedOrder.orderCode}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-6">
-              {/* Order Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Order Information</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Order Code</p>
-                    <p className="text-base">{selectedOrder.orderCode}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Status</p>
-                    <Badge variant={selectedOrder.status === 'COMPLETED' ? 'default' : 'secondary'}>
-                      {selectedOrder.status}
-                    </Badge>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Customer</p>
-                    <p className="text-base">{selectedOrder.customer?.name || 'Unknown Customer'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Date</p>
-                    <p className="text-base">{new Date(selectedOrder.createdAt).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Total Amount</p>
-                    <p className="text-base font-semibold">€{selectedOrder.totalAmount.toFixed(2)}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-sm font-medium text-gray-500">Notes</p>
-                    <p className="text-base">{selectedOrder.notes || "No notes"}</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Order Items */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Order Items</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {selectedOrder.items?.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">
-                            {item.itemType === 'PRODUCT' 
-                              ? item.product?.name || `Product ${item.productId}` 
-                              : item.service?.name || `Service ${item.serviceId}`
-                            }
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Quantity: {item.quantity} × €{item.unitPrice.toFixed(2)}
-                          </p>
-                        </div>
-                        <p className="font-semibold">€{item.totalPrice.toFixed(2)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>
-                Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

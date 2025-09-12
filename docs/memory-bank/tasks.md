@@ -37,11 +37,6 @@
 - **Stato**: PENDING
 - **Note**: Potrebbe essere correlato al task critico del rilevamento lingua dell'utente
 
-### TASK: Rimuovere campo Notes dalla lista ordini
-- **Descrizione**: Nella lista degli ordini non deve essere presente il campo Notes. Il campo Notes deve essere visibile e modificabile solo nel form di modifica ordine, non nella tabella di lista.
-- **Priorità**: MEDIA
-- **Stato**: PENDING
-
 ### TASK: Assicurarsi che al salvataggio venga generata la generazione di nuovi embed
 - **Descrizione**: Verificare e implementare la generazione automatica di nuovi embedding quando vengono salvati dati nel sistema. Questo è importante per mantenere aggiornato il sistema di ricerca semantica.
 - **Priorità**: MEDIA
@@ -57,11 +52,6 @@
 - **Priorità**: ALTA
 - **Stato**: PENDING
 - **Note**: Critico per il funzionamento del sistema multitenant
-
-### TASK: Impostare default "ultimo mese" nella tendina analytics
-- **Descrizione**: Nella pagina analytics (http://localhost:3000/analytics), la tendina per la selezione del periodo deve avere come default "ultimo mese" invece di un periodo diverso.
-- **Priorità**: MEDIA
-- **Stato**: PENDING
 
 ## ✅ TASK COMPLETATI
 
@@ -93,8 +83,16 @@
 - **Descrizione**: Rimossa la colonna "Push" dalla tabella dei clienti per semplificare l'interfaccia. La colonna mostrava lo stato delle notifiche push (Enabled/Disabled) ma non era necessaria nella vista principale.
 - **Stato**: COMPLETATO
 
+### TASK: Impostare default "ultimo mese" nella tendina analytics
+- **Descrizione**: Modificato il periodo di default nella pagina analytics da "3 mesi" a "ultimo mese". Cambiato DEFAULT_PERIOD da '3months' a 'lastmonth' nel hook useAnalyticsPeriod.ts per migliorare l'esperienza utente.
+- **Stato**: COMPLETATO
+
+### TASK: Rimuovere campo Notes dalla lista ordini
+- **Descrizione**: Rimossa la colonna "Notes" dalla tabella degli ordini per semplificare l'interfaccia. Il campo Notes rimane visibile e modificabile solo nel form di modifica ordine (OrderCrudSheet), come richiesto.
+- **Stato**: COMPLETATO
+
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 18 (7 completati, 11 pending)
+**Task totali**: 18 (9 completati, 9 pending)
 **Task critici**: 2
