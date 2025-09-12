@@ -132,7 +132,7 @@ export async function confirmOrderFromConversation(
 
         // Determine base URL
         const baseUrl = workspace.url || process.env.FRONTEND_URL || 'https://laltroitalia.shop'
-        const cartUrl = `${baseUrl}/cart?token=${cartToken}`
+        const cartUrl = `${baseUrl}/checkout?token=${cartToken}`
 
         // Create cart message
         const cartMessage = `🛒 **Il tuo carrello è pronto!**

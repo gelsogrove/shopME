@@ -273,6 +273,103 @@ Il RAG Processor DEVE capire che TUTTE le domande relative a:
 
 **🚨 CRITICAL: The LLM MUST recognize that these are ALL THE SAME USER REQUEST and call the appropriate cart function!**
 
+**🚨 MANDATORY CART FUNCTION CALLING RULES:**
+1. **ANY question about CART/SHOPPING CART** → ALWAYS call `confirmOrderFromConversation` function
+2. **NEVER use SearchRag for cart questions** → SearchRag is ONLY for general information
+3. **Cart questions have ABSOLUTE PRIORITY** → Call cart function FIRST, not SearchRag
+4. **Examples of MANDATORY cart function calls:**
+   - "carrello" → `confirmOrderFromConversation`
+   - "fammi vedere il carrello" → `confirmOrderFromConversation`
+   - "mostra carrello" → `confirmOrderFromConversation`
+   - "cosa ho nel carrello" → `confirmOrderFromConversation`
+   - "il mio carrello" → `confirmOrderFromConversation`
+   - "vedere il carrello" → `confirmOrderFromConversation`
+   - "visualizza carrello" → `confirmOrderFromConversation`
+   - "controlla carrello" → `confirmOrderFromConversation`
+   - "stato carrello" → `confirmOrderFromConversation`
+   - "show cart" → `confirmOrderFromConversation`
+   - "let me see cart" → `confirmOrderFromConversation`
+   - "what's in my cart" → `confirmOrderFromConversation`
+   - "my cart" → `confirmOrderFromConversation`
+   - "view cart" → `confirmOrderFromConversation`
+   - "see cart" → `confirmOrderFromConversation`
+   - "check cart" → `confirmOrderFromConversation`
+   - "cart status" → `confirmOrderFromConversation`
+   - "muéstrame carrito" → `confirmOrderFromConversation`
+   - "déjame ver carrito" → `confirmOrderFromConversation`
+   - "qué hay en mi carrito" → `confirmOrderFromConversation`
+   - "mi carrito" → `confirmOrderFromConversation`
+   - "ver carrito" → `confirmOrderFromConversation`
+   - "mostrar carrito" → `confirmOrderFromConversation`
+   - "visualizar carrito" → `confirmOrderFromConversation`
+   - "revisar carrito" → `confirmOrderFromConversation`
+   - "estado carrito" → `confirmOrderFromConversation`
+   - "mostre carrinho" → `confirmOrderFromConversation`
+   - "deixe-me ver carrinho" → `confirmOrderFromConversation`
+   - "o que tem no meu carrinho" → `confirmOrderFromConversation`
+   - "meu carrinho" → `confirmOrderFromConversation`
+   - "ver carrinho" → `confirmOrderFromConversation`
+   - "mostrar carrinho" → `confirmOrderFromConversation`
+   - "visualizar carrinho" → `confirmOrderFromConversation`
+   - "verificar carrinho" → `confirmOrderFromConversation`
+   - "estado carrinho" → `confirmOrderFromConversation`
+
+**🚨 CRITICAL: SearchRag is FORBIDDEN for cart questions! Use confirmOrderFromConversation instead!**
+
+**🚨🚨🚨 CRITICAL FUNCTION CALLING RULES - MANDATORY COMPLIANCE 🚨🚨🚨**
+
+**⚠️ ATTENTION: READ THIS FIRST - NO EXCEPTIONS ⚠️**
+
+**WHEN USER SAYS "aggiungi al carrello [000288]" → YOU MUST CALL add_to_cart FUNCTION**
+**WHEN USER SAYS "fammi vedere il carrello" → YOU MUST CALL confirmOrderFromConversation FUNCTION**
+**NEVER USE SearchRag FOR THESE REQUESTS - IT'S FORBIDDEN!**
+
+**🚨🚨🚨 CRITICAL FUNCTION CALLING RULES - MANDATORY COMPLIANCE 🚨🚨🚨**
+
+**RULE #1: ADD TO CART REQUESTS - ABSOLUTE PRIORITY**
+- **ANY message containing product codes in brackets [00001], [000288], etc.** → MANDATORY `add_to_cart` function call
+- **ANY message with "aggiungi", "add", "compra", "buy", "voglio", "acquista"** → MANDATORY `add_to_cart` function call
+- **NEVER use SearchRag for these requests** → SearchRag is FORBIDDEN for product addition
+- **EXAMPLES THAT MUST TRIGGER add_to_cart:**
+  - "aggiungi al carrello [00001]" → `add_to_cart` (MANDATORY)
+  - "aggiungi al carrello [000288]" → `add_to_cart` (MANDATORY)
+  - "voglio [00001]" → `add_to_cart` (MANDATORY)
+  - "compra [00001]" → `add_to_cart` (MANDATORY)
+  - "acquista [00001]" → `add_to_cart` (MANDATORY)
+  - "metti nel carrello [00001]" → `add_to_cart` (MANDATORY)
+  - "prendo [00001]" → `add_to_cart` (MANDATORY)
+  - "add to cart [00001]" → `add_to_cart` (MANDATORY)
+  - "buy [00001]" → `add_to_cart` (MANDATORY)
+  - "purchase [00001]" → `add_to_cart` (MANDATORY)
+  - "put in cart [00001]" → `add_to_cart` (MANDATORY)
+  - "I take [00001]" → `add_to_cart` (MANDATORY)
+  - "añadir al carrito [00001]" → `add_to_cart` (MANDATORY)
+  - "comprar [00001]" → `add_to_cart` (MANDATORY)
+  - "adicionar ao carrinho [00001]" → `add_to_cart` (MANDATORY)
+
+**RULE #2: CART VIEW REQUESTS - ABSOLUTE PRIORITY**
+- **ANY message about viewing cart contents** → MANDATORY `confirmOrderFromConversation` function call
+- **EXAMPLES THAT MUST TRIGGER confirmOrderFromConversation:**
+  - "fammi vedere il carrello" → `confirmOrderFromConversation` (MANDATORY)
+  - "mostra carrello" → `confirmOrderFromConversation` (MANDATORY)
+  - "carrello" → `confirmOrderFromConversation` (MANDATORY)
+  - "cosa ho nel carrello" → `confirmOrderFromConversation` (MANDATORY)
+  - "il mio carrello" → `confirmOrderFromConversation` (MANDATORY)
+  - "vedere il carrello" → `confirmOrderFromConversation` (MANDATORY)
+  - "visualizza carrello" → `confirmOrderFromConversation` (MANDATORY)
+  - "controlla carrello" → `confirmOrderFromConversation` (MANDATORY)
+  - "stato carrello" → `confirmOrderFromConversation` (MANDATORY)
+  - "show cart" → `confirmOrderFromConversation` (MANDATORY)
+  - "let me see cart" → `confirmOrderFromConversation` (MANDATORY)
+  - "what's in my cart" → `confirmOrderFromConversation` (MANDATORY)
+  - "my cart" → `confirmOrderFromConversation` (MANDATORY)
+  - "view cart" → `confirmOrderFromConversation` (MANDATORY)
+  - "see cart" → `confirmOrderFromConversation` (MANDATORY)
+  - "check cart" → `confirmOrderFromConversation` (MANDATORY)
+  - "cart status" → `confirmOrderFromConversation` (MANDATORY)
+
+**🚨 CRITICAL: SearchRag is FORBIDDEN for cart and add-to-cart requests! Use the specific functions instead!**
+
 **🚨 TRACKING INTELLIGENCE SPECIFICA:**
 
 Il RAG Processor DEVE comprendere che QUALSIASI domanda su:

@@ -67,7 +67,11 @@ const getLocalizedText = (language?: string) => {
         products: 'Products',
         addresses: 'Addresses',
         confirm: 'Confirm'
-      }
+      },
+      confirmDelete: 'Are you sure?',
+      confirmDeleteMessage: 'Do you want to remove "{name}" from your cart?',
+      cancel: 'Cancel',
+      remove: 'Remove'
     },
     'IT': {
       finalizeOrder: 'Finalizza Ordine',
@@ -91,7 +95,11 @@ const getLocalizedText = (language?: string) => {
         products: 'Prodotti',
         addresses: 'Indirizzi',
         confirm: 'Conferma'
-      }
+      },
+      confirmDelete: 'Sei sicuro?',
+      confirmDeleteMessage: 'Vuoi rimuovere "{name}" dal carrello?',
+      cancel: 'Annulla',
+      remove: 'Rimuovi'
     },
     'ES': {
       finalizeOrder: 'Finalizar Pedido',
@@ -115,7 +123,39 @@ const getLocalizedText = (language?: string) => {
         products: 'Productos',
         addresses: 'Direcciones',
         confirm: 'Confirmar'
-      }
+      },
+      confirmDelete: '¿Estás seguro?',
+      confirmDeleteMessage: '¿Quieres eliminar "{name}" de tu carrito?',
+      cancel: 'Cancelar',
+      remove: 'Eliminar'
+    },
+    'PT': {
+      finalizeOrder: 'Finalizar Pedido',
+      viewCart: 'Ver Carrinho',
+      viewOrders: 'Ver Pedidos',
+      viewProfile: 'Ver Perfil',
+      greeting: 'Olá {name}, complete seu pedido em poucos passos',
+      loadingCheckout: 'Carregando Checkout',
+      preparingOrder: 'Preparando seu pedido...',
+      loadingProducts: 'Carregando produtos...',
+      addProducts: '+ Adicionar Produtos',
+      emptyCart: 'Seu carrinho está vazio',
+      addProductsToContinue: 'Adicione produtos para continuar',
+      yourProducts: 'Seus Produtos',
+      total: 'TOTAL:',
+      continue: 'Continuar →',
+      confirmOrder: 'Confirmar Pedido',
+      productSummary: 'Resumo de Produtos',
+      selectProducts: 'Selecionar Produtos',
+      steps: {
+        products: 'Produtos',
+        addresses: 'Endereços',
+        confirm: 'Confirmar'
+      },
+      confirmDelete: 'Tem certeza?',
+      confirmDeleteMessage: 'Você quer remover "{name}" do seu carrinho?',
+      cancel: 'Cancelar',
+      remove: 'Remover'
     }
   }
   
@@ -128,7 +168,16 @@ const CheckoutPage: React.FC = () => {
   
   // 🌐 Get customer language with fallback
   const getCustomerLanguage = () => {
-    return customer?.language || 'IT' // Default to Italian since most users are Italian
+    // Map database language codes to our localization keys
+    const languageMap: { [key: string]: string } = {
+      'it': 'IT',
+      'en': 'ENG', 
+      'es': 'ES',
+      'pt': 'PT'
+    }
+    
+    const dbLanguage = customer?.language || 'it' // Default to Italian
+    return languageMap[dbLanguage] || 'IT' // Fallback to Italian
   }
 
   // 🔐 Validate checkout token (TOKEN-ONLY)
@@ -163,7 +212,14 @@ const CheckoutPage: React.FC = () => {
       // Simulate loading time for better UX
       setTimeout(() => {
         setCustomer(tokenData.customer)
-        setProdotti(tokenData.prodotti || [])
+        
+        // 🔧 Clean up any "Unknown Product" entries
+        const cleanedProdotti = (tokenData.prodotti || []).map(prodotto => ({
+          ...prodotto,
+          descrizione: prodotto.descrizione === 'Unknown Product' ? 'Prodotto senza nome' : prodotto.descrizione
+        }))
+        
+        setProdotti(cleanedProdotti)
         
         // Pre-fill addresses if available
         if (tokenData.customer.address) {
@@ -274,7 +330,16 @@ const CheckoutPage: React.FC = () => {
       
       const result = await response.json()
       if (result.success) {
-        setAvailableProducts(result.data.products || [])
+        // 🔍 DEBUG: Log products data to understand the structure
+        console.log('🔍 Loaded products from API:', result.data.products)
+        
+        // 🔧 Clean up any products with missing names
+        const cleanedProducts = (result.data.products || []).map(product => ({
+          ...product,
+          name: product.name || 'Prodotto senza nome'
+        }))
+        
+        setAvailableProducts(cleanedProducts)
       }
     } catch (error) {
       console.error('Error loading products:', error)
@@ -285,11 +350,27 @@ const CheckoutPage: React.FC = () => {
 
   // Add product to cart
   const addProductToCart = (product: any) => {
-    const existingIndex = prodotti.findIndex(p => p.productId === product.id)
+    // 🔍 DEBUG: Log product data to understand the structure
+    console.log('🔍 Adding product to cart:', {
+      id: product.id,
+      name: product.name,
+      ProductCode: product.ProductCode,
+      sku: product.sku,
+      price: product.price,
+      finalPrice: product.finalPrice
+    })
+    
+    // 🔧 Clean up existing products with "Unknown Product" names
+    const cleanedProdotti = prodotti.map(p => ({
+      ...p,
+      descrizione: p.descrizione === 'Unknown Product' ? 'Prodotto senza nome' : p.descrizione
+    }))
+    
+    const existingIndex = cleanedProdotti.findIndex(p => p.productId === product.id)
     
     if (existingIndex >= 0) {
       // Product already exists, increase quantity
-      const updatedProdotti = [...prodotti]
+      const updatedProdotti = [...cleanedProdotti]
       updatedProdotti[existingIndex].qty += 1
       setProdotti(updatedProdotti)
     } else {
@@ -298,7 +379,7 @@ const CheckoutPage: React.FC = () => {
         id: `temp-${Date.now()}`,
         productId: product.id,
         codice: product.ProductCode || product.sku || 'Non disponibile',
-        descrizione: product.name,
+        descrizione: product.name || 'Prodotto senza nome',
         prezzo: product.finalPrice || product.price,
         prezzoOriginale: product.price,
         scontoApplicato: product.appliedDiscount,
@@ -306,14 +387,14 @@ const CheckoutPage: React.FC = () => {
         nomeSconto: product.discountName,
         qty: 1
       }
-      setProdotti([...prodotti, newProduct])
+      setProdotti([...cleanedProdotti, newProduct])
     }
     
     // Close popup and show updated cart
     setShowAddProducts(false)
     
     // Show success message
-    toast.success(`${product.name} aggiunto al carrello!`)
+    toast.success(`${product.name || 'Prodotto'} aggiunto al carrello!`)
   }
 
   // Handle form input changes
@@ -844,7 +925,7 @@ const CheckoutPage: React.FC = () => {
                   }}
                   className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  Continua →
+                  {getLocalizedText(getCustomerLanguage()).continue}
                 </button>
               </div>
             </div>
@@ -852,11 +933,11 @@ const CheckoutPage: React.FC = () => {
 
           {currentStep === 3 && (
             <div>
-              <h2 className="text-2xl font-bold mb-6">📝 Conferma Ordine</h2>
+              <h2 className="text-2xl font-bold mb-6">📝 {getLocalizedText(getCustomerLanguage()).confirmOrder}</h2>
 
               {/* Order Summary */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">Riepilogo Prodotti</h3>
+                <h3 className="text-lg font-semibold mb-4">{getLocalizedText(getCustomerLanguage()).productSummary}</h3>
                 {prodotti.map((prodotto, index) => (
                   <div key={index} className="flex justify-between py-2 border-b">
                     <span>{prodotto.qty}x {prodotto.descrizione}</span>
@@ -966,7 +1047,7 @@ const CheckoutPage: React.FC = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Seleziona Prodotti</h3>
+                <h3 className="text-xl font-bold">{getLocalizedText(getCustomerLanguage()).selectProducts}</h3>
                 <button
                   onClick={() => setShowAddProducts(false)}
                   className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -978,7 +1059,7 @@ const CheckoutPage: React.FC = () => {
               {loadingProducts ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-                  <p className="mt-2 text-gray-600">{getLocalizedText(customer?.language).loadingProducts}</p>
+                  <p className="mt-2 text-gray-600">{getLocalizedText(getCustomerLanguage()).loadingProducts}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1036,16 +1117,10 @@ const CheckoutPage: React.FC = () => {
               
               <div className="text-center">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {customer?.language === 'en' ? 'Are you sure?' : 
-                   customer?.language === 'es' ? '¿Estás seguro?' :
-                   customer?.language === 'pt' ? 'Tem certeza?' :
-                   'Sei sicuro?'}
+                  {getLocalizedText(getCustomerLanguage()).confirmDelete}
                 </h3>
                 <p className="text-sm text-gray-500 mb-6">
-                  {customer?.language === 'en' ? `Do you want to remove "${productToDelete.name}" from your cart?` :
-                   customer?.language === 'es' ? `¿Quieres eliminar "${productToDelete.name}" de tu carrito?` :
-                   customer?.language === 'pt' ? `Você quer remover "${productToDelete.name}" do seu carrinho?` :
-                   `Vuoi rimuovere "${productToDelete.name}" dal carrello?`}
+                  {getLocalizedText(getCustomerLanguage()).confirmDeleteMessage.replace('{name}', productToDelete.name)}
                 </p>
                 
                 <div className="flex space-x-3 justify-center">
@@ -1053,19 +1128,13 @@ const CheckoutPage: React.FC = () => {
                     onClick={cancelDelete}
                     className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
                   >
-                    {customer?.language === 'en' ? 'Cancel' :
-                     customer?.language === 'es' ? 'Cancelar' :
-                     customer?.language === 'pt' ? 'Cancelar' :
-                     'Annulla'}
+                    {getLocalizedText(getCustomerLanguage()).cancel}
                   </button>
                   <button
                     onClick={removeProduct}
                     className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
                   >
-                    {customer?.language === 'en' ? 'Remove' :
-                     customer?.language === 'es' ? 'Eliminar' :
-                     customer?.language === 'pt' ? 'Remover' :
-                     'Rimuovi'}
+                    {getLocalizedText(getCustomerLanguage()).remove}
                   </button>
                 </div>
               </div>
