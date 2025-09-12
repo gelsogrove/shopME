@@ -5,17 +5,17 @@ export function PricingList() {
   const pricingItems = [
     {
       icon: MessageSquare,
-      title: "Risposta LLM",
-      description: "Per ogni risposta del chatbot",
+      title: "LLM Response",
+      description: "For each chatbot response",
       price: "€0.005",
-      priceDetail: "0.5 centesimi",
+      priceDetail: "0.5 cents",
       color: "text-blue-600",
       bgColor: "bg-blue-100"
     },
     {
       icon: UserPlus,
-      title: "Nuovo Cliente",
-      description: "Per ogni nuovo cliente registrato",
+      title: "New Customer",
+      description: "For each new registered customer",
       price: "€1.00",
       priceDetail: "1 euro",
       color: "text-green-600",
@@ -23,8 +23,8 @@ export function PricingList() {
     },
     {
       icon: ShoppingCart,
-      title: "Nuovo Ordine",
-      description: "Per ogni nuovo ordine confermato",
+      title: "New Order",
+      description: "For each new confirmed order",
       price: "€1.00",
       priceDetail: "1 euro",
       color: "text-purple-600",
@@ -37,10 +37,10 @@ export function PricingList() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Euro className="h-5 w-5 text-green-600" />
-          Listino Prezzi
+          Pricing List
         </CardTitle>
         <p className="text-sm text-gray-600">
-          Prezzi trasparenti per tutti i servizi ShopMe
+          Transparent pricing for all ShopMe services
         </p>
       </CardHeader>
       <CardContent>
@@ -84,11 +84,11 @@ export function PricingList() {
             <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
             <div>
               <p className="text-sm font-medium text-gray-900 mb-1">
-                Fatturazione Trasparente
+                Transparent Billing
               </p>
               <p className="text-sm text-gray-600">
-                Tutti i costi sono calcolati automaticamente e visualizzati nella dashboard analytics. 
-                Nessuna commissione nascosta o costi a sorpresa.
+                All costs are calculated automatically and displayed in the analytics dashboard. 
+                No hidden fees or surprise costs.
               </p>
             </div>
           </div>

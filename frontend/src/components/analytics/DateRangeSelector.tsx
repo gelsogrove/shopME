@@ -9,7 +9,7 @@ import { DateRange } from '@/services/analyticsApi';
 import { CalendarIcon } from 'lucide-react';
 import React from 'react';
 
-export type PeriodPreset = 'week' | 'lastmonth' | '3months' | '6months' | '1year';
+export type PeriodPreset = 'week' | '30days' | '3months' | '6months' | '1year';
 
 interface DateRangeSelectorProps {
   selectedPeriod: PeriodPreset;
@@ -18,7 +18,7 @@ interface DateRangeSelectorProps {
 
 const periodOptions = [
   { value: 'week' as PeriodPreset, label: 'Last Week', description: 'Last 7 days' },
-  { value: 'lastmonth' as PeriodPreset, label: 'Last Month', description: 'Previous complete month' },
+  { value: '30days' as PeriodPreset, label: 'Last 30 Days', description: 'Last 30 days' },
   { value: '3months' as PeriodPreset, label: 'Last 3 Months', description: 'Last 90 days' },
   { value: '6months' as PeriodPreset, label: 'Last 6 Months', description: 'Last 180 days' },
   { value: '1year' as PeriodPreset, label: 'Last Year', description: 'Last 365 days' }
@@ -32,16 +32,9 @@ export const getDateRangeFromPeriod = (period: PeriodPreset): DateRange => {
     case 'week':
       startDate.setDate(endDate.getDate() - 7);
       break;
-    case 'lastmonth':
-      // Set to previous month: first day 00:00:00 to last day 23:59:59
-      const currentDate = new Date();
-      const previousMonth = currentDate.getMonth() - 1;
-      const year = previousMonth < 0 ? currentDate.getFullYear() - 1 : currentDate.getFullYear();
-      const month = previousMonth < 0 ? 11 : previousMonth;
-      
-      const firstDayLastMonth = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
-      const lastDayLastMonth = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
-      return { startDate: firstDayLastMonth, endDate: lastDayLastMonth };
+    case '30days':
+      startDate.setDate(endDate.getDate() - 30);
+      break;
     case '3months':
       startDate.setMonth(endDate.getMonth() - 3);
       break;
@@ -52,7 +45,7 @@ export const getDateRangeFromPeriod = (period: PeriodPreset): DateRange => {
       startDate.setFullYear(endDate.getFullYear() - 1);
       break;
     default:
-      startDate.setMonth(endDate.getMonth() - 3); // Default to 3 months
+      startDate.setDate(endDate.getDate() - 7); // Default to 1 week
   }
 
   return { startDate, endDate };

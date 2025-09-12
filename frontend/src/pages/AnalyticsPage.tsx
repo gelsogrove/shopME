@@ -151,9 +151,6 @@ export function AnalyticsPage() {
           {/* Historical Chart */}
           <HistoricalChart analytics={analytics} />
 
-          {/* Pricing List */}
-          <PricingList />
-
           {/* Additional Analytics Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Top Products */}
@@ -279,6 +276,9 @@ export function AnalyticsPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Pricing List - Moved to bottom */}
+          <PricingList />
 
         </div>
       ) : (
