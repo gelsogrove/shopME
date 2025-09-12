@@ -93,7 +93,7 @@ export async function GetCustomerProfileLink(params: GetCustomerProfileLinkParam
 
 export const GetCustomerProfileLinkFunction = {
   name: "GetCustomerProfileLink",
-  description: "Generate a secure public link to the customer profile management page for updating personal data, email, address, and contact information",
+  description: "Generate a secure public link to the customer profile management page for updating personal data, email, address, and contact information.",
   parameters: {
     type: "object",
     properties: {
