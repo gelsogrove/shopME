@@ -6,10 +6,10 @@ import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { useRecentChats } from "@/hooks/useRecentChats"
@@ -20,13 +20,13 @@ import { commonStyles } from "@/styles/common"
 import { useQuery } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
 import {
-    Bot,
-    MessageSquare,
-    Pencil,
-    Plus,
-    ShoppingCart,
-    Trash2,
-    Users,
+  Bot,
+  MessageSquare,
+  Pencil,
+  Plus,
+  ShoppingCart,
+  Trash2,
+  Users,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
