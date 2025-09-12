@@ -72,6 +72,32 @@ async function checkCustomerBlacklist(
  * @param format - Format type for logging ('WHATSAPP' or 'TEST')
  * @returns Promise<boolean> - true if handled (response sent), false if should continue normal flow
  */
+function getRegistrationText(language: string): { link: string; validity: string } {
+  switch (language.toLowerCase()) {
+    case 'en':
+      return {
+        link: 'To continue, register here',
+        validity: 'Link valid for 1 hour'
+      };
+    case 'es':
+      return {
+        link: 'Para continuar, regístrate aquí',
+        validity: 'Enlace válido por 1 hora'
+      };
+    case 'pt':
+      return {
+        link: 'Para continuar, registre-se aqui',
+        validity: 'Link válido por 1 hora'
+      };
+    case 'it':
+    default:
+      return {
+        link: 'Per continuare, registrati qui',
+        validity: 'Link valido per 1 ora'
+      };
+  }
+}
+
 async function handleNewUserWelcomeFlow(
   phoneNumber: string,
   workspaceId: string,
@@ -120,11 +146,27 @@ async function handleNewUserWelcomeFlow(
     let detectedLanguage = 'it'; // Default to Italian
     if (messageContent) {
       const lowerMessage = messageContent.toLowerCase();
-      if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('good morning') || lowerMessage.includes('good afternoon')) {
+      
+      // English detection - more comprehensive
+      const englishWords = ['hello', 'hi', 'good morning', 'good afternoon', 'good evening', 'i want', 'i need', 'i would like', 'please', 'thank you', 'thanks', 'yes', 'no', 'add', 'cart', 'buy', 'purchase', 'order', 'price', 'cost', 'how much', 'delivery', 'shipping', 'product', 'products', 'help', 'information', 'about', 'the', 'and', 'or', 'but', 'with', 'for', 'to', 'from', 'in', 'on', 'at', 'by'];
+      
+      // Spanish detection
+      const spanishWords = ['hola', 'buenos días', 'buenas tardes', 'buenas noches', 'quiero', 'necesito', 'me gustaría', 'por favor', 'gracias', 'sí', 'no', 'añadir', 'carrito', 'comprar', 'precio', 'costo', 'cuánto', 'entrega', 'envío', 'producto', 'productos', 'ayuda', 'información', 'sobre', 'el', 'la', 'los', 'las', 'y', 'o', 'pero', 'con', 'para', 'de', 'en', 'por'];
+      
+      // Portuguese detection
+      const portugueseWords = ['olá', 'bom dia', 'boa tarde', 'boa noite', 'quero', 'preciso', 'gostaria', 'por favor', 'obrigado', 'obrigada', 'sim', 'não', 'adicionar', 'carrinho', 'comprar', 'preço', 'custo', 'quanto', 'entrega', 'envio', 'produto', 'produtos', 'ajuda', 'informação', 'sobre', 'o', 'a', 'os', 'as', 'e', 'ou', 'mas', 'com', 'para', 'de', 'em', 'por'];
+      
+      // Count matches for each language
+      const englishMatches = englishWords.filter(word => lowerMessage.includes(word)).length;
+      const spanishMatches = spanishWords.filter(word => lowerMessage.includes(word)).length;
+      const portugueseMatches = portugueseWords.filter(word => lowerMessage.includes(word)).length;
+      
+      // Determine language based on highest match count
+      if (englishMatches > spanishMatches && englishMatches > portugueseMatches) {
         detectedLanguage = 'en';
-      } else if (lowerMessage.includes('hola') || lowerMessage.includes('buenos días') || lowerMessage.includes('buenas tardes')) {
+      } else if (spanishMatches > englishMatches && spanishMatches > portugueseMatches) {
         detectedLanguage = 'es';
-      } else if (lowerMessage.includes('olá') || lowerMessage.includes('bom dia') || lowerMessage.includes('boa tarde')) {
+      } else if (portugueseMatches > englishMatches && portugueseMatches > spanishMatches) {
         detectedLanguage = 'pt';
       }
     }
@@ -150,8 +192,9 @@ async function handleNewUserWelcomeFlow(
     // Construct registration URL with phone and workspace parameters
     const registrationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/register?token=${registrationToken}&phone=${encodeURIComponent(phoneNumber)}&workspace=${workspaceId}`;
 
-    // Send complete welcome message with registration link
-    const completeMessage = `${welcomeMessage}\n\n🔗 **Per continuare, registrati qui:**\n${registrationUrl}\n\n⏰ Link valido per 1 ora`;
+    // Send complete welcome message with registration link in customer's language
+    const registrationText = getRegistrationText(detectedLanguage);
+    const completeMessage = `${welcomeMessage}\n\n🔗 **${registrationText.link}:**\n${registrationUrl}\n\n⏰ ${registrationText.validity}`;
 
     // 💾 SAVE MESSAGE TO HISTORY - Save both user message and welcome response
     try {
