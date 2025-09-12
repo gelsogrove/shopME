@@ -368,11 +368,17 @@ Sistema checkout completo token-based con validazione sicura, supporto multi-lin
 - **Smart Cart Management**: Incremento quantità se prodotto già presente, altrimenti aggiunta nuova riga
 - **Product Normalization**: Gestione automatica diversi formati dati prodotto
 
-#### **🏠 4. Address Pre-Population**
+#### **🏠 4. Address Management & Auto-Update System**
 
 - **Customer Data Integration**: Auto-caricamento indirizzi da `customer.address` e `customer.invoiceAddress`
 - **Form Pre-Fill**: Pre-compilazione automatica campi spedizione e fatturazione
 - **Same Address Option**: Checkbox "Uguale a spedizione" per user experience ottimizzata
+- **🆕 Auto-Update Database**: Sistema automatico di salvataggio indirizzi durante checkout
+  - **Validation**: Controllo campi obbligatori (firstName, lastName, address, city, postalCode)
+  - **Auto-Save**: Salvataggio automatico indirizzo spedizione nel database cliente
+  - **Billing Address**: Gestione separata indirizzo fatturazione se diverso da spedizione
+  - **Error Handling**: Fallback graceful se salvataggio indirizzo fallisce
+  - **Implementation**: Integrato in `CheckoutController.submitOrder` e `CartController.checkoutByToken`
 
 #### **🎨 5. UI Consistency & Color Scheme**
 
@@ -496,6 +502,8 @@ GET  /api/products/search?q={query}&workspaceId={id}  # Product search
 - **Multi-Market Ready**: Supporto 4 lingue per espansione internazionale
 - **Mobile Optimized**: Responsive design per WhatsApp mobile users
 - **Conversion Optimization**: Add products durante checkout per upselling
+- **🆕 Improved Customer Experience**: Auto-update indirizzi riduce friction nel checkout
+- **🆕 Data Quality**: Indirizzi sempre aggiornati e consistenti nel database
 
 ### 🏆 **Implementation Summary**
 
@@ -505,6 +513,7 @@ Il sistema checkout è ora **completamente funzionale e production-ready**. Tutt
 ✅ **Multi-language support**: Checkout si adatta automaticamente alla lingua del cliente (IT/EN/ES/PT)  
 ✅ **Add products functionality**: Modal completo per ricerca e aggiunta prodotti durante checkout  
 ✅ **Address pre-population**: Indirizzi caricati automaticamente dai dati cliente  
+✅ **🆕 Address auto-update**: Sistema automatico di salvataggio indirizzi durante checkout  
 ✅ **UI consistency**: Schema colori standardizzato blu/verde in tutto il sistema  
 ✅ **Code optimization**: Codice pulito, TypeScript strict, build ottimizzati
 
@@ -8869,6 +8878,7 @@ GetInvoices(customerId, workspaceId, customerPhone, sessionToken)
 - **Sicuro**: Token validi e isolati per workspace
 - **Completo**: Carrello + indirizzi nel token
 - **Funzionale**: End-to-end working flow
+- **🆕 Auto-Update Addresses**: Salvataggio automatico indirizzi durante checkout
 
 **FLUSSO COMPLETO IMPLEMENTATO:**
 
@@ -8989,6 +8999,65 @@ async confirmOrderFromConversation(req: Request, res: Response): Promise<void> {
 - **Prompt**: Analizza conversazione e estrae prodotti/servizi con quantità
 - **Validation**: Controlla prodotti contro database per prezzi reali
 - **Fallback**: Gestione errori con logging completo
+
+**🆕 AUTO-UPDATE ADDRESS SYSTEM:**
+
+**Backend Implementation (`CheckoutController.submitOrder`):**
+
+```typescript
+// 🎯 TASK: Auto-update customer address in database
+try {
+  // Validate shipping address fields
+  const hasValidShippingAddress = shippingAddress && 
+    shippingAddress.firstName && 
+    shippingAddress.lastName && 
+    shippingAddress.address && 
+    shippingAddress.city && 
+    shippingAddress.postalCode;
+
+  if (hasValidShippingAddress) {
+    // Create structured address object for customer
+    const customerAddress = {
+      name: `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim(),
+      street: shippingAddress.address,
+      city: shippingAddress.city,
+      postalCode: shippingAddress.postalCode,
+      province: shippingAddress.province || "",
+      country: shippingAddress.country || "Italy",
+      phone: shippingAddress.phone || customer.phone || ""
+    };
+
+    // Update customer address in database
+    await prisma.customers.update({
+      where: { id: customerId, workspaceId: workspaceId },
+      data: {
+        address: JSON.stringify(customerAddress),
+        updatedAt: new Date()
+      }
+    });
+  }
+} catch (addressUpdateError) {
+  // Don't fail the order if address update fails
+  logger.error(`Failed to auto-update customer address:`, addressUpdateError);
+}
+```
+
+**Key Features:**
+
+- **Validation**: Controllo campi obbligatori (firstName, lastName, address, city, postalCode)
+- **Auto-Save**: Salvataggio automatico indirizzo spedizione nel database cliente
+- **Billing Address**: Gestione separata indirizzo fatturazione se diverso da spedizione
+- **Error Handling**: Fallback graceful se salvataggio indirizzo fallisce
+- **Implementation**: Integrato in `CheckoutController.submitOrder` e `CartController.checkoutByToken`
+- **Database Schema**: Indirizzo salvato come JSON nel campo `address` della tabella `customers`
+- **Workspace Isolation**: Tutte le operazioni filtrano per `workspaceId`
+
+**Business Impact:**
+
+- **Improved UX**: Clienti non devono reinserire indirizzi ad ogni ordine
+- **Data Consistency**: Indirizzi sempre aggiornati nel database
+- **Reduced Errors**: Meno errori di digitazione grazie al pre-popolamento
+- **Faster Checkout**: Processo checkout più veloce per clienti esistenti
 
 **Frontend Component (`OrderSummaryPage.tsx`):**
 

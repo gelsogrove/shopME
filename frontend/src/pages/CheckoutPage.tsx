@@ -125,6 +125,11 @@ const CheckoutPage: React.FC = () => {
           }))
         }
         
+        // 🎯 TASK: Auto-copy billing address after data is loaded
+        setTimeout(() => {
+          checkAndAutoCopyBillingAddress()
+        }, 100)
+        
         setInitialLoading(false)
       }, 800) // 800ms loading time
     }
@@ -235,6 +240,14 @@ const CheckoutPage: React.FC = () => {
         [field]: value
       }
     }))
+
+    // 🎯 TASK: Auto-copy billing address if shipping address is being updated
+    if (section === 'shippingAddress') {
+      // Use setTimeout to ensure state is updated before checking
+      setTimeout(() => {
+        checkAndAutoCopyBillingAddress()
+      }, 0)
+    }
   }
 
   // Handle same as billing checkbox
@@ -244,6 +257,34 @@ const CheckoutPage: React.FC = () => {
       sameAsBilling: checked,
       billingAddress: checked ? prev.shippingAddress : prev.billingAddress
     }))
+  }
+
+  // 🎯 TASK: Auto-copy billing address from shipping when billing is empty
+  const checkAndAutoCopyBillingAddress = () => {
+    setFormData(prev => {
+      // Check if billing address is empty (all fields empty or just whitespace)
+      const isBillingEmpty = !prev.billingAddress.name?.trim() && 
+                            !prev.billingAddress.street?.trim() && 
+                            !prev.billingAddress.city?.trim() && 
+                            !prev.billingAddress.postalCode?.trim()
+
+      // Check if shipping address has data
+      const hasShippingData = prev.shippingAddress.name?.trim() || 
+                             prev.shippingAddress.street?.trim() || 
+                             prev.shippingAddress.city?.trim() || 
+                             prev.shippingAddress.postalCode?.trim()
+
+      // Auto-copy if billing is empty and shipping has data
+      if (isBillingEmpty && hasShippingData && !prev.sameAsBilling) {
+        return {
+          ...prev,
+          sameAsBilling: true,
+          billingAddress: prev.shippingAddress
+        }
+      }
+
+      return prev
+    })
   }
 
   // Submit order
@@ -582,7 +623,99 @@ const CheckoutPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Billing Address */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-4">🧾 Indirizzo di Fatturazione</h3>
+                
+                {/* Same as shipping checkbox */}
+                <div className="mb-4">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.sameAsBilling}
+                      onChange={(e) => handleSameAsBillingChange(e.target.checked)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm text-gray-700">Stesso indirizzo di spedizione</span>
+                  </label>
+                </div>
 
+                {/* Billing address fields - only show if not same as shipping */}
+                {!formData.sameAsBilling && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
+                      <input
+                        type="text"
+                        placeholder="Nome completo"
+                        value={formData.billingAddress.name}
+                        onChange={(e) => handleInputChange("billingAddress", "name", e.target.value)}
+                        className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+                      <input
+                        type="text"
+                        placeholder="Telefono"
+                        value={formData.billingAddress.phone}
+                        onChange={(e) => handleInputChange("billingAddress", "phone", e.target.value)}
+                        className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Via e numero civico</label>
+                      <input
+                        type="text"
+                        placeholder="Via e numero civico"
+                        value={formData.billingAddress.street}
+                        onChange={(e) => handleInputChange("billingAddress", "street", e.target.value)}
+                        className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Città</label>
+                      <input
+                        type="text"
+                        placeholder="Città"
+                        value={formData.billingAddress.city}
+                        onChange={(e) => handleInputChange("billingAddress", "city", e.target.value)}
+                        className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">CAP</label>
+                      <input
+                        type="text"
+                        placeholder="CAP"
+                        value={formData.billingAddress.postalCode}
+                        onChange={(e) => handleInputChange("billingAddress", "postalCode", e.target.value)}
+                        className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+                      <input
+                        type="text"
+                        placeholder="Provincia"
+                        value={formData.billingAddress.province}
+                        onChange={(e) => handleInputChange("billingAddress", "province", e.target.value)}
+                        className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Paese</label>
+                      <input
+                        type="text"
+                        placeholder="Paese"
+                        value={formData.billingAddress.country}
+                        onChange={(e) => handleInputChange("billingAddress", "country", e.target.value)}
+                        className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Navigation */}
               <div className="flex justify-between">
@@ -593,7 +726,11 @@ const CheckoutPage: React.FC = () => {
                   ← Indietro
                 </button>
                 <button
-                  onClick={() => setCurrentStep(3)}
+                  onClick={() => {
+                    // 🎯 TASK: Auto-copy billing address before going to step 3
+                    checkAndAutoCopyBillingAddress()
+                    setCurrentStep(3)
+                  }}
                   className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
                 >
                   Continua →

@@ -61,6 +61,43 @@ interface DisambiguationResult {
  */
 export class FunctionHandlerService {
   private prisma: PrismaClient
+
+  /**
+   * 🎯 TASK: Clean up orphaned cart items (items with missing products)
+   */
+  private async cleanupOrphanedCartItems(workspaceId: string): Promise<void> {
+    try {
+      // Find cart items that reference non-existent products
+      const orphanedItems = await this.prisma.cartItems.findMany({
+        where: {
+          cart: {
+            workspaceId: workspaceId
+          },
+          product: null
+        },
+        include: {
+          cart: true
+        }
+      })
+
+      if (orphanedItems.length > 0) {
+        console.warn(`🧹 Found ${orphanedItems.length} orphaned cart items in workspace ${workspaceId}`)
+        
+        // Delete orphaned items
+        await this.prisma.cartItems.deleteMany({
+          where: {
+            id: {
+              in: orphanedItems.map(item => item.id)
+            }
+          }
+        })
+
+        console.log(`🧹 Cleaned up ${orphanedItems.length} orphaned cart items`)
+      }
+    } catch (error) {
+      console.error('❌ Error cleaning up orphaned cart items:', error)
+    }
+  }
   private messageRepository: MessageRepository
   private tokenService: TokenService
   private priceCalculationService: PriceCalculationService
@@ -446,12 +483,18 @@ export class FunctionHandlerService {
       // Calcola totale carrello con tutti i prezzi scontati
       let totalAmount = 0
       for (const item of updatedCart!.items) {
+        // 🎯 TASK: Handle missing product gracefully
+        if (!item.product) {
+          console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+          continue
+        }
+
         const itemPrices = await priceService.calculatePricesWithDiscounts(
           workspaceId,
           [item.productId],
           customerDiscount
         )
-        const itemFinalPrice = itemPrices.products[0]?.finalPrice || item.product.price
+        const itemFinalPrice = itemPrices.products[0]?.finalPrice || item.product.price || 0
         totalAmount += itemFinalPrice * item.quantity
       }
 
@@ -651,6 +694,9 @@ export class FunctionHandlerService {
         }
       }
 
+      // 🎯 TASK: Clean up orphaned cart items before retrieving cart
+      await this.cleanupOrphanedCartItems(workspaceId)
+
       // Ottieni carrello con prodotti
       const cart = await this.prisma.carts.findFirst({
         where: {
@@ -692,13 +738,29 @@ export class FunctionHandlerService {
       const cartItemsWithPrices = []
 
       for (const item of cart.items) {
+        // 🎯 TASK: Handle missing product gracefully
+        if (!item.product) {
+          console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+          cartItemsWithPrices.push({
+            id: item.id,
+            code: 'N/A',
+            name: `Product ${item.productId} (Not Found)`,
+            originalPrice: 0,
+            finalPrice: 0,
+            appliedDiscount: 0,
+            quantity: item.quantity,
+            total: 0
+          })
+          continue
+        }
+
         const itemPrices = await priceService.calculatePricesWithDiscounts(
           workspaceId,
           [item.productId],
           customerDiscount
         )
         
-        const finalPrice = itemPrices.products[0]?.finalPrice || item.product.price
+        const finalPrice = itemPrices.products[0]?.finalPrice || item.product.price || 0
         const discountInfo = itemPrices.products[0]
         const itemTotal = finalPrice * item.quantity
         totalAmount += itemTotal
@@ -706,8 +768,8 @@ export class FunctionHandlerService {
         cartItemsWithPrices.push({
           id: item.id,
           code: item.product.ProductCode || 'N/A',
-          name: item.product.name,
-          originalPrice: item.product.price,
+          name: item.product.name || `Product ${item.productId}`,
+          originalPrice: item.product.price || 0,
           finalPrice: finalPrice,
           appliedDiscount: discountInfo?.appliedDiscount || 0,
           quantity: item.quantity,

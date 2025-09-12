@@ -263,6 +263,85 @@ export class CheckoutController {
         },
       })
 
+      // 🎯 TASK: Auto-update customer address in database
+      try {
+        // Validate shipping address fields
+        const hasValidShippingAddress = shippingAddress && 
+          shippingAddress.firstName && 
+          shippingAddress.lastName && 
+          shippingAddress.address && 
+          shippingAddress.city && 
+          shippingAddress.postalCode;
+
+        if (hasValidShippingAddress) {
+          // Create structured address object for customer
+          const customerAddress = {
+            name: `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim(),
+            street: shippingAddress.address,
+            city: shippingAddress.city,
+            postalCode: shippingAddress.postalCode,
+            province: shippingAddress.province || "",
+            country: shippingAddress.country || "Italy",
+            phone: shippingAddress.phone || customer.phone || ""
+          };
+
+          // Update customer address in database
+          await prisma.customers.update({
+            where: {
+              id: customerId,
+              workspaceId: workspaceId
+            },
+            data: {
+              address: JSON.stringify(customerAddress),
+              updatedAt: new Date()
+            }
+          });
+
+          logger.info(`[CHECKOUT] Auto-updated customer address for ${customerId}:`, customerAddress);
+        } else {
+          logger.warn(`[CHECKOUT] Invalid shipping address provided for customer ${customerId}, skipping auto-update`);
+        }
+
+        // Auto-update billing address if provided and different from shipping
+        if (billingAddress && !billingAddress.sameAsShipping) {
+          const hasValidBillingAddress = billingAddress.firstName && 
+            billingAddress.lastName && 
+            billingAddress.address && 
+            billingAddress.city && 
+            billingAddress.postalCode;
+
+          if (hasValidBillingAddress) {
+            const customerInvoiceAddress = {
+              firstName: billingAddress.firstName,
+              lastName: billingAddress.lastName,
+              address: billingAddress.address,
+              city: billingAddress.city,
+              postalCode: billingAddress.postalCode,
+              province: billingAddress.province || "",
+              country: billingAddress.country || "Italy",
+              phone: billingAddress.phone || customer.phone || ""
+            };
+
+            // Update customer invoice address in database
+            await prisma.customers.update({
+              where: {
+                id: customerId,
+                workspaceId: workspaceId
+              },
+              data: {
+                invoiceAddress: customerInvoiceAddress,
+                updatedAt: new Date()
+              }
+            });
+
+            logger.info(`[CHECKOUT] Auto-updated customer invoice address for ${customerId}:`, customerInvoiceAddress);
+          }
+        }
+      } catch (addressUpdateError) {
+        // Don't fail the order if address update fails
+        logger.error(`[CHECKOUT] Failed to auto-update customer address for ${customerId}:`, addressUpdateError);
+      }
+
       // Mark token as used
       await prisma.secureToken.update({
         where: { id: secureToken.id },

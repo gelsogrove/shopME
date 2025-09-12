@@ -357,17 +357,35 @@ export class CartStateSynchronizer {
       }
       
       // Transform database items to CartItem format
-      const items: CartItem[] = cart.items.map(item => ({
-        id: item.id,
-        productId: item.productId,
-        productName: item.product.name,
-        productCode: item.product.ProductCode || item.product.sku,
-        quantity: item.quantity,
-        unitPrice: item.product.price,
-        totalPrice: item.product.price * item.quantity,
-        addedAt: item.createdAt,
-        updatedAt: item.updatedAt
-      }))
+      const items: CartItem[] = cart.items.map(item => {
+        // 🎯 TASK: Handle missing product gracefully
+        if (!item.product) {
+          console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+          return {
+            id: item.id,
+            productId: item.productId,
+            productName: `Product ${item.productId} (Not Found)`,
+            productCode: 'N/A',
+            quantity: item.quantity,
+            unitPrice: 0,
+            totalPrice: 0,
+            addedAt: item.createdAt,
+            updatedAt: item.updatedAt
+          }
+        }
+
+        return {
+          id: item.id,
+          productId: item.productId,
+          productName: item.product.name || `Product ${item.productId}`,
+          productCode: item.product.ProductCode || item.product.sku || 'N/A',
+          quantity: item.quantity,
+          unitPrice: item.product.price || 0,
+          totalPrice: (item.product.price || 0) * item.quantity,
+          addedAt: item.createdAt,
+          updatedAt: item.updatedAt
+        }
+      })
       
       // Calculate totals
       const totalAmount = items.reduce((sum, item) => sum + item.totalPrice, 0)

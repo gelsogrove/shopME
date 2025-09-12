@@ -4,10 +4,10 @@
  */
 
 import { prisma } from '../lib/prisma'
-import logger from './logger'
-import { conversationContext } from './conversation-context'
 import { cartLockManager } from './cart-lock-manager'
 import { cartStateSynchronizer } from './cart-state-synchronizer'
+import { conversationContext } from './conversation-context'
+import logger from './logger'
 
 export interface CartIntentResult {
   hasCartIntent: boolean
@@ -386,9 +386,14 @@ async function performCartAddOperation(
       total: (product.price || product.finalPrice || 0) * quantity
     },
     cart: updatedCart,
-    cartTotal: updatedCart?.items.reduce((total, item) => 
-      total + ((item.product.price || 0) * item.quantity), 0
-    ) || 0
+    cartTotal: updatedCart?.items.reduce((total, item) => {
+      // 🎯 TASK: Handle missing product gracefully
+      if (!item.product) {
+        console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+        return total
+      }
+      return total + ((item.product.price || 0) * item.quantity)
+    }, 0) || 0
   }
 
   // Save successful operation for context

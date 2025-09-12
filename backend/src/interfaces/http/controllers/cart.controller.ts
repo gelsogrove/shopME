@@ -7,6 +7,43 @@ export class CartController {
   private secureTokenService = new SecureTokenService()
 
   /**
+   * 🎯 TASK: Clean up orphaned cart items (items with missing products)
+   */
+  private async cleanupOrphanedCartItems(workspaceId: string): Promise<void> {
+    try {
+      // Find cart items that reference non-existent products
+      const orphanedItems = await prisma.cartItems.findMany({
+        where: {
+          cart: {
+            workspaceId: workspaceId
+          },
+          product: null
+        },
+        include: {
+          cart: true
+        }
+      })
+
+      if (orphanedItems.length > 0) {
+        console.warn(`🧹 Found ${orphanedItems.length} orphaned cart items in workspace ${workspaceId}`)
+        
+        // Delete orphaned items
+        await prisma.cartItems.deleteMany({
+          where: {
+            id: {
+              in: orphanedItems.map(item => item.id)
+            }
+          }
+        })
+
+        console.log(`🧹 Cleaned up ${orphanedItems.length} orphaned cart items`)
+      }
+    } catch (error) {
+      console.error('❌ Error cleaning up orphaned cart items:', error)
+    }
+  }
+
+  /**
    * 🆕 Generate a new cart token for public access
    */
   async generateToken(req: Request, res: Response): Promise<void> {
@@ -139,6 +176,9 @@ export class CartController {
 
       const payload = validation.payload as any
       
+      // 🎯 TASK: Clean up orphaned cart items before retrieving cart
+      await this.cleanupOrphanedCartItems(validation.data.workspaceId)
+      
       // Get updated cart data from database
       const cart = await prisma.carts.findFirst({
         where: {
@@ -167,7 +207,21 @@ export class CartController {
       // Calculate updated totals
       let totalAmount = 0
       const items = cart.items.map(item => {
-        const price = item.product.price
+        // 🎯 TASK: Handle missing product gracefully
+        if (!item.product) {
+          console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+          return {
+            id: item.id,
+            type: 'product',
+            productId: item.productId,
+            name: `Product ${item.productId} (Not Found)`,
+            price: 0,
+            quantity: item.quantity,
+            total: 0
+          }
+        }
+
+        const price = item.product.price || 0
         const itemTotal = price * item.quantity
         totalAmount += itemTotal
 
@@ -175,7 +229,7 @@ export class CartController {
           id: item.id,
           type: 'product',
           productId: item.productId,
-          name: item.product.name,
+          name: item.product.name || `Product ${item.productId}`,
           price: price,
           quantity: item.quantity,
           total: itemTotal
@@ -319,7 +373,12 @@ export class CartController {
       })
 
       const totalAmount = cartWithItems!.items.reduce((sum, item) => {
-        return sum + (item.product.price * item.quantity)
+        // 🎯 TASK: Handle missing product gracefully
+        if (!item.product) {
+          console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+          return sum
+        }
+        return sum + ((item.product.price || 0) * item.quantity)
       }, 0)
 
       logger.info(`[CART] Item added to cart ${cart.id} via token`)
@@ -329,10 +388,10 @@ export class CartController {
         cartItem: {
           id: cartItem.id,
           type: 'product',
-          name: cartItem.product.name,
-          price: cartItem.product.price,
+          name: cartItem.product?.name || `Product ${cartItem.productId}`,
+          price: cartItem.product?.price || 0,
           quantity: cartItem.quantity,
-          total: cartItem.product.price * cartItem.quantity
+          total: (cartItem.product?.price || 0) * cartItem.quantity
         },
         cart: {
           totalAmount: totalAmount,
@@ -423,7 +482,12 @@ export class CartController {
       })
 
       const totalAmount = cartWithItems!.items.reduce((sum, item) => {
-        return sum + (item.product.price * item.quantity)
+        // 🎯 TASK: Handle missing product gracefully
+        if (!item.product) {
+          console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+          return sum
+        }
+        return sum + ((item.product.price || 0) * item.quantity)
       }, 0)
 
       logger.info(`[CART] Item ${itemId} updated in cart ${payload.cartId} via token`)
@@ -433,10 +497,10 @@ export class CartController {
         cartItem: {
           id: updatedCartItem.id,
           type: 'product',
-          name: updatedCartItem.product.name,
-          price: updatedCartItem.product.price,
+          name: updatedCartItem.product?.name || `Product ${updatedCartItem.productId}`,
+          price: updatedCartItem.product?.price || 0,
           quantity: updatedCartItem.quantity,
-          total: updatedCartItem.product.price * updatedCartItem.quantity
+          total: (updatedCartItem.product?.price || 0) * updatedCartItem.quantity
         },
         cart: {
           totalAmount: totalAmount,
@@ -511,7 +575,12 @@ export class CartController {
       })
 
       const totalAmount = cartWithItems!.items.reduce((sum, item) => {
-        return sum + (item.product.price * item.quantity)
+        // 🎯 TASK: Handle missing product gracefully
+        if (!item.product) {
+          console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+          return sum
+        }
+        return sum + ((item.product.price || 0) * item.quantity)
       }, 0)
 
       logger.info(`[CART] Item ${itemId} removed from cart ${payload.cartId} via token`)
@@ -580,7 +649,12 @@ export class CartController {
       }
 
       const totalAmount = cart.items.reduce((sum, item) => {
-        return sum + (item.product.price * item.quantity)
+        // 🎯 TASK: Handle missing product gracefully
+        if (!item.product) {
+          console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+          return sum
+        }
+        return sum + ((item.product.price || 0) * item.quantity)
       }, 0)
 
       // Generate unique order code
@@ -597,18 +671,73 @@ export class CartController {
           paymentMethod: paymentMethod as any,
           shippingAddress: shippingAddress || cart.customer.address,
           items: {
-            create: cart.items.map(item => ({
-              productId: item.productId,
-              quantity: item.quantity,
-              unitPrice: item.product.price,
-              totalPrice: item.product.price * item.quantity
-            }))
+            create: cart.items.map(item => {
+              // 🎯 TASK: Handle missing product gracefully
+              if (!item.product) {
+                console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
+                return {
+                  productId: item.productId,
+                  quantity: item.quantity,
+                  unitPrice: 0,
+                  totalPrice: 0
+                }
+              }
+              return {
+                productId: item.productId,
+                quantity: item.quantity,
+                unitPrice: item.product.price || 0,
+                totalPrice: (item.product.price || 0) * item.quantity
+              }
+            })
           }
         },
         include: {
           items: true
         }
       })
+
+      // 🎯 TASK: Auto-update customer address in database
+      try {
+        // Validate shipping address fields if provided
+        const hasValidShippingAddress = shippingAddress && 
+          shippingAddress.firstName && 
+          shippingAddress.lastName && 
+          shippingAddress.address && 
+          shippingAddress.city && 
+          shippingAddress.postalCode;
+
+        if (hasValidShippingAddress) {
+          // Create structured address object for customer
+          const customerAddress = {
+            name: `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim(),
+            street: shippingAddress.address,
+            city: shippingAddress.city,
+            postalCode: shippingAddress.postalCode,
+            province: shippingAddress.province || "",
+            country: shippingAddress.country || "Italy",
+            phone: shippingAddress.phone || cart.customer.phone || ""
+          };
+
+          // Update customer address in database
+          await prisma.customers.update({
+            where: {
+              id: cart.customerId,
+              workspaceId: validation.data.workspaceId
+            },
+            data: {
+              address: JSON.stringify(customerAddress),
+              updatedAt: new Date()
+            }
+          });
+
+          logger.info(`[CART] Auto-updated customer address for ${cart.customerId}:`, customerAddress);
+        } else {
+          logger.info(`[CART] No valid shipping address provided for customer ${cart.customerId}, using existing address`);
+        }
+      } catch (addressUpdateError) {
+        // Don't fail the order if address update fails
+        logger.error(`[CART] Failed to auto-update customer address for ${cart.customerId}:`, addressUpdateError);
+      }
 
       // Clear cart
       await prisma.cartItems.deleteMany({
