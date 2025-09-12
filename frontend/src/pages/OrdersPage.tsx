@@ -8,43 +8,43 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { logger } from "@/lib/logger"
 import { clientsApi } from "@/services/clientsApi"
 import {
-    ordersApi,
-    type ItemType,
-    type Order,
-    type OrderStatus,
-    type PaymentMethod,
+  ordersApi,
+  type ItemType,
+  type Order,
+  type OrderStatus,
+  type PaymentMethod,
 } from "@/services/ordersApi"
 import { productsApi } from "@/services/productsApi"
 import { servicesApi } from "@/services/servicesApi"
 import { commonStyles } from "@/styles/common"
 import { formatPrice } from "@/utils/format"
 import {
-    Eye,
-    FileText,
-    Package,
-    Pencil,
-    Plus,
-    ShoppingCart,
-    Trash2,
-    Truck,
-    Wrench,
+  Eye,
+  FileText,
+  Package,
+  Pencil,
+  Plus,
+  ShoppingCart,
+  Trash2,
+  Truck,
+  Wrench,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"

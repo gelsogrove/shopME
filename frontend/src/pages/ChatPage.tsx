@@ -1,6 +1,7 @@
 import { PageLayout } from "@/components/layout/PageLayout"
 import { ClientSheet } from "@/components/shared/ClientSheet"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { MessageRenderer } from "@/components/shared/MessageRenderer"
 import { WhatsAppChatModal } from "@/components/shared/WhatsAppChatModal"
 import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon"
 import { useWorkspace } from "@/hooks/use-workspace"
@@ -842,9 +843,6 @@ export function ChatPage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="font-medium text-sm flex items-center gap-1">
-                          <span className="text-lg" title={`Language: ${chat.customerLanguage || 'Unknown'}`}>
-                            {getLanguageFlag(chat.customerLanguage)}
-                          </span>
                           {chat.customerName}{" "}
                           {chat.companyName ? `(${chat.companyName})` : ""}
                           {/* Blocked user indicator */}
@@ -1167,21 +1165,10 @@ export function ChatPage() {
                           )}
 
                           <div className="text-sm break-words">
-                            <ReactMarkdown
-                              remarkPlugins={[remarkGfm]}
-                              components={{
-                                a: ({ node, ...props }) => (
-                                  <a
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:underline"
-                                    {...props}
-                                  />
-                                ),
-                              }}
-                            >
-                              {message.content}
-                            </ReactMarkdown>
+                            <MessageRenderer
+                              content={message.content}
+                              variant="chat"
+                            />
                           </div>
 
                           <div className="flex justify-between items-center mt-1">
@@ -1381,7 +1368,7 @@ export function ChatPage() {
         onClose={handleClosePlayground}
         channelName="WhatsApp Chat"
         workspaceId={workspace?.id}
-        selectedChat={selectedChat}
+        selectedChat={selectedChat as any}
       />
     </PageLayout>
   )

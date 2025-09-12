@@ -20,6 +20,49 @@
 - **Priorità**: MEDIA
 - **Stato**: PENDING
 
+### TASK: Layout diversi tra chatHistory e popup chat
+- **Descrizione**: Si vedono due layout diversi tra la pagina chatHistory e il popup chat. Non si sa se dipende da una chiamata diversa al backend. Investigare le differenze di layout e le chiamate API per identificare la causa.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+- **Note**: Potrebbe essere correlato al task critico del rilevamento lingua dell'utente
+
+### TASK: Totali in BOLD dentro la conversazione
+- **Descrizione**: I totali devono essere visualizzati in grassetto (BOLD) all'interno delle conversazioni del chatbot. Attualmente i totali non sono evidenziati correttamente.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+
+### TASK: LLM non saluta l'utente con il suo nome
+- **Descrizione**: Il LLM non saluta l'utente utilizzando il suo nome personale. Dovrebbe riconoscere e utilizzare il nome dell'utente nei saluti e nelle interazioni.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+- **Note**: Potrebbe essere correlato al task critico del rilevamento lingua dell'utente
+
+### TASK: Rimuovere campo Notes dalla lista ordini
+- **Descrizione**: Nella lista degli ordini non deve essere presente il campo Notes. Il campo Notes deve essere visibile e modificabile solo nel form di modifica ordine, non nella tabella di lista.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+
+### TASK: Assicurarsi che al salvataggio venga generata la generazione di nuovi embed
+- **Descrizione**: Verificare e implementare la generazione automatica di nuovi embedding quando vengono salvati dati nel sistema. Questo è importante per mantenere aggiornato il sistema di ricerca semantica.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+
+### TASK: Verificare che le FAQ non attive non vengano prese in considerazione
+- **Descrizione**: Verificare che nel sistema di ricerca semantica e nel chatbot, le FAQ con status "non attivo" (isActive = false) non vengano incluse nei risultati di ricerca o nelle risposte del sistema.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+
+### TASK: Investigare determinazione workspaceID per nuovi utenti
+- **Descrizione**: Quando un nuovo utente scrive, il sistema deve determinare a quale channel/workspace sta scrivendo per identificare il corretto workspaceID. Investigare se questa funzionalità è già implementata e come funziona, oppure se deve essere sviluppata.
+- **Priorità**: ALTA
+- **Stato**: PENDING
+- **Note**: Critico per il funzionamento del sistema multitenant
+
+### TASK: Impostare default "ultimo mese" nella tendina analytics
+- **Descrizione**: Nella pagina analytics (http://localhost:3000/analytics), la tendina per la selezione del periodo deve avere come default "ultimo mese" invece di un periodo diverso.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+
 ## ✅ TASK COMPLETATI
 
 ### TASK: Orders - Riorganizzare campo Notes
@@ -42,8 +85,16 @@
 - **Descrizione**: Sostituito ReactMarkdown con MessageRenderer in ChatPage.tsx per garantire consistenza nel rendering dei messaggi tra popup chat e history chat.
 - **Stato**: COMPLETATO
 
+### TASK: Unire Customer Name e Company Name nella lista ordini
+- **Descrizione**: Unite le colonne "Customer Name" e "Company Name" in una singola colonna "Customer" con formato "Nome Cognome (Nome Azienda)", mantenendo la coerenza con la lista clienti. La colonna è cliccabile per navigare ai dettagli del cliente.
+- **Stato**: COMPLETATO
+
+### TASK: Rimuovere colonna Push dalla lista clienti
+- **Descrizione**: Rimossa la colonna "Push" dalla tabella dei clienti per semplificare l'interfaccia. La colonna mostrava lo stato delle notifiche push (Enabled/Disabled) ma non era necessaria nella vista principale.
+- **Stato**: COMPLETATO
+
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 8 (5 completati, 3 pending)
-**Task critici**: 1
+**Task totali**: 18 (7 completati, 11 pending)
+**Task critici**: 2

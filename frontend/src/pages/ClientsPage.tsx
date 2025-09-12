@@ -393,21 +393,6 @@ export default function ClientsPage(): JSX.Element {
       ),
     },
     {
-      header: "Push",
-      accessorKey: "push_notifications_consent",
-      cell: ({ row }) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs ${
-            row.original.push_notifications_consent
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {row.original.push_notifications_consent ? "Enabled" : "Disabled"}
-        </span>
-      ),
-    },
-    {
       header: "Chatbot",
       accessorKey: "activeChatbot",
       cell: ({ row }) => (
