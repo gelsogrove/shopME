@@ -13,12 +13,14 @@
 ### TASK: Controllare ordine della chatHistory
 - **Descrizione**: Verificare e correggere l'ordine di visualizzazione dei messaggi nella cronologia chat
 - **Priorità**: MEDIA
-- **Stato**: PENDING
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Ordine di visualizzazione dei messaggi nella cronologia chat corretto e funzionante.
 
 ### TASK: Indirizzo di Spedizione mancante nello step 3 dell'ordine
 - **Descrizione**: Aggiungere il campo indirizzo di spedizione nello step 3 del processo di checkout/ordine. L'indirizzo di spedizione deve essere visibile e modificabile durante la creazione dell'ordine.
 - **Priorità**: MEDIA
-- **Stato**: PENDING
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Campo indirizzo di spedizione aggiunto nello step 3 del checkout. L'indirizzo è ora visibile e modificabile durante la creazione dell'ordine come richiesto.
 
 ### TASK: Layout diversi tra chatHistory e popup chat
 - **Descrizione**: Si vedono due layout diversi tra la pagina chatHistory e il popup chat. Non si sa se dipende da una chiamata diversa al backend. Investigare le differenze di layout e le chiamate API per identificare la causa.
@@ -29,29 +31,38 @@
 ### TASK: Totali in BOLD dentro la conversazione
 - **Descrizione**: I totali devono essere visualizzati in grassetto (BOLD) all'interno delle conversazioni del chatbot. Attualmente i totali non sono evidenziati correttamente.
 - **Priorità**: MEDIA
-- **Stato**: PENDING
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - I totali sono ora visualizzati in grassetto (BOLD) all'interno delle conversazioni del chatbot come richiesto.
 
 ### TASK: LLM non saluta l'utente con il suo nome
 - **Descrizione**: Il LLM non saluta l'utente utilizzando il suo nome personale. Dovrebbe riconoscere e utilizzare il nome dell'utente nei saluti e nelle interazioni.
 - **Priorità**: MEDIA
-- **Stato**: PENDING
-- **Note**: Potrebbe essere correlato al task critico del rilevamento lingua dell'utente
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Il LLM ora saluta l'utente utilizzando il suo nome personale nei saluti e nelle interazioni come richiesto.
 
 ### TASK: Assicurarsi che al salvataggio venga generata la generazione di nuovi embed
 - **Descrizione**: Verificare e implementare la generazione automatica di nuovi embedding quando vengono salvati dati nel sistema. Questo è importante per mantenere aggiornato il sistema di ricerca semantica.
 - **Priorità**: MEDIA
-- **Stato**: PENDING
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - La generazione automatica di nuovi embedding è ora implementata quando vengono salvati dati nel sistema. Il sistema di ricerca semantica rimane aggiornato.
 
 ### TASK: Verificare che le FAQ non attive non vengano prese in considerazione
 - **Descrizione**: Verificare che nel sistema di ricerca semantica e nel chatbot, le FAQ con status "non attivo" (isActive = false) non vengano incluse nei risultati di ricerca o nelle risposte del sistema.
 - **Priorità**: MEDIA
-- **Stato**: PENDING
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Analizzato sistema FAQ e corretti 3 punti dove le FAQ non attive venivano incluse: 1) faq.repository.ts findAll() - CORRETTO, 2) faq.repository.ts findById() - CORRETTO, 3) function-handler.service.ts getFaqInfo() - CORRETTO. Il sistema di ricerca semantica (embeddingService.searchFAQs) già filtrava correttamente per isActive: true. Test confermato: ora solo le FAQ attive vengono restituite in tutti i punti del sistema.
 
 ### TASK: Investigare determinazione workspaceID per nuovi utenti
 - **Descrizione**: Quando un nuovo utente scrive, il sistema deve determinare a quale channel/workspace sta scrivendo per identificare il corretto workspaceID. Investigare se questa funzionalità è già implementata e come funziona, oppure se deve essere sviluppata.
 - **Priorità**: ALTA
-- **Stato**: PENDING
-- **Note**: Critico per il funzionamento del sistema multitenant
+- **Stato**: COMPLETATO
+- **Note**: 
+  - **SITUAZIONE ATTUALE**: Sistema usa workspaceID fisso da variabile d'ambiente WHATSAPP_WORKSPACE_ID
+  - **FRONTEND SIMULAZIONE**: Funziona perfettamente perché manda sempre workspaceID esplicito
+  - **WHATSAPP REALE**: Non implementabile ora perché manca numero destinatario nel webhook
+  - **SISTEMA MULTICANALE**: Architettura pronta per multi-tenant quando necessario
+  - **PRODUCTION READY**: Sistema single-tenant funziona correttamente
+  - **PRD AGGIORNATO**: Documentata strategia futura per routing dinamico
 
 ### TASK: Migliorare comprensione LLM delle sfumature linguistiche negli ordini
 - **Descrizione**: Il LLM attualmente non distingue tra "procedi con l'ordine" e "conferma ordine". Deve capire queste sfumature linguistiche per gestire correttamente i diversi stati del processo di ordine. Implementare logica per distinguere tra:
@@ -83,6 +94,12 @@
 - **Priorità**: MEDIA
 - **Stato**: PENDING
 - **Note**: Importante per trasparenza sui costi del servizio e per aiutare gli utenti a comprendere la struttura dei prezzi
+
+### TASK: Rimuovere bottone "Processed prompt" dalla popup chatbot WhatsApp
+- **Descrizione**: Nella popup del chatbot WhatsApp c'è un bottone "Processed prompt" che non deve essere visibile. Andrea vuole solo sapere come il sistema traduce le variabili ({{nameUser}}, {{discountUser}}, {{companyName}}, {{lastordercode}}, {{languageUser}}) ma non vuole vedere il bottone nell'interfaccia.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+- **Note**: Il bottone deve essere nascosto/rimosso dall'interfaccia utente, ma la funzionalità di traduzione delle variabili deve rimanere attiva per il debug interno
 
 ## ✅ TASK COMPLETATI
 
@@ -125,5 +142,5 @@
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 22 (12 completati, 10 pending)
+**Task totali**: 23 (18 completati, 5 pending)
 **Task critici**: 0

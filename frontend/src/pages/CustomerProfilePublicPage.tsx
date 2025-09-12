@@ -1,5 +1,7 @@
+import { Button } from '@/components/ui/button'
 import { logger } from "@/lib/logger"
 import axios from 'axios'
+import { ShoppingCart, User } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -164,6 +166,43 @@ const CustomerProfilePublicPage: React.FC = () => {
     window.location.href = ordersUrl
   }
 
+  // 🛒 Navigate to cart
+  // 📋 Handle view cart - Use same token (TOKEN-ONLY system)
+  const handleViewCart = () => {
+    logger.info('[PROFILE] View Cart clicked, using current token:', token)
+    
+    // Use current token and redirect to cart page (TOKEN-ONLY)
+    const cartUrl = `/cart-public?token=${token}`
+    logger.info('[PROFILE] Redirecting to cart:', cartUrl)
+    window.location.href = cartUrl
+  }
+
+  // 🌐 Get localized text based on customer language
+  const getLocalizedText = (language: string) => {
+    const texts = {
+      'ENG': {
+        title: 'Customer Profile Management',
+        description: 'Modify your personal data securely',
+        viewOrders: 'View Orders',
+        viewCart: 'View Cart'
+      },
+      'IT': {
+        title: 'Gestione Profilo Cliente',
+        description: 'Modifica i tuoi dati personali in sicurezza',
+        viewOrders: 'Visualizza Ordini',
+        viewCart: 'Vedi Carrello'
+      },
+      'ES': {
+        title: 'Gestión de Perfil de Cliente',
+        description: 'Modifica tus datos personales de forma segura',
+        viewOrders: 'Ver Pedidos',
+        viewCart: 'Ver Carrito'
+      }
+    }
+    
+    return texts[language as keyof typeof texts] || texts['ENG']
+  }
+
   // Show loading state during token validation
   if (tokenLoading) {
     return (
@@ -216,26 +255,41 @@ const CustomerProfilePublicPage: React.FC = () => {
   }
 
   // Show profile form
+  const localizedText = profileData ? getLocalizedText(profileData.language) : getLocalizedText('ENG')
+  
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        {/* Header - Uniformed with other pages */}
+        <div className="flex flex-col space-y-1 mb-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Customer Profile Management</h1>
-              <p className="text-gray-600 mt-1">
-                Modify your personal data securely
-              </p>
+            <div className="flex items-center gap-2">
+              <User className="h-8 w-8 text-blue-600" />
+              <h1 className="text-3xl font-bold text-gray-900">
+                {localizedText.title}
+              </h1>
             </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={handleViewOrders}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={handleViewCart}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
               >
-                View Orders
-              </button>
+                <ShoppingCart className="h-4 w-4" />
+                {localizedText.viewCart}
+              </Button>
+              <Button
+                onClick={handleViewOrders}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {localizedText.viewOrders}
+              </Button>
             </div>
+          </div>
+          <div className="text-sm text-gray-600 ml-10">
+            {localizedText.description}
           </div>
         </div>
 

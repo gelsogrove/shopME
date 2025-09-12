@@ -6267,6 +6267,94 @@ export const getWorkspaceId = (workspaceId?: string): string | null => {
 - No API calls made without valid workspace ID
 - UI components show appropriate warnings
 - Buttons disabled when workspace unavailable
+
+### WhatsApp Workspace Routing - Multi-Channel Architecture
+
+#### Current Implementation Status
+
+**Single Workspace Configuration (Production Ready)**
+
+The current system uses a fixed workspace ID for all WhatsApp users via environment variable:
+
+```typescript
+// backend/src/routes/index.ts (Line 354)
+workspaceId = process.env.WHATSAPP_WORKSPACE_ID || "cm9hjgq9v00014qk8fsdy4ujv";
+```
+
+**Why This Approach Works Now:**
+
+1. **Frontend Simulation**: The WhatsApp chat modal always sends the correct workspaceID
+2. **Single Business Context**: Currently serving one business (L'Altra Italia ESP)
+3. **Consistent User Experience**: All users get proper workspace isolation
+4. **Production Stability**: No routing logic means no routing failures
+
+#### Multi-Channel Architecture Strategy
+
+**Current Channel Support:**
+
+- ✅ **Frontend Chat Modal**: Always includes workspaceID parameter
+- ✅ **Test Format**: Supports dynamic workspaceID via API
+- 🔄 **WhatsApp Real**: Uses fixed workspace from environment variable
+- 🔄 **Future Channels**: Will require dynamic workspace determination
+
+#### Future Multi-Tenant Implementation
+
+**When Real WhatsApp Integration Requires Multi-Tenant:**
+
+The system is designed to support multi-tenant workspace routing when needed:
+
+1. **Workspace-to-Phone Mapping**: Use `whatsappPhoneNumber` field in Workspace table
+2. **Dynamic Routing Logic**: Determine workspace based on destination phone number
+3. **Fallback Strategy**: Existing logic in MessageRepository for workspace discovery
+
+**Implementation Strategy:**
+
+```typescript
+// Future implementation when WhatsApp provides destination number
+async function determineWorkspaceForWhatsApp(destinationPhone: string): Promise<string> {
+  // 1. Find workspace by WhatsApp phone number
+  const workspace = await prisma.workspace.findFirst({
+    where: { 
+      whatsappPhoneNumber: destinationPhone,
+      isActive: true 
+    }
+  });
+  
+  if (workspace) return workspace.id;
+  
+  // 2. Fallback to environment variable (current behavior)
+  return process.env.WHATSAPP_WORKSPACE_ID || "cm9hjgq9v00014qk8fsdy4ujv";
+}
+```
+
+#### Multi-Language Support
+
+**Language Detection System:**
+
+- ✅ **Message Content Analysis**: Automatic language detection from user messages
+- ✅ **Multi-Language Responses**: Italian, English, Spanish, Portuguese support
+- ✅ **Dynamic Welcome Messages**: Language-specific welcome messages from database
+
+**Cross-Channel Consistency:**
+
+All channels (WhatsApp, Frontend, Future integrations) support the same multi-language system, ensuring consistent user experience regardless of entry point.
+
+#### Technical Implementation Notes
+
+**Current Limitations (By Design):**
+
+- WhatsApp webhook doesn't provide destination phone number in current implementation
+- Multi-tenant routing requires this information from WhatsApp Business API
+- Frontend simulation works perfectly with explicit workspaceID
+
+**Production Readiness:**
+
+- ✅ Single-tenant system is fully production ready
+- ✅ Multi-language support across all channels
+- ✅ Proper workspace isolation and security
+- 🔄 Multi-tenant routing ready for future implementation when needed
+
+This architecture ensures the system works reliably now while being prepared for future multi-tenant requirements when WhatsApp integration provides the necessary routing information.
 - Clear messaging about workspace requirement
 
 This comprehensive approach ensures that new users have a smooth onboarding experience while preventing technical errors related to missing workspace context.

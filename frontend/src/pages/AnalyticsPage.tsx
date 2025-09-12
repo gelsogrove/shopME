@@ -5,6 +5,7 @@ import {
 } from "@/components/analytics/DateRangeSelector"
 import { HistoricalChart } from "@/components/analytics/HistoricalChart"
 import { MetricsOverview } from "@/components/analytics/MetricsOverview"
+import { PricingList } from "@/components/analytics/PricingList"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -149,6 +150,9 @@ export function AnalyticsPage() {
 
           {/* Historical Chart */}
           <HistoricalChart analytics={analytics} />
+
+          {/* Pricing List */}
+          <PricingList />
 
           {/* Additional Analytics Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -676,7 +676,7 @@ export function WhatsAppChatModal({
             </button>
             <button
               onClick={() => setShowProcessedPrompt(!showProcessedPrompt)}
-              className={`text-white hover:bg-green-600 rounded-full p-2 transition ${showProcessedPrompt ? 'bg-green-600' : ''}`}
+              className={`text-white hover:bg-green-600 rounded-full p-2 transition ${showProcessedPrompt ? 'bg-green-600' : ''} hidden`}
               aria-label="Toggle Processed Prompt Debug"
               title="Show/Hide Processed Prompt Debug"
             >

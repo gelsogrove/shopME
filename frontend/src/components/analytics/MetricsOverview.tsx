@@ -1,13 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardAnalytics } from "@/services/analyticsApi"
 import {
-  Euro,
-  MessageCircle,
-  Minus,
-  ShoppingCart,
-  TrendingDown,
-  TrendingUp,
-  Users,
+    Euro,
+    MessageCircle,
+    Minus,
+    ShoppingCart,
+    TrendingDown,
+    TrendingUp,
+    Users,
 } from "lucide-react"
 import React from "react"
 
@@ -117,6 +117,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
     }).format(value)
   }
 
+
   const metrics = [
     {
       title: "Total Orders",
@@ -168,7 +169,7 @@ export const MetricsOverview: React.FC<MetricsOverviewProps> = ({
             previousPeriodAnalytics.overview.usageCost
           )
         : undefined,
-      description: "€0.005 per LLM response (0.5 cents)",
+      description: undefined, // RIMOSSA LA DESCRIZIONE
     },
   ]
 

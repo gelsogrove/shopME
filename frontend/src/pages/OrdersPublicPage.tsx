@@ -1,4 +1,5 @@
 import axios from "axios"
+import { ShoppingCart, User } from "lucide-react"
 import React, { useEffect, useState } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
 import { useTokenValidation } from "../hooks/useTokenValidation"
@@ -87,6 +88,29 @@ const formatCurrency = (num: number) =>
     num
   )
 
+// 🌐 Get localized text based on customer language (fallback to ENG)
+const getLocalizedText = (language?: string) => {
+  const texts = {
+    'ENG': {
+      yourOrders: 'Your Orders',
+      viewProfile: 'View Profile',
+      viewCart: 'View Cart'
+    },
+    'IT': {
+      yourOrders: 'I Tuoi Ordini',
+      viewProfile: 'Visualizza Profilo',
+      viewCart: 'Vedi Carrello'
+    },
+    'ES': {
+      yourOrders: 'Tus Pedidos',
+      viewProfile: 'Ver Perfil',
+      viewCart: 'Ver Carrito'
+    }
+  }
+  
+  return texts[language as keyof typeof texts] || texts['ENG']
+}
+
 const OrdersPublicPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const { orderCode } = useParams<{ orderCode?: string }>()
@@ -97,6 +121,16 @@ const OrdersPublicPage: React.FC = () => {
   const [detailData, setDetailData] = useState<OrderDetailResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // 🛒 Navigate to cart
+  // 📋 Handle view cart - Use same token (TOKEN-ONLY system)
+  const handleViewCart = () => {
+    if (!token) return
+    
+    // Use current token and redirect to cart page (TOKEN-ONLY)
+    const cartUrl = `/cart-public?token=${token}`
+    window.location.href = cartUrl
+  }
 
   // 🔐 Token validation for secure access
   const {
@@ -285,17 +319,27 @@ const OrdersPublicPage: React.FC = () => {
                   Status: {o.status} • Date: {formatDate(o.date)}
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  // Use current token for profile page (TOKEN-ONLY system)
-                  // Same token works for all pages - no need to generate new token
-                  const profileUrl = `/customer-profile?token=${token}`
-                  window.location.href = profileUrl
-                }}
-                className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              >
-                View Profile
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleViewCart}
+                  className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  {getLocalizedText().viewCart}
+                </button>
+                <button
+                  onClick={() => {
+                    // Use current token for profile page (TOKEN-ONLY system)
+                    // Same token works for all pages - no need to generate new token
+                    const profileUrl = `/customer-profile?token=${token}`
+                    window.location.href = profileUrl
+                  }}
+                  className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  {getLocalizedText().viewProfile}
+                </button>
+              </div>
             </div>
           </div>
           <div className="bg-white rounded-b-lg shadow-sm border p-6 space-y-6">
@@ -628,22 +672,32 @@ const OrdersPublicPage: React.FC = () => {
           <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-lg p-6 text-white">
             <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-2xl font-bold">Your Orders</h1>
+                <h1 className="text-2xl font-bold">{getLocalizedText().yourOrders}</h1>
                 <p className="opacity-90">
                   {listData.customer.name} • {listData.workspace.name}
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  // Use current token for profile page (TOKEN-ONLY system)
-                  // Same token works for all pages - no need to generate new token
-                  const profileUrl = `/customer-profile?token=${token}`
-                  window.location.href = profileUrl
-                }}
-                className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              >
-                View Profile
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleViewCart}
+                  className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  {getLocalizedText().viewCart}
+                </button>
+                <button
+                  onClick={() => {
+                    // Use current token for profile page (TOKEN-ONLY system)
+                    // Same token works for all pages - no need to generate new token
+                    const profileUrl = `/customer-profile?token=${token}`
+                    window.location.href = profileUrl
+                  }}
+                  className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  {getLocalizedText().viewProfile}
+                </button>
+              </div>
             </div>
           </div>
           <div className="bg-white rounded-b-lg shadow-sm border p-6">
