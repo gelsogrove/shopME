@@ -64,8 +64,8 @@
 ### TASK: Aggiungere nome società nella chat history
 - **Descrizione**: Nella chat history attualmente viene mostrato solo il nome del cliente (es. "Mario Rossi"). Deve essere aggiunto anche il nome della società per una migliore identificazione. Formato richiesto: "Mario Rossi (Rossi Limited S.r.l.)" - nome cliente seguito dal nome società tra parentesi.
 - **Priorità**: MEDIA
-- **Stato**: PENDING
-- **Note**: Migliora l'identificazione dei clienti nella chat history, specialmente quando ci sono clienti con nomi simili ma società diverse
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Corretto il backend per includere il campo 'company' nella query del customer nel metodo getChatSessionsWithUnreadCounts. Il frontend già supportava la visualizzazione del nome della società nel formato richiesto: "Nome Cliente (Nome Società)". Ora Mario Rossi dovrebbe apparire come "Mario Rossi (Rossi Limited S.r.l.)" nella lista delle chat.
 
 ### TASK: Migliorare pagina Customer Profile
 - **Descrizione**: La pagina customer-profile (es. http://localhost:3000/customer-profile?token=...) necessita di miglioramenti:
@@ -125,5 +125,5 @@
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 22 (11 completati, 11 pending)
+**Task totali**: 22 (12 completati, 10 pending)
 **Task critici**: 0

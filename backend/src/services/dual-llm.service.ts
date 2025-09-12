@@ -411,7 +411,8 @@ export class DualLLMService {
       const ragResponse = await axios.post('http://localhost:3001/api/internal/rag-search', {
         query: translatedQuery,
         workspaceId: request.workspaceId,
-        customerId: request.customerid || null
+        customerId: request.customerid || null,
+        welcomeBackMessage: request.welcomeBackMessage || null // 🎯 TASK: Pass welcome back message
       });
 
       if (!ragResponse.data.success) {
@@ -788,11 +789,16 @@ Please provide a helpful response that:
 4. Maintains a warm, helpful tone`
     }
 
-    return `User asked: "${userQuery}"
+    // 🎯 TASK: Include welcome back message if available
+    const welcomeBackContext = request.welcomeBackMessage ? 
+      `\nIMPORTANT: The customer is returning after a period of inactivity. Include this welcome back message: "${request.welcomeBackMessage}"\n` : 
+      '';
 
+    return `User asked: "${userQuery}"
+${welcomeBackContext}
 ${dataContext}
 
-Please create a natural, helpful response in ${languageName}.`
+Please create a natural, helpful response in ${languageName}.${request.welcomeBackMessage ? ' Make sure to include the welcome back message naturally in your response.' : ''}`
   }
 
   private buildFallbackResponse(request: LLMRequest, ragResult: any): string {
@@ -822,11 +828,14 @@ Please create a natural, helpful response in ${languageName}.`
       fallbackMessages[language as keyof typeof fallbackMessages] ||
       fallbackMessages["it"]
 
+    // 🎯 TASK: Include welcome back message if available
+    const welcomeBackPrefix = request.welcomeBackMessage ? `${request.welcomeBackMessage}\n\n` : '';
+
     if (ragResult.functionResults && ragResult.functionResults.length > 0) {
-      return messages.found
+      return welcomeBackPrefix + messages.found
     }
 
-    return messages.notFound
+    return welcomeBackPrefix + messages.notFound
   }
 
   private getRAGProcessorFunctionDefinitions(): any[] {

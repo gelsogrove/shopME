@@ -709,6 +709,12 @@ async function main() {
           es: "¡Bienvenido a L'Altra Italia! 👋 Soy tu asistente virtual y estoy aquí para ayudarte con cualquier información sobre nuestros productos y servicios. Antes de comenzar, te invitamos a registrarte en nuestro servicio: podrás consultar nuestras políticas de privacidad y descubrir cómo protegemos tus datos, que serán custodiados de forma segura en nuestra base de datos y nunca serán compartidos con terceros.",
           pt: "Bem-vindo à L'Altra Italia! 👋 Sou o seu assistente virtual e estou aqui para ajudá-lo com informações sobre os nossos produtos e serviços. Antes de começar, convidamo-lo a registar-se no nosso serviço: poderá consultar as nossas políticas de privacidade e descobrir como protegemos os seus dados, que serão guardados de forma segura na nossa base de dados e nunca serão partilhados com terceiros.",
         },
+        afterRegistrationMessages: {
+          it: "Ben tornato, {name}! 👋 Come posso aiutarti oggi?",
+          en: "Welcome back, {name}! 👋 How can I help you today?",
+          es: "¡Bienvenido de nuevo, {name}! 👋 ¿Cómo puedo ayudarte hoy?",
+          pt: "Bem-vindo de volta, {name}! 👋 Como posso ajudá-lo hoje?",
+        },
         debugMode: false,
       },
     })

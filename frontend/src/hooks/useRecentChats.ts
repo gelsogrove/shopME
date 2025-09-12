@@ -40,7 +40,7 @@ export function useRecentChats() {
             customerName: chat.customer?.name || "Unknown Customer",
             customerPhone: chat.customer?.phone || "",
             language: chat.context?.language || chat.customer?.language || "en", // Map to 'language' field
-            companyName: chat.customer?.company || "",
+            companyName: chat.customer?.company || null,
             lastMessage: chat.lastMessage || "",
             lastMessageTime: chat.updatedAt || chat.createdAt,
             unreadCount: chat.unreadCount || 0,

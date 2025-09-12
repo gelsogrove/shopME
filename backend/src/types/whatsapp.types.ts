@@ -10,6 +10,7 @@ export interface LLMRequest {
   model: string;
   messages: any[];
   prompt: string;
+  welcomeBackMessage?: string; // 🎯 TASK: Welcome back message for returning customers
 }
 
 export interface LLMResponse {

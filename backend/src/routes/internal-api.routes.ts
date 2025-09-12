@@ -1,13 +1,12 @@
-import { Router, Request, Response } from 'express';
-import { SearchService } from '../services/searchService';
-import { embeddingService } from '../services/embeddingService';
+import { Request, Response, Router } from 'express';
 import { PriceCalculationService } from '../application/services/price-calculation.service';
 import { prisma } from '../lib/prisma';
+import { embeddingService } from '../services/embeddingService';
 import logger from '../utils/logger';
 // Import public orders routes
 import publicOrdersRoutes from './public-orders.routes';
 // Import cart intent detection
-import { detectCartIntent, shouldTriggerCartOperation, handleAutomaticCartOperation } from '../utils/cart-intent-detector';
+import { detectCartIntent, handleAutomaticCartOperation, shouldTriggerCartOperation } from '../utils/cart-intent-detector';
 
 const router = Router();
 
@@ -20,7 +19,7 @@ const router = Router();
  */
 router.post('/rag-search', async (req: Request, res: Response) => {
   try {
-    const { query, workspaceId, customerId } = req.body;
+    const { query, workspaceId, customerId, welcomeBackMessage } = req.body;
 
     if (!query || !workspaceId) {
       return res.status(400).json({
@@ -127,6 +126,7 @@ router.post('/rag-search', async (req: Request, res: Response) => {
       },
       cartIntent: cartIntentResult,
       cartOperation: cartOperationResult,
+      welcomeBackMessage: welcomeBackMessage || null, // 🎯 TASK: Include welcome back message
       query,
       workspaceId,
       timestamp: new Date().toISOString()

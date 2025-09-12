@@ -576,6 +576,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
       
       // Get agent config with prompt from database
       let agentPrompt = "WhatsApp conversation"; // fallback
+      let welcomeBackMessage = null; // 🎯 TASK: Declare welcome back message variable
       try {
         const agentConfig = await prisma.agentConfig.findFirst({
           where: { workspaceId: workspaceId }
@@ -613,6 +614,27 @@ router.post("/whatsapp/webhook", async (req, res) => {
           lastordercode: lastOrder?.orderCode || 'N/A',
           languageUser: customer?.language || 'it'
         };
+        
+        // 🎯 TASK: Check if customer has recent activity for "Bentornato {NOME}" functionality
+        try {
+          const messageRepository = new MessageRepository();
+          const hasRecentActivity = await messageRepository.hasRecentActivity(customerId, 2, workspaceId);
+          
+          if (!hasRecentActivity) {
+            // Customer hasn't been active in last 2 hours - show welcome back message
+            welcomeBackMessage = await messageRepository.getWelcomeBackMessage(
+              workspaceId, 
+              customer?.name || 'Cliente', 
+              customer?.language || 'it'
+            );
+            console.log(`👋 WELCOME BACK: Customer ${customer?.name} returning after >2 hours - message: ${welcomeBackMessage}`);
+          } else {
+            console.log(`👋 WELCOME BACK: Customer ${customer?.name} has recent activity - no welcome back needed`);
+          }
+        } catch (welcomeBackError) {
+          console.error('❌ Error checking welcome back status:', welcomeBackError);
+          // Continue without welcome back message if error occurs
+        }
         
         // console.log('✅ Variables prepared:', variables);
         // console.log(`🌐 WEBHOOK DEBUG: Customer language is "${customer?.language}", setting languageUser to "${variables.languageUser}"`);
@@ -718,7 +740,8 @@ router.post("/whatsapp/webhook", async (req, res) => {
         maxTokens: 3500,
         model: "gpt-4o",
         messages: chatHistory, // 🔥 NOW INCLUDES REAL CHAT HISTORY
-        prompt: agentPrompt
+        prompt: agentPrompt,
+        welcomeBackMessage: welcomeBackMessage || null // 🎯 TASK: Pass welcome back message to LLM
       };
       
       // Process with dual LLM service

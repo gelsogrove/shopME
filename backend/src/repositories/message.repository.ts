@@ -834,6 +834,7 @@ export class MessageRepository {
               name: true,
               email: true,
               phone: true,
+              company: true, // Include company name for chat list display
               activeChatbot: true, // Include activeChatbot for chat list icon
               isBlacklisted: true, // Include to show blacklist status in UI
               // Remove avatar as it doesn't exist in the schema
