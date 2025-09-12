@@ -1094,6 +1094,7 @@ export class FunctionHandlerService {
       const faqs = await this.prisma.fAQ.findMany({
         where: {
           workspaceId,
+          isActive: true, // ✅ Only return active FAQs
           OR: [
             { question: { contains: question, mode: 'insensitive' } },
             { answer: { contains: question, mode: 'insensitive' } }

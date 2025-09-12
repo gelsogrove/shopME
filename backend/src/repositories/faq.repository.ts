@@ -13,7 +13,10 @@ export class FaqRepository implements IFaqRepository {
   async findAll(workspaceId: string): Promise<FAQ[]> {
     try {
       const faqs = await prisma.fAQ.findMany({
-        where: { workspaceId }
+        where: { 
+          workspaceId,
+          isActive: true // ✅ Only return active FAQs
+        }
       });
       
       return faqs ? faqs.map(faq => new FAQ(faq)) : [];
@@ -31,7 +34,8 @@ export class FaqRepository implements IFaqRepository {
       const faq = await prisma.fAQ.findFirst({
         where: { 
           id,
-          workspaceId 
+          workspaceId,
+          isActive: true // ✅ Only return active FAQs
         }
       });
       
