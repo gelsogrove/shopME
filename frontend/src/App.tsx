@@ -48,7 +48,6 @@ import { WorkspaceSelectionPage } from "./pages/WorkspaceSelectionPage"
 
 const OrdersPublicPage = lazy(() => import("./pages/OrdersPublicPage"))
 const CustomerProfilePublicPage = lazy(() => import("./pages/CustomerProfilePublicPage"))
-const CartPage = lazy(() => import("./pages/CartPage"))
 
 export function App() {
   return (
@@ -99,7 +98,7 @@ export function App() {
             <Route index element={<OrdersPage />} />
           </Route>
           <Route path="/cart" element={<Layout />}>
-            <Route index element={<CartPage isPublic={false} />} />
+            <Route index element={<CheckoutPage />} />
           </Route>
           <Route path="/documents" element={<Layout />}>
             <Route index element={<DocumentsPage />} />
@@ -215,10 +214,10 @@ export function App() {
 
         {/* Public Cart page via secure token (external, no platform layout) */}
         <Route
-          path="/cart"
+          path="/cart-public"
           element={
             <Suspense fallback={<div className="min-h-screen bg-gray-100 flex items-center justify-center p-4"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>}>
-              <CartPage isPublic={true} />
+              <CheckoutPage />
             </Suspense>
           }
         />

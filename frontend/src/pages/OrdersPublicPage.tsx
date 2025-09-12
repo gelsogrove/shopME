@@ -1,7 +1,7 @@
 import axios from "axios"
-import { ShoppingCart, User } from "lucide-react"
 import React, { useEffect, useState } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
+import { TokenError, TokenLoading } from "../components/ui/TokenError"
 import { useTokenValidation } from "../hooks/useTokenValidation"
 
 interface OrderListItem {
@@ -99,7 +99,7 @@ const getLocalizedText = (language?: string) => {
     'IT': {
       yourOrders: 'I Tuoi Ordini',
       viewProfile: 'Visualizza Profilo',
-      viewCart: 'Vedi Carrello'
+      viewCart: 'Visualizza Carrello'
     },
     'ES': {
       yourOrders: 'Tus Pedidos',
@@ -121,6 +121,7 @@ const OrdersPublicPage: React.FC = () => {
   const [detailData, setDetailData] = useState<OrderDetailResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [initialLoading, setInitialLoading] = useState(true)
 
   // 🛒 Navigate to cart
   // 📋 Handle view cart - Use same token (TOKEN-ONLY system)
@@ -212,7 +213,14 @@ const OrdersPublicPage: React.FC = () => {
         setLoading(false)
       }
     }
-    load()
+    
+    if (tokenValid && token) {
+      // Simulate loading time for better UX
+      setTimeout(() => {
+        load()
+        setInitialLoading(false)
+      }, 800) // 800ms loading time
+    }
   }, [orderCode, token, tokenValid, tokenLoading])
 
   // Auto-scroll to specific order from query param on list view
@@ -230,12 +238,20 @@ const OrdersPublicPage: React.FC = () => {
   // 🔐 Show token validation loading
   if (tokenLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center max-w-md w-full">
-          <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-blue-700 font-medium">
-            Verifying security link...
-          </p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <TokenLoading className="max-w-md w-full" />
+      </div>
+    )
+  }
+
+  // Show initial loading state during data loading
+  if (tokenValid && initialLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Loading Orders</h2>
+          <p className="text-gray-600">Stiamo caricando i tuoi ordini...</p>
         </div>
       </div>
     )
@@ -244,61 +260,37 @@ const OrdersPublicPage: React.FC = () => {
   // 🔐 Show token validation error
   if (token && !tokenValid && !tokenLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center max-w-md w-full">
-          <div className="text-6xl mb-2">🔒</div>
-          <h3 className="text-lg font-semibold text-red-800 mb-1">
-            Access Denied
-          </h3>
-          <p className="text-red-700 font-medium mb-3">
-            {tokenError || "Invalid or expired link"}
-          </p>
-          <div className="text-sm text-red-700 mb-4">
-            <p className="font-medium mb-1">What you can do:</p>
-            <ul className="text-left space-y-1">
-              <li>• Request a new tracking link via WhatsApp</li>
-              <li>• Contact support if the problem persists</li>
-            </ul>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <TokenError
+          error={tokenError || "Invalid or expired link"}
+          onRetry={() => window.location.reload()}
+          showRetry={true}
+          className="max-w-md w-full"
+        />
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center max-w-md w-full">
-          <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-blue-700 font-medium">Loading orders...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Loading Orders</h2>
+          <p className="text-gray-600">Stiamo caricando i tuoi ordini...</p>
         </div>
       </div>
     )
   }
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center max-w-md w-full">
-          <div className="text-6xl mb-2">⚠️</div>
-          <h3 className="text-lg font-semibold text-red-800 mb-1">
-            Link Error
-          </h3>
-          <p className="text-red-700 font-medium mb-3">{error}</p>
-          <div className="text-sm text-red-700 mb-4">
-            <p className="font-medium mb-1">What you can do:</p>
-            <ul className="text-left space-y-1">
-              <li>• Check that you copied the entire link</li>
-              <li>• Request a new link via WhatsApp</li>
-              <li>• Verify that the link has not expired</li>
-            </ul>
-          </div>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg"
-          >
-            Try Again
-          </button>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <TokenError
+          error={error}
+          onRetry={() => window.location.reload()}
+          showRetry={true}
+          className="max-w-md w-full"
+        />
       </div>
     )
   }
@@ -307,42 +299,50 @@ const OrdersPublicPage: React.FC = () => {
   if (orderCode && detailData) {
     const o = detailData.order
     return (
-      <div className="min-h-screen bg-gray-100">
-        <div className="max-w-3xl mx-auto py-8 px-4">
-          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-lg p-6 text-white">
-            <div className="flex justify-between items-start">
-              <div>
-                <h1 className="text-2xl font-bold">
-                  Order Details {o.orderCode}
-                </h1>
-                <p className="opacity-90">
-                  Status: {o.status} • Date: {formatDate(o.date)}
-                </p>
+        <div className="min-h-screen bg-gray-100">
+          <div className="max-w-4xl mx-auto py-8 px-4">
+            {/* Header - Uniformed with other public pages */}
+            <div className="flex flex-col space-y-1 mb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg className="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    Order Details {o.orderCode}
+                  </h1>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleViewCart}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                    </svg>
+                    {getLocalizedText().viewCart}
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Use current token for profile page (TOKEN-ONLY system)
+                      // Same token works for all pages - no need to generate new token
+                      const profileUrl = `/customer-profile?token=${token}`
+                      window.location.href = profileUrl
+                    }}
+                    className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    {getLocalizedText().viewProfile}
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleViewCart}
-                  className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  {getLocalizedText().viewCart}
-                </button>
-                <button
-                  onClick={() => {
-                    // Use current token for profile page (TOKEN-ONLY system)
-                    // Same token works for all pages - no need to generate new token
-                    const profileUrl = `/customer-profile?token=${token}`
-                    window.location.href = profileUrl
-                  }}
-                  className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <User className="h-4 w-4" />
-                  {getLocalizedText().viewProfile}
-                </button>
+              <div className="text-sm text-gray-600 ml-10">
+                Status: {o.status} • Date: {formatDate(o.date)}
               </div>
             </div>
-          </div>
-          <div className="bg-white rounded-b-lg shadow-sm border p-6 space-y-6">
+          <div className="bg-white rounded-lg shadow-sm border p-6 space-y-6">
             {/* Invoice Header */}
             <div className="border-b border-gray-200 pb-6">
               <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-6 rounded-lg">
@@ -667,40 +667,50 @@ const OrdersPublicPage: React.FC = () => {
       return matchStatus && matchPayment && fromOk && toOk
     })
     return (
-      <div className="min-h-screen bg-gray-100">
-        <div className="max-w-4xl mx-auto py-8 px-4">
-          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-lg p-6 text-white">
-            <div className="flex justify-between items-start">
-              <div>
-                <h1 className="text-2xl font-bold">{getLocalizedText().yourOrders}</h1>
-                <p className="opacity-90">
-                  {listData.customer.name} • {listData.workspace.name}
-                </p>
+        <div className="min-h-screen bg-gray-100">
+          <div className="max-w-4xl mx-auto py-8 px-4">
+            {/* Header - Uniformed with other public pages */}
+            <div className="flex flex-col space-y-1 mb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg className="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    {getLocalizedText().yourOrders}
+                  </h1>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleViewCart}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                    </svg>
+                    {getLocalizedText().viewCart}
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Use current token for profile page (TOKEN-ONLY system)
+                      // Same token works for all pages - no need to generate new token
+                      const profileUrl = `/customer-profile?token=${token}`
+                      window.location.href = profileUrl
+                    }}
+                    className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    {getLocalizedText().viewProfile}
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleViewCart}
-                  className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  {getLocalizedText().viewCart}
-                </button>
-                <button
-                  onClick={() => {
-                    // Use current token for profile page (TOKEN-ONLY system)
-                    // Same token works for all pages - no need to generate new token
-                    const profileUrl = `/customer-profile?token=${token}`
-                    window.location.href = profileUrl
-                  }}
-                  className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <User className="h-4 w-4" />
-                  {getLocalizedText().viewProfile}
-                </button>
+              <div className="text-sm text-gray-600 ml-10">
+                {listData.customer.name} • {listData.workspace.name}
               </div>
             </div>
-          </div>
-          <div className="bg-white rounded-b-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             {/* Filters */}
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
               <div>

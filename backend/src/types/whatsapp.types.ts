@@ -48,6 +48,8 @@ export interface RagSearchRequest {
   workspaceId: string;
   customerId: string;
   messages: any[];
+  useCartData?: boolean;
+  generateCartLink?: boolean;
 }
 
 export interface RagSearchResponse extends StandardResponse {

@@ -38,6 +38,7 @@ CART RESPONSE FORMAT:
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 - CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
+- ALWAYS include cart link at the end when cartUrl is provided: "🔗 Vedi il carrello: [URL]"
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
@@ -72,6 +73,7 @@ CART RESPONSE FORMAT:
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 - CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
+- ALWAYS include cart link at the end when cartUrl is provided: "🔗 View cart: [URL]"
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
@@ -106,6 +108,7 @@ CART RESPONSE FORMAT:
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 - CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
+- ALWAYS include cart link at the end when cartUrl is provided: "🔗 Ver carrito: [URL]"
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:
@@ -140,6 +143,7 @@ CART RESPONSE FORMAT:
 - Use emoji appropriately: 🛒 for cart, 💰 for totals, 📝 for instructions
 - ALWAYS make cart totals bold using *asterisks*: *TOTALE: €XX.XX* or *Total: €XX.XX*
 - CRITICAL: Use *TOTALE: €XX.XX* format - the asterisks are MANDATORY for bold display
+- ALWAYS include cart link at the end when cartUrl is provided: "🔗 Ver carrinho: [URL]"
 `,
     generalFormatting: `
 GENERAL RESPONSE FORMATTING:

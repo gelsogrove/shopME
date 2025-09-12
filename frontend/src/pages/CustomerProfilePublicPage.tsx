@@ -1,7 +1,6 @@
-import { Button } from '@/components/ui/button'
 import { logger } from "@/lib/logger"
 import axios from 'axios'
-import { ShoppingCart, User } from 'lucide-react'
+import { User } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -190,7 +189,7 @@ const CustomerProfilePublicPage: React.FC = () => {
         title: 'Gestione Profilo Cliente',
         description: 'Modifica i tuoi dati personali in sicurezza',
         viewOrders: 'Visualizza Ordini',
-        viewCart: 'Vedi Carrello'
+        viewCart: 'Visualizza Carrello'
       },
       'ES': {
         title: 'Gestión de Perfil de Cliente',
@@ -230,11 +229,10 @@ const CustomerProfilePublicPage: React.FC = () => {
   if (loadingProfile) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center max-w-md w-full">
-          <div className="flex flex-col items-center space-y-4">
-            <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-blue-700 font-medium">Loading profile...</p>
-          </div>
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Loading Profile</h2>
+          <p className="text-gray-600">Stiamo caricando il tuo profilo...</p>
         </div>
       </div>
     )
@@ -270,22 +268,24 @@ const CustomerProfilePublicPage: React.FC = () => {
               </h1>
             </div>
             <div className="flex items-center gap-3">
-              <Button
+              <button
                 onClick={handleViewCart}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
               >
-                <ShoppingCart className="h-4 w-4" />
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                </svg>
                 {localizedText.viewCart}
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={handleViewOrders}
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
               >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
                 {localizedText.viewOrders}
-              </Button>
+              </button>
             </div>
           </div>
           <div className="text-sm text-gray-600 ml-10">

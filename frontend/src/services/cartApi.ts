@@ -69,7 +69,7 @@ class CartApi {
     try {
       logger.debug('🛒 Getting cart by token', { token: token.substring(0, 10) + '...' })
       
-      const response = await api.get(`/api/cart/token?token=${encodeURIComponent(token)}`)
+      const response = await api.get(`/cart/token?token=${encodeURIComponent(token)}`)
       
       if (!response.data.success) {
         throw new Error(response.data.message || 'Failed to get cart')
@@ -94,7 +94,7 @@ class CartApi {
     try {
       logger.debug('🔑 Generating cart token', { customerId, workspaceId })
       
-      const response = await api.post('/api/cart/generate-token', {
+      const response = await api.post('/cart/generate-token', {
         customerId,
         workspaceId
       })

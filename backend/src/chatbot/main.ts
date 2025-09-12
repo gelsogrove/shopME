@@ -56,8 +56,32 @@ export class ChatbotMain {
       
       logger.info(`[CHATBOT] API limit OK for workspace ${workspaceId}: ${apiLimitResult.currentUsage}/${apiLimitResult.limit}`);
       
-      // STEP 2: Spam Detection (già implementato in MessageService)
-      // TODO: Integrare spam detection qui
+      // STEP 2: Spam Detection (15 messages in 30 seconds)
+      const { SpamDetectionService } = await import('../application/services/spam-detection.service');
+      const spamDetectionService = new SpamDetectionService();
+      const spamResult = await spamDetectionService.checkSpamBehavior(phoneNumber, workspaceId);
+      
+      if (spamResult.isSpam) {
+        logger.warn(`[CHATBOT] Spam detected for ${phoneNumber}: ${spamResult.messageCount} messages in ${spamResult.timeWindow} seconds`);
+        
+        // Block the spam user
+        await spamDetectionService.blockSpamUser(
+          phoneNumber, 
+          workspaceId, 
+          spamResult.reason || 'Spam behavior detected'
+        );
+        
+        return {
+          response: null,
+          metadata: {
+            agentSelected: 'SPAM_DETECTED',
+            flowStep: 'SPAM_BLOCKED',
+            blocked: true
+          }
+        };
+      }
+      
+      logger.info(`[CHATBOT] Spam check passed for ${phoneNumber}: ${spamResult.messageCount} messages in ${spamResult.timeWindow} seconds`);
       
       // STEP 3: Channel Active Check
       const channelActiveResult = await this.checkChannelActive(workspaceId);
@@ -152,9 +176,23 @@ export class ChatbotMain {
    * STEP 5: Controllo blacklist
    */
   private async checkBlacklist(phoneNumber: string, workspaceId: string): Promise<{isBlacklisted: boolean}> {
-    // TODO: Implementare controllo blacklist (già esistente in MessageService)
-    logger.info(`[CHATBOT] Checking blacklist for ${phoneNumber}`);
-    return { isBlacklisted: false };
+    try {
+      const { MessageRepository } = await import('../repositories/message.repository');
+      const messageRepository = new MessageRepository();
+      
+      const isBlacklisted = await messageRepository.isCustomerBlacklisted(phoneNumber, workspaceId);
+      
+      if (isBlacklisted) {
+        logger.warn(`[CHATBOT] Customer ${phoneNumber} is blacklisted`);
+      } else {
+        logger.info(`[CHATBOT] Customer ${phoneNumber} is not blacklisted`);
+      }
+      
+      return { isBlacklisted };
+    } catch (error) {
+      logger.error(`[CHATBOT] Error checking blacklist for ${phoneNumber}:`, error);
+      return { isBlacklisted: false }; // Fail open
+    }
   }
   
   /**

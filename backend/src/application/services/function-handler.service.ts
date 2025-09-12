@@ -6,6 +6,7 @@ import { MessageRepository } from "../../repositories/message.repository"
 import { documentService } from "../../services/documentService"
 import logger from "../../utils/logger"
 import { PriceCalculationService } from "./price-calculation.service"
+import { SecureTokenService } from "./secure-token.service"
 import { TokenService } from "./token.service"
 
 interface FunctionCallResult {
@@ -213,11 +214,38 @@ export class FunctionHandlerService {
             functionName
           }
 
-        // 🚚 ORDER OPERATIONS
+        // 🚚 ORDER OPERATIONS & 🛒 CART OPERATIONS
         case 'confirm_order':
-          return {
-            data: await confirmOrderFromConversation(params),
-            functionName
+        case 'get_cart_info':
+          // Determine if this is a cart request or order confirmation
+          const isCartRequest = functionName === 'get_cart_info' || 
+            (params.query && (
+              params.query.toLowerCase().includes('carrello') ||
+              params.query.toLowerCase().includes('cart') ||
+              params.query.toLowerCase().includes('vedere') ||
+              params.query.toLowerCase().includes('mostra')
+            ))
+          
+          if (isCartRequest) {
+            // Cart request - show cart contents and generate cart link
+            return {
+              data: await confirmOrderFromConversation({
+                ...params,
+                useCartData: true,
+                generateCartLink: true
+              }),
+              functionName
+            }
+          } else {
+            // Order confirmation - generate checkout link
+            return {
+              data: await confirmOrderFromConversation({
+                ...params,
+                useCartData: true,
+                generateCartLink: false
+              }),
+              functionName
+            }
           }
 
         // 📄 DOCUMENTATION & FAQ
@@ -713,13 +741,58 @@ export class FunctionHandlerService {
       })
 
       if (!cart || cart.items.length === 0) {
+        // Genera sempre un cartUrl anche per carrello vuoto
+        const { SecureTokenService } = await import('./secure-token.service')
+        const secureTokenService = new SecureTokenService()
+        
+        // Crea un carrello vuoto se non esiste
+        let emptyCart = cart
+        if (!cart) {
+          emptyCart = await this.prisma.carts.create({
+            data: {
+              customerId: customerId,
+              workspaceId: workspaceId
+            },
+            include: {
+              items: {
+                include: {
+                  product: true
+                }
+              }
+            }
+          })
+        }
+        
+        const cartToken = await secureTokenService.createToken(
+          'cart',
+          workspaceId,
+          { 
+            customerId, 
+            workspaceId, 
+            cartId: emptyCart.id,
+            items: [],
+            totalAmount: 0,
+            currency: 'EUR',
+            createdAt: new Date().toISOString()
+          },
+          '1h',
+          undefined,
+          undefined,
+          undefined,
+          customerId
+        )
+        
+        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
+        const cartUrl = `${baseUrl}/cart-public?token=${cartToken}`
+        
         return {
           success: true,
           items: [],
           totalAmount: 0,
           itemCount: 0,
           isEmpty: true,
-          action: 'empty_cart'
+          action: 'empty_cart',
+          cartUrl: cartUrl
         }
       }
 
@@ -777,12 +850,45 @@ export class FunctionHandlerService {
         })
       }
 
+      // Generate cart link for user access
+      const secureTokenService = new SecureTokenService()
+      const cartPayload = {
+        customerId,
+        workspaceId,
+        cartId: cart.id,
+        items: cartItemsWithPrices,
+        totalAmount,
+        currency: 'EUR',
+        createdAt: new Date().toISOString()
+      }
+
+      const cartToken = await secureTokenService.createToken(
+        'cart',
+        workspaceId,
+        cartPayload,
+        '1h',
+        undefined,
+        undefined,
+        undefined,
+        customerId
+      )
+
+      // Get workspace URL for cart link
+      const workspace = await this.prisma.workspace.findUnique({
+        where: { id: workspaceId },
+        select: { url: true }
+      })
+      
+         const baseUrl = workspace?.url || process.env.FRONTEND_URL || 'http://localhost:3000'
+         const cartUrl = `${baseUrl}/cart-public?token=${cartToken}`
+
       return {
         success: true,
         items: cartItemsWithPrices,
         totalAmount: totalAmount,
         itemCount: cart.items.length,
         message: `🛒 Il tuo carrello contiene ${cart.items.length} prodotti`,
+        cartUrl: cartUrl,
         action: 'cart_retrieved'
       }
 

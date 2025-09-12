@@ -124,8 +124,58 @@ node mcp-test-client.js "María García" "mostrar carrito" exit-first-message=tr
 - **Token contains all necessary data**: customerId, workspaceId, and expiration time.
 - **No additional parameters required** - token is sufficient for all operations.
 - **Token Reuse System**: One token per user per type, reused for 1 hour until expiration.
+- **Token Validation Logic**: Tokens are validated ONLY by expiration time (`expiresAt`), NOT by usage status.
+- **Token Reusability**: Tokens can be used multiple times until expiration - no "used" marking.
+- **New Token Generation**: New tokens are generated ONLY when existing token is expired or doesn't exist.
 - **Automatic workspace isolation** enforced via token validation.
 - If token is invalid or expired, backend returns an error requiring new token generation.
+
+### 🔐 Token System Technical Specifications
+
+#### **Token Generation Logic**
+```typescript
+// 1. Check for existing valid token
+const existingToken = await prisma.secureToken.findFirst({
+  where: {
+    customerId,
+    type,
+    workspaceId,
+    expiresAt: { gt: new Date() } // Only check expiration
+  }
+})
+
+// 2. If valid token exists → Reuse it
+if (existingToken) {
+  return existingToken.token
+}
+
+// 3. If no valid token → Generate new one
+return await createNewToken(customerId, type, workspaceId, payload)
+```
+
+#### **Token Validation Logic**
+```typescript
+// ONLY check expiration - NO usage tracking
+const whereClause = {
+  token,
+  expiresAt: { gt: new Date() } // Only expiration matters
+}
+// NO usedAt: null check
+```
+
+#### **Token Lifecycle**
+- **Creation**: Generated when no valid token exists for customer+type+workspace
+- **Validation**: Only `expiresAt` field determines validity
+- **Reuse**: Same token used for all requests until expiration (1 hour)
+- **Expiration**: Token becomes invalid after 1 hour, triggers new generation
+- **No Usage Tracking**: `usedAt` field is ignored - tokens remain valid until expiration
+
+#### **Benefits of This Approach**
+- ✅ **Better UX**: Users can refresh/revisit links multiple times
+- ✅ **Consistent Links**: Same token for 1 hour ensures consistent URLs
+- ✅ **No "Operation Not Permitted"**: Tokens work until they expire
+- ✅ **Efficient**: No unnecessary token generation
+- ✅ **Simple Logic**: Only expiration time matters
 
 ### Database Seed Behavior
 
@@ -352,6 +402,8 @@ Sistema checkout completo token-based con validazione sicura, supporto multi-lin
 - **Centralized Validation**: `SecureTokenService.validateToken()` per tutti gli endpoint checkout
 - **Consistent Data Access**: Standardizzato uso di `validation.data.customerId` in tutti i controller
 - **Token Reuse**: Sistema di riutilizzo token per 1 ora (same customer, same type)
+- **Token Reusability**: I token possono essere riutilizzati infinite volte finché non scadono
+- **No Usage Tracking**: I token NON vengono marcati come "usati" - solo la scadenza li invalida
 - **Database Integrity**: Unique constraint su `(customerId, type, workspaceId)` nella tabella `secureToken`
 
 #### **🌍 2. Multi-Language Support**
@@ -9285,27 +9337,31 @@ secureToken {
 
 ### 🚨 CRITICAL BUGS FOUND
 
-#### **TOKEN CONSISTENCY SYSTEM** ✅ **FULLY OPERATIONAL**
+#### **TOKEN SYSTEM** ✅ **FULLY OPERATIONAL & ENHANCED**
 
 **Behavior**: System automatically reuses the same token for 1 hour, then generates a new token
-**Logic**:
+**Enhanced Logic**:
 
-1. Check if existing token is valid (not expired)
-2. If valid: Return existing token
+1. Check if existing token is valid (not expired) - **NO usage tracking**
+2. If valid: Return existing token (can be used multiple times)
 3. If expired/missing: Create new token via UPSERT
-   **Expected**: Same token for 1 hour, then new token after expiration
+   **Expected**: Same token for 1 hour, reusable until expiration
    **Implementation**: findFirst with expiresAt > NOW + UPSERT for atomic operations
-   **Benefits**:
+   **Key Enhancement**: **Removed `usedAt` validation** - tokens work until expiration
 
-- Consistent user experience
-- No token confusion
-- Automatic cleanup via expiration
-- Database integrity with unique constraints
-  **Status**: ✅ **VERIFIED WORKING** - Multiple tests confirm same token reuse for 1 hour period
-  **Test Results**:
-- ✅ **Token Reuse**: 3 consecutive API calls returned identical token `e6e3ce663a0e5a9e3654888fe195082ba38f56be9f5c75cc1009e2cf79e5d940`
-- ✅ **Different Actions**: Different tokens for orders (`e6e3ce66...`) vs profile (`2415a10c...`)
-- ✅ **Database Integrity**: Exactly 2 records per customer (orders + profile), both valid (not expired)
+**Benefits**:
+- ✅ **Better UX**: Users can refresh/revisit links multiple times
+- ✅ **No "Operation Not Permitted"**: Tokens work until they expire
+- ✅ **Consistent Links**: Same token for 1 hour ensures consistent URLs
+- ✅ **Efficient**: No unnecessary token generation
+- ✅ **Simple Logic**: Only expiration time matters
+
+**Status**: ✅ **VERIFIED WORKING** - Enhanced token system with reusability
+**Test Results**:
+- ✅ **Token Reuse**: Same token returned for multiple requests within 1 hour
+- ✅ **Token Reusability**: Tokens can be used multiple times until expiration
+- ✅ **No Usage Tracking**: `usedAt` field completely ignored
+- ✅ **Database Integrity**: Proper unique constraints maintained
 - ✅ **Performance**: No cleanup needed, automatic expiration handling
 
 #### **BUG #2: Link Inconsistency in LLM Responses**

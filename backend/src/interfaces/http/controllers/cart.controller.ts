@@ -809,7 +809,7 @@ export class CartController {
         return
       }
 
-      const payload = secureToken.payload as any
+      const payload = validation.payload as any
       const customer = await prisma.customers.findFirst({
         where: {
           id: payload.customerId,
@@ -828,23 +828,33 @@ export class CartController {
       logger.info(`[CART] Token validated for customer ${customer.id}`)
 
       res.json({
-        valid: true,
-        customer: {
-          id: customer.id,
-          name: customer.name,
-          email: customer.email,
-          phone: customer.phone,
-          address: customer.address,
-          invoiceAddress: customer.invoiceAddress,
-        },
-        cartData: {
-          cartId: payload.cartId,
-          items: payload.items || [],
-          totalAmount: payload.totalAmount,
-          currency: payload.currency,
-          createdAt: payload.createdAt
-        },
-        workspaceId: secureToken.workspaceId,
+        success: true,
+        data: {
+          id: payload.cartId,
+          customerId: customer.id,
+          workspaceId: secureToken.workspaceId,
+          items: (payload.items || []).map((item: any) => ({
+            id: item.id,
+            productId: item.productId || '',
+            productCode: item.code,
+            productName: item.name,
+            quantity: item.quantity,
+            unitPrice: item.finalPrice,
+            totalPrice: item.total,
+            discountAmount: item.appliedDiscount ? (item.originalPrice - item.finalPrice) * item.quantity : 0,
+            finalPrice: item.finalPrice,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          })),
+          totalItems: (payload.items || []).reduce((sum: number, item: any) => sum + item.quantity, 0),
+          subtotal: payload.totalAmount,
+          totalDiscount: (payload.items || []).reduce((sum: number, item: any) => {
+            return sum + (item.appliedDiscount ? (item.originalPrice - item.finalPrice) * item.quantity : 0)
+          }, 0),
+          finalTotal: payload.totalAmount,
+          lastUpdated: new Date().toISOString(),
+          createdAt: payload.createdAt || new Date().toISOString()
+        }
       })
     } catch (error) {
       logger.error("[CART] Error validating token:", error)

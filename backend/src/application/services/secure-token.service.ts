@@ -83,8 +83,7 @@ export class SecureTokenService {
             workspaceId,
             expiresAt: {
               gt: new Date() // Token non scaduto
-            },
-            usedAt: null // Token non usato
+            }
           }
         })
 
@@ -164,8 +163,7 @@ export class SecureTokenService {
         token,
         expiresAt: {
           gt: new Date(),
-        },
-        usedAt: null,
+        }
       }
 
       // Only filter by type if explicitly specified
@@ -219,21 +217,13 @@ export class SecureTokenService {
   }
 
   /**
-   * Mark token as used
+   * DEPRECATED: Token marking removed - tokens remain valid until expiration
+   * This function is kept for backward compatibility but does nothing
    */
   async markTokenAsUsed(token: string): Promise<boolean> {
-    try {
-      await this.prisma.secureToken.update({
-        where: { token },
-        data: { usedAt: new Date() },
-      })
-
-      logger.info(`Marked token as used: ${token.substring(0, 10)}...`)
-      return true
-    } catch (error) {
-      logger.error('Error marking token as used:', error)
-      return false
-    }
+    // Tokens should not be marked as used - they remain valid until expiration
+    logger.info(`Token marking disabled - token ${token.substring(0, 10)}... remains valid until expiration`)
+    return true
   }
 
   /**
@@ -289,8 +279,7 @@ export class SecureTokenService {
           workspaceId,
           expiresAt: {
             gt: new Date(),
-          },
-          usedAt: null,
+          }
         },
         _count: {
           id: true,

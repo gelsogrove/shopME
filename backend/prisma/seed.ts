@@ -1987,7 +1987,7 @@ async function main() {
       id: "3c9fce96-5397-5c9f-9f8e-3d4f5a6b7890", // ID fisso per MCP test client
       name: "Mario Rossi",
       email: "mario.rossi@rossilimited.it",
-      phone: "+39 02 1234 5678", // Real Italian phone number
+      phone: "+390212345678", // Real Italian phone number
       address: JSON.stringify({
         name: "Mario Rossi",
         street: "Via Montenapoleone 15",
@@ -1996,7 +1996,7 @@ async function main() {
         zipCode: "20121",
         province: "MI",
         country: "Italia",
-        phone: "+39 02 1234 5678"
+        phone: "+390212345678"
       }),
       company: "Rossi Limited S.r.l.",
       language: "it",
@@ -2017,7 +2017,7 @@ async function main() {
         postalCode: "20121",
         province: "MI",
         country: "Italia",
-        phone: "+39 02 8765 4321",
+        phone: "+390287654321",
         vatNumber: "IT12345678901",
         fiscalCode: "RSSMRA80A01F205X"
       },
@@ -2056,7 +2056,7 @@ async function main() {
         postalCode: "W1C 1LA",
         country: "United Kingdom",
         vatNumber: "GB123456789",
-        phone: "+44 20 7946 0958",
+        phone: "+442079460958",
         email: "billing@smithco.com",
       },
     },
@@ -2090,7 +2090,7 @@ async function main() {
         postalCode: "08036",
         country: "Spain",
         vatNumber: "ES87654321009",
-        phone: "+34 93 454 7890",
+        phone: "+34934547890",
         email: "billing@garciafoods.com",
       },
     },
@@ -2123,7 +2123,7 @@ async function main() {
         postalCode: "1100-048",
         country: "Portugal",
         vatNumber: "PT123456789",
-        phone: "+351 21 123 4567",
+        phone: "+351211234567",
         email: "billing@silvaimport.com",
       },
     },
@@ -2405,7 +2405,7 @@ async function main() {
           province: "MI",
           country: "Italia",
           name: "Mario Rossi",
-          phone: "+39 02 1234 5678",
+          phone: "+390212345678",
         },
         billingAddress: {
           street: "Via Brera 28",
@@ -2415,7 +2415,7 @@ async function main() {
           country: "Italia",
           name: "Mario Rossi",
           company: "Rossi Limited S.r.l.",
-          phone: "+39 02 8765 4321",
+          phone: "+390287654321",
           vatNumber: "IT12345678901",
         },
         notes: "Please deliver after 6 PM",
@@ -2638,7 +2638,7 @@ async function main() {
           province: "MI",
           country: "Italia",
           name: "Mario Rossi",
-          phone: "+39 02 1234 5678",
+          phone: "+390212345678",
         },
         billingAddress: {
           street: "Via Brera 28",
@@ -2648,7 +2648,7 @@ async function main() {
           country: "Italia",
           name: "Mario Rossi",
           company: "Rossi Limited S.r.l.",
-          phone: "+39 02 8765 4321",
+          phone: "+390287654321",
           vatNumber: "IT12345678901",
         },
         notes: "Delivered but bank transfer not received yet",
@@ -2700,7 +2700,7 @@ async function main() {
             postalCode: "20121",
             province: "MI",
             country: "Italia",
-            phone: "+39 02 1234 5678",
+            phone: "+390212345678",
           },
           [testCustomer2.id]: {
             // John Smith (English customer)
@@ -2710,7 +2710,7 @@ async function main() {
             postalCode: "W1C 1LA",
             province: "London",
             country: "United Kingdom",
-            phone: "+44 20 7946 0958",
+            phone: "+442079460958",
           },
           [testCustomerMCP.id]: {
             // Maria Garcia (Spanish customer)
@@ -2720,7 +2720,7 @@ async function main() {
             postalCode: "08008",
             province: "Barcelona",
             country: "España",
-            phone: "+34 93 987 6543",
+            phone: "+34939876543",
           },
           [testCustomer4.id]: {
             // João Silva (Portuguese customer)
@@ -2730,7 +2730,7 @@ async function main() {
             postalCode: "1100-048",
             province: "Lisboa",
             country: "Portugal",
-            phone: "+351 21 123 4567",
+            phone: "+351211234567",
           },
         }
 
@@ -2815,7 +2815,7 @@ async function main() {
           postalCode: "20121",
           province: "MI",
           country: "Italia",
-          phone: "+39 02 1234 5678",
+          phone: "+390212345678",
         },
         [testCustomer2.id]: {
           // John Smith (English customer)
@@ -2825,7 +2825,7 @@ async function main() {
           postalCode: "W1C 1LA",
           province: "London",
           country: "United Kingdom",
-          phone: "+44 20 7946 0958",
+          phone: "+442079460958",
         },
         [testCustomerMCP.id]: {
           // Maria Garcia (Spanish customer)
@@ -2835,7 +2835,7 @@ async function main() {
           postalCode: "08008",
           province: "Barcelona",
           country: "España",
-          phone: "+34 93 987 6543",
+          phone: "+34939876543",
         },
         [testCustomer4.id]: {
           // João Silva (Portuguese customer)
@@ -2845,7 +2845,7 @@ async function main() {
           postalCode: "1100-048",
           province: "Lisboa",
           country: "Portugal",
-          phone: "+351 21 123 4567",
+          phone: "+351211234567",
         },
       }
 
@@ -2983,7 +2983,7 @@ async function main() {
           postalCode: "20121",
           province: "MI",
           country: "Italia",
-          phone: "+39 02 1234 5678",
+          phone: "+390212345678",
         },
         trackingNumber: "DHL1234567890", // Specific tracking for test
         createdAt: new Date(),

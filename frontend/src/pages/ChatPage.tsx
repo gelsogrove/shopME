@@ -12,26 +12,26 @@ import { api } from "@/services/api"
 import { getLanguages, Language } from "@/services/workspaceApi"
 import { useQuery } from "@tanstack/react-query"
 import {
-  Ban,
-  Bot,
-  Loader2,
-  Lock,
-  Pencil,
-  Send,
-  ShoppingBag,
-  Trash2,
+    Ban,
+    Bot,
+    Loader2,
+    Lock,
+    Pencil,
+    Send,
+    ShoppingBag,
+    Trash2
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "../components/ui/alert-dialog"
 import { Button } from "../components/ui/button"
 import { Card } from "../components/ui/card"
@@ -818,7 +818,7 @@ export function ChatPage() {
             />
           </div>
 
-          <div className="overflow-y-auto flex-1">
+          <div className="chat-scrollbar" style={{height: '600px', overflow: 'auto', backgroundColor: 'white'}}>
             {chats.length > 0 ? (
               chats.map((chat: Chat) => {
                 // Compare sessionId instead of id
@@ -827,7 +827,7 @@ export function ChatPage() {
                 return (
                   <div
                     key={chat.id}
-                    className={`p-4 cursor-pointer rounded-lg mb-2 transition-all
+                    className={`p-3 cursor-pointer rounded-lg mb-2 transition-all
                       ${
                         isSelected
                           ? "border-l-4 border-green-600 bg-green-50 text-green-800 font-bold"
@@ -842,42 +842,61 @@ export function ChatPage() {
                     onClick={() => selectChat(chat)}
                   >
                     <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium text-sm flex items-center gap-2">
-                          <span className="text-lg" title={`Language: ${chat.language || 'Unknown'}`}>
+                      <div className="flex-1 min-w-0">
+                        {/* Prima riga: bandiera + nome + icone stato */}
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm flex-shrink-0" title={`Language: ${chat.language || 'Unknown'}`}>
                             {getLanguageFlag(chat.language)}
                           </span>
-                          {chat.customerName}{" "}
-                          {chat.companyName ? `(${chat.companyName})` : ""}
-                          {/* Blocked user indicator */}
-                          {chat.isBlacklisted && (
-                            <span title="Customer is blocked">
-                              <Lock className="h-4 w-4 text-red-500" />
-                            </span>
-                          )}
-                          {/* Manual operator icon if chatbot is disabled */}
-                          {chat.activeChatbot === false && (
-                            <span title="Manual Operator Control">
-                              <Bot className="h-4 w-4 text-orange-500" />
-                            </span>
-                          )}
-                        </h3>
-                        <p className="text-xs text-green-600">
+                          <div className="font-semibold text-green-700 text-sm truncate">
+                            {chat.customerName}
+                          </div>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {/* Manual operator icon if chatbot is disabled */}
+                            {chat.activeChatbot === false && (
+                              <span title="Manual Operator Control">
+                                <Bot className="h-3 w-3 text-orange-500" />
+                              </span>
+                            )}
+                            {/* Blocked user indicator */}
+                            {chat.isBlacklisted && (
+                              <span title="Customer is blocked">
+                                <Ban className="h-3 w-3 text-red-500" />
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Seconda riga: azienda */}
+                        {chat.companyName && (
+                          <div className="text-xs text-gray-600 truncate mb-1">
+                            {chat.companyName}
+                          </div>
+                        )}
+                        
+                        {/* Terza riga: telefono */}
+                        <div className="text-xs text-green-600 mb-1">
                           {chat.customerPhone}
-                        </p>
+                        </div>
+                        
+                        {/* Quarta riga: ultimo messaggio + timestamp */}
+                        <div className="flex justify-between items-center">
+                          <div className="text-xs text-gray-600 truncate flex-1 mr-2" style={{ display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>
+                            {chat.lastMessage}
+                          </div>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <p className="text-[10px] text-gray-400">
+                              {formatDate(chat.lastMessageTime)}
+                            </p>
+                            {chat.unreadCount > 0 && (
+                              <span className="bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                                {chat.unreadCount}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      {chat.unreadCount > 0 && (
-                        <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                          {chat.unreadCount}
-                        </span>
-                      )}
                     </div>
-                    <div className="text-xs text-gray-600 mt-1 whitespace-pre-line overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                      {chat.lastMessage}
-                    </div>
-                    <p className="text-[10px] text-gray-400 mt-1">
-                      {formatDate(chat.lastMessageTime)}
-                    </p>
                   </div>
                 )
               })
@@ -896,24 +915,22 @@ export function ChatPage() {
               {!activeChatbot && (
                 <div className="bg-orange-100 border-l-4 border-orange-500 p-3 mb-2">
                   <div className="flex items-center">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <Bot className="h-5 w-5 text-orange-500" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-sm text-orange-700 font-medium">
-                          👨‍💼 <strong>Manual Operator Control Active</strong>
-                        </p>
-                        <p className="text-xs text-orange-600 mt-1">
-                          AI chatbot is disabled. You are now manually handling
-                          this conversation.
-                          <span className="font-medium">
-                            {" "}
-                            Customer messages will be saved but won't trigger AI
-                            responses.
-                          </span>
-                        </p>
-                      </div>
+                    <div className="flex-shrink-0">
+                      <Bot className="h-5 w-5 text-orange-500" />
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-orange-700 font-medium">
+                        <strong>Manual Operator Control Active</strong>
+                      </p>
+                      <p className="text-xs text-orange-600 mt-1">
+                        AI chatbot is disabled. You are now manually handling
+                        this conversation.
+                        <span className="font-medium">
+                          {" "}
+                          Customer messages will be saved but won't trigger AI
+                          responses.
+                        </span>
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -923,47 +940,37 @@ export function ChatPage() {
               {selectedChat.isBlacklisted && (
                 <div className="bg-red-100 border-l-4 border-red-500 p-3 mb-2">
                   <div className="flex items-center">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <Ban className="h-5 w-5 text-red-500" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-sm text-red-700 font-medium">
-                          🚫 <strong>Customer is Blocked</strong>
-                        </p>
-                        <p className="text-xs text-red-600 mt-1">
-                          This customer has been blacklisted. New messages are
-                          blocked.
-                          <span className="font-medium">
-                            {" "}
-                            You can view existing messages but cannot send new
-                            ones.
-                          </span>
-                        </p>
-                      </div>
+                    <div className="flex-shrink-0">
+                      <Ban className="h-5 w-5 text-red-500" />
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-red-700 font-medium">
+                        <strong>Customer is Blocked</strong>
+                      </p>
+                      <p className="text-xs text-red-600 mt-1">
+                        This customer has been blacklisted. New messages are
+                        blocked.
+                        <span className="font-medium">
+                          {" "}
+                          You can view existing messages but cannot send new
+                          ones.
+                        </span>
+                      </p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Chat Header */}
+              {/* Chat Header - Nome + controlli (senza telefono e società) */}
               <div className="flex justify-between items-center pb-2 border-b h-[60px]">
-                <div>
-                  <div
-                    className="flex items-center cursor-pointer group"
-                    onClick={handleEditCustomer}
-                  >
-                    <h2 className="font-bold text-sm group-hover:text-green-600 transition-colors">
-                      {selectedChat.customerName}{" "}
-                      {selectedChat.companyName
-                        ? `(${selectedChat.companyName})`
-                        : ""}
-                    </h2>
-                    <Pencil className="h-3 w-3 ml-1 text-green-600 group-hover:text-green-700 transition-colors" />
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    {selectedChat.customerPhone}
-                  </p>
+                <div
+                  className="flex items-center cursor-pointer group"
+                  onClick={handleEditCustomer}
+                >
+                  <h2 className="font-bold text-sm text-green-700">
+                    {selectedChat.customerName}
+                  </h2>
+                  <Pencil className="h-3 w-3 ml-1 text-green-600 group-hover:text-green-700 transition-colors" />
                 </div>
                 <div className="flex space-x-2 items-center">
                   {/* ChatBot Toggle */}
@@ -1038,7 +1045,7 @@ export function ChatPage() {
               </div>
 
               {/* Chat Messages */}
-              <div className="flex-1 overflow-y-auto px-4 py-2">
+              <div className="chat-scrollbar px-4 py-2" style={{height: '600px', overflow: 'auto', backgroundColor: 'white'}}>
                 {messages.length > 0 ? (
                   messages.map((message) => {
                     // Using the sender field which is properly mapped from direction

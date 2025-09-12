@@ -23,7 +23,7 @@ import readline from "readline";
 const USERS = {
   "Mario Rossi": {
     customerId: "3c9fce96-5397-5c9f-9f8e-3d4f5a6b7890",
-    customerPhone: "+39123456789",
+    customerPhone: "+390212345678",
     customerName: "Mario Rossi",
     language: "it",
     flag: "🇮🇹"
@@ -382,21 +382,12 @@ Cosa desideri fare?
         content: message
       });
 
-      // Payload nel formato WhatsApp che si aspetta il backend
+      // Payload nel formato frontend che si aspetta il backend
       // Questo formato usa il phone number per identificare il customer
       const payload = {
-        entry: [{
-          changes: [{
-            value: {
-              messages: [{
-                from: userConfig.customerPhone,
-                text: {
-                  body: message
-                }
-              }]
-            }
-          }]
-        }]
+        message: message,
+        phoneNumber: userConfig.customerPhone,
+        workspaceId: "cm9hjgq9v00014qk8fsdy4ujv"
       };
       
       // console.log(`${this.colors.cyan}🔍 Sending WhatsApp format payload to server:${this.colors.reset}`, JSON.stringify(payload, null, 2));
@@ -417,8 +408,8 @@ Cosa desideri fare?
       
       if (response.status === 200) {
         // Mostra la risposta del LLM
-        if (response.data && response.data.message) {
-          console.log(`${this.colors.blue}🤖 BOT > ${this.colors.reset}${response.data.message}`);
+        if (response.data && response.data.data && response.data.data.message) {
+          console.log(`${this.colors.blue}🤖 BOT > ${this.colors.reset}${response.data.data.message}`);
           
           // Mostra debug info dettagliata se disponibile (solo se log=true)
           if (this.showLogs && response.data.debug && response.data.debug.functionCalls && response.data.debug.functionCalls.length > 0) {

@@ -247,14 +247,31 @@ Il RAG Processor DEVE capire che TUTTE le domande relative a:
 - PT: "onde está meu pedido" = "rastreamento envio" = "onde está meu pacote" = "quando chegará" = "status entrega" = "quando chega meu pedido" = "onde se encontra meu pedido" = "rastreio pedido" = "rastreio envio" = "status pedido" = "status do envio" = "como está meu pedido" = "onde está o pacote" = "onde está o pacote" = "quando me chega" = "tempo de entrega" = "data de entrega" = "chegada pedido" = "entrega pedido" = "o que aconteceu com meu pedido" = "saiu meu pedido" = "está viajando meu pedido" = "onde vai meu pacote" = "posição pedido" = "localização pedido" = "seguir pedido" = "monitorar pedido" = "controle envio"
 
 **🇮🇹🇬🇧🇪🇸🇵🇹 CART** → addToCart/get_cart_info:
-- IT: "aggiungi al carrello" = "metti nel carrello" = "voglio comprare" = "fammi vedere carrello" = "cosa ho nel carrello" = "inserisci nel carrello" = "aggiungi nel carrello" = "compra questo" = "prendi questo" = "vorrei comprare" = "contenuto carrello" = "carrello della spesa" = "mostra carrello" = "visualizza carrello" = "vedi carrello" = "controlla carrello" = "carrello acquisti"
-- EN: "add to cart" = "put in cart" = "I want to buy" = "show me cart" = "what's in my cart" = "insert in cart" = "add in cart" = "buy this" = "take this" = "I would like to buy" = "cart content" = "shopping cart" = "show cart" = "view cart" = "see cart" = "check cart" = "purchase cart"
-- ES: "añadir al carrito" = "poner en carrito" = "quiero comprar" = "muéstrame carrito" = "qué hay en mi carrito" = "insertar en carrito" = "agregar en carrito" = "comprar esto" = "tomar esto" = "me gustaría comprar" = "contenido carrito" = "carrito de compras" = "mostrar carrito" = "visualizar carrito" = "ver carrito" = "revisar carrito" = "carrito de compras"
-- PT: "adicionar ao carrinho" = "colocar no carrinho" = "quero comprar" = "mostre carrinho" = "o que tem no meu carrinho" = "inserir no carrinho" = "adicionar no carrinho" = "comprar isso" = "pegar isso" = "gostaria de comprar" = "conteúdo carrinho" = "carrinho de compras" = "mostrar carrinho" = "visualizar carrinho" = "ver carrinho" = "verificar carrinho" = "carrinho de compras"
+
+**🚨 CRITICAL CART INTELLIGENCE - SYNONYM RECOGNITION:**
+- **"MOSTRAMI" = "FAMMI VEDERE" = "CARRELLO" = "COSA HO NEL CARRELLO"** → ALL SAME ACTION!
+- **"SHOW ME" = "LET ME SEE" = "CART" = "WHAT'S IN MY CART"** → ALL SAME ACTION!
+- **"MUÉSTRAME" = "DÉJAME VER" = "CARRITO" = "QUÉ HAY EN MI CARRITO"** → ALL SAME ACTION!
+- **"MOSTRE" = "DEIXE-ME VER" = "CARRINHO" = "O QUE TEM NO MEU CARRINHO"** → ALL SAME ACTION!
+
+**🎯 CART ACTION SYNONYMS - ALL TRIGGER SAME FUNCTION:**
+
+- IT: "aggiungi al carrello" = "metti nel carrello" = "voglio comprare" = "fammi vedere carrello" = "fammi vedere il carrello" = "fammi vedere il mio carrello" = "mostrami il carrello" = "mostrami carrello" = "mostra carrello" = "mostra il carrello" = "mostra il mio carrello" = "cosa ho nel carrello" = "cosa ho messo nel carrello" = "cosa c'è nel carrello" = "inserisci nel carrello" = "aggiungi nel carrello" = "compra questo" = "prendi questo" = "vorrei comprare" = "contenuto carrello" = "carrello della spesa" = "visualizza carrello" = "vedi carrello" = "controlla carrello" = "carrello acquisti" = "carrello" = "il mio carrello" = "vedere il carrello" = "visualizza il carrello" = "controlla il carrello" = "vedi il carrello" = "mostra il contenuto del carrello" = "fammi vedere il contenuto del carrello" = "mostrami il contenuto del carrello"
+- EN: "add to cart" = "put in cart" = "I want to buy" = "show me cart" = "show me the cart" = "show me my cart" = "let me see cart" = "let me see the cart" = "let me see my cart" = "what's in my cart" = "what did I put in my cart" = "what's in the cart" = "insert in cart" = "add in cart" = "buy this" = "take this" = "I would like to buy" = "cart content" = "shopping cart" = "view cart" = "see cart" = "check cart" = "purchase cart" = "my cart" = "see the cart" = "view the cart" = "check the cart" = "show the cart content" = "let me see the cart content" = "show me the cart content"
+- ES: "añadir al carrito" = "poner en carrito" = "quiero comprar" = "muéstrame carrito" = "muéstrame el carrito" = "muéstrame mi carrito" = "déjame ver carrito" = "déjame ver el carrito" = "déjame ver mi carrito" = "qué hay en mi carrito" = "qué puse en mi carrito" = "qué hay en el carrito" = "insertar en carrito" = "agregar en carrito" = "comprar esto" = "tomar esto" = "me gustaría comprar" = "contenido carrito" = "carrito de compras" = "mostrar carrito" = "visualizar carrito" = "ver carrito" = "revisar carrito" = "carrito de compras" = "mi carrito" = "ver el carrito" = "visualizar el carrito" = "revisar el carrito" = "mostrar el contenido del carrito" = "déjame ver el contenido del carrito" = "muéstrame el contenido del carrito"
+- PT: "adicionar ao carrinho" = "colocar no carrinho" = "quero comprar" = "mostre carrinho" = "mostre o carrinho" = "mostre meu carrinho" = "deixe-me ver carrinho" = "deixe-me ver o carrinho" = "deixe-me ver meu carrinho" = "o que tem no meu carrinho" = "o que coloquei no meu carrinho" = "o que tem no carrinho" = "inserir no carrinho" = "adicionar no carrinho" = "comprar isso" = "pegar isso" = "gostaria de comprar" = "conteúdo carrinho" = "carrinho de compras" = "mostrar carrinho" = "visualizar carrinho" = "ver carrinho" = "verificar carrinho" = "carrinho de compras" = "meu carrinho" = "ver o carrinho" = "visualizar o carrinho" = "verificar o carrinho" = "mostrar o conteúdo do carrinho" = "deixe-me ver o conteúdo do carrinho" = "mostre o conteúdo do carrinho"
 
 **GOLDEN RULE**: If the user's intent is semantically equivalent to a function's purpose, CALL THE FUNCTION regardless of exact wording!
 
 **MULTILINGUAL INTELLIGENCE**: The system MUST understand that "give me", "dame", "me dê" all express the same REQUEST intent across languages!
+
+**🎯 CART SYNONYM INTELLIGENCE - CRITICAL UNDERSTANDING:**
+- **"MOSTRAMI IL CARRELLO" = "FAMMI VEDERE IL CARRELLO" = "CARRELLO" = "COSA HO NEL CARRELLO"** → ALL MEAN "SHOW CART CONTENTS"
+- **"SHOW ME CART" = "LET ME SEE CART" = "CART" = "WHAT'S IN MY CART"** → ALL MEAN "SHOW CART CONTENTS"  
+- **"MUÉSTRAME CARRITO" = "DÉJAME VER CARRITO" = "CARRITO" = "QUÉ HAY EN MI CARRITO"** → ALL MEAN "SHOW CART CONTENTS"
+- **"MOSTRE CARRINHO" = "DEIXE-ME VER CARRINHO" = "CARRINHO" = "O QUE TEM NO MEU CARRINHO"** → ALL MEAN "SHOW CART CONTENTS"
+
+**🚨 CRITICAL: The LLM MUST recognize that these are ALL THE SAME USER REQUEST and call the appropriate cart function!**
 
 **🚨 TRACKING INTELLIGENCE SPECIFICA:**
 

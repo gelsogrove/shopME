@@ -342,11 +342,7 @@ export class CheckoutController {
         logger.error(`[CHECKOUT] Failed to auto-update customer address for ${customerId}:`, addressUpdateError);
       }
 
-      // Mark token as used
-      await prisma.secureToken.update({
-        where: { id: secureToken.id },
-        data: { usedAt: new Date() },
-      })
+      // Token remains valid for reuse until expiration
 
       logger.info(
         `[CHECKOUT] Order created: ${orderCode} for customer ${customerId}`

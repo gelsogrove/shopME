@@ -10,6 +10,12 @@
 
 ## 📋 TASK PENDING
 
+### 📝 REGOLA TASK MANAGEMENT
+- **REGOLA CRITICA**: Quando Andrea dice "aggiungi task" o "aggiugni task", il task deve SEMPRE essere aggiunto nel memory bank (docs/memory-bank/tasks.md)
+- **FORMATO**: Seguire il formato standard con descrizione, priorità, stato e note
+- **PRIORITÀ**: ALTA per problemi critici, MEDIA per miglioramenti, BASSA per feature opzionali
+- **STATO**: PENDING per nuovi task, IN PROGRESS per task in corso, COMPLETATO per task finiti
+
 ### TASK: Controllare ordine della chatHistory
 - **Descrizione**: Verificare e correggere l'ordine di visualizzazione dei messaggi nella cronologia chat
 - **Priorità**: MEDIA
@@ -64,42 +70,69 @@
   - **PRODUCTION READY**: Sistema single-tenant funziona correttamente
   - **PRD AGGIORNATO**: Documentata strategia futura per routing dinamico
 
-### TASK: Migliorare comprensione LLM delle sfumature linguistiche negli ordini
-- **Descrizione**: Il LLM attualmente non distingue tra "procedi con l'ordine" e "conferma ordine". Deve capire queste sfumature linguistiche per gestire correttamente i diversi stati del processo di ordine. Implementare logica per distinguere tra:
-  - "Procedi con l'ordine" = continua il processo di creazione ordine
-  - "Conferma ordine" = finalizza e conferma l'ordine esistente
-- **Priorità**: ALTA
-- **Stato**: PENDING
-- **Note**: Importante per UX del chatbot e gestione corretta del flusso ordini
 
 ### TASK: Aggiungere nome società nella chat history
-- **Descrizione**: Nella chat history attualmente viene mostrato solo il nome del cliente (es. "Mario Rossi"). Deve essere aggiunto anche il nome della società per una migliore identificazione. Formato richiesto: "Mario Rossi (Rossi Limited S.r.l.)" - nome cliente seguito dal nome società tra parentesi.
+- **Descrizione**: Nella chat history attualmente viene mostrato solo il nome del cliente (es. "Mario Rossi"). Deve essere aggiunto anche il nome della società per una migliore identificazione. Formato richiesto: "Mario Rossi" sulla prima linea e "Rossi Limited S.r.l." sulla seconda linea (senza parentesi).
 - **Priorità**: MEDIA
 - **Stato**: COMPLETATO
-- **Note**: RISOLTO - Corretto il backend per includere il campo 'company' nella query del customer nel metodo getChatSessionsWithUnreadCounts. Il frontend già supportava la visualizzazione del nome della società nel formato richiesto: "Nome Cliente (Nome Società)". Ora Mario Rossi dovrebbe apparire come "Mario Rossi (Rossi Limited S.r.l.)" nella lista delle chat.
+- **Note**: RISOLTO - Modificato il formato di visualizzazione del nome della società nella chat history. Ora mostra "Mario Rossi" sulla prima linea e "Rossi Limited S.r.l." sulla seconda linea senza parentesi. Layout migliorato per migliore allineamento: bandiera lingua + nome cliente + icone sulla prima linea, nome società indentato sulla seconda linea. Aggiornati sia la lista chat che l'header della chat per mantenere consistenza. Frontend compila senza errori.
 
-### TASK: Migliorare pagina Customer Profile
-- **Descrizione**: La pagina customer-profile (es. http://localhost:3000/customer-profile?token=...) necessita di miglioramenti:
-  1. Aggiungere bottone "View Cart" / "Vedi Carrello" (multilingue)
-  2. Uniformare l'header con le altre pagine del sistema
+
+### TASK: Checkout Success Page - Multilingue e Codice Ordine
+- **Descrizione**: La pagina di checkout success (localhost:3000/checkout-success?orderCode=...) ha due problemi:
+  1. Testi in inglese invece che nella lingua del cliente
+  2. Codice ordine non visualizzato nella pagina (anche se presente nell'URL)
 - **Priorità**: MEDIA
 - **Stato**: PENDING
-- **Note**: Importante per coerenza UI/UX e funzionalità carrello per i clienti
+- **Note**: Deve essere implementato: 1) Sistema multilingue per i testi della pagina, 2) Visualizzazione del codice ordine estratto dall'URL, 3) Testi localizzati per IT/EN/ES/PT
 
-### TASK: Aggiungere listino prezzi nelle statistiche
-- **Descrizione**: Aggiungere una sezione "Listino Prezzi" nella pagina delle statistiche con i seguenti costi:
-  - €0.005 per risposta LLM (0.5 centesimi)
-  - 1 euro per ogni nuovo cliente
-  - 1 euro per ogni nuovo ordine
+### TASK: Checkout - Aggiornamento Indirizzi Cliente nel Database
+- **Descrizione**: ERRORE CRITICO: Durante il processo di checkout, se l'utente modifica gli indirizzi (sia di consegna che di fatturazione), i dati del cliente nel database NON vengono aggiornati. Questo è un problema importante perché i dati del cliente devono rimanere sincronizzati. Deve essere implementato: 1) Rilevamento delle modifiche agli indirizzi durante il checkout, 2) Aggiornamento automatico dei campi 'address' e 'invoiceAddress' del cliente nel database, 3) Sincronizzazione dei dati in tempo reale, 4) Validazione che gli indirizzi aggiornati siano salvati correttamente. Comportamento corretto: Utente modifica indirizzo → Sistema aggiorna automaticamente i dati del cliente nel database → Dati sincronizzati per future operazioni.
+- **Priorità**: ALTA
+- **Stato**: PENDING
+- **Note**: CRITICO - I dati del cliente devono rimanere sempre sincronizzati con le modifiche effettuate durante il checkout
+
+### TASK: Verificare Reset Database - npm run seed
+- **Descrizione**: Verificare se il comando `npm run seed` fa un reset completo del database (pulisce tutte le tabelle) o solo aggiunge dati. È importante sapere se il seed cancella tutti i dati esistenti prima di inserire i nuovi dati. Deve essere verificato: 1) Analizzare il file seed.ts per capire se fa deleteMany() su tutte le tabelle, 2) Verificare se cancella tutti i dati esistenti, 3) Documentare il comportamento del seed, 4) Assicurarsi che sia chiaro se il seed è distruttivo o additivo. Comportamento atteso: Il seed dovrebbe fare un reset completo per garantire dati puliti e consistenti.
+- **Priorità**: MEDIA
+- **Stato**: COMPLETATO
+- **Note**: CONFERMATO - Il seed fa un reset completo di tutte le tabelle (deleteMany su tutte le entità). È sicuro solo in sviluppo, NON in produzione.
+
+### TASK: Link Carrello Non Funziona - Token Scaduto o Non Valido
+- **Descrizione**: ERRORE: Il link del carrello generato dal chatbot non funziona. Il token nel link sembra essere molto lungo e complesso, diverso dai token standard di 64 caratteri generati dal SecureTokenService. Problema identificato: 1) Token nell'immagine: `fbeaac5d95762ece-ce998aec9e18844ab1361af9333f7d7d89de256666630259` (molto lungo), 2) Token nel database: UUID standard di 64 caratteri, 3) Token scaduto o non valido. Deve essere risolto: 1) Investigare perché il token generato è diverso da quello standard, 2) Verificare la validazione del token nel frontend, 3) Controllare se il token viene salvato correttamente nel database, 4) Testare la generazione e validazione del token. Comportamento corretto: Token generato → Salvato nel database → Link funzionante → Accesso al carrello.
+- **Priorità**: ALTA
+- **Stato**: PENDING
+- **Note**: CRITICO - Il link del carrello deve funzionare per permettere agli utenti di accedere al loro carrello
+
+### TASK: FAQ Disattiva - Ricalcolo Embedding Automatico
+- **Descrizione**: VERIFICARE: Quando una FAQ viene disattivata (isActive = false), il sistema deve ricalcolare automaticamente gli embedding per rimuovere i chunk disattivi dalla ricerca semantica. Questo è importante per mantenere la coerenza tra lo stato delle FAQ e gli embedding utilizzati per la ricerca. Deve essere implementato: 1) Verificare se il ricalcolo automatico degli embedding avviene quando una FAQ viene disattivata, 2) Implementare trigger automatico per ricalcolo embedding su cambio stato FAQ, 3) Assicurarsi che i chunk delle FAQ disattive vengano rimossi, 4) Testare che la ricerca semantica non restituisca risultati da FAQ disattive. Comportamento corretto: FAQ disattivata → Ricalcolo automatico embedding → Rimozione chunk disattivi → Ricerca semantica aggiornata.
 - **Priorità**: MEDIA
 - **Stato**: PENDING
-- **Note**: Importante per trasparenza sui costi del servizio e per aiutare gli utenti a comprendere la struttura dei prezzi
+- **Note**: Importante per mantenere coerenza tra stato FAQ e embedding di ricerca
 
-### TASK: Rimuovere bottone "Processed prompt" dalla popup chatbot WhatsApp
-- **Descrizione**: Nella popup del chatbot WhatsApp c'è un bottone "Processed prompt" che non deve essere visibile. Andrea vuole solo sapere come il sistema traduce le variabili ({{nameUser}}, {{discountUser}}, {{companyName}}, {{lastordercode}}, {{languageUser}}) ma non vuole vedere il bottone nell'interfaccia.
+### TASK: Short-Link System - Implementare sistema di short-link
+- **Descrizione**: IMPLEMENTARE: Sistema di short-link per ridurre la lunghezza degli URL e aggiungere un livello di sicurezza aggiuntivo. I link attuali sono troppo lunghi e poco user-friendly. Deve essere implementato: 1) Analizzare le opzioni disponibili (librerie gratuite, servizi esterni, implementazione custom), 2) Scegliere la soluzione migliore per il progetto, 3) Implementare il sistema di short-link, 4) Integrare con i token esistenti, 5) Aggiornare tutti i link generati (carrello, checkout, profilo, ordini), 6) Aggiungere gestione sicurezza e tracking, 7) Testare il sistema completo. Comportamento corretto: Link lunghi → Short-link brevi e sicuri → Migliore UX e sicurezza aggiuntiva.
 - **Priorità**: MEDIA
 - **Stato**: PENDING
-- **Note**: Il bottone deve essere nascosto/rimosso dall'interfaccia utente, ma la funzionalità di traduzione delle variabili deve rimanere attiva per il debug interno
+- **Note**: Migliora UX e aggiunge livello di sicurezza per i link generati
+
+### TASK: Sistema Blacklist - Logica di Blocco Utenti
+- **Descrizione**: INVESTIGARE: Spesso gli utenti risultano bloccati senza motivo apparente. Deve essere analizzata la logica di blacklist applicata dal sistema. Problema identificato: 1) Utenti bloccati anche quando non dovrebbero esserlo, 2) Logica di rate limiting troppo aggressiva, 3) Criteri di blacklist non chiari, 4) Possibili bug nel sistema di controllo. Deve essere investigato: 1) Analizzare la logica di blacklist nel codice, 2) Verificare i criteri di rate limiting, 3) Controllare i trigger per il blocco utenti, 4) Testare il comportamento con utenti normali, 5) Documentare la logica attuale, 6) Proporre miglioramenti se necessario. Comportamento corretto: Utenti normali non devono essere bloccati ingiustamente, solo utenti che superano i limiti ragionevoli.
+- **Priorità**: ALTA
+- **Stato**: COMPLETATO
+- **Note**: RISOLTO - Implementato sistema di spam detection (15 messaggi in 30 secondi) e migliorata logica di blacklist. Creato SpamDetectionService con controllo automatico e blocco intelligente. Sistema ora distingue tra spam reale e utenti normali.
+
+### TASK: Chat History - Navigazione alla Chat dell'Utente Selezionato
+- **Descrizione**: MIGLIORARE: Nella lista clienti c'è un'icona che porta alla chat history che funziona bene, ma la pagina deve atterrare direttamente sulla chat dell'utente selezionato. Attualmente la chat history mostra tutti i messaggi, ma dovrebbe filtrare automaticamente per il cliente specifico. Deve essere implementato: 1) Modificare il link dell'icona chat per passare il customerId come parametro, 2) Aggiornare la pagina chat history per ricevere e utilizzare il customerId, 3) Implementare filtro automatico per mostrare solo i messaggi del cliente selezionato, 4) Mantenere la funzionalità di visualizzazione di tutti i messaggi quando si accede senza parametri, 5) Testare la navigazione dalla lista clienti alla chat specifica. Comportamento corretto: Clic su icona chat cliente → Chat history filtrata per quel cliente specifico → Migliore UX per gestione conversazioni.
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+- **Note**: Migliora l'esperienza utente permettendo di accedere direttamente alla chat del cliente selezionato dalla lista clienti
+
+### TASK: Sistema Coda Messaggi per Sicurezza e Affidabilità (FASE 2)
+- **Descrizione**: IMPLEMENTARE: Sistema completo di coda messaggi per garantire sicurezza e affidabilità del sistema WhatsApp. Il sistema attuale processa i messaggi in modo sincrono senza gestione di errori o retry. Deve essere implementato: 1) MessageQueueService per gestione coda, 2) Database schema per persistenza coda (tabella message_queue), 3) Background worker per processamento asincrono, 4) Retry logic con exponential backoff, 5) Monitoring dashboard per visibilità stato coda, 6) Integrazione con sistema esistente, 7) Gestione priorità messaggi (normal/high/urgent), 8) Status tracking completo (pending/processing/completed/failed). Architettura: Messaggio WhatsApp → Message Queue → Security Gateway → N8N Webhook → Background Processing → Retry Logic. Benefici: Zero perdita messaggi, retry automatico, monitoring completo, scalabilità, doppio livello sicurezza.
+- **Priorità**: ALTA
+- **Stato**: PENDING
+- **Note**: FASE 2 - Sistema di coda essenziale per produzione e scalabilità. Componenti: MessageQueueService, MessageQueueRepository, Background Worker, Monitoring Dashboard, Database Schema
 
 ## ✅ TASK COMPLETATI
 
@@ -142,5 +175,5 @@
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 23 (18 completati, 5 pending)
+**Task totali**: 25 (18 completati, 7 pending)
 **Task critici**: 0

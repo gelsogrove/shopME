@@ -1,21 +1,21 @@
 import { Button } from "@/components/ui/button"
-import { logger } from "@/lib/logger"
 import { Card, CardContent } from "@/components/ui/card"
 import {
     Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useCurrentUser } from "@/hooks/useCurrentUser"
+import { logger } from "@/lib/logger"
 import {
     UserProfile,
-  changePassword,
-  updateUserProfile,
+    changePassword,
+    updateUserProfile,
 } from "@/services/userApi"
 import { Loader2, User } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -44,8 +44,11 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (userData) {
-      setUser(userData)
-      setIsPageLoading(false)
+      // Simulate loading time for better UX
+      setTimeout(() => {
+        setUser(userData)
+        setIsPageLoading(false)
+      }, 800) // 800ms loading time
     }
   }, [userData])
 
@@ -116,9 +119,12 @@ export default function ProfilePage() {
       </div>
 
       {isPageLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2 text-lg">Loading profile data...</span>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Loading Profile</h2>
+            <p className="text-gray-600">Stiamo caricando i tuoi dati...</p>
+          </div>
         </div>
       ) : (
         <Card>

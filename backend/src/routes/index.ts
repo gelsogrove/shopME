@@ -4,6 +4,7 @@ import { OtpService } from "../application/services/otp.service"
 import { PasswordResetService } from "../application/services/password-reset.service"
 import { RegistrationAttemptsService } from "../application/services/registration-attempts.service"
 import { SecureTokenService } from "../application/services/secure-token.service"
+import { SpamDetectionService } from "../application/services/spam-detection.service"
 import { UserService } from "../application/services/user.service"
 import { config } from "../config"
 import { AuthController } from "../interfaces/http/controllers/auth.controller"
@@ -27,7 +28,7 @@ async function checkCustomerBlacklist(
   try {
     const customer = await prisma.customers.findFirst({
       where: {
-        phone: phoneNumber,
+        phone: phoneNumber.replace(/\s+/g, ''),
         workspaceId: workspaceId,
         isActive: true
       },
@@ -255,8 +256,8 @@ import { authRouter } from "../interfaces/http/routes/auth.routes"
 import { categoriesRouter } from "../interfaces/http/routes/categories.routes"
 import { chatRouter } from "../interfaces/http/routes/chat.routes"
 import {
-    customersRouter,
-    workspaceCustomersRouter,
+  customersRouter,
+  workspaceCustomersRouter,
 } from "../interfaces/http/routes/customers.routes"
 
 import { faqsRouter } from "../interfaces/http/routes/faqs.routes"
@@ -363,7 +364,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
       try {
         const customer = await prisma.customers.findFirst({
           where: {
-            phone: phoneNumber,
+            phone: phoneNumber.replace(/\s+/g, ''),
             workspaceId: workspaceId,
             isActive: true
           },
@@ -418,9 +419,10 @@ router.post("/whatsapp/webhook", async (req, res) => {
       
       // Get full customer data (including language) for frontend format
       try {
+        console.log(`🔍 FRONTEND FORMAT: Searching for customer with phone="${phoneNumber}", workspaceId="${workspaceId}"`);
         const customer = await prisma.customers.findFirst({
           where: {
-            phone: phoneNumber,
+            phone: phoneNumber.replace(/\s+/g, ''),
             workspaceId: workspaceId,
             isActive: true
           },
@@ -481,7 +483,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
         
         const customer = await prisma.customers.findFirst({
           where: {
-            phone: phoneNumber,
+            phone: phoneNumber.replace(/\s+/g, ''),
             workspaceId: workspaceId,
             isActive: true
           },
@@ -534,6 +536,36 @@ router.post("/whatsapp/webhook", async (req, res) => {
 
     // 🔧 DECLARE CHAT SESSION FOR GLOBAL SCOPE (used throughout the webhook)
     let chatSession: any = null;
+
+    // 🚨 SPAM DETECTION - Check for spam behavior (15 messages in 30 seconds)
+    try {
+      const spamDetectionService = new SpamDetectionService();
+      const spamResult = await spamDetectionService.checkSpamBehavior(phoneNumber, workspaceId);
+      
+      if (spamResult.isSpam) {
+        console.log(`🚨 SPAM DETECTED: ${phoneNumber} sent ${spamResult.messageCount} messages in ${spamResult.timeWindow} seconds`);
+        
+        // Block the spam user
+        await spamDetectionService.blockSpamUser(
+          phoneNumber, 
+          workspaceId, 
+          spamResult.reason || 'Spam behavior detected'
+        );
+        
+        // Return spam response
+        res.status(200).json({
+          success: true,
+          data: {
+            sessionId: null,
+            message: "EVENT_RECEIVED_CUSTOMER_BLACKLISTED"
+          }
+        });
+        return;
+      }
+    } catch (spamError) {
+      console.error('❌ Error in spam detection:', spamError);
+      // Continue processing if spam detection fails
+    }
 
     // Check if chat session is disabled (operator escalation)
     let isSessionDisabled = false;
@@ -739,7 +771,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
         chatInput: messageContent,
         workspaceId: workspaceId,
         customerid: customerId,
-        phone: phoneNumber,
+        phone: phoneNumber.replace(/\s+/g, ''),
         language: variables.languageUser,
         sessionId: "webhook-session",
         temperature: 0.0,

@@ -1,11 +1,9 @@
 import { Button } from '@/components/ui/button'
-import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-// Separator component inline since it's not available
-const Separator = () => <div className="border-t border-gray-200 my-6" />
 
 interface CustomerProfile {
   id: string
@@ -161,16 +159,15 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <CardHeader>
-        <CardTitle className="text-xl font-semibold">Personal Data</CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-6">
-        {/* Personal Information */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-800">👤 Personal Information</h3>
-          
+    <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Personal Information Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            👤 Personal Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-sm font-medium">
@@ -235,72 +232,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-800">🚚 Shipping Address</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="shippingName" className="text-sm font-medium">
-                  Full Name
-                </Label>
-                <Input
-                  id="shippingName"
-                  value={shippingName}
-                  onChange={(e) => setShippingName(e.target.value)}
-                  placeholder="Full name"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="shippingStreet" className="text-sm font-medium">
-                  Street Address
-                </Label>
-                <Input
-                  id="shippingStreet"
-                  value={shippingStreet}
-                  onChange={(e) => setShippingStreet(e.target.value)}
-                  placeholder="Street, number"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="shippingCity" className="text-sm font-medium">
-                  City
-                </Label>
-                <Input
-                  id="shippingCity"
-                  value={shippingCity}
-                  onChange={(e) => setShippingCity(e.target.value)}
-                  placeholder="City"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="shippingPostalCode" className="text-sm font-medium">
-                  Postal Code
-                </Label>
-                <Input
-                  id="shippingPostalCode"
-                  value={shippingPostalCode}
-                  onChange={(e) => setShippingPostalCode(e.target.value)}
-                  placeholder="Postal code"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="shippingCountry" className="text-sm font-medium">
-                  Country
-                </Label>
-                <Input
-                  id="shippingCountry"
-                  value={shippingCountry}
-                  onChange={(e) => setShippingCountry(e.target.value)}
-                  placeholder="Country"
-                />
-              </div>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="language" className="text-sm font-medium">
@@ -335,17 +266,92 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
               </select>
             </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <Separator />
+      {/* Shipping Address Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            🚚 Shipping Address
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="shippingName" className="text-sm font-medium">
+                Full Name
+              </Label>
+              <Input
+                id="shippingName"
+                value={shippingName}
+                onChange={(e) => setShippingName(e.target.value)}
+                placeholder="Full name"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="shippingStreet" className="text-sm font-medium">
+                Street Address
+              </Label>
+              <Input
+                id="shippingStreet"
+                value={shippingStreet}
+                onChange={(e) => setShippingStreet(e.target.value)}
+                placeholder="Street, number"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="shippingCity" className="text-sm font-medium">
+                City
+              </Label>
+              <Input
+                id="shippingCity"
+                value={shippingCity}
+                onChange={(e) => setShippingCity(e.target.value)}
+                placeholder="City"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="shippingPostalCode" className="text-sm font-medium">
+                Postal Code
+              </Label>
+              <Input
+                id="shippingPostalCode"
+                value={shippingPostalCode}
+                onChange={(e) => setShippingPostalCode(e.target.value)}
+                placeholder="Postal code"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="shippingCountry" className="text-sm font-medium">
+                Country
+              </Label>
+              <Input
+                id="shippingCountry"
+                value={shippingCountry}
+                onChange={(e) => setShippingCountry(e.target.value)}
+                placeholder="Country"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Invoice Address */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-800">🧾 Billing Address</h3>
-          <p className="text-sm text-gray-600">
-            If different from the main address
+      {/* Billing Address Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            🧾 Billing Address
+          </CardTitle>
+          <p className="text-sm text-gray-600 mt-2">
+            If different from the shipping address
           </p>
-          
+        </CardHeader>
+        <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="invoiceFirstName" className="text-sm font-medium">
@@ -450,19 +456,19 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
               />
             </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Form Actions */}
-        <div className="flex justify-end space-x-3 pt-6 border-t">
-          <Button
-            type="submit"
-            disabled={saving}
-            className="px-6 py-2"
-          >
-            {saving ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </div>
-      </CardContent>
+      {/* Form Actions */}
+      <div className="flex justify-end space-x-3 pt-6">
+        <Button
+          type="submit"
+          disabled={saving}
+          className="px-6 py-2"
+        >
+          {saving ? 'Saving...' : 'Save Changes'}
+        </Button>
+      </div>
     </form>
   )
 }

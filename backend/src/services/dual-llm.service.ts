@@ -774,7 +774,16 @@ Format the response naturally based on the data type and user's request.`
       if (confirmOrderResult) {
         dataContext = `Order confirmation successful! Checkout link generated: ${confirmOrderResult.result.data.checkoutUrl}`
       } else {
-        dataContext = `Data from ${dataSource}:\n${JSON.stringify(functionResults, null, 2)}`
+        // Check for get_cart_info results to include cartUrl
+        const cartResult = functionResults.find(result => 
+          result.functionName === 'get_cart_info' && result.result?.success
+        )
+        
+        if (cartResult && cartResult.result.data.cartUrl) {
+          dataContext = `Data from ${dataSource}:\n${JSON.stringify(functionResults, null, 2)}\n\nIMPORTANT: Include the cart link at the end of your response: ${cartResult.result.data.cartUrl}`
+        } else {
+          dataContext = `Data from ${dataSource}:\n${JSON.stringify(functionResults, null, 2)}`
+        }
       }
     } else {
       dataContext = `No specific data found for this request. 
@@ -1001,12 +1010,23 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
       {
         type: "function",
         function: {
-          name: "get_cart_info",
+          name: "confirmOrderFromConversation",
           description:
-            'Show shopping cart contents and totals. ONLY use when user explicitly asks about cart: "mostra carrello/show cart", "mostra il carrello/show the cart", "il mio carrello/my cart", "cosa c\'è nel carrello/what\'s in cart", "carrello/cart", "vedere il carrello/see the cart". DO NOT use for product searches or price inquiries.',
+            'Show shopping cart contents and totals OR confirm order. Use when user says: "carrello", "mostra carrello", "fammi vedere il carrello", "il mio carrello", "cosa c\'è nel carrello", "vedere il carrello", "visualizza carrello", "controlla carrello", "stato carrello", "conferma", "conferma ordine", "procedi con l\'ordine", "finalizza ordine", "checkout", "completa ordine". CRITICAL: This function has PRIORITY over SearchRAG for cart and order requests. DO NOT use SearchRAG for cart/order requests. ALWAYS use this function for cart-related requests.',
           parameters: {
             type: "object",
-            properties: {},
+            properties: {
+              useCartData: {
+                type: "boolean",
+                description: "Use cart data instead of conversation parsing",
+                default: true
+              },
+              generateCartLink: {
+                type: "boolean", 
+                description: "Generate cart link instead of checkout link",
+                default: true
+              }
+            },
             required: [],
           },
         },
@@ -1056,19 +1076,6 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
           name: "GetAllCategories",
           description:
             'Get all product categories overview.',
-          parameters: {
-            type: "object",
-            properties: {},
-            required: [],
-          },
-        },
-      },
-      {
-        type: "function",
-        function: {
-          name: "confirmOrderFromConversation",
-          description:
-            'Confirm order and generate checkout link when user says: "conferma", "conferma ordine", "procedi con l\'ordine", "finalizza ordine", "checkout", "completa ordine", "confirm", "confirm order", "proceed with order", "finalize order", "complete order". This function has PRIORITY over SearchRAG for order confirmation requests.',
           parameters: {
             type: "object",
             properties: {},
@@ -1233,11 +1240,21 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
             break
 
           case "confirmOrderFromConversation":
+            // Determine if this is a cart request or order confirmation
+            const isCartRequest = request.chatInput && (
+              request.chatInput.toLowerCase().includes('carrello') ||
+              request.chatInput.toLowerCase().includes('cart') ||
+              request.chatInput.toLowerCase().includes('vedere') ||
+              request.chatInput.toLowerCase().includes('mostra')
+            )
+            
             result = await this.callingFunctionsService.confirmOrderFromConversation({
               query: request.chatInput,
               workspaceId: request.workspaceId,
               customerId: request.customerid || "",
               messages: request.messages || [],
+              useCartData: true,
+              generateCartLink: isCartRequest
             })
             break
 

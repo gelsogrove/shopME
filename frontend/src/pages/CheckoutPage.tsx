@@ -42,9 +42,94 @@ interface FormData {
   notes: string
 }
 
+// 🌐 Get localized text based on customer language (fallback to ENG)
+const getLocalizedText = (language?: string) => {
+  const texts = {
+    'ENG': {
+      finalizeOrder: 'Finalize Order',
+      viewCart: 'View Cart',
+      viewOrders: 'View Orders',
+      viewProfile: 'View Profile',
+      greeting: 'Hello {name}, complete your order in a few steps',
+      loadingCheckout: 'Loading Checkout',
+      preparingOrder: 'Preparing your order...',
+      loadingProducts: 'Loading products...',
+      addProducts: '+ Add Products',
+      emptyCart: 'Your cart is empty',
+      addProductsToContinue: 'Add products to continue',
+      yourProducts: 'Your Products',
+      total: 'TOTAL:',
+      continue: 'Continue →',
+      confirmOrder: 'Confirm Order',
+      productSummary: 'Product Summary',
+      selectProducts: 'Select Products',
+      steps: {
+        products: 'Products',
+        addresses: 'Addresses',
+        confirm: 'Confirm'
+      }
+    },
+    'IT': {
+      finalizeOrder: 'Finalizza Ordine',
+      viewCart: 'Visualizza Carrello',
+      viewOrders: 'Visualizza Ordini',
+      viewProfile: 'Visualizza Profilo',
+      greeting: 'Ciao {name}, completa il tuo ordine in pochi passaggi',
+      loadingCheckout: 'Caricamento Checkout',
+      preparingOrder: 'Stiamo preparando il tuo ordine...',
+      loadingProducts: 'Caricamento prodotti...',
+      addProducts: '+ Aggiungi Prodotti',
+      emptyCart: 'Il tuo carrello è vuoto',
+      addProductsToContinue: 'Aggiungi prodotti per continuare',
+      yourProducts: 'I Tuoi Prodotti',
+      total: 'TOTALE:',
+      continue: 'Continua →',
+      confirmOrder: 'Conferma Ordine',
+      productSummary: 'Riepilogo Prodotti',
+      selectProducts: 'Seleziona Prodotti',
+      steps: {
+        products: 'Prodotti',
+        addresses: 'Indirizzi',
+        confirm: 'Conferma'
+      }
+    },
+    'ES': {
+      finalizeOrder: 'Finalizar Pedido',
+      viewCart: 'Ver Carrito',
+      viewOrders: 'Ver Pedidos',
+      viewProfile: 'Ver Perfil',
+      greeting: 'Hola {name}, completa tu pedido en pocos pasos',
+      loadingCheckout: 'Cargando Checkout',
+      preparingOrder: 'Preparando tu pedido...',
+      loadingProducts: 'Cargando productos...',
+      addProducts: '+ Agregar Productos',
+      emptyCart: 'Tu carrito está vacío',
+      addProductsToContinue: 'Agrega productos para continuar',
+      yourProducts: 'Tus Productos',
+      total: 'TOTAL:',
+      continue: 'Continuar →',
+      confirmOrder: 'Confirmar Pedido',
+      productSummary: 'Resumen de Productos',
+      selectProducts: 'Seleccionar Productos',
+      steps: {
+        products: 'Productos',
+        addresses: 'Direcciones',
+        confirm: 'Confirmar'
+      }
+    }
+  }
+  
+  return texts[language as keyof typeof texts] || texts['ENG']
+}
+
 const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const token = searchParams.get("token")
+  
+  // 🌐 Get customer language with fallback
+  const getCustomerLanguage = () => {
+    return customer?.language || 'IT' // Default to Italian since most users are Italian
+  }
 
   // 🔐 Validate checkout token (TOKEN-ONLY)
   const { valid, loading, error, errorType, expiresAt, tokenData, payload, validateToken } =
@@ -337,8 +422,8 @@ const CheckoutPage: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Caricamento Checkout</h2>
-          <p className="text-gray-600">Stiamo preparando il tuo ordine...</p>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">{getLocalizedText(getCustomerLanguage()).loadingCheckout}</h2>
+          <p className="text-gray-600">{getLocalizedText(getCustomerLanguage()).preparingOrder}</p>
         </div>
       </div>
     )
@@ -364,68 +449,94 @@ const CheckoutPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-4xl mx-auto py-8 px-4">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-lg p-6 mb-0 text-white">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">
-                <span className="bg-white/20 px-3 py-1 rounded-lg mr-2">🛒</span>Finalizza Ordine
+        {/* Header - Uniformed with other public pages */}
+        <div className="flex flex-col space-y-1 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {getLocalizedText(getCustomerLanguage()).finalizeOrder}
               </h1>
-              <p className="text-white opacity-90">
-                Ciao {customer?.name}, completa il tuo ordine in pochi passaggi
-              </p>
             </div>
-            <div className="flex space-x-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  const cartUrl = `/cart-public?token=${token}`
+                  window.location.href = cartUrl
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                </svg>
+                {getLocalizedText(getCustomerLanguage()).viewCart}
+              </button>
               <button
                 onClick={() => {
                   const ordersUrl = `/orders-public?token=${token}`
                   window.location.href = ordersUrl
                 }}
-                className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
               >
-                Visualizza Ordini
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {getLocalizedText(getCustomerLanguage()).viewOrders}
               </button>
               <button
                 onClick={() => {
                   const profileUrl = `/customer-profile?token=${token}`
                   window.location.href = profileUrl
                 }}
-                className="bg-white/20 hover:bg-white/30 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
               >
-                Visualizza Profilo
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                {getLocalizedText(getCustomerLanguage()).viewProfile}
               </button>
             </div>
           </div>
+          <div className="text-sm text-gray-600 ml-10">
+            {getLocalizedText(getCustomerLanguage()).greeting.replace('{name}', customer?.name || '')}
+          </div>
+        </div>
 
-          {/* Progress Steps */}
+        {/* Progress Steps */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex items-center justify-between">
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex flex-col items-center">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                     step <= currentStep
-                      ? "bg-white text-blue-600"
-                      : "bg-white/30 text-white"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-600"
                   }`}
                 >
                   {step}
                 </div>
                 <span className={`mt-2 text-sm ${
-                  currentStep >= step ? "text-white font-semibold" : "text-white/70"
+                  currentStep >= step ? "text-gray-900 font-semibold" : "text-gray-500"
                 }`}>
-                  {step === 1 ? "Prodotti" : step === 2 ? "Indirizzi" : "Conferma"}
+                  {step === 1 ? getLocalizedText(getCustomerLanguage()).steps.products : 
+                   step === 2 ? getLocalizedText(getCustomerLanguage()).steps.addresses : 
+                   getLocalizedText(getCustomerLanguage()).steps.confirm}
                 </span>
               </div>
             ))}
           </div>
         </div>
 
+
         {/* Step Content */}
-        <div className="bg-white rounded-b-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           {currentStep === 1 && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">📦 I Tuoi Prodotti</h2>
+                <h2 className="text-2xl font-bold">📦 {getLocalizedText(getCustomerLanguage()).yourProducts}</h2>
                 <button
                   onClick={() => {
                     setShowAddProducts(true)
@@ -433,7 +544,7 @@ const CheckoutPage: React.FC = () => {
                   }}
                   className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
                 >
-                  + Aggiungi Prodotti
+                  {getLocalizedText(getCustomerLanguage()).addProducts}
                 </button>
               </div>
 
@@ -517,15 +628,15 @@ const CheckoutPage: React.FC = () => {
               {/* Empty cart message */}
               {prodotti.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
-                  <p className="text-lg">Il tuo carrello è vuoto</p>
-                  <p className="text-sm">Aggiungi prodotti per continuare</p>
+                  <p className="text-lg">{getLocalizedText(getCustomerLanguage()).emptyCart}</p>
+                  <p className="text-sm">{getLocalizedText(getCustomerLanguage()).addProductsToContinue}</p>
                 </div>
               )}
 
               {/* Total */}
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center text-xl font-bold">
-                  <span>TOTALE:</span>
+                  <span>{getLocalizedText(getCustomerLanguage()).total}</span>
                   <span className="text-green-600 font-bold">€{calculateTotal().toFixed(2)}</span>
                 </div>
               </div>
@@ -537,7 +648,7 @@ const CheckoutPage: React.FC = () => {
                   disabled={prodotti.length === 0}
                   className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
-                  Continua →
+                  {getLocalizedText(getCustomerLanguage()).continue}
                 </button>
               </div>
             </div>
@@ -829,20 +940,22 @@ const CheckoutPage: React.FC = () => {
                 >
                   ← Indietro
                 </button>
-                <button
-                  onClick={handleSubmit}
-                  disabled={submitStatus.loading}
-                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition-colors"
-                >
-                  {submitStatus.loading ? (
-                    <span className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Creazione ordine...
-                    </span>
-                  ) : (
-                    "✅ CONFERMA ORDINE"
-                  )}
-                </button>
+                {!submitStatus.success && (
+                  <button
+                    onClick={handleSubmit}
+                    disabled={submitStatus.loading}
+                    className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition-colors"
+                  >
+                    {submitStatus.loading ? (
+                      <span className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Creazione ordine...
+                      </span>
+                    ) : (
+                      "✅ CONFERMA ORDINE"
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -865,7 +978,7 @@ const CheckoutPage: React.FC = () => {
               {loadingProducts ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-                  <p className="mt-2 text-gray-600">Caricamento prodotti...</p>
+                  <p className="mt-2 text-gray-600">{getLocalizedText(customer?.language).loadingProducts}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
