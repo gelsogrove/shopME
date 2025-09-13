@@ -3,9 +3,8 @@ import { useLocation, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 import { TokenError } from "../components/ui/TokenError"
 import UnifiedLoading from "../components/ui/UnifiedLoading"
-import PublicPageLayout from "../components/layout/PublicPageLayout"
-import { getPublicPageTexts } from "../utils/publicPageTranslations"
 import { useCheckoutTokenValidation } from "../hooks/useTokenValidation"
+import { getPublicPageTexts } from "../utils/publicPageTranslations"
 
 interface Product {
   codice: string
