@@ -163,7 +163,7 @@ export class DualLLMService {
         "🔧 Stage 2: Formatter (handles all cases - with or without results)"
       )
 
-      const formattedResponse = await this.executeFormatter(
+      let formattedResponse = await this.executeFormatter(
         requestWithPrompt,
         finalResult
       )
@@ -175,6 +175,43 @@ export class DualLLMService {
       console.log(`   🔍 Data Source: ${finalResult.source}`)
       console.log(`   📝 Response Length: ${formattedResponse?.length || 0} chars`)
       console.log(`   🐛 Debug Info:`, this.lastDebugInfo)
+      
+      // 🚨 SPECIAL HANDLING FOR CART FUNCTIONS
+      console.log("🔍 CHECKING CART FUNCTIONS:", {
+        hasFunctionResults: !!finalResult.functionResults,
+        functionResultsLength: finalResult.functionResults?.length || 0,
+        functionResults: finalResult.functionResults?.map(fr => ({
+          functionName: fr.functionName,
+          success: fr.result?.success,
+          hasMessage: !!fr.result?.message,
+          hasDataMessage: !!fr.result?.data?.message
+        }))
+      })
+      
+      if (finalResult.functionResults?.length > 0) {
+        const addToCartResult = finalResult.functionResults.find(result => 
+          result.functionName === 'add_to_cart' && result.result?.success
+        )
+        
+        const confirmOrderResult = finalResult.functionResults.find(result => 
+          result.functionName === 'confirmOrderFromConversation' && result.result?.success
+        )
+        
+        console.log("🔍 CART FUNCTION RESULTS:", {
+          addToCartFound: !!addToCartResult,
+          confirmOrderFound: !!confirmOrderResult,
+          addToCartResult: addToCartResult?.result,
+          confirmOrderResult: confirmOrderResult?.result
+        })
+        
+        if (addToCartResult) {
+          console.log("🛒 DIRECT CART RESPONSE: Using add_to_cart result directly")
+          formattedResponse = addToCartResult.result.message
+        } else if (confirmOrderResult) {
+          console.log("🛒 DIRECT CART RESPONSE: Using confirmOrderFromConversation result directly")
+          formattedResponse = confirmOrderResult.result.data.message
+        }
+      }
       
       console.log(
         "✅ Formatted Response:",
@@ -243,6 +280,8 @@ export class DualLLMService {
       
       this.lastTranslatedQuery = translatedQuery // Store for debug
       
+      // 🚨 REMOVED FORCED RECOGNITION - USING LLM ONLY
+      
       // Get function definitions
       const functionDefinitions = this.getRAGProcessorFunctionDefinitions()
       console.log(
@@ -302,7 +341,7 @@ export class DualLLMService {
         ),
         tools: functionDefinitions,
         tool_choice: "auto", // Let AI decide when to use functions
-          temperature: 0.3, // Fixed temperature for RAG Processor precision
+          temperature: 0.1, // Ultra-low temperature for maximum determinism
         max_tokens: agentConfig.maxTokens || 1000,
       }
 
@@ -552,7 +591,7 @@ export class DualLLMService {
             ],
             request.messages || []
           ),
-        temperature: 0.7,
+        temperature: 0.3,
           max_tokens: 700,
         },
         {
@@ -871,6 +910,19 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
       {
         type: "function",
         function: {
+          name: "GetCustomerProfileLink",
+          description:
+            '🚨🚨🚨 CRITICAL: Generate secure link for customer profile management. MANDATORY TRIGGERS: "modifica profilo", "cambia indirizzo", "aggiorna indirizzo", "modifica indirizzo", "indirizzo di spedizione", "voglio modificare indirizzo", "cambia profilo", "aggiorna profilo", "dammi link profilo", "link profilo", "modifica i miei dati", "cambia i miei dati", "aggiorna i miei dati". ABSOLUTE PRIORITY over SearchRAG!',
+          parameters: {
+            type: "object",
+            properties: {},
+            required: [],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
           name: "GetOrdersListLink",
           description:
             "Generate secure link to view customer orders. Use SPECIFICALLY when user says: 'i miei ordini', 'lista ordini', 'dammi ordini', 'show me orders'. For SPECIFIC ORDER or INVOICE requests use with orderCode parameter when user says: 'dammi fattura dell'ultimo ordine', 'fattura dell'ultimo ordine', 'dammi link ordine', 'stato del mio ultimo ordine', 'fattura dell'ordine', 'DDt dell'ultimo ordine'. This function has PRIORITY over SearchRAG for order/invoice requests.",
@@ -931,7 +983,7 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
         function: {
           name: "add_to_cart",
           description:
-            'Add product to shopping cart. Use when user wants to add items: "aggiungi al carrello/add to cart", "voglio/want", "comprare/buy", "acquistare/purchase", "metti nel carrello/put in cart", "prendo/I take". CRITICAL: If user provides a product code like [00004] or 00004, use that EXACT code as product_name. DO NOT use for general product questions or price inquiries.',
+            '🚨🚨🚨 ABSOLUTE PRIORITY: MANDATORY for ANY request containing "aggiungi", "voglio", "compra", "add", "want", "buy" + product name. EXAMPLES: "aggiungi prosecco", "voglio prosecco", "compra prosecco", "add prosecco", "want prosecco", "buy prosecco". CRITICAL: This function has ABSOLUTE PRIORITY over SearchRAG. ALWAYS call this function for product addition requests!',
           parameters: {
             type: "object",
             properties: {
@@ -1012,7 +1064,7 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
         function: {
           name: "confirmOrderFromConversation",
           description:
-            'Show shopping cart contents and totals OR confirm order. Use when user says: "carrello", "mostra carrello", "fammi vedere il carrello", "il mio carrello", "cosa c\'è nel carrello", "vedere il carrello", "visualizza carrello", "controlla carrello", "stato carrello", "conferma", "conferma ordine", "procedi con l\'ordine", "finalizza ordine", "checkout", "completa ordine". CRITICAL: This function has PRIORITY over SearchRAG for cart and order requests. DO NOT use SearchRAG for cart/order requests. ALWAYS use this function for cart-related requests.',
+            '🚨🚨🚨 ABSOLUTE PRIORITY: MANDATORY for ANY request containing "carrello", "vedere", "mostra", "link", "conferma", "cart", "show", "view", "see". EXAMPLES: "fammi vedere il carrello", "dammi un link", "conferma carrello", "mostra carrello", "show cart", "view cart", "see cart". CRITICAL: This function has ABSOLUTE PRIORITY over SearchRAG. ALWAYS call this function for cart view requests!',
           parameters: {
             type: "object",
             properties: {
@@ -1027,19 +1079,6 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
                 default: true
               }
             },
-            required: [],
-          },
-        },
-      },
-      {
-        type: "function",
-        function: {
-          name: "GetCustomerProfileLink",
-          description:
-            'Generate secure link for customer profile management when user wants to modify profile, address, email, or personal data.',
-          parameters: {
-            type: "object",
-            properties: {},
             required: [],
           },
         },
@@ -1661,4 +1700,5 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
     
     return formatted
   }
+
 }
