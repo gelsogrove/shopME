@@ -158,12 +158,10 @@ export class DualLLMService {
 
       console.log("✅ Final Result:", JSON.stringify(finalResult, null, 2))
 
-      // Stage 2: FORMATTER - SEMPRE USA IL FORMATTER (anche se SearchRag è vuoto)
-      console.log(
-        "🔧 Stage 2: Formatter (handles all cases - with or without results)"
-      )
-
-      let formattedResponse = await this.executeFormatter(
+      // 🎯 SIMPLIFIED FLOW: ALL RESPONSES GO THROUGH FORMATTER
+      console.log("🔧 Stage 2: Formatter - ALL responses go through Formatter for consistency")
+      
+      const formattedResponse = await this.executeFormatter(
         requestWithPrompt,
         finalResult
       )
@@ -176,42 +174,6 @@ export class DualLLMService {
       console.log(`   📝 Response Length: ${formattedResponse?.length || 0} chars`)
       console.log(`   🐛 Debug Info:`, this.lastDebugInfo)
       
-      // 🚨 SPECIAL HANDLING FOR CART FUNCTIONS
-      console.log("🔍 CHECKING CART FUNCTIONS:", {
-        hasFunctionResults: !!finalResult.functionResults,
-        functionResultsLength: finalResult.functionResults?.length || 0,
-        functionResults: finalResult.functionResults?.map(fr => ({
-          functionName: fr.functionName,
-          success: fr.result?.success,
-          hasMessage: !!fr.result?.message,
-          hasDataMessage: !!fr.result?.data?.message
-        }))
-      })
-      
-      if (finalResult.functionResults?.length > 0) {
-        const addToCartResult = finalResult.functionResults.find(result => 
-          result.functionName === 'add_to_cart' && result.result?.success
-        )
-        
-        const confirmOrderResult = finalResult.functionResults.find(result => 
-          result.functionName === 'confirmOrderFromConversation' && result.result?.success
-        )
-        
-        console.log("🔍 CART FUNCTION RESULTS:", {
-          addToCartFound: !!addToCartResult,
-          confirmOrderFound: !!confirmOrderResult,
-          addToCartResult: addToCartResult?.result,
-          confirmOrderResult: confirmOrderResult?.result
-        })
-        
-        if (addToCartResult) {
-          console.log("🛒 DIRECT CART RESPONSE: Using add_to_cart result directly")
-          formattedResponse = addToCartResult.result.message
-        } else if (confirmOrderResult) {
-          console.log("🛒 DIRECT CART RESPONSE: Using confirmOrderFromConversation result directly")
-          formattedResponse = confirmOrderResult.result.data.message
-        }
-      }
       
       console.log(
         "✅ Formatted Response:",
@@ -605,18 +567,19 @@ export class DualLLMService {
         }
       )
 
-      const formattedResponse =
+      const rawResponse =
         response.data.choices[0]?.message?.content?.trim()
-      console.log("✅ Formatted response:", formattedResponse)
+      console.log("✅ Raw response:", rawResponse)
 
-      // 📱 POST-PROCESSOR: Applica formattazione WhatsApp automatica
-      const whatsappFormattedResponse = this.applyWhatsAppFormatting(
-        formattedResponse || "Mi dispiace, non sono riuscito a generare una risposta."
+      // 📱 Apply formatting to all responses
+      const formattedResponse = FormatterService.formatResponse(
+        rawResponse || "Mi dispiace, non sono riuscito a generare una risposta.",
+        request.language || "it"
       )
       
-      console.log("📱 WhatsApp formatted response:", whatsappFormattedResponse)
+      console.log("📱 Formatted response:", formattedResponse)
 
-      return whatsappFormattedResponse
+      return formattedResponse
     } catch (error) {
       console.error("❌ Formatter Error:", error)
       return this.buildFallbackResponse(request, ragResult)
@@ -722,9 +685,14 @@ CRITICAL WHATSAPP FORMATTING RULES:
   "I can help you with: • Item 1 • Item 2"
 
 CONTEXT: You receive data from either Cloud Functions or SearchRag.
-- Cloud Functions: Structured data (orders, offers, contacts)
+- Cloud Functions: Structured data (orders, offers, contacts) - some responses are already formatted and should be returned as-is
 - SearchRag: Semantic search results about products/services
 - No data: When no specific information is found, provide helpful guidance
+
+DIRECT RESPONSE HANDLING:
+- When you receive "DIRECT_RESPONSE: [message]", return the message exactly as provided
+- These are pre-formatted responses from Cloud Functions that should not be modified
+- Only apply your formatting rules to SearchRag results and generic responses
 
 CRITICAL RULE: When the data comes from GetAllProducts function, you MUST show ALL products returned, organized by category. Do NOT summarize or abbreviate - show the complete list with prices and descriptions.
 
@@ -805,24 +773,24 @@ Format the response naturally based on the data type and user's request.`
 
     let dataContext = ""
     if (functionResults.length > 0) {
-      // Check for confirmOrderFromConversation results
-      const confirmOrderResult = functionResults.find(result => 
-        result.functionName === 'confirmOrderFromConversation' && result.result?.success
+      // Check for direct Cloud Function responses that should be returned as-is
+      const directResponseFunctions = ['add_to_cart', 'confirmOrderFromConversation', 'SearchRag_faq', 'GetAllProducts', 'GetOrdersListLink', 'GetCustomerProfileLink', 'GetShipmentTrackingLink', 'ContactOperator', 'GetServices', 'GetUserInfo', 'GetActiveOffers', 'GetAllCategories', 'ragSearch', 'remove_from_cart', 'resolve_disambiguation', 'clear_cart']
+      
+      const directResult = functionResults.find(result => 
+        directResponseFunctions.includes(result.functionName) && result.result?.success
       )
       
-      if (confirmOrderResult) {
-        dataContext = `Order confirmation successful! Checkout link generated: ${confirmOrderResult.result.data.checkoutUrl}`
-      } else {
-        // Check for get_cart_info results to include cartUrl
-        const cartResult = functionResults.find(result => 
-          result.functionName === 'get_cart_info' && result.result?.success
-        )
-        
-        if (cartResult && cartResult.result.data.cartUrl) {
-          dataContext = `Data from ${dataSource}:\n${JSON.stringify(functionResults, null, 2)}\n\nIMPORTANT: Include the cart link at the end of your response: ${cartResult.result.data.cartUrl}`
+      if (directResult) {
+        // For direct responses, return the message as-is (already formatted by the function)
+        const message = directResult.result.message || directResult.result.data?.message
+        if (message) {
+          dataContext = `DIRECT_RESPONSE: ${message}`
         } else {
           dataContext = `Data from ${dataSource}:\n${JSON.stringify(functionResults, null, 2)}`
         }
+      } else {
+        // For other results, format normally
+        dataContext = `Data from ${dataSource}:\n${JSON.stringify(functionResults, null, 2)}`
       }
     } else {
       dataContext = `No specific data found for this request. 
@@ -841,6 +809,13 @@ Please provide a helpful response that:
     const welcomeBackContext = request.welcomeBackMessage ? 
       `\nIMPORTANT: The customer is returning after a period of inactivity. Include this welcome back message: "${request.welcomeBackMessage}"\n` : 
       '';
+
+    // Check if this is a direct response that should be returned as-is
+    if (dataContext.startsWith('DIRECT_RESPONSE: ')) {
+      const directMessage = dataContext.replace('DIRECT_RESPONSE: ', '')
+      // Apply WhatsApp formatting to direct responses too
+      return FormatterService.formatResponse(directMessage, language)
+    }
 
     return `User asked: "${userQuery}"
 ${welcomeBackContext}
@@ -880,10 +855,10 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
     const welcomeBackPrefix = request.welcomeBackMessage ? `${request.welcomeBackMessage}\n\n` : '';
 
     if (ragResult.functionResults && ragResult.functionResults.length > 0) {
-      return welcomeBackPrefix + messages.found
+      return FormatterService.formatResponse(welcomeBackPrefix + messages.found, language)
     }
 
-    return welcomeBackPrefix + messages.notFound
+    return FormatterService.formatResponse(welcomeBackPrefix + messages.notFound, language)
   }
 
   private getRAGProcessorFunctionDefinitions(): any[] {
@@ -904,6 +879,24 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
               },
             },
             required: [],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "SearchRag_faq",
+          description:
+            '🚨🚨🚨 ABSOLUTE PRIORITY: MANDATORY for bot presentation and general questions. MANDATORY TRIGGERS: "chi sei", "who are you", "quién eres", "presentati", "cosa fai", "aiuto", "help", "ayuda", "ajuda", "cosa puoi fare", "what can you do", "qué puedes hacer", "o que você pode fazer". CRITICAL: This function has ABSOLUTE PRIORITY over GetCustomerProfileLink for bot identity questions!',
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "The user's question or request",
+              },
+            },
+            required: ["query"],
           },
         },
       },
@@ -1062,9 +1055,22 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
       {
         type: "function",
         function: {
+          name: "get_cart_info",
+          description:
+            '🚨🚨🚨 ABSOLUTE PRIORITY: MANDATORY for CART DISPLAY requests! Use when user wants to VIEW/SEE cart contents WITHOUT confirming: "fammi vedere il carrello", "mostra carrello", "cosa ho nel carrello", "show me cart", "what\'s in my cart", "carrello", "cart", "vedere il carrello", "see the cart", "my cart". CRITICAL: This function ONLY shows cart contents - does NOT confirm or checkout. Use confirmOrderFromConversation ONLY for actual order confirmation!',
+          parameters: {
+            type: "object",
+            properties: {},
+            required: [],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
           name: "confirmOrderFromConversation",
           description:
-            '🚨🚨🚨 ABSOLUTE PRIORITY: MANDATORY for ANY request containing "carrello", "vedere", "mostra", "link", "conferma", "cart", "show", "view", "see". EXAMPLES: "fammi vedere il carrello", "dammi un link", "conferma carrello", "mostra carrello", "show cart", "view cart", "see cart". CRITICAL: This function has ABSOLUTE PRIORITY over SearchRAG. ALWAYS call this function for cart view requests!',
+            '🚨🚨🚨 ABSOLUTE PRIORITY: MANDATORY for ORDER CONFIRMATION requests! Use ONLY when user wants to CONFIRM/FINALIZE/CHECKOUT: "conferma ordine", "finalizza ordine", "procedi al checkout", "confirm order", "finalize order", "proceed to checkout", "checkout", "conferma", "procedi", "confirm", "proceed". CRITICAL: Do NOT use for simple cart viewing - use get_cart_info instead!',
           parameters: {
             type: "object",
             properties: {
@@ -1636,69 +1642,5 @@ Please create a natural, helpful response in ${languageName}.${request.welcomeBa
     return processedPrompt
   }
 
-  /**
-   * 📱 POST-PROCESSOR: Applica formattazione WhatsApp automatica
-   * Corregge automaticamente la formattazione per seguire le regole WhatsApp
-   */
-  private applyWhatsAppFormatting(response: string): string {
-    let formatted = response
-
-    console.log("📱 Applicando formattazione WhatsApp automatica...")
-    console.log("📱 Input originale:", formatted)
-
-    // 1. 🚫 Rimuovi emoji usati come bullet points e sostituisci con •
-    const emojiBullets = ['💳', '🏦', '📱', '💰', '💶', '🍷', '🍝', '🍇', '📦', '🔒', '🎯']
-    emojiBullets.forEach(emoji => {
-      // Sostituisci emoji all'inizio di riga (con possibili spazi) con •
-      const regex = new RegExp(`^(\\s*)${emoji}\\s+`, 'gm')
-      formatted = formatted.replace(regex, '$1• ')
-    })
-
-    // 2. 🔧 Converti anche i trattini (-) in bullet points (•)
-    formatted = formatted.replace(/^(\s*)- /gm, '$1• ')
-
-    // 3. ✨ Aggiungi titoli con * quando mancano per le liste di pagamento
-    if ((formatted.includes('• Carta di credito') || formatted.includes('• PayPal')) && 
-        !formatted.includes('*Metodi') && !formatted.includes('*metodi')) {
-      
-      // Trova dove inizia la lista e aggiungi il titolo
-      formatted = formatted.replace(
-        /(.*?\n)(\s*• (?:Carta di credito|PayPal))/,
-        '$1\n*Metodi accettati:*\n$2'
-      )
-    }
-
-    // 4. 🗜️ Rimuovi righe vuote eccessive (max 1 riga vuota consecutiva)
-    formatted = formatted.replace(/\n\s*\n\s*\n/g, '\n\n')
-
-    // 5. 🔧 Standardizza emoji funzionali - aggiungi 🔒 per sicurezza se manca
-    if ((formatted.includes('sicur') || formatted.includes('garanti')) && !formatted.includes('🔒')) {
-      formatted = formatted.replace(
-        /(sicur[a-z]*|garanti[a-z]*)/gi,
-        '$1 🔒'
-      )
-    }
-
-    // 6. 💰 FORMATTAZIONE TOTALI E PREZZI - Assicura che tutti i totali e prezzi importanti siano in grassetto
-    // Pattern per totali senza asterischi: "TOTALE: €XX.XX" o "Total: €XX.XX"
-    formatted = formatted.replace(/(\b(?:TOTALE|Total|TOTAL|Total):\s*€[\d,]+\.?\d*)/gi, '*$1*')
-    
-    // Pattern per totali con underscore: "_TOTALE: €XX.XX_" → "*TOTALE: €XX.XX*"
-    formatted = formatted.replace(/_(\b(?:TOTALE|Total|TOTAL|Total):\s*€[\d,]+\.?\d*)_/gi, '*$1*')
-    
-    // Pattern per prezzi finali importanti: "Prezzo finale: €XX.XX" → "*Prezzo finale: €XX.XX*"
-    formatted = formatted.replace(/(\b(?:Prezzo finale|Final price|Precio final|Preço final):\s*€[\d,]+\.?\d*)/gi, '*$1*')
-    
-    // Pattern per subtotali: "Subtotale: €XX.XX" → "*Subtotale: €XX.XX*"
-    formatted = formatted.replace(/(\b(?:Subtotale|Subtotal|Subtotal|Subtotal):\s*€[\d,]+\.?\d*)/gi, '*$1*')
-
-    // 7. ✂️ Rimuovi spazi extra prima e dopo
-    formatted = formatted.trim()
-
-    console.log("📱 Output formattato:", formatted)
-    console.log("📱 Formattazione WhatsApp applicata con successo")
-    
-    return formatted
-  }
 
 }

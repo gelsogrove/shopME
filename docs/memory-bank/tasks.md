@@ -134,6 +134,12 @@
 - **Stato**: PENDING
 - **Note**: FASE 2 - Sistema di coda essenziale per produzione e scalabilità. Componenti: MessageQueueService, MessageQueueRepository, Background Worker, Monitoring Dashboard, Database Schema
 
+### TASK: Investigare Blocco Utenti - Sistema Blacklist e Rate Limiting
+- **Descrizione**: CRITICO: Gli utenti si bloccano frequentemente e il sistema MCP blocca sempre l'utente di prova. Deve essere investigata tutta la logica di blocco utenti nel sistema. Problema identificato: 1) Utenti bloccati senza motivo apparente, 2) MCP test client blocca sempre l'utente di prova, 3) Logica di blacklist troppo aggressiva, 4) Rate limiting non configurato correttamente, 5) Possibili bug nel sistema di controllo spam. Deve essere analizzato: 1) Trovare TUTTE le regole di blocco nel codice (blacklist, rate limiting, spam detection), 2) Verificare i trigger per il blocco utenti, 3) Controllare configurazione rate limiting, 4) Analizzare logica SpamDetectionService, 5) Testare comportamento con utenti normali, 6) Documentare tutte le possibilità di blocco, 7) Identificare perché MCP blocca sempre l'utente di prova, 8) Proporre soluzioni per ridurre blocchi ingiustificati. Comportamento corretto: Utenti normali non devono essere bloccati, solo utenti che superano limiti ragionevoli.
+- **Priorità**: MASSIMA
+- **Stato**: PENDING
+- **Note**: CRITICO - Il sistema blocca troppo frequentemente gli utenti, incluso l'utente di prova del MCP. Deve essere risolto immediatamente per permettere il testing e l'uso normale del sistema.
+
 ## ✅ TASK COMPLETATI
 
 ### TASK: Orders - Riorganizzare campo Notes
@@ -175,5 +181,5 @@
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 25 (18 completati, 7 pending)
-**Task critici**: 0
+**Task totali**: 26 (18 completati, 8 pending)
+**Task critici**: 1

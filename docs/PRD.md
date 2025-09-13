@@ -1,3 +1,6 @@
+# ShopMe Project - Product Requirements Document (PRD)
+
+
 ## Public Orders (Phone-based External Links)
 
 ### Goal
@@ -29,7 +32,7 @@ Allow customers to access their full orders history and specific order details v
 - Route: `/orders-public` and `/orders-public/:orderCode` (no platform layout)
 - Page: `OrdersPublicPage.tsx`
   - **Reads only `token` from URL** - no phone or workspaceId parameters
-  - **Token validation** specific for `orders` type
+  - **Universal token validation** - accepts any valid token (KISS system)
   - **Simplified API calls** with only token parameter
   - Supports optional filters via query params: `status`, `payment`, `from`, `to`.
   - Supports `orderCode` query param to auto-expand a specific order in the list view.
@@ -123,51 +126,52 @@ node mcp-test-client.js "María García" "mostrar carrito" exit-first-message=tr
 - **Centralized token validation** using `SecureTokenService` for all public endpoints.
 - **Token contains all necessary data**: customerId, workspaceId, and expiration time.
 - **No additional parameters required** - token is sufficient for all operations.
-- **Token Reuse System**: One token per user per type, reused for 1 hour until expiration.
-- **Token Validation Logic**: Tokens are validated ONLY by expiration time (`expiresAt`), NOT by usage status.
-- **Token Reusability**: Tokens can be used multiple times until expiration - no "used" marking.
-- **New Token Generation**: New tokens are generated ONLY when existing token is expired or doesn't exist.
+- **🚀 KISS TOKEN SYSTEM**: ONE universal token per customer, reused until expiration.
+- **Token Validation Logic**: Tokens validated ONLY by existence + expiration time (`expiresAt`).
+- **Token Reusability**: Same token used for ALL pages (cart, orders, profile, checkout) until expiration.
+- **New Token Generation**: New token created ONLY when no valid token exists for customer+workspace.
 - **Automatic workspace isolation** enforced via token validation.
 - If token is invalid or expired, backend returns an error requiring new token generation.
 
 ### 🔐 Token System Technical Specifications
 
-#### **Token Generation Logic**
+#### **🚀 KISS Token Generation Logic**
 ```typescript
-// 1. Check for existing valid token
+// 1. Check for ANY valid token for customer+workspace (IGNORES TYPE!)
 const existingToken = await prisma.secureToken.findFirst({
   where: {
     customerId,
-    type,
     workspaceId,
-    expiresAt: { gt: new Date() } // Only check expiration
+    expiresAt: { gt: new Date() }  // Only check: not expired
   }
 })
 
-// 2. If valid token exists → Reuse it
+// 2. If valid token exists → REUSE IT (regardless of original type)
 if (existingToken) {
-  return existingToken.token
+  return existingToken.token  // SAME TOKEN for cart, orders, profile, checkout!
 }
 
-// 3. If no valid token → Generate new one
-return await createNewToken(customerId, type, workspaceId, payload)
+// 3. If no valid token → Generate ONE universal token
+return await createNewUniversalToken(customerId, workspaceId, payload)
 ```
 
-#### **Token Validation Logic**
+#### **🚀 KISS Token Validation Logic**
 ```typescript
-// ONLY check expiration - NO usage tracking
-const whereClause = {
-  token,
-  expiresAt: { gt: new Date() } // Only expiration matters
-}
-// NO usedAt: null check
+// ULTRA-SIMPLE: Only check existence + expiration
+const secureToken = await prisma.secureToken.findFirst({
+  where: {
+    token,
+    expiresAt: { gt: new Date() }  // Only check: exists + not expired
+  }
+})
+// NO type checking, NO payload validation, NO usage tracking
 ```
 
-#### **Token Lifecycle**
-- **Creation**: Generated when no valid token exists for customer+type+workspace
-- **Validation**: Only `expiresAt` field determines validity
-- **Reuse**: Same token used for all requests until expiration (1 hour)
-- **Expiration**: Token becomes invalid after 1 hour, triggers new generation
+#### **🚀 KISS Token Lifecycle**
+- **Creation**: ONE universal token generated when none exists for customer+workspace
+- **Validation**: ONLY existence + expiration determines validity
+- **Reuse**: SAME token for cart/orders/profile/checkout until expiration
+- **Expiration**: Token invalid after 1 hour, triggers new universal token generation
 - **No Usage Tracking**: `usedAt` field is ignored - tokens remain valid until expiration
 
 #### **Benefits of This Approach**
@@ -401,10 +405,10 @@ Sistema checkout completo token-based con validazione sicura, supporto multi-lin
 
 - **Centralized Validation**: `SecureTokenService.validateToken()` per tutti gli endpoint checkout
 - **Consistent Data Access**: Standardizzato uso di `validation.data.customerId` in tutti i controller
-- **Token Reuse**: Sistema di riutilizzo token per 1 ora (same customer, same type)
+- **Token Reuse**: Sistema di riutilizzo token universale per 1 ora (same customer, ANY type)
 - **Token Reusability**: I token possono essere riutilizzati infinite volte finché non scadono
 - **No Usage Tracking**: I token NON vengono marcati come "usati" - solo la scadenza li invalida
-- **Database Integrity**: Unique constraint su `(customerId, type, workspaceId)` nella tabella `secureToken`
+- **Database Integrity**: ONE token per customer+workspace (no type constraint needed)
 
 #### **🌍 2. Multi-Language Support**
 
@@ -444,19 +448,22 @@ Sistema checkout completo token-based con validazione sicura, supporto multi-lin
 #### **Backend Components**
 
 ```typescript
-// Checkout Controller - Token validation standardizzato
+// 🚀 KISS Controller - Universal token validation
 const { valid, data: validation } = await SecureTokenService.validateToken(
-  token,
-  "checkout"
+  token  // ✅ No type parameter needed - accepts ANY valid token
 )
 const customerId = validation.data.customerId // ✅ Consistent access pattern
 
-// Confirm Order From Conversation - Token generation corretto
-const tokenData = await SecureTokenService.createSecureToken(
-  customerId, // ✅ Aggiunto per consistenza
-  "checkout",
+// 🚀 KISS Token Generation - Universal token
+const tokenData = await SecureTokenService.createToken(
+  'universal',  // ✅ Always 'universal' type
   workspaceId,
-  { customer, prodotti, totale }
+  { customer, prodotti, totale },
+  '1h',
+  undefined,
+  undefined,
+  undefined,
+  customerId  // ✅ Required for KISS system
 )
 ```
 
@@ -1110,7 +1117,7 @@ interface SmartCartSystem {
 
   // TOKEN-BASED SECURITY
   tokenSystem: {
-    tokenType: 'cart' // Unified with checkout/orders/profile
+    tokenType: 'universal' // 🚀 KISS: ONE type for ALL pages
     expirationTime: '1h' // Same as other secure tokens
     reusePolicy: boolean // Reuse existing valid tokens
     workspaceIsolation: boolean // Tokens isolated per workspace
@@ -9688,6 +9695,28 @@ output: 'Array of active offers with discount percentages, dates and categories'
 - ✅ **Response Format**: Properly formatted with icons, dates, and descriptions
 - ✅ **Multilingual**: Automatic language detection and appropriate response format
 - ✅ **Error Handling**: Graceful handling when no offers available
+
+---
+
+## 🧪 **TESTING DOCUMENTATION**
+
+### **Test Reports**
+- **Current Test Report**: `docs/check_report.md` - Contains real-time testing results, identified issues, and system status
+- **Test Cases**: `docs/check.md` - Complete test suite with 34 test cases across 6 categories (IT/EN/ES)
+
+### **Architectural Documentation**
+- **System Architecture**: `docs/other/RULES_PROMPT.md` - Architectural bible defining component responsibilities and system patterns
+- **Agent Prompt**: `docs/other/prompt_agent.md` - LLM instructions and function definitions
+
+### **Critical Testing Results**
+- **Core Functions**: ✅ **OPERATIVO AL 100%**
+- **Italian Language**: ✅ **FUNZIONANTE**
+- **Spanish Language**: ✅ **FUNZIONANTE**  
+- **English Language**: ❌ **PROBLEMI TRADUZIONE**
+- **Cart Management**: ✅ **FUNZIONANTE**
+- **Order Links**: ✅ **FUNZIONANTE**
+
+**Status**: 🟢 **SISTEMA CORE OPERATIVO** - Problemi minori identificati e isolati
 
 ---
 

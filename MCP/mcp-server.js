@@ -142,18 +142,26 @@ class ShopMeMCPServer {
       throw new Error('User and message are required');
     }
 
+    // User mapping to phone numbers
+    const userPhones = {
+      "Mario Rossi": "+390212345678",
+      "John Smith": "+44123456789", 
+      "Maria Garcia": "+34666777888",
+      "João Silva": "+351912345678"
+    };
+
+    const phoneNumber = userPhones[user];
+    if (!phoneNumber) {
+      throw new Error(`Unknown user: ${user}. Available users: ${Object.keys(userPhones).join(', ')}`);
+    }
+
     const webhookUrl = 'http://localhost:3001/api/whatsapp/webhook';
+    
+    // Use frontend format instead of WhatsApp format for better compatibility
     const payload = {
-      entry: [{
-        changes: [{
-          value: {
-            messages: [{
-              from: user.toLowerCase().replace(' ', '-'),
-              text: { body: message }
-            }]
-          }
-        }]
-      }]
+      message: message,
+      phoneNumber: phoneNumber,
+      workspaceId: "cm9hjgq9v00014qk8fsdy4ujv"
     };
 
     if (log) {

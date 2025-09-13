@@ -47,10 +47,11 @@ export class SecureTokenService {
   }
 
   /**
-   * Create or update a secure token (UNICO RECORD PER UTENTE)
+   * 🚀 KISS SOLUTION - UN SOLO TOKEN PER CLIENTE (Andrea's Request)
+   * Genera nuovo token SOLO se scaduto per cliente+workspace
    */
   async createToken(
-    type: 'registration' | 'checkout' | 'invoice' | 'cart' | 'password_reset' | 'email_verification' | 'orders' | 'profile' | 'any',
+    type: 'registration' | 'checkout' | 'invoice' | 'cart' | 'password_reset' | 'email_verification' | 'orders' | 'profile' | 'any' | 'universal',
     workspaceId: string,
     payload?: any,
     expiresIn: string = '1h',
@@ -60,91 +61,78 @@ export class SecureTokenService {
     customerId?: string
   ): Promise<string> {
     try {
-      // Generate new token
-      const token = this.generateSecureToken()
+      if (!customerId) {
+        throw new Error('KISS TOKEN: customerId è obbligatorio')
+      }
 
-      // Calculate expiration
+      logger.info(`[KISS-TOKEN] 🔍 Controllo token per customerId="${customerId}", workspaceId="${workspaceId}"`)
+      
+      // 1. Cerca token esistente NON SCADUTO per questo cliente+workspace
+      const existingToken = await this.prisma.secureToken.findFirst({
+        where: {
+          customerId,
+          workspaceId,
+          expiresAt: {
+            gt: new Date() // NON scaduto
+          }
+        }
+      })
+
+      // 2. Se esiste token valido → RIUTILIZZA
+      if (existingToken) {
+        logger.info(`[KISS-TOKEN] ✅ RIUTILIZZO token esistente: ${existingToken.token.substring(0, 10)}... (scade: ${existingToken.expiresAt})`)
+        
+        // Aggiorna payload se necessario
+        if (payload && JSON.stringify(payload) !== JSON.stringify(existingToken.payload)) {
+          await this.prisma.secureToken.update({
+            where: { id: existingToken.id },
+            data: { payload: payload }
+          })
+          logger.info(`[KISS-TOKEN] 🔄 Payload aggiornato`)
+        }
+        
+        return existingToken.token
+      }
+
+      // 3. Nessun token valido → CREA NUOVO
+      logger.info(`[KISS-TOKEN] 🆕 Creo nuovo token (nessun token valido trovato)`)
+      
+      // Pulisci token scaduti
+      await this.prisma.secureToken.deleteMany({
+        where: {
+          customerId,
+          workspaceId,
+          expiresAt: { lte: new Date() }
+        }
+      })
+
+      // Genera nuovo token
+      const token = this.generateSecureToken()
       const expiresAt = new Date()
       const hours = parseInt(expiresIn.replace('h', '')) || 1
       expiresAt.setHours(expiresAt.getHours() + hours)
 
-      // Store payload as JSON (no encryption) to ensure compatibility and avoid runtime crypto issues
-      const encryptedPayload = payload ?? null
-
-      // 🎯 NUOVA LOGICA: RIUTILIZZA TOKEN SE NON SCADUTO!
-      if (customerId) {
-        logger.info(`[SECURE-TOKEN] 🚀 Checking existing token for customerId="${customerId}", type="${type}", workspaceId="${workspaceId}"`)
-        
-        // Prima controlla se esiste un token valido
-        const existingToken = await this.prisma.secureToken.findFirst({
-          where: {
-            customerId,
-            type,
-            workspaceId,
-            expiresAt: {
-              gt: new Date() // Token non scaduto
-            }
-          }
-        })
-
-        if (existingToken) {
-          logger.info(`[SECURE-TOKEN] ✅ RIUTILIZZO TOKEN ESISTENTE: ${existingToken.token.substring(0, 10)}... (scade: ${existingToken.expiresAt})`)
-          return existingToken.token
-        }
-
-        logger.info(`[SECURE-TOKEN] 🔄 Nessun token valido trovato, creo nuovo token`)
-        
-        // Prima elimina eventuali token scaduti per questo customer/type/workspace
-        await this.prisma.secureToken.deleteMany({
-          where: {
-            customerId,
-            type,
-            workspaceId,
-            expiresAt: {
-              lte: new Date() // Token scaduti
-            }
-          }
-        })
-
-        // Crea nuovo token
-        const newToken = await this.prisma.secureToken.create({
-          data: {
-            token,
-            type,
-            workspaceId,
-            customerId,
-            userId,
-            phoneNumber,
-            payload: encryptedPayload,
-            expiresAt,
-            ipAddress,
-          }
-        })
-
-        logger.info(`[SECURE-TOKEN] ✅ NUOVO TOKEN creato per ${type} - customer ${customerId} in workspace ${workspaceId}`)
-        return token
-      }
-
-      // 📝 FALLBACK: Crea nuovo record se customerId non fornito
-      const newToken = await this.prisma.secureToken.create({
+      // Crea token universale
+      await this.prisma.secureToken.create({
         data: {
           token,
-          type,
+          type: 'universal', // 🎯 Tipo fisso 'universal'
           workspaceId,
           customerId,
           userId,
           phoneNumber,
-          payload: encryptedPayload,
+          payload: payload,
           expiresAt,
           ipAddress,
-        },
+        }
       })
 
-      logger.info(`[SECURE-TOKEN] 📝 Created new ${type} token (no customerId) with ID: ${newToken.id}`)
+      logger.info(`[KISS-TOKEN] ✅ NUOVO token universale creato - scade: ${expiresAt}`)
       return token
+      
     } catch (error) {
-      logger.error(`Error creating ${type} token:`, error)
-      throw new Error(`Failed to create ${type} token`)
+      logger.error(`[KISS-TOKEN] ❌ Errore creazione token:`, error)
+      throw new Error('Errore creazione token universale')
     }
   }
 
@@ -154,64 +142,43 @@ export class SecureTokenService {
    */
   async validateToken(
     token: string,
-    type?: string,
-    workspaceId?: string,
-    requiredPayload?: any
+    workspaceId?: string
   ): Promise<{ valid: boolean; data?: any; payload?: any }> {
     try {
-      const whereClause: any = {
-        token,
-        expiresAt: {
-          gt: new Date(),
-        }
-      }
-
-      // Only filter by type if explicitly specified
-      if (type && type !== 'any') whereClause.type = type
-      if (workspaceId) whereClause.workspaceId = workspaceId
-
+      logger.info(`[KISS-TOKEN] 🔍 Validazione token: ${token.substring(0, 10)}... per workspace: ${workspaceId}`)
+      
+      // KISS: Cerca token ESISTENTE + NON SCADUTO + WORKSPACE CORRETTO
       const secureToken = await this.prisma.secureToken.findFirst({
-        where: whereClause,
+        where: {
+          token,
+          expiresAt: { gt: new Date() }, // NON scaduto
+          ...(workspaceId && { workspaceId }) // Workspace se specificato
+        }
       })
 
       if (!secureToken) {
-        logger.warn(`Invalid or expired token: ${token.substring(0, 10)}...`)
+        logger.warn(`[KISS-TOKEN] ❌ Token non valido o scaduto: ${token.substring(0, 10)}...`)
         return { valid: false }
       }
 
-      // Get payload if exists (not encrypted, stored as JSON)
-      let decryptedPayload = null
-      if (secureToken.payload) {
-        decryptedPayload = secureToken.payload
-      }
-
-      // Validate required payload if specified
-      if (requiredPayload && decryptedPayload) {
-        for (const key in requiredPayload) {
-          if (decryptedPayload[key] !== requiredPayload[key]) {
-            logger.warn(`Token payload validation failed for key: ${key}`)
-            return { valid: false }
-          }
-        }
-      }
-
-      logger.info(`Validated ${secureToken.type} token`)
+      logger.info(`[KISS-TOKEN] ✅ Token valido per customer: ${secureToken.customerId}, workspace: ${secureToken.workspaceId}`)
+      
       return {
         valid: true,
         data: {
           id: secureToken.id,
           type: secureToken.type,
           workspaceId: secureToken.workspaceId,
-          customerId: secureToken.customerId, // Aggiunto customerId
+          customerId: secureToken.customerId,
           userId: secureToken.userId,
           phoneNumber: secureToken.phoneNumber,
           expiresAt: secureToken.expiresAt,
           createdAt: secureToken.createdAt,
         },
-        payload: decryptedPayload,
+        payload: secureToken.payload,
       }
     } catch (error) {
-      logger.error('Error validating token:', error)
+      logger.error('[KISS-TOKEN] ❌ Errore validazione token:', error)
       return { valid: false }
     }
   }

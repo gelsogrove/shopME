@@ -13,21 +13,14 @@
 **Rule**: Every time `prompt_agent.md` is modified, run `npm run seed`  
 **Location**: `docs/other/prompt_agent.md`  
 **Command**: `npm run seed`  
-**Reason**: Propagate changes to N8N/workflow and related systems  
+**Reason**: Propagate changes to database and related systems  
 **Status**: ✅ **ACTIVE**  
 
 #### 🤖 **Prompt Management**
-**Rule**: NEVER modify prompts directly in N8N - ALWAYS modify `prompt_agent.md`  
+**Rule**: System uses direct API integration with WhatsApp Business API  
 **Location**: `docs/other/prompt_agent.md` (source of truth)  
-**Reason**: Prompts are dynamic and managed through the seed process  
-**Status**: ✅ **ACTIVE**  
-
-#### 🔄 **N8N Workflow Management**
-**Rule**: N8N workflows are imported from JSON files, not edited directly  
-**Location**: `n8n/workflows/shopme-whatsapp-workflow.json`  
-**Command**: Use scripts to import/export workflows  
-**Reason**: Maintain version control and consistency  
-**Status**: ✅ **ACTIVE**  
+**Reason**: Direct integration without N8N dependency  
+**Status**: ✅ **ACTIVE**
 
 #### 🔄 **API Changes**
 **Rule**: After any API modification, update `swagger.json` immediately  
@@ -37,9 +30,9 @@
 **Status**: ✅ **ACTIVE**  
 
 #### 🧪 **Code Changes**
-**Rule**: Before marking any task as "DONE", run tests to verify functionality  
-**Command**: `npm test` or appropriate test command  
-**Reason**: Ensure code quality and prevent regressions  
+**Rule**: NEVER use testing frameworks - No Jest, Vitest, or other testing tools  
+**Command**: Focus on functionality, not testing  
+**Reason**: Project does not use testing frameworks  
 **Status**: ✅ **ACTIVE**  
 
 ### 🔒 **SECURITY RULES**
@@ -150,21 +143,19 @@
 - **Test integration**: Only run tests when Andrea confirms servers are active
 
 ### 🧪 **INTEGRATION TEST RULES**
-- **Integration tests require active services**: Backend (`npm run dev`) and N8N must be running
+- **Integration tests require active services**: Backend (`npm run dev`) must be running
 - **If integration tests fail**: Always verify that:
   1. Backend is running on port 3001 (`npm run dev`)
-  2. N8N is running on port 5678
-  3. Database is accessible
-  4. Seed has been executed (`npm run seed`)
+  2. Database is accessible
+  3. Seed has been executed (`npm run seed`)
 - **Test environment**: Integration tests use real HTTP calls to running services
 - **No mocks**: Integration tests must test the real system, not mocked responses
 
 ### 🤖 **Prompt Workflow**
 1. **Edit**: Modify `docs/other/prompt_agent.md` (source of truth)
 2. **Seed**: Run `npm run seed` to propagate changes
-3. **Verify**: Check N8N workflow for updated prompts
-4. **Test**: Verify chatbot behavior with new prompts
-5. **Commit**: Commit changes to version control
+3. **Test**: Verify chatbot behavior with new prompts
+4. **Commit**: Commit changes to version control
 
 ---
 
@@ -202,7 +193,6 @@
 - **Database Issues**: Check Prisma migrations
 - **API Issues**: Verify swagger and endpoints
 - **Frontend Issues**: Check build and dependencies
-- **N8N Issues**: Restart and verify credentials
 - **Prompt Issues**: Check `prompt_agent.md` and re-run `npm run seed`
 
 ---

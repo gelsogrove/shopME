@@ -1,5 +1,5 @@
-import logger from "../utils/logger"
 import { PrismaClient } from "@prisma/client"
+import logger from "../utils/logger"
 
 const prisma = new PrismaClient()
 
@@ -25,10 +25,10 @@ export class EmbeddingService {
 
   // 🎯 CONFIGURABLE SIMILARITY THRESHOLDS (Andrea's Request)
   private readonly SIMILARITY_THRESHOLDS = {
-    FAQ: 0.2, // 🧪 TEMPORARY: Lowered from 0.5 to 0.2 for testing "come pago" issue
-    PRODUCTS: 0.3, // Good balance for product search
-    SERVICES: 0.3, // Higher threshold for service precision
-    DOCUMENTS: 0.3, // 🚀 OPTIMIZED: Lowered from 0.5 to 0.3 for better recall with larger, higher-quality chunks
+    FAQ: 0.35, // 🎯 BALANCED: Higher than before but allows legitimate FAQ matches
+    PRODUCTS: 0.4, // 🎯 BALANCED: Blocks "chi sei" (32.5%) but allows legitimate product searches
+    SERVICES: 0.35, // 🎯 BALANCED: Higher threshold for service precision
+    DOCUMENTS: 0.35, // 🎯 BALANCED: More restrictive document matching
   }
 
   /**

@@ -390,6 +390,8 @@ Cosa desideri fare?
         workspaceId: "cm9hjgq9v00014qk8fsdy4ujv"
       };
       
+      console.log(`🔧 DEBUG: Sending frontend format payload:`, JSON.stringify(payload, null, 2));
+      
       // console.log(`${this.colors.cyan}🔍 Sending WhatsApp format payload to server:${this.colors.reset}`, JSON.stringify(payload, null, 2));
       
       // Effettua la chiamata API reale

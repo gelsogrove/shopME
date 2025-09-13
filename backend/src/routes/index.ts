@@ -324,7 +324,18 @@ import { LLMRequest } from '../types/whatsapp.types'
 // Public WhatsApp webhook routes (NO AUTHENTICATION)
 router.post("/whatsapp/webhook", async (req, res) => {
   console.log("🔥 WEBHOOK POST RECEIVED", new Date().toISOString()); // 🔧 FIRST LOG
-  // console.log("📨 Request body:", JSON.stringify(req.body, null, 2)); // 🔧 DEBUG BODY
+  console.log("📨 Request body:", JSON.stringify(req.body, null, 2)); // 🔧 DEBUG BODY
+  console.log("📨 Request headers:", JSON.stringify(req.headers, null, 2)); // 🔧 DEBUG HEADERS
+  
+  // 🔧 WRITE TO DEBUG FILE
+  const fs = require('fs');
+  const debugData = {
+    timestamp: new Date().toISOString(),
+    body: req.body,
+    headers: req.headers,
+    userAgent: req.headers['user-agent']
+  };
+  fs.appendFileSync('/tmp/webhook-debug.log', JSON.stringify(debugData, null, 2) + '\n---\n');
   
   try {
     // Initialize services
@@ -355,7 +366,9 @@ router.post("/whatsapp/webhook", async (req, res) => {
     let phoneNumber, messageContent, workspaceId, customerId;
     
     // Check if it's WhatsApp format
+    console.log("🔍 CHECKING FORMAT - WhatsApp condition:", !!data.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from);
     if (data.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from) {
+      console.log("📱 USING WHATSAPP FORMAT");
       phoneNumber = data.entry[0].changes[0].value.messages[0].from;
       messageContent = data.entry[0].changes[0].value.messages[0].text?.body;
       workspaceId = process.env.WHATSAPP_WORKSPACE_ID || "cm9hjgq9v00014qk8fsdy4ujv";

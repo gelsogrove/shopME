@@ -254,7 +254,7 @@ export class CheckoutService {
     error?: string
   }> {
     try {
-      const validation = await this.secureTokenService.validateToken(token, 'checkout', undefined)
+      const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
 
       if (!validation.valid) {
         return {

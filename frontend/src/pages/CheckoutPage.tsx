@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react"
-import { useSearchParams } from "react-router-dom"
+import { useLocation, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
-import { TokenError, TokenLoading } from "../components/ui/TokenError"
+import { TokenError } from "../components/ui/TokenError"
+import UnifiedLoading from "../components/ui/UnifiedLoading"
+import PublicPageLayout from "../components/layout/PublicPageLayout"
+import { getPublicPageTexts } from "../utils/publicPageTranslations"
 import { useCheckoutTokenValidation } from "../hooks/useTokenValidation"
 
 interface Product {
@@ -164,7 +167,11 @@ const getLocalizedText = (language?: string) => {
 
 const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams()
+  const location = useLocation()
   const token = searchParams.get("token")
+  
+  // 🎯 Check if we're on cart-public page (don't show "View Cart" button)
+  const isCartPublicPage = location.pathname === '/cart-public'
   
   // 🌐 Get customer language with fallback
   const getCustomerLanguage = () => {
@@ -489,24 +496,14 @@ const CheckoutPage: React.FC = () => {
   }
 
   // Show loading state during token validation
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <TokenLoading className="max-w-md w-full" />
-      </div>
-    )
-  }
+  const texts = getPublicPageTexts(customer?.language)
 
-  // Show loading state during initial data loading
-  if (valid && initialLoading) {
+  if (loading || (valid && initialLoading)) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">{getLocalizedText(getCustomerLanguage()).loadingCheckout}</h2>
-          <p className="text-gray-600">{getLocalizedText(getCustomerLanguage()).preparingOrder}</p>
-        </div>
-      </div>
+      <UnifiedLoading 
+        title={texts.loading}
+        message={texts.loadingMessage}
+      />
     )
   }
 
@@ -542,18 +539,21 @@ const CheckoutPage: React.FC = () => {
               </h1>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => {
-                  const cartUrl = `/cart-public?token=${token}`
-                  window.location.href = cartUrl
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
-                </svg>
-                {getLocalizedText(getCustomerLanguage()).viewCart}
-              </button>
+              {/* 🚀 KISS: Hide "View Cart" button when already on cart-public page */}
+              {!isCartPublicPage && (
+                <button
+                  onClick={() => {
+                    const cartUrl = `/cart-public?token=${token}`
+                    window.location.href = cartUrl
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                  </svg>
+                  {getLocalizedText(getCustomerLanguage()).viewCart}
+                </button>
+              )}
               <button
                 onClick={() => {
                   const ordersUrl = `/orders-public?token=${token}`

@@ -1225,7 +1225,7 @@ paths:
         1. Cliente conferma ordine in WhatsApp ("Confermo", "Procedi")
         2. N8N chiama questa API con conversazione + prodotti
         3. Backend genera token sicuro con carrello + indirizzi
-        4. Ritorna URL checkout: `http://localhost:3000/checkout?token=...`
+        4. Ritorna URL checkout con token universale: `http://localhost:3000/checkout?token=...`
         
         **Token Payload**:
         - Customer data (id, name, phone, address)
@@ -1363,9 +1363,9 @@ paths:
     get:
       tags:
         - Checkout
-      summary: Validate checkout token and return order data
+      summary: Validate universal token and return order data
       description: |
-        **🔐 TOKEN VALIDATION** - Valida token checkout e ritorna dati ordine.
+        **🚀 KISS TOKEN VALIDATION** - Valida token universale (qualsiasi tipo) e ritorna dati ordine.
         
         **Utilizzo**:
         - Frontend chiama questa API per validare token
@@ -1382,7 +1382,7 @@ paths:
           required: true
           schema:
             type: string
-          description: Checkout token to validate
+          description: Universal token to validate (any type accepted)
           example: "abc123def456ghi789jkl012mno345"
       responses:
         "200":

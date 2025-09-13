@@ -2,6 +2,91 @@
 
 ## 🚨 CRITICAL ARCHITECTURAL PATTERNS
 
+### **📋 RULES_PROMPT.md - ARCHITECTURAL BIBLE**
+
+**Pattern Name:** `docs/other/RULES_PROMPT.md` as System Architecture Reference
+**Category:** Documentation & Architecture
+**Priority:** CRITICAL - MANDATORY REFERENCE
+
+#### **🚨 CRITICAL RULE - ALWAYS REFERENCE RULES_PROMPT.md**
+
+**MANDATORY:** Before making ANY changes to the system architecture, components, or prompt engineering, you MUST:
+
+1. **READ `docs/other/RULES_PROMPT.md` FIRST** - This file is the architectural bible
+2. **UNDERSTAND component responsibilities** - PROMPT_AGENT, FORMATTER, DUAL_LLM, TRANSLATION
+3. **FOLLOW separation of concerns** - Each component has specific responsibilities
+4. **MAINTAIN architectural consistency** - All changes must align with `docs/other/RULES_PROMPT.md`
+
+#### **RULES_PROMPT.md CONTAINS:**
+- **Component Responsibilities** - Who does what in the system
+- **Architectural Principles** - Separation of concerns, zero dependencies
+- **Flow Diagrams** - Visual representation of system architecture
+- **Priority Rules** - Function priority system with numerical scores
+- **Ambiguity Management** - How to distinguish action vs informative verbs
+- **Synonym Management** - Action and informative verb synonyms
+- **Dynamic Priority** - Context-based priority adjustments
+- **User Context Management** - Memory and context handling
+
+#### **❌ ANTI-PATTERN (REJECTED)**
+- Making architectural changes without consulting `docs/other/RULES_PROMPT.md`
+- Mixing responsibilities between components
+- Adding functionality to wrong component
+- Ignoring separation of concerns
+- Creating dependencies between components
+
+#### **✅ CORRECT PATTERN (MANDATORY)**
+1. **Read `docs/other/RULES_PROMPT.md`** before any architectural decision
+2. **Identify correct component** for the change
+3. **Follow component responsibilities** as defined
+4. **Maintain separation of concerns**
+5. **Update `docs/other/RULES_PROMPT.md`** if architecture changes
+
+#### **COMPONENT RESPONSIBILITIES (from `docs/other/RULES_PROMPT.md`):**
+
+**PROMPT_AGENT:**
+- Istruzioni per LLM
+- Trigger e esempi
+- Regole di priorità
+- Contesto business
+- NON formattazione
+
+**FORMATTER:**
+- Formattazione WhatsApp
+- Template e stile
+- Icone prodotti
+- Localizzazione
+- NON logica business
+
+**DUAL_LLM:**
+- Orchestrazione
+- Gestione errori
+- Coordinamento
+- Logging
+- NON formattazione
+
+**TRANSLATION:**
+- Traduzione IT/ES/PT → EN
+- Rilevamento lingua
+- Contesto conversazione
+- NON istruzioni LLM
+
+#### **WHEN TO REFERENCE `docs/other/RULES_PROMPT.md`:**
+- ✅ Before modifying any component
+- ✅ Before adding new functionality
+- ✅ Before changing prompt structure
+- ✅ Before architectural decisions
+- ✅ Before debugging system issues
+- ✅ Before refactoring code
+
+#### **MANDATORY WORKFLOW:**
+1. **Read `docs/other/RULES_PROMPT.md`** → Understand architecture
+2. **Identify component** → Where should this change go?
+3. **Check responsibilities** → Is this the right place?
+4. **Make change** → Following architectural principles
+5. **Update `docs/other/RULES_PROMPT.md`** → If architecture changes
+
+---
+
 ### **🌍 MULTILINGUAL RAG SYSTEM PATTERN**
 
 **Pattern Name:** LLM-Driven Translation for RAG Search

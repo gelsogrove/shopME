@@ -193,6 +193,138 @@ export class FormatterService {
   }
 
   /**
+   * Format response from Cloud Functions or SearchRag
+   * Handles both direct Cloud Function responses and SearchRag results
+   */
+  static formatResponse(response: string, language: string = 'it'): string {
+    console.log("🔧 FormatterService.formatResponse called with response type:", typeof response)
+    console.log("🔧 FormatterService.formatResponse response content:", response)
+    
+    if (!response) {
+      console.error("❌ FormatterService: response is null/undefined!")
+      throw new Error("Response is null or undefined")
+    }
+    
+    if (typeof response !== 'string') {
+      console.error("❌ FormatterService: response is not a string!", typeof response, response)
+      throw new Error("Response is not a string")
+    }
+    
+    // First apply WhatsApp formatting
+    const whatsappFormatted = this.applyWhatsAppFormatting(response)
+    
+    console.log("✅ FormatterService.formatResponse completed successfully")
+    
+    // Then apply language-specific formatting if needed
+    return whatsappFormatted
+  }
+
+  /**
+   * Apply WhatsApp formatting to any response
+   * Centralized formatting for all responses (Cloud Functions and SearchRag)
+   */
+  static applyWhatsAppFormatting(response: string): string {
+    let formatted = response
+
+    console.log("📱 Applying WhatsApp formatting...")
+    console.log("📱 Original input:", formatted)
+
+    // 1. 🚫 Remove emoji used as bullet points and replace with •
+    const emojiBullets = ['💳', '🏦', '📱', '💰', '💶', '🍷', '🍝', '🍇', '📦', '🔒', '🎯']
+    emojiBullets.forEach(emoji => {
+      // Replace emoji at start of line (with possible spaces) with •
+      const regex = new RegExp(`^(\\s*)${emoji}\\s+`, 'gm')
+      formatted = formatted.replace(regex, '$1• ')
+    })
+
+    // 2. 🔧 Convert dashes (-) to bullet points (•)
+    formatted = formatted.replace(/^(\s*)- /gm, '$1• ')
+
+    // 3. ✨ Add titles with * when missing for payment lists
+    if ((formatted.includes('• Carta di credito') || formatted.includes('• PayPal')) && 
+        !formatted.includes('*Metodi') && !formatted.includes('*metodi')) {
+      
+      // Find where list starts and add title
+      formatted = formatted.replace(
+        /(.*?\n)(\s*• (?:Carta di credito|PayPal))/,
+        '$1\n*Metodi accettati:*\n$2'
+      )
+    }
+
+    // 4. 🗜️ Remove excessive empty lines (max 1 empty line consecutive)
+    formatted = formatted.replace(/\n\s*\n\s*\n/g, '\n\n')
+
+    // 5. 🔧 Standardize functional emojis - add 🔒 for security if missing
+    if ((formatted.includes('sicur') || formatted.includes('garanti')) && !formatted.includes('🔒')) {
+      formatted = formatted.replace(
+        /(sicur[a-z]*|garanti[a-z]*)/gi,
+        '$1 🔒'
+      )
+    }
+
+    // 6. 💰 FORMAT TOTALS AND PRICES - Ensure all important totals and prices are bold
+    // Pattern for totals without asterisks: "TOTALE: €XX.XX" or "Total: €XX.XX"
+    formatted = formatted.replace(/(\b(?:TOTALE|Total|TOTAL|Total):\s*€[\d,]+\.?\d*)/gi, '*$1*')
+    
+    // Pattern for totals with underscore: "_TOTALE: €XX.XX_" → "*TOTALE: €XX.XX*"
+    formatted = formatted.replace(/_(\b(?:TOTALE|Total|TOTAL|Total):\s*€[\d,]+\.?\d*)_/gi, '*$1*')
+    
+    // Pattern for final prices: "Prezzo finale: €XX.XX" → "*Prezzo finale: €XX.XX*"
+    formatted = formatted.replace(/(\b(?:Prezzo finale|Final price|Precio final|Preço final):\s*€[\d,]+\.?\d*)/gi, '*$1*')
+    
+    // Pattern for subtotals: "Subtotale: €XX.XX" → "*Subtotale: €XX.XX*"
+    formatted = formatted.replace(/(\b(?:Subtotale|Subtotal|Subtotal|Subtotal):\s*€[\d,]+\.?\d*)/gi, '*$1*')
+
+    // 7. 🎯 ADD PRODUCT ICONS - Apply specific icons for product types
+    formatted = this.applyProductIcons(formatted)
+
+    // 8. ✂️ Remove extra spaces before and after
+    formatted = formatted.trim()
+
+    console.log("📱 Formatted output:", formatted)
+    console.log("📱 WhatsApp formatting applied successfully")
+    
+    return formatted
+  }
+
+  /**
+   * Apply product-specific icons for better visual representation
+   */
+  private static applyProductIcons(formatted: string): string {
+    // Formaggi
+    formatted = formatted.replace(/\b(Mozzarella|Parmigiano|Gorgonzola|Burrata|Pecorino|Formaggio)\b/gi, '🧀 $1')
+    
+    // Salumi
+    formatted = formatted.replace(/\b(Prosciutto|Salame|Pancetta|Bresaola|Mortadella|Salumi)\b/gi, '🥓 $1')
+    
+    // Vini
+    formatted = formatted.replace(/\b(Prosecco|Vino|Spumante|Champagne|Rosso|Bianco)\b/gi, '🍷 $1')
+    
+    // Liquori
+    formatted = formatted.replace(/\b(Limoncello|Grappa|Amaro|Liquore)\b/gi, '🍋 $1')
+    
+    // Pasta
+    formatted = formatted.replace(/\b(Spaghetti|Penne|Fusilli|Tagliatelle|Pasta|Risotto)\b/gi, '🍝 $1')
+    
+    // Conserve
+    formatted = formatted.replace(/\b(Passata|Pelati|Concentrato|Pomodori|Conserve)\b/gi, '🍅 $1')
+    
+    // Condimenti
+    formatted = formatted.replace(/\b(Olio|Aceto|Pesto|Condimenti)\b/gi, '🫒 $1')
+    
+    // Dolci
+    formatted = formatted.replace(/\b(Tiramisù|Cannoli|Panettone|Dolci|Dessert)\b/gi, '🍰 $1')
+    
+    // Pesce
+    formatted = formatted.replace(/\b(Tonno|Alici|Baccalà|Pesce)\b/gi, '🐟 $1')
+    
+    // Spezie
+    formatted = formatted.replace(/\b(Origano|Basilico|Rosmarino|Spezie)\b/gi, '🌿 $1')
+
+    return formatted
+  }
+
+  /**
    * Format a cart item display string
    * @param productCode - Product code (e.g., "00004")
    * @param productName - Product name

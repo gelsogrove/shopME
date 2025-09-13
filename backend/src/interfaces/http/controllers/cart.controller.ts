@@ -164,7 +164,7 @@ export class CartController {
     try {
       const token = req.params.token
 
-      const validation = await this.secureTokenService.validateToken(token, 'cart')
+      const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
       
       if (!validation.valid || !validation.payload) {
         res.status(400).json({
@@ -204,55 +204,99 @@ export class CartController {
         return
       }
 
-      // Calculate updated totals
+      // 🚀 KISS: Apply same price calculation logic as viewCart (Cloud Function)
+      const { PriceCalculationService } = await import('../../../application/services/price-calculation.service')
+      const priceService = new PriceCalculationService(prisma)
+      
+      // Get customer discount
+      const customerDiscount = cart.customer?.discount || 0
+      
+      // Calculate updated totals with discounts
       let totalAmount = 0
-      const items = cart.items.map(item => {
+      const items = []
+      
+      for (const item of cart.items) {
         // 🎯 TASK: Handle missing product gracefully
         if (!item.product) {
           console.warn(`⚠️ Cart item ${item.id} has missing product (productId: ${item.productId})`)
-          return {
+          items.push({
             id: item.id,
             type: 'product',
             productId: item.productId,
+            productCode: 'N/A',
             name: `Product ${item.productId} (Not Found)`,
-            price: 0,
+            originalPrice: 0,
+            finalPrice: 0,
+            discountAmount: 0,
+            appliedDiscount: 0,
             quantity: item.quantity,
             total: 0
-          }
+          })
+          continue
         }
 
-        const price = item.product.price || 0
-        const itemTotal = price * item.quantity
+        // 🚀 KISS: Apply same discount calculation as viewCart
+        const itemPrices = await priceService.calculatePricesWithDiscounts(
+          validation.data.workspaceId,
+          [item.productId],
+          customerDiscount
+        )
+        
+        const originalPrice = item.product.price || 0
+        const finalPrice = itemPrices.products[0]?.finalPrice || originalPrice
+        const discountInfo = itemPrices.products[0]
+        const appliedDiscount = discountInfo?.appliedDiscount || 0
+        const discountAmount = appliedDiscount > 0 ? (originalPrice * appliedDiscount / 100) : 0
+        const itemTotal = finalPrice * item.quantity
         totalAmount += itemTotal
 
-        return {
+        items.push({
           id: item.id,
           type: 'product',
           productId: item.productId,
+          productCode: item.product.ProductCode || item.productId,
           name: item.product.name || `Product ${item.productId}`,
-          price: price,
+          originalPrice: originalPrice,
+          finalPrice: finalPrice,
+          discountAmount: discountAmount,
+          appliedDiscount: appliedDiscount,
           quantity: item.quantity,
           total: itemTotal
-        }
-      })
+        })
+      }
 
+      // 🚀 KISS: Return format compatible with CheckoutPage frontend
       res.json({
         success: true,
-        cart: {
+        data: {
           id: cart.id,
+          customerId: cart.customerId,
+          workspaceId: validation.data.workspaceId,
           items,
-          totalAmount,
-          currency: cart.customer.currency || 'EUR',
-          createdAt: cart.createdAt,
-          updatedAt: cart.updatedAt
+          totalItems: items.length,
+          subtotal: totalAmount,
+          totalDiscount: 0, // TODO: Calculate if needed
+          finalTotal: totalAmount,
+          lastUpdated: cart.updatedAt,
+          createdAt: cart.createdAt
         },
+        // 🎯 Frontend expects these fields for CheckoutPage compatibility
         customer: {
           id: cart.customer.id,
           name: cart.customer.name,
           email: cart.customer.email,
-          phone: cart.customer.phone
+          phone: cart.customer.phone,
+          address: cart.customer.address // Include address for frontend
         },
-        workspaceId: validation.data.workspaceId
+        prodotti: items.map(item => ({
+          codice: item.productCode, // 🎯 Use product code, not ID
+          descrizione: item.name,
+          quantita: item.quantity,
+          prezzo: item.originalPrice,
+          prezzoScontato: item.finalPrice,
+          sconto: item.appliedDiscount,
+          totale: item.total
+        }))
       })
 
     } catch (error) {
@@ -280,7 +324,7 @@ export class CartController {
         return
       }
 
-      const validation = await this.secureTokenService.validateToken(token, 'cart')
+      const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
       
       if (!validation.valid || !validation.payload) {
         res.status(400).json({
@@ -425,7 +469,7 @@ export class CartController {
         return
       }
 
-      const validation = await this.secureTokenService.validateToken(token, 'cart')
+      const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
       
       if (!validation.valid || !validation.payload) {
         res.status(400).json({
@@ -525,7 +569,7 @@ export class CartController {
       const token = req.params.token
       const itemId = req.params.itemId
 
-      const validation = await this.secureTokenService.validateToken(token, 'cart')
+      const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
       
       if (!validation.valid || !validation.payload) {
         res.status(400).json({
@@ -611,7 +655,7 @@ export class CartController {
       const token = req.params.token
       const { shippingAddress, paymentMethod = 'CASH' } = req.body
 
-      const validation = await this.secureTokenService.validateToken(token, 'cart')
+      const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
       
       if (!validation.valid || !validation.payload) {
         res.status(400).json({
@@ -787,7 +831,7 @@ export class CartController {
         return
       }
 
-      const validation = await this.secureTokenService.validateToken(token, 'cart')
+      const validation = await this.secureTokenService.validateToken(token) // 🚀 KISS: Solo esistenza + non scaduto
       
       if (!validation.valid) {
         res.status(400).json({

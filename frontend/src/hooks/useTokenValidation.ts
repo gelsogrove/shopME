@@ -143,10 +143,10 @@ export const useCheckoutTokenValidation = (token: string | null) => {
     try {
       logger.info(`[CHECKOUT-TOKEN-VALIDATION] Validating checkout token`)
       
-      // Use dedicated checkout endpoint (TOKEN-ONLY)
-      const response = await axios.get(`/api/checkout/token?token=${token}`)
+      // 🚀 KISS: Use cart data endpoint (includes customer data)
+      const response = await axios.get(`/api/cart/${token}`)
 
-      if (response.data.valid) {
+      if (response.data.success) {
         setValid(true)
         setTokenData(response.data)
         setPayload(response.data.prodotti)

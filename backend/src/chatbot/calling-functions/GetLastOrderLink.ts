@@ -43,7 +43,7 @@ export async function GetLastOrderLink({ workspaceId, customerId }: Params): Pro
 
   const tokenService = new SecureTokenService()
   const payload = { customerId, workspaceId, createdAt: new Date().toISOString() }
-  const token = await tokenService.createToken("orders", workspaceId, payload, "1h", customerId, customer.phone || undefined, undefined, customerId)
+  const token = await tokenService.createToken("universal", workspaceId, payload, "1h", customerId, customer.phone || undefined, undefined, customerId)
 
   const baseUrl = customer.workspace?.url || process.env.FRONTEND_URL || "http://localhost:3000"
   const lastOrderUrl = `${baseUrl}/orders-public/${lastOrder.orderCode}?token=${token}`
