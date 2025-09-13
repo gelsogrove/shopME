@@ -176,6 +176,17 @@ export class RegistrationController {
         });
       }
       
+      // 🔧 CRITICAL FIX: Update token with customerId for TOKEN-ONLY system
+      await prisma.secureToken.update({
+        where: { token },
+        data: { 
+          customerId: customer.id,
+          userId: customer.id // For backward compatibility
+        }
+      });
+      
+      logger.info(`[REGISTRATION] ✅ Token updated with customerId: ${customer.id}`);
+      
       // Mark token as used using SecureTokenService
       await this.secureTokenService.markTokenAsUsed(token);
       

@@ -160,19 +160,39 @@ router.get('/public/orders', async (req: Request, res: Response) => {
     }
 
     const tokenData = validation.data;
-    if (!tokenData?.customerId || !tokenData?.workspaceId) {
+    const payload = validation.payload as any;
+    
+    // 🔧 CRITICAL FIX: Get customerId from payload first (like checkout), then fallback to tokenData
+    let customerId = payload?.customerId || tokenData?.customerId || tokenData?.userId;
+    const workspaceId = tokenData?.workspaceId;
+    
+    // 🔧 ULTIMATE FALLBACK: If no customerId, try to find customer by phone number
+    if (!customerId && tokenData?.phoneNumber && workspaceId) {
+      const customer = await prisma.customers.findFirst({
+        where: {
+          phone: tokenData.phoneNumber,
+          workspaceId: workspaceId
+        }
+      });
+      if (customer) {
+        customerId = customer.id;
+        logger.info(`[PUBLIC-ORDERS] Found customer by phone fallback: ${customerId}`);
+      }
+    }
+    
+    if (!customerId || !workspaceId) {
       return res.status(401).json({
         success: false,
         error: 'Token does not contain valid customer information'
       });
     }
 
-    logger.info(`[PUBLIC-ORDERS] Getting orders list for customer: ${tokenData.customerId}`);
+    logger.info(`[PUBLIC-ORDERS] Getting orders list for customer: ${customerId}`);
 
     // Build filters
     const whereClause: any = {
-      customerId: tokenData.customerId,
-      workspaceId: tokenData.workspaceId
+      customerId: customerId,
+      workspaceId: workspaceId
     };
 
     if (status && status !== 'ALL') {
@@ -191,8 +211,8 @@ router.get('/public/orders', async (req: Request, res: Response) => {
 
     // Get customer info
     const customer = await prisma.customers.findUnique({
-      where: { id: tokenData.customerId },
-      select: { id: true, name: true, email: true, phone: true }
+      where: { id: customerId },
+      select: { id: true, name: true, email: true, phone: true, language: true }
     });
 
     if (!customer) {
@@ -204,7 +224,7 @@ router.get('/public/orders', async (req: Request, res: Response) => {
 
     // Get workspace info
     const workspace = await prisma.workspace.findUnique({
-      where: { id: tokenData.workspaceId },
+      where: { id: workspaceId },
       select: { id: true, name: true }
     });
 
@@ -305,7 +325,27 @@ router.get('/public/orders/:orderCode', async (req: Request, res: Response) => {
     }
 
     const tokenData = validation.data;
-    if (!tokenData?.customerId || !tokenData?.workspaceId) {
+    const payload = validation.payload as any;
+    
+    // 🔧 CRITICAL FIX: Get customerId from payload first (like checkout), then fallback to tokenData
+    let customerId = payload?.customerId || tokenData?.customerId || tokenData?.userId;
+    const workspaceId = tokenData?.workspaceId;
+    
+    // 🔧 ULTIMATE FALLBACK: If no customerId, try to find customer by phone number
+    if (!customerId && tokenData?.phoneNumber && workspaceId) {
+      const customer = await prisma.customers.findFirst({
+        where: {
+          phone: tokenData.phoneNumber,
+          workspaceId: workspaceId
+        }
+      });
+      if (customer) {
+        customerId = customer.id;
+        logger.info(`[PUBLIC-ORDERS] Found customer by phone fallback: ${customerId}`);
+      }
+    }
+    
+    if (!customerId || !workspaceId) {
       return res.status(401).json({
         success: false,
         error: 'Token does not contain valid customer information'
@@ -318,8 +358,8 @@ router.get('/public/orders/:orderCode', async (req: Request, res: Response) => {
     const order = await prisma.orders.findFirst({
       where: {
         orderCode,
-        customerId: tokenData.customerId,
-        workspaceId: tokenData.workspaceId
+        customerId: customerId,
+        workspaceId: workspaceId
       },
       include: {
         items: {
@@ -339,7 +379,7 @@ router.get('/public/orders/:orderCode', async (req: Request, res: Response) => {
           }
         },
         customer: {
-          select: { id: true, name: true, email: true, phone: true }
+          select: { id: true, name: true, email: true, phone: true, language: true }
         },
         workspace: {
           select: { id: true, name: true }
@@ -447,9 +487,23 @@ router.get('/customer-profile/:token', async (req: Request, res: Response) => {
     const tokenData = validation.data;
     const payloadData = validation.payload;
     
-    // Get customer ID from either data or payload
-    const customerId = tokenData?.customerId || payloadData?.customerId;
-    const workspaceId = tokenData?.workspaceId || payloadData?.workspaceId;
+    // 🔧 CRITICAL FIX: Get customerId from payload first (like checkout), then fallback to tokenData
+    let customerId = payloadData?.customerId || tokenData?.customerId || tokenData?.userId;
+    const workspaceId = tokenData?.workspaceId;
+    
+    // 🔧 ULTIMATE FALLBACK: If no customerId, try to find customer by phone number
+    if (!customerId && tokenData?.phoneNumber && workspaceId) {
+      const customer = await prisma.customers.findFirst({
+        where: {
+          phone: tokenData.phoneNumber,
+          workspaceId: workspaceId
+        }
+      });
+      if (customer) {
+        customerId = customer.id;
+        logger.info(`[PUBLIC-PROFILE] Found customer by phone fallback: ${customerId}`);
+      }
+    }
     
     if (!customerId || !workspaceId) {
       return res.status(401).json({

@@ -199,7 +199,7 @@ export class SecureTokenService {
           id: secureToken.id,
           type: secureToken.type,
           workspaceId: secureToken.workspaceId,
-          customerId: secureToken.customerId,
+          customerId: secureToken.customerId || secureToken.userId, // 🔧 Fallback per compatibilità
           userId: secureToken.userId,
           phoneNumber: secureToken.phoneNumber,
           expiresAt: secureToken.expiresAt,

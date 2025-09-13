@@ -88,6 +88,12 @@ export interface PublicPageTexts {
     addresses: string
     confirm: string
   }
+  
+  // Checkout Success specific
+  orderConfirmed: string
+  orderReceived: string
+  contactSoon: string
+  closePage: string
 }
 
 export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> = {
@@ -176,7 +182,13 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
       products: "Prodotti",
       addresses: "Indirizzi",
       confirm: "Conferma"
-    }
+    },
+    
+    // Checkout Success specific
+    orderConfirmed: "Ordine Confermato!",
+    orderReceived: "Il tuo ordine è stato ricevuto con successo.",
+    contactSoon: "Ti contatteremo il prima possibile per la conferma.",
+    closePage: "Puoi chiudere questa pagina e tornare alla chat WhatsApp."
   },
   
   EN: {
@@ -264,7 +276,13 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
       products: "Products",
       addresses: "Addresses",
       confirm: "Confirm"
-    }
+    },
+    
+    // Checkout Success specific
+    orderConfirmed: "Order Confirmed!",
+    orderReceived: "Your order has been received successfully.",
+    contactSoon: "We will contact you as soon as possible for confirmation.",
+    closePage: "You can close this page and return to WhatsApp chat."
   },
   
   ES: {
@@ -352,7 +370,13 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
       products: "Productos",
       addresses: "Direcciones",
       confirm: "Confirmar"
-    }
+    },
+    
+    // Checkout Success specific
+    orderConfirmed: "¡Pedido Confirmado!",
+    orderReceived: "Su pedido ha sido recibido con éxito.",
+    contactSoon: "Nos pondremos en contacto contigo lo antes posible para la confirmación.",
+    closePage: "Puedes cerrar esta página y volver al chat de WhatsApp."
   },
   
   PT: {
@@ -440,7 +464,13 @@ export const publicPageTranslations: Record<SupportedLanguage, PublicPageTexts> 
       products: "Produtos",
       addresses: "Endereços",
       confirm: "Confirmar"
-    }
+    },
+    
+    // Checkout Success specific
+    orderConfirmed: "Pedido Confirmado!",
+    orderReceived: "Seu pedido foi recebido com sucesso.",
+    contactSoon: "Entraremos em contato com você o mais breve possível para confirmação.",
+    closePage: "Você pode fechar esta página e voltar ao chat do WhatsApp."
   }
 }
 

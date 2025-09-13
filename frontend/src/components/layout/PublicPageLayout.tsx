@@ -1,5 +1,5 @@
 import React from 'react'
-import { getPublicPageTexts, type SupportedLanguage } from '../../utils/publicPageTranslations'
+import { getPublicPageTexts } from '../../utils/publicPageTranslations'
 
 interface PublicPageLayoutProps {
   children: React.ReactNode
@@ -31,7 +31,7 @@ export const PublicPageLayout: React.FC<PublicPageLayoutProps> = ({
     if (!token) return
     
     const urls = {
-      cart: `/cart-public?token=${token}`,
+      cart: `/checkout?token=${token}`,
       orders: `/orders-public?token=${token}`,
       profile: `/customer-profile?token=${token}`
     }

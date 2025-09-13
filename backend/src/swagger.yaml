@@ -1307,7 +1307,7 @@ paths:
                   checkoutUrl:
                     type: string
                     description: URL completo per pagina checkout
-                    example: "http://localhost:3000/checkout-public?token=abc123def456ghi789jkl012mno345"
+                    example: "http://localhost:3000/checkout?token=abc123def456ghi789jkl012mno345"
                   totalAmount:
                     type: number
                     format: float

@@ -783,7 +783,7 @@ export class FunctionHandlerService {
         )
         
         const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-        const cartUrl = `${baseUrl}/cart-public?token=${cartToken}`
+        const cartUrl = `${baseUrl}/checkout?token=${cartToken}`
         
         return {
           success: true,
@@ -880,7 +880,7 @@ export class FunctionHandlerService {
       })
       
          const baseUrl = workspace?.url || process.env.FRONTEND_URL || 'http://localhost:3000'
-         const cartUrl = `${baseUrl}/cart-public?token=${cartToken}`
+         const cartUrl = `${baseUrl}/checkout?token=${cartToken}`
 
       return {
         success: true,

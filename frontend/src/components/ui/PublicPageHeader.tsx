@@ -27,7 +27,7 @@ export const PublicPageHeader: React.FC<PublicPageHeaderProps> = ({
     if (!token) return
     
     const urls = {
-      cart: `/cart-public?token=${token}`,
+      cart: `/checkout?token=${token}`,
       orders: `/orders-public?token=${token}`,
       profile: `/customer-profile?token=${token}`
     }

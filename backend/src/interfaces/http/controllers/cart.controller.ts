@@ -286,7 +286,8 @@ export class CartController {
           name: cart.customer.name,
           email: cart.customer.email,
           phone: cart.customer.phone,
-          address: cart.customer.address // Include address for frontend
+          address: cart.customer.address, // Include address for frontend
+          language: cart.customer.language // 🌐 Include language for translations
         },
         prodotti: items.map(item => ({
           codice: item.productCode, // 🎯 Use product code, not ID

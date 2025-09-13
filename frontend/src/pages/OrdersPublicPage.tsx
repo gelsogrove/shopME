@@ -110,7 +110,7 @@ const OrdersPublicPage: React.FC = () => {
     if (!token) return
     
     // Use current token and redirect to cart page (TOKEN-ONLY)
-    const cartUrl = `/cart-public?token=${token}`
+    const cartUrl = `/checkout?token=${token}`
     window.location.href = cartUrl
   }
 

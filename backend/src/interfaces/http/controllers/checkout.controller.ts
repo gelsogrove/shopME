@@ -184,10 +184,33 @@ export class CheckoutController {
       }
       
       const secureToken = validation.data
-
       const payload = validation.payload as any
-      const customerId = payload.customerId
+      
+      // 🔧 CRITICAL FIX: Get customerId from payload first, then fallback to tokenData
+      let customerId = payload?.customerId || secureToken?.customerId || secureToken?.userId;
       const workspaceId = secureToken.workspaceId
+      
+      // 🔧 ULTIMATE FALLBACK: If no customerId, try to find customer by phone number
+      if (!customerId && secureToken?.phoneNumber && workspaceId) {
+        const customer = await prisma.customers.findFirst({
+          where: {
+            phone: secureToken.phoneNumber,
+            workspaceId: workspaceId
+          }
+        });
+        if (customer) {
+          customerId = customer.id;
+          logger.info(`[CHECKOUT] Found customer by phone fallback: ${customerId}`);
+        }
+      }
+      
+      if (!customerId || !workspaceId) {
+        res.status(400).json({
+          success: false,
+          error: "Token does not contain valid customer information"
+        })
+        return
+      }
 
       // Get customer and workspace
       const [customer, workspace] = await Promise.all([

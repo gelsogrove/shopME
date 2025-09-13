@@ -49,6 +49,7 @@ const CustomerProfilePublicPage: React.FC = () => {
   const [profileError, setProfileError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
+  const [customerLanguage, setCustomerLanguage] = useState<string>('IT') // Default to IT until loaded
 
   // 📋 Fetch profile data when token is validated
   useEffect(() => {
@@ -92,8 +93,11 @@ const CustomerProfilePublicPage: React.FC = () => {
             }
           }
           
+          // 🌐 Set customer language immediately for correct translations
+          setCustomerLanguage(profileData.language || 'IT')
+          
           setProfileData(profileData)
-          logger.info(`[PROFILE] ✅ Profile data loaded for customer ${profileData.name}`)
+          logger.info(`[PROFILE] ✅ Profile data loaded for customer ${profileData.name} (language: ${profileData.language})`)
         } else {
           setProfileError(response.data.error || 'Error loading profile')
         }
@@ -186,15 +190,13 @@ const CustomerProfilePublicPage: React.FC = () => {
     logger.info('[PROFILE] View Cart clicked, using current token:', token)
     
     // Use current token and redirect to cart page (TOKEN-ONLY)
-    const cartUrl = `/cart-public?token=${token}`
+    const cartUrl = `/checkout?token=${token}`
     logger.info('[PROFILE] Redirecting to cart:', cartUrl)
     window.location.href = cartUrl
   }
 
   // 🌐 Get localized text based on customer language using centralized system
-
-  // Show loading state during token validation
-  const texts = getPublicPageTexts(profileData?.language)
+  const texts = getPublicPageTexts(customerLanguage)
 
   if (tokenLoading || loadingProfile || initialLoading) {
     return (

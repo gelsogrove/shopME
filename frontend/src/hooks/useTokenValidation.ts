@@ -116,7 +116,8 @@ export const useTokenValidation = ({
 }
 
 /**
- * 🛒 Specialized hook for checkout token validation (TOKEN-ONLY)
+ * 🛒 Specialized hook for checkout/cart token validation (TOKEN-ONLY)
+ * Validates tokens for checkout page (cart-public removed)
  */
 export const useCheckoutTokenValidation = (token: string | null) => {
   const [valid, setValid] = useState(false)
@@ -140,23 +141,29 @@ export const useCheckoutTokenValidation = (token: string | null) => {
     setErrorType(undefined)
     setExpiresAt(undefined)
 
-    try {
-      logger.info(`[CHECKOUT-TOKEN-VALIDATION] Validating checkout token`)
-      
-      // 🚀 KISS: Use cart data endpoint (includes customer data)
-      const response = await axios.get(`/api/cart/${token}`)
+    // 🎯 Always use checkout endpoint since cart-public is removed
+    const endpoint = `/api/checkout/token?token=${token}`
 
-      if (response.data.success) {
+    try {
+        
+      logger.info(`[CHECKOUT-TOKEN-VALIDATION] Validating token for CHECKOUT page`)
+      
+      const response = await axios.get(endpoint)
+
+      // 🎯 Check for valid response from checkout endpoint
+      const isValidResponse = response.data.valid
+      
+      if (isValidResponse) {
         setValid(true)
         setTokenData(response.data)
         setPayload(response.data.prodotti)
-        logger.info('[CHECKOUT-TOKEN-VALIDATION] ✅ Token validated successfully')
+        logger.info(`[CHECKOUT-TOKEN-VALIDATION] ✅ Token validated successfully for CHECKOUT`)
       } else {
         setValid(false)
-        setError(response.data.error || 'Invalid checkout token')
+        setError(response.data.error || 'Invalid token')
         setErrorType(response.data.errorType)
         setExpiresAt(response.data.expiresAt)
-        logger.warn('[CHECKOUT-TOKEN-VALIDATION] ❌ Token validation failed:', response.data.error)
+        logger.warn(`[CHECKOUT-TOKEN-VALIDATION] ❌ Token validation failed for CHECKOUT:`, response.data.error)
       }
     } catch (err: any) {
       logger.error('[CHECKOUT-TOKEN-VALIDATION] Error validating token:', err)

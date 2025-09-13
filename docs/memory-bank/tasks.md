@@ -158,6 +158,12 @@
 - **Stato**: PENDING
 - **Note**: Richiede l'aggiunta del campo formato al schema e la generazione creativa delle descrizioni prodotti
 
+### TASK: Aggiornamento Carrello Frontend - Sincronizzazione Database
+- **Descrizione**: IMPLEMENTARE: Quando un utente interagisce con il carrello nella parte frontend (modifica quantità, cancella prodotti, aggiunge prodotti), il database deve essere aggiornato in tempo reale. Attualmente le modifiche al carrello potrebbero non essere persistite nel database. Deve essere implementato: 1) Aggiornamento automatico del database quando l'utente modifica la quantità di un prodotto nel carrello, 2) Sincronizzazione database quando l'utente cancella un prodotto dal carrello, 3) Persistenza nel database quando l'utente aggiunge nuovi prodotti al carrello, 4) API endpoints per tutte le operazioni di modifica carrello, 5) Gestione errori e feedback utente per operazioni fallite, 6) Ottimizzazione per ridurre chiamate API eccessive (debouncing), 7) Test di tutte le operazioni di modifica carrello. Comportamento corretto: Ogni modifica al carrello nel frontend → Aggiornamento immediato nel database → Dati sincronizzati e persistenti.
+- **Priorità**: ALTA
+- **Stato**: PENDING
+- **Note**: CRITICO - Il carrello deve essere sempre sincronizzato con il database per evitare perdita di dati e garantire consistenza tra sessioni utente
+
 ## ✅ TASK COMPLETATI
 
 ### TASK: Orders - Riorganizzare campo Notes
@@ -199,5 +205,5 @@
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 29 (18 completati, 11 pending)
+**Task totali**: 30 (18 completati, 12 pending)
 **Task critici**: 1
