@@ -1,7 +1,10 @@
 import axios from "axios"
 import React, { useEffect, useState } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
-import { TokenError, TokenLoading } from "../components/ui/TokenError"
+import { TokenError } from "../components/ui/TokenError"
+import UnifiedLoading from "../components/ui/UnifiedLoading"
+import PublicPageLayout from "../components/layout/PublicPageLayout"
+import { getPublicPageTexts } from "../utils/publicPageTranslations"
 import { useTokenValidation } from "../hooks/useTokenValidation"
 
 interface OrderListItem {
