@@ -2015,7 +2015,7 @@ export class MessageRepository {
       return {
         prompt: agentConfig.prompt || "",
         model: agentConfig.model || "openai/gpt-4o-mini",
-        temperature: agentConfig.temperature || 0.7,
+        temperature: agentConfig.temperature || 0.0, // Default to 0 temperature
         maxTokens: agentConfig.maxTokens || 1000,
       }
     } catch (error) {
@@ -2092,7 +2092,7 @@ export class MessageRepository {
         name: prompt.name,
         content: prompt.content,
         model: prompt.model || "openai/gpt-4o-mini",
-        temperature: prompt.temperature || 0.7,
+        temperature: prompt.temperature || 0.0, // Default to 0 temperature
         maxTokens: prompt.max_tokens || 1000,
       }
     } catch (error) {

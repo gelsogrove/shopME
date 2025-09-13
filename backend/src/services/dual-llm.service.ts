@@ -303,7 +303,7 @@ export class DualLLMService {
         ),
         tools: functionDefinitions,
         tool_choice: "auto", // Let AI decide when to use functions
-          temperature: 0.1, // Ultra-low temperature for maximum determinism
+          temperature: 0.0, // Zero temperature for maximum determinism - no hallucinations
         max_tokens: agentConfig.maxTokens || 1000,
       }
 
@@ -553,7 +553,7 @@ export class DualLLMService {
             ],
             request.messages || []
           ),
-        temperature: 0.3,
+        temperature: 0.0, // Zero temperature for formatter - no creative variations
           max_tokens: 700,
         },
         {

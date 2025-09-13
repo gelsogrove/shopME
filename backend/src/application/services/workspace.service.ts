@@ -154,7 +154,7 @@ For privacy inquiries, please contact our support team.`;
             workspaceId: createdWorkspace.id,
             isRouter: true,
             isActive: true,
-            temperature: 0.7,
+            temperature: 0.0, // Zero temperature for deterministic responses
             top_p: 0.9,
             top_k: 40,
             model: 'openai/gpt-4o-mini',

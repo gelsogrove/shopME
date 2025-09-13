@@ -219,10 +219,14 @@ const CheckoutPage: React.FC = () => {
       setTimeout(() => {
         setCustomer(tokenData.customer)
         
-        // 🔧 Clean up any "Unknown Product" entries
+        // 🔧 Clean up and normalize product data from backend
         const cleanedProdotti = (tokenData.prodotti || []).map(prodotto => ({
           ...prodotto,
-          descrizione: prodotto.descrizione === 'Unknown Product' ? 'Prodotto senza nome' : prodotto.descrizione
+          descrizione: prodotto.descrizione === 'Unknown Product' ? 'Prodotto senza nome' : prodotto.descrizione,
+          qty: prodotto.quantita || 1, // Map quantita to qty for frontend compatibility
+          prezzoOriginale: prodotto.prezzo, // Original price
+          prezzo: prodotto.prezzoScontato || prodotto.prezzo, // Use discounted price as display price
+          scontoApplicato: prodotto.sconto || 0 // Discount percentage
         }))
         
         setProdotti(cleanedProdotti)
@@ -282,9 +286,13 @@ const CheckoutPage: React.FC = () => {
     }
   }, [valid, tokenData])
 
-  // Calculate total
+  // Calculate total using discounted prices
   const calculateTotal = () => {
-    return prodotti.reduce((sum, prodotto) => sum + (prodotto.prezzo * prodotto.qty), 0)
+    return prodotti.reduce((sum, prodotto) => {
+      const finalPrice = prodotto.prezzoScontato || prodotto.prezzo
+      const quantity = prodotto.qty || prodotto.quantita || 1
+      return sum + (finalPrice * quantity)
+    }, 0)
   }
 
   // Handle quantity change
@@ -321,7 +329,14 @@ const CheckoutPage: React.FC = () => {
 
   // Load available products
   const loadAvailableProducts = async () => {
-    if (!tokenData?.workspaceId) return
+    // 🔧 FIX: Get workspaceId from tokenData.data (correct path)
+    const workspaceId = tokenData?.data?.workspaceId || tokenData?.workspaceId
+    if (!workspaceId) {
+      console.error('❌ No workspaceId found in tokenData:', tokenData)
+      return
+    }
+    
+    console.log('🔍 Loading products for workspaceId:', workspaceId, 'customerId:', customer?.id)
     
     setLoadingProducts(true)
     try {
@@ -329,7 +344,7 @@ const CheckoutPage: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          workspaceId: tokenData.workspaceId,
+          workspaceId: workspaceId,
           customerId: customer?.id
         })
       })
@@ -689,7 +704,7 @@ const CheckoutPage: React.FC = () => {
 
                       <div className="flex items-center space-x-4">
                         <div className="text-right">
-                          <p className="font-bold text-lg text-green-600">€{(prodotto.prezzo * prodotto.qty).toFixed(2)}</p>
+                          <p className="font-bold text-lg text-green-600">€{((prodotto.prezzoScontato || prodotto.prezzo) * (prodotto.qty || prodotto.quantita || 1)).toFixed(2)}</p>
                         </div>
 
                         <button
@@ -939,8 +954,8 @@ const CheckoutPage: React.FC = () => {
                 <h3 className="text-lg font-semibold mb-4">{getLocalizedText(getCustomerLanguage()).productSummary}</h3>
                 {prodotti.map((prodotto, index) => (
                   <div key={index} className="flex justify-between py-2 border-b">
-                    <span>{prodotto.qty}x {prodotto.descrizione}</span>
-                    <span>€{(prodotto.prezzo * prodotto.qty).toFixed(2)}</span>
+                    <span>{(prodotto.qty || prodotto.quantita || 1)}x {prodotto.descrizione}</span>
+                    <span>€{((prodotto.prezzoScontato || prodotto.prezzo) * (prodotto.qty || prodotto.quantita || 1)).toFixed(2)}</span>
                   </div>
                 ))}
                 <div className="flex justify-between py-2 text-xl font-bold border-t-2 mt-2">

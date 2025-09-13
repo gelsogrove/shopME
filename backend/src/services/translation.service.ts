@@ -55,7 +55,7 @@ export class TranslationService {
             content: text
           }
         ],
-        temperature: 0.1,
+        temperature: 0.0, // Zero temperature for translations - no creative interpretations
         max_tokens: 100
       }, {
         headers: {

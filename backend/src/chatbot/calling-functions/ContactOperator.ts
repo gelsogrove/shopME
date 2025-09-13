@@ -200,7 +200,7 @@ Crea un riassunto professionale per l'operatore che dovrà assistere questo clie
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
           ],
-          temperature: 0.3,
+          temperature: 0.0, // Zero temperature for contact operator - precise responses
           max_tokens: 400,
         }),
       }

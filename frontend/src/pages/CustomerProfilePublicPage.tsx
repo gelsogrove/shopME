@@ -5,8 +5,10 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ProfileForm } from '../components/profile/ProfileForm'
-import { TokenError, TokenLoading } from '../components/ui/TokenError'
+import { TokenError } from '../components/ui/TokenError'
+import UnifiedLoading from '../components/ui/UnifiedLoading'
 import { useTokenValidation } from '../hooks/useTokenValidation'
+import { getPublicPageTexts } from '../utils/publicPageTranslations'
 
 interface CustomerProfile {
   id: string
@@ -203,11 +205,14 @@ const CustomerProfilePublicPage: React.FC = () => {
   }
 
   // Show loading state during token validation
-  if (tokenLoading) {
+  const texts = getPublicPageTexts(profileData?.language)
+
+  if (tokenLoading || loadingProfile) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <TokenLoading className="max-w-md w-full" />
-      </div>
+      <UnifiedLoading 
+        title={texts.loading}
+        message={texts.loadingMessage}
+      />
     )
   }
 
@@ -226,17 +231,6 @@ const CustomerProfilePublicPage: React.FC = () => {
   }
 
   // Show loading state during profile fetch
-  if (loadingProfile) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Loading Profile</h2>
-          <p className="text-gray-600">Stiamo caricando il tuo profilo...</p>
-        </div>
-      </div>
-    )
-  }
 
   // Show error if profile couldn't be loaded
   if (profileError) {

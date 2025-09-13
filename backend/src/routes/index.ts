@@ -321,6 +321,72 @@ router.use(loggingMiddleware)
 import { DualLLMService } from '../services/dual-llm.service'
 import { LLMRequest } from '../types/whatsapp.types'
 
+// 🔧 FIX: /api/chat endpoint for WhatsApp compatibility (NO AUTHENTICATION)
+router.post("/chat", async (req, res) => {
+  console.log("🔧 COMPATIBILITY: /api/chat called - forwarding to WhatsApp webhook logic");
+  
+  // Forward to the same webhook logic
+  try {
+    // Initialize services
+    const dualLLMService = new DualLLMService();
+    const messageRepository = new MessageRepository();
+
+    // Check if this is a verification request
+    if (req.query["hub.mode"] && req.query["hub.verify_token"]) {
+      const mode = req.query["hub.mode"]
+      const token = req.query["hub.verify_token"]
+      const challenge = req.query["hub.challenge"]
+
+      const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN || "test-verify-token"
+      if (mode === "subscribe" && token === verifyToken) {
+        console.log("WhatsApp webhook verified via /api/chat")
+        res.status(200).send(challenge)
+        return
+      }
+
+      res.status(403).send("Verification failed")
+      return
+    }
+
+    // Process as WhatsApp message - extract message from body
+    const body = req.body
+    console.log("🔧 /api/chat: Processing body:", JSON.stringify(body, null, 2))
+    
+    // Handle direct message format: {message: "text", phoneNumber: "+123", workspaceId: "xyz"}
+    if (body?.message && body?.phoneNumber && body?.workspaceId) {
+        const llmRequest: LLMRequest = {
+          chatInput: body.message,
+          workspaceId: body.workspaceId,
+          customerid: "", // Will be resolved by phone
+          phone: body.phoneNumber,
+          language: body.language || "it",
+          sessionId: "chat-session",
+          temperature: 0.1,
+          maxTokens: 3500,
+          model: "gpt-4o",
+          messages: [],
+          prompt: ""
+        }
+
+      const response = await dualLLMService.processMessage(llmRequest)
+      return res.json(response)
+    }
+
+    // If we get here, return error
+    res.status(400).json({
+      status: "error",
+      message: "Invalid request format for /api/chat endpoint. Expected: {message, phoneNumber, workspaceId}"
+    })
+
+  } catch (error) {
+    console.error("🔧 Error in /api/chat endpoint:", error)
+    res.status(500).json({
+      status: "error", 
+      message: "Sorry, there was an error processing your message. Please try again later."
+    })
+  }
+});
+
 // Public WhatsApp webhook routes (NO AUTHENTICATION)
 router.post("/whatsapp/webhook", async (req, res) => {
   console.log("🔥 WEBHOOK POST RECEIVED", new Date().toISOString()); // 🔧 FIRST LOG
@@ -787,7 +853,7 @@ router.post("/whatsapp/webhook", async (req, res) => {
         phone: phoneNumber.replace(/\s+/g, ''),
         language: variables.languageUser,
         sessionId: "webhook-session",
-        temperature: 0.0,
+        temperature: 0.0, // Zero temperature for webhook responses - no variations
         maxTokens: 3500,
         model: "gpt-4o",
         messages: chatHistory, // 🔥 NOW INCLUDES REAL CHAT HISTORY

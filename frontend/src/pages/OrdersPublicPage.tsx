@@ -2,10 +2,8 @@ import axios from "axios"
 import React, { useEffect, useState } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
 import { TokenError } from "../components/ui/TokenError"
-import UnifiedLoading from "../components/ui/UnifiedLoading"
-import PublicPageLayout from "../components/layout/PublicPageLayout"
-import { getPublicPageTexts } from "../utils/publicPageTranslations"
 import { useTokenValidation } from "../hooks/useTokenValidation"
+import { getPublicPageTexts } from "../utils/publicPageTranslations"
 
 interface OrderListItem {
   id: string
@@ -239,26 +237,17 @@ const OrdersPublicPage: React.FC = () => {
   }, [orderCode, listData, orderCodeQuery])
 
   // 🔐 Show token validation loading
-  if (tokenLoading) {
+  const texts = getPublicPageTexts(ordersData?.customer?.language)
+
+  if (tokenLoading || initialLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <TokenLoading className="max-w-md w-full" />
-      </div>
+      <UnifiedLoading 
+        title={texts.loading}
+        message={texts.loadingMessage}
+      />
     )
   }
 
-  // Show initial loading state during data loading
-  if (tokenValid && initialLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Loading Orders</h2>
-          <p className="text-gray-600">Stiamo caricando i tuoi ordini...</p>
-        </div>
-      </div>
-    )
-  }
 
   // 🔐 Show token validation error
   if (token && !tokenValid && !tokenLoading) {
