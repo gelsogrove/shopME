@@ -68,11 +68,26 @@ Contatta il nostro staff per maggiori informazioni sui prodotti disponibili.`;
       };
     }
 
-    // Formatta le categorie per la risposta
-    const categoryList = categories.map((cat, index) => {
+    // Mappatura icone per categoria
+    const categoryIcons: { [key: string]: string } = {
+      'Cheeses & Dairy': '🧀',
+      'Cured Meats': '🥓',
+      'Salami & Cold Cuts': '🥩', 
+      'Pasta & Rice': '🍝',
+      'Tomato Products': '🍅',
+      'Flour & Baking': '🌾',
+      'Sauces & Preserves': '🍯',
+      'Water & Beverages': '💧',
+      'Frozen Products': '🧊',
+      'Various & Spices': '🌿'
+    };
+
+    // Formatta le categorie per la risposta con icone a sinistra
+    const categoryList = categories.map((cat) => {
+      const icon = categoryIcons[cat.name] || '📦';
       const productCount = cat._count.products;
       const productText = productCount === 1 ? 'prodotto' : 'prodotti';
-      return `${index + 1}. **${cat.name}** ${cat.description ? `- ${cat.description}` : ''} (${productCount} ${productText})`;
+      return `• ${icon} **${cat.name}** ${cat.description ? `- ${cat.description}` : ''} (${productCount} ${productText})`;
     }).join('\n');
 
     const categoriesMessage = `Ecco tutte le nostre categorie disponibili: 📋

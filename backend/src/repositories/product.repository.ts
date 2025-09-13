@@ -1,11 +1,11 @@
-import logger from "../utils/logger"
 import { Prisma, PrismaClient, ProductStatus } from "@prisma/client"
 import { Product } from "../domain/entities/product.entity"
 import {
-  IProductRepository,
-  PaginatedProducts,
-  ProductFilters,
+    IProductRepository,
+    PaginatedProducts,
+    ProductFilters,
 } from "../domain/repositories/product.repository.interface"
+import logger from "../utils/logger"
 
 // Definizione dell'interfaccia Offer
 interface Offer {
@@ -193,6 +193,7 @@ export class ProductRepository implements IProductRepository {
           name: product.name,
           ProductCode: product.ProductCode,
           description: product.description,
+          formato: product.formato,
           price: product.price,
           stock: product.stock,
           status: product.status as ProductStatus,
@@ -228,6 +229,7 @@ export class ProductRepository implements IProductRepository {
           name: product.name,
           ProductCode: product.ProductCode,
           description: product.description,
+          formato: product.formato,
           price: product.price,
           stock: product.stock,
           status: product.status as ProductStatus,
@@ -352,6 +354,7 @@ export class ProductRepository implements IProductRepository {
       name: data.name,
       ProductCode: data.ProductCode,
       description: data.description,
+      formato: data.formato,
       price: data.price,
       stock: data.stock,
       status: data.status,

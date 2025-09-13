@@ -256,6 +256,7 @@ export class CartController {
           productId: item.productId,
           productCode: item.product.ProductCode || item.productId,
           name: item.product.name || `Product ${item.productId}`,
+          formato: item.product.formato || null,
           originalPrice: originalPrice,
           finalPrice: finalPrice,
           discountAmount: discountAmount,
@@ -292,6 +293,7 @@ export class CartController {
         prodotti: items.map(item => ({
           codice: item.productCode, // 🎯 Use product code, not ID
           descrizione: item.name,
+          formato: item.formato, // 🧀 Include formato field
           quantita: item.quantity,
           prezzo: item.originalPrice,
           prezzoScontato: item.finalPrice,
@@ -434,6 +436,7 @@ export class CartController {
           id: cartItem.id,
           type: 'product',
           name: cartItem.product?.name || `Product ${cartItem.productId}`,
+          formato: cartItem.product?.formato || null,
           price: cartItem.product?.price || 0,
           quantity: cartItem.quantity,
           total: (cartItem.product?.price || 0) * cartItem.quantity
@@ -543,6 +546,7 @@ export class CartController {
           id: updatedCartItem.id,
           type: 'product',
           name: updatedCartItem.product?.name || `Product ${updatedCartItem.productId}`,
+          formato: updatedCartItem.product?.formato || null,
           price: updatedCartItem.product?.price || 0,
           quantity: updatedCartItem.quantity,
           total: (updatedCartItem.product?.price || 0) * updatedCartItem.quantity

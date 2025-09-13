@@ -206,3 +206,110 @@ async ragSearch(req: Request, res: Response): Promise<void> {
 - **Entity creation** with validation
 - **Complex object construction**
 - **Domain object instantiation**
+
+---
+
+### **🔍 ACTIVE FILTERING PATTERN FOR EMBEDDINGS**
+
+**Pattern Name:** Consistent Active Status Filtering Across All Content Types
+**Category:** Data Access & Embedding Generation
+**Priority:** Critical - Security & Data Integrity
+
+#### **Problem Context**
+- Multiple content types (Products, FAQs, Services, Documents) have `isActive` status
+- Embedding generation must respect active status to avoid indexing inactive content
+- RAG search must only return active content to users
+- Consistent filtering pattern needed across all content types
+
+#### **✅ CORRECT PATTERN (IMPLEMENTED)**
+
+**Embedding Generation Pattern:**
+```typescript
+// Products (embeddingService.ts:516-520)
+const activeProducts = await prisma.products.findMany({
+  where: {
+    workspaceId: workspaceId,
+    isActive: true, // ✅ Only active products
+  },
+  include: { category: true },
+})
+
+// FAQs (embeddingService.ts:162-166)
+const activeFAQs = await prisma.fAQ.findMany({
+  where: {
+    workspaceId: workspaceId,
+    isActive: true, // ✅ Only active FAQs
+  },
+})
+
+// Documents (documentService.ts:323-328)
+const activeDocuments = await prisma.documents.findMany({
+  where: {
+    workspaceId: workspaceId,
+    isActive: true, // ✅ Only active documents
+    status: 'UPLOADED'
+  }
+});
+```
+
+**Repository Pattern:**
+```typescript
+// FAQ Repository (faq.repository.ts:15-19)
+async findAll(workspaceId: string): Promise<FAQ[]> {
+  const faqs = await prisma.fAQ.findMany({
+    where: { 
+      workspaceId,
+      isActive: true // ✅ Only active FAQs
+    }
+  });
+}
+
+// Product Repository (product.repository.ts:87-90)
+if (filters?.active === true) {
+  where.isActive = true // ✅ Active filter support
+}
+```
+
+**Function Handler Pattern:**
+```typescript
+// FAQ Info (function-handler.service.ts:1262-1265)
+const faqs = await this.prisma.fAQ.findMany({
+  where: {
+    workspaceId,
+    isActive: true, // ✅ Only active FAQs
+    OR: [/* search conditions */]
+  },
+})
+```
+
+#### **Benefits of This Pattern:**
+- **Data Integrity:** Inactive content never appears in search results
+- **Security:** Prevents exposure of disabled/draft content
+- **Consistency:** Same filtering logic across all content types
+- **Performance:** Smaller embedding datasets, faster searches
+- **Workspace Isolation:** Combined with workspaceId filtering
+
+#### **Implementation Checklist:**
+- ✅ **Products:** Active filtering in embeddings and search
+- ✅ **FAQs:** Active filtering in embeddings and search  
+- ✅ **Services:** Active filtering in embeddings and search
+- ✅ **Documents:** Active filtering in embeddings and search
+
+#### **When to Use This Pattern:**
+- ✅ All content types with status management
+- ✅ Embedding generation processes
+- ✅ RAG search implementations
+- ✅ Public-facing content queries
+- ✅ Multi-tenant systems with workspace isolation
+
+#### **Critical Rules:**
+1. **ALWAYS filter by `isActive: true`** in embedding generation
+2. **ALWAYS filter by `isActive: true`** in public search queries
+3. **COMBINE with workspaceId filtering** for complete isolation
+4. **REGENERATE embeddings** when content status changes
+5. **CONSISTENT naming** - use `isActive` field across all entities
+
+#### **Related Patterns:**
+- **Workspace Isolation Pattern** - Combined workspaceId + isActive filtering
+- **Embedding Generation Pattern** - Batch processing with status filtering
+- **Repository Pattern** - Consistent data access with filtering

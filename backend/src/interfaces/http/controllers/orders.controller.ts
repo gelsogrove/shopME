@@ -195,6 +195,7 @@ export class OrdersController {
               id: it.id,
               itemType: it.itemType,
               name: it.product?.name || it.service?.name || "Item",
+              formato: it.product?.formato || null, // 🧀 Include formato field for products
               quantity: it.quantity,
               unitPrice: it.unitPrice,
               totalPrice: it.totalPrice,

@@ -42,7 +42,9 @@ export async function getAllProducts(params: GetAllProductsParams): Promise<GetA
       select: {
         id: true,
         name: true,
+        ProductCode: true,
         description: true,
+        formato: true,
         price: true,
         stock: true,
         sku: true,
@@ -104,8 +106,10 @@ Contatta il nostro staff per maggiori informazioni sui prodotti disponibili.`;
           priceText += ")";
         }
         const stockText = product.stock > 0 ? `✅ Disponibile (${product.stock})` : '❌ Esaurito';
+        const formatoText = product.formato ? ` - Formato: ${product.formato}` : '';
         
-        return `   ${index + 1}. **${product.name}** - ${priceText} - ${stockText}${product.description ? `\n      _${product.description}_` : ''}`;
+        const productCode = product.ProductCode || product.sku || `00${index + 1}`.padStart(5, '0');
+        return `   • [${productCode}] - **${product.name}**${formatoText} - ${priceText} - ${stockText}${product.description ? `\n      _${product.description}_` : ''}`;
       }).join('\n');
       
       return `📂 **${categoryName}**\n${productItems}`;
@@ -137,7 +141,9 @@ Dimmi quale prodotto ti interessa o scrivi il nome specifico per maggiori dettag
         return {
           id: product.id,
           name: product.name,
+          ProductCode: product.ProductCode,
           description: product.description,
+          formato: product.formato,
           price: prezzoFinale,
           originalPrice: prezzoOriginale,
           discountPercent: scontoPercentuale,

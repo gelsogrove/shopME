@@ -46,8 +46,14 @@ export class ProductController {
         }
       )
 
+      // Map backend 'ProductCode' field to frontend 'code' field for all products
+      const productsWithCode = result.products.map(product => ({
+        ...product,
+        code: product.ProductCode
+      }))
+
       return res.json({
-        products: result.products,
+        products: productsWithCode,
         pagination: {
           total: result.total,
           page: result.page,
@@ -81,7 +87,14 @@ export class ProductController {
       if (!product) {
         return res.status(404).json({ message: "Product not found" })
       }
-      return res.json(product)
+      
+      // Map backend 'ProductCode' field to frontend 'code' field
+      const responseProduct = {
+        ...product,
+        code: product.ProductCode
+      }
+      
+      return res.json(responseProduct)
     } catch (error) {
       logger.error(`Error getting product by ID:`, error)
       return res.status(500).json({
@@ -154,6 +167,12 @@ export class ProductController {
         productData.workspaceId = workspaceId
       }
 
+      // Map frontend 'code' field to backend 'ProductCode' field
+      if (productData.code && !productData.ProductCode) {
+        productData.ProductCode = productData.code
+        delete productData.code
+      }
+
       const product = await this.productService.createProduct(productData)
       // Fire-and-forget: trigger embedding regeneration for products
       embeddingService
@@ -162,7 +181,13 @@ export class ProductController {
           logger.error("Embedding generation error (create):", err)
         )
 
-      return res.status(201).json(product)
+      // Map backend 'ProductCode' field to frontend 'code' field
+      const responseProduct = {
+        ...product,
+        code: product.ProductCode
+      }
+
+      return res.status(201).json(responseProduct)
     } catch (error) {
       logger.error("Error creating product:", error)
       return res.status(error.message?.includes("required") ? 400 : 500).json({
@@ -208,6 +233,12 @@ export class ProductController {
         })
       }
 
+      // Map frontend 'code' field to backend 'ProductCode' field
+      if (productData.code && !productData.ProductCode) {
+        productData.ProductCode = productData.code
+        delete productData.code
+      }
+
       const updatedProduct = await this.productService.updateProduct(
         id,
         productData,
@@ -241,7 +272,13 @@ export class ProductController {
           )
         })
 
-      return res.json(updatedProduct)
+      // Map backend 'ProductCode' field to frontend 'code' field
+      const responseProduct = {
+        ...updatedProduct,
+        code: updatedProduct.ProductCode
+      }
+
+      return res.json(responseProduct)
     } catch (error) {
       logger.error("Error updating product:", error)
       return res.status(error.message?.includes("negative") ? 400 : 500).json({

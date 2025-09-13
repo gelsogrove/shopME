@@ -12,6 +12,7 @@ import logger from "../../utils/logger"
 export interface ConversationProduct {
   nome: string
   descrizione?: string
+  formato?: string // 🧀 Include formato field
   quantita: number
   codice?: string
 }
@@ -272,6 +273,7 @@ ${checkoutUrl}
       prodottiConPrezzo.push({
         codice: dbProduct.ProductCode || dbProduct.sku || dbProduct.id,
         descrizione: dbProduct.name,
+        formato: dbProduct.formato, // 🧀 Include formato field
         qty: product.quantita,
         prezzo: unitPrice,
         productId: dbProduct.id,

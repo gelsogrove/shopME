@@ -99,7 +99,15 @@ export class CallingFunctionsService {
           workspaceId: request.workspaceId,
           isActive: true
         },
-        include: {
+        select: {
+          id: true,
+          name: true,
+          ProductCode: true,
+          description: true,
+          formato: true,
+          price: true,
+          stock: true,
+          sku: true,
           category: {
             select: {
               id: true,
@@ -154,14 +162,16 @@ export class CallingFunctionsService {
         }
         
         acc[categoryName].products.push({
-          code: product.code,
+          code: product.ProductCode || product.sku || product.id,
+          ProductCode: product.ProductCode,
           name: product.name,
           description: product.description,
+          formato: product.formato,
           price: finalPrice, // Final discounted price
           originalPrice: hasDiscount ? originalPrice : undefined, // Show original only if discounted
           discountPercent: hasDiscount ? discountPercent : undefined,
           hasDiscount: hasDiscount,
-          unit: product.unit
+          stock: product.stock
         });
         
         return acc;
@@ -310,14 +320,31 @@ export class CallingFunctionsService {
       
       console.log('✅ Categories found:', categories.length);
       
+      // Mappatura icone per categoria
+      const categoryIcons: { [key: string]: string } = {
+        'Cheeses & Dairy': '🧀',
+        'Cured Meats': '🥓',
+        'Salami & Cold Cuts': '🥩', 
+        'Pasta & Rice': '🍝',
+        'Tomato Products': '🍅',
+        'Flour & Baking': '🌾',
+        'Sauces & Preserves': '🍯',
+        'Water & Beverages': '💧',
+        'Frozen Products': '🧊',
+        'Various & Spices': '🌿'
+      };
+
       return {
         success: true,
         data: {
-          categories: categories.map(category => ({
-            id: category.id,
-            name: category.name,
-            description: category.description
-          })),
+          categories: categories.map(category => {
+            const icon = categoryIcons[category.name] || '📦';
+            return {
+              id: category.id,
+              name: `${icon} ${category.name}`,
+              description: category.description
+            };
+          }),
           totalCategories: categories.length
         },
         timestamp: new Date().toISOString()

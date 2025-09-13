@@ -531,6 +531,13 @@ const CheckoutPage: React.FC = () => {
                           {prodotto.codice !== 'N/A' ? prodotto.codice : 'Non disponibile'}
                         </div>
                         
+                        {/* Product Format */}
+                        {prodotto.formato && (
+                          <div className="text-sm text-blue-600 mb-1 font-medium">
+                            Formato: {prodotto.formato}
+                          </div>
+                        )}
+                        
                         {/* Product Name */}
                         <div className="text-lg font-semibold text-gray-900 mb-2">
                           {prodotto.descrizione}
@@ -831,7 +838,12 @@ const CheckoutPage: React.FC = () => {
                 <h3 className="text-lg font-semibold mb-4">{texts.productSummary}</h3>
                 {prodotti.map((prodotto, index) => (
                   <div key={index} className="flex justify-between py-2 border-b">
-                    <span>{(prodotto.qty || prodotto.quantita || 1)}x {prodotto.descrizione}</span>
+                    <div className="flex-1">
+                      <span>{(prodotto.qty || prodotto.quantita || 1)}x {prodotto.descrizione}</span>
+                      {prodotto.formato && (
+                        <div className="text-sm text-blue-600 ml-2">({prodotto.formato})</div>
+                      )}
+                    </div>
                     <span>€{((prodotto.prezzoScontato || prodotto.prezzo) * (prodotto.qty || prodotto.quantita || 1)).toFixed(2)}</span>
                   </div>
                 ))}
@@ -957,7 +969,10 @@ const CheckoutPage: React.FC = () => {
                   {availableProducts.map((product) => (
                     <div key={product.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                       <h4 className="font-semibold text-sm mb-2">{product.name}</h4>
-                      <p className="text-xs text-gray-600 mb-2">Codice: {product.ProductCode || product.sku || 'Non disponibile'}</p>
+                      <p className="text-xs text-gray-600 mb-1">Codice: {product.ProductCode || product.sku || 'Non disponibile'}</p>
+                      {product.formato && (
+                        <p className="text-xs text-blue-600 mb-2 font-medium">Formato: {product.formato}</p>
+                      )}
                       <div className="mb-3">
                         {product.finalPrice && product.finalPrice < product.price ? (
                           <div className="flex items-center space-x-2">

@@ -9,6 +9,7 @@ export interface CreateOrderParams {
     itemType: "PRODUCT" | "SERVICE"
     id: string
     name: string
+    formato?: string // 🧀 Include formato field for products
     quantity: number
     unitPrice: number
   }>

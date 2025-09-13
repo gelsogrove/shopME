@@ -1,5 +1,4 @@
 import { PageLayout } from "@/components/layout/PageLayout"
-import { logger } from "@/lib/logger"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
 import { CrudPageContent } from "@/components/shared/CrudPageContent"
 import { FormSheet } from "@/components/shared/FormSheet"
@@ -7,14 +6,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
     Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useWorkspace } from "@/hooks/use-workspace"
+import { logger } from "@/lib/logger"
 import { toast } from "@/lib/toast"
 import { categoriesApi } from "@/services/categoriesApi"
 import { productsApi, type Product } from "@/services/productsApi"
@@ -112,6 +112,16 @@ export function ProductsPage() {
   const columns = [
     { header: "Name", accessorKey: "name" as keyof Product, size: 200 },
     { header: "Code", accessorKey: "code" as keyof Product, size: 100 },
+    { 
+      header: "Format", 
+      accessorKey: "formato" as keyof Product, 
+      size: 120,
+      cell: ({ row }: { row: { original: Product } }) => (
+        <span className="text-sm text-blue-600">
+          {row.original.formato || '-'}
+        </span>
+      ),
+    },
     {
       header: "Description",
       accessorKey: "description" as keyof Product,
@@ -210,6 +220,7 @@ export function ProductsPage() {
       name: formData.get("name") as string,
       code: productCode, // Usa lo state invece del FormData
       description: formData.get("description") as string,
+      formato: formData.get("formato") as string,
       price: parseFloat(formData.get("price") as string),
       stock: parseInt(formData.get("stock") as string, 10),
       categoryId: (formData.get("categoryId") as string) || null,
@@ -252,6 +263,7 @@ export function ProductsPage() {
       name: formData.get("name") as string,
       code: productCode, // Usa lo state invece del FormData
       description: formData.get("description") as string,
+      formato: formData.get("formato") as string,
       price: parseFloat(formData.get("price") as string),
       stock: parseInt(formData.get("stock") as string, 10),
       categoryId: (formData.get("categoryId") as string) || null,
@@ -351,6 +363,17 @@ export function ProductsPage() {
             placeholder="Enter product description"
             defaultValue={product?.description || ""}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="formato">Format</Label>
+          <Input
+            id="formato"
+            name="formato"
+            placeholder="Enter product format (e.g., 100gr *12, 1 Kg)"
+            defaultValue={product?.formato || ""}
+          />
+          <p className="text-xs text-gray-500">Product packaging format or size</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

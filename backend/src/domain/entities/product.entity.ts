@@ -6,6 +6,7 @@ export class Product {
   name: string
   ProductCode: string | null
   description: string | null
+  formato: string | null
   price: number
   stock: number
   status: ProductStatus
@@ -26,6 +27,7 @@ export class Product {
     this.name = data.name || ""
     this.ProductCode = data.ProductCode || null
     this.description = data.description || null
+    this.formato = data.formato || null
     this.price = data.price || 0
     this.stock = data.stock || 0
     this.status = data.status || ProductStatus.ACTIVE

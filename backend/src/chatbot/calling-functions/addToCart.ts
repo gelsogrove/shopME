@@ -125,7 +125,7 @@ export async function addToCart(params: AddToCartParams): Promise<AddToCartResul
       logger.info(`[ADD_TO_CART] Updated cart item quantity for product ${product.name}`)
       return {
         success: true,
-        message: `Aggiornata quantità di "${product.name}" nel carrello. Nuova quantità: ${updatedCartItem.quantity}`,
+        message: `Aggiornata quantità di "${product.name}"${product.formato ? ` (${product.formato})` : ''} nel carrello. Nuova quantità: ${updatedCartItem.quantity}`,
         cartItem: updatedCartItem
       }
     } else {
@@ -141,7 +141,7 @@ export async function addToCart(params: AddToCartParams): Promise<AddToCartResul
       logger.info(`[ADD_TO_CART] Added new product to cart: ${product.name}`)
       return {
         success: true,
-        message: `"${product.name}" aggiunto al carrello! Quantità: ${quantity}, Prezzo: €${product.price.toFixed(2)}`,
+        message: `"${product.name}"${product.formato ? ` (${product.formato})` : ''} aggiunto al carrello! Quantità: ${quantity}, Prezzo: €${product.price.toFixed(2)}`,
         cartItem: newCartItem
       }
     }

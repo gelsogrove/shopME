@@ -14,6 +14,7 @@ export interface Product {
   name: string
   code: string | null
   description: string
+  formato: string | null
   price: number
   stock: number
   sku: string | null

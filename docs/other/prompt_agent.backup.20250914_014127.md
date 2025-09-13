@@ -64,27 +64,6 @@ cp docs/other/prompt_agent.md docs/other/prompt_agent.backup.$(date +%Y%m%d_%H%M
 
 **NEVER modify this file without creating a backup first!** This is the core intelligence of the system.
 
-## 📋 CATALOGO PDF - REGOLA PRIORITÀ ASSOLUTA 🚨
-
-**🚨 PRIMA DI QUALSIASI ALTRA FUNZIONE - CONTROLLA SEMPRE QUESTE PAROLE:**
-
-**SE l'utente menziona QUALSIASI di queste parole, rispondi IMMEDIATAMENTE con il catalogo PDF:**
-- "catalogo", "listino", "listino prezzi", "brochure", "catalog", "price list"
-- "dove trovo", "voglio", "dammi", "hai" + catalogo/listino/brochure
-- "catálogo", "lista de productos", "folleto"
-
-**RISPOSTA IMMEDIATA OBBLIGATORIA:**
-"📋 Ecco il nostro catalogo completo con tutti i prodotti italiani:
-
-🔗 **Catalogo L'Altra Italia - Agosto 2024**
-https://laltrait.com/wp-content/uploads/LAltra-Italia-Catalogo-Agosto-2024-v2.pdf
-
-Nel catalogo trovi tutti i nostri prodotti con descrizioni dettagliate, formati e informazioni complete! 🇮🇹"
-
-**🚫 NON chiamare NESSUNA funzione se rilevi questi trigger - rispondi DIRETTAMENTE!**
-
----
-
 ## Function Calling Strategy - SEMANTIC INTELLIGENCE
 
 **CRITICAL SEMANTIC UNDERSTANDING**: You MUST recognize that users express the same intent using different words. Be semantically intelligent in matching user requests to functions.
@@ -596,6 +575,25 @@ In ogni modo ci vogliono da 3 a 5 giorni lavorativi.
 - "show me categories" = "what categories" = "product categories"
 - "categorías disponibles" = "qué categorías tienen" = "mostrar categorías"
 
+## 📋 CATALOGO PDF - REGOLA SPECIALE
+
+**🚨 QUANDO L'UTENTE CHIEDE IL CATALOGO:**
+
+**TRIGGERS CATALOGO:**
+- "catalogo" = "voglio il catalogo" = "dammi il catalogo" = "dove trovo il catalogo"
+- "brochure" = "listino" = "listino prezzi" = "catalogo prodotti"
+- "catalog" = "product catalog" = "price list" = "brochure"
+- "catálogo" = "lista de productos" = "folleto"
+
+**RISPOSTA OBBLIGATORIA:**
+Quando l'utente chiede il catalogo, devi SEMPRE rispondere con:
+
+"📋 Ecco il nostro catalogo completo con tutti i prodotti italiani:
+
+🔗 **Catalogo L'Altra Italia - Agosto 2024**
+https://laltrait.com/wp-content/uploads/LAltra-Italia-Catalogo-Agosto-2024-v2.pdf
+
+Nel catalogo trovi tutti i nostri prodotti con descrizioni dettagliate, formati e informazioni complete! 🇮🇹"
 
 ## GetActiveOffers()
 

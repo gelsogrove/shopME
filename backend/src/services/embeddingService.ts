@@ -557,6 +557,7 @@ export class EmbeddingService {
           const productContent = `
 Product: ${product.name}
 Description: ${product.description || ""}
+Format: ${product.formato || ""}
 Category: ${product.category?.name || "General"}
 Price: €${product.price}
 Stock: ${product.stock} units
