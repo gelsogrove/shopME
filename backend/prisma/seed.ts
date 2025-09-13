@@ -26,6 +26,7 @@ import * as bcrypt from "bcrypt"
 import dotenv from "dotenv"
 import fs from "fs"
 import path from "path"
+import { lAltraItaliaProducts } from "./products_laltrait"
 
 // Load environment variables
 dotenv.config()
@@ -890,92 +891,32 @@ async function main() {
     // Non li cancelliamo per sicurezza, ma non li includiamo nelle operazioni successive
   }
 
-  // Create combined food categories (from both files)
+  // L'Altra Italia Categories - Based on catalog structure
   const foodCategories = [
-    // Categorie dal seed.ts originale
     {
-      name: "Beverages",
-      slug: "beverages",
-      description:
-        "Italian beverages including wines, spirits, coffee, soft drinks, and both alcoholic and non-alcoholic options",
+      name: "Burrata",
+      slug: "burrata",
+      description: "Formaggi freschi a pasta filata con ripieno cremoso, specialità pugliesi artigianali",
     },
     {
-      name: "Pasta",
-      slug: "pasta",
-      description:
-        "Fresh and dried pasta varieties from different regions of Italy",
+      name: "Mozzarella Bufala",
+      slug: "mozzarella-bufala", 
+      description: "Mozzarelle di bufala campana DOP e specialità certificate di alta qualità",
     },
     {
-      name: "Cheese",
-      slug: "cheese",
-      description: "Authentic Italian cheeses, from fresh to aged varieties",
+      name: "Fior di Latte",
+      slug: "fior-di-latte",
+      description: "Mozzarelle tradizionali di latte vaccino in diversi tagli e formati",
     },
     {
-      name: "Vegetables",
-      slug: "vegetables",
-      description: "Fresh and preserved vegetables of the highest quality",
+      name: "Otros frescos",
+      slug: "otros-frescos",
+      description: "Altri formaggi freschi e latticini: stracciatella, ricotta, mascarpone, scamorza",
     },
     {
-      name: "Condiments",
-      slug: "condiments",
-      description: "Oils, vinegars, and specialty Italian condiments",
-    },
-    {
-      name: "Preserves",
-      slug: "preserves",
-      description:
-        "Jams, marmalades, and preserved fruits made with traditional recipes",
-    },
-    {
-      name: "Snacks",
-      slug: "snacks",
-      description: "Italian savory and sweet snacks perfect for any occasion",
-    },
-    {
-      name: "Gourmet",
-      slug: "gourmet",
-      description: "Premium specialty products for the discerning palate",
-    },
-    {
-      name: "Fresh Products",
-      slug: "fresh-products",
-      description: "Freshly made Italian foods delivered to your table",
-    },
-    {
-      name: "Desserts",
-      slug: "desserts",
-      description: "Traditional Italian sweets and desserts",
-    },
-    // Categorie aggiunte dal seed.js.old
-    {
-      name: "Pizza e Pasta",
-      slug: "pizza-e-pasta",
-      description: "Pizze artigianali e pasta fresca della tradizione italiana",
-    },
-    {
-      name: "Antipasti",
-      slug: "antipasti",
-      description: "Antipasti tradizionali italiani",
-    },
-    {
-      name: "Piatti Pronti",
-      slug: "piatti-pronti",
-      description: "Piatti pronti da riscaldare e servire",
-    },
-    {
-      name: "Salumi",
-      slug: "salumi",
-      description: "Salumi e affettati tipici italiani",
-    },
-    {
-      name: "Pesce",
-      slug: "pesce",
-      description: "Specialità di pesce della tradizione italiana",
-    },
-    {
-      name: "Salse",
-      slug: "salse",
-      description: "Salse e condimenti italiani",
+      name: "Curados",
+      slug: "curados",
+      description: "Formaggi stagionati e a pasta dura: Parmigiano Reggiano DOP, Gran Moravia, Provolone",
     },
   ]
 
@@ -1176,92 +1117,222 @@ async function main() {
     }
   }
 
-  // Create combined products list (from both files)
-  const products = [
-    // Prodotti dal seed.ts originale
-    {
-      name: "Gragnano IGP Pasta - Spaghetti",
-      ProductCode: "00001",
-      description:
-        "Traditional spaghetti from Gragnano, made with selected durum wheat semolina. Bronze drawn for the perfect texture.",
-      price: 4.99,
-      stock: 120,
+  // L'Altra Italia Products - Based on catalog with realistic pricing
+  const products = lAltraItaliaProducts
 
-      status: "ACTIVE",
-      slug: "gragnano-igp-pasta-spaghetti",
-      categoryName: "Pasta",
+  // Create or update products with their categories
+  for (const product of products) {
+    // Find the category by name for this workspace
+    const category = await prisma.categories.findFirst({
+      where: {
+        name: product.categoryName,
+        workspaceId: mainWorkspaceId,
+      },
+    })
+
+    if (!category) {
+      console.log(
+        `Category ${product.categoryName} not found for workspace ${createdWorkspaces[0].name}`
+      )
+      continue
+    }
+
+    // Create a product with proper type for Prisma
+    try {
+      const existingProduct = await prisma.products.findFirst({
+        where: {
+          name: product.name,
+          workspaceId: mainWorkspaceId,
+        },
+      })
+
+      if (!existingProduct) {
+        await prisma.products.create({
+          data: {
+            name: product.name,
+            ProductCode:
+              product.ProductCode ||
+              `000${Math.floor(Math.random() * 1000)
+                .toString()
+                .padStart(3, "0")}`,
+            description: product.description,
+            formato: product.formato,
+            price: product.price,
+            stock: product.stock,
+            status: "ACTIVE" as any, // Casting to any per evitare errori di tipo
+            slug: `${product.slug}-${Date.now()}`, // Generiamo slug unici
+            workspaceId: mainWorkspaceId,
+            categoryId: category.id,
+          },
+        })
+        console.log(
+          `Product created: ${product.name} for workspace ${createdWorkspaces[0].name}`
+        )
+      } else {
+        // Update existing product
+        await prisma.products.update({
+          where: { id: existingProduct.id },
+          data: {
+            name: product.name,
+            description: product.description,
+            formato: product.formato,
+            price: product.price,
+            stock: product.stock,
+            categoryId: category.id,
+          },
+        })
+        console.log(
+          `Product updated: ${product.name} for workspace ${createdWorkspaces[0].name}`
+        )
+      }
+    } catch (error: any) {
+      if (error.code === "P2002" && error.meta?.target?.includes("slug")) {
+        console.error(
+          `Duplicate slug detected for product: ${product.name}. Skipping creation.`
+        )
+      } else {
+        console.error(`Error creating/updating product ${product.name}:`, error)
+      }
+    }
+  }
+
+  // Create special offers for the workspace
+  console.log("Creating special offers...")
+
+  // Define sample offers
+  const specialOffers = [
+    {
+      name: "Offerta Alcolici 20%",
+      description: "Sconto del 20% su tutti gli alcolici!",
+      discountPercent: 20,
+      startDate: new Date(new Date().setDate(new Date().getDate() - 30)), // 30 days ago
+      endDate: new Date(new Date().setDate(new Date().getDate() + 365)), // 1 year from now
+      isActive: true,
+      categoryId: null as string | null, // Will be set to Beverages category below
     },
     {
-      name: "Homemade Tagliatelle",
-      ProductCode: "00002",
-      description:
-        "Freshly made egg tagliatelle, perfect for rich meat sauces and ragù.",
-      price: 6.99,
-      stock: 45,
-
-      status: "ACTIVE",
-      slug: "homemade-tagliatelle",
-      categoryName: "Pasta",
+      name: "Black Friday Special",
+      description: "Huge discounts on all products for Black Friday weekend!",
+      discountPercent: 25,
+      startDate: new Date(new Date().getFullYear(), 10, 25), // November 25th
+      endDate: new Date(new Date().getFullYear(), 10, 28), // November 28th
+      isActive: false,
+      categoryId: null as string | null, // All categories
     },
     {
-      name: "Parmigiano Reggiano DOP 24 months",
-      ProductCode: "00003",
-      description:
-        "Authentic Parmigiano Reggiano DOP aged 24 months. Intense flavor with a granular texture.",
-      price: 29.99,
-      stock: 25,
+      name: "Summer Sale",
+      description: "Special summer discounts on selected products!",
+      discountPercent: 15,
+      startDate: new Date(new Date().getFullYear(), 7, 15), // August 15th
+      endDate: new Date(new Date().getFullYear(), 8, 15), // September 15th
+      isActive: false,
+      categoryId: null as string | null, // All categories
+    },
+  ]
 
-      status: "ACTIVE",
-      slug: "parmigiano-reggiano-dop-24-months",
-      categoryName: "Cheese",
+  // Delete existing offers first
+  await prisma.offers.deleteMany({
+    where: {
+      workspaceId: mainWorkspaceId,
+    },
+  })
+  console.log("Deleted existing offers")
+
+  // Create new offers
+  for (const offer of specialOffers) {
+    try {
+      // For "Offerta Alcolici 20%", find and assign Beverages category
+      let finalCategoryId = offer.categoryId
+      if (offer.name === "Offerta Alcolici 20%") {
+        const beverageCategory = await prisma.categories.findFirst({
+          where: {
+            workspaceId: mainWorkspaceId,
+            name: "Beverages",
+          },
+        })
+        if (beverageCategory) {
+          finalCategoryId = beverageCategory.id
+          console.log(
+            `Assigning Offerta Alcolici to Beverages category: ${beverageCategory.id}`
+          )
+        }
+      }
+
+      await prisma.offers.create({
+        data: {
+          name: offer.name,
+          description: offer.description,
+          discountPercent: offer.discountPercent,
+          startDate: offer.startDate,
+          endDate: offer.endDate,
+          isActive: offer.isActive,
+          categoryId: finalCategoryId,
+          workspaceId: mainWorkspaceId,
+        },
+      })
+      console.log(`Offer created: ${offer.name}`)
+    } catch (error) {
+      console.error(`Error creating offer ${offer.name}:`, error)
+    }
+  }
+
+  // Create services for the main workspace (reduced to 2 services as requested)
+  const services = [
+    {
+      code: "SHP001",
+      name: "Shipping",
+      description:
+        "Standard shipping service for orders within Italy. Delivery within 3-5 business days.",
+      price: 5.0,
+      currency: "EUR",
     },
     {
-      name: "Mozzarella di Bufala Campana DOP",
-      ProductCode: "00004",
+      code: "GFT001",
+      name: "Gift Wrapping",
       description:
-        "Fresh buffalo mozzarella DOP from Campania. Soft texture and delicate milk flavor.",
-      price: 9.99,
-      stock: 40,
-
-      status: "ACTIVE",
-      slug: "mozzarella-di-bufala-campana-dop",
-      categoryName: "Cheese",
+        "Luxury gift wrapping service with personalized message and premium packaging materials.",
+      price: 30.0,
+      currency: "EUR",
     },
-    {
-      name: "Tuscan IGP Extra Virgin Olive Oil",
-      description:
-        "Premium extra virgin olive oil from Tuscany with balanced flavor and fruity notes.",
-      price: 19.99,
-      stock: 48,
+  ]
 
-      status: "ACTIVE",
-      slug: "tuscan-igp-extra-virgin-olive-oil",
-      categoryName: "Beverages",
-    },
-    {
-      name: "Aceto Balsamico di Modena IGP",
-      description:
-        "Traditional balsamic vinegar of Modena IGP with a perfect balance of sweet and sour.",
-      price: 14.99,
-      stock: 30,
+  // Create or update services for the main workspace
+  for (const service of services) {
+    const existingService = await prisma.services.findFirst({
+      where: {
+        code: service.code,
+        workspaceId: mainWorkspaceId,
+      },
+    })
 
-      status: "ACTIVE",
-      slug: "aceto-balsamico-di-modena-igp",
-      categoryName: "Condiments",
-    },
-    {
-      name: "Prosciutto di Parma DOP 24 months",
-      description:
-        "Fine Parma ham aged for 24 months. Sweet flavor and delicate aroma.",
-      price: 24.99,
-      stock: 15,
+    if (!existingService) {
+      await prisma.services.create({
+        data: {
+          ...service,
+          workspaceId: mainWorkspaceId,
+        },
+      })
+      console.log(
+        `Service created: ${service.name} (${service.code}) for workspace ${createdWorkspaces[0].name}`
+      )
+    } else {
+      await prisma.services.update({
+        where: { id: existingService.id },
+        data: {
+          name: service.name,
+          description: service.description,
+          price: service.price,
+          currency: service.currency,
+        },
+      })
+      console.log(
+        `Service updated: ${service.name} (${service.code}) for workspace ${createdWorkspaces[0].name}`
+      )
+    }
+  }
 
-      status: "ACTIVE",
-      slug: "prosciutto-di-parma-dop-24-months",
-      categoryName: "Gourmet",
-    },
-
-    {
+  // Create or update products with their categories
+  for (const product of products) {
       name: "Pistacchi di Bronte DOP",
       description:
         "Vibrant green pistachios from Bronte, Sicily. Intensely flavored with sweet and slightly resinous notes.",
