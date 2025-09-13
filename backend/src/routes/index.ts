@@ -354,22 +354,130 @@ router.post("/chat", async (req, res) => {
     
     // Handle direct message format: {message: "text", phoneNumber: "+123", workspaceId: "xyz"}
     if (body?.message && body?.phoneNumber && body?.workspaceId) {
+      try {
+        const workspaceId = body.workspaceId;
+        const phoneNumber = body.phoneNumber;
+        const language = body.language || "it";
+
+        // 🔧 FIX: Get customer data and process variables like webhook does
+        let variables = {
+          nameUser: 'Cliente',
+          discountUser: 'Nessuno sconto attivo',
+          companyName: 'L\'Altra Italia',
+          lastorder: 'Nessun ordine recente',
+          lastordercode: 'N/A',
+          languageUser: language
+        };
+
+        // Get customer data by phone number
+        const customer = await prisma.customers.findFirst({
+          where: {
+            phone: phoneNumber,
+            workspaceId: workspaceId
+          },
+          include: {
+            orders: {
+              orderBy: { createdAt: 'desc' },
+              take: 1
+            }
+          }
+        });
+
+        if (customer) {
+          const lastOrder = customer.orders[0];
+          variables = {
+            nameUser: customer?.name || 'Unknown Customer',
+            discountUser: customer?.discount ? `${customer.discount}% di sconto attivo` : 'Nessuno sconto attivo',
+            companyName: customer?.company || 'L\'Altra Italia',
+            lastorder: lastOrder ? lastOrder.createdAt.toLocaleDateString() : 'Nessun ordine recente',
+            lastordercode: lastOrder?.orderCode || 'N/A',
+            languageUser: customer?.language || language
+          };
+        }
+
+        // Get agent config with prompt from database
+        let agentPrompt = "WhatsApp conversation"; // fallback
+        try {
+          const agentConfig = await prisma.agentConfig.findFirst({
+            where: { workspaceId }
+          });
+          if (agentConfig?.prompt) {
+            agentPrompt = agentConfig.prompt;
+          }
+        } catch (error) {
+          console.error('❌ Error fetching agent config:', error);
+        }
+
+        // 🔧 CRITICAL FIX: Replace variables in prompt like webhook does
+        agentPrompt = agentPrompt
+          .replace(/\{\{nameUser\}\}/g, variables.nameUser)
+          .replace(/\{\{discountUser\}\}/g, variables.discountUser)
+          .replace(/\{\{companyName\}\}/g, variables.companyName)
+          .replace(/\{\{lastorder\}\}/g, variables.lastorder)
+          .replace(/\{\{lastordercode\}\}/g, variables.lastordercode)
+          .replace(/\{\{languageUser\}\}/g, variables.languageUser);
+
+        // 🔧 CRITICAL FIX: Get conversation history like webhook does
+        let chatHistory: any[] = [];
+        try {
+          if (customer?.id && workspaceId) {
+            // Get recent messages for this customer (last 10 messages)
+            const recentMessages = await messageRepository.getLatesttMessages(body.phoneNumber, 10, workspaceId);
+            
+            chatHistory = recentMessages.map(msg => ({
+              role: msg.direction === 'INBOUND' ? 'user' : 'assistant',
+              content: msg.content
+            }));
+            
+            console.log(`🔍 /api/chat: Loaded ${chatHistory.length} messages from history for customer ${customer.id}`);
+          }
+        } catch (historyError) {
+          console.error('❌ Error loading chat history:', historyError);
+          // Continue without history if error occurs
+        }
+
         const llmRequest: LLMRequest = {
           chatInput: body.message,
           workspaceId: body.workspaceId,
-          customerid: "", // Will be resolved by phone
+          customerid: customer?.id || "", // Use actual customer ID if found
           phone: body.phoneNumber,
-          language: body.language || "it",
+          language: variables.languageUser, // Use customer's language
           sessionId: "chat-session",
           temperature: 0.1,
           maxTokens: 3500,
           model: "gpt-4o",
-          messages: [],
-          prompt: ""
+          messages: chatHistory, // 🔧 NOW INCLUDES REAL CHAT HISTORY like webhook
+          prompt: agentPrompt // 🔧 Now includes processed prompt with variables
         }
 
-      const response = await dualLLMService.processMessage(llmRequest)
-      return res.json(response)
+        const response = await dualLLMService.processMessage(llmRequest)
+        
+        // 🔧 CRITICAL FIX: Save message to database like webhook does
+        try {
+          if (customer?.id && workspaceId && response.success) {
+            await messageRepository.saveMessage({
+              workspaceId: workspaceId,
+              phoneNumber: body.phoneNumber,
+              message: body.message,
+              response: response.output || "No response",
+              direction: "INBOUND",
+              processingSource: "api-chat-endpoint"
+            });
+            console.log('💾 /api/chat: Message saved to database for conversation history');
+          }
+        } catch (saveError) {
+          console.error('❌ /api/chat: Failed to save message:', saveError);
+          // Continue - don't fail the whole request if save fails
+        }
+        
+        return res.json(response)
+      } catch (error) {
+        console.error('❌ Error in /api/chat endpoint:', error);
+        return res.status(500).json({
+          status: "error",
+          message: "Internal server error processing chat request"
+        });
+      }
     }
 
     // If we get here, return error

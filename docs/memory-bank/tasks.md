@@ -164,6 +164,18 @@
 - **Stato**: PENDING
 - **Note**: CRITICO - Il carrello deve essere sempre sincronizzato con il database per evitare perdita di dati e garantire consistenza tra sessioni utente
 
+### TASK: Rimozione Completa N8N dal Sistema
+- **Descrizione**: RIMUOVERE COMPLETAMENTE: Eliminare ogni traccia di N8N dal sistema. Andrea non vuole più vedere nulla che riguardi N8N, neanche nelle ricerche. Deve essere rimosso: 1) Tutti i file e cartelle N8N dal progetto, 2) Tutti i riferimenti N8N nel codice (import, chiamate, configurazioni), 3) Tutte le pagine frontend che menzionano N8N (N8NPage.tsx, menu, routing), 4) Tutti gli script N8N dalla cartella scripts/, 5) Tutte le configurazioni N8N da docker-compose.yml, 6) Tutti i commenti e documentazione che menziona N8N, 7) Tutte le variabili d'ambiente N8N, 8) Tutti i servizi e controller N8N, 9) Pulizia completa del database da tabelle/dati N8N, 10) Aggiornamento documentazione per rimuovere ogni riferimento N8N. Comportamento corretto: Sistema completamente pulito da N8N, nessuna traccia rimasta nel codice, file, documentazione o database.
+- **Priorità**: MASSIMA
+- **Stato**: PENDING
+- **Note**: CRITICO - Andrea vuole N8N completamente rimosso dal sistema, nessuna traccia deve rimanere
+
+### TASK: Temperatura Dinamica per LLM Formatter
+- **Descrizione**: IMPLEMENTARE: Passare la temperatura in modo dinamico all'LLM del formatter invece di usare valori hardcoded. Attualmente il formatter potrebbe usare una temperatura fissa, ma deve utilizzare la configurazione dinamica dall'agent config. Deve essere implementato: 1) Verificare se il formatter LLM usa temperatura hardcoded, 2) Modificare il formatter per ricevere temperatura dall'agent configuration, 3) Assicurarsi che il formatter usi agentConfig.formatterTemperature (o campo equivalente), 4) Implementare fallback sicuro se la configurazione non è disponibile, 5) Testare che la temperatura dinamica funzioni correttamente, 6) Verificare che RAG Processor e Formatter usino temperature diverse come richiesto (0.3 per RAG, 0.7 per Formatter), 7) Aggiornare documentazione se necessario. Comportamento corretto: Formatter usa temperatura dinamica dall'agent config → Maggiore flessibilità di configurazione → Temperature diverse per RAG (0.3) e Formatter (0.7).
+- **Priorità**: MEDIA
+- **Stato**: PENDING
+- **Note**: Importante per avere controllo completo sulla configurazione LLM e mantenere temperature diverse per RAG Processor (0.3) e Formatter (0.7)
+
 ## ✅ TASK COMPLETATI
 
 ### TASK: Orders - Riorganizzare campo Notes
@@ -205,5 +217,5 @@
 ---
 
 **Ultimo aggiornamento**: $(date)
-**Task totali**: 30 (18 completati, 12 pending)
-**Task critici**: 1
+**Task totali**: 32 (18 completati, 14 pending)
+**Task critici**: 2

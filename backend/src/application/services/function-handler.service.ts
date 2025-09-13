@@ -386,7 +386,7 @@ export class FunctionHandlerService {
 
         return {
           success: false,
-          error: `🤔 Ho trovato più prodotti corrispondenti a "${productName}". Quale vuoi aggiungere al carrello?\n\n${productOptions}\n\n📝 Per aggiungere al carrello, scrivi ESATTAMENTE:\n"aggiungi al carrello [00004]"\noppure\n"aggiungi al carrello Mozzarella di Bufala Campana DOP"`,
+          error: `🤔 Ho trovato più prodotti corrispondenti a "${productName}". Quale vuoi?\n\n${productOptions}`,
           action: 'disambiguation_required',
           products: products.map(p => ({
             id: p.id,
